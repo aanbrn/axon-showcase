@@ -1,0 +1,1088 @@
+global:
+  imageRegistry: ""
+  imagePullSecrets: [ ]
+
+kubeVersion: ""
+
+nameOverride: ""
+
+fullnameOverride: ""
+
+namespaceOverride: ""
+
+clusterDomain: cluster.local
+
+extraDeploy: [ ]
+
+commonLabels: { }
+
+commonAnnotations: { }
+
+dbEvents:
+  hosts: axon-showcase-db-events
+  name: showcase-events
+  schema: public
+  params: ""
+  username: showcase
+  passwordSecret:
+    name: axon-showcase-db-events
+    key: password
+
+dbSagas:
+  hosts: axon-showcase-db-sagas
+  name: showcase-sagas
+  schema: public
+  params: ""
+  username: showcase
+  passwordSecret:
+    name: axon-showcase-db-sagas
+    key: password
+
+esViews:
+  uris: http://axon-showcase-es-views:9200
+  secured: false
+  passwordSecret:
+    name: axon-showcase-es-views
+    key: elasticsearch-password
+
+kafka:
+  bootstrapServers: axon-showcase-kafka:9092
+  topics:
+    events: axon-showcase-events
+  securityProtocol: PLAINTEXT
+
+commandService:
+
+  labels: { }
+
+  annotations: { }
+
+  podLabels: { }
+
+  podAnnotations: { }
+
+  image:
+    registry: ""
+    repository: aanbrn/axon-showcase-command-service
+    tag: ${projectVersion}
+    digest: ""
+    pullPolicy: null
+    pullSecrets: [ ]
+
+  replicaCount: 1
+
+  revisionHistoryLimit: 10
+
+  updateStrategy:
+    type: RollingUpdate
+
+  dbEvents:
+    pool:
+      maxSize: 10
+      minIdle: 0
+      maxLifetime: 1800000
+      connectionTimeout: 30000
+      validationTimeout: 5000
+      idleTimeout: 600000
+      leakDetectionThreshold: 0
+
+  kafka:
+    producer:
+      retries: 3
+
+  showcaseCache:
+    maxSize: 1000
+    expiresAfterAccess: PT10M
+    expiresAfterWrite: PT5M
+
+  extraEnvVars: { }
+
+  extraEnvVarsCM: ""
+
+  extraEnvVarsSecret: ""
+
+  containerPorts:
+    server: 8080
+    managementServer: 8888
+    jgroups: 7800
+
+  extraContainerPorts: [ ]
+
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 3
+    periodSeconds: 3
+    timeoutSeconds: 1
+    failureThreshold: 10
+    successThreshold: 1
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 20
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  resources:
+    requests:
+      cpu: 0.75
+      memory: 512Mi
+    limits:
+      cpu: 1.0
+      memory: 768M
+
+  lifecycleHooks: { }
+
+  affinity: { }
+
+  podAffinityPreset: ""
+
+  podAntiAffinityPreset: soft
+
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: [ ]
+
+  automountServiceAccountToken: true
+
+  hostAliases: [ ]
+
+  nodeSelector: { }
+
+  tolerations: [ ]
+
+  priorityClassName: ""
+
+  schedulerName: ""
+
+  topologySpreadConstraints: [ ]
+
+  terminationGracePeriodSeconds: ""
+
+  terminationMessagePolicy: FallbackToLogsOnError
+
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: [ ]
+    supplementalGroups: [ ]
+    fsGroup: 1001
+
+  containerSecurityContext:
+    enabled: true
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+  extraVolumeMounts: [ ]
+
+  extraVolumes: [ ]
+
+  initContainers: [ ]
+
+  sidecars: [ ]
+
+  extraPodSpec: { }
+
+  autoscaling:
+    vpa:
+      enabled: false
+      controlledResources: [ ]
+      maxAllowed: { }
+      minAllowed: { }
+      updatePolicy:
+        updateMode: Auto
+    hpa:
+      enabled: false
+      minReplicas: 3
+      maxReplicas: 5
+      targetCPU: 80
+      targetMemory: ""
+      metrics: [ ]
+
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+
+  networkPolicy:
+    enabled: true
+    addExternalClientAccess: true
+    ingressPodMatchLabels: { }
+    ingressManagementNSMatchLabels: { }
+    ingressManagementNSPodMatchLabels: { }
+    extraIngress: [ ]
+    extraEgress: [ ]
+
+  serviceMonitor:
+    enabled: true
+    namespace: ""
+    labels: { }
+    annotations: { }
+    interval: ""
+    scrapeTimeout: ""
+    relabeling: [ ]
+    metricRelabeling: [ ]
+    honorLabels: false
+
+sagaService:
+
+  labels: { }
+
+  annotations: { }
+
+  podLabels: { }
+
+  podAnnotations: { }
+
+  image:
+    registry: ""
+    repository: aanbrn/axon-showcase-saga-service
+    tag: ${projectVersion}
+    digest: ""
+    pullPolicy: null
+    pullSecrets: [ ]
+
+  replicaCount: 1
+
+  revisionHistoryLimit: 10
+
+  updateStrategy:
+    type: RollingUpdate
+
+  dbSagas:
+    pool:
+      maxSize: 10
+      minIdle: 0
+      maxLifetime: 1800000
+      connectionTimeout: 30000
+      validationTimeout: 5000
+      idleTimeout: 600000
+      leakDetectionThreshold: 0
+
+  kafka:
+    fetcher:
+      pollTimeout: 5000
+      consumerCount: 1
+
+  extraEnvVars: { }
+
+  extraEnvVarsCM: ""
+
+  extraEnvVarsSecret: ""
+
+  containerPorts:
+    server: 8080
+    managementServer: 8888
+    jgroups: 7800
+
+  extraContainerPorts: [ ]
+
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 3
+    periodSeconds: 3
+    timeoutSeconds: 1
+    failureThreshold: 10
+    successThreshold: 1
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 20
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  resources:
+    requests:
+      cpu: 0.75
+      memory: 512Mi
+    limits:
+      cpu: 1.0
+      memory: 768M
+
+  lifecycleHooks: { }
+
+  affinity: { }
+
+  podAffinityPreset: ""
+
+  podAntiAffinityPreset: soft
+
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: [ ]
+
+  automountServiceAccountToken: true
+
+  hostAliases: [ ]
+
+  nodeSelector: { }
+
+  tolerations: [ ]
+
+  priorityClassName: ""
+
+  schedulerName: ""
+
+  topologySpreadConstraints: [ ]
+
+  terminationGracePeriodSeconds: ""
+
+  terminationMessagePolicy: FallbackToLogsOnError
+
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: [ ]
+    supplementalGroups: [ ]
+    fsGroup: 1001
+
+  containerSecurityContext:
+    enabled: true
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+  extraVolumeMounts: [ ]
+
+  extraVolumes: [ ]
+
+  initContainers: [ ]
+
+  sidecars: [ ]
+
+  extraPodSpec: { }
+
+  autoscaling:
+    vpa:
+      enabled: false
+      controlledResources: [ ]
+      maxAllowed: { }
+      minAllowed: { }
+      updatePolicy:
+        updateMode: Auto
+    hpa:
+      enabled: false
+      minReplicas: 3
+      maxReplicas: 5
+      targetCPU: 80
+      targetMemory: ""
+      metrics: [ ]
+
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+
+  networkPolicy:
+    enabled: true
+    addExternalClientAccess: true
+    ingressPodMatchLabels: { }
+    ingressManagementNSMatchLabels: { }
+    ingressManagementNSPodMatchLabels: { }
+    extraIngress: [ ]
+    extraEgress: [ ]
+
+  serviceMonitor:
+    enabled: true
+    namespace: ""
+    labels: { }
+    annotations: { }
+    interval: ""
+    scrapeTimeout: ""
+    relabeling: [ ]
+    metricRelabeling: [ ]
+    honorLabels: false
+
+projectionService:
+
+  labels: { }
+
+  annotations: { }
+
+  podLabels: { }
+
+  podAnnotations: { }
+
+  image:
+    registry: ""
+    repository: aanbrn/axon-showcase-projection-service
+    tag: ${projectVersion}
+    digest: ""
+    pullPolicy: null
+    pullSecrets: [ ]
+
+  replicaCount: 1
+
+  revisionHistoryLimit: 10
+
+  updateStrategy:
+    type: RollingUpdate
+
+  kafka:
+    fetcher:
+      pollTimeout: 5000
+      consumerCount: 1
+
+  esViews:
+    connectionTimeout: PT1S
+    socketTimeout: PT30S
+    socketKeepAlive: false
+
+  extraEnvVars: { }
+
+  extraEnvVarsCM: ""
+
+  extraEnvVarsSecret: ""
+
+  containerPorts:
+    server: 8080
+    managementServer: 8888
+
+  extraContainerPorts: [ ]
+
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 3
+    periodSeconds: 3
+    timeoutSeconds: 1
+    failureThreshold: 10
+    successThreshold: 1
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 20
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  resources:
+    requests:
+      cpu: 0.75
+      memory: 512Mi
+    limits:
+      cpu: 1.0
+      memory: 768M
+
+  lifecycleHooks: { }
+
+  affinity: { }
+
+  podAffinityPreset: ""
+
+  podAntiAffinityPreset: soft
+
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: [ ]
+
+  automountServiceAccountToken: true
+
+  hostAliases: [ ]
+
+  nodeSelector: { }
+
+  tolerations: [ ]
+
+  priorityClassName: ""
+
+  schedulerName: ""
+
+  topologySpreadConstraints: [ ]
+
+  terminationGracePeriodSeconds: ""
+
+  terminationMessagePolicy: FallbackToLogsOnError
+
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: [ ]
+    supplementalGroups: [ ]
+    fsGroup: 1001
+
+  containerSecurityContext:
+    enabled: true
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+  extraVolumeMounts: [ ]
+
+  extraVolumes: [ ]
+
+  initContainers: [ ]
+
+  sidecars: [ ]
+
+  extraPodSpec: { }
+
+  autoscaling:
+    vpa:
+      enabled: false
+      controlledResources: [ ]
+      maxAllowed: { }
+      minAllowed: { }
+      updatePolicy:
+        updateMode: Auto
+    hpa:
+      enabled: false
+      minReplicas: 3
+      maxReplicas: 5
+      targetCPU: 80
+      targetMemory: ""
+      metrics: [ ]
+
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+
+  networkPolicy:
+    enabled: true
+    addExternalClientAccess: true
+    ingressPodMatchLabels: { }
+    ingressManagementNSMatchLabels: { }
+    ingressManagementNSPodMatchLabels: { }
+    extraIngress: [ ]
+    extraEgress: [ ]
+
+  serviceMonitor:
+    enabled: true
+    namespace: ""
+    labels: { }
+    annotations: { }
+    interval: ""
+    scrapeTimeout: ""
+    relabeling: [ ]
+    metricRelabeling: [ ]
+    honorLabels: false
+
+queryService:
+
+  labels: { }
+
+  annotations: { }
+
+  podLabels: { }
+
+  podAnnotations: { }
+
+  image:
+    registry: ""
+    repository: aanbrn/axon-showcase-query-service
+    tag: ${projectVersion}
+    digest: ""
+    pullPolicy: null
+    pullSecrets: [ ]
+
+  replicaCount: 1
+
+  revisionHistoryLimit: 10
+
+  updateStrategy:
+    type: RollingUpdate
+
+  dbViews:
+    pool:
+      maxSize: 10
+      minIdle: 0
+      maxLifeTime: PT30M
+      maxAcquireTime: PT5S
+      maxCreateConnectionTime: PT30S
+      maxValidationTime: PT5S
+      maxIdleTime: PT10M
+
+  extraEnvVars: { }
+
+  extraEnvVarsCM: ""
+
+  extraEnvVarsSecret: ""
+
+  containerPorts:
+    server: 8080
+    managementServer: 8888
+
+  extraContainerPorts: [ ]
+
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 3
+    periodSeconds: 3
+    timeoutSeconds: 1
+    failureThreshold: 10
+    successThreshold: 1
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 20
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  resources:
+    requests:
+      cpu: 0.75
+      memory: 512Mi
+    limits:
+      cpu: 1.0
+      memory: 768M
+
+  lifecycleHooks: { }
+
+  affinity: { }
+
+  podAffinityPreset: ""
+
+  podAntiAffinityPreset: soft
+
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: [ ]
+
+  automountServiceAccountToken: true
+
+  hostAliases: [ ]
+
+  nodeSelector: { }
+
+  tolerations: [ ]
+
+  priorityClassName: ""
+
+  schedulerName: ""
+
+  topologySpreadConstraints: [ ]
+
+  terminationGracePeriodSeconds: ""
+
+  terminationMessagePolicy: FallbackToLogsOnError
+
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: [ ]
+    supplementalGroups: [ ]
+    fsGroup: 1001
+
+  containerSecurityContext:
+    enabled: true
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+  extraVolumeMounts: [ ]
+
+  extraVolumes: [ ]
+
+  initContainers: [ ]
+
+  sidecars: [ ]
+
+  extraPodSpec: { }
+
+  autoscaling:
+    vpa:
+      enabled: false
+      controlledResources: [ ]
+      maxAllowed: { }
+      minAllowed: { }
+      updatePolicy:
+        updateMode: Auto
+    hpa:
+      enabled: false
+      minReplicas: 3
+      maxReplicas: 5
+      targetCPU: 80
+      targetMemory: ""
+      metrics: [ ]
+
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+
+  networkPolicy:
+    enabled: true
+    addExternalClientAccess: true
+    ingressPodMatchLabels: { }
+    ingressManagementNSMatchLabels: { }
+    ingressManagementNSPodMatchLabels: { }
+    extraIngress: [ ]
+    extraEgress: [ ]
+
+  serviceMonitor:
+    enabled: true
+    namespace: ""
+    labels: { }
+    annotations: { }
+    interval: ""
+    scrapeTimeout: ""
+    relabeling: [ ]
+    metricRelabeling: [ ]
+    honorLabels: false
+
+apiGateway:
+
+  labels: { }
+
+  annotations: { }
+
+  podLabels: { }
+
+  podAnnotations: { }
+
+  image:
+    registry: ""
+    repository: aanbrn/axon-showcase-api-gateway
+    tag: ${projectVersion}
+    digest: ""
+    pullPolicy: null
+    pullSecrets: [ ]
+
+  replicaCount: 1
+
+  revisionHistoryLimit: 10
+
+  updateStrategy:
+    type: RollingUpdate
+
+  caches:
+    FetchShowcaseListQuery:
+      maxSize: 1000
+      expiresAfterAccess: PT10M
+      expiresAfterWrite: PT5M
+    FetchShowcaseByIdQuery:
+      maxSize: 1000
+      expiresAfterAccess: PT10M
+      expiresAfterWrite: PT5M
+
+  extraEnvVars: { }
+
+  extraEnvVarsCM: ""
+
+  extraEnvVarsSecret: ""
+
+  containerPorts:
+    server: 8080
+    managementServer: 8888
+    jgroups: 7800
+
+  extraContainerPorts: [ ]
+
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 3
+    periodSeconds: 3
+    timeoutSeconds: 1
+    failureThreshold: 10
+    successThreshold: 1
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 20
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  resources:
+    requests:
+      cpu: 0.75
+      memory: 512Mi
+    limits:
+      cpu: 1.0
+      memory: 768M
+
+  lifecycleHooks: { }
+
+  affinity: { }
+
+  podAffinityPreset: ""
+
+  podAntiAffinityPreset: soft
+
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: [ ]
+
+  automountServiceAccountToken: true
+
+  hostAliases: [ ]
+
+  nodeSelector: { }
+
+  tolerations: [ ]
+
+  priorityClassName: ""
+
+  schedulerName: ""
+
+  topologySpreadConstraints: [ ]
+
+  terminationGracePeriodSeconds: ""
+
+  terminationMessagePolicy: FallbackToLogsOnError
+
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: [ ]
+    supplementalGroups: [ ]
+    fsGroup: 1001
+
+  containerSecurityContext:
+    enabled: true
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+  extraVolumeMounts: [ ]
+
+  extraVolumes: [ ]
+
+  initContainers: [ ]
+
+  sidecars: [ ]
+
+  extraPodSpec: { }
+
+  resilience:
+    enabled: true
+    timelimiter:
+      enabled: true
+      defaults:
+        timeoutDuration: PT2S
+      commandService:
+        timeoutDuration: ""
+      queryService:
+        timeoutDuration: ""
+    circuitbreaker:
+      enabled: true
+      defaults:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 50
+        failureRateThreshold: 50
+        slowCallRateThreshold: 90
+        slowCallDurationThreshold: PT5S
+        waitDurationInOpenState: PT10S
+        exponentialBackoffMultiplier: 1.5
+        exponentialMaxWaitDurationInOpenState: ""
+        permittedNumberOfCallsInHalfOpenState: 10
+        maxWaitDurationInHalfOpenState: PT0S
+      commandService:
+        slidingWindowType: ""
+        slidingWindowSize: ""
+        minimumNumberOfCalls: ""
+        failureRateThreshold: ""
+        slowCallRateThreshold: ""
+        slowCallDurationThreshold: ""
+        waitDurationInOpenState: ""
+        exponentialBackoffMultiplier: ""
+        exponentialMaxWaitDurationInOpenState: ""
+        permittedNumberOfCallsInHalfOpenState: ""
+        maxWaitDurationInHalfOpenState: ""
+      queryService:
+        slidingWindowType: ""
+        slidingWindowSize: ""
+        minimumNumberOfCalls: ""
+        failureRateThreshold: ""
+        slowCallRateThreshold: ""
+        slowCallDurationThreshold: ""
+        waitDurationInOpenState: ""
+        exponentialBackoffMultiplier: ""
+        exponentialMaxWaitDurationInOpenState: ""
+        permittedNumberOfCallsInHalfOpenState: ""
+        maxWaitDurationInHalfOpenState: ""
+    retry:
+      enabled: true
+      defaults:
+        maxAttempts: 3
+        waitDuration: PT0.5S
+        exponentialBackoffMultiplier: 1.5
+        randomizedWaitFactor: 0.5
+        exponentialMaxWaitDuration: ""
+      commandService:
+        maxAttempts: ""
+        waitDuration: ""
+        exponentialBackoffMultiplier: ""
+        randomizedWaitFactor: ""
+        exponentialMaxWaitDuration: ""
+      queryService:
+        maxAttempts: ""
+        waitDuration: ""
+        exponentialBackoffMultiplier: ""
+        randomizedWaitFactor: ""
+        exponentialMaxWaitDuration: ""
+
+  autoscaling:
+    vpa:
+      enabled: false
+      controlledResources: [ ]
+      maxAllowed: { }
+      minAllowed: { }
+      updatePolicy:
+        updateMode: Auto
+    hpa:
+      enabled: false
+      minReplicas: 3
+      maxReplicas: 5
+      targetCPU: 80
+      targetMemory: ""
+      metrics: [ ]
+
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+
+  networkPolicy:
+    enabled: true
+    addExternalClientAccess: true
+    ingressPodMatchLabels: { }
+    ingressManagementNSMatchLabels: { }
+    ingressManagementNSPodMatchLabels: { }
+    extraIngress: [ ]
+    extraEgress: [ ]
+
+  serviceMonitor:
+    enabled: true
+    namespace: ""
+    labels: { }
+    annotations: { }
+    interval: ""
+    scrapeTimeout: ""
+    relabeling: [ ]
+    metricRelabeling: [ ]
+    honorLabels: false
+
+  ingress:
+    enabled: false
+    ingressClassName: ""
+    hostname: ""
+    path: /
+    pathType: Prefix
+    extraPaths: [ ]
+    extraHosts: [ ]
+    extraRules: [ ]
+
+  route:
+    enabled: false
+    labels: { }
+    annotations: { }
+    hostnames: [ ]
+    parentRefs: [ ]
+    matches:
+      - path:
+          type: PathPrefix
+          value: /
+    filters: [ ]
+    extraRules: [ ]
+
+observability:
+  logging:
+    structured:
+      enabled: false
+      format: ecs
+  metrics:
+    prometheus:
+      enabled: false
+    otlp:
+      enabled: false
+      endpoint: ""
+    tags:
+      application:
+        key: "application"
+        value: "{{ include \"common.names.fullname\" \$ }}"
+  tracing:
+    otlp:
+      enabled: false
+      endpoint: ""
+    logging: false
+
+serviceAccount:
+
+  create: true
+
+  name: ""
+
+  labels: { }
+
+  annotations: { }
+
+  automountServiceAccountToken: true
+
+rbac:
+  create: true
+  rules: [ ]

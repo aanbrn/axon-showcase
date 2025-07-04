@@ -1,0 +1,194 @@
+spring:
+  application:
+    name: axon-showcase-api-gateway
+  main:
+    banner-mode: off
+  cache:
+    type: caffeine
+  web:
+    locale: en
+  webflux:
+    problemdetails:
+      enabled: on
+  threads:
+    virtual:
+      enabled: true
+
+axon:
+  serializer:
+    messages: jackson
+  distributed:
+    enabled: on
+    jgroups:
+      configuration-file: ${JGROUPS_CONFIG_FILE:tcp-nio.xml}
+      cluster-name: ${JGROUPS_CLUSTER_NAME:axon-showcase}
+      bind-addr: ${JGROUPS_BIND_ADDR:LOOPBACK}
+      bind-port: ${JGROUPS_BIND_PORT:7800}
+      gossip:
+        autoStart: ${JGROUPS_GOSSIP_AUTO_START:false}
+        hosts: ${JGROUPS_GOSSIP_HOSTS:localhost[12001]}
+      tcp-ping:
+        hosts: ${JGROUPS_TCP_PING_HOSTS:localhost[7800]}
+      kube-ping:
+        namespace: ${JGROUPS_KUBE_PING_NAMESPACE:default}
+        labels: ${JGROUPS_KUBE_PING_LABELS:jgroups-cluster=axon-showcase}
+  metrics:
+    micrometer:
+      dimensional: true
+
+showcase:
+  api:
+    caches:
+      FetchShowcaseListQuery:
+        maximum-size: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_MAX_SIZE:1000}
+        expires-after-access: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_ACCESS:PT10M}
+        expires-after-write: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_WRITE:PT5M}
+      FetchShowcaseByIdQuery:
+        maximum-size: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_MAX_SIZE:1000}
+        expires-after-access: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_ACCESS:PT10M}
+        expires-after-write: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_WRITE:PT5M}
+    metrics:
+      tags:
+        - key: ${METRICS_TAG_APPLICATION_KEY:application}
+          value: ${METRICS_TAG_APPLICATION_VALUE:axon-showcase}
+    tracing:
+      logging: ${TRACING_LOGGING:false}
+  query:
+    api-url: ${SHOWCASE_QUERY_SERVICE_URL:http://localhost:8084}
+
+resilience4j:
+  enabled: ${RESILIENCE_ENABLED:true}
+  timelimiter:
+    enabled: ${TIMELIMITER_ENABLED:true}
+    metrics:
+      enabled: ${TIMELIMITER_METRICS_ENABLED:true}
+    configs:
+      default:
+        timeout-duration: ${TIMELIMITER_DEFAULT_TIMEOUT:PT2S}
+    instances:
+      showcase-command-service:
+        base-config: default
+        timeout-duration: ${TIMELIMITER_COMMAND_TIMEOUT:}
+      showcase-query-service:
+        base-config: default
+        timeout-duration: ${TIMELIMITER_QUERY_TIMEOUT:}
+  circuitbreaker:
+    enabled: ${CIRCUITBREAKER_ENABLED:true}
+    metrics:
+      enabled: ${CIRCUITBREAKER_METRICS_ENABLED:true}
+    configs:
+      default:
+        sliding-window-type: ${CIRCUITBREAKER_DEFAULT_SLIDING_WINDOW_TYPE:COUNT_BASED}
+        sliding-window-size: ${CIRCUITBREAKER_DEFAULT_SLIDING_WINDOW_SIZE:100}
+        minimum-number-of-calls: ${CIRCUITBREAKER_DEFAULT_MIN_REQUIRED_CALLS:50}
+        failure-rate-threshold: ${CIRCUITBREAKER_DEFAULT_FAILURE_RATE_THRESHOLD:50}
+        slow-call-rate-threshold: ${CIRCUITBREAKER_DEFAULT_SLOW_CALL_RATE_THRESHOLD:90}
+        slow-call-duration-threshold: ${CIRCUITBREAKER_DEFAULT_SLOW_CALL_DURATION_THRESHOLD:PT5S}
+        wait-duration-in-open-state: ${CIRCUITBREAKER_DEFAULT_WAIT_DURATION_IN_OPEN_STATE:PT10S}
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: ${CIRCUITBREAKER_DEFAULT_BACKOFF_MULTIPLIER_IN_OPEN_STATE:1.5}
+        exponential-max-wait-duration-in-open-state: ${CIRCUITBREAKER_DEFAULT_MAX_WAIT_DURATION_IN_OPEN_STATE:}
+        permitted-number-of-calls-in-half-open-state: ${CIRCUITBREAKER_DEFAULT_PERMITTED_CALLS_IN_HALF_OPEN_STATE:10}
+        max-wait-duration-in-half-open-state: ${CIRCUITBREAKER_DEFAULT_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE:PT0S}
+        register-health-indicator: true
+    instances:
+      showcase-command-service:
+        base-config: default
+        sliding-window-type: ${CIRCUITBREAKER_COMMAND_SLIDING_WINDOW_TYPE:}
+        sliding-window-size: ${CIRCUITBREAKER_COMMAND_SLIDING_WINDOW_SIZE:}
+        minimum-number-of-calls: ${CIRCUITBREAKER_COMMAND_MIN_REQUIRED_CALLS:}
+        failure-rate-threshold: ${CIRCUITBREAKER_COMMAND_FAILURE_RATE_THRESHOLD:}
+        slow-call-rate-threshold: ${CIRCUITBREAKER_COMMAND_SLOW_CALL_RATE_THRESHOLD:}
+        slow-call-duration-threshold: ${CIRCUITBREAKER_COMMAND_SLOW_CALL_DURATION_THRESHOLD:}
+        wait-duration-in-open-state: ${CIRCUITBREAKER_COMMAND_WAIT_DURATION_IN_OPEN_STATE:}
+        exponential-backoff-multiplier: ${CIRCUITBREAKER_COMMAND_BACKOFF_MULTIPLIER_IN_OPEN_STATE:}
+        exponential-max-wait-duration-in-open-state: ${CIRCUITBREAKER_COMMAND_MAX_WAIT_DURATION_IN_OPEN_STATE:}
+        permitted-number-of-calls-in-half-open-state: ${CIRCUITBREAKER_COMMAND_PERMITTED_CALLS_IN_HALF_OPEN_STATE:}
+        max-wait-duration-in-half-open-state: ${CIRCUITBREAKER_COMMAND_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE:}
+      showcase-query-service:
+        base-config: default
+        sliding-window-type: ${CIRCUITBREAKER_QUERY_SLIDING_WINDOW_TYPE:}
+        sliding-window-size: ${CIRCUITBREAKER_QUERY_SLIDING_WINDOW_SIZE:}
+        minimum-number-of-calls: ${CIRCUITBREAKER_QUERY_MIN_REQUIRED_CALLS:}
+        failure-rate-threshold: ${CIRCUITBREAKER_QUERY_FAILURE_RATE_THRESHOLD:}
+        slow-call-rate-threshold: ${CIRCUITBREAKER_QUERY_SLOW_CALL_RATE_THRESHOLD:}
+        slow-call-duration-threshold: ${CIRCUITBREAKER_QUERY_SLOW_CALL_DURATION_THRESHOLD:}
+        wait-duration-in-open-state: ${CIRCUITBREAKER_QUERY_WAIT_DURATION_IN_OPEN_STATE:}
+        exponential-backoff-multiplier: ${CIRCUITBREAKER_QUERY_BACKOFF_MULTIPLIER_IN_OPEN_STATE:}
+        exponential-max-wait-duration-in-open-state: ${CIRCUITBREAKER_QUERY_MAX_WAIT_DURATION_IN_OPEN_STATE:}
+        permitted-number-of-calls-in-half-open-state: ${CIRCUITBREAKER_QUERY_PERMITTED_CALLS_IN_HALF_OPEN_STATE:}
+        max-wait-duration-in-half-open-state: ${CIRCUITBREAKER_QUERY_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE:}
+  retry:
+    enabled: ${RETRY_ENABLED:true}
+    metrics:
+      enabled: ${RETRY_METRICS_ENABLED:true}
+    configs:
+      default:
+        max-attempts: ${RETRY_DEFAULT_MAX_ATTEMPTS:3}
+        wait-duration: ${RETRY_DEFAULT_WAIT_DURATION:PT0.5S}
+        enable-exponential-backoff: true
+        enable-randomized-wait: true
+        exponential-backoff-multiplier: ${RETRY_DEFAULT_BACKOFF_MULTIPLIER:1.5}
+        randomized-wait-factor: ${RETRY_DEFAULT_BACKOFF_WAIT_FACTOR:0.5}
+        exponential-max-wait-duration: ${RETRY_DEFAULT_MAX_WAIT_DURATION:}
+    instances:
+      showcase-command-service:
+        base-config: default
+        max-attempts: ${RETRY_COMMAND_MAX_ATTEMPTS:}
+        wait-duration: ${RETRY_COMMAND_WAIT_DURATION:}
+        exponential-backoff-multiplier: ${RETRY_COMMAND_BACKOFF_MULTIPLIER:}
+        randomized-wait-factor: ${RETRY_COMMAND_BACKOFF_WAIT_FACTOR:}
+        exponential-max-wait-duration: ${RETRY_COMMAND_MAX_WAIT_DURATION:}
+      showcase-query-service:
+        base-config: default
+        max-attempts: ${RETRY_QUERY_MAX_ATTEMPTS:}
+        wait-duration: ${RETRY_QUERY_MIN_BACKOFF:}
+        exponential-backoff-multiplier: ${RETRY_QUERY_BACKOFF_MULTIPLIER:}
+        randomized-wait-factor: ${RETRY_QUERY_BACKOFF_WAIT_FACTOR:}
+        exponential-max-wait-duration: ${RETRY_QUERY_MAX_WAIT_DURATION:}
+
+server:
+  port: 8080
+
+springdoc:
+  packages-to-scan: showcase.api.rest
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: on
+        add-additional-paths: on
+    prometheus:
+      enabled: ${METRICS_PROMETHEUS_ENABLED:false}
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: ${METRICS_PERCENTILES_HISTOGRAM:true}
+        http.client.requests: ${METRICS_PERCENTILES_HISTOGRAM:true}
+      percentiles:
+        http.server.requests: ${METRICS_PERCENTILES:0.5, 0.75, 0.95, 0.98, 0.99, 0.995, 0.999}
+        http.client.requests: ${METRICS_PERCENTILES:0.5, 0.75, 0.95, 0.98, 0.99, 0.995, 0.999}
+      slo:
+        http.server.requests: ${METRICS_SLO:100ms, 200ms, 300ms, 400ms, 500ms, 1s, 2s, 3s, 4s, 5s}
+        http.client.requests: ${METRICS_SLO:100ms, 200ms, 300ms, 400ms, 500ms, 1s, 2s, 3s, 4s, 5s}
+    export:
+      prometheus:
+        enabled: ${METRICS_PROMETHEUS_ENABLED:false}
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    metrics:
+      export:
+        enabled: ${METRICS_OTLP_ENABLED:false}
+        url: ${METRICS_OTLP_ENDPOINT:}
+    tracing:
+      export:
+        enabled: ${TRACING_OTLP_ENABLED:false}
+      endpoint: ${TRACING_OTLP_ENDPOINT:}

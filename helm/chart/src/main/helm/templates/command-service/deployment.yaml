@@ -1,0 +1,219 @@
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+kind: Deployment
+metadata:
+  name: {{ include "axon-showcase.command-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: command-service
+  {{- if or .Values.commandService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.commandService.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.commandService.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.commandService.revisionHistoryLimit }}
+  {{- if .Values.commandService.updateStrategy }}
+  strategy: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.updateStrategy "context" $) | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: command-service
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" (dict "customLabels" $podLabels "context" $) | nindent 8 }}
+        app.kubernetes.io/component: command-service
+        jgroups-cluster: axon-showcase
+      {{- if or .Values.commandService.podAnnotations .Values.commonAnnotations }}
+      {{- $podAnnotations := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.podAnnotations .Values.commonAnnotations) "context" $) }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" $podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.commandService.extraPodSpec }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.commandService.extraPodSpec "context" $) | nindent 6 }}
+      {{- end }}
+      {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.commandService.image) "context" $) | nindent 6 }}
+      serviceAccountName: {{ include "axon-showcase.serviceAccountName" $ }}
+      automountServiceAccountToken: {{ .Values.commandService.automountServiceAccountToken }}
+      {{- if .Values.commandService.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      affinity:
+        {{- if .Values.commandService.affinity }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.commandService.affinity "context" $) | nindent 8 }}
+        {{- else }}
+        {{- if .Values.commandService.podAffinityPreset }}
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.commandService.podAffinityPreset "component" "command-service" "customLabels" $podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if .Values.commandService.podAntiAffinityPreset }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.commandService.podAntiAffinityPreset "component" "command-service" "customLabels" $podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if and .Values.commandService.nodeAffinityPreset.type .Values.commandService.nodeAffinityPreset.key .Values.commandService.nodeAffinityPreset.values }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.commandService.nodeAffinityPreset.type "key" .Values.commandService.nodeAffinityPreset.key "values" .Values.commandService.nodeAffinityPreset.values) | nindent 10 }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.commandService.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.commandService.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.commandService.priorityClassName }}
+      priorityClassName: {{ .Values.commandService.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.commandService.schedulerName }}
+      schedulerName: {{ .Values.commandService.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.commandService.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.topologySpreadConstraints "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.commandService.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.commandService.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.commandService.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.commandService.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.commandService.initContainers }}
+      initContainers: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: main
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.commandService.image "global" .Values.global) }}
+          imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.commandService.image "context" $) }}
+          {{- if .Values.commandService.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.commandService.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: "SERVER_PORT"
+              value: {{ .Values.commandService.containerPorts.server | toString | quote }}
+            - name: "MANAGEMENT_SERVER_PORT"
+              value: {{ .Values.commandService.containerPorts.managementServer | toString | quote }}
+            - name: "JGROUPS_CONFIG_FILE"
+              value: "kube-ping.xml"
+            - name: "JGROUPS_BIND_PORT"
+              value: {{ .Values.commandService.containerPorts.jgroups | toString | quote }}
+            - name: "JGROUPS_KUBE_PING_NAMESPACE"
+              value: {{ include "common.names.namespace" $ | quote }}
+            - name: "JGROUPS_KUBE_PING_LABELS"
+              value: {{ include "axon-showcase.jgroups-cluster.labels" $ | quote }}
+            - name: "DB_HOSTS"
+              value: {{ .Values.dbEvents.hosts | quote }}
+            - name: "DB_NAME"
+              value: {{ .Values.dbEvents.name | quote }}
+            - name: "DB_SCHEMA"
+              value: {{ .Values.dbEvents.schema | quote }}
+            - name: "DB_PARAMS"
+              value: {{ .Values.dbEvents.params | quote }}
+            - name: "DB_USER"
+              value: {{ .Values.dbEvents.username | quote }}
+            - name: "DB_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.dbEvents.passwordSecret.name }}
+                  key: {{ .Values.dbEvents.passwordSecret.key }}
+            - name: "DB_POOL_MAX_SIZE"
+              value: {{ .Values.commandService.dbEvents.pool.maxSize | int | toString | quote }}
+            - name: "DB_POOL_MIN_IDLE"
+              value: {{ .Values.commandService.dbEvents.pool.minIdle | int | toString | quote }}
+            - name: "DB_POOL_MAX_LIFETIME"
+              value: {{ .Values.commandService.dbEvents.pool.maxLifetime | int64 | toString | quote }}
+            - name: "DB_POOL_CONNECTION_TIMEOUT"
+              value: {{ .Values.commandService.dbEvents.pool.connectionTimeout | int64 | toString | quote }}
+            - name: "DB_POOL_VALIDATION_TIMEOUT"
+              value: {{ .Values.commandService.dbEvents.pool.validationTimeout | int64 | toString | quote }}
+            - name: "DB_POOL_IDLE_TIMEOUT"
+              value: {{ .Values.commandService.dbEvents.pool.idleTimeout | int64 | toString | quote }}
+            - name: "DB_POOL_LEAK_DETECTION_THRESHOLD"
+              value: {{ .Values.commandService.dbEvents.pool.leakDetectionThreshold | int64 | toString | quote }}
+            - name: "FLYWAY_MIGRATION_ENABLED"
+              value: "false"
+            - name: "KAFKA_BOOTSTRAP_SERVERS"
+              value: {{ .Values.kafka.bootstrapServers | quote }}
+            - name: "KAFKA_TOPIC_EVENTS"
+              value: {{ .Values.kafka.topics.events | quote }}
+            - name: "KAFKA_SECURITY_PROTOCOL"
+              value: {{ .Values.kafka.securityProtocol | quote }}
+            - name: "KAFKA_PRODUCER_RETRIES"
+              value: {{ .Values.commandService.kafka.producer.retries | int | toString | quote }}
+            - name: "SHOWCASE_CACHE_MAX_SIZE"
+              value: {{ .Values.commandService.showcaseCache.maxSize | int64 | toString | quote }}
+            - name: "SHOWCASE_CACHE_EXPIRES_AFTER_ACCESS"
+              value: {{ .Values.commandService.showcaseCache.expiresAfterAccess | quote }}
+            - name: "SHOWCASE_CACHE_EXPIRES_AFTER_WRITE"
+              value: {{ .Values.commandService.showcaseCache.expiresAfterWrite | quote }}
+            {{- if (include "axon-showcase.observability.isEnabled" $) }}
+            {{- include "axon-showcase.observability.renderEnvVars" $ | nindent 12 }}
+            {{- end }}
+            {{- if .Values.commandService.extraEnvVars }}
+            {{- include "axon-showcase.renderEnvVars" (dict "envVars" .Values.commandService.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if or .Values.commandService.extraEnvVarsCM .Values.commandService.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.commandService.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.commandService.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.commandService.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.commandService.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.commandService.containerPorts.server }}
+            - name: management
+              containerPort: {{ .Values.commandService.containerPorts.managementServer }}
+            - name: jgroups
+              containerPort: {{ .Values.commandService.containerPorts.jgroups }}
+            {{- if .Values.commandService.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.commandService.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if .Values.commandService.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.commandService.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.commandService.startupProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.commandService.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{ .Values.commandService.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.commandService.livenessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.commandService.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: {{ .Values.commandService.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.commandService.readinessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.commandService.terminationMessagePolicy }}
+          terminationMessagePolicy: {{ include "common.tplvalues.render" (dict "value" .Values.commandService.terminationMessagePolicy "context" $) }}
+          {{- end }}
+          {{- if .Values.commandService.resources }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.resources "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.commandService.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            {{- if .Values.commandService.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.commandService.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if .Values.commandService.sidecars }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.commandService.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: empty-dir
+          emptyDir: { }
+        {{- if .Values.commandService.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.commandService.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

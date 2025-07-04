@@ -1,0 +1,6 @@
+resilience4j:
+  enabled: true
+  timelimiter:
+    instances:
+      showcase-query-service:
+        timeout-duration: PT0.01S

@@ -1,0 +1,32 @@
+{{- if .Values.apiGateway.route.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.route.labels .Values.commonLabels) "context" $) }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "axon-showcase.api-gateway.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: api-gateway
+  {{- if or .Values.apiGateway.route.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.route.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.apiGateway.route.hostnames }}
+  hostnames: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.route.hostnames "context" $) | nindent 4 }}
+  {{- end }}
+  {{- if .Values.apiGateway.route.parentRefs }}
+  parentRefs: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.route.parentRefs "context" $) | nindent 4 }}
+  {{- end }}
+  rules:
+    - matches: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.route.matches "context" $) | nindent 6 }}
+      {{- if .Values.apiGateway.route.filters }}
+      filters: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.route.filters "context" $) | nindent 6 }}
+      {{- end }}
+      backendRefs:
+        - name: {{ include "axon-showcase.api-gateway.fullname" $ }}
+          port: {{ $.Values.apiGateway.containerPorts.server }}
+    {{- if .Values.apiGateway.route.extraRules }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.route.extraRules "context" $) | nindent 4 }}
+    {{- end }}
+{{- end }}

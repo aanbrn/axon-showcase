@@ -1,0 +1,25 @@
+{{- if .Values.queryService.pdb.create }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.policy.apiVersion" $ }}
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "axon-showcase.query-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: query-service
+  {{- if or .Values.queryService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.queryService.pdb.minAvailable }}
+  minAvailable: {{ .Values.queryService.pdb.minAvailable }}
+  {{- end  }}
+  {{- if or .Values.queryService.pdb.maxUnavailable ( not .Values.queryService.pdb.minAvailable ) }}
+  maxUnavailable: {{ .Values.queryService.pdb.maxUnavailable | default 1 }}
+  {{- end  }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: query-service
+{{- end }}

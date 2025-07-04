@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: axon-showcase-projection-service
+  main:
+    banner-mode: off
+  elasticsearch:
+    uris: ${ES_URIS:http://localhost:9200}
+    username: ${ES_USER:elastic}
+    password: ${ES_PASSWORD:}
+    connection-timeout: ${ES_CONNECTION_TIMEOUT:PT1S}
+    socket-timeout: ${ES_SOCKET_TIMEOUT:PT30S}
+    socket-keep-alive: ${ES_SOCKET_KEEP_ALIVE:false}
+  threads:
+    virtual:
+      enabled: true
+
+axon:
+  serializer:
+    messages: jackson
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    default-topic: ${KAFKA_TOPIC_EVENTS:axon-showcase-events}
+    client-id: ${spring.application.name}
+    properties:
+      security.protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+    publisher:
+      enabled: false
+    consumer:
+      properties:
+        partition.assignment.strategy: org.apache.kafka.clients.consumer.CooperativeStickyAssignor
+    fetcher:
+      poll-timeout: ${KAFKA_FETCHER_POLL_TIMEOUT:5000}
+      consumer-count: ${KAFKA_FETCHER_CONSUMER_COUNT:1}
+  eventhandling:
+    processors:
+      projectors:
+        source: subscribableKafkaMessageSource
+        mode: subscribing
+  metrics:
+    micrometer:
+      dimensional: true
+
+showcase:
+  projection:
+    metrics:
+      tags:
+        - key: ${METRICS_TAG_APPLICATION_KEY:application}
+          value: ${METRICS_TAG_APPLICATION_VALUE:axon-showcase}
+    tracing:
+      logging: ${TRACING_LOGGING:false}
+
+server:
+  port: 8083
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: on
+        add-additional-paths: on
+    prometheus:
+      enabled: ${METRICS_PROMETHEUS_ENABLED:false}
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: ${METRICS_PERCENTILES_HISTOGRAM:true}
+        http.client.requests: ${METRICS_PERCENTILES_HISTOGRAM:true}
+      percentiles:
+        http.server.requests: ${METRICS_PERCENTILES:0.5, 0.75, 0.95, 0.98, 0.99, 0.995, 0.999}
+        http.client.requests: ${METRICS_PERCENTILES:0.5, 0.75, 0.95, 0.98, 0.99, 0.995, 0.999}
+      slo:
+        http.server.requests: ${METRICS_SLO:100ms, 200ms, 300ms, 400ms, 500ms, 1s, 2s, 3s, 4s, 5s}
+        http.client.requests: ${METRICS_SLO:100ms, 200ms, 300ms, 400ms, 500ms, 1s, 2s, 3s, 4s, 5s}
+    export:
+      prometheus:
+        enabled: ${METRICS_PROMETHEUS_ENABLED:false}
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      export:
+        enabled: ${TRACING_OTLP_ENABLED:false}
+      endpoint: ${TRACING_OTLP_ENDPOINT:}

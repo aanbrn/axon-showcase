@@ -1,0 +1,142 @@
+[versions]
+java = "21"
+axon-bom = "4.11.3"
+spring-boot = "3.5.3"
+spring-framework-bom = "6.2.8"
+spring-data-bom = "2025.0.1"
+springdoc-openapi-starter = "2.8.9"
+swagger = "2.2.34"
+postgresql = "42.7.7"
+caffeine = "3.2.1"
+db-scheduler = "13.0.0"
+mapstruct = "1.6.3"
+reactor = "3.7.7"
+resilience4j = "2.3.0"
+streamex = "0.8.3"
+jgroups = "4.2.30.Final"
+jgroups-kubernetes = "1.0.17.Final"
+protobuf = "4.31.1"
+opentelemetry = "1.51.0"
+commons-compress = "1.27.1"
+commons-fileupload = "1.6.0"
+commons-lang3 = "3.17.0"
+commons-io = "2.19.0"
+expressly = "6.0.0"
+guava = "33.4.8-jre"
+logback = "1.5.18"
+xstream = "1.4.21"
+hamcrest = "3.0"
+mockito = "5.18.0"
+wiremock-spring-boot = "3.10.0"
+kotlin = "2.2.0"
+spotbugs = "4.9.3"
+lombok-plugin = "8.13.1"
+protobuf-plugin = "0.9.5"
+gatling-plugin = "3.14.3"
+dependencyVersions-plugin = "0.52.0"
+spotbugs-plugin = "6.1.5"
+spotbugs-findsecbugs-plugin = "1.14.0"
+spotbugs-fbContrib-plugin = "7.6.11"
+helm = "3.17.3"
+helm-plugin = "2.2.0"
+bitnami-common = "2.x.x"
+bitnami-postgresql = "16.x.x"
+bitnami-kafka = "31.x.x"
+bitnami-elasticsearch = "22.x.x"
+kube-prometheus-stack = "72.x.x"
+postgres-image = "17"
+kafka-image = "3.9.1"
+elasticsearch-image = "9.0.1"
+
+[libraries]
+spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring-boot" }
+spring-boot-autoconfigure = { group = "org.springframework.boot", name = "spring-boot-autoconfigure" }
+spring-boot-starter-aop = { group = "org.springframework.boot", name = "spring-boot-starter-aop" }
+spring-boot-starter-cache = { group = "org.springframework.boot", name = "spring-boot-starter-cache" }
+spring-boot-starter-jdbc = { group = "org.springframework.boot", name = "spring-boot-starter-jdbc" }
+spring-boot-starter-data-elasticsearch = { group = "org.springframework.boot", name = "spring-boot-starter-data-elasticsearch" }
+spring-boot-starter-webflux = { group = "org.springframework.boot", name = "spring-boot-starter-webflux" }
+spring-boot-starter-validation = { group = "org.springframework.boot", name = "spring-boot-starter-validation" }
+spring-boot-starter-actuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator" }
+spring-boot-starter-test = { group = "org.springframework.boot", name = "spring-boot-starter-test" }
+spring-boot-testcontainers = { group = "org.springframework.boot", name = "spring-boot-testcontainers" }
+spring-framework-bom = { group = "org.springframework", name = "spring-framework-bom", version.ref = "spring-framework-bom" }
+spring-data-bom = { group = "org.springframework.data", name = "spring-data-bom", version.ref = "spring-data-bom" }
+spring-data-commons = { group = "org.springframework.data", name = "spring-data-commons" }
+spring-data-elasticsearch = { group = "org.springframework.data", name = "spring-data-elasticsearch" }
+spring-data-jdbc = { group = "org.springframework.data", name = "spring-data-jdbc" }
+springdoc-openapi-starter-webflux-ui = { group = "org.springdoc", name = "springdoc-openapi-starter-webflux-ui", version.ref = "springdoc-openapi-starter" }
+swagger-annotations-jakarta = { group = "io.swagger.core.v3", name = "swagger-annotations-jakarta", version.ref = "swagger" }
+commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commons-compress" }
+commons-fileupload = { group = "commons-fileupload", name = "commons-fileupload", version.ref = "commons-fileupload" }
+commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commons-lang3" }
+commons-io = { group = "commons-io", name = "commons-io", version.ref = "commons-io" }
+flyway-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql" }
+hibernate-validator = { group = "org.hibernate.validator", name = "hibernate-validator" }
+expressly = { group = "org.glassfish.expressly", name = "expressly", version.ref = "expressly" }
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+kotlin-bom = { group = "org.jetbrains.kotlin", name = "kotlin-bom", version.ref = "kotlin" }
+resilience4j-bom = { group = "io.github.resilience4j", name = "resilience4j-bom", version.ref = "resilience4j" }
+resilience4j-reactor = { group = "io.github.resilience4j", name = "resilience4j-reactor" }
+resilience4j-springBoot3 = { group = "io.github.resilience4j", name = "resilience4j-spring-boot3" }
+streamex = { group = "one.util", name = "streamex", version.ref = "streamex" }
+jgroups = { group = "org.jgroups", name = "jgroups", version.ref = "jgroups" }
+jgroups-kunernetes = { group = "org.jgroups.kubernetes", name = "jgroups-kubernetes", version.ref = "jgroups-kubernetes" }
+protobuf-bom = { group = "com.google.protobuf", name = "protobuf-bom", version.ref = "protobuf" }
+protobuf-java = { group = "com.google.protobuf", name = "protobuf-java" }
+testcontainers-junit-jupiter = { group = "org.testcontainers", name = "junit-jupiter" }
+testcontainers-postgresql = { group = "org.testcontainers", name = "postgresql" }
+testcontainers-kafka = { group = "org.testcontainers", name = "kafka" }
+testcontainers-elasticsearch = { group = "org.testcontainers", name = "elasticsearch" }
+logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
+logback-core = { group = "ch.qos.logback", name = "logback-core", version.ref = "logback" }
+mapstruct = { group = "org.mapstruct", name = "mapstruct", version.ref = "mapstruct" }
+mapstruct-processor = { group = "org.mapstruct", name = "mapstruct-processor", version.ref = "mapstruct" }
+jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind" }
+jackson-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310" }
+xstream = { group = "com.thoughtworks.xstream", name = "xstream", version.ref = "xstream" }
+netty-resolver-dnsNativeMacos = { group = "io.netty", name = "netty-resolver-dns-native-macos" }
+assertj-core = { group = "org.assertj", name = "assertj-core" }
+hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" }
+junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api" }
+mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter" }
+reactor-core = { group = "io.projectreactor", name = "reactor-core", version.ref = "reactor" }
+reactor-test = { group = "io.projectreactor", name = "reactor-test", version.ref = "reactor" }
+wiremock-springBoot = { group = "org.wiremock.integrations", name = "wiremock-spring-boot", version.ref = "wiremock-spring-boot" }
+axon-bom = { group = "org.axonframework", name = "axon-bom", version.ref = "axon-bom" }
+axon-modelling = { group = "org.axonframework", name = "axon-modelling" }
+axon-messaging = { group = "org.axonframework", name = "axon-messaging" }
+axon-springBootStarter = { group = "org.axonframework", name = "axon-spring-boot-starter" }
+axon-serverConnector = { group = "org.axonframework", name = "axon-server-connector" }
+axon-micrometer = { group = "org.axonframework", name = "axon-micrometer" }
+axon-tracing-opentelemetry = { group = "org.axonframework", name = "axon-tracing-opentelemetry" }
+axon-extensions-kafka = { group = "org.axonframework.extensions.kafka", name = "axon-kafka" }
+axon-extensions-kafka-springBootStarter = { group = "org.axonframework.extensions.kafka", name = "axon-kafka-spring-boot-starter" }
+axon-extensions-jgroups-springBootStarter = { group = "org.axonframework.extensions.jgroups", name = "axon-jgroups-spring-boot-starter" }
+axon-extensions-reactor = { group = "org.axonframework.extensions.reactor", name = "axon-reactor" }
+axon-extensions-reactor-springBootStarter = { group = "org.axonframework.extensions.reactor", name = "axon-reactor-spring-boot-starter" }
+axon-test = { group = "org.axonframework", name = "axon-test" }
+postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
+caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
+caffeine-jcache = { group = "com.github.ben-manes.caffeine", name = "jcache", version.ref = "caffeine" }
+dbScheduler = { group = "com.github.kagkarlsson", name = "db-scheduler", version.ref = "db-scheduler" }
+dbScheduler-springBootStarter = { group = "com.github.kagkarlsson", name = "db-scheduler-spring-boot-starter", version.ref = "db-scheduler" }
+micrometer-registry-prometheus = { group = "io.micrometer", name = "micrometer-registry-prometheus" }
+micrometer-tracing-bridge-otel = { group = "io.micrometer", name = "micrometer-tracing-bridge-otel" }
+opentelemetry-bom = { group = "io.opentelemetry", name = "opentelemetry-bom", version.ref = "opentelemetry" }
+opentelemetry-exporter-otlp = { group = "io.opentelemetry", name = "opentelemetry-exporter-otlp" }
+lombok = { group = "org.projectlombok", name = "lombok" }
+lombok-plugin = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok-plugin" }
+spring-boot-plugin = { group = "org.springframework.boot", name = "spring-boot-gradle-plugin", version.ref = "spring-boot" }
+protobuf-plugin = { group = "com.google.protobuf", name = "protobuf-gradle-plugin", version.ref = "protobuf-plugin" }
+gatling-plugin = { group = "gradle.plugin.io.gatling.gradle", name = "gatling-gradle-plugin", version.ref = "gatling-plugin" }
+dependencyVersions-plugin = { group = "com.github.ben-manes", name = "gradle-versions-plugin", version.ref = "dependencyVersions-plugin" }
+spotbugs-plugin = { group = "com.github.spotbugs.snom", name = "spotbugs-gradle-plugin", version.ref = "spotbugs-plugin" }
+spotbugs-findsecbugs-plugin = { group = "com.h3xstream.findsecbugs", name = "findsecbugs-plugin", version.ref = "spotbugs-findsecbugs-plugin" }
+spotbugs-fbContrib-plugin = { group = "com.mebigfatguy.fb-contrib", name = "fb-contrib", version.ref = "spotbugs-fbContrib-plugin" }
+helm-plugin = { group = "com.citi.gradle-plugins.helm", name = "helm-plugin", version.ref = "helm-plugin" }
+helm-releases-plugin = { group = "com.citi.gradle-plugins.helm", name = "helm-releases-plugin", version.ref = "helm-plugin" }
+
+[plugins]

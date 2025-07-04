@@ -1,0 +1,44 @@
+fullnameOverride: axon-showcase-db-sagas
+
+auth:
+  enablePostgresUser: false
+  database: showcase-sagas
+  username: showcase
+
+primary:
+  extraEnvVars:
+    - name: "POSTGRESQL_MAX_CONNECTIONS"
+      value: "400"
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: 500m
+      memory: 256Mi
+    limits:
+      cpu: 750m
+      memory: 512Mi
+  networkPolicy:
+    allowExternal: false
+    allowExternalEgress: false
+    ingressNSMatchLabels:
+      name: monitoring
+    ingressNSPodMatchLabels:
+      prometheus: kps
+
+metrics:
+  enabled: true
+  collectors:
+    wal: false
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    labels:
+      release: kps
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

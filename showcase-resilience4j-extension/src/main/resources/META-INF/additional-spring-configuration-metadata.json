@@ -1,0 +1,46 @@
+{
+  "properties": [
+    {
+      "name": "resilience4j.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to enable Resilience4j.",
+      "defaultValue": true
+    },
+    {
+      "name": "resilience4j.timelimiter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to enable the Resilience4j's Time Limiter.",
+      "defaultValue": true
+    },
+    {
+      "name": "resilience4j.bulkhead.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to enable the Resilience4j's Bulkhead.",
+      "defaultValue": true
+    },
+    {
+      "name": "resilience4j.thread-pool-bulkhead.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to enable the Resilience4j's Thread Pool Bulkhead.",
+      "defaultValue": true
+    },
+    {
+      "name": "resilience4j.ratelimiter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to enable the Resilience4j's Rate Limiter.",
+      "defaultValue": true
+    },
+    {
+      "name": "resilience4j.circuitbreaker.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to enable the Resilience4j's Circuit Breaker.",
+      "defaultValue": true
+    },
+    {
+      "name": "resilience4j.retry.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to enable the Resilience4j's Retry.",
+      "defaultValue": true
+    }
+  ]
+}

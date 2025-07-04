@@ -1,0 +1,23 @@
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.sagaService.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.sagaService.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "axon-showcase.saga-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: saga-service
+  {{- if or .Values.sagaService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.sagaService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  selector: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: saga-service
+  ports:
+    - name: http
+      port: {{ .Values.sagaService.containerPorts.server }}
+      targetPort: {{ .Values.sagaService.containerPorts.server }}
+    - name: http-management
+      port: {{ .Values.sagaService.containerPorts.managementServer }}
+      targetPort: {{ .Values.sagaService.containerPorts.managementServer }}

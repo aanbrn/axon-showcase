@@ -1,0 +1,188 @@
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+kind: Deployment
+metadata:
+  name: {{ include "axon-showcase.projection-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: projection-service
+  {{- if or .Values.projectionService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.projectionService.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.projectionService.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.projectionService.revisionHistoryLimit }}
+  {{- if .Values.projectionService.updateStrategy }}
+  strategy: {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.updateStrategy "context" $) | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: projection-service
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" (dict "customLabels" $podLabels "context" $) | nindent 8 }}
+        app.kubernetes.io/component: projection-service
+      {{- if or .Values.projectionService.podAnnotations .Values.commonAnnotations }}
+      {{- $podAnnotations := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.podAnnotations .Values.commonAnnotations) "context" $) }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" $podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.projectionService.extraPodSpec }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.extraPodSpec "context" $) | nindent 6 }}
+      {{- end }}
+      {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.projectionService.image) "context" $) | nindent 6 }}
+      serviceAccountName: {{ include "axon-showcase.serviceAccountName" $ }}
+      automountServiceAccountToken: {{ .Values.projectionService.automountServiceAccountToken }}
+      {{- if .Values.projectionService.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      affinity:
+        {{- if .Values.projectionService.affinity }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.affinity "context" $) | nindent 8 }}
+        {{- else }}
+        {{- if .Values.projectionService.podAffinityPreset }}
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.projectionService.podAffinityPreset "component" "projection-service" "customLabels" $podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if .Values.projectionService.podAntiAffinityPreset }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.projectionService.podAntiAffinityPreset "component" "projection-service" "customLabels" $podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if and .Values.projectionService.nodeAffinityPreset.type .Values.projectionService.nodeAffinityPreset.key .Values.projectionService.nodeAffinityPreset.values }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.projectionService.nodeAffinityPreset.type "key" .Values.projectionService.nodeAffinityPreset.key "values" .Values.projectionService.nodeAffinityPreset.values) | nindent 10 }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.projectionService.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.projectionService.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.projectionService.priorityClassName }}
+      priorityClassName: {{ .Values.projectionService.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.projectionService.schedulerName }}
+      schedulerName: {{ .Values.projectionService.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.projectionService.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.topologySpreadConstraints "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.projectionService.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.projectionService.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.projectionService.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.projectionService.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.projectionService.initContainers }}
+      initContainers: {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: main
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.projectionService.image "global" .Values.global) }}
+          imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.projectionService.image "context" $) }}
+          {{- if .Values.projectionService.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.projectionService.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: "SERVER_PORT"
+              value: {{ .Values.projectionService.containerPorts.server | toString | quote }}
+            - name: "MANAGEMENT_SERVER_PORT"
+              value: {{ .Values.projectionService.containerPorts.managementServer | toString | quote }}
+            - name: "KAFKA_BOOTSTRAP_SERVERS"
+              value: {{ .Values.kafka.bootstrapServers | quote }}
+            - name: "KAFKA_TOPIC_EVENTS"
+              value: {{ .Values.kafka.topics.events | quote }}
+            - name: "KAFKA_SECURITY_PROTOCOL"
+              value: {{ .Values.kafka.securityProtocol | quote }}
+            - name: "KAFKA_FETCHER_POLL_TIMEOUT"
+              value: {{ .Values.projectionService.kafka.fetcher.pollTimeout | int64 | toString | quote }}
+            - name: "KAFKA_FETCHER_CONSUMER_COUNT"
+              value: {{ .Values.projectionService.kafka.fetcher.consumerCount | int | toString | quote }}
+            - name: "ES_URIS"
+              value: {{ .Values.esViews.uris | quote }}
+            {{- if .Values.esViews.secured }}
+            - name: "ES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.esViews.passwordSecret.name }}
+                  key: {{ .Values.esViews.passwordSecret.key }}
+            {{- end }}
+            - name: "ES_CONNECTION_TIMEOUT"
+              value: {{ .Values.projectionService.esViews.connectionTimeout | quote }}
+            - name: "ES_SOCKET_TIMEOUT"
+              value: {{ .Values.projectionService.esViews.socketTimeout | quote }}
+            - name: "ES_SOCKET_KEEP_ALIVE"
+              value: {{ .Values.projectionService.esViews.socketKeepAlive | quote }}
+            {{- if (include "axon-showcase.observability.isEnabled" $) }}
+            {{- include "axon-showcase.observability.renderEnvVars" $ | nindent 12 }}
+            {{- end }}
+            {{- if .Values.projectionService.extraEnvVars }}
+            {{- include "axon-showcase.renderEnvVars" (dict "envVars" .Values.projectionService.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if or .Values.projectionService.extraEnvVarsCM .Values.projectionService.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.projectionService.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.projectionService.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.projectionService.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.projectionService.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.projectionService.containerPorts.server }}
+            - name: management
+              containerPort: {{ .Values.projectionService.containerPorts.managementServer }}
+            {{- if .Values.projectionService.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if .Values.projectionService.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.projectionService.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.projectionService.startupProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.projectionService.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{ .Values.projectionService.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.projectionService.livenessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.projectionService.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: {{ .Values.projectionService.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.projectionService.readinessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.projectionService.terminationMessagePolicy }}
+          terminationMessagePolicy: {{ include "common.tplvalues.render" (dict "value" .Values.projectionService.terminationMessagePolicy "context" $) }}
+          {{- end }}
+          {{- if .Values.projectionService.resources }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.resources "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.projectionService.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            {{- if .Values.projectionService.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if .Values.projectionService.sidecars }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: empty-dir
+          emptyDir: { }
+        {{- if .Values.projectionService.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

@@ -1,0 +1,75 @@
+fullnameOverride: kps
+
+cleanPrometheusOperatorObjectNames: true
+
+alertmanager:
+  enabled: false
+
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+nodeExporter:
+  enabled: false
+
+kubernetesServiceMonitors:
+  enabled: true
+
+grafana:
+  defaultDashboardsEnabled: false
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  serviceMonitor:
+    enabled: false
+  sidecar:
+    datasources:
+      alertmanager:
+        enabled: false
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 160Mi
+
+prometheus:
+  prometheusSpec:
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 768Mi
+  serviceMonitor:
+    selfMonitor: false
+
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 64Mi
+  prometheusConfigReloader:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 64Mi
+  serviceMonitor:
+    selfMonitor: false

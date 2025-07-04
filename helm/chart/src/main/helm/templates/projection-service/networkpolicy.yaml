@@ -1,0 +1,72 @@
+{{- if .Values.projectionService.networkPolicy.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" $ }}
+kind: NetworkPolicy
+metadata:
+  name: {{ include "axon-showcase.projection-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: projection-service
+  {{- if or .Values.projectionService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: projection-service
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        - port: {{ .Values.projectionService.containerPorts.server }}
+      from:
+        - podSelector:
+            matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 14 }}
+    - ports:
+        - port: {{ .Values.projectionService.containerPorts.managementServer }}
+      from:
+        - podSelector:
+            matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 14 }}
+        {{- if .Values.projectionService.networkPolicy.addExternalClientAccess }}
+        - podSelector:
+            matchLabels:
+              {{ include "common.names.fullname" $ }}-client: "true"
+        {{- end }}
+        {{- if .Values.projectionService.networkPolicy.ingressPodMatchLabels }}
+        - podSelector:
+            matchLabels: {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.networkPolicy.ingressPodMatchLabels "context" $) | nindent 14 }}
+        {{- end }}
+        {{- if .Values.projectionService.networkPolicy.ingressManagementNSMatchLabels }}
+        - namespaceSelector:
+            matchLabels:
+              {{- range $key, $value := .Values.projectionService.networkPolicy.ingressManagementNSMatchLabels }}
+              {{ $key | quote }}: {{ $value | quote }}
+              {{- end }}
+          {{- if .Values.projectionService.networkPolicy.ingressManagementNSPodMatchLabels }}
+          podSelector:
+            matchLabels:
+              {{- range $key, $value := .Values.projectionService.networkPolicy.ingressManagementNSPodMatchLabels }}
+              {{ $key | quote }}: {{ $value | quote }}
+              {{- end }}
+          {{- end }}
+        {{- end }}
+    {{- if .Values.projectionService.networkPolicy.extraIngress }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.networkPolicy.extraIngress "context" $) | nindent 4 }}
+    {{- end }}
+  egress:
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ include "common.names.namespace" $ | quote }}
+    {{- if .Values.projectionService.networkPolicy.extraEgress }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.networkPolicy.extraEgress "context" $) | nindent 4 }}
+    {{- end }}
+{{- end }}

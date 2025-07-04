@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <Match>
+        <Class name="~.+">
+            <Annotation name="lombok.Generated"/>
+        </Class>
+    </Match>
+    <Match>
+        <Class name="~.+">
+            <Annotation name="com.google.protobuf.Generated"/>
+        </Class>
+    </Match>
+    <Match>
+        <Bug pattern="US_USELESS_SUPPRESSION_ON_PACKAGE,US_USELESS_SUPPRESSION_ON_CLASS,US_USELESS_SUPPRESSION_ON_FIELD,US_USELESS_SUPPRESSION_ON_METHOD,US_USELESS_SUPPRESSION_ON_METHOD_PARAMETER"/>
+    </Match>
+    <Match>
+        <Bug pattern="RV_EXCEPTION_NOT_THROWN"/>
+        <Class name="~.+ExceptionTests"/>
+    </Match>
+    <Match>
+        <Bug pattern="SEC_SIDE_EFFECT_CONSTRUCTOR"/>
+        <Class name="~.+ExceptionTests"/>
+    </Match>
+    <Match>
+        <Bug pattern="SS_SHOULD_BE_STATIC"/>
+        <Class name="~.+Tests\$.+"/>
+    </Match>
+    <Match>
+        <Bug pattern="CE_CLASS_ENVY"/>
+        <Class name="~.+(Tests|CT|IT|FT)(\$.+)?"/>
+    </Match>
+    <Match>
+        <Bug pattern="EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS"/>
+        <Class name="~.+(Tests|CT|IT|FT)(\$.+)?"/>
+    </Match>
+    <Match>
+        <Bug pattern="PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"/>
+        <Annotation name="org.testcontainers.junit.jupiter.Testcontainers"/>
+    </Match>
+</FindBugsFilter>

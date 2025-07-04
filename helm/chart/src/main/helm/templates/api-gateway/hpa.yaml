@@ -1,0 +1,49 @@
+{{- if .Values.apiGateway.autoscaling.hpa.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.labels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.hpa.apiVersion" (dict "context" $) }}
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "axon-showcase.api-gateway.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: api-gateway
+  {{- if or .Values.apiGateway.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+    kind: Deployment
+    name: {{ include "axon-showcase.api-gateway.fullname" $ }}
+  minReplicas: {{ .Values.apiGateway.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.apiGateway.autoscaling.hpa.maxReplicas }}
+  metrics:
+  {{- if .Values.apiGateway.autoscaling.hpa.targetCPU }}
+    - type: Resource
+      resource:
+        name: cpu
+      {{- if semverCompare "<1.23-0" (include "common.capabilities.kubeVersion" $) }}
+        targetAverageUtilization: {{ .Values.apiGateway.autoscaling.hpa.targetCPU }}
+      {{- else }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.apiGateway.autoscaling.hpa.targetCPU }}
+      {{- end }}
+  {{- end }}
+  {{- if .Values.apiGateway.autoscaling.hpa.targetMemory }}
+    - type: Resource
+      resource:
+        name: memory
+      {{- if semverCompare "<1.23-0" (include "common.capabilities.kubeVersion" $) }}
+        targetAverageUtilization: {{ .Values.apiGateway.autoscaling.hpa.targetMemory }}
+      {{- else }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.apiGateway.autoscaling.hpa.targetMemory }}
+      {{- end }}
+  {{- end }}
+  {{- if .Values.apiGateway.autoscaling.hpa.metrics }}
+  {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.autoscaling.hpa.metrics "context" $) | nindent 4 }}
+  {{- end }}
+{{- end }}

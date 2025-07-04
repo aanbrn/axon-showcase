@@ -1,0 +1,20 @@
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "axon-showcase.command-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: command-service
+  {{- if or .Values.commandService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  selector: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: command-service
+  ports:
+    - name: http-management
+      port: {{ .Values.commandService.containerPorts.managementServer }}
+      targetPort: {{ .Values.commandService.containerPorts.managementServer }}

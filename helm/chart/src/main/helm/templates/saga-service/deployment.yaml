@@ -1,0 +1,215 @@
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.sagaService.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.sagaService.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+kind: Deployment
+metadata:
+  name: {{ include "axon-showcase.saga-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: saga-service
+  {{- if or .Values.sagaService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.sagaService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.sagaService.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.sagaService.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.sagaService.revisionHistoryLimit }}
+  {{- if .Values.sagaService.updateStrategy }}
+  strategy: {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.updateStrategy "context" $) | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: saga-service
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" (dict "customLabels" $podLabels "context" $) | nindent 8 }}
+        app.kubernetes.io/component: saga-service
+        jgroups-cluster: axon-showcase
+      {{- if or .Values.sagaService.podAnnotations .Values.commonAnnotations }}
+      {{- $podAnnotations := include "common.tplvalues.merge" (dict "values" (list .Values.sagaService.podAnnotations .Values.commonAnnotations) "context" $) }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" $podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.sagaService.extraPodSpec }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.extraPodSpec "context" $) | nindent 6 }}
+      {{- end }}
+      {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.sagaService.image) "context" $) | nindent 6 }}
+      serviceAccountName: {{ include "axon-showcase.serviceAccountName" $ }}
+      automountServiceAccountToken: {{ .Values.sagaService.automountServiceAccountToken }}
+      {{- if .Values.sagaService.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      affinity:
+        {{- if .Values.sagaService.affinity }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.affinity "context" $) | nindent 8 }}
+        {{- else }}
+        {{- if .Values.sagaService.podAffinityPreset }}
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.sagaService.podAffinityPreset "component" "saga-service" "customLabels" $podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if .Values.sagaService.podAntiAffinityPreset }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.sagaService.podAntiAffinityPreset "component" "saga-service" "customLabels" $podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if and .Values.sagaService.nodeAffinityPreset.type .Values.sagaService.nodeAffinityPreset.key .Values.sagaService.nodeAffinityPreset.values }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.sagaService.nodeAffinityPreset.type "key" .Values.sagaService.nodeAffinityPreset.key "values" .Values.sagaService.nodeAffinityPreset.values) | nindent 10 }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.sagaService.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.sagaService.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.sagaService.priorityClassName }}
+      priorityClassName: {{ .Values.sagaService.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.sagaService.schedulerName }}
+      schedulerName: {{ .Values.sagaService.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.sagaService.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.topologySpreadConstraints "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.sagaService.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.sagaService.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.sagaService.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.sagaService.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.sagaService.initContainers }}
+      initContainers: {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: main
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.sagaService.image "global" .Values.global) }}
+          imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.sagaService.image "context" $) }}
+          {{- if .Values.sagaService.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.sagaService.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: "SERVER_PORT"
+              value: {{ .Values.sagaService.containerPorts.server | toString | quote }}
+            - name: "MANAGEMENT_SERVER_PORT"
+              value: {{ .Values.sagaService.containerPorts.managementServer | toString | quote }}
+            - name: "JGROUPS_CONFIG_FILE"
+              value: "kube-ping.xml"
+            - name: "JGROUPS_BIND_PORT"
+              value: {{ .Values.sagaService.containerPorts.jgroups | toString | quote }}
+            - name: "JGROUPS_KUBE_PING_NAMESPACE"
+              value: {{ include "common.names.namespace" $ | quote }}
+            - name: "JGROUPS_KUBE_PING_LABELS"
+              value: {{ include "axon-showcase.jgroups-cluster.labels" $ | quote }}
+            - name: "DB_HOSTS"
+              value: {{ .Values.dbSagas.hosts | quote }}
+            - name: "DB_NAME"
+              value: {{ .Values.dbSagas.name | quote }}
+            - name: "DB_SCHEMA"
+              value: {{ .Values.dbSagas.schema | quote }}
+            - name: "DB_PARAMS"
+              value: {{ .Values.dbSagas.params | quote }}
+            - name: "DB_USER"
+              value: {{ .Values.dbSagas.username | quote }}
+            - name: "DB_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.dbSagas.passwordSecret.name }}
+                  key: {{ .Values.dbSagas.passwordSecret.key }}
+            - name: "DB_POOL_MAX_SIZE"
+              value: {{ .Values.sagaService.dbSagas.pool.maxSize | int | toString | quote }}
+            - name: "DB_POOL_MIN_IDLE"
+              value: {{ .Values.sagaService.dbSagas.pool.minIdle | int | toString | quote }}
+            - name: "DB_POOL_MAX_LIFETIME"
+              value: {{ .Values.sagaService.dbSagas.pool.maxLifetime | int64 | toString | quote }}
+            - name: "DB_POOL_CONNECTION_TIMEOUT"
+              value: {{ .Values.sagaService.dbSagas.pool.connectionTimeout | int64 | toString | quote }}
+            - name: "DB_POOL_VALIDATION_TIMEOUT"
+              value: {{ .Values.sagaService.dbSagas.pool.validationTimeout | int64 | toString | quote }}
+            - name: "DB_POOL_IDLE_TIMEOUT"
+              value: {{ .Values.sagaService.dbSagas.pool.idleTimeout | int64 | toString | quote }}
+            - name: "DB_POOL_LEAK_DETECTION_THRESHOLD"
+              value: {{ .Values.sagaService.dbSagas.pool.leakDetectionThreshold | int64 | toString | quote }}
+            - name: "FLYWAY_MIGRATION_ENABLED"
+              value: "false"
+            - name: "KAFKA_BOOTSTRAP_SERVERS"
+              value: {{ .Values.kafka.bootstrapServers | quote }}
+            - name: "KAFKA_TOPIC_EVENTS"
+              value: {{ .Values.kafka.topics.events | quote }}
+            - name: "KAFKA_SECURITY_PROTOCOL"
+              value: {{ .Values.kafka.securityProtocol | quote }}
+            - name: "KAFKA_FETCHER_POLL_TIMEOUT"
+              value: {{ .Values.sagaService.kafka.fetcher.pollTimeout | int64 | toString | quote }}
+            - name: "KAFKA_FETCHER_CONSUMER_COUNT"
+              value: {{ .Values.sagaService.kafka.fetcher.consumerCount | int | toString | quote }}
+            {{- if (include "axon-showcase.observability.isEnabled" $) }}
+            {{- include "axon-showcase.observability.renderEnvVars" $ | nindent 12 }}
+            {{- end }}
+            {{- if .Values.sagaService.extraEnvVars }}
+            {{- include "axon-showcase.renderEnvVars" (dict "envVars" .Values.sagaService.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if or .Values.sagaService.extraEnvVarsCM .Values.sagaService.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.sagaService.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.sagaService.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.sagaService.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.sagaService.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.sagaService.containerPorts.server }}
+            - name: management
+              containerPort: {{ .Values.sagaService.containerPorts.managementServer }}
+            - name: jgroups
+              containerPort: {{ .Values.sagaService.containerPorts.jgroups }}
+            {{- if .Values.sagaService.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if .Values.sagaService.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.sagaService.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.sagaService.startupProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.sagaService.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{ .Values.sagaService.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.sagaService.livenessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.sagaService.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: {{ .Values.sagaService.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.sagaService.readinessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.sagaService.terminationMessagePolicy }}
+          terminationMessagePolicy: {{ include "common.tplvalues.render" (dict "value" .Values.sagaService.terminationMessagePolicy "context" $) }}
+          {{- end }}
+          {{- if .Values.sagaService.resources }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.resources "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.sagaService.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            {{- if .Values.sagaService.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if .Values.sagaService.sidecars }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: empty-dir
+          emptyDir: { }
+        {{- if .Values.sagaService.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

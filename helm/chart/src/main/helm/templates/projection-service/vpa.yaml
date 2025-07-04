@@ -1,0 +1,38 @@
+{{- if and .Values.projectionService.autoscaling.vpa.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.labels .Values.commonLabels) "context" $) }}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: {{ include "axon-showcase.projection-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: projection-service
+  {{- if or .Values.projectionService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  resourcePolicy:
+    containerPolicies:
+      - containerName: main
+      {{- with .Values.projectionService.autoscaling.vpa.controlledResources }}
+        controlledResources:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.projectionService.autoscaling.vpa.maxAllowed }}
+        maxAllowed:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.projectionService.autoscaling.vpa.minAllowed }}
+        minAllowed:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  targetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+    kind: Deployment
+    name: {{ include "axon-showcase.projection-service.fullname" $ }}
+  {{- if .Values.projectionService.autoscaling.vpa.updatePolicy.updateMode }}
+  updatePolicy:
+    updateMode: {{ .Values.projectionService.autoscaling.vpa.updatePolicy.updateMode }}
+  {{- end }}
+{{- end }}

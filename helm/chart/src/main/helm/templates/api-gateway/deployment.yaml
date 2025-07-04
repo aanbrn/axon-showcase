@@ -1,0 +1,406 @@
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+kind: Deployment
+metadata:
+  name: {{ include "axon-showcase.api-gateway.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: api-gateway
+  {{- if or .Values.apiGateway.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.apiGateway.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.apiGateway.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.apiGateway.revisionHistoryLimit }}
+  {{- if .Values.apiGateway.updateStrategy }}
+  strategy: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.updateStrategy "context" $) | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: api-gateway
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" (dict "customLabels" $podLabels "context" $) | nindent 8 }}
+        app.kubernetes.io/component: api-gateway
+        jgroups-cluster: axon-showcase
+      {{- if or .Values.apiGateway.podAnnotations .Values.commonAnnotations }}
+      {{- $podAnnotations := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.podAnnotations .Values.commonAnnotations) "context" $) }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" $podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.apiGateway.extraPodSpec }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.extraPodSpec "context" $) | nindent 6 }}
+      {{- end }}
+      {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.apiGateway.image) "context" $) | nindent 6 }}
+      serviceAccountName: {{ include "axon-showcase.serviceAccountName" $ }}
+      automountServiceAccountToken: {{ .Values.apiGateway.automountServiceAccountToken }}
+      {{- if .Values.apiGateway.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      affinity:
+        {{- if .Values.apiGateway.affinity }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.affinity "context" $) | nindent 8 }}
+        {{- else }}
+        {{- if .Values.apiGateway.podAffinityPreset }}
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.apiGateway.podAffinityPreset "component" "api-gateway" "customLabels" $podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if .Values.apiGateway.podAntiAffinityPreset }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.apiGateway.podAntiAffinityPreset "component" "api-gateway" "customLabels" $podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if and .Values.apiGateway.nodeAffinityPreset.type .Values.apiGateway.nodeAffinityPreset.key .Values.apiGateway.nodeAffinityPreset.values }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.apiGateway.nodeAffinityPreset.type "key" .Values.apiGateway.nodeAffinityPreset.key "values" .Values.apiGateway.nodeAffinityPreset.values) | nindent 10 }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.apiGateway.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.apiGateway.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.apiGateway.priorityClassName }}
+      priorityClassName: {{ .Values.apiGateway.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.apiGateway.schedulerName }}
+      schedulerName: {{ .Values.apiGateway.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.apiGateway.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.topologySpreadConstraints "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.apiGateway.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.apiGateway.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.apiGateway.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.apiGateway.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.apiGateway.initContainers }}
+      initContainers: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: main
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.apiGateway.image "global" .Values.global) }}
+          imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.apiGateway.image "context" $) }}
+          {{- if .Values.apiGateway.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.apiGateway.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: "SERVER_PORT"
+              value: {{ .Values.apiGateway.containerPorts.server | toString | quote }}
+            - name: "MANAGEMENT_SERVER_PORT"
+              value: {{ .Values.apiGateway.containerPorts.managementServer | toString | quote }}
+            - name: "JGROUPS_CONFIG_FILE"
+              value: "kube-ping.xml"
+            - name: "JGROUPS_BIND_PORT"
+              value: {{ .Values.apiGateway.containerPorts.jgroups | toString | quote }}
+            - name: "JGROUPS_KUBE_PING_NAMESPACE"
+              value: {{ include "common.names.namespace" $ | quote }}
+            - name: "JGROUPS_KUBE_PING_LABELS"
+              value: {{ include "axon-showcase.jgroups-cluster.labels" $ | quote }}
+            - name: "SHOWCASE_QUERY_SERVICE_URL"
+              value: {{ include "axon-showcase.query-service.url" $ | quote }}
+            - name: "FETCH_SHOWCASE_LIST_QUERY_CACHE_MAX_SIZE"
+              value: {{ .Values.apiGateway.caches.FetchShowcaseListQuery.maxSize | int64 | toString | quote }}
+            - name: "FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_ACCESS"
+              value: {{ .Values.apiGateway.caches.FetchShowcaseListQuery.expiresAfterAccess | quote }}
+            - name: "FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_WRITE"
+              value: {{ .Values.apiGateway.caches.FetchShowcaseListQuery.expiresAfterWrite | quote }}
+            - name: "FETCH_SHOWCASE_BY_ID_QUERY_CACHE_MAX_SIZE"
+              value: {{ .Values.apiGateway.caches.FetchShowcaseByIdQuery.maxSize | int64 | toString | quote }}
+            - name: "FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_ACCESS"
+              value: {{ .Values.apiGateway.caches.FetchShowcaseByIdQuery.expiresAfterAccess | quote }}
+            - name: "FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_WRITE"
+              value: {{ .Values.apiGateway.caches.FetchShowcaseByIdQuery.expiresAfterWrite | quote }}
+            - name: "RESILIENCE_ENABLED"
+              value: {{ .Values.apiGateway.resilience.enabled | quote }}
+            - name: "TIMELIMITER_ENABLED"
+              value: {{ .Values.apiGateway.resilience.timelimiter.enabled | quote }}
+            - name: "TIMELIMITER_METRICS_ENABLED"
+              value: {{ or .Values.observability.metrics.prometheus.enabled .Values.observability.metrics.otlp.enabled | quote }}
+            {{- if .Values.apiGateway.resilience.timelimiter.defaults.timeoutDuration }}
+            - name: "TIMELIMITER_DEFAULT_TIMEOUT"
+              value: {{ .Values.apiGateway.resilience.timelimiter.defaults.timeoutDuration | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.timelimiter.commandService.timeoutDuration }}
+            - name: "TIMELIMITER_COMMAND_TIMEOUT"
+              value: {{ .Values.apiGateway.resilience.timelimiter.commandService.timeoutDuration | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.timelimiter.queryService.timeoutDuration }}
+            - name: "TIMELIMITER_QUERY_TIMEOUT"
+              value: {{ .Values.apiGateway.resilience.timelimiter.queryService.timeoutDuration | quote }}
+            {{- end }}
+            - name: "CIRCUITBREAKER_ENABLED"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.enabled | quote }}
+            - name: "CIRCUITBREAKER_METRICS_ENABLED"
+              value: {{ or .Values.observability.metrics.prometheus.enabled .Values.observability.metrics.otlp.enabled | quote }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.defaults.slidingWindowType }}
+            - name: "CIRCUITBREAKER_DEFAULT_SLIDING_WINDOW_TYPE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.defaults.slidingWindowType | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.defaults.slidingWindowSize }}
+            - name: "CIRCUITBREAKER_DEFAULT_SLIDING_WINDOW_SIZE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.defaults.slidingWindowSize | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.defaults.minimumNumberOfCalls }}
+            - name: "CIRCUITBREAKER_DEFAULT_MIN_REQUIRED_CALLS"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.defaults.minimumNumberOfCalls | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.defaults.failureRateThreshold }}
+            - name: "CIRCUITBREAKER_DEFAULT_FAILURE_RATE_THRESHOLD"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.defaults.failureRateThreshold | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.defaults.slowCallRateThreshold }}
+            - name: "CIRCUITBREAKER_DEFAULT_SLOW_CALL_RATE_THRESHOLD"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.defaults.slowCallRateThreshold | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.defaults.slowCallDurationThreshold }}
+            - name: "CIRCUITBREAKER_DEFAULT_SLOW_CALL_DURATION_THRESHOLD"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.defaults.slowCallDurationThreshold | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.defaults.waitDurationInOpenState }}
+            - name: "CIRCUITBREAKER_DEFAULT_WAIT_DURATION_IN_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.defaults.waitDurationInOpenState | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.defaults.exponentialBackoffMultiplier }}
+            - name: "CIRCUITBREAKER_DEFAULT_BACKOFF_MULTIPLIER_IN_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.defaults.exponentialBackoffMultiplier | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.defaults.exponentialMaxWaitDurationInOpenState }}
+            - name: "CIRCUITBREAKER_DEFAULT_MAX_WAIT_DURATION_IN_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.defaults.exponentialMaxWaitDurationInOpenState | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.defaults.permittedNumberOfCallsInHalfOpenState }}
+            - name: "CIRCUITBREAKER_DEFAULT_PERMITTED_CALLS_IN_HALF_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.defaults.permittedNumberOfCallsInHalfOpenState | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.defaults.maxWaitDurationInHalfOpenState }}
+            - name: "CIRCUITBREAKER_DEFAULT_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.defaults.maxWaitDurationInHalfOpenState | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.commandService.slidingWindowType }}
+            - name: "CIRCUITBREAKER_COMMAND_SLIDING_WINDOW_TYPE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.commandService.slidingWindowType | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.commandService.slidingWindowSize }}
+            - name: "CIRCUITBREAKER_COMMAND_SLIDING_WINDOW_SIZE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.commandService.slidingWindowSize | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.commandService.minimumNumberOfCalls }}
+            - name: "CIRCUITBREAKER_COMMAND_MIN_REQUIRED_CALLS"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.commandService.minimumNumberOfCalls | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.commandService.failureRateThreshold }}
+            - name: "CIRCUITBREAKER_COMMAND_FAILURE_RATE_THRESHOLD"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.commandService.failureRateThreshold | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.commandService.slowCallRateThreshold }}
+            - name: "CIRCUITBREAKER_COMMAND_SLOW_CALL_RATE_THRESHOLD"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.commandService.slowCallRateThreshold | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.commandService.slowCallDurationThreshold }}
+            - name: "CIRCUITBREAKER_COMMAND_SLOW_CALL_DURATION_THRESHOLD"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.commandService.slowCallDurationThreshold | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.commandService.waitDurationInOpenState }}
+            - name: "CIRCUITBREAKER_COMMAND_WAIT_DURATION_IN_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.commandService.waitDurationInOpenState | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.commandService.exponentialBackoffMultiplier }}
+            - name: "CIRCUITBREAKER_COMMAND_BACKOFF_MULTIPLIER_IN_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.commandService.exponentialBackoffMultiplier | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.commandService.exponentialMaxWaitDurationInOpenState }}
+            - name: "CIRCUITBREAKER_COMMAND_MAX_WAIT_DURATION_IN_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.commandService.exponentialMaxWaitDurationInOpenState | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.commandService.permittedNumberOfCallsInHalfOpenState }}
+            - name: "CIRCUITBREAKER_COMMAND_PERMITTED_CALLS_IN_HALF_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.commandService.permittedNumberOfCallsInHalfOpenState | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.commandService.maxWaitDurationInHalfOpenState }}
+            - name: "CIRCUITBREAKER_COMMAND_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.commandService.maxWaitDurationInHalfOpenState | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.queryService.slidingWindowType }}
+            - name: "CIRCUITBREAKER_QUERY_SLIDING_WINDOW_TYPE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.queryService.slidingWindowType | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.queryService.slidingWindowSize }}
+            - name: "CIRCUITBREAKER_QUERY_SLIDING_WINDOW_SIZE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.queryService.slidingWindowSize | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.queryService.minimumNumberOfCalls }}
+            - name: "CIRCUITBREAKER_QUERY_MIN_REQUIRED_CALLS"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.queryService.minimumNumberOfCalls | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.queryService.failureRateThreshold }}
+            - name: "CIRCUITBREAKER_QUERY_FAILURE_RATE_THRESHOLD"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.queryService.failureRateThreshold | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.queryService.slowCallRateThreshold }}
+            - name: "CIRCUITBREAKER_QUERY_SLOW_CALL_RATE_THRESHOLD"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.queryService.slowCallRateThreshold | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.queryService.slowCallDurationThreshold }}
+            - name: "CIRCUITBREAKER_QUERY_SLOW_CALL_DURATION_THRESHOLD"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.queryService.slowCallDurationThreshold | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.queryService.waitDurationInOpenState }}
+            - name: "CIRCUITBREAKER_QUERY_WAIT_DURATION_IN_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.queryService.waitDurationInOpenState | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.queryService.exponentialBackoffMultiplier }}
+            - name: "CIRCUITBREAKER_QUERY_BACKOFF_MULTIPLIER_IN_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.queryService.exponentialBackoffMultiplier | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.queryService.exponentialMaxWaitDurationInOpenState }}
+            - name: "CIRCUITBREAKER_QUERY_MAX_WAIT_DURATION_IN_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.queryService.exponentialMaxWaitDurationInOpenState | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.queryService.permittedNumberOfCallsInHalfOpenState }}
+            - name: "CIRCUITBREAKER_QUERY_PERMITTED_CALLS_IN_HALF_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.queryService.permittedNumberOfCallsInHalfOpenState | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.circuitbreaker.queryService.maxWaitDurationInHalfOpenState }}
+            - name: "CIRCUITBREAKER_QUERY_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE"
+              value: {{ .Values.apiGateway.resilience.circuitbreaker.queryService.maxWaitDurationInHalfOpenState | quote }}
+            {{- end }}
+            - name: "RETRY_ENABLED"
+              value: {{ .Values.apiGateway.resilience.retry.enabled | quote }}
+            - name: "RETRY_METRICS_ENABLED"
+              value: {{ or .Values.observability.metrics.prometheus.enabled .Values.observability.metrics.otlp.enabled | quote }}
+            {{- if .Values.apiGateway.resilience.retry.defaults.maxAttempts }}
+            - name: "RETRY_DEFAULT_MAX_ATTEMPTS"
+              value: {{ .Values.apiGateway.resilience.retry.defaults.maxAttempts | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.defaults.waitDuration }}
+            - name: "RETRY_DEFAULT_WAIT_DURATION"
+              value: {{ .Values.apiGateway.resilience.retry.defaults.waitDuration | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.defaults.exponentialBackoffMultiplier }}
+            - name: "RETRY_DEFAULT_BACKOFF_MULTIPLIER"
+              value: {{ .Values.apiGateway.resilience.retry.defaults.exponentialBackoffMultiplier | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.defaults.randomizedWaitFactor }}
+            - name: "RETRY_DEFAULT_BACKOFF_WAIT_FACTOR"
+              value: {{ .Values.apiGateway.resilience.retry.defaults.randomizedWaitFactor | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.defaults.exponentialMaxWaitDuration }}
+            - name: "RETRY_DEFAULT_MAX_WAIT_DURATION"
+              value: {{ .Values.apiGateway.resilience.retry.defaults.exponentialMaxWaitDuration | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.commandService.maxAttempts }}
+            - name: "RETRY_COMMAND_MAX_ATTEMPTS"
+              value: {{ .Values.apiGateway.resilience.retry.commandService.maxAttempts | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.commandService.waitDuration }}
+            - name: "RETRY_COMMAND_WAIT_DURATION"
+              value: {{ .Values.apiGateway.resilience.retry.commandService.waitDuration | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.commandService.exponentialBackoffMultiplier }}
+            - name: "RETRY_COMMAND_BACKOFF_MULTIPLIER"
+              value: {{ .Values.apiGateway.resilience.retry.commandService.exponentialBackoffMultiplier | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.commandService.randomizedWaitFactor }}
+            - name: "RETRY_COMMAND_BACKOFF_WAIT_FACTOR"
+              value: {{ .Values.apiGateway.resilience.retry.commandService.randomizedWaitFactor | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.commandService.exponentialMaxWaitDuration }}
+            - name: "RETRY_COMMAND_MAX_WAIT_DURATION"
+              value: {{ .Values.apiGateway.resilience.retry.commandService.exponentialMaxWaitDuration | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.queryService.maxAttempts }}
+            - name: "RETRY_QUERY_MAX_ATTEMPTS"
+              value: {{ .Values.apiGateway.resilience.retry.queryService.maxAttempts | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.queryService.waitDuration }}
+            - name: "RETRY_QUERY_WAIT_DURATION"
+              value: {{ .Values.apiGateway.resilience.retry.queryService.waitDuration | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.queryService.exponentialBackoffMultiplier }}
+            - name: "RETRY_QUERY_BACKOFF_MULTIPLIER"
+              value: {{ .Values.apiGateway.resilience.retry.queryService.exponentialBackoffMultiplier | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.queryService.randomizedWaitFactor }}
+            - name: "RETRY_QUERY_BACKOFF_WAIT_FACTOR"
+              value: {{ .Values.apiGateway.resilience.retry.queryService.randomizedWaitFactor | quote }}
+            {{- end }}
+            {{- if .Values.apiGateway.resilience.retry.queryService.exponentialMaxWaitDuration }}
+            - name: "RETRY_QUERY_MAX_WAIT_DURATION"
+              value: {{ .Values.apiGateway.resilience.retry.queryService.exponentialMaxWaitDuration | quote }}
+            {{- end }}
+            {{- if (include "axon-showcase.observability.isEnabled" $) }}
+            {{- include "axon-showcase.observability.renderEnvVars" $ | nindent 12 }}
+            {{- end }}
+            {{- if .Values.apiGateway.extraEnvVars }}
+            {{- include "axon-showcase.renderEnvVars" (dict "envVars" .Values.apiGateway.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if or .Values.apiGateway.extraEnvVarsCM .Values.apiGateway.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.apiGateway.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.apiGateway.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.apiGateway.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.apiGateway.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.apiGateway.containerPorts.server }}
+            - name: management
+              containerPort: {{ .Values.apiGateway.containerPorts.managementServer }}
+            - name: jgroups
+              containerPort: {{ .Values.apiGateway.containerPorts.jgroups }}
+            {{- if .Values.apiGateway.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if .Values.apiGateway.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.apiGateway.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.apiGateway.startupProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.apiGateway.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{ .Values.apiGateway.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.apiGateway.livenessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.apiGateway.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: {{ .Values.apiGateway.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.apiGateway.readinessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.apiGateway.terminationMessagePolicy }}
+          terminationMessagePolicy: {{ include "common.tplvalues.render" (dict "value" .Values.apiGateway.terminationMessagePolicy "context" $) }}
+          {{- end }}
+          {{- if .Values.apiGateway.resources }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.resources "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.apiGateway.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            {{- if .Values.apiGateway.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if .Values.apiGateway.sidecars }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: empty-dir
+          emptyDir: { }
+        {{- if .Values.apiGateway.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

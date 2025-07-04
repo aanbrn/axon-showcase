@@ -1,0 +1,54 @@
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.job.apiVersion" $ }}
+kind: Job
+metadata:
+  name: {{ printf "%s-index-initialization" (include "axon-showcase.query-service.fullname" $) | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "common.names.namespace" $ }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: query-service-index-initialization
+  annotations:
+    {{- if or .Values.queryService.annotations .Values.commonAnnotations }}
+    {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.annotations .Values.commonAnnotations) "context" $) }}
+    {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+    {{- end }}
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" (dict "customLabels" $podLabels "context" $) | nindent 8 }}
+        app.kubernetes.io/component: query-service-index-initialization
+      {{- if or .Values.queryService.podAnnotations .Values.commonAnnotations }}
+      {{- $podAnnotations := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.podAnnotations .Values.commonAnnotations) "context" $) }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" $podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.queryService.image) "context" $) | nindent 6 }}
+      {{- if .Values.queryService.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.queryService.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      restartPolicy: OnFailure
+      containers:
+        - name: main
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.queryService.image "global" .Values.global) }}
+          imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.queryService.image "context" $) }}
+          env:
+            - name: "ES_URIS"
+              value: {{ .Values.esViews.uris | quote }}
+            {{- if .Values.esViews.secured }}
+            - name: "ES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.esViews.passwordSecret.name }}
+                  key: {{ .Values.esViews.passwordSecret.key }}
+            {{- end }}
+            - name: "EXIT_AFTER_INDEX_INITIALIZATION"
+              value: "true"
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+      volumes:
+        - name: empty-dir
+          emptyDir: { }

@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: showcase-query-client-component-test
+  main:
+    banner-mode: off
+
+axon:
+  serializer:
+    messages: jackson
+
+resilience4j:
+  enabled: false

@@ -1,0 +1,180 @@
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+kind: Deployment
+metadata:
+  name: {{ include "axon-showcase.query-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: query-service
+  {{- if or .Values.queryService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.queryService.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.queryService.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.queryService.revisionHistoryLimit }}
+  {{- if .Values.queryService.updateStrategy }}
+  strategy: {{- include "common.tplvalues.render" (dict "value" .Values.queryService.updateStrategy "context" $) | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: query-service
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" (dict "customLabels" $podLabels "context" $) | nindent 8 }}
+        app.kubernetes.io/component: query-service
+      {{- if or .Values.queryService.podAnnotations .Values.commonAnnotations }}
+      {{- $podAnnotations := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.podAnnotations .Values.commonAnnotations) "context" $) }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" $podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.queryService.extraPodSpec }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.queryService.extraPodSpec "context" $) | nindent 6 }}
+      {{- end }}
+      {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.queryService.image) "context" $) | nindent 6 }}
+      serviceAccountName: {{ include "axon-showcase.serviceAccountName" $ }}
+      automountServiceAccountToken: {{ .Values.queryService.automountServiceAccountToken }}
+      {{- if .Values.queryService.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.queryService.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      affinity:
+        {{- if .Values.queryService.affinity }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.queryService.affinity "context" $) | nindent 8 }}
+        {{- else }}
+        {{- if .Values.queryService.podAffinityPreset }}
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.queryService.podAffinityPreset "component" "query-service" "customLabels" $podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if .Values.queryService.podAntiAffinityPreset }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.queryService.podAntiAffinityPreset "component" "query-service" "customLabels" $podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if and .Values.queryService.nodeAffinityPreset.type .Values.queryService.nodeAffinityPreset.key .Values.queryService.nodeAffinityPreset.values }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.queryService.nodeAffinityPreset.type "key" .Values.queryService.nodeAffinityPreset.key "values" .Values.queryService.nodeAffinityPreset.values) | nindent 10 }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.queryService.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.queryService.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.queryService.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.queryService.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.queryService.priorityClassName }}
+      priorityClassName: {{ .Values.queryService.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.queryService.schedulerName }}
+      schedulerName: {{ .Values.queryService.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.queryService.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.queryService.topologySpreadConstraints "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.queryService.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.queryService.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.queryService.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.queryService.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.queryService.initContainers }}
+      initContainers: {{- include "common.tplvalues.render" (dict "value" .Values.queryService.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: main
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.queryService.image "global" .Values.global) }}
+          imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.queryService.image "context" $) }}
+          {{- if .Values.queryService.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.queryService.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: "SERVER_PORT"
+              value: {{ .Values.queryService.containerPorts.server | toString | quote }}
+            - name: "MANAGEMENT_SERVER_PORT"
+              value: {{ .Values.queryService.containerPorts.managementServer | toString | quote }}
+            - name: "ES_URIS"
+              value: {{ .Values.esViews.uris | quote }}
+            {{- if .Values.esViews.secured }}
+            - name: "ES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.esViews.passwordSecret.name }}
+                  key: {{ .Values.esViews.passwordSecret.key }}
+            {{- end }}
+            - name: "ES_CONNECTION_TIMEOUT"
+              value: {{ .Values.projectionService.esViews.connectionTimeout | quote }}
+            - name: "ES_SOCKET_TIMEOUT"
+              value: {{ .Values.projectionService.esViews.socketTimeout | quote }}
+            - name: "ES_SOCKET_KEEP_ALIVE"
+              value: {{ .Values.projectionService.esViews.socketKeepAlive | quote }}
+            - name: "INDEX_INITIALIZATION_ENABLED"
+              value: "false"
+            {{- if (include "axon-showcase.observability.isEnabled" $) }}
+            {{- include "axon-showcase.observability.renderEnvVars" $ | nindent 12 }}
+            {{- end }}
+            {{- if .Values.queryService.extraEnvVars }}
+            {{- include "axon-showcase.renderEnvVars" (dict "envVars" .Values.queryService.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if or .Values.queryService.extraEnvVarsCM .Values.queryService.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.queryService.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.queryService.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.queryService.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.queryService.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.queryService.containerPorts.server }}
+            - name: management
+              containerPort: {{ .Values.queryService.containerPorts.managementServer }}
+            {{- if .Values.queryService.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.queryService.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if .Values.queryService.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.queryService.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.queryService.startupProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.queryService.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{ .Values.queryService.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.queryService.livenessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.queryService.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: {{ .Values.queryService.containerPorts.managementServer }}
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.queryService.readinessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.queryService.terminationMessagePolicy }}
+          terminationMessagePolicy: {{ include "common.tplvalues.render" (dict "value" .Values.queryService.terminationMessagePolicy "context" $) }}
+          {{- end }}
+          {{- if .Values.queryService.resources }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.queryService.resources "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.queryService.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.queryService.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            {{- if .Values.queryService.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.queryService.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if .Values.queryService.sidecars }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.queryService.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: empty-dir
+          emptyDir: { }
+        {{- if .Values.queryService.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.queryService.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

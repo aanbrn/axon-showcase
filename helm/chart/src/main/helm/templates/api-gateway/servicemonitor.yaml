@@ -1,0 +1,40 @@
+{{- if and .Values.observability.metrics.prometheus.enabled  .Values.apiGateway.serviceMonitor.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.serviceMonitor.labels .Values.commonLabels) "context" $) }}
+{{- $svcLabels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.labels .Values.commonLabels) "context" $) }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "axon-showcase.api-gateway.fullname" $ }}
+  namespace: {{ .Values.apiGateway.serviceMonitor.namespace | default (include "common.names.namespace" $) | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: api-gateway
+  {{- if or .Values.apiGateway.serviceMonitor.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.serviceMonitor.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $svcLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: api-gateway
+  endpoints:
+    - port: http-management
+      path: /actuator/prometheus
+      {{- if .Values.apiGateway.serviceMonitor.interval }}
+      interval: {{ .Values.apiGateway.serviceMonitor.interval }}
+      {{- end }}
+      {{- if .Values.apiGateway.serviceMonitor.scrapeTimeout }}
+      scrapeTimeout: {{ .Values.apiGateway.serviceMonitor.scrapeTimeout }}
+      {{- end }}
+      {{- if .Values.apiGateway.serviceMonitor.relabelings }}
+      relabelings: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.serviceMonitor.relabelings "context" $) | nindent 6 }}
+      {{- end }}
+      {{- if .Values.apiGateway.serviceMonitor.metricRelabelings }}
+      metricRelabelings: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.serviceMonitor.metricRelabelings "context" $) | nindent 6 }}
+      {{- end }}
+      {{- if .Values.apiGateway.serviceMonitor.honorLabels }}
+      honorLabels: {{ .Values.apiGateway.serviceMonitor.honorLabels }}
+      {{- end }}
+  namespaceSelector:
+    matchNames:
+      - {{ include "common.names.namespace" $ | quote }}
+{{- end }}

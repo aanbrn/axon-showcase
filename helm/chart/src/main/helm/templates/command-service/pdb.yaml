@@ -1,0 +1,25 @@
+{{- if .Values.commandService.pdb.create }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.policy.apiVersion" $ }}
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "axon-showcase.command-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: command-service
+  {{- if or .Values.commandService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.commandService.pdb.minAvailable }}
+  minAvailable: {{ .Values.commandService.pdb.minAvailable }}
+  {{- end  }}
+  {{- if or .Values.commandService.pdb.maxUnavailable ( not .Values.commandService.pdb.minAvailable ) }}
+  maxUnavailable: {{ .Values.commandService.pdb.maxUnavailable | default 1 }}
+  {{- end  }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: command-service
+{{- end }}

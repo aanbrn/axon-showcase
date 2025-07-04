@@ -1,0 +1,20 @@
+apiVersion: v2
+name: ${chartName}
+description: Axon Showcase
+version: ${chartVersion}
+appVersion: ${projectVersion}
+
+keywords:
+  - axon
+  - framework
+  - showcase
+
+maintainers:
+  - name: Alexey Afanasyev
+    email: alexey_afanasyev@inbox.ru
+    url: https://github.com/aanbrn
+
+dependencies:
+  - name: common
+    repository: https://charts.bitnami.com/bitnami
+    version: ${bitnamiCommonVersion}

@@ -1,0 +1,49 @@
+{{- if .Values.projectionService.autoscaling.hpa.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.labels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.hpa.apiVersion" (dict "context" $) }}
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "axon-showcase.projection-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: projection-service
+  {{- if or .Values.projectionService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+    kind: Deployment
+    name: {{ include "axon-showcase.projection-service.fullname" $ }}
+  minReplicas: {{ .Values.projectionService.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.projectionService.autoscaling.hpa.maxReplicas }}
+  metrics:
+  {{- if .Values.projectionService.autoscaling.hpa.targetCPU }}
+    - type: Resource
+      resource:
+        name: cpu
+      {{- if semverCompare "<1.23-0" (include "common.capabilities.kubeVersion" $) }}
+        targetAverageUtilization: {{ .Values.projectionService.autoscaling.hpa.targetCPU }}
+      {{- else }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.projectionService.autoscaling.hpa.targetCPU }}
+      {{- end }}
+  {{- end }}
+  {{- if .Values.projectionService.autoscaling.hpa.targetMemory }}
+    - type: Resource
+      resource:
+        name: memory
+      {{- if semverCompare "<1.23-0" (include "common.capabilities.kubeVersion" $) }}
+        targetAverageUtilization: {{ .Values.projectionService.autoscaling.hpa.targetMemory }}
+      {{- else }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.projectionService.autoscaling.hpa.targetMemory }}
+      {{- end }}
+  {{- end }}
+  {{- if .Values.projectionService.autoscaling.hpa.metrics }}
+  {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.autoscaling.hpa.metrics "context" $) | nindent 4 }}
+  {{- end }}
+{{- end }}

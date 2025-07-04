@@ -1,0 +1,23 @@
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "axon-showcase.projection-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: projection-service
+  {{- if or .Values.projectionService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  selector: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: projection-service
+  ports:
+    - name: http
+      port: {{ .Values.projectionService.containerPorts.server }}
+      targetPort: {{ .Values.projectionService.containerPorts.server }}
+    - name: http-management
+      port: {{ .Values.projectionService.containerPorts.managementServer }}
+      targetPort: {{ .Values.projectionService.containerPorts.managementServer }}

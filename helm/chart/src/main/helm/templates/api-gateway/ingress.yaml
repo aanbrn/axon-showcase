@@ -1,0 +1,43 @@
+{{- if .Values.apiGateway.ingress.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.labels .Values.commonLabels) "context" $) }}
+{{- $backend := include "common.ingress.backend" (dict
+      "serviceName" (include "axon-showcase.api-gateway.fullname" $)
+      "servicePort" .Values.apiGateway.containerPorts.server
+      "context" $) }}
+apiVersion: {{ include "common.capabilities.ingress.apiVersion" $ }}
+kind: Ingress
+metadata:
+  name: {{ include "axon-showcase.api-gateway.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: api-gateway
+  {{- if or .Values.apiGateway.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.apiGateway.ingress.ingressClassName }}
+  ingressClassName: {{ include "common.tplvalues.render" (dict "value" .Values.apiGateway.ingress.ingressClassName "context" $) }}
+  {{- end }}
+  rules:
+    - host: {{ include "common.tplvalues.render" (dict "value" .Values.apiGateway.ingress.hostname "context" $) | quote }}
+      http:
+        paths:
+          - path: {{ .Values.apiGateway.ingress.path | default "/" }}
+            pathType: {{ .Values.apiGateway.ingress.pathType | default "ImplementationSpecific" }}
+            backend: {{- $backend | nindent 14 }}
+          {{- if .Values.apiGateway.ingress.extraPaths }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.ingress.extraPaths "context" $) | nindent 10 }}
+          {{- end }}
+    {{- range .Values.apiGateway.ingress.extraHosts }}
+    - host: {{ .name | quote }}
+      http:
+        paths:
+          - path: {{ .path | default "/" }}
+            pathType: {{ .pathType | default "ImplementationSpecific" }}
+            backend: {{- $backend | nindent 14 }}
+    {{- end }}
+    {{- if .Values.apiGateway.ingress.extraRules }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.ingress.extraRules "context" $) | nindent 4 }}
+    {{- end }}
+{{- end }}

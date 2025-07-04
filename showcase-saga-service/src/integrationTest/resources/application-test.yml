@@ -1,0 +1,5 @@
+axon:
+  kafka:
+    publisher:
+      enabled: true
+      confirmation-mode: wait_for_ack

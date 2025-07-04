@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: showcase-command-client-integration-test
+  main:
+    banner-mode: off
+
+axon:
+  serializer:
+    messages: jackson
+  distributed:
+    enabled: on
+    jgroups:
+      configuration-file: tunnel.xml
+      bind-addr: localhost
+      bind-port: ${random.int[7810,8000)}
+      cluster-name: axon-showcase

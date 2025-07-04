@@ -1,0 +1,37 @@
+{{- if and .Values.commandService.autoscaling.vpa.enabled }}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: {{ include "axon-showcase.command-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: command-service
+  {{- if or .Values.commandService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  resourcePolicy:
+    containerPolicies:
+      - containerName: main
+      {{- with .Values.commandService.autoscaling.vpa.controlledResources }}
+        controlledResources:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.commandService.autoscaling.vpa.maxAllowed }}
+        maxAllowed:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.commandService.autoscaling.vpa.minAllowed }}
+        minAllowed:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  targetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+    kind: Deployment
+    name: {{ include "axon-showcase.command-service.fullname" $ }}
+  {{- if .Values.commandService.autoscaling.vpa.updatePolicy.updateMode }}
+  updatePolicy:
+    updateMode: {{ .Values.commandService.autoscaling.vpa.updatePolicy.updateMode }}
+  {{- end }}
+{{- end }}

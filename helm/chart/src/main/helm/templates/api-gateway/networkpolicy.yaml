@@ -1,0 +1,87 @@
+{{- if .Values.apiGateway.networkPolicy.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" $ }}
+kind: NetworkPolicy
+metadata:
+  name: {{ include "axon-showcase.api-gateway.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: api-gateway
+  {{- if or .Values.apiGateway.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: api-gateway
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        - port: {{ .Values.apiGateway.containerPorts.server }}
+    - ports:
+        - port: {{ .Values.apiGateway.containerPorts.managementServer }}
+      from:
+        - podSelector:
+            matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 14 }}
+        {{- if .Values.apiGateway.networkPolicy.addExternalClientAccess }}
+        - podSelector:
+            matchLabels:
+              {{ include "common.names.fullname" $ }}-client: "true"
+        {{- end }}
+        {{- if .Values.apiGateway.networkPolicy.ingressPodMatchLabels }}
+        - podSelector:
+            matchLabels: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.networkPolicy.ingressPodMatchLabels "context" $) | nindent 14 }}
+        {{- end }}
+        {{- if .Values.apiGateway.networkPolicy.ingressManagementNSMatchLabels }}
+        - namespaceSelector:
+            matchLabels:
+              {{- range $key, $value := .Values.apiGateway.networkPolicy.ingressManagementNSMatchLabels }}
+              {{ $key | quote }}: {{ $value | quote }}
+              {{- end }}
+          {{- if .Values.apiGateway.networkPolicy.ingressManagementNSPodMatchLabels }}
+          podSelector:
+            matchLabels:
+              {{- range $key, $value := .Values.apiGateway.networkPolicy.ingressManagementNSPodMatchLabels }}
+              {{ $key | quote }}: {{ $value | quote }}
+              {{- end }}
+          {{- end }}
+        {{- end }}
+    - ports:
+        - port: {{ .Values.apiGateway.containerPorts.jgroups }}
+      from:
+        - podSelector:
+            matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 14 }}
+              jgroups-cluster: axon-showcase
+    {{- if .Values.apiGateway.networkPolicy.extraIngress }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.networkPolicy.extraIngress "context" $) | nindent 4 }}
+    {{- end }}
+  egress:
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ include "common.names.namespace" $ | quote }}
+    {{- range (lookup "v1" "Endpoints" (include "common.names.namespace" $) "kubernetes").subsets }}
+    - to:
+        {{- range .addresses }}
+        - ipBlock:
+            cidr: {{ .ip }}/32
+        {{- end }}
+      ports:
+        {{- range .ports }}
+        - port: {{ .port }}
+          protocol: {{ .protocol }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.apiGateway.networkPolicy.extraEgress }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.networkPolicy.extraEgress "context" $) | nindent 4 }}
+    {{- end }}
+{{- end }}

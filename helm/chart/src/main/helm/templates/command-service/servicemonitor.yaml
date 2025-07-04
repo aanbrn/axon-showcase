@@ -1,0 +1,40 @@
+{{- if and .Values.observability.metrics.prometheus.enabled .Values.commandService.serviceMonitor.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.serviceMonitor.labels .Values.commonLabels) "context" $) }}
+{{- $svcLabels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.labels .Values.commonLabels) "context" $) }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "axon-showcase.command-service.fullname" $ }}
+  namespace: {{ .Values.commandService.serviceMonitor.namespace | default (include "common.names.namespace" $) | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: command-service
+  {{- if or .Values.commandService.serviceMonitor.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.serviceMonitor.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $svcLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: command-service
+  endpoints:
+    - port: http-management
+      path: /actuator/prometheus
+      {{- if .Values.commandService.serviceMonitor.interval }}
+      interval: {{ .Values.commandService.serviceMonitor.interval }}
+      {{- end }}
+      {{- if .Values.commandService.serviceMonitor.scrapeTimeout }}
+      scrapeTimeout: {{ .Values.commandService.serviceMonitor.scrapeTimeout }}
+      {{- end }}
+      {{- if .Values.commandService.serviceMonitor.relabelings }}
+      relabelings: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.serviceMonitor.relabelings "context" $) | nindent 6 }}
+      {{- end }}
+      {{- if .Values.commandService.serviceMonitor.metricRelabelings }}
+      metricRelabelings: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.serviceMonitor.metricRelabelings "context" $) | nindent 6 }}
+      {{- end }}
+      {{- if .Values.commandService.serviceMonitor.honorLabels }}
+      honorLabels: {{ .Values.commandService.serviceMonitor.honorLabels }}
+      {{- end }}
+  namespaceSelector:
+    matchNames:
+      - {{ include "common.names.namespace" $ | quote }}
+{{- end }}

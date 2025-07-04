@@ -1,0 +1,7 @@
+resilience4j:
+  enabled: true
+  retry:
+    instances:
+      showcase-query-service:
+        max-attempts: 2
+        wait-duration: PT0.01S

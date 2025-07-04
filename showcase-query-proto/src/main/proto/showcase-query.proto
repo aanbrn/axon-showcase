@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_outer_classname = "QueryProto";
+
+package showcase.query;
+
+message QueryRequest {
+  string queryName = 1;
+  string queryIdentifier = 2;
+  string payloadType = 3;
+  optional string payloadRevision = 4;
+  bytes serializedPayload = 5;
+  bytes serializedMetaData = 6;
+  string expectedResponseType = 7;
+}

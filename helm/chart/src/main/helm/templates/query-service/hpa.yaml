@@ -1,0 +1,49 @@
+{{- if .Values.queryService.autoscaling.hpa.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.labels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.hpa.apiVersion" (dict "context" $) }}
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "axon-showcase.query-service.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: query-service
+  {{- if or .Values.queryService.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+    kind: Deployment
+    name: {{ include "axon-showcase.query-service.fullname" $ }}
+  minReplicas: {{ .Values.queryService.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.queryService.autoscaling.hpa.maxReplicas }}
+  metrics:
+  {{- if .Values.queryService.autoscaling.hpa.targetCPU }}
+    - type: Resource
+      resource:
+        name: cpu
+      {{- if semverCompare "<1.23-0" (include "common.capabilities.kubeVersion" $) }}
+        targetAverageUtilization: {{ .Values.queryService.autoscaling.hpa.targetCPU }}
+      {{- else }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.queryService.autoscaling.hpa.targetCPU }}
+      {{- end }}
+  {{- end }}
+  {{- if .Values.queryService.autoscaling.hpa.targetMemory }}
+    - type: Resource
+      resource:
+        name: memory
+      {{- if semverCompare "<1.23-0" (include "common.capabilities.kubeVersion" $) }}
+        targetAverageUtilization: {{ .Values.queryService.autoscaling.hpa.targetMemory }}
+      {{- else }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.queryService.autoscaling.hpa.targetMemory }}
+      {{- end }}
+  {{- end }}
+  {{- if .Values.queryService.autoscaling.hpa.metrics }}
+  {{- include "common.tplvalues.render" (dict "value" .Values.queryService.autoscaling.hpa.metrics "context" $) | nindent 4 }}
+  {{- end }}
+{{- end }}

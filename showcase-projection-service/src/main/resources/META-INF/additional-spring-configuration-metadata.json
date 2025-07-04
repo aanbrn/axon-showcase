@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "axon.kafka.fetcher.consumer-count",
+      "type": "java.lang.Integer",
+      "description": "The number of Consumer instances to create when a SubscribableKafkaMessageSource starts.",
+      "defaultValue": 1
+    }
+  ]
+}

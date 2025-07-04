@@ -1,0 +1,176 @@
+services:
+  db-events:
+    image: postgres:${POSTGRES_VERSION}
+    hostname: axon-showcase-db-events
+    environment:
+      - POSTGRES_DB=showcase-events
+      - POSTGRES_USER=showcase
+      - POSTGRES_PASSWORD=showcase
+    volumes:
+      - db-events-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q" ]
+      start_period: 30s
+      start_interval: 3s
+      retries: 10
+  db-sagas:
+    image: postgres:${POSTGRES_VERSION}
+    hostname: axon-showcase-db-sagas
+    environment:
+      - POSTGRES_DB=showcase-sagas
+      - POSTGRES_USER=showcase
+      - POSTGRES_PASSWORD=showcase
+    volumes:
+      - db-sagas-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q" ]
+      start_period: 30s
+      start_interval: 3s
+      retries: 10
+  es-views:
+    image: elasticsearch:${ELASTICSEARCH_VERSION}
+    hostname: axon-showcase-es-views
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - cluster.routing.allocation.disk.threshold_enabled=false
+      - ES_JAVA_OPTS=-Xms128m -Xmx2g
+    volumes:
+      - es-views-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --output /dev/null --silent --head --fail http://localhost:9200" ]
+      start_period: 30s
+      start_interval: 3s
+      retries: 10
+  kafka:
+    image: apache/kafka:${KAFKA_VERSION}
+    hostname: axon-showcase-kafka
+    environment:
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://axon-showcase-kafka:9092
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+      - KAFKA_NUM_PARTITIONS=3
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1" ]
+      start_period: 30s
+      start_interval: 3s
+      retries: 10
+  kafka-init:
+    depends_on:
+      kafka:
+        condition: service_healthy
+    image: apache/kafka:${KAFKA_VERSION}
+    entrypoint:
+      - "/bin/sh"
+      - "-c"
+      - "/opt/kafka/bin/kafka-topics.sh --bootstrap-server axon-showcase-kafka:9092 --create --topic axon-showcase-events"
+  api-gateway:
+    depends_on:
+      command-service:
+        condition: service_healthy
+      query-service:
+        condition: service_healthy
+    image: aanbrn/axon-showcase-api-gateway:${PROJECT_VERSION}
+    hostname: axon-showcase-api-gateway
+    healthcheck:
+      test: [ "CMD", "/workspace/health-check" ]
+      start_period: 30s
+      start_interval: 3s
+      retries: 10
+    environment:
+      - THC_PATH=/actuator/health
+      - BPL_DEBUG_ENABLED=true
+      - BPL_DEBUG_PORT=8000
+    ports:
+      - "8080:8080"
+      - "8000:8000"
+  command-service:
+    depends_on:
+      db-events:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    image: aanbrn/axon-showcase-command-service:${PROJECT_VERSION}
+    hostname: axon-showcase-command-service
+    healthcheck:
+      test: [ "CMD", "/workspace/health-check" ]
+      start_period: 30s
+      start_interval: 3s
+      retries: 10
+    environment:
+      - THC_PATH=/actuator/health
+      - DB_PASSWORD=showcase
+      - BPL_DEBUG_ENABLED=true
+      - BPL_DEBUG_PORT=8001
+    ports:
+      - "8001:8001"
+  saga-service:
+    depends_on:
+      kafka:
+        condition: service_healthy
+      db-sagas:
+        condition: service_healthy
+    image: aanbrn/axon-showcase-saga-service:${PROJECT_VERSION}
+    hostname: axon-showcase-saga-service
+    healthcheck:
+      test: [ "CMD", "/workspace/health-check" ]
+      start_period: 30s
+      start_interval: 3s
+      retries: 10
+    environment:
+      - THC_PATH=/actuator/health
+      - DB_PASSWORD=showcase
+      - BPL_DEBUG_ENABLED=true
+      - BPL_DEBUG_PORT=8002
+    ports:
+      - "8002:8002"
+  projection-service:
+    depends_on:
+      kafka:
+        condition: service_healthy
+      es-views:
+        condition: service_healthy
+    image: aanbrn/axon-showcase-projection-service:${PROJECT_VERSION}
+    hostname: axon-showcase-projection-service
+    healthcheck:
+      test: [ "CMD", "/workspace/health-check" ]
+      start_period: 30s
+      start_interval: 3s
+      retries: 10
+    environment:
+      - THC_PATH=/actuator/health
+      - DB_PASSWORD=showcase
+      - BPL_DEBUG_ENABLED=true
+      - BPL_DEBUG_PORT=8003
+    ports:
+      - "8003:8003"
+  query-service:
+    depends_on:
+      es-views:
+        condition: service_healthy
+    image: aanbrn/axon-showcase-query-service:${PROJECT_VERSION}
+    hostname: axon-showcase-query-service
+    healthcheck:
+      test: [ "CMD", "/workspace/health-check" ]
+      start_period: 30s
+      start_interval: 3s
+      retries: 10
+    environment:
+      - THC_PATH=/actuator/health
+      - BPL_DEBUG_ENABLED=true
+      - BPL_DEBUG_PORT=8004
+    ports:
+      - "8004:8004"
+
+volumes:
+  db-events-data:
+  db-sagas-data:
+  es-views-data:

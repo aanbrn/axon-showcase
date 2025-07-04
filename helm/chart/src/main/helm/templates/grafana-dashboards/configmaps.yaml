@@ -1,0 +1,17 @@
+{{- $context := $ }}
+{{- range $path, $_ := .Files.Glob "files/grafana-dashboards/*.json"}}
+{{- $name := base $path | trimSuffix ".json" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-%s" (include "common.names.fullname" $) $name | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+    grafana_dashboard: "1"
+  {{- if $.Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $.Values.commonAnnotations "context" $) | nindent 4 }}
+  {{- end }}
+data:
+  {{ $name }}.json: {{- $.Files.Get $path | toYaml | nindent 4 }}
+{{- end }}

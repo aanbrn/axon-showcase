@@ -1,0 +1,88 @@
+fullnameOverride: axon-showcase
+
+commandService:
+  podLabels:
+    axon-showcase-db-events-client: "true"
+    axon-showcase-kafka-client: "true"
+  networkPolicy:
+    ingressManagementNSMatchLabels:
+      name: monitoring
+    ingressManagementNSPodMatchLabels:
+      prometheus: kps
+  serviceMonitor:
+    namespace: monitoring
+    labels:
+      release: kps
+
+sagaService:
+  dbSagas:
+    pool:
+      maxSize: 400
+  podLabels:
+    axon-showcase-db-sagas-client: "true"
+    axon-showcase-kafka-client: "true"
+  networkPolicy:
+    ingressManagementNSMatchLabels:
+      name: monitoring
+    ingressManagementNSPodMatchLabels:
+      prometheus: kps
+  serviceMonitor:
+    namespace: monitoring
+    labels:
+      release: kps
+  autoscaling:
+    hpa:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 2
+
+projectionService:
+  podLabels:
+    axon-showcase-kafka-client: "true"
+    axon-showcase-es-views-client: "true"
+  networkPolicy:
+    ingressManagementNSMatchLabels:
+      name: monitoring
+    ingressManagementNSPodMatchLabels:
+      prometheus: kps
+  serviceMonitor:
+    namespace: monitoring
+    labels:
+      release: kps
+  autoscaling:
+    hpa:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 2
+
+queryService:
+  podLabels:
+    axon-showcase-es-views-client: "true"
+  networkPolicy:
+    ingressManagementNSMatchLabels:
+      name: monitoring
+    ingressManagementNSPodMatchLabels:
+      prometheus: kps
+  serviceMonitor:
+    namespace: monitoring
+    labels:
+      release: kps
+
+apiGateway:
+  ingress:
+    enabled: true
+    hostname: axon-showcase
+  networkPolicy:
+    ingressManagementNSMatchLabels:
+      name: monitoring
+    ingressManagementNSPodMatchLabels:
+      prometheus: kps
+  serviceMonitor:
+    namespace: monitoring
+    labels:
+      release: kps
+
+observability:
+  metrics:
+    prometheus:
+      enabled: true

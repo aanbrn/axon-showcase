@@ -1,0 +1,60 @@
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.job.apiVersion" $ }}
+kind: Job
+metadata:
+  name: {{ printf "%s-db-migration" (include "axon-showcase.command-service.fullname" $) | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "common.names.namespace" $ }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: command-service-db-migration
+  annotations:
+    {{- if or .Values.commandService.annotations .Values.commonAnnotations }}
+    {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.annotations .Values.commonAnnotations) "context" $) }}
+    {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+    {{- end }}
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" (dict "customLabels" $podLabels "context" $) | nindent 8 }}
+        app.kubernetes.io/component: command-service-db-migration
+      {{- if or .Values.commandService.podAnnotations .Values.commonAnnotations }}
+      {{- $podAnnotations := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.podAnnotations .Values.commonAnnotations) "context" $) }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" $podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.commandService.image) "context" $) | nindent 6 }}
+      {{- if .Values.commandService.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      restartPolicy: OnFailure
+      containers:
+        - name: main
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.commandService.image "global" .Values.global) }}
+          imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.commandService.image "context" $) }}
+          env:
+            - name: "DB_HOSTS"
+              value: {{ .Values.dbEvents.hosts | quote }}
+            - name: "DB_NAME"
+              value: {{ .Values.dbEvents.name | quote }}
+            - name: "DB_SCHEMA"
+              value: {{ .Values.dbEvents.schema | quote }}
+            - name: "DB_PARAMS"
+              value: {{ .Values.dbEvents.params | quote }}
+            - name: "DB_USER"
+              value: {{ .Values.dbEvents.username | quote }}
+            - name: "DB_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.dbEvents.passwordSecret.name }}
+                  key: {{ .Values.dbEvents.passwordSecret.key }}
+            - name: "EXIT_AFTER_FLYWAY_MIGRATION"
+              value: "true"
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+      volumes:
+        - name: empty-dir
+          emptyDir: { }

@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.val;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateCreationPolicy;
@@ -43,6 +44,8 @@ final class ShowcaseAggregate {
     private Instant startedAt;
 
     private Instant finishedAt;
+
+    private Instant removedAt;
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
@@ -135,16 +138,19 @@ final class ShowcaseAggregate {
             @NonNull ShowcaseTitleReservation showcaseTitleReservation) {
         showcaseTitleReservation.delete(title);
 
+        val now = clock.instant();
+
         if (status == ShowcaseStatus.STARTED) {
             apply(ShowcaseFinishedEvent
                           .builder()
                           .showcaseId(command.getShowcaseId())
-                          .finishedAt(clock.instant())
+                          .finishedAt(now)
                           .build());
         }
         apply(ShowcaseRemovedEvent
                       .builder()
                       .showcaseId(command.getShowcaseId())
+                      .removedAt(now)
                       .build());
     }
 
@@ -172,6 +178,7 @@ final class ShowcaseAggregate {
 
     @EventSourcingHandler
     void on(@NonNull ShowcaseRemovedEvent event) {
+        this.removedAt = event.getRemovedAt();
         markDeleted();
     }
 }

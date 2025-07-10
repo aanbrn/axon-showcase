@@ -184,6 +184,7 @@ class ShowcaseManagementSagaCT {
                        ShowcaseRemovedEvent
                                .builder()
                                .showcaseId(showcaseId)
+                               .removedAt(fixture.currentTime())
                                .build())
                .expectNoScheduledDeadlines()
                .expectActiveSagas(0);
@@ -212,12 +213,13 @@ class ShowcaseManagementSagaCT {
                                .builder()
                                .showcaseId(showcaseId)
                                .duration(duration)
-                               .startedAt(startTime)
+                               .startedAt(fixture.currentTime())
                                .build())
                .whenPublishingA(
                        ShowcaseRemovedEvent
                                .builder()
                                .showcaseId(showcaseId)
+                               .removedAt(fixture.currentTime())
                                .build())
                .expectNoScheduledDeadlines()
                .expectActiveSagas(0);

@@ -197,6 +197,7 @@ class ShowcaseAggregateCT {
                .andGiven(ShowcaseRemovedEvent
                                  .builder()
                                  .showcaseId(showcaseId)
+                                 .removedAt(fixture.currentTime())
                                  .build())
                .when(ScheduleShowcaseCommand
                              .builder()
@@ -480,6 +481,7 @@ class ShowcaseAggregateCT {
                .expectEvents(ShowcaseRemovedEvent
                                      .builder()
                                      .showcaseId(showcaseId)
+                                     .removedAt(fixture.currentTime())
                                      .build())
                .expectMarkedDeleted();
 
@@ -524,6 +526,7 @@ class ShowcaseAggregateCT {
                        ShowcaseRemovedEvent
                                .builder()
                                .showcaseId(showcaseId)
+                               .removedAt(fixture.currentTime())
                                .build())
                .expectState(it -> {
                    assertThat(it.getStatus()).isEqualTo(ShowcaseStatus.FINISHED);
@@ -571,6 +574,7 @@ class ShowcaseAggregateCT {
                .expectEvents(ShowcaseRemovedEvent
                                      .builder()
                                      .showcaseId(showcaseId)
+                                     .removedAt(fixture.currentTime())
                                      .build())
                .expectMarkedDeleted();
 
@@ -609,6 +613,7 @@ class ShowcaseAggregateCT {
                .andGiven(ShowcaseRemovedEvent
                                  .builder()
                                  .showcaseId(showcaseId)
+                                 .removedAt(fixture.currentTime())
                                  .build())
                .when(RemoveShowcaseCommand
                              .builder()

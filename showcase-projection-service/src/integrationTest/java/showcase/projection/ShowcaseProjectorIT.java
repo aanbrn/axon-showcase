@@ -343,6 +343,7 @@ class ShowcaseProjectorIT {
                 ShowcaseRemovedEvent
                         .builder()
                         .showcaseId(showcaseId)
+                        .removedAt(Instant.now())
                         .build());
 
         await().until(() -> Optional.ofNullable(elasticsearchOperations.get(showcaseId, ShowcaseEntity.class))
@@ -372,6 +373,7 @@ class ShowcaseProjectorIT {
                 ShowcaseRemovedEvent
                         .builder()
                         .showcaseId(showcaseId)
+                        .removedAt(Instant.now())
                         .build());
 
         await().until(() -> output.getOut().contains(

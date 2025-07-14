@@ -7,7 +7,7 @@ spring-data-bom = "2025.0.1"
 springdoc-openapi-starter = "2.8.9"
 swagger = "2.2.34"
 postgresql = "42.7.7"
-caffeine = "3.2.1"
+caffeine = "3.2.2"
 db-scheduler = "13.0.0"
 mapstruct = "1.6.3"
 reactor = "3.7.7"
@@ -16,10 +16,10 @@ streamex = "0.8.3"
 jgroups = "4.2.30.Final"
 jgroups-kubernetes = "1.0.17.Final"
 protobuf = "4.31.1"
-opentelemetry = "1.51.0"
+opentelemetry = "1.52.0"
 commons-compress = "1.27.1"
 commons-fileupload = "1.6.0"
-commons-lang3 = "3.17.0"
+commons-lang3 = "3.18.0"
 commons-io = "2.19.0"
 expressly = "6.0.0"
 guava = "33.4.8-jre"
@@ -30,11 +30,11 @@ mockito = "5.18.0"
 wiremock-spring-boot = "3.10.0"
 kotlin = "2.2.0"
 spotbugs = "4.9.3"
-lombok-plugin = "8.13.1"
+lombok-plugin = "8.14"
 protobuf-plugin = "0.9.5"
 gatling-plugin = "3.14.3"
 dependencyVersions-plugin = "0.52.0"
-spotbugs-plugin = "6.1.5"
+spotbugs-plugin = "6.2.2"
 spotbugs-findsecbugs-plugin = "1.14.0"
 spotbugs-fbContrib-plugin = "7.6.11"
 helm = "3.17.3"
@@ -133,6 +133,7 @@ spring-boot-plugin = { group = "org.springframework.boot", name = "spring-boot-g
 protobuf-plugin = { group = "com.google.protobuf", name = "protobuf-gradle-plugin", version.ref = "protobuf-plugin" }
 gatling-plugin = { group = "gradle.plugin.io.gatling.gradle", name = "gatling-gradle-plugin", version.ref = "gatling-plugin" }
 dependencyVersions-plugin = { group = "com.github.ben-manes", name = "gradle-versions-plugin", version.ref = "dependencyVersions-plugin" }
+spotbugs = { group = "com.github.spotbugs", name = "spotbugs", version.ref = "spotbugs" }
 spotbugs-plugin = { group = "com.github.spotbugs.snom", name = "spotbugs-gradle-plugin", version.ref = "spotbugs-plugin" }
 spotbugs-findsecbugs-plugin = { group = "com.h3xstream.findsecbugs", name = "findsecbugs-plugin", version.ref = "spotbugs-findsecbugs-plugin" }
 spotbugs-fbContrib-plugin = { group = "com.mebigfatguy.fb-contrib", name = "fb-contrib", version.ref = "spotbugs-fbContrib-plugin" }

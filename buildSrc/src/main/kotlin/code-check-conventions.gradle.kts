@@ -8,10 +8,13 @@ plugins {
 val libs = the<LibrariesForLibs>()
 
 spotbugs {
-    toolVersion = libs.versions.spotbugs.asProvider().get()
+    showProgress = true
 }
 
 dependencies {
+    spotbugs(libs.spotbugs)
+    spotbugs(libs.commons.lang3)
+
     spotbugsPlugins(libs.spotbugs.findsecbugs.plugin)
     spotbugsPlugins(libs.spotbugs.fbContrib.plugin)
 }

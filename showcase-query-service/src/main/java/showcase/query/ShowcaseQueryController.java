@@ -9,7 +9,6 @@ import org.axonframework.extensions.reactor.queryhandling.gateway.ReactorQueryGa
 import org.axonframework.messaging.interceptors.JSR303ViolationException;
 import org.axonframework.queryhandling.QueryMessage;
 import org.axonframework.tracing.SpanFactory;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -42,9 +41,6 @@ final class ShowcaseQueryController {
 
     @NonNull
     private SpanFactory spanFactory;
-
-    @NonNull
-    private MessageSource messageSource;
 
     @PostMapping(path = "/query", consumes = APPLICATION_PROTOBUF_VALUE)
     Mono<?> query(@RequestBody QueryRequest request) {

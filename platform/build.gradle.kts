@@ -22,6 +22,7 @@ dependencies {
     constraints {
         api(libs.commons.compress)
         api(libs.commons.fileupload)
+        api(libs.commons.lang3)
         api(libs.commons.io)
         api(libs.jgroups)
         api(libs.logback.classic)

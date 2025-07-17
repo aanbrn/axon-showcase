@@ -100,6 +100,7 @@ testing {
                             "bootBuildImage",
                             ":showcase-command-service:bootBuildImage",
                             ":showcase-projection-service:bootBuildImage",
+                            ":showcase-saga-service:bootBuildImage",
                             ":showcase-query-service:bootBuildImage"
                         )
 

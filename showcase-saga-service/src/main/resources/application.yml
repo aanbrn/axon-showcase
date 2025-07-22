@@ -162,6 +162,9 @@ resilience4j:
 
 server:
   port: 8082
+  error:
+    whitelabel:
+      enabled: false
 
 management:
   endpoints:

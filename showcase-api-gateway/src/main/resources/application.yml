@@ -149,6 +149,9 @@ resilience4j:
 
 server:
   port: 8080
+  error:
+    whitelabel:
+      enabled: false
 
 springdoc:
   packages-to-scan: showcase.api.rest

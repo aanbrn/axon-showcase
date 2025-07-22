@@ -92,6 +92,9 @@ showcase:
 
 server:
   port: 8081
+  error:
+    whitelabel:
+      enabled: false
 
 management:
   endpoints:

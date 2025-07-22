@@ -30,5 +30,6 @@ dependencies {
         api(libs.xstream)
         api(libs.guava)
         api(libs.hamcrest)
+        api(libs.reactor.netty.http)
     }
 }

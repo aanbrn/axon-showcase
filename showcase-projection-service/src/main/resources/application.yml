@@ -51,6 +51,9 @@ showcase:
 
 server:
   port: 8083
+  error:
+    whitelabel:
+      enabled: false
 
 management:
   endpoints:

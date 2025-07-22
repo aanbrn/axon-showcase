@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.Objects.requireNonNullElseGet;
 import static org.springframework.http.MediaType.APPLICATION_PROTOBUF_VALUE;
 
 @RestController
@@ -76,31 +77,21 @@ final class ShowcaseQueryController {
     }
 
     @ExceptionHandler
+    @SuppressWarnings("unchecked")
     ResponseEntity<ProblemDetail> handleJSR303ViolationException(JSR303ViolationException e) {
         val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request content.");
         val violations = e.getViolations();
         if (!violations.isEmpty()) {
             problemDetail.setProperty("fieldErrors", new HashMap<>());
             for (val violation : violations) {
-                //noinspection unchecked
                 var fieldErrors = (Map<String, Object>) requireNonNull(problemDetail.getProperties())
                                                                 .get("fieldErrors");
-                val path =
-                        StreamEx.of(violation.getPropertyPath().iterator())
-                                .toList();
+                val path = StreamEx.of(violation.getPropertyPath().iterator()).toList();
                 for (int i = 0; i < path.size() - 1; i++) {
-                    //noinspection ReassignedVariable,unchecked
-                    fieldErrors = (Map<String, Object>) fieldErrors.compute(path.get(i).getName(), (k, v) -> {
-                        //noinspection ReplaceNullCheck
-                        if (v == null) {
-                            return new HashMap<>();
-                        } else {
-                            return v;
-                        }
-                    });
+                    fieldErrors = (Map<String, Object>) fieldErrors.compute(
+                            path.get(i).getName(), (k, v) -> requireNonNullElseGet(v, HashMap::new));
                 }
-                //noinspection unchecked
-                List<String> messages = (List<String>) fieldErrors.computeIfAbsent(
+                val messages = (List<String>) fieldErrors.computeIfAbsent(
                         path.getLast().getName(), k -> new ArrayList<>());
                 messages.add(violation.getMessage());
             }

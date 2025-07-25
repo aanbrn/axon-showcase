@@ -55,6 +55,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 
+import static java.util.Objects.requireNonNull;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
@@ -84,8 +85,10 @@ final class ShowcaseApiController implements ShowcaseApi {
             @NonNull MessageSource messageSource) {
         this.commandOperations = commandOperations;
         this.queryOperations = queryOperations;
-        this.fetchAllCache = cacheManager.getCache(FETCH_ALL_CACHE_NAME);
-        this.fetchByIdCache = cacheManager.getCache(FETCH_BY_ID_CACHE_NAME);
+        this.fetchAllCache = requireNonNull(cacheManager.getCache(FETCH_ALL_CACHE_NAME),
+                                            () -> "Cache '%s' is missing".formatted(FETCH_ALL_CACHE_NAME));
+        this.fetchByIdCache = requireNonNull(cacheManager.getCache(FETCH_BY_ID_CACHE_NAME),
+                                             () -> "Cache '%s' is missing".formatted(FETCH_BY_ID_CACHE_NAME));
         this.messageSource = messageSource;
     }
 
@@ -99,14 +102,13 @@ final class ShowcaseApiController implements ShowcaseApi {
                                          .startTime(request.getStartTime())
                                          .duration(request.getDuration())
                                          .build())
-                       .map(ResponseEntity::ok)
-                       .defaultIfEmpty(
-                               ResponseEntity
-                                       .created(fromUriString("/showcases/")
-                                                        .path(request.getShowcaseId())
-                                                        .build()
-                                                        .toUri())
-                                       .build());
+                       .then(Mono.fromSupplier(
+                               () -> ResponseEntity
+                                             .created(fromUriString("/showcases/")
+                                                              .path(request.getShowcaseId())
+                                                              .build()
+                                                              .toUri())
+                                             .build()));
     }
 
     @PutMapping("/{showcaseId}/start")

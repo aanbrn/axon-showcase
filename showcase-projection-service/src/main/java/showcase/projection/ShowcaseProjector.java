@@ -55,6 +55,8 @@ final class ShowcaseProjector {
                             .withOpType(OpType.CREATE)
                             .build(),
                     showcaseIndex);
+
+            log.info("Scheduled showcase projected: {}", event);
         } catch (Exception e) {
             val responseException = findException(e, ResponseException.class);
             if (responseException.isPresent()
@@ -91,6 +93,8 @@ final class ShowcaseProjector {
                         .build();
 
         elasticsearchTemplate.update(startedShowcase, showcaseIndex);
+
+        log.info("Started showcase projected: {}", event);
     }
 
     @EventHandler
@@ -114,6 +118,8 @@ final class ShowcaseProjector {
                         .build();
 
         elasticsearchTemplate.update(finishedShowcase, showcaseIndex);
+
+        log.info("Finished showcase projected: {}", event);
     }
 
     @EventHandler
@@ -123,5 +129,7 @@ final class ShowcaseProjector {
         if (response.result() == Result.NotFound) {
             log.warn("On removed event, showcase with ID {} is missing", event.getShowcaseId());
         }
+
+        log.info("Removed showcase projected: {}", event);
     }
 }

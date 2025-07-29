@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -26,6 +27,7 @@ import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted
 @Revision("1.0")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter(AccessLevel.PACKAGE)
+@Slf4j
 final class ShowcaseAggregate {
 
     @AggregateIdentifier
@@ -56,8 +58,11 @@ final class ShowcaseAggregate {
                         && Objects.equals(status, ShowcaseStatus.SCHEDULED)
                         && Objects.equals(startTime, command.getStartTime())
                         && Objects.equals(duration, command.getDuration())) {
+                log.debug("Retry to schedule showcase: {}", command);
                 return;
             } else {
+                log.error("Attempt to reuse showcase ID: {}", command);
+
                 throw new ShowcaseCommandException(
                         ShowcaseCommandErrorDetails
                                 .builder()
@@ -70,6 +75,8 @@ final class ShowcaseAggregate {
         try {
             showcaseTitleReservation.save(command.getTitle());
         } catch (DuplicateTitleException e) {
+            log.error("Attempt to reuse showcase title: {}", command);
+
             throw new ShowcaseCommandException(
                     ShowcaseCommandErrorDetails
                             .builder()
@@ -79,19 +86,26 @@ final class ShowcaseAggregate {
                     e.getCause());
         }
 
-        apply(ShowcaseScheduledEvent
-                      .builder()
-                      .showcaseId(command.getShowcaseId())
-                      .title(command.getTitle())
-                      .startTime(command.getStartTime())
-                      .duration(command.getDuration())
-                      .scheduledAt(clock.instant())
-                      .build());
+        val event =
+                ShowcaseScheduledEvent
+                        .builder()
+                        .showcaseId(command.getShowcaseId())
+                        .title(command.getTitle())
+                        .startTime(command.getStartTime())
+                        .duration(command.getDuration())
+                        .scheduledAt(clock.instant())
+                        .build();
+
+        log.info("Showcase scheduled: {}", event);
+
+        apply(event);
     }
 
     @CommandHandler
     void handle(@NonNull StartShowcaseCommand command) {
         if (status == ShowcaseStatus.FINISHED) {
+            log.error("Attempt to start already finished showcase: {}", command);
+
             throw new ShowcaseCommandException(
                     ShowcaseCommandErrorDetails
                             .builder()
@@ -100,20 +114,28 @@ final class ShowcaseAggregate {
                             .build());
         }
         if (status == ShowcaseStatus.STARTED) {
+            log.debug("Retry to start showcase: {}", command);
             return;
         }
 
-        apply(ShowcaseStartedEvent
-                      .builder()
-                      .showcaseId(showcaseId)
-                      .duration(duration)
-                      .startedAt(clock.instant())
-                      .build());
+        val event =
+                ShowcaseStartedEvent
+                        .builder()
+                        .showcaseId(showcaseId)
+                        .duration(duration)
+                        .startedAt(clock.instant())
+                        .build();
+
+        log.info("Showcase started: {}", event);
+
+        apply(event);
     }
 
     @CommandHandler
     void handle(@NonNull FinishShowcaseCommand command) {
         if (status == ShowcaseStatus.SCHEDULED) {
+            log.error("Attempt to finish not started yet showcase: {}", command);
+
             throw new ShowcaseCommandException(
                     ShowcaseCommandErrorDetails
                             .builder()
@@ -122,14 +144,20 @@ final class ShowcaseAggregate {
                             .build());
         }
         if (status == ShowcaseStatus.FINISHED) {
+            log.debug("Retry to finish showcase: {}", command);
             return;
         }
 
-        apply(ShowcaseFinishedEvent
-                      .builder()
-                      .showcaseId(showcaseId)
-                      .finishedAt(clock.instant())
-                      .build());
+        val event =
+                ShowcaseFinishedEvent
+                        .builder()
+                        .showcaseId(showcaseId)
+                        .finishedAt(clock.instant())
+                        .build();
+
+        log.info("Showcase finished: {}", event);
+
+        apply(event);
     }
 
     @CommandHandler
@@ -141,17 +169,29 @@ final class ShowcaseAggregate {
         val now = clock.instant();
 
         if (status == ShowcaseStatus.STARTED) {
-            apply(ShowcaseFinishedEvent
-                          .builder()
-                          .showcaseId(command.getShowcaseId())
-                          .finishedAt(now)
-                          .build());
+            val event =
+                    ShowcaseFinishedEvent
+                            .builder()
+                            .showcaseId(command.getShowcaseId())
+                            .finishedAt(now)
+                            .build();
+
+            log.info("Finish started showcase on remove: {}", event);
+
+            apply(event);
         }
-        apply(ShowcaseRemovedEvent
-                      .builder()
-                      .showcaseId(command.getShowcaseId())
-                      .removedAt(now)
-                      .build());
+        {
+            val event =
+                    ShowcaseRemovedEvent
+                            .builder()
+                            .showcaseId(command.getShowcaseId())
+                            .removedAt(now)
+                            .build();
+
+            log.info("Showcase removed: {}", event);
+
+            apply(event);
+        }
     }
 
     @EventSourcingHandler

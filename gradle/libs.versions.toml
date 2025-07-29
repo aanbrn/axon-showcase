@@ -1,6 +1,6 @@
 [versions]
 java = "21"
-axon-bom = "4.11.4"
+axon-bom = "4.12.0"
 spring-boot = "3.5.4"
 spring-framework-bom = "6.2.9"
 spring-data-bom = "2025.0.2"

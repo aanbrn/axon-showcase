@@ -3,6 +3,7 @@ package showcase.query;
 import lombok.NonNull;
 import lombok.val;
 import org.axonframework.queryhandling.QueryHandler;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.elasticsearch.client.elc.ReactiveElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
@@ -14,7 +15,9 @@ import reactor.core.publisher.Mono;
 import showcase.projection.ShowcaseEntity;
 
 @Component
-final class ShowcaseQueryHandler {
+class ShowcaseQueryHandler {
+
+    static final String SHOWCASES_CACHE = "showcases";
 
     private final ReactiveElasticsearchTemplate elasticsearchTemplate;
 
@@ -55,6 +58,7 @@ final class ShowcaseQueryHandler {
     }
 
     @QueryHandler
+    @Cacheable(cacheNames = SHOWCASES_CACHE, key = "#query.showcaseId", unless = "#result == null")
     Mono<Showcase> handle(@NonNull FetchShowcaseByIdQuery query) {
         return elasticsearchTemplate
                        .get(query.getShowcaseId(), ShowcaseEntity.class, showcaseIndex)

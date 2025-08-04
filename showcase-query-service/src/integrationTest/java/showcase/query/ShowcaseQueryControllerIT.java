@@ -1,5 +1,6 @@
 package showcase.query;
 
+import com.redis.testcontainers.RedisContainer;
 import lombok.val;
 import org.axonframework.queryhandling.GenericStreamingQueryMessage;
 import org.junit.jupiter.api.AfterEach;
@@ -9,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.http.HttpStatus;
@@ -41,6 +44,10 @@ class ShowcaseQueryControllerIT {
             new ElasticsearchContainer("elasticsearch:" + System.getProperty("elasticsearch.image.version"))
                     .withEnv("xpack.security.enabled", "false");
 
+    @Container
+    @ServiceConnection
+    static final RedisContainer redis = new RedisContainer("redis:" + System.getProperty("redis.image.version"));
+
     @Autowired
     private ElasticsearchTemplate elasticsearchTemplate;
 
@@ -51,23 +58,34 @@ class ShowcaseQueryControllerIT {
     private QueryMessageRequestMapper queryMessageRequestMapper;
 
     @Autowired
+    private CacheManager cacheManager;
+
+    @Autowired
     private WebTestClient webClient;
 
     private IndexOperations showcaseIndexOperations;
+
+    private Cache showcaseCache;
 
     @BeforeEach
     void setUp() {
         if (showcaseIndexOperations == null) {
             showcaseIndexOperations = elasticsearchTemplate.indexOps(ShowcaseEntity.class);
         }
+        if (showcaseCache == null) {
+            showcaseCache = cacheManager.getCache("showcases");
+        }
 
         assertThat(showcaseIndexOperations.exists()).isTrue();
+        assertThat(showcaseCache).isNotNull();
     }
 
     @AfterEach
     void tearDown() {
         assertThat(showcaseIndexOperations.delete()).isTrue();
         assertThat(showcaseIndexOperations.createWithMapping()).isTrue();
+
+        showcaseCache.clear();
     }
 
     @Test
@@ -237,6 +255,8 @@ class ShowcaseQueryControllerIT {
                 .isOk()
                 .expectBody(Showcase.class)
                 .isEqualTo(showcase);
+
+        assertThat(showcaseCache.get(showcase.getShowcaseId())).isNotNull();
     }
 
     @Test

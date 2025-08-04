@@ -105,6 +105,47 @@ spec:
               value: {{ .Values.projectionService.esViews.socketTimeout | quote }}
             - name: "ES_SOCKET_KEEP_ALIVE"
               value: {{ .Values.projectionService.esViews.socketKeepAlive | quote }}
+            - name: "REDIS_HOST"
+              value: {{ .Values.redis.host | quote }}
+            - name: "REDIS_PORT"
+              value: {{ .Values.redis.port | toString | quote }}
+            {{- if .Values.redis.secured }}
+            - name: "REDIS_USERNAME"
+              value: {{ .Values.redis.username | quote }}
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.passwordSecret.name }}
+                  key: {{ .Values.redis.passwordSecret.key }}
+            {{- end }}
+            {{- if .Values.redis.cluster.nodes }}
+            - name: "REDIS_CLUSTER_NODES"
+              value: {{ .Values.redis.cluster.nodes | quote }}
+            - name: "REDIS_CLUSTER_MAX_REDIRECTS"
+              value: {{ .Values.redis.cluster.maxRedirects | quote }}
+            - name: "REDIS_CLUSTER_DYNAMIC_REFRESH_SOURCES"
+              value: {{ .Values.redis.cluster.dynamicRefreshSources | quote }}
+            - name: "REDIS_CLUSTER_REFRESH_PERIOD"
+              value: {{ .Values.redis.cluster.refreshPeriod | quote }}
+            - name: "REDIS_CLUSTER_REFRESH_ADAPTIVE"
+              value: {{ .Values.redis.cluster.refreshAdaptive | quote }}
+            {{- end }}
+            - name: "REDIS_CONNECTION_TIMEOUT"
+              value: {{ .Values.queryService.redis.connectionTimeout | quote }}
+            - name: "REDIS_READ_TIMEOUT"
+              value: {{ .Values.queryService.redis.readTimeout | quote }}
+            - name: "REDIS_SHUTDOWN_TIMEOUT"
+              value: {{ .Values.queryService.redis.shutdownTimeout | quote }}
+            - name: "REDIS_POOL_MAX_SIZE"
+              value: {{ .Values.queryService.redis.pool.maxSize | toString | quote }}
+            - name: "REDIS_POOL_MIN_IDLE"
+              value: {{ .Values.queryService.redis.pool.minIdle | toString | quote }}
+            - name: "REDIS_POOL_MAX_ACTIVE"
+              value: {{ .Values.queryService.redis.pool.maxActive | toString | quote }}
+            - name: "REDIS_POOL_MAX_WAIT"
+              value: {{ .Values.queryService.redis.pool.maxWait | quote }}
+            - name: "REDIS_POOL_TIME_BETWEEN_EVICTION_RUNS"
+              value: {{ .Values.queryService.redis.pool.timeBetweenEvictionRuns | quote }}
             - name: "INDEX_INITIALIZATION_ENABLED"
               value: "false"
             {{- if (include "axon-showcase.observability.isEnabled" $) }}

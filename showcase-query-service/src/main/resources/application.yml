@@ -8,8 +8,27 @@ spring:
     username: ${ES_USER:elastic}
     password: ${ES_PASSWORD:}
     connection-timeout: ${ES_CONNECTION_TIMEOUT:PT1S}
-    socket-timeout: ${ES_SOCKET_TIMEOUT:PT30S}
+    socket-timeout: ${ES_SOCKET_TIMEOUT:PT5S}
     socket-keep-alive: ${ES_SOCKET_KEEP_ALIVE:false}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      username: ${REDIS_USERNAME:}
+      password: ${REDIS_PASSWORD:}
+      connect-timeout: ${REDIS_CONNECTION_TIMEOUT:PT1S}
+      timeout: ${REDIS_READ_TIMEOUT:PT2S}
+      client-name: ${spring.application.name}
+      client-type: lettuce
+      lettuce:
+        shutdown-timeout: ${REDIS_SHUTDOWN_TIMEOUT:PT0.1S}
+        pool:
+          enabled: true
+          max-idle: ${REDIS_POOL_MAX_IDLE:8}
+          min-idle: ${REDIS_POOL_MIN_IDLE:0}
+          max-active: ${REDIS_POOL_MAX_ACTIVE:8}
+          max-wait: ${REDIS_POOL_MAX_WAIT:PT-0.001S}
+          time-between-eviction-runs: ${REDIS_POOL_TIME_BETWEEN_EVICTION_RUNS:}
   web:
     locale: en
   webflux:
@@ -30,6 +49,9 @@ showcase:
   query:
     index-initialization-enabled: ${INDEX_INITIALIZATION_ENABLED:true}
     exit-after-index-initialization: ${EXIT_AFTER_INDEX_INITIALIZATION:false}
+    caches:
+      showcases:
+        time-to-live: ${SHOWCASES_CACHE_TIME_TO_LIVE:PT10M}
     metrics:
       tags:
         - key: ${METRICS_TAG_APPLICATION_KEY:application}
@@ -78,3 +100,20 @@ management:
       export:
         enabled: ${TRACING_OTLP_ENABLED:false}
       endpoint: ${TRACING_OTLP_ENDPOINT:}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: redis-cluster
+  data:
+    redis:
+      cluster:
+        nodes: ${REDIS_CLUSTER_NODES:}
+        max-redirects: ${REDIS_CLUSTER_MAX_REDIRECTS:}
+      lettuce:
+        cluster:
+          refresh:
+            dynamic-refresh-sources: ${REDIS_CLUSTER_DYNAMIC_REFRESH_SOURCES:true}
+            period: ${REDIS_CLUSTER_REFRESH_PERIOD:}
+            adaptive: ${REDIS_CLUSTER_REFRESH_ADAPTIVE:false}

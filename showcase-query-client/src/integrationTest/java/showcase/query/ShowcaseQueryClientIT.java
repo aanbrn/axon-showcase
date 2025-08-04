@@ -1,5 +1,6 @@
 package showcase.query;
 
+import com.redis.testcontainers.RedisContainer;
 import lombok.val;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,10 +54,16 @@ class ShowcaseQueryClientIT {
                     .withEnv("xpack.security.enabled", "false");
 
     @Container
+    static final RedisContainer redis =
+            new RedisContainer("redis:" + System.getProperty("redis.image.version"))
+                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-redis"))
+                    .withNetwork(network);
+
+    @Container
     @SuppressWarnings("resource")
     static final GenericContainer<?> queryService =
             new GenericContainer<>("aanbrn/axon-showcase-query-service:" + System.getProperty("project.version"))
-                    .dependsOn(esViews)
+                    .dependsOn(esViews, redis)
                     .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-query-service"))
                     .withNetwork(network)
                     .withExposedPorts(8080)

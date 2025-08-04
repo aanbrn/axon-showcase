@@ -21,13 +21,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
 
 import java.util.List;
 
 @SpringBootApplication
 @EnableConfigurationProperties(ShowcaseProjectionProperties.class)
+@EnableCaching
 class ShowcaseProjectionApplication {
 
     public static void main(String[] args) {
@@ -65,6 +69,11 @@ class ShowcaseProjectionApplication {
                            .<Tag>map(t -> new ImmutableTag(t.getKey(), t.getValue()))
                            .toList();
         return meterRegistry -> meterRegistry.config().commonTags(tags);
+    }
+
+    @Bean
+    RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
+        return builder -> builder.withCacheConfiguration("showcases", RedisCacheConfiguration.defaultCacheConfig());
     }
 
     @Bean

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -26,9 +27,11 @@ final class ShowcaseApiProperties {
         private long maximumSize;
 
         @NotNull
+        @DurationMin(nanos = 0)
         private Duration expiresAfterAccess;
 
         @NotNull
+        @DurationMin(nanos = 0)
         private Duration expiresAfterWrite;
     }
 

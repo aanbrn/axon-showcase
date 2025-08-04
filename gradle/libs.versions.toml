@@ -22,10 +22,13 @@ commons-compress = "1.27.1"
 commons-fileupload = "1.6.0"
 commons-lang3 = "3.18.0"
 commons-io = "2.20.0"
+commons-pool2 = "2.12.1"
 expressly = "6.0.0"
 guava = "33.4.8-jre"
 logback = "1.5.18"
 xstream = "1.4.21"
+lettuce = "6.7.1.RELEASE"
+testcontainers-redis = "2.2.4"
 hamcrest = "3.0"
 mockito = "5.18.0"
 wiremock-spring-boot = "3.10.0"
@@ -44,10 +47,12 @@ bitnami-common = "2.x.x"
 bitnami-postgresql = "16.x.x"
 bitnami-kafka = "31.x.x"
 bitnami-elasticsearch = "22.x.x"
+bitnami-redis = "20.x.x"
 kube-prometheus-stack = "72.x.x"
 postgres-image = "17"
 kafka-image = "3.9.1"
 elasticsearch-image = "9.0.1"
+redis-image = "8.0.3"
 
 [libraries]
 spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring-boot" }
@@ -56,6 +61,7 @@ spring-boot-starter-aop = { group = "org.springframework.boot", name = "spring-b
 spring-boot-starter-cache = { group = "org.springframework.boot", name = "spring-boot-starter-cache" }
 spring-boot-starter-jdbc = { group = "org.springframework.boot", name = "spring-boot-starter-jdbc" }
 spring-boot-starter-data-elasticsearch = { group = "org.springframework.boot", name = "spring-boot-starter-data-elasticsearch" }
+spring-boot-starter-data-redis = { group = "org.springframework.boot", name = "spring-boot-starter-data-redis" }
 spring-boot-starter-webflux = { group = "org.springframework.boot", name = "spring-boot-starter-webflux" }
 spring-boot-starter-validation = { group = "org.springframework.boot", name = "spring-boot-starter-validation" }
 spring-boot-starter-actuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator" }
@@ -72,6 +78,7 @@ commons-compress = { group = "org.apache.commons", name = "commons-compress", ve
 commons-fileupload = { group = "commons-fileupload", name = "commons-fileupload", version.ref = "commons-fileupload" }
 commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commons-lang3" }
 commons-io = { group = "commons-io", name = "commons-io", version.ref = "commons-io" }
+commons-pool2 = { group = "org.apache.commons", name = "commons-pool2", version.ref = "commons-pool2" }
 flyway-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql" }
 hibernate-validator = { group = "org.hibernate.validator", name = "hibernate-validator" }
 expressly = { group = "org.glassfish.expressly", name = "expressly", version.ref = "expressly" }
@@ -89,6 +96,7 @@ testcontainers-junit-jupiter = { group = "org.testcontainers", name = "junit-jup
 testcontainers-postgresql = { group = "org.testcontainers", name = "postgresql" }
 testcontainers-kafka = { group = "org.testcontainers", name = "kafka" }
 testcontainers-elasticsearch = { group = "org.testcontainers", name = "elasticsearch" }
+testcontainers-redis = { group = "com.redis", name = "testcontainers-redis", version.ref = "testcontainers-redis" }
 logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
 logback-core = { group = "ch.qos.logback", name = "logback-core", version.ref = "logback" }
 mapstruct = { group = "org.mapstruct", name = "mapstruct", version.ref = "mapstruct" }
@@ -96,6 +104,7 @@ mapstruct-processor = { group = "org.mapstruct", name = "mapstruct-processor", v
 jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind" }
 jackson-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310" }
 xstream = { group = "com.thoughtworks.xstream", name = "xstream", version.ref = "xstream" }
+lettuce-core = { group = "io.lettuce", name = "lettuce-core", version.ref = "lettuce" }
 netty-resolver-dnsNativeMacos = { group = "io.netty", name = "netty-resolver-dns-native-macos" }
 assertj-core = { group = "org.assertj", name = "assertj-core" }
 hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" }

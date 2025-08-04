@@ -1,5 +1,6 @@
 package showcase.api;
 
+import com.redis.testcontainers.RedisContainer;
 import lombok.val;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,6 +79,11 @@ class ShowcaseApiGatewayIT {
                     .withNetwork(network)
                     .withEnv("xpack.security.enabled", "false");
 
+    static final RedisContainer redis =
+            new RedisContainer("redis:" + System.getProperty("redis.image.version"))
+                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-redis"))
+                    .withNetwork(network);
+
     @Container
     @SuppressWarnings({ "resource", "unused" })
     static final GenericContainer<?> commandService =
@@ -112,11 +118,12 @@ class ShowcaseApiGatewayIT {
     @SuppressWarnings({ "resource", "unused" })
     static final GenericContainer<?> projectionService =
             new GenericContainer<>("aanbrn/axon-showcase-projection-service:" + System.getProperty("project.version"))
-                    .dependsOn(kafka, esViews)
+                    .dependsOn(kafka, esViews, redis)
                     .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-projection-service"))
                     .withNetwork(network)
                     .withEnv("DB_USER", dbEvents.getUsername())
                     .withEnv("DB_PASSWORD", dbEvents.getPassword())
+                    .withEnv("REDIS_CLUSTER_DYNAMIC_REFRESH_SOURCES", "off")
                     .withExposedPorts(8080)
                     .waitingFor(Wait.forHttp("/actuator/health")
                                     .forPort(8080)
@@ -127,7 +134,7 @@ class ShowcaseApiGatewayIT {
     @SuppressWarnings({ "resource", "unused" })
     static final GenericContainer<?> queryService =
             new GenericContainer<>("aanbrn/axon-showcase-query-service:" + System.getProperty("project.version"))
-                    .dependsOn(esViews)
+                    .dependsOn(esViews, redis)
                     .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-query-service"))
                     .withNetwork(network)
                     .withExposedPorts(8080)

@@ -18,9 +18,14 @@ dependencies {
     }
     implementation(libs.axon.extensions.reactor.springBootStarter)
 
+    implementation(libs.spring.boot.starter.cache)
     implementation(libs.spring.boot.starter.data.elasticsearch)
+    implementation(libs.spring.boot.starter.data.redis)
     implementation(libs.spring.boot.starter.webflux)
     implementation(libs.spring.boot.starter.validation)
+
+    implementation(libs.lettuce.core)
+    implementation(libs.commons.pool2)
 
     implementation(libs.mapstruct)
     implementation(libs.streamex)
@@ -61,6 +66,7 @@ testing {
                 implementation(libs.spring.boot.testcontainers)
                 implementation(libs.testcontainers.junit.jupiter)
                 implementation(libs.testcontainers.elasticsearch)
+                implementation(libs.testcontainers.redis)
             }
 
             targets {
@@ -82,6 +88,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
             "BPE_DEFAULT_SERVER_PORT" to "8080",
             "BPE_DEFAULT_DB_HOSTS" to "axon-showcase-db-events",
             "BPE_DEFAULT_ES_URIS" to "http://axon-showcase-es-views:9200",
+            "BPE_DEFAULT_REDIS_HOST" to "axon-showcase-redis"
         )
     )
 }

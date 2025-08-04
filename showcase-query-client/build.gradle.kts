@@ -71,6 +71,7 @@ testing {
                 implementation(libs.spring.boot.testcontainers)
                 implementation(libs.testcontainers.junit.jupiter)
                 implementation(libs.testcontainers.elasticsearch)
+                implementation(libs.testcontainers.redis)
             }
 
             targets {

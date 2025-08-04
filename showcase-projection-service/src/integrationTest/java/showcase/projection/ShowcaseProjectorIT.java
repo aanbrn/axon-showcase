@@ -1,5 +1,6 @@
 package showcase.projection;
 
+import com.redis.testcontainers.RedisContainer;
 import lombok.val;
 import org.axonframework.extensions.kafka.eventhandling.producer.KafkaPublisher;
 import org.junit.jupiter.api.AfterEach;
@@ -61,9 +62,19 @@ class ShowcaseProjectorIT {
             new ElasticsearchContainer("elasticsearch:" + System.getProperty("elasticsearch.image.version"))
                     .withEnv("xpack.security.enabled", "false");
 
+    @Container
+    @ServiceConnection
+    static final RedisContainer redis = new RedisContainer("redis:" + System.getProperty("redis.image.version"));
+
     @DynamicPropertySource
     static void kafkaProperties(DynamicPropertyRegistry registry) {
         registry.add("axon.kafka.bootstrap-servers", kafka::getBootstrapServers);
+    }
+
+    @DynamicPropertySource
+    static void redisProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.redis.host", redis::getRedisHost);
+        registry.add("spring.redis.port", redis::getRedisPort);
     }
 
     @Autowired

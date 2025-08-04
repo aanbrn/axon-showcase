@@ -8,6 +8,7 @@ import lombok.val;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.elasticsearch.client.ResponseException;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.IndexQuery.OpType;
@@ -24,7 +25,7 @@ import static org.axonframework.common.ExceptionUtils.findException;
 @Component
 @ProcessingGroup("projectors")
 @Slf4j
-final class ShowcaseProjector {
+class ShowcaseProjector {
 
     private final ElasticsearchTemplate elasticsearchTemplate;
 
@@ -73,6 +74,7 @@ final class ShowcaseProjector {
     }
 
     @EventHandler
+    @CacheEvict(cacheNames = "showcases", key = "#event.showcaseId")
     void on(@NonNull ShowcaseStartedEvent event) {
         val scheduledShowcase = elasticsearchTemplate.get(event.getShowcaseId(), ShowcaseEntity.class, showcaseIndex);
         if (scheduledShowcase == null) {
@@ -98,6 +100,7 @@ final class ShowcaseProjector {
     }
 
     @EventHandler
+    @CacheEvict(cacheNames = "showcases", key = "#event.showcaseId")
     void on(@NonNull ShowcaseFinishedEvent event) {
         val startedShowcase = elasticsearchTemplate.get(event.getShowcaseId(), ShowcaseEntity.class, showcaseIndex);
         if (startedShowcase == null) {
@@ -123,6 +126,7 @@ final class ShowcaseProjector {
     }
 
     @EventHandler
+    @CacheEvict(cacheNames = "showcases", key = "#event.showcaseId")
     void on(@NonNull ShowcaseRemovedEvent event) {
         val request = DeleteRequest.of(r -> r.id(event.getShowcaseId()).index(showcaseIndex.getIndexName()));
         val response = elasticsearchTemplate.execute(client -> client.delete(request));

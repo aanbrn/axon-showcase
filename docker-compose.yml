@@ -72,6 +72,14 @@ services:
       - "/bin/sh"
       - "-c"
       - "/opt/kafka/bin/kafka-topics.sh --bootstrap-server axon-showcase-kafka:9092 --create --topic axon-showcase-events"
+  redis:
+    image: redis:${REDIS_VERSION}
+    hostname: axon-showcase-redis
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      start_period: 30s
+      start_interval: 3s
+      retries: 10
   api-gateway:
     depends_on:
       command-service:
@@ -137,6 +145,8 @@ services:
       kafka:
         condition: service_healthy
       es-views:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     image: aanbrn/axon-showcase-projection-service:${PROJECT_VERSION}
     hostname: axon-showcase-projection-service

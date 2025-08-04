@@ -45,6 +45,8 @@ import showcase.query.PageRequest;
 
 import java.util.List;
 
+import static java.util.Objects.requireNonNull;
+
 @SpringBootApplication
 @EnableConfigurationProperties(ShowcaseApiProperties.class)
 @EnableCaching
@@ -113,7 +115,8 @@ class ShowcaseApiApplication {
             cacheManager.setAllowNullValues(false);
             for (val cacheName : List.of(ShowcaseApiController.FETCH_ALL_CACHE_NAME,
                                          ShowcaseApiController.FETCH_BY_ID_CACHE_NAME)) {
-                val cacheSettings = apiProperties.getCaches().get(cacheName);
+                val cacheSettings = requireNonNull(apiProperties.getCaches().get(cacheName),
+                                                   "Setting for '%s' cache is missing".formatted(cacheName));
                 cacheManager.registerCustomCache(
                         cacheName,
                         Caffeine.newBuilder()

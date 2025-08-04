@@ -87,6 +87,7 @@ testing {
                 implementation(libs.testcontainers.postgresql)
                 implementation(libs.testcontainers.kafka)
                 implementation(libs.testcontainers.elasticsearch)
+                implementation(libs.testcontainers.redis)
             }
 
             targets {

@@ -1,5 +1,6 @@
 package showcase.query;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -17,17 +18,25 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import showcase.projection.ShowcaseEntity;
 
 import java.util.List;
 
+import static java.util.Objects.requireNonNull;
+
 @SpringBootApplication
 @EnableConfigurationProperties(ShowcaseQueryProperties.class)
+@EnableCaching
 @Slf4j
 class ShowcaseQueryApplication {
 
@@ -84,6 +93,27 @@ class ShowcaseQueryApplication {
     @Bean
     QueryMessageRequestMapper queryMessageRequestMapper(@Qualifier("messageSerializer") Serializer messageSerializer) {
         return new QueryMessageRequestMapper(messageSerializer);
+    }
+
+    @Bean
+    RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer(
+            ShowcaseQueryProperties queryProperties,
+            ObjectMapper objectMapper) {
+        return builder -> {
+            val valueSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+            for (String cacheName : List.of(ShowcaseQueryHandler.SHOWCASES_CACHE)) {
+                val cacheSettings = requireNonNull(queryProperties.getCaches().get(cacheName),
+                                                   "Settings for '%s' cache is missing".formatted(cacheName));
+                builder.withCacheConfiguration(
+                        cacheName,
+                        RedisCacheConfiguration
+                                .defaultCacheConfig()
+                                .entryTtl(cacheSettings.getTimeToLive())
+                                .enableTimeToIdle()
+                                .disableCachingNullValues()
+                                .serializeValuesWith(SerializationPair.fromSerializer(valueSerializer)));
+            }
+        };
     }
 
     @Bean

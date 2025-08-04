@@ -51,6 +51,21 @@ kafka:
     events: axon-showcase-events
   securityProtocol: PLAINTEXT
 
+redis:
+  host: axon-showcase-redis-master
+  port: 6379
+  secured: true
+  username: default
+  passwordSecret:
+    name: axon-showcase-redis
+    key: redis-password
+  cluster:
+    nodes: ""
+    maxRedirects: ""
+    dynamicRefreshSources: true
+    refreshPeriod: ""
+    refreshAdaptive: false
+
 commandService:
 
   labels: { }
@@ -458,6 +473,17 @@ projectionService:
     socketTimeout: PT30S
     socketKeepAlive: false
 
+  redis:
+    connectionTimeout: PT1S
+    readTimeout: PT2S
+    shutdownTimeout: PT0.1S
+    pool:
+      maxSize: 8
+      minIdle: 0
+      maxActive: 8
+      maxWait: PT-0.001S
+      timeBetweenEvictionRuns: ""
+
   extraEnvVars: { }
 
   extraEnvVarsCM: ""
@@ -626,15 +652,16 @@ queryService:
   updateStrategy:
     type: RollingUpdate
 
-  dbViews:
+  redis:
+    connectionTimeout: PT1S
+    readTimeout: PT2S
+    shutdownTimeout: PT0.1S
     pool:
-      maxSize: 10
+      maxSize: 8
       minIdle: 0
-      maxLifeTime: PT30M
-      maxAcquireTime: PT5S
-      maxCreateConnectionTime: PT30S
-      maxValidationTime: PT5S
-      maxIdleTime: PT10M
+      maxActive: 8
+      maxWait: PT-0.001S
+      timeBetweenEvictionRuns: ""
 
   extraEnvVars: { }
 

@@ -1,0 +1,36 @@
+fullnameOverride: axon-showcase-redis
+
+architecture: standalone
+
+master:
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+networkPolicy:
+  allowExternal: false
+  allowExternalEgress: false
+  ingressNSMatchLabels:
+    name: monitoring
+  ingressNSPodMatchLabels:
+    prometheus: kps
+
+metrics:
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    labels:
+      release: kps
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

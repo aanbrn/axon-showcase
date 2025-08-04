@@ -151,6 +151,7 @@ tasks.withType<Exec>().matching { task ->
     environment["POSTGRES_VERSION"] = libs.versions.postgres.image.get()
     environment["ELASTICSEARCH_VERSION"] = libs.versions.elasticsearch.image.get()
     environment["KAFKA_VERSION"] = libs.versions.kafka.image.get()
+    environment["REDIS_VERSION"] = libs.versions.redis.image.get()
     workingDir = rootProject.layout.projectDirectory.asFile
 
     doFirst {

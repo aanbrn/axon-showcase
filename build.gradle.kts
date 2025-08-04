@@ -87,6 +87,18 @@ helm {
             mustUninstallAfter("axon-showcase")
         }
 
+        create("axon-showcase-redis") {
+            from("bitnami/redis")
+
+            version = libs.versions.bitnami.redis
+
+            tags.add("redis")
+
+            mustInstallAfter("kps")
+
+            mustUninstallAfter("axon-showcase")
+        }
+
         create("axon-showcase") {
             from(chart(":helm:chart", "main"))
 

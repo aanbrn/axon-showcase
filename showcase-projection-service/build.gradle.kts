@@ -18,8 +18,13 @@ dependencies {
     implementation(libs.axon.extensions.kafka.springBootStarter)
     implementation(libs.axon.extensions.reactor.springBootStarter)
 
+    implementation(libs.spring.boot.starter.cache)
     implementation(libs.spring.boot.starter.data.elasticsearch)
+    implementation(libs.spring.boot.starter.data.redis)
     implementation(libs.spring.boot.starter.webflux)
+
+    implementation(libs.lettuce.core)
+    implementation(libs.commons.pool2)
 
     implementation(libs.axon.micrometer)
     implementation(libs.axon.tracing.opentelemetry)
@@ -58,6 +63,7 @@ testing {
                 implementation(libs.testcontainers.junit.jupiter)
                 implementation(libs.testcontainers.kafka)
                 implementation(libs.testcontainers.elasticsearch)
+                implementation(libs.testcontainers.redis)
             }
 
             targets {
@@ -82,6 +88,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
             "BPE_DEFAULT_DB_HOSTS" to "axon-showcase-db-events",
             "BPE_DEFAULT_KAFKA_BOOTSTRAP_SERVERS" to "axon-showcase-kafka:9092",
             "BPE_DEFAULT_ES_URIS" to "http://axon-showcase-es-views:9200",
+            "BPE_DEFAULT_REDIS_HOST" to "axon-showcase-redis"
         )
     )
 }

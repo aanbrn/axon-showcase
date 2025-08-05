@@ -129,6 +129,8 @@ spec:
                   key: {{ .Values.redis.passwordSecret.key }}
             {{- end }}
             {{- if .Values.redis.cluster.nodes }}
+            - name: "SPRING_ACTIVE_PROFILES"
+              value: "redis-cluster"
             - name: "REDIS_CLUSTER_NODES"
               value: {{ .Values.redis.cluster.nodes | quote }}
             - name: "REDIS_CLUSTER_MAX_REDIRECTS"

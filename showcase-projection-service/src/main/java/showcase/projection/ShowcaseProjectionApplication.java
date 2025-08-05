@@ -29,6 +29,8 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 
 import java.util.List;
 
+import static showcase.projection.ShowcaseProjectionConstants.SHOWCASES_CACHE_NAME;
+
 @SpringBootApplication
 @EnableConfigurationProperties(ShowcaseProjectionProperties.class)
 @EnableCaching
@@ -73,7 +75,7 @@ class ShowcaseProjectionApplication {
 
     @Bean
     RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
-        return builder -> builder.withCacheConfiguration("showcases", RedisCacheConfiguration.defaultCacheConfig());
+        return builder -> builder.withCacheConfiguration(SHOWCASES_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig());
     }
 
     @Bean

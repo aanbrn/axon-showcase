@@ -50,6 +50,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.context.bean.override.mockito.MockReset.NONE;
+import static showcase.api.ShowcaseApiConstants.FETCH_ALL_CACHE_NAME;
+import static showcase.api.ShowcaseApiConstants.FETCH_BY_ID_CACHE_NAME;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.command.RandomCommandTestUtils.aShowcaseStartTime;
@@ -449,7 +451,7 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchAll(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        val fetchAllCache = cacheManager.getCache(ShowcaseApiController.FETCH_ALL_CACHE_NAME);
+        val fetchAllCache = cacheManager.getCache(FETCH_ALL_CACHE_NAME);
         verify(fetchAllCache).put(query, showcases);
         verifyNoMoreInteractions(fetchAllCache);
     }
@@ -478,7 +480,7 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchAll(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        val fetchAllCache = cacheManager.getCache(ShowcaseApiController.FETCH_ALL_CACHE_NAME);
+        val fetchAllCache = cacheManager.getCache(FETCH_ALL_CACHE_NAME);
         verify(fetchAllCache).get(query, List.class);
         verifyNoMoreInteractions(fetchAllCache);
     }
@@ -504,7 +506,7 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        val fetchByIdCache = cacheManager.getCache(ShowcaseApiController.FETCH_BY_ID_CACHE_NAME);
+        val fetchByIdCache = cacheManager.getCache(FETCH_BY_ID_CACHE_NAME);
         verify(fetchByIdCache).put(query, showcase);
         verifyNoMoreInteractions(fetchByIdCache);
     }
@@ -563,7 +565,7 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        val fetchByIdCache = cacheManager.getCache(ShowcaseApiController.FETCH_BY_ID_CACHE_NAME);
+        val fetchByIdCache = cacheManager.getCache(FETCH_BY_ID_CACHE_NAME);
         verifyNoInteractions(fetchByIdCache);
     }
 
@@ -595,7 +597,7 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        val fetchByIdCache = cacheManager.getCache(ShowcaseApiController.FETCH_BY_ID_CACHE_NAME);
+        val fetchByIdCache = cacheManager.getCache(FETCH_BY_ID_CACHE_NAME);
         verify(fetchByIdCache).get(query, Showcase.class);
         verifyNoMoreInteractions(fetchByIdCache);
     }

@@ -26,13 +26,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import showcase.projection.ShowcaseEntity;
 
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
+import static showcase.query.ShowcaseQueryConstants.SHOWCASES_CACHE_NAME;
 
 @SpringBootApplication
 @EnableConfigurationProperties(ShowcaseQueryProperties.class)
@@ -100,19 +101,18 @@ class ShowcaseQueryApplication {
             ShowcaseQueryProperties queryProperties,
             ObjectMapper objectMapper) {
         return builder -> {
-            val valueSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
-            for (String cacheName : List.of(ShowcaseQueryHandler.SHOWCASES_CACHE)) {
-                val cacheSettings = requireNonNull(queryProperties.getCaches().get(cacheName),
-                                                   "Settings for '%s' cache is missing".formatted(cacheName));
-                builder.withCacheConfiguration(
-                        cacheName,
-                        RedisCacheConfiguration
-                                .defaultCacheConfig()
-                                .entryTtl(cacheSettings.getTimeToLive())
-                                .enableTimeToIdle()
-                                .disableCachingNullValues()
-                                .serializeValuesWith(SerializationPair.fromSerializer(valueSerializer)));
-            }
+            val showcaseCacheSettings =
+                    requireNonNull(queryProperties.getCaches().get(SHOWCASES_CACHE_NAME),
+                                   "Settings for '%s' cache is missing".formatted(SHOWCASES_CACHE_NAME));
+            builder.withCacheConfiguration(
+                    SHOWCASES_CACHE_NAME,
+                    RedisCacheConfiguration
+                            .defaultCacheConfig()
+                            .entryTtl(showcaseCacheSettings.getTimeToLive())
+                            .enableTimeToIdle()
+                            .disableCachingNullValues()
+                            .serializeValuesWith(SerializationPair.fromSerializer(
+                                    new Jackson2JsonRedisSerializer<>(objectMapper, Showcase.class))));
         };
     }
 

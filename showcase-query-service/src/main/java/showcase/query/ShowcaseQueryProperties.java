@@ -14,6 +14,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
+import static showcase.query.ShowcaseQueryConstants.SHOWCASES_CACHE_NAME;
+
 @ConfigurationProperties("showcase.query")
 @Data
 @Validated
@@ -61,7 +63,7 @@ final class ShowcaseQueryProperties {
     @NotNull
     @Valid
     private Map<@NotBlank String, @NotNull @Valid Cache> caches =
-            Map.of(ShowcaseQueryHandler.SHOWCASES_CACHE, new Cache(Duration.ofMinutes(10)));
+            Map.of(SHOWCASES_CACHE_NAME, new Cache(Duration.ofMinutes(10)));
 
     @Valid
     private Metrics metrics = new Metrics(List.of());

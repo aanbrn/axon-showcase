@@ -14,6 +14,9 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
+import static showcase.api.ShowcaseApiConstants.FETCH_ALL_CACHE_NAME;
+import static showcase.api.ShowcaseApiConstants.FETCH_BY_ID_CACHE_NAME;
+
 @ConfigurationProperties("showcase.api")
 @Data
 @Validated
@@ -64,10 +67,8 @@ final class ShowcaseApiProperties {
     @NotNull
     @Valid
     private Map<@NotBlank String, @NotNull @Valid Cache> caches = Map.of(
-            ShowcaseApiController.FETCH_ALL_CACHE_NAME,
-            new Cache(1000, Duration.ofMinutes(10), Duration.ofMinutes(5)),
-            ShowcaseApiController.FETCH_BY_ID_CACHE_NAME,
-            new Cache(1000, Duration.ofMinutes(10), Duration.ofMinutes(5)));
+            FETCH_ALL_CACHE_NAME, new Cache(1000, Duration.ofMinutes(10), Duration.ofMinutes(5)),
+            FETCH_BY_ID_CACHE_NAME, new Cache(1000, Duration.ofMinutes(10), Duration.ofMinutes(5)));
 
     @NotNull
     @Valid

@@ -14,10 +14,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import showcase.projection.ShowcaseEntity;
 
+import static showcase.query.ShowcaseQueryConstants.SHOWCASES_CACHE_NAME;
+
 @Component
 class ShowcaseQueryHandler {
-
-    static final String SHOWCASES_CACHE = "showcases";
 
     private final ReactiveElasticsearchTemplate elasticsearchTemplate;
 
@@ -58,7 +58,7 @@ class ShowcaseQueryHandler {
     }
 
     @QueryHandler
-    @Cacheable(cacheNames = SHOWCASES_CACHE, key = "#query.showcaseId", unless = "#result == null")
+    @Cacheable(cacheNames = SHOWCASES_CACHE_NAME, key = "#query.showcaseId", unless = "#result == null")
     Mono<Showcase> handle(@NonNull FetchShowcaseByIdQuery query) {
         return elasticsearchTemplate
                        .get(query.getShowcaseId(), ShowcaseEntity.class, showcaseIndex)

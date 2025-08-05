@@ -58,15 +58,13 @@ import java.util.function.Predicate;
 import static java.util.Objects.requireNonNull;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
+import static showcase.api.ShowcaseApiConstants.FETCH_ALL_CACHE_NAME;
+import static showcase.api.ShowcaseApiConstants.FETCH_BY_ID_CACHE_NAME;
 
 @RestController
 @RequestMapping("/showcases")
 @Slf4j
 final class ShowcaseApiController implements ShowcaseApi {
-
-    static final String FETCH_ALL_CACHE_NAME = FetchShowcaseListQuery.class.getSimpleName();
-
-    static final String FETCH_BY_ID_CACHE_NAME = FetchShowcaseByIdQuery.class.getSimpleName();
 
     private final ShowcaseCommandOperations commandOperations;
 

@@ -20,6 +20,8 @@ spring:
     locations: classpath:db/migration/{vendor}
   cache:
     type: jcache
+  jackson:
+    default-property-inclusion: non_null
   web:
     locale: en
   threads:

@@ -29,6 +29,8 @@ spring:
           max-active: ${REDIS_POOL_MAX_ACTIVE:8}
           max-wait: ${REDIS_POOL_MAX_WAIT:PT-0.001S}
           time-between-eviction-runs: ${REDIS_POOL_TIME_BETWEEN_EVICTION_RUNS:}
+  jackson:
+    default-property-inclusion: non_null
   threads:
     virtual:
       enabled: true

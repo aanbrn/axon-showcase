@@ -58,7 +58,7 @@ class ShowcaseQueryHandler {
     }
 
     @QueryHandler
-    @Cacheable(cacheNames = SHOWCASES_CACHE_NAME, key = "#query.showcaseId", unless = "#result == null")
+    @Cacheable(cacheNames = SHOWCASES_CACHE_NAME, key = "#query.showcaseId")
     Mono<Showcase> handle(@NonNull FetchShowcaseByIdQuery query) {
         return elasticsearchTemplate
                        .get(query.getShowcaseId(), ShowcaseEntity.class, showcaseIndex)

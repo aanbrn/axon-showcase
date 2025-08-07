@@ -110,7 +110,6 @@ class ShowcaseQueryApplication {
                             .defaultCacheConfig()
                             .entryTtl(showcaseCacheSettings.getTimeToLive())
                             .enableTimeToIdle()
-                            .disableCachingNullValues()
                             .serializeValuesWith(SerializationPair.fromSerializer(
                                     new Jackson2JsonRedisSerializer<>(objectMapper, Showcase.class))));
         };

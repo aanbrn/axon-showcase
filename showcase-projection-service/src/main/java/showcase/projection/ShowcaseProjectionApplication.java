@@ -1,8 +1,10 @@
 package showcase.projection;
 
+import io.lettuce.core.tracing.MicrometerTracing;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.observation.ObservationRegistry;
 import io.opentelemetry.api.OpenTelemetry;
 import lombok.val;
 import org.axonframework.eventhandling.EventMessage;
@@ -22,6 +24,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
+import org.springframework.boot.autoconfigure.data.redis.ClientResourcesBuilderCustomizer;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -74,8 +78,17 @@ class ShowcaseProjectionApplication {
     }
 
     @Bean
+    ClientResourcesBuilderCustomizer redisClientResourcesBuilderCustomizer(
+            ObservationRegistry observationRegistry,
+            RedisProperties redisProperties) {
+        return builder -> builder.tracing(new MicrometerTracing(observationRegistry, redisProperties.getClientName()));
+    }
+
+    @Bean
     RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
-        return builder -> builder.withCacheConfiguration(SHOWCASES_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig());
+        return builder -> builder.withCacheConfiguration(SHOWCASES_CACHE_NAME,
+                                                         RedisCacheConfiguration.defaultCacheConfig())
+                                 .enableStatistics();
     }
 
     @Bean

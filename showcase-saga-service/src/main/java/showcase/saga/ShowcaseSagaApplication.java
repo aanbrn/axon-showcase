@@ -58,6 +58,9 @@ import javax.sql.DataSource;
 import java.util.List;
 import java.util.OptionalLong;
 
+import static showcase.saga.ShowcaseSagaConstants.SAGA_ASSOCIATIONS_CACHE_NAME;
+import static showcase.saga.ShowcaseSagaConstants.SAGA_CACHE_NAME;
+
 @SpringBootApplication(exclude = JdbcAutoConfiguration.class)
 @EnableConfigurationProperties(ShowcaseSagaProperties.class)
 @EnableCaching
@@ -137,7 +140,7 @@ class ShowcaseSagaApplication {
     JCacheManagerCustomizer jCacheManagerCustomizer(ShowcaseSagaProperties sagaProperties) {
         return cacheManager -> {
             cacheManager.createCache(
-                    "saga-cache",
+                    SAGA_CACHE_NAME,
                     new CaffeineConfiguration<>()
                             .setMaximumSize(OptionalLong.of(
                                     sagaProperties
@@ -153,8 +156,10 @@ class ShowcaseSagaApplication {
                                             .getSagaCache()
                                             .getExpiresAfterWrite()
                                             .toNanos())));
+            cacheManager.enableStatistics(SAGA_CACHE_NAME, true);
+
             cacheManager.createCache(
-                    "saga-associations-cache",
+                    SAGA_ASSOCIATIONS_CACHE_NAME,
                     new CaffeineConfiguration<>()
                             .setMaximumSize(OptionalLong.of(
                                     sagaProperties
@@ -170,17 +175,18 @@ class ShowcaseSagaApplication {
                                             .getSagaAssociationsCache()
                                             .getExpiresAfterWrite()
                                             .toNanos())));
+            cacheManager.enableStatistics(SAGA_ASSOCIATIONS_CACHE_NAME, true);
         };
     }
 
     @Bean
     Cache sagaCache(CacheManager cacheManager) {
-        return new JCacheAdapter(cacheManager.getCache("saga-cache"));
+        return new JCacheAdapter(cacheManager.getCache(SAGA_CACHE_NAME));
     }
 
     @Bean
     Cache sagaAssociationsCache(CacheManager cacheManager) {
-        return new JCacheAdapter(cacheManager.getCache("saga-associations-cache"));
+        return new JCacheAdapter(cacheManager.getCache(SAGA_ASSOCIATIONS_CACHE_NAME));
     }
 
     @Bean

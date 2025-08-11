@@ -53,6 +53,8 @@ import java.util.List;
 import java.util.OptionalLong;
 import java.util.concurrent.Executor;
 
+import static showcase.command.ShowcaseCommandConstants.SHOWCASE_CACHE_NAME;
+
 @SpringBootApplication
 @EnableConfigurationProperties(ShowcaseCommandProperties.class)
 @EnableCaching
@@ -157,28 +159,31 @@ class ShowcaseCommandApplication {
 
     @Bean
     JCacheManagerCustomizer jCacheManagerCustomizer(ShowcaseCommandProperties commandProperties) {
-        return cacheManager -> cacheManager.createCache(
-                "showcase-cache",
-                new CaffeineConfiguration<>()
-                        .setMaximumSize(OptionalLong.of(
-                                commandProperties
-                                        .getShowcaseCache()
-                                        .getMaximumSize()))
-                        .setExpireAfterAccess(OptionalLong.of(
-                                commandProperties
-                                        .getShowcaseCache()
-                                        .getExpiresAfterAccess()
-                                        .toNanos()))
-                        .setExpireAfterWrite(OptionalLong.of(
-                                commandProperties
-                                        .getShowcaseCache()
-                                        .getExpiresAfterWrite()
-                                        .toNanos())));
+        return cacheManager -> {
+            cacheManager.createCache(
+                    SHOWCASE_CACHE_NAME,
+                    new CaffeineConfiguration<>()
+                            .setMaximumSize(OptionalLong.of(
+                                    commandProperties
+                                            .getShowcaseCache()
+                                            .getMaximumSize()))
+                            .setExpireAfterAccess(OptionalLong.of(
+                                    commandProperties
+                                            .getShowcaseCache()
+                                            .getExpiresAfterAccess()
+                                            .toNanos()))
+                            .setExpireAfterWrite(OptionalLong.of(
+                                    commandProperties
+                                            .getShowcaseCache()
+                                            .getExpiresAfterWrite()
+                                            .toNanos())));
+            cacheManager.enableStatistics(SHOWCASE_CACHE_NAME, true);
+        };
     }
 
     @Bean
     Cache showcaseCache(CacheManager cacheManager) {
-        return new JCacheAdapter(cacheManager.getCache("showcase-cache"));
+        return new JCacheAdapter(cacheManager.getCache(SHOWCASE_CACHE_NAME));
     }
 
     @Bean

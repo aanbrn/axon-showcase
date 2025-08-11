@@ -1,9 +1,11 @@
 package showcase.query;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.lettuce.core.tracing.MicrometerTracing;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.observation.ObservationRegistry;
 import io.opentelemetry.api.OpenTelemetry;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -20,6 +22,8 @@ import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCusto
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.data.redis.ClientResourcesBuilderCustomizer;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -97,6 +101,13 @@ class ShowcaseQueryApplication {
     }
 
     @Bean
+    ClientResourcesBuilderCustomizer redisClientResourcesBuilderCustomizer(
+            ObservationRegistry observationRegistry,
+            RedisProperties redisProperties) {
+        return builder -> builder.tracing(new MicrometerTracing(observationRegistry, redisProperties.getClientName()));
+    }
+
+    @Bean
     RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer(
             ShowcaseQueryProperties queryProperties,
             ObjectMapper objectMapper) {
@@ -104,14 +115,16 @@ class ShowcaseQueryApplication {
             val showcaseCacheSettings =
                     requireNonNull(queryProperties.getCaches().get(SHOWCASES_CACHE_NAME),
                                    "Settings for '%s' cache is missing".formatted(SHOWCASES_CACHE_NAME));
+
             builder.withCacheConfiguration(
-                    SHOWCASES_CACHE_NAME,
-                    RedisCacheConfiguration
-                            .defaultCacheConfig()
-                            .entryTtl(showcaseCacheSettings.getTimeToLive())
-                            .enableTimeToIdle()
-                            .serializeValuesWith(SerializationPair.fromSerializer(
-                                    new Jackson2JsonRedisSerializer<>(objectMapper, Showcase.class))));
+                           SHOWCASES_CACHE_NAME,
+                           RedisCacheConfiguration
+                                   .defaultCacheConfig()
+                                   .entryTtl(showcaseCacheSettings.getTimeToLive())
+                                   .enableTimeToIdle()
+                                   .serializeValuesWith(SerializationPair.fromSerializer(
+                                           new Jackson2JsonRedisSerializer<>(objectMapper, Showcase.class))))
+                   .enableStatistics();
         };
     }
 

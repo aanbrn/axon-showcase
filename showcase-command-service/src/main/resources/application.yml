@@ -73,14 +73,6 @@ axon:
 showcase:
   command:
     exit-after-flyway-migration: ${EXIT_AFTER_FLYWAY_MIGRATION:false}
-    saga-cache:
-      maximum-size: ${SAGA_CACHE_MAX_SIZE:1000}
-      expires-after-access: ${SAGA_CACHE_EXPIRES_AFTER_ACCESS:PT10M}
-      expires-after-write: ${SAGA_CACHE_EXPIRES_AFTER_WRITE:PT5M}
-    saga-associations-cache:
-      maximum-size: ${SAGA_ASSOCIATIONS_CACHE_MAX_SIZE:1000}
-      expires-after-access: ${SAGA_ASSOCIATIONS_CACHE_EXPIRES_AFTER_ACCESS:PT10M}
-      expires-after-write: ${SAGA_ASSOCIATIONS_CACHE_EXPIRES_AFTER_WRITE:PT5M}
     showcase-cache:
       maximum-size: ${SHOWCASE_CACHE_MAX_SIZE:1000}
       expires-after-access: ${SHOWCASE_CACHE_EXPIRES_AFTER_ACCESS:PT10M}

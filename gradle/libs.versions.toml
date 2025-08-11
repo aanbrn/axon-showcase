@@ -17,7 +17,7 @@ streamex = "0.8.4"
 jgroups = "4.2.30.Final"
 jgroups-kubernetes = "1.0.17.Final"
 protobuf = "4.31.1"
-opentelemetry = "1.52.0"
+opentelemetry = "1.53.0"
 commons-compress = "1.28.0"
 commons-fileupload = "1.6.0"
 commons-lang3 = "3.18.0"
@@ -33,7 +33,7 @@ hamcrest = "3.0"
 mockito = "5.18.0"
 wiremock-spring-boot = "3.10.0"
 kotlin = "2.2.0"
-spotbugs = "4.9.3"
+spotbugs = "4.9.4"
 lombok-plugin = "8.14"
 protobuf-plugin = "0.9.5"
 gatling-plugin = "3.14.3"
@@ -74,6 +74,8 @@ spring-data-elasticsearch = { group = "org.springframework.data", name = "spring
 spring-data-jdbc = { group = "org.springframework.data", name = "spring-data-jdbc" }
 springdoc-openapi-starter-webflux-ui = { group = "org.springdoc", name = "springdoc-openapi-starter-webflux-ui", version.ref = "springdoc-openapi-starter" }
 swagger-annotations-jakarta = { group = "io.swagger.core.v3", name = "swagger-annotations-jakarta", version.ref = "swagger" }
+swagger-core-jakarta = { group = "io.swagger.core.v3", name = "swagger-core-jakarta", version.ref = "swagger" }
+swagger-models-jakarta = { group = "io.swagger.core.v3", name = "swagger-models-jakarta", version.ref = "swagger" }
 commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commons-compress" }
 commons-fileupload = { group = "commons-fileupload", name = "commons-fileupload", version.ref = "commons-fileupload" }
 commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commons-lang3" }
@@ -145,6 +147,7 @@ protobuf-plugin = { group = "com.google.protobuf", name = "protobuf-gradle-plugi
 gatling-plugin = { group = "gradle.plugin.io.gatling.gradle", name = "gatling-gradle-plugin", version.ref = "gatling-plugin" }
 dependencyVersions-plugin = { group = "com.github.ben-manes", name = "gradle-versions-plugin", version.ref = "dependencyVersions-plugin" }
 spotbugs = { group = "com.github.spotbugs", name = "spotbugs", version.ref = "spotbugs" }
+spotbugs-annotations = { group = "com.github.spotbugs", name = "spotbugs-annotations", version.ref = "spotbugs" }
 spotbugs-plugin = { group = "com.github.spotbugs.snom", name = "spotbugs-gradle-plugin", version.ref = "spotbugs-plugin" }
 spotbugs-findsecbugs-plugin = { group = "com.h3xstream.findsecbugs", name = "findsecbugs-plugin", version.ref = "spotbugs-findsecbugs-plugin" }
 spotbugs-fbContrib-plugin = { group = "com.mebigfatguy.fb-contrib", name = "fb-contrib", version.ref = "spotbugs-fbContrib-plugin" }

@@ -15,9 +15,6 @@ commandService:
       release: kps
 
 sagaService:
-  dbSagas:
-    pool:
-      maxSize: 400
   podLabels:
     axon-showcase-db-sagas-client: "true"
     axon-showcase-kafka-client: "true"

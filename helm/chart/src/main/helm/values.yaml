@@ -93,8 +93,8 @@ commandService:
 
   dbEvents:
     pool:
-      maxSize: 10
-      minIdle: 0
+      maxSize: 100
+      minIdle: 20
       maxLifetime: 1800000
       connectionTimeout: 30000
       validationTimeout: 5000
@@ -281,8 +281,8 @@ sagaService:
 
   dbSagas:
     pool:
-      maxSize: 10
-      minIdle: 0
+      maxSize: 100
+      minIdle: 20
       maxLifetime: 1800000
       connectionTimeout: 30000
       validationTimeout: 5000
@@ -478,11 +478,11 @@ projectionService:
     readTimeout: PT2S
     shutdownTimeout: PT0.1S
     pool:
-      maxSize: 8
-      minIdle: 0
-      maxActive: 8
-      maxWait: PT-0.001S
-      timeBetweenEvictionRuns: ""
+      maxIdle: 20
+      minIdle: 10
+      maxActive: 100
+      maxWait: PT2S
+      timeBetweenEvictionRuns: PT30S
 
   extraEnvVars: { }
 
@@ -657,11 +657,11 @@ queryService:
     readTimeout: PT2S
     shutdownTimeout: PT0.1S
     pool:
-      maxSize: 8
-      minIdle: 0
-      maxActive: 8
-      maxWait: PT-0.001S
-      timeBetweenEvictionRuns: ""
+      maxIdle: 20
+      minIdle: 10
+      maxActive: 100
+      maxWait: PT2S
+      timeBetweenEvictionRuns: PT30S
 
   extraEnvVars: { }
 

@@ -67,9 +67,11 @@ class ShowcaseProjector {
                                    .getStatusLine()
                                    .getStatusCode() == HttpStatus.CONFLICT.value()) {
                 log.warn("On scheduled event, showcase with ID {} already exists", event.getShowcaseId());
-            } else {
-                throw e;
+                return;
             }
+
+            log.error("On scheduled event, failed to project showcase with ID {}", event.getShowcaseId(), e);
+            throw e;
         }
     }
 
@@ -94,9 +96,14 @@ class ShowcaseProjector {
                         .startedAt(event.getStartedAt())
                         .build();
 
-        elasticsearchTemplate.update(startedShowcase, showcaseIndex);
+        try {
+            elasticsearchTemplate.update(startedShowcase, showcaseIndex);
 
-        log.info("Started showcase projected: {}", event);
+            log.info("Started showcase projected: {}", event);
+        } catch (Exception e) {
+            log.error("On started event, failed to project showcase with ID {}", event.getShowcaseId(), e);
+            throw e;
+        }
     }
 
     @EventHandler
@@ -120,20 +127,30 @@ class ShowcaseProjector {
                         .finishedAt(event.getFinishedAt())
                         .build();
 
-        elasticsearchTemplate.update(finishedShowcase, showcaseIndex);
+        try {
+            elasticsearchTemplate.update(finishedShowcase, showcaseIndex);
 
-        log.info("Finished showcase projected: {}", event);
+            log.info("Finished showcase projected: {}", event);
+        } catch (Exception e) {
+            log.error("On finished event, failed to project showcase with ID {}", event.getShowcaseId(), e);
+            throw e;
+        }
     }
 
     @EventHandler
     @CacheEvict(cacheNames = "showcases", key = "#event.showcaseId")
     void on(@NonNull ShowcaseRemovedEvent event) {
-        val request = DeleteRequest.of(r -> r.id(event.getShowcaseId()).index(showcaseIndex.getIndexName()));
-        val response = elasticsearchTemplate.execute(client -> client.delete(request));
-        if (response.result() == Result.NotFound) {
-            log.warn("On removed event, showcase with ID {} is missing", event.getShowcaseId());
-        }
+        try {
+            val request = DeleteRequest.of(r -> r.id(event.getShowcaseId()).index(showcaseIndex.getIndexName()));
+            val response = elasticsearchTemplate.execute(client -> client.delete(request));
+            if (response.result() == Result.NotFound) {
+                log.warn("On removed event, showcase with ID {} is missing", event.getShowcaseId());
+            }
 
-        log.info("Removed showcase projected: {}", event);
+            log.info("Removed showcase projected: {}", event);
+        } catch (Exception e) {
+            log.error("On removed event, failed to project showcase with ID {}", event.getShowcaseId(), e);
+            throw e;
+        }
     }
 }

@@ -1,5 +1,6 @@
 package showcase.saga;
 
+import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -48,6 +49,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -134,6 +136,11 @@ class ShowcaseSagaApplication {
                         .build();
         commandBus.updateLoadFactor(distributedCommandBusProperties.getLoadFactor());
         return commandBus;
+    }
+
+    @Bean
+    Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
+        return builder -> builder.modules(new BlackbirdModule());
     }
 
     @Bean

@@ -1,5 +1,6 @@
 package showcase.command;
 
+import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -43,6 +44,7 @@ import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCusto
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -111,6 +113,7 @@ class ShowcaseCommandApplication {
 
     @Bean
     @Primary
+    @SuppressWarnings("resource")
     public DistributedCommandBus distributedCommandBus(
             Configuration axonConfiguration,
             CommandRouter commandRouter,
@@ -155,6 +158,11 @@ class ShowcaseCommandApplication {
                        .handlerDefinition(handlerDefinition)
                        .spanFactory(spanFactory)
                        .build();
+    }
+
+    @Bean
+    Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
+        return builder -> builder.modules(new BlackbirdModule());
     }
 
     @Bean

@@ -37,6 +37,7 @@ class ShowcaseProjector {
     }
 
     @EventHandler
+    @CacheEvict(cacheNames = "showcases", key = "#event.showcaseId")
     void on(@NonNull ShowcaseScheduledEvent event) {
         val scheduledShowcase =
                 ShowcaseEntity

@@ -10,6 +10,7 @@ postgresql = "42.7.7"
 caffeine = "3.2.2"
 db-scheduler = "13.0.0"
 mapstruct = "1.6.3"
+jackson = "2.19.2"
 reactor = "3.7.8"
 reactor-netty-http = "1.2.8"
 resilience4j = "2.3.0"
@@ -103,8 +104,10 @@ logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.
 logback-core = { group = "ch.qos.logback", name = "logback-core", version.ref = "logback" }
 mapstruct = { group = "org.mapstruct", name = "mapstruct", version.ref = "mapstruct" }
 mapstruct-processor = { group = "org.mapstruct", name = "mapstruct-processor", version.ref = "mapstruct" }
+jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
 jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind" }
 jackson-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310" }
+jackson-module-blackbird = { group = "com.fasterxml.jackson.module", name = "jackson-module-blackbird" }
 xstream = { group = "com.thoughtworks.xstream", name = "xstream", version.ref = "xstream" }
 lettuce-core = { group = "io.lettuce", name = "lettuce-core", version.ref = "lettuce" }
 netty-resolver-dnsNativeMacos = { group = "io.netty", name = "netty-resolver-dns-native-macos" }

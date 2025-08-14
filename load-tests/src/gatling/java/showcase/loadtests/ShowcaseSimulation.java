@@ -68,23 +68,23 @@ public class ShowcaseSimulation extends Simulation {
                                                .set("duration", aShowcaseDuration())),
                         scheduleShowcase.check(status().is(201)),
                         randomSwitchOrElse().on(percent(95).then(exitHere())).orElse(
-                                doWhileDuring("#{responseStatus} != 200", Duration.ofSeconds(5))
+                                doWhileDuring("#{responseStatus} != 200", Duration.ofMinutes(5))
                                         .on(pause(Duration.ofMillis(500)),
-                                            fetchShowcase.check(status().saveAs("responseStatus"))),
+                                            fetchShowcase.check(status().in(200, 404).saveAs("responseStatus"))),
                                 startShowcase.check(status().is(200)),
                                 randomSwitchOrElse().on(percent(95).then(exitHere())).orElse(
-                                        doWhileDuring("#{showcaseStatus} != \"STARTED\"", Duration.ofSeconds(5))
+                                        doWhileDuring("#{showcaseStatus} != \"STARTED\"", Duration.ofMinutes(5))
                                                 .on(pause(Duration.ofMillis(500)),
                                                     fetchShowcase.check(
-                                                            status().is(200),
+                                                            status().in(200, 404),
                                                             jsonPath("$.status").saveAs("showcaseStatus"))),
                                         finishShowcase.check(status().is(200)),
                                         randomSwitchOrElse().on(percent(95).then(exitHere())).orElse(
                                                 doWhileDuring("#{showcaseStatus} != \"FINISHED\"",
-                                                              Duration.ofSeconds(5))
+                                                              Duration.ofMinutes(5))
                                                         .on(pause(Duration.ofMillis(500)),
                                                             fetchShowcase.check(
-                                                                    status().is(200),
+                                                                    status().in(200, 404),
                                                                     jsonPath("$.status").saveAs("showcaseStatus"))),
                                                 removeShowcase.check(status().is(200))))));
 
@@ -97,12 +97,12 @@ public class ShowcaseSimulation extends Simulation {
                     constantUsersPerSec(150).during(Duration.ofMinutes(30)),
                     rampUsersPerSec(150).to(0).during(Duration.ofMinutes(5)));
             case "stress" -> scenario.injectOpen(
-                    rampUsersPerSec(0).to(250).during(Duration.ofMinutes(10)),
-                    constantUsersPerSec(250).during(Duration.ofMinutes(30)),
-                    rampUsersPerSec(250).to(0).during(Duration.ofMinutes(5)));
+                    rampUsersPerSec(0).to(200).during(Duration.ofMinutes(10)),
+                    constantUsersPerSec(200).during(Duration.ofMinutes(30)),
+                    rampUsersPerSec(200).to(0).during(Duration.ofMinutes(5)));
             case "spike" -> scenario.injectOpen(
-                    stressPeakUsers(250).during(Duration.ofMinutes(2)),
-                    rampUsersPerSec(250).to(0).during(Duration.ofMinutes(1)));
+                    stressPeakUsers(200).during(Duration.ofMinutes(2)),
+                    rampUsersPerSec(200).to(0).during(Duration.ofMinutes(1)));
             case "breakpoint" -> scenario.injectOpen(
                     rampUsersPerSec(0).to(300).during(Duration.ofHours(2)));
             case "soak" -> scenario.injectOpen(

@@ -14,6 +14,7 @@ dependencies {
     api(platform(libs.spring.boot.dependencies))
     api(platform(libs.spring.data.bom))
     api(platform(libs.spring.framework.bom))
+    api(platform(libs.jackson.bom))
     api(platform(libs.mockito.bom))
     api(platform(libs.protobuf.bom))
     api(platform(libs.resilience4j.bom))

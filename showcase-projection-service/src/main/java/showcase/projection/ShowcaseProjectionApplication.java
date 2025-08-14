@@ -1,5 +1,6 @@
 package showcase.projection;
 
+import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import io.lettuce.core.tracing.MicrometerTracing;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -26,6 +27,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.boot.autoconfigure.data.redis.ClientResourcesBuilderCustomizer;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -64,6 +66,11 @@ class ShowcaseProjectionApplication {
                        .messageConverter(messageConverter)
                        .autoStart()
                        .build();
+    }
+
+    @Bean
+    Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
+        return builder -> builder.modules(new BlackbirdModule());
     }
 
     @Bean

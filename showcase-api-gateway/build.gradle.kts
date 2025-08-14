@@ -28,6 +28,8 @@ dependencies {
 
     implementation(libs.spring.data.commons)
 
+    implementation(libs.jackson.module.blackbird)
+
     implementation(libs.caffeine)
 
     implementation(libs.commons.lang3)

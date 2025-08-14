@@ -23,6 +23,8 @@ dependencies {
     implementation(libs.spring.boot.starter.data.redis)
     implementation(libs.spring.boot.starter.webflux)
 
+    implementation(libs.jackson.module.blackbird)
+
     implementation(libs.lettuce.core)
     implementation(libs.commons.pool2)
 

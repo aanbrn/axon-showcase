@@ -28,6 +28,8 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.flyway.postgresql)
 
+    implementation(libs.jackson.module.blackbird)
+
     implementation(libs.caffeine.jcache)
 
     implementation(libs.axon.micrometer)

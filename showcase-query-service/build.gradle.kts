@@ -24,6 +24,8 @@ dependencies {
     implementation(libs.spring.boot.starter.webflux)
     implementation(libs.spring.boot.starter.validation)
 
+    implementation(libs.jackson.module.blackbird)
+
     implementation(libs.lettuce.core)
     implementation(libs.commons.pool2)
 

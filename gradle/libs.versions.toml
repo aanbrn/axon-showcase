@@ -2,8 +2,8 @@
 java = "21"
 axon-bom = "4.12.1"
 spring-boot = "3.5.4"
-spring-framework-bom = "6.2.9"
-spring-data-bom = "2025.0.2"
+spring-framework-bom = "6.2.10"
+spring-data-bom = "2025.0.3"
 springdoc-openapi-starter = "2.8.9"
 swagger = "2.2.35"
 postgresql = "42.7.7"
@@ -11,13 +11,13 @@ caffeine = "3.2.2"
 db-scheduler = "13.0.0"
 mapstruct = "1.6.3"
 jackson = "2.19.2"
-reactor = "3.7.8"
-reactor-netty-http = "1.2.8"
+reactor-bom = "2024.0.9"
+netty = "4.2.4.Final"
 resilience4j = "2.3.0"
 streamex = "0.8.4"
 jgroups = "4.2.30.Final"
 jgroups-kubernetes = "1.0.17.Final"
-protobuf = "4.31.1"
+protobuf = "4.32.0"
 opentelemetry = "1.53.0"
 commons-compress = "1.28.0"
 commons-fileupload = "1.6.0"
@@ -28,16 +28,16 @@ expressly = "6.0.0"
 guava = "33.4.8-jre"
 logback = "1.5.18"
 xstream = "1.4.21"
-lettuce = "6.7.1.RELEASE"
+lettuce = "6.8.0.RELEASE"
 testcontainers-redis = "2.2.4"
 hamcrest = "3.0"
-mockito = "5.18.0"
-wiremock-spring-boot = "3.10.0"
-kotlin = "2.2.0"
+mockito = "5.19.0"
+wiremock-spring-boot = "3.10.6"
+kotlin = "2.2.10"
 spotbugs = "4.9.4"
 lombok-plugin = "8.14"
 protobuf-plugin = "0.9.5"
-gatling-plugin = "3.14.3"
+gatling-plugin = "3.14.3.3"
 dependencyVersions-plugin = "0.52.0"
 spotbugs-plugin = "6.2.2"
 spotbugs-findsecbugs-plugin = "1.14.0"
@@ -117,9 +117,11 @@ junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api" }
 mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter" }
-reactor-core = { group = "io.projectreactor", name = "reactor-core", version.ref = "reactor" }
-reactor-test = { group = "io.projectreactor", name = "reactor-test", version.ref = "reactor" }
-reactor-netty-http = { group = "io.projectreactor.netty", name = "reactor-netty-http", version.ref = "reactor-netty-http" }
+reactor-bom = { group = "io.projectreactor", name = "reactor-bom", version.ref = "reactor-bom" }
+reactor-core = { group = "io.projectreactor", name = "reactor-core" }
+reactor-test = { group = "io.projectreactor", name = "reactor-test" }
+reactor-netty-http = { group = "io.projectreactor.netty", name = "reactor-netty-http" }
+netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty" }
 wiremock-springBoot = { group = "org.wiremock.integrations", name = "wiremock-spring-boot", version.ref = "wiremock-spring-boot" }
 axon-bom = { group = "org.axonframework", name = "axon-bom", version.ref = "axon-bom" }
 axon-modelling = { group = "org.axonframework", name = "axon-modelling" }
@@ -156,5 +158,6 @@ spotbugs-findsecbugs-plugin = { group = "com.h3xstream.findsecbugs", name = "fin
 spotbugs-fbContrib-plugin = { group = "com.mebigfatguy.fb-contrib", name = "fb-contrib", version.ref = "spotbugs-fbContrib-plugin" }
 helm-plugin = { group = "com.citi.gradle-plugins.helm", name = "helm-plugin", version.ref = "helm-plugin" }
 helm-releases-plugin = { group = "com.citi.gradle-plugins.helm", name = "helm-releases-plugin", version.ref = "helm-plugin" }
+kotlin-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 
 [plugins]

@@ -5,6 +5,7 @@ plugins {
 project.description = "Build Convention Plugins"
 
 dependencies {
+    implementation(libs.kotlin.plugin)
     implementation(libs.lombok.plugin)
     implementation(libs.spring.boot.plugin)
     implementation(libs.protobuf.plugin)

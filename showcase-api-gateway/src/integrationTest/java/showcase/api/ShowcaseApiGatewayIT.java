@@ -22,6 +22,7 @@ import showcase.query.Showcase;
 import showcase.query.ShowcaseStatus;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -545,12 +546,15 @@ class ShowcaseApiGatewayIT {
                      .hasSize(0);
 
             val statuses = List.of(ShowcaseStatus.values());
+            val showcaseIds = new ArrayList<String>();
 
             for (val status : statuses) {
                 val showcaseId = aShowcaseId();
                 val title = aShowcaseTitle();
                 val startTime = aShowcaseStartTime(Instant.now());
                 val duration = aShowcaseDuration();
+
+                showcaseIds.add(showcaseId);
 
                 webClient.post()
                          .uri("/showcases")
@@ -584,16 +588,24 @@ class ShowcaseApiGatewayIT {
                          .isOk();
             }
 
-            await().untilAsserted(
-                    () -> webClient.get()
-                                   .uri("/showcases")
-                                   .exchange()
-                                   .expectStatus()
-                                   .isOk()
-                                   .expectBodyList(Showcase.class)
-                                   .value(showcases -> assertThat(showcases)
-                                                               .extracting(Showcase::getStatus)
-                                                               .containsAll(statuses)));
+            await().untilAsserted(() -> {
+                val showcases =
+                        webClient.get()
+                                 .uri("/showcases")
+                                 .exchange()
+                                 .expectStatus()
+                                 .isOk()
+                                 .expectBodyList(Showcase.class)
+                                 .returnResult()
+                                 .getResponseBody();
+
+                assertThat(showcases)
+                        .extracting(Showcase::getStatus)
+                        .containsExactlyInAnyOrderElementsOf(statuses);
+                assertThat(showcases)
+                        .extracting(Showcase::getShowcaseId)
+                        .containsExactlyInAnyOrderElementsOf(showcaseIds);
+            });
         }
 
         @Test

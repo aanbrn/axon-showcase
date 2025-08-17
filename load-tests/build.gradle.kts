@@ -3,7 +3,8 @@ plugins {
 }
 
 dependencies {
-    gatlingImplementation(platform(project(":platform")))
+    gatling(platform(project(":platform")))
+
     gatlingImplementation(testFixtures(project(":showcase-command-api")))
 
     gatlingCompileOnly(libs.lombok)

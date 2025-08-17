@@ -19,6 +19,8 @@ dependencies {
     api(platform(libs.protobuf.bom))
     api(platform(libs.resilience4j.bom))
     api(platform(libs.kotlin.bom))
+    api(platform(libs.reactor.bom))
+    api(platform(libs.netty.bom))
 
     constraints {
         api(libs.commons.compress)

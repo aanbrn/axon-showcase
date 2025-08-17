@@ -52,9 +52,10 @@ testing {
     suites {
         withType<JvmTestSuite> {
             dependencies {
+                implementation(project())
+                implementation(project(":showcase-test"))
                 implementation(testFixtures(project(":showcase-command-api")))
                 implementation(testFixtures(project(":showcase-query-api")))
-                implementation(project(":showcase-test"))
             }
         }
 
@@ -62,7 +63,6 @@ testing {
 
         val componentTest by register<JvmTestSuite>("componentTest") {
             dependencies {
-                implementation(project())
                 implementation(project(":showcase-command-client"))
                 implementation(project(":showcase-query-client"))
 

@@ -5,7 +5,12 @@ import org.axonframework.serialization.Revision;
 import java.io.Serializable;
 
 @Revision("1.0")
-public interface ShowcaseEvent extends Serializable {
+public sealed interface ShowcaseEvent
+        extends Serializable
+        permits ShowcaseScheduledEvent,
+                ShowcaseStartedEvent,
+                ShowcaseFinishedEvent,
+                ShowcaseRemovedEvent {
 
     String getShowcaseId();
 }

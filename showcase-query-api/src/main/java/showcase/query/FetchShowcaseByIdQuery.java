@@ -10,6 +10,7 @@ import showcase.command.ShowcaseId;
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@SuppressWarnings("ClassCanBeRecord")
 public class FetchShowcaseByIdQuery {
 
     @NonNull

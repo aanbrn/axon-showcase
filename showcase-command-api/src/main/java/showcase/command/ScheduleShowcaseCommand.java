@@ -13,6 +13,7 @@ import java.time.Instant;
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(toBuilder = true)
+@SuppressWarnings("ClassCanBeRecord")
 public class ScheduleShowcaseCommand implements ShowcaseCommand {
 
     @NonNull

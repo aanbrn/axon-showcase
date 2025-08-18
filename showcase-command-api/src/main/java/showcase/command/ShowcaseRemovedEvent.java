@@ -11,6 +11,7 @@ import java.time.Instant;
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@SuppressWarnings("ClassCanBeRecord")
 public class ShowcaseRemovedEvent implements ShowcaseEvent {
 
     @NonNull

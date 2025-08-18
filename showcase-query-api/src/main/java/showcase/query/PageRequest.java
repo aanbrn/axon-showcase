@@ -61,6 +61,7 @@ public class PageRequest {
     @Value
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @Builder
+    @SuppressWarnings("ClassCanBeRecord")
     public static class Sort {
 
         public static Sort by(@NonNull Direction direction, String... properties) {

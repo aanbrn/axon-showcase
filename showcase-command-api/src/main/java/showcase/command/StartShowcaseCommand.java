@@ -9,6 +9,7 @@ import lombok.Value;
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@SuppressWarnings("ClassCanBeRecord")
 public class StartShowcaseCommand implements ShowcaseCommand {
 
     @NonNull

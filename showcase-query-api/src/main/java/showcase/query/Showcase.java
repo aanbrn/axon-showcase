@@ -14,6 +14,7 @@ import java.time.Instant;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(toBuilder = true)
 @Schema(description = "Details of the showcase.")
+@SuppressWarnings("ClassCanBeRecord")
 public class Showcase {
 
     @NonNull

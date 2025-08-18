@@ -5,7 +5,12 @@ import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
 import java.io.Serializable;
 
-public interface ShowcaseCommand extends Serializable {
+public sealed interface ShowcaseCommand
+        extends Serializable
+        permits ScheduleShowcaseCommand,
+                StartShowcaseCommand,
+                FinishShowcaseCommand,
+                RemoveShowcaseCommand {
 
     @TargetAggregateIdentifier
     @RoutingKey

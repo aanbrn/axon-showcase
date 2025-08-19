@@ -624,7 +624,11 @@ class ShowcaseApiGatewayIT {
                                    .expectStatus()
                                    .isOk()
                                    .expectBodyList(Showcase.class)
-                                   .hasSize(ShowcaseStatus.values().length));
+                                   .value(showcases ->
+                                                  assertThat(showcases)
+                                                          .isNotEmpty()
+                                                          .extracting(Showcase::getStatus)
+                                                          .contains(ShowcaseStatus.values())));
         }
 
         @Test

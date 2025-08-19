@@ -28,6 +28,9 @@ dependencies {
         api(libs.commons.lang3)
         api(libs.commons.io)
         api(libs.jgroups)
+        api(libs.log4j.api)
+        api(libs.log4j.core)
+        api(libs.log4j.toSlf4j)
         api(libs.logback.classic)
         api(libs.logback.core)
         api(libs.xstream)
@@ -37,6 +40,7 @@ dependencies {
         api(libs.swagger.annotations.jakarta)
         api(libs.swagger.core.jakarta)
         api(libs.swagger.models.jakarta)
+        api(libs.swagger.ui)
         api(libs.spotbugs)
         api(libs.spotbugs.annotations)
     }

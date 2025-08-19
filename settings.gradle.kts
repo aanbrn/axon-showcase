@@ -26,6 +26,7 @@ include(
     "showcase-query-service",
     "showcase-query-client",
     "showcase-api-gateway",
+    "helm",
     "helm:chart",
     "load-tests"
 )

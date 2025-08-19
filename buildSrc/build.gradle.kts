@@ -18,4 +18,12 @@ dependencies {
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 
     implementation(libs.commons.lang3)
+
+    constraints {
+        api(libs.log4j.api)
+        api(libs.log4j.core)
+        api(libs.log4j.toSlf4j)
+        api(libs.spotbugs)
+        api(libs.spotbugs.annotations)
+    }
 }

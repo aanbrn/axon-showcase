@@ -6,6 +6,7 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import showcase.ULID;
 
 import java.time.Instant;
 
@@ -124,7 +125,7 @@ class ScheduleShowcaseCommandTests {
              .first()
              .satisfies(it -> {
                  assertThat(it.getConstraintDescriptor()).isNotNull();
-                 assertThat(it.getConstraintDescriptor().getAnnotation()).isInstanceOf(ShowcaseId.class);
+                 assertThat(it.getConstraintDescriptor().getAnnotation()).isInstanceOf(ULID.class);
                  assertThat(it.getPropertyPath()).isNotNull();
                  assertThat(it.getPropertyPath().toString()).isEqualTo("showcaseId");
              });

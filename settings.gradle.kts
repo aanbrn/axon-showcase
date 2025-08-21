@@ -13,6 +13,7 @@ dependencyResolutionManagement {
 
 include(
     "platform",
+    "showcase-identifier-extension",
     "showcase-resilience4j-extension",
     "showcase-test",
     "showcase-command-api",

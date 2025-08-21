@@ -1,11 +1,11 @@
-package showcase.command;
+package showcase;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import jakarta.validation.ReportAsSingleViolation;
-import org.hibernate.validator.constraints.UUID;
+import showcase.ULID.List;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -18,16 +18,22 @@ import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Documented
-@Constraint(validatedBy = {})
+@Constraint(validatedBy = UlidValidator.class)
 @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE })
 @Retention(RUNTIME)
-@UUID(allowNil = false, version = 4)
-@ReportAsSingleViolation
-public @interface ShowcaseId {
+@Repeatable(List.class)
+public @interface ULID {
 
-    String message() default "{showcase.ShowcaseId.message}";
+    String message() default "{showcase.ULID.message}";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
+
+    @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE })
+    @Retention(RUNTIME)
+    @Documented
+    @interface List {
+        ULID[] value();
+    }
 }

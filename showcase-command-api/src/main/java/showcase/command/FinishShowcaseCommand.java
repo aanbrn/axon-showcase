@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
+import showcase.ULID;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -13,6 +14,6 @@ import lombok.Value;
 public class FinishShowcaseCommand implements ShowcaseCommand {
 
     @NonNull
-    @ShowcaseId
+    @ULID
     String showcaseId;
 }

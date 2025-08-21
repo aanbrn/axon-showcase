@@ -2,6 +2,7 @@ package showcase.query;
 
 import com.google.protobuf.ByteString;
 import lombok.val;
+import org.axonframework.common.IdentifierFactory;
 import org.axonframework.messaging.MetaData;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.GenericQueryMessage;
@@ -14,7 +15,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
 
-import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static showcase.test.RandomTestUtils.anAlphabeticString;
@@ -78,7 +78,7 @@ class QueryMessageRequestMapperCT {
                 QueryRequest
                         .newBuilder()
                         .setQueryName(Payload.class.getName())
-                        .setQueryIdentifier(randomUUID().toString())
+                        .setQueryIdentifier(IdentifierFactory.getInstance().generateIdentifier())
                         .setPayloadType(serializedPayload.getType().getName())
                         .setSerializedPayload(ByteString.copyFrom(serializedPayload.getData()))
                         .setSerializedMetaData(ByteString.copyFrom(serializedMetaData.getData()))

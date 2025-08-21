@@ -2,7 +2,6 @@ package showcase.api;
 
 import io.github.resilience4j.bulkhead.BulkheadFullException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -91,7 +90,7 @@ final class ShowcaseApiController implements ShowcaseApi {
     }
 
     @PostMapping(consumes = APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Void>> schedule(@RequestBody @Valid ScheduleShowcaseRequest request) {
+    public Mono<ResponseEntity<Void>> schedule(@RequestBody ScheduleShowcaseRequest request) {
         return commandOperations
                        .schedule(ScheduleShowcaseCommand
                                          .builder()

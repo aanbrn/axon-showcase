@@ -3,6 +3,7 @@ package showcase.command;
 import jakarta.validation.Validation;
 import lombok.val;
 import org.junit.jupiter.api.Test;
+import showcase.ULID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -56,7 +57,7 @@ class StartShowcaseCommandTests {
              .first()
              .satisfies(it -> {
                  assertThat(it.getConstraintDescriptor()).isNotNull();
-                 assertThat(it.getConstraintDescriptor().getAnnotation()).isInstanceOf(ShowcaseId.class);
+                 assertThat(it.getConstraintDescriptor().getAnnotation()).isInstanceOf(ULID.class);
                  assertThat(it.getPropertyPath()).isNotNull();
                  assertThat(it.getPropertyPath().toString()).isEqualTo("showcaseId");
              });

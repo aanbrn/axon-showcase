@@ -22,6 +22,7 @@ import showcase.query.Showcase;
 import showcase.query.ShowcaseStatus;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -167,37 +168,19 @@ class ShowcaseApiGatewayIT {
                         .build();
     }
 
-    @AfterEach
-    void tearDown() {
-        while (true) {
-            val showcases =
-                    webClient.get()
-                             .uri("/showcases")
-                             .exchange()
-                             .expectStatus()
-                             .isOk()
-                             .expectBodyList(Showcase.class)
-                             .returnResult()
-                             .getResponseBody();
-            if (showcases == null || showcases.isEmpty()) {
-                break;
-            }
+    void removeShowcase(String showcaseId) {
+        webClient.delete()
+                 .uri("/showcases/{showcaseId}", showcaseId)
+                 .exchange()
+                 .expectStatus()
+                 .isOk();
 
-            for (val showcase : showcases) {
-                webClient.delete()
-                         .uri("/showcases/{showcaseId}", showcase.getShowcaseId())
-                         .exchange()
-                         .expectStatus()
-                         .isOk();
-
-                await().untilAsserted(
-                        () -> webClient.get()
-                                       .uri("/showcases/{showcaseId}", showcase.getShowcaseId())
-                                       .exchange()
-                                       .expectStatus()
-                                       .isNotFound());
-            }
-        }
+        await().untilAsserted(
+                () -> webClient.get()
+                               .uri("/showcases/{showcaseId}", showcaseId)
+                               .exchange()
+                               .expectStatus()
+                               .isNotFound());
     }
 
     @Test
@@ -235,6 +218,8 @@ class ShowcaseApiGatewayIT {
                                .jsonPath("$.scheduledAt").isNotEmpty()
                                .jsonPath("$.startedAt").isEmpty()
                                .jsonPath("$.finishedAt").isEmpty());
+
+        removeShowcase(showcaseId);
     }
 
     @Test
@@ -285,6 +270,8 @@ class ShowcaseApiGatewayIT {
                  .isCreated()
                  .expectHeader()
                  .value("Location", equalTo("/showcases/" + showcaseId));
+
+        removeShowcase(showcaseId);
     }
 
     @Test
@@ -320,16 +307,19 @@ class ShowcaseApiGatewayIT {
                  .jsonPath("$.status").isEqualTo(HttpStatus.CONFLICT.value())
                  .jsonPath("$.detail").isEqualTo("Showcase cannot be rescheduled")
                  .jsonPath("$.instance").isEqualTo("/showcases");
+
+        removeShowcase(showcaseId);
     }
 
     @Test
     void scheduleShowcase_alreadyUsedTitle_failsWithTitleInUseProblem() {
+        val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
 
         webClient.post()
                  .uri("/showcases")
                  .bodyValue(Map.of(
-                         "showcaseId", aShowcaseId(),
+                         "showcaseId", showcaseId,
                          "title", title,
                          "startTime", aShowcaseStartTime(Instant.now()),
                          "duration", aShowcaseDuration()))
@@ -355,6 +345,8 @@ class ShowcaseApiGatewayIT {
                  .jsonPath("$.status").isEqualTo(HttpStatus.CONFLICT.value())
                  .jsonPath("$.detail").isEqualTo("Given title is in use already")
                  .jsonPath("$.instance").isEqualTo("/showcases");
+
+        removeShowcase(showcaseId);
     }
 
     @Test
@@ -398,6 +390,8 @@ class ShowcaseApiGatewayIT {
                                .jsonPath("$.scheduledAt").isNotEmpty()
                                .jsonPath("$.startedAt").isNotEmpty()
                                .jsonPath("$.finishedAt").isEmpty());
+
+        removeShowcase(showcaseId);
     }
 
     @Test
@@ -463,6 +457,8 @@ class ShowcaseApiGatewayIT {
                                .jsonPath("$.scheduledAt").isNotEmpty()
                                .jsonPath("$.startedAt").isNotEmpty()
                                .jsonPath("$.finishedAt").isNotEmpty());
+
+        removeShowcase(showcaseId);
     }
 
     @Test
@@ -541,8 +537,12 @@ class ShowcaseApiGatewayIT {
     @Nested
     class FetchingTests {
 
+        private final List<String> showcaseIds = new ArrayList<>();
+
         @BeforeEach
         void setUp() {
+            assertThat(showcaseIds).isEmpty();
+
             await().untilAsserted(
                     () -> webClient.get()
                                    .uri("/showcases")
@@ -557,6 +557,8 @@ class ShowcaseApiGatewayIT {
                 val title = aShowcaseTitle();
                 val startTime = aShowcaseStartTime(Instant.now());
                 val duration = aShowcaseDuration();
+
+                showcaseIds.add(showcaseId);
 
                 webClient.post()
                          .uri("/showcases")
@@ -626,9 +628,28 @@ class ShowcaseApiGatewayIT {
                                    .expectBodyList(Showcase.class)
                                    .value(showcases ->
                                                   assertThat(showcases)
-                                                          .isNotEmpty()
-                                                          .extracting(Showcase::getStatus)
-                                                          .contains(ShowcaseStatus.values())));
+                                                          .extracting(Showcase::getShowcaseId)
+                                                          .containsExactlyInAnyOrderElementsOf(showcaseIds)));
+        }
+
+        @AfterEach
+        void tearDown() {
+            for (val showcaseId : showcaseIds) {
+                webClient.delete()
+                         .uri("/showcases/{showcaseId}", showcaseId)
+                         .exchange()
+                         .expectStatus()
+                         .isOk();
+
+                await().untilAsserted(
+                        () -> webClient.get()
+                                       .uri("/showcases/{showcaseId}", showcaseId)
+                                       .exchange()
+                                       .expectStatus()
+                                       .isNotFound());
+            }
+
+            showcaseIds.clear();
         }
 
         @Test
@@ -641,9 +662,8 @@ class ShowcaseApiGatewayIT {
                      .expectBodyList(Showcase.class)
                      .value(showcases ->
                                     assertThat(showcases)
-                                            .isNotEmpty()
-                                            .extracting(Showcase::getStatus)
-                                            .contains(ShowcaseStatus.values()));
+                                            .extracting(Showcase::getShowcaseId)
+                                            .containsExactlyInAnyOrderElementsOf(showcaseIds));
         }
 
         @Test

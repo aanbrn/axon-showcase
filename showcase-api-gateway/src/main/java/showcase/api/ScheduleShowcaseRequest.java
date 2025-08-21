@@ -7,8 +7,8 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
+import showcase.ULID;
 import showcase.command.ShowcaseDuration;
-import showcase.command.ShowcaseId;
 import showcase.command.ShowcaseStartTime;
 import showcase.command.ShowcaseTitle;
 
@@ -19,13 +19,14 @@ import java.time.Instant;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Schema(description = "Request payload to schedule a showcase.")
+@SuppressWarnings("ClassCanBeRecord")
 class ScheduleShowcaseRequest {
 
     @NotBlank
-    @ShowcaseId
+    @ULID
     @Schema(
-            description = "A unique version 4 UUID",
-            example = "0bb59251-fd63-432c-aead-17e0f1cac36b"
+            description = "A valid ULID",
+            example = "01K364AM7WRYFKTHMNE8ABAW3Q"
     )
     String showcaseId;
 

@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
+import showcase.ULID;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -17,7 +18,7 @@ import java.time.Instant;
 public class ScheduleShowcaseCommand implements ShowcaseCommand {
 
     @NonNull
-    @ShowcaseId
+    @ULID
     String showcaseId;
 
     @NonNull

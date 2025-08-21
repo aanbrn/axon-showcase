@@ -18,7 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import showcase.command.ShowcaseId;
+import showcase.ULID;
 import showcase.query.Showcase;
 import showcase.query.ShowcaseStatus;
 
@@ -138,7 +138,7 @@ interface ShowcaseApi {
                     )
             }
     )
-    Mono<Void> start(@ShowcaseId String showcaseId);
+    Mono<Void> start(@ULID String showcaseId);
 
     @Operation(
             description = "Finishes the started showcase explicitly before it's finished automatically at the end of " +
@@ -203,7 +203,7 @@ interface ShowcaseApi {
                     )
             }
     )
-    Mono<Void> finish(@ShowcaseId String showcaseId);
+    Mono<Void> finish(@ULID String showcaseId);
 
     @Operation(
             description = "Removes the given showcase finishing it when it's already started.",
@@ -220,7 +220,7 @@ interface ShowcaseApi {
                     description = "The requested showcase has been removed successfully."
             )
     )
-    Mono<Void> remove(@ShowcaseId String showcaseId);
+    Mono<Void> remove(@ULID String showcaseId);
 
     @Operation(
             description = "Fetches the existing showcases ordering them by start time and optionally filtering by " +
@@ -303,5 +303,5 @@ interface ShowcaseApi {
                     )
             }
     )
-    Mono<Showcase> fetchById(@ShowcaseId String showcaseId);
+    Mono<Showcase> fetchById(@ULID String showcaseId);
 }

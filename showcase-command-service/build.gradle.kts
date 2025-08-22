@@ -9,6 +9,8 @@ plugins {
 project.description = "Showcase Command Service"
 
 dependencies {
+    implementation(platform(project(":platform")))
+
     implementation(project(":showcase-command-api"))
 
     implementation(libs.axon.springBootStarter) {

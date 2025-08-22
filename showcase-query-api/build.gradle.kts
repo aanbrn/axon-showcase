@@ -7,6 +7,8 @@ plugins {
 project.description = "Showcase Query API"
 
 dependencies {
+    implementation(platform(project(":platform")))
+
     api(project(":showcase-command-api"))
 
     api(libs.axon.messaging)

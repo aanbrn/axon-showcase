@@ -7,6 +7,8 @@ plugins {
 project.description = "Showcase Command API"
 
 dependencies {
+    implementation(platform(project(":platform")))
+
     api(project(":showcase-identifier-extension"))
     api(libs.axon.modelling)
     api(libs.hibernate.validator)

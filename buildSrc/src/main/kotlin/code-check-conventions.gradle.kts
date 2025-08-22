@@ -9,6 +9,7 @@ val libs = the<LibrariesForLibs>()
 
 spotbugs {
     showProgress = true
+    toolVersion = libs.versions.spotbugs.asProvider().get()
 }
 
 dependencies {

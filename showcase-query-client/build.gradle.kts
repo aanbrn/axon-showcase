@@ -8,6 +8,8 @@ plugins {
 project.description = "Showcase Query Client"
 
 dependencies {
+    implementation(platform(project(":platform")))
+
     api(project(":showcase-query-api"))
     api(libs.reactor.core)
 

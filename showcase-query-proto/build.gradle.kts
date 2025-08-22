@@ -8,6 +8,8 @@ plugins {
 project.description = "Showcase Query Protocol"
 
 dependencies {
+    implementation(platform(project(":platform")))
+
     api(libs.axon.messaging)
     api(libs.protobuf.java)
 

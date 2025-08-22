@@ -1,10 +1,10 @@
 [versions]
 java = "21"
 axon-bom = "4.12.1"
-spring-boot = "3.5.4"
+spring-boot = "3.5.5"
 spring-framework-bom = "6.2.10"
 spring-data-bom = "2025.0.3"
-springdoc-openapi-starter = "2.8.9"
+springdoc-openapi-starter = "2.8.10"
 swagger = "2.2.36"
 swagger-ui = "5.27.1"
 postgresql = "42.7.7"
@@ -128,7 +128,6 @@ mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter" 
 reactor-bom = { group = "io.projectreactor", name = "reactor-bom", version.ref = "reactor-bom" }
 reactor-core = { group = "io.projectreactor", name = "reactor-core" }
 reactor-test = { group = "io.projectreactor", name = "reactor-test" }
-reactor-netty-http = { group = "io.projectreactor.netty", name = "reactor-netty-http" }
 netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty" }
 wiremock-springBoot = { group = "org.wiremock.integrations", name = "wiremock-spring-boot", version.ref = "wiremock-spring-boot" }
 axon-bom = { group = "org.axonframework", name = "axon-bom", version.ref = "axon-bom" }
@@ -162,7 +161,6 @@ protobuf-plugin = { group = "com.google.protobuf", name = "protobuf-gradle-plugi
 gatling-plugin = { group = "gradle.plugin.io.gatling.gradle", name = "gatling-gradle-plugin", version.ref = "gatling-plugin" }
 dependencyVersions-plugin = { group = "com.github.ben-manes", name = "gradle-versions-plugin", version.ref = "dependencyVersions-plugin" }
 spotbugs = { group = "com.github.spotbugs", name = "spotbugs", version.ref = "spotbugs" }
-spotbugs-annotations = { group = "com.github.spotbugs", name = "spotbugs-annotations", version.ref = "spotbugs" }
 spotbugs-plugin = { group = "com.github.spotbugs.snom", name = "spotbugs-gradle-plugin", version.ref = "spotbugs-plugin" }
 spotbugs-findsecbugs-plugin = { group = "com.h3xstream.findsecbugs", name = "findsecbugs-plugin", version.ref = "spotbugs-findsecbugs-plugin" }
 spotbugs-fbContrib-plugin = { group = "com.mebigfatguy.fb-contrib", name = "fb-contrib", version.ref = "spotbugs-fbContrib-plugin" }

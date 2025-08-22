@@ -36,12 +36,9 @@ dependencies {
         api(libs.xstream)
         api(libs.guava)
         api(libs.hamcrest)
-        api(libs.reactor.netty.http)
         api(libs.swagger.annotations.jakarta)
         api(libs.swagger.core.jakarta)
         api(libs.swagger.models.jakarta)
         api(libs.swagger.ui)
-        api(libs.spotbugs)
-        api(libs.spotbugs.annotations)
     }
 }

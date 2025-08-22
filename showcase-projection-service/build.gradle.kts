@@ -9,6 +9,8 @@ plugins {
 project.description = "Showcase Projection Service"
 
 dependencies {
+    implementation(platform(project(":platform")))
+
     implementation(project(":showcase-command-api"))
     implementation(project(":showcase-projection-model"))
 

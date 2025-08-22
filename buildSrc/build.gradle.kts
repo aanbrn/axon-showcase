@@ -24,6 +24,5 @@ dependencies {
         api(libs.log4j.core)
         api(libs.log4j.toSlf4j)
         api(libs.spotbugs)
-        api(libs.spotbugs.annotations)
     }
 }

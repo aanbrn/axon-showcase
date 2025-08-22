@@ -7,6 +7,8 @@ plugins {
 project.description = "Showcase Command Client"
 
 dependencies {
+    implementation(platform(project(":platform")))
+
     api(project(":showcase-command-api"))
     api(libs.reactor.core)
 

@@ -9,6 +9,8 @@ plugins {
 project.description = "Showcase API Gateway"
 
 dependencies {
+    implementation(platform(project(":platform")))
+
     implementation(project(":showcase-command-client"))
     implementation(project(":showcase-query-client"))
 

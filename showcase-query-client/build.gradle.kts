@@ -28,7 +28,7 @@ testing {
         withType<JvmTestSuite> {
             dependencies {
                 implementation(project())
-                implementation(testFixtures(project(":showcase-test")))
+                implementation(project(":showcase-test"))
                 implementation(testFixtures(project(":showcase-projection-model")))
                 implementation(testFixtures(project(":showcase-query-api")))
                 implementation(testFixtures(project(":showcase-query-proto")))
@@ -40,7 +40,10 @@ testing {
         val componentTest by register<JvmTestSuite>("componentTest") {
             dependencies {
                 implementation(libs.axon.springBootStarter) {
-                    exclude(group = libs.axon.serverConnector.get().group, module = libs.axon.serverConnector.get().name)
+                    exclude(
+                        group = libs.axon.serverConnector.get().group,
+                        module = libs.axon.serverConnector.get().name
+                    )
                 }
                 implementation(libs.reactor.test)
                 implementation(libs.resilience4j.springBoot3)

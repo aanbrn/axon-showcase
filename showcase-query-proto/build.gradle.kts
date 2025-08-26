@@ -21,6 +21,7 @@ testing {
         withType<JvmTestSuite> {
             dependencies {
                 implementation(project())
+                implementation(project(":showcase-identifier-extension"))
                 implementation(testFixtures(project(":showcase-test")))
             }
         }

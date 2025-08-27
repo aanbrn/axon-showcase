@@ -6,6 +6,8 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 
+import java.util.Locale;
+
 @Component
 @RequiredArgsConstructor
 final class ShowcaseTitleReservation {
@@ -22,7 +24,7 @@ final class ShowcaseTitleReservation {
     void save(@NonNull String title) throws DuplicateTitleException {
         try {
             jdbcClient.sql("INSERT INTO showcase_title_reservation (title) VALUES (:title)")
-                      .param("title", title)
+                      .param("title", title.toLowerCase(Locale.ROOT))
                       .update();
         } catch (DuplicateKeyException e) {
             throw new DuplicateTitleException(e);
@@ -31,7 +33,7 @@ final class ShowcaseTitleReservation {
 
     void delete(@NonNull String title) {
         jdbcClient.sql("DELETE FROM showcase_title_reservation WHERE title = :title")
-                  .param("title", title)
+                  .param("title", title.toLowerCase(Locale.ROOT))
                   .update();
     }
 }

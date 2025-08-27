@@ -18,6 +18,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import showcase.command.ShowcaseTitleReservation.DuplicateTitleException;
 
+import java.util.Locale;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
@@ -55,8 +57,8 @@ class ShowcaseTitleReservationIT {
 
         assertThat(jdbcClient.sql("SELECT title FROM showcase_title_reservation")
                              .query(String.class)
-                             .list())
-                .containsExactly(title);
+                             .single())
+                .isEqualTo(title.toLowerCase(Locale.ROOT));
     }
 
     @Test
@@ -64,7 +66,7 @@ class ShowcaseTitleReservationIT {
         val title = aShowcaseTitle();
 
         jdbcClient.sql("INSERT INTO showcase_title_reservation (title) VALUES (:title)")
-                  .param("title", title)
+                  .param("title", title.toLowerCase(Locale.ROOT))
                   .update();
 
         assertThatCode(() -> showcaseTitleReservation.save(title))
@@ -84,7 +86,7 @@ class ShowcaseTitleReservationIT {
         val title = aShowcaseTitle();
 
         assertThat(jdbcClient.sql("INSERT INTO showcase_title_reservation (title) VALUES (:title)")
-                             .param("title", title)
+                             .param("title", title.toLowerCase(Locale.ROOT))
                              .update())
                 .isOne();
 

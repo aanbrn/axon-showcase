@@ -116,7 +116,7 @@ public class ShowcaseSimulation extends Simulation {
             case "average", "stress", "spike", "breakpoint", "soak" -> List.of(
                     global().responseTime().percentile(95.0).lte(500),
                     global().responseTime().percentile(99.0).lte(1000),
-                    global().failedRequests().percent().lte(0.01));
+                    global().successfulRequests().percent().gte(99.99));
             default -> List.of(global().failedRequests().count().is(0L));
         };
 

@@ -1,22 +1,21 @@
 package showcase.query;
 
-import com.redis.testcontainers.RedisContainer;
 import lombok.val;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.opensearch.data.client.osc.OpenSearchTemplate;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import reactor.test.StepVerifier;
@@ -47,23 +46,17 @@ class ShowcaseQueryClientIT {
 
     @Container
     @ServiceConnection
-    static final ElasticsearchContainer esViews =
-            new ElasticsearchContainer("elasticsearch:" + System.getProperty("elasticsearch.image.version"))
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-es-views"))
-                    .withNetwork(network)
-                    .withEnv("xpack.security.enabled", "false");
-
-    @Container
-    static final RedisContainer redis =
-            new RedisContainer("redis:" + System.getProperty("redis.image.version"))
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-redis"))
+    @SuppressWarnings("resource")
+    static final OpenSearchContainer<?> osViews =
+            new OpenSearchContainer<>("opensearchproject/opensearch:" + System.getProperty("opensearch.image.version"))
+                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-os-views"))
                     .withNetwork(network);
 
     @Container
     @SuppressWarnings("resource")
     static final GenericContainer<?> queryService =
             new GenericContainer<>("aanbrn/axon-showcase-query-service:" + System.getProperty("project.version"))
-                    .dependsOn(esViews, redis)
+                    .dependsOn(osViews)
                     .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-query-service"))
                     .withNetwork(network)
                     .withExposedPorts(8080)
@@ -78,7 +71,7 @@ class ShowcaseQueryClientIT {
     }
 
     @Autowired
-    private ElasticsearchTemplate elasticsearchTemplate;
+    private OpenSearchTemplate openSearchTemplate;
 
     @Autowired
     private ShowcaseQueryOperations showcaseQueryOperations;
@@ -90,7 +83,7 @@ class ShowcaseQueryClientIT {
     @BeforeEach
     void setUp() {
         if (showcaseIndexOperations == null) {
-            showcaseIndexOperations = elasticsearchTemplate.indexOps(ShowcaseEntity.class);
+            showcaseIndexOperations = openSearchTemplate.indexOps(ShowcaseEntity.class);
         }
         if (!showcaseIndexOperations.exists()) {
             showcaseIndexOperations.createWithMapping();
@@ -98,7 +91,7 @@ class ShowcaseQueryClientIT {
 
         showcases = showcases();
 
-        elasticsearchTemplate.save(
+        openSearchTemplate.save(
                 showcases.stream()
                          .map(showcase ->
                                       ShowcaseEntity

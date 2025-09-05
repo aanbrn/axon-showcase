@@ -20,10 +20,16 @@ dependencies {
     implementation(libs.axon.extensions.kafka.springBootStarter)
     implementation(libs.axon.extensions.reactor.springBootStarter)
 
-    implementation(libs.spring.boot.starter.cache)
-    implementation(libs.spring.boot.starter.data.elasticsearch)
-    implementation(libs.spring.boot.starter.data.redis)
     implementation(libs.spring.boot.starter.webflux)
+
+    implementation(libs.spring.data.opensearch.starter) {
+        exclude(
+            group = libs.opensearch.client.restHighLevel.get().group,
+            module = libs.opensearch.client.restHighLevel.get().name
+        )
+    }
+    implementation(libs.opensearch.client.java)
+    implementation(libs.elasticsearch.client.java)
 
     implementation(libs.jackson.module.blackbird)
 
@@ -57,17 +63,19 @@ testing {
         register<JvmTestSuite>("integrationTest") {
             dependencies {
                 implementation(libs.axon.extensions.kafka)
-                implementation(libs.axon.extensions.reactor)
                 implementation(libs.axon.test)
                 implementation(libs.reactor.test)
-                implementation(libs.spring.boot.starter.data.elasticsearch)
                 implementation(libs.spring.boot.starter.test)
-                implementation(libs.spring.boot.starter.webflux)
                 implementation(libs.spring.boot.testcontainers)
+                implementation(libs.spring.data.opensearch.testcontainers) {
+                    exclude(
+                        group = libs.opensearch.client.restHighLevel.get().group,
+                        module = libs.opensearch.client.restHighLevel.get().name
+                    )
+                }
                 implementation(libs.testcontainers.junit.jupiter)
                 implementation(libs.testcontainers.kafka)
-                implementation(libs.testcontainers.elasticsearch)
-                implementation(libs.testcontainers.redis)
+                implementation(libs.testcontainers.opensearch)
             }
 
             targets {
@@ -91,8 +99,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
             "BPE_DEFAULT_SERVER_PORT" to "8080",
             "BPE_DEFAULT_DB_HOSTS" to "axon-showcase-db-events",
             "BPE_DEFAULT_KAFKA_BOOTSTRAP_SERVERS" to "axon-showcase-kafka:9092",
-            "BPE_DEFAULT_ES_URIS" to "http://axon-showcase-es-views:9200",
-            "BPE_DEFAULT_REDIS_HOST" to "axon-showcase-redis"
+            "BPE_DEFAULT_OS_URIS" to "http://axon-showcase-os-views:9200"
         )
     )
 }

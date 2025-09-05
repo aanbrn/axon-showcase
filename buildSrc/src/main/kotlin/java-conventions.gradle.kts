@@ -57,8 +57,7 @@ testing {
                         systemProperty("project.version", project.version)
                         systemProperty("postgres.image.version", libs.versions.postgres.image.get())
                         systemProperty("kafka.image.version", libs.versions.kafka.image.get())
-                        systemProperty("elasticsearch.image.version", libs.versions.elasticsearch.image.get())
-                        systemProperty("redis.image.version", libs.versions.redis.image.get())
+                        systemProperty("opensearch.image.version", libs.versions.opensearch.image.get())
                     }
                 }
             }

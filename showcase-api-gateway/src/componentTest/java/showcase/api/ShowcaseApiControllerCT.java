@@ -42,12 +42,15 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
+import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.context.bean.override.mockito.MockReset.NONE;
 import static showcase.api.ShowcaseApiConstants.FETCH_ALL_CACHE_NAME;
@@ -89,34 +92,36 @@ class ShowcaseApiControllerCT {
 
     @Test
     void scheduleShowcase_success_respondsWithCreatedStatusAndLocationHeaderAndEmptyBody() {
-        val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
         val startTime = aShowcaseStartTime(Instant.now());
         val duration = aShowcaseDuration();
 
         given(showcaseCommandOperations.schedule(any())).willReturn(Mono.empty());
 
-        webClient.post()
-                 .uri("/showcases")
-                 .bodyValue(ScheduleShowcaseRequest
-                                    .builder()
-                                    .showcaseId(showcaseId)
-                                    .title(title)
-                                    .startTime(startTime)
-                                    .duration(duration)
-                                    .build())
-                 .exchange()
-                 .expectStatus()
-                 .isCreated()
-                 .expectHeader()
-                 .location("/showcases/" + showcaseId)
-                 .expectBody()
-                 .isEmpty();
+        val response =
+                webClient.post()
+                         .uri("/showcases")
+                         .bodyValue(ScheduleShowcaseRequest
+                                            .builder()
+                                            .title(title)
+                                            .startTime(startTime)
+                                            .duration(duration)
+                                            .build())
+                         .exchange()
+                         .expectStatus()
+                         .isCreated()
+                         .expectHeader()
+                         .value(HttpHeaders.LOCATION, startsWith("/showcases/"))
+                         .expectHeader()
+                         .contentTypeCompatibleWith(APPLICATION_JSON)
+                         .expectBody(ScheduleShowcaseResponse.class)
+                         .returnResult()
+                         .getResponseBody();
 
         verify(showcaseCommandOperations).schedule(
                 ScheduleShowcaseCommand
                         .builder()
-                        .showcaseId(showcaseId)
+                        .showcaseId(requireNonNull(response).getShowcaseId())
                         .title(title)
                         .startTime(startTime)
                         .duration(duration)
@@ -140,7 +145,6 @@ class ShowcaseApiControllerCT {
                  .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
                  .jsonPath("$.detail").isEqualTo("Invalid request content.")
                  .jsonPath("$.fieldErrors").isMap()
-                 .jsonPath("$.fieldErrors.showcaseId").isArray()
                  .jsonPath("$.fieldErrors.title").isArray()
                  .jsonPath("$.fieldErrors.startTime").isArray()
                  .jsonPath("$.fieldErrors.duration").isArray();
@@ -162,7 +166,6 @@ class ShowcaseApiControllerCT {
                  .uri("/showcases")
                  .bodyValue(ScheduleShowcaseRequest
                                     .builder()
-                                    .showcaseId(aShowcaseId())
                                     .title(aShowcaseTitle())
                                     .startTime(aShowcaseStartTime(Instant.now()))
                                     .duration(aShowcaseDuration())
@@ -184,11 +187,6 @@ class ShowcaseApiControllerCT {
 
     @Test
     void scheduleShowcase_axonFailure_respondsWithServiceUnavailableStatusAndProblemInBody() {
-        val showcaseId = aShowcaseId();
-        val title = aShowcaseTitle();
-        val startTime = aShowcaseStartTime(Instant.now());
-        val duration = aShowcaseDuration();
-
         given(showcaseCommandOperations.schedule(any()))
                 .willReturn(Mono.error(new NoHandlerForCommandException(anAlphabeticString(10))));
 
@@ -196,10 +194,9 @@ class ShowcaseApiControllerCT {
                  .uri("/showcases")
                  .bodyValue(ScheduleShowcaseRequest
                                     .builder()
-                                    .showcaseId(showcaseId)
-                                    .title(title)
-                                    .startTime(startTime)
-                                    .duration(duration)
+                                    .title(aShowcaseTitle())
+                                    .startTime(aShowcaseStartTime(Instant.now()))
+                                    .duration(aShowcaseDuration())
                                     .build())
                  .exchange()
                  .expectStatus()
@@ -212,14 +209,7 @@ class ShowcaseApiControllerCT {
                  .jsonPath("$.status").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
                  .jsonPath("$.detail").doesNotHaveJsonPath();
 
-        verify(showcaseCommandOperations).schedule(
-                ScheduleShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(title)
-                        .startTime(startTime)
-                        .duration(duration)
-                        .build());
+        verify(showcaseCommandOperations).schedule(any());
         verifyNoMoreInteractions(showcaseCommandOperations);
     }
 

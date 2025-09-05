@@ -15,4 +15,8 @@ CREATE TABLE associationvalueentry
     sagaid VARCHAR(255),
     sagatype VARCHAR(255),
     CONSTRAINT associationvalueentry_pkey PRIMARY KEY (id)
-)
+);
+
+CREATE INDEX associationvalueentry_sagaid_idx ON associationvalueentry (sagaid);
+CREATE INDEX associationvalueentry_associationkey_associationvalue_idx
+    ON associationvalueentry (associationkey, associationvalue);

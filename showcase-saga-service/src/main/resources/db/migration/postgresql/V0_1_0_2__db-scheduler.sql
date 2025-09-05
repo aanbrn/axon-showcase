@@ -17,4 +17,4 @@ CREATE TABLE scheduled_tasks
 
 CREATE INDEX execution_time_idx ON scheduled_tasks (execution_time);
 CREATE INDEX last_heartbeat_idx ON scheduled_tasks (last_heartbeat);
-CREATE INDEX priority_execution_time_idx on scheduled_tasks (priority DESC, execution_time ASC);
+CREATE INDEX priority_execution_time_idx ON scheduled_tasks (priority DESC, execution_time ASC);

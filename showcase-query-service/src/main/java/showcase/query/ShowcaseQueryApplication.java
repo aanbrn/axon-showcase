@@ -1,49 +1,36 @@
 package showcase.query;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
-import io.lettuce.core.tracing.MicrometerTracing;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
-import io.micrometer.observation.ObservationRegistry;
 import io.opentelemetry.api.OpenTelemetry;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.queryhandling.QueryBus;
 import org.axonframework.serialization.Serializer;
+import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
 import org.axonframework.tracing.LoggingSpanFactory;
 import org.axonframework.tracing.MultiSpanFactory;
 import org.axonframework.tracing.SpanFactory;
 import org.axonframework.tracing.opentelemetry.OpenTelemetrySpanFactory;
+import org.opensearch.data.client.osc.OpenSearchTemplate;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.data.redis.ClientResourcesBuilderCustomizer;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.redis.cache.RedisCacheConfiguration;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import showcase.projection.ShowcaseEntity;
 
 import java.util.List;
 
-import static java.util.Objects.requireNonNull;
-import static showcase.query.ShowcaseQueryConstants.SHOWCASES_CACHE_NAME;
-
-@SpringBootApplication
+@SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
 @EnableConfigurationProperties(ShowcaseQueryProperties.class)
-@EnableCaching
 @Slf4j
 class ShowcaseQueryApplication {
 
@@ -60,12 +47,12 @@ class ShowcaseQueryApplication {
             havingValue = "true",
             matchIfMissing = true
     )
-    InitializingBean elasticsearchIndexInitializer(
-            ElasticsearchOperations elasticsearchOperations,
+    InitializingBean opensearchIndexInitializer(
+            OpenSearchTemplate openSearchTemplate,
             ShowcaseQueryProperties queryProperties) {
         return () -> {
             for (val entityType : List.of(ShowcaseEntity.class)) {
-                val indexOperations = elasticsearchOperations.indexOps(entityType);
+                val indexOperations = openSearchTemplate.indexOps(entityType);
                 val indexName = indexOperations.getIndexCoordinates().getIndexName();
 
                 log.info("Initializing index \"{}\"...", indexName);
@@ -105,34 +92,6 @@ class ShowcaseQueryApplication {
     @Bean
     Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
         return builder -> builder.modules(new BlackbirdModule());
-    }
-
-    @Bean
-    ClientResourcesBuilderCustomizer redisClientResourcesBuilderCustomizer(
-            ObservationRegistry observationRegistry,
-            RedisProperties redisProperties) {
-        return builder -> builder.tracing(new MicrometerTracing(observationRegistry, redisProperties.getClientName()));
-    }
-
-    @Bean
-    RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer(
-            ShowcaseQueryProperties queryProperties,
-            ObjectMapper objectMapper) {
-        return builder -> {
-            val showcaseCacheSettings =
-                    requireNonNull(queryProperties.getCaches().get(SHOWCASES_CACHE_NAME),
-                                   "Settings for '%s' cache is missing".formatted(SHOWCASES_CACHE_NAME));
-
-            builder.withCacheConfiguration(
-                           SHOWCASES_CACHE_NAME,
-                           RedisCacheConfiguration
-                                   .defaultCacheConfig()
-                                   .entryTtl(showcaseCacheSettings.getTimeToLive())
-                                   .enableTimeToIdle()
-                                   .serializeValuesWith(SerializationPair.fromSerializer(
-                                           new Jackson2JsonRedisSerializer<>(objectMapper, Showcase.class))))
-                   .enableStatistics();
-        };
     }
 
     @Bean

@@ -32,6 +32,7 @@ import org.axonframework.messaging.annotation.HandlerDefinition;
 import org.axonframework.messaging.annotation.ParameterResolverFactory;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.spring.eventsourcing.SpringAggregateSnapshotter;
+import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
 import org.axonframework.tracing.LoggingSpanFactory;
 import org.axonframework.tracing.MultiSpanFactory;
 import org.axonframework.tracing.SpanFactory;
@@ -57,7 +58,7 @@ import java.util.concurrent.Executor;
 
 import static showcase.command.ShowcaseCommandConstants.SHOWCASE_CACHE_NAME;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
 @EnableConfigurationProperties(ShowcaseCommandProperties.class)
 @EnableCaching
 @Slf4j

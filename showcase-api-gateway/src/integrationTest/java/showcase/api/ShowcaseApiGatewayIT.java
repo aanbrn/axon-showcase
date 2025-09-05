@@ -1,6 +1,5 @@
 package showcase.api;
 
-import com.redis.testcontainers.RedisContainer;
 import lombok.val;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,13 +7,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.opensearch.testcontainers.OpenSearchContainer;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
@@ -31,6 +31,8 @@ import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.startsWith;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
@@ -74,15 +76,10 @@ class ShowcaseApiGatewayIT {
                     .withNetwork(network);
 
     @Container
-    static final ElasticsearchContainer esViews =
-            new ElasticsearchContainer("elasticsearch:" + System.getProperty("elasticsearch.image.version"))
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-es-views"))
-                    .withNetwork(network)
-                    .withEnv("xpack.security.enabled", "false");
-
-    static final RedisContainer redis =
-            new RedisContainer("redis:" + System.getProperty("redis.image.version"))
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-redis"))
+    @SuppressWarnings("resource")
+    static final OpenSearchContainer<?> osViews =
+            new OpenSearchContainer<>("opensearchproject/opensearch:" + System.getProperty("opensearch.image.version"))
+                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-os-views"))
                     .withNetwork(network);
 
     @Container
@@ -119,7 +116,7 @@ class ShowcaseApiGatewayIT {
     @SuppressWarnings({ "resource", "unused" })
     static final GenericContainer<?> projectionService =
             new GenericContainer<>("aanbrn/axon-showcase-projection-service:" + System.getProperty("project.version"))
-                    .dependsOn(kafka, esViews, redis)
+                    .dependsOn(kafka, osViews)
                     .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-projection-service"))
                     .withNetwork(network)
                     .withEnv("DB_USER", dbEvents.getUsername())
@@ -135,7 +132,7 @@ class ShowcaseApiGatewayIT {
     @SuppressWarnings({ "resource", "unused" })
     static final GenericContainer<?> queryService =
             new GenericContainer<>("aanbrn/axon-showcase-query-service:" + System.getProperty("project.version"))
-                    .dependsOn(esViews, redis)
+                    .dependsOn(osViews)
                     .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-query-service"))
                     .withNetwork(network)
                     .withExposedPorts(8080)
@@ -185,23 +182,29 @@ class ShowcaseApiGatewayIT {
 
     @Test
     void scheduleShowcase_validRequest_exposesScheduledShowcase() {
-        val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
         val startTime = aShowcaseStartTime(Instant.now());
         val duration = aShowcaseDuration();
 
-        webClient.post()
-                 .uri("/showcases")
-                 .bodyValue(Map.of(
-                         "showcaseId", showcaseId,
-                         "title", title,
-                         "startTime", startTime,
-                         "duration", duration))
-                 .exchange()
-                 .expectStatus()
-                 .isCreated()
-                 .expectHeader()
-                 .value("Location", equalTo("/showcases/" + showcaseId));
+        val response =
+                webClient.post()
+                         .uri("/showcases")
+                         .bodyValue(Map.of(
+                                 "title", title,
+                                 "startTime", startTime,
+                                 "duration", duration))
+                         .exchange()
+                         .expectStatus()
+                         .isCreated()
+                         .expectHeader()
+                         .value(HttpHeaders.LOCATION, startsWith("/showcases/"))
+                         .expectHeader()
+                         .contentTypeCompatibleWith(APPLICATION_JSON)
+                         .expectBody(ScheduleShowcaseResponse.class)
+                         .returnResult()
+                         .getResponseBody();
+
+        val showcaseId = requireNonNull(response).getShowcaseId();
 
         await().untilAsserted(
                 () -> webClient.get()
@@ -218,119 +221,33 @@ class ShowcaseApiGatewayIT {
                                .jsonPath("$.scheduledAt").isNotEmpty()
                                .jsonPath("$.startedAt").isEmpty()
                                .jsonPath("$.finishedAt").isEmpty());
-
-        removeShowcase(showcaseId);
-    }
-
-    @Test
-    void scheduleShowcase_duplicateSchedule_exposesScheduledShowcase() {
-        val showcaseId = aShowcaseId();
-        val title = aShowcaseTitle();
-        val startTime = aShowcaseStartTime(Instant.now());
-        val duration = aShowcaseDuration();
-
-        webClient.post()
-                 .uri("/showcases")
-                 .bodyValue(Map.of(
-                         "showcaseId", showcaseId,
-                         "title", title,
-                         "startTime", startTime,
-                         "duration", duration))
-                 .exchange()
-                 .expectStatus()
-                 .isCreated()
-                 .expectHeader()
-                 .value("Location", equalTo("/showcases/" + showcaseId));
-
-        await().untilAsserted(
-                () -> webClient.get()
-                               .uri("/showcases/{showcaseId}", showcaseId)
-                               .exchange()
-                               .expectStatus()
-                               .isOk()
-                               .expectBody()
-                               .jsonPath("$.showcaseId").isEqualTo(showcaseId)
-                               .jsonPath("$.title").isEqualTo(title)
-                               .jsonPath("$.startTime").isEqualTo(startTime)
-                               .jsonPath("$.duration").isEqualTo(duration)
-                               .jsonPath("$.status").value(ShowcaseStatus.class, equalTo(ShowcaseStatus.SCHEDULED))
-                               .jsonPath("$.scheduledAt").isNotEmpty()
-                               .jsonPath("$.startedAt").isEmpty()
-                               .jsonPath("$.finishedAt").isEmpty());
-
-        webClient.post()
-                 .uri("/showcases")
-                 .bodyValue(Map.of(
-                         "showcaseId", showcaseId,
-                         "title", title,
-                         "startTime", startTime,
-                         "duration", duration))
-                 .exchange()
-                 .expectStatus()
-                 .isCreated()
-                 .expectHeader()
-                 .value("Location", equalTo("/showcases/" + showcaseId));
-
-        removeShowcase(showcaseId);
-    }
-
-    @Test
-    void scheduleShowcase_reschedule_failsWithTitleInUseProblem() {
-        val showcaseId = aShowcaseId();
-
-        webClient.post()
-                 .uri("/showcases")
-                 .bodyValue(Map.of(
-                         "showcaseId", showcaseId,
-                         "title", aShowcaseTitle(),
-                         "startTime", aShowcaseStartTime(Instant.now()),
-                         "duration", aShowcaseDuration()))
-                 .exchange()
-                 .expectStatus()
-                 .isCreated();
-
-        webClient.post()
-                 .uri("/showcases")
-                 .bodyValue(Map.of(
-                         "showcaseId", showcaseId,
-                         "title", aShowcaseTitle(),
-                         "startTime", aShowcaseStartTime(Instant.now()),
-                         "duration", aShowcaseDuration()))
-                 .exchange()
-                 .expectStatus()
-                 .isEqualTo(HTTP_CONFLICT)
-                 .expectHeader()
-                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
-                 .expectBody()
-                 .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Conflict")
-                 .jsonPath("$.status").isEqualTo(HttpStatus.CONFLICT.value())
-                 .jsonPath("$.detail").isEqualTo("Showcase cannot be rescheduled")
-                 .jsonPath("$.instance").isEqualTo("/showcases");
 
         removeShowcase(showcaseId);
     }
 
     @Test
     void scheduleShowcase_alreadyUsedTitle_failsWithTitleInUseProblem() {
-        val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
 
-        webClient.post()
-                 .uri("/showcases")
-                 .bodyValue(Map.of(
-                         "showcaseId", showcaseId,
-                         "title", title,
-                         "startTime", aShowcaseStartTime(Instant.now()),
-                         "duration", aShowcaseDuration()))
-                 .exchange()
-                 .expectStatus()
-                 .isCreated();
+        val response =
+                webClient.post()
+                         .uri("/showcases")
+                         .bodyValue(Map.of(
+                                 "title", title,
+                                 "startTime", aShowcaseStartTime(Instant.now()),
+                                 "duration", aShowcaseDuration()))
+                         .exchange()
+                         .expectStatus()
+                         .isCreated()
+                         .expectBody(ScheduleShowcaseResponse.class)
+                         .returnResult()
+                         .getResponseBody();
+
+        val showcaseId = requireNonNull(response).getShowcaseId();
 
         webClient.post()
                  .uri("/showcases")
                  .bodyValue(Map.of(
-                         "showcaseId", aShowcaseId(),
                          "title", title,
                          "startTime", aShowcaseStartTime(Instant.now()),
                          "duration", aShowcaseDuration()))
@@ -351,21 +268,25 @@ class ShowcaseApiGatewayIT {
 
     @Test
     void startShowcase_existingShowcase_exposesStartedShowcase() {
-        val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
         val startTime = aShowcaseStartTime(Instant.now());
         val duration = aShowcaseDuration();
 
-        webClient.post()
-                 .uri("/showcases")
-                 .bodyValue(Map.of(
-                         "showcaseId", showcaseId,
-                         "title", title,
-                         "startTime", startTime,
-                         "duration", duration))
-                 .exchange()
-                 .expectStatus()
-                 .isCreated();
+        val response =
+                webClient.post()
+                         .uri("/showcases")
+                         .bodyValue(Map.of(
+                                 "title", title,
+                                 "startTime", startTime,
+                                 "duration", duration))
+                         .exchange()
+                         .expectStatus()
+                         .isCreated()
+                         .expectBody(ScheduleShowcaseResponse.class)
+                         .returnResult()
+                         .getResponseBody();
+
+        val showcaseId = requireNonNull(response).getShowcaseId();
 
         webClient.put()
                  .uri("/showcases/{showcaseId}/start", showcaseId)
@@ -412,21 +333,25 @@ class ShowcaseApiGatewayIT {
 
     @Test
     void finishShowcase_existingShowcase_exposesFinishedShowcase() {
-        val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
         val startTime = aShowcaseStartTime(Instant.now());
         val duration = aShowcaseDuration();
 
-        webClient.post()
-                 .uri("/showcases")
-                 .bodyValue(Map.of(
-                         "showcaseId", showcaseId,
-                         "title", title,
-                         "startTime", startTime,
-                         "duration", duration))
-                 .exchange()
-                 .expectStatus()
-                 .isCreated();
+        val response =
+                webClient.post()
+                         .uri("/showcases")
+                         .bodyValue(Map.of(
+                                 "title", title,
+                                 "startTime", startTime,
+                                 "duration", duration))
+                         .exchange()
+                         .expectStatus()
+                         .isCreated()
+                         .expectBody(ScheduleShowcaseResponse.class)
+                         .returnResult()
+                         .getResponseBody();
+
+        val showcaseId = requireNonNull(response).getShowcaseId();
 
         webClient.put()
                  .uri("/showcases/{showcaseId}/start", showcaseId)
@@ -479,18 +404,21 @@ class ShowcaseApiGatewayIT {
 
     @Test
     void removeShowcase_existingShowcase_doesNotExposeRemovedShowcase() {
-        val showcaseId = aShowcaseId();
+        val response =
+                webClient.post()
+                         .uri("/showcases")
+                         .bodyValue(Map.of(
+                                 "title", aShowcaseTitle(),
+                                 "startTime", aShowcaseStartTime(Instant.now()),
+                                 "duration", aShowcaseDuration()))
+                         .exchange()
+                         .expectStatus()
+                         .isCreated()
+                         .expectBody(ScheduleShowcaseResponse.class)
+                         .returnResult()
+                         .getResponseBody();
 
-        webClient.post()
-                 .uri("/showcases")
-                 .bodyValue(Map.of(
-                         "showcaseId", showcaseId,
-                         "title", aShowcaseTitle(),
-                         "startTime", aShowcaseStartTime(Instant.now()),
-                         "duration", aShowcaseDuration()))
-                 .exchange()
-                 .expectStatus()
-                 .isCreated();
+        val showcaseId = requireNonNull(response).getShowcaseId();
 
         await().untilAsserted(
                 () -> webClient.get()
@@ -553,23 +481,27 @@ class ShowcaseApiGatewayIT {
                                    .hasSize(0));
 
             for (val status : ShowcaseStatus.values()) {
-                val showcaseId = aShowcaseId();
                 val title = aShowcaseTitle();
                 val startTime = aShowcaseStartTime(Instant.now());
                 val duration = aShowcaseDuration();
 
-                showcaseIds.add(showcaseId);
+                val response =
+                        webClient.post()
+                                 .uri("/showcases")
+                                 .bodyValue(Map.of(
+                                         "title", title,
+                                         "startTime", startTime,
+                                         "duration", duration))
+                                 .exchange()
+                                 .expectStatus()
+                                 .isCreated()
+                                 .expectBody(ScheduleShowcaseResponse.class)
+                                 .returnResult()
+                                 .getResponseBody();
 
-                webClient.post()
-                         .uri("/showcases")
-                         .bodyValue(Map.of(
-                                 "showcaseId", showcaseId,
-                                 "title", title,
-                                 "startTime", startTime,
-                                 "duration", duration))
-                         .exchange()
-                         .expectStatus()
-                         .isCreated();
+                val showcaseId = requireNonNull(response).getShowcaseId();
+
+                showcaseIds.add(showcaseId);
 
                 await().untilAsserted(
                         () -> webClient.get()

@@ -54,6 +54,10 @@ interface ShowcaseApi {
                                     name = "Location",
                                     description = "The path by which the showcase details are accessible.",
                                     examples = @ExampleObject("/showcases/0bb59251-fd63-432c-aead-17e0f1cac36b")
+                            ),
+                            content = @Content(
+                                    mediaType = APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ScheduleShowcaseResponse.class)
                             )
                     ),
                     @ApiResponse(
@@ -73,7 +77,7 @@ interface ShowcaseApi {
                     )
             }
     )
-    Mono<ResponseEntity<Void>> schedule(@Valid ScheduleShowcaseRequest request);
+    Mono<ResponseEntity<ScheduleShowcaseResponse>> schedule(@Valid ScheduleShowcaseRequest request);
 
     @Operation(
             description = "Starts the scheduled showcase explicitly before it's started automatically at the " +

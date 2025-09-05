@@ -1,22 +1,19 @@
 package showcase.query;
 
-import com.redis.testcontainers.RedisContainer;
 import lombok.val;
 import org.axonframework.queryhandling.GenericStreamingQueryMessage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.opensearch.data.client.osc.OpenSearchTemplate;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import showcase.projection.ShowcaseEntity;
@@ -40,16 +37,11 @@ class ShowcaseQueryControllerIT {
 
     @Container
     @ServiceConnection
-    static final ElasticsearchContainer esViews =
-            new ElasticsearchContainer("elasticsearch:" + System.getProperty("elasticsearch.image.version"))
-                    .withEnv("xpack.security.enabled", "false");
-
-    @Container
-    @ServiceConnection
-    static final RedisContainer redis = new RedisContainer("redis:" + System.getProperty("redis.image.version"));
+    static final OpenSearchContainer<?> osViews =
+            new OpenSearchContainer<>("opensearchproject/opensearch:" + System.getProperty("opensearch.image.version"));
 
     @Autowired
-    private ElasticsearchTemplate elasticsearchTemplate;
+    private OpenSearchTemplate openSearchTemplate;
 
     @Autowired
     private ShowcaseMapper showcaseMapper;
@@ -58,41 +50,30 @@ class ShowcaseQueryControllerIT {
     private QueryMessageRequestMapper queryMessageRequestMapper;
 
     @Autowired
-    private CacheManager cacheManager;
-
-    @Autowired
     private WebTestClient webClient;
 
     private IndexOperations showcaseIndexOperations;
 
-    private Cache showcaseCache;
-
     @BeforeEach
     void setUp() {
         if (showcaseIndexOperations == null) {
-            showcaseIndexOperations = elasticsearchTemplate.indexOps(ShowcaseEntity.class);
-        }
-        if (showcaseCache == null) {
-            showcaseCache = cacheManager.getCache("showcases");
+            showcaseIndexOperations = openSearchTemplate.indexOps(ShowcaseEntity.class);
         }
 
         assertThat(showcaseIndexOperations.exists()).isTrue();
-        assertThat(showcaseCache).isNotNull();
     }
 
     @AfterEach
     void tearDown() {
         assertThat(showcaseIndexOperations.delete()).isTrue();
         assertThat(showcaseIndexOperations.createWithMapping()).isTrue();
-
-        showcaseCache.clear();
     }
 
     @Test
     void fetchAll_noFiltering_respondsWithAllShowcasesSortedByStartTime() {
         val showcases = showcases();
 
-        elasticsearchTemplate.save(
+        openSearchTemplate.save(
                 showcases.stream()
                          .map(showcaseMapper::dtoToEntity)
                          .toList(),
@@ -124,7 +105,7 @@ class ShowcaseQueryControllerIT {
         val showcases = showcases();
         val showcase = anElementOf(showcases);
 
-        elasticsearchTemplate.save(
+        openSearchTemplate.save(
                 showcases.stream()
                          .map(showcaseMapper::dtoToEntity)
                          .toList(),
@@ -157,7 +138,7 @@ class ShowcaseQueryControllerIT {
         val showcases = showcases();
         val status = aShowcaseStatus();
 
-        elasticsearchTemplate.save(
+        openSearchTemplate.save(
                 showcases.stream()
                          .map(showcaseMapper::dtoToEntity)
                          .toList(),
@@ -194,7 +175,7 @@ class ShowcaseQueryControllerIT {
         val status1 = aShowcaseStatus();
         val status2 = aShowcaseStatus(status1);
 
-        elasticsearchTemplate.save(
+        openSearchTemplate.save(
                 showcases.stream()
                          .map(showcaseMapper::dtoToEntity)
                          .toList(),
@@ -231,7 +212,7 @@ class ShowcaseQueryControllerIT {
     void fetchById_existingShowcase_respondsWithRequestedShowcase() {
         val showcase = aShowcase();
 
-        elasticsearchTemplate.save(
+        openSearchTemplate.save(
                 showcaseMapper.dtoToEntity(showcase),
                 showcaseIndexOperations.getIndexCoordinates());
 
@@ -255,8 +236,6 @@ class ShowcaseQueryControllerIT {
                 .isOk()
                 .expectBody(Showcase.class)
                 .isEqualTo(showcase);
-
-        assertThat(showcaseCache.get(showcase.getShowcaseId())).isNotNull();
     }
 
     @Test

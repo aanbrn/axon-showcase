@@ -96,7 +96,7 @@ final class ShowcaseAggregate {
                         .scheduledAt(clock.instant())
                         .build();
 
-        log.info("Showcase scheduled: {}", event);
+        log.debug("Showcase scheduled: {}", event);
 
         apply(event);
     }
@@ -126,7 +126,7 @@ final class ShowcaseAggregate {
                         .startedAt(clock.instant())
                         .build();
 
-        log.info("Showcase started: {}", event);
+        log.debug("Showcase started: {}", event);
 
         apply(event);
     }
@@ -155,7 +155,7 @@ final class ShowcaseAggregate {
                         .finishedAt(clock.instant())
                         .build();
 
-        log.info("Showcase finished: {}", event);
+        log.debug("Showcase finished: {}", event);
 
         apply(event);
     }
@@ -176,7 +176,7 @@ final class ShowcaseAggregate {
                             .finishedAt(now)
                             .build();
 
-            log.info("Finish started showcase on remove: {}", event);
+            log.debug("Finish started showcase on remove: {}", event);
 
             apply(event);
         }
@@ -188,7 +188,7 @@ final class ShowcaseAggregate {
                             .removedAt(now)
                             .build();
 
-            log.info("Showcase removed: {}", event);
+            log.debug("Showcase removed: {}", event);
 
             apply(event);
         }

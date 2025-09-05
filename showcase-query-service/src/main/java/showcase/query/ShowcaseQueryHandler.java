@@ -3,8 +3,7 @@ package showcase.query;
 import lombok.NonNull;
 import lombok.val;
 import org.axonframework.queryhandling.QueryHandler;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.elasticsearch.client.elc.ReactiveElasticsearchTemplate;
+import org.opensearch.data.client.osc.ReactiveOpenSearchTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.Criteria;
@@ -14,23 +13,21 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import showcase.projection.ShowcaseEntity;
 
-import static showcase.query.ShowcaseQueryConstants.SHOWCASES_CACHE_NAME;
-
 @Component
 class ShowcaseQueryHandler {
 
-    private final ReactiveElasticsearchTemplate elasticsearchTemplate;
+    private final ReactiveOpenSearchTemplate reactiveOpenSearchTemplate;
 
     private final ShowcaseMapper showcaseMapper;
 
     private final IndexCoordinates showcaseIndex;
 
     ShowcaseQueryHandler(
-            @NonNull ReactiveElasticsearchTemplate elasticsearchTemplate,
+            @NonNull ReactiveOpenSearchTemplate reactiveOpenSearchTemplate,
             @NonNull ShowcaseMapper showcaseMapper) {
-        this.elasticsearchTemplate = elasticsearchTemplate;
+        this.reactiveOpenSearchTemplate = reactiveOpenSearchTemplate;
         this.showcaseMapper = showcaseMapper;
-        this.showcaseIndex = elasticsearchTemplate.getIndexCoordinatesFor(ShowcaseEntity.class);
+        this.showcaseIndex = reactiveOpenSearchTemplate.getIndexCoordinatesFor(ShowcaseEntity.class);
     }
 
     @QueryHandler
@@ -51,16 +48,15 @@ class ShowcaseQueryHandler {
                         .builder(criteria)
                         .withPageable(query.getPageRequest().toPageable())
                         .build();
-        return elasticsearchTemplate
+        return reactiveOpenSearchTemplate
                        .search(criteriaQuery, ShowcaseEntity.class, showcaseIndex)
                        .map(SearchHit::getContent)
                        .map(showcaseMapper::entityToDto);
     }
 
     @QueryHandler
-    @Cacheable(cacheNames = SHOWCASES_CACHE_NAME, key = "#query.showcaseId")
     Mono<Showcase> handle(@NonNull FetchShowcaseByIdQuery query) {
-        return elasticsearchTemplate
+        return reactiveOpenSearchTemplate
                        .get(query.getShowcaseId(), ShowcaseEntity.class, showcaseIndex)
                        .map(showcaseMapper::entityToDto);
     }

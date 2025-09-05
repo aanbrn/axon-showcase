@@ -27,16 +27,15 @@ services:
       start_period: 30s
       start_interval: 3s
       retries: 10
-  es-views:
-    image: elasticsearch:${ELASTICSEARCH_VERSION}
-    hostname: axon-showcase-es-views
+  os-views:
+    image: opensearchproject/opensearch:${OPENSEARCH_VERSION}
+    hostname: axon-showcase-os-views
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false
-      - cluster.routing.allocation.disk.threshold_enabled=false
-      - ES_JAVA_OPTS=-Xms128m -Xmx2g
+      - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=7`t=/]y#SrE:ci+~
     volumes:
-      - es-views-data:/usr/share/elasticsearch/data
+      - os-views-data:/usr/share/opensearch/data
     healthcheck:
       test: [ "CMD-SHELL", "curl --output /dev/null --silent --head --fail http://localhost:9200" ]
       start_period: 30s
@@ -71,15 +70,7 @@ services:
     entrypoint:
       - "/bin/sh"
       - "-c"
-      - "/opt/kafka/bin/kafka-topics.sh --bootstrap-server axon-showcase-kafka:9092 --create --topic axon-showcase-events"
-  redis:
-    image: redis:${REDIS_VERSION}
-    hostname: axon-showcase-redis
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      start_period: 30s
-      start_interval: 3s
-      retries: 10
+      - "/opt/kafka/bin/kafka-topics.sh --bootstrap-server axon-showcase-kafka:9092 --create --topic axon-showcase-events --partitions 8 --replication-factor 1"
   api-gateway:
     depends_on:
       command-service:
@@ -134,6 +125,8 @@ services:
       start_interval: 3s
       retries: 10
     environment:
+      - JAVA_OPTS=-XX:MaxDirectMemorySize=512m -XX:MaxGCPauseMillis=20
+      - KAFKA_FETCHER_CONSUMER_COUNT=8
       - THC_PATH=/actuator/health
       - DB_PASSWORD=showcase
       - BPL_DEBUG_ENABLED=true
@@ -144,9 +137,7 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
-      es-views:
-        condition: service_healthy
-      redis:
+      os-views:
         condition: service_healthy
     image: aanbrn/axon-showcase-projection-service:${PROJECT_VERSION}
     hostname: axon-showcase-projection-service
@@ -156,6 +147,8 @@ services:
       start_interval: 3s
       retries: 10
     environment:
+      - JAVA_OPTS=-XX:MaxDirectMemorySize=512m -XX:MaxGCPauseMillis=20
+      - KAFKA_FETCHER_CONSUMER_COUNT=8
       - THC_PATH=/actuator/health
       - DB_PASSWORD=showcase
       - BPL_DEBUG_ENABLED=true
@@ -164,7 +157,7 @@ services:
       - "8003:8003"
   query-service:
     depends_on:
-      es-views:
+      os-views:
         condition: service_healthy
     image: aanbrn/axon-showcase-query-service:${PROJECT_VERSION}
     hostname: axon-showcase-query-service
@@ -183,4 +176,4 @@ services:
 volumes:
   db-events-data:
   db-sagas-data:
-  es-views-data:
+  os-views-data:

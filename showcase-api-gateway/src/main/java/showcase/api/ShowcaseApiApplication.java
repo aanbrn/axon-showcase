@@ -20,6 +20,7 @@ import org.axonframework.config.Configuration;
 import org.axonframework.extensions.jgroups.DistributedCommandBusProperties;
 import org.axonframework.extensions.jgroups.commandhandling.JGroupsConnectorFactoryBean;
 import org.axonframework.serialization.Serializer;
+import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
 import org.axonframework.tracing.LoggingSpanFactory;
 import org.axonframework.tracing.MultiSpanFactory;
 import org.axonframework.tracing.SpanFactory;
@@ -51,7 +52,7 @@ import static java.util.Objects.requireNonNull;
 import static showcase.api.ShowcaseApiConstants.FETCH_ALL_CACHE_NAME;
 import static showcase.api.ShowcaseApiConstants.FETCH_BY_ID_CACHE_NAME;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
 @EnableConfigurationProperties(ShowcaseApiProperties.class)
 @EnableCaching
 @Slf4j

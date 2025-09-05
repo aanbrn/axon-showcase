@@ -45,6 +45,14 @@ testing {
                         module = libs.axon.serverConnector.get().name
                     )
                 }
+                implementation(libs.spring.data.opensearch.starter) {
+                    exclude(
+                        group = libs.opensearch.client.restHighLevel.get().group,
+                        module = libs.opensearch.client.restHighLevel.get().name
+                    )
+                }
+                implementation(libs.opensearch.client.java)
+                implementation(libs.elasticsearch.client.java)
                 implementation(libs.reactor.test)
                 implementation(libs.resilience4j.springBoot3)
                 implementation(libs.spring.boot.starter.aop)
@@ -70,13 +78,25 @@ testing {
                         module = libs.axon.serverConnector.get().name
                     )
                 }
+                implementation(libs.spring.data.opensearch.starter) {
+                    exclude(
+                        group = libs.opensearch.client.restHighLevel.get().group,
+                        module = libs.opensearch.client.restHighLevel.get().name
+                    )
+                }
+                implementation(libs.opensearch.client.java)
+                implementation(libs.elasticsearch.client.java)
                 implementation(libs.reactor.test)
-                implementation(libs.spring.boot.starter.data.elasticsearch)
                 implementation(libs.spring.boot.starter.test)
                 implementation(libs.spring.boot.testcontainers)
+                implementation(libs.spring.data.opensearch.testcontainers) {
+                    exclude(
+                        group = libs.opensearch.client.restHighLevel.get().group,
+                        module = libs.opensearch.client.restHighLevel.get().name
+                    )
+                }
                 implementation(libs.testcontainers.junit.jupiter)
-                implementation(libs.testcontainers.elasticsearch)
-                implementation(libs.testcontainers.redis)
+                implementation(libs.testcontainers.opensearch)
             }
 
             targets {

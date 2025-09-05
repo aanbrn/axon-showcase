@@ -36,6 +36,7 @@ import org.axonframework.modelling.saga.repository.jdbc.SagaSqlSchema;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.spring.jdbc.SpringDataSourceConnectionProvider;
 import org.axonframework.springboot.autoconfig.JdbcAutoConfiguration;
+import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
 import org.axonframework.tracing.LoggingSpanFactory;
 import org.axonframework.tracing.MultiSpanFactory;
 import org.axonframework.tracing.SpanFactory;
@@ -63,7 +64,7 @@ import java.util.OptionalLong;
 import static showcase.saga.ShowcaseSagaConstants.SAGA_ASSOCIATIONS_CACHE_NAME;
 import static showcase.saga.ShowcaseSagaConstants.SAGA_CACHE_NAME;
 
-@SpringBootApplication(exclude = JdbcAutoConfiguration.class)
+@SpringBootApplication(exclude = { JdbcAutoConfiguration.class, UpdateCheckerAutoConfiguration.class })
 @EnableConfigurationProperties(ShowcaseSagaProperties.class)
 @EnableCaching
 @Slf4j
@@ -242,7 +243,8 @@ class ShowcaseSagaApplication {
                        .topics(List.of(kafkaProperties.getDefaultTopic()))
                        .groupId(kafkaProperties.getClientId())
                        .consumerFactory(consumerFactory)
-                       .consumerCount(consumerCount).fetcher(fetcher)
+                       .consumerCount(consumerCount)
+                       .fetcher(fetcher)
                        .serializer(messageSerializer)
                        .messageConverter(messageConverter)
                        .autoStart()

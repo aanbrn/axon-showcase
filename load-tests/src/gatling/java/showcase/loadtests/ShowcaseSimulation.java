@@ -26,7 +26,6 @@ import static io.gatling.javaapi.core.OpenInjectionStep.atOnceUsers;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
-import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.command.RandomCommandTestUtils.aShowcaseStartTime;
 import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 
@@ -39,7 +38,6 @@ public class ShowcaseSimulation extends Simulation {
                     .asJson()
                     .body(StringBody("""
                                              {
-                                                "showcaseId": "#{showcaseId}",
                                                 "title": "#{title}",
                                                 "startTime": "#{startTime}",
                                                 "duration": "#{duration}"
@@ -62,53 +60,56 @@ public class ShowcaseSimulation extends Simulation {
     private static final ScenarioBuilder scenario =
             scenario("Showcase")
                     .exitBlockOnFail()
-                    .on(exec(session -> session.set("showcaseId", aShowcaseId())
-                                               .set("title", aShowcaseTitle())
-                                               .set("startTime", aShowcaseStartTime(Instant.now()))
-                                               .set("duration", aShowcaseDuration())),
-                        scheduleShowcase.check(status().is(201)),
-                        randomSwitchOrElse().on(percent(95).then(exitHere())).orElse(
-                                doWhileDuring("#{responseStatus} != 200", Duration.ofMinutes(5))
-                                        .on(pause(Duration.ofMillis(500)),
-                                            fetchShowcase.check(status().in(200, 404).saveAs("responseStatus"))),
-                                startShowcase.check(status().is(200)),
+                    .on(fetchShowcases,
+                        randomSwitchOrElse().on(percent(50).then(exitHere())).orElse(
+                                exec(session -> session.set("title", aShowcaseTitle())
+                                                       .set("startTime", aShowcaseStartTime(Instant.now()))
+                                                       .set("duration", aShowcaseDuration())),
+                                scheduleShowcase.check(status().is(201), jsonPath("$.showcaseId").saveAs("showcaseId")),
                                 randomSwitchOrElse().on(percent(95).then(exitHere())).orElse(
-                                        doWhileDuring("#{showcaseStatus} != \"STARTED\"", Duration.ofMinutes(5))
+                                        doWhileDuring("#{responseStatus} != 200", Duration.ofMinutes(5))
                                                 .on(pause(Duration.ofMillis(500)),
                                                     fetchShowcase.check(
-                                                            status().in(200, 404),
-                                                            jsonPath("$.status").saveAs("showcaseStatus"))),
-                                        finishShowcase.check(status().is(200)),
+                                                            status().in(200, 404).saveAs("responseStatus"))),
+                                        startShowcase.check(status().is(200)),
                                         randomSwitchOrElse().on(percent(95).then(exitHere())).orElse(
-                                                doWhileDuring("#{showcaseStatus} != \"FINISHED\"",
-                                                              Duration.ofMinutes(5))
+                                                doWhileDuring("#{showcaseStatus} != \"STARTED\"", Duration.ofMinutes(5))
                                                         .on(pause(Duration.ofMillis(500)),
                                                             fetchShowcase.check(
                                                                     status().in(200, 404),
                                                                     jsonPath("$.status").saveAs("showcaseStatus"))),
-                                                removeShowcase.check(status().is(200))))));
+                                                finishShowcase.check(status().is(200)),
+                                                randomSwitchOrElse().on(percent(95).then(exitHere())).orElse(
+                                                        doWhileDuring("#{showcaseStatus} != \"FINISHED\"",
+                                                                      Duration.ofMinutes(5))
+                                                                .on(pause(Duration.ofMillis(500)),
+                                                                    fetchShowcase.check(
+                                                                            status().in(200, 404),
+                                                                            jsonPath("$.status")
+                                                                                    .saveAs("showcaseStatus"))),
+                                                        removeShowcase.check(status().is(200)))))));
 
     {
         val testType = System.getProperty("testType", "smoke");
 
         val injectionProfile = switch (testType) {
             case "average" -> scenario.injectOpen(
-                    rampUsersPerSec(0).to(150).during(Duration.ofMinutes(5)),
-                    constantUsersPerSec(150).during(Duration.ofMinutes(30)),
-                    rampUsersPerSec(150).to(0).during(Duration.ofMinutes(5)));
+                    rampUsersPerSec(0).to(100).during(Duration.ofMinutes(5)),
+                    constantUsersPerSec(100).during(Duration.ofMinutes(30)),
+                    rampUsersPerSec(100).to(0).during(Duration.ofMinutes(5)));
+            case "soak" -> scenario.injectOpen(
+                    rampUsersPerSec(0).to(100).during(Duration.ofMinutes(5)),
+                    constantUsersPerSec(100).during(Duration.ofHours(8)),
+                    rampUsersPerSec(100).to(0).during(Duration.ofMinutes(5)));
             case "stress" -> scenario.injectOpen(
                     rampUsersPerSec(0).to(200).during(Duration.ofMinutes(10)),
                     constantUsersPerSec(200).during(Duration.ofMinutes(30)),
                     rampUsersPerSec(200).to(0).during(Duration.ofMinutes(5)));
             case "spike" -> scenario.injectOpen(
-                    stressPeakUsers(200).during(Duration.ofMinutes(2)),
-                    rampUsersPerSec(200).to(0).during(Duration.ofMinutes(1)));
+                    stressPeakUsers(2000).during(Duration.ofMinutes(2)),
+                    rampUsersPerSec(2000).to(0).during(Duration.ofMinutes(1)));
             case "breakpoint" -> scenario.injectOpen(
-                    rampUsersPerSec(0).to(300).during(Duration.ofHours(2)));
-            case "soak" -> scenario.injectOpen(
-                    rampUsersPerSec(0).to(150).during(Duration.ofMinutes(5)),
-                    constantUsersPerSec(150).during(Duration.ofHours(8)),
-                    rampUsersPerSec(150).to(0).during(Duration.ofMinutes(5)));
+                    rampUsersPerSec(0).to(20000).during(Duration.ofHours(2)));
             default -> scenario.injectOpen(atOnceUsers(3));
         };
 

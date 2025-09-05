@@ -34,7 +34,7 @@ helm {
 
             mustUninstallAfter(
                 "axon-showcase-db-events",
-                "axon-showcase-es-views",
+                "axon-showcase-os-views",
                 "axon-showcase"
             )
         }
@@ -63,12 +63,12 @@ helm {
             mustUninstallAfter("axon-showcase")
         }
 
-        create("axon-showcase-es-views") {
-            from("bitnami/elasticsearch")
+        create("axon-showcase-os-views") {
+            from("bitnami/opensearch")
 
-            version = libs.versions.bitnami.elasticsearch
+            version = libs.versions.bitnami.opensearch
 
-            tags.addAll(listOf("database", "es-views"))
+            tags.addAll(listOf("database", "os-views"))
 
             mustInstallAfter("kps")
 
@@ -81,18 +81,6 @@ helm {
             version = libs.versions.bitnami.kafka
 
             tags.add("kafka")
-
-            mustInstallAfter("kps")
-
-            mustUninstallAfter("axon-showcase")
-        }
-
-        create("axon-showcase-redis") {
-            from("bitnami/redis")
-
-            version = libs.versions.bitnami.redis
-
-            tags.add("redis")
 
             mustInstallAfter("kps")
 
@@ -116,7 +104,7 @@ helm {
                 "axon-showcase-db-events",
                 "axon-showcase-db-sagas",
                 "axon-showcase-kafka",
-                "axon-showcase-es-views"
+                "axon-showcase-os-views"
             )
         }
     }

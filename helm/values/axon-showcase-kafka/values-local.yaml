@@ -1,7 +1,6 @@
 fullnameOverride: axon-showcase-kafka
 
-extraConfig:
-  num.partitions: 2
+extraConfigYaml:
   num.recovery.threads.per.data.dir: 1
   default.replication.factor: 1
   offsets.topic.replication.factor: 1
@@ -19,11 +18,11 @@ controller:
     enabled: false
   resources:
     requests:
-      cpu: 500m
-      memory: 768Mi
+      cpu: 0.75
+      memory: 1.25Gi
     limits:
-      cpu: 1000m
-      memory: 1536Mi
+      cpu: 1.0
+      memory: 1.75Gi
 
 networkPolicy:
   allowExternal: false
@@ -34,6 +33,8 @@ networkPolicy:
     prometheus: kps
 
 metrics:
+  jmx:
+    enabled: true
   serviceMonitor:
     enabled: true
     namespace: monitoring
@@ -41,22 +42,22 @@ metrics:
       release: kps
   resources:
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 0.1
+      memory: 32Mi
     limits:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 0.2
+      memory: 64Mi
 
 provisioning:
   enabled: true
   topics:
     - name: axon-showcase-events
-      partitions: 2
+      partitions: 8
       replicationFactor: 1
   resources:
     requests:
-      cpu: 250m
+      cpu: 0.25
       memory: 512Mi
     limits:
-      cpu: 500m
+      cpu: 0.5
       memory: 768Mi

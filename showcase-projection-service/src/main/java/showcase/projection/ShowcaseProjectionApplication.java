@@ -1,11 +1,9 @@
 package showcase.projection;
 
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
-import io.lettuce.core.tracing.MicrometerTracing;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
-import io.micrometer.observation.ObservationRegistry;
 import io.opentelemetry.api.OpenTelemetry;
 import lombok.val;
 import org.axonframework.eventhandling.EventMessage;
@@ -15,6 +13,7 @@ import org.axonframework.extensions.kafka.eventhandling.consumer.ConsumerFactory
 import org.axonframework.extensions.kafka.eventhandling.consumer.Fetcher;
 import org.axonframework.extensions.kafka.eventhandling.consumer.subscribable.SubscribableKafkaMessageSource;
 import org.axonframework.serialization.Serializer;
+import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
 import org.axonframework.tracing.LoggingSpanFactory;
 import org.axonframework.tracing.MultiSpanFactory;
 import org.axonframework.tracing.SpanFactory;
@@ -24,22 +23,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
-import org.springframework.boot.autoconfigure.data.redis.ClientResourcesBuilderCustomizer;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.redis.cache.RedisCacheConfiguration;
 
 import java.util.List;
 
-import static showcase.projection.ShowcaseProjectionConstants.SHOWCASES_CACHE_NAME;
-
-@SpringBootApplication
+@SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
 @EnableConfigurationProperties(ShowcaseProjectionProperties.class)
-@EnableCaching
 class ShowcaseProjectionApplication {
 
     public static void main(String[] args) {
@@ -82,20 +73,6 @@ class ShowcaseProjectionApplication {
                            .<Tag>map(t -> new ImmutableTag(t.getKey(), t.getValue()))
                            .toList();
         return meterRegistry -> meterRegistry.config().commonTags(tags);
-    }
-
-    @Bean
-    ClientResourcesBuilderCustomizer redisClientResourcesBuilderCustomizer(
-            ObservationRegistry observationRegistry,
-            RedisProperties redisProperties) {
-        return builder -> builder.tracing(new MicrometerTracing(observationRegistry, redisProperties.getClientName()));
-    }
-
-    @Bean
-    RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
-        return builder -> builder.withCacheConfiguration(SHOWCASES_CACHE_NAME,
-                                                         RedisCacheConfiguration.defaultCacheConfig())
-                                 .enableStatistics();
     }
 
     @Bean

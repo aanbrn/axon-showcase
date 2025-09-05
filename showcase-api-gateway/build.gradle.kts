@@ -83,15 +83,14 @@ testing {
 
         register<JvmTestSuite>("integrationTest") {
             dependencies {
+                implementation(libs.spring.framework.web)
                 implementation(libs.reactor.test)
                 implementation(libs.spring.boot.starter.test)
-                implementation(libs.spring.boot.starter.webflux)
                 implementation(libs.spring.boot.testcontainers)
                 implementation(libs.testcontainers.junit.jupiter)
                 implementation(libs.testcontainers.postgresql)
                 implementation(libs.testcontainers.kafka)
-                implementation(libs.testcontainers.elasticsearch)
-                implementation(libs.testcontainers.redis)
+                implementation(libs.testcontainers.opensearch)
             }
 
             targets {

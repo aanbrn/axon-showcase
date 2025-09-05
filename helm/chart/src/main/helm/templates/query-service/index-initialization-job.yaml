@@ -34,14 +34,14 @@ spec:
           image: {{ include "common.images.image" (dict "imageRoot" .Values.queryService.image "global" .Values.global) }}
           imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.queryService.image "context" $) }}
           env:
-            - name: "ES_URIS"
-              value: {{ .Values.esViews.uris | quote }}
-            {{- if .Values.esViews.secured }}
-            - name: "ES_PASSWORD"
+            - name: "OS_URIS"
+              value: {{ .Values.osViews.uris | quote }}
+            {{- if .Values.osViews.secured }}
+            - name: "OS_PASSWORD"
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.esViews.passwordSecret.name }}
-                  key: {{ .Values.esViews.passwordSecret.key }}
+                  name: {{ .Values.osViews.passwordSecret.name }}
+                  key: {{ .Values.osViews.passwordSecret.key }}
             {{- end }}
             - name: "EXIT_AFTER_INDEX_INITIALIZATION"
               value: "true"

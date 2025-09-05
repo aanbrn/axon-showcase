@@ -1,25 +1,24 @@
 package showcase.projection;
 
-import com.redis.testcontainers.RedisContainer;
 import lombok.val;
 import org.axonframework.extensions.kafka.eventhandling.producer.KafkaPublisher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.opensearch.data.client.osc.OpenSearchTemplate;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
@@ -58,27 +57,16 @@ class ShowcaseProjectorIT {
 
     @Container
     @ServiceConnection
-    static final ElasticsearchContainer esViews =
-            new ElasticsearchContainer("elasticsearch:" + System.getProperty("elasticsearch.image.version"))
-                    .withEnv("xpack.security.enabled", "false");
-
-    @Container
-    @ServiceConnection
-    static final RedisContainer redis = new RedisContainer("redis:" + System.getProperty("redis.image.version"));
+    static final OpenSearchContainer<?> osViews =
+            new OpenSearchContainer<>("opensearchproject/opensearch:" + System.getProperty("opensearch.image.version"));
 
     @DynamicPropertySource
     static void kafkaProperties(DynamicPropertyRegistry registry) {
         registry.add("axon.kafka.bootstrap-servers", kafka::getBootstrapServers);
     }
 
-    @DynamicPropertySource
-    static void redisProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.redis.host", redis::getRedisHost);
-        registry.add("spring.redis.port", redis::getRedisPort);
-    }
-
     @Autowired
-    private ElasticsearchOperations elasticsearchOperations;
+    private OpenSearchTemplate openSearchTemplate;
 
     @Autowired
     private KafkaPublisher<?, ?> kafkaPublisher;
@@ -98,7 +86,7 @@ class ShowcaseProjectorIT {
                         .build();
 
         if (showcaseIndexOperations == null) {
-            showcaseIndexOperations = elasticsearchOperations.indexOps(ShowcaseEntity.class);
+            showcaseIndexOperations = openSearchTemplate.indexOps(ShowcaseEntity.class);
         }
         assertThat(showcaseIndexOperations.createWithMapping()).isTrue();
     }
@@ -123,7 +111,7 @@ class ShowcaseProjectorIT {
                         .scheduledAt(aShowcaseScheduledAt(scheduleTime))
                         .build());
 
-        await().until(() -> Optional.ofNullable(elasticsearchOperations.get(showcaseId, ShowcaseEntity.class))
+        await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
                                     .filter(showcase -> showcase.getStatus() == ShowcaseStatus.SCHEDULED)
                                     .isPresent());
     }
@@ -174,7 +162,7 @@ class ShowcaseProjectorIT {
                         .startedAt(startedAt)
                         .build());
 
-        await().until(() -> Optional.ofNullable(elasticsearchOperations.get(showcaseId, ShowcaseEntity.class))
+        await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
                                     .filter(showcase -> showcase.getStatus() == ShowcaseStatus.STARTED)
                                     .isPresent());
     }
@@ -266,7 +254,7 @@ class ShowcaseProjectorIT {
                         .finishedAt(finishedAt)
                         .build());
 
-        await().until(() -> Optional.ofNullable(elasticsearchOperations.get(showcaseId, ShowcaseEntity.class))
+        await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
                                     .filter(showcase -> showcase.getStatus() == ShowcaseStatus.FINISHED)
                                     .isPresent());
     }
@@ -346,7 +334,7 @@ class ShowcaseProjectorIT {
                         .scheduledAt(aShowcaseScheduledAt(scheduleTime))
                         .build());
 
-        await().until(() -> Optional.ofNullable(elasticsearchOperations.get(showcaseId, ShowcaseEntity.class))
+        await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
                                     .filter(showcase -> showcase.getStatus() == ShowcaseStatus.SCHEDULED)
                                     .isPresent());
 
@@ -357,7 +345,7 @@ class ShowcaseProjectorIT {
                         .removedAt(Instant.now())
                         .build());
 
-        await().until(() -> Optional.ofNullable(elasticsearchOperations.get(showcaseId, ShowcaseEntity.class))
+        await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
                                     .isEmpty());
     }
 
@@ -376,7 +364,7 @@ class ShowcaseProjectorIT {
                         .scheduledAt(aShowcaseScheduledAt(scheduleTime))
                         .build());
 
-        await().until(() -> Optional.ofNullable(elasticsearchOperations.get(showcaseId, ShowcaseEntity.class))
+        await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
                                     .filter(showcase -> showcase.getStatus() == ShowcaseStatus.SCHEDULED)
                                     .isPresent());
 

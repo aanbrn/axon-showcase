@@ -38,11 +38,11 @@ dbSagas:
     name: axon-showcase-db-sagas
     key: password
 
-esViews:
-  uris: http://axon-showcase-es-views:9200
+osViews:
+  uris: http://axon-showcase-os-views:9200
   secured: false
   passwordSecret:
-    name: axon-showcase-es-views
+    name: axon-showcase-os-views
     key: elasticsearch-password
 
 kafka:
@@ -50,21 +50,6 @@ kafka:
   topics:
     events: axon-showcase-events
   securityProtocol: PLAINTEXT
-
-redis:
-  host: axon-showcase-redis-master
-  port: 6379
-  secured: true
-  username: default
-  passwordSecret:
-    name: axon-showcase-redis
-    key: redis-password
-  cluster:
-    nodes: ""
-    maxRedirects: ""
-    dynamicRefreshSources: true
-    refreshPeriod: ""
-    refreshAdaptive: false
 
 commandService:
 
@@ -150,10 +135,10 @@ commandService:
   resources:
     requests:
       cpu: 0.75
-      memory: 512Mi
+      memory: 0.75Gi
     limits:
       cpu: 1.0
-      memory: 768M
+      memory: 1Gi
 
   lifecycleHooks: { }
 
@@ -294,7 +279,8 @@ sagaService:
       pollTimeout: 5000
       consumerCount: 1
 
-  extraEnvVars: { }
+  extraEnvVars:
+    JAVA_OPTS: "-XX:MaxDirectMemorySize=512m -XX:MaxGCPauseMillis=20"
 
   extraEnvVarsCM: ""
 
@@ -334,10 +320,10 @@ sagaService:
   resources:
     requests:
       cpu: 0.75
-      memory: 512Mi
+      memory: 1.25Gi
     limits:
       cpu: 1.0
-      memory: 768M
+      memory: 1.75Gi
 
   lifecycleHooks: { }
 
@@ -468,23 +454,13 @@ projectionService:
       pollTimeout: 5000
       consumerCount: 1
 
-  esViews:
+  osViews:
     connectionTimeout: PT1S
     socketTimeout: PT30S
     socketKeepAlive: false
 
-  redis:
-    connectionTimeout: PT1S
-    readTimeout: PT2S
-    shutdownTimeout: PT0.1S
-    pool:
-      maxIdle: 20
-      minIdle: 10
-      maxActive: 100
-      maxWait: PT2S
-      timeBetweenEvictionRuns: PT30S
-
-  extraEnvVars: { }
+  extraEnvVars:
+    JAVA_OPTS: "-XX:MaxDirectMemorySize=512m -XX:MaxGCPauseMillis=20"
 
   extraEnvVarsCM: ""
 
@@ -522,11 +498,11 @@ projectionService:
 
   resources:
     requests:
-      cpu: 0.75
-      memory: 512Mi
-    limits:
       cpu: 1.0
-      memory: 768M
+      memory: 1.25Gi
+    limits:
+      cpu: 1.25
+      memory: 1.75Gi
 
   lifecycleHooks: { }
 
@@ -652,17 +628,6 @@ queryService:
   updateStrategy:
     type: RollingUpdate
 
-  redis:
-    connectionTimeout: PT1S
-    readTimeout: PT2S
-    shutdownTimeout: PT0.1S
-    pool:
-      maxIdle: 20
-      minIdle: 10
-      maxActive: 100
-      maxWait: PT2S
-      timeBetweenEvictionRuns: PT30S
-
   extraEnvVars: { }
 
   extraEnvVarsCM: ""
@@ -702,10 +667,10 @@ queryService:
   resources:
     requests:
       cpu: 0.75
-      memory: 512Mi
+      memory: 0.75Gi
     limits:
       cpu: 1.0
-      memory: 768M
+      memory: 1Gi
 
   lifecycleHooks: { }
 
@@ -881,10 +846,10 @@ apiGateway:
   resources:
     requests:
       cpu: 0.75
-      memory: 512Mi
+      memory: 0.75Gi
     limits:
       cpu: 1.0
-      memory: 768M
+      memory: 1Gi
 
   lifecycleHooks: { }
 

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import one.util.streamex.StreamEx;
 import org.axonframework.common.AxonException;
+import org.axonframework.common.IdentifierFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.MessageSource;
@@ -90,11 +91,12 @@ final class ShowcaseApiController implements ShowcaseApi {
     }
 
     @PostMapping(consumes = APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Void>> schedule(@RequestBody ScheduleShowcaseRequest request) {
+    public Mono<ResponseEntity<ScheduleShowcaseResponse>> schedule(@RequestBody ScheduleShowcaseRequest request) {
+        val showcaseId = IdentifierFactory.getInstance().generateIdentifier();
         return commandOperations
                        .schedule(ScheduleShowcaseCommand
                                          .builder()
-                                         .showcaseId(request.getShowcaseId())
+                                         .showcaseId(showcaseId)
                                          .title(request.getTitle())
                                          .startTime(request.getStartTime())
                                          .duration(request.getDuration())
@@ -102,10 +104,13 @@ final class ShowcaseApiController implements ShowcaseApi {
                        .then(Mono.fromSupplier(
                                () -> ResponseEntity
                                              .created(fromUriString("/showcases/")
-                                                              .path(request.getShowcaseId())
+                                                              .path(showcaseId)
                                                               .build()
                                                               .toUri())
-                                             .build()));
+                                             .body(ScheduleShowcaseResponse
+                                                           .builder()
+                                                           .showcaseId(showcaseId)
+                                                           .build())));
     }
 
     @PutMapping("/{showcaseId}/start")

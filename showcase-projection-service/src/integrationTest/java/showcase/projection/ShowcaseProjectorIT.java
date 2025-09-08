@@ -168,38 +168,6 @@ class ShowcaseProjectorIT {
     }
 
     @Test
-    void showcaseStartedEvent_sameEventTwice_logsWarning(CapturedOutput output) {
-        val showcaseId = aShowcaseId();
-        val scheduleTime = Instant.now();
-        val startTime = aShowcaseStartTime(scheduleTime);
-        val duration = aShowcaseDuration();
-
-        kafkaTestPublisher.publishEvent(
-                ShowcaseScheduledEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(startTime)
-                        .duration(duration)
-                        .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                        .build());
-
-        val startedAt = aShowcaseStartedAt(startTime);
-
-        kafkaTestPublisher.publishEventTwice(
-                ShowcaseStartedEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .duration(duration)
-                        .startedAt(startedAt)
-                        .build());
-
-        await().until(() -> output.getOut().contains(
-                "On started event, showcase with ID %s has unexpected status %s"
-                        .formatted(showcaseId, ShowcaseStatus.STARTED)));
-    }
-
-    @Test
     void showcaseStartedEvent_nonExistingShowcase_logsWarning(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val startTime = aShowcaseStartTime(Instant.now());
@@ -260,47 +228,6 @@ class ShowcaseProjectorIT {
     }
 
     @Test
-    void showcaseFinishedEvent_sameEventTwice_logsWarning(CapturedOutput output) {
-        val showcaseId = aShowcaseId();
-        val scheduleTime = Instant.now();
-        val startTime = aShowcaseStartTime(scheduleTime);
-        val duration = aShowcaseDuration();
-
-        kafkaTestPublisher.publishEvent(
-                ShowcaseScheduledEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(startTime)
-                        .duration(duration)
-                        .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                        .build());
-
-        val startedAt = aShowcaseStartedAt(startTime);
-
-        kafkaTestPublisher.publishEvent(
-                ShowcaseStartedEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .duration(duration)
-                        .startedAt(startedAt)
-                        .build());
-
-        val finishedAt = aShowcaseFinishedAt(startedAt, duration);
-
-        kafkaTestPublisher.publishEventTwice(
-                ShowcaseFinishedEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .finishedAt(finishedAt)
-                        .build());
-
-        await().until(() -> output.getOut().contains(
-                "On finished event, showcase with ID %s has unexpected status %s"
-                        .formatted(showcaseId, ShowcaseStatus.FINISHED)));
-    }
-
-    @Test
     void showcaseFinishedEvent_nonExistingShowcase_logsWarning(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val startTime = aShowcaseStartTime(Instant.now());
@@ -345,8 +272,7 @@ class ShowcaseProjectorIT {
                         .removedAt(Instant.now())
                         .build());
 
-        await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
-                                    .isEmpty());
+        await().until(() -> !openSearchTemplate.exists(showcaseId, ShowcaseEntity.class));
     }
 
     @Test

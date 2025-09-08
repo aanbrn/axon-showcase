@@ -34,9 +34,6 @@ dependencies {
 
     implementation(libs.jackson.module.blackbird)
 
-    implementation(libs.lettuce.core)
-    implementation(libs.commons.pool2)
-
     implementation(libs.mapstruct)
     implementation(libs.streamex)
 

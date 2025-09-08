@@ -9,8 +9,10 @@ import lombok.val;
 import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.extensions.kafka.KafkaProperties;
 import org.axonframework.extensions.kafka.eventhandling.KafkaMessageConverter;
+import org.axonframework.extensions.kafka.eventhandling.consumer.AsyncFetcher;
 import org.axonframework.extensions.kafka.eventhandling.consumer.ConsumerFactory;
 import org.axonframework.extensions.kafka.eventhandling.consumer.Fetcher;
+import org.axonframework.extensions.kafka.eventhandling.consumer.OffsetCommitType;
 import org.axonframework.extensions.kafka.eventhandling.consumer.subscribable.SubscribableKafkaMessageSource;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
@@ -36,6 +38,15 @@ class ShowcaseProjectionApplication {
     public static void main(String[] args) {
         System.setProperty("disable-axoniq-console-message", "true");
         SpringApplication.run(ShowcaseProjectionApplication.class, args);
+    }
+
+    @Bean(destroyMethod = "shutdown")
+    Fetcher<?, ?, ?> kafkaFetcher(KafkaProperties kafkaProperties) {
+        return AsyncFetcher
+                       .builder()
+                       .pollTimeout(kafkaProperties.getFetcher().getPollTimeout())
+                       .offsetCommitType(OffsetCommitType.COMMIT_ASYNC)
+                       .build();
     }
 
     @Bean

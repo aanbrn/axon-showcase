@@ -2056,7 +2056,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum (eventProcessor_capacity{application=\"$application\", service=\"axon-showcase-saga-service\", processorName=\"sagas\"})",
+          "expr": "sum (eventProcessor_capacity{application=\"$application\", service=\"axon-showcase-saga-service\", processorName=\"managementSaga\"})",
           "legendFormat": "Total",
           "range": true,
           "refId": "By ProcessorName"
@@ -2067,7 +2067,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (eventProcessor_capacity{application=\"$application\", service=\"axon-showcase-saga-service\", processorName=\"sagas\"})",
+          "expr": "sum by (payloadType) (eventProcessor_capacity{application=\"$application\", service=\"axon-showcase-saga-service\", processorName=\"managementSaga\"})",
           "hide": false,
           "legendFormat": "{{payloadType}}",
           "range": true,
@@ -2166,7 +2166,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "max(eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-saga-service\", processorName=\"sagas\", quantile=\"0.95\"})",
+          "expr": "max(eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-saga-service\", processorName=\"managementSaga\", quantile=\"0.95\"})",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -2183,7 +2183,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "max(eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-saga-service\", processorName=\"sagas\", quantile=\"0.99\"})",
+          "expr": "max(eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-saga-service\", processorName=\"managementSaga\", quantile=\"0.99\"})",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -2200,7 +2200,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "max by (payloadType) (eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-saga-service\", processorName=\"sagas\", quantile=\"0.99\"})",
+          "expr": "max by (payloadType) (eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-saga-service\", processorName=\"managementSaga\", quantile=\"0.99\"})",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -2718,7 +2718,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "eventProcessor_latency{application=\"$application\", service=\"axon-showcase-projection-service\", processorName=\"projectors\"}",
+          "expr": "eventProcessor_latency{application=\"$application\", service=\"axon-showcase-projection-service\", processorName=\"projector\"}",
           "legendFormat": "Duration",
           "range": true,
           "refId": "Total"
@@ -2815,7 +2815,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(eventProcessor_capacity{application=\"$application\",service=\"axon-showcase-projection-service\", processorName=\"projectors\"})",
+          "expr": "sum(eventProcessor_capacity{application=\"$application\",service=\"axon-showcase-projection-service\", processorName=\"projector\"})",
           "legendFormat": "Total",
           "range": true,
           "refId": "Total"
@@ -2826,7 +2826,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (eventProcessor_capacity{application=\"$application\",service=\"axon-showcase-projection-service\", processorName=\"projectors\"})",
+          "expr": "sum by (payloadType) (eventProcessor_capacity{application=\"$application\",service=\"axon-showcase-projection-service\", processorName=\"projector\"})",
           "hide": false,
           "legendFormat": "{{payloadType}}",
           "range": true,
@@ -2924,7 +2924,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-projection-service\", processorName=\"projectors\", quantile=\"0.95\"})",
+          "expr": "max(eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-projection-service\", processorName=\"projector\", quantile=\"0.95\"})",
           "legendFormat": "P95",
           "range": true,
           "refId": "P95"
@@ -2935,7 +2935,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-projection-service\", processorName=\"projectors\", quantile=\"0.99\"})",
+          "expr": "max(eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-projection-service\", processorName=\"projector\", quantile=\"0.99\"})",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -2947,7 +2947,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max by (payloadType) (eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-projection-service\", processorName=\"projectors\", quantile=\"0.99\"})",
+          "expr": "max by (payloadType) (eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-projection-service\", processorName=\"projector\", quantile=\"0.99\"})",
           "hide": false,
           "legendFormat": "{{payloadType}}",
           "range": true,

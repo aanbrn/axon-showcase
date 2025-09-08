@@ -32,7 +32,7 @@ axon:
       consumer-count: ${KAFKA_FETCHER_CONSUMER_COUNT:1}
   eventhandling:
     processors:
-      projectors:
+      projector:
         source: subscribableKafkaMessageSource
         mode: subscribing
   metrics:

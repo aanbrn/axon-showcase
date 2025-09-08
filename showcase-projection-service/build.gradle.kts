@@ -33,9 +33,6 @@ dependencies {
 
     implementation(libs.jackson.module.blackbird)
 
-    implementation(libs.lettuce.core)
-    implementation(libs.commons.pool2)
-
     implementation(libs.axon.micrometer)
     implementation(libs.axon.tracing.opentelemetry)
 

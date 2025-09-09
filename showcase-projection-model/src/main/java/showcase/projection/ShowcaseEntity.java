@@ -9,7 +9,6 @@ import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
-import org.springframework.data.elasticsearch.annotations.Routing;
 import org.springframework.data.elasticsearch.annotations.Setting;
 import org.springframework.data.elasticsearch.annotations.Setting.SortOrder;
 
@@ -17,7 +16,6 @@ import java.time.Duration;
 import java.time.Instant;
 
 @Document(indexName = "showcases")
-@Routing("showcaseId")
 @Setting(sortFields = "startTime", sortOrders = SortOrder.desc)
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

@@ -18,11 +18,11 @@ controller:
     enabled: false
   resources:
     requests:
-      cpu: 0.75
-      memory: 1.25Gi
+      cpu: 0.5
+      memory: 2Gi
     limits:
-      cpu: 1.0
-      memory: 1.75Gi
+      cpu: 0.75
+      memory: 4Gi
 
 networkPolicy:
   allowExternal: false
@@ -35,18 +35,18 @@ networkPolicy:
 metrics:
   jmx:
     enabled: true
+    resources:
+      requests:
+        cpu: 0.1
+        memory: 96Mi
+      limits:
+        cpu: 0.2
+        memory: 128Mi
   serviceMonitor:
     enabled: true
     namespace: monitoring
     labels:
       release: kps
-  resources:
-    requests:
-      cpu: 0.1
-      memory: 32Mi
-    limits:
-      cpu: 0.2
-      memory: 64Mi
 
 provisioning:
   enabled: true

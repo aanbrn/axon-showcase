@@ -14,10 +14,10 @@ primary:
   resources:
     requests:
       cpu: 0.5
-      memory: 0.75Gi
+      memory: 1.25Gi
     limits:
       cpu: 0.75
-      memory: 1.25Gi
+      memory: 1.75Gi
   networkPolicy:
     allowExternal: false
     allowExternalEgress: false
@@ -38,7 +38,7 @@ metrics:
   resources:
     requests:
       cpu: 0.1
-      memory: 32Mi
+      memory: 16Mi
     limits:
       cpu: 0.2
-      memory: 64Mi
+      memory: 32Mi

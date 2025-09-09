@@ -117,7 +117,7 @@ class ShowcaseProjectorIT {
     }
 
     @Test
-    void showcaseScheduledEvent_sameEventTwice_logsWarning(CapturedOutput output) {
+    void showcaseScheduledEvent_sameEventTwice_logsError(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
 
@@ -132,7 +132,8 @@ class ShowcaseProjectorIT {
                         .build());
 
         await().until(() -> output.getOut().contains(
-                "On scheduled event, showcase with ID %s already exists".formatted(showcaseId)));
+                "[Create] [version_conflict_engine_exception] [%s]: version conflict, document already exists"
+                        .formatted(showcaseId)));
     }
 
     @Test
@@ -168,7 +169,7 @@ class ShowcaseProjectorIT {
     }
 
     @Test
-    void showcaseStartedEvent_nonExistingShowcase_logsWarning(CapturedOutput output) {
+    void showcaseStartedEvent_nonExistingShowcase_logsError(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val startTime = aShowcaseStartTime(Instant.now());
         val duration = aShowcaseDuration();
@@ -183,7 +184,7 @@ class ShowcaseProjectorIT {
                         .build());
 
         await().until(() -> output.getOut().contains(
-                "On started event, showcase with ID %s is missing".formatted(showcaseId)));
+                "[Update] [document_missing_exception] [%s]: document missing".formatted(showcaseId)));
     }
 
     @Test
@@ -243,7 +244,7 @@ class ShowcaseProjectorIT {
                         .build());
 
         await().until(() -> output.getOut().contains(
-                "On finished event, showcase with ID %s is missing".formatted(showcaseId)));
+                "[Update] [document_missing_exception] [%s]: document missing".formatted(showcaseId)));
     }
 
     @Test
@@ -302,6 +303,6 @@ class ShowcaseProjectorIT {
                         .build());
 
         await().until(() -> output.getOut().contains(
-                "On removed event, showcase with ID %s is missing".formatted(showcaseId)));
+                "[Delete] [not_found] [%s]: document missing".formatted(showcaseId)));
     }
 }

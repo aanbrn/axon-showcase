@@ -21,7 +21,7 @@ import showcase.command.StartShowcaseCommand;
 import showcase.command.StartShowcaseUseCase;
 
 @Saga
-@ProcessingGroup("managementSaga")
+@ProcessingGroup("showcaseManagementSaga")
 @Slf4j
 public final class ShowcaseManagementSaga {
 

@@ -280,7 +280,7 @@ sagaService:
       consumerCount: 1
 
   extraEnvVars:
-    JAVA_OPTS: "-XX:MaxDirectMemorySize=512m -XX:MaxGCPauseMillis=20"
+    JAVA_OPTS: "-XX:MaxDirectMemorySize=256M -XX:MaxGCPauseMillis=20"
 
   extraEnvVarsCM: ""
 
@@ -320,10 +320,10 @@ sagaService:
   resources:
     requests:
       cpu: 0.75
-      memory: 1.25Gi
+      memory: 0.75Gi
     limits:
       cpu: 1.0
-      memory: 1.75Gi
+      memory: 1.0Gi
 
   lifecycleHooks: { }
 
@@ -456,11 +456,15 @@ projectionService:
 
   osViews:
     connectionTimeout: PT1S
-    socketTimeout: PT30S
+    socketTimeout: PT2S
     socketKeepAlive: false
+    maxConnections: 1000
+    maxConnectionsPerRoute: 100
+    evictExpiredConnections: true
+    evictIdleConnections: PT2S
 
   extraEnvVars:
-    JAVA_OPTS: "-XX:MaxDirectMemorySize=512m -XX:MaxGCPauseMillis=20"
+    JAVA_OPTS: "-XX:MaxDirectMemorySize=256M -XX:MaxGCPauseMillis=20"
 
   extraEnvVarsCM: ""
 
@@ -499,10 +503,10 @@ projectionService:
   resources:
     requests:
       cpu: 1.0
-      memory: 1.25Gi
+      memory: 0.75Gi
     limits:
       cpu: 1.25
-      memory: 1.75Gi
+      memory: 1.0Gi
 
   lifecycleHooks: { }
 
@@ -628,7 +632,17 @@ queryService:
   updateStrategy:
     type: RollingUpdate
 
-  extraEnvVars: { }
+  osViews:
+    connectionTimeout: PT1S
+    socketTimeout: PT2S
+    socketKeepAlive: false
+    maxConnections: 1000
+    maxConnectionsPerRoute: 100
+    evictExpiredConnections: true
+    evictIdleConnections: PT2S
+
+  extraEnvVars:
+    JAVA_OPTS: "-XX:MaxDirectMemorySize=256M -XX:MaxGCPauseMillis=20"
 
   extraEnvVarsCM: ""
 
@@ -806,7 +820,8 @@ apiGateway:
       expiresAfterAccess: PT10M
       expiresAfterWrite: PT5M
 
-  extraEnvVars: { }
+  extraEnvVars:
+    JAVA_OPTS: "-XX:MaxDirectMemorySize=256M -XX:MaxGCPauseMillis=20"
 
   extraEnvVarsCM: ""
 

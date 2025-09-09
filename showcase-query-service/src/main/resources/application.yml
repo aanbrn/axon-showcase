@@ -30,8 +30,12 @@ opensearch:
   username: ${OS_USER:elastic}
   password: ${OS_PASSWORD:}
   connection-timeout: ${OS_CONNECTION_TIMEOUT:PT1S}
-  socket-timeout: ${OS_SOCKET_TIMEOUT:PT5S}
+  socket-timeout: ${OS_SOCKET_TIMEOUT:PT2S}
   socket-keep-alive: ${OS_SOCKET_KEEP_ALIVE:false}
+  max-connections: ${OS_MAX_CONNECTIONS:1000}
+  max-connections-per-route: ${OS_MAX_CONNECTIONS_PER_ROUTE:100}
+  evict-expired-connections: ${OS_EVICT_EXPIRED_CONNECTIONS:true}
+  evict-idle-connections: ${OS_EVICT_IDLE_CONNECTIONS:PT2S}
 
 showcase:
   query:

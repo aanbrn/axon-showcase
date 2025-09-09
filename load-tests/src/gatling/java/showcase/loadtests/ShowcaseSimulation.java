@@ -94,22 +94,22 @@ public class ShowcaseSimulation extends Simulation {
 
         val injectionProfile = switch (testType) {
             case "average" -> scenario.injectOpen(
-                    rampUsersPerSec(0).to(100).during(Duration.ofMinutes(5)),
-                    constantUsersPerSec(100).during(Duration.ofMinutes(30)),
-                    rampUsersPerSec(100).to(0).during(Duration.ofMinutes(5)));
-            case "soak" -> scenario.injectOpen(
-                    rampUsersPerSec(0).to(100).during(Duration.ofMinutes(5)),
-                    constantUsersPerSec(100).during(Duration.ofHours(8)),
-                    rampUsersPerSec(100).to(0).during(Duration.ofMinutes(5)));
-            case "stress" -> scenario.injectOpen(
-                    rampUsersPerSec(0).to(200).during(Duration.ofMinutes(10)),
+                    rampUsersPerSec(0).to(200).during(Duration.ofMinutes(5)),
                     constantUsersPerSec(200).during(Duration.ofMinutes(30)),
                     rampUsersPerSec(200).to(0).during(Duration.ofMinutes(5)));
+            case "soak" -> scenario.injectOpen(
+                    rampUsersPerSec(0).to(200).during(Duration.ofMinutes(5)),
+                    constantUsersPerSec(200).during(Duration.ofHours(8)),
+                    rampUsersPerSec(200).to(0).during(Duration.ofMinutes(5)));
+            case "stress" -> scenario.injectOpen(
+                    rampUsersPerSec(0).to(400).during(Duration.ofMinutes(10)),
+                    constantUsersPerSec(400).during(Duration.ofMinutes(30)),
+                    rampUsersPerSec(400).to(0).during(Duration.ofMinutes(5)));
             case "spike" -> scenario.injectOpen(
-                    stressPeakUsers(2000).during(Duration.ofMinutes(2)),
-                    rampUsersPerSec(2000).to(0).during(Duration.ofMinutes(1)));
+                    stressPeakUsers(4000).during(Duration.ofMinutes(2)),
+                    rampUsersPerSec(4000).to(0).during(Duration.ofMinutes(1)));
             case "breakpoint" -> scenario.injectOpen(
-                    rampUsersPerSec(0).to(20000).during(Duration.ofHours(2)));
+                    rampUsersPerSec(0).to(40000).during(Duration.ofHours(2)));
             default -> scenario.injectOpen(atOnceUsers(3));
         };
 

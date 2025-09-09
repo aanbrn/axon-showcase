@@ -6,6 +6,9 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.opentelemetry.api.OpenTelemetry;
 import lombok.val;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.TimeValue;
 import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.extensions.kafka.KafkaProperties;
 import org.axonframework.extensions.kafka.eventhandling.KafkaMessageConverter;
@@ -20,6 +23,8 @@ import org.axonframework.tracing.LoggingSpanFactory;
 import org.axonframework.tracing.MultiSpanFactory;
 import org.axonframework.tracing.SpanFactory;
 import org.axonframework.tracing.opentelemetry.OpenTelemetrySpanFactory;
+import org.opensearch.client.RestClientBuilder;
+import org.opensearch.spring.boot.autoconfigure.RestClientBuilderCustomizer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -29,6 +34,7 @@ import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilde
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import java.time.Duration;
 import java.util.List;
 
 @SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
@@ -68,6 +74,34 @@ class ShowcaseProjectionApplication {
                        .messageConverter(messageConverter)
                        .autoStart()
                        .build();
+    }
+
+    @Bean
+    RestClientBuilderCustomizer openSearchRestClientBuilderCustomizer(
+            @Value("${opensearch.max-connections}") int maxConnections,
+            @Value("${opensearch.max-connections-per-route}") int maxConnectionsPerRoute,
+            @Value("${opensearch.evict-expired-connections}") boolean evictExpiredConnections,
+            @Value("${opensearch.evict-idle-connections}") Duration evictIdleConnections) {
+        return new RestClientBuilderCustomizer() {
+
+            @Override
+            public void customize(HttpAsyncClientBuilder builder) {
+                builder.setConnectionManager(
+                        PoolingAsyncClientConnectionManagerBuilder
+                                .create()
+                                .setMaxConnTotal(maxConnections)
+                                .setMaxConnPerRoute(maxConnectionsPerRoute)
+                                .build());
+                if (evictExpiredConnections) {
+                    builder.evictExpiredConnections();
+                }
+                builder.evictIdleConnections(TimeValue.of(evictIdleConnections));
+            }
+
+            @Override
+            public void customize(RestClientBuilder builder) {
+            }
+        };
     }
 
     @Bean

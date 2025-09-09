@@ -30,11 +30,6 @@ axon:
     fetcher:
       poll-timeout: ${KAFKA_FETCHER_POLL_TIMEOUT:5000}
       consumer-count: ${KAFKA_FETCHER_CONSUMER_COUNT:1}
-  eventhandling:
-    processors:
-      projector:
-        source: subscribableKafkaMessageSource
-        mode: subscribing
   metrics:
     micrometer:
       dimensional: true
@@ -44,8 +39,12 @@ opensearch:
   username: ${OS_USER:elastic}
   password: ${OS_PASSWORD:}
   connection-timeout: ${OS_CONNECTION_TIMEOUT:PT1S}
-  socket-timeout: ${OS_SOCKET_TIMEOUT:PT10S}
+  socket-timeout: ${OS_SOCKET_TIMEOUT:PT2S}
   socket-keep-alive: ${OS_SOCKET_KEEP_ALIVE:false}
+  max-connections: ${OS_MAX_CONNECTIONS:1000}
+  max-connections-per-route: ${OS_MAX_CONNECTIONS_PER_ROUTE:100}
+  evict-expired-connections: ${OS_EVICT_EXPIRED_CONNECTIONS:true}
+  evict-idle-connections: ${OS_EVICT_IDLE_CONNECTIONS:PT2S}
 
 showcase:
   projection:
@@ -97,7 +96,3 @@ management:
       export:
         enabled: ${TRACING_OTLP_ENABLED:false}
       endpoint: ${TRACING_OTLP_ENDPOINT:}
-
-logging:
-  level:
-    org.axonframework.extensions.kafka: DEBUG

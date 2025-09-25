@@ -1,49 +1,50 @@
 [versions]
 java = "21"
 axon-bom = "4.12.1"
-spring-boot = "3.5.5"
-spring-framework-bom = "6.2.10"
-spring-data-bom = "2025.0.3"
-spring-data-opensearch = "2.0.1"
+spring-boot = "3.5.6"
+spring-framework-bom = "6.2.11"
+spring-data-bom = "2025.0.4"
+spring-data-opensearch = "2.0.2"
 springdoc-openapi-starter = "2.8.13"
-swagger = "2.2.36"
+swagger = "2.2.37"
 swagger-ui = "5.28.1"
-postgresql = "42.7.7"
+postgresql = "42.7.8"
 caffeine = "3.2.2"
 db-scheduler = "13.0.0"
 mapstruct = "1.6.3"
 jackson = "2.20.0"
-reactor-bom = "2024.0.9"
-netty = "4.2.5.Final"
+reactor-bom = "2024.0.10"
+netty = "4.2.6.Final"
 resilience4j = "2.3.0"
 streamex = "0.8.4"
 jgroups = "4.2.30.Final"
 jgroups-kubernetes = "1.0.17.Final"
-protobuf = "4.32.0"
+protobuf = "4.32.1"
 elasticsearch-client = "9.1.4"
 opensearch = "3.0.2"
 opensearch-client = "3.2.0"
-opentelemetry = "1.54.0"
+opentelemetry = "1.54.1"
 commons-compress = "1.28.0"
 commons-fileupload = "1.6.0"
-commons-lang3 = "3.18.0"
+commons-lang3 = "3.19.0"
 commons-io = "2.20.0"
 expressly = "6.0.0"
-guava = "33.4.8-jre"
-log4j = "2.25.1"
+guava = "33.5.0-jre"
+log4j = "2.25.2"
 logback = "1.5.18"
 xstream = "1.4.21"
 ksuid = "1.1.4"
 jakarta-validation-api = "3.1.1"
 hamcrest = "3.0"
-mockito = "5.19.0"
+mockito = "5.20.0"
 wiremock-spring-boot = "3.10.6"
-kotlin = "2.2.10"
-spotbugs = "4.9.4"
-lombok-plugin = "8.14"
+kotlin = "2.2.20"
+spotbugs = "4.9.6"
+lombok = "1.18.42"
+lombok-plugin = "8.14.2"
 protobuf-plugin = "0.9.5"
-gatling-plugin = "3.14.3.3"
-dependencyVersions-plugin = "0.52.0"
+gatling-plugin = "3.14.5"
+dependencyVersions-plugin = "0.53.0"
 spotbugs-plugin = "6.2.2"
 spotbugs-findsecbugs-plugin = "1.14.0"
 spotbugs-fbContrib-plugin = "7.6.14"
@@ -142,7 +143,6 @@ axon-tracing-opentelemetry = { group = "org.axonframework", name = "axon-tracing
 axon-extensions-kafka = { group = "org.axonframework.extensions.kafka", name = "axon-kafka" }
 axon-extensions-kafka-springBootStarter = { group = "org.axonframework.extensions.kafka", name = "axon-kafka-spring-boot-starter" }
 axon-extensions-jgroups-springBootStarter = { group = "org.axonframework.extensions.jgroups", name = "axon-jgroups-spring-boot-starter" }
-axon-extensions-reactor = { group = "org.axonframework.extensions.reactor", name = "axon-reactor" }
 axon-extensions-reactor-springBootStarter = { group = "org.axonframework.extensions.reactor", name = "axon-reactor-spring-boot-starter" }
 axon-test = { group = "org.axonframework", name = "axon-test" }
 postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
@@ -157,7 +157,7 @@ opentelemetry-bom = { group = "io.opentelemetry", name = "opentelemetry-bom", ve
 opentelemetry-exporter-otlp = { group = "io.opentelemetry", name = "opentelemetry-exporter-otlp" }
 ksuid = { group = "com.github.ksuid", name = "ksuid", version.ref = "ksuid" }
 jakarta-validation-api = { group = "jakarta.validation", name = "jakarta.validation-api", version.ref = "jakarta-validation-api" }
-lombok = { group = "org.projectlombok", name = "lombok" }
+lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 lombok-plugin = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok-plugin" }
 spring-boot-plugin = { group = "org.springframework.boot", name = "spring-boot-gradle-plugin", version.ref = "spring-boot" }
 protobuf-plugin = { group = "com.google.protobuf", name = "protobuf-gradle-plugin", version.ref = "protobuf-plugin" }

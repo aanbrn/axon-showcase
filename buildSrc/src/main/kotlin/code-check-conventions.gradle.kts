@@ -15,6 +15,7 @@ spotbugs {
 dependencies {
     spotbugs(libs.spotbugs)
     spotbugs(libs.commons.lang3)
+    spotbugs(libs.log4j.core)
 
     spotbugsPlugins(libs.spotbugs.findsecbugs.plugin)
     spotbugsPlugins(libs.spotbugs.fbContrib.plugin)

@@ -22,6 +22,10 @@ tasks.withType<JavaCompile> {
     options.compilerArgs.add("-parameters")
 }
 
+lombok {
+    version = libs.versions.lombok.asProvider().get()
+}
+
 val mockitoAgent: Configuration = configurations.create("mockitoAgent")
 
 dependencies {

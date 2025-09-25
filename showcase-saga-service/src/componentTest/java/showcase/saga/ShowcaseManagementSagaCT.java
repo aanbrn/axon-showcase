@@ -5,7 +5,6 @@ import org.axonframework.test.saga.SagaTestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import showcase.command.FinishShowcaseCommand;
@@ -19,6 +18,7 @@ import showcase.command.StartShowcaseUseCase;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
@@ -32,10 +32,10 @@ class ShowcaseManagementSagaCT {
 
     private SagaTestFixture<ShowcaseManagementSaga> fixture;
 
-    @Mock(answer = Answers.RETURNS_MOCKS)
+    @Mock(answer = RETURNS_DEEP_STUBS)
     private StartShowcaseUseCase startShowcaseUseCase;
 
-    @Mock(answer = Answers.RETURNS_MOCKS)
+    @Mock(answer = RETURNS_DEEP_STUBS)
     private FinishShowcaseUseCase finishShowcaseUseCase;
 
     @BeforeEach
@@ -86,11 +86,12 @@ class ShowcaseManagementSagaCT {
                .expectNoDispatchedCommands()
                .expectActiveSagas(1);
 
-        verify(startShowcaseUseCase)
-                .start(StartShowcaseCommand
-                               .builder()
-                               .showcaseId(showcaseId)
-                               .build());
+        val startCommand =
+                StartShowcaseCommand
+                        .builder()
+                        .showcaseId(showcaseId)
+                        .build();
+        verify(startShowcaseUseCase).start(startCommand);
         verifyNoMoreInteractions(startShowcaseUseCase);
     }
 
@@ -155,11 +156,12 @@ class ShowcaseManagementSagaCT {
                .expectNoDispatchedCommands()
                .expectActiveSagas(1);
 
-        verify(finishShowcaseUseCase)
-                .finish(FinishShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .build());
+        val finishCommand =
+                FinishShowcaseCommand
+                        .builder()
+                        .showcaseId(showcaseId)
+                        .build();
+        verify(finishShowcaseUseCase).finish(finishCommand);
         verifyNoMoreInteractions(finishShowcaseUseCase);
     }
 

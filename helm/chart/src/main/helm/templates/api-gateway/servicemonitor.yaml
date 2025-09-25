@@ -1,4 +1,4 @@
-{{- if and .Values.observability.metrics.prometheus.enabled  .Values.apiGateway.serviceMonitor.enabled }}
+{{- if and .Values.observability.prometheus.metrics.export.enabled  .Values.apiGateway.serviceMonitor.enabled }}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.serviceMonitor.labels .Values.commonLabels) "context" $) }}
 {{- $svcLabels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.labels .Values.commonLabels) "context" $) }}
 apiVersion: monitoring.coreos.com/v1

@@ -4,7 +4,7 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 
 class FetchShowcaseByIdQueryTests {
@@ -24,7 +24,7 @@ class FetchShowcaseByIdQueryTests {
 
     @Test
     void construction_missingShowcaseId_throwsNullPointerException() {
-        assertThatCode(() -> FetchShowcaseByIdQuery.builder().build())
+        assertThatThrownBy(() -> FetchShowcaseByIdQuery.builder().build())
                 .isExactlyInstanceOf(NullPointerException.class);
     }
 }

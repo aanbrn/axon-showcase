@@ -15,10 +15,9 @@ dependencies {
     implementation(project(":showcase-query-api"))
     implementation(project(":showcase-query-proto"))
 
-    implementation(libs.axon.springBootStarter) {
+    implementation(libs.axon.springBoot.starter) {
         exclude(group = libs.axon.serverConnector.get().group, module = libs.axon.serverConnector.get().name)
     }
-    implementation(libs.axon.extensions.reactor.springBootStarter)
 
     implementation(libs.spring.boot.starter.webflux)
     implementation(libs.spring.boot.starter.validation)
@@ -42,10 +41,11 @@ dependencies {
 
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.micrometer.registry.prometheus)
+    implementation(libs.micrometer.registry.otlp)
     implementation(libs.micrometer.tracing.bridge.otel)
     implementation(libs.opentelemetry.exporter.otlp)
 
-    runtimeOnly(libs.netty.resolver.dnsNativeMacos)
+    implementation(project(":showcase-tracing-extension"))
 }
 
 testing {
@@ -64,10 +64,10 @@ testing {
 
         register<JvmTestSuite>("integrationTest") {
             dependencies {
-                implementation(libs.spring.framework.web)
                 implementation(libs.axon.test)
                 implementation(libs.reactor.test)
                 implementation(libs.spring.boot.starter.test)
+                implementation(libs.spring.boot.starter.webflux)
                 implementation(libs.spring.boot.testcontainers)
                 implementation(libs.spring.data.opensearch.testcontainers) {
                     exclude(
@@ -77,6 +77,7 @@ testing {
                 }
                 implementation(libs.testcontainers.junit.jupiter)
                 implementation(libs.testcontainers.opensearch)
+                implementation(libs.netty.resolver.dnsNativeMacos)
             }
 
             targets {

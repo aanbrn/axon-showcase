@@ -6,7 +6,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
-import showcase.ULID;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -16,10 +15,9 @@ import showcase.ULID;
 class ScheduleShowcaseResponse {
 
     @NotBlank
-    @ULID
     @Schema(
             description = "The ID of the scheduled showcase.",
-            example = "01K364AM7WRYFKTHMNE8ABAW3Q"
+            example = "32VvhbcQSY5G5w2BKohLdNGGey9"
     )
     String showcaseId;
 }

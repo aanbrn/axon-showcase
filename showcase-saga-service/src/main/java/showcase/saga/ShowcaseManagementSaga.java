@@ -2,7 +2,6 @@ package showcase.saga;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.deadline.DeadlineManager;
 import org.axonframework.deadline.annotation.DeadlineHandler;
@@ -25,86 +24,95 @@ import showcase.command.StartShowcaseUseCase;
 @Slf4j
 public final class ShowcaseManagementSaga {
 
-    private String startShowcaseId;
+    private String startShowcaseDeadlineId;
 
-    private String finishShowcaseId;
+    private String finishShowcaseDeadlineId;
 
     @StartSaga
     @SagaEventHandler(associationProperty = "showcaseId")
     void handle(@NonNull ShowcaseScheduledEvent event, @NonNull DeadlineManager deadlineManager) {
         log.debug("Scheduling starting deadline for scheduled showcase: {}", event);
 
-        startShowcaseId = deadlineManager.schedule(event.getStartTime(), "startShowcase", event.getShowcaseId());
+        startShowcaseDeadlineId = deadlineManager.schedule(
+                event.getStartTime(), "startShowcase", event.getShowcaseId());
     }
 
     @DeadlineHandler(deadlineName = "startShowcase")
     void startShowcase(@NonNull String showcaseId, @NonNull StartShowcaseUseCase startShowcaseUseCase) {
         log.debug("Starting showcase with ID on deadline: {}", showcaseId);
 
-        startShowcaseId = null;
+        startShowcaseDeadlineId = null;
 
-        try {
-            startShowcaseUseCase
-                    .start(StartShowcaseCommand
-                                   .builder()
-                                   .showcaseId(showcaseId)
-                                   .build())
-                    .block();
-        } catch (ShowcaseCommandException e) {
-            log.warn("Failed to start showcase with ID {}, errorDetails: {}", showcaseId, e.getErrorDetails());
-        }
+        startShowcaseUseCase
+                .start(StartShowcaseCommand
+                               .builder()
+                               .showcaseId(showcaseId)
+                               .build())
+                .doOnError(t -> {
+                    if (t instanceof ShowcaseCommandException e) {
+                        log.error("Failed to start showcase with ID {}, errorDetails: {}",
+                                  showcaseId, e.getErrorDetails());
+                    } else {
+                        log.error("Failed to start showcase with ID {}", showcaseId, t);
+                    }
+                })
+                .block();
     }
 
     @SagaEventHandler(associationProperty = "showcaseId")
     void handle(@NonNull ShowcaseStartedEvent event, @NonNull DeadlineManager deadlineManager) {
-        if (startShowcaseId != null) {
+        if (startShowcaseDeadlineId != null) {
             log.debug("Cancelling starting deadline on showcase start: {}", event);
 
             try {
-                deadlineManager.cancelSchedule("startShowcase", startShowcaseId);
+                deadlineManager.cancelSchedule("startShowcase", startShowcaseDeadlineId);
             } catch (Exception e) {
-                log.error("Failed to cancel starting deadline on showcase start: {}", startShowcaseId, e);
+                log.error("Failed to cancel starting deadline on showcase start: {}", startShowcaseDeadlineId, e);
             } finally {
-                startShowcaseId = null;
+                startShowcaseDeadlineId = null;
             }
         }
 
         log.debug("Scheduling finishing deadline for started showcase: {}", event);
 
-        val finishTime = event.getStartedAt().plus(event.getDuration());
-        finishShowcaseId = deadlineManager.schedule(finishTime, "finishShowcase", event.getShowcaseId());
+        finishShowcaseDeadlineId = deadlineManager.schedule(
+                event.getStartedAt().plus(event.getDuration()), "finishShowcase", event.getShowcaseId());
     }
 
     @DeadlineHandler(deadlineName = "finishShowcase")
     void finishShowcase(@NonNull String showcaseId, @NonNull FinishShowcaseUseCase finishShowcaseUseCase) {
         log.debug("Finishing showcase with ID on deadline: {}", showcaseId);
 
-        finishShowcaseId = null;
+        finishShowcaseDeadlineId = null;
 
-        try {
-            finishShowcaseUseCase
-                    .finish(FinishShowcaseCommand
-                                    .builder()
-                                    .showcaseId(showcaseId)
-                                    .build())
-                    .block();
-        } catch (ShowcaseCommandException e) {
-            log.error("Failed to finish showcase with ID {}, errorDetails: {}", showcaseId, e.getErrorDetails());
-        }
+        finishShowcaseUseCase
+                .finish(FinishShowcaseCommand
+                                .builder()
+                                .showcaseId(showcaseId)
+                                .build())
+                .doOnError(t -> {
+                    if (t instanceof ShowcaseCommandException e) {
+                        log.error("Failed to finish showcase with ID {}, errorDetails: {}",
+                                  showcaseId, e.getErrorDetails());
+                    } else {
+                        log.error("Failed to finish showcase with ID {}", showcaseId, t);
+                    }
+                })
+                .block();
     }
 
     @EndSaga
     @SagaEventHandler(associationProperty = "showcaseId")
     void handle(@NonNull ShowcaseFinishedEvent event, @NonNull DeadlineManager deadlineManager) {
-        if (finishShowcaseId != null) {
+        if (finishShowcaseDeadlineId != null) {
             log.debug("Cancelling finishing deadline on showcase finish: {}", event);
 
             try {
-                deadlineManager.cancelSchedule("finishShowcase", finishShowcaseId);
+                deadlineManager.cancelSchedule("finishShowcase", finishShowcaseDeadlineId);
             } catch (Exception e) {
-                log.error("Failed to cancel finishing deadline on showcase finish: {}", finishShowcaseId, e);
+                log.error("Failed to cancel finishing deadline on showcase finish: {}", finishShowcaseDeadlineId, e);
             } finally {
-                finishShowcaseId = null;
+                finishShowcaseDeadlineId = null;
             }
         }
     }
@@ -112,26 +120,26 @@ public final class ShowcaseManagementSaga {
     @EndSaga
     @SagaEventHandler(associationProperty = "showcaseId")
     void handle(@NonNull ShowcaseRemovedEvent event, @NonNull DeadlineManager deadlineManager) {
-        if (startShowcaseId != null) {
+        if (startShowcaseDeadlineId != null) {
             log.debug("Cancelling starting deadline on showcase remove: {}", event);
 
             try {
-                deadlineManager.cancelSchedule("startShowcase", startShowcaseId);
+                deadlineManager.cancelSchedule("startShowcase", startShowcaseDeadlineId);
             } catch (Exception e) {
-                log.error("Failed to cancel starting deadline on showcase remove: {}", startShowcaseId, e);
+                log.error("Failed to cancel starting deadline on showcase remove: {}", startShowcaseDeadlineId, e);
             } finally {
-                startShowcaseId = null;
+                startShowcaseDeadlineId = null;
             }
         }
-        if (finishShowcaseId != null) {
+        if (finishShowcaseDeadlineId != null) {
             log.debug("Cancelling finishing deadline on showcase remove: {}", event);
 
             try {
-                deadlineManager.cancelSchedule("finishShowcase", finishShowcaseId);
+                deadlineManager.cancelSchedule("finishShowcase", finishShowcaseDeadlineId);
             } catch (Exception e) {
-                log.error("Failed to cancel finishing deadline on showcase remove: {}", finishShowcaseId, e);
+                log.error("Failed to cancel finishing deadline on showcase remove: {}", finishShowcaseDeadlineId, e);
             } finally {
-                finishShowcaseId = null;
+                finishShowcaseDeadlineId = null;
             }
         }
     }

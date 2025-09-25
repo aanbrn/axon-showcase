@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseFinishedAt;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
@@ -86,7 +86,7 @@ class ShowcaseTests {
     void construction_missingShowcaseId_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatCode(
+        assertThatThrownBy(
                 () -> Showcase.builder()
                               .title(aShowcaseTitle())
                               .startTime(aShowcaseStartTime(scheduleTime))
@@ -101,7 +101,7 @@ class ShowcaseTests {
     void construction_missingTitle_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatCode(
+        assertThatThrownBy(
                 () -> Showcase.builder()
                               .showcaseId(aShowcaseId())
                               .startTime(aShowcaseStartTime(scheduleTime))
@@ -114,7 +114,7 @@ class ShowcaseTests {
 
     @Test
     void construction_missingStartTime_throwsNullPointerException() {
-        assertThatCode(
+        assertThatThrownBy(
                 () -> Showcase.builder()
                               .showcaseId(aShowcaseId())
                               .title(aShowcaseTitle())
@@ -129,7 +129,7 @@ class ShowcaseTests {
     void construction_missingDuration_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatCode(
+        assertThatThrownBy(
                 () -> Showcase.builder()
                               .showcaseId(aShowcaseId())
                               .title(aShowcaseTitle())
@@ -144,7 +144,7 @@ class ShowcaseTests {
     void construction_missingStatus_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatCode(
+        assertThatThrownBy(
                 () -> Showcase.builder()
                               .showcaseId(aShowcaseId())
                               .title(aShowcaseTitle())
@@ -157,7 +157,7 @@ class ShowcaseTests {
 
     @Test
     void construction_missingScheduledAt_throwsNullPointerException() {
-        assertThatCode(
+        assertThatThrownBy(
                 () -> Showcase.builder()
                               .showcaseId(aShowcaseId())
                               .title(aShowcaseTitle())

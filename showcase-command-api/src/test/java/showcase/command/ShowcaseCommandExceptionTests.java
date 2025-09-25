@@ -5,7 +5,7 @@ import org.axonframework.commandhandling.CommandExecutionException;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static showcase.command.RandomCommandTestUtils.aShowcaseCommandErrorDetails;
 
 class ShowcaseCommandExceptionTests {
@@ -23,7 +23,7 @@ class ShowcaseCommandExceptionTests {
     @Test
     @SuppressWarnings({ "DataFlowIssue", "ThrowableNotThrown" })
     void constructionWithErrorDetailsOnly_nullErrorDetails_throwsNullPointerException() {
-        assertThatCode(() -> new ShowcaseCommandException(null)).isExactlyInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new ShowcaseCommandException(null)).isExactlyInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -40,7 +40,7 @@ class ShowcaseCommandExceptionTests {
     @Test
     @SuppressWarnings({ "DataFlowIssue", "ThrowableNotThrown" })
     void constructionWithErrorDetailsAndCause_nullErrorDetailsOnly_throwsNullPointerException() {
-        assertThatCode(() -> new ShowcaseCommandException(null, new IllegalStateException()))
+        assertThatThrownBy(() -> new ShowcaseCommandException(null, new IllegalStateException()))
                 .isExactlyInstanceOf(NullPointerException.class);
     }
 

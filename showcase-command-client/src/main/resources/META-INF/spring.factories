@@ -1,2 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=showcase.command.ShowcaseCommandClientAutoConfiguration
-org.springframework.boot.autoconfigure.AutoConfigurationImportFilter=showcase.resilience4j.Resilience4jAutoConfigurationImportFilter

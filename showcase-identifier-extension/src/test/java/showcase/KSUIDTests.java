@@ -4,21 +4,21 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import lombok.val;
 import org.junit.jupiter.api.Test;
-import ulid4j.Ulid;
 
+import static com.github.ksuid.Ksuid.newKsuid;
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static showcase.test.RandomTestUtils.anAlphabeticString;
 
-class ULIDTests {
+class KSUIDTests {
 
     @Test
     void validation_valid_detectsNoConstraintViolation() {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();
             assertThat(validator.validate(new Object() {
-                @ULID
+                @KSUID
                 @SuppressWarnings("unused")
-                private final String showcaseId = new Ulid().create();
+                private final String showcaseId = newKsuid().toString();
             })).isEmpty();
         }
     }
@@ -28,13 +28,13 @@ class ULIDTests {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();
             assertThat(validator.validate(new Object() {
-                @ULID
+                @KSUID
                 @SuppressWarnings("unused")
-                private final String showcaseId = anAlphabeticString(26);
+                private final String showcaseId = randomUUID().toString();
             })).hasSize(1)
                .first()
                .extracting(ConstraintViolation::getMessage)
-               .isEqualTo("must be a valid ULID");
+               .isEqualTo("must be a valid KSUID (K-Sortable Unique IDentifier).");
         }
     }
 }

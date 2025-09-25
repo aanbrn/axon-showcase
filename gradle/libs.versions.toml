@@ -33,7 +33,7 @@ guava = "33.4.8-jre"
 log4j = "2.25.1"
 logback = "1.5.18"
 xstream = "1.4.21"
-ulid4j = "1.0"
+ksuid = "1.1.4"
 jakarta-validation-api = "3.1.1"
 hamcrest = "3.0"
 mockito = "5.19.0"
@@ -53,7 +53,8 @@ bitnami-common = "2.x.x"
 bitnami-postgresql = "16.x.x"
 bitnami-kafka = "31.x.x"
 bitnami-opensearch = "1.x.x"
-kube-prometheus-stack = "72.x.x"
+prometheus-community-stack = "72.x.x"
+grafana-tempo = "1.x.x"
 postgres-image = "17"
 kafka-image = "3.9.1"
 opensearch-image = "3.2.0"
@@ -70,7 +71,6 @@ spring-boot-starter-actuator = { group = "org.springframework.boot", name = "spr
 spring-boot-starter-test = { group = "org.springframework.boot", name = "spring-boot-starter-test" }
 spring-boot-testcontainers = { group = "org.springframework.boot", name = "spring-boot-testcontainers" }
 spring-framework-bom = { group = "org.springframework", name = "spring-framework-bom", version.ref = "spring-framework-bom" }
-spring-framework-web = { group = "org.springframework", name = "spring-web" }
 spring-data-bom = { group = "org.springframework.data", name = "spring-data-bom", version.ref = "spring-data-bom" }
 spring-data-commons = { group = "org.springframework.data", name = "spring-data-commons" }
 spring-data-jdbc = { group = "org.springframework.data", name = "spring-data-jdbc" }
@@ -114,6 +114,7 @@ logback-core = { group = "ch.qos.logback", name = "logback-core", version.ref = 
 mapstruct = { group = "org.mapstruct", name = "mapstruct", version.ref = "mapstruct" }
 mapstruct-processor = { group = "org.mapstruct", name = "mapstruct-processor", version.ref = "mapstruct" }
 jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
+jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations" }
 jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind" }
 jackson-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310" }
 jackson-module-blackbird = { group = "com.fasterxml.jackson.module", name = "jackson-module-blackbird" }
@@ -133,7 +134,8 @@ wiremock-springBoot = { group = "org.wiremock.integrations", name = "wiremock-sp
 axon-bom = { group = "org.axonframework", name = "axon-bom", version.ref = "axon-bom" }
 axon-modelling = { group = "org.axonframework", name = "axon-modelling" }
 axon-messaging = { group = "org.axonframework", name = "axon-messaging" }
-axon-springBootStarter = { group = "org.axonframework", name = "axon-spring-boot-starter" }
+axon-springBoot-autoconfigure = { group = "org.axonframework", name = "axon-spring-boot-autoconfigure" }
+axon-springBoot-starter = { group = "org.axonframework", name = "axon-spring-boot-starter" }
 axon-serverConnector = { group = "org.axonframework", name = "axon-server-connector" }
 axon-micrometer = { group = "org.axonframework", name = "axon-micrometer" }
 axon-tracing-opentelemetry = { group = "org.axonframework", name = "axon-tracing-opentelemetry" }
@@ -149,10 +151,11 @@ caffeine-jcache = { group = "com.github.ben-manes.caffeine", name = "jcache", ve
 dbScheduler = { group = "com.github.kagkarlsson", name = "db-scheduler", version.ref = "db-scheduler" }
 dbScheduler-springBootStarter = { group = "com.github.kagkarlsson", name = "db-scheduler-spring-boot-starter", version.ref = "db-scheduler" }
 micrometer-registry-prometheus = { group = "io.micrometer", name = "micrometer-registry-prometheus" }
+micrometer-registry-otlp = { group = "io.micrometer", name = "micrometer-registry-otlp" }
 micrometer-tracing-bridge-otel = { group = "io.micrometer", name = "micrometer-tracing-bridge-otel" }
 opentelemetry-bom = { group = "io.opentelemetry", name = "opentelemetry-bom", version.ref = "opentelemetry" }
 opentelemetry-exporter-otlp = { group = "io.opentelemetry", name = "opentelemetry-exporter-otlp" }
-ulid4j = { group = "dev.shamil", name = "ulid4j", version.ref = "ulid4j" }
+ksuid = { group = "com.github.ksuid", name = "ksuid", version.ref = "ksuid" }
 jakarta-validation-api = { group = "jakarta.validation", name = "jakarta.validation-api", version.ref = "jakarta-validation-api" }
 lombok = { group = "org.projectlombok", name = "lombok" }
 lombok-plugin = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok-plugin" }

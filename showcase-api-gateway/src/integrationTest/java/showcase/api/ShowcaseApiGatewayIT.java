@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.net.HttpURLConnection.HTTP_CONFLICT;
-import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
@@ -91,6 +90,7 @@ class ShowcaseApiGatewayIT {
                     .withNetwork(network)
                     .withEnv("DB_USER", dbEvents.getUsername())
                     .withEnv("DB_PASSWORD", dbEvents.getPassword())
+                    .withEnv("LOGGING_LEVEL_SHOWCASE_COMMAND", "DEBUG")
                     .withExposedPorts(8080)
                     .waitingFor(Wait.forHttp("/actuator/health")
                                     .forPort(8080)
@@ -106,6 +106,7 @@ class ShowcaseApiGatewayIT {
                     .withNetwork(network)
                     .withEnv("DB_USER", dbSagas.getUsername())
                     .withEnv("DB_PASSWORD", dbSagas.getPassword())
+                    .withEnv("LOGGING_LEVEL_SHOWCASE_SAGA", "DEBUG")
                     .withExposedPorts(8080)
                     .waitingFor(Wait.forHttp("/actuator/health")
                                     .forPort(8080)
@@ -122,6 +123,7 @@ class ShowcaseApiGatewayIT {
                     .withEnv("DB_USER", dbEvents.getUsername())
                     .withEnv("DB_PASSWORD", dbEvents.getPassword())
                     .withEnv("REDIS_CLUSTER_DYNAMIC_REFRESH_SOURCES", "off")
+                    .withEnv("LOGGING_LEVEL_SHOWCASE_PROJECTION", "DEBUG")
                     .withExposedPorts(8080)
                     .waitingFor(Wait.forHttp("/actuator/health")
                                     .forPort(8080)
@@ -135,6 +137,7 @@ class ShowcaseApiGatewayIT {
                     .dependsOn(osViews)
                     .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-query-service"))
                     .withNetwork(network)
+                    .withEnv("LOGGING_LEVEL_SHOWCASE_QUERY", "DEBUG")
                     .withExposedPorts(8080)
                     .waitingFor(Wait.forHttp("/actuator/health")
                                     .forPort(8080)
@@ -148,6 +151,7 @@ class ShowcaseApiGatewayIT {
                     .dependsOn(commandService, queryService)
                     .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-api-gateway"))
                     .withNetwork(network)
+                    .withEnv("LOGGING_LEVEL_SHOWCASE_API", "DEBUG")
                     .withExposedPorts(8080)
                     .waitingFor(Wait.forHttp("/actuator/health")
                                     .forPort(8080)
@@ -204,7 +208,9 @@ class ShowcaseApiGatewayIT {
                          .returnResult()
                          .getResponseBody();
 
-        val showcaseId = requireNonNull(response).getShowcaseId();
+        assertThat(response).isNotNull();
+
+        val showcaseId = response.getShowcaseId();
 
         await().untilAsserted(
                 () -> webClient.get()
@@ -243,7 +249,9 @@ class ShowcaseApiGatewayIT {
                          .returnResult()
                          .getResponseBody();
 
-        val showcaseId = requireNonNull(response).getShowcaseId();
+        assertThat(response).isNotNull();
+
+        val showcaseId = response.getShowcaseId();
 
         webClient.post()
                  .uri("/showcases")
@@ -286,7 +294,9 @@ class ShowcaseApiGatewayIT {
                          .returnResult()
                          .getResponseBody();
 
-        val showcaseId = requireNonNull(response).getShowcaseId();
+        assertThat(response).isNotNull();
+
+        val showcaseId = response.getShowcaseId();
 
         webClient.put()
                  .uri("/showcases/{showcaseId}/start", showcaseId)
@@ -351,7 +361,9 @@ class ShowcaseApiGatewayIT {
                          .returnResult()
                          .getResponseBody();
 
-        val showcaseId = requireNonNull(response).getShowcaseId();
+        assertThat(response).isNotNull();
+
+        val showcaseId = response.getShowcaseId();
 
         webClient.put()
                  .uri("/showcases/{showcaseId}/start", showcaseId)
@@ -418,7 +430,9 @@ class ShowcaseApiGatewayIT {
                          .returnResult()
                          .getResponseBody();
 
-        val showcaseId = requireNonNull(response).getShowcaseId();
+        assertThat(response).isNotNull();
+
+        val showcaseId = response.getShowcaseId();
 
         await().untilAsserted(
                 () -> webClient.get()
@@ -499,7 +513,9 @@ class ShowcaseApiGatewayIT {
                                  .returnResult()
                                  .getResponseBody();
 
-                val showcaseId = requireNonNull(response).getShowcaseId();
+                assertThat(response).isNotNull();
+
+                val showcaseId = response.getShowcaseId();
 
                 showcaseIds.add(showcaseId);
 
@@ -609,7 +625,10 @@ class ShowcaseApiGatewayIT {
                              .expectBodyList(Showcase.class)
                              .returnResult()
                              .getResponseBody();
-            val showcase = anElementOf(requireNonNull(showcases));
+
+            assertThat(showcases).isNotNull();
+
+            val showcase = anElementOf(showcases);
 
             webClient.get()
                      .uri("/showcases?title={title}", showcase.getTitle())
@@ -617,7 +636,8 @@ class ShowcaseApiGatewayIT {
                      .expectStatus()
                      .isOk()
                      .expectBodyList(Showcase.class)
-                     .isEqualTo(List.of(showcase));
+                     .hasSize(1)
+                     .contains(showcase);
         }
 
         @Test

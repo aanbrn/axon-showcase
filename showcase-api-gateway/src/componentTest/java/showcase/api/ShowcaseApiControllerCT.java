@@ -1,25 +1,26 @@
 package showcase.api;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import lombok.NonNull;
 import lombok.val;
+import one.util.streamex.StreamEx;
 import org.axonframework.commandhandling.NoHandlerForCommandException;
 import org.axonframework.commandhandling.distributed.CommandDispatchException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.cache.CacheManager;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.data.web.ReactivePageableHandlerMethodArgumentResolver;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import showcase.command.FinishShowcaseCommand;
@@ -41,20 +42,19 @@ import showcase.query.ShowcaseQueryOperations;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
-import static java.util.Objects.requireNonNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
-import static org.springframework.test.context.bean.override.mockito.MockReset.NONE;
-import static showcase.api.ShowcaseApiConstants.FETCH_ALL_CACHE_NAME;
-import static showcase.api.ShowcaseApiConstants.FETCH_BY_ID_CACHE_NAME;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.command.RandomCommandTestUtils.aShowcaseStartTime;
@@ -71,34 +71,36 @@ class ShowcaseApiControllerCT {
     @Configuration
     @ComponentScan(excludeFilters = @Filter(type = FilterType.ANNOTATION, classes = SpringBootApplication.class))
     static class TestConfig {
-
-        @Bean
-        HandlerMethodArgumentResolver pageableHandlerMethodArgumentResolver() {
-            return new ReactivePageableHandlerMethodArgumentResolver();
-        }
     }
 
     @Autowired
     private WebTestClient webClient;
 
     @MockitoBean(answers = RETURNS_DEEP_STUBS)
+    @SuppressWarnings("unused")
     private ShowcaseCommandOperations showcaseCommandOperations;
 
     @MockitoBean(answers = RETURNS_DEEP_STUBS)
+    @SuppressWarnings("unused")
     private ShowcaseQueryOperations showcaseQueryOperations;
 
-    @MockitoBean(answers = RETURNS_DEEP_STUBS, reset = NONE)
-    private CacheManager cacheManager;
+    @MockitoBean(answers = RETURNS_DEEP_STUBS)
+    @SuppressWarnings("unused")
+    private Cache<@NonNull FetchShowcaseListQuery, List<Showcase>> fetchShowcaseListQueryCache;
+
+    @MockitoBean(answers = RETURNS_DEEP_STUBS)
+    @SuppressWarnings("unused")
+    private Cache<@NonNull String, Showcase> fetchShowcaseByIdQueryCache;
 
     @Test
-    void scheduleShowcase_success_respondsWithCreatedStatusAndLocationHeaderAndEmptyBody() {
+    void scheduleShowcase_success_respondsWithCreatedStatusAndLocationHeaderAndShowcaseIdInBody() {
         val title = aShowcaseTitle();
         val startTime = aShowcaseStartTime(Instant.now());
         val duration = aShowcaseDuration();
 
         given(showcaseCommandOperations.schedule(any())).willReturn(Mono.empty());
 
-        val response =
+        val scheduleResponse =
                 webClient.post()
                          .uri("/showcases")
                          .bodyValue(ScheduleShowcaseRequest
@@ -118,10 +120,12 @@ class ShowcaseApiControllerCT {
                          .returnResult()
                          .getResponseBody();
 
+        assertThat(scheduleResponse).isNotNull();
+
         verify(showcaseCommandOperations).schedule(
                 ScheduleShowcaseCommand
                         .builder()
-                        .showcaseId(requireNonNull(response).getShowcaseId())
+                        .showcaseId(scheduleResponse.getShowcaseId())
                         .title(title)
                         .startTime(startTime)
                         .duration(duration)
@@ -154,13 +158,14 @@ class ShowcaseApiControllerCT {
 
     @Test
     void scheduleShowcase_alreadyUsedTitle_respondsWithConflictStatusAndProblemInBody() {
-        given(showcaseCommandOperations.schedule(any()))
-                .willReturn(Mono.error(new ShowcaseCommandException(
-                        ShowcaseCommandErrorDetails
-                                .builder()
-                                .errorCode(ShowcaseCommandErrorCode.TITLE_IN_USE)
-                                .errorMessage("Given title is in use already")
-                                .build())));
+        willThrow(new ShowcaseCommandException(
+                ShowcaseCommandErrorDetails
+                        .builder()
+                        .errorCode(ShowcaseCommandErrorCode.TITLE_IN_USE)
+                        .errorMessage("Given title is in use already")
+                        .build()))
+                .given(showcaseCommandOperations)
+                .schedule(any());
 
         webClient.post()
                  .uri("/showcases")
@@ -187,8 +192,9 @@ class ShowcaseApiControllerCT {
 
     @Test
     void scheduleShowcase_axonFailure_respondsWithServiceUnavailableStatusAndProblemInBody() {
-        given(showcaseCommandOperations.schedule(any()))
-                .willReturn(Mono.error(new NoHandlerForCommandException(anAlphabeticString(10))));
+        willThrow(new NoHandlerForCommandException(anAlphabeticString(10)))
+                .given(showcaseCommandOperations)
+                .schedule(any());
 
         webClient.post()
                  .uri("/showcases")
@@ -259,8 +265,9 @@ class ShowcaseApiControllerCT {
     void startShowcase_axonFailure_respondsWithServiceUnavailableStatus() {
         val showcaseId = aShowcaseId();
 
-        given(showcaseCommandOperations.start(any()))
-                .willReturn(Mono.error(new CommandDispatchException(anAlphabeticString(10))));
+        willThrow(new CommandDispatchException(anAlphabeticString(10)))
+                .given(showcaseCommandOperations)
+                .start(any());
 
         webClient.put()
                  .uri("/showcases/{showcaseId}/start", showcaseId)
@@ -329,8 +336,9 @@ class ShowcaseApiControllerCT {
     void finishShowcase_axonFailure_respondsWithServiceUnavailableStatus() {
         val showcaseId = aShowcaseId();
 
-        given(showcaseCommandOperations.finish(any()))
-                .willReturn(Mono.error(new NoHandlerForCommandException(anAlphabeticString(10))));
+        willThrow(new NoHandlerForCommandException(anAlphabeticString(10)))
+                .given(showcaseCommandOperations)
+                .finish(any());
 
         webClient.put()
                  .uri("/showcases/{showcaseId}/finish", showcaseId)
@@ -399,8 +407,9 @@ class ShowcaseApiControllerCT {
     void removeShowcase_axonFailure_respondsWithServiceUnavailableStatus() {
         val showcaseId = aShowcaseId();
 
-        given(showcaseCommandOperations.remove(any()))
-                .willReturn(Mono.error(new CommandDispatchException(anAlphabeticString(10))));
+        willThrow(new CommandDispatchException(anAlphabeticString(10)))
+                .given(showcaseCommandOperations)
+                .remove(any());
 
         webClient.delete()
                  .uri("/showcases/{showcaseId}", showcaseId)
@@ -424,14 +433,19 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
-    void fetchAllShowcases_success_respondsWithOkStatusAndShowcasesInBody() {
+    void fetchAllShowcases_success_respondsWithOkStatusAndPageResponseInBody() {
         val showcases = showcases();
-        val query = FetchShowcaseListQuery.builder().build();
+        val query =
+                FetchShowcaseListQuery
+                        .builder()
+                        .build();
 
         given(showcaseQueryOperations.fetchAll(query)).willReturn(Flux.fromIterable(showcases));
 
         webClient.get()
-                 .uri("/showcases")
+                 .uri(uriBuilder ->
+                              uriBuilder.path("/showcases")
+                                        .build())
                  .exchange()
                  .expectStatus()
                  .isOk()
@@ -441,18 +455,81 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchAll(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        val fetchAllCache = cacheManager.getCache(FETCH_ALL_CACHE_NAME);
-        verify(fetchAllCache).put(query, showcases);
-        verifyNoMoreInteractions(fetchAllCache);
+        verify(fetchShowcaseListQueryCache).put(query, showcases);
+        verifyNoMoreInteractions(fetchShowcaseListQueryCache);
+
+        verify(fetchShowcaseByIdQueryCache).putAll(
+                StreamEx.of(showcases)
+                        .mapToEntry(Showcase::getShowcaseId, Function.identity())
+                        .toMap());
+        verifyNoMoreInteractions(fetchShowcaseByIdQueryCache);
+    }
+
+    @Test
+    void fetchAllShowcases_invalidAfterId_respondsWithBadRequestStatusAndProblemInBody() {
+        webClient.get()
+                 .uri(uriBuilder -> uriBuilder.path("/showcases")
+                                              .queryParam("afterId", anInvalidShowcaseId())
+                                              .build())
+                 .exchange()
+                 .expectStatus()
+                 .isBadRequest()
+                 .expectHeader()
+                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                 .expectBody()
+                 .jsonPath("$.type").isEqualTo("about:blank")
+                 .jsonPath("$.title").isEqualTo("Bad Request")
+                 .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                 .jsonPath("$.detail").isEqualTo("Invalid request parameter.")
+                 .jsonPath("$.parameterErrors").isMap()
+                 .jsonPath("$.parameterErrors.afterId").isArray()
+                 .jsonPath("$.parameterErrors.afterId[0]").isNotEmpty()
+                 .jsonPath("$.parameterErrors.afterId[1]").doesNotHaveJsonPath();
+
+        verifyNoInteractions(showcaseCommandOperations);
+        verifyNoInteractions(fetchShowcaseListQueryCache);
+        verifyNoInteractions(fetchShowcaseByIdQueryCache);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = { FetchShowcaseListQuery.MIN_SIZE - 1, FetchShowcaseListQuery.MAX_SIZE + 1 })
+    void fetchAllShowcases_invalidSize_respondsWithBadRequestStatusAndProblemInBody(int size) {
+        webClient.get()
+                 .uri(uriBuilder -> uriBuilder.path("/showcases")
+                                              .queryParam("size", size)
+                                              .build())
+                 .exchange()
+                 .expectStatus()
+                 .isBadRequest()
+                 .expectHeader()
+                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                 .expectBody()
+                 .jsonPath("$.type").isEqualTo("about:blank")
+                 .jsonPath("$.title").isEqualTo("Bad Request")
+                 .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                 .jsonPath("$.detail").isEqualTo("Invalid request parameter.")
+                 .jsonPath("$.parameterErrors").isMap()
+                 .jsonPath("$.parameterErrors.size").isArray()
+                 .jsonPath("$.parameterErrors.size[0]").isNotEmpty()
+                 .jsonPath("$.parameterErrors.size[1]").doesNotHaveJsonPath();
+
+        verifyNoInteractions(showcaseCommandOperations);
+        verifyNoInteractions(fetchShowcaseListQueryCache);
+        verifyNoInteractions(fetchShowcaseByIdQueryCache);
     }
 
     @Test
     void fetchAllShowcases_webClientFailure_respondsWithServiceUnavailableStatusAndProblemInBody() {
         val query = FetchShowcaseListQuery.builder().build();
 
-        given(showcaseQueryOperations.fetchAll(query))
-                .willReturn(Flux.error(WebClientResponseException.create(
-                        anEnum(HttpStatus.class), anAlphabeticString(10), new HttpHeaders(), new byte[0], null, null)));
+        given(showcaseQueryOperations.fetchAll(query)).willReturn(Flux.error(
+                WebClientResponseException.create(
+                        anEnum(HttpStatus.class),
+                        anAlphabeticString(10),
+                        new HttpHeaders(),
+                        new byte[0],
+                        null,
+                        null)));
 
         webClient.get()
                  .uri("/showcases")
@@ -470,9 +547,10 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchAll(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        val fetchAllCache = cacheManager.getCache(FETCH_ALL_CACHE_NAME);
-        verify(fetchAllCache).get(query, List.class);
-        verifyNoMoreInteractions(fetchAllCache);
+        verify(fetchShowcaseListQueryCache).getIfPresent(query);
+        verifyNoMoreInteractions(fetchShowcaseListQueryCache);
+
+        verifyNoInteractions(fetchShowcaseByIdQueryCache);
     }
 
     @Test
@@ -496,9 +574,10 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        val fetchByIdCache = cacheManager.getCache(FETCH_BY_ID_CACHE_NAME);
-        verify(fetchByIdCache).put(query, showcase);
-        verifyNoMoreInteractions(fetchByIdCache);
+        verify(fetchShowcaseByIdQueryCache).put(showcase.getShowcaseId(), showcase);
+        verifyNoMoreInteractions(fetchShowcaseByIdQueryCache);
+
+        verifyNoInteractions(fetchShowcaseListQueryCache);
     }
 
     @Test
@@ -521,6 +600,8 @@ class ShowcaseApiControllerCT {
                  .jsonPath("$.parameterErrors.showcaseId[1]").doesNotHaveJsonPath();
 
         verifyNoInteractions(showcaseCommandOperations);
+        verifyNoInteractions(fetchShowcaseByIdQueryCache);
+        verifyNoInteractions(fetchShowcaseListQueryCache);
     }
 
     @Test
@@ -531,8 +612,8 @@ class ShowcaseApiControllerCT {
                             .showcaseId(showcaseId)
                             .build();
 
-        given(showcaseQueryOperations.fetchById(query))
-                .willReturn(Mono.error(new ShowcaseQueryException(
+        given(showcaseQueryOperations.fetchById(query)).willReturn(Mono.error(
+                new ShowcaseQueryException(
                         ShowcaseQueryErrorDetails
                                 .builder()
                                 .errorCode(ShowcaseQueryErrorCode.NOT_FOUND)
@@ -555,8 +636,8 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        val fetchByIdCache = cacheManager.getCache(FETCH_BY_ID_CACHE_NAME);
-        verifyNoInteractions(fetchByIdCache);
+        verifyNoInteractions(fetchShowcaseByIdQueryCache);
+        verifyNoInteractions(fetchShowcaseListQueryCache);
     }
 
     @Test
@@ -567,9 +648,14 @@ class ShowcaseApiControllerCT {
                             .showcaseId(showcaseId)
                             .build();
 
-        given(showcaseQueryOperations.fetchById(any()))
-                .willReturn(Mono.error(WebClientResponseException.create(
-                        anEnum(HttpStatus.class), anAlphabeticString(10), new HttpHeaders(), new byte[0], null, null)));
+        given(showcaseQueryOperations.fetchById(any())).willReturn(Mono.error(
+                WebClientResponseException.create(
+                        anEnum(HttpStatus.class),
+                        anAlphabeticString(10),
+                        new HttpHeaders(),
+                        new byte[0],
+                        null,
+                        null)));
 
         webClient.get()
                  .uri("/showcases/{showcaseId}", showcaseId)
@@ -587,8 +673,9 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        val fetchByIdCache = cacheManager.getCache(FETCH_BY_ID_CACHE_NAME);
-        verify(fetchByIdCache).get(query, Showcase.class);
-        verifyNoMoreInteractions(fetchByIdCache);
+        verify(fetchShowcaseByIdQueryCache).getIfPresent(showcaseId);
+        verifyNoMoreInteractions(fetchShowcaseByIdQueryCache);
+
+        verifyNoInteractions(fetchShowcaseListQueryCache);
     }
 }

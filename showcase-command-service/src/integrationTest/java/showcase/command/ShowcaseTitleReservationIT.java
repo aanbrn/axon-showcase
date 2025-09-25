@@ -21,7 +21,7 @@ import showcase.command.ShowcaseTitleReservation.DuplicateTitleException;
 import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 import static showcase.command.RandomCommandTestUtils.aTooLongShowcaseTitle;
@@ -69,7 +69,7 @@ class ShowcaseTitleReservationIT {
                   .param("title", title.toLowerCase(Locale.ROOT))
                   .update();
 
-        assertThatCode(() -> showcaseTitleReservation.save(title))
+        assertThatThrownBy(() -> showcaseTitleReservation.save(title))
                 .isExactlyInstanceOf(DuplicateTitleException.class)
                 .hasMessageContaining("Given title is reserved already")
                 .hasCauseInstanceOf(DuplicateKeyException.class);
@@ -77,7 +77,7 @@ class ShowcaseTitleReservationIT {
 
     @Test
     void save_tooLongTitle_throwsDataIntegrityViolationException() {
-        assertThatCode(() -> showcaseTitleReservation.save(aTooLongShowcaseTitle()))
+        assertThatThrownBy(() -> showcaseTitleReservation.save(aTooLongShowcaseTitle()))
                 .isExactlyInstanceOf(DataIntegrityViolationException.class);
     }
 

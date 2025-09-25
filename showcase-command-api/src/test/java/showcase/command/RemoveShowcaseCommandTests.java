@@ -3,10 +3,10 @@ package showcase.command;
 import jakarta.validation.Validation;
 import lombok.val;
 import org.junit.jupiter.api.Test;
-import showcase.ULID;
+import showcase.KSUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.command.RandomCommandTestUtils.anInvalidShowcaseId;
 
@@ -27,7 +27,7 @@ class RemoveShowcaseCommandTests {
 
     @Test
     void construction_missingShowcaseId_throwsNullPointerException() {
-        assertThatCode(() -> RemoveShowcaseCommand.builder().build())
+        assertThatThrownBy(() -> RemoveShowcaseCommand.builder().build())
                 .isExactlyInstanceOf(NullPointerException.class);
     }
 
@@ -57,7 +57,7 @@ class RemoveShowcaseCommandTests {
              .first()
              .satisfies(it -> {
                  assertThat(it.getConstraintDescriptor()).isNotNull();
-                 assertThat(it.getConstraintDescriptor().getAnnotation()).isInstanceOf(ULID.class);
+                 assertThat(it.getConstraintDescriptor().getAnnotation()).isInstanceOf(KSUID.class);
                  assertThat(it.getPropertyPath()).isNotNull();
                  assertThat(it.getPropertyPath().toString()).isEqualTo("showcaseId");
              });

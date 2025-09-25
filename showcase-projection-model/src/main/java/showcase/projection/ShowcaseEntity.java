@@ -16,13 +16,14 @@ import java.time.Duration;
 import java.time.Instant;
 
 @Document(indexName = "showcases")
-@Setting(sortFields = "startTime", sortOrders = SortOrder.desc)
+@Setting(sortFields = "showcaseId", sortOrders = SortOrder.desc)
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(toBuilder = true)
 public class ShowcaseEntity {
 
     @Id
+    @Field(type = FieldType.Keyword)
     String showcaseId;
 
     @Field(type = FieldType.Text)

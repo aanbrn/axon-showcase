@@ -39,7 +39,9 @@ testing {
 
         val componentTest by register<JvmTestSuite>("componentTest") {
             dependencies {
-                implementation(libs.axon.springBootStarter) {
+                implementation(project(":showcase-resilience4j-extension"))
+
+                implementation(libs.axon.springBoot.starter) {
                     exclude(
                         group = libs.axon.serverConnector.get().group,
                         module = libs.axon.serverConnector.get().name
@@ -72,7 +74,7 @@ testing {
 
         register<JvmTestSuite>("integrationTest") {
             dependencies {
-                implementation(libs.axon.springBootStarter) {
+                implementation(libs.axon.springBoot.starter) {
                     exclude(
                         group = libs.axon.serverConnector.get().group,
                         module = libs.axon.serverConnector.get().name

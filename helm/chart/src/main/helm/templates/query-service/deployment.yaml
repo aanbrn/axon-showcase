@@ -115,7 +115,9 @@ spec:
               value: {{ .Values.queryService.osViews.evictIdleConnections | quote }}
             - name: "INDEX_INITIALIZATION_ENABLED"
               value: "false"
-            {{- if (include "axon-showcase.observability.isEnabled" $) }}
+            - name: "MANAGEMENT_METRICS_TAGS_APPLICATION"
+              value: {{ include "common.names.fullname" $ }}
+            {{- if (include "axon-showcase.observability.enabled" $) }}
             {{- include "axon-showcase.observability.renderEnvVars" $ | nindent 12 }}
             {{- end }}
             {{- if .Values.queryService.extraEnvVars }}

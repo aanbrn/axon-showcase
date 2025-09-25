@@ -83,6 +83,13 @@ spec:
           protocol: {{ .protocol }}
         {{- end }}
     {{- end }}
+    {{- if (include "axon-showcase.observability.otlp.export.enabled" $) }}
+    - ports:
+        - port: 4317
+          protocol: TCP
+        - port: 4318
+          protocol: TCP
+    {{- end }}
     {{- if .Values.sagaService.networkPolicy.extraEgress }}
     {{- include "common.tplvalues.render" (dict "value" .Values.sagaService.networkPolicy.extraEgress "context" $) | nindent 4 }}
     {{- end }}

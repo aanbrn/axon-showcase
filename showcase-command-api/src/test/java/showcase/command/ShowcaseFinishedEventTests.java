@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 
 class ShowcaseFinishedEventTests {
@@ -29,7 +29,7 @@ class ShowcaseFinishedEventTests {
 
     @Test
     void construction_missingShowcaseId_throwsNullPointerException() {
-        assertThatCode(
+        assertThatThrownBy(
                 () -> ShowcaseFinishedEvent
                               .builder()
                               .finishedAt(Instant.now())
@@ -39,7 +39,7 @@ class ShowcaseFinishedEventTests {
 
     @Test
     void construction_missingFinishedAt_throwsNullPointerException() {
-        assertThatCode(
+        assertThatThrownBy(
                 () -> ShowcaseFinishedEvent
                               .builder()
                               .showcaseId(aShowcaseId())

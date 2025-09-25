@@ -235,8 +235,8 @@ commandService:
     annotations: { }
     interval: ""
     scrapeTimeout: ""
-    relabeling: [ ]
-    metricRelabeling: [ ]
+    relabelings: [ ]
+    metricRelabelings: [ ]
     honorLabels: false
 
 sagaService:
@@ -383,6 +383,35 @@ sagaService:
 
   extraPodSpec: { }
 
+  resilience:
+    enabled: true
+    circuitbreaker:
+      enabled: true
+      defaults:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 50
+        failureRateThreshold: 50
+        slowCallRateThreshold: 90
+        slowCallDurationThreshold: PT5S
+        waitDurationInOpenState: PT10S
+        exponentialBackoffMultiplier: 1.5
+        exponentialMaxWaitDurationInOpenState: ""
+        permittedNumberOfCallsInHalfOpenState: 10
+        maxWaitDurationInHalfOpenState: PT0S
+      commandService:
+        slidingWindowType: ""
+        slidingWindowSize: ""
+        minimumNumberOfCalls: ""
+        failureRateThreshold: ""
+        slowCallRateThreshold: ""
+        slowCallDurationThreshold: ""
+        waitDurationInOpenState: ""
+        exponentialBackoffMultiplier: ""
+        exponentialMaxWaitDurationInOpenState: ""
+        permittedNumberOfCallsInHalfOpenState: ""
+        maxWaitDurationInHalfOpenState: ""
+
   autoscaling:
     vpa:
       enabled: false
@@ -420,8 +449,8 @@ sagaService:
     annotations: { }
     interval: ""
     scrapeTimeout: ""
-    relabeling: [ ]
-    metricRelabeling: [ ]
+    relabelings: [ ]
+    metricRelabelings: [ ]
     honorLabels: false
 
 projectionService:
@@ -566,6 +595,35 @@ projectionService:
 
   extraPodSpec: { }
 
+  resilience:
+    enabled: true
+    circuitbreaker:
+      enabled: true
+      defaults:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 50
+        failureRateThreshold: 50
+        slowCallRateThreshold: 90
+        slowCallDurationThreshold: PT5S
+        waitDurationInOpenState: PT10S
+        exponentialBackoffMultiplier: 1.5
+        exponentialMaxWaitDurationInOpenState: ""
+        permittedNumberOfCallsInHalfOpenState: 10
+        maxWaitDurationInHalfOpenState: PT0S
+      openSearch:
+        slidingWindowType: ""
+        slidingWindowSize: ""
+        minimumNumberOfCalls: ""
+        failureRateThreshold: ""
+        slowCallRateThreshold: ""
+        slowCallDurationThreshold: ""
+        waitDurationInOpenState: ""
+        exponentialBackoffMultiplier: ""
+        exponentialMaxWaitDurationInOpenState: ""
+        permittedNumberOfCallsInHalfOpenState: ""
+        maxWaitDurationInHalfOpenState: ""
+
   autoscaling:
     vpa:
       enabled: false
@@ -603,8 +661,8 @@ projectionService:
     annotations: { }
     interval: ""
     scrapeTimeout: ""
-    relabeling: [ ]
-    metricRelabeling: [ ]
+    relabelings: [ ]
+    metricRelabelings: [ ]
     honorLabels: false
 
 queryService:
@@ -781,8 +839,8 @@ queryService:
     annotations: { }
     interval: ""
     scrapeTimeout: ""
-    relabeling: [ ]
-    metricRelabeling: [ ]
+    relabelings: [ ]
+    metricRelabelings: [ ]
     honorLabels: false
 
 apiGateway:
@@ -930,8 +988,6 @@ apiGateway:
       enabled: true
       defaults:
         timeoutDuration: PT2S
-      commandService:
-        timeoutDuration: ""
       queryService:
         timeoutDuration: ""
     circuitbreaker:
@@ -975,7 +1031,7 @@ apiGateway:
     retry:
       enabled: true
       defaults:
-        maxAttempts: 3
+        maxAttempts: 2
         waitDuration: PT0.5S
         exponentialBackoffMultiplier: 1.5
         randomizedWaitFactor: 0.5
@@ -1030,8 +1086,8 @@ apiGateway:
     annotations: { }
     interval: ""
     scrapeTimeout: ""
-    relabeling: [ ]
-    metricRelabeling: [ ]
+    relabelings: [ ]
+    metricRelabelings: [ ]
     honorLabels: false
 
   ingress:
@@ -1062,21 +1118,28 @@ observability:
     structured:
       enabled: false
       format: ecs
-  metrics:
-    prometheus:
-      enabled: false
-    otlp:
-      enabled: false
-      endpoint: ""
-    tags:
-      application:
-        key: "application"
-        value: "{{ include \"common.names.fullname\" \$ }}"
+  axon:
+    tracing:
+      logging:
+        enabled: false
   tracing:
-    otlp:
-      enabled: false
-      endpoint: ""
-    logging: false
+    sampling:
+      probability: 0.1
+  prometheus:
+    metrics:
+      export:
+        enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false
+        endpoint: ""
+        step: PT30S
+    tracing:
+      export:
+        enabled: false
+        endpoint: ""
+        compression: none
 
 serviceAccount:
 

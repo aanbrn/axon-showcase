@@ -2,10 +2,6 @@ package showcase.command;
 
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
-import io.micrometer.core.instrument.ImmutableTag;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
-import io.opentelemetry.api.OpenTelemetry;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandBus;
@@ -33,26 +29,22 @@ import org.axonframework.messaging.annotation.ParameterResolverFactory;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.spring.eventsourcing.SpringAggregateSnapshotter;
 import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
-import org.axonframework.tracing.LoggingSpanFactory;
-import org.axonframework.tracing.MultiSpanFactory;
 import org.axonframework.tracing.SpanFactory;
-import org.axonframework.tracing.opentelemetry.OpenTelemetrySpanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 import javax.cache.CacheManager;
-import java.util.List;
 import java.util.OptionalLong;
 import java.util.concurrent.Executor;
 
@@ -70,14 +62,16 @@ class ShowcaseCommandApplication {
     }
 
     @Bean
-    FlywayMigrationStrategy flywayMigrationStrategy(ShowcaseCommandProperties commandProperties) {
+    FlywayMigrationStrategy flywayMigrationStrategy(
+            ShowcaseCommandProperties commandProperties,
+            ApplicationContext applicationContext) {
         return flyway -> {
             flyway.migrate();
 
             if (commandProperties.isExitAfterFlywayMigration()) {
                 log.info("Exiting after flyway migration...");
 
-                System.exit(0);
+                System.exit(SpringApplication.exit(applicationContext, () -> 0));
             }
         };
     }
@@ -207,28 +201,7 @@ class ShowcaseCommandApplication {
     }
 
     @Bean
-    MeterRegistryCustomizer<MeterRegistry> meterRegistryCustomizer(ShowcaseCommandProperties commandProperties) {
-        val tags = commandProperties
-                           .getMetrics()
-                           .getTags()
-                           .stream()
-                           .<Tag>map(t -> new ImmutableTag(t.getKey(), t.getValue()))
-                           .toList();
-        return meterRegistry -> meterRegistry.config().commonTags(tags);
-    }
-
-    @Bean
-    SpanFactory spanFactory(ShowcaseCommandProperties commandProperties, OpenTelemetry openTelemetry) {
-        val openTelemetrySpanFactory =
-                OpenTelemetrySpanFactory
-                        .builder()
-                        .tracer(openTelemetry.getTracer("AxonFramework-OpenTelemetry"))
-                        .contextPropagators(openTelemetry.getPropagators().getTextMapPropagator())
-                        .build();
-        if (commandProperties.getTracing().isLogging()) {
-            return new MultiSpanFactory(List.of(LoggingSpanFactory.INSTANCE, openTelemetrySpanFactory));
-        } else {
-            return openTelemetrySpanFactory;
-        }
+    ConsistentHashChangeListener consistentHashChangeListener(Cache showcaseCache) {
+        return __ -> showcaseCache.removeAll();
     }
 }

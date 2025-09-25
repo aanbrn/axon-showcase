@@ -28,6 +28,7 @@ dependencies {
     implementation(platform(project(":platform")))
 
     testFixturesImplementation(platform(project(":platform")))
+    testFixturesImplementation(libs.assertj.core)
 
     annotationProcessor(libs.mapstruct.processor)
 

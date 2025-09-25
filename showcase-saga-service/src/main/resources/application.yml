@@ -24,6 +24,9 @@ spring:
     default-property-inclusion: non_null
   web:
     locale: en
+  webflux:
+    problemdetails:
+      enabled: true
   threads:
     virtual:
       enabled: true
@@ -68,6 +71,9 @@ axon:
   metrics:
     micrometer:
       dimensional: true
+  tracing:
+    repository:
+      aggregate-id-attribute-name: axon.aggregateId
 
 db-scheduler:
   delay-startup-until-context-ready: true
@@ -87,26 +93,11 @@ showcase:
       maximum-size: ${SAGA_ASSOCIATIONS_CACHE_MAX_SIZE:1000}
       expires-after-access: ${SAGA_ASSOCIATIONS_CACHE_EXPIRES_AFTER_ACCESS:PT10M}
       expires-after-write: ${SAGA_ASSOCIATIONS_CACHE_EXPIRES_AFTER_WRITE:PT5M}
-    metrics:
-      tags:
-        - key: ${METRICS_TAG_APPLICATION_KEY:application}
-          value: ${METRICS_TAG_APPLICATION_VALUE:axon-showcase}
     tracing:
       logging: ${TRACING_LOGGING:false}
 
 resilience4j:
   enabled: ${RESILIENCE_ENABLED:true}
-  timelimiter:
-    enabled: ${TIMELIMITER_ENABLED:true}
-    metrics:
-      enabled: ${TIMELIMITER_METRICS_ENABLED:true}
-    configs:
-      default:
-        timeout-duration: ${TIMELIMITER_DEFAULT_TIMEOUT:PT2S}
-    instances:
-      showcase-command-service:
-        base-config: default
-        timeout-duration: ${TIMELIMITER_COMMAND_TIMEOUT:}
   circuitbreaker:
     enabled: ${CIRCUITBREAKER_ENABLED:true}
     metrics:
@@ -140,27 +131,6 @@ resilience4j:
         exponential-max-wait-duration-in-open-state: ${CIRCUITBREAKER_COMMAND_MAX_WAIT_DURATION_IN_OPEN_STATE:}
         permitted-number-of-calls-in-half-open-state: ${CIRCUITBREAKER_COMMAND_PERMITTED_CALLS_IN_HALF_OPEN_STATE:}
         max-wait-duration-in-half-open-state: ${CIRCUITBREAKER_COMMAND_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE:}
-  retry:
-    enabled: ${RETRY_ENABLED:true}
-    metrics:
-      enabled: ${RETRY_METRICS_ENABLED:true}
-    configs:
-      default:
-        max-attempts: ${RETRY_DEFAULT_MAX_ATTEMPTS:3}
-        wait-duration: ${RETRY_DEFAULT_WAIT_DURATION:PT0.5S}
-        enable-exponential-backoff: true
-        enable-randomized-wait: true
-        exponential-backoff-multiplier: ${RETRY_DEFAULT_BACKOFF_MULTIPLIER:1.5}
-        randomized-wait-factor: ${RETRY_DEFAULT_BACKOFF_WAIT_FACTOR:0.5}
-        exponential-max-wait-duration: ${RETRY_DEFAULT_MAX_WAIT_DURATION:}
-    instances:
-      showcase-command-service:
-        base-config: default
-        max-attempts: ${RETRY_COMMAND_MAX_ATTEMPTS:}
-        wait-duration: ${RETRY_COMMAND_WAIT_DURATION:}
-        exponential-backoff-multiplier: ${RETRY_COMMAND_BACKOFF_MULTIPLIER:}
-        randomized-wait-factor: ${RETRY_COMMAND_BACKOFF_WAIT_FACTOR:}
-        exponential-max-wait-duration: ${RETRY_COMMAND_MAX_WAIT_DURATION:}
 
 server:
   port: 8082
@@ -179,17 +149,17 @@ management:
       probes:
         enabled: on
         add-additional-paths: on
-    prometheus:
-      enabled: ${METRICS_PROMETHEUS_ENABLED:false}
   metrics:
-    export:
-      prometheus:
-        enabled: ${METRICS_PROMETHEUS_ENABLED:false}
-  tracing:
-    sampling:
-      probability: 1.0
+    tags:
+      application: axon-showcase
+  prometheus:
+    metrics:
+      export:
+        enabled: false
   otlp:
+    metrics:
+      export:
+        enabled: false
     tracing:
       export:
-        enabled: ${TRACING_OTLP_ENABLED:false}
-      endpoint: ${TRACING_OTLP_ENDPOINT:}
+        enabled: false

@@ -18,7 +18,7 @@ import java.time.Instant;
 public class Showcase {
 
     @NonNull
-    @Schema(description = "The unique ID.", example = "01K364AM7WRYFKTHMNE8ABAW3Q")
+    @Schema(description = "The unique ID.", example = "332q4y1qSNXYWD7imHO3y9Ury1E")
     String showcaseId;
 
     @NonNull

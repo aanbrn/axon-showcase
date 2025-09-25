@@ -1,5 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
+
 plugins {
     id("java-library-conventions")
 }
@@ -36,7 +37,7 @@ testing {
 
         val componentTest = register<JvmTestSuite>("componentTest") {
             dependencies {
-                implementation(libs.axon.springBootStarter) {
+                implementation(libs.axon.springBoot.starter) {
                     exclude(
                         group = libs.axon.serverConnector.get().group,
                         module = libs.axon.serverConnector.get().name
@@ -61,7 +62,7 @@ testing {
 
         register<JvmTestSuite>("integrationTest") {
             dependencies {
-                implementation(libs.axon.springBootStarter) {
+                implementation(libs.axon.springBoot.starter) {
                     exclude(
                         group = libs.axon.serverConnector.get().group,
                         module = libs.axon.serverConnector.get().name

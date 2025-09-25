@@ -78,6 +78,12 @@ apiGateway:
       release: kps
 
 observability:
-  metrics:
-    prometheus:
-      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  otlp:
+    tracing:
+      export:
+        enabled: true
+        endpoint: http://tempo.monitoring.svc.cluster.local:4317

@@ -25,7 +25,7 @@ helm {
         create("kps") {
             from("prometheus-community/kube-prometheus-stack")
 
-            version = libs.versions.kube.prometheus.stack
+            version = libs.versions.prometheus.community.stack
 
             namespace = "monitoring"
             createNamespace = true
@@ -37,6 +37,19 @@ helm {
                 "axon-showcase-os-views",
                 "axon-showcase"
             )
+        }
+
+        create("tempo") {
+            from("grafana/tempo")
+
+            version = libs.versions.grafana.tempo
+
+            namespace = "monitoring"
+            createNamespace = true
+
+            tags.add("monitoring")
+
+            mustUninstallAfter("axon-showcase")
         }
 
         create("axon-showcase-db-events") {
@@ -101,6 +114,7 @@ helm {
             )
 
             mustInstallAfter(
+                "tempo",
                 "axon-showcase-db-events",
                 "axon-showcase-db-sagas",
                 "axon-showcase-kafka",

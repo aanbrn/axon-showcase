@@ -176,7 +176,7 @@ final class ShowcaseAggregate {
                             .finishedAt(now)
                             .build();
 
-            log.debug("Finish started showcase on remove: {}", event);
+            log.debug("Showcase finished on remove: {}", event);
 
             apply(event);
         }
@@ -219,6 +219,7 @@ final class ShowcaseAggregate {
     @EventSourcingHandler
     void on(@NonNull ShowcaseRemovedEvent event) {
         this.removedAt = event.getRemovedAt();
+
         markDeleted();
     }
 }

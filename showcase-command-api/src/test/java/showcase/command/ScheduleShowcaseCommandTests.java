@@ -6,12 +6,12 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import showcase.ULID;
+import showcase.KSUID;
 
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.command.RandomCommandTestUtils.aShowcaseStartTime;
@@ -47,7 +47,7 @@ class ScheduleShowcaseCommandTests {
 
     @Test
     void construction_missingShowcaseId_throwsNullPointerException() {
-        assertThatCode(
+        assertThatThrownBy(
                 () -> ScheduleShowcaseCommand
                               .builder()
                               .title(aShowcaseTitle())
@@ -59,7 +59,7 @@ class ScheduleShowcaseCommandTests {
 
     @Test
     void construction_missingTitle_throwsNullPointerException() {
-        assertThatCode(
+        assertThatThrownBy(
                 () -> ScheduleShowcaseCommand
                               .builder()
                               .showcaseId(aShowcaseId())
@@ -71,7 +71,7 @@ class ScheduleShowcaseCommandTests {
 
     @Test
     void construction_missingStartTime_throwsNullPointerException() {
-        assertThatCode(
+        assertThatThrownBy(
                 () -> ScheduleShowcaseCommand
                               .builder()
                               .showcaseId(aShowcaseId())
@@ -83,7 +83,7 @@ class ScheduleShowcaseCommandTests {
 
     @Test
     void construction_missingDuration_throwsNullPointerException() {
-        assertThatCode(
+        assertThatThrownBy(
                 () -> ScheduleShowcaseCommand
                               .builder()
                               .showcaseId(aShowcaseId())
@@ -125,7 +125,7 @@ class ScheduleShowcaseCommandTests {
              .first()
              .satisfies(it -> {
                  assertThat(it.getConstraintDescriptor()).isNotNull();
-                 assertThat(it.getConstraintDescriptor().getAnnotation()).isInstanceOf(ULID.class);
+                 assertThat(it.getConstraintDescriptor().getAnnotation()).isInstanceOf(KSUID.class);
                  assertThat(it.getPropertyPath()).isNotNull();
                  assertThat(it.getPropertyPath().toString()).isEqualTo("showcaseId");
              });

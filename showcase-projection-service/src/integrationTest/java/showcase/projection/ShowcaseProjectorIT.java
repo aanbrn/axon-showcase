@@ -131,9 +131,10 @@ class ShowcaseProjectorIT {
                         .scheduledAt(aShowcaseScheduledAt(scheduleTime))
                         .build());
 
-        await().until(() -> output.getOut().contains(
-                "[Create] [version_conflict_engine_exception] [%s]: version conflict, document already exists"
-                        .formatted(showcaseId)));
+        await().until(() -> output.getOut().lines().anyMatch(line -> line.matches(
+                (".+(ERROR).+(On ShowcaseScheduledEvent\\(showcaseId=%1$s\\), \\[Create\\] " +
+                         "\\[version_conflict_engine_exception\\] \\[%1$s\\]: version conflict, document already " +
+                         "exists).+").formatted(showcaseId))));
     }
 
     @Test
@@ -183,8 +184,9 @@ class ShowcaseProjectorIT {
                         .startedAt(startedAt)
                         .build());
 
-        await().until(() -> output.getOut().contains(
-                "[Update] [document_missing_exception] [%s]: document missing".formatted(showcaseId)));
+        await().until(() -> output.getOut().lines().anyMatch(line -> line.matches(
+                (".+(ERROR).+(On ShowcaseStartedEvent\\(showcaseId=%1$s\\), \\[Update\\] " +
+                         "\\[document_missing_exception\\] \\[%1$s\\]: document missing)").formatted(showcaseId))));
     }
 
     @Test
@@ -229,7 +231,7 @@ class ShowcaseProjectorIT {
     }
 
     @Test
-    void showcaseFinishedEvent_nonExistingShowcase_logsWarning(CapturedOutput output) {
+    void showcaseFinishedEvent_nonExistingShowcase_logsError(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val startTime = aShowcaseStartTime(Instant.now());
         val duration = aShowcaseDuration();
@@ -243,8 +245,9 @@ class ShowcaseProjectorIT {
                         .finishedAt(finishedAt)
                         .build());
 
-        await().until(() -> output.getOut().contains(
-                "[Update] [document_missing_exception] [%s]: document missing".formatted(showcaseId)));
+        await().until(() -> output.getOut().lines().anyMatch(line -> line.matches(
+                (".+(ERROR).+(On ShowcaseFinishedEvent\\(showcaseId=%1$s\\), \\[Update\\] " +
+                         "\\[document_missing_exception\\] \\[%1$s\\]: document missing)").formatted(showcaseId))));
     }
 
     @Test
@@ -302,7 +305,8 @@ class ShowcaseProjectorIT {
                         .removedAt(Instant.now())
                         .build());
 
-        await().until(() -> output.getOut().contains(
-                "[Delete] [not_found] [%s]: document missing".formatted(showcaseId)));
+        await().until(() -> output.getOut().lines().anyMatch(line -> line.matches(
+                (".+(WARN).+(On ShowcaseRemovedEvent\\(showcaseId=%1$s\\), \\[Delete\\] \\[not_found\\] \\[%1$s\\]: " +
+                         "document missing)").formatted(showcaseId))));
     }
 }

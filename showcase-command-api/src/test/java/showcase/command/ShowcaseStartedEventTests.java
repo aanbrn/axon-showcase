@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 
@@ -33,34 +33,34 @@ class ShowcaseStartedEventTests {
 
     @Test
     void construction_missingShowcaseId_throwsNullPointerException() {
-        assertThatCode(
+        assertThatThrownBy(
                 () -> ShowcaseStartedEvent
-                        .builder()
-                        .duration(aShowcaseDuration())
-                        .startedAt(Instant.now())
-                        .build())
+                              .builder()
+                              .duration(aShowcaseDuration())
+                              .startedAt(Instant.now())
+                              .build())
                 .isExactlyInstanceOf(NullPointerException.class);
     }
 
     @Test
     void construction_missingDuration_throwsNullPointerException() {
-        assertThatCode(
+        assertThatThrownBy(
                 () -> ShowcaseStartedEvent
-                        .builder()
-                        .showcaseId(aShowcaseId())
-                        .startedAt(Instant.now())
-                        .build())
+                              .builder()
+                              .showcaseId(aShowcaseId())
+                              .startedAt(Instant.now())
+                              .build())
                 .isExactlyInstanceOf(NullPointerException.class);
     }
 
     @Test
     void construction_missingStartedAt_throwsNullPointerException() {
-        assertThatCode(
+        assertThatThrownBy(
                 () -> ShowcaseStartedEvent
-                        .builder()
-                        .showcaseId(aShowcaseId())
-                        .duration(aShowcaseDuration())
-                        .build())
+                              .builder()
+                              .showcaseId(aShowcaseId())
+                              .duration(aShowcaseDuration())
+                              .build())
                 .isExactlyInstanceOf(NullPointerException.class);
     }
 }

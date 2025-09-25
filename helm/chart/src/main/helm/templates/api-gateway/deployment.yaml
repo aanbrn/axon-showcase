@@ -117,15 +117,9 @@ spec:
               value: {{ .Values.apiGateway.resilience.enabled | quote }}
             - name: "TIMELIMITER_ENABLED"
               value: {{ .Values.apiGateway.resilience.timelimiter.enabled | quote }}
-            - name: "TIMELIMITER_METRICS_ENABLED"
-              value: {{ or .Values.observability.metrics.prometheus.enabled .Values.observability.metrics.otlp.enabled | quote }}
             {{- if .Values.apiGateway.resilience.timelimiter.defaults.timeoutDuration }}
             - name: "TIMELIMITER_DEFAULT_TIMEOUT"
               value: {{ .Values.apiGateway.resilience.timelimiter.defaults.timeoutDuration | quote }}
-            {{- end }}
-            {{- if .Values.apiGateway.resilience.timelimiter.commandService.timeoutDuration }}
-            - name: "TIMELIMITER_COMMAND_TIMEOUT"
-              value: {{ .Values.apiGateway.resilience.timelimiter.commandService.timeoutDuration | quote }}
             {{- end }}
             {{- if .Values.apiGateway.resilience.timelimiter.queryService.timeoutDuration }}
             - name: "TIMELIMITER_QUERY_TIMEOUT"
@@ -133,8 +127,6 @@ spec:
             {{- end }}
             - name: "CIRCUITBREAKER_ENABLED"
               value: {{ .Values.apiGateway.resilience.circuitbreaker.enabled | quote }}
-            - name: "CIRCUITBREAKER_METRICS_ENABLED"
-              value: {{ or .Values.observability.metrics.prometheus.enabled .Values.observability.metrics.otlp.enabled | quote }}
             {{- if .Values.apiGateway.resilience.circuitbreaker.defaults.slidingWindowType }}
             - name: "CIRCUITBREAKER_DEFAULT_SLIDING_WINDOW_TYPE"
               value: {{ .Values.apiGateway.resilience.circuitbreaker.defaults.slidingWindowType | quote }}
@@ -269,8 +261,6 @@ spec:
             {{- end }}
             - name: "RETRY_ENABLED"
               value: {{ .Values.apiGateway.resilience.retry.enabled | quote }}
-            - name: "RETRY_METRICS_ENABLED"
-              value: {{ or .Values.observability.metrics.prometheus.enabled .Values.observability.metrics.otlp.enabled | quote }}
             {{- if .Values.apiGateway.resilience.retry.defaults.maxAttempts }}
             - name: "RETRY_DEFAULT_MAX_ATTEMPTS"
               value: {{ .Values.apiGateway.resilience.retry.defaults.maxAttempts | quote }}
@@ -331,7 +321,11 @@ spec:
             - name: "RETRY_QUERY_MAX_WAIT_DURATION"
               value: {{ .Values.apiGateway.resilience.retry.queryService.exponentialMaxWaitDuration | quote }}
             {{- end }}
-            {{- if (include "axon-showcase.observability.isEnabled" $) }}
+            - name: "MANAGEMENT_METRICS_TAGS_APPLICATION"
+              value: {{ include "common.names.fullname" $ }}
+            {{- if (include "axon-showcase.observability.enabled" $) }}
+            {{- if (include "axon-showcase.observability.otlp.export.enabled" $) }}
+            {{- end }}
             {{- include "axon-showcase.observability.renderEnvVars" $ | nindent 12 }}
             {{- end }}
             {{- if .Values.apiGateway.extraEnvVars }}

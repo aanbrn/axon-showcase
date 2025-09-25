@@ -15,6 +15,7 @@ include(
     "platform",
     "showcase-identifier-extension",
     "showcase-resilience4j-extension",
+    "showcase-tracing-extension",
     "showcase-test",
     "showcase-command-api",
     "showcase-command-service",

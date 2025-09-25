@@ -19,6 +19,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Instant;
@@ -100,50 +101,69 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
-    void scheduleShowcase_validCommand_emitsShowcaseId() {
+    void scheduleShowcase_validCommand_succeeds() {
+        // given:
+        val scheduleCommand =
+                ScheduleShowcaseCommand
+                        .builder()
+                        .showcaseId(aShowcaseId())
+                        .title(aShowcaseTitle())
+                        .startTime(aShowcaseStartTime(Instant.now()))
+                        .duration(aShowcaseDuration())
+                        .build();
+
+        // when:
+        val scheduleMono = commandOperations.schedule(scheduleCommand);
+
+        // then:
         StepVerifier
-                .create(commandOperations.schedule(
-                        ScheduleShowcaseCommand
-                                .builder()
-                                .showcaseId(aShowcaseId())
-                                .title(aShowcaseTitle())
-                                .startTime(aShowcaseStartTime(Instant.now()))
-                                .duration(aShowcaseDuration())
-                                .build()))
+                .create(scheduleMono)
                 .expectComplete()
                 .verify();
     }
 
     @Test
-    void scheduleShowcase_duplicateCommand_emitsShowcaseId() {
-        val command = ScheduleShowcaseCommand
-                              .builder()
-                              .showcaseId(aShowcaseId())
-                              .title(aShowcaseTitle())
-                              .startTime(aShowcaseStartTime(Instant.now()))
-                              .duration(aShowcaseDuration())
-                              .build();
+    void scheduleShowcase_repeatedSchedule_succeeds() {
+        // given:
+        val scheduleCommand =
+                ScheduleShowcaseCommand
+                        .builder()
+                        .showcaseId(aShowcaseId())
+                        .title(aShowcaseTitle())
+                        .startTime(aShowcaseStartTime(Instant.now()))
+                        .duration(aShowcaseDuration())
+                        .build();
 
-        commandOperations.schedule(command)
-                         .block();
+        // when:
+        val doubleScheduleMono = Mono.when(
+                commandOperations.schedule(scheduleCommand),
+                commandOperations.schedule(scheduleCommand));
 
+        // then:
         StepVerifier
-                .create(commandOperations.schedule(command))
+                .create(doubleScheduleMono)
                 .expectComplete()
                 .verify();
     }
 
     @Test
-    void scheduleShowcase_invalidCommand_emitsErrorWithShowcaseCommandExceptionCausedByJSR303ViolationException() {
+    void scheduleShowcase_invalidCommand_failsWithInvalidCommandError() {
+        // given:
+        val invalidScheduleCommand =
+                ScheduleShowcaseCommand
+                        .builder()
+                        .showcaseId(anInvalidShowcaseId())
+                        .title(aTooLongShowcaseTitle())
+                        .startTime(Instant.now())
+                        .duration(aTooShortShowcaseDuration())
+                        .build();
+
+        // when:
+        val scheduleMono = commandOperations.schedule(invalidScheduleCommand);
+
+        // then:
         StepVerifier
-                .create(commandOperations.schedule(
-                        ScheduleShowcaseCommand
-                                .builder()
-                                .showcaseId(anInvalidShowcaseId())
-                                .title(aTooLongShowcaseTitle())
-                                .startTime(Instant.now())
-                                .duration(aTooShortShowcaseDuration())
-                                .build()))
+                .create(scheduleMono)
                 .expectErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
@@ -163,16 +183,17 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
-    void scheduleShowcase_alreadyRemoved_emitsErrorWithShowcaseCommandExceptionCausedByShowcaseIdInUseError() {
+    void scheduleShowcase_alreadyRemoved_failsWithIllegalStateError() {
+        // given:
         val showcaseId = aShowcaseId();
-        val scheduleTime = Instant.now();
+        val now = Instant.now();
 
         commandOperations
                 .schedule(ScheduleShowcaseCommand
                                   .builder()
                                   .showcaseId(showcaseId)
                                   .title(aShowcaseTitle())
-                                  .startTime(aShowcaseStartTime(scheduleTime))
+                                  .startTime(aShowcaseStartTime(now))
                                   .duration(aShowcaseDuration())
                                   .build())
                 .block();
@@ -184,65 +205,85 @@ class ShowcaseCommandClientIT {
                                 .build())
                 .block();
 
+        // when:
+        val scheduleMono =
+                commandOperations
+                        .schedule(ScheduleShowcaseCommand
+                                          .builder()
+                                          .showcaseId(showcaseId)
+                                          .title(aShowcaseTitle())
+                                          .startTime(aShowcaseStartTime(now))
+                                          .duration(aShowcaseDuration())
+                                          .build());
+
+        // then:
         StepVerifier
-                .create(commandOperations.schedule(
-                        ScheduleShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .title(aShowcaseTitle())
-                                .startTime(aShowcaseStartTime(scheduleTime))
-                                .duration(aShowcaseDuration())
-                                .build()))
+                .create(scheduleMono)
                 .expectErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
-                                     .extracting(ShowcaseCommandErrorDetails::getErrorCode)
-                                     .asInstanceOf(type(ShowcaseCommandErrorCode.class))
-                                     .isEqualTo(ShowcaseCommandErrorCode.ILLEGAL_STATE))
+                                     .satisfies(errorDetails -> {
+                                         assertThat(errorDetails.getErrorCode())
+                                                 .isEqualTo(ShowcaseCommandErrorCode.ILLEGAL_STATE);
+                                         assertThat(errorDetails.getErrorMessage())
+                                                 .isEqualTo("Showcase is removed already");
+                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                     }))
                 .verify();
     }
 
     @Test
-    void scheduleShowcase_reusedTitle_emitsErrorWithShowcaseCommandExceptionCausedByTitleInUseError() {
+    void scheduleShowcase_reusedTitle_failsWithTitleInUseError() {
+        // given:
         val title = aShowcaseTitle();
-        val scheduleTime = Instant.now();
+        val now = Instant.now();
 
         commandOperations
                 .schedule(ScheduleShowcaseCommand
                                   .builder()
                                   .showcaseId(aShowcaseId())
                                   .title(title)
-                                  .startTime(aShowcaseStartTime(scheduleTime))
+                                  .startTime(aShowcaseStartTime(now))
                                   .duration(aShowcaseDuration())
                                   .build())
                 .block();
 
+        // when:
+        val scheduleMono =
+                commandOperations
+                        .schedule(ScheduleShowcaseCommand
+                                          .builder()
+                                          .showcaseId(aShowcaseId())
+                                          .title(title)
+                                          .startTime(aShowcaseStartTime(now))
+                                          .duration(aShowcaseDuration())
+                                          .build());
+
+        // then:
         StepVerifier
-                .create(commandOperations.schedule(
-                        ScheduleShowcaseCommand
-                                .builder()
-                                .showcaseId(aShowcaseId())
-                                .title(title)
-                                .startTime(aShowcaseStartTime(scheduleTime))
-                                .duration(aShowcaseDuration())
-                                .build()))
+                .create(scheduleMono)
                 .expectErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
-                                     .extracting(ShowcaseCommandErrorDetails::getErrorCode)
-                                     .asInstanceOf(type(ShowcaseCommandErrorCode.class))
-                                     .isEqualTo(ShowcaseCommandErrorCode.TITLE_IN_USE))
+                                     .satisfies(errorDetails -> {
+                                         assertThat(errorDetails.getErrorCode())
+                                                 .isEqualTo(ShowcaseCommandErrorCode.TITLE_IN_USE);
+                                         assertThat(errorDetails.getErrorMessage())
+                                                 .isEqualTo("Given title is in use already");
+                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                     }))
                 .verify();
     }
 
     @Test
-    void startShowcase_scheduledShowcase_emitsNothing() {
+    void startShowcase_scheduledShowcase_succeeds() {
+        // given:
         val showcaseId = aShowcaseId();
 
         commandOperations
@@ -255,18 +296,24 @@ class ShowcaseCommandClientIT {
                                   .build())
                 .block();
 
+        // when:
+        val startMono =
+                commandOperations
+                        .start(StartShowcaseCommand
+                                       .builder()
+                                       .showcaseId(showcaseId)
+                                       .build());
+
+        // then:
         StepVerifier
-                .create(commandOperations.start(
-                        StartShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .build()))
+                .create(startMono)
                 .expectComplete()
                 .verify();
     }
 
     @Test
-    void startShowcase_alreadyStartedShowcase_emitsNothing() {
+    void startShowcase_repeatedStart_succeeds() {
+        // given:
         val showcaseId = aShowcaseId();
 
         commandOperations
@@ -279,25 +326,27 @@ class ShowcaseCommandClientIT {
                                   .build())
                 .block();
 
-        commandOperations
-                .start(StartShowcaseCommand
-                               .builder()
-                               .showcaseId(showcaseId)
-                               .build())
-                .block();
+        val startCommand =
+                StartShowcaseCommand
+                        .builder()
+                        .showcaseId(showcaseId)
+                        .build();
 
+        // when:
+        val doubleStartMono = Mono.when(
+                commandOperations.start(startCommand),
+                commandOperations.start(startCommand));
+
+        // then:
         StepVerifier
-                .create(commandOperations.start(
-                        StartShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .build()))
+                .create(doubleStartMono)
                 .expectComplete()
                 .verify();
     }
 
     @Test
-    void startShowcase_finishedShowcase_emitsErrorWithShowcaseCommandExceptionCausedByIllegalStateError() {
+    void startShowcase_finishedShowcase_failsWithIllegalStateError() {
+        // given:
         val showcaseId = aShowcaseId();
 
         commandOperations
@@ -324,52 +373,80 @@ class ShowcaseCommandClientIT {
                                 .build())
                 .block();
 
+        // when:
+        val startMono =
+                commandOperations
+                        .start(StartShowcaseCommand
+                                       .builder()
+                                       .showcaseId(showcaseId)
+                                       .build());
+
+        // then:
         StepVerifier
-                .create(commandOperations.start(
-                        StartShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .build()))
+                .create(startMono)
                 .expectErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
-                                     .extracting(ShowcaseCommandErrorDetails::getErrorCode)
-                                     .asInstanceOf(type(ShowcaseCommandErrorCode.class))
-                                     .isEqualTo(ShowcaseCommandErrorCode.ILLEGAL_STATE))
+                                     .satisfies(errorDetails -> {
+                                         assertThat(errorDetails.getErrorCode())
+                                                 .isEqualTo(ShowcaseCommandErrorCode.ILLEGAL_STATE);
+                                         assertThat(errorDetails.getErrorMessage())
+                                                 .isEqualTo("Showcase is finished already");
+                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                     }))
                 .verify();
     }
 
     @Test
-    void startShowcase_nonExistingShowcase_emitsErrorWithShowcaseCommandExceptionCausedByNotFoundError() {
+    void startShowcase_nonExistingShowcase_failsWithNotFoundError() {
+        // given:
+        val showcaseId = aShowcaseId();
+
+        // when:
+        val startMono =
+                commandOperations
+                        .start(StartShowcaseCommand
+                                       .builder()
+                                       .showcaseId(showcaseId)
+                                       .build());
+
+        // then:
         StepVerifier
-                .create(commandOperations.start(
-                        StartShowcaseCommand
-                                .builder()
-                                .showcaseId(aShowcaseId())
-                                .build()))
+                .create(startMono)
                 .expectErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
-                                     .extracting(ShowcaseCommandErrorDetails::getErrorCode)
-                                     .asInstanceOf(type(ShowcaseCommandErrorCode.class))
-                                     .isEqualTo(ShowcaseCommandErrorCode.NOT_FOUND))
+                                     .satisfies(errorDetails -> {
+                                         assertThat(errorDetails.getErrorCode())
+                                                 .isEqualTo(ShowcaseCommandErrorCode.NOT_FOUND);
+                                         assertThat(errorDetails.getErrorMessage())
+                                                 .isEqualTo("No showcase with given ID");
+                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                     }))
                 .verify();
     }
 
     @Test
-    void startShowcase_invalidCommand_emitsErrorWithShowcaseCommandExceptionWithInvalidCommandError() {
+    void startShowcase_invalidCommand_failsWithInvalidCommandError() {
+        // given:
+        val invalidStartCommand =
+                StartShowcaseCommand
+                        .builder()
+                        .showcaseId(anInvalidShowcaseId())
+                        .build();
+
+        // when:
+        val startMono = commandOperations.start(invalidStartCommand);
+
+        // then:
         StepVerifier
-                .create(commandOperations.start(
-                        StartShowcaseCommand
-                                .builder()
-                                .showcaseId(anInvalidShowcaseId())
-                                .build()))
+                .create(startMono)
                 .expectErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
@@ -389,16 +466,16 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
-    void finishShowcase_startedShowcase_emitsNothing() {
+    void finishShowcase_startedShowcase_succeeds() {
+        // given:
         val showcaseId = aShowcaseId();
-        val scheduleTime = Instant.now();
 
         commandOperations
                 .schedule(ScheduleShowcaseCommand
                                   .builder()
                                   .showcaseId(showcaseId)
                                   .title(aShowcaseTitle())
-                                  .startTime(aShowcaseStartTime(scheduleTime))
+                                  .startTime(aShowcaseStartTime(Instant.now()))
                                   .duration(aShowcaseDuration())
                                   .build())
                 .block();
@@ -410,27 +487,32 @@ class ShowcaseCommandClientIT {
                                .build())
                 .block();
 
+        // when:
+        val finishMono =
+                commandOperations
+                        .finish(FinishShowcaseCommand
+                                        .builder()
+                                        .showcaseId(showcaseId)
+                                        .build());
+
+        // then:
         StepVerifier
-                .create(commandOperations.finish(
-                        FinishShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .build()))
+                .create(finishMono)
                 .expectComplete()
                 .verify();
     }
 
     @Test
-    void finishShowcase_alreadyFinishedShowcase_emitsNothing() {
+    void finishShowcase_repeatedFinish_succeeds() {
+        // given:
         val showcaseId = aShowcaseId();
-        val scheduleTime = Instant.now();
 
         commandOperations
                 .schedule(ScheduleShowcaseCommand
                                   .builder()
                                   .showcaseId(showcaseId)
                                   .title(aShowcaseTitle())
-                                  .startTime(aShowcaseStartTime(scheduleTime))
+                                  .startTime(aShowcaseStartTime(Instant.now()))
                                   .duration(aShowcaseDuration())
                                   .build())
                 .block();
@@ -449,77 +531,110 @@ class ShowcaseCommandClientIT {
                                 .build())
                 .block();
 
+        // when:
+        val finishMono =
+                commandOperations
+                        .finish(FinishShowcaseCommand
+                                        .builder()
+                                        .showcaseId(showcaseId)
+                                        .build());
+
+        // then:
         StepVerifier
-                .create(commandOperations.finish(
-                        FinishShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .build()))
+                .create(finishMono)
                 .expectComplete()
                 .verify();
     }
 
     @Test
-    void finishShowcase_notStartedShowcase_emitsErrorWithShowcaseCommandExceptionCausedByIllegalStateError() {
+    void finishShowcase_notStartedShowcase_failsWithIllegalStateError() {
+        // given:
         val showcaseId = aShowcaseId();
-        val scheduleTime = Instant.now();
 
         commandOperations
                 .schedule(ScheduleShowcaseCommand
                                   .builder()
                                   .showcaseId(showcaseId)
                                   .title(aShowcaseTitle())
-                                  .startTime(aShowcaseStartTime(scheduleTime))
+                                  .startTime(aShowcaseStartTime(Instant.now()))
                                   .duration(aShowcaseDuration())
                                   .build())
                 .block();
 
+        // when:
+        val finishMono =
+                commandOperations
+                        .finish(FinishShowcaseCommand
+                                        .builder()
+                                        .showcaseId(showcaseId)
+                                        .build());
+
+        // then:
         StepVerifier
-                .create(commandOperations.finish(
-                        FinishShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .build()))
+                .create(finishMono)
                 .expectErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
-                                     .extracting(ShowcaseCommandErrorDetails::getErrorCode)
-                                     .asInstanceOf(type(ShowcaseCommandErrorCode.class))
-                                     .isEqualTo(ShowcaseCommandErrorCode.ILLEGAL_STATE))
+                                     .satisfies(errorDetails -> {
+                                         assertThat(errorDetails.getErrorCode())
+                                                 .isEqualTo(ShowcaseCommandErrorCode.ILLEGAL_STATE);
+                                         assertThat(errorDetails.getErrorMessage())
+                                                 .isEqualTo("Showcase must be started first");
+                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                     }))
                 .verify();
     }
 
     @Test
-    void finishShowcase_nonExistingShowcase_emitsErrorWithShowcaseCommandExceptionCausedByNotFoundError() {
+    void finishShowcase_nonExistingShowcase_failsWithNotFoundError() {
+        // given:
+        val showcaseId = aShowcaseId();
+
+        // when:
+        val finishMono =
+                commandOperations
+                        .finish(FinishShowcaseCommand
+                                        .builder()
+                                        .showcaseId(showcaseId)
+                                        .build());
+
+        // then:
         StepVerifier
-                .create(commandOperations.finish(
-                        FinishShowcaseCommand
-                                .builder()
-                                .showcaseId(aShowcaseId())
-                                .build()))
+                .create(finishMono)
                 .expectErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
-                                     .extracting(ShowcaseCommandErrorDetails::getErrorCode)
-                                     .asInstanceOf(type(ShowcaseCommandErrorCode.class))
-                                     .isEqualTo(ShowcaseCommandErrorCode.NOT_FOUND))
+                                     .satisfies(errorDetails -> {
+                                         assertThat(errorDetails.getErrorCode())
+                                                 .isEqualTo(ShowcaseCommandErrorCode.NOT_FOUND);
+                                         assertThat(errorDetails.getErrorMessage())
+                                                 .isEqualTo("No showcase with given ID");
+                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                     }))
                 .verify();
     }
 
     @Test
-    void finishShowcase_invalidCommand_emitsErrorWithShowcaseCommandExceptionWithInvalidCommandError() {
+    void finishShowcase_invalidCommand_failsWithInvalidCommandError() {
+        // given:
+        val invalidFinishCommand =
+                FinishShowcaseCommand
+                        .builder()
+                        .showcaseId(anInvalidShowcaseId())
+                        .build();
+
+        // when:
+        val finishMono = commandOperations.finish(invalidFinishCommand);
+
+        // then:
         StepVerifier
-                .create(commandOperations.finish(
-                        FinishShowcaseCommand
-                                .builder()
-                                .showcaseId(anInvalidShowcaseId())
-                                .build()))
+                .create(finishMono)
                 .expectErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
@@ -539,50 +654,103 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
-    void removeShowcase_existingShowcase_emitsNothing() {
+    void removeShowcase_existingShowcase_succeeds() {
+        // given:
         val showcaseId = aShowcaseId();
-        val scheduleTime = Instant.now();
 
         commandOperations
                 .schedule(ScheduleShowcaseCommand
                                   .builder()
                                   .showcaseId(showcaseId)
                                   .title(aShowcaseTitle())
-                                  .startTime(aShowcaseStartTime(scheduleTime))
+                                  .startTime(aShowcaseStartTime(Instant.now()))
                                   .duration(aShowcaseDuration())
                                   .build())
                 .block();
 
+        // when:
+        val removeMono =
+                commandOperations
+                        .remove(RemoveShowcaseCommand
+                                        .builder()
+                                        .showcaseId(showcaseId)
+                                        .build());
+
+        // then:
         StepVerifier
-                .create(commandOperations.remove(
-                        RemoveShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .build()))
+                .create(removeMono)
                 .expectComplete()
                 .verify();
     }
 
     @Test
-    void removeShowcase_nonExistingShowcase_emitsNothing() {
+    void removeShowcase_repeatedRemove_succeeds() {
+        // given:
+        val showcaseId = aShowcaseId();
+
+        commandOperations
+                .schedule(ScheduleShowcaseCommand
+                                  .builder()
+                                  .showcaseId(showcaseId)
+                                  .title(aShowcaseTitle())
+                                  .startTime(aShowcaseStartTime(Instant.now()))
+                                  .duration(aShowcaseDuration())
+                                  .build())
+                .block();
+
+        val removeCommand =
+                RemoveShowcaseCommand
+                        .builder()
+                        .showcaseId(showcaseId)
+                        .build();
+
+        // when:
+        val doubleRemoveMono = Mono.when(
+                commandOperations.remove(removeCommand),
+                commandOperations.remove(removeCommand));
+
+        // then:
         StepVerifier
-                .create(commandOperations.remove(
-                        RemoveShowcaseCommand
-                                .builder()
-                                .showcaseId(aShowcaseId())
-                                .build()))
+                .create(doubleRemoveMono)
                 .expectComplete()
                 .verify();
     }
 
     @Test
-    void removeShowcase_invalidCommand_emitsErrorWithShowcaseCommandExceptionWithInvalidCommandError() {
+    void removeShowcase_nonExistingShowcase_succeeds() {
+        // given:
+        val showcaseId = aShowcaseId();
+
+        // when:
+        val removeMono =
+                commandOperations
+                        .remove(RemoveShowcaseCommand
+                                        .builder()
+                                        .showcaseId(showcaseId)
+                                        .build());
+
+        // then:
         StepVerifier
-                .create(commandOperations.remove(
-                        RemoveShowcaseCommand
-                                .builder()
-                                .showcaseId(anInvalidShowcaseId())
-                                .build()))
+                .create(removeMono)
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    void removeShowcase_invalidCommand_failsWithInvalidCommandError() {
+        // given:
+        val invalidRemoveCommand =
+                RemoveShowcaseCommand
+                        .builder()
+                        .showcaseId(anInvalidShowcaseId())
+                        .build();
+
+        // when:
+        val removeMono = commandOperations.remove(invalidRemoveCommand);
+
+        // then:
+        StepVerifier
+                .create(removeMono)
                 .expectErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)

@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "axon.tracing.logging.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to enable logging in Axon Tracing.",
+      "defaultValue": false
+    }
+  ]
+}

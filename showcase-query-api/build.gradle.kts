@@ -13,7 +13,10 @@ dependencies {
 
     api(libs.axon.messaging)
     api(libs.spring.data.commons)
+    api(libs.jackson.annotations)
     api(libs.swagger.annotations.jakarta)
+
+    implementation(libs.commons.lang3)
 
     testFixturesApi(testFixtures(project(":showcase-command-api")))
 

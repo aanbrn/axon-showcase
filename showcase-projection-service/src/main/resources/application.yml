@@ -9,6 +9,11 @@ spring:
         enabled: off
   jackson:
     default-property-inclusion: non_null
+  web:
+    locale: en
+  webflux:
+    problemdetails:
+      enabled: true
   threads:
     virtual:
       enabled: true
@@ -33,6 +38,9 @@ axon:
   metrics:
     micrometer:
       dimensional: true
+  tracing:
+    repository:
+      aggregate-id-attribute-name: axon.aggregateId
 
 opensearch:
   uris: ${OS_URIS:http://localhost:9200}
@@ -46,14 +54,39 @@ opensearch:
   evict-expired-connections: ${OS_EVICT_EXPIRED_CONNECTIONS:true}
   evict-idle-connections: ${OS_EVICT_IDLE_CONNECTIONS:PT2S}
 
-showcase:
-  projection:
-    metrics:
-      tags:
-        - key: ${METRICS_TAG_APPLICATION_KEY:application}
-          value: ${METRICS_TAG_APPLICATION_VALUE:axon-showcase}
-    tracing:
-      logging: ${TRACING_LOGGING:false}
+resilience4j:
+  enabled: ${RESILIENCE_ENABLED:true}
+  circuitbreaker:
+    enabled: ${CIRCUITBREAKER_ENABLED:true}
+    configs:
+      default:
+        sliding-window-type: ${CIRCUITBREAKER_DEFAULT_SLIDING_WINDOW_TYPE:COUNT_BASED}
+        sliding-window-size: ${CIRCUITBREAKER_DEFAULT_SLIDING_WINDOW_SIZE:100}
+        minimum-number-of-calls: ${CIRCUITBREAKER_DEFAULT_MIN_REQUIRED_CALLS:50}
+        failure-rate-threshold: ${CIRCUITBREAKER_DEFAULT_FAILURE_RATE_THRESHOLD:50}
+        slow-call-rate-threshold: ${CIRCUITBREAKER_DEFAULT_SLOW_CALL_RATE_THRESHOLD:90}
+        slow-call-duration-threshold: ${CIRCUITBREAKER_DEFAULT_SLOW_CALL_DURATION_THRESHOLD:PT5S}
+        wait-duration-in-open-state: ${CIRCUITBREAKER_DEFAULT_WAIT_DURATION_IN_OPEN_STATE:PT10S}
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: ${CIRCUITBREAKER_DEFAULT_BACKOFF_MULTIPLIER_IN_OPEN_STATE:1.5}
+        exponential-max-wait-duration-in-open-state: ${CIRCUITBREAKER_DEFAULT_MAX_WAIT_DURATION_IN_OPEN_STATE:}
+        permitted-number-of-calls-in-half-open-state: ${CIRCUITBREAKER_DEFAULT_PERMITTED_CALLS_IN_HALF_OPEN_STATE:10}
+        max-wait-duration-in-half-open-state: ${CIRCUITBREAKER_DEFAULT_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE:PT0S}
+        register-health-indicator: true
+    instances:
+      opensearch:
+        base-config: default
+        sliding-window-type: ${CIRCUITBREAKER_OPENSEARCH_SLIDING_WINDOW_TYPE:}
+        sliding-window-size: ${CIRCUITBREAKER_OPENSEARCH_SLIDING_WINDOW_SIZE:}
+        minimum-number-of-calls: ${CIRCUITBREAKER_OPENSEARCH_MIN_REQUIRED_CALLS:}
+        failure-rate-threshold: ${CIRCUITBREAKER_OPENSEARCH_FAILURE_RATE_THRESHOLD:}
+        slow-call-rate-threshold: ${CIRCUITBREAKER_OPENSEARCH_SLOW_CALL_RATE_THRESHOLD:}
+        slow-call-duration-threshold: ${CIRCUITBREAKER_OPENSEARCH_SLOW_CALL_DURATION_THRESHOLD:}
+        wait-duration-in-open-state: ${CIRCUITBREAKER_OPENSEARCH_WAIT_DURATION_IN_OPEN_STATE:}
+        exponential-backoff-multiplier: ${CIRCUITBREAKER_OPENSEARCH_BACKOFF_MULTIPLIER_IN_OPEN_STATE:}
+        exponential-max-wait-duration-in-open-state: ${CIRCUITBREAKER_OPENSEARCH_MAX_WAIT_DURATION_IN_OPEN_STATE:}
+        permitted-number-of-calls-in-half-open-state: ${CIRCUITBREAKER_OPENSEARCH_PERMITTED_CALLS_IN_HALF_OPEN_STATE:}
+        max-wait-duration-in-half-open-state: ${CIRCUITBREAKER_OPENSEARCH_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE:}
 
 server:
   port: 8083
@@ -72,27 +105,17 @@ management:
       probes:
         enabled: on
         add-additional-paths: on
-    prometheus:
-      enabled: ${METRICS_PROMETHEUS_ENABLED:false}
   metrics:
-    distribution:
-      percentiles-histogram:
-        http.server.requests: ${METRICS_PERCENTILES_HISTOGRAM:true}
-        http.client.requests: ${METRICS_PERCENTILES_HISTOGRAM:true}
-      percentiles:
-        http.server.requests: ${METRICS_PERCENTILES:0.5, 0.75, 0.95, 0.98, 0.99, 0.995, 0.999}
-        http.client.requests: ${METRICS_PERCENTILES:0.5, 0.75, 0.95, 0.98, 0.99, 0.995, 0.999}
-      slo:
-        http.server.requests: ${METRICS_SLO:100ms, 200ms, 300ms, 400ms, 500ms, 1s, 2s, 3s, 4s, 5s}
-        http.client.requests: ${METRICS_SLO:100ms, 200ms, 300ms, 400ms, 500ms, 1s, 2s, 3s, 4s, 5s}
-    export:
-      prometheus:
-        enabled: ${METRICS_PROMETHEUS_ENABLED:false}
-  tracing:
-    sampling:
-      probability: 1.0
+    tags:
+      application: axon-showcase
+  prometheus:
+    metrics:
+      export:
+        enabled: false
   otlp:
+    metrics:
+      export:
+        enabled: false
     tracing:
       export:
-        enabled: ${TRACING_OTLP_ENABLED:false}
-      endpoint: ${TRACING_OTLP_ENDPOINT:}
+        enabled: false

@@ -1,11 +1,8 @@
 package showcase.api;
 
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import io.micrometer.core.instrument.ImmutableTag;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
-import io.opentelemetry.api.OpenTelemetry;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -16,45 +13,37 @@ import org.axonframework.commandhandling.distributed.CommandRouter;
 import org.axonframework.commandhandling.distributed.ConsistentHashChangeListener;
 import org.axonframework.commandhandling.distributed.DistributedCommandBus;
 import org.axonframework.commandhandling.distributed.RoutingStrategy;
+import org.axonframework.commandhandling.gateway.ExponentialBackOffIntervalRetryScheduler;
+import org.axonframework.common.AxonThreadFactory;
 import org.axonframework.config.Configuration;
 import org.axonframework.extensions.jgroups.DistributedCommandBusProperties;
 import org.axonframework.extensions.jgroups.commandhandling.JGroupsConnectorFactoryBean;
+import org.axonframework.extensions.reactor.commandhandling.gateway.DefaultReactorCommandGateway;
+import org.axonframework.extensions.reactor.commandhandling.gateway.ReactorCommandGateway;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
-import org.axonframework.tracing.LoggingSpanFactory;
-import org.axonframework.tracing.MultiSpanFactory;
 import org.axonframework.tracing.SpanFactory;
-import org.axonframework.tracing.opentelemetry.OpenTelemetrySpanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.cache.CacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.MethodParameter;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.ReactivePageableHandlerMethodArgumentResolver;
-import org.springframework.web.reactive.BindingContext;
-import org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver;
-import org.springframework.web.server.ServerWebExchange;
-import showcase.query.PageRequest;
+import showcase.query.FetchShowcaseListQuery;
+import showcase.query.Showcase;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
-import static java.util.Objects.requireNonNull;
-import static showcase.api.ShowcaseApiConstants.FETCH_ALL_CACHE_NAME;
-import static showcase.api.ShowcaseApiConstants.FETCH_BY_ID_CACHE_NAME;
+import static java.lang.Runtime.getRuntime;
+import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME;
+import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME;
 
 @SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
 @EnableConfigurationProperties(ShowcaseApiProperties.class)
-@EnableCaching
 @Slf4j
 class ShowcaseApiApplication {
 
@@ -115,71 +104,56 @@ class ShowcaseApiApplication {
     }
 
     @Bean
+    public ReactorCommandGateway reactiveCommandGateway(CommandBus commandBus) {
+        return DefaultReactorCommandGateway
+                       .builder()
+                       .commandBus(commandBus)
+                       .retryScheduler(
+                               ExponentialBackOffIntervalRetryScheduler
+                                       .builder()
+                                       .maxRetryCount(1)
+                                       .backoffFactor(100)
+                                       .retryExecutor(Executors.newScheduledThreadPool(
+                                               getRuntime().availableProcessors(),
+                                               new AxonThreadFactory("RetryScheduler(CommandBus)")))
+                                       .build())
+                       .build();
+    }
+
+    @Bean
     Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
         return builder -> builder.modules(new BlackbirdModule());
     }
 
     @Bean
-    CacheManagerCustomizer<CaffeineCacheManager> cacheManagerCustomizer(ShowcaseApiProperties apiProperties) {
-        return cacheManager -> {
-            cacheManager.setAllowNullValues(false);
-            for (val cacheName : List.of(FETCH_ALL_CACHE_NAME, FETCH_BY_ID_CACHE_NAME)) {
-                val cacheSettings = requireNonNull(apiProperties.getCaches().get(cacheName),
-                                                   "Setting for '%s' cache is missing".formatted(cacheName));
-                cacheManager.registerCustomCache(
-                        cacheName,
-                        Caffeine.newBuilder()
-                                .maximumSize(cacheSettings.getMaximumSize())
-                                .expireAfterAccess(cacheSettings.getExpiresAfterAccess())
-                                .expireAfterWrite(cacheSettings.getExpiresAfterWrite())
-                                .recordStats()
-                                .buildAsync());
-            }
-        };
-    }
-
-    @Bean
-    HandlerMethodArgumentResolver pageableHandlerMethodArgumentResolver() {
-        val resolver = new ReactivePageableHandlerMethodArgumentResolver() {
-            @Override
-            public @NonNull Pageable resolveArgumentValue(
-                    @NonNull MethodParameter parameter,
-                    @NonNull BindingContext bindingContext,
-                    @NonNull ServerWebExchange exchange) {
-                val pageable = super.resolveArgumentValue(parameter, bindingContext, exchange);
-                return org.springframework.data.domain.PageRequest.of(
-                        Math.min(pageable.getPageNumber(), PageRequest.MAX_PAGE_NUMBER),
-                        pageable.getPageSize(),
-                        pageable.getSort());
-            }
-        };
-        resolver.setMaxPageSize(PageRequest.MAX_PAGE_SIZE);
-        return resolver;
-    }
-
-    @Bean
-    MeterRegistryCustomizer<MeterRegistry> meterRegistryCustomizer(ShowcaseApiProperties apiProperties) {
-        val tags = apiProperties
-                           .getMetrics()
-                           .getTags()
-                           .stream()
-                           .<Tag>map(t -> new ImmutableTag(t.getKey(), t.getValue()))
-                           .toList();
-        return meterRegistry -> meterRegistry.config().commonTags(tags);
-    }
-
-    @Bean
-    SpanFactory spanFactory(ShowcaseApiProperties apiProperties, OpenTelemetry openTelemetry) {
-        val openTelemetrySpanFactory =
-                OpenTelemetrySpanFactory
-                        .builder()
-                        .tracer(openTelemetry.getTracer("AxonFramework-OpenTelemetry"))
-                        .contextPropagators(openTelemetry.getPropagators().getTextMapPropagator())
-                        .build();
-        if (apiProperties.getTracing().isLogging()) {
-            return new MultiSpanFactory(List.of(LoggingSpanFactory.INSTANCE, openTelemetrySpanFactory));
-        } else {
-            return openTelemetrySpanFactory;
+    Cache<@NonNull FetchShowcaseListQuery, List<Showcase>> fetchShowcaseListQueryCache(
+            ShowcaseApiProperties apiProperties) {
+        val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME);
+        if (cacheSettings == null) {
+            throw new IllegalStateException("Settings for cache '%s' is missing"
+                                                    .formatted(FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME));
         }
+        return Caffeine.newBuilder()
+                       .maximumSize(cacheSettings.getMaximumSize())
+                       .expireAfterAccess(cacheSettings.getExpiresAfterAccess())
+                       .expireAfterWrite(cacheSettings.getExpiresAfterWrite())
+                       .recordStats()
+                       .build();
+    }
+
+    @Bean
+    Cache<@NonNull String, Showcase> fetchShowcaseByIdQueryCache(
+            ShowcaseApiProperties apiProperties) {
+        val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME);
+        if (cacheSettings == null) {
+            throw new IllegalStateException("Settings for cache '%s' is missing"
+                                                    .formatted(FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME));
+        }
+        return Caffeine.newBuilder()
+                       .maximumSize(cacheSettings.getMaximumSize())
+                       .expireAfterAccess(cacheSettings.getExpiresAfterAccess())
+                       .expireAfterWrite(cacheSettings.getExpiresAfterWrite())
+                       .recordStats()
+                       .build();
     }
 }

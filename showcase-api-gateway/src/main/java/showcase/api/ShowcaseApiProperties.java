@@ -11,11 +11,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 
-import static showcase.api.ShowcaseApiConstants.FETCH_ALL_CACHE_NAME;
-import static showcase.api.ShowcaseApiConstants.FETCH_BY_ID_CACHE_NAME;
+import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME;
+import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME;
 
 @ConfigurationProperties("showcase.api")
 @Data
@@ -38,43 +37,9 @@ final class ShowcaseApiProperties {
         private Duration expiresAfterWrite;
     }
 
-    @Data
-    @AllArgsConstructor
-    static final class Tag {
-
-        @NotBlank
-        private String key;
-
-        @NotBlank
-        private String value;
-    }
-
-    @Data
-    @AllArgsConstructor
-    static final class Metrics {
-
-        @NotNull
-        private List<Tag> tags;
-    }
-
-    @Data
-    @AllArgsConstructor
-    static final class Tracing {
-
-        private boolean logging;
-    }
-
     @NotNull
     @Valid
     private Map<@NotBlank String, @NotNull @Valid Cache> caches = Map.of(
-            FETCH_ALL_CACHE_NAME, new Cache(1000, Duration.ofMinutes(10), Duration.ofMinutes(5)),
-            FETCH_BY_ID_CACHE_NAME, new Cache(1000, Duration.ofMinutes(10), Duration.ofMinutes(5)));
-
-    @NotNull
-    @Valid
-    private Metrics metrics = new Metrics(List.of());
-
-    @NotNull
-    @Valid
-    private Tracing tracing = new Tracing(false);
+            FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME, new Cache(1000, Duration.ofMinutes(10), Duration.ofMinutes(5)),
+            FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME, new Cache(1000, Duration.ofMinutes(10), Duration.ofMinutes(5)));
 }

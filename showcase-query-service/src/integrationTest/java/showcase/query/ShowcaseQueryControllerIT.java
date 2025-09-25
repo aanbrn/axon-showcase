@@ -1,6 +1,7 @@
 package showcase.query;
 
 import lombok.val;
+import org.apache.commons.lang3.RandomUtils;
 import org.axonframework.queryhandling.GenericStreamingQueryMessage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import showcase.projection.ShowcaseEntity;
 
+import java.util.Comparator;
 import java.util.List;
 
 import static java.util.Comparator.comparing;
@@ -70,7 +72,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
-    void fetchAll_noFiltering_respondsWithAllShowcasesSortedByStartTime() {
+    void fetchAll_noFiltering_respondsWithAllShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases = showcases();
 
         openSearchTemplate.save(
@@ -81,27 +83,25 @@ class ShowcaseQueryControllerIT {
 
         showcaseIndexOperations.refresh();
 
-        val queryMessage =
-                new GenericStreamingQueryMessage<>(
-                        FetchShowcaseListQuery.builder().build(),
-                        Showcase.class);
+        val query = FetchShowcaseListQuery.builder().build();
 
         webClient
                 .post()
                 .uri("/streaming-query")
                 .contentType(APPLICATION_PROTOBUF)
-                .bodyValue(queryMessageRequestMapper.messageToRequest(queryMessage))
+                .bodyValue(queryMessageRequestMapper.messageToRequest(
+                        new GenericStreamingQueryMessage<>(query, Showcase.class)))
                 .exchange()
                 .expectStatus()
                 .isOk()
                 .expectBodyList(Showcase.class)
                 .isEqualTo(showcases.stream()
-                                    .sorted(comparing(Showcase::getStartTime).reversed())
+                                    .sorted(comparing(Showcase::getShowcaseId).reversed())
                                     .toList());
     }
 
     @Test
-    void fetchAll_titleToFilterBy_respondsWithMatchingShowcasesSortedByStartTime() {
+    void fetchAll_titleToFilterBy_respondsWithMatchingShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases = showcases();
         val showcase = anElementOf(showcases);
 
@@ -113,19 +113,17 @@ class ShowcaseQueryControllerIT {
 
         showcaseIndexOperations.refresh();
 
-        val queryMessage =
-                new GenericStreamingQueryMessage<>(
-                        FetchShowcaseListQuery
-                                .builder()
-                                .title(showcase.getTitle())
-                                .build(),
-                        Showcase.class);
+        val query = FetchShowcaseListQuery
+                            .builder()
+                            .title(showcase.getTitle())
+                            .build();
 
         webClient
                 .post()
                 .uri("/streaming-query")
                 .contentType(APPLICATION_PROTOBUF)
-                .bodyValue(queryMessageRequestMapper.messageToRequest(queryMessage))
+                .bodyValue(queryMessageRequestMapper.messageToRequest(
+                        new GenericStreamingQueryMessage<>(query, Showcase.class)))
                 .exchange()
                 .expectStatus()
                 .isOk()
@@ -134,7 +132,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
-    void fetchAll_singleStatusToFilterBy_respondsWithMatchingShowcasesSortedByStartTime() {
+    void fetchAll_singleStatusToFilterBy_respondsWithMatchingShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases = showcases();
         val status = aShowcaseStatus();
 
@@ -146,31 +144,29 @@ class ShowcaseQueryControllerIT {
 
         showcaseIndexOperations.refresh();
 
-        val queryMessage =
-                new GenericStreamingQueryMessage<>(
-                        FetchShowcaseListQuery
-                                .builder()
-                                .status(status)
-                                .build(),
-                        Showcase.class);
+        val query = FetchShowcaseListQuery
+                            .builder()
+                            .status(status)
+                            .build();
 
         webClient
                 .post()
                 .uri("/streaming-query")
                 .contentType(APPLICATION_PROTOBUF)
-                .bodyValue(queryMessageRequestMapper.messageToRequest(queryMessage))
+                .bodyValue(queryMessageRequestMapper.messageToRequest(
+                        new GenericStreamingQueryMessage<>(query, Showcase.class)))
                 .exchange()
                 .expectStatus()
                 .isOk()
                 .expectBodyList(Showcase.class)
                 .isEqualTo(showcases.stream()
                                     .filter(showcase -> showcase.getStatus() == status)
-                                    .sorted(comparing(Showcase::getStartTime).reversed())
+                                    .sorted(comparing(Showcase::getShowcaseId).reversed())
                                     .toList());
     }
 
     @Test
-    void fetchAll_multipleStatusesToFilterBy_respondsWithMatchingShowcasesSortedByStartTime() {
+    void fetchAll_multipleStatusesToFilterBy_respondsWithMatchingShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases = showcases();
         val status1 = aShowcaseStatus();
         val status2 = aShowcaseStatus(status1);
@@ -183,20 +179,18 @@ class ShowcaseQueryControllerIT {
 
         showcaseIndexOperations.refresh();
 
-        val queryMessage =
-                new GenericStreamingQueryMessage<>(
-                        FetchShowcaseListQuery
-                                .builder()
-                                .status(status1)
-                                .status(status2)
-                                .build(),
-                        Showcase.class);
+        val query = FetchShowcaseListQuery
+                            .builder()
+                            .status(status1)
+                            .status(status2)
+                            .build();
 
         webClient
                 .post()
                 .uri("/streaming-query")
                 .contentType(APPLICATION_PROTOBUF)
-                .bodyValue(queryMessageRequestMapper.messageToRequest(queryMessage))
+                .bodyValue(queryMessageRequestMapper.messageToRequest(
+                        new GenericStreamingQueryMessage<>(query, Showcase.class)))
                 .exchange()
                 .expectStatus()
                 .isOk()
@@ -204,8 +198,79 @@ class ShowcaseQueryControllerIT {
                 .isEqualTo(showcases.stream()
                                     .filter(showcase -> showcase.getStatus() == status1
                                                                 || showcase.getStatus() == status2)
-                                    .sorted(comparing(Showcase::getStartTime).reversed())
+                                    .sorted(comparing(Showcase::getShowcaseId).reversed())
                                     .toList());
+    }
+
+    @Test
+    void fetchAll_afterId_respondsWithSubsequentShowcasesSortedByShowcaseIdInReverseOrder() {
+        val showcases =
+                showcases()
+                        .stream()
+                        .sorted(Comparator.comparing(Showcase::getShowcaseId).reversed())
+                        .toList();
+        val afterIndex = RandomUtils.secure().randomInt(0, showcases.size());
+        val afterId = showcases.get(afterIndex).getShowcaseId();
+
+        openSearchTemplate.save(
+                showcases.stream()
+                         .map(showcaseMapper::dtoToEntity)
+                         .toList(),
+                showcaseIndexOperations.getIndexCoordinates());
+
+        showcaseIndexOperations.refresh();
+
+        val query = FetchShowcaseListQuery
+                            .builder()
+                            .afterId(afterId)
+                            .build();
+
+        webClient
+                .post()
+                .uri("/streaming-query")
+                .contentType(APPLICATION_PROTOBUF)
+                .bodyValue(queryMessageRequestMapper.messageToRequest(
+                        new GenericStreamingQueryMessage<>(query, Showcase.class)))
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBodyList(Showcase.class)
+                .isEqualTo(showcases.subList(afterIndex + 1, showcases.size()));
+    }
+
+    @Test
+    void fetchAll_size_respondsWithRequestedNumberOfShowcasesSortedByShowcaseIdInReverseOrder() {
+        val showcases =
+                showcases()
+                        .stream()
+                        .sorted(Comparator.comparing(Showcase::getShowcaseId).reversed())
+                        .toList();
+        val size = RandomUtils.secure().randomInt(1, showcases.size());
+
+        openSearchTemplate.save(
+                showcases.stream()
+                         .map(showcaseMapper::dtoToEntity)
+                         .toList(),
+                showcaseIndexOperations.getIndexCoordinates());
+
+        showcaseIndexOperations.refresh();
+
+        val query = FetchShowcaseListQuery
+                            .builder()
+                            .size(size)
+                            .build();
+
+        webClient
+                .post()
+                .uri("/streaming-query")
+                .contentType(APPLICATION_PROTOBUF)
+                .bodyValue(queryMessageRequestMapper.messageToRequest(
+                        new GenericStreamingQueryMessage<>(query, Showcase.class)))
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBodyList(Showcase.class)
+                .isEqualTo(showcases.subList(0, size));
     }
 
     @Test
@@ -218,19 +283,17 @@ class ShowcaseQueryControllerIT {
 
         showcaseIndexOperations.refresh();
 
-        val queryMessage =
-                new GenericStreamingQueryMessage<>(
-                        FetchShowcaseByIdQuery
-                                .builder()
-                                .showcaseId(showcase.getShowcaseId())
-                                .build(),
-                        Showcase.class);
+        val query = FetchShowcaseByIdQuery
+                            .builder()
+                            .showcaseId(showcase.getShowcaseId())
+                            .build();
 
         webClient
                 .post()
                 .uri("/query")
                 .contentType(APPLICATION_PROTOBUF)
-                .bodyValue(queryMessageRequestMapper.messageToRequest(queryMessage))
+                .bodyValue(queryMessageRequestMapper.messageToRequest(
+                        new GenericStreamingQueryMessage<>(query, Showcase.class)))
                 .exchange()
                 .expectStatus()
                 .isOk()
@@ -240,19 +303,17 @@ class ShowcaseQueryControllerIT {
 
     @Test
     void fetchById_nonExistingShowcase_respondsWithNotFoundProblem() {
-        val queryMessage =
-                new GenericStreamingQueryMessage<>(
-                        FetchShowcaseByIdQuery
-                                .builder()
-                                .showcaseId(aShowcaseId())
-                                .build(),
-                        Showcase.class);
+        val query = FetchShowcaseByIdQuery
+                            .builder()
+                            .showcaseId(aShowcaseId())
+                            .build();
 
         webClient
                 .post()
                 .uri("/query")
                 .contentType(APPLICATION_PROTOBUF)
-                .bodyValue(queryMessageRequestMapper.messageToRequest(queryMessage))
+                .bodyValue(queryMessageRequestMapper.messageToRequest(
+                        new GenericStreamingQueryMessage<>(query, Showcase.class)))
                 .exchange()
                 .expectStatus()
                 .isNotFound()

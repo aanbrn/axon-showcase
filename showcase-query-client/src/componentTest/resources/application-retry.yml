@@ -1,5 +1,9 @@
 resilience4j:
   enabled: true
+  timelimiter:
+    enabled: false
+  circuitbreaker:
+    enabled: false
   retry:
     instances:
       showcase-query-service:

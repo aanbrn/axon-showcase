@@ -1,0 +1,9 @@
+resilience4j:
+  enabled: true
+  circuitbreaker:
+    enabled: false
+  retry:
+    instances:
+      showcase-command-service:
+        max-attempts: 2
+        wait-duration: PT0.01S

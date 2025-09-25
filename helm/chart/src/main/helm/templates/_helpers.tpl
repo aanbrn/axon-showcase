@@ -25,8 +25,22 @@
     {{- $imageRoot.pullPolicy | default (eq $imageRoot.tag "latest" | ternary "Always" "IfNotPresent") }}
 {{- end }}
 
-{{- define "axon-showcase.observability.isEnabled" }}
-    {{- if or .Values.observability.logging.structured.enabled .Values.observability.metrics.prometheus.enabled .Values.observability.metrics.otlp.enabled .Values.observability.tracing.otlp.enabled }}
+{{- define "axon-showcase.observability.enabled" }}
+    {{- /* @formatter:off */}}
+    {{- if or
+           .Values.observability.logging.structured.enabled
+           .Values.observability.axon.tracing.logging.enabled
+           .Values.observability.prometheus.metrics.export.enabled
+           .Values.observability.otlp.metrics.export.enabled
+           .Values.observability.otlp.tracing.export.enabled
+    }}
+        {{- true }}
+    {{- end }}
+    {{- /* @formatter:on */}}
+{{- end }}
+
+{{- define "axon-showcase.observability.otlp.export.enabled" }}
+    {{- if or .Values.observability.otlp.metrics.export.enabled .Values.observability.otlp.tracing.export.enabled }}
         {{- true }}
     {{- end }}
 {{- end }}
@@ -41,48 +55,91 @@
   value: {{ .Values.observability.logging.structured.format | quote }}
         {{- /* @formatter:on */}}
     {{- end }}
-    {{- if .Values.observability.metrics.prometheus.enabled }}
+    {{- if .Values.observability.axon.tracing.logging.enabled }}
         {{- /* @formatter:off */}}
-- name: "METRICS_PROMETHEUS_ENABLED"
+- name: "AXON_TRACING_LOGGING_ENABLED"
   value: "true"
-        {{- /* @formatter:on */}}
-    {{- end }}
-    {{- with .Values.observability.metrics.tags.application }}
-        {{- if and .key .value }}
-            {{- /* @formatter:off */}}
-- name: "METRICS_TAG_APPLICATION_KEY"
-  value: {{ include "common.tplvalues.render" (dict "value" .key "context" $) | quote }}
-- name: "METRICS_TAG_APPLICATION_VALUE"
-  value: {{ include "common.tplvalues.render" (dict "value" .value "context" $) | quote }}
-            {{- /* @formatter:on */}}
-        {{- end }}
-    {{- end }}
-    {{- if .Values.observability.metrics.otlp.enabled }}
-        {{- if empty .Values.observability.metrics.otlp.endpoint }}
-            {{- fail "\".Values.observability.metrics.otlp.endpoint\" is required to enable metrics export" }}
-        {{- end }}
-        {{- /* @formatter:off */}}
-- name: "METRICS_OTLP_ENABLED"
-  value: "true"
-- name: "METRICS_OTLP_ENDPOINT"
-  value: {{ .Values.observability.metrics.otlp.endpoint | quote }}
-        {{- /* @formatter:on */}}
-    {{- end }}
-    {{- if .Values.observability.tracing.otlp.enabled }}
-        {{- if empty .Values.observability.tracing.otlp.endpoint }}
-            {{- fail "\".Values.observability.tracing.otlp.endpoint\" is required to enable tracing export" }}
-        {{- end }}
-        {{- /* @formatter:off */}}
-- name: "TRACING_OTLP_ENABLED"
-  value: "true"
-- name: "TRACING_OTLP_ENDPOINT"
-  value: {{ .Values.observability.tracing.otlp.endpoint | quote }}
         {{- /* @formatter:on */}}
     {{- end }}
     {{- /* @formatter:off */}}
-- name: "TRACING_LOGGING"
-  value: {{ .Values.observability.tracing.logging | quote }}
+- name: "MANAGEMENT_TRACING_SAMPLING_PROBABILITY"
+  value: {{ .Values.observability.tracing.sampling.probability | float64 | quote }}
     {{- /* @formatter:on */}}
+    {{- if .Values.observability.prometheus.metrics.export.enabled }}
+        {{- /* @formatter:off */}}
+- name: "MANAGEMENT_PROMETHEUS_METRICS_EXPORT_ENABLED"
+  value: "true"
+        {{- /* @formatter:on */}}
+    {{- end }}
+    {{- if .Values.observability.otlp.metrics.export.enabled }}
+        {{- if empty .Values.observability.otlp.metrics.export.endpoint }}
+            {{- fail "\".Values.observability.otlp.metrics.export.endpoint\" is required to enable export of metrics" }}
+        {{- end }}
+        {{- /* @formatter:off */}}
+        {{- if not (or (hasPrefix "http://" .Values.observability.otlp.metrics.export.endpoint)
+                       (hasPrefix "https://" .Values.observability.otlp.metrics.export.endpoint)) }}
+            {{- fail "\".Values.observability.otlp.metrics.export.endpoint\" must use protocol HTTP or HTTPS only" }}
+        {{- end }}
+        {{- /* @formatter:on */}}
+        {{- if not (hasSuffix ":4318" .Values.observability.otlp.metrics.export.endpoint) }}
+            {{- fail "\".Values.observability.otlp.metrics.export.endpoint\" must use port 4318 only" }}
+        {{- end }}
+        {{- /* @formatter:off */}}
+- name: "MANAGEMENT_OTLP_METRICS_EXPORT_ENABLED"
+  value: "true"
+        {{- /* @formatter:on */}}
+        {{- /* @formatter:off */}}
+- name: "MANAGEMENT_OTLP_EXPORT_METRICS_EXPORT_URL"
+  value: {{ print .Values.observability.otlp.metrics.export.endpoint "/v1/metrics" | quote }}
+        {{- /* @formatter:on */}}
+        {{- /* @formatter:off */}}
+- name: "MANAGEMENT_OTLP_EXPORT_METRICS_EXPORT_STEP"
+  value: {{ .Values.observability.otlp.metrics.export.step | quote }}
+        {{- /* @formatter:on */}}
+    {{- end }}
+    {{- if .Values.observability.otlp.tracing.export.enabled }}
+        {{- if empty .Values.observability.otlp.tracing.export.endpoint }}
+            {{- fail "\".Values.observability.tracing.export.endpoint\" is required to enable export of tracing" }}
+        {{- end }}
+        {{- /* @formatter:off */}}
+        {{- if not (or (hasPrefix "http://" .Values.observability.otlp.tracing.export.endpoint)
+                       (hasPrefix "https://" .Values.observability.otlp.tracing.export.endpoint)) }}
+            {{- fail "\".Values.observability.otlp.tracing.export.endpoint\" must use protocol HTTP or HTTPS only" }}
+        {{- end }}
+        {{- /* @formatter:on */}}
+        {{- /* @formatter:off */}}
+        {{- if not (or (hasSuffix ":4317" .Values.observability.otlp.tracing.export.endpoint)
+                       (hasSuffix ":4318" .Values.observability.otlp.tracing.export.endpoint)) }}
+            {{- fail "\".Values.observability.otlp.tracing.export.endpoint\" must use port 4317 or 4318 only" }}
+        {{- end }}
+        {{- /* @formatter:on */}}
+        {{- if empty .Values.observability.otlp.tracing.export.compression }}
+            {{- fail "\".Values.observability.tracing.export.compression\" is required to enable export of tracing" }}
+        {{- end }}
+        {{- /* @formatter:off */}}
+- name: "MANAGEMENT_OTLP_TRACING_EXPORT_ENABLED"
+  value: "true"
+        {{- /* @formatter:on */}}
+        {{- if hasSuffix ":4317" .Values.observability.otlp.tracing.export.endpoint }}
+            {{- /* @formatter:off */}}
+- name: "MANAGEMENT_OTLP_TRACING_ENDPOINT"
+  value: {{ .Values.observability.otlp.tracing.export.endpoint | quote }}
+- name: "MANAGEMENT_OTLP_TRACING_TRANSPORT"
+  value: "grpc"
+            {{- /* @formatter:on */}}
+        {{- else }}
+            {{- /* @formatter:off */}}
+- name: "MANAGEMENT_OTLP_TRACING_ENDPOINT"
+  value: {{ print .Values.observability.otlp.tracing.export.endpoint "/v1/traces" | quote }}
+- name: "MANAGEMENT_OTLP_TRACING_TRANSPORT"
+  value: "http"
+            {{- /* @formatter:on */}}
+        {{- end }}
+        {{- /* @formatter:off */}}
+- name: "MANAGEMENT_OTLP_TRACING_COMPRESSION"
+  value: {{ .Values.observability.otlp.tracing.export.compression | quote }}
+        {{- /* @formatter:on */}}
+    {{- end }}
 {{- end }}
 
 {{- define "axon-showcase.serviceAccountName" }}

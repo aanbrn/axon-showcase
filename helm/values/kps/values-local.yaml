@@ -22,6 +22,11 @@ kubernetesServiceMonitors:
 
 grafana:
   defaultDashboardsEnabled: false
+  additionalDataSources:
+    - name: Tempo
+      access: proxy
+      type: tempo
+      url: http://tempo:3200
   resources:
     requests:
       cpu: 250m

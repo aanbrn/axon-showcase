@@ -2,7 +2,6 @@ package showcase.command;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
-import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.commandhandling.CommandExecutionException;
@@ -17,7 +16,6 @@ class ShowcaseCommandClient implements ShowcaseCommandOperations {
     @NonNull
     private final ReactorCommandGateway commandGateway;
 
-    @TimeLimiter(name = SHOWCASE_COMMAND_SERVICE)
     @CircuitBreaker(name = SHOWCASE_COMMAND_SERVICE)
     @Retry(name = SHOWCASE_COMMAND_SERVICE)
     @Override
@@ -25,7 +23,6 @@ class ShowcaseCommandClient implements ShowcaseCommandOperations {
         return sendCommand(command);
     }
 
-    @TimeLimiter(name = SHOWCASE_COMMAND_SERVICE)
     @CircuitBreaker(name = SHOWCASE_COMMAND_SERVICE)
     @Retry(name = SHOWCASE_COMMAND_SERVICE)
     @Override
@@ -33,7 +30,6 @@ class ShowcaseCommandClient implements ShowcaseCommandOperations {
         return sendCommand(command);
     }
 
-    @TimeLimiter(name = SHOWCASE_COMMAND_SERVICE)
     @CircuitBreaker(name = SHOWCASE_COMMAND_SERVICE)
     @Retry(name = SHOWCASE_COMMAND_SERVICE)
     @Override
@@ -41,7 +37,6 @@ class ShowcaseCommandClient implements ShowcaseCommandOperations {
         return sendCommand(command);
     }
 
-    @TimeLimiter(name = SHOWCASE_COMMAND_SERVICE)
     @CircuitBreaker(name = SHOWCASE_COMMAND_SERVICE)
     @Retry(name = SHOWCASE_COMMAND_SERVICE)
     @Override
@@ -52,16 +47,13 @@ class ShowcaseCommandClient implements ShowcaseCommandOperations {
     private Mono<Void> sendCommand(@NonNull ShowcaseCommand command) {
         return commandGateway
                        .<Void>send(command)
-                       .onErrorMap(this::convertError);
-    }
-
-    private Throwable convertError(Throwable t) {
-        if (t instanceof CommandExecutionException e
-                    && e.getDetails().isPresent()
-                    && e.getDetails().get() instanceof ShowcaseCommandErrorDetails errorDetails) {
-            return new ShowcaseCommandException(errorDetails);
-        } else {
-            return t;
-        }
+                       .onErrorMap(CommandExecutionException.class, e -> {
+                           if (e.getDetails().isPresent()
+                                       && e.getDetails().get() instanceof ShowcaseCommandErrorDetails errorDetails) {
+                               return new ShowcaseCommandException(errorDetails);
+                           } else {
+                               return e;
+                           }
+                       });
     }
 }

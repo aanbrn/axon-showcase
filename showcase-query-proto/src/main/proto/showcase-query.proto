@@ -12,5 +12,5 @@ message QueryRequest {
   optional string payloadRevision = 4;
   bytes serializedPayload = 5;
   bytes serializedMetaData = 6;
-  string expectedResponseType = 7;
+  string responseType = 7;
 }

@@ -10,7 +10,7 @@ dependencies {
     api(libs.axon.messaging)
     api(libs.jakarta.validation.api)
 
-    implementation(libs.ulid4j)
+    implementation(libs.ksuid)
 
     testImplementation(project(":showcase-test"))
     testImplementation(libs.hibernate.validator)

@@ -13,7 +13,9 @@ spring:
     locale: en
   webflux:
     problemdetails:
-      enabled: on
+      enabled: true
+  reactor:
+    context-propagation: auto
   threads:
     virtual:
       enabled: true
@@ -24,6 +26,9 @@ axon:
   metrics:
     micrometer:
       dimensional: true
+  tracing:
+    repository:
+      aggregate-id-attribute-name: axon.aggregateId
 
 opensearch:
   uris: ${OS_URIS:http://localhost:9200}
@@ -41,12 +46,6 @@ showcase:
   query:
     index-initialization-enabled: ${INDEX_INITIALIZATION_ENABLED:true}
     exit-after-index-initialization: ${EXIT_AFTER_INDEX_INITIALIZATION:false}
-    metrics:
-      tags:
-        - key: ${METRICS_TAG_APPLICATION_KEY:application}
-          value: ${METRICS_TAG_APPLICATION_VALUE:axon-showcase}
-    tracing:
-      logging: ${TRACING_LOGGING:false}
 
 server:
   port: 8084
@@ -65,8 +64,6 @@ management:
       probes:
         enabled: on
         add-additional-paths: on
-    prometheus:
-      enabled: ${METRICS_PROMETHEUS_ENABLED:false}
   metrics:
     distribution:
       percentiles-histogram:
@@ -78,14 +75,16 @@ management:
       slo:
         http.server.requests: ${METRICS_SLO:100ms, 200ms, 300ms, 400ms, 500ms, 1s, 2s, 3s, 4s, 5s}
         http.client.requests: ${METRICS_SLO:100ms, 200ms, 300ms, 400ms, 500ms, 1s, 2s, 3s, 4s, 5s}
-    export:
-      prometheus:
-        enabled: ${METRICS_PROMETHEUS_ENABLED:false}
-  tracing:
-    sampling:
-      probability: 1.0
+    tags:
+      application: axon-showcase
+  prometheus:
+    metrics:
+      export:
+        enabled: false
   otlp:
+    metrics:
+      export:
+        enabled: false
     tracing:
       export:
-        enabled: ${TRACING_OTLP_ENABLED:false}
-      endpoint: ${TRACING_OTLP_ENDPOINT:}
+        enabled: false

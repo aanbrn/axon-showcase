@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
-import showcase.ULID;
+import showcase.KSUID;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -14,6 +14,6 @@ import showcase.ULID;
 public class FetchShowcaseByIdQuery {
 
     @NonNull
-    @ULID
+    @KSUID
     String showcaseId;
 }

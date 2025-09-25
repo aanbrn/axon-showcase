@@ -117,113 +117,159 @@ class ShowcaseQueryClientIT {
     }
 
     @Test
-    void fetchAll_noFiltering_emitsAllExistingShowcasesSortedByStartTime() {
-        await().untilAsserted(
-                () -> StepVerifier
-                              .create(showcaseQueryOperations.fetchAll(
-                                      FetchShowcaseListQuery
-                                              .builder()
-                                              .build()))
-                              .expectNextSequence(
-                                      showcases.stream()
-                                               .sorted(comparing(Showcase::getStartTime).reversed())
-                                               .toList())
-                              .expectComplete()
-                              .verify());
+    void fetchAll_noFiltering_succeedsWithAllExistingShowcasesSortedByStartTime() {
+        // given:
+        val query =
+                FetchShowcaseListQuery
+                        .builder()
+                        .build();
+
+        await().untilAsserted(() -> {
+            // when:
+            val fetchAllMono = showcaseQueryOperations.fetchAll(query);
+
+            // then:
+            StepVerifier
+                    .create(fetchAllMono)
+                    .expectNextSequence(
+                            showcases.stream()
+                                     .sorted(comparing(Showcase::getShowcaseId).reversed())
+                                     .toList())
+                    .expectComplete()
+                    .verify();
+        });
     }
 
     @Test
-    void fetchAll_titleToFilterBy_emitsFilteredShowcasesSortedByStartTime() {
+    void fetchAll_titleToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
+        // given:
         val showcase = anElementOf(showcases);
+        val query =
+                FetchShowcaseListQuery
+                        .builder()
+                        .title(showcase.getTitle())
+                        .build();
 
-        await().untilAsserted(
-                () -> StepVerifier
-                              .create(showcaseQueryOperations.fetchAll(
-                                      FetchShowcaseListQuery
-                                              .builder()
-                                              .title(showcase.getTitle())
-                                              .build()))
-                              .expectNext(showcase)
-                              .expectComplete()
-                              .verify());
+        await().untilAsserted(() -> {
+            // when:
+            val fetchAllMono = showcaseQueryOperations.fetchAll(query);
+
+            // then:
+            StepVerifier
+                    .create(fetchAllMono)
+                    .expectNext(showcase)
+                    .expectComplete()
+                    .verify();
+        });
     }
 
     @Test
-    void fetchAll_singleStatusToFilterBy_emitsFilteredShowcasesSortedByStartTime() {
+    void fetchAll_singleStatusToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
+        // given:
         val status = aShowcaseStatus();
+        val query =
+                FetchShowcaseListQuery
+                        .builder()
+                        .status(status)
+                        .build();
 
-        await().untilAsserted(
-                () -> StepVerifier
-                              .create(showcaseQueryOperations.fetchAll(
-                                      FetchShowcaseListQuery
-                                              .builder()
-                                              .status(status)
-                                              .build()))
-                              .expectNextSequence(
-                                      showcases.stream()
-                                               .filter(it -> it.getStatus() == status)
-                                               .sorted(comparing(Showcase::getStartTime).reversed())
-                                               .toList())
-                              .expectComplete()
-                              .verify());
+        await().untilAsserted(() -> {
+            // when:
+            val fetchAllMono = showcaseQueryOperations.fetchAll(query);
+
+            // then:
+            StepVerifier
+                    .create(fetchAllMono)
+                    .expectNextSequence(
+                            showcases.stream()
+                                     .filter(it -> it.getStatus() == status)
+                                     .sorted(comparing(Showcase::getShowcaseId).reversed())
+                                     .toList())
+                    .expectComplete()
+                    .verify();
+        });
     }
 
     @Test
-    void fetchAll_multipleStatusesToFilterBy_emitsFilteredShowcasesSortedByStartTime() {
+    void fetchAll_multipleStatusesToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
+        // given:
         val status1 = aShowcaseStatus();
         val status2 = aShowcaseStatus(status1);
+        val query =
+                FetchShowcaseListQuery
+                        .builder()
+                        .status(status1)
+                        .status(status2)
+                        .build();
 
-        await().untilAsserted(
-                () -> StepVerifier
-                              .create(showcaseQueryOperations.fetchAll(
-                                      FetchShowcaseListQuery
-                                              .builder()
-                                              .status(status1)
-                                              .status(status2)
-                                              .build()))
-                              .expectNextSequence(
-                                      showcases.stream()
-                                               .filter(showcase -> showcase.getStatus() == status1
-                                                                           || showcase.getStatus() == status2)
-                                               .sorted(comparing(Showcase::getStartTime).reversed())
-                                               .toList())
-                              .expectComplete()
-                              .verify());
+        await().untilAsserted(() -> {
+            // when:
+            val fetchAllMono = showcaseQueryOperations.fetchAll(query);
+
+            // then:
+            StepVerifier
+                    .create(fetchAllMono)
+                    .expectNextSequence(
+                            showcases.stream()
+                                     .filter(showcase -> showcase.getStatus() == status1 || showcase.getStatus() == status2)
+                                     .sorted(comparing(Showcase::getShowcaseId).reversed())
+                                     .toList())
+                    .expectComplete()
+                    .verify();
+        });
     }
 
     @Test
-    void fetchById_existingShowcase_emitsRequestedShowcase() {
+    void fetchById_existingShowcase_succeedWithRequestedShowcase() {
+        // given:
         val showcase = anElementOf(showcases);
+        val query =
+                FetchShowcaseByIdQuery
+                        .builder()
+                        .showcaseId(showcase.getShowcaseId())
+                        .build();
 
-        await().untilAsserted(
-                () -> StepVerifier
-                              .create(showcaseQueryOperations.fetchById(
-                                      FetchShowcaseByIdQuery
-                                              .builder()
-                                              .showcaseId(showcase.getShowcaseId())
-                                              .build()))
-                              .expectNext(showcase)
-                              .expectComplete()
-                              .verify());
+        await().untilAsserted(() -> {
+            // when:
+            val fetchByIdMono = showcaseQueryOperations.fetchById(query);
+
+            // then:
+            StepVerifier
+                    .create(fetchByIdMono)
+                    .expectNext(showcase)
+                    .expectComplete()
+                    .verify();
+        });
     }
 
     @Test
-    void fetchById_nonExistingShowcase_emitsErrorWithShowcaseQueryExceptionCausedByNotFoundError() {
+    void fetchById_nonExistingShowcase_failsWithNotFoundError() {
+        // given:
+        val query =
+                FetchShowcaseByIdQuery
+                        .builder()
+                        .showcaseId(aShowcaseId())
+                        .build();
+
+        // when:
+        val fetchByIdMono = showcaseQueryOperations.fetchById(query);
+
+        // then:
         StepVerifier
-                .create(showcaseQueryOperations.fetchById(
-                        FetchShowcaseByIdQuery
-                                .builder()
-                                .showcaseId(aShowcaseId())
-                                .build()))
+                .create(fetchByIdMono)
                 .expectErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseQueryException.class)
                                      .asInstanceOf(type(ShowcaseQueryException.class))
                                      .extracting(ShowcaseQueryException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseQueryErrorDetails.class))
-                                     .extracting(ShowcaseQueryErrorDetails::getErrorCode)
-                                     .asInstanceOf(type(ShowcaseQueryErrorCode.class))
-                                     .isEqualTo(ShowcaseQueryErrorCode.NOT_FOUND))
+                                     .satisfies(errorDetails -> {
+                                         assertThat(errorDetails.getErrorCode())
+                                                 .isEqualTo(ShowcaseQueryErrorCode.NOT_FOUND);
+                                         assertThat(errorDetails.getErrorMessage())
+                                                 .isEqualTo("No showcase with given ID");
+                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                     }))
                 .verify();
     }
 }

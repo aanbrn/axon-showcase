@@ -14,11 +14,10 @@ dependencies {
     implementation(project(":showcase-command-api"))
     implementation(project(":showcase-projection-model"))
 
-    implementation(libs.axon.springBootStarter) {
+    implementation(libs.axon.springBoot.starter) {
         exclude(group = libs.axon.serverConnector.get().group, module = libs.axon.serverConnector.get().name)
     }
     implementation(libs.axon.extensions.kafka.springBootStarter)
-    implementation(libs.axon.extensions.reactor.springBootStarter)
 
     implementation(libs.spring.boot.starter.webflux)
 
@@ -35,13 +34,20 @@ dependencies {
 
     implementation(libs.commons.lang3)
 
+    implementation(libs.resilience4j.springBoot3)
+
+    implementation(project(":showcase-resilience4j-extension"))
+
     implementation(libs.axon.micrometer)
     implementation(libs.axon.tracing.opentelemetry)
 
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.micrometer.registry.prometheus)
+    implementation(libs.micrometer.registry.otlp)
     implementation(libs.micrometer.tracing.bridge.otel)
     implementation(libs.opentelemetry.exporter.otlp)
+
+    implementation(project(":showcase-tracing-extension"))
 
     runtimeOnly(libs.netty.resolver.dnsNativeMacos)
 }
@@ -63,7 +69,6 @@ testing {
             dependencies {
                 implementation(libs.axon.extensions.kafka)
                 implementation(libs.axon.test)
-                implementation(libs.reactor.test)
                 implementation(libs.spring.boot.starter.test)
                 implementation(libs.spring.boot.testcontainers)
                 implementation(libs.spring.data.opensearch.testcontainers) {

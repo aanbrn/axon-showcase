@@ -2,7 +2,7 @@ package showcase;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import showcase.ULID.List;
+import showcase.KSUID.List;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Repeatable;
@@ -18,13 +18,13 @@ import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Documented
-@Constraint(validatedBy = UlidValidator.class)
+@Constraint(validatedBy = KsuidValidator.class)
 @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE })
 @Retention(RUNTIME)
 @Repeatable(List.class)
-public @interface ULID {
+public @interface KSUID {
 
-    String message() default "{showcase.ULID.message}";
+    String message() default "{showcase.KSUID.message}";
 
     Class<?>[] groups() default {};
 
@@ -34,6 +34,6 @@ public @interface ULID {
     @Retention(RUNTIME)
     @Documented
     @interface List {
-        ULID[] value();
+        KSUID[] value();
     }
 }

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 
 class ShowcaseRemovedEventTests {
@@ -27,13 +27,13 @@ class ShowcaseRemovedEventTests {
 
     @Test
     void construction_missingShowcaseId_throwsNullPointerException() {
-        assertThatCode(() -> ShowcaseRemovedEvent.builder().removedAt(Instant.now()).build())
+        assertThatThrownBy(() -> ShowcaseRemovedEvent.builder().removedAt(Instant.now()).build())
                 .isExactlyInstanceOf(NullPointerException.class);
     }
 
     @Test
     void construction_missingRemovedAt_throwsNullPointerException() {
-        assertThatCode(() -> ShowcaseRemovedEvent.builder().showcaseId(aShowcaseId()).build())
+        assertThatThrownBy(() -> ShowcaseRemovedEvent.builder().showcaseId(aShowcaseId()).build())
                 .isExactlyInstanceOf(NullPointerException.class);
     }
 }

@@ -1,19 +1,16 @@
 package showcase.api;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import io.github.resilience4j.bulkhead.BulkheadFullException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import one.util.streamex.StreamEx;
 import org.axonframework.common.AxonException;
 import org.axonframework.common.IdentifierFactory;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.MessageSource;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +40,6 @@ import showcase.command.ShowcaseCommandOperations;
 import showcase.command.StartShowcaseCommand;
 import showcase.query.FetchShowcaseByIdQuery;
 import showcase.query.FetchShowcaseListQuery;
-import showcase.query.PageRequest;
 import showcase.query.Showcase;
 import showcase.query.ShowcaseQueryException;
 import showcase.query.ShowcaseQueryOperations;
@@ -53,42 +49,32 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static java.util.Objects.requireNonNull;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
-import static showcase.api.ShowcaseApiConstants.FETCH_ALL_CACHE_NAME;
-import static showcase.api.ShowcaseApiConstants.FETCH_BY_ID_CACHE_NAME;
 
 @RestController
 @RequestMapping("/showcases")
+@RequiredArgsConstructor
 @Slf4j
 final class ShowcaseApiController implements ShowcaseApi {
 
+    @NonNull
     private final ShowcaseCommandOperations commandOperations;
 
+    @NonNull
     private final ShowcaseQueryOperations queryOperations;
 
-    private final Cache fetchAllCache;
+    @NonNull
+    private final Cache<@NonNull FetchShowcaseListQuery, List<Showcase>> fetchShowcaseListQueryCache;
 
-    private final Cache fetchByIdCache;
+    @NonNull
+    private final Cache<@NonNull String, Showcase> fetchShowcaseByIdQueryCache;
 
+    @NonNull
     private final MessageSource messageSource;
-
-    ShowcaseApiController(
-            @NonNull ShowcaseCommandOperations commandOperations,
-            @NonNull ShowcaseQueryOperations queryOperations,
-            @NonNull CacheManager cacheManager,
-            @NonNull MessageSource messageSource) {
-        this.commandOperations = commandOperations;
-        this.queryOperations = queryOperations;
-        this.fetchAllCache = requireNonNull(cacheManager.getCache(FETCH_ALL_CACHE_NAME),
-                                            () -> "Cache '%s' is missing".formatted(FETCH_ALL_CACHE_NAME));
-        this.fetchByIdCache = requireNonNull(cacheManager.getCache(FETCH_BY_ID_CACHE_NAME),
-                                             () -> "Cache '%s' is missing".formatted(FETCH_BY_ID_CACHE_NAME));
-        this.messageSource = messageSource;
-    }
 
     @PostMapping(consumes = APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<ScheduleShowcaseResponse>> schedule(@RequestBody ScheduleShowcaseRequest request) {
@@ -145,27 +131,29 @@ final class ShowcaseApiController implements ShowcaseApi {
     public Flux<Showcase> fetchAll(
             @RequestParam(required = false) String title,
             @RequestParam(name = "status", required = false) List<ShowcaseStatus> statuses,
-            @PageableDefault(
-                    size = PageRequest.DEFAULT_PAGE_SIZE,
-                    sort = "startTime",
-                    direction = Direction.DESC
-            ) Pageable pageable) {
-        val pageRequest = PageRequest.from(pageable);
+            @RequestParam(required = false) String afterId,
+            @RequestParam(required = false, defaultValue = "" + FetchShowcaseListQuery.DEFAULT_SIZE) int size) {
         val query =
                 FetchShowcaseListQuery
                         .builder()
                         .title(title)
                         .statuses(statuses)
-                        .pageRequest(pageRequest)
+                        .afterId(afterId)
+                        .size(size)
                         .build();
         return queryOperations
                        .fetchAll(query)
                        .collectList()
-                       .doOnNext(showcases -> fetchAllCache.put(query, showcases))
+                       .doOnNext(showcases -> {
+                           fetchShowcaseListQueryCache.put(query, showcases);
+                           fetchShowcaseByIdQueryCache.putAll(
+                                   StreamEx.of(showcases)
+                                           .mapToEntry(Showcase::getShowcaseId, Function.identity())
+                                           .toMap());
+                       })
                        .flatMapMany(Flux::fromIterable)
                        .onErrorResume(Predicate.not(ShowcaseQueryException.class::isInstance), t -> {
-                           @SuppressWarnings("unchecked")
-                           val showcases = (List<Showcase>) fetchAllCache.get(query, List.class);
+                           val showcases = fetchShowcaseListQueryCache.getIfPresent(query);
                            if (showcases != null) {
                                log.warn("Fallback on {}, cause: {}", query, t.getMessage());
                                return Flux.fromIterable(showcases);
@@ -185,9 +173,9 @@ final class ShowcaseApiController implements ShowcaseApi {
                         .build();
         return queryOperations
                        .fetchById(query)
-                       .doOnNext(showcase -> fetchByIdCache.put(query, showcase))
+                       .doOnNext(showcase -> fetchShowcaseByIdQueryCache.put(showcaseId, showcase))
                        .onErrorResume(Predicate.not(ShowcaseQueryException.class::isInstance), t -> {
-                           val showcase = fetchByIdCache.get(query, Showcase.class);
+                           val showcase = fetchShowcaseByIdQueryCache.getIfPresent(showcaseId);
                            if (showcase != null) {
                                log.warn("Fallback on {}, cause: {}", query, t.getMessage());
                                return Mono.just(showcase);

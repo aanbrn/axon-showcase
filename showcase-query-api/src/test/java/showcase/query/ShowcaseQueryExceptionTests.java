@@ -5,7 +5,7 @@ import org.axonframework.queryhandling.QueryExecutionException;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static showcase.query.RandomQueryTestUtils.aShowcaseQueryErrorDetails;
 
 class ShowcaseQueryExceptionTests {
@@ -23,7 +23,7 @@ class ShowcaseQueryExceptionTests {
     @Test
     @SuppressWarnings({ "DataFlowIssue", "ThrowableNotThrown" })
     void construction_nullErrorDetailsOnly_throwsNullPointerException() {
-        assertThatCode(() -> new ShowcaseQueryException(null)).isExactlyInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new ShowcaseQueryException(null)).isExactlyInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -40,7 +40,7 @@ class ShowcaseQueryExceptionTests {
     @Test
     @SuppressWarnings({ "DataFlowIssue", "ThrowableNotThrown" })
     void construction_nullErrorDetailsAndNonNullCause_throwsNullPointerException() {
-        assertThatCode(() -> new ShowcaseQueryException(null, new IllegalStateException()))
+        assertThatThrownBy(() -> new ShowcaseQueryException(null, new IllegalStateException()))
                 .isExactlyInstanceOf(NullPointerException.class);
     }
 

@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,11 +13,13 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Pageable;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import showcase.ULID;
+import showcase.KSUID;
+import showcase.query.FetchShowcaseListQuery;
 import showcase.query.Showcase;
 import showcase.query.ShowcaseStatus;
 
@@ -142,7 +143,7 @@ interface ShowcaseApi {
                     )
             }
     )
-    Mono<Void> start(@ULID String showcaseId);
+    Mono<Void> start(@KSUID String showcaseId);
 
     @Operation(
             description = "Finishes the started showcase explicitly before it's finished automatically at the end of " +
@@ -207,7 +208,7 @@ interface ShowcaseApi {
                     )
             }
     )
-    Mono<Void> finish(@ULID String showcaseId);
+    Mono<Void> finish(@KSUID String showcaseId);
 
     @Operation(
             description = "Removes the given showcase finishing it when it's already started.",
@@ -224,11 +225,11 @@ interface ShowcaseApi {
                     description = "The requested showcase has been removed successfully."
             )
     )
-    Mono<Void> remove(@ULID String showcaseId);
+    Mono<Void> remove(@KSUID String showcaseId);
 
     @Operation(
-            description = "Fetches the existing showcases ordering them by start time and optionally filtering by " +
-                                  "the given status(es).",
+            description = "Fetches the existing showcases sorting them by IDs in reverse order and optionally " +
+                                  "filtering by the given status(es).",
             method = "GET",
             parameters = {
                     @Parameter(
@@ -242,34 +243,30 @@ interface ShowcaseApi {
                             in = ParameterIn.QUERY
                     ),
                     @Parameter(
-                            name = "page",
-                            description = "The zero-based index of a page to be returned.",
+                            name = "afterId",
+                            description = "The ID of a showcase after which to fetch.",
                             in = ParameterIn.QUERY
                     ),
                     @Parameter(
                             name = "size",
-                            description = "The number of showcases per page.",
-                            in = ParameterIn.QUERY
-                    ),
-                    @Parameter(
-                            name = "sort",
-                            description = "The sorting criteria in format `property[,asc|desc][,ignorecase]`.",
+                            description = "The number of showcases to fetch.",
                             in = ParameterIn.QUERY
                     )
             },
             responses = @ApiResponse(
                     responseCode = "200",
-                    description = "The requested showcases.",
+                    description = "The requested amount of showcases.",
                     content = @Content(
                             mediaType = APPLICATION_JSON_VALUE,
-                            array = @ArraySchema(
-                                    schema = @Schema(implementation = Showcase.class),
-                                    minItems = 0
-                            )
+                            schema = @Schema(implementation = Showcase.class)
                     )
             )
     )
-    Flux<Showcase> fetchAll(String title, List<ShowcaseStatus> statuses, Pageable pageable);
+    Flux<Showcase> fetchAll(
+            String title,
+            List<ShowcaseStatus> statuses,
+            @KSUID String afterId,
+            @Min(FetchShowcaseListQuery.MIN_SIZE) @Max(FetchShowcaseListQuery.MAX_SIZE) int size);
 
     @Operation(
             description = "Fetches the showcase given by ID.",
@@ -307,5 +304,5 @@ interface ShowcaseApi {
                     )
             }
     )
-    Mono<Showcase> fetchById(@ULID String showcaseId);
+    Mono<Showcase> fetchById(@KSUID String showcaseId);
 }

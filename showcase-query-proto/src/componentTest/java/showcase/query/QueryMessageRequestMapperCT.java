@@ -4,8 +4,7 @@ import com.google.protobuf.ByteString;
 import lombok.val;
 import org.axonframework.common.IdentifierFactory;
 import org.axonframework.messaging.MetaData;
-import org.axonframework.messaging.responsetypes.ResponseTypes;
-import org.axonframework.queryhandling.GenericQueryMessage;
+import org.axonframework.queryhandling.GenericStreamingQueryMessage;
 import org.axonframework.serialization.Revision;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.serialization.json.JacksonSerializer;
@@ -31,23 +30,24 @@ class QueryMessageRequestMapperCT {
     private static class Response {
     }
 
-    static List<Arguments> payloadAndMetaData() {
+    static List<Arguments> payloadAndMetaDataAndResponseType() {
         return List.of(
                 argumentSet("Payload without Revision",
                             new Payload(anAlphabeticString(12)),
-                            MetaData.with(anAlphabeticString(12), anAlphabeticString(12))),
+                            MetaData.with(anAlphabeticString(12), anAlphabeticString(12)),
+                            Response.class),
                 argumentSet("Payload with Revision",
                             new PayloadWithRevision(anAlphabeticString(12)),
-                            MetaData.with(anAlphabeticString(12), anAlphabeticString(12))));
+                            MetaData.with(anAlphabeticString(12), anAlphabeticString(12)),
+                            Response.class));
     }
 
     private final Serializer messageSerializer = JacksonSerializer.defaultSerializer();
 
     @ParameterizedTest
-    @MethodSource("payloadAndMetaData")
-    void messageToRequest(Object payload, MetaData metaData) {
-        val message = new GenericQueryMessage<>(payload, ResponseTypes.instanceOf(Response.class))
-                              .withMetaData(metaData);
+    @MethodSource("payloadAndMetaDataAndResponseType")
+    void messageToRequest(Object payload, MetaData metaData, Class<?> responseType) {
+        val message = new GenericStreamingQueryMessage<>(payload, responseType).withMetaData(metaData);
 
         val serializedPayload = messageSerializer.serialize(message.getPayload(), byte[].class);
         val serializedMetaData = messageSerializer.serialize(message.getMetaData(), byte[].class);
@@ -65,12 +65,12 @@ class QueryMessageRequestMapperCT {
         }
         assertThat(queryRequest.getSerializedPayload()).isEqualTo(ByteString.copyFrom(serializedPayload.getData()));
         assertThat(queryRequest.getSerializedMetaData()).isEqualTo(ByteString.copyFrom(serializedMetaData.getData()));
-        assertThat(queryRequest.getExpectedResponseType()).isEqualTo(Response.class.getName());
+        assertThat(queryRequest.getResponseType()).isEqualTo(responseType.getName());
     }
 
     @ParameterizedTest
-    @MethodSource("payloadAndMetaData")
-    void requestToMessage(Object payload, MetaData metaData) throws Exception {
+    @MethodSource("payloadAndMetaDataAndResponseType")
+    void requestToMessage(Object payload, MetaData metaData, Class<?> responseType) throws Exception {
         val serializedPayload = messageSerializer.serialize(payload, byte[].class);
         val serializedMetaData = messageSerializer.serialize(metaData, byte[].class);
 
@@ -82,7 +82,7 @@ class QueryMessageRequestMapperCT {
                         .setPayloadType(serializedPayload.getType().getName())
                         .setSerializedPayload(ByteString.copyFrom(serializedPayload.getData()))
                         .setSerializedMetaData(ByteString.copyFrom(serializedMetaData.getData()))
-                        .setExpectedResponseType(Response.class.getName());
+                        .setResponseType(responseType.getName());
         if (serializedPayload.getType().getRevision() != null) {
             queryRequestBuilder.setPayloadRevision(serializedPayload.getType().getRevision());
         }
@@ -92,9 +92,8 @@ class QueryMessageRequestMapperCT {
         assertThat(queryMessage).isNotNull();
         assertThat(queryMessage.getQueryName()).isEqualTo(queryRequest.getQueryName());
         assertThat(queryMessage.getIdentifier()).isEqualTo(queryRequest.getQueryIdentifier());
-        assertThat(queryMessage.getPayloadType().getName()).isEqualTo(queryRequest.getPayloadType());
         assertThat(queryMessage.getPayload()).isEqualTo(payload);
         assertThat(queryMessage.getMetaData()).isEqualTo(metaData);
-        assertThat(queryMessage.getResponseType()).isEqualTo(ResponseTypes.instanceOf(Response.class));
+        assertThat(queryMessage.getResponseType().getExpectedResponseType()).isEqualTo(responseType);
     }
 }

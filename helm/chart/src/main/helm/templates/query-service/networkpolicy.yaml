@@ -66,6 +66,13 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: {{ include "common.names.namespace" $ | quote }}
+    {{- if (include "axon-showcase.observability.otlp.export.enabled" $) }}
+    - ports:
+        - port: 4317
+          protocol: TCP
+        - port: 4318
+          protocol: TCP
+    {{- end }}
     {{- if .Values.queryService.networkPolicy.extraEgress }}
     {{- include "common.tplvalues.render" (dict "value" .Values.queryService.networkPolicy.extraEgress "context" $) | nindent 4 }}
     {{- end }}

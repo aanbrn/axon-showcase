@@ -140,7 +140,101 @@ spec:
               value: {{ .Values.sagaService.kafka.fetcher.pollTimeout | int64 | toString | quote }}
             - name: "KAFKA_FETCHER_CONSUMER_COUNT"
               value: {{ .Values.sagaService.kafka.fetcher.consumerCount | int | toString | quote }}
-            {{- if (include "axon-showcase.observability.isEnabled" $) }}
+            - name: "RESILIENCE_ENABLED"
+              value: {{ .Values.sagaService.resilience.enabled | quote }}
+            - name: "CIRCUITBREAKER_ENABLED"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.enabled | quote }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.defaults.slidingWindowType }}
+            - name: "CIRCUITBREAKER_DEFAULT_SLIDING_WINDOW_TYPE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.defaults.slidingWindowType | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.defaults.slidingWindowSize }}
+            - name: "CIRCUITBREAKER_DEFAULT_SLIDING_WINDOW_SIZE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.defaults.slidingWindowSize | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.defaults.minimumNumberOfCalls }}
+            - name: "CIRCUITBREAKER_DEFAULT_MIN_REQUIRED_CALLS"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.defaults.minimumNumberOfCalls | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.defaults.failureRateThreshold }}
+            - name: "CIRCUITBREAKER_DEFAULT_FAILURE_RATE_THRESHOLD"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.defaults.failureRateThreshold | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.defaults.slowCallRateThreshold }}
+            - name: "CIRCUITBREAKER_DEFAULT_SLOW_CALL_RATE_THRESHOLD"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.defaults.slowCallRateThreshold | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.defaults.slowCallDurationThreshold }}
+            - name: "CIRCUITBREAKER_DEFAULT_SLOW_CALL_DURATION_THRESHOLD"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.defaults.slowCallDurationThreshold | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.defaults.waitDurationInOpenState }}
+            - name: "CIRCUITBREAKER_DEFAULT_WAIT_DURATION_IN_OPEN_STATE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.defaults.waitDurationInOpenState | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.defaults.exponentialBackoffMultiplier }}
+            - name: "CIRCUITBREAKER_DEFAULT_BACKOFF_MULTIPLIER_IN_OPEN_STATE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.defaults.exponentialBackoffMultiplier | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.defaults.exponentialMaxWaitDurationInOpenState }}
+            - name: "CIRCUITBREAKER_DEFAULT_MAX_WAIT_DURATION_IN_OPEN_STATE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.defaults.exponentialMaxWaitDurationInOpenState | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.defaults.permittedNumberOfCallsInHalfOpenState }}
+            - name: "CIRCUITBREAKER_DEFAULT_PERMITTED_CALLS_IN_HALF_OPEN_STATE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.defaults.permittedNumberOfCallsInHalfOpenState | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.defaults.maxWaitDurationInHalfOpenState }}
+            - name: "CIRCUITBREAKER_DEFAULT_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.defaults.maxWaitDurationInHalfOpenState | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.commandService.slidingWindowType }}
+            - name: "CIRCUITBREAKER_COMMAND_SLIDING_WINDOW_TYPE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.commandService.slidingWindowType | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.commandService.slidingWindowSize }}
+            - name: "CIRCUITBREAKER_COMMAND_SLIDING_WINDOW_SIZE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.commandService.slidingWindowSize | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.commandService.minimumNumberOfCalls }}
+            - name: "CIRCUITBREAKER_COMMAND_MIN_REQUIRED_CALLS"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.commandService.minimumNumberOfCalls | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.commandService.failureRateThreshold }}
+            - name: "CIRCUITBREAKER_COMMAND_FAILURE_RATE_THRESHOLD"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.commandService.failureRateThreshold | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.commandService.slowCallRateThreshold }}
+            - name: "CIRCUITBREAKER_COMMAND_SLOW_CALL_RATE_THRESHOLD"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.commandService.slowCallRateThreshold | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.commandService.slowCallDurationThreshold }}
+            - name: "CIRCUITBREAKER_COMMAND_SLOW_CALL_DURATION_THRESHOLD"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.commandService.slowCallDurationThreshold | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.commandService.waitDurationInOpenState }}
+            - name: "CIRCUITBREAKER_COMMAND_WAIT_DURATION_IN_OPEN_STATE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.commandService.waitDurationInOpenState | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.commandService.exponentialBackoffMultiplier }}
+            - name: "CIRCUITBREAKER_COMMAND_BACKOFF_MULTIPLIER_IN_OPEN_STATE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.commandService.exponentialBackoffMultiplier | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.commandService.exponentialMaxWaitDurationInOpenState }}
+            - name: "CIRCUITBREAKER_COMMAND_MAX_WAIT_DURATION_IN_OPEN_STATE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.commandService.exponentialMaxWaitDurationInOpenState | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.commandService.permittedNumberOfCallsInHalfOpenState }}
+            - name: "CIRCUITBREAKER_COMMAND_PERMITTED_CALLS_IN_HALF_OPEN_STATE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.commandService.permittedNumberOfCallsInHalfOpenState | quote }}
+            {{- end }}
+            {{- if .Values.sagaService.resilience.circuitbreaker.commandService.maxWaitDurationInHalfOpenState }}
+            - name: "CIRCUITBREAKER_COMMAND_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE"
+              value: {{ .Values.sagaService.resilience.circuitbreaker.commandService.maxWaitDurationInHalfOpenState | quote }}
+            {{- end }}
+            - name: "MANAGEMENT_METRICS_TAGS_APPLICATION"
+              value: {{ include "common.names.fullname" $ }}
+            {{- if (include "axon-showcase.observability.enabled" $) }}
             {{- include "axon-showcase.observability.renderEnvVars" $ | nindent 12 }}
             {{- end }}
             {{- if .Values.sagaService.extraEnvVars }}

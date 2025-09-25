@@ -5,8 +5,4 @@ spring:
     banner-mode: off
 
 resilience4j:
-  retry:
-    instances:
-      showcase-command-service:
-        max-attempts: 2
-        wait-duration: PT0.01S
+  enabled: false

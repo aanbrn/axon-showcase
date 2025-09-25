@@ -1,16 +1,21 @@
 package showcase;
 
+import com.github.ksuid.Ksuid;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import ulid4j.Ulid;
 
-public final class UlidValidator implements ConstraintValidator<ULID, String> {
+public final class KsuidValidator implements ConstraintValidator<KSUID, String> {
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
         if (value == null) {
             return true;
         }
-        return Ulid.isValid(value);
+        try {
+            Ksuid.fromString(value);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

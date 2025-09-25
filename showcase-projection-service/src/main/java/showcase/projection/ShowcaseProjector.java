@@ -1,6 +1,9 @@
 package showcase.projection;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.micrometer.core.instrument.Tags;
+import lombok.Builder;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -13,9 +16,14 @@ import org.axonframework.lifecycle.Phase;
 import org.axonframework.micrometer.GlobalMetricRegistry;
 import org.axonframework.monitoring.MessageMonitor;
 import org.axonframework.monitoring.MessageMonitor.MonitorCallback;
+import org.axonframework.tracing.Span;
+import org.axonframework.tracing.SpanFactory;
 import org.opensearch.client.opensearch._types.Result;
+import org.opensearch.client.opensearch.core.BulkRequest;
+import org.opensearch.client.opensearch.core.BulkResponse;
 import org.opensearch.client.opensearch.core.bulk.BulkOperation;
 import org.opensearch.data.client.osc.OpenSearchTemplate;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.stereotype.Component;
@@ -27,10 +35,12 @@ import showcase.command.ShowcaseStartedEvent;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import static org.axonframework.micrometer.TagsUtil.PAYLOAD_TYPE_TAG;
 
@@ -38,15 +48,31 @@ import static org.axonframework.micrometer.TagsUtil.PAYLOAD_TYPE_TAG;
 @Slf4j
 class ShowcaseProjector implements Lifecycle {
 
+    @Builder
+    private record ProjectionUnit(
+
+            @NonNull
+            ShowcaseEvent event,
+
+            @NonNull
+            MonitorCallback monitorCallback,
+
+            @NonNull
+            Span span
+    ) {
+    }
+
     private final SubscribableKafkaMessageSource<?, ?> messageSource;
-
-    private final MessageMonitor<? super EventMessage<?>> messageMonitor;
-
-    private final OpenSearchTemplate openSearchTemplate;
 
     private final ElasticsearchConverter elasticsearchConverter;
 
     private final IndexCoordinates showcaseIndex;
+
+    private final MessageMonitor<? super EventMessage<?>> messageMonitor;
+
+    private final SpanFactory spanFactory;
+
+    private final Function<BulkRequest, BulkResponse> executeBatchFunc;
 
     private final AtomicReference<Registration> eventSubscriptionRef = new AtomicReference<>();
 
@@ -54,9 +80,10 @@ class ShowcaseProjector implements Lifecycle {
             @NonNull SubscribableKafkaMessageSource<?, ?> messageSource,
             @NonNull OpenSearchTemplate openSearchTemplate,
             @NonNull ElasticsearchConverter elasticsearchConverter,
-            @NonNull GlobalMetricRegistry metricRegistry) {
+            @NonNull GlobalMetricRegistry metricRegistry,
+            @NonNull SpanFactory spanFactory,
+            @NonNull ObjectProvider<CircuitBreakerRegistry> circuitBreakerRegistryProvider) {
         this.messageSource = messageSource;
-        this.openSearchTemplate = openSearchTemplate;
         this.elasticsearchConverter = elasticsearchConverter;
         this.showcaseIndex = openSearchTemplate.getIndexCoordinatesFor(ShowcaseEntity.class);
         this.messageMonitor =
@@ -64,6 +91,15 @@ class ShowcaseProjector implements Lifecycle {
                         "showcaseProjector",
                         message -> Tags.of(PAYLOAD_TYPE_TAG, message.getPayloadType().getSimpleName()),
                         message -> Tags.empty());
+        this.spanFactory = spanFactory;
+
+        Function<BulkRequest, BulkResponse> executeBatchFunc =
+                request -> openSearchTemplate.execute(client -> client.bulk(request));
+        this.executeBatchFunc =
+                Optional.ofNullable(circuitBreakerRegistryProvider.getIfAvailable())
+                        .map(circuitBreakerRegistry -> circuitBreakerRegistry.circuitBreaker("opensearch"))
+                        .map(circuitBreaker -> CircuitBreaker.decorateFunction(circuitBreaker, executeBatchFunc))
+                        .orElse(executeBatchFunc);
     }
 
     @Override
@@ -103,29 +139,35 @@ class ShowcaseProjector implements Lifecycle {
     }
 
     private void process(List<? extends EventMessage<?>> eventMessages) {
-        val events = new ArrayList<ShowcaseEvent>(eventMessages.size());
-        val monitorCallbacks = new HashMap<String, MonitorCallback>(eventMessages.size());
+        val units = new LinkedHashMap<String, ProjectionUnit>(eventMessages.size());
         for (val eventMessage : eventMessages) {
             val monitorCallback = messageMonitor.onMessageIngested(eventMessage);
             if (eventMessage.getPayload() instanceof ShowcaseEvent event) {
-                events.add(event);
-                monitorCallbacks.put(event.getShowcaseId(), monitorCallback);
+                val span = spanFactory.createChildHandlerSpan(() -> "ShowcaseProjector.project", eventMessage)
+                                      .start();
+                units.put(event.getShowcaseId(),
+                          ProjectionUnit
+                                  .builder()
+                                  .event(event)
+                                  .monitorCallback(monitorCallback)
+                                  .span(span)
+                                  .build());
             } else {
                 log.warn("Skipping event message with payload type: {}", eventMessage.getPayloadType());
                 monitorCallback.reportIgnored();
             }
         }
-        if (events.isEmpty()) {
+        if (units.isEmpty()) {
             return;
         }
 
-        project(events, monitorCallbacks);
+        project(units);
     }
 
-    private void project(List<ShowcaseEvent> events, Map<String, MonitorCallback> monitorCallbacks) {
-        val operations = new ArrayList<BulkOperation>(events.size());
-        for (val event : events) {
-            operations.add(switch (event) {
+    private void project(Map<String, ProjectionUnit> units) {
+        val operations = new ArrayList<BulkOperation>(units.size());
+        for (val unit : units.values()) {
+            operations.add(switch (unit.event()) {
                 case ShowcaseScheduledEvent scheduledEvent -> BulkOperation.of(operation -> operation.create(
                         request -> request.id(scheduledEvent.getShowcaseId())
                                           .document(elasticsearchConverter.mapObject(
@@ -168,20 +210,44 @@ class ShowcaseProjector implements Lifecycle {
             });
         }
 
-        val response = openSearchTemplate.execute(client -> client.bulk(request -> request.operations(operations)));
+        val response = executeBatchFunc.apply(BulkRequest.of(request -> request.operations(operations)));
         for (val item : response.items()) {
-            val monitorCallback = monitorCallbacks.get(item.id());
-            if (item.error() == null) {
-                monitorCallback.reportSuccess();
+            val unit = units.get(item.id());
+            try (val ignored = unit.span().makeCurrent()) {
+                if (item.error() == null) {
+                    unit.monitorCallback().reportSuccess();
 
-                if (Result.NotFound.jsonValue().equals(item.result())) {
-                    log.warn("[{}] [{}] [{}]: document missing", item.operationType(), Result.NotFound.jsonValue(),
-                             item.id());
+                    if (Result.NotFound.jsonValue().equals(item.result())) {
+                        log.warn("On {}(showcaseId={}), [{}] [{}] [{}]: document missing",
+                                 unit.event().getClass().getSimpleName(),
+                                 unit.event().getShowcaseId(),
+                                 item.operationType(),
+                                 Result.NotFound.jsonValue(),
+                                 item.id());
+                    }
+                } else {
+                    val errorDescriptionBuilder = new StringBuilder();
+                    errorDescriptionBuilder.append("[");
+                    errorDescriptionBuilder.append(item.operationType());
+                    errorDescriptionBuilder.append("] [");
+                    errorDescriptionBuilder.append(item.error().type());
+                    errorDescriptionBuilder.append("]");
+                    if (item.error().reason() != null) {
+                        errorDescriptionBuilder.append(" ");
+                        errorDescriptionBuilder.append(item.error().reason());
+                    }
+                    val errorDescription = errorDescriptionBuilder.toString();
+                    val exception = new Exception(errorDescription);
+                    unit.monitorCallback().reportFailure(exception);
+                    unit.span().recordException(exception);
+
+                    log.error("On {}(showcaseId={}), {}",
+                              unit.event().getClass().getSimpleName(),
+                              unit.event().getShowcaseId(),
+                              errorDescription);
                 }
-            } else {
-                monitorCallback.reportFailure(null);
-
-                log.error("[{}] [{}] {}", item.operationType(), item.error().type(), item.error().reason());
+            } finally {
+                unit.span().end();
             }
         }
     }

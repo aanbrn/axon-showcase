@@ -33,6 +33,7 @@ dependencies {
         api(libs.log4j.toSlf4j)
         api(libs.logback.classic)
         api(libs.logback.core)
+        api(libs.lombok)
         api(libs.xstream)
         api(libs.guava)
         api(libs.hamcrest)

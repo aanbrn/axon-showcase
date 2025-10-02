@@ -15,6 +15,7 @@ spring:
       validation-timeout: ${DB_POOL_VALIDATION_TIMEOUT:5000}
       idle-timeout: ${DB_POOL_IDLE_TIMEOUT:600000}
       leak-detection-threshold: ${DB_POOL_LEAK_DETECTION_THRESHOLD:0}
+      initialization-fail-timeout: ${DB_POOL_INITIALIZATION_FAIL_TIMEOUT:30000}
   flyway:
     enabled: ${FLYWAY_MIGRATION_ENABLED:true}
     locations: classpath:db/migration/{vendor}
@@ -81,7 +82,7 @@ axon:
 db-scheduler:
   delay-startup-until-context-ready: true
   polling-interval: PT0.5S
-  polling-strategy: lock_and_fetch
+  polling-strategy: fetch
   polling-strategy-lower-limit-fraction-of-threads: 1.0
   polling-strategy-upper-limit-fraction-of-threads: 4.0
 
@@ -89,7 +90,7 @@ showcase:
   command:
     exit-after-flyway-migration: ${EXIT_AFTER_FLYWAY_MIGRATION:false}
     showcase-cache:
-      maximum-size: ${SHOWCASE_CACHE_MAX_SIZE:1000}
+      maximum-size: ${SHOWCASE_CACHE_MAX_SIZE:100000}
       expires-after-access: ${SHOWCASE_CACHE_EXPIRES_AFTER_ACCESS:PT10M}
       expires-after-write: ${SHOWCASE_CACHE_EXPIRES_AFTER_WRITE:PT5M}
 

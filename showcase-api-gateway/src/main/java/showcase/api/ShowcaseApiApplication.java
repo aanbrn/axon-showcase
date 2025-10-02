@@ -13,13 +13,9 @@ import org.axonframework.commandhandling.distributed.CommandRouter;
 import org.axonframework.commandhandling.distributed.ConsistentHashChangeListener;
 import org.axonframework.commandhandling.distributed.DistributedCommandBus;
 import org.axonframework.commandhandling.distributed.RoutingStrategy;
-import org.axonframework.commandhandling.gateway.ExponentialBackOffIntervalRetryScheduler;
-import org.axonframework.common.AxonThreadFactory;
 import org.axonframework.config.Configuration;
 import org.axonframework.extensions.jgroups.DistributedCommandBusProperties;
 import org.axonframework.extensions.jgroups.commandhandling.JGroupsConnectorFactoryBean;
-import org.axonframework.extensions.reactor.commandhandling.gateway.DefaultReactorCommandGateway;
-import org.axonframework.extensions.reactor.commandhandling.gateway.ReactorCommandGateway;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
 import org.axonframework.tracing.SpanFactory;
@@ -39,9 +35,7 @@ import showcase.query.FetchShowcaseListQuery;
 import showcase.query.Showcase;
 
 import java.util.List;
-import java.util.concurrent.Executors;
 
-import static java.lang.Runtime.getRuntime;
 import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME;
 import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME;
 
@@ -108,29 +102,12 @@ class ShowcaseApiApplication {
     }
 
     @Bean
-    public ReactorCommandGateway reactiveCommandGateway(CommandBus commandBus) {
-        return DefaultReactorCommandGateway
-                       .builder()
-                       .commandBus(commandBus)
-                       .retryScheduler(
-                               ExponentialBackOffIntervalRetryScheduler
-                                       .builder()
-                                       .maxRetryCount(1)
-                                       .backoffFactor(100)
-                                       .retryExecutor(Executors.newScheduledThreadPool(
-                                               getRuntime().availableProcessors(),
-                                               new AxonThreadFactory("RetryScheduler(CommandBus)")))
-                                       .build())
-                       .build();
-    }
-
-    @Bean
     Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
         return builder -> builder.modules(new BlackbirdModule());
     }
 
     @Bean
-    Cache<@NonNull FetchShowcaseListQuery, List<Showcase>> fetchShowcaseListCache(
+    Cache<@NonNull FetchShowcaseListQuery, @NonNull List<@NonNull String>> fetchShowcaseListCache(
             ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME);
         if (cacheSettings == null) {
@@ -146,7 +123,7 @@ class ShowcaseApiApplication {
     }
 
     @Bean
-    Cache<@NonNull String, Showcase> fetchShowcaseByIdCache(
+    Cache<@NonNull String, @NonNull Showcase> fetchShowcaseByIdCache(
             ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME);
         if (cacheSettings == null) {

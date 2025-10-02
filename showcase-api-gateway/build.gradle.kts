@@ -30,6 +30,8 @@ dependencies {
 
     implementation(libs.spring.data.commons)
 
+    implementation(libs.hibernate.validator)
+
     implementation(libs.jackson.module.blackbird)
 
     implementation(libs.caffeine)

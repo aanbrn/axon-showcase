@@ -16,7 +16,6 @@ import static org.hamcrest.Matchers.anEmptyMap;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -168,10 +167,12 @@ class ShowcaseAggregateCT {
 
     @Test
     void scheduleShowcase_reusedTitle_throwsShowcaseCommandExceptionWithTitleInUseError() {
-        doThrow(DuplicateTitleException.class).when(showcaseTitleReservation).save(any());
+        val command = aScheduleShowcaseCommand(fixture.currentTime());
+
+        doThrow(DuplicateTitleException.class).when(showcaseTitleReservation).save(command.getTitle());
 
         fixture.givenNoPriorActivity()
-               .when(aScheduleShowcaseCommand(fixture.currentTime()))
+               .when(command)
                .expectException(ShowcaseCommandException.class)
                .expectExceptionMessage("Given title is in use already")
                .expectExceptionDetails(

@@ -17,7 +17,7 @@ class ScheduleShowcaseResponse {
     @NotBlank
     @Schema(
             description = "The ID of the scheduled showcase.",
-            example = "32VvhbcQSY5G5w2BKohLdNGGey9"
+            example = "33gkCN0UNn3Kzr3x7iuDaVT6sZi"
     )
     String showcaseId;
 }

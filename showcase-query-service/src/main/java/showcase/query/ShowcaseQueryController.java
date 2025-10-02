@@ -1,9 +1,12 @@
 package showcase.query;
 
+import com.google.protobuf.TextFormat;
+import com.google.protobuf.TextFormat.Printer;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.lang3.function.Predicates;
 import org.axonframework.messaging.MetaData;
 import org.axonframework.queryhandling.QueryBus;
 import org.axonframework.queryhandling.QueryBusSpanFactory;
@@ -16,12 +19,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.channel.AbortedException;
 
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 
 import static org.springframework.http.MediaType.APPLICATION_PROTOBUF_VALUE;
 
@@ -39,14 +44,21 @@ final class ShowcaseQueryController {
     @NonNull
     private final QueryBusSpanFactory spanFactory;
 
+    private final Printer queryRequestPrinter = TextFormat.debugFormatPrinter().emittingSingleLine(true);
+
     @PostMapping(path = "/streaming-query", consumes = APPLICATION_PROTOBUF_VALUE)
     Flux<?> streamingQuery(@RequestBody QueryRequest queryRequest) {
-        return dispatchQuery(queryRequest);
+        return dispatchQuery(queryRequest)
+                       .checkpoint("ShowcaseQueryController.streamingQuery(%s)".formatted(
+                               queryRequestPrinter.printToString(queryRequest)));
     }
 
     @PostMapping(path = "/query", consumes = APPLICATION_PROTOBUF_VALUE)
     Mono<?> query(@RequestBody QueryRequest queryRequest) {
-        return dispatchQuery(queryRequest).next();
+        return dispatchQuery(queryRequest)
+                       .next()
+                       .checkpoint("ShowcaseQueryController.query(%s)".formatted(
+                               queryRequestPrinter.printToString(queryRequest)));
     }
 
     private Flux<?> dispatchQuery(QueryRequest queryRequest) {
@@ -80,22 +92,50 @@ final class ShowcaseQueryController {
     }
 
     @ExceptionHandler
-    private ProblemDetail handleException(Exception e) {
-        switch (findCause(e, DataAccessException.class)
-                        .or(() -> findCause(e, AbortedException.class))
-                        .or(() -> findCause(e, TimeoutException.class))
-                        .orElse(e)) {
-            case DataAccessException ex -> log.error("Data access failure", ex);
-            case AbortedException ex -> log.debug("Inbound connection aborted", ex);
-            case TimeoutException ex -> log.debug("Operation timeout exceeded", ex);
-            default -> log.error("Unknown error", e);
-        }
+    private ProblemDetail handleDataAccessException(DataAccessException e) {
+        log.error("Data access failure", e);
+
         return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    private Optional<Throwable> findCause(Throwable t, Class<? extends Throwable> causeType) {
+    @ExceptionHandler
+    private ProblemDetail handleTimeoutException(TimeoutException e) {
+        log.trace("Operation timeout exceeded", e);
+
+        return ProblemDetail.forStatusAndDetail(HttpStatus.GATEWAY_TIMEOUT, "Operation timeout exceeded");
+    }
+
+    @ExceptionHandler
+    private Mono<Void> handleAbortedException(AbortedException e, ServerWebExchange exchange) {
+        log.trace("Inbound connection aborted", e);
+
+        exchange.getResponse().setStatusCode(HttpStatus.REQUEST_TIMEOUT);
+        return exchange.getResponse().setComplete();
+    }
+
+    @ExceptionHandler
+    private Object handleException(Exception e, ServerWebExchange exchange) {
+        return switch (findCause(e, Predicates.<Throwable>truePredicate()
+                                              .or(ShowcaseQueryException.class::isInstance)
+                                              .or(DataAccessException.class::isInstance)
+                                              .or(TimeoutException.class::isInstance)
+                                              .or(AbortedException.class::isInstance))
+                               .orElse(e)) {
+            case ShowcaseQueryException ex -> handleShowcaseQueryException(ex);
+            case DataAccessException ex -> handleDataAccessException(ex);
+            case TimeoutException ex -> handleTimeoutException(ex);
+            case AbortedException ex -> handleAbortedException(ex, exchange);
+            default -> {
+                log.error("Unknown error", e);
+
+                yield ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+            }
+        };
+    }
+
+    private Optional<Throwable> findCause(Throwable t, Predicate<Throwable> predicate) {
         while (t != null) {
-            if (causeType.isInstance(t)) {
+            if (predicate.test(t)) {
                 return Optional.of(t);
             }
             t = t.getCause();

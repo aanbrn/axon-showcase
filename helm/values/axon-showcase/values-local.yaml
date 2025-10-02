@@ -4,11 +4,7 @@ commandService:
   podLabels:
     axon-showcase-db-events-client: "true"
     axon-showcase-kafka-client: "true"
-  autoscaling:
-    hpa:
-      enabled: true
-      minReplicas: 2
-      maxReplicas: 2
+  replicaCount: 2
   networkPolicy:
     ingressManagementNSMatchLabels:
       name: monitoring
@@ -55,11 +51,6 @@ apiGateway:
   ingress:
     enabled: true
     hostname: axon-showcase
-  autoscaling:
-    hpa:
-      enabled: true
-      minReplicas: 2
-      maxReplicas: 2
   networkPolicy:
     ingressManagementNSMatchLabels:
       name: monitoring

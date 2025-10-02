@@ -34,11 +34,11 @@ public class ShowcaseSaga {
     @DeadlineHandler(deadlineName = "startShowcase")
     void startShowcase(@NonNull String showcaseId, @NonNull CommandGateway commandGateway) {
         if (ObjectUtils.notEqual(showcaseStatus, ShowcaseStatus.SCHEDULED)) {
-            log.debug("On starting deadline, showcase has status {}, so skipping", showcaseStatus);
+            log.trace("On starting deadline, showcase has status {}, so skipping", showcaseStatus);
             return;
         }
 
-        log.debug("Starting showcase with ID {}...", showcaseId);
+        log.trace("Starting showcase with ID {}...", showcaseId);
 
         try {
             commandGateway.sendAndWait(
@@ -47,7 +47,7 @@ public class ShowcaseSaga {
                             .showcaseId(showcaseId)
                             .build());
 
-            log.debug("Started showcase with ID {}", showcaseId);
+            log.trace("Started showcase with ID {}", showcaseId);
         } catch (CommandExecutionException e) {
             val errorDetails = e.getDetails();
             if (errorDetails.isPresent()) {
@@ -66,18 +66,17 @@ public class ShowcaseSaga {
 
         deadlineManager.schedule(finishTime, "finishShowcase", event.getShowcaseId());
 
-        log.debug("Scheduled deadline to finish showcase with ID {} at {}", event.getShowcaseId(), finishTime);
+        log.trace("Scheduled deadline to finish showcase with ID {} at {}", event.getShowcaseId(), finishTime);
     }
 
-    @EndSaga
     @DeadlineHandler(deadlineName = "finishShowcase")
     void finishShowcase(@NonNull String showcaseId, @NonNull CommandGateway commandGateway) {
         if (ObjectUtils.notEqual(showcaseStatus, ShowcaseStatus.STARTED)) {
-            log.debug("On finishing deadline, showcase has status {}, so skipping", showcaseStatus);
+            log.trace("On finishing deadline, showcase has status {}, so skipping", showcaseStatus);
             return;
         }
 
-        log.debug("Finishing showcase with ID {}...", showcaseId);
+        log.trace("Finishing showcase with ID {}...", showcaseId);
 
         try {
             commandGateway.sendAndWait(
@@ -86,7 +85,7 @@ public class ShowcaseSaga {
                             .showcaseId(showcaseId)
                             .build());
 
-            log.debug("Finished showcase with ID {}", showcaseId);
+            log.trace("Finished showcase with ID {}", showcaseId);
         } catch (CommandExecutionException e) {
             val errorDetails = e.getDetails();
             if (errorDetails.isPresent()) {

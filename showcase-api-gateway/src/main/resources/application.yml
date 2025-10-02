@@ -45,13 +45,13 @@ showcase:
   api:
     caches:
       FetchShowcaseListQuery:
-        maximum-size: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_MAX_SIZE:1000}
-        expires-after-access: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_ACCESS:PT10M}
-        expires-after-write: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_WRITE:PT5M}
+        maximum-size: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_MAX_SIZE:10_000}
+        expires-after-access: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_ACCESS:PT24H}
+        expires-after-write: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_WRITE:PT24H}
       FetchShowcaseByIdQuery:
-        maximum-size: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_MAX_SIZE:1000}
-        expires-after-access: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_ACCESS:PT10M}
-        expires-after-write: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_WRITE:PT5M}
+        maximum-size: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_MAX_SIZE:1_000_000}
+        expires-after-access: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_ACCESS:PT24H}
+        expires-after-write: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_WRITE:PT24H}
   query:
     api-url: ${SHOWCASE_QUERY_SERVICE_URL:http://localhost:8084}
 

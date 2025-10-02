@@ -50,26 +50,28 @@ class ShowcaseQueryClient implements ShowcaseQueryOperations {
 
     @Override
     public Flux<Showcase> fetchList(@NonNull FetchShowcaseListQuery query) {
-        return createQueryMessage(query, Showcase.class).flatMapMany(
-                queryMessage -> webClient.post()
-                                         .uri("/streaming-query")
-                                         .contentType(APPLICATION_PROTOBUF)
-                                         .bodyValue(queryMessageRequestMapper.messageToRequest(queryMessage))
-                                         .retrieve()
-                                         .onStatus(HttpStatusCode::isError, this::handleError)
-                                         .bodyToFlux(Showcase.class));
+        return createQueryMessage(query, Showcase.class)
+                       .flatMapMany(queryMessage -> Flux.defer(
+                               () -> webClient.post()
+                                              .uri("/streaming-query")
+                                              .contentType(APPLICATION_PROTOBUF)
+                                              .bodyValue(queryMessageRequestMapper.messageToRequest(queryMessage))
+                                              .retrieve()
+                                              .onStatus(HttpStatusCode::isError, this::handleError)
+                                              .bodyToFlux(Showcase.class)));
     }
 
     @Override
     public Mono<Showcase> fetchById(@NonNull FetchShowcaseByIdQuery query) {
-        return createQueryMessage(query, Showcase.class).flatMap(
-                message -> webClient.post()
-                                    .uri("/query")
-                                    .contentType(APPLICATION_PROTOBUF)
-                                    .bodyValue(queryMessageRequestMapper.messageToRequest(message))
-                                    .retrieve()
-                                    .onStatus(HttpStatusCode::isError, this::handleError)
-                                    .bodyToMono(Showcase.class));
+        return createQueryMessage(query, Showcase.class)
+                       .flatMap(queryMessage -> Mono.defer(
+                               () -> webClient.post()
+                                              .uri("/query")
+                                              .contentType(APPLICATION_PROTOBUF)
+                                              .bodyValue(queryMessageRequestMapper.messageToRequest(queryMessage))
+                                              .retrieve()
+                                              .onStatus(HttpStatusCode::isError, this::handleError)
+                                              .bodyToMono(Showcase.class)));
     }
 
     @SuppressWarnings("SameParameterValue")

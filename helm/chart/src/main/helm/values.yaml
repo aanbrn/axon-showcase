@@ -644,13 +644,13 @@ apiGateway:
 
   caches:
     FetchShowcaseListQuery:
-      maxSize: 1000
-      expiresAfterAccess: PT10M
-      expiresAfterWrite: PT5M
+      maxSize: 10_000
+      expiresAfterAccess: PT24H
+      expiresAfterWrite: PT24H
     FetchShowcaseByIdQuery:
-      maxSize: 1000
-      expiresAfterAccess: PT10M
-      expiresAfterWrite: PT5M
+      maxSize: 1_000_000
+      expiresAfterAccess: PT24H
+      expiresAfterWrite: PT24H
 
   extraEnvVars:
     JAVA_OPTS: "-XX:MaxDirectMemorySize=128M -XX:MaxGCPauseMillis=20"

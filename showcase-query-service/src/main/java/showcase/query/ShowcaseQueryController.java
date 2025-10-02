@@ -66,9 +66,9 @@ final class ShowcaseQueryController {
     }
 
     @ExceptionHandler
-    private ProblemDetail handleShowcaseQueryException(ShowcaseQueryException e) {
+    private Mono<ProblemDetail> handleShowcaseQueryException(ShowcaseQueryException e) {
         val errorDetails = e.getErrorDetails();
-        return switch (errorDetails.getErrorCode()) {
+        return Mono.just(switch (errorDetails.getErrorCode()) {
             case INVALID_QUERY -> {
                 val problemDetail = ProblemDetail.forStatusAndDetail(
                         HttpStatus.BAD_REQUEST, errorDetails.getErrorMessage());
@@ -76,21 +76,21 @@ final class ShowcaseQueryController {
                 yield problemDetail;
             }
             case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.getErrorMessage());
-        };
+        });
     }
 
     @ExceptionHandler
-    private ProblemDetail handleException(Exception e) {
+    private Mono<ProblemDetail> handleException(Exception e) {
         switch (findCause(e, DataAccessException.class)
-                        .or(() -> findCause(e, AbortedException.class))
                         .or(() -> findCause(e, TimeoutException.class))
+                        .or(() -> findCause(e, AbortedException.class))
                         .orElse(e)) {
             case DataAccessException ex -> log.error("Data access failure", ex);
-            case AbortedException ex -> log.debug("Inbound connection aborted", ex);
             case TimeoutException ex -> log.debug("Operation timeout exceeded", ex);
+            case AbortedException ex -> log.debug("Inbound connection aborted", ex);
             default -> log.error("Unknown error", e);
         }
-        return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+        return Mono.just(ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE));
     }
 
     private Optional<Throwable> findCause(Throwable t, Class<? extends Throwable> causeType) {

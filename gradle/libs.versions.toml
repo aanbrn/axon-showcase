@@ -129,6 +129,7 @@ mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mo
 mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter" }
 reactor-bom = { group = "io.projectreactor", name = "reactor-bom", version.ref = "reactor-bom" }
 reactor-core = { group = "io.projectreactor", name = "reactor-core" }
+reactor-core-micrometer = { group = "io.projectreactor", name = "reactor-core-micrometer" }
 reactor-test = { group = "io.projectreactor", name = "reactor-test" }
 netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty" }
 wiremock-springBoot = { group = "org.wiremock.integrations", name = "wiremock-spring-boot", version.ref = "wiremock-spring-boot" }

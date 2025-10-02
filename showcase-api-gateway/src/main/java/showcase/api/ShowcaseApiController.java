@@ -1,7 +1,6 @@
 package showcase.api;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import io.github.resilience4j.bulkhead.BulkheadFullException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -155,7 +154,11 @@ final class ShowcaseApiController implements ShowcaseApi {
                        .onErrorResume(Predicate.not(ShowcaseQueryException.class::isInstance), t -> {
                            val showcases = fetchShowcaseListCache.getIfPresent(query);
                            if (showcases != null) {
-                               log.warn("Fallback on {}, cause: {}", query, t.getMessage());
+                               if (t.getMessage() != null) {
+                                   log.warn("Fallback on {}, cause: {}", query, t.getMessage());
+                               } else {
+                                   log.warn("Fallback on {}", query, t);
+                               }
                                return Flux.fromIterable(showcases);
                            } else {
                                return Flux.error(t);
@@ -177,7 +180,11 @@ final class ShowcaseApiController implements ShowcaseApi {
                        .onErrorResume(Predicate.not(ShowcaseQueryException.class::isInstance), t -> {
                            val showcase = fetchShowcaseByIdCache.getIfPresent(showcaseId);
                            if (showcase != null) {
-                               log.warn("Fallback on {}, cause: {}", query, t.getMessage());
+                               if (t.getMessage() != null) {
+                                   log.warn("Fallback on {}, cause: {}", query, t.getMessage());
+                               } else {
+                                   log.warn("Fallback on {}", query, t);
+                               }
                                return Mono.just(showcase);
                            } else {
                                return Mono.error(t);
@@ -237,7 +244,7 @@ final class ShowcaseApiController implements ShowcaseApi {
     }
 
     @ExceptionHandler
-    private ProblemDetail handleWebExchangeBindException(WebExchangeBindException e, Locale locale) {
+    private Mono<ProblemDetail> handleWebExchangeBindException(WebExchangeBindException e, Locale locale) {
         val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request content.");
         if (e.getFieldErrorCount() > 0) {
             val resolvedLocale = Optional.ofNullable(locale).orElse(Locale.ENGLISH);
@@ -250,26 +257,40 @@ final class ShowcaseApiController implements ShowcaseApi {
                             .toMap();
             problemDetail.setProperty("fieldErrors", fieldErrors);
         }
-        return problemDetail;
+        return Mono.just(problemDetail);
     }
 
     @ExceptionHandler
-    private ProblemDetail handleErrorResponseException(ErrorResponseException e, Locale locale) {
+    private Mono<ProblemDetail> handleErrorResponseException(ErrorResponseException e, Locale locale) {
         val resolvedLocale = Optional.ofNullable(locale).orElse(Locale.ENGLISH);
-        return e.updateAndGetBody(messageSource, resolvedLocale);
+        return Mono.just(e.updateAndGetBody(messageSource, resolvedLocale));
     }
 
     @ExceptionHandler
-    private ProblemDetail handleException(Exception e) {
-        switch (e) {
+    private Mono<ProblemDetail> handleException(Exception e) {
+        switch (findCause(e, AxonException.class)
+                        .or(() -> findCause(e, WebClientException.class))
+                        .or(() -> findCause(e, CallNotPermittedException.class))
+                        .or(() -> findCause(e, TimeoutException.class))
+                        .or(() -> findCause(e, AbortedException.class))
+                        .orElse(e)) {
             case AxonException ex -> log.error("AxonFramework failure", ex);
             case WebClientException ex -> log.error("WebClient failure", ex);
-            case BulkheadFullException ex -> log.error(ex.getMessage());
-            case TimeoutException ex -> log.error(ex.getMessage());
             case CallNotPermittedException ex -> log.error(ex.getMessage());
+            case TimeoutException ex -> log.error("Operation timeout exceeded", ex);
             case AbortedException ex -> log.debug("Inbound connection aborted", ex);
             default -> log.error("Unknown error", e);
         }
-        return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+        return Mono.just(ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE));
+    }
+
+    private Optional<Throwable> findCause(Throwable t, Class<? extends Throwable> causeType) {
+        while (t != null) {
+            if (causeType.isInstance(t)) {
+                return Optional.of(t);
+            }
+            t = t.getCause();
+        }
+        return Optional.empty();
     }
 }

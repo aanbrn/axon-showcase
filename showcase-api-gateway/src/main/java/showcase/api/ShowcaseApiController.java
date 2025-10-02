@@ -68,10 +68,10 @@ final class ShowcaseApiController implements ShowcaseApi {
     private final ShowcaseQueryOperations queryOperations;
 
     @NonNull
-    private final Cache<@NonNull FetchShowcaseListQuery, List<Showcase>> fetchShowcaseListQueryCache;
+    private final Cache<@NonNull FetchShowcaseListQuery, List<Showcase>> fetchShowcaseListCache;
 
     @NonNull
-    private final Cache<@NonNull String, Showcase> fetchShowcaseByIdQueryCache;
+    private final Cache<@NonNull String, Showcase> fetchShowcaseByIdCache;
 
     @NonNull
     private final MessageSource messageSource;
@@ -128,7 +128,7 @@ final class ShowcaseApiController implements ShowcaseApi {
 
     @GetMapping
     @SuppressWarnings("LoggingSimilarMessage")
-    public Flux<Showcase> fetchAll(
+    public Flux<Showcase> fetchList(
             @RequestParam(required = false) String title,
             @RequestParam(name = "status", required = false) List<ShowcaseStatus> statuses,
             @RequestParam(required = false) String afterId,
@@ -142,18 +142,18 @@ final class ShowcaseApiController implements ShowcaseApi {
                         .size(size)
                         .build();
         return queryOperations
-                       .fetchAll(query)
+                       .fetchList(query)
                        .collectList()
                        .doOnNext(showcases -> {
-                           fetchShowcaseListQueryCache.put(query, showcases);
-                           fetchShowcaseByIdQueryCache.putAll(
+                           fetchShowcaseListCache.put(query, showcases);
+                           fetchShowcaseByIdCache.putAll(
                                    StreamEx.of(showcases)
                                            .mapToEntry(Showcase::getShowcaseId, Function.identity())
                                            .toMap());
                        })
                        .flatMapMany(Flux::fromIterable)
                        .onErrorResume(Predicate.not(ShowcaseQueryException.class::isInstance), t -> {
-                           val showcases = fetchShowcaseListQueryCache.getIfPresent(query);
+                           val showcases = fetchShowcaseListCache.getIfPresent(query);
                            if (showcases != null) {
                                log.warn("Fallback on {}, cause: {}", query, t.getMessage());
                                return Flux.fromIterable(showcases);
@@ -173,9 +173,9 @@ final class ShowcaseApiController implements ShowcaseApi {
                         .build();
         return queryOperations
                        .fetchById(query)
-                       .doOnNext(showcase -> fetchShowcaseByIdQueryCache.put(showcaseId, showcase))
+                       .doOnNext(showcase -> fetchShowcaseByIdCache.put(showcaseId, showcase))
                        .onErrorResume(Predicate.not(ShowcaseQueryException.class::isInstance), t -> {
-                           val showcase = fetchShowcaseByIdQueryCache.getIfPresent(showcaseId);
+                           val showcase = fetchShowcaseByIdCache.getIfPresent(showcaseId);
                            if (showcase != null) {
                                log.warn("Fallback on {}, cause: {}", query, t.getMessage());
                                return Mono.just(showcase);
@@ -203,7 +203,7 @@ final class ShowcaseApiController implements ShowcaseApi {
     }
 
     @ExceptionHandler
-    private ResponseEntity<ProblemDetail> handleShowcaseQueryException(ShowcaseQueryException e) {
+    private ProblemDetail handleShowcaseQueryException(ShowcaseQueryException e) {
         val errorDetails = e.getErrorDetails();
         val problemDetail = switch (errorDetails.getErrorCode()) {
             case INVALID_QUERY -> {
@@ -214,11 +214,11 @@ final class ShowcaseApiController implements ShowcaseApi {
             case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.getErrorMessage());
         };
         problemDetail.setProperty("code", errorDetails.getErrorCode());
-        return ResponseEntity.of(problemDetail).build();
+        return problemDetail;
     }
 
     @ExceptionHandler
-    private ResponseEntity<ProblemDetail> handleHandlerMethodValidationException(
+    private ProblemDetail handleHandlerMethodValidationException(
             HandlerMethodValidationException e, Locale locale) {
         val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request parameter.");
         val parameterValidationResults = e.getParameterValidationResults();
@@ -233,11 +233,11 @@ final class ShowcaseApiController implements ShowcaseApi {
                             .toMap();
             problemDetail.setProperty("parameterErrors", parameterErrors);
         }
-        return ResponseEntity.of(problemDetail).build();
+        return problemDetail;
     }
 
     @ExceptionHandler
-    private ResponseEntity<ProblemDetail> handleWebExchangeBindException(WebExchangeBindException e, Locale locale) {
+    private ProblemDetail handleWebExchangeBindException(WebExchangeBindException e, Locale locale) {
         val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request content.");
         if (e.getFieldErrorCount() > 0) {
             val resolvedLocale = Optional.ofNullable(locale).orElse(Locale.ENGLISH);
@@ -250,18 +250,17 @@ final class ShowcaseApiController implements ShowcaseApi {
                             .toMap();
             problemDetail.setProperty("fieldErrors", fieldErrors);
         }
-        return ResponseEntity.of(problemDetail).build();
+        return problemDetail;
     }
 
     @ExceptionHandler
-    private ResponseEntity<ProblemDetail> handleErrorResponseException(ErrorResponseException e, Locale locale) {
+    private ProblemDetail handleErrorResponseException(ErrorResponseException e, Locale locale) {
         val resolvedLocale = Optional.ofNullable(locale).orElse(Locale.ENGLISH);
-        val problemDetail = e.updateAndGetBody(messageSource, resolvedLocale);
-        return ResponseEntity.of(problemDetail).build();
+        return e.updateAndGetBody(messageSource, resolvedLocale);
     }
 
     @ExceptionHandler
-    private ResponseEntity<ProblemDetail> handleException(Exception e) {
+    private ProblemDetail handleException(Exception e) {
         switch (e) {
             case AxonException ex -> log.error("AxonFramework failure", ex);
             case WebClientException ex -> log.error("WebClient failure", ex);
@@ -271,7 +270,6 @@ final class ShowcaseApiController implements ShowcaseApi {
             case AbortedException ex -> log.debug("Inbound connection aborted", ex);
             default -> log.error("Unknown error", e);
         }
-        return ResponseEntity.of(ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE))
-                             .build();
+        return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
     }
 }

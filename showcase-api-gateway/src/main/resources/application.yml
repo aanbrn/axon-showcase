@@ -20,7 +20,7 @@ axon:
   serializer:
     messages: jackson
   distributed:
-    enabled: on
+    enabled: true
     jgroups:
       configuration-file: ${JGROUPS_CONFIG_FILE:tcp-nio.xml}
       cluster-name: ${JGROUPS_CLUSTER_NAME:axon-showcase}
@@ -114,7 +114,7 @@ resilience4j:
     enabled: ${RETRY_ENABLED:true}
     configs:
       default:
-        max-attempts: ${RETRY_DEFAULT_MAX_ATTEMPTS:2}
+        max-attempts: ${RETRY_DEFAULT_MAX_ATTEMPTS:3}
         wait-duration: ${RETRY_DEFAULT_WAIT_DURATION:PT0.5S}
         enable-exponential-backoff: true
         enable-randomized-wait: true
@@ -155,8 +155,8 @@ management:
     health:
       show-details: always
       probes:
-        enabled: on
-        add-additional-paths: on
+        enabled: true
+        add-additional-paths: true
   metrics:
     distribution:
       percentiles-histogram:

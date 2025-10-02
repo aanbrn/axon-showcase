@@ -13,6 +13,7 @@ import org.axonframework.commandhandling.distributed.DistributedCommandBus;
 import org.axonframework.commandhandling.distributed.RoutingStrategy;
 import org.axonframework.common.caching.Cache;
 import org.axonframework.common.caching.JCacheAdapter;
+import org.axonframework.common.jdbc.ConnectionProvider;
 import org.axonframework.common.jdbc.PersistenceExceptionResolver;
 import org.axonframework.common.transaction.TransactionManager;
 import org.axonframework.config.Configuration;
@@ -26,6 +27,11 @@ import org.axonframework.extensions.jgroups.DistributedCommandBusProperties;
 import org.axonframework.extensions.jgroups.commandhandling.JGroupsConnectorFactoryBean;
 import org.axonframework.messaging.annotation.HandlerDefinition;
 import org.axonframework.messaging.annotation.ParameterResolverFactory;
+import org.axonframework.modelling.saga.repository.CachingSagaStore;
+import org.axonframework.modelling.saga.repository.SagaStore;
+import org.axonframework.modelling.saga.repository.jdbc.JdbcSagaStore;
+import org.axonframework.modelling.saga.repository.jdbc.PostgresSagaSqlSchema;
+import org.axonframework.modelling.saga.repository.jdbc.SagaSqlSchema;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.spring.eventsourcing.SpringAggregateSnapshotter;
 import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
@@ -48,6 +54,8 @@ import javax.cache.CacheManager;
 import java.util.OptionalLong;
 import java.util.concurrent.Executor;
 
+import static showcase.command.ShowcaseCommandConstants.SAGA_ASSOCIATIONS_CACHE_NAME;
+import static showcase.command.ShowcaseCommandConstants.SAGA_CACHE_NAME;
 import static showcase.command.ShowcaseCommandConstants.SHOWCASE_CACHE_NAME;
 
 @SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
@@ -181,12 +189,60 @@ class ShowcaseCommandApplication {
                                             .getExpiresAfterWrite()
                                             .toNanos())));
             cacheManager.enableStatistics(SHOWCASE_CACHE_NAME, true);
+
+            cacheManager.createCache(
+                    SAGA_CACHE_NAME,
+                    new CaffeineConfiguration<>()
+                            .setMaximumSize(OptionalLong.of(
+                                    commandProperties
+                                            .getSagaCache()
+                                            .getMaximumSize()))
+                            .setExpireAfterAccess(OptionalLong.of(
+                                    commandProperties
+                                            .getSagaCache()
+                                            .getExpiresAfterAccess()
+                                            .toNanos()))
+                            .setExpireAfterWrite(OptionalLong.of(
+                                    commandProperties
+                                            .getSagaCache()
+                                            .getExpiresAfterWrite()
+                                            .toNanos())));
+            cacheManager.enableStatistics(SAGA_CACHE_NAME, true);
+
+            cacheManager.createCache(
+                    SAGA_ASSOCIATIONS_CACHE_NAME,
+                    new CaffeineConfiguration<>()
+                            .setMaximumSize(OptionalLong.of(
+                                    commandProperties
+                                            .getSagaAssociationsCache()
+                                            .getMaximumSize()))
+                            .setExpireAfterAccess(OptionalLong.of(
+                                    commandProperties
+                                            .getSagaAssociationsCache()
+                                            .getExpiresAfterAccess()
+                                            .toNanos()))
+                            .setExpireAfterWrite(OptionalLong.of(
+                                    commandProperties
+                                            .getSagaAssociationsCache()
+                                            .getExpiresAfterWrite()
+                                            .toNanos())));
+            cacheManager.enableStatistics(SAGA_ASSOCIATIONS_CACHE_NAME, true);
         };
     }
 
     @Bean
     Cache showcaseCache(CacheManager cacheManager) {
         return new JCacheAdapter(cacheManager.getCache(SHOWCASE_CACHE_NAME));
+    }
+
+    @Bean
+    Cache sagaCache(CacheManager cacheManager) {
+        return new JCacheAdapter(cacheManager.getCache(SAGA_CACHE_NAME));
+    }
+
+    @Bean
+    Cache sagaAssociationsCache(CacheManager cacheManager) {
+        return new JCacheAdapter(cacheManager.getCache(SAGA_ASSOCIATIONS_CACHE_NAME));
     }
 
     @Bean
@@ -198,6 +254,33 @@ class ShowcaseCommandApplication {
                         .getShowcaseSnapshotTrigger()
                         .getLoadTimeThreshold()
                         .toMillis());
+    }
+
+    @Bean
+    SagaSqlSchema sagaSqlSchema() {
+        return new PostgresSagaSqlSchema();
+    }
+
+    @Bean
+    public SagaStore<Object> sagaStore(
+            ConnectionProvider connectionProvider,
+            Serializer serializer,
+            SagaSqlSchema schema,
+            Cache sagaCache,
+            Cache sagaAssociationsCache) {
+        val sagaStore =
+                JdbcSagaStore
+                        .builder()
+                        .connectionProvider(connectionProvider)
+                        .sqlSchema(schema)
+                        .serializer(serializer)
+                        .build();
+        return CachingSagaStore
+                       .builder()
+                       .delegateSagaStore(sagaStore)
+                       .sagaCache(sagaCache)
+                       .associationsCache(sagaAssociationsCache)
+                       .build();
     }
 
     @Bean

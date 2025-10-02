@@ -70,7 +70,7 @@ class ShowcaseQueryClientCT {
     private WireMockServer wireMockServer;
 
     @Test
-    void fetchAll_okResponse_succeeds() throws Exception {
+    void fetchList_okResponse_succeeds() throws Exception {
         // given:
         val query = FetchShowcaseListQuery.builder().build();
         val showcases = showcases();
@@ -81,11 +81,11 @@ class ShowcaseQueryClientCT {
                         .willReturn(okJson(objectMapper.writeValueAsString(showcases))));
 
         // when:
-        val fetchAllMono = showcaseQueryOperations.fetchAll(query);
+        val fetchListMono = showcaseQueryOperations.fetchList(query);
 
         // then:
         StepVerifier
-                .create(fetchAllMono)
+                .create(fetchListMono)
                 .expectNextSequence(showcases)
                 .expectComplete()
                 .verify();
@@ -192,7 +192,7 @@ class ShowcaseQueryClientCT {
         }
 
         @Test
-        void fetchAll_longDelay_failsWithTimeoutError() {
+        void fetchList_longDelay_failsWithTimeoutError() {
             // given:
             val query = FetchShowcaseListQuery.builder().build();
 
@@ -202,11 +202,11 @@ class ShowcaseQueryClientCT {
                             .willReturn(ok().withFixedDelay(Ints.checkedCast(timeout.toMillis()))));
 
             // when:
-            val fetchAllMono = showcaseQueryOperations.fetchAll(query);
+            val fetchListMono = showcaseQueryOperations.fetchList(query);
 
             // then:
             StepVerifier
-                    .create(fetchAllMono)
+                    .create(fetchListMono)
                     .expectError(TimeoutException.class)
                     .verify();
         }
@@ -282,7 +282,7 @@ class ShowcaseQueryClientCT {
 
         @ParameterizedTest
         @MethodSource("retryableStatusCodes")
-        void fetchAll_retryableStatusCode_retriesAndFailsWithStatusCode(int statusCode) {
+        void fetchList_retryableStatusCode_retriesAndFailsWithStatusCode(int statusCode) {
             // given:
             val query = FetchShowcaseListQuery.builder().build();
 
@@ -292,11 +292,11 @@ class ShowcaseQueryClientCT {
                             .willReturn(aResponse().withStatus(statusCode)));
 
             // when:
-            val fetchAllMono = showcaseQueryOperations.fetchAll(query);
+            val fetchListMono = showcaseQueryOperations.fetchList(query);
 
             // then:
             StepVerifier
-                    .create(fetchAllMono)
+                    .create(fetchListMono)
                     .expectErrorSatisfies(
                             t -> assertThat(t)
                                          .isInstanceOf(WebClientResponseException.class)

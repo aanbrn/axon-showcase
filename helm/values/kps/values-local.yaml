@@ -9,10 +9,10 @@ kube-state-metrics:
   resources:
     requests:
       cpu: 10m
-      memory: 32Mi
+      memory: 64Mi
     limits:
       cpu: 100m
-      memory: 64Mi
+      memory: 128Mi
 
 nodeExporter:
   enabled: false
@@ -30,10 +30,10 @@ grafana:
   resources:
     requests:
       cpu: 250m
-      memory: 256Mi
+      memory: 0.5Gi
     limits:
       cpu: 500m
-      memory: 512Mi
+      memory: 0.75Gi
   serviceMonitor:
     enabled: false
   sidecar:
@@ -53,10 +53,10 @@ prometheus:
     resources:
       requests:
         cpu: 250m
-        memory: 512Mi
+        memory: 1.0Gi
       limits:
         cpu: 500m
-        memory: 768Mi
+        memory: 1.5Gi
   serviceMonitor:
     selfMonitor: false
 
@@ -67,7 +67,7 @@ prometheusOperator:
       memory: 64Mi
     limits:
       cpu: 200m
-      memory: 64Mi
+      memory: 128Mi
   prometheusConfigReloader:
     resources:
       requests:

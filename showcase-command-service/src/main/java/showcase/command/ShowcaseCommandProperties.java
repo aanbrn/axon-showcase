@@ -45,5 +45,13 @@ final class ShowcaseCommandProperties {
 
     @NotNull
     @Valid
+    private Cache sagaCache = new Cache(1000, Duration.ofMinutes(10), Duration.ofMinutes(5));
+
+    @NotNull
+    @Valid
+    private Cache sagaAssociationsCache = new Cache(1000, Duration.ofMinutes(10), Duration.ofMinutes(5));
+
+    @NotNull
+    @Valid
     private SnapshotTrigger showcaseSnapshotTrigger = new SnapshotTrigger(Duration.ofMillis(500));
 }

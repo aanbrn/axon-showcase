@@ -28,16 +28,6 @@ dbEvents:
     name: axon-showcase-db-events
     key: password
 
-dbSagas:
-  hosts: axon-showcase-db-sagas
-  name: showcase-sagas
-  schema: public
-  params: ""
-  username: showcase
-  passwordSecret:
-    name: axon-showcase-db-sagas
-    key: password
-
 osViews:
   uris: http://axon-showcase-os-views:9200
   secured: false
@@ -135,7 +125,7 @@ commandService:
   resources:
     requests:
       cpu: 0.75
-      memory: 0.75Gi
+      memory: 0.5Gi
     limits:
       cpu: 1.0
       memory: 1Gi
@@ -239,220 +229,6 @@ commandService:
     metricRelabelings: [ ]
     honorLabels: false
 
-sagaService:
-
-  labels: { }
-
-  annotations: { }
-
-  podLabels: { }
-
-  podAnnotations: { }
-
-  image:
-    registry: ""
-    repository: aanbrn/axon-showcase-saga-service
-    tag: ${projectVersion}
-    digest: ""
-    pullPolicy: null
-    pullSecrets: [ ]
-
-  replicaCount: 1
-
-  revisionHistoryLimit: 10
-
-  updateStrategy:
-    type: RollingUpdate
-
-  dbSagas:
-    pool:
-      maxSize: 100
-      minIdle: 20
-      maxLifetime: 1800000
-      connectionTimeout: 30000
-      validationTimeout: 5000
-      idleTimeout: 600000
-      leakDetectionThreshold: 0
-
-  kafka:
-    fetcher:
-      pollTimeout: 5000
-      consumerCount: 1
-
-  extraEnvVars:
-    JAVA_OPTS: "-XX:MaxDirectMemorySize=256M -XX:MaxGCPauseMillis=20"
-
-  extraEnvVarsCM: ""
-
-  extraEnvVarsSecret: ""
-
-  containerPorts:
-    server: 8080
-    managementServer: 8888
-    jgroups: 7800
-
-  extraContainerPorts: [ ]
-
-  startupProbe:
-    enabled: true
-    initialDelaySeconds: 3
-    periodSeconds: 3
-    timeoutSeconds: 1
-    failureThreshold: 10
-    successThreshold: 1
-
-  livenessProbe:
-    enabled: true
-    initialDelaySeconds: 30
-    periodSeconds: 20
-    timeoutSeconds: 1
-    failureThreshold: 3
-    successThreshold: 1
-
-  readinessProbe:
-    enabled: true
-    initialDelaySeconds: 5
-    periodSeconds: 10
-    timeoutSeconds: 1
-    failureThreshold: 3
-    successThreshold: 1
-
-  resources:
-    requests:
-      cpu: 0.75
-      memory: 0.75Gi
-    limits:
-      cpu: 1.0
-      memory: 1.0Gi
-
-  lifecycleHooks: { }
-
-  affinity: { }
-
-  podAffinityPreset: ""
-
-  podAntiAffinityPreset: soft
-
-  nodeAffinityPreset:
-    type: ""
-    key: ""
-    values: [ ]
-
-  automountServiceAccountToken: true
-
-  hostAliases: [ ]
-
-  nodeSelector: { }
-
-  tolerations: [ ]
-
-  priorityClassName: ""
-
-  schedulerName: ""
-
-  topologySpreadConstraints: [ ]
-
-  terminationGracePeriodSeconds: ""
-
-  terminationMessagePolicy: FallbackToLogsOnError
-
-  podSecurityContext:
-    enabled: true
-    fsGroupChangePolicy: Always
-    sysctls: [ ]
-    supplementalGroups: [ ]
-    fsGroup: 1001
-
-  containerSecurityContext:
-    enabled: true
-    runAsNonRoot: true
-    readOnlyRootFilesystem: true
-    capabilities:
-      drop:
-        - ALL
-    seccompProfile:
-      type: RuntimeDefault
-
-  extraVolumeMounts: [ ]
-
-  extraVolumes: [ ]
-
-  initContainers: [ ]
-
-  sidecars: [ ]
-
-  extraPodSpec: { }
-
-  resilience:
-    enabled: true
-    circuitbreaker:
-      enabled: true
-      defaults:
-        slidingWindowType: COUNT_BASED
-        slidingWindowSize: 100
-        minimumNumberOfCalls: 50
-        failureRateThreshold: 50
-        slowCallRateThreshold: 90
-        slowCallDurationThreshold: PT5S
-        waitDurationInOpenState: PT10S
-        exponentialBackoffMultiplier: 1.5
-        exponentialMaxWaitDurationInOpenState: ""
-        permittedNumberOfCallsInHalfOpenState: 10
-        maxWaitDurationInHalfOpenState: PT0S
-      commandService:
-        slidingWindowType: ""
-        slidingWindowSize: ""
-        minimumNumberOfCalls: ""
-        failureRateThreshold: ""
-        slowCallRateThreshold: ""
-        slowCallDurationThreshold: ""
-        waitDurationInOpenState: ""
-        exponentialBackoffMultiplier: ""
-        exponentialMaxWaitDurationInOpenState: ""
-        permittedNumberOfCallsInHalfOpenState: ""
-        maxWaitDurationInHalfOpenState: ""
-
-  autoscaling:
-    vpa:
-      enabled: false
-      controlledResources: [ ]
-      maxAllowed: { }
-      minAllowed: { }
-      updatePolicy:
-        updateMode: Auto
-    hpa:
-      enabled: false
-      minReplicas: 3
-      maxReplicas: 5
-      targetCPU: 80
-      targetMemory: ""
-      metrics: [ ]
-
-  pdb:
-    create: true
-    minAvailable: ""
-    maxUnavailable: ""
-
-  networkPolicy:
-    enabled: true
-    addExternalClientAccess: true
-    ingressPodMatchLabels: { }
-    ingressManagementNSMatchLabels: { }
-    ingressManagementNSPodMatchLabels: { }
-    extraIngress: [ ]
-    extraEgress: [ ]
-
-  serviceMonitor:
-    enabled: true
-    namespace: ""
-    labels: { }
-    annotations: { }
-    interval: ""
-    scrapeTimeout: ""
-    relabelings: [ ]
-    metricRelabelings: [ ]
-    honorLabels: false
-
 projectionService:
 
   labels: { }
@@ -484,13 +260,12 @@ projectionService:
       consumerCount: 1
 
   osViews:
-    connectionTimeout: PT1S
-    socketTimeout: PT2S
-    socketKeepAlive: false
-    maxConnections: 1000
+    connectionTimeout: PT10S
+    socketTimeout: PT30S
+    socketKeepAlive: true
+    maxConnections: 100
     maxConnectionsPerRoute: 100
-    evictExpiredConnections: true
-    evictIdleConnections: PT2S
+    evictIdleConnections: PT5S
 
   extraEnvVars:
     JAVA_OPTS: "-XX:MaxDirectMemorySize=256M -XX:MaxGCPauseMillis=20"
@@ -532,10 +307,10 @@ projectionService:
   resources:
     requests:
       cpu: 1.0
-      memory: 0.75Gi
+      memory: 0.5Gi
     limits:
       cpu: 1.25
-      memory: 1.0Gi
+      memory: 0.75Gi
 
   lifecycleHooks: { }
 
@@ -693,14 +468,13 @@ queryService:
   osViews:
     connectionTimeout: PT1S
     socketTimeout: PT2S
-    socketKeepAlive: false
-    maxConnections: 1000
+    socketKeepAlive: true
+    maxConnections: 100
     maxConnectionsPerRoute: 100
-    evictExpiredConnections: true
-    evictIdleConnections: PT2S
+    evictIdleConnections: PT5S
 
   extraEnvVars:
-    JAVA_OPTS: "-XX:MaxDirectMemorySize=256M -XX:MaxGCPauseMillis=20"
+    JAVA_OPTS: "-XX:MaxDirectMemorySize=128M -XX:MaxGCPauseMillis=20"
 
   extraEnvVarsCM: ""
 
@@ -739,7 +513,7 @@ queryService:
   resources:
     requests:
       cpu: 0.75
-      memory: 0.75Gi
+      memory: 0.5Gi
     limits:
       cpu: 1.0
       memory: 1Gi
@@ -879,7 +653,7 @@ apiGateway:
       expiresAfterWrite: PT5M
 
   extraEnvVars:
-    JAVA_OPTS: "-XX:MaxDirectMemorySize=256M -XX:MaxGCPauseMillis=20"
+    JAVA_OPTS: "-XX:MaxDirectMemorySize=128M -XX:MaxGCPauseMillis=20"
 
   extraEnvVarsCM: ""
 
@@ -919,7 +693,7 @@ apiGateway:
   resources:
     requests:
       cpu: 0.75
-      memory: 0.75Gi
+      memory: 0.5Gi
     limits:
       cpu: 1.0
       memory: 1Gi
@@ -1031,7 +805,7 @@ apiGateway:
     retry:
       enabled: true
       defaults:
-        maxAttempts: 2
+        maxAttempts: 3
         waitDuration: PT0.5S
         exponentialBackoffMultiplier: 1.5
         randomizedWaitFactor: 0.5

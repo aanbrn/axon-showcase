@@ -9,36 +9,32 @@ import org.axonframework.extensions.reactor.commandhandling.gateway.ReactorComma
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import static showcase.command.ShowcaseCommandOperations.SHOWCASE_COMMAND_SERVICE;
+
 @Component
 @RequiredArgsConstructor
+@CircuitBreaker(name = SHOWCASE_COMMAND_SERVICE)
+@Retry(name = SHOWCASE_COMMAND_SERVICE)
 class ShowcaseCommandClient implements ShowcaseCommandOperations {
 
     @NonNull
     private final ReactorCommandGateway commandGateway;
 
-    @CircuitBreaker(name = SHOWCASE_COMMAND_SERVICE)
-    @Retry(name = SHOWCASE_COMMAND_SERVICE)
     @Override
     public Mono<Void> schedule(@NonNull ScheduleShowcaseCommand command) {
         return sendCommand(command);
     }
 
-    @CircuitBreaker(name = SHOWCASE_COMMAND_SERVICE)
-    @Retry(name = SHOWCASE_COMMAND_SERVICE)
     @Override
     public Mono<Void> start(@NonNull StartShowcaseCommand command) {
         return sendCommand(command);
     }
 
-    @CircuitBreaker(name = SHOWCASE_COMMAND_SERVICE)
-    @Retry(name = SHOWCASE_COMMAND_SERVICE)
     @Override
     public Mono<Void> finish(@NonNull FinishShowcaseCommand command) {
         return sendCommand(command);
     }
 
-    @CircuitBreaker(name = SHOWCASE_COMMAND_SERVICE)
-    @Retry(name = SHOWCASE_COMMAND_SERVICE)
     @Override
     public Mono<Void> remove(@NonNull RemoveShowcaseCommand command) {
         return sendCommand(command);

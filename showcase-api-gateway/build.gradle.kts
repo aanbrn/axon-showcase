@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.jgroups.kunernetes)
 
     implementation(libs.spring.boot.starter.aop)
+    implementation(libs.spring.boot.starter.cache)
     implementation(libs.spring.boot.starter.webflux)
     implementation(libs.spring.boot.starter.validation)
     implementation(libs.springdoc.openapi.starter.webflux.ui)
@@ -107,7 +108,6 @@ testing {
                             "bootBuildImage",
                             ":showcase-command-service:bootBuildImage",
                             ":showcase-projection-service:bootBuildImage",
-                            ":showcase-saga-service:bootBuildImage",
                             ":showcase-query-service:bootBuildImage"
                         )
 
@@ -128,8 +128,8 @@ tasks.named<BootBuildImage>("bootBuildImage") {
             "BPE_DEFAULT_SHOWCASE_QUERY_SERVICE_URL" to "http://axon-showcase-query-service:8080",
             "BPE_DEFAULT_JGROUPS_BIND_ADDR" to "SITE_LOCAL",
             "BPE_DEFAULT_JGROUPS_BIND_PORT" to "7800",
-            "BPE_DEFAULT_JGROUPS_TCP_PING_HOSTS" to "axon-showcase-api-gateway[7800]," +
-                    "axon-showcase-command-service[7800],axon-showcase-saga-service[7800]"
+            "BPE_DEFAULT_JGROUPS_TCP_PING_HOSTS" to
+                    "axon-showcase-api-gateway[7800],axon-showcase-command-service[7800]"
         )
     )
 }

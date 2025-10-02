@@ -22,7 +22,6 @@ include(
     "showcase-command-client",
     "showcase-projection-model",
     "showcase-projection-service",
-    "showcase-saga-service",
     "showcase-query-api",
     "showcase-query-proto",
     "showcase-query-service",

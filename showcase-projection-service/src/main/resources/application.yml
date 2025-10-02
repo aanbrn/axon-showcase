@@ -6,7 +6,7 @@ spring:
   data:
     elasticsearch:
       repositories:
-        enabled: off
+        enabled: false
   jackson:
     default-property-inclusion: non_null
   web:
@@ -30,6 +30,7 @@ axon:
     publisher:
       enabled: false
     consumer:
+      event-processor-mode: subscribing
       properties:
         partition.assignment.strategy: org.apache.kafka.clients.consumer.CooperativeStickyAssignor
     fetcher:
@@ -46,13 +47,12 @@ opensearch:
   uris: ${OS_URIS:http://localhost:9200}
   username: ${OS_USER:elastic}
   password: ${OS_PASSWORD:}
-  connection-timeout: ${OS_CONNECTION_TIMEOUT:PT1S}
-  socket-timeout: ${OS_SOCKET_TIMEOUT:PT2S}
-  socket-keep-alive: ${OS_SOCKET_KEEP_ALIVE:false}
-  max-connections: ${OS_MAX_CONNECTIONS:1000}
+  connection-timeout: ${OS_CONNECTION_TIMEOUT:PT10S}
+  socket-timeout: ${OS_SOCKET_TIMEOUT:PT30S}
+  socket-keep-alive: ${OS_SOCKET_KEEP_ALIVE:true}
+  max-connections: ${OS_MAX_CONNECTIONS:100}
   max-connections-per-route: ${OS_MAX_CONNECTIONS_PER_ROUTE:100}
-  evict-expired-connections: ${OS_EVICT_EXPIRED_CONNECTIONS:true}
-  evict-idle-connections: ${OS_EVICT_IDLE_CONNECTIONS:PT2S}
+  evict-idle-connections: ${OS_EVICT_IDLE_CONNECTIONS:PT5S}
 
 resilience4j:
   enabled: ${RESILIENCE_ENABLED:true}
@@ -89,7 +89,7 @@ resilience4j:
         max-wait-duration-in-half-open-state: ${CIRCUITBREAKER_OPENSEARCH_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE:}
 
 server:
-  port: 8083
+  port: 8082
   error:
     whitelabel:
       enabled: false
@@ -103,8 +103,8 @@ management:
     health:
       show-details: always
       probes:
-        enabled: on
-        add-additional-paths: on
+        enabled: true
+        add-additional-paths: true
   metrics:
     tags:
       application: axon-showcase

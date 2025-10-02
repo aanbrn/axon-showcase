@@ -13,20 +13,6 @@ services:
       start_period: 30s
       start_interval: 3s
       retries: 10
-  db-sagas:
-    image: postgres:${POSTGRES_VERSION}
-    hostname: axon-showcase-db-sagas
-    environment:
-      - POSTGRES_DB=showcase-sagas
-      - POSTGRES_USER=showcase
-      - POSTGRES_PASSWORD=showcase
-    volumes:
-      - db-sagas-data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD", "pg_isready", "-q" ]
-      start_period: 30s
-      start_interval: 3s
-      retries: 10
   os-views:
     image: opensearchproject/opensearch:${OPENSEARCH_VERSION}
     hostname: axon-showcase-os-views
@@ -111,28 +97,6 @@ services:
       - BPL_DEBUG_PORT=8001
     ports:
       - "8001:8001"
-  saga-service:
-    depends_on:
-      kafka:
-        condition: service_healthy
-      db-sagas:
-        condition: service_healthy
-    image: aanbrn/axon-showcase-saga-service:${PROJECT_VERSION}
-    hostname: axon-showcase-saga-service
-    healthcheck:
-      test: [ "CMD", "/workspace/health-check" ]
-      start_period: 30s
-      start_interval: 3s
-      retries: 10
-    environment:
-      - JAVA_OPTS=-XX:MaxDirectMemorySize=512m -XX:MaxGCPauseMillis=20
-      - KAFKA_FETCHER_CONSUMER_COUNT=8
-      - THC_PATH=/actuator/health
-      - DB_PASSWORD=showcase
-      - BPL_DEBUG_ENABLED=true
-      - BPL_DEBUG_PORT=8002
-    ports:
-      - "8002:8002"
   projection-service:
     depends_on:
       kafka:
@@ -154,7 +118,7 @@ services:
       - BPL_DEBUG_ENABLED=true
       - BPL_DEBUG_PORT=8003
     ports:
-      - "8003:8003"
+      - "8002:8002"
   query-service:
     depends_on:
       os-views:
@@ -171,9 +135,8 @@ services:
       - BPL_DEBUG_ENABLED=true
       - BPL_DEBUG_PORT=8004
     ports:
-      - "8004:8004"
+      - "8003:8003"
 
 volumes:
   db-events-data:
-  db-sagas-data:
   os-views-data:

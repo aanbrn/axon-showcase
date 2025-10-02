@@ -262,7 +262,7 @@ interface ShowcaseApi {
                     )
             )
     )
-    Flux<Showcase> fetchAll(
+    Flux<Showcase> fetchList(
             String title,
             List<ShowcaseStatus> statuses,
             @KSUID String afterId,

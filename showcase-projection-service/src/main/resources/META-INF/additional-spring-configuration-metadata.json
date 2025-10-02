@@ -10,7 +10,7 @@
       "name": "opensearch.max-connections",
       "type": "java.lang.Integer",
       "description": "The maximum total connection value.",
-      "defaultValue": 1000
+      "defaultValue": 100
     },
     {
       "name": "opensearch.max-connections-per-route",
@@ -19,16 +19,10 @@
       "defaultValue": 100
     },
     {
-      "name": "opensearch.evict-expired-connections",
-      "type": "java.lang.Boolean",
-      "description": "Whether proactively evict expired connections from the connection pool using a background thread.",
-      "defaultValue": true
-    },
-    {
       "name": "opensearch.evict-idle-connections",
       "type": "java.time.Duration",
       "description": "The maximum time persistent connections can stay idle while kept alive in the connection pool. Connections whose inactivity period exceeds this value will get closed and evicted from the pool.",
-      "defaultValue": "PT2S"
+      "defaultValue": "PT5S"
     }
   ]
 }

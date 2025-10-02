@@ -6,7 +6,7 @@ spring:
   data:
     elasticsearch:
       repositories:
-        enabled: off
+        enabled: false
   jackson:
     default-property-inclusion: non_null
   web:
@@ -36,11 +36,10 @@ opensearch:
   password: ${OS_PASSWORD:}
   connection-timeout: ${OS_CONNECTION_TIMEOUT:PT1S}
   socket-timeout: ${OS_SOCKET_TIMEOUT:PT2S}
-  socket-keep-alive: ${OS_SOCKET_KEEP_ALIVE:false}
-  max-connections: ${OS_MAX_CONNECTIONS:1000}
+  socket-keep-alive: ${OS_SOCKET_KEEP_ALIVE:true}
+  max-connections: ${OS_MAX_CONNECTIONS:100}
   max-connections-per-route: ${OS_MAX_CONNECTIONS_PER_ROUTE:100}
-  evict-expired-connections: ${OS_EVICT_EXPIRED_CONNECTIONS:true}
-  evict-idle-connections: ${OS_EVICT_IDLE_CONNECTIONS:PT2S}
+  evict-idle-connections: ${OS_EVICT_IDLE_CONNECTIONS:PT5S}
 
 showcase:
   query:
@@ -48,7 +47,7 @@ showcase:
     exit-after-index-initialization: ${EXIT_AFTER_INDEX_INITIALIZATION:false}
 
 server:
-  port: 8084
+  port: 8083
   error:
     whitelabel:
       enabled: false
@@ -62,8 +61,8 @@ management:
     health:
       show-details: always
       probes:
-        enabled: on
-        add-additional-paths: on
+        enabled: true
+        add-additional-paths: true
   metrics:
     distribution:
       percentiles-histogram:

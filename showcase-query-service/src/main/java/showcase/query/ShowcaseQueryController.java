@@ -8,6 +8,7 @@ import org.axonframework.messaging.MetaData;
 import org.axonframework.queryhandling.QueryBus;
 import org.axonframework.queryhandling.QueryBusSpanFactory;
 import org.axonframework.queryhandling.QueryResponseMessage;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,6 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.netty.channel.AbortedException;
+
+import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 
 import static org.springframework.http.MediaType.APPLICATION_PROTOBUF_VALUE;
 
@@ -72,5 +77,29 @@ final class ShowcaseQueryController {
             }
             case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.getErrorMessage());
         };
+    }
+
+    @ExceptionHandler
+    private ProblemDetail handleException(Exception e) {
+        switch (findCause(e, DataAccessException.class)
+                        .or(() -> findCause(e, AbortedException.class))
+                        .or(() -> findCause(e, TimeoutException.class))
+                        .orElse(e)) {
+            case DataAccessException ex -> log.error("Data access failure", ex);
+            case AbortedException ex -> log.debug("Inbound connection aborted", ex);
+            case TimeoutException ex -> log.debug("Operation timeout exceeded", ex);
+            default -> log.error("Unknown error", e);
+        }
+        return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    private Optional<Throwable> findCause(Throwable t, Class<? extends Throwable> causeType) {
+        while (t != null) {
+            if (causeType.isInstance(t)) {
+                return Optional.of(t);
+            }
+            t = t.getCause();
+        }
+        return Optional.empty();
     }
 }

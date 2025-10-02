@@ -3,19 +3,24 @@ package showcase.query;
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.core5.util.TimeValue;
 import org.axonframework.queryhandling.QueryBus;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
-import org.opensearch.client.RestClientBuilder;
+import org.opensearch.client.opensearch._types.HealthStatus;
 import org.opensearch.data.client.osc.OpenSearchTemplate;
+import org.opensearch.data.client.osc.ReactiveOpenSearchClient;
 import org.opensearch.spring.boot.autoconfigure.RestClientBuilderCustomizer;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.health.AbstractReactiveHealthIndicator;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.Health.Builder;
+import org.springframework.boot.actuate.health.ReactiveHealthIndicator;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
@@ -23,6 +28,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
+import reactor.core.publisher.Mono;
 import showcase.projection.ShowcaseEntity;
 
 import java.time.Duration;
@@ -93,32 +99,56 @@ class ShowcaseQueryApplication {
     RestClientBuilderCustomizer openSearchRestClientBuilderCustomizer(
             @Value("${opensearch.max-connections}") int maxConnections,
             @Value("${opensearch.max-connections-per-route}") int maxConnectionsPerRoute,
-            @Value("${opensearch.evict-expired-connections}") boolean evictExpiredConnections,
             @Value("${opensearch.evict-idle-connections}") Duration evictIdleConnections) {
-        return new RestClientBuilderCustomizer() {
-
-            @Override
-            public void customize(HttpAsyncClientBuilder builder) {
-                builder.setConnectionManager(
+        return restClientBuilder -> restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> {
+            if (maxConnections > 0) {
+                httpClientBuilder.setConnectionManager(
                         PoolingAsyncClientConnectionManagerBuilder
                                 .create()
                                 .setMaxConnTotal(maxConnections)
                                 .setMaxConnPerRoute(maxConnectionsPerRoute)
                                 .build());
-                if (evictExpiredConnections) {
-                    builder.evictExpiredConnections();
-                }
-                builder.evictIdleConnections(TimeValue.of(evictIdleConnections));
             }
-
-            @Override
-            public void customize(RestClientBuilder builder) {
+            if (evictIdleConnections != null) {
+                httpClientBuilder.evictIdleConnections(TimeValue.of(evictIdleConnections));
             }
-        };
+            return httpClientBuilder;
+        });
     }
 
     @Bean
     Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
         return builder -> builder.modules(new BlackbirdModule());
+    }
+
+    @Bean
+    ReactiveHealthIndicator openSearchHealthIndicator(ReactiveOpenSearchClient openSearchClient) {
+        return new AbstractReactiveHealthIndicator("OpenSearch health check failed") {
+            @Override
+            protected Mono<Health> doHealthCheck(Builder builder) {
+                return openSearchClient.cluster().health((b) -> b).map(response -> {
+                    if (!response.timedOut()) {
+                        HealthStatus status = response.status();
+                        builder.status((HealthStatus.Red == status) ? Status.OUT_OF_SERVICE : Status.UP);
+                        builder.withDetail("cluster_name", response.clusterName());
+                        builder.withDetail("status", response.status().jsonValue());
+                        builder.withDetail("number_of_nodes", response.numberOfNodes());
+                        builder.withDetail("number_of_data_nodes", response.numberOfDataNodes());
+                        builder.withDetail("active_primary_shards", response.activePrimaryShards());
+                        builder.withDetail("active_shards", response.activeShards());
+                        builder.withDetail("relocating_shards", response.relocatingShards());
+                        builder.withDetail("initializing_shards", response.initializingShards());
+                        builder.withDetail("unassigned_shards", response.unassignedShards());
+                        builder.withDetail("delayed_unassigned_shards", response.delayedUnassignedShards());
+                        builder.withDetail("number_of_pending_tasks", response.numberOfPendingTasks());
+                        builder.withDetail("number_of_in_flight_fetch", response.numberOfInFlightFetch());
+                        builder.withDetail("task_max_waiting_in_queue_millis", response.taskMaxWaitingInQueueMillis());
+                        builder.withDetail("active_shards_percent_as_number", response.activeShardsPercentAsNumber());
+                        return builder.build();
+                    }
+                    return builder.down().build();
+                });
+            }
+        };
     }
 }

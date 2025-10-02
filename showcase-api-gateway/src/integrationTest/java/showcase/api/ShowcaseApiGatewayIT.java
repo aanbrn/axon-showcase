@@ -56,14 +56,6 @@ class ShowcaseApiGatewayIT {
 
     @Container
     @SuppressWarnings("resource")
-    static final PostgreSQLContainer<?> dbSagas =
-            new PostgreSQLContainer<>("postgres:" + System.getProperty("postgres.image.version"))
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-db-sagas"))
-                    .withNetwork(network)
-                    .withDatabaseName("showcase-sagas");
-
-    @Container
-    @SuppressWarnings("resource")
     static final KafkaContainer kafka =
             new KafkaContainer("apache/kafka:" + System.getProperty("kafka.image.version")) {
                 @Override
@@ -91,22 +83,6 @@ class ShowcaseApiGatewayIT {
                     .withEnv("DB_USER", dbEvents.getUsername())
                     .withEnv("DB_PASSWORD", dbEvents.getPassword())
                     .withEnv("LOGGING_LEVEL_SHOWCASE_COMMAND", "DEBUG")
-                    .withExposedPorts(8080)
-                    .waitingFor(Wait.forHttp("/actuator/health")
-                                    .forPort(8080)
-                                    .forStatusCode(200))
-                    .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
-
-    @Container
-    @SuppressWarnings({ "resource", "unused" })
-    static final GenericContainer<?> sagaService =
-            new GenericContainer<>("aanbrn/axon-showcase-saga-service:" + System.getProperty("project.version"))
-                    .dependsOn(dbSagas, kafka)
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-saga-service"))
-                    .withNetwork(network)
-                    .withEnv("DB_USER", dbSagas.getUsername())
-                    .withEnv("DB_PASSWORD", dbSagas.getPassword())
-                    .withEnv("LOGGING_LEVEL_SHOWCASE_SAGA", "DEBUG")
                     .withExposedPorts(8080)
                     .waitingFor(Wait.forHttp("/actuator/health")
                                     .forPort(8080)
@@ -601,7 +577,7 @@ class ShowcaseApiGatewayIT {
         }
 
         @Test
-        void fetchAll_noFiltering_exposesExistingShowcases() {
+        void fetchList_noFiltering_exposesExistingShowcases() {
             webClient.get()
                      .uri("/showcases")
                      .exchange()
@@ -615,7 +591,7 @@ class ShowcaseApiGatewayIT {
         }
 
         @Test
-        void fetchAll_titleToFilterBy_exposesFilteredShowcases() {
+        void fetchList_titleToFilterBy_exposesFilteredShowcases() {
             val showcases =
                     webClient.get()
                              .uri("/showcases")
@@ -641,7 +617,7 @@ class ShowcaseApiGatewayIT {
         }
 
         @Test
-        void fetchAll_singleStatusToFilterBy_exposesFilteredShowcases() {
+        void fetchList_singleStatusToFilterBy_exposesFilteredShowcases() {
             val status = aShowcaseStatus();
 
             webClient.get()
@@ -657,7 +633,7 @@ class ShowcaseApiGatewayIT {
         }
 
         @Test
-        void fetchAll_multipleStatusesToFilterBy_exposesFilteredShowcases() {
+        void fetchList_multipleStatusesToFilterBy_exposesFilteredShowcases() {
             val status1 = aShowcaseStatus();
             val status2 = aShowcaseStatus(status1);
 

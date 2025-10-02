@@ -38,7 +38,7 @@ import static showcase.command.RandomCommandTestUtils.anInvalidShowcaseId;
 
 @SpringBootTest(webEnvironment = NONE)
 @DirtiesContext
-@Testcontainers
+@Testcontainers(parallel = true)
 @ExtendWith(OutputCaptureExtension.class)
 class ShowcaseCommandClientIT {
 
@@ -83,7 +83,7 @@ class ShowcaseCommandClientIT {
                     .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
 
     @DynamicPropertySource
-    static void properties(DynamicPropertyRegistry registry) {
+    static void jgroupsProperties(DynamicPropertyRegistry registry) {
         registry.add("axon.distributed.jgroups.gossip.hosts",
                      () -> "localhost[%d]".formatted(commandService.getMappedPort(12001)));
     }
@@ -97,7 +97,7 @@ class ShowcaseCommandClientIT {
 
     @BeforeEach
     void awaitUntilClusterFormed(CapturedOutput output) {
-        await().until(() -> output.getOut().matches("(?s).*axon-showcase-command-service.+joined.*"));
+        await().until(() -> output.getOut().matches("(?s).*axon-showcase-command-service.+joined the cluster.*"));
     }
 
     @Test

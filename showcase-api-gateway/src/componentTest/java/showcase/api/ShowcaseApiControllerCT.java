@@ -86,11 +86,11 @@ class ShowcaseApiControllerCT {
 
     @MockitoBean(answers = RETURNS_DEEP_STUBS)
     @SuppressWarnings("unused")
-    private Cache<@NonNull FetchShowcaseListQuery, List<Showcase>> fetchShowcaseListQueryCache;
+    private Cache<@NonNull FetchShowcaseListQuery, List<Showcase>> fetchShowcaseListCache;
 
     @MockitoBean(answers = RETURNS_DEEP_STUBS)
     @SuppressWarnings("unused")
-    private Cache<@NonNull String, Showcase> fetchShowcaseByIdQueryCache;
+    private Cache<@NonNull String, Showcase> fetchShowcaseByIdCache;
 
     @Test
     void scheduleShowcase_success_respondsWithCreatedStatusAndLocationHeaderAndShowcaseIdInBody() {
@@ -433,14 +433,14 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
-    void fetchAllShowcases_success_respondsWithOkStatusAndPageResponseInBody() {
+    void fetchShowcaseList_success_respondsWithOkStatusAndPageResponseInBody() {
         val showcases = showcases();
         val query =
                 FetchShowcaseListQuery
                         .builder()
                         .build();
 
-        given(showcaseQueryOperations.fetchAll(query)).willReturn(Flux.fromIterable(showcases));
+        given(showcaseQueryOperations.fetchList(query)).willReturn(Flux.fromIterable(showcases));
 
         webClient.get()
                  .uri(uriBuilder ->
@@ -452,21 +452,21 @@ class ShowcaseApiControllerCT {
                  .expectBodyList(Showcase.class)
                  .isEqualTo(showcases);
 
-        verify(showcaseQueryOperations).fetchAll(query);
+        verify(showcaseQueryOperations).fetchList(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        verify(fetchShowcaseListQueryCache).put(query, showcases);
-        verifyNoMoreInteractions(fetchShowcaseListQueryCache);
+        verify(fetchShowcaseListCache).put(query, showcases);
+        verifyNoMoreInteractions(fetchShowcaseListCache);
 
-        verify(fetchShowcaseByIdQueryCache).putAll(
+        verify(fetchShowcaseByIdCache).putAll(
                 StreamEx.of(showcases)
                         .mapToEntry(Showcase::getShowcaseId, Function.identity())
                         .toMap());
-        verifyNoMoreInteractions(fetchShowcaseByIdQueryCache);
+        verifyNoMoreInteractions(fetchShowcaseByIdCache);
     }
 
     @Test
-    void fetchAllShowcases_invalidAfterId_respondsWithBadRequestStatusAndProblemInBody() {
+    void fetchShowcaseList_invalidAfterId_respondsWithBadRequestStatusAndProblemInBody() {
         webClient.get()
                  .uri(uriBuilder -> uriBuilder.path("/showcases")
                                               .queryParam("afterId", anInvalidShowcaseId())
@@ -487,13 +487,13 @@ class ShowcaseApiControllerCT {
                  .jsonPath("$.parameterErrors.afterId[1]").doesNotHaveJsonPath();
 
         verifyNoInteractions(showcaseCommandOperations);
-        verifyNoInteractions(fetchShowcaseListQueryCache);
-        verifyNoInteractions(fetchShowcaseByIdQueryCache);
+        verifyNoInteractions(fetchShowcaseListCache);
+        verifyNoInteractions(fetchShowcaseByIdCache);
     }
 
     @ParameterizedTest
     @ValueSource(ints = { FetchShowcaseListQuery.MIN_SIZE - 1, FetchShowcaseListQuery.MAX_SIZE + 1 })
-    void fetchAllShowcases_invalidSize_respondsWithBadRequestStatusAndProblemInBody(int size) {
+    void fetchShowcaseList_invalidSize_respondsWithBadRequestStatusAndProblemInBody(int size) {
         webClient.get()
                  .uri(uriBuilder -> uriBuilder.path("/showcases")
                                               .queryParam("size", size)
@@ -514,15 +514,15 @@ class ShowcaseApiControllerCT {
                  .jsonPath("$.parameterErrors.size[1]").doesNotHaveJsonPath();
 
         verifyNoInteractions(showcaseCommandOperations);
-        verifyNoInteractions(fetchShowcaseListQueryCache);
-        verifyNoInteractions(fetchShowcaseByIdQueryCache);
+        verifyNoInteractions(fetchShowcaseListCache);
+        verifyNoInteractions(fetchShowcaseByIdCache);
     }
 
     @Test
-    void fetchAllShowcases_webClientFailure_respondsWithServiceUnavailableStatusAndProblemInBody() {
+    void fetchShowcaseList_webClientFailure_respondsWithServiceUnavailableStatusAndProblemInBody() {
         val query = FetchShowcaseListQuery.builder().build();
 
-        given(showcaseQueryOperations.fetchAll(query)).willReturn(Flux.error(
+        given(showcaseQueryOperations.fetchList(query)).willReturn(Flux.error(
                 WebClientResponseException.create(
                         anEnum(HttpStatus.class),
                         anAlphabeticString(10),
@@ -544,13 +544,13 @@ class ShowcaseApiControllerCT {
                  .jsonPath("$.status").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
                  .jsonPath("$.detail").doesNotHaveJsonPath();
 
-        verify(showcaseQueryOperations).fetchAll(query);
+        verify(showcaseQueryOperations).fetchList(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        verify(fetchShowcaseListQueryCache).getIfPresent(query);
-        verifyNoMoreInteractions(fetchShowcaseListQueryCache);
+        verify(fetchShowcaseListCache).getIfPresent(query);
+        verifyNoMoreInteractions(fetchShowcaseListCache);
 
-        verifyNoInteractions(fetchShowcaseByIdQueryCache);
+        verifyNoInteractions(fetchShowcaseByIdCache);
     }
 
     @Test
@@ -574,10 +574,10 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        verify(fetchShowcaseByIdQueryCache).put(showcase.getShowcaseId(), showcase);
-        verifyNoMoreInteractions(fetchShowcaseByIdQueryCache);
+        verify(fetchShowcaseByIdCache).put(showcase.getShowcaseId(), showcase);
+        verifyNoMoreInteractions(fetchShowcaseByIdCache);
 
-        verifyNoInteractions(fetchShowcaseListQueryCache);
+        verifyNoInteractions(fetchShowcaseListCache);
     }
 
     @Test
@@ -600,8 +600,8 @@ class ShowcaseApiControllerCT {
                  .jsonPath("$.parameterErrors.showcaseId[1]").doesNotHaveJsonPath();
 
         verifyNoInteractions(showcaseCommandOperations);
-        verifyNoInteractions(fetchShowcaseByIdQueryCache);
-        verifyNoInteractions(fetchShowcaseListQueryCache);
+        verifyNoInteractions(fetchShowcaseByIdCache);
+        verifyNoInteractions(fetchShowcaseListCache);
     }
 
     @Test
@@ -636,8 +636,8 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        verifyNoInteractions(fetchShowcaseByIdQueryCache);
-        verifyNoInteractions(fetchShowcaseListQueryCache);
+        verifyNoInteractions(fetchShowcaseByIdCache);
+        verifyNoInteractions(fetchShowcaseListCache);
     }
 
     @Test
@@ -673,9 +673,9 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        verify(fetchShowcaseByIdQueryCache).getIfPresent(showcaseId);
-        verifyNoMoreInteractions(fetchShowcaseByIdQueryCache);
+        verify(fetchShowcaseByIdCache).getIfPresent(showcaseId);
+        verifyNoMoreInteractions(fetchShowcaseByIdCache);
 
-        verifyNoInteractions(fetchShowcaseListQueryCache);
+        verifyNoInteractions(fetchShowcaseListCache);
     }
 }

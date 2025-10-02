@@ -117,7 +117,7 @@ class ShowcaseQueryClientIT {
     }
 
     @Test
-    void fetchAll_noFiltering_succeedsWithAllExistingShowcasesSortedByStartTime() {
+    void fetchList_noFiltering_succeedsWithListExistingShowcasesSortedByStartTime() {
         // given:
         val query =
                 FetchShowcaseListQuery
@@ -126,11 +126,11 @@ class ShowcaseQueryClientIT {
 
         await().untilAsserted(() -> {
             // when:
-            val fetchAllMono = showcaseQueryOperations.fetchAll(query);
+            val fetchListMono = showcaseQueryOperations.fetchList(query);
 
             // then:
             StepVerifier
-                    .create(fetchAllMono)
+                    .create(fetchListMono)
                     .expectNextSequence(
                             showcases.stream()
                                      .sorted(comparing(Showcase::getShowcaseId).reversed())
@@ -141,7 +141,7 @@ class ShowcaseQueryClientIT {
     }
 
     @Test
-    void fetchAll_titleToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
+    void fetchList_titleToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
         // given:
         val showcase = anElementOf(showcases);
         val query =
@@ -152,11 +152,11 @@ class ShowcaseQueryClientIT {
 
         await().untilAsserted(() -> {
             // when:
-            val fetchAllMono = showcaseQueryOperations.fetchAll(query);
+            val fetchListMono = showcaseQueryOperations.fetchList(query);
 
             // then:
             StepVerifier
-                    .create(fetchAllMono)
+                    .create(fetchListMono)
                     .expectNext(showcase)
                     .expectComplete()
                     .verify();
@@ -164,7 +164,7 @@ class ShowcaseQueryClientIT {
     }
 
     @Test
-    void fetchAll_singleStatusToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
+    void fetchList_singleStatusToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
         // given:
         val status = aShowcaseStatus();
         val query =
@@ -175,11 +175,11 @@ class ShowcaseQueryClientIT {
 
         await().untilAsserted(() -> {
             // when:
-            val fetchAllMono = showcaseQueryOperations.fetchAll(query);
+            val fetchListMono = showcaseQueryOperations.fetchList(query);
 
             // then:
             StepVerifier
-                    .create(fetchAllMono)
+                    .create(fetchListMono)
                     .expectNextSequence(
                             showcases.stream()
                                      .filter(it -> it.getStatus() == status)
@@ -191,7 +191,7 @@ class ShowcaseQueryClientIT {
     }
 
     @Test
-    void fetchAll_multipleStatusesToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
+    void fetchList_multipleStatusesToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
         // given:
         val status1 = aShowcaseStatus();
         val status2 = aShowcaseStatus(status1);
@@ -204,11 +204,11 @@ class ShowcaseQueryClientIT {
 
         await().untilAsserted(() -> {
             // when:
-            val fetchAllMono = showcaseQueryOperations.fetchAll(query);
+            val fetchListMono = showcaseQueryOperations.fetchList(query);
 
             // then:
             StepVerifier
-                    .create(fetchAllMono)
+                    .create(fetchListMono)
                     .expectNextSequence(
                             showcases.stream()
                                      .filter(showcase -> showcase.getStatus() == status1 || showcase.getStatus() == status2)

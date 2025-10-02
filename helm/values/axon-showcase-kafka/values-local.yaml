@@ -1,4 +1,11 @@
+global:
+  security:
+    allowInsecureImages: true
+
 fullnameOverride: axon-showcase-kafka
+
+image:
+  repository: bitnamilegacy/kafka
 
 extraConfigYaml:
   num.recovery.threads.per.data.dir: 1
@@ -19,10 +26,10 @@ controller:
   resources:
     requests:
       cpu: 0.5
-      memory: 2Gi
+      memory: 2.0Gi
     limits:
       cpu: 0.75
-      memory: 4Gi
+      memory: 3.0Gi
 
 networkPolicy:
   allowExternal: false
@@ -35,6 +42,8 @@ networkPolicy:
 metrics:
   jmx:
     enabled: true
+    image:
+      repository: bitnamilegacy/jmx-exporter
     resources:
       requests:
         cpu: 0.1

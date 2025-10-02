@@ -1,52 +1,29 @@
-package showcase.saga;
+package showcase.command;
 
 import lombok.val;
 import org.axonframework.test.saga.SagaTestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import showcase.command.FinishShowcaseCommand;
-import showcase.command.FinishShowcaseUseCase;
-import showcase.command.ShowcaseRemovedEvent;
-import showcase.command.ShowcaseScheduledEvent;
-import showcase.command.ShowcaseStartedEvent;
-import showcase.command.StartShowcaseCommand;
-import showcase.command.StartShowcaseUseCase;
 
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.mockito.Answers.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
-import static showcase.command.RandomCommandTestUtils.aShowcaseScheduledAt;
 import static showcase.command.RandomCommandTestUtils.aShowcaseStartTime;
 import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 
-@ExtendWith(MockitoExtension.class)
-class ShowcaseManagementSagaCT {
+class ShowcaseSagaCT {
 
-    private SagaTestFixture<ShowcaseManagementSaga> fixture;
-
-    @Mock(answer = RETURNS_DEEP_STUBS)
-    private StartShowcaseUseCase startShowcaseUseCase;
-
-    @Mock(answer = RETURNS_DEEP_STUBS)
-    private FinishShowcaseUseCase finishShowcaseUseCase;
+    private SagaTestFixture<ShowcaseSaga> fixture;
 
     @BeforeEach
     void initFixture() {
-        fixture = new SagaTestFixture<>(ShowcaseManagementSaga.class);
-        fixture.registerResource(startShowcaseUseCase);
-        fixture.registerResource(finishShowcaseUseCase);
+        fixture = new SagaTestFixture<>(ShowcaseSaga.class);
     }
 
     @Test
-    void showcaseScheduledEvent_scheduledShowcase_schedulesStartShowcaseDeadline() {
+    void showcaseScheduledEvent_success_schedulesStartShowcaseDeadline() {
         val showcaseId = aShowcaseId();
         val scheduleTime = fixture.currentTime();
         val startTime = aShowcaseStartTime(scheduleTime);
@@ -58,7 +35,7 @@ class ShowcaseManagementSagaCT {
                                   .title(aShowcaseTitle())
                                   .startTime(startTime)
                                   .duration(aShowcaseDuration())
-                                  .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                                  .scheduledAt(scheduleTime)
                                   .build())
                .expectScheduledDeadlineMatching(startTime, allOf(
                        hasProperty("deadlineName", equalTo("startShowcase")),
@@ -67,7 +44,7 @@ class ShowcaseManagementSagaCT {
     }
 
     @Test
-    void startShowcaseDeadline_scheduledShowcase_startsShowcase() {
+    void startShowcaseDeadline_success_startsShowcase() {
         val showcaseId = aShowcaseId();
         val scheduleTime = fixture.currentTime();
         val startTime = aShowcaseStartTime(scheduleTime);
@@ -79,24 +56,46 @@ class ShowcaseManagementSagaCT {
                                   .title(aShowcaseTitle())
                                   .startTime(startTime)
                                   .duration(aShowcaseDuration())
-                                  .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                                  .scheduledAt(scheduleTime)
                                   .build())
                .whenTimeAdvancesTo(startTime)
-               .expectTriggeredDeadlinesWithName("startShowcase")
-               .expectNoDispatchedCommands()
+               .expectDispatchedCommands(
+                       StartShowcaseCommand
+                               .builder()
+                               .showcaseId(showcaseId)
+                               .build())
                .expectActiveSagas(1);
-
-        val startCommand =
-                StartShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build();
-        verify(startShowcaseUseCase).start(startCommand);
-        verifyNoMoreInteractions(startShowcaseUseCase);
     }
 
     @Test
-    void showcaseStartedEvent_startedShowcase_schedulesFinishShowcaseDeadline() throws Exception {
+    void startShowcaseDeadline_alreadyStarted_startsShowcase() {
+        val showcaseId = aShowcaseId();
+        val scheduleTime = fixture.currentTime();
+        val startTime = aShowcaseStartTime(scheduleTime);
+
+        fixture.givenAggregate(showcaseId)
+               .published(
+                       ShowcaseScheduledEvent
+                               .builder()
+                               .showcaseId(showcaseId)
+                               .title(aShowcaseTitle())
+                               .startTime(startTime)
+                               .duration(aShowcaseDuration())
+                               .scheduledAt(scheduleTime)
+                               .build(),
+                       ShowcaseStartedEvent
+                               .builder()
+                               .showcaseId(showcaseId)
+                               .duration(aShowcaseDuration())
+                               .startedAt(startTime)
+                               .build())
+               .whenTimeAdvancesTo(startTime)
+               .expectNoDispatchedCommands()
+               .expectActiveSagas(1);
+    }
+
+    @Test
+    void showcaseStartedEvent_success_schedulesFinishShowcaseDeadline() throws Exception {
         val showcaseId = aShowcaseId();
         val scheduleTime = fixture.currentTime();
         val startTime = aShowcaseStartTime(scheduleTime);
@@ -110,7 +109,7 @@ class ShowcaseManagementSagaCT {
                                .title(aShowcaseTitle())
                                .startTime(startTime)
                                .duration(duration)
-                               .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                               .scheduledAt(scheduleTime)
                                .build())
                .andThenTimeAdvancesTo(startTime)
                .whenPublishingA(
@@ -118,16 +117,16 @@ class ShowcaseManagementSagaCT {
                                .builder()
                                .showcaseId(showcaseId)
                                .duration(duration)
-                               .startedAt(fixture.currentTime())
+                               .startedAt(startTime)
                                .build())
-               .expectScheduledDeadlineMatching(duration, allOf(
+               .expectScheduledDeadlineMatching(startTime.plus(duration), allOf(
                        hasProperty("deadlineName", equalTo("finishShowcase")),
                        hasProperty("payload", equalTo(showcaseId))))
                .expectActiveSagas(1);
     }
 
     @Test
-    void finishShowcaseDeadline_startedShowcase_finishesShowcase() throws Exception {
+    void finishShowcaseDeadline_success_finishesShowcaseAndEndsSaga() throws Exception {
         val showcaseId = aShowcaseId();
         val scheduleTime = fixture.currentTime();
         val startTime = aShowcaseStartTime(scheduleTime);
@@ -141,7 +140,7 @@ class ShowcaseManagementSagaCT {
                                .title(aShowcaseTitle())
                                .startTime(startTime)
                                .duration(duration)
-                               .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                               .scheduledAt(scheduleTime)
                                .build())
                .andThenTimeAdvancesTo(startTime)
                .andThenAPublished(
@@ -151,49 +150,17 @@ class ShowcaseManagementSagaCT {
                                .duration(duration)
                                .startedAt(startTime)
                                .build())
-               .whenTimeElapses(duration)
-               .expectTriggeredDeadlinesWithName("startShowcase", "finishShowcase")
-               .expectNoDispatchedCommands()
-               .expectActiveSagas(1);
-
-        val finishCommand =
-                FinishShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build();
-        verify(finishShowcaseUseCase).finish(finishCommand);
-        verifyNoMoreInteractions(finishShowcaseUseCase);
-    }
-
-    @Test
-    void showcaseRemovedEvent_startedShowcase_cancelsDeadlines() {
-        val showcaseId = aShowcaseId();
-        val scheduleTime = fixture.currentTime();
-        val startTime = aShowcaseStartTime(scheduleTime);
-        val duration = aShowcaseDuration();
-
-        fixture.givenAggregate(showcaseId)
-               .published(
-                       ShowcaseScheduledEvent
+               .whenTimeAdvancesTo(startTime.plus(duration))
+               .expectDispatchedCommands(
+                       FinishShowcaseCommand
                                .builder()
                                .showcaseId(showcaseId)
-                               .title(aShowcaseTitle())
-                               .startTime(startTime)
-                               .duration(duration)
-                               .scheduledAt(aShowcaseScheduledAt(scheduleTime))
                                .build())
-               .whenPublishingA(
-                       ShowcaseRemovedEvent
-                               .builder()
-                               .showcaseId(showcaseId)
-                               .removedAt(fixture.currentTime())
-                               .build())
-               .expectNoScheduledDeadlines()
                .expectActiveSagas(0);
     }
 
     @Test
-    void showcaseRemovedEvent_finishedShowcase_cancelsDeadlines() throws Exception {
+    void showcaseFinishedEvent_success_endsSaga() throws Exception {
         val showcaseId = aShowcaseId();
         val scheduleTime = fixture.currentTime();
         val startTime = aShowcaseStartTime(scheduleTime);
@@ -207,7 +174,7 @@ class ShowcaseManagementSagaCT {
                                .title(aShowcaseTitle())
                                .startTime(startTime)
                                .duration(duration)
-                               .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                               .scheduledAt(scheduleTime)
                                .build())
                .andThenTimeAdvancesTo(startTime)
                .andThenAPublished(
@@ -215,15 +182,41 @@ class ShowcaseManagementSagaCT {
                                .builder()
                                .showcaseId(showcaseId)
                                .duration(duration)
-                               .startedAt(fixture.currentTime())
+                               .startedAt(startTime)
+                               .build())
+               .andThenTimeElapses(duration)
+               .whenPublishingA(
+                       ShowcaseFinishedEvent
+                               .builder()
+                               .showcaseId(showcaseId)
+                               .finishedAt(startTime.plus(duration))
+                               .build())
+               .expectActiveSagas(0);
+    }
+
+    @Test
+    void showcaseRemovedEvent_success_endsSaga() {
+        val showcaseId = aShowcaseId();
+        val scheduleTime = fixture.currentTime();
+        val startTime = aShowcaseStartTime(scheduleTime);
+        val duration = aShowcaseDuration();
+
+        fixture.givenAggregate(showcaseId)
+               .published(
+                       ShowcaseScheduledEvent
+                               .builder()
+                               .showcaseId(showcaseId)
+                               .title(aShowcaseTitle())
+                               .startTime(startTime)
+                               .duration(duration)
+                               .scheduledAt(scheduleTime)
                                .build())
                .whenPublishingA(
                        ShowcaseRemovedEvent
                                .builder()
                                .showcaseId(showcaseId)
-                               .removedAt(fixture.currentTime())
+                               .removedAt(scheduleTime)
                                .build())
-               .expectNoScheduledDeadlines()
                .expectActiveSagas(0);
     }
 }

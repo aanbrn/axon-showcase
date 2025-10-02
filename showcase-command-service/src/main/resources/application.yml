@@ -35,7 +35,7 @@ axon:
   serializer:
     messages: jackson
   distributed:
-    enabled: on
+    enabled: true
     jgroups:
       configuration-file: ${JGROUPS_CONFIG_FILE:tcp-nio.xml}
       cluster-name: ${JGROUPS_CLUSTER_NAME:axon-showcase}
@@ -49,6 +49,10 @@ axon:
       kube-ping:
         namespace: ${JGROUPS_KUBE_PING_NAMESPACE:default}
         labels: ${JGROUPS_KUBE_PING_LABELS:jgroups-cluster=axon-showcase}
+  eventhandling:
+    processors:
+      showcase-saga:
+        mode: tracking
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     default-topic: ${KAFKA_TOPIC_EVENTS:axon-showcase-events}
@@ -64,9 +68,7 @@ axon:
       sasl.mechanism: ${KAFKA_SASL_MECHANISM:}
       sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG:}
     publisher:
-      confirmation-mode: wait_for_ack
-    producer:
-      event-processor-mode: tracking
+      processing-group: event-publishing
     fetcher:
       enabled: false
   metrics:
@@ -75,6 +77,13 @@ axon:
   tracing:
     repository:
       aggregate-id-attribute-name: axon.aggregateId
+
+db-scheduler:
+  delay-startup-until-context-ready: true
+  polling-interval: PT0.5S
+  polling-strategy: lock_and_fetch
+  polling-strategy-lower-limit-fraction-of-threads: 1.0
+  polling-strategy-upper-limit-fraction-of-threads: 4.0
 
 showcase:
   command:
@@ -99,8 +108,8 @@ management:
     health:
       show-details: always
       probes:
-        enabled: on
-        add-additional-paths: on
+        enabled: true
+        add-additional-paths: true
   metrics:
     tags:
       application: axon-showcase

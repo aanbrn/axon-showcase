@@ -72,7 +72,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
-    void fetchAll_noFiltering_respondsWithAllShowcasesSortedByShowcaseIdInReverseOrder() {
+    void fetchList_noFiltering_respondsWithAllShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases = showcases();
 
         openSearchTemplate.save(
@@ -101,7 +101,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
-    void fetchAll_titleToFilterBy_respondsWithMatchingShowcasesSortedByShowcaseIdInReverseOrder() {
+    void fetchList_titleToFilterBy_respondsWithMatchingShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases = showcases();
         val showcase = anElementOf(showcases);
 
@@ -132,7 +132,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
-    void fetchAll_singleStatusToFilterBy_respondsWithMatchingShowcasesSortedByShowcaseIdInReverseOrder() {
+    void fetchList_singleStatusToFilterBy_respondsWithMatchingShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases = showcases();
         val status = aShowcaseStatus();
 
@@ -166,7 +166,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
-    void fetchAll_multipleStatusesToFilterBy_respondsWithMatchingShowcasesSortedByShowcaseIdInReverseOrder() {
+    void fetchList_multipleStatusesToFilterBy_respondsWithMatchingShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases = showcases();
         val status1 = aShowcaseStatus();
         val status2 = aShowcaseStatus(status1);
@@ -203,7 +203,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
-    void fetchAll_afterId_respondsWithSubsequentShowcasesSortedByShowcaseIdInReverseOrder() {
+    void fetchList_afterId_respondsWithSubsequentShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases =
                 showcases()
                         .stream()
@@ -239,7 +239,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
-    void fetchAll_size_respondsWithRequestedNumberOfShowcasesSortedByShowcaseIdInReverseOrder() {
+    void fetchList_size_respondsWithRequestedNumberOfShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases =
                 showcases()
                         .stream()

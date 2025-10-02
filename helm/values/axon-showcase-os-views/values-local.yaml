@@ -1,4 +1,14 @@
+global:
+  security:
+    allowInsecureImages: true
+
 fullnameOverride: axon-showcase-os-views
+
+image:
+  repository: bitnamilegacy/opensearch
+
+sysctlImage:
+  repository: bitnamilegacy/os-shell
 
 master:
   replicaCount: 1
@@ -28,10 +38,10 @@ master:
   resources:
     requests:
       cpu: 0.5
-      memory: 768Mi
+      memory: 1.0Gi
     limits:
       cpu: 0.75
-      memory: 1024Mi
+      memory: 1.5Gi
   networkPolicy:
     allowExternal: false
     allowExternalEgress: false
@@ -75,10 +85,10 @@ data:
   resources:
     requests:
       cpu: 0.75
-      memory: 2Gi
+      memory: 2.0Gi
     limits:
       cpu: 1.0
-      memory: 4Gi
+      memory: 3.0Gi
   networkPolicy:
     allowExternal: false
     allowExternalEgress: false

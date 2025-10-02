@@ -24,8 +24,12 @@ import java.util.Map;
 
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROTOBUF;
+import static showcase.query.ShowcaseQueryOperations.SHOWCASE_QUERY_SERVICE;
 
 @Component
+@TimeLimiter(name = SHOWCASE_QUERY_SERVICE)
+@CircuitBreaker(name = SHOWCASE_QUERY_SERVICE)
+@Retry(name = SHOWCASE_QUERY_SERVICE)
 @SuppressFBWarnings("CT_CONSTRUCTOR_THROW")
 class ShowcaseQueryClient implements ShowcaseQueryOperations {
 
@@ -44,11 +48,8 @@ class ShowcaseQueryClient implements ShowcaseQueryOperations {
         this.queryMessageRequestMapper = new QueryMessageRequestMapper(messageSerializer);
     }
 
-    @TimeLimiter(name = SHOWCASE_QUERY_SERVICE)
-    @CircuitBreaker(name = SHOWCASE_QUERY_SERVICE)
-    @Retry(name = SHOWCASE_QUERY_SERVICE)
     @Override
-    public Flux<Showcase> fetchAll(@NonNull FetchShowcaseListQuery query) {
+    public Flux<Showcase> fetchList(@NonNull FetchShowcaseListQuery query) {
         return createQueryMessage(query, Showcase.class).flatMapMany(
                 queryMessage -> webClient.post()
                                          .uri("/streaming-query")
@@ -59,9 +60,6 @@ class ShowcaseQueryClient implements ShowcaseQueryOperations {
                                          .bodyToFlux(Showcase.class));
     }
 
-    @TimeLimiter(name = SHOWCASE_QUERY_SERVICE)
-    @CircuitBreaker(name = SHOWCASE_QUERY_SERVICE)
-    @Retry(name = SHOWCASE_QUERY_SERVICE)
     @Override
     public Mono<Showcase> fetchById(@NonNull FetchShowcaseByIdQuery query) {
         return createQueryMessage(query, Showcase.class).flatMap(

@@ -109,8 +109,6 @@ spec:
               value: {{ .Values.queryService.osViews.maxConnections | int | toString | quote }}
             - name: "OS_MAX_CONNECTIONS_PER_ROUTE"
               value: {{ .Values.queryService.osViews.maxConnectionsPerRoute | int | toString | quote }}
-            - name: "OS_EVICT_EXPIRED_CONNECTIONS"
-              value: {{ .Values.queryService.osViews.evictExpiredConnections | quote }}
             - name: "OS_EVICT_IDLE_CONNECTIONS"
               value: {{ .Values.queryService.osViews.evictIdleConnections | quote }}
             - name: "INDEX_INITIALIZATION_ENABLED"

@@ -28,8 +28,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.cache.CacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import showcase.query.FetchShowcaseListQuery;
@@ -44,6 +47,7 @@ import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_LIST_QUERY_CACHE_
 
 @SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
 @EnableConfigurationProperties(ShowcaseApiProperties.class)
+@EnableCaching
 @Slf4j
 class ShowcaseApiApplication {
 
@@ -126,7 +130,7 @@ class ShowcaseApiApplication {
     }
 
     @Bean
-    Cache<@NonNull FetchShowcaseListQuery, List<Showcase>> fetchShowcaseListQueryCache(
+    Cache<@NonNull FetchShowcaseListQuery, List<Showcase>> fetchShowcaseListCache(
             ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME);
         if (cacheSettings == null) {
@@ -142,7 +146,7 @@ class ShowcaseApiApplication {
     }
 
     @Bean
-    Cache<@NonNull String, Showcase> fetchShowcaseByIdQueryCache(
+    Cache<@NonNull String, Showcase> fetchShowcaseByIdCache(
             ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME);
         if (cacheSettings == null) {
@@ -155,5 +159,18 @@ class ShowcaseApiApplication {
                        .expireAfterWrite(cacheSettings.getExpiresAfterWrite())
                        .recordStats()
                        .build();
+    }
+
+    @Bean
+    @SuppressWarnings("unchecked")
+    CacheManagerCustomizer<CaffeineCacheManager> caffeineCacheManagerCustomizer(
+            Cache<?, ?> fetchShowcaseListCache,
+            Cache<?, ?> fetchShowcaseByIdCache) {
+        return cacheManager -> {
+            cacheManager.registerCustomCache(
+                    "fetch-showcase-list-cache", (Cache<@NonNull Object, Object>) fetchShowcaseListCache);
+            cacheManager.registerCustomCache(
+                    "fetch-showcase-by-id-cache", (Cache<@NonNull Object, Object>) fetchShowcaseByIdCache);
+        };
     }
 }

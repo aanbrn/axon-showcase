@@ -1,4 +1,11 @@
+global:
+  security:
+    allowInsecureImages: true
+
 fullnameOverride: axon-showcase-db-events
+
+image:
+  repository: bitnamilegacy/postgresql
 
 auth:
   enablePostgresUser: false
@@ -14,10 +21,10 @@ primary:
   resources:
     requests:
       cpu: 0.5
-      memory: 1.25Gi
+      memory: 2.0Gi
     limits:
       cpu: 0.75
-      memory: 1.75Gi
+      memory: 3.0Gi
   networkPolicy:
     allowExternal: false
     allowExternalEgress: false
@@ -28,6 +35,8 @@ primary:
 
 metrics:
   enabled: true
+  image:
+    repository: bitnamilegacy/postgres-exporter
   collectors:
     wal: false
   serviceMonitor:

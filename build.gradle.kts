@@ -49,6 +49,8 @@ helm {
 
             tags.add("monitoring")
 
+            mustInstallAfter("kps")
+
             mustUninstallAfter("axon-showcase")
         }
 
@@ -58,18 +60,6 @@ helm {
             version = libs.versions.bitnami.postgresql
 
             tags.addAll(listOf("database", "db-events"))
-
-            mustInstallAfter("kps")
-
-            mustUninstallAfter("axon-showcase")
-        }
-
-        create("axon-showcase-db-sagas") {
-            from("bitnami/postgresql")
-
-            version = libs.versions.bitnami.postgresql
-
-            tags.addAll(listOf("database", "db-sagas"))
 
             mustInstallAfter("kps")
 
@@ -107,7 +97,6 @@ helm {
 
             installDependsOn(
                 ":showcase-command-service:bootBuildImage",
-                ":showcase-saga-service:bootBuildImage",
                 ":showcase-projection-service:bootBuildImage",
                 ":showcase-query-service:bootBuildImage",
                 ":showcase-api-gateway:bootBuildImage"
@@ -116,7 +105,6 @@ helm {
             mustInstallAfter(
                 "tempo",
                 "axon-showcase-db-events",
-                "axon-showcase-db-sagas",
                 "axon-showcase-kafka",
                 "axon-showcase-os-views"
             )

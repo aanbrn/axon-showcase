@@ -58,7 +58,7 @@ final class ShowcaseAggregate {
                         && Objects.equals(status, ShowcaseStatus.SCHEDULED)
                         && Objects.equals(startTime, command.getStartTime())
                         && Objects.equals(duration, command.getDuration())) {
-                log.debug("Retry to schedule showcase: {}", command);
+                log.trace("Retry to schedule showcase: {}", command);
                 return;
             } else {
                 log.error("Attempt to reuse showcase ID: {}", command);
@@ -96,7 +96,7 @@ final class ShowcaseAggregate {
                         .scheduledAt(clock.instant())
                         .build();
 
-        log.debug("Showcase scheduled: {}", event);
+        log.trace("Showcase scheduled: {}", event);
 
         apply(event);
     }
@@ -114,7 +114,7 @@ final class ShowcaseAggregate {
                             .build());
         }
         if (status == ShowcaseStatus.STARTED) {
-            log.debug("Retry to start showcase: {}", command);
+            log.trace("Retry to start showcase: {}", command);
             return;
         }
 
@@ -126,7 +126,7 @@ final class ShowcaseAggregate {
                         .startedAt(clock.instant())
                         .build();
 
-        log.debug("Showcase started: {}", event);
+        log.trace("Showcase started: {}", event);
 
         apply(event);
     }
@@ -144,7 +144,7 @@ final class ShowcaseAggregate {
                             .build());
         }
         if (status == ShowcaseStatus.FINISHED) {
-            log.debug("Retry to finish showcase: {}", command);
+            log.trace("Retry to finish showcase: {}", command);
             return;
         }
 
@@ -155,7 +155,7 @@ final class ShowcaseAggregate {
                         .finishedAt(clock.instant())
                         .build();
 
-        log.debug("Showcase finished: {}", event);
+        log.trace("Showcase finished: {}", event);
 
         apply(event);
     }
@@ -176,7 +176,7 @@ final class ShowcaseAggregate {
                             .finishedAt(now)
                             .build();
 
-            log.debug("Showcase finished on remove: {}", event);
+            log.trace("Showcase finished on remove: {}", event);
 
             apply(event);
         }
@@ -188,7 +188,7 @@ final class ShowcaseAggregate {
                             .removedAt(now)
                             .build();
 
-            log.debug("Showcase removed: {}", event);
+            log.trace("Showcase removed: {}", event);
 
             apply(event);
         }

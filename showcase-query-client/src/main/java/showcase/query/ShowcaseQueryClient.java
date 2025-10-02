@@ -8,7 +8,6 @@ import lombok.NonNull;
 import lombok.val;
 import org.axonframework.messaging.MetaData;
 import org.axonframework.queryhandling.GenericStreamingQueryMessage;
-import org.axonframework.queryhandling.StreamingQueryMessage;
 import org.axonframework.serialization.Serializer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -50,35 +49,40 @@ class ShowcaseQueryClient implements ShowcaseQueryOperations {
 
     @Override
     public Flux<Showcase> fetchList(@NonNull FetchShowcaseListQuery query) {
-        return createQueryMessage(query, Showcase.class).flatMapMany(
-                queryMessage -> webClient.post()
-                                         .uri("/streaming-query")
-                                         .contentType(APPLICATION_PROTOBUF)
-                                         .bodyValue(queryMessageRequestMapper.messageToRequest(queryMessage))
-                                         .retrieve()
-                                         .onStatus(HttpStatusCode::isError, this::handleError)
-                                         .bodyToFlux(Showcase.class));
+        return createQueryRequest(query, Showcase.class)
+                       .flatMapMany(queryRequest -> Flux.defer(
+                               () -> webClient.post()
+                                              .uri("/streaming-query")
+                                              .contentType(APPLICATION_PROTOBUF)
+                                              .bodyValue(queryRequest)
+                                              .retrieve()
+                                              .onStatus(HttpStatusCode::isError, this::handleError)
+                                              .bodyToFlux(Showcase.class)))
+                       .checkpoint("ShowcaseQueryClient.fetchList(%s)".formatted(query));
     }
 
     @Override
     public Mono<Showcase> fetchById(@NonNull FetchShowcaseByIdQuery query) {
-        return createQueryMessage(query, Showcase.class).flatMap(
-                message -> webClient.post()
-                                    .uri("/query")
-                                    .contentType(APPLICATION_PROTOBUF)
-                                    .bodyValue(queryMessageRequestMapper.messageToRequest(message))
-                                    .retrieve()
-                                    .onStatus(HttpStatusCode::isError, this::handleError)
-                                    .bodyToMono(Showcase.class));
+        return createQueryRequest(query, Showcase.class)
+                       .flatMap(queryRequest -> Mono.defer(
+                               () -> webClient.post()
+                                              .uri("/query")
+                                              .contentType(APPLICATION_PROTOBUF)
+                                              .bodyValue(queryRequest)
+                                              .retrieve()
+                                              .onStatus(HttpStatusCode::isError, this::handleError)
+                                              .bodyToMono(Showcase.class)))
+                       .checkpoint("ShowcaseQueryClient.fetchById(%s)".formatted(query));
     }
 
     @SuppressWarnings("SameParameterValue")
-    private <Q, R> Mono<StreamingQueryMessage<Q, R>> createQueryMessage(Q query, Class<R> responseType) {
+    private Mono<QueryRequest> createQueryRequest(Object query, Class<?> responseType) {
         return Mono.just(new GenericStreamingQueryMessage<>(query, responseType))
                    .transformDeferredContextual((queryMessageMono, ctx) -> queryMessageMono.map(queryMessage -> {
                        val metaData = ctx.getOrDefault(MetaData.class, MetaData.emptyInstance());
                        return queryMessage.andMetaData(metaData);
-                   }));
+                   }))
+                   .map(queryMessageRequestMapper::messageToRequest);
     }
 
     private Mono<? extends Throwable> handleError(ClientResponse response) {

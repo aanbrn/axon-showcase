@@ -33,7 +33,9 @@ helm {
             tags.add("monitoring")
 
             mustUninstallAfter(
+                "tempo",
                 "axon-showcase-db-events",
+                "axon-showcase-kafka",
                 "axon-showcase-os-views",
                 "axon-showcase"
             )
@@ -51,7 +53,12 @@ helm {
 
             mustInstallAfter("kps")
 
-            mustUninstallAfter("axon-showcase")
+            mustUninstallAfter(
+                "axon-showcase-db-events",
+                "axon-showcase-kafka",
+                "axon-showcase-os-views",
+                "axon-showcase"
+            )
         }
 
         create("axon-showcase-db-events") {
@@ -61,7 +68,7 @@ helm {
 
             tags.addAll(listOf("database", "db-events"))
 
-            mustInstallAfter("kps")
+            mustInstallAfter("kps", "tempo")
 
             mustUninstallAfter("axon-showcase")
         }
@@ -73,7 +80,7 @@ helm {
 
             tags.addAll(listOf("database", "os-views"))
 
-            mustInstallAfter("kps")
+            mustInstallAfter("kps", "tempo")
 
             mustUninstallAfter("axon-showcase")
         }
@@ -85,7 +92,7 @@ helm {
 
             tags.add("kafka")
 
-            mustInstallAfter("kps")
+            mustInstallAfter("kps", "tempo")
 
             mustUninstallAfter("axon-showcase")
         }
@@ -103,6 +110,7 @@ helm {
             )
 
             mustInstallAfter(
+                "kps",
                 "tempo",
                 "axon-showcase-db-events",
                 "axon-showcase-kafka",

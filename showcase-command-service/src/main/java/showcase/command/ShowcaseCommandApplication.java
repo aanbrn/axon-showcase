@@ -2,6 +2,9 @@ package showcase.command;
 
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
+import com.github.kagkarlsson.scheduler.Scheduler;
+import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer;
+import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerProperties;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandBus;
@@ -51,9 +54,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 import javax.cache.CacheManager;
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
+import static com.github.kagkarlsson.scheduler.ExecutorUtils.defaultThreadFactoryWithPrefix;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Runtime.getRuntime;
 import static showcase.command.ShowcaseCommandConstants.SAGA_ASSOCIATIONS_CACHE_NAME;
 import static showcase.command.ShowcaseCommandConstants.SAGA_CACHE_NAME;
 import static showcase.command.ShowcaseCommandConstants.SHOWCASE_CACHE_NAME;
@@ -246,6 +258,11 @@ class ShowcaseCommandApplication {
     }
 
     @Bean
+    ConsistentHashChangeListener consistentHashChangeListener(Cache showcaseCache) {
+        return __ -> showcaseCache.removeAll();
+    }
+
+    @Bean
     SnapshotTriggerDefinition showcaseSnapshotTrigger(
             Snapshotter snapshotter, ShowcaseCommandProperties commandProperties) {
         return new AggregateLoadTimeSnapshotTriggerDefinition(
@@ -284,7 +301,18 @@ class ShowcaseCommandApplication {
     }
 
     @Bean
-    ConsistentHashChangeListener consistentHashChangeListener(Cache showcaseCache) {
-        return __ -> showcaseCache.removeAll();
+    DbSchedulerCustomizer dbSchedulerCustomizer(DbSchedulerProperties dbSchedulerProperties) {
+        return new DbSchedulerCustomizer() {
+            @Override
+            public Optional<ExecutorService> executorService() {
+                return Optional.of(
+                        new ThreadPoolExecutor(
+                                min(dbSchedulerProperties.getThreads(), getRuntime().availableProcessors()),
+                                max(dbSchedulerProperties.getThreads(), getRuntime().availableProcessors()),
+                                60L, TimeUnit.SECONDS,
+                                new LinkedBlockingQueue<>(),
+                                defaultThreadFactoryWithPrefix(Scheduler.THREAD_PREFIX + "-")));
+            }
+        };
     }
 }

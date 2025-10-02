@@ -28,7 +28,7 @@ controller:
       cpu: 0.5
       memory: 2.0Gi
     limits:
-      cpu: 0.75
+      cpu: 3.0
       memory: 3.0Gi
 
 networkPolicy:

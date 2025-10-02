@@ -33,11 +33,13 @@ dependencies {
 
     implementation(libs.jackson.module.blackbird)
 
+    implementation(libs.commons.lang3)
     implementation(libs.mapstruct)
     implementation(libs.streamex)
 
     implementation(libs.axon.micrometer)
     implementation(libs.axon.tracing.opentelemetry)
+    implementation(libs.reactor.core.micrometer)
 
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.micrometer.registry.prometheus)

@@ -121,6 +121,10 @@ spec:
             - name: "TIMELIMITER_DEFAULT_TIMEOUT"
               value: {{ .Values.apiGateway.resilience.timelimiter.defaults.timeoutDuration | quote }}
             {{- end }}
+            {{- if .Values.apiGateway.resilience.timelimiter.commandService.timeoutDuration }}
+            - name: "TIMELIMITER_COMMAND_TIMEOUT"
+              value: {{ .Values.apiGateway.resilience.timelimiter.commandService.timeoutDuration | quote }}
+            {{- end }}
             {{- if .Values.apiGateway.resilience.timelimiter.queryService.timeoutDuration }}
             - name: "TIMELIMITER_QUERY_TIMEOUT"
               value: {{ .Values.apiGateway.resilience.timelimiter.queryService.timeoutDuration | quote }}

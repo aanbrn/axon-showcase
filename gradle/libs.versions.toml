@@ -7,7 +7,7 @@ spring-data-bom = "2025.0.4"
 spring-data-opensearch = "2.0.2"
 springdoc-openapi-starter = "2.8.13"
 swagger = "2.2.38"
-swagger-ui = "5.28.1"
+swagger-ui = "5.29.3"
 postgresql = "42.7.8"
 caffeine = "3.2.2"
 db-scheduler = "13.0.0"
@@ -20,7 +20,7 @@ streamex = "0.8.4"
 jgroups = "4.2.30.Final"
 jgroups-kubernetes = "1.0.17.Final"
 protobuf = "4.32.1"
-elasticsearch-client = "9.1.4"
+elasticsearch-client = "9.1.5"
 opensearch = "3.0.2"
 opensearch-client = "3.2.0"
 opentelemetry = "1.54.1"
@@ -47,7 +47,7 @@ gatling-plugin = "3.14.5"
 dependencyVersions-plugin = "0.53.0"
 spotbugs-plugin = "6.2.2"
 spotbugs-findsecbugs-plugin = "1.14.0"
-spotbugs-fbContrib-plugin = "7.6.14"
+spotbugs-fbContrib-plugin = "7.6.15"
 helm = "3.19.0"
 helm-plugin = "2.2.0"
 bitnami-common = "2.x.x"
@@ -129,6 +129,7 @@ mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mo
 mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter" }
 reactor-bom = { group = "io.projectreactor", name = "reactor-bom", version.ref = "reactor-bom" }
 reactor-core = { group = "io.projectreactor", name = "reactor-core" }
+reactor-core-micrometer = { group = "io.projectreactor", name = "reactor-core-micrometer" }
 reactor-test = { group = "io.projectreactor", name = "reactor-test" }
 netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty" }
 wiremock-springBoot = { group = "org.wiremock.integrations", name = "wiremock-spring-boot", version.ref = "wiremock-spring-boot" }

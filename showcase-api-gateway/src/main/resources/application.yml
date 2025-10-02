@@ -45,13 +45,13 @@ showcase:
   api:
     caches:
       FetchShowcaseListQuery:
-        maximum-size: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_MAX_SIZE:1000}
-        expires-after-access: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_ACCESS:PT10M}
-        expires-after-write: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_WRITE:PT5M}
+        maximum-size: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_MAX_SIZE:100000}
+        expires-after-access: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_ACCESS:PT24H}
+        expires-after-write: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_WRITE:PT12H}
       FetchShowcaseByIdQuery:
-        maximum-size: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_MAX_SIZE:1000}
-        expires-after-access: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_ACCESS:PT10M}
-        expires-after-write: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_WRITE:PT5M}
+        maximum-size: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_MAX_SIZE:1000000}
+        expires-after-access: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_ACCESS:PT24H}
+        expires-after-write: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_WRITE:PT12H}
   query:
     api-url: ${SHOWCASE_QUERY_SERVICE_URL:http://localhost:8084}
 
@@ -63,6 +63,9 @@ resilience4j:
       default:
         timeout-duration: ${TIMELIMITER_DEFAULT_TIMEOUT:PT2S}
     instances:
+      showcase-command-service:
+        base-config: default
+        timeout-duration: ${TIMELIMITER_COMMAND_TIMEOUT:}
       showcase-query-service:
         base-config: default
         timeout-duration: ${TIMELIMITER_QUERY_TIMEOUT:}

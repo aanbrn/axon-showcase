@@ -5,10 +5,10 @@ tempo:
     remoteWriteUrl: "http://prometheus-operated:9090/api/v1/write"
   resources:
     requests:
-      cpu: 0.5
+      cpu: 0.25
       memory: 2.0Gi
     limits:
-      cpu: 0.75
+      cpu: 1.0
       memory: 3.0Gi
   livenessProbe:
     initialDelaySeconds: 0

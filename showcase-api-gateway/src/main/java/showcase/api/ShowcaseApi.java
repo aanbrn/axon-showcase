@@ -39,9 +39,19 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 @SuppressWarnings("unused")
 interface ShowcaseApi {
 
+    String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
+
     @Operation(
             description = "Schedules a showcase with the given parameters.",
             method = "POST",
+            parameters = @Parameter(
+                    name = IDEMPOTENCY_KEY_HEADER,
+                    description = """
+                            A unique key that ensures the operation's idempotency. When provided, repeated requests
+                            with the same key are treated as the same operation. The server may return one in responses
+                            (e.g., on timeout), so the client can safely retry later.""",
+                    in = ParameterIn.HEADER
+            ),
             requestBody = @RequestBody(
                     description = "Parameters for a showcase to schedule.",
                     content = @Content(mediaType = APPLICATION_JSON_VALUE),
@@ -54,11 +64,23 @@ interface ShowcaseApi {
                             headers = @Header(
                                     name = "Location",
                                     description = "The path by which the showcase details are accessible.",
-                                    examples = @ExampleObject("/showcases/0bb59251-fd63-432c-aead-17e0f1cac36b")
+                                    examples = @ExampleObject("/showcases/33gkCN0UNn3Kzr3x7iuDaVT6sZi")
                             ),
                             content = @Content(
                                     mediaType = APPLICATION_JSON_VALUE,
                                     schema = @Schema(implementation = ScheduleShowcaseResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "202",
+                            description = """
+                                    The request has been accepted for asynchronous processing and is still being
+                                    handled. Retry the same request using the provided idempotency key to obtain
+                                    the final result once the operation completes.""",
+                            headers = @Header(
+                                    name = IDEMPOTENCY_KEY_HEADER,
+                                    description = "The idempotency key to use for retrying the same operation.",
+                                    examples = @ExampleObject("33gkCN0UNn3Kzr3x7iuDaVT6sZi")
                             )
                     ),
                     @ApiResponse(
@@ -78,7 +100,9 @@ interface ShowcaseApi {
                     )
             }
     )
-    Mono<ResponseEntity<ScheduleShowcaseResponse>> schedule(@Valid ScheduleShowcaseRequest request);
+    Mono<ResponseEntity<ScheduleShowcaseResponse>> schedule(
+            @KSUID String idempotencyKey,
+            @Valid ScheduleShowcaseRequest request);
 
     @Operation(
             description = "Starts the scheduled showcase explicitly before it's started automatically at the " +
@@ -89,12 +113,19 @@ interface ShowcaseApi {
                     description = "The ID of the showcase to start.",
                     in = ParameterIn.PATH,
                     required = true,
-                    example = "0bb59251-fd63-432c-aead-17e0f1cac36b"
+                    example = "33gkCN0UNn3Kzr3x7iuDaVT6sZi"
             ),
             responses = {
                     @ApiResponse(
                             responseCode = "200",
                             description = "The requested showcase has been started successfully."
+                    ),
+                    @ApiResponse(
+                            responseCode = "202",
+                            description = """
+                                    The request has been accepted for asynchronous processing and is still being
+                                    handled. Retry the same request to obtain the final result once the operation
+                                    completes."""
                     ),
                     @ApiResponse(
                             responseCode = "400",
@@ -143,7 +174,7 @@ interface ShowcaseApi {
                     )
             }
     )
-    Mono<Void> start(@KSUID String showcaseId);
+    Mono<ResponseEntity<Void>> start(@KSUID String showcaseId);
 
     @Operation(
             description = "Finishes the started showcase explicitly before it's finished automatically at the end of " +
@@ -154,12 +185,19 @@ interface ShowcaseApi {
                     description = "The ID of the showcase to finish.",
                     in = ParameterIn.PATH,
                     required = true,
-                    example = "0bb59251-fd63-432c-aead-17e0f1cac36b"
+                    example = "33gkCN0UNn3Kzr3x7iuDaVT6sZi"
             ),
             responses = {
                     @ApiResponse(
                             responseCode = "200",
                             description = "The requested showcase has been finished successfully."
+                    ),
+                    @ApiResponse(
+                            responseCode = "202",
+                            description = """
+                                    The request has been accepted for asynchronous processing and is still being
+                                    handled. Retry the same request to obtain the final result once the operation
+                                    completes."""
                     ),
                     @ApiResponse(
                             responseCode = "400",
@@ -208,7 +246,7 @@ interface ShowcaseApi {
                     )
             }
     )
-    Mono<Void> finish(@KSUID String showcaseId);
+    Mono<ResponseEntity<Void>> finish(@KSUID String showcaseId);
 
     @Operation(
             description = "Removes the given showcase finishing it when it's already started.",
@@ -218,14 +256,23 @@ interface ShowcaseApi {
                     description = "The ID of the showcase to remove.",
                     in = ParameterIn.PATH,
                     required = true,
-                    example = "0bb59251-fd63-432c-aead-17e0f1cac36b"
+                    example = "33gkCN0UNn3Kzr3x7iuDaVT6sZi"
             ),
-            responses = @ApiResponse(
-                    responseCode = "200",
-                    description = "The requested showcase has been removed successfully."
-            )
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "The requested showcase has been removed successfully."
+                    ),
+                    @ApiResponse(
+                            responseCode = "202",
+                            description = """
+                                    The request has been accepted for asynchronous processing and is still being
+                                    handled. Retry the same request to obtain the final result once the operation
+                                    completes."""
+                    ),
+            }
     )
-    Mono<Void> remove(@KSUID String showcaseId);
+    Mono<ResponseEntity<Void>> remove(@KSUID String showcaseId);
 
     @Operation(
             description = "Fetches the existing showcases sorting them by IDs in reverse order and optionally " +
@@ -276,7 +323,7 @@ interface ShowcaseApi {
                     description = "The ID of the showcase to fetch.",
                     in = ParameterIn.PATH,
                     required = true,
-                    example = "0bb59251-fd63-432c-aead-17e0f1cac36b"
+                    example = "33gkCN0UNn3Kzr3x7iuDaVT6sZi"
             ),
             responses = {
                     @ApiResponse(

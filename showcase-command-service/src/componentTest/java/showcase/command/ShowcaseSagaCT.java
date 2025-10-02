@@ -126,7 +126,7 @@ class ShowcaseSagaCT {
     }
 
     @Test
-    void finishShowcaseDeadline_success_finishesShowcaseAndEndsSaga() throws Exception {
+    void finishShowcaseDeadline_success_finishesShowcase() throws Exception {
         val showcaseId = aShowcaseId();
         val scheduleTime = fixture.currentTime();
         val startTime = aShowcaseStartTime(scheduleTime);
@@ -156,7 +156,7 @@ class ShowcaseSagaCT {
                                .builder()
                                .showcaseId(showcaseId)
                                .build())
-               .expectActiveSagas(0);
+               .expectActiveSagas(1);
     }
 
     @Test

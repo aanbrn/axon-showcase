@@ -81,7 +81,7 @@ commandService:
       retries: 3
 
   showcaseCache:
-    maxSize: 1000
+    maxSize: 100000
     expiresAfterAccess: PT10M
     expiresAfterWrite: PT5M
 
@@ -124,10 +124,10 @@ commandService:
 
   resources:
     requests:
-      cpu: 0.75
+      cpu: 1.0
       memory: 0.5Gi
     limits:
-      cpu: 1.0
+      cpu: 3.0
       memory: 1Gi
 
   lifecycleHooks: { }
@@ -309,7 +309,7 @@ projectionService:
       cpu: 1.0
       memory: 0.5Gi
     limits:
-      cpu: 1.25
+      cpu: 3.0
       memory: 0.75Gi
 
   lifecycleHooks: { }
@@ -512,10 +512,10 @@ queryService:
 
   resources:
     requests:
-      cpu: 0.75
+      cpu: 1.0
       memory: 0.5Gi
     limits:
-      cpu: 1.0
+      cpu: 3.0
       memory: 1Gi
 
   lifecycleHooks: { }
@@ -644,13 +644,13 @@ apiGateway:
 
   caches:
     FetchShowcaseListQuery:
-      maxSize: 1000
-      expiresAfterAccess: PT10M
-      expiresAfterWrite: PT5M
+      maxSize: 100000
+      expiresAfterAccess: PT24H
+      expiresAfterWrite: PT12H
     FetchShowcaseByIdQuery:
-      maxSize: 1000
-      expiresAfterAccess: PT10M
-      expiresAfterWrite: PT5M
+      maxSize: 1000000
+      expiresAfterAccess: PT24H
+      expiresAfterWrite: PT12H
 
   extraEnvVars:
     JAVA_OPTS: "-XX:MaxDirectMemorySize=128M -XX:MaxGCPauseMillis=20"
@@ -692,10 +692,10 @@ apiGateway:
 
   resources:
     requests:
-      cpu: 0.75
+      cpu: 1.0
       memory: 0.5Gi
     limits:
-      cpu: 1.0
+      cpu: 3.0
       memory: 1Gi
 
   lifecycleHooks: { }
@@ -762,6 +762,8 @@ apiGateway:
       enabled: true
       defaults:
         timeoutDuration: PT2S
+      commandService:
+        timeoutDuration: ""
       queryService:
         timeoutDuration: ""
     circuitbreaker:

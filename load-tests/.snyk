@@ -3,8 +3,8 @@ version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   SNYK-JAVA-IOPEBBLETEMPLATES-8745594:
-    - 'io.gatling.highcharts:gatling-charts-highcharts@3.14.5 > io.gatling:gatling-recorder@3.14.5 > io.gatling:gatling-core@3.14.5 > io.pebbletemplates:pebble@3.2.4':
+    - 'io.gatling.highcharts:gatling-charts-highcharts > io.gatling:gatling-recorder > io.gatling:gatling-core > io.pebbletemplates:pebble@3.2.4':
         reason: No upgrade or patch available
         expires: 2099-12-31T23:59:59.999Z
-        created: 2025-09-25T04:55:15.506Z
+        created: 2025-10-15T08:49:08.625Z
 patch: {}

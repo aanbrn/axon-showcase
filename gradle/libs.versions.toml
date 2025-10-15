@@ -6,14 +6,14 @@ spring-framework-bom = "6.2.11"
 spring-data-bom = "2025.0.4"
 spring-data-opensearch = "2.0.2"
 springdoc-openapi-starter = "2.8.13"
-swagger = "2.2.38"
+swagger = "2.2.39"
 swagger-ui = "5.29.3"
 postgresql = "42.7.8"
 caffeine = "3.2.2"
 db-scheduler = "13.0.0"
 mapstruct = "1.6.3"
 jackson = "2.20.0"
-reactor-bom = "2024.0.10"
+reactor-bom = "2024.0.11"
 netty = "4.2.6.Final"
 resilience4j = "2.3.0"
 streamex = "0.8.4"
@@ -23,7 +23,9 @@ protobuf = "4.32.1"
 elasticsearch-client = "9.1.5"
 opensearch = "3.0.2"
 opensearch-client = "3.2.0"
-opentelemetry = "1.54.1"
+micrometer-bom = "1.15.5"
+micrometer-tracing = "1.5.5"
+opentelemetry-bom = "1.55.0"
 commons-compress = "1.28.0"
 commons-fileupload = "1.6.0"
 commons-lang3 = "3.19.0"
@@ -39,11 +41,11 @@ hamcrest = "3.0"
 mockito = "5.20.0"
 wiremock-spring-boot = "3.10.6"
 kotlin = "2.2.20"
-spotbugs = "4.9.6"
+spotbugs = "4.9.7"
 lombok = "1.18.42"
 lombok-plugin = "8.14.2"
 protobuf-plugin = "0.9.5"
-gatling-plugin = "3.14.5"
+gatling-plugin = "3.14.6"
 dependencyVersions-plugin = "0.53.0"
 spotbugs-plugin = "6.2.2"
 spotbugs-findsecbugs-plugin = "1.14.0"
@@ -151,10 +153,11 @@ postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "pos
 caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
 caffeine-jcache = { group = "com.github.ben-manes.caffeine", name = "jcache", version.ref = "caffeine" }
 dbScheduler-springBootStarter = { group = "com.github.kagkarlsson", name = "db-scheduler-spring-boot-starter", version.ref = "db-scheduler" }
+micrometer-bom = { group = "io.micrometer", name = "micrometer-bom", version.ref = "micrometer-bom" }
 micrometer-registry-prometheus = { group = "io.micrometer", name = "micrometer-registry-prometheus" }
 micrometer-registry-otlp = { group = "io.micrometer", name = "micrometer-registry-otlp" }
-micrometer-tracing-bridge-otel = { group = "io.micrometer", name = "micrometer-tracing-bridge-otel" }
-opentelemetry-bom = { group = "io.opentelemetry", name = "opentelemetry-bom", version.ref = "opentelemetry" }
+micrometer-tracing-bridge-otel = { group = "io.micrometer", name = "micrometer-tracing-bridge-otel", version.ref = "micrometer-tracing" }
+opentelemetry-bom = { group = "io.opentelemetry", name = "opentelemetry-bom", version.ref = "opentelemetry-bom" }
 opentelemetry-exporter-otlp = { group = "io.opentelemetry", name = "opentelemetry-exporter-otlp" }
 ksuid = { group = "com.github.ksuid", name = "ksuid", version.ref = "ksuid" }
 jakarta-validation-api = { group = "jakarta.validation", name = "jakarta.validation-api", version.ref = "jakarta-validation-api" }

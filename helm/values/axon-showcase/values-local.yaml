@@ -16,9 +16,6 @@ commandService:
       release: kps
 
 projectionService:
-  kafka:
-    fetcher:
-      consumerCount: 8
   podLabels:
     axon-showcase-kafka-client: "true"
     axon-showcase-os-views-client: "true"

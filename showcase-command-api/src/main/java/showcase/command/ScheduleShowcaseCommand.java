@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
-import showcase.KSUID;
+import showcase.identifier.KSUID;
 
 import java.time.Duration;
 import java.time.Instant;

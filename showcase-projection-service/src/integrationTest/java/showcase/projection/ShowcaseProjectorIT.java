@@ -132,9 +132,8 @@ class ShowcaseProjectorIT {
                         .build());
 
         await().until(() -> output.getOut().lines().anyMatch(line -> line.matches(
-                (".+(ERROR).+(On ShowcaseScheduledEvent\\(showcaseId=%1$s\\), \\[Create\\] " +
-                         "\\[version_conflict_engine_exception\\] \\[%1$s\\]: version conflict, document already " +
-                         "exists).+").formatted(showcaseId))));
+                (".+(ERROR).+(On ShowcaseScheduledEvent, \\[Create\\] \\[version_conflict_engine_exception\\] " +
+                         "\\[%s\\]: version conflict, document already exists).+").formatted(showcaseId))));
     }
 
     @Test
@@ -185,8 +184,8 @@ class ShowcaseProjectorIT {
                         .build());
 
         await().until(() -> output.getOut().lines().anyMatch(line -> line.matches(
-                (".+(ERROR).+(On ShowcaseStartedEvent\\(showcaseId=%1$s\\), \\[Update\\] " +
-                         "\\[document_missing_exception\\] \\[%1$s\\]: document missing)").formatted(showcaseId))));
+                (".+(ERROR).+(On ShowcaseStartedEvent, \\[Update\\] \\[document_missing_exception\\] \\[%s\\]: " +
+                         "document missing)").formatted(showcaseId))));
     }
 
     @Test
@@ -246,8 +245,8 @@ class ShowcaseProjectorIT {
                         .build());
 
         await().until(() -> output.getOut().lines().anyMatch(line -> line.matches(
-                (".+(ERROR).+(On ShowcaseFinishedEvent\\(showcaseId=%1$s\\), \\[Update\\] " +
-                         "\\[document_missing_exception\\] \\[%1$s\\]: document missing)").formatted(showcaseId))));
+                (".+(ERROR).+(On ShowcaseFinishedEvent, \\[Update\\] \\[document_missing_exception\\] \\[%s\\]: " +
+                         "document missing)").formatted(showcaseId))));
     }
 
     @Test
@@ -306,7 +305,7 @@ class ShowcaseProjectorIT {
                         .build());
 
         await().until(() -> output.getOut().lines().anyMatch(line -> line.matches(
-                (".+(WARN).+(On ShowcaseRemovedEvent\\(showcaseId=%1$s\\), \\[Delete\\] \\[not_found\\] \\[%1$s\\]: " +
-                         "document missing)").formatted(showcaseId))));
+                ".+(WARN).+(On ShowcaseRemovedEvent, \\[Delete\\] \\[not_found\\] \\[%s\\]: document missing)"
+                        .formatted(showcaseId))));
     }
 }

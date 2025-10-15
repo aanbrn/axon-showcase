@@ -3,7 +3,7 @@ package showcase.command;
 import jakarta.validation.Validation;
 import lombok.val;
 import org.junit.jupiter.api.Test;
-import showcase.KSUID;
+import showcase.identifier.KSUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

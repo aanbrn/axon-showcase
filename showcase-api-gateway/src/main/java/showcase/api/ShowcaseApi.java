@@ -18,7 +18,7 @@ import jakarta.validation.constraints.Min;
 import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import showcase.KSUID;
+import showcase.identifier.KSUID;
 import showcase.query.FetchShowcaseListQuery;
 import showcase.query.Showcase;
 import showcase.query.ShowcaseStatus;

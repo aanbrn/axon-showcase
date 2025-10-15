@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
-import showcase.KSUID;
+import showcase.identifier.KSUID;
 
 import java.util.Set;
 

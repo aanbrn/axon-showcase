@@ -1,8 +1,8 @@
-package showcase;
+package showcase.identifier;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import showcase.KSUID.List;
+import showcase.identifier.KSUID.List;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Repeatable;
@@ -24,7 +24,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Repeatable(List.class)
 public @interface KSUID {
 
-    String message() default "{showcase.KSUID.message}";
+    String message() default "{showcase.identifier.KSUID.message}";
 
     Class<?>[] groups() default {};
 

@@ -96,10 +96,6 @@ spec:
               value: {{ .Values.kafka.topics.events | quote }}
             - name: "KAFKA_SECURITY_PROTOCOL"
               value: {{ .Values.kafka.securityProtocol | quote }}
-            - name: "KAFKA_FETCHER_POLL_TIMEOUT"
-              value: {{ .Values.projectionService.kafka.fetcher.pollTimeout | int64 | toString | quote }}
-            - name: "KAFKA_FETCHER_CONSUMER_COUNT"
-              value: {{ .Values.projectionService.kafka.fetcher.consumerCount | int | toString | quote }}
             - name: "OS_URIS"
               value: {{ .Values.osViews.uris | quote }}
             {{- if .Values.osViews.secured }}
@@ -121,98 +117,18 @@ spec:
               value: {{ .Values.projectionService.osViews.maxConnectionsPerRoute | int | toString | quote }}
             - name: "OS_EVICT_IDLE_CONNECTIONS"
               value: {{ .Values.projectionService.osViews.evictIdleConnections | quote }}
-            - name: "RESILIENCE_ENABLED"
-              value: {{ .Values.projectionService.resilience.enabled | quote }}
-            - name: "CIRCUITBREAKER_ENABLED"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.enabled | quote }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.defaults.slidingWindowType }}
-            - name: "CIRCUITBREAKER_DEFAULT_SLIDING_WINDOW_TYPE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.defaults.slidingWindowType | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.defaults.slidingWindowSize }}
-            - name: "CIRCUITBREAKER_DEFAULT_SLIDING_WINDOW_SIZE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.defaults.slidingWindowSize | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.defaults.minimumNumberOfCalls }}
-            - name: "CIRCUITBREAKER_DEFAULT_MIN_REQUIRED_CALLS"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.defaults.minimumNumberOfCalls | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.defaults.failureRateThreshold }}
-            - name: "CIRCUITBREAKER_DEFAULT_FAILURE_RATE_THRESHOLD"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.defaults.failureRateThreshold | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.defaults.slowCallRateThreshold }}
-            - name: "CIRCUITBREAKER_DEFAULT_SLOW_CALL_RATE_THRESHOLD"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.defaults.slowCallRateThreshold | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.defaults.slowCallDurationThreshold }}
-            - name: "CIRCUITBREAKER_DEFAULT_SLOW_CALL_DURATION_THRESHOLD"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.defaults.slowCallDurationThreshold | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.defaults.waitDurationInOpenState }}
-            - name: "CIRCUITBREAKER_DEFAULT_WAIT_DURATION_IN_OPEN_STATE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.defaults.waitDurationInOpenState | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.defaults.exponentialBackoffMultiplier }}
-            - name: "CIRCUITBREAKER_DEFAULT_BACKOFF_MULTIPLIER_IN_OPEN_STATE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.defaults.exponentialBackoffMultiplier | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.defaults.exponentialMaxWaitDurationInOpenState }}
-            - name: "CIRCUITBREAKER_DEFAULT_MAX_WAIT_DURATION_IN_OPEN_STATE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.defaults.exponentialMaxWaitDurationInOpenState | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.defaults.permittedNumberOfCallsInHalfOpenState }}
-            - name: "CIRCUITBREAKER_DEFAULT_PERMITTED_CALLS_IN_HALF_OPEN_STATE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.defaults.permittedNumberOfCallsInHalfOpenState | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.defaults.maxWaitDurationInHalfOpenState }}
-            - name: "CIRCUITBREAKER_DEFAULT_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.defaults.maxWaitDurationInHalfOpenState | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.openSearch.slidingWindowType }}
-            - name: "CIRCUITBREAKER_OPENSEARCH_SLIDING_WINDOW_TYPE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.openSearch.slidingWindowType | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.openSearch.slidingWindowSize }}
-            - name: "CIRCUITBREAKER_OPENSEARCH_SLIDING_WINDOW_SIZE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.openSearch.slidingWindowSize | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.openSearch.minimumNumberOfCalls }}
-            - name: "CIRCUITBREAKER_OPENSEARCH_MIN_REQUIRED_CALLS"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.openSearch.minimumNumberOfCalls | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.openSearch.failureRateThreshold }}
-            - name: "CIRCUITBREAKER_OPENSEARCH_FAILURE_RATE_THRESHOLD"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.openSearch.failureRateThreshold | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.openSearch.slowCallRateThreshold }}
-            - name: "CIRCUITBREAKER_OPENSEARCH_SLOW_CALL_RATE_THRESHOLD"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.openSearch.slowCallRateThreshold | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.openSearch.slowCallDurationThreshold }}
-            - name: "CIRCUITBREAKER_OPENSEARCH_SLOW_CALL_DURATION_THRESHOLD"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.openSearch.slowCallDurationThreshold | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.openSearch.waitDurationInOpenState }}
-            - name: "CIRCUITBREAKER_OPENSEARCH_WAIT_DURATION_IN_OPEN_STATE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.openSearch.waitDurationInOpenState | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.openSearch.exponentialBackoffMultiplier }}
-            - name: "CIRCUITBREAKER_OPENSEARCH_BACKOFF_MULTIPLIER_IN_OPEN_STATE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.openSearch.exponentialBackoffMultiplier | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.openSearch.exponentialMaxWaitDurationInOpenState }}
-            - name: "CIRCUITBREAKER_OPENSEARCH_MAX_WAIT_DURATION_IN_OPEN_STATE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.openSearch.exponentialMaxWaitDurationInOpenState | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.openSearch.permittedNumberOfCallsInHalfOpenState }}
-            - name: "CIRCUITBREAKER_OPENSEARCH_PERMITTED_CALLS_IN_HALF_OPEN_STATE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.openSearch.permittedNumberOfCallsInHalfOpenState | quote }}
-            {{- end }}
-            {{- if .Values.projectionService.resilience.circuitbreaker.openSearch.maxWaitDurationInHalfOpenState }}
-            - name: "CIRCUITBREAKER_OPENSEARCH_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE"
-              value: {{ .Values.projectionService.resilience.circuitbreaker.openSearch.maxWaitDurationInHalfOpenState | quote }}
-            {{- end }}
+            - name: "PROJECTOR_BATCH_MAX_SIZE"
+              value: {{ .Values.projectionService.projector.batch.maxSize | int | quote }}
+            - name: "PROJECTOR_BATCH_MAX_TIME"
+              value: {{ .Values.projectionService.projector.batch.maxTime | quote }}
+            - name: "PROJECTOR_BATCH_BUFFER_MAX_SIZE"
+              value: {{ .Values.projectionService.projector.batch.bufferMaxSize | int | quote }}
+            - name: "PROJECTOR_RETRY_MAX_ATTEMPTS"
+              value: {{ .Values.projectionService.projector.retry.maxAttempts | int | quote }}
+            - name: "PROJECTOR_RETRY_MIN_BACKOFF"
+              value: {{ .Values.projectionService.projector.retry.minBackoff | quote }}
+            - name: "PROJECTOR_RESTART_DELAY"
+              value: {{ .Values.projectionService.projector.restart.delay | quote }}
             - name: "MANAGEMENT_METRICS_TAGS_APPLICATION"
               value: {{ include "common.names.fullname" $ }}
             {{- if (include "axon-showcase.observability.enabled" $) }}

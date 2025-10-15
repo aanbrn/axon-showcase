@@ -1,4 +1,4 @@
-package showcase;
+package showcase.identifier;
 
 import com.github.ksuid.Ksuid;
 import jakarta.validation.ConstraintValidator;

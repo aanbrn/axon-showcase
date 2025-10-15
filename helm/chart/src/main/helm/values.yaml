@@ -229,217 +229,6 @@ commandService:
     metricRelabelings: [ ]
     honorLabels: false
 
-projectionService:
-
-  labels: { }
-
-  annotations: { }
-
-  podLabels: { }
-
-  podAnnotations: { }
-
-  image:
-    registry: ""
-    repository: aanbrn/axon-showcase-projection-service
-    tag: ${projectVersion}
-    digest: ""
-    pullPolicy: null
-    pullSecrets: [ ]
-
-  replicaCount: 1
-
-  revisionHistoryLimit: 10
-
-  updateStrategy:
-    type: RollingUpdate
-
-  kafka:
-    fetcher:
-      pollTimeout: 5000
-      consumerCount: 1
-
-  osViews:
-    connectionTimeout: PT10S
-    socketTimeout: PT30S
-    socketKeepAlive: true
-    maxConnections: 100
-    maxConnectionsPerRoute: 100
-    evictIdleConnections: PT5S
-
-  extraEnvVars:
-    JAVA_OPTS: "-XX:MaxDirectMemorySize=256M -XX:MaxGCPauseMillis=20"
-
-  extraEnvVarsCM: ""
-
-  extraEnvVarsSecret: ""
-
-  containerPorts:
-    server: 8080
-    managementServer: 8888
-
-  extraContainerPorts: [ ]
-
-  startupProbe:
-    enabled: true
-    initialDelaySeconds: 3
-    periodSeconds: 3
-    timeoutSeconds: 1
-    failureThreshold: 10
-    successThreshold: 1
-
-  livenessProbe:
-    enabled: true
-    initialDelaySeconds: 30
-    periodSeconds: 20
-    timeoutSeconds: 1
-    failureThreshold: 3
-    successThreshold: 1
-
-  readinessProbe:
-    enabled: true
-    initialDelaySeconds: 5
-    periodSeconds: 10
-    timeoutSeconds: 1
-    failureThreshold: 3
-    successThreshold: 1
-
-  resources:
-    requests:
-      cpu: 1.0
-      memory: 0.5Gi
-    limits:
-      cpu: 3.0
-      memory: 0.75Gi
-
-  lifecycleHooks: { }
-
-  affinity: { }
-
-  podAffinityPreset: ""
-
-  podAntiAffinityPreset: soft
-
-  nodeAffinityPreset:
-    type: ""
-    key: ""
-    values: [ ]
-
-  automountServiceAccountToken: true
-
-  hostAliases: [ ]
-
-  nodeSelector: { }
-
-  tolerations: [ ]
-
-  priorityClassName: ""
-
-  schedulerName: ""
-
-  topologySpreadConstraints: [ ]
-
-  terminationGracePeriodSeconds: ""
-
-  terminationMessagePolicy: FallbackToLogsOnError
-
-  podSecurityContext:
-    enabled: true
-    fsGroupChangePolicy: Always
-    sysctls: [ ]
-    supplementalGroups: [ ]
-    fsGroup: 1001
-
-  containerSecurityContext:
-    enabled: true
-    runAsNonRoot: true
-    readOnlyRootFilesystem: true
-    capabilities:
-      drop:
-        - ALL
-    seccompProfile:
-      type: RuntimeDefault
-
-  extraVolumeMounts: [ ]
-
-  extraVolumes: [ ]
-
-  initContainers: [ ]
-
-  sidecars: [ ]
-
-  extraPodSpec: { }
-
-  resilience:
-    enabled: true
-    circuitbreaker:
-      enabled: true
-      defaults:
-        slidingWindowType: COUNT_BASED
-        slidingWindowSize: 100
-        minimumNumberOfCalls: 50
-        failureRateThreshold: 50
-        slowCallRateThreshold: 90
-        slowCallDurationThreshold: PT5S
-        waitDurationInOpenState: PT10S
-        exponentialBackoffMultiplier: 1.5
-        exponentialMaxWaitDurationInOpenState: ""
-        permittedNumberOfCallsInHalfOpenState: 10
-        maxWaitDurationInHalfOpenState: PT0S
-      openSearch:
-        slidingWindowType: ""
-        slidingWindowSize: ""
-        minimumNumberOfCalls: ""
-        failureRateThreshold: ""
-        slowCallRateThreshold: ""
-        slowCallDurationThreshold: ""
-        waitDurationInOpenState: ""
-        exponentialBackoffMultiplier: ""
-        exponentialMaxWaitDurationInOpenState: ""
-        permittedNumberOfCallsInHalfOpenState: ""
-        maxWaitDurationInHalfOpenState: ""
-
-  autoscaling:
-    vpa:
-      enabled: false
-      controlledResources: [ ]
-      maxAllowed: { }
-      minAllowed: { }
-      updatePolicy:
-        updateMode: Auto
-    hpa:
-      enabled: false
-      minReplicas: 3
-      maxReplicas: 5
-      targetCPU: 80
-      targetMemory: ""
-      metrics: [ ]
-
-  pdb:
-    create: true
-    minAvailable: ""
-    maxUnavailable: ""
-
-  networkPolicy:
-    enabled: true
-    addExternalClientAccess: true
-    ingressPodMatchLabels: { }
-    ingressManagementNSMatchLabels: { }
-    ingressManagementNSPodMatchLabels: { }
-    extraIngress: [ ]
-    extraEgress: [ ]
-
-  serviceMonitor:
-    enabled: true
-    namespace: ""
-    labels: { }
-    annotations: { }
-    interval: ""
-    scrapeTimeout: ""
-    relabelings: [ ]
-    metricRelabelings: [ ]
-    honorLabels: false
-
 queryService:
 
   labels: { }
@@ -517,6 +306,194 @@ queryService:
     limits:
       cpu: 3.0
       memory: 1Gi
+
+  lifecycleHooks: { }
+
+  affinity: { }
+
+  podAffinityPreset: ""
+
+  podAntiAffinityPreset: soft
+
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: [ ]
+
+  automountServiceAccountToken: true
+
+  hostAliases: [ ]
+
+  nodeSelector: { }
+
+  tolerations: [ ]
+
+  priorityClassName: ""
+
+  schedulerName: ""
+
+  topologySpreadConstraints: [ ]
+
+  terminationGracePeriodSeconds: ""
+
+  terminationMessagePolicy: FallbackToLogsOnError
+
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: [ ]
+    supplementalGroups: [ ]
+    fsGroup: 1001
+
+  containerSecurityContext:
+    enabled: true
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+  extraVolumeMounts: [ ]
+
+  extraVolumes: [ ]
+
+  initContainers: [ ]
+
+  sidecars: [ ]
+
+  extraPodSpec: { }
+
+  autoscaling:
+    vpa:
+      enabled: false
+      controlledResources: [ ]
+      maxAllowed: { }
+      minAllowed: { }
+      updatePolicy:
+        updateMode: Auto
+    hpa:
+      enabled: false
+      minReplicas: 3
+      maxReplicas: 5
+      targetCPU: 80
+      targetMemory: ""
+      metrics: [ ]
+
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+
+  networkPolicy:
+    enabled: true
+    addExternalClientAccess: true
+    ingressPodMatchLabels: { }
+    ingressManagementNSMatchLabels: { }
+    ingressManagementNSPodMatchLabels: { }
+    extraIngress: [ ]
+    extraEgress: [ ]
+
+  serviceMonitor:
+    enabled: true
+    namespace: ""
+    labels: { }
+    annotations: { }
+    interval: ""
+    scrapeTimeout: ""
+    relabelings: [ ]
+    metricRelabelings: [ ]
+    honorLabels: false
+
+projectionService:
+
+  labels: { }
+
+  annotations: { }
+
+  podLabels: { }
+
+  podAnnotations: { }
+
+  image:
+    registry: ""
+    repository: aanbrn/axon-showcase-projection-service
+    tag: ${projectVersion}
+    digest: ""
+    pullPolicy: null
+    pullSecrets: [ ]
+
+  replicaCount: 1
+
+  revisionHistoryLimit: 10
+
+  updateStrategy:
+    type: RollingUpdate
+
+  osViews:
+    connectionTimeout: PT10S
+    socketTimeout: PT30S
+    socketKeepAlive: true
+    maxConnections: 100
+    maxConnectionsPerRoute: 100
+    evictIdleConnections: PT5S
+
+  projector:
+    batch:
+      maxSize: 100
+      maxTime: PT0.1S
+      bufferMaxSize: 10000
+    retry:
+      maxAttempts: 3
+      minBackoff: PT0.1S
+    restart:
+      delay: PT10S
+
+  extraEnvVars:
+    JAVA_OPTS: "-XX:MaxDirectMemorySize=256M -XX:MaxGCPauseMillis=20"
+
+  extraEnvVarsCM: ""
+
+  extraEnvVarsSecret: ""
+
+  containerPorts:
+    server: 8080
+    managementServer: 8888
+
+  extraContainerPorts: [ ]
+
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 3
+    periodSeconds: 3
+    timeoutSeconds: 1
+    failureThreshold: 10
+    successThreshold: 1
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 20
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  resources:
+    requests:
+      cpu: 1.0
+      memory: 0.5Gi
+    limits:
+      cpu: 3.0
+      memory: 0.75Gi
 
   lifecycleHooks: { }
 
@@ -894,10 +871,6 @@ observability:
     structured:
       enabled: false
       format: ecs
-  axon:
-    tracing:
-      logging:
-        enabled: false
   tracing:
     sampling:
       probability: 0.1

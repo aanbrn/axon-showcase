@@ -66,14 +66,13 @@ management:
   metrics:
     distribution:
       percentiles-histogram:
-        http.server.requests: ${METRICS_PERCENTILES_HISTOGRAM:true}
-        http.client.requests: ${METRICS_PERCENTILES_HISTOGRAM:true}
+        all: ${METRICS_PERCENTILES_HISTOGRAM_ALL:true}
       percentiles:
-        http.server.requests: ${METRICS_PERCENTILES:0.5, 0.75, 0.95, 0.98, 0.99, 0.995, 0.999}
-        http.client.requests: ${METRICS_PERCENTILES:0.5, 0.75, 0.95, 0.98, 0.99, 0.995, 0.999}
+        all: ${METRICS_PERCENTILES_ALL:0.95, 0.99, 0.999}
       slo:
-        http.server.requests: ${METRICS_SLO:100ms, 200ms, 300ms, 400ms, 500ms, 1s, 2s, 3s, 4s, 5s}
-        http.client.requests: ${METRICS_SLO:100ms, 200ms, 300ms, 400ms, 500ms, 1s, 2s, 3s, 4s, 5s}
+        http.server.requests: ${METRICS_SLO_HTTP_SERVER_REQUESTS:300ms, 500ms, 1s, 2s}
+      expiry:
+        all: ${METRICS_EXPIRY_ALL:PT10M}
     tags:
       application: axon-showcase
   prometheus:

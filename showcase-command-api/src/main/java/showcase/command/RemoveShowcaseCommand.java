@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
-import showcase.KSUID;
+import showcase.identifier.KSUID;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

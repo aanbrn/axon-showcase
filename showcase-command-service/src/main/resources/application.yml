@@ -112,6 +112,13 @@ management:
         enabled: true
         add-additional-paths: true
   metrics:
+    distribution:
+      percentiles-histogram:
+        all: ${METRICS_PERCENTILES_HISTOGRAM_ALL:true}
+      percentiles:
+        all: ${METRICS_PERCENTILES_ALL:0.95, 0.99, 0.999}
+      expiry:
+        all: ${METRICS_EXPIRY_ALL:PT10M}
     tags:
       application: axon-showcase
   prometheus:

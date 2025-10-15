@@ -21,6 +21,9 @@ dependencies {
 
     implementation(libs.spring.boot.starter.webflux)
 
+    implementation(libs.reactor.kafka)
+    implementation(libs.reactor.extra)
+
     implementation(libs.spring.data.opensearch.starter) {
         exclude(
             group = libs.opensearch.client.restHighLevel.get().group,
@@ -34,22 +37,15 @@ dependencies {
 
     implementation(libs.commons.lang3)
 
-    implementation(libs.resilience4j.springBoot3)
-
-    implementation(project(":showcase-resilience4j-extension"))
-
     implementation(libs.axon.micrometer)
     implementation(libs.axon.tracing.opentelemetry)
+    implementation(libs.reactor.core.micrometer)
 
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.micrometer.registry.prometheus)
     implementation(libs.micrometer.registry.otlp)
     implementation(libs.micrometer.tracing.bridge.otel)
     implementation(libs.opentelemetry.exporter.otlp)
-
-    implementation(project(":showcase-tracing-extension"))
-
-    runtimeOnly(libs.netty.resolver.dnsNativeMacos)
 }
 
 testing {

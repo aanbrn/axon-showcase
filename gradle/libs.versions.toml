@@ -130,13 +130,14 @@ mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter" 
 reactor-bom = { group = "io.projectreactor", name = "reactor-bom", version.ref = "reactor-bom" }
 reactor-core = { group = "io.projectreactor", name = "reactor-core" }
 reactor-core-micrometer = { group = "io.projectreactor", name = "reactor-core-micrometer" }
+reactor-extra = { group = "io.projectreactor.addons", name = "reactor-extra" }
+reactor-kafka = { group = "io.projectreactor.kafka", name = "reactor-kafka" }
 reactor-test = { group = "io.projectreactor", name = "reactor-test" }
 netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty" }
 wiremock-springBoot = { group = "org.wiremock.integrations", name = "wiremock-spring-boot", version.ref = "wiremock-spring-boot" }
 axon-bom = { group = "org.axonframework", name = "axon-bom", version.ref = "axon-bom" }
 axon-modelling = { group = "org.axonframework", name = "axon-modelling" }
 axon-messaging = { group = "org.axonframework", name = "axon-messaging" }
-axon-springBoot-autoconfigure = { group = "org.axonframework", name = "axon-spring-boot-autoconfigure" }
 axon-springBoot-starter = { group = "org.axonframework", name = "axon-spring-boot-starter" }
 axon-serverConnector = { group = "org.axonframework", name = "axon-server-connector" }
 axon-micrometer = { group = "org.axonframework", name = "axon-micrometer" }

@@ -5,6 +5,8 @@ import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
 import com.github.kagkarlsson.scheduler.Scheduler;
 import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer;
 import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerProperties;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandBus;
@@ -20,6 +22,7 @@ import org.axonframework.common.jdbc.ConnectionProvider;
 import org.axonframework.common.jdbc.PersistenceExceptionResolver;
 import org.axonframework.common.transaction.TransactionManager;
 import org.axonframework.config.Configuration;
+import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.eventsourcing.AggregateLoadTimeSnapshotTriggerDefinition;
 import org.axonframework.eventsourcing.SnapshotTriggerDefinition;
 import org.axonframework.eventsourcing.Snapshotter;
@@ -28,13 +31,19 @@ import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.axonframework.eventsourcing.eventstore.jpa.SQLStateResolver;
 import org.axonframework.extensions.jgroups.DistributedCommandBusProperties;
 import org.axonframework.extensions.jgroups.commandhandling.JGroupsConnectorFactoryBean;
+import org.axonframework.messaging.Message;
 import org.axonframework.messaging.annotation.HandlerDefinition;
 import org.axonframework.messaging.annotation.ParameterResolverFactory;
+import org.axonframework.micrometer.GlobalMetricRegistry;
+import org.axonframework.micrometer.MessageCountingMonitor;
+import org.axonframework.micrometer.MessageTimerMonitor;
 import org.axonframework.modelling.saga.repository.CachingSagaStore;
 import org.axonframework.modelling.saga.repository.SagaStore;
 import org.axonframework.modelling.saga.repository.jdbc.JdbcSagaStore;
 import org.axonframework.modelling.saga.repository.jdbc.PostgresSagaSqlSchema;
 import org.axonframework.modelling.saga.repository.jdbc.SagaSqlSchema;
+import org.axonframework.monitoring.MessageMonitor;
+import org.axonframework.monitoring.MultiMessageMonitor;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.spring.eventsourcing.SpringAggregateSnapshotter;
 import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
@@ -61,6 +70,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import static com.github.kagkarlsson.scheduler.ExecutorUtils.defaultThreadFactoryWithPrefix;
 import static java.lang.Math.max;
@@ -312,6 +322,24 @@ class ShowcaseCommandApplication {
                                 60L, TimeUnit.SECONDS,
                                 new LinkedBlockingQueue<>(),
                                 defaultThreadFactoryWithPrefix(Scheduler.THREAD_PREFIX + "-")));
+            }
+        };
+    }
+
+    @Bean
+    GlobalMetricRegistry globalMetricRegistry(MeterRegistry meterRegistry) {
+        return new GlobalMetricRegistry(meterRegistry) {
+            @Override
+            public MessageMonitor<? super EventMessage<?>> registerEventBus(
+                    String eventBusName, Function<Message<?>, Iterable<Tag>> tagsBuilder) {
+                return new MultiMessageMonitor<>(
+                        MessageCountingMonitor.buildMonitor(eventBusName, meterRegistry, tagsBuilder),
+                        MessageTimerMonitor
+                                .builder()
+                                .meterNamePrefix(eventBusName)
+                                .meterRegistry(meterRegistry)
+                                .tagsBuilder(tagsBuilder)
+                                .build());
             }
         };
     }

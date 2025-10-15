@@ -19,7 +19,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
+  "id": 1,
   "links": [],
   "panels": [
     {
@@ -66,7 +66,7 @@
             }
           },
           "mappings": [],
-          "max": 100,
+          "max": 1,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -84,7 +84,7 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percentunit"
         },
         "overrides": []
       },
@@ -116,7 +116,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "100 * sum(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\", status!~\"5..\"}) / sum(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"})",
+          "expr": "sum(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\", status!~\"5..\"}) / sum(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"})",
           "hide": false,
           "instant": false,
           "legendFormat": "API",
@@ -130,7 +130,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "100 * sum(distributedCommandBus_processedCounter_total{application=\"$application\"}) / sum(distributedCommandBus_ingestedCounter_total{application=\"$application\"})",
+          "expr": "sum(distributedCommandBus_processedCounter_total{application=\"$application\"}) / sum(distributedCommandBus_ingestedCounter_total{application=\"$application\"})",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -146,7 +146,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "100 * sum(showcaseProjector_processedCounter_total{application=\"axon-showcase\"}) / sum(showcaseProjector_ingestedCounter_total{application=\"axon-showcase\"})",
+          "expr": "sum(showcaseProjector_processedCounter_total{application=\"$application\"}) / sum(showcaseProjector_ingestedCounter_total{application=\"$application\"})",
           "hide": false,
           "instant": false,
           "legendFormat": "Projection",
@@ -159,7 +159,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "100 * sum(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", uri!~\"/actuator.*\", status!~\"5..\"}) / sum(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", uri!~\"/actuator.*\"})",
+          "expr": "sum(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", uri!~\"/actuator.*\", status!~\"5..\"}) / sum(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", uri!~\"/actuator.*\"})",
           "hide": false,
           "instant": false,
           "legendFormat": "Query Bus",
@@ -214,7 +214,6 @@
             }
           },
           "mappings": [],
-          "max": 100,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -228,7 +227,7 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percentunit"
         },
         "overrides": []
       },
@@ -257,7 +256,7 @@
         {
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "100 * max(system_cpu_usage{application=\"$application\", service=\"axon-showcase-api-gateway\"})",
+          "expr": "max(system_cpu_usage{application=\"$application\", service=\"axon-showcase-api-gateway\"})",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "API Gateway",
@@ -272,7 +271,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "100 * max(system_cpu_usage{application=\"$application\", service=\"axon-showcase-command-service\"})",
+          "expr": "max(system_cpu_usage{application=\"$application\", service=\"axon-showcase-command-service\"})",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -288,7 +287,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "100 * max(system_cpu_usage{application=\"$application\", service=\"axon-showcase-saga-service\"})",
+          "expr": "max(system_cpu_usage{application=\"$application\", service=\"axon-showcase-saga-service\"})",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -304,7 +303,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "100 * max(system_cpu_usage{application=\"$application\", service=\"axon-showcase-projection-service\"})",
+          "expr": "max(system_cpu_usage{application=\"$application\", service=\"axon-showcase-projection-service\"})",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -320,7 +319,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "100 * max(system_cpu_usage{application=\"$application\", service=\"axon-showcase-query-service\"})",
+          "expr": "max(system_cpu_usage{application=\"$application\", service=\"axon-showcase-query-service\"})",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -418,7 +417,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "max(container_memory_usage_bytes{pod=~\"$application-api-gateway-.+\"}) / max(kube_pod_container_resource_limits{resource=\"memory\", pod=~\"$application-api-gateway-.+\"})",
+          "expr": "sum(container_memory_usage_bytes{pod=~\"$application-api-gateway-.+\"}) / sum(kube_pod_container_resource_limits{resource=\"memory\", pod=~\"$application-api-gateway-.+\"})",
           "legendFormat": "API Gateway",
           "range": true,
           "refId": "API Gateway"
@@ -429,7 +428,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max(container_memory_usage_bytes{pod=~\"$application-command-service-.+\"}) / max(kube_pod_container_resource_limits{resource=\"memory\", pod=~\"$application-command-service-.+\"})",
+          "expr": "sum(container_memory_usage_bytes{pod=~\"$application-command-service-.+\"}) / sum(kube_pod_container_resource_limits{resource=\"memory\", pod=~\"$application-command-service-.+\"})",
           "hide": false,
           "legendFormat": "Command Service",
           "range": true,
@@ -441,7 +440,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max(container_memory_usage_bytes{pod=~\"$application-saga-service-.+\"}) / max(kube_pod_container_resource_limits{resource=\"memory\", pod=~\"$application-saga-service-.+\"})",
+          "expr": "sum(container_memory_usage_bytes{pod=~\"$application-saga-service-.+\"}) / sum(kube_pod_container_resource_limits{resource=\"memory\", pod=~\"$application-saga-service-.+\"})",
           "hide": false,
           "legendFormat": "Saga Service",
           "range": true,
@@ -453,7 +452,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max(container_memory_usage_bytes{pod=~\"$application-projection-service-.+\"}) / max(kube_pod_container_resource_limits{resource=\"memory\", pod=~\"$application-projection-service-.+\"})",
+          "expr": "sum(container_memory_usage_bytes{pod=~\"$application-projection-service-.+\"}) / sum(kube_pod_container_resource_limits{resource=\"memory\", pod=~\"$application-projection-service-.+\"})",
           "hide": false,
           "legendFormat": "Projection Service",
           "range": true,
@@ -465,7 +464,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max(container_memory_usage_bytes{pod=~\"$application-query-service-.+\"}) / max(kube_pod_container_resource_limits{resource=\"memory\", pod=~\"$application-query-service-.+\"})",
+          "expr": "sum(container_memory_usage_bytes{pod=~\"$application-query-service-.+\"}) / sum(kube_pod_container_resource_limits{resource=\"memory\", pod=~\"$application-query-service-.+\"})",
           "hide": false,
           "legendFormat": "Query Service",
           "range": true,
@@ -728,7 +727,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by(method, uri) (rate(http_server_requests_seconds_sum{application=\"axon-showcase\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[1m]) / rate(http_server_requests_seconds_count{application=\"axon-showcase\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[1m]))",
+          "expr": "sum by(method, uri) (rate(http_server_requests_seconds_sum{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[1m])) / sum by(method, uri) (rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[1m]))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": false,
@@ -755,7 +754,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "failures/min",
+            "axisLabel": "failures/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -847,7 +846,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by(status,method,uri) (rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\", status=~\"4..|5..\"}[1m]))",
+          "expr": "sum by(status, method, uri) (rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\", status=~\"4..|5..\"}[1m]))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -875,7 +874,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "hits/min",
+            "axisLabel": "hits/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -1056,7 +1055,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(distributedCommandBus_processedCounter_total{application=\"$application\"}[1m]))",
+          "expr": "sum(rate(distributedCommandBus_ingestedCounter_total{application=\"$application\"}[1m]))",
           "hide": false,
           "legendFormat": "Total",
           "range": true,
@@ -1068,9 +1067,9 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(distributedCommandBus_processedCounter_total{application=\"$application\"}[1m]))",
+          "expr": "sum by (payloadType) (rate(distributedCommandBus_ingestedCounter_total{application=\"$application\"}[1m]))",
           "hide": false,
-          "legendFormat": "__auto",
+          "legendFormat": "{{payloadType}}",
           "range": true,
           "refId": "By PayloadType"
         }
@@ -1167,7 +1166,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max(distributedCommandBus_allTimer_seconds{application=\"axon-showcase\", quantile=\"0.95\"})",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(distributedCommandBus_allTimer_seconds_bucket{application=\"$application\"}[1m])))",
           "hide": false,
           "legendFormat": "P95",
           "range": true,
@@ -1179,7 +1178,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max(distributedCommandBus_allTimer_seconds{application=\"axon-showcase\", quantile=\"0.99\"})",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(distributedCommandBus_allTimer_seconds_bucket{application=\"$application\"}[1m])))",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -1191,10 +1190,10 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max by(payloadType) (rate(distributedCommandBus_allTimer_seconds_sum[1m]) / rate(distributedCommandBus_allTimer_seconds_count[1m]))",
+          "expr": "sum by(payloadType) (rate(distributedCommandBus_allTimer_seconds_sum{application=\"$application\"}[1m])) / sum by(payloadType) (rate(distributedCommandBus_allTimer_seconds_count{application=\"$application\"}[1m]))",
           "hide": false,
           "instant": false,
-          "legendFormat": "__auto",
+          "legendFormat": "{{payloadType}}",
           "range": true,
           "refId": "By PayloadType"
         }
@@ -1216,117 +1215,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 38
-      },
-      "id": 63,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.1.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "sum(distributedCommandBus_capacity)",
-          "hide": false,
-          "legendFormat": "Total",
-          "range": true,
-          "refId": "Total"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "sum by (payloadType) (distributedCommandBus_capacity)",
-          "hide": false,
-          "legendFormat": "{{payloadType}}",
-          "range": true,
-          "refId": "By PayloadType"
-        }
-      ],
-      "title": "Load Average",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "failures/min",
+            "axisLabel": "failures/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -1375,8 +1264,8 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 12,
-        "x": 12,
+        "w": 24,
+        "x": 0,
         "y": 38
       },
       "id": 59,
@@ -1450,127 +1339,6 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 24,
-        "x": 0,
-        "y": 46
-      },
-      "id": 69,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.1.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "sum(commandBus_capacity{application=\"$application\",service=\"axon-showcase-command-service\"})",
-          "legendFormat": "Command Handling",
-          "range": true,
-          "refId": "Command Handling"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "sum(eventProcessor_capacity{application=\"$application\",service=\"axon-showcase-command-service\", processorName=\"event-publishing\"})",
-          "hide": false,
-          "legendFormat": "Event Publishing",
-          "range": true,
-          "refId": "Event Publishing"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "sum(eventProcessor_capacity{application=\"$application\",service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"})",
-          "hide": false,
-          "legendFormat": "Saga Event Handling",
-          "range": true,
-          "refId": "Save Event Handling"
-        }
-      ],
-      "title": "Load Average",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "commands/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1622,7 +1390,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 53
+        "y": 46
       },
       "id": 57,
       "options": {
@@ -1646,11 +1414,11 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(commandBus_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
+          "expr": "sum(rate(commandBus_successCounter_total{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
           "hide": false,
-          "legendFormat": "Total",
+          "legendFormat": "Succeeded",
           "range": true,
-          "refId": "Total"
+          "refId": "Succeeded"
         },
         {
           "datasource": {
@@ -1658,7 +1426,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(commandBus_failureTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
+          "expr": "sum by (payloadType) (rate(commandBus_failureCounter_total{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
           "hide": false,
           "legendFormat": "Failed {{payloadType}}",
           "range": true,
@@ -1733,7 +1501,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 53
+        "y": 46
       },
       "id": 7,
       "options": {
@@ -1757,7 +1525,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(commandBus_allTimer_seconds{application=\"axon-showcase\", service=\"axon-showcase-command-service\", quantile=\"0.95\"})",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(commandBus_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\"}[1m])))",
           "legendFormat": "P95",
           "range": true,
           "refId": "P95"
@@ -1768,7 +1536,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(commandBus_allTimer_seconds{application=\"axon-showcase\", service=\"axon-showcase-command-service\", quantile=\"0.99\"})",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(commandBus_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\"}[1m])))",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -1780,7 +1548,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max by(payloadType) (rate(commandBus_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\"} [1m]) / rate(commandBus_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
+          "expr": "sum by(payloadType) (rate(commandBus_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\"} [1m])) / sum by(payloadType) (rate(commandBus_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
           "hide": false,
           "legendFormat": "__auto",
           "range": true,
@@ -1855,7 +1623,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 61
+        "y": 54
       },
       "id": 8,
       "options": {
@@ -1879,10 +1647,10 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(eventStore_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
-          "legendFormat": "Total",
+          "expr": "sum(rate(eventStore_successCounter_total{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
+          "legendFormat": "Succeeded",
           "range": true,
-          "refId": "Total"
+          "refId": "Succeeded"
         },
         {
           "datasource": {
@@ -1890,7 +1658,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(eventStore_failureTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
+          "expr": "sum by (payloadType) (rate(eventStore_failureCounter_total{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
           "hide": false,
           "instant": false,
           "legendFormat": "Failed {{payloadType}}",
@@ -1966,7 +1734,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 61
+        "y": 54
       },
       "id": 9,
       "options": {
@@ -1990,7 +1758,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(eventStore_allTimer_seconds{application=\"$application\", service=\"axon-showcase-command-service\", quantile=\"0.95\"})",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(eventStore_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\"}[1m])))",
           "legendFormat": "P95",
           "range": true,
           "refId": "P95"
@@ -2001,7 +1769,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(eventStore_allTimer_seconds{application=\"$application\", service=\"axon-showcase-command-service\", quantile=\"0.99\"})",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(eventStore_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\"}[1m])))",
           "hide": false,
           "instant": false,
           "legendFormat": "P99",
@@ -2014,7 +1782,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max by(payloadType) (rate(eventStore_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\"} [1m]) / rate(eventStore_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
+          "expr": "sum by(payloadType) (rate(eventStore_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\"} [1m])) / sum by(payloadType) (rate(eventStore_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -2089,238 +1857,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 68
-      },
-      "id": 10,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.1.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(eventProcessor_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[1m]))",
-          "legendFormat": "Total",
-          "range": true,
-          "refId": "Total"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(eventProcessor_failureTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[1m]))",
-          "hide": false,
-          "legendFormat": "Failed {{payloadType}}",
-          "range": true,
-          "refId": "Failed by PayloadType"
-        }
-      ],
-      "title": "Event Publishing Rate",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 12,
-        "y": 68
-      },
-      "id": 11,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.1.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "max(eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\", quantile=\"0.95\"})",
-          "hide": false,
-          "instant": false,
-          "legendFormat": "P95",
-          "range": true,
-          "refId": "P95"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "max(eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\", quantile=\"0.99\"})",
-          "hide": false,
-          "instant": false,
-          "legendFormat": "P99",
-          "range": true,
-          "refId": "P99"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "max by(payloadType) (rate(eventProcessor_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"} [1m]) / rate(eventProcessor_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[1m]))",
-          "hide": false,
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "By PayloadType"
-        }
-      ],
-      "title": "Event Publishing Latency",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 75
+        "y": 61
       },
       "id": 67,
       "options": {
@@ -2344,10 +1881,10 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(eventProcessor_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[1m]))",
-          "legendFormat": "Total",
+          "expr": "sum(rate(eventProcessor_successCounter_total{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[1m]))",
+          "legendFormat": "Succeeded",
           "range": true,
-          "refId": "Total"
+          "refId": "Succeeded"
         },
         {
           "datasource": {
@@ -2355,7 +1892,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(eventProcessor_failureTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[1m]))",
+          "expr": "sum by (payloadType) (rate(eventProcessor_failureCounter_total{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[1m]))",
           "hide": false,
           "legendFormat": "Failed {{payloadType}}",
           "range": true,
@@ -2430,7 +1967,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 75
+        "y": 61
       },
       "id": 68,
       "options": {
@@ -2455,7 +1992,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "max(eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\", quantile=\"0.95\"})",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(eventProcessor_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[1m])))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -2472,7 +2009,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "max(eventProcessor_allTimer_seconds{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\", quantile=\"0.99\"})",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(eventProcessor_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[1m])))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -2489,7 +2026,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "max by(payloadType) (rate(eventProcessor_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"} [1m]) / rate(eventProcessor_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[1m]))",
+          "expr": "sum by(payloadType) (rate(eventProcessor_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"} [1m])) / sum by(payloadType) (rate(eventProcessor_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[1m]))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -2568,7 +2105,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 82
+        "y": 68
       },
       "id": 12,
       "options": {
@@ -2592,10 +2129,10 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(dbscheduler_task_completions_total{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m]))",
-          "legendFormat": "Total",
+          "expr": "sum(rate(dbscheduler_task_completions_total{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\", result=\"ok\"}[1m]))",
+          "legendFormat": "Succeeded",
           "range": true,
-          "refId": "Total"
+          "refId": "Succeeded"
         },
         {
           "datasource": {
@@ -2678,7 +2215,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 82
+        "y": 68
       },
       "id": 13,
       "options": {
@@ -2713,14 +2250,269 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(dbscheduler_task_duration_seconds_max{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"})",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(dbscheduler_task_duration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
           "hide": false,
-          "legendFormat": "Max",
+          "legendFormat": "P95",
           "range": true,
-          "refId": "Max"
+          "refId": "P95"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(dbscheduler_task_duration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
+          "hide": false,
+          "legendFormat": "P99",
+          "range": true,
+          "refId": "P99"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.999, sum by(le) (rate(dbscheduler_task_duration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
+          "hide": false,
+          "legendFormat": "P999",
+          "range": true,
+          "refId": "P999"
         }
       ],
       "title": "Deadline Handling Latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 75
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(eventProcessor_successCounter_total{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[1m]))",
+          "legendFormat": "Succeeded",
+          "range": true,
+          "refId": "Succeeded"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (payloadType) (rate(eventProcessor_failureTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[1m]))",
+          "hide": false,
+          "legendFormat": "Failed {{payloadType}}",
+          "range": true,
+          "refId": "Failed by PayloadType"
+        }
+      ],
+      "title": "Event Publishing Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 75
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(eventProcessor_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[1m])))",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "P95",
+          "range": true,
+          "refId": "P95"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(eventProcessor_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[1m])))",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "P99",
+          "range": true,
+          "refId": "P99"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by(payloadType) (rate(eventProcessor_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"} [1m])) / sum by(payloadType) (rate(eventProcessor_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[1m]))",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "By PayloadType"
+        }
+      ],
+      "title": "Event Publishing Latency",
       "type": "timeseries"
     },
     {
@@ -2787,7 +2579,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 89
+        "y": 82
       },
       "id": 51,
       "options": {
@@ -2807,13 +2599,13 @@
       "targets": [
         {
           "disableTextWrap": false,
-          "editorMode": "builder",
+          "editorMode": "code",
           "expr": "sum by(cache) (rate(cache_gets_total{application=\"$application\", service=\"axon-showcase-command-service\", result=\"hit\"}[1m]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
           "range": true,
-          "refId": "A",
+          "refId": "By Cache",
           "useBackend": false
         }
       ],
@@ -2884,7 +2676,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 89
+        "y": 82
       },
       "id": 52,
       "options": {
@@ -2904,13 +2696,13 @@
       "targets": [
         {
           "disableTextWrap": false,
-          "editorMode": "builder",
+          "editorMode": "code",
           "expr": "sum by(cache) (rate(cache_gets_total{application=\"$application\", service=\"axon-showcase-command-service\", result=\"miss\"}[1m]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
           "range": true,
-          "refId": "A",
+          "refId": "By Cache",
           "useBackend": false
         }
       ],
@@ -2923,7 +2715,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 96
+        "y": 89
       },
       "id": 16,
       "panels": [],
@@ -2987,7 +2779,7 @@
               }
             ]
           },
-          "unit": "ms"
+          "unit": "s"
         },
         "overrides": []
       },
@@ -2995,17 +2787,12 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 97
+        "y": 90
       },
-      "id": 26,
+      "id": 19,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "mean",
-            "max",
-            "lastNotNull"
-          ],
+          "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -3024,13 +2811,37 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "showcaseProjector_latency{application=\"$application\", service=\"axon-showcase-projection-service\"}",
-          "legendFormat": "Duration",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(showcaseProjector_projectionTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "legendFormat": "P95",
           "range": true,
-          "refId": "Total"
+          "refId": "P95"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(showcaseProjector_projectionTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "hide": false,
+          "legendFormat": "P99",
+          "range": true,
+          "refId": "P99"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by(payloadType) (rate(showcaseProjector_projectionTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])) / sum by(payloadType) (rate(showcaseProjector_projectionTimer_seconds_count{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
+          "hide": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "By PayloadType"
         }
       ],
-      "title": "Event Lag",
+      "title": "Projection Lag",
       "type": "timeseries"
     },
     {
@@ -3047,7 +2858,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "messages/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -3097,7 +2908,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 104
+        "y": 97
       },
       "id": 65,
       "options": {
@@ -3121,7 +2932,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(showcaseProjector_processedCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
+          "expr": "sum(rate(showcaseProjector_ingestedCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
           "legendFormat": "Total",
           "range": true,
           "refId": "Total"
@@ -3132,9 +2943,9 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(showcaseProjector_processedCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
+          "expr": "sum by (payloadType) (rate(showcaseProjector_ingestedCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
           "hide": false,
-          "legendFormat": "__auto",
+          "legendFormat": "{{payloadType}}",
           "range": true,
           "refId": "By PayloadType"
         }
@@ -3207,9 +3018,9 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 104
+        "y": 97
       },
-      "id": 19,
+      "id": 71,
       "options": {
         "legend": {
           "calcs": [],
@@ -3231,7 +3042,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(showcaseProjector_allTimer_seconds{application=\"$application\", service=\"axon-showcase-projection-service\", quantile=\"0.95\"})",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(showcaseProjector_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
           "legendFormat": "P95",
           "range": true,
           "refId": "P95"
@@ -3242,7 +3053,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(showcaseProjector_allTimer_seconds{application=\"$application\", service=\"axon-showcase-projection-service\", quantile=\"0.99\"})",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(showcaseProjector_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -3254,7 +3065,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max by(payloadType) (rate(showcaseProjector_allTimer_seconds_sum[1m]) / rate(showcaseProjector_allTimer_seconds_count[1m]))",
+          "expr": "sum by(payloadType) (rate(showcaseProjector_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])) / sum by(payloadType) (rate(showcaseProjector_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
           "hide": false,
           "legendFormat": "__auto",
           "range": true,
@@ -3278,7 +3089,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "messages/batch",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -3320,7 +3131,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "none"
         },
         "overrides": []
       },
@@ -3328,9 +3140,9 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 111
+        "y": 104
       },
-      "id": 17,
+      "id": 72,
       "options": {
         "legend": {
           "calcs": [],
@@ -3352,10 +3164,11 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(showcaseProjector_capacity{application=\"$application\",service=\"axon-showcase-projection-service\"})",
-          "legendFormat": "Total",
+          "expr": "sum(rate(showcaseProjector_batch_size_events_sum{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])) / sum(rate(showcaseProjector_batch_size_events_count{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
+          "hide": false,
+          "legendFormat": "Avg",
           "range": true,
-          "refId": "Total"
+          "refId": "Average"
         },
         {
           "datasource": {
@@ -3363,14 +3176,37 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (showcaseProjector_capacity{application=\"$application\",service=\"axon-showcase-projection-service\"})",
-          "hide": false,
-          "legendFormat": "__auto",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(showcaseProjector_batch_size_events_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "legendFormat": "P95",
           "range": true,
-          "refId": "By PayloadType"
+          "refId": "P95"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(showcaseProjector_batch_size_events_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "hide": false,
+          "legendFormat": "P99",
+          "range": true,
+          "refId": "P99"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.999, sum by(le) (rate(showcaseProjector_batch_size_events_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "hide": false,
+          "legendFormat": "P999",
+          "range": true,
+          "refId": "P999"
         }
       ],
-      "title": "Load Average",
+      "title": "Batch Size",
       "type": "timeseries"
     },
     {
@@ -3387,7 +3223,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "failures/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -3437,7 +3273,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 111
+        "y": 104
       },
       "id": 66,
       "options": {
@@ -3474,9 +3310,21 @@
           "editorMode": "code",
           "expr": "sum by (payloadType) (rate(showcaseProjector_failureCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
           "hide": false,
-          "legendFormat": "__auto",
+          "legendFormat": "{{payloadType}}",
           "range": true,
           "refId": "By PayloadType"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (error) (rate(project_showcase_seconds_count{application=\"$application\", service=\"axon-showcase-projection-service\", error!=\"none\"}[1m]))",
+          "hide": false,
+          "legendFormat": "{{error}}",
+          "range": true,
+          "refId": "By Error"
         }
       ],
       "title": "Failure Rate",
@@ -3488,7 +3336,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 118
+        "y": 111
       },
       "id": 22,
       "panels": [],
@@ -3560,7 +3408,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 119
+        "y": 112
       },
       "id": 60,
       "options": {
@@ -3688,7 +3536,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 119
+        "y": 112
       },
       "id": 61,
       "options": {
@@ -3782,7 +3630,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "failures/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -3830,134 +3678,9 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 126
-      },
-      "id": 70,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.1.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(http_server_requests_seconds_sum{application=\"$application\", service=\"axon-showcase-query-service\"}[1m])) / 60",
-          "hide": false,
-          "instant": false,
-          "legendFormat": "Total",
-          "range": true,
-          "refId": "Total"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(fetch_showcase_list_seconds_sum[1m])) / 60",
-          "hide": false,
-          "instant": false,
-          "legendFormat": "FetchShowcaseListQuery",
-          "range": true,
-          "refId": "FetchShowcaseListQuery"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(fetch_showcase_by_id_seconds_sum[1m])) / 60",
-          "hide": false,
-          "instant": false,
-          "legendFormat": "FetchShowcaseByIdQuery",
-          "range": true,
-          "refId": "FetchShowcaseByIdQuery"
-        }
-      ],
-      "title": "Load Average",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "failures/min",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 12,
-        "y": 126
+        "y": 119
       },
       "id": 64,
       "options": {
@@ -3997,7 +3720,7 @@
           "expr": "sum by (error) (rate(fetch_showcase_list_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", error!=\"none\"}[1m])) + sum by (error) (rate(fetch_showcase_by_id_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", error!=\"none\"}[1m]))",
           "hide": false,
           "instant": false,
-          "legendFormat": "__auto",
+          "legendFormat": "{{error}}",
           "range": true,
           "refId": "By Error"
         }

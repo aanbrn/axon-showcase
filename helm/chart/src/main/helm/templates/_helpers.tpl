@@ -29,7 +29,6 @@
     {{- /* @formatter:off */}}
     {{- if or
            .Values.observability.logging.structured.enabled
-           .Values.observability.axon.tracing.logging.enabled
            .Values.observability.prometheus.metrics.export.enabled
            .Values.observability.otlp.metrics.export.enabled
            .Values.observability.otlp.tracing.export.enabled
@@ -53,12 +52,6 @@
         {{- /* @formatter:off */}}
 - name: "LOGGING_STRUCTURED_FORMAT_CONSOLE"
   value: {{ .Values.observability.logging.structured.format | quote }}
-        {{- /* @formatter:on */}}
-    {{- end }}
-    {{- if .Values.observability.axon.tracing.logging.enabled }}
-        {{- /* @formatter:off */}}
-- name: "AXON_TRACING_LOGGING_ENABLED"
-  value: "true"
         {{- /* @formatter:on */}}
     {{- end }}
     {{- /* @formatter:off */}}

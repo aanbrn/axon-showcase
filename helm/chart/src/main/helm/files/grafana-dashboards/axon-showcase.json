@@ -130,7 +130,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum(distributedCommandBus_processedCounter_total{application=\"$application\"}) / sum(distributedCommandBus_ingestedCounter_total{application=\"$application\"})",
+          "expr": "sum(distributedCommandBus_processedCounter_total{application=\"$application\"}) / sum(distributedCommandBus_ingestedCounter_total{application=\"$application\"} - distributedCommandBus_ignoredCounter_total{application=\"$application\"})",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -146,7 +146,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(showcaseProjector_processedCounter_total{application=\"$application\"}) / sum(showcaseProjector_ingestedCounter_total{application=\"$application\"})",
+          "expr": "sum(showcaseProjector_processedCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}) / sum(showcaseProjector_ingestedCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"} - showcaseProjector_ignoredCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"})",
           "hide": false,
           "instant": false,
           "legendFormat": "Projection",
@@ -3199,11 +3199,11 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.999, sum by(le) (rate(showcaseProjector_batch_size_events_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "expr": "histogram_quantile(1.0, sum by(le) (rate(showcaseProjector_batch_size_events_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
           "hide": false,
-          "legendFormat": "P999",
+          "legendFormat": "Max",
           "range": true,
-          "refId": "P999"
+          "refId": "Max"
         }
       ],
       "title": "Batch Size",

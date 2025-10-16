@@ -30,15 +30,17 @@ import org.opensearch.client.opensearch.core.BulkResponse;
 import org.opensearch.client.opensearch.core.bulk.BulkOperation;
 import org.opensearch.data.client.osc.ReactiveOpenSearchTemplate;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.stereotype.Component;
 import reactor.core.Disposable;
-import reactor.core.Exceptions;
 import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.BufferOverflowStrategy;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 import reactor.function.TupleUtils;
 import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOffset;
@@ -61,6 +63,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.apache.commons.lang3.time.DurationFormatUtils.formatDurationWords;
 import static org.axonframework.micrometer.TagsUtil.PAYLOAD_TYPE_TAGGER_FUNCTION;
 
@@ -214,28 +217,41 @@ class ShowcaseProjector implements SmartLifecycle {
                        .doOnSubscribe(subscription -> log.info("Projector has started"))
                        .doOnCancel(() -> log.info("Projector has stopped"))
                        .groupBy(record -> record.receiverOffset().topicPartition())
-                       .flatMap(records -> records.bufferTimeout(projectionProperties.getBatch().getMaxSize(),
-                                                                 projectionProperties.getBatch().getMaxTime())
-                                                  .onBackpressureBuffer(projectionProperties
-                                                                                .getBatch()
-                                                                                .getBufferMaxSize(),
-                                                                        BufferOverflowStrategy.ERROR)
-                                                  .concatMap(messages -> {
-                                                      log.trace("Received {} message(s)", messages.size());
-                                                      return processMessages(messages)
-                                                                     .then(Flux.fromIterable(messages)
-                                                                               .map(ReceiverRecord::receiverOffset)
-                                                                               .doOnNext(ReceiverOffset::acknowledge)
-                                                                               .then());
-                                                  }))
+                       .flatMap(records -> Flux.using(
+                               () -> Schedulers.fromExecutorService(
+                                       newScheduledThreadPool(
+                                               Schedulers.DEFAULT_POOL_SIZE,
+                                               Thread.ofVirtual()
+                                                     .name("showcase-projector")
+                                                     .factory()),
+                                       "showcase-projector"),
+                               scheduler -> records.bufferTimeout(projectionProperties.getBatch().getMaxSize(),
+                                                                  projectionProperties.getBatch().getMaxTime(),
+                                                                  scheduler)
+                                                   .onBackpressureBuffer(projectionProperties
+                                                                                 .getBatch()
+                                                                                 .getBufferMaxSize(),
+                                                                         BufferOverflowStrategy.ERROR)
+                                                   .concatMap(messages -> {
+                                                       log.trace("Received {} message(s)",
+                                                                 messages.size());
+                                                       return processMessages(messages)
+                                                                      .then(Flux.fromIterable(messages)
+                                                                                .map(ReceiverRecord::receiverOffset)
+                                                                                .doOnNext(ReceiverOffset::acknowledge)
+                                                                                .then());
+                                                   }),
+                               Scheduler::dispose))
                        .tap(Micrometer.observation(observationRegistry))
-                       .retryWhen(Retry.fixedDelay(Long.MAX_VALUE, projectionProperties.getRestart().getDelay())
+                       .retryWhen(Retry.fixedDelay(Long.MAX_VALUE,
+                                                   projectionProperties.getRestart().getDelay())
                                        .doBeforeRetry(signal -> log.warn(
                                                "Projector has failed and will restart in {}...",
-                                               formatDurationWords(projectionProperties.getRestart()
-                                                                                       .getDelay()
-                                                                                       .toMillis(),
-                                                                   true, true),
+                                               formatDurationWords(
+                                                       projectionProperties.getRestart()
+                                                                           .getDelay()
+                                                                           .toMillis(),
+                                                       true, true),
                                                signal.failure())))
                        .subscribe();
         });
@@ -305,11 +321,7 @@ class ShowcaseProjector implements SmartLifecycle {
                             .map(this::eventToBulkOperation)
                             .collectList()
                             .map(operations -> BulkRequest.of(request -> request.operations(operations)))
-                            .flatMap(request -> Mono.from(openSearchTemplate.execute(client -> client.bulk(request)))
-                                                    .retryWhen(Retry.backoff(
-                                                            projectionProperties.getRetry().getMaxAttempts(),
-                                                            projectionProperties.getRetry().getMinBackoff()))
-                                                    .onErrorMap(Exceptions::isRetryExhausted, Throwable::getCause))
+                            .flatMap(this::execute)
                             .map(BulkResponse::items)
                             .flatMapMany(Flux::fromIterable))
                    .doOnNext(TupleUtils.consumer((event, monitorCallback, responseItem) -> {
@@ -390,5 +402,13 @@ class ShowcaseProjector implements SmartLifecycle {
                                       .index(showcaseIndex.getIndexName())
                                       .routing(removedEvent.getShowcaseId())));
         };
+    }
+
+    private Mono<BulkResponse> execute(BulkRequest request) {
+        return Mono.from(openSearchTemplate.execute(client -> client.bulk(request)))
+                   .retryWhen(Retry.backoff(projectionProperties.getRetry().getMaxAttempts(),
+                                            projectionProperties.getRetry().getMinBackoff())
+                                   .filter(TransientDataAccessException.class::isInstance)
+                                   .onRetryExhaustedThrow((__, signal) -> signal.failure()));
     }
 }

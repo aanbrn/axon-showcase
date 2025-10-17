@@ -663,17 +663,19 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
-    void fetchShowcaseList_failureFallbackCacheMiss_respondsWithServiceUnavailableStatusAndProblemInBody() {
+    void fetchShowcaseList_failureFallbackCacheMiss_respondsWithServiceUnavailableStatusAndProblemInBody(
+            CapturedOutput output) {
         val query = FetchShowcaseListQuery.builder().build();
-
-        given(showcaseQueryOperations.fetchList(query)).willReturn(Flux.error(
+        val failure =
                 WebClientResponseException.create(
                         anEnum(HttpStatus.class),
                         anAlphabeticString(32),
                         new HttpHeaders(),
                         new byte[0],
                         null,
-                        null)));
+                        null);
+
+        given(showcaseQueryOperations.fetchList(query)).willReturn(Flux.error(failure));
 
         webClient.get()
                  .uri("/showcases")
@@ -695,6 +697,10 @@ class ShowcaseApiControllerCT {
         verifyNoMoreInteractions(fetchShowcaseListCache);
 
         verifyNoInteractions(fetchShowcaseByIdCache);
+
+        assertThat(output.getOut())
+                .doesNotContain("Fallback on %s".formatted(query))
+                .contains(failure.getMessage());
     }
 
     @Test
@@ -827,21 +833,23 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
-    void fetchShowcaseById_failureFallbackCacheMiss_respondsWithServiceUnavailableStatusAndProblemInBody() {
+    void fetchShowcaseById_failureFallbackCacheMiss_respondsWithServiceUnavailableStatusAndProblemInBody(
+            CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val query = FetchShowcaseByIdQuery
                             .builder()
                             .showcaseId(showcaseId)
                             .build();
-
-        given(showcaseQueryOperations.fetchById(any())).willReturn(Mono.error(
+        val failure =
                 WebClientResponseException.create(
                         anEnum(HttpStatus.class),
                         anAlphabeticString(32),
                         new HttpHeaders(),
                         new byte[0],
                         null,
-                        null)));
+                        null);
+
+        given(showcaseQueryOperations.fetchById(any())).willReturn(Mono.error(failure));
 
         webClient.get()
                  .uri("/showcases/{showcaseId}", showcaseId)
@@ -863,5 +871,9 @@ class ShowcaseApiControllerCT {
         verifyNoMoreInteractions(fetchShowcaseByIdCache);
 
         verifyNoInteractions(fetchShowcaseListCache);
+
+        assertThat(output.getOut())
+                .doesNotContain("Fallback on %s".formatted(query))
+                .contains(failure.getMessage());
     }
 }

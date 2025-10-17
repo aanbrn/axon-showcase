@@ -54,7 +54,6 @@ import showcase.query.ShowcaseQueryException;
 import showcase.query.ShowcaseQueryOperations;
 import showcase.query.ShowcaseStatus;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -64,6 +63,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static java.util.Objects.requireNonNull;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
@@ -185,25 +185,20 @@ final class ShowcaseApiController implements ShowcaseApi {
                                                    .toMap());
                        })
                        .flatMapMany(Flux::fromIterable)
-                       .onErrorResume(Predicate.not(ShowcaseQueryException.class::isInstance), t -> {
-                           val showcaseIds = fetchShowcaseListCache.getIfPresent(query);
-                           if (showcaseIds == null) {
-                               return Flux.error(t);
-                           }
-
-                           val showcases = new ArrayList<Showcase>(showcaseIds.size());
-                           for (val showcaseId : showcaseIds) {
-                               val showcase = fetchShowcaseByIdCache.getIfPresent(showcaseId);
-                               if (showcase == null) {
-                                   return Flux.error(t);
-                               }
-                               showcases.add(showcase);
-                           }
-
-                           log.warn("Fallback on {}", query, t);
-
-                           return Flux.fromIterable(showcases);
-                       });
+                       .onErrorResume(
+                               Predicate.not(ShowcaseQueryException.class::isInstance),
+                               t -> Mono.justOrEmpty(fetchShowcaseListCache.getIfPresent(query))
+                                        .switchIfEmpty(Mono.error(t))
+                                        .flatMapMany(showcaseIds -> Flux.fromIterable(requireNonNull(showcaseIds)))
+                                        .map(fetchShowcaseByIdCache::getIfPresent)
+                                        .<Showcase>handle((showcase, sink) -> {
+                                            if (showcase != null) {
+                                                sink.next(showcase);
+                                            } else {
+                                                sink.error(t);
+                                            }
+                                        })
+                                        .doOnComplete(() -> log.warn("Fallback on {}", query, t)));
     }
 
     @GetMapping("/{showcaseId}")
@@ -216,16 +211,11 @@ final class ShowcaseApiController implements ShowcaseApi {
         return queryOperations
                        .fetchById(query)
                        .doOnNext(showcase -> fetchShowcaseByIdCache.put(showcaseId, showcase))
-                       .onErrorResume(Predicate.not(ShowcaseQueryException.class::isInstance), t -> {
-                           val showcase = fetchShowcaseByIdCache.getIfPresent(showcaseId);
-                           if (showcase == null) {
-                               return Mono.error(t);
-                           }
-
-                           log.warn("Fallback on {}", query, t);
-
-                           return Mono.just(showcase);
-                       });
+                       .onErrorResume(
+                               Predicate.not(ShowcaseQueryException.class::isInstance),
+                               t -> Mono.justOrEmpty(fetchShowcaseByIdCache.getIfPresent(showcaseId))
+                                        .switchIfEmpty(Mono.error(t))
+                                        .doOnSuccess(__ -> log.warn("Fallback on {}", query, t)));
     }
 
     @ExceptionHandler

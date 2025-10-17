@@ -119,6 +119,11 @@ class ShowcaseQueryClientIT {
     @Test
     void fetchList_noFiltering_succeedsWithListExistingShowcasesSortedByStartTime() {
         // given:
+        val expected =
+                this.showcases
+                        .stream()
+                        .sorted(comparing(Showcase::getShowcaseId).reversed())
+                        .toList();
         val query =
                 FetchShowcaseListQuery
                         .builder()
@@ -131,10 +136,7 @@ class ShowcaseQueryClientIT {
             // then:
             StepVerifier
                     .create(fetchListMono)
-                    .expectNextSequence(
-                            showcases.stream()
-                                     .sorted(comparing(Showcase::getShowcaseId).reversed())
-                                     .toList())
+                    .expectNextSequence(expected)
                     .expectComplete()
                     .verify();
         });
@@ -143,11 +145,11 @@ class ShowcaseQueryClientIT {
     @Test
     void fetchList_titleToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
         // given:
-        val showcase = anElementOf(showcases);
+        val expected = anElementOf(showcases);
         val query =
                 FetchShowcaseListQuery
                         .builder()
-                        .title(showcase.getTitle())
+                        .title(expected.getTitle())
                         .build();
 
         await().untilAsserted(() -> {
@@ -157,7 +159,7 @@ class ShowcaseQueryClientIT {
             // then:
             StepVerifier
                     .create(fetchListMono)
-                    .expectNext(showcase)
+                    .expectNext(expected)
                     .expectComplete()
                     .verify();
         });
@@ -167,6 +169,12 @@ class ShowcaseQueryClientIT {
     void fetchList_singleStatusToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
         // given:
         val status = aShowcaseStatus();
+        val expected =
+                showcases
+                        .stream()
+                        .filter(it -> it.getStatus() == status)
+                        .sorted(comparing(Showcase::getShowcaseId).reversed())
+                        .toList();
         val query =
                 FetchShowcaseListQuery
                         .builder()
@@ -180,11 +188,7 @@ class ShowcaseQueryClientIT {
             // then:
             StepVerifier
                     .create(fetchListMono)
-                    .expectNextSequence(
-                            showcases.stream()
-                                     .filter(it -> it.getStatus() == status)
-                                     .sorted(comparing(Showcase::getShowcaseId).reversed())
-                                     .toList())
+                    .expectNextSequence(expected)
                     .expectComplete()
                     .verify();
         });
@@ -201,6 +205,12 @@ class ShowcaseQueryClientIT {
                         .status(status1)
                         .status(status2)
                         .build();
+        val expected =
+                showcases
+                        .stream()
+                        .filter(showcase -> showcase.getStatus() == status1 || showcase.getStatus() == status2)
+                        .sorted(comparing(Showcase::getShowcaseId).reversed())
+                        .toList();
 
         await().untilAsserted(() -> {
             // when:
@@ -209,11 +219,7 @@ class ShowcaseQueryClientIT {
             // then:
             StepVerifier
                     .create(fetchListMono)
-                    .expectNextSequence(
-                            showcases.stream()
-                                     .filter(showcase -> showcase.getStatus() == status1 || showcase.getStatus() == status2)
-                                     .sorted(comparing(Showcase::getShowcaseId).reversed())
-                                     .toList())
+                    .expectNextSequence(expected)
                     .expectComplete()
                     .verify();
         });
@@ -222,11 +228,11 @@ class ShowcaseQueryClientIT {
     @Test
     void fetchById_existingShowcase_succeedWithRequestedShowcase() {
         // given:
-        val showcase = anElementOf(showcases);
+        val expected = anElementOf(showcases);
         val query =
                 FetchShowcaseByIdQuery
                         .builder()
-                        .showcaseId(showcase.getShowcaseId())
+                        .showcaseId(expected.getShowcaseId())
                         .build();
 
         await().untilAsserted(() -> {
@@ -236,7 +242,7 @@ class ShowcaseQueryClientIT {
             // then:
             StepVerifier
                     .create(fetchByIdMono)
-                    .expectNext(showcase)
+                    .expectNext(expected)
                     .expectComplete()
                     .verify();
         });

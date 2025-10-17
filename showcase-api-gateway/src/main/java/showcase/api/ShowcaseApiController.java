@@ -63,7 +63,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static java.util.Objects.requireNonNull;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
@@ -184,12 +183,12 @@ final class ShowcaseApiController implements ShowcaseApi {
                                                    .mapToEntry(Showcase::getShowcaseId, Function.identity())
                                                    .toMap());
                        })
-                       .flatMapMany(Flux::fromIterable)
+                       .flatMapIterable(Function.identity())
                        .onErrorResume(
                                Predicate.not(ShowcaseQueryException.class::isInstance),
                                t -> Mono.justOrEmpty(fetchShowcaseListCache.getIfPresent(query))
                                         .switchIfEmpty(Mono.error(t))
-                                        .flatMapMany(showcaseIds -> Flux.fromIterable(requireNonNull(showcaseIds)))
+                                        .flatMapIterable(Function.identity())
                                         .map(fetchShowcaseByIdCache::getIfPresent)
                                         .<Showcase>handle((showcase, sink) -> {
                                             if (showcase != null) {

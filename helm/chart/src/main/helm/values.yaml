@@ -441,6 +441,7 @@ projectionService:
 
   projector:
     batch:
+      minThreads: 1
       maxSize: 100
       maxTime: PT0.1S
       bufferMaxSize: 10000

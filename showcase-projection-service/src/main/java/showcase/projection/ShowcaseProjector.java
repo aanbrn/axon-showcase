@@ -220,21 +220,18 @@ class ShowcaseProjector implements SmartLifecycle {
                        .flatMap(records -> Flux.using(
                                () -> Schedulers.fromExecutorService(
                                        newScheduledThreadPool(
-                                               Schedulers.DEFAULT_POOL_SIZE,
-                                               Thread.ofVirtual()
-                                                     .name("showcase-projector")
-                                                     .factory()),
+                                               projectionProperties.getBatch().getMinThreads(),
+                                               Thread.ofVirtual().name("showcase-projector").factory()),
                                        "showcase-projector"),
-                               scheduler -> records.bufferTimeout(projectionProperties.getBatch().getMaxSize(),
-                                                                  projectionProperties.getBatch().getMaxTime(),
-                                                                  scheduler)
-                                                   .onBackpressureBuffer(projectionProperties
-                                                                                 .getBatch()
-                                                                                 .getBufferMaxSize(),
-                                                                         BufferOverflowStrategy.ERROR)
+                               scheduler -> records.bufferTimeout(
+                                                           projectionProperties.getBatch().getMaxSize(),
+                                                           projectionProperties.getBatch().getMaxTime(),
+                                                           scheduler)
+                                                   .onBackpressureBuffer(
+                                                           projectionProperties.getBatch().getBufferMaxSize(),
+                                                           BufferOverflowStrategy.ERROR)
                                                    .concatMap(messages -> {
-                                                       log.trace("Received {} message(s)",
-                                                                 messages.size());
+                                                       log.trace("Received {} message(s)", messages.size());
                                                        return processMessages(messages)
                                                                       .then(Flux.fromIterable(messages)
                                                                                 .map(ReceiverRecord::receiverOffset)
@@ -243,14 +240,11 @@ class ShowcaseProjector implements SmartLifecycle {
                                                    }),
                                Scheduler::dispose))
                        .tap(Micrometer.observation(observationRegistry))
-                       .retryWhen(Retry.fixedDelay(Long.MAX_VALUE,
-                                                   projectionProperties.getRestart().getDelay())
+                       .retryWhen(Retry.fixedDelay(Long.MAX_VALUE, projectionProperties.getRestart().getDelay())
                                        .doBeforeRetry(signal -> log.warn(
                                                "Projector has failed and will restart in {}...",
                                                formatDurationWords(
-                                                       projectionProperties.getRestart()
-                                                                           .getDelay()
-                                                                           .toMillis(),
+                                                       projectionProperties.getRestart().getDelay().toMillis(),
                                                        true, true),
                                                signal.failure())))
                        .subscribe();
@@ -259,7 +253,7 @@ class ShowcaseProjector implements SmartLifecycle {
 
     @Override
     public void stop() {
-        val subscription = this.subscription.get();
+        val subscription = this.subscription.getAndSet(null);
         if (subscription == null) {
             return;
         }
@@ -269,7 +263,7 @@ class ShowcaseProjector implements SmartLifecycle {
         subscription.dispose();
     }
 
-    private <T extends ConsumerRecord<String, byte[]>> Mono<Void> processMessages(List<T> messages) {
+    private Mono<Void> processMessages(List<? extends ConsumerRecord<String, byte[]>> messages) {
         return Flux.fromIterable(messages)
                    .map(kafkaMessageConverter::readKafkaMessage)
                    .filter(Optional::isPresent)
@@ -284,7 +278,7 @@ class ShowcaseProjector implements SmartLifecycle {
                            return true;
                        }
                    })
-                   .flatMapMany(Flux::fromIterable)
+                   .flatMapIterable(Function.identity())
                    .map(eventMessage -> Tuples.of(eventMessage, messageMonitor.onMessageIngested(eventMessage)))
                    .filter(TupleUtils.predicate((eventMessage, monitorCallback) -> {
                        if (eventMessage.getPayload() instanceof ShowcaseEvent) {
@@ -323,7 +317,7 @@ class ShowcaseProjector implements SmartLifecycle {
                             .map(operations -> BulkRequest.of(request -> request.operations(operations)))
                             .flatMap(this::execute)
                             .map(BulkResponse::items)
-                            .flatMapMany(Flux::fromIterable))
+                            .flatMapIterable(Function.identity()))
                    .doOnNext(TupleUtils.consumer((event, monitorCallback, responseItem) -> {
                        if (responseItem.error() == null) {
                            monitorCallback.reportSuccess();

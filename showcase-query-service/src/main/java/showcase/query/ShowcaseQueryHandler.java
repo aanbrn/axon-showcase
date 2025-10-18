@@ -64,6 +64,7 @@ class ShowcaseQueryHandler {
                                         .map(List::of)
                                         .orElse(null))
                         .withMaxResults(query.getSize())
+                        .withRequestCache(true)
                         .build();
         return openSearchTemplate
                        .search(criteriaQuery, ShowcaseEntity.class, showcaseIndex)

@@ -2,8 +2,8 @@
 java = "21"
 axon-bom = "4.12.1"
 spring-boot = "3.5.6"
-spring-framework-bom = "6.2.11"
-spring-data-bom = "2025.0.4"
+spring-framework-bom = "6.2.12"
+spring-data-bom = "2025.0.5"
 spring-data-opensearch = "2.0.2"
 springdoc-openapi-starter = "2.8.13"
 swagger = "2.2.39"
@@ -12,19 +12,19 @@ postgresql = "42.7.8"
 caffeine = "3.2.2"
 db-scheduler = "13.0.0"
 mapstruct = "1.6.3"
-jackson = "2.20.0"
+jackson-bom = "2.20.0"
 reactor-bom = "2024.0.11"
-netty = "4.2.6.Final"
-resilience4j = "2.3.0"
+netty-bom = "4.2.7.Final"
+resilience4j-bom = "2.3.0"
 streamex = "0.8.4"
 jgroups = "4.2.30.Final"
 jgroups-kubernetes = "1.0.17.Final"
-protobuf = "4.32.1"
+protobuf = "4.33.0"
 elasticsearch-client = "9.1.5"
-opensearch = "3.0.2"
+opensearch = "4.0.0"
 opensearch-client = "3.2.0"
 micrometer-bom = "1.15.5"
-micrometer-tracing = "1.5.5"
+micrometer-tracing-bom = "1.5.5"
 opentelemetry-bom = "1.55.0"
 commons-compress = "1.28.0"
 commons-fileupload = "1.6.0"
@@ -38,10 +38,10 @@ xstream = "1.4.21"
 ksuid = "1.1.4"
 jakarta-validation-api = "3.1.1"
 hamcrest = "3.0"
-mockito = "5.20.0"
+mockito-bom = "5.20.0"
 wiremock-spring-boot = "3.10.6"
 kotlin = "2.2.20"
-spotbugs = "4.9.7"
+spotbugs = "4.9.8"
 lombok = "1.18.42"
 lombok-plugin = "8.14.2"
 protobuf-plugin = "0.9.5"
@@ -97,7 +97,7 @@ hibernate-validator = { group = "org.hibernate.validator", name = "hibernate-val
 expressly = { group = "org.glassfish.expressly", name = "expressly", version.ref = "expressly" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 kotlin-bom = { group = "org.jetbrains.kotlin", name = "kotlin-bom", version.ref = "kotlin" }
-resilience4j-bom = { group = "io.github.resilience4j", name = "resilience4j-bom", version.ref = "resilience4j" }
+resilience4j-bom = { group = "io.github.resilience4j", name = "resilience4j-bom", version.ref = "resilience4j-bom" }
 resilience4j-reactor = { group = "io.github.resilience4j", name = "resilience4j-reactor" }
 resilience4j-springBoot3 = { group = "io.github.resilience4j", name = "resilience4j-spring-boot3" }
 streamex = { group = "one.util", name = "streamex", version.ref = "streamex" }
@@ -116,18 +116,17 @@ logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.
 logback-core = { group = "ch.qos.logback", name = "logback-core", version.ref = "logback" }
 mapstruct = { group = "org.mapstruct", name = "mapstruct", version.ref = "mapstruct" }
 mapstruct-processor = { group = "org.mapstruct", name = "mapstruct-processor", version.ref = "mapstruct" }
-jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
+jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson-bom" }
 jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations" }
 jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind" }
 jackson-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310" }
 jackson-module-blackbird = { group = "com.fasterxml.jackson.module", name = "jackson-module-blackbird" }
 xstream = { group = "com.thoughtworks.xstream", name = "xstream", version.ref = "xstream" }
-netty-resolver-dnsNativeMacos = { group = "io.netty", name = "netty-resolver-dns-native-macos" }
 assertj-core = { group = "org.assertj", name = "assertj-core" }
 hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" }
 junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api" }
-mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
-mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito-bom" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito-bom" }
 mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter" }
 reactor-bom = { group = "io.projectreactor", name = "reactor-bom", version.ref = "reactor-bom" }
 reactor-core = { group = "io.projectreactor", name = "reactor-core" }
@@ -135,7 +134,8 @@ reactor-core-micrometer = { group = "io.projectreactor", name = "reactor-core-mi
 reactor-extra = { group = "io.projectreactor.addons", name = "reactor-extra" }
 reactor-kafka = { group = "io.projectreactor.kafka", name = "reactor-kafka" }
 reactor-test = { group = "io.projectreactor", name = "reactor-test" }
-netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty" }
+netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty-bom" }
+netty-resolver-dnsNativeMacos = { group = "io.netty", name = "netty-resolver-dns-native-macos" }
 wiremock-springBoot = { group = "org.wiremock.integrations", name = "wiremock-spring-boot", version.ref = "wiremock-spring-boot" }
 axon-bom = { group = "org.axonframework", name = "axon-bom", version.ref = "axon-bom" }
 axon-modelling = { group = "org.axonframework", name = "axon-modelling" }
@@ -156,7 +156,8 @@ dbScheduler-springBootStarter = { group = "com.github.kagkarlsson", name = "db-s
 micrometer-bom = { group = "io.micrometer", name = "micrometer-bom", version.ref = "micrometer-bom" }
 micrometer-registry-prometheus = { group = "io.micrometer", name = "micrometer-registry-prometheus" }
 micrometer-registry-otlp = { group = "io.micrometer", name = "micrometer-registry-otlp" }
-micrometer-tracing-bridge-otel = { group = "io.micrometer", name = "micrometer-tracing-bridge-otel", version.ref = "micrometer-tracing" }
+micrometer-tracing-bom = { group = "io.micrometer", name = "micrometer-tracing-bom", version.ref = "micrometer-tracing-bom" }
+micrometer-tracing-bridge-otel = { group = "io.micrometer", name = "micrometer-tracing-bridge-otel" }
 opentelemetry-bom = { group = "io.opentelemetry", name = "opentelemetry-bom", version.ref = "opentelemetry-bom" }
 opentelemetry-exporter-otlp = { group = "io.opentelemetry", name = "opentelemetry-exporter-otlp" }
 ksuid = { group = "com.github.ksuid", name = "ksuid", version.ref = "ksuid" }

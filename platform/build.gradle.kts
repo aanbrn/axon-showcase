@@ -13,6 +13,7 @@ dependencies {
     api(platform(libs.jackson.bom))
     api(platform(libs.kotlin.bom))
     api(platform(libs.micrometer.bom))
+    api(platform(libs.micrometer.tracing.bom))
     api(platform(libs.mockito.bom))
     api(platform(libs.netty.bom))
     api(platform(libs.opentelemetry.bom))

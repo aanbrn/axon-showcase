@@ -10,6 +10,7 @@ import org.axonframework.commandhandling.NoHandlerForCommandException;
 import org.axonframework.commandhandling.distributed.CommandDispatchException;
 import org.axonframework.messaging.RemoteExceptionDescription;
 import org.axonframework.messaging.RemoteHandlingException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import reactor.blockhound.BlockHound;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -66,6 +68,11 @@ class ShowcaseCommandClientCT {
 
     @Autowired
     private ShowcaseCommandClient showcaseCommandClient;
+
+    @BeforeAll
+    static void installBlockHound() {
+        BlockHound.install();
+    }
 
     @Test
     void scheduleShowcase_successfulCommandDispatch_succeeds() {

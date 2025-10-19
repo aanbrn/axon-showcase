@@ -46,6 +46,7 @@ testing {
                 implementation(libs.axon.extensions.reactor.springBootStarter)
                 implementation(libs.commons.lang3)
                 implementation(libs.reactor.test)
+                implementation(libs.reactor.blockhound)
                 implementation(libs.resilience4j.springBoot3)
                 implementation(libs.spring.boot.starter.aop)
                 implementation(libs.spring.boot.starter.test)
@@ -54,6 +55,8 @@ testing {
             targets {
                 all {
                     testTask.configure {
+                        jvmArgs = listOf("-XX:+AllowRedefinitionToAddDeleteMethods")
+
                         shouldRunAfter(test)
                     }
                 }
@@ -71,6 +74,7 @@ testing {
                 implementation(libs.axon.extensions.jgroups.springBootStarter)
                 implementation(libs.axon.extensions.reactor.springBootStarter)
                 implementation(libs.reactor.test)
+                implementation(libs.reactor.blockhound)
                 implementation(libs.spring.boot.starter.test)
                 implementation(libs.spring.boot.starter.webflux)
                 implementation(libs.testcontainers.junit.jupiter)
@@ -81,6 +85,8 @@ testing {
             targets {
                 all {
                     testTask.configure {
+                        jvmArgs = listOf("-XX:+AllowRedefinitionToAddDeleteMethods")
+
                         shouldRunAfter(componentTest)
                         mustRunAfter(":showcase-command-service:integrationTest")
 

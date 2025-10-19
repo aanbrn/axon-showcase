@@ -76,11 +76,14 @@ testing {
                 implementation(libs.testcontainers.junit.jupiter)
                 implementation(libs.testcontainers.kafka)
                 implementation(libs.testcontainers.opensearch)
+                implementation(libs.reactor.blockhound)
             }
 
             targets {
                 all {
                     testTask.configure {
+                        jvmArgs = listOf("-XX:+AllowRedefinitionToAddDeleteMethods")
+
                         shouldRunAfter(test)
 
                         systemProperty("disable-axoniq-console-message", "true")

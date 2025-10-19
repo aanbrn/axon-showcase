@@ -4,6 +4,7 @@ import lombok.val;
 import org.apache.commons.lang3.RandomUtils;
 import org.axonframework.queryhandling.GenericStreamingQueryMessage;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opensearch.data.client.osc.OpenSearchTemplate;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import reactor.blockhound.BlockHound;
 import showcase.projection.ShowcaseEntity;
 
 import java.util.Comparator;
@@ -55,6 +57,11 @@ class ShowcaseQueryControllerIT {
     private WebTestClient webClient;
 
     private IndexOperations showcaseIndexOperations;
+
+    @BeforeAll
+    static void installBlockHound() {
+        BlockHound.install();
+    }
 
     @BeforeEach
     void setUp() {

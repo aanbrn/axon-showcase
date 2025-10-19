@@ -6,12 +6,15 @@ import lombok.val;
 import one.util.streamex.StreamEx;
 import org.axonframework.commandhandling.NoHandlerForCommandException;
 import org.axonframework.commandhandling.distributed.CommandDispatchException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -24,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.blockhound.BlockHound;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import showcase.command.FinishShowcaseCommand;
@@ -49,6 +53,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.ArgumentMatchers.any;
@@ -70,11 +75,11 @@ import static showcase.test.RandomTestUtils.anAlphabeticString;
 import static showcase.test.RandomTestUtils.anEnum;
 
 @WebFluxTest(ShowcaseApiController.class)
-@ExtendWith(OutputCaptureExtension.class)
 class ShowcaseApiControllerCT {
 
     @Configuration
     @ComponentScan(excludeFilters = @Filter(type = FilterType.ANNOTATION, classes = SpringBootApplication.class))
+    @ImportAutoConfiguration(TaskExecutionAutoConfiguration.class)
     static class TestConfig {
     }
 
@@ -82,20 +87,21 @@ class ShowcaseApiControllerCT {
     private WebTestClient webClient;
 
     @MockitoBean(answers = RETURNS_DEEP_STUBS)
-    @SuppressWarnings("unused")
     private ShowcaseCommandOperations showcaseCommandOperations;
 
     @MockitoBean(answers = RETURNS_DEEP_STUBS)
-    @SuppressWarnings("unused")
     private ShowcaseQueryOperations showcaseQueryOperations;
 
     @MockitoBean(answers = RETURNS_DEEP_STUBS)
-    @SuppressWarnings("unused")
     private Cache<@NonNull FetchShowcaseListQuery, @NonNull List<@NonNull String>> fetchShowcaseListCache;
 
     @MockitoBean(answers = RETURNS_DEEP_STUBS)
-    @SuppressWarnings("unused")
     private Cache<@NonNull String, @NonNull Showcase> fetchShowcaseByIdCache;
+
+    @BeforeAll
+    static void installBlockHound() {
+        BlockHound.install();
+    }
 
     @Test
     void scheduleShowcase_success_respondsWithCreatedStatusAndLocationHeaderAndShowcaseIdInBody() {
@@ -615,6 +621,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @ExtendWith(OutputCaptureExtension.class)
     void fetchShowcaseList_failureFallbackCacheHit_logsFailureAndRespondsWithCachedResult(CapturedOutput output) {
         val showcases = showcases();
         val query = FetchShowcaseListQuery.builder().build();
@@ -657,12 +664,14 @@ class ShowcaseApiControllerCT {
         }
         verifyNoMoreInteractions(fetchShowcaseByIdCache);
 
-        assertThat(output.getOut())
-                .contains("Fallback on %s".formatted(query))
-                .contains(failure.getMessage());
+        await().untilAsserted(
+                () -> assertThat(output)
+                              .contains("Fallback on %s".formatted(query))
+                              .contains(failure.getMessage()));
     }
 
     @Test
+    @ExtendWith(OutputCaptureExtension.class)
     void fetchShowcaseList_failureFallbackCacheMiss_respondsWithServiceUnavailableStatusAndProblemInBody(
             CapturedOutput output) {
         val query = FetchShowcaseListQuery.builder().build();
@@ -698,9 +707,10 @@ class ShowcaseApiControllerCT {
 
         verifyNoInteractions(fetchShowcaseByIdCache);
 
-        assertThat(output.getOut())
-                .doesNotContain("Fallback on %s".formatted(query))
-                .contains(failure.getMessage());
+        await().untilAsserted(
+                () -> assertThat(output)
+                              .doesNotContain("Fallback on %s".formatted(query))
+                              .contains(failure.getMessage()));
     }
 
     @Test
@@ -791,6 +801,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @ExtendWith(OutputCaptureExtension.class)
     void fetchShowcaseById_failureFallbackCacheHit_logsFailureAndRespondsWithCachedResult(CapturedOutput output) {
         val showcase = aShowcase();
         val query = FetchShowcaseByIdQuery
@@ -827,12 +838,14 @@ class ShowcaseApiControllerCT {
 
         verifyNoInteractions(fetchShowcaseListCache);
 
-        assertThat(output.getOut())
-                .contains("Fallback on %s".formatted(query))
-                .contains(failure.getMessage());
+        await().untilAsserted(
+                () -> assertThat(output)
+                              .contains("Fallback on %s".formatted(query))
+                              .contains(failure.getMessage()));
     }
 
     @Test
+    @ExtendWith(OutputCaptureExtension.class)
     void fetchShowcaseById_failureFallbackCacheMiss_respondsWithServiceUnavailableStatusAndProblemInBody(
             CapturedOutput output) {
         val showcaseId = aShowcaseId();
@@ -872,8 +885,9 @@ class ShowcaseApiControllerCT {
 
         verifyNoInteractions(fetchShowcaseListCache);
 
-        assertThat(output.getOut())
-                .doesNotContain("Fallback on %s".formatted(query))
-                .contains(failure.getMessage());
+        await().untilAsserted(
+                () -> assertThat(output)
+                              .doesNotContain("Fallback on %s".formatted(query))
+                              .contains(failure.getMessage()));
     }
 }

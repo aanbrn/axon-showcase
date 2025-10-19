@@ -56,7 +56,7 @@ services:
     entrypoint:
       - "/bin/sh"
       - "-c"
-      - "/opt/kafka/bin/kafka-topics.sh --bootstrap-server axon-showcase-kafka:9092 --create --topic axon-showcase-events --partitions 8 --replication-factor 1"
+      - "/opt/kafka/bin/kafka-topics.sh --bootstrap-server axon-showcase-kafka:9092 --create --topic axon-showcase-events --partitions 3 --replication-factor 1"
   api-gateway:
     depends_on:
       command-service:
@@ -71,6 +71,7 @@ services:
       start_interval: 3s
       retries: 10
     environment:
+      - JAVA_OPTS=-XX:MaxDirectMemorySize=128m -XX:MaxGCPauseMillis=20
       - THC_PATH=/actuator/health
       - BPL_DEBUG_ENABLED=true
       - BPL_DEBUG_PORT=8000
@@ -91,6 +92,7 @@ services:
       start_interval: 3s
       retries: 10
     environment:
+      - JAVA_OPTS=-XX:MaxDirectMemorySize=128m -XX:MaxGCPauseMillis=20
       - THC_PATH=/actuator/health
       - DB_PASSWORD=showcase
       - BPL_DEBUG_ENABLED=true
@@ -109,6 +111,7 @@ services:
       start_interval: 3s
       retries: 10
     environment:
+      - JAVA_OPTS=-XX:MaxDirectMemorySize=128m -XX:MaxGCPauseMillis=20
       - THC_PATH=/actuator/health
       - BPL_DEBUG_ENABLED=true
       - BPL_DEBUG_PORT=8002
@@ -128,8 +131,7 @@ services:
       start_interval: 3s
       retries: 10
     environment:
-      - JAVA_OPTS=-XX:MaxDirectMemorySize=512m -XX:MaxGCPauseMillis=20
-      - KAFKA_FETCHER_CONSUMER_COUNT=8
+      - JAVA_OPTS=-XX:MaxDirectMemorySize=128m -XX:MaxGCPauseMillis=20
       - THC_PATH=/actuator/health
       - DB_PASSWORD=showcase
       - BPL_DEBUG_ENABLED=true

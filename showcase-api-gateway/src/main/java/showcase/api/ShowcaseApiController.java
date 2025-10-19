@@ -40,6 +40,7 @@ import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.netty.channel.AbortedException;
 import showcase.command.FinishShowcaseCommand;
 import showcase.command.RemoveShowcaseCommand;
@@ -91,33 +92,34 @@ final class ShowcaseApiController implements ShowcaseApi {
     public Mono<ResponseEntity<ScheduleShowcaseResponse>> schedule(
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
             @RequestBody ScheduleShowcaseRequest request) {
-        val showcaseId =
-                Optional.ofNullable(idempotencyKey)
-                        .orElseGet(() -> IdentifierFactory.getInstance().generateIdentifier());
-        return commandOperations
-                       .schedule(ScheduleShowcaseCommand
-                                         .builder()
-                                         .showcaseId(showcaseId)
-                                         .title(request.getTitle())
-                                         .startTime(request.getStartTime())
-                                         .duration(request.getDuration())
-                                         .build())
-                       .thenReturn(
-                               ResponseEntity
-                                       .created(fromUriString("/showcases/")
-                                                        .path(showcaseId)
-                                                        .build()
-                                                        .toUri())
-                                       .body(ScheduleShowcaseResponse
-                                                     .builder()
-                                                     .showcaseId(showcaseId)
-                                                     .build()))
-                       .onErrorReturn(
-                               TimeoutException.class,
-                               ResponseEntity
-                                       .accepted()
-                                       .header(IDEMPOTENCY_KEY_HEADER, showcaseId)
-                                       .build());
+        return Mono.justOrEmpty(idempotencyKey)
+                   .switchIfEmpty(Mono.fromSupplier(() -> IdentifierFactory.getInstance().generateIdentifier())
+                                      .subscribeOn(Schedulers.boundedElastic()))
+                   .flatMap(showcaseId ->
+                                    commandOperations
+                                            .schedule(ScheduleShowcaseCommand
+                                                              .builder()
+                                                              .showcaseId(showcaseId)
+                                                              .title(request.getTitle())
+                                                              .startTime(request.getStartTime())
+                                                              .duration(request.getDuration())
+                                                              .build())
+                                            .thenReturn(
+                                                    ResponseEntity
+                                                            .created(fromUriString("/showcases/")
+                                                                             .path(showcaseId)
+                                                                             .build()
+                                                                             .toUri())
+                                                            .body(ScheduleShowcaseResponse
+                                                                          .builder()
+                                                                          .showcaseId(showcaseId)
+                                                                          .build()))
+                                            .onErrorReturn(
+                                                    TimeoutException.class,
+                                                    ResponseEntity
+                                                            .accepted()
+                                                            .header(IDEMPOTENCY_KEY_HEADER, showcaseId)
+                                                            .build()));
     }
 
     @PutMapping("/{showcaseId}/start")
@@ -218,259 +220,284 @@ final class ShowcaseApiController implements ShowcaseApi {
     }
 
     @ExceptionHandler
-    private ProblemDetail handleShowcaseCommandException(ShowcaseCommandException e) {
-        val errorDetails = e.getErrorDetails();
-        val problemDetail = switch (errorDetails.getErrorCode()) {
-            case INVALID_COMMAND -> {
-                val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.getErrorMessage());
-                pd.setProperty("fieldErrors", errorDetails.getMetaData());
-                yield pd;
-            }
-            case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.getErrorMessage());
-            case TITLE_IN_USE, ILLEGAL_STATE -> ProblemDetail.forStatusAndDetail(
-                    HttpStatus.CONFLICT, errorDetails.getErrorMessage());
-        };
-        problemDetail.setProperty("code", errorDetails.getErrorCode());
-        return problemDetail;
-    }
-
-    @ExceptionHandler
-    private ProblemDetail handleShowcaseQueryException(ShowcaseQueryException e) {
-        val errorDetails = e.getErrorDetails();
-        val problemDetail = switch (errorDetails.getErrorCode()) {
-            case INVALID_QUERY -> {
-                val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.getErrorMessage());
-                pd.setProperty("fieldErrors", errorDetails.getMetaData());
-                yield pd;
-            }
-            case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.getErrorMessage());
-        };
-        problemDetail.setProperty("code", errorDetails.getErrorCode());
-        return problemDetail;
-    }
-
-    @ExceptionHandler
-    private ProblemDetail handleHandlerMethodValidationException(HandlerMethodValidationException e, Locale locale) {
-        val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request.");
-        val resolvedLocale = Optional.ofNullable(locale).orElse(Locale.ENGLISH);
-
-        val cookieErrors = new LinkedHashMap<String, List<String>>();
-        val modelErrors = new LinkedHashMap<String, Map<String, List<String>>>();
-        val pathErrors = new LinkedHashMap<String, List<String>>();
-        val bodyErrors = new LinkedHashMap<String, List<String>>();
-        val headerErrors = new LinkedHashMap<String, List<String>>();
-        val paramErrors = new LinkedHashMap<String, List<String>>();
-        val partErrors = new LinkedHashMap<String, Map<String, List<String>>>();
-        val otherErrors = new LinkedHashMap<String, List<String>>();
-
-        e.visitResults(new Visitor() {
-
-            @Override
-            public void cookieValue(@NonNull CookieValue cookieValue, @NonNull ParameterValidationResult result) {
-                cookieErrors.put(
-                        Optional.of(cookieValue.name())
-                                .filter(Predicate.not(String::isBlank))
-                                .orElse(result.getMethodParameter().getParameterName()),
-                        StreamEx.of(result.getResolvableErrors())
-                                .map(error -> messageSource.getMessage(error, locale))
-                                .toList());
-            }
-
-            @Override
-            public void matrixVariable(
-                    @NonNull MatrixVariable matrixVariable, @NonNull ParameterValidationResult result) {
-                pathErrors.put(
-                        Optional.of(matrixVariable.name())
-                                .filter(Predicate.not(String::isBlank))
-                                .orElse(result.getMethodParameter().getParameterName()),
-                        StreamEx.of(result.getResolvableErrors())
-                                .map(error -> messageSource.getMessage(error, locale))
-                                .toList());
-            }
-
-            @Override
-            public void modelAttribute(ModelAttribute modelAttribute, @NonNull ParameterErrors errors) {
-                modelErrors.put(
-                        Optional.of(modelAttribute.name())
-                                .filter(Predicate.not(String::isBlank))
-                                .orElse(errors.getMethodParameter().getParameterName()),
-                        StreamEx.of(errors.getFieldErrors())
-                                .mapToEntry(
-                                        FieldError::getField,
-                                        fieldError -> messageSource.getMessage(fieldError, resolvedLocale))
-                                .collapseKeys()
-                                .toMap());
-            }
-
-            @Override
-            public void pathVariable(@NonNull PathVariable pathVariable, @NonNull ParameterValidationResult result) {
-                pathErrors.put(
-                        Optional.of(pathVariable.name())
-                                .filter(Predicate.not(String::isBlank))
-                                .orElse(result.getMethodParameter().getParameterName()),
-                        StreamEx.of(result.getResolvableErrors())
-                                .map(error -> messageSource.getMessage(error, locale))
-                                .toList());
-            }
-
-            @Override
-            public void requestBody(@NonNull RequestBody requestBody, @NonNull ParameterErrors errors) {
-                bodyErrors.putAll(
-                        StreamEx.of(errors.getFieldErrors())
-                                .mapToEntry(
-                                        FieldError::getField,
-                                        fieldError -> messageSource.getMessage(fieldError, resolvedLocale))
-                                .collapseKeys()
-                                .toMap());
-            }
-
-            @Override
-            public void requestHeader(@NonNull RequestHeader requestHeader, @NonNull ParameterValidationResult result) {
-                headerErrors.put(
-                        Optional.of(requestHeader.name())
-                                .filter(Predicate.not(String::isBlank))
-                                .orElse(result.getMethodParameter().getParameterName()),
-                        StreamEx.of(result.getResolvableErrors())
-                                .map(error -> messageSource.getMessage(error, locale))
-                                .toList());
-            }
-
-            @Override
-            public void requestParam(RequestParam requestParam, @NonNull ParameterValidationResult result) {
-                paramErrors.put(
-                        Optional.of(requestParam.name())
-                                .filter(Predicate.not(String::isBlank))
-                                .orElse(result.getMethodParameter().getParameterName()),
-                        StreamEx.of(result.getResolvableErrors())
-                                .map(error -> messageSource.getMessage(error, locale))
-                                .toList());
-            }
-
-            @Override
-            public void requestPart(@NonNull RequestPart requestPart, @NonNull ParameterErrors errors) {
-                partErrors.put(
-                        Optional.of(requestPart.name())
-                                .filter(Predicate.not(String::isBlank))
-                                .orElse(errors.getMethodParameter().getParameterName()),
-                        StreamEx.of(errors.getFieldErrors())
-                                .mapToEntry(
-                                        FieldError::getField,
-                                        fieldError -> messageSource.getMessage(fieldError, resolvedLocale))
-                                .collapseKeys()
-                                .toMap());
-            }
-
-            @Override
-            public void other(@NonNull ParameterValidationResult result) {
-                otherErrors.put(
-                        result.getMethodParameter().getParameterName(),
-                        StreamEx.of(result.getResolvableErrors())
-                                .map(error -> messageSource.getMessage(error, locale))
-                                .toList());
-            }
+    private Mono<ProblemDetail> handleShowcaseCommandException(ShowcaseCommandException e) {
+        return Mono.fromSupplier(() -> {
+            val errorDetails = e.getErrorDetails();
+            val problemDetail = switch (errorDetails.getErrorCode()) {
+                case INVALID_COMMAND -> {
+                    val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.getErrorMessage());
+                    pd.setProperty("fieldErrors", errorDetails.getMetaData());
+                    yield pd;
+                }
+                case NOT_FOUND ->
+                        ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.getErrorMessage());
+                case TITLE_IN_USE, ILLEGAL_STATE -> ProblemDetail.forStatusAndDetail(
+                        HttpStatus.CONFLICT, errorDetails.getErrorMessage());
+            };
+            problemDetail.setProperty("code", errorDetails.getErrorCode());
+            return problemDetail;
         });
-
-        if (!cookieErrors.isEmpty()) {
-            problemDetail.setProperty("cookieErrors", cookieErrors);
-        }
-        if (!modelErrors.isEmpty()) {
-            problemDetail.setProperty("modelErrors", modelErrors);
-        }
-        if (!pathErrors.isEmpty()) {
-            problemDetail.setProperty("pathErrors", pathErrors);
-        }
-        if (!bodyErrors.isEmpty()) {
-            problemDetail.setProperty("bodyErrors", bodyErrors);
-        }
-        if (!headerErrors.isEmpty()) {
-            problemDetail.setProperty("headerErrors", headerErrors);
-        }
-        if (!paramErrors.isEmpty()) {
-            problemDetail.setProperty("paramErrors", paramErrors);
-        }
-        if (!partErrors.isEmpty()) {
-            problemDetail.setProperty("partErrors", partErrors);
-        }
-        if (!otherErrors.isEmpty()) {
-            problemDetail.setProperty("otherErrors", otherErrors);
-        }
-
-        return problemDetail;
     }
 
     @ExceptionHandler
-    private ProblemDetail handleWebExchangeBindException(WebExchangeBindException e, Locale locale) {
-        val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request.");
+    private Mono<ProblemDetail> handleShowcaseQueryException(ShowcaseQueryException e) {
+        return Mono.fromSupplier(() -> {
+            val errorDetails = e.getErrorDetails();
+            val problemDetail = switch (errorDetails.getErrorCode()) {
+                case INVALID_QUERY -> {
+                    val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.getErrorMessage());
+                    pd.setProperty("fieldErrors", errorDetails.getMetaData());
+                    yield pd;
+                }
+                case NOT_FOUND ->
+                        ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.getErrorMessage());
+            };
+            problemDetail.setProperty("code", errorDetails.getErrorCode());
+            return problemDetail;
+        });
+    }
 
-        val methodParameter = e.getMethodParameter();
-        if (methodParameter != null) {
+    @ExceptionHandler
+    private Mono<ProblemDetail> handleHandlerMethodValidationException(
+            HandlerMethodValidationException e, Locale locale) {
+        return Mono.fromSupplier(() -> {
+            val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request.");
             val resolvedLocale = Optional.ofNullable(locale).orElse(Locale.ENGLISH);
-            val fieldErrors =
-                    StreamEx.of(e.getFieldErrors())
-                            .mapToEntry(
-                                    FieldError::getField,
-                                    fieldError -> messageSource.getMessage(fieldError, resolvedLocale))
-                            .collapseKeys()
-                            .toMap();
 
-            if (methodParameter.hasParameterAnnotation(RequestBody.class)) {
-                problemDetail.setProperty("bodyErrors", fieldErrors);
-            } else if (methodParameter.hasParameterAnnotation(ModelAttribute.class)) {
-                problemDetail.setProperty("modelErrors", fieldErrors);
-            } else if (methodParameter.hasParameterAnnotation(RequestPart.class)) {
-                problemDetail.setProperty("partErrors", fieldErrors);
-            } else {
-                problemDetail.setProperty("otherErrors", fieldErrors);
+            val cookieErrors = new LinkedHashMap<String, List<String>>();
+            val modelErrors = new LinkedHashMap<String, Map<String, List<String>>>();
+            val pathErrors = new LinkedHashMap<String, List<String>>();
+            val bodyErrors = new LinkedHashMap<String, List<String>>();
+            val headerErrors = new LinkedHashMap<String, List<String>>();
+            val paramErrors = new LinkedHashMap<String, List<String>>();
+            val partErrors = new LinkedHashMap<String, Map<String, List<String>>>();
+            val otherErrors = new LinkedHashMap<String, List<String>>();
+
+            e.visitResults(new Visitor() {
+
+                @Override
+                public void cookieValue(@NonNull CookieValue cookieValue, @NonNull ParameterValidationResult result) {
+                    cookieErrors.put(
+                            Optional.of(cookieValue.name())
+                                    .filter(Predicate.not(String::isBlank))
+                                    .orElse(result.getMethodParameter().getParameterName()),
+                            StreamEx.of(result.getResolvableErrors())
+                                    .map(error -> messageSource.getMessage(error, locale))
+                                    .toList());
+                }
+
+                @Override
+                public void matrixVariable(
+                        @NonNull MatrixVariable matrixVariable, @NonNull ParameterValidationResult result) {
+                    pathErrors.put(
+                            Optional.of(matrixVariable.name())
+                                    .filter(Predicate.not(String::isBlank))
+                                    .orElse(result.getMethodParameter().getParameterName()),
+                            StreamEx.of(result.getResolvableErrors())
+                                    .map(error -> messageSource.getMessage(error, locale))
+                                    .toList());
+                }
+
+                @Override
+                public void modelAttribute(ModelAttribute modelAttribute, @NonNull ParameterErrors errors) {
+                    modelErrors.put(
+                            Optional.of(modelAttribute.name())
+                                    .filter(Predicate.not(String::isBlank))
+                                    .orElse(errors.getMethodParameter().getParameterName()),
+                            StreamEx.of(errors.getFieldErrors())
+                                    .mapToEntry(
+                                            FieldError::getField,
+                                            fieldError -> messageSource.getMessage(fieldError, resolvedLocale))
+                                    .collapseKeys()
+                                    .toMap());
+                }
+
+                @Override
+                public void pathVariable(@NonNull PathVariable pathVariable,
+                                         @NonNull ParameterValidationResult result) {
+                    pathErrors.put(
+                            Optional.of(pathVariable.name())
+                                    .filter(Predicate.not(String::isBlank))
+                                    .orElse(result.getMethodParameter().getParameterName()),
+                            StreamEx.of(result.getResolvableErrors())
+                                    .map(error -> messageSource.getMessage(error, locale))
+                                    .toList());
+                }
+
+                @Override
+                public void requestBody(@NonNull RequestBody requestBody, @NonNull ParameterErrors errors) {
+                    bodyErrors.putAll(
+                            StreamEx.of(errors.getFieldErrors())
+                                    .mapToEntry(
+                                            FieldError::getField,
+                                            fieldError -> messageSource.getMessage(fieldError, resolvedLocale))
+                                    .collapseKeys()
+                                    .toMap());
+                }
+
+                @Override
+                public void requestHeader(@NonNull RequestHeader requestHeader,
+                                          @NonNull ParameterValidationResult result) {
+                    headerErrors.put(
+                            Optional.of(requestHeader.name())
+                                    .filter(Predicate.not(String::isBlank))
+                                    .orElse(result.getMethodParameter().getParameterName()),
+                            StreamEx.of(result.getResolvableErrors())
+                                    .map(error -> messageSource.getMessage(error, locale))
+                                    .toList());
+                }
+
+                @Override
+                public void requestParam(RequestParam requestParam, @NonNull ParameterValidationResult result) {
+                    paramErrors.put(
+                            Optional.of(requestParam.name())
+                                    .filter(Predicate.not(String::isBlank))
+                                    .orElse(result.getMethodParameter().getParameterName()),
+                            StreamEx.of(result.getResolvableErrors())
+                                    .map(error -> messageSource.getMessage(error, locale))
+                                    .toList());
+                }
+
+                @Override
+                public void requestPart(@NonNull RequestPart requestPart, @NonNull ParameterErrors errors) {
+                    partErrors.put(
+                            Optional.of(requestPart.name())
+                                    .filter(Predicate.not(String::isBlank))
+                                    .orElse(errors.getMethodParameter().getParameterName()),
+                            StreamEx.of(errors.getFieldErrors())
+                                    .mapToEntry(
+                                            FieldError::getField,
+                                            fieldError -> messageSource.getMessage(fieldError, resolvedLocale))
+                                    .collapseKeys()
+                                    .toMap());
+                }
+
+                @Override
+                public void other(@NonNull ParameterValidationResult result) {
+                    otherErrors.put(
+                            result.getMethodParameter().getParameterName(),
+                            StreamEx.of(result.getResolvableErrors())
+                                    .map(error -> messageSource.getMessage(error, locale))
+                                    .toList());
+                }
+            });
+
+            if (!cookieErrors.isEmpty()) {
+                problemDetail.setProperty("cookieErrors", cookieErrors);
             }
-        }
+            if (!modelErrors.isEmpty()) {
+                problemDetail.setProperty("modelErrors", modelErrors);
+            }
+            if (!pathErrors.isEmpty()) {
+                problemDetail.setProperty("pathErrors", pathErrors);
+            }
+            if (!bodyErrors.isEmpty()) {
+                problemDetail.setProperty("bodyErrors", bodyErrors);
+            }
+            if (!headerErrors.isEmpty()) {
+                problemDetail.setProperty("headerErrors", headerErrors);
+            }
+            if (!paramErrors.isEmpty()) {
+                problemDetail.setProperty("paramErrors", paramErrors);
+            }
+            if (!partErrors.isEmpty()) {
+                problemDetail.setProperty("partErrors", partErrors);
+            }
+            if (!otherErrors.isEmpty()) {
+                problemDetail.setProperty("otherErrors", otherErrors);
+            }
 
-        return problemDetail;
+            return problemDetail;
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
     @ExceptionHandler
-    private ProblemDetail handleErrorResponseException(ErrorResponseException e, Locale locale) {
-        val resolvedLocale = Optional.ofNullable(locale).orElse(Locale.ENGLISH);
-        return e.updateAndGetBody(messageSource, resolvedLocale);
+    private Mono<ProblemDetail> handleWebExchangeBindException(WebExchangeBindException e, Locale locale) {
+        return Mono.fromSupplier(() -> {
+            val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request.");
+
+            val methodParameter = e.getMethodParameter();
+            if (methodParameter != null) {
+                val resolvedLocale = Optional.ofNullable(locale).orElse(Locale.ENGLISH);
+                val fieldErrors =
+                        StreamEx.of(e.getFieldErrors())
+                                .mapToEntry(
+                                        FieldError::getField,
+                                        fieldError -> messageSource.getMessage(fieldError, resolvedLocale))
+                                .collapseKeys()
+                                .toMap();
+
+                if (methodParameter.hasParameterAnnotation(RequestBody.class)) {
+                    problemDetail.setProperty("bodyErrors", fieldErrors);
+                } else if (methodParameter.hasParameterAnnotation(ModelAttribute.class)) {
+                    problemDetail.setProperty("modelErrors", fieldErrors);
+                } else if (methodParameter.hasParameterAnnotation(RequestPart.class)) {
+                    problemDetail.setProperty("partErrors", fieldErrors);
+                } else {
+                    problemDetail.setProperty("otherErrors", fieldErrors);
+                }
+            }
+
+            return problemDetail;
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
     @ExceptionHandler
-    private ProblemDetail handleAxonException(AxonException e) {
-        log.error("AxonFramework failure", e);
-
-        return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+    private Mono<ProblemDetail> handleErrorResponseException(ErrorResponseException e, Locale locale) {
+        return Mono.fromSupplier(() -> {
+            val resolvedLocale = Optional.ofNullable(locale).orElse(Locale.ENGLISH);
+            return e.updateAndGetBody(messageSource, resolvedLocale);
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
     @ExceptionHandler
-    private ProblemDetail handleWebClientException(WebClientException e) {
-        log.error("WebClient failure", e);
+    private Mono<ProblemDetail> handleAxonException(AxonException e) {
+        return Mono.fromSupplier(() -> {
+            log.error("AxonFramework failure", e);
 
-        return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+            return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+        });
     }
 
     @ExceptionHandler
-    private ProblemDetail handleCallNotPermittedException(CallNotPermittedException e) {
-        log.error(e.getMessage());
+    private Mono<ProblemDetail> handleWebClientException(WebClientException e) {
+        return Mono.fromSupplier(() -> {
+            log.error("WebClient failure", e);
 
-        return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+            return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+        });
     }
 
     @ExceptionHandler
-    private ProblemDetail handleTimeoutException(TimeoutException e) {
-        log.trace("Operation timeout exceeded", e);
+    private Mono<ProblemDetail> handleCallNotPermittedException(CallNotPermittedException e) {
+        return Mono.fromSupplier(() -> {
+            log.error(e.getMessage());
 
-        return ProblemDetail.forStatusAndDetail(HttpStatus.GATEWAY_TIMEOUT, "Operation timeout exceeded.");
+            return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+        });
+    }
+
+    @ExceptionHandler
+    private Mono<ProblemDetail> handleTimeoutException(TimeoutException e) {
+        return Mono.fromSupplier(() -> {
+            log.trace("Operation timeout exceeded", e);
+
+            return ProblemDetail.forStatusAndDetail(HttpStatus.GATEWAY_TIMEOUT, "Operation timeout exceeded.");
+        });
     }
 
     @ExceptionHandler
     private Mono<Void> handleAbortedException(AbortedException e, ServerWebExchange exchange) {
-        log.trace("Inbound connection aborted", e);
+        return Mono.defer(() -> {
+            log.trace("Inbound connection aborted", e);
 
-        exchange.getResponse().setStatusCode(HttpStatus.REQUEST_TIMEOUT);
-        return exchange.getResponse().setComplete();
+            exchange.getResponse().setStatusCode(HttpStatus.REQUEST_TIMEOUT);
+            return exchange.getResponse().setComplete();
+        });
     }
 
     @ExceptionHandler
-    private Object handleException(Exception e, ServerWebExchange exchange) {
+    private Mono<?> handleException(Exception e, ServerWebExchange exchange) {
         return switch (findCause(e, Predicates.<Throwable>truePredicate()
                                               .or(ShowcaseCommandException.class::isInstance)
                                               .or(ShowcaseQueryException.class::isInstance)
@@ -487,11 +514,11 @@ final class ShowcaseApiController implements ShowcaseApi {
             case CallNotPermittedException ex -> handleCallNotPermittedException(ex);
             case TimeoutException ex -> handleTimeoutException(ex);
             case AbortedException ex -> handleAbortedException(ex, exchange);
-            default -> {
+            default -> Mono.fromSupplier(() -> {
                 log.error("Unknown error", e);
 
-                yield ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
-            }
+                return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+            });
         };
     }
 

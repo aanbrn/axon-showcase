@@ -9,6 +9,7 @@ import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.extensions.reactor.commandhandling.gateway.ReactorCommandGateway;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import static showcase.command.ShowcaseCommandOperations.SHOWCASE_COMMAND_SERVICE;
 
@@ -45,6 +46,7 @@ class ShowcaseCommandClient implements ShowcaseCommandOperations {
     private Mono<Void> sendCommand(@NonNull ShowcaseCommand command) {
         return commandGateway
                        .<Void>send(command)
+                       .subscribeOn(Schedulers.boundedElastic())
                        .onErrorMap(CommandExecutionException.class, e -> {
                            if (e.getDetails().isPresent()
                                        && e.getDetails().get() instanceof ShowcaseCommandErrorDetails errorDetails) {

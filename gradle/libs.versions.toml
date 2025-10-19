@@ -14,6 +14,7 @@ db-scheduler = "13.0.0"
 mapstruct = "1.6.3"
 jackson-bom = "2.20.0"
 reactor-bom = "2024.0.11"
+reactor-blockhound = "1.0.15.RELEASE"
 netty-bom = "4.2.7.Final"
 resilience4j-bom = "2.3.0"
 streamex = "0.8.4"
@@ -134,6 +135,7 @@ reactor-core-micrometer = { group = "io.projectreactor", name = "reactor-core-mi
 reactor-extra = { group = "io.projectreactor.addons", name = "reactor-extra" }
 reactor-kafka = { group = "io.projectreactor.kafka", name = "reactor-kafka" }
 reactor-test = { group = "io.projectreactor", name = "reactor-test" }
+reactor-blockhound = { group = "io.projectreactor.tools", name = "blockhound", version.ref = "reactor-blockhound" }
 netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty-bom" }
 netty-resolver-dnsNativeMacos = { group = "io.netty", name = "netty-resolver-dns-native-macos" }
 wiremock-springBoot = { group = "org.wiremock.integrations", name = "wiremock-spring-boot", version.ref = "wiremock-spring-boot" }

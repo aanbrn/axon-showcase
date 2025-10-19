@@ -3,6 +3,7 @@ package showcase.projection;
 import lombok.val;
 import org.axonframework.extensions.kafka.eventhandling.producer.KafkaPublisher;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +23,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
+import reactor.blockhound.BlockHound;
 import showcase.command.ShowcaseEvent;
 import showcase.command.ShowcaseFinishedEvent;
 import showcase.command.ShowcaseRemovedEvent;
@@ -47,7 +49,6 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 @ActiveProfiles("test")
 @DirtiesContext
 @Testcontainers(parallel = true)
-@ExtendWith(OutputCaptureExtension.class)
 class ShowcaseProjectorIT {
 
     @Container
@@ -74,6 +75,11 @@ class ShowcaseProjectorIT {
     private KafkaTestPublisher<ShowcaseEvent> kafkaTestPublisher;
 
     private IndexOperations showcaseIndexOperations;
+
+    @BeforeAll
+    static void installBlockHound() {
+        BlockHound.install();
+    }
 
     @BeforeEach
     void setUp() {
@@ -117,6 +123,7 @@ class ShowcaseProjectorIT {
     }
 
     @Test
+    @ExtendWith(OutputCaptureExtension.class)
     void showcaseScheduledEvent_sameEventTwice_logsError(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
@@ -169,6 +176,7 @@ class ShowcaseProjectorIT {
     }
 
     @Test
+    @ExtendWith(OutputCaptureExtension.class)
     void showcaseStartedEvent_nonExistingShowcase_logsError(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val startTime = aShowcaseStartTime(Instant.now());
@@ -230,6 +238,7 @@ class ShowcaseProjectorIT {
     }
 
     @Test
+    @ExtendWith(OutputCaptureExtension.class)
     void showcaseFinishedEvent_nonExistingShowcase_logsError(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val startTime = aShowcaseStartTime(Instant.now());
@@ -279,6 +288,7 @@ class ShowcaseProjectorIT {
     }
 
     @Test
+    @ExtendWith(OutputCaptureExtension.class)
     void showcaseRemovedEvent_sameEventTwice_logsWarning(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();

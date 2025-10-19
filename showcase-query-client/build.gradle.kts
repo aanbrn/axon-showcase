@@ -56,6 +56,7 @@ testing {
                 implementation(libs.opensearch.client.java)
                 implementation(libs.elasticsearch.client.java)
                 implementation(libs.reactor.test)
+                implementation(libs.reactor.blockhound)
                 implementation(libs.resilience4j.springBoot3)
                 implementation(libs.spring.boot.starter.aop)
                 implementation(libs.spring.boot.starter.test)
@@ -66,6 +67,8 @@ testing {
             targets {
                 all {
                     testTask.configure {
+                        jvmArgs = listOf("-XX:+AllowRedefinitionToAddDeleteMethods")
+
                         shouldRunAfter(test)
                     }
                 }
@@ -89,6 +92,7 @@ testing {
                 implementation(libs.opensearch.client.java)
                 implementation(libs.elasticsearch.client.java)
                 implementation(libs.reactor.test)
+                implementation(libs.reactor.blockhound)
                 implementation(libs.spring.boot.starter.test)
                 implementation(libs.spring.boot.testcontainers)
                 implementation(libs.spring.data.opensearch.testcontainers) {
@@ -104,6 +108,8 @@ testing {
             targets {
                 all {
                     testTask.configure {
+                        jvmArgs = listOf("-XX:+AllowRedefinitionToAddDeleteMethods")
+
                         shouldRunAfter(componentTest)
 
                         dependsOn(":showcase-query-service:bootBuildImage")

@@ -2,6 +2,7 @@ package showcase.query;
 
 import lombok.val;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opensearch.data.client.osc.OpenSearchTemplate;
@@ -18,6 +19,7 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import reactor.blockhound.BlockHound;
 import reactor.test.StepVerifier;
 import showcase.projection.ShowcaseEntity;
 import showcase.projection.ShowcaseStatus;
@@ -79,6 +81,11 @@ class ShowcaseQueryClientIT {
     private IndexOperations showcaseIndexOperations;
 
     private List<Showcase> showcases;
+
+    @BeforeAll
+    static void installBlockHound() {
+        BlockHound.install();
+    }
 
     @BeforeEach
     void setUp() {

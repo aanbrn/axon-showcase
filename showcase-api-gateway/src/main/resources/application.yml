@@ -61,7 +61,7 @@ resilience4j:
     enabled: ${TIMELIMITER_ENABLED:true}
     configs:
       default:
-        timeout-duration: ${TIMELIMITER_DEFAULT_TIMEOUT:PT2S}
+        timeout-duration: ${TIMELIMITER_DEFAULT_TIMEOUT:PT1S}
     instances:
       showcase-command-service:
         base-config: default
@@ -117,7 +117,7 @@ resilience4j:
     enabled: ${RETRY_ENABLED:true}
     configs:
       default:
-        max-attempts: ${RETRY_DEFAULT_MAX_ATTEMPTS:3}
+        max-attempts: ${RETRY_DEFAULT_MAX_ATTEMPTS:2}
         wait-duration: ${RETRY_DEFAULT_WAIT_DURATION:PT0.5S}
         enable-exponential-backoff: true
         enable-randomized-wait: true

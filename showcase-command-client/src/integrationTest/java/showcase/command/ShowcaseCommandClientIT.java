@@ -1,6 +1,7 @@
 package showcase.command;
 
 import lombok.val;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
+import reactor.blockhound.BlockHound;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -95,9 +97,15 @@ class ShowcaseCommandClientIT {
     @Autowired
     private ShowcaseCommandOperations commandOperations;
 
+    @BeforeAll
+    static void installBlockHound() {
+        BlockHound.install();
+    }
+
     @BeforeEach
     void awaitUntilClusterFormed(CapturedOutput output) {
-        await().until(() -> output.getOut().matches("(?s).*axon-showcase-command-service.+joined the cluster.*"));
+        await().untilAsserted(
+                () -> assertThat(output).matches("(?s).*axon-showcase-command-service.+joined the cluster.*"));
     }
 
     @Test

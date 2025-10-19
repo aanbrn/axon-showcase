@@ -74,11 +74,14 @@ testing {
                 implementation(libs.caffeine)
                 implementation(libs.streamex)
                 implementation(libs.netty.resolver.dnsNativeMacos)
+                implementation(libs.reactor.blockhound)
             }
 
             targets {
                 all {
                     testTask.configure {
+                        jvmArgs = listOf("-XX:+AllowRedefinitionToAddDeleteMethods")
+
                         shouldRunAfter(test)
                     }
                 }
@@ -90,10 +93,12 @@ testing {
                 implementation(libs.spring.boot.starter.test)
                 implementation(libs.spring.boot.starter.webflux)
                 implementation(libs.spring.boot.testcontainers)
+
                 implementation(libs.testcontainers.junit.jupiter)
                 implementation(libs.testcontainers.postgresql)
                 implementation(libs.testcontainers.kafka)
                 implementation(libs.testcontainers.opensearch)
+
                 implementation(libs.netty.resolver.dnsNativeMacos)
             }
 

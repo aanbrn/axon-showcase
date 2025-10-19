@@ -7,6 +7,7 @@ import io.github.resilience4j.core.functions.Either;
 import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import lombok.val;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.wiremock.spring.ConfigureWireMock;
 import org.wiremock.spring.EnableWireMock;
+import reactor.blockhound.BlockHound;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -67,6 +69,11 @@ class ShowcaseQueryClientCT {
 
     @Autowired
     private WireMockServer wireMockServer;
+
+    @BeforeAll
+    static void installBlockHound() {
+        BlockHound.install();
+    }
 
     @Test
     void fetchList_okResponse_succeeds() throws Exception {

@@ -85,7 +85,8 @@ commandService:
     expiresAfterAccess: PT10M
     expiresAfterWrite: PT5M
 
-  extraEnvVars: { }
+  extraEnvVars:
+    JAVA_OPTS: "-XX:MaxDirectMemorySize=128M -XX:MaxGCPauseMillis=20"
 
   extraEnvVarsCM: ""
 
@@ -452,7 +453,7 @@ projectionService:
       delay: PT10S
 
   extraEnvVars:
-    JAVA_OPTS: "-XX:MaxDirectMemorySize=256M -XX:MaxGCPauseMillis=20"
+    JAVA_OPTS: "-XX:MaxDirectMemorySize=128M -XX:MaxGCPauseMillis=20"
 
   extraEnvVarsCM: ""
 
@@ -739,7 +740,7 @@ apiGateway:
     timelimiter:
       enabled: true
       defaults:
-        timeoutDuration: PT2S
+        timeoutDuration: PT1S
       commandService:
         timeoutDuration: ""
       queryService:
@@ -785,7 +786,7 @@ apiGateway:
     retry:
       enabled: true
       defaults:
-        maxAttempts: 3
+        maxAttempts: 2
         waitDuration: PT0.5S
         exponentialBackoffMultiplier: 1.5
         randomizedWaitFactor: 0.5

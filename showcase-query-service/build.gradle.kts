@@ -78,11 +78,14 @@ testing {
                 implementation(libs.testcontainers.junit.jupiter)
                 implementation(libs.testcontainers.opensearch)
                 implementation(libs.netty.resolver.dnsNativeMacos)
+                implementation(libs.reactor.blockhound)
             }
 
             targets {
                 all {
                     testTask.configure {
+                        jvmArgs = listOf("-XX:+AllowRedefinitionToAddDeleteMethods")
+
                         shouldRunAfter(test)
                     }
                 }

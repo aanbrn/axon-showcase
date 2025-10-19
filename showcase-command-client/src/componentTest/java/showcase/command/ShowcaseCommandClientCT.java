@@ -92,8 +92,7 @@ class ShowcaseCommandClientCT {
         // then:
         StepVerifier
                 .create(scheduleMono)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -118,13 +117,12 @@ class ShowcaseCommandClientCT {
         // then:
         StepVerifier
                 .create(scheduleMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
                                      .extracting(ShowcaseCommandException::getErrorDetails)
-                                     .isEqualTo(errorDetails))
-                .verify();
+                                     .isEqualTo(errorDetails));
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -147,8 +145,7 @@ class ShowcaseCommandClientCT {
         // then:
         StepVerifier
                 .create(startMono)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -173,13 +170,12 @@ class ShowcaseCommandClientCT {
         // then:
         StepVerifier
                 .create(startMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
                                      .extracting(ShowcaseCommandException::getErrorDetails)
-                                     .isEqualTo(errorDetails))
-                .verify();
+                                     .isEqualTo(errorDetails));
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -202,8 +198,7 @@ class ShowcaseCommandClientCT {
         // then:
         StepVerifier
                 .create(finishMono)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -228,13 +223,12 @@ class ShowcaseCommandClientCT {
         // then:
         StepVerifier
                 .create(finishMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
                                      .extracting(ShowcaseCommandException::getErrorDetails)
-                                     .isEqualTo(errorDetails))
-                .verify();
+                                     .isEqualTo(errorDetails));
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -257,8 +251,7 @@ class ShowcaseCommandClientCT {
         // then:
         StepVerifier
                 .create(removeMono)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -283,13 +276,12 @@ class ShowcaseCommandClientCT {
         // then:
         StepVerifier
                 .create(removeMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
                                      .extracting(ShowcaseCommandException::getErrorDetails)
-                                     .isEqualTo(errorDetails))
-                .verify();
+                                     .isEqualTo(errorDetails));
 
         verify(commandBus).dispatch(any(), any());
     }

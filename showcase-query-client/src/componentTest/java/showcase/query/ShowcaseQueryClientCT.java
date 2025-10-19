@@ -28,7 +28,6 @@ import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.IntStream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -87,8 +86,7 @@ class ShowcaseQueryClientCT {
         StepVerifier
                 .create(fetchListMono)
                 .expectNextSequence(showcases)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
 
         wireMockServer.verify(1, postRequestedFor(urlEqualTo("/streaming-query")));
     }
@@ -115,8 +113,7 @@ class ShowcaseQueryClientCT {
         StepVerifier
                 .create(fetchByIdMono)
                 .expectNext(showcase)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
 
         wireMockServer.verify(1, postRequestedFor(urlEqualTo("/query")));
     }
@@ -147,7 +144,7 @@ class ShowcaseQueryClientCT {
         // then:
         StepVerifier
                 .create(fetchByIdMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseQueryException.class)
                                      .asInstanceOf(type(ShowcaseQueryException.class))
@@ -159,8 +156,7 @@ class ShowcaseQueryClientCT {
                                          assertThat(errorDetails.getErrorMessage())
                                                  .isEqualTo("No showcase with given ID");
                                          assertThat(errorDetails.getMetaData()).isEmpty();
-                                     }))
-                .verify();
+                                     }));
 
         wireMockServer.verify(1, postRequestedFor(urlEqualTo("/query")));
     }
@@ -207,8 +203,7 @@ class ShowcaseQueryClientCT {
             // then:
             StepVerifier
                     .create(fetchListMono)
-                    .expectError(TimeoutException.class)
-                    .verify();
+                    .verifyTimeout(timeout);
         }
 
         @Test
@@ -231,8 +226,7 @@ class ShowcaseQueryClientCT {
             // then:
             StepVerifier
                     .create(fetchByIdMono)
-                    .expectError(TimeoutException.class)
-                    .verify();
+                    .verifyTimeout(timeout);
         }
     }
 
@@ -276,8 +270,7 @@ class ShowcaseQueryClientCT {
                                .mapToLong(i -> retryConfig.getIntervalBiFunction()
                                                           .apply(i, Either.left(null)))
                                .mapToObj(Duration::ofMillis)
-                               .reduce(Duration.ZERO, Duration::plus)
-                               .plusSeconds(1);
+                               .reduce(Duration.ZERO, Duration::plus);
         }
 
         @ParameterizedTest
@@ -296,16 +289,16 @@ class ShowcaseQueryClientCT {
 
             // then:
             StepVerifier
-                    .create(fetchListMono)
-                    .expectErrorSatisfies(
+                    .withVirtualTime(() -> fetchListMono)
+                    .thenAwait(timeout)
+                    .verifyErrorSatisfies(
                             t -> assertThat(t)
                                          .isInstanceOf(WebClientResponseException.class)
                                          .asInstanceOf(type(WebClientResponseException.class))
                                          .extracting(WebClientResponseException::getStatusCode)
                                          .asInstanceOf(type(HttpStatusCode.class))
                                          .extracting(HttpStatusCode::value)
-                                         .isEqualTo(statusCode))
-                    .verify(timeout);
+                                         .isEqualTo(statusCode));
 
             wireMockServer.verify(maxAttempts, postRequestedFor(urlEqualTo("/streaming-query")));
         }
@@ -330,16 +323,16 @@ class ShowcaseQueryClientCT {
 
             // then:
             StepVerifier
-                    .create(fetchByIdMono)
-                    .expectErrorSatisfies(
+                    .withVirtualTime(() -> fetchByIdMono)
+                    .thenAwait(timeout)
+                    .verifyErrorSatisfies(
                             t -> assertThat(t)
                                          .isInstanceOf(WebClientResponseException.class)
                                          .asInstanceOf(type(WebClientResponseException.class))
                                          .extracting(WebClientResponseException::getStatusCode)
                                          .asInstanceOf(type(HttpStatusCode.class))
                                          .extracting(HttpStatusCode::value)
-                                         .isEqualTo(statusCode))
-                    .verify(timeout);
+                                         .isEqualTo(statusCode));
 
             wireMockServer.verify(maxAttempts, postRequestedFor(urlEqualTo("/query")));
         }

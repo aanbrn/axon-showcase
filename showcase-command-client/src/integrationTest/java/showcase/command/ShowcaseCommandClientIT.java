@@ -118,8 +118,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(scheduleMono)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
     }
 
     @Test
@@ -142,8 +141,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(doubleScheduleMono)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
     }
 
     @Test
@@ -164,7 +162,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(scheduleMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
@@ -178,8 +176,7 @@ class ShowcaseCommandClientIT {
                                          assertThat(errorDetails.getMetaData())
                                                  .hasSize(4)
                                                  .containsKeys("showcaseId", "title", "startTime", "duration");
-                                     }))
-                .verify();
+                                     }));
     }
 
     @Test
@@ -219,7 +216,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(scheduleMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
@@ -231,8 +228,7 @@ class ShowcaseCommandClientIT {
                                          assertThat(errorDetails.getErrorMessage())
                                                  .isEqualTo("Showcase is removed already");
                                          assertThat(errorDetails.getMetaData()).isEmpty();
-                                     }))
-                .verify();
+                                     }));
     }
 
     @Test
@@ -265,7 +261,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(scheduleMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
@@ -277,8 +273,7 @@ class ShowcaseCommandClientIT {
                                          assertThat(errorDetails.getErrorMessage())
                                                  .isEqualTo("Given title is in use already");
                                          assertThat(errorDetails.getMetaData()).isEmpty();
-                                     }))
-                .verify();
+                                     }));
     }
 
     @Test
@@ -307,8 +302,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(startMono)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
     }
 
     @Test
@@ -340,8 +334,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(doubleStartMono)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
     }
 
     @Test
@@ -384,7 +377,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(startMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
@@ -396,8 +389,7 @@ class ShowcaseCommandClientIT {
                                          assertThat(errorDetails.getErrorMessage())
                                                  .isEqualTo("Showcase is finished already");
                                          assertThat(errorDetails.getMetaData()).isEmpty();
-                                     }))
-                .verify();
+                                     }));
     }
 
     @Test
@@ -416,7 +408,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(startMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
@@ -428,8 +420,7 @@ class ShowcaseCommandClientIT {
                                          assertThat(errorDetails.getErrorMessage())
                                                  .isEqualTo("No showcase with given ID");
                                          assertThat(errorDetails.getMetaData()).isEmpty();
-                                     }))
-                .verify();
+                                     }));
     }
 
     @Test
@@ -447,7 +438,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(startMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
@@ -461,8 +452,7 @@ class ShowcaseCommandClientIT {
                                          assertThat(errorDetails.getMetaData())
                                                  .hasSize(1)
                                                  .containsKey("showcaseId");
-                                     }))
-                .verify();
+                                     }));
     }
 
     @Test
@@ -498,8 +488,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(finishMono)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
     }
 
     @Test
@@ -542,8 +531,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(finishMono)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
     }
 
     @Test
@@ -572,7 +560,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(finishMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
@@ -584,8 +572,7 @@ class ShowcaseCommandClientIT {
                                          assertThat(errorDetails.getErrorMessage())
                                                  .isEqualTo("Showcase must be started first");
                                          assertThat(errorDetails.getMetaData()).isEmpty();
-                                     }))
-                .verify();
+                                     }));
     }
 
     @Test
@@ -604,7 +591,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(finishMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
@@ -616,8 +603,7 @@ class ShowcaseCommandClientIT {
                                          assertThat(errorDetails.getErrorMessage())
                                                  .isEqualTo("No showcase with given ID");
                                          assertThat(errorDetails.getMetaData()).isEmpty();
-                                     }))
-                .verify();
+                                     }));
     }
 
     @Test
@@ -635,7 +621,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(finishMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
@@ -649,8 +635,7 @@ class ShowcaseCommandClientIT {
                                          assertThat(errorDetails.getMetaData())
                                                  .hasSize(1)
                                                  .containsKey("showcaseId");
-                                     }))
-                .verify();
+                                     }));
     }
 
     @Test
@@ -679,8 +664,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(removeMono)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
     }
 
     @Test
@@ -712,8 +696,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(doubleRemoveMono)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
     }
 
     @Test
@@ -732,8 +715,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(removeMono)
-                .expectComplete()
-                .verify();
+                .verifyComplete();
     }
 
     @Test
@@ -751,7 +733,7 @@ class ShowcaseCommandClientIT {
         // then:
         StepVerifier
                 .create(removeMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
                                      .asInstanceOf(type(ShowcaseCommandException.class))
@@ -765,7 +747,6 @@ class ShowcaseCommandClientIT {
                                          assertThat(errorDetails.getMetaData())
                                                  .hasSize(1)
                                                  .containsKey("showcaseId");
-                                     }))
-                .verify();
+                                     }));
     }
 }

@@ -137,8 +137,7 @@ class ShowcaseQueryClientIT {
             StepVerifier
                     .create(fetchListMono)
                     .expectNextSequence(expected)
-                    .expectComplete()
-                    .verify();
+                    .verifyComplete();
         });
     }
 
@@ -160,8 +159,7 @@ class ShowcaseQueryClientIT {
             StepVerifier
                     .create(fetchListMono)
                     .expectNext(expected)
-                    .expectComplete()
-                    .verify();
+                    .verifyComplete();
         });
     }
 
@@ -189,8 +187,7 @@ class ShowcaseQueryClientIT {
             StepVerifier
                     .create(fetchListMono)
                     .expectNextSequence(expected)
-                    .expectComplete()
-                    .verify();
+                    .verifyComplete();
         });
     }
 
@@ -220,8 +217,7 @@ class ShowcaseQueryClientIT {
             StepVerifier
                     .create(fetchListMono)
                     .expectNextSequence(expected)
-                    .expectComplete()
-                    .verify();
+                    .verifyComplete();
         });
     }
 
@@ -243,8 +239,7 @@ class ShowcaseQueryClientIT {
             StepVerifier
                     .create(fetchByIdMono)
                     .expectNext(expected)
-                    .expectComplete()
-                    .verify();
+                    .verifyComplete();
         });
     }
 
@@ -263,7 +258,7 @@ class ShowcaseQueryClientIT {
         // then:
         StepVerifier
                 .create(fetchByIdMono)
-                .expectErrorSatisfies(
+                .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseQueryException.class)
                                      .asInstanceOf(type(ShowcaseQueryException.class))
@@ -275,7 +270,6 @@ class ShowcaseQueryClientIT {
                                          assertThat(errorDetails.getErrorMessage())
                                                  .isEqualTo("No showcase with given ID");
                                          assertThat(errorDetails.getMetaData()).isEmpty();
-                                     }))
-                .verify();
+                                     }));
     }
 }

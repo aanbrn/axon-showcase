@@ -1,15 +1,19 @@
 package showcase.api;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import lombok.NonNull;
 import lombok.val;
 import one.util.streamex.StreamEx;
 import org.axonframework.commandhandling.NoHandlerForCommandException;
-import org.axonframework.commandhandling.distributed.CommandDispatchException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -30,6 +34,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.blockhound.BlockHound;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.netty.channel.AbortedException;
 import showcase.command.FinishShowcaseCommand;
 import showcase.command.RemoveShowcaseCommand;
 import showcase.command.ScheduleShowcaseCommand;
@@ -52,9 +57,11 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
+import static io.github.resilience4j.circuitbreaker.CallNotPermittedException.createCallNotPermittedException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -81,6 +88,30 @@ class ShowcaseApiControllerCT {
     @ComponentScan(excludeFilters = @Filter(type = FilterType.ANNOTATION, classes = SpringBootApplication.class))
     @ImportAutoConfiguration(TaskExecutionAutoConfiguration.class)
     static class TestConfig {
+    }
+
+    static List<Arguments> commandAvailabilityFailures() {
+        return List.of(
+                argumentSet("Axon Error", new NoHandlerForCommandException(anAlphabeticString(10))),
+                argumentSet("CircuitBreaker Error",
+                            createCallNotPermittedException(CircuitBreaker.of(
+                                    ShowcaseCommandOperations.SHOWCASE_COMMAND_SERVICE,
+                                    CircuitBreakerConfig.ofDefaults()))),
+                argumentSet("Unknown Error", new Exception(anAlphabeticString(10)))
+        );
+    }
+
+    static List<Arguments> queryAvailabilityFailures() {
+        return List.of(
+                argumentSet("WebClient Error",
+                            WebClientResponseException.create(
+                                    HttpStatus.BAD_GATEWAY.value(), anAlphabeticString(10), null, null, null)),
+                argumentSet("CircuitBreaker Error",
+                            createCallNotPermittedException(CircuitBreaker.of(
+                                    ShowcaseCommandOperations.SHOWCASE_COMMAND_SERVICE,
+                                    CircuitBreakerConfig.ofDefaults()))),
+                argumentSet("Unknown Error", new Exception(anAlphabeticString(10)))
+        );
     }
 
     @Autowired
@@ -156,7 +187,7 @@ class ShowcaseApiControllerCT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Bad Request")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.BAD_REQUEST.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
                  .jsonPath("$.detail").isEqualTo("Invalid request.")
                  .jsonPath("$.bodyErrors").isMap()
@@ -193,7 +224,7 @@ class ShowcaseApiControllerCT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Conflict")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.CONFLICT.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.CONFLICT.value())
                  .jsonPath("$.detail").isEqualTo("Given title is in use already");
 
@@ -201,10 +232,53 @@ class ShowcaseApiControllerCT {
         verifyNoMoreInteractions(showcaseCommandOperations);
     }
 
-    @Test
-    void scheduleShowcase_axonFailure_respondsWithServiceUnavailableStatusAndProblemInBody() {
+    @ParameterizedTest
+    @EnumSource(ShowcaseCommandErrorCode.class)
+    void scheduleShowcase_commandFailure_respondsWithRelatedStatusAndProblemInBody(
+            ShowcaseCommandErrorCode errorCode) {
+        val errorMessage = anAlphabeticString(10);
+
         given(showcaseCommandOperations.schedule(any()))
-                .willReturn(Mono.error(new NoHandlerForCommandException(anAlphabeticString(10))));
+                .willReturn(Mono.error(new ShowcaseCommandException(
+                        ShowcaseCommandErrorDetails
+                                .builder()
+                                .errorCode(errorCode)
+                                .errorMessage(errorMessage)
+                                .build())));
+
+        val expectedStatus = switch (errorCode) {
+            case INVALID_COMMAND -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case TITLE_IN_USE, ILLEGAL_STATE -> HttpStatus.CONFLICT;
+        };
+
+        webClient.post()
+                 .uri("/showcases")
+                 .bodyValue(ScheduleShowcaseRequest
+                                    .builder()
+                                    .title(aShowcaseTitle())
+                                    .startTime(aShowcaseStartTime(Instant.now()))
+                                    .duration(aShowcaseDuration())
+                                    .build())
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(expectedStatus)
+                 .expectHeader()
+                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                 .expectBody()
+                 .jsonPath("$.type").isEqualTo("about:blank")
+                 .jsonPath("$.title").isEqualTo(expectedStatus.getReasonPhrase())
+                 .jsonPath("$.status").isEqualTo(expectedStatus.value())
+                 .jsonPath("$.detail").isEqualTo(errorMessage);
+
+        verify(showcaseCommandOperations).schedule(any());
+        verifyNoMoreInteractions(showcaseCommandOperations);
+    }
+
+    @ParameterizedTest
+    @MethodSource("commandAvailabilityFailures")
+    void scheduleShowcase_availabilityFailure_respondsWithServiceUnavailableStatusAndProblemInBody(Exception error) {
+        given(showcaseCommandOperations.schedule(any())).willReturn(Mono.error(error));
 
         webClient.post()
                  .uri("/showcases")
@@ -221,9 +295,32 @@ class ShowcaseApiControllerCT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Service Unavailable")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
                  .jsonPath("$.detail").doesNotHaveJsonPath();
+
+        verify(showcaseCommandOperations).schedule(any());
+        verifyNoMoreInteractions(showcaseCommandOperations);
+    }
+
+    @Test
+    void scheduleShowcase_abortedRequest_respondsWithRequestTimeoutStatusAndEmptyBody() {
+        given(showcaseCommandOperations.schedule(any())).willReturn(Mono.error(
+                new AbortedException(anAlphabeticString(10))));
+
+        webClient.post()
+                 .uri("/showcases")
+                 .bodyValue(ScheduleShowcaseRequest
+                                    .builder()
+                                    .title(aShowcaseTitle())
+                                    .startTime(aShowcaseStartTime(Instant.now()))
+                                    .duration(aShowcaseDuration())
+                                    .build())
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(HttpStatus.REQUEST_TIMEOUT)
+                 .expectBody()
+                 .isEmpty();
 
         verify(showcaseCommandOperations).schedule(any());
         verifyNoMoreInteractions(showcaseCommandOperations);
@@ -271,7 +368,7 @@ class ShowcaseApiControllerCT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Bad Request")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.BAD_REQUEST.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
                  .jsonPath("$.detail").isEqualTo("Invalid request.")
                  .jsonPath("$.headerErrors").isMap()
@@ -311,7 +408,7 @@ class ShowcaseApiControllerCT {
                  .isBadRequest()
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Bad Request")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.BAD_REQUEST.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
                  .jsonPath("$.detail").isEqualTo("Invalid request.")
                  .jsonPath("$.pathErrors").isMap()
@@ -322,15 +419,49 @@ class ShowcaseApiControllerCT {
         verifyNoInteractions(showcaseCommandOperations);
     }
 
-    @Test
-    void startShowcase_axonFailure_respondsWithServiceUnavailableStatus() {
-        val showcaseId = aShowcaseId();
+    @ParameterizedTest
+    @EnumSource(ShowcaseCommandErrorCode.class)
+    void startShowcase_commandFailure_respondsWithRelatedStatusAndProblemInBody(ShowcaseCommandErrorCode errorCode) {
+        val errorMessage = anAlphabeticString(10);
 
         given(showcaseCommandOperations.start(any()))
-                .willReturn(Mono.error(new CommandDispatchException(anAlphabeticString(10))));
+                .willReturn(Mono.error(new ShowcaseCommandException(
+                        ShowcaseCommandErrorDetails
+                                .builder()
+                                .errorCode(errorCode)
+                                .errorMessage(errorMessage)
+                                .build())));
+
+        val expectedStatus = switch (errorCode) {
+            case INVALID_COMMAND -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case TITLE_IN_USE, ILLEGAL_STATE -> HttpStatus.CONFLICT;
+        };
 
         webClient.put()
-                 .uri("/showcases/{showcaseId}/start", showcaseId)
+                 .uri("/showcases/{showcaseId}/start", aShowcaseId())
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(expectedStatus)
+                 .expectHeader()
+                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                 .expectBody()
+                 .jsonPath("$.type").isEqualTo("about:blank")
+                 .jsonPath("$.title").isEqualTo(expectedStatus.getReasonPhrase())
+                 .jsonPath("$.status").isEqualTo(expectedStatus.value())
+                 .jsonPath("$.detail").isEqualTo(errorMessage);
+
+        verify(showcaseCommandOperations).start(any());
+        verifyNoMoreInteractions(showcaseCommandOperations);
+    }
+
+    @ParameterizedTest
+    @MethodSource("commandAvailabilityFailures")
+    void startShowcase_availabilityFailure_respondsWithServiceUnavailableStatusAndProblemInBody(Exception error) {
+        given(showcaseCommandOperations.start(any())).willReturn(Mono.error(error));
+
+        webClient.put()
+                 .uri("/showcases/{showcaseId}/start", aShowcaseId())
                  .exchange()
                  .expectStatus()
                  .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
@@ -338,9 +469,26 @@ class ShowcaseApiControllerCT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Service Unavailable")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
                  .jsonPath("$.detail").doesNotHaveJsonPath();
+
+        verify(showcaseCommandOperations).start(any());
+        verifyNoMoreInteractions(showcaseCommandOperations);
+    }
+
+    @Test
+    void startShowcase_abortedRequest_respondsWithRequestTimeoutStatusAndEmptyBody() {
+        given(showcaseCommandOperations.start(any())).willReturn(Mono.error(
+                new AbortedException(anAlphabeticString(10))));
+
+        webClient.put()
+                 .uri("/showcases/{showcaseId}/start", aShowcaseId())
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(HttpStatus.REQUEST_TIMEOUT)
+                 .expectBody()
+                 .isEmpty();
 
         verify(showcaseCommandOperations).start(any());
         verifyNoMoreInteractions(showcaseCommandOperations);
@@ -393,7 +541,7 @@ class ShowcaseApiControllerCT {
                  .isBadRequest()
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Bad Request")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.BAD_REQUEST.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
                  .jsonPath("$.detail").isEqualTo("Invalid request.")
                  .jsonPath("$.pathErrors").isMap()
@@ -404,19 +552,49 @@ class ShowcaseApiControllerCT {
         verifyNoInteractions(showcaseCommandOperations);
     }
 
-    @Test
-    void finishShowcase_axonFailure_respondsWithServiceUnavailableStatus() {
-        val showcaseId = aShowcaseId();
-        val command = FinishShowcaseCommand
-                              .builder()
-                              .showcaseId(showcaseId)
-                              .build();
+    @ParameterizedTest
+    @EnumSource(ShowcaseCommandErrorCode.class)
+    void finishShowcase_commandFailure_respondsWithRelatedStatusAndProblemInBody(ShowcaseCommandErrorCode errorCode) {
+        val errorMessage = anAlphabeticString(10);
 
-        given(showcaseCommandOperations.finish(command))
-                .willReturn(Mono.error(new NoHandlerForCommandException(anAlphabeticString(10))));
+        given(showcaseCommandOperations.finish(any()))
+                .willReturn(Mono.error(new ShowcaseCommandException(
+                        ShowcaseCommandErrorDetails
+                                .builder()
+                                .errorCode(errorCode)
+                                .errorMessage(errorMessage)
+                                .build())));
+
+        val expectedStatus = switch (errorCode) {
+            case INVALID_COMMAND -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case TITLE_IN_USE, ILLEGAL_STATE -> HttpStatus.CONFLICT;
+        };
 
         webClient.put()
-                 .uri("/showcases/{showcaseId}/finish", showcaseId)
+                 .uri("/showcases/{showcaseId}/finish", aShowcaseId())
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(expectedStatus)
+                 .expectHeader()
+                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                 .expectBody()
+                 .jsonPath("$.type").isEqualTo("about:blank")
+                 .jsonPath("$.title").isEqualTo(expectedStatus.getReasonPhrase())
+                 .jsonPath("$.status").isEqualTo(expectedStatus.value())
+                 .jsonPath("$.detail").isEqualTo(errorMessage);
+
+        verify(showcaseCommandOperations).finish(any());
+        verifyNoMoreInteractions(showcaseCommandOperations);
+    }
+
+    @ParameterizedTest
+    @MethodSource("commandAvailabilityFailures")
+    void finishShowcase_availabilityFailure_respondsWithServiceUnavailableStatusAndProblemInBody(Exception error) {
+        given(showcaseCommandOperations.finish(any())).willReturn(Mono.error(error));
+
+        webClient.put()
+                 .uri("/showcases/{showcaseId}/finish", aShowcaseId())
                  .exchange()
                  .expectStatus()
                  .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
@@ -424,11 +602,28 @@ class ShowcaseApiControllerCT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Service Unavailable")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
                  .jsonPath("$.detail").doesNotHaveJsonPath();
 
-        verify(showcaseCommandOperations).finish(command);
+        verify(showcaseCommandOperations).finish(any());
+        verifyNoMoreInteractions(showcaseCommandOperations);
+    }
+
+    @Test
+    void finishShowcase_abortedRequest_respondsWithRequestTimeoutStatusAndEmptyBody() {
+        given(showcaseCommandOperations.finish(any())).willReturn(Mono.error(
+                new AbortedException(anAlphabeticString(10))));
+
+        webClient.put()
+                 .uri("/showcases/{showcaseId}/finish", aShowcaseId())
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(HttpStatus.REQUEST_TIMEOUT)
+                 .expectBody()
+                 .isEmpty();
+
+        verify(showcaseCommandOperations).finish(any());
         verifyNoMoreInteractions(showcaseCommandOperations);
     }
 
@@ -479,7 +674,7 @@ class ShowcaseApiControllerCT {
                  .isBadRequest()
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Bad Request")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.BAD_REQUEST.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
                  .jsonPath("$.detail").isEqualTo("Invalid request.")
                  .jsonPath("$.pathErrors").isMap()
@@ -490,19 +685,49 @@ class ShowcaseApiControllerCT {
         verifyNoInteractions(showcaseCommandOperations);
     }
 
-    @Test
-    void removeShowcase_axonFailure_respondsWithServiceUnavailableStatus() {
-        val showcaseId = aShowcaseId();
-        val command = RemoveShowcaseCommand
-                              .builder()
-                              .showcaseId(showcaseId)
-                              .build();
+    @ParameterizedTest
+    @EnumSource(ShowcaseCommandErrorCode.class)
+    void removeShowcase_commandFailure_respondsWithRelatedStatusAndProblemInBody(ShowcaseCommandErrorCode errorCode) {
+        val errorMessage = anAlphabeticString(10);
 
-        given(showcaseCommandOperations.remove(command))
-                .willReturn(Mono.error(new CommandDispatchException(anAlphabeticString(10))));
+        given(showcaseCommandOperations.remove(any()))
+                .willReturn(Mono.error(new ShowcaseCommandException(
+                        ShowcaseCommandErrorDetails
+                                .builder()
+                                .errorCode(errorCode)
+                                .errorMessage(errorMessage)
+                                .build())));
+
+        val expectedStatus = switch (errorCode) {
+            case INVALID_COMMAND -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case TITLE_IN_USE, ILLEGAL_STATE -> HttpStatus.CONFLICT;
+        };
 
         webClient.delete()
-                 .uri("/showcases/{showcaseId}", showcaseId)
+                 .uri("/showcases/{showcaseId}", aShowcaseId())
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(expectedStatus)
+                 .expectHeader()
+                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                 .expectBody()
+                 .jsonPath("$.type").isEqualTo("about:blank")
+                 .jsonPath("$.title").isEqualTo(expectedStatus.getReasonPhrase())
+                 .jsonPath("$.status").isEqualTo(expectedStatus.value())
+                 .jsonPath("$.detail").isEqualTo(errorMessage);
+
+        verify(showcaseCommandOperations).remove(any());
+        verifyNoMoreInteractions(showcaseCommandOperations);
+    }
+
+    @ParameterizedTest
+    @MethodSource("commandAvailabilityFailures")
+    void removeShowcase_availabilityFailure_respondsWithServiceUnavailableStatusAndProblemInBody(Exception error) {
+        given(showcaseCommandOperations.remove(any())).willReturn(Mono.error(error));
+
+        webClient.delete()
+                 .uri("/showcases/{showcaseId}", aShowcaseId())
                  .exchange()
                  .expectStatus()
                  .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
@@ -510,11 +735,28 @@ class ShowcaseApiControllerCT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Service Unavailable")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
                  .jsonPath("$.detail").doesNotHaveJsonPath();
 
-        verify(showcaseCommandOperations).remove(command);
+        verify(showcaseCommandOperations).remove(any());
+        verifyNoMoreInteractions(showcaseCommandOperations);
+    }
+
+    @Test
+    void removeShowcase_abortedRequest_respondsWithRequestTimeoutStatusAndEmptyBody() {
+        given(showcaseCommandOperations.remove(any())).willReturn(Mono.error(
+                new AbortedException(anAlphabeticString(10))));
+
+        webClient.delete()
+                 .uri("/showcases/{showcaseId}", aShowcaseId())
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(HttpStatus.REQUEST_TIMEOUT)
+                 .expectBody()
+                 .isEmpty();
+
+        verify(showcaseCommandOperations).remove(any());
         verifyNoMoreInteractions(showcaseCommandOperations);
     }
 
@@ -580,7 +822,7 @@ class ShowcaseApiControllerCT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Bad Request")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.BAD_REQUEST.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
                  .jsonPath("$.detail").isEqualTo("Invalid request.")
                  .jsonPath("$.paramErrors").isMap()
@@ -607,7 +849,7 @@ class ShowcaseApiControllerCT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Bad Request")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.BAD_REQUEST.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
                  .jsonPath("$.detail").isEqualTo("Invalid request.")
                  .jsonPath("$.paramErrors").isMap()
@@ -695,7 +937,7 @@ class ShowcaseApiControllerCT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Service Unavailable")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
                  .jsonPath("$.detail").doesNotHaveJsonPath();
 
@@ -711,6 +953,103 @@ class ShowcaseApiControllerCT {
                 () -> assertThat(output)
                               .doesNotContain("Fallback on %s".formatted(query))
                               .contains(failure.getMessage()));
+    }
+
+    @ParameterizedTest
+    @EnumSource(ShowcaseQueryErrorCode.class)
+    void fetchShowcaseList_queryFailure_respondsWithRelatedStatusAndProblemInBody(ShowcaseQueryErrorCode errorCode) {
+        val errorMessage = anAlphabeticString(10);
+
+        given(showcaseQueryOperations.fetchList(any())).willReturn(Flux.error(
+                new ShowcaseQueryException(
+                        ShowcaseQueryErrorDetails
+                                .builder()
+                                .errorCode(errorCode)
+                                .errorMessage(errorMessage)
+                                .build())));
+
+        val expectedStatus = switch (errorCode) {
+            case INVALID_QUERY -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+        };
+
+        webClient.get()
+                 .uri(uriBuilder ->
+                              uriBuilder.path("/showcases")
+                                        .build())
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(expectedStatus)
+                 .expectHeader()
+                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                 .expectBody()
+                 .jsonPath("$.type").isEqualTo("about:blank")
+                 .jsonPath("$.title").isEqualTo(expectedStatus.getReasonPhrase())
+                 .jsonPath("$.status").isEqualTo(expectedStatus.value())
+                 .jsonPath("$.detail").isEqualTo(errorMessage);
+
+        verify(showcaseQueryOperations).fetchList(any());
+        verifyNoMoreInteractions(showcaseQueryOperations);
+
+        verifyNoInteractions(fetchShowcaseListCache);
+        verifyNoInteractions(fetchShowcaseByIdCache);
+    }
+
+    @ParameterizedTest
+    @MethodSource("queryAvailabilityFailures")
+    void fetchShowcaseList_availabilityFailure_respondsWithRelatedStatusAndProblemInBody(Exception error) {
+        given(showcaseQueryOperations.fetchList(any())).willReturn(Flux.error(error));
+
+        webClient.get()
+                 .uri(uriBuilder ->
+                              uriBuilder.path("/showcases")
+                                        .build())
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
+                 .expectHeader()
+                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                 .expectBody()
+                 .jsonPath("$.type").isEqualTo("about:blank")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
+                 .jsonPath("$.status").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
+                 .jsonPath("$.detail").doesNotHaveJsonPath();
+
+        verify(showcaseQueryOperations).fetchList(any());
+        verifyNoMoreInteractions(showcaseQueryOperations);
+
+        verify(fetchShowcaseListCache).getIfPresent(any());
+        verifyNoMoreInteractions(fetchShowcaseListCache);
+
+        verifyNoInteractions(fetchShowcaseByIdCache);
+    }
+
+    @Test
+    void fetchShowcaseList_timeout_respondsWithGatewayTimeoutAndProblemInBody() {
+        given(showcaseQueryOperations.fetchList(any())).willReturn(Flux.error(new TimeoutException()));
+
+        webClient.get()
+                 .uri(uriBuilder ->
+                              uriBuilder.path("/showcases")
+                                        .build())
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
+                 .expectHeader()
+                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                 .expectBody()
+                 .jsonPath("$.type").isEqualTo("about:blank")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.GATEWAY_TIMEOUT.getReasonPhrase())
+                 .jsonPath("$.status").isEqualTo(HttpStatus.GATEWAY_TIMEOUT.value())
+                 .jsonPath("$.detail").isEqualTo("Operation timeout exceeded.");
+
+        verify(showcaseQueryOperations).fetchList(any());
+        verifyNoMoreInteractions(showcaseQueryOperations);
+
+        verify(fetchShowcaseListCache).getIfPresent(any());
+        verifyNoMoreInteractions(fetchShowcaseListCache);
+
+        verifyNoInteractions(fetchShowcaseByIdCache);
     }
 
     @Test
@@ -751,7 +1090,7 @@ class ShowcaseApiControllerCT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Bad Request")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.BAD_REQUEST.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
                  .jsonPath("$.detail").isEqualTo("Invalid request.")
                  .jsonPath("$.pathErrors").isMap()
@@ -789,7 +1128,7 @@ class ShowcaseApiControllerCT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Not Found")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.NOT_FOUND.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
                  .jsonPath("$.detail").isEqualTo("No showcase with id");
 
@@ -873,7 +1212,7 @@ class ShowcaseApiControllerCT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Service Unavailable")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
                  .jsonPath("$.detail").doesNotHaveJsonPath();
 
@@ -889,5 +1228,112 @@ class ShowcaseApiControllerCT {
                 () -> assertThat(output)
                               .doesNotContain("Fallback on %s".formatted(query))
                               .contains(failure.getMessage()));
+    }
+
+    @ParameterizedTest
+    @EnumSource(ShowcaseQueryErrorCode.class)
+    void fetchShowcaseById_queryFailure_respondsWithRelatedStatusAndProblemInBody(ShowcaseQueryErrorCode errorCode) {
+        val query = FetchShowcaseByIdQuery
+                            .builder()
+                            .showcaseId(aShowcaseId())
+                            .build();
+        val errorMessage = anAlphabeticString(10);
+
+        given(showcaseQueryOperations.fetchById(query)).willReturn(Mono.error(
+                new ShowcaseQueryException(
+                        ShowcaseQueryErrorDetails
+                                .builder()
+                                .errorCode(errorCode)
+                                .errorMessage(errorMessage)
+                                .build())));
+
+        val expectedStatus = switch (errorCode) {
+            case INVALID_QUERY -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+        };
+
+        webClient.get()
+                 .uri("/showcases/{showcaseId}", query.getShowcaseId())
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(expectedStatus)
+                 .expectHeader()
+                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                 .expectBody()
+                 .jsonPath("$.type").isEqualTo("about:blank")
+                 .jsonPath("$.title").isEqualTo(expectedStatus.getReasonPhrase())
+                 .jsonPath("$.status").isEqualTo(expectedStatus.value())
+                 .jsonPath("$.detail").isEqualTo(errorMessage);
+
+        verify(showcaseQueryOperations).fetchById(query);
+        verifyNoMoreInteractions(showcaseQueryOperations);
+
+        verifyNoInteractions(fetchShowcaseListCache);
+        verifyNoInteractions(fetchShowcaseByIdCache);
+    }
+
+    @ParameterizedTest
+    @MethodSource("queryAvailabilityFailures")
+    void fetchShowcaseById_availabilityFailure_respondsWithRelatedStatusAndProblemInBody(Exception error) {
+        val showcaseId = aShowcaseId();
+        val query = FetchShowcaseByIdQuery
+                            .builder()
+                            .showcaseId(showcaseId)
+                            .build();
+
+        given(showcaseQueryOperations.fetchById(query)).willReturn(Mono.error(error));
+
+        webClient.get()
+                 .uri("/showcases/{showcaseId}", showcaseId)
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
+                 .expectHeader()
+                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                 .expectBody()
+                 .jsonPath("$.type").isEqualTo("about:blank")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
+                 .jsonPath("$.status").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
+                 .jsonPath("$.detail").doesNotHaveJsonPath();
+
+        verify(showcaseQueryOperations).fetchById(query);
+        verifyNoMoreInteractions(showcaseQueryOperations);
+
+        verifyNoInteractions(fetchShowcaseListCache);
+
+        verify(fetchShowcaseByIdCache).getIfPresent(showcaseId);
+        verifyNoMoreInteractions(fetchShowcaseByIdCache);
+    }
+
+    @Test
+    void fetchShowcaseById_timeout_respondsWithGatewayTimeoutAndProblemInBody() {
+        val showcaseId = aShowcaseId();
+        val query = FetchShowcaseByIdQuery
+                            .builder()
+                            .showcaseId(showcaseId)
+                            .build();
+
+        given(showcaseQueryOperations.fetchById(query)).willReturn(Mono.error(new TimeoutException()));
+
+        webClient.get()
+                 .uri("/showcases/{showcaseId}", showcaseId)
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
+                 .expectHeader()
+                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                 .expectBody()
+                 .jsonPath("$.type").isEqualTo("about:blank")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.GATEWAY_TIMEOUT.getReasonPhrase())
+                 .jsonPath("$.status").isEqualTo(HttpStatus.GATEWAY_TIMEOUT.value())
+                 .jsonPath("$.detail").isEqualTo("Operation timeout exceeded.");
+
+        verify(showcaseQueryOperations).fetchById(query);
+        verifyNoMoreInteractions(showcaseQueryOperations);
+
+        verifyNoInteractions(fetchShowcaseListCache);
+
+        verify(fetchShowcaseByIdCache).getIfPresent(showcaseId);
+        verifyNoMoreInteractions(fetchShowcaseByIdCache);
     }
 }

@@ -77,7 +77,6 @@ class ShowcaseQueryClientCT {
 
     @Test
     void fetchList_okResponse_succeeds() throws Exception {
-        // given:
         val query = FetchShowcaseListQuery.builder().build();
         val showcases = showcases();
 
@@ -86,12 +85,9 @@ class ShowcaseQueryClientCT {
                         .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
                         .willReturn(okJson(objectMapper.writeValueAsString(showcases))));
 
-        // when:
-        val fetchListMono = showcaseQueryOperations.fetchList(query);
-
-        // then:
-        StepVerifier
-                .create(fetchListMono)
+        showcaseQueryOperations
+                .fetchList(query)
+                .as(StepVerifier::create)
                 .expectNextSequence(showcases)
                 .verifyComplete();
 
@@ -100,7 +96,6 @@ class ShowcaseQueryClientCT {
 
     @Test
     void fetchById_okResponse_succeeds() throws Exception {
-        // given:
         val showcase = aShowcase();
         val query =
                 FetchShowcaseByIdQuery
@@ -113,12 +108,9 @@ class ShowcaseQueryClientCT {
                         .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
                         .willReturn(okJson(objectMapper.writeValueAsString(showcase))));
 
-        // when:
-        val fetchByIdMono = showcaseQueryOperations.fetchById(query);
-
-        // then:
-        StepVerifier
-                .create(fetchByIdMono)
+        showcaseQueryOperations
+                .fetchById(query)
+                .as(StepVerifier::create)
                 .expectNext(showcase)
                 .verifyComplete();
 
@@ -127,7 +119,6 @@ class ShowcaseQueryClientCT {
 
     @Test
     void fetchById_notFoundResponse_failsWithNotFoundError() throws Exception {
-        // given:
         val query =
                 FetchShowcaseByIdQuery
                         .builder()
@@ -145,12 +136,9 @@ class ShowcaseQueryClientCT {
                                                             HttpStatus.NOT_FOUND,
                                                             "No showcase with given ID")))));
 
-        // when:
-        val fetchByIdMono = showcaseQueryOperations.fetchById(query);
-
-        // then:
-        StepVerifier
-                .create(fetchByIdMono)
+        showcaseQueryOperations
+                .fetchById(query)
+                .as(StepVerifier::create)
                 .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseQueryException.class)
@@ -196,7 +184,6 @@ class ShowcaseQueryClientCT {
 
         @Test
         void fetchList_longDelay_failsWithTimeoutError() {
-            // given:
             val query = FetchShowcaseListQuery.builder().build();
 
             wireMockServer.stubFor(
@@ -204,18 +191,14 @@ class ShowcaseQueryClientCT {
                             .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
                             .willReturn(ok().withFixedDelay(Ints.checkedCast(timeout.toMillis()))));
 
-            // when:
-            val fetchListMono = showcaseQueryOperations.fetchList(query);
-
-            // then:
-            StepVerifier
-                    .create(fetchListMono)
+            showcaseQueryOperations
+                    .fetchList(query)
+                    .as(StepVerifier::create)
                     .verifyTimeout(timeout);
         }
 
         @Test
         void fetchById_longDelay_failsWithTimeoutError() {
-            // given:
             val query =
                     FetchShowcaseByIdQuery
                             .builder()
@@ -227,12 +210,9 @@ class ShowcaseQueryClientCT {
                             .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
                             .willReturn(ok().withFixedDelay(Ints.checkedCast(timeout.toMillis()))));
 
-            // when:
-            val fetchByIdMono = showcaseQueryOperations.fetchById(query);
-
-            // then:
-            StepVerifier
-                    .create(fetchByIdMono)
+            showcaseQueryOperations
+                    .fetchById(query)
+                    .as(StepVerifier::create)
                     .verifyTimeout(timeout);
         }
     }
@@ -283,7 +263,6 @@ class ShowcaseQueryClientCT {
         @ParameterizedTest
         @MethodSource("retryableStatusCodes")
         void fetchList_retryableStatusCode_retriesAndFailsWithStatusCode(int statusCode) {
-            // given:
             val query = FetchShowcaseListQuery.builder().build();
 
             wireMockServer.stubFor(
@@ -291,12 +270,9 @@ class ShowcaseQueryClientCT {
                             .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
                             .willReturn(aResponse().withStatus(statusCode)));
 
-            // when:
-            val fetchListMono = showcaseQueryOperations.fetchList(query);
-
-            // then:
-            StepVerifier
-                    .withVirtualTime(() -> fetchListMono)
+            showcaseQueryOperations
+                    .fetchList(query)
+                    .as(it -> StepVerifier.withVirtualTime(() -> it))
                     .thenAwait(timeout)
                     .verifyErrorSatisfies(
                             t -> assertThat(t)
@@ -313,7 +289,6 @@ class ShowcaseQueryClientCT {
         @ParameterizedTest
         @MethodSource("retryableStatusCodes")
         void fetchById_retryableStatusCode_retriesAndFailsWithStatusCode(int statusCode) {
-            // given:
             val query =
                     FetchShowcaseByIdQuery
                             .builder()
@@ -325,12 +300,9 @@ class ShowcaseQueryClientCT {
                             .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
                             .willReturn(aResponse().withStatus(statusCode)));
 
-            // when:
-            val fetchByIdMono = showcaseQueryOperations.fetchById(query);
-
-            // then:
-            StepVerifier
-                    .withVirtualTime(() -> fetchByIdMono)
+            showcaseQueryOperations
+                    .fetchById(query)
+                    .as(it -> StepVerifier.withVirtualTime(() -> it))
                     .thenAwait(timeout)
                     .verifyErrorSatisfies(
                             t -> assertThat(t)

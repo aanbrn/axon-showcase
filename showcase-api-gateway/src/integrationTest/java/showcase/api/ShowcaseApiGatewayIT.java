@@ -74,7 +74,7 @@ class ShowcaseApiGatewayIT {
                     .withNetwork(network);
 
     @Container
-    @SuppressWarnings({ "resource", "unused" })
+    @SuppressWarnings("resource")
     static final GenericContainer<?> commandService =
             new GenericContainer<>("aanbrn/axon-showcase-command-service:" + System.getProperty("project.version"))
                     .dependsOn(dbEvents, kafka)
@@ -90,7 +90,7 @@ class ShowcaseApiGatewayIT {
                     .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
 
     @Container
-    @SuppressWarnings({ "resource", "unused" })
+    @SuppressWarnings("resource")
     static final GenericContainer<?> projectionService =
             new GenericContainer<>("aanbrn/axon-showcase-projection-service:" + System.getProperty("project.version"))
                     .dependsOn(kafka, osViews)
@@ -107,7 +107,7 @@ class ShowcaseApiGatewayIT {
                     .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
 
     @Container
-    @SuppressWarnings({ "resource", "unused" })
+    @SuppressWarnings("resource")
     static final GenericContainer<?> queryService =
             new GenericContainer<>("aanbrn/axon-showcase-query-service:" + System.getProperty("project.version"))
                     .dependsOn(osViews)
@@ -121,7 +121,7 @@ class ShowcaseApiGatewayIT {
                     .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
 
     @Container
-    @SuppressWarnings({ "resource", "unused" })
+    @SuppressWarnings("resource")
     static final GenericContainer<?> apiGateway =
             new GenericContainer<>("aanbrn/axon-showcase-api-gateway:" + System.getProperty("project.version"))
                     .dependsOn(commandService, queryService)
@@ -242,7 +242,7 @@ class ShowcaseApiGatewayIT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Conflict")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.CONFLICT.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.CONFLICT.value())
                  .jsonPath("$.detail").isEqualTo("Given title is in use already")
                  .jsonPath("$.instance").isEqualTo("/showcases");
@@ -312,7 +312,7 @@ class ShowcaseApiGatewayIT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Not Found")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.NOT_FOUND.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
                  .jsonPath("detail").isEqualTo("No showcase with given ID");
     }
@@ -385,7 +385,7 @@ class ShowcaseApiGatewayIT {
                  .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                  .expectBody()
                  .jsonPath("$.type").isEqualTo("about:blank")
-                 .jsonPath("$.title").isEqualTo("Not Found")
+                 .jsonPath("$.title").isEqualTo(HttpStatus.NOT_FOUND.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
                  .jsonPath("detail").isEqualTo("No showcase with given ID");
     }

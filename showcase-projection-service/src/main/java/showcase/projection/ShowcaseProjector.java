@@ -58,6 +58,7 @@ import showcase.command.ShowcaseStartedEvent;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -336,19 +337,11 @@ class ShowcaseProjector implements SmartLifecycle {
                        } else {
                            monitorCallback.reportFailure(null);
 
-                           val errorDescriptionBuilder = new StringBuilder();
-                           errorDescriptionBuilder.append("[");
-                           errorDescriptionBuilder.append(responseItem.operationType());
-                           errorDescriptionBuilder.append("] [");
-                           errorDescriptionBuilder.append(responseItem.error().type());
-                           errorDescriptionBuilder.append("]");
-                           if (responseItem.error().reason() != null) {
-                               errorDescriptionBuilder.append(" ");
-                               errorDescriptionBuilder.append(responseItem.error().reason());
-                           }
-                           val errorDescription = errorDescriptionBuilder.toString();
-
-                           log.error("On {}, {}", event.getClass().getSimpleName(), errorDescription);
+                           log.error("On {}, [{}] [{}] {}",
+                                     event.getClass().getSimpleName(),
+                                     responseItem.operationType(),
+                                     responseItem.error().type(),
+                                     Objects.toString(responseItem.error().reason(), ""));
                        }
                    }))
                    .then();

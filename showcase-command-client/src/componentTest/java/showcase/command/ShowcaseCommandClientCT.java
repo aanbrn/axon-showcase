@@ -63,7 +63,6 @@ class ShowcaseCommandClientCT {
     }
 
     @MockitoBean
-    @SuppressWarnings("unused")
     private CommandBus commandBus;
 
     @Autowired
@@ -76,7 +75,6 @@ class ShowcaseCommandClientCT {
 
     @Test
     void scheduleShowcase_successfulCommandDispatch_succeeds() {
-        // given:
         val command =
                 ScheduleShowcaseCommand
                         .builder()
@@ -93,12 +91,9 @@ class ShowcaseCommandClientCT {
                     return true;
                 }));
 
-        // when:
-        val scheduleMono = showcaseCommandClient.schedule(command);
-
-        // then:
-        StepVerifier
-                .create(scheduleMono)
+        showcaseCommandClient
+                .schedule(command)
+                .as(StepVerifier::create)
                 .verifyComplete();
 
         verify(commandBus).dispatch(any(), any());
@@ -106,7 +101,6 @@ class ShowcaseCommandClientCT {
 
     @Test
     void scheduleShowcase_failedCommandDispatch_failsWithShowcaseCommandException() {
-        // given:
         val command = aScheduleShowcaseCommand();
         val errorDetails = aShowcaseCommandErrorDetails();
 
@@ -118,12 +112,9 @@ class ShowcaseCommandClientCT {
                     return true;
                 }));
 
-        // when:
-        val scheduleMono = showcaseCommandClient.schedule(command);
-
-        // then:
-        StepVerifier
-                .create(scheduleMono)
+        showcaseCommandClient
+                .schedule(command)
+                .as(StepVerifier::create)
                 .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
@@ -136,7 +127,6 @@ class ShowcaseCommandClientCT {
 
     @Test
     void startShowcase_successfulCommandDispatch_succeeds() {
-        // given:
         val command = aStartShowcaseCommand();
 
         willDoNothing().given(commandBus).dispatch(
@@ -146,12 +136,9 @@ class ShowcaseCommandClientCT {
                     return true;
                 }));
 
-        // when:
-        val startMono = showcaseCommandClient.start(command);
-
-        // then:
-        StepVerifier
-                .create(startMono)
+        showcaseCommandClient
+                .start(command)
+                .as(StepVerifier::create)
                 .verifyComplete();
 
         verify(commandBus).dispatch(any(), any());
@@ -159,7 +146,6 @@ class ShowcaseCommandClientCT {
 
     @Test
     void startShowcase_failedCommandDispatch_failsWithShowcaseCommandException() {
-        // given:
         val command = aStartShowcaseCommand();
         val errorDetails = aShowcaseCommandErrorDetails();
 
@@ -171,12 +157,9 @@ class ShowcaseCommandClientCT {
                     return true;
                 }));
 
-        // when:
-        val startMono = showcaseCommandClient.start(command);
-
-        // then:
-        StepVerifier
-                .create(startMono)
+        showcaseCommandClient
+                .start(command)
+                .as(StepVerifier::create)
                 .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
@@ -189,7 +172,6 @@ class ShowcaseCommandClientCT {
 
     @Test
     void finishShowcase_successfulCommandDispatch_succeeds() {
-        // ginen:
         val command = aFinishShowcaseCommand();
 
         willDoNothing().given(commandBus).dispatch(
@@ -199,12 +181,9 @@ class ShowcaseCommandClientCT {
                     return true;
                 }));
 
-        // when:
-        val finishMono = showcaseCommandClient.finish(command);
-
-        // then:
-        StepVerifier
-                .create(finishMono)
+        showcaseCommandClient
+                .finish(command)
+                .as(StepVerifier::create)
                 .verifyComplete();
 
         verify(commandBus).dispatch(any(), any());
@@ -212,7 +191,6 @@ class ShowcaseCommandClientCT {
 
     @Test
     void finishShowcase_failedCommandDispatch_failsWithShowcaseCommandException() {
-        // given:
         val command = aFinishShowcaseCommand();
         val errorDetails = aShowcaseCommandErrorDetails();
 
@@ -224,12 +202,9 @@ class ShowcaseCommandClientCT {
                     return true;
                 }));
 
-        // when:
-        val finishMono = showcaseCommandClient.finish(command);
-
-        // then:
-        StepVerifier
-                .create(finishMono)
+        showcaseCommandClient
+                .finish(command)
+                .as(StepVerifier::create)
                 .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
@@ -242,7 +217,6 @@ class ShowcaseCommandClientCT {
 
     @Test
     void removeShowcase_successfulCommandDispatch_succeeds() {
-        // given:
         val command = aRemoveShowcaseCommand();
 
         willDoNothing().given(commandBus).dispatch(
@@ -252,12 +226,9 @@ class ShowcaseCommandClientCT {
                     return true;
                 }));
 
-        // when:
-        val removeMono = showcaseCommandClient.remove(command);
-
-        // then:
-        StepVerifier
-                .create(removeMono)
+        showcaseCommandClient
+                .remove(command)
+                .as(StepVerifier::create)
                 .verifyComplete();
 
         verify(commandBus).dispatch(any(), any());
@@ -265,7 +236,6 @@ class ShowcaseCommandClientCT {
 
     @Test
     void removeShowcase_failedCommandDispatch_failsWithShowcaseCommandException() {
-        // given:
         val command = aRemoveShowcaseCommand();
         val errorDetails = aShowcaseCommandErrorDetails();
 
@@ -277,12 +247,9 @@ class ShowcaseCommandClientCT {
                     return true;
                 }));
 
-        // when:
-        val removeMono = showcaseCommandClient.remove(command);
-
-        // then:
-        StepVerifier
-                .create(removeMono)
+        showcaseCommandClient
+                .remove(command)
+                .as(StepVerifier::create)
                 .verifyErrorSatisfies(
                         t -> assertThat(t)
                                      .isExactlyInstanceOf(ShowcaseCommandException.class)
@@ -318,7 +285,6 @@ class ShowcaseCommandClientCT {
         }
 
         @MockitoBean(enforceOverride = true)
-        @SuppressWarnings("unused")
         private CommandBus commandBus;
 
         @Autowired
@@ -356,8 +322,9 @@ class ShowcaseCommandClientCT {
                         return true;
                     }));
 
-            StepVerifier
-                    .create(showcaseCommandClient.schedule(command))
+            showcaseCommandClient
+                    .schedule(command)
+                    .as(StepVerifier::create)
                     .expectErrorSatisfies(t -> assertThat(t).isEqualTo(error))
                     .verify(timeout);
 
@@ -376,8 +343,9 @@ class ShowcaseCommandClientCT {
                         return true;
                     }));
 
-            StepVerifier
-                    .create(showcaseCommandClient.start(command))
+            showcaseCommandClient
+                    .start(command)
+                    .as(StepVerifier::create)
                     .expectErrorSatisfies(t -> assertThat(t).isEqualTo(error))
                     .verify(timeout);
 
@@ -396,8 +364,9 @@ class ShowcaseCommandClientCT {
                         return true;
                     }));
 
-            StepVerifier
-                    .create(showcaseCommandClient.finish(command))
+            showcaseCommandClient
+                    .finish(command)
+                    .as(StepVerifier::create)
                     .expectErrorSatisfies(t -> assertThat(t).isEqualTo(error))
                     .verify(timeout);
 
@@ -416,8 +385,9 @@ class ShowcaseCommandClientCT {
                         return true;
                     }));
 
-            StepVerifier
-                    .create(showcaseCommandClient.remove(command))
+            showcaseCommandClient
+                    .remove(command)
+                    .as(StepVerifier::create)
                     .expectErrorSatisfies(t -> assertThat(t).isEqualTo(error))
                     .verify(timeout);
 

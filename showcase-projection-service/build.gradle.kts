@@ -82,7 +82,10 @@ testing {
             targets {
                 all {
                     testTask.configure {
-                        jvmArgs = listOf("-XX:+AllowRedefinitionToAddDeleteMethods")
+                        jvmArgs = listOf(
+                            "-XX:+AllowRedefinitionToAddDeleteMethods",
+                            "-XX:+EnableDynamicAgentLoading"
+                        )
 
                         shouldRunAfter(test)
 

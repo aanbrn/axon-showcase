@@ -32,6 +32,7 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.query.RandomQueryTestUtils.aShowcase;
 import static showcase.query.RandomQueryTestUtils.aShowcaseStatus;
 import static showcase.query.RandomQueryTestUtils.showcases;
+import static showcase.test.RandomTestUtils.anAlphabeticString;
 import static showcase.test.RandomTestUtils.anElementOf;
 
 @SpringBootTest
@@ -281,6 +282,39 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
+    void fetchList_invalidQuery_respondsWithBadRequestStatusAndProblemInBody() {
+        val query = FetchShowcaseListQuery
+                            .builder()
+                            .afterId(anAlphabeticString(10))
+                            .size(0)
+                            .build();
+
+        webClient
+                .post()
+                .uri("/streaming-query")
+                .contentType(APPLICATION_PROTOBUF)
+                .bodyValue(queryMessageRequestMapper.messageToRequest(
+                        new GenericStreamingQueryMessage<>(query, Showcase.class)))
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectHeader()
+                .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.type").isEqualTo("about:blank")
+                .jsonPath("$.title").isEqualTo(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.detail").isEqualTo("Given query is not valid")
+                .jsonPath("$.fieldErrors").isMap()
+                .jsonPath("$.fieldErrors.afterId").isArray()
+                .jsonPath("$.fieldErrors.afterId[0]").isNotEmpty()
+                .jsonPath("$.fieldErrors.afterId[1]").doesNotHaveJsonPath()
+                .jsonPath("$.fieldErrors.size").isArray()
+                .jsonPath("$.fieldErrors.size[0]").isNotEmpty()
+                .jsonPath("$.fieldErrors.size[1]").doesNotHaveJsonPath();
+    }
+
+    @Test
     void fetchById_existingShowcase_respondsWithRequestedShowcase() {
         val showcase = aShowcase();
 
@@ -328,8 +362,37 @@ class ShowcaseQueryControllerIT {
                 .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
                 .expectBody()
                 .jsonPath("$.type").isEqualTo("about:blank")
-                .jsonPath("$.title").isEqualTo("Not Found")
+                .jsonPath("$.title").isEqualTo(HttpStatus.NOT_FOUND.getReasonPhrase())
                 .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
                 .jsonPath("$.instance").isEqualTo("/query");
+    }
+
+    @Test
+    void fetchById_invalidQuery_respondsWithBadRequestStatusAndProblemInBody() {
+        val query = FetchShowcaseByIdQuery
+                            .builder()
+                            .showcaseId(anAlphabeticString(10))
+                            .build();
+
+        webClient
+                .post()
+                .uri("/query")
+                .contentType(APPLICATION_PROTOBUF)
+                .bodyValue(queryMessageRequestMapper.messageToRequest(
+                        new GenericStreamingQueryMessage<>(query, Showcase.class)))
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectHeader()
+                .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.type").isEqualTo("about:blank")
+                .jsonPath("$.title").isEqualTo(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.detail").isEqualTo("Given query is not valid")
+                .jsonPath("$.fieldErrors").isMap()
+                .jsonPath("$.fieldErrors.showcaseId").isArray()
+                .jsonPath("$.fieldErrors.showcaseId[0]").isNotEmpty()
+                .jsonPath("$.fieldErrors.showcaseId[1]").doesNotHaveJsonPath();
     }
 }

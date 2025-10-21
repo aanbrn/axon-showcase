@@ -99,6 +99,7 @@ expressly = { group = "org.glassfish.expressly", name = "expressly", version.ref
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 kotlin-bom = { group = "org.jetbrains.kotlin", name = "kotlin-bom", version.ref = "kotlin" }
 resilience4j-bom = { group = "io.github.resilience4j", name = "resilience4j-bom", version.ref = "resilience4j-bom" }
+resilience4j-all = { group = "io.github.resilience4j", name = "resilience4j-all" }
 resilience4j-reactor = { group = "io.github.resilience4j", name = "resilience4j-reactor" }
 resilience4j-springBoot3 = { group = "io.github.resilience4j", name = "resilience4j-spring-boot3" }
 streamex = { group = "one.util", name = "streamex", version.ref = "streamex" }

@@ -75,12 +75,16 @@ testing {
                 implementation(libs.streamex)
                 implementation(libs.netty.resolver.dnsNativeMacos)
                 implementation(libs.reactor.blockhound)
+                implementation(libs.resilience4j.all)
             }
 
             targets {
                 all {
                     testTask.configure {
-                        jvmArgs = listOf("-XX:+AllowRedefinitionToAddDeleteMethods")
+                        jvmArgs = listOf(
+                            "-XX:+AllowRedefinitionToAddDeleteMethods",
+                            "-XX:+EnableDynamicAgentLoading"
+                        )
 
                         shouldRunAfter(test)
                     }

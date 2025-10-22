@@ -163,11 +163,11 @@ class ShowcaseCommandClientIT {
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
                                      .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.getErrorCode())
+                                         assertThat(errorDetails.errorCode())
                                                  .isEqualTo(ShowcaseCommandErrorCode.INVALID_COMMAND);
-                                         assertThat(errorDetails.getErrorMessage())
+                                         assertThat(errorDetails.errorMessage())
                                                  .isEqualTo("Given command is not valid");
-                                         assertThat(errorDetails.getMetaData())
+                                         assertThat(errorDetails.metaData())
                                                  .hasSize(4)
                                                  .containsKeys("showcaseId", "title", "startTime", "duration");
                                      }));
@@ -211,11 +211,11 @@ class ShowcaseCommandClientIT {
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
                                      .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.getErrorCode())
+                                         assertThat(errorDetails.errorCode())
                                                  .isEqualTo(ShowcaseCommandErrorCode.ILLEGAL_STATE);
-                                         assertThat(errorDetails.getErrorMessage())
+                                         assertThat(errorDetails.errorMessage())
                                                  .isEqualTo("Showcase is removed already");
-                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                         assertThat(errorDetails.metaData()).isEmpty();
                                      }));
     }
 
@@ -250,11 +250,11 @@ class ShowcaseCommandClientIT {
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
                                      .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.getErrorCode())
+                                         assertThat(errorDetails.errorCode())
                                                  .isEqualTo(ShowcaseCommandErrorCode.TITLE_IN_USE);
-                                         assertThat(errorDetails.getErrorMessage())
+                                         assertThat(errorDetails.errorMessage())
                                                  .isEqualTo("Given title is in use already");
-                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                         assertThat(errorDetails.metaData()).isEmpty();
                                      }));
     }
 
@@ -348,11 +348,11 @@ class ShowcaseCommandClientIT {
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
                                      .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.getErrorCode())
+                                         assertThat(errorDetails.errorCode())
                                                  .isEqualTo(ShowcaseCommandErrorCode.ILLEGAL_STATE);
-                                         assertThat(errorDetails.getErrorMessage())
+                                         assertThat(errorDetails.errorMessage())
                                                  .isEqualTo("Showcase is finished already");
-                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                         assertThat(errorDetails.metaData()).isEmpty();
                                      }));
     }
 
@@ -373,11 +373,11 @@ class ShowcaseCommandClientIT {
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
                                      .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.getErrorCode())
+                                         assertThat(errorDetails.errorCode())
                                                  .isEqualTo(ShowcaseCommandErrorCode.NOT_FOUND);
-                                         assertThat(errorDetails.getErrorMessage())
+                                         assertThat(errorDetails.errorMessage())
                                                  .isEqualTo("No showcase with given ID");
-                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                         assertThat(errorDetails.metaData()).isEmpty();
                                      }));
     }
 
@@ -399,11 +399,11 @@ class ShowcaseCommandClientIT {
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
                                      .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.getErrorCode())
+                                         assertThat(errorDetails.errorCode())
                                                  .isEqualTo(ShowcaseCommandErrorCode.INVALID_COMMAND);
-                                         assertThat(errorDetails.getErrorMessage())
+                                         assertThat(errorDetails.errorMessage())
                                                  .isEqualTo("Given command is not valid");
-                                         assertThat(errorDetails.getMetaData())
+                                         assertThat(errorDetails.metaData())
                                                  .hasSize(1)
                                                  .containsKey("showcaseId");
                                      }));
@@ -503,11 +503,11 @@ class ShowcaseCommandClientIT {
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
                                      .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.getErrorCode())
+                                         assertThat(errorDetails.errorCode())
                                                  .isEqualTo(ShowcaseCommandErrorCode.ILLEGAL_STATE);
-                                         assertThat(errorDetails.getErrorMessage())
+                                         assertThat(errorDetails.errorMessage())
                                                  .isEqualTo("Showcase must be started first");
-                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                         assertThat(errorDetails.metaData()).isEmpty();
                                      }));
     }
 
@@ -528,11 +528,11 @@ class ShowcaseCommandClientIT {
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
                                      .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.getErrorCode())
+                                         assertThat(errorDetails.errorCode())
                                                  .isEqualTo(ShowcaseCommandErrorCode.NOT_FOUND);
-                                         assertThat(errorDetails.getErrorMessage())
+                                         assertThat(errorDetails.errorMessage())
                                                  .isEqualTo("No showcase with given ID");
-                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                         assertThat(errorDetails.metaData()).isEmpty();
                                      }));
     }
 
@@ -554,11 +554,11 @@ class ShowcaseCommandClientIT {
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
                                      .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.getErrorCode())
+                                         assertThat(errorDetails.errorCode())
                                                  .isEqualTo(ShowcaseCommandErrorCode.INVALID_COMMAND);
-                                         assertThat(errorDetails.getErrorMessage())
+                                         assertThat(errorDetails.errorMessage())
                                                  .isEqualTo("Given command is not valid");
-                                         assertThat(errorDetails.getMetaData())
+                                         assertThat(errorDetails.metaData())
                                                  .hasSize(1)
                                                  .containsKey("showcaseId");
                                      }));
@@ -644,11 +644,11 @@ class ShowcaseCommandClientIT {
                                      .extracting(ShowcaseCommandException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseCommandErrorDetails.class))
                                      .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.getErrorCode())
+                                         assertThat(errorDetails.errorCode())
                                                  .isEqualTo(ShowcaseCommandErrorCode.INVALID_COMMAND);
-                                         assertThat(errorDetails.getErrorMessage())
+                                         assertThat(errorDetails.errorMessage())
                                                  .isEqualTo("Given command is not valid");
-                                         assertThat(errorDetails.getMetaData())
+                                         assertThat(errorDetails.metaData())
                                                  .hasSize(1)
                                                  .containsKey("showcaseId");
                                      }));

@@ -39,10 +39,10 @@ class ScheduleShowcaseCommandTests {
                         .duration(duration)
                         .build();
         assertThat(command).isNotNull();
-        assertThat(command.getShowcaseId()).isEqualTo(showcaseId);
-        assertThat(command.getTitle()).isEqualTo(title);
-        assertThat(command.getStartTime()).isEqualTo(startTime);
-        assertThat(command.getDuration()).isEqualTo(duration);
+        assertThat(command.showcaseId()).isEqualTo(showcaseId);
+        assertThat(command.title()).isEqualTo(title);
+        assertThat(command.startTime()).isEqualTo(startTime);
+        assertThat(command.duration()).isEqualTo(duration);
     }
 
     @Test

@@ -19,17 +19,17 @@ class FetchShowcaseListQueryTests {
         val query = FetchShowcaseListQuery.builder().build();
 
         assertThat(query).isNotNull();
-        assertThat(query.getTitle()).isNull();
-        assertThat(query.getStatuses()).isEmpty();
-        assertThat(query.getAfterId()).isNull();
-        assertThat(query.getSize()).isEqualTo(FetchShowcaseListQuery.DEFAULT_SIZE);
+        assertThat(query.title()).isNull();
+        assertThat(query.statuses()).isEmpty();
+        assertThat(query.afterId()).isNull();
+        assertThat(query.size()).isEqualTo(FetchShowcaseListQuery.DEFAULT_SIZE);
     }
 
     @Test
     void construction_allFields_createsInstanceWithSpecifiedFieldValues() {
         val title = aShowcaseTitle();
         val status1 = aShowcaseStatus();
-        val status2 = aShowcaseStatus();
+        val status2 = aShowcaseStatus(status1);
         val afterId = aShowcaseId();
         val size = RandomUtils.secure().randomInt(
                 FetchShowcaseListQuery.MIN_SIZE, FetchShowcaseListQuery.MAX_SIZE + 1);
@@ -44,10 +44,10 @@ class FetchShowcaseListQueryTests {
                         .size(size)
                         .build();
         assertThat(query).isNotNull();
-        assertThat(query.getTitle()).isEqualTo(title);
-        assertThat(query.getStatuses()).containsExactly(status1, status2);
-        assertThat(query.getAfterId()).isEqualTo(afterId);
-        assertThat(query.getSize()).isEqualTo(size);
+        assertThat(query.title()).isEqualTo(title);
+        assertThat(query.statuses()).containsExactly(status1, status2);
+        assertThat(query.afterId()).isEqualTo(afterId);
+        assertThat(query.size()).isEqualTo(size);
     }
 
     @Test
@@ -63,6 +63,6 @@ class FetchShowcaseListQueryTests {
                         .statuses(statuses)
                         .build();
         assertThat(query).isNotNull();
-        assertThat(query.getStatuses()).containsExactlyInAnyOrderElementsOf(new HashSet<>(statuses));
+        assertThat(query.statuses()).containsExactlyInAnyOrderElementsOf(new HashSet<>(statuses));
     }
 }

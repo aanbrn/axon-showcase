@@ -22,7 +22,7 @@ class FinishShowcaseCommandTests {
                         .showcaseId(showcaseId)
                         .build();
         assertThat(command).isNotNull();
-        assertThat(command.getShowcaseId()).isEqualTo(showcaseId);
+        assertThat(command.showcaseId()).isEqualTo(showcaseId);
     }
 
     @Test

@@ -8,11 +8,11 @@ import java.util.Optional;
 public final class ShowcaseQueryException extends QueryExecutionException {
 
     public ShowcaseQueryException(@NonNull ShowcaseQueryErrorDetails errorDetails) {
-        super(errorDetails.getErrorMessage(), null, errorDetails);
+        super(errorDetails.errorMessage(), null, errorDetails);
     }
 
     public ShowcaseQueryException(@NonNull ShowcaseQueryErrorDetails errorDetails, Throwable cause) {
-        super(errorDetails.getErrorMessage(), cause, errorDetails);
+        super(errorDetails.errorMessage(), cause, errorDetails);
     }
 
     @Override

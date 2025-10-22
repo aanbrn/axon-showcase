@@ -26,9 +26,9 @@ class ShowcaseStartedEventTests {
                         .startedAt(startedAt)
                         .build();
         assertThat(event).isNotNull();
-        assertThat(event.getShowcaseId()).isEqualTo(showcaseId);
-        assertThat(event.getDuration()).isEqualTo(duration);
-        assertThat(event.getStartedAt()).isEqualTo(startedAt);
+        assertThat(event.showcaseId()).isEqualTo(showcaseId);
+        assertThat(event.duration()).isEqualTo(duration);
+        assertThat(event.startedAt()).isEqualTo(startedAt);
     }
 
     @Test

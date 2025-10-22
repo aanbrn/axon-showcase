@@ -100,7 +100,7 @@ class ShowcaseQueryClientCT {
         val query =
                 FetchShowcaseByIdQuery
                         .builder()
-                        .showcaseId(showcase.getShowcaseId())
+                        .showcaseId(showcase.showcaseId())
                         .build();
 
         wireMockServer.stubFor(
@@ -146,11 +146,10 @@ class ShowcaseQueryClientCT {
                                      .extracting(ShowcaseQueryException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseQueryErrorDetails.class))
                                      .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.getErrorCode())
+                                         assertThat(errorDetails.errorCode())
                                                  .isEqualTo(ShowcaseQueryErrorCode.NOT_FOUND);
-                                         assertThat(errorDetails.getErrorMessage())
-                                                 .isEqualTo("No showcase with given ID");
-                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                         assertThat(errorDetails.errorMessage()).isEqualTo("No showcase with given ID");
+                                         assertThat(errorDetails.metaData()).isEmpty();
                                      }));
 
         wireMockServer.verify(1, postRequestedFor(urlEqualTo("/query")));

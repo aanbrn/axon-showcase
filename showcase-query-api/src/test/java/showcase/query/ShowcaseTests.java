@@ -42,14 +42,14 @@ class ShowcaseTests {
                         .finishedAt(finishedAt)
                         .build();
         assertThat(showcase).isNotNull();
-        assertThat(showcase.getShowcaseId()).isEqualTo(showcaseId);
-        assertThat(showcase.getTitle()).isEqualTo(title);
-        assertThat(showcase.getStartTime()).isEqualTo(startTime);
-        assertThat(showcase.getDuration()).isEqualTo(duration);
-        assertThat(showcase.getStatus()).isEqualTo(status);
-        assertThat(showcase.getScheduledAt()).isEqualTo(scheduledAt);
-        assertThat(showcase.getStartedAt()).isEqualTo(startedAt);
-        assertThat(showcase.getFinishedAt()).isEqualTo(finishedAt);
+        assertThat(showcase.showcaseId()).isEqualTo(showcaseId);
+        assertThat(showcase.title()).isEqualTo(title);
+        assertThat(showcase.startTime()).isEqualTo(startTime);
+        assertThat(showcase.duration()).isEqualTo(duration);
+        assertThat(showcase.status()).isEqualTo(status);
+        assertThat(showcase.scheduledAt()).isEqualTo(scheduledAt);
+        assertThat(showcase.startedAt()).isEqualTo(startedAt);
+        assertThat(showcase.finishedAt()).isEqualTo(finishedAt);
     }
 
     @Test
@@ -72,14 +72,14 @@ class ShowcaseTests {
                         .scheduledAt(scheduledAt)
                         .build();
         assertThat(showcase).isNotNull();
-        assertThat(showcase.getShowcaseId()).isEqualTo(showcaseId);
-        assertThat(showcase.getTitle()).isEqualTo(title);
-        assertThat(showcase.getStartTime()).isEqualTo(startTime);
-        assertThat(showcase.getDuration()).isEqualTo(duration);
-        assertThat(showcase.getStatus()).isEqualTo(status);
-        assertThat(showcase.getScheduledAt()).isEqualTo(scheduledAt);
-        assertThat(showcase.getStartedAt()).isNull();
-        assertThat(showcase.getFinishedAt()).isNull();
+        assertThat(showcase.showcaseId()).isEqualTo(showcaseId);
+        assertThat(showcase.title()).isEqualTo(title);
+        assertThat(showcase.startTime()).isEqualTo(startTime);
+        assertThat(showcase.duration()).isEqualTo(duration);
+        assertThat(showcase.status()).isEqualTo(status);
+        assertThat(showcase.scheduledAt()).isEqualTo(scheduledAt);
+        assertThat(showcase.startedAt()).isNull();
+        assertThat(showcase.finishedAt()).isNull();
     }
 
     @Test

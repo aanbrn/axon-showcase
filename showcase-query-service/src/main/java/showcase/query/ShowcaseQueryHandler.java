@@ -45,11 +45,11 @@ class ShowcaseQueryHandler {
     @QueryHandler
     Flux<Showcase> handle(@NonNull FetchShowcaseListQuery query) {
         var criteria = new Criteria();
-        val title = query.getTitle();
+        val title = query.title();
         if (title != null) {
             criteria = criteria.and("title").matches(title);
         }
-        val statuses = query.getStatuses();
+        val statuses = query.statuses();
         criteria = switch (statuses.size()) {
             case 0 -> criteria;
             case 1 -> criteria.and("status").is(statuses.iterator().next());
@@ -60,10 +60,10 @@ class ShowcaseQueryHandler {
                         .builder(criteria)
                         .withSort(Sort.by(Direction.DESC, "showcaseId"))
                         .withSearchAfter(
-                                Optional.<Object>ofNullable(query.getAfterId())
+                                Optional.<Object>ofNullable(query.afterId())
                                         .map(List::of)
                                         .orElse(null))
-                        .withMaxResults(query.getSize())
+                        .withMaxResults(query.size())
                         .withRequestCache(true)
                         .build();
         return openSearchTemplate
@@ -78,7 +78,7 @@ class ShowcaseQueryHandler {
     @QueryHandler
     Mono<Showcase> handle(@NonNull FetchShowcaseByIdQuery query) throws ShowcaseQueryException {
         return openSearchTemplate
-                       .get(query.getShowcaseId(), ShowcaseEntity.class, showcaseIndex)
+                       .get(query.showcaseId(), ShowcaseEntity.class, showcaseIndex)
                        .name("fetch-showcase-by-id")
                        .map(showcaseMapper::entityToDto)
                        .tap(observationListenerFactory)

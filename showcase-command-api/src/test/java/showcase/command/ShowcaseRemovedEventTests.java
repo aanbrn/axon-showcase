@@ -22,7 +22,7 @@ class ShowcaseRemovedEventTests {
                         .removedAt(Instant.now())
                         .build();
         assertThat(event).isNotNull();
-        assertThat(event.getShowcaseId()).isEqualTo(showcaseId);
+        assertThat(event.showcaseId()).isEqualTo(showcaseId);
     }
 
     @Test

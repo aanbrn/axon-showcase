@@ -103,14 +103,14 @@ class ShowcaseQueryClientIT {
                          .map(showcase ->
                                       ShowcaseEntity
                                               .builder()
-                                              .showcaseId(showcase.getShowcaseId())
-                                              .title(showcase.getTitle())
-                                              .startTime(showcase.getStartTime())
-                                              .duration(showcase.getDuration())
-                                              .status(ShowcaseStatus.valueOf(showcase.getStatus().name()))
-                                              .startedAt(showcase.getStartedAt())
-                                              .finishedAt(showcase.getFinishedAt())
-                                              .scheduledAt(showcase.getScheduledAt())
+                                              .showcaseId(showcase.showcaseId())
+                                              .title(showcase.title())
+                                              .startTime(showcase.startTime())
+                                              .duration(showcase.duration())
+                                              .status(ShowcaseStatus.valueOf(showcase.status().name()))
+                                              .startedAt(showcase.startedAt())
+                                              .finishedAt(showcase.finishedAt())
+                                              .scheduledAt(showcase.scheduledAt())
                                               .build())
                          .toList(),
                 showcaseIndexOperations.getIndexCoordinates());
@@ -128,7 +128,7 @@ class ShowcaseQueryClientIT {
         val expected =
                 this.showcases
                         .stream()
-                        .sorted(comparing(Showcase::getShowcaseId).reversed())
+                        .sorted(comparing(Showcase::showcaseId).reversed())
                         .toList();
         val query =
                 FetchShowcaseListQuery
@@ -149,7 +149,7 @@ class ShowcaseQueryClientIT {
         val query =
                 FetchShowcaseListQuery
                         .builder()
-                        .title(expected.getTitle())
+                        .title(expected.title())
                         .build();
 
         await().untilAsserted(
@@ -166,8 +166,8 @@ class ShowcaseQueryClientIT {
         val expected =
                 showcases
                         .stream()
-                        .filter(it -> it.getStatus() == status)
-                        .sorted(comparing(Showcase::getShowcaseId).reversed())
+                        .filter(it -> it.status() == status)
+                        .sorted(comparing(Showcase::showcaseId).reversed())
                         .toList();
         val query =
                 FetchShowcaseListQuery
@@ -196,8 +196,8 @@ class ShowcaseQueryClientIT {
         val expected =
                 showcases
                         .stream()
-                        .filter(showcase -> showcase.getStatus() == status1 || showcase.getStatus() == status2)
-                        .sorted(comparing(Showcase::getShowcaseId).reversed())
+                        .filter(showcase -> showcase.status() == status1 || showcase.status() == status2)
+                        .sorted(comparing(Showcase::showcaseId).reversed())
                         .toList();
 
         await().untilAsserted(
@@ -214,7 +214,7 @@ class ShowcaseQueryClientIT {
         val query =
                 FetchShowcaseByIdQuery
                         .builder()
-                        .showcaseId(expected.getShowcaseId())
+                        .showcaseId(expected.showcaseId())
                         .build();
 
         await().untilAsserted(
@@ -243,11 +243,11 @@ class ShowcaseQueryClientIT {
                                      .extracting(ShowcaseQueryException::getErrorDetails)
                                      .asInstanceOf(type(ShowcaseQueryErrorDetails.class))
                                      .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.getErrorCode())
+                                         assertThat(errorDetails.errorCode())
                                                  .isEqualTo(ShowcaseQueryErrorCode.NOT_FOUND);
-                                         assertThat(errorDetails.getErrorMessage())
+                                         assertThat(errorDetails.errorMessage())
                                                  .isEqualTo("No showcase with given ID");
-                                         assertThat(errorDetails.getMetaData()).isEmpty();
+                                         assertThat(errorDetails.metaData()).isEmpty();
                                      }));
     }
 }

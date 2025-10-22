@@ -88,7 +88,7 @@ class ShowcaseProjectorIT {
                         .<ShowcaseEvent>builder()
                         .kafkaPublisher(kafkaPublisher)
                         .aggregateType("ShowcaseAggregate")
-                        .aggregateIdentifierExtractor(ShowcaseEvent::getShowcaseId)
+                        .aggregateIdentifierExtractor(ShowcaseEvent::showcaseId)
                         .build();
 
         if (showcaseIndexOperations == null) {
@@ -118,7 +118,7 @@ class ShowcaseProjectorIT {
                         .build());
 
         await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
-                                    .filter(showcase -> showcase.getStatus() == ShowcaseStatus.SCHEDULED)
+                                    .filter(showcase -> showcase.status() == ShowcaseStatus.SCHEDULED)
                                     .isPresent());
     }
 
@@ -171,7 +171,7 @@ class ShowcaseProjectorIT {
                         .build());
 
         await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
-                                    .filter(showcase -> showcase.getStatus() == ShowcaseStatus.STARTED)
+                                    .filter(showcase -> showcase.status() == ShowcaseStatus.STARTED)
                                     .isPresent());
     }
 
@@ -233,7 +233,7 @@ class ShowcaseProjectorIT {
                         .build());
 
         await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
-                                    .filter(showcase -> showcase.getStatus() == ShowcaseStatus.FINISHED)
+                                    .filter(showcase -> showcase.status() == ShowcaseStatus.FINISHED)
                                     .isPresent());
     }
 
@@ -274,7 +274,7 @@ class ShowcaseProjectorIT {
                         .build());
 
         await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
-                                    .filter(showcase -> showcase.getStatus() == ShowcaseStatus.SCHEDULED)
+                                    .filter(showcase -> showcase.status() == ShowcaseStatus.SCHEDULED)
                                     .isPresent());
 
         kafkaTestPublisher.publishEvent(
@@ -304,7 +304,7 @@ class ShowcaseProjectorIT {
                         .build());
 
         await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
-                                    .filter(showcase -> showcase.getStatus() == ShowcaseStatus.SCHEDULED)
+                                    .filter(showcase -> showcase.status() == ShowcaseStatus.SCHEDULED)
                                     .isPresent());
 
         kafkaTestPublisher.publishEventTwice(

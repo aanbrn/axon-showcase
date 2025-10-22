@@ -9,11 +9,11 @@ import java.util.Optional;
 public final class ShowcaseCommandException extends CommandExecutionException {
 
     public ShowcaseCommandException(@NonNull ShowcaseCommandErrorDetails errorDetails) {
-        super(errorDetails.getErrorMessage(), null, errorDetails);
+        super(errorDetails.errorMessage(), null, errorDetails);
     }
 
     public ShowcaseCommandException(@NonNull ShowcaseCommandErrorDetails errorDetails, Throwable cause) {
-        super(errorDetails.getErrorMessage(), cause, errorDetails);
+        super(errorDetails.errorMessage(), cause, errorDetails);
     }
 
     @Override
@@ -30,7 +30,7 @@ public final class ShowcaseCommandException extends CommandExecutionException {
     public String toString() {
         val errorDetails = getErrorDetails();
         return getClass().getName()
-                       + " [errorCode = " + errorDetails.getErrorCode()
-                       + ", errorMessage = " + errorDetails.getErrorMessage() + "]";
+                       + " [errorCode = " + errorDetails.errorCode()
+                       + ", errorMessage = " + errorDetails.errorMessage() + "]";
     }
 }

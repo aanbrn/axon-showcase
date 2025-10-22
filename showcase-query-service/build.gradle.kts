@@ -46,6 +46,8 @@ dependencies {
     implementation(libs.micrometer.registry.otlp)
     implementation(libs.micrometer.tracing.bridge.otel)
     implementation(libs.opentelemetry.exporter.otlp)
+
+    annotationProcessor(project(":showcase-mapstruct-extension"))
 }
 
 testing {

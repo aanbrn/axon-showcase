@@ -1,5 +1,7 @@
 package showcase.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
@@ -167,7 +169,7 @@ class ShowcaseApiControllerCT {
         verify(showcaseCommandOperations).schedule(
                 ScheduleShowcaseCommand
                         .builder()
-                        .showcaseId(scheduleResponse.getShowcaseId())
+                        .showcaseId(scheduleResponse.showcaseId())
                         .title(title)
                         .startTime(startTime)
                         .duration(duration)
@@ -232,10 +234,28 @@ class ShowcaseApiControllerCT {
         verifyNoMoreInteractions(showcaseCommandOperations);
     }
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @ParameterizedTest
     @EnumSource(ShowcaseCommandErrorCode.class)
     void scheduleShowcase_commandFailure_respondsWithRelatedStatusAndProblemInBody(
             ShowcaseCommandErrorCode errorCode) {
+
+        try {
+            var s = objectMapper.writeValueAsString(
+                    ScheduleShowcaseRequest
+                            .builder()
+                            .title(aShowcaseTitle())
+                            .startTime(aShowcaseStartTime(Instant.now()))
+                            .duration(aShowcaseDuration())
+                            .build());
+            var request = objectMapper.readValue(s, ScheduleShowcaseRequest.class);
+            System.out.println(request);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
         val errorMessage = anAlphabeticString(10);
 
         given(showcaseCommandOperations.schedule(any()))
@@ -798,13 +818,13 @@ class ShowcaseApiControllerCT {
 
         verify(fetchShowcaseListCache)
                 .put(query, showcases.stream()
-                                     .map(Showcase::getShowcaseId)
+                                     .map(Showcase::showcaseId)
                                      .toList());
         verifyNoMoreInteractions(fetchShowcaseListCache);
 
         verify(fetchShowcaseByIdCache)
                 .putAll(StreamEx.of(showcases)
-                                .mapToEntry(Showcase::getShowcaseId, Function.identity())
+                                .mapToEntry(Showcase::showcaseId, Function.identity())
                                 .toMap());
         verifyNoMoreInteractions(fetchShowcaseByIdCache);
     }
@@ -879,10 +899,10 @@ class ShowcaseApiControllerCT {
         given(showcaseQueryOperations.fetchList(query)).willReturn(Flux.error(failure));
         given(fetchShowcaseListCache.getIfPresent(query))
                 .willReturn(showcases.stream()
-                                     .map(Showcase::getShowcaseId)
+                                     .map(Showcase::showcaseId)
                                      .toList());
         for (val showcase : showcases) {
-            given(fetchShowcaseByIdCache.getIfPresent(showcase.getShowcaseId())).willReturn(showcase);
+            given(fetchShowcaseByIdCache.getIfPresent(showcase.showcaseId())).willReturn(showcase);
         }
 
         webClient.get()
@@ -902,7 +922,7 @@ class ShowcaseApiControllerCT {
         verifyNoMoreInteractions(fetchShowcaseListCache);
 
         for (val showcase : showcases) {
-            verify(fetchShowcaseByIdCache).getIfPresent(showcase.getShowcaseId());
+            verify(fetchShowcaseByIdCache).getIfPresent(showcase.showcaseId());
         }
         verifyNoMoreInteractions(fetchShowcaseByIdCache);
 
@@ -1057,13 +1077,13 @@ class ShowcaseApiControllerCT {
         val showcase = aShowcase();
         val query = FetchShowcaseByIdQuery
                             .builder()
-                            .showcaseId(showcase.getShowcaseId())
+                            .showcaseId(showcase.showcaseId())
                             .build();
 
         given(showcaseQueryOperations.fetchById(query)).willReturn(Mono.just(showcase));
 
         webClient.get()
-                 .uri("/showcases/{showcaseId}", showcase.getShowcaseId())
+                 .uri("/showcases/{showcaseId}", showcase.showcaseId())
                  .exchange()
                  .expectStatus()
                  .isOk()
@@ -1073,7 +1093,7 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        verify(fetchShowcaseByIdCache).put(showcase.getShowcaseId(), showcase);
+        verify(fetchShowcaseByIdCache).put(showcase.showcaseId(), showcase);
         verifyNoMoreInteractions(fetchShowcaseByIdCache);
 
         verifyNoInteractions(fetchShowcaseListCache);
@@ -1145,7 +1165,7 @@ class ShowcaseApiControllerCT {
         val showcase = aShowcase();
         val query = FetchShowcaseByIdQuery
                             .builder()
-                            .showcaseId(showcase.getShowcaseId())
+                            .showcaseId(showcase.showcaseId())
                             .build();
         val failure =
                 WebClientResponseException.create(
@@ -1157,10 +1177,10 @@ class ShowcaseApiControllerCT {
                         null);
 
         given(showcaseQueryOperations.fetchById(any())).willReturn(Mono.error(failure));
-        given(fetchShowcaseByIdCache.getIfPresent(showcase.getShowcaseId())).willReturn(showcase);
+        given(fetchShowcaseByIdCache.getIfPresent(showcase.showcaseId())).willReturn(showcase);
 
         webClient.get()
-                 .uri("/showcases/{showcaseId}", showcase.getShowcaseId())
+                 .uri("/showcases/{showcaseId}", showcase.showcaseId())
                  .exchange()
                  .expectStatus()
                  .isOk()
@@ -1172,7 +1192,7 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        verify(fetchShowcaseByIdCache).getIfPresent(showcase.getShowcaseId());
+        verify(fetchShowcaseByIdCache).getIfPresent(showcase.showcaseId());
         verifyNoMoreInteractions(fetchShowcaseByIdCache);
 
         verifyNoInteractions(fetchShowcaseListCache);
@@ -1253,7 +1273,7 @@ class ShowcaseApiControllerCT {
         };
 
         webClient.get()
-                 .uri("/showcases/{showcaseId}", query.getShowcaseId())
+                 .uri("/showcases/{showcaseId}", query.showcaseId())
                  .exchange()
                  .expectStatus()
                  .isEqualTo(expectedStatus)

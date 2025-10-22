@@ -1,5 +1,7 @@
 package showcase.query;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
@@ -7,13 +9,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
+import lombok.experimental.Accessors;
 import showcase.identifier.KSUID;
 
 import java.util.Set;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Accessors(fluent = true)
 @Builder
+@JsonAutoDetect(fieldVisibility = Visibility.ANY)
 public class FetchShowcaseListQuery {
 
     public static final int MIN_SIZE = 1;

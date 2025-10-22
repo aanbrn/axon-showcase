@@ -100,9 +100,9 @@ final class ShowcaseApiController implements ShowcaseApi {
                                             .schedule(ScheduleShowcaseCommand
                                                               .builder()
                                                               .showcaseId(showcaseId)
-                                                              .title(request.getTitle())
-                                                              .startTime(request.getStartTime())
-                                                              .duration(request.getDuration())
+                                                              .title(request.title())
+                                                              .startTime(request.startTime())
+                                                              .duration(request.duration())
                                                               .build())
                                             .thenReturn(
                                                     ResponseEntity
@@ -178,11 +178,11 @@ final class ShowcaseApiController implements ShowcaseApi {
                        .doOnNext(showcases -> {
                            fetchShowcaseListCache
                                    .put(query, showcases.stream()
-                                                        .map(Showcase::getShowcaseId)
+                                                        .map(Showcase::showcaseId)
                                                         .toList());
                            fetchShowcaseByIdCache
                                    .putAll(StreamEx.of(showcases)
-                                                   .mapToEntry(Showcase::getShowcaseId, Function.identity())
+                                                   .mapToEntry(Showcase::showcaseId, Function.identity())
                                                    .toMap());
                        })
                        .flatMapIterable(Function.identity())
@@ -222,32 +222,32 @@ final class ShowcaseApiController implements ShowcaseApi {
     @ExceptionHandler
     private ProblemDetail handleShowcaseCommandException(ShowcaseCommandException e) {
         val errorDetails = e.getErrorDetails();
-        val problemDetail = switch (errorDetails.getErrorCode()) {
+        val problemDetail = switch (errorDetails.errorCode()) {
             case INVALID_COMMAND -> {
-                val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.getErrorMessage());
-                pd.setProperty("fieldErrors", errorDetails.getMetaData());
+                val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.errorMessage());
+                pd.setProperty("fieldErrors", errorDetails.metaData());
                 yield pd;
             }
-            case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.getErrorMessage());
+            case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.errorMessage());
             case TITLE_IN_USE, ILLEGAL_STATE -> ProblemDetail.forStatusAndDetail(
-                    HttpStatus.CONFLICT, errorDetails.getErrorMessage());
+                    HttpStatus.CONFLICT, errorDetails.errorMessage());
         };
-        problemDetail.setProperty("code", errorDetails.getErrorCode());
+        problemDetail.setProperty("code", errorDetails.errorCode());
         return problemDetail;
     }
 
     @ExceptionHandler
     private ProblemDetail handleShowcaseQueryException(ShowcaseQueryException e) {
         val errorDetails = e.getErrorDetails();
-        val problemDetail = switch (errorDetails.getErrorCode()) {
+        val problemDetail = switch (errorDetails.errorCode()) {
             case INVALID_QUERY -> {
-                val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.getErrorMessage());
-                pd.setProperty("fieldErrors", errorDetails.getMetaData());
+                val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.errorMessage());
+                pd.setProperty("fieldErrors", errorDetails.metaData());
                 yield pd;
             }
-            case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.getErrorMessage());
+            case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.errorMessage());
         };
-        problemDetail.setProperty("code", errorDetails.getErrorCode());
+        problemDetail.setProperty("code", errorDetails.errorCode());
         return problemDetail;
     }
 

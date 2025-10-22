@@ -80,14 +80,14 @@ final class ShowcaseQueryController {
     @ExceptionHandler
     private ProblemDetail handleShowcaseQueryException(ShowcaseQueryException e) {
         val errorDetails = e.getErrorDetails();
-        return switch (errorDetails.getErrorCode()) {
+        return switch (errorDetails.errorCode()) {
             case INVALID_QUERY -> {
                 val problemDetail = ProblemDetail.forStatusAndDetail(
-                        HttpStatus.BAD_REQUEST, errorDetails.getErrorMessage());
-                problemDetail.setProperty("fieldErrors", errorDetails.getMetaData());
+                        HttpStatus.BAD_REQUEST, errorDetails.errorMessage());
+                problemDetail.setProperty("fieldErrors", errorDetails.metaData());
                 yield problemDetail;
             }
-            case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.getErrorMessage());
+            case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.errorMessage());
         };
     }
 

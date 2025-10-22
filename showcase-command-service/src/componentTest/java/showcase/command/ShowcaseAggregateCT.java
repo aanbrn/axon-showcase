@@ -14,7 +14,6 @@ import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.anEmptyMap;
 import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -28,6 +27,9 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 import static showcase.command.RandomCommandTestUtils.aTooLongShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aTooLongShowcaseTitle;
 import static showcase.command.RandomCommandTestUtils.anInvalidShowcaseId;
+import static showcase.command.ShowcaseCommandErrorDetailsMatchers.hasErrorCode;
+import static showcase.command.ShowcaseCommandErrorDetailsMatchers.hasErrorMessage;
+import static showcase.command.ShowcaseCommandErrorDetailsMatchers.hasMetaData;
 
 @ExtendWith(MockitoExtension.class)
 class ShowcaseAggregateCT {
@@ -127,9 +129,9 @@ class ShowcaseAggregateCT {
                              .build())
                .expectException(ShowcaseCommandException.class)
                .expectExceptionDetails(allOf(
-                       hasProperty("errorCode", is(ShowcaseCommandErrorCode.INVALID_COMMAND)),
-                       hasProperty("errorMessage", is("Given command is not valid")),
-                       hasProperty("metaData", allOf(
+                       hasErrorCode(is(ShowcaseCommandErrorCode.INVALID_COMMAND)),
+                       hasErrorMessage(is("Given command is not valid")),
+                       hasMetaData(allOf(
                                aMapWithSize(4),
                                hasKey("showcaseId"),
                                hasKey("title"),
@@ -169,7 +171,7 @@ class ShowcaseAggregateCT {
     void scheduleShowcase_reusedTitle_throwsShowcaseCommandExceptionWithTitleInUseError() {
         val command = aScheduleShowcaseCommand(fixture.currentTime());
 
-        doThrow(DuplicateTitleException.class).when(showcaseTitleReservation).save(command.getTitle());
+        doThrow(DuplicateTitleException.class).when(showcaseTitleReservation).save(command.title());
 
         fixture.givenNoPriorActivity()
                .when(command)
@@ -285,9 +287,9 @@ class ShowcaseAggregateCT {
                              .showcaseId(anInvalidShowcaseId())
                              .build())
                .expectExceptionDetails(allOf(
-                       hasProperty("errorCode", is(ShowcaseCommandErrorCode.INVALID_COMMAND)),
-                       hasProperty("errorMessage", is("Given command is not valid")),
-                       hasProperty("metaData", allOf(aMapWithSize(1), hasKey("showcaseId")))));
+                       hasErrorCode(is(ShowcaseCommandErrorCode.INVALID_COMMAND)),
+                       hasErrorMessage(is("Given command is not valid")),
+                       hasMetaData(allOf(aMapWithSize(1), hasKey("showcaseId")))));
     }
 
     @Test
@@ -340,9 +342,9 @@ class ShowcaseAggregateCT {
                              .build())
                .expectException(ShowcaseCommandException.class)
                .expectExceptionDetails(allOf(
-                       hasProperty("errorCode", is(ShowcaseCommandErrorCode.NOT_FOUND)),
-                       hasProperty("errorMessage", is("No showcase with given ID")),
-                       hasProperty("metaData", anEmptyMap())));
+                       hasErrorCode(is(ShowcaseCommandErrorCode.NOT_FOUND)),
+                       hasErrorMessage(is("No showcase with given ID")),
+                       hasMetaData(anEmptyMap())));
     }
 
     @Test
@@ -416,9 +418,9 @@ class ShowcaseAggregateCT {
                              .showcaseId(anInvalidShowcaseId())
                              .build())
                .expectExceptionDetails(allOf(
-                       hasProperty("errorCode", is(ShowcaseCommandErrorCode.INVALID_COMMAND)),
-                       hasProperty("errorMessage", is("Given command is not valid")),
-                       hasProperty("metaData", allOf(aMapWithSize(1), hasKey("showcaseId")))));
+                       hasErrorCode(is(ShowcaseCommandErrorCode.INVALID_COMMAND)),
+                       hasErrorMessage(is("Given command is not valid")),
+                       hasMetaData(allOf(aMapWithSize(1), hasKey("showcaseId")))));
     }
 
     @Test
@@ -430,9 +432,9 @@ class ShowcaseAggregateCT {
                              .build())
                .expectException(ShowcaseCommandException.class)
                .expectExceptionDetails(allOf(
-                       hasProperty("errorCode", is(ShowcaseCommandErrorCode.NOT_FOUND)),
-                       hasProperty("errorMessage", is("No showcase with given ID")),
-                       hasProperty("metaData", anEmptyMap())));
+                       hasErrorCode(is(ShowcaseCommandErrorCode.NOT_FOUND)),
+                       hasErrorMessage(is("No showcase with given ID")),
+                       hasMetaData(anEmptyMap())));
     }
 
     @Test
@@ -645,8 +647,8 @@ class ShowcaseAggregateCT {
                              .showcaseId(anInvalidShowcaseId())
                              .build())
                .expectExceptionDetails(allOf(
-                       hasProperty("errorCode", is(ShowcaseCommandErrorCode.INVALID_COMMAND)),
-                       hasProperty("errorMessage", is("Given command is not valid")),
-                       hasProperty("metaData", allOf(aMapWithSize(1), hasKey("showcaseId")))));
+                       hasErrorCode(is(ShowcaseCommandErrorCode.INVALID_COMMAND)),
+                       hasErrorMessage(is("Given command is not valid")),
+                       hasMetaData(allOf(aMapWithSize(1), hasKey("showcaseId")))));
     }
 }

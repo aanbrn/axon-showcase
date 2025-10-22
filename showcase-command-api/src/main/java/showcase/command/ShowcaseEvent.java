@@ -12,5 +12,5 @@ public sealed interface ShowcaseEvent
                 ShowcaseFinishedEvent,
                 ShowcaseRemovedEvent {
 
-    String getShowcaseId();
+    String showcaseId();
 }

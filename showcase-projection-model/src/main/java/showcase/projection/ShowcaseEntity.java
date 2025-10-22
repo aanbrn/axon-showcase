@@ -1,9 +1,12 @@
 package showcase.projection;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
+import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -19,7 +22,9 @@ import java.time.Instant;
 @Setting(sortFields = "showcaseId", sortOrders = SortOrder.desc)
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Accessors(fluent = true)
 @Builder(toBuilder = true)
+@JsonAutoDetect(fieldVisibility = Visibility.ANY)
 public class ShowcaseEntity {
 
     @Id

@@ -22,8 +22,8 @@ class ShowcaseQueryErrorDetailsTests {
                         .errorMessage(errorMessage)
                         .build();
         assertThat(errorDetails).isNotNull();
-        assertThat(errorDetails.getErrorCode()).isEqualTo(errorCode);
-        assertThat(errorDetails.getErrorMessage()).isEqualTo(errorMessage);
+        assertThat(errorDetails.errorCode()).isEqualTo(errorCode);
+        assertThat(errorDetails.errorMessage()).isEqualTo(errorMessage);
     }
 
     @Test

@@ -19,7 +19,7 @@ class FetchShowcaseByIdQueryTests {
                         .showcaseId(showcaseId)
                         .build();
         assertThat(query).isNotNull();
-        assertThat(query.getShowcaseId()).isEqualTo(showcaseId);
+        assertThat(query.showcaseId()).isEqualTo(showcaseId);
     }
 
     @Test

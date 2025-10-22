@@ -104,7 +104,7 @@ class ShowcaseQueryControllerIT {
                 .isOk()
                 .expectBodyList(Showcase.class)
                 .isEqualTo(showcases.stream()
-                                    .sorted(comparing(Showcase::getShowcaseId).reversed())
+                                    .sorted(comparing(Showcase::showcaseId).reversed())
                                     .toList());
     }
 
@@ -123,7 +123,7 @@ class ShowcaseQueryControllerIT {
 
         val query = FetchShowcaseListQuery
                             .builder()
-                            .title(showcase.getTitle())
+                            .title(showcase.title())
                             .build();
 
         webClient
@@ -168,8 +168,8 @@ class ShowcaseQueryControllerIT {
                 .isOk()
                 .expectBodyList(Showcase.class)
                 .isEqualTo(showcases.stream()
-                                    .filter(showcase -> showcase.getStatus() == status)
-                                    .sorted(comparing(Showcase::getShowcaseId).reversed())
+                                    .filter(showcase -> showcase.status() == status)
+                                    .sorted(comparing(Showcase::showcaseId).reversed())
                                     .toList());
     }
 
@@ -204,9 +204,8 @@ class ShowcaseQueryControllerIT {
                 .isOk()
                 .expectBodyList(Showcase.class)
                 .isEqualTo(showcases.stream()
-                                    .filter(showcase -> showcase.getStatus() == status1
-                                                                || showcase.getStatus() == status2)
-                                    .sorted(comparing(Showcase::getShowcaseId).reversed())
+                                    .filter(showcase -> showcase.status() == status1 || showcase.status() == status2)
+                                    .sorted(comparing(Showcase::showcaseId).reversed())
                                     .toList());
     }
 
@@ -215,10 +214,10 @@ class ShowcaseQueryControllerIT {
         val showcases =
                 showcases()
                         .stream()
-                        .sorted(Comparator.comparing(Showcase::getShowcaseId).reversed())
+                        .sorted(Comparator.comparing(Showcase::showcaseId).reversed())
                         .toList();
         val afterIndex = RandomUtils.secure().randomInt(0, showcases.size());
-        val afterId = showcases.get(afterIndex).getShowcaseId();
+        val afterId = showcases.get(afterIndex).showcaseId();
 
         openSearchTemplate.save(
                 showcases.stream()
@@ -251,7 +250,7 @@ class ShowcaseQueryControllerIT {
         val showcases =
                 showcases()
                         .stream()
-                        .sorted(Comparator.comparing(Showcase::getShowcaseId).reversed())
+                        .sorted(Comparator.comparing(Showcase::showcaseId).reversed())
                         .toList();
         val size = RandomUtils.secure().randomInt(1, showcases.size());
 
@@ -326,7 +325,7 @@ class ShowcaseQueryControllerIT {
 
         val query = FetchShowcaseByIdQuery
                             .builder()
-                            .showcaseId(showcase.getShowcaseId())
+                            .showcaseId(showcase.showcaseId())
                             .build();
 
         webClient

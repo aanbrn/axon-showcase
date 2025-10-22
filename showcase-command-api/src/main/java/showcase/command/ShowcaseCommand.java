@@ -14,5 +14,5 @@ public sealed interface ShowcaseCommand
 
     @TargetAggregateIdentifier
     @RoutingKey
-    String getShowcaseId();
+    String showcaseId();
 }

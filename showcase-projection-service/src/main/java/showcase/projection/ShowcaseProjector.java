@@ -103,10 +103,10 @@ class ShowcaseProjector implements SmartLifecycle {
                              .register(meterRegistry);
 
                 val startTime = switch (event) {
-                    case ShowcaseScheduledEvent scheduledEvent -> scheduledEvent.getScheduledAt().toEpochMilli();
-                    case ShowcaseStartedEvent startedEvent -> startedEvent.getStartedAt().toEpochMilli();
-                    case ShowcaseFinishedEvent finishedEvent -> finishedEvent.getFinishedAt().toEpochMilli();
-                    case ShowcaseRemovedEvent removedEvent -> removedEvent.getRemovedAt().toEpochMilli();
+                    case ShowcaseScheduledEvent scheduledEvent -> scheduledEvent.scheduledAt().toEpochMilli();
+                    case ShowcaseStartedEvent startedEvent -> startedEvent.startedAt().toEpochMilli();
+                    case ShowcaseFinishedEvent finishedEvent -> finishedEvent.finishedAt().toEpochMilli();
+                    case ShowcaseRemovedEvent removedEvent -> removedEvent.removedAt().toEpochMilli();
                 };
 
                 return new MonitorCallback() {
@@ -332,7 +332,7 @@ class ShowcaseProjector implements SmartLifecycle {
                            } else {
                                log.trace("On {}, [{}]: succeeded",
                                          event.getClass().getSimpleName(),
-                                         event.getShowcaseId());
+                                         event.showcaseId());
                            }
                        } else {
                            monitorCallback.reportFailure(null);
@@ -350,44 +350,44 @@ class ShowcaseProjector implements SmartLifecycle {
     private BulkOperation eventToBulkOperation(ShowcaseEvent event) {
         return switch (event) {
             case ShowcaseScheduledEvent scheduledEvent -> BulkOperation.of(operation -> operation.create(
-                    request -> request.id(scheduledEvent.getShowcaseId())
+                    request -> request.id(scheduledEvent.showcaseId())
                                       .document(elasticsearchConverter.mapObject(
                                               ShowcaseEntity
                                                       .builder()
-                                                      .showcaseId(scheduledEvent.getShowcaseId())
-                                                      .title(scheduledEvent.getTitle())
-                                                      .startTime(scheduledEvent.getStartTime())
-                                                      .duration(scheduledEvent.getDuration())
+                                                      .showcaseId(scheduledEvent.showcaseId())
+                                                      .title(scheduledEvent.title())
+                                                      .startTime(scheduledEvent.startTime())
+                                                      .duration(scheduledEvent.duration())
                                                       .status(ShowcaseStatus.SCHEDULED)
-                                                      .scheduledAt(scheduledEvent.getScheduledAt())
+                                                      .scheduledAt(scheduledEvent.scheduledAt())
                                                       .build()))
                                       .index(showcaseIndex.getIndexName())
-                                      .routing(scheduledEvent.getShowcaseId())));
+                                      .routing(scheduledEvent.showcaseId())));
             case ShowcaseStartedEvent startedEvent -> BulkOperation.of(operation -> operation.update(
-                    request -> request.id(startedEvent.getShowcaseId())
+                    request -> request.id(startedEvent.showcaseId())
                                       .document(elasticsearchConverter.mapObject(
                                               ShowcaseEntity
                                                       .builder()
-                                                      .duration(startedEvent.getDuration())
+                                                      .duration(startedEvent.duration())
                                                       .status(ShowcaseStatus.STARTED)
-                                                      .startedAt(startedEvent.getStartedAt())
+                                                      .startedAt(startedEvent.startedAt())
                                                       .build()))
                                       .index(showcaseIndex.getIndexName())
-                                      .routing(startedEvent.getShowcaseId())));
+                                      .routing(startedEvent.showcaseId())));
             case ShowcaseFinishedEvent finishedEvent -> BulkOperation.of(operation -> operation.update(
-                    request -> request.id(finishedEvent.getShowcaseId())
+                    request -> request.id(finishedEvent.showcaseId())
                                       .document(elasticsearchConverter.mapObject(
                                               ShowcaseEntity
                                                       .builder()
                                                       .status(ShowcaseStatus.FINISHED)
-                                                      .finishedAt(finishedEvent.getFinishedAt())
+                                                      .finishedAt(finishedEvent.finishedAt())
                                                       .build()))
                                       .index(showcaseIndex.getIndexName())
-                                      .routing(finishedEvent.getShowcaseId())));
+                                      .routing(finishedEvent.showcaseId())));
             case ShowcaseRemovedEvent removedEvent -> BulkOperation.of(operation -> operation.delete(
-                    request -> request.id(removedEvent.getShowcaseId())
+                    request -> request.id(removedEvent.showcaseId())
                                       .index(showcaseIndex.getIndexName())
-                                      .routing(removedEvent.getShowcaseId())));
+                                      .routing(removedEvent.showcaseId())));
         };
     }
 

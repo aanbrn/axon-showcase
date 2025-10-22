@@ -34,11 +34,11 @@ class ShowcaseScheduledEventTests {
                         .scheduledAt(scheduledAt)
                         .build();
         assertThat(event).isNotNull();
-        assertThat(event.getShowcaseId()).isEqualTo(showcaseId);
-        assertThat(event.getTitle()).isEqualTo(title);
-        assertThat(event.getStartTime()).isEqualTo(startTime);
-        assertThat(event.getDuration()).isEqualTo(duration);
-        assertThat(event.getScheduledAt()).isEqualTo(scheduledAt);
+        assertThat(event.showcaseId()).isEqualTo(showcaseId);
+        assertThat(event.title()).isEqualTo(title);
+        assertThat(event.startTime()).isEqualTo(startTime);
+        assertThat(event.duration()).isEqualTo(duration);
+        assertThat(event.scheduledAt()).isEqualTo(scheduledAt);
     }
 
     @Test

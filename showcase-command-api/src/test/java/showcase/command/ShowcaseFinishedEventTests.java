@@ -23,8 +23,8 @@ class ShowcaseFinishedEventTests {
                         .finishedAt(finishedAt)
                         .build();
         assertThat(event).isNotNull();
-        assertThat(event.getShowcaseId()).isEqualTo(showcaseId);
-        assertThat(event.getFinishedAt()).isEqualTo(finishedAt);
+        assertThat(event.showcaseId()).isEqualTo(showcaseId);
+        assertThat(event.finishedAt()).isEqualTo(finishedAt);
     }
 
     @Test

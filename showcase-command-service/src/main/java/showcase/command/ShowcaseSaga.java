@@ -26,9 +26,9 @@ public class ShowcaseSaga {
     void handle(@NonNull ShowcaseScheduledEvent event, @NonNull DeadlineManager deadlineManager) {
         showcaseStatus = ShowcaseStatus.SCHEDULED;
 
-        deadlineManager.schedule(event.getStartTime(), "startShowcase", event.getShowcaseId());
+        deadlineManager.schedule(event.startTime(), "startShowcase", event.showcaseId());
 
-        log.debug("Scheduled deadline to start showcase with ID {} at {}", event.getShowcaseId(), event.getStartTime());
+        log.debug("Scheduled deadline to start showcase with ID {} at {}", event.showcaseId(), event.startTime());
     }
 
     @DeadlineHandler(deadlineName = "startShowcase")
@@ -62,11 +62,11 @@ public class ShowcaseSaga {
     void handle(@NonNull ShowcaseStartedEvent event, @NonNull DeadlineManager deadlineManager) {
         showcaseStatus = ShowcaseStatus.STARTED;
 
-        val finishTime = event.getStartedAt().plus(event.getDuration());
+        val finishTime = event.startedAt().plus(event.duration());
 
-        deadlineManager.schedule(finishTime, "finishShowcase", event.getShowcaseId());
+        deadlineManager.schedule(finishTime, "finishShowcase", event.showcaseId());
 
-        log.trace("Scheduled deadline to finish showcase with ID {} at {}", event.getShowcaseId(), finishTime);
+        log.trace("Scheduled deadline to finish showcase with ID {} at {}", event.showcaseId(), finishTime);
     }
 
     @DeadlineHandler(deadlineName = "finishShowcase")

@@ -1,18 +1,23 @@
 package showcase.query;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
+import lombok.experimental.Accessors;
 
 import java.time.Duration;
 import java.time.Instant;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Accessors(fluent = true)
 @Builder(toBuilder = true)
+@JsonAutoDetect(fieldVisibility = Visibility.ANY)
 @Schema(description = "Details of the showcase.")
 @SuppressWarnings("ClassCanBeRecord")
 public class Showcase {

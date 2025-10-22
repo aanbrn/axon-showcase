@@ -9,11 +9,11 @@ import org.hamcrest.Matcher;
 import java.util.Map;
 
 @UtilityClass
-public class ShowcaseCommandErrorDetailsMatchers {
+public class ShowcaseCommandMatchers {
 
-    public static FeatureMatcher<ShowcaseCommandErrorDetails, ShowcaseCommandErrorCode> hasErrorCode(
+    public static Matcher<ShowcaseCommandErrorDetails> aCommandErrorDetailsWithErrorCode(
             @NonNull Matcher<ShowcaseCommandErrorCode> matcher) {
-        return new FeatureMatcher<>(matcher, "An error details with error code", "errorCode") {
+        return new FeatureMatcher<>(matcher, "A command error details with error code", "errorCode") {
             @Override
             protected ShowcaseCommandErrorCode featureValueOf(ShowcaseCommandErrorDetails actual) {
                 return actual.errorCode();
@@ -21,9 +21,9 @@ public class ShowcaseCommandErrorDetailsMatchers {
         };
     }
 
-    public static FeatureMatcher<ShowcaseCommandErrorDetails, String> hasErrorMessage(
+    public static Matcher<ShowcaseCommandErrorDetails> aCommandErrorDetailsWithErrorMessage(
             @NonNull Matcher<String> matcher) {
-        return new FeatureMatcher<>(matcher, "An error details with error message", "errorCode") {
+        return new FeatureMatcher<>(matcher, "A command error details with error message", "errorCode") {
             @Override
             protected String featureValueOf(ShowcaseCommandErrorDetails actual) {
                 return actual.errorMessage();
@@ -31,9 +31,9 @@ public class ShowcaseCommandErrorDetailsMatchers {
         };
     }
 
-    public static FeatureMatcher<ShowcaseCommandErrorDetails, Map<?, ?>> hasMetaData(
+    public static Matcher<ShowcaseCommandErrorDetails> aCommandErrorDetailsWithMetaData(
             @NonNull Matcher<Map<?, ?>> matcher) {
-        return new FeatureMatcher<>(matcher, "An error details with metadata", "metaData") {
+        return new FeatureMatcher<>(matcher, "A command error details with metadata", "metaData") {
             @Override
             protected MetaData featureValueOf(ShowcaseCommandErrorDetails actual) {
                 return actual.metaData();

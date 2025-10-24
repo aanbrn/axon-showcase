@@ -4,7 +4,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
-import lombok.NonNull;
 import lombok.val;
 import org.axonframework.messaging.MetaData;
 import org.axonframework.queryhandling.GenericStreamingQueryMessage;
@@ -37,9 +36,9 @@ class ShowcaseQueryClient implements ShowcaseQueryOperations {
     private final QueryMessageRequestMapper queryMessageRequestMapper;
 
     ShowcaseQueryClient(
-            @NonNull ShowcaseQueryClientProperties clientProperties,
-            @NonNull WebClient.Builder webClientBuilder,
-            @NonNull @Qualifier("messageSerializer") Serializer messageSerializer) {
+            ShowcaseQueryClientProperties clientProperties,
+            WebClient.Builder webClientBuilder,
+            @Qualifier("messageSerializer") Serializer messageSerializer) {
         this.webClient =
                 webClientBuilder
                         .baseUrl(clientProperties.getApiUrl())
@@ -48,7 +47,7 @@ class ShowcaseQueryClient implements ShowcaseQueryOperations {
     }
 
     @Override
-    public Flux<Showcase> fetchList(@NonNull FetchShowcaseListQuery query) {
+    public Flux<Showcase> fetchList(FetchShowcaseListQuery query) {
         return createQueryRequest(query, Showcase.class)
                        .flatMapMany(queryRequest -> Flux.defer(
                                () -> webClient.post()
@@ -62,7 +61,7 @@ class ShowcaseQueryClient implements ShowcaseQueryOperations {
     }
 
     @Override
-    public Mono<Showcase> fetchById(@NonNull FetchShowcaseByIdQuery query) {
+    public Mono<Showcase> fetchById(FetchShowcaseByIdQuery query) {
         return createQueryRequest(query, Showcase.class)
                        .flatMap(queryRequest -> Mono.defer(
                                () -> webClient.post()

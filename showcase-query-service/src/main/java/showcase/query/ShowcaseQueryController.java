@@ -2,7 +2,6 @@ package showcase.query;
 
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.TextFormat.Printer;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -35,13 +34,10 @@ import static org.springframework.http.MediaType.APPLICATION_PROTOBUF_VALUE;
 @Slf4j
 final class ShowcaseQueryController {
 
-    @NonNull
     private final QueryBus queryBus;
 
-    @NonNull
     private final QueryMessageRequestMapper queryMessageRequestMapper;
 
-    @NonNull
     private final QueryBusSpanFactory spanFactory;
 
     private final Printer queryRequestPrinter = TextFormat.debugFormatPrinter().emittingSingleLine(true);

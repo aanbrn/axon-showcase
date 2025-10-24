@@ -3,7 +3,6 @@ package showcase.command;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Path;
-import lombok.NonNull;
 import lombok.val;
 import one.util.streamex.StreamEx;
 import org.axonframework.eventsourcing.AggregateDeletedException;
@@ -15,6 +14,7 @@ import org.axonframework.messaging.interceptors.BeanValidationInterceptor;
 import org.axonframework.messaging.interceptors.JSR303ViolationException;
 import org.axonframework.messaging.unitofwork.UnitOfWork;
 import org.axonframework.modelling.command.AggregateNotFoundException;
+import org.jspecify.annotations.Nullable;
 
 final class ShowcaseCommandMessageInterceptor<T extends Message<?>> implements MessageHandlerInterceptor<T> {
 
@@ -22,7 +22,7 @@ final class ShowcaseCommandMessageInterceptor<T extends Message<?>> implements M
 
     @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
     @Override
-    public Object handle(@NonNull UnitOfWork<? extends T> unitOfWork, @NonNull InterceptorChain interceptorChain)
+    public @Nullable Object handle(UnitOfWork<? extends T> unitOfWork, InterceptorChain interceptorChain)
             throws Exception {
         try {
             return beanValidationInterceptor.handle(unitOfWork, interceptorChain);

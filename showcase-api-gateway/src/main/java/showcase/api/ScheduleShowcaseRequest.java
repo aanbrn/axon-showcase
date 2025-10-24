@@ -1,15 +1,16 @@
 package showcase.api;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.EqualsAndHashCode.CacheStrategy;
 import lombok.Value;
 import lombok.experimental.Accessors;
+import lombok.extern.jackson.Jacksonized;
 import showcase.command.ShowcaseDuration;
 import showcase.command.ShowcaseStartTime;
 import showcase.command.ShowcaseTitle;
@@ -20,8 +21,9 @@ import java.time.Instant;
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
+@EqualsAndHashCode(cacheStrategy = CacheStrategy.LAZY)
 @Builder
-@JsonAutoDetect(fieldVisibility = Visibility.ANY)
+@Jacksonized
 @Schema(description = "Request payload to schedule a showcase.")
 @SuppressWarnings("ClassCanBeRecord")
 class ScheduleShowcaseRequest {

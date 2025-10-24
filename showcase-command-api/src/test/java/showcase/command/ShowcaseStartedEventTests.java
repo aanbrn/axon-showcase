@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 
@@ -33,34 +33,31 @@ class ShowcaseStartedEventTests {
 
     @Test
     void construction_missingShowcaseId_throwsNullPointerException() {
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> ShowcaseStartedEvent
                               .builder()
                               .duration(aShowcaseDuration())
                               .startedAt(Instant.now())
-                              .build())
-                .isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 
     @Test
     void construction_missingDuration_throwsNullPointerException() {
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> ShowcaseStartedEvent
                               .builder()
                               .showcaseId(aShowcaseId())
                               .startedAt(Instant.now())
-                              .build())
-                .isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 
     @Test
     void construction_missingStartedAt_throwsNullPointerException() {
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> ShowcaseStartedEvent
                               .builder()
                               .showcaseId(aShowcaseId())
                               .duration(aShowcaseDuration())
-                              .build())
-                .isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 }

@@ -1,12 +1,9 @@
 package showcase.command;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
-
-import java.util.Locale;
 
 @Component
 @RequiredArgsConstructor
@@ -21,19 +18,19 @@ final class ShowcaseTitleReservation {
 
     private final JdbcClient jdbcClient;
 
-    void save(@NonNull String title) throws DuplicateTitleException {
+    void save(String title) throws DuplicateTitleException {
         try {
-            jdbcClient.sql("INSERT INTO showcase_title_reservation (title) VALUES (:title)")
-                      .param("title", title.toLowerCase(Locale.ROOT))
+            jdbcClient.sql("INSERT INTO showcase_title_reservation (title) VALUES (lower(:title))")
+                      .param("title", title)
                       .update();
         } catch (DuplicateKeyException e) {
             throw new DuplicateTitleException(e);
         }
     }
 
-    void delete(@NonNull String title) {
-        jdbcClient.sql("DELETE FROM showcase_title_reservation WHERE title = :title")
-                  .param("title", title.toLowerCase(Locale.ROOT))
+    void delete(String title) {
+        jdbcClient.sql("DELETE FROM showcase_title_reservation WHERE title = lower(:title)")
+                  .param("title", title)
                   .update();
     }
 }

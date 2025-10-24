@@ -8,4 +8,6 @@ dependencies {
     implementation(platform(project(":platform")))
 
     implementation(libs.spring.boot.autoconfigure)
+
+    implementation(libs.guava)
 }

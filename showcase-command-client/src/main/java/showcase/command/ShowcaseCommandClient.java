@@ -3,7 +3,6 @@ package showcase.command;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.extensions.reactor.commandhandling.gateway.ReactorCommandGateway;
@@ -20,30 +19,29 @@ import static showcase.command.ShowcaseCommandOperations.SHOWCASE_COMMAND_SERVIC
 @Retry(name = SHOWCASE_COMMAND_SERVICE)
 class ShowcaseCommandClient implements ShowcaseCommandOperations {
 
-    @NonNull
     private final ReactorCommandGateway commandGateway;
 
     @Override
-    public Mono<Void> schedule(@NonNull ScheduleShowcaseCommand command) {
+    public Mono<Void> schedule(ScheduleShowcaseCommand command) {
         return sendCommand(command).checkpoint("ShowcaseCommandClient.schedule(%s)".formatted(command));
     }
 
     @Override
-    public Mono<Void> start(@NonNull StartShowcaseCommand command) {
+    public Mono<Void> start(StartShowcaseCommand command) {
         return sendCommand(command).checkpoint("ShowcaseCommandClient.start(%s)".formatted(command));
     }
 
     @Override
-    public Mono<Void> finish(@NonNull FinishShowcaseCommand command) {
+    public Mono<Void> finish(FinishShowcaseCommand command) {
         return sendCommand(command).checkpoint("ShowcaseCommandClient.finish(%s)".formatted(command));
     }
 
     @Override
-    public Mono<Void> remove(@NonNull RemoveShowcaseCommand command) {
+    public Mono<Void> remove(RemoveShowcaseCommand command) {
         return sendCommand(command).checkpoint("ShowcaseCommandClient.remove(%s)".formatted(command));
     }
 
-    private Mono<Void> sendCommand(@NonNull ShowcaseCommand command) {
+    private Mono<Void> sendCommand(ShowcaseCommand command) {
         return commandGateway
                        .<Void>send(command)
                        .subscribeOn(Schedulers.boundedElastic())

@@ -11,6 +11,7 @@ dependencies {
     implementation(libs.protobuf.plugin)
     implementation(libs.gatling.plugin)
     implementation(libs.dependencyVersions.plugin)
+    implementation(libs.errorprone.plugin)
     implementation(libs.spotbugs.plugin)
     implementation(libs.helm.plugin)
     implementation(libs.helm.releases.plugin)

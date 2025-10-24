@@ -31,6 +31,8 @@ val mockitoAgent: Configuration = configurations.create("mockitoAgent")
 dependencies {
     implementation(platform(project(":platform")))
 
+    implementation(libs.jspecify)
+
     testFixturesImplementation(platform(project(":platform")))
     testFixturesImplementation(libs.assertj.core)
 

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
-import lombok.NonNull;
 import lombok.val;
 import one.util.streamex.StreamEx;
 import org.axonframework.commandhandling.NoHandlerForCommandException;
@@ -126,10 +125,10 @@ class ShowcaseApiControllerCT {
     private ShowcaseQueryOperations showcaseQueryOperations;
 
     @MockitoBean(answers = RETURNS_DEEP_STUBS)
-    private Cache<@NonNull FetchShowcaseListQuery, @NonNull List<@NonNull String>> fetchShowcaseListCache;
+    private Cache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache;
 
     @MockitoBean(answers = RETURNS_DEEP_STUBS)
-    private Cache<@NonNull String, @NonNull Showcase> fetchShowcaseByIdCache;
+    private Cache<String, Showcase> fetchShowcaseByIdCache;
 
     @BeforeAll
     static void installBlockHound() {

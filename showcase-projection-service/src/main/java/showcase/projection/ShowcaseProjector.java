@@ -24,6 +24,9 @@ import org.axonframework.monitoring.MessageMonitor;
 import org.axonframework.monitoring.MessageMonitor.MonitorCallback;
 import org.axonframework.monitoring.MultiMessageMonitor;
 import org.axonframework.monitoring.NoOpMessageMonitorCallback;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.opensearch.client.opensearch._types.Result;
 import org.opensearch.client.opensearch.core.BulkRequest;
 import org.opensearch.client.opensearch.core.BulkResponse;
@@ -76,6 +79,7 @@ class ShowcaseProjector implements SmartLifecycle {
 
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     @Builder
+    @NullUnmarked
     private static class ProjectionTimerMonitor implements MessageMonitor<EventMessage<?>> {
 
         @NonNull
@@ -84,16 +88,15 @@ class ShowcaseProjector implements SmartLifecycle {
         @NonNull
         private final MeterRegistry meterRegistry;
 
-        @NonNull
         @Builder.Default
         private final Function<Message<?>, Iterable<Tag>> tagsBuilder = message -> Tags.empty();
 
-        @NonNull
         @Builder.Default
         private final Clock clock = Clock.SYSTEM;
 
+        @NullMarked
         @Override
-        public MonitorCallback onMessageIngested(@NonNull EventMessage<?> message) {
+        public MonitorCallback onMessageIngested(EventMessage<?> message) {
             if (message.getPayload() instanceof ShowcaseEvent event) {
                 val projectionTimer =
                         Timer.builder(meterNamePrefix + ".projectionTimer")
@@ -148,16 +151,16 @@ class ShowcaseProjector implements SmartLifecycle {
 
     private final ObservationRegistry observationRegistry;
 
-    private final AtomicReference<Disposable> subscription = new AtomicReference<>();
+    private final AtomicReference<@Nullable Disposable> subscription = new AtomicReference<>();
 
     ShowcaseProjector(
-            @NonNull ShowcaseProjectorProperties projectionProperties,
-            @NonNull KafkaProperties kafkaProperties,
-            @NonNull KafkaMessageConverter<String, byte[]> kafkaMessageConverter,
-            @NonNull ReactiveOpenSearchTemplate openSearchTemplate,
-            @NonNull ElasticsearchConverter elasticsearchConverter,
-            @NonNull MeterRegistry meterRegistry,
-            @NonNull ObservationRegistry observationRegistry) {
+            ShowcaseProjectorProperties projectionProperties,
+            KafkaProperties kafkaProperties,
+            KafkaMessageConverter<String, byte[]> kafkaMessageConverter,
+            ReactiveOpenSearchTemplate openSearchTemplate,
+            ElasticsearchConverter elasticsearchConverter,
+            MeterRegistry meterRegistry,
+            ObservationRegistry observationRegistry) {
         this.projectionProperties = projectionProperties;
         this.kafkaReceiver =
                 KafkaReceiver.create(

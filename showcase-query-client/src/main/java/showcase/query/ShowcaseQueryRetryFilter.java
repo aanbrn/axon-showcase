@@ -1,6 +1,5 @@
 package showcase.query;
 
-import lombok.NonNull;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -10,7 +9,7 @@ import java.util.function.Predicate;
 final class ShowcaseQueryRetryFilter implements Predicate<Throwable> {
 
     @Override
-    public boolean test(@NonNull Throwable t) {
+    public boolean test(Throwable t) {
         if (t instanceof WebClientResponseException e) {
             return switch (e.getStatusCode().value()) {
                 case 408, // Request Timeout

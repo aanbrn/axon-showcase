@@ -1,7 +1,6 @@
 package showcase.query;
 
 import io.micrometer.observation.ObservationRegistry;
-import lombok.NonNull;
 import lombok.val;
 import org.axonframework.queryhandling.QueryHandler;
 import org.opensearch.data.client.osc.ReactiveOpenSearchTemplate;
@@ -33,9 +32,9 @@ class ShowcaseQueryHandler {
     private final SignalListenerFactory<Showcase, ?> observationListenerFactory;
 
     ShowcaseQueryHandler(
-            @NonNull ReactiveOpenSearchTemplate openSearchTemplate,
-            @NonNull ShowcaseMapper showcaseMapper,
-            @NonNull ObservationRegistry observationRegistry) {
+            ReactiveOpenSearchTemplate openSearchTemplate,
+            ShowcaseMapper showcaseMapper,
+            ObservationRegistry observationRegistry) {
         this.openSearchTemplate = openSearchTemplate;
         this.showcaseMapper = showcaseMapper;
         this.showcaseIndex = openSearchTemplate.getIndexCoordinatesFor(ShowcaseEntity.class);
@@ -43,7 +42,7 @@ class ShowcaseQueryHandler {
     }
 
     @QueryHandler
-    Flux<Showcase> handle(@NonNull FetchShowcaseListQuery query) {
+    Flux<Showcase> handle(FetchShowcaseListQuery query) {
         var criteria = new Criteria();
         val title = query.title();
         if (title != null) {
@@ -76,7 +75,7 @@ class ShowcaseQueryHandler {
     }
 
     @QueryHandler
-    Mono<Showcase> handle(@NonNull FetchShowcaseByIdQuery query) throws ShowcaseQueryException {
+    Mono<Showcase> handle(FetchShowcaseByIdQuery query) throws ShowcaseQueryException {
         return openSearchTemplate
                        .get(query.showcaseId(), ShowcaseEntity.class, showcaseIndex)
                        .name("fetch-showcase-by-id")

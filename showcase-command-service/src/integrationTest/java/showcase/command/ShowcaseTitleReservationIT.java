@@ -21,6 +21,7 @@ import showcase.command.ShowcaseTitleReservation.DuplicateTitleException;
 import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
@@ -77,8 +78,8 @@ class ShowcaseTitleReservationIT {
 
     @Test
     void save_tooLongTitle_throwsDataIntegrityViolationException() {
-        assertThatThrownBy(() -> showcaseTitleReservation.save(aTooLongShowcaseTitle()))
-                .isExactlyInstanceOf(DataIntegrityViolationException.class);
+        assertThatExceptionOfType(DataIntegrityViolationException.class).isThrownBy(
+                () -> showcaseTitleReservation.save(aTooLongShowcaseTitle()));
     }
 
     @Test

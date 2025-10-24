@@ -1,8 +1,12 @@
 import com.github.spotbugs.snom.SpotBugsTask
+import gradle.kotlin.dsl.accessors._3bf4a88d0018adc2632b076cc3bcea5f.errorprone
+import net.ltgt.gradle.errorprone.CheckSeverity
+import net.ltgt.gradle.errorprone.errorprone
 import org.gradle.accessors.dm.LibrariesForLibs
 
 plugins {
     id("com.github.spotbugs")
+    id("net.ltgt.errorprone")
 }
 
 val libs = the<LibrariesForLibs>()
@@ -19,6 +23,9 @@ dependencies {
 
     spotbugsPlugins(libs.spotbugs.findsecbugs.plugin)
     spotbugsPlugins(libs.spotbugs.fbContrib.plugin)
+
+    errorprone(libs.errorprone.core)
+    errorprone(libs.nullaway)
 }
 
 tasks.withType<SpotBugsTask> {
@@ -37,5 +44,15 @@ tasks.withType<SpotBugsTask> {
     }
     reports.create("xml") {
         required = true
+    }
+}
+
+tasks.withType<JavaCompile> {
+    options.errorprone {
+        check("NullAway", CheckSeverity.ERROR)
+        option("NullAway:AnnotatedPackages", "showcase")
+
+        disable("StringConcatToTextBlock")
+        disableWarningsInGeneratedCode = true
     }
 }

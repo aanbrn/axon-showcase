@@ -38,17 +38,21 @@ logback = "1.5.20"
 xstream = "1.4.21"
 ksuid = "1.1.4"
 jakarta-validation-api = "3.1.1"
+jspecify = "1.0.0"
 hamcrest = "3.0"
 mockito-bom = "5.20.0"
 wiremock-spring-boot = "3.10.6"
 kotlin = "2.2.20"
+errorprone = "2.42.0"
+nullaway = "0.12.10"
 spotbugs = "4.9.8"
 lombok = "1.18.42"
-lombok-plugin = "8.14.2"
+lombok-plugin = "9.0.0"
 protobuf-plugin = "0.9.5"
-gatling-plugin = "3.14.6"
+gatling-plugin = "3.14.6.4"
 dependencyVersions-plugin = "0.53.0"
-spotbugs-plugin = "6.2.2"
+errorprone-plugin = "4.2.0"
+spotbugs-plugin = "6.2.5"
 spotbugs-findsecbugs-plugin = "1.14.0"
 spotbugs-fbContrib-plugin = "7.6.15"
 helm = "3.19.0"
@@ -119,7 +123,6 @@ logback-core = { group = "ch.qos.logback", name = "logback-core", version.ref = 
 mapstruct = { group = "org.mapstruct", name = "mapstruct", version.ref = "mapstruct" }
 mapstruct-processor = { group = "org.mapstruct", name = "mapstruct-processor", version.ref = "mapstruct" }
 jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson-bom" }
-jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations" }
 jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind" }
 jackson-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310" }
 jackson-module-blackbird = { group = "com.fasterxml.jackson.module", name = "jackson-module-blackbird" }
@@ -165,12 +168,16 @@ opentelemetry-bom = { group = "io.opentelemetry", name = "opentelemetry-bom", ve
 opentelemetry-exporter-otlp = { group = "io.opentelemetry", name = "opentelemetry-exporter-otlp" }
 ksuid = { group = "com.github.ksuid", name = "ksuid", version.ref = "ksuid" }
 jakarta-validation-api = { group = "jakarta.validation", name = "jakarta.validation-api", version.ref = "jakarta-validation-api" }
+jspecify = { group = "org.jspecify", name = "jspecify", version.ref = "jspecify" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 lombok-plugin = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok-plugin" }
 spring-boot-plugin = { group = "org.springframework.boot", name = "spring-boot-gradle-plugin", version.ref = "spring-boot" }
 protobuf-plugin = { group = "com.google.protobuf", name = "protobuf-gradle-plugin", version.ref = "protobuf-plugin" }
 gatling-plugin = { group = "gradle.plugin.io.gatling.gradle", name = "gatling-gradle-plugin", version.ref = "gatling-plugin" }
 dependencyVersions-plugin = { group = "com.github.ben-manes", name = "gradle-versions-plugin", version.ref = "dependencyVersions-plugin" }
+errorprone-core = { group = "com.google.errorprone", name = "error_prone_core", version.ref = "errorprone" }
+errorprone-plugin = { group = "net.ltgt.errorprone", name = "net.ltgt.errorprone.gradle.plugin", version.ref = "errorprone-plugin" }
+nullaway = { group = "com.uber.nullaway", name = "nullaway", version.ref = "nullaway" }
 spotbugs = { group = "com.github.spotbugs", name = "spotbugs", version.ref = "spotbugs" }
 spotbugs-plugin = { group = "com.github.spotbugs.snom", name = "spotbugs-gradle-plugin", version.ref = "spotbugs-plugin" }
 spotbugs-findsecbugs-plugin = { group = "com.h3xstream.findsecbugs", name = "findsecbugs-plugin", version.ref = "spotbugs-findsecbugs-plugin" }

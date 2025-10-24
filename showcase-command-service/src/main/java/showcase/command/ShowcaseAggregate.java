@@ -3,7 +3,6 @@ package showcase.command;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandHandler;
@@ -13,12 +12,14 @@ import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.modelling.command.CreationPolicy;
 import org.axonframework.serialization.Revision;
 import org.axonframework.spring.stereotype.Aggregate;
+import org.jspecify.annotations.Nullable;
 import showcase.command.ShowcaseTitleReservation.DuplicateTitleException;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkState;
 import static org.axonframework.eventhandling.GenericEventMessage.clock;
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
@@ -31,28 +32,36 @@ import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted
 final class ShowcaseAggregate {
 
     @AggregateIdentifier
+    @Nullable
     private String showcaseId;
 
+    @Nullable
     private String title;
 
+    @Nullable
     private Instant startTime;
 
+    @Nullable
     private Duration duration;
 
+    @Nullable
     private ShowcaseStatus status;
 
+    @Nullable
     private Instant scheduledAt;
 
+    @Nullable
     private Instant startedAt;
 
+    @Nullable
     private Instant finishedAt;
 
+    @Nullable
     private Instant removedAt;
 
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-    void handle(@NonNull ScheduleShowcaseCommand command,
-                @NonNull ShowcaseTitleReservation showcaseTitleReservation) {
+    void handle(ScheduleShowcaseCommand command, ShowcaseTitleReservation showcaseTitleReservation) {
         if (Objects.equals(showcaseId, command.showcaseId())) {
             if (Objects.equals(title, command.title())
                         && Objects.equals(status, ShowcaseStatus.SCHEDULED)
@@ -102,7 +111,10 @@ final class ShowcaseAggregate {
     }
 
     @CommandHandler
-    void handle(@NonNull StartShowcaseCommand command) {
+    void handle(StartShowcaseCommand command) {
+        checkState(Objects.equals(showcaseId, command.showcaseId()), "\"showcaseId\" must be same as command's one");
+        checkState(Objects.nonNull(duration), "\"duration\" is required");
+
         if (status == ShowcaseStatus.FINISHED) {
             log.error("Attempt to start already finished showcase: {}", command);
 
@@ -132,7 +144,9 @@ final class ShowcaseAggregate {
     }
 
     @CommandHandler
-    void handle(@NonNull FinishShowcaseCommand command) {
+    void handle(FinishShowcaseCommand command) {
+        checkState(Objects.equals(showcaseId, command.showcaseId()), "\"showcaseId\" must be same as command's one");
+
         if (status == ShowcaseStatus.SCHEDULED) {
             log.error("Attempt to finish not started yet showcase: {}", command);
 
@@ -161,9 +175,10 @@ final class ShowcaseAggregate {
     }
 
     @CommandHandler
-    void handle(
-            @NonNull RemoveShowcaseCommand command,
-            @NonNull ShowcaseTitleReservation showcaseTitleReservation) {
+    void handle(RemoveShowcaseCommand command, ShowcaseTitleReservation showcaseTitleReservation) {
+        checkState(Objects.equals(showcaseId, command.showcaseId()), "\"showcaseId\" must be same as command's one");
+        checkState(Objects.nonNull(title), "\"title\" is required");
+
         showcaseTitleReservation.delete(title);
 
         val now = clock.instant();
@@ -172,7 +187,7 @@ final class ShowcaseAggregate {
             val event =
                     ShowcaseFinishedEvent
                             .builder()
-                            .showcaseId(command.showcaseId())
+                            .showcaseId(showcaseId)
                             .finishedAt(now)
                             .build();
 
@@ -184,7 +199,7 @@ final class ShowcaseAggregate {
             val event =
                     ShowcaseRemovedEvent
                             .builder()
-                            .showcaseId(command.showcaseId())
+                            .showcaseId(showcaseId)
                             .removedAt(now)
                             .build();
 
@@ -195,7 +210,7 @@ final class ShowcaseAggregate {
     }
 
     @EventSourcingHandler
-    void on(@NonNull ShowcaseScheduledEvent event) {
+    void on(ShowcaseScheduledEvent event) {
         this.showcaseId = event.showcaseId();
         this.title = event.title();
         this.startTime = event.startTime();
@@ -205,19 +220,20 @@ final class ShowcaseAggregate {
     }
 
     @EventSourcingHandler
-    void on(@NonNull ShowcaseStartedEvent event) {
+    void on(ShowcaseStartedEvent event) {
         this.status = ShowcaseStatus.STARTED;
+        this.duration = event.duration();
         this.startedAt = event.startedAt();
     }
 
     @EventSourcingHandler
-    void on(@NonNull ShowcaseFinishedEvent event) {
+    void on(ShowcaseFinishedEvent event) {
         this.status = ShowcaseStatus.FINISHED;
         this.finishedAt = event.finishedAt();
     }
 
     @EventSourcingHandler
-    void on(@NonNull ShowcaseRemovedEvent event) {
+    void on(ShowcaseRemovedEvent event) {
         this.removedAt = event.removedAt();
 
         markDeleted();

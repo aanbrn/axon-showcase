@@ -1,18 +1,18 @@
 package showcase.command;
 
-import lombok.NonNull;
 import lombok.val;
 import org.axonframework.commandhandling.CommandExecutionException;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
 public final class ShowcaseCommandException extends CommandExecutionException {
 
-    public ShowcaseCommandException(@NonNull ShowcaseCommandErrorDetails errorDetails) {
+    public ShowcaseCommandException(ShowcaseCommandErrorDetails errorDetails) {
         super(errorDetails.errorMessage(), null, errorDetails);
     }
 
-    public ShowcaseCommandException(@NonNull ShowcaseCommandErrorDetails errorDetails, Throwable cause) {
+    public ShowcaseCommandException(ShowcaseCommandErrorDetails errorDetails, @Nullable Throwable cause) {
         super(errorDetails.errorMessage(), cause, errorDetails);
     }
 

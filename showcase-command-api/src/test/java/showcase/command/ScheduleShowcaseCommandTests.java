@@ -11,7 +11,7 @@ import showcase.identifier.KSUID;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.command.RandomCommandTestUtils.aShowcaseStartTime;
@@ -47,50 +47,46 @@ class ScheduleShowcaseCommandTests {
 
     @Test
     void construction_missingShowcaseId_throwsNullPointerException() {
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> ScheduleShowcaseCommand
                               .builder()
                               .title(aShowcaseTitle())
                               .startTime(aShowcaseStartTime(Instant.now()))
                               .duration(aShowcaseDuration())
-                              .build())
-                .isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 
     @Test
     void construction_missingTitle_throwsNullPointerException() {
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> ScheduleShowcaseCommand
                               .builder()
                               .showcaseId(aShowcaseId())
                               .startTime(aShowcaseStartTime(Instant.now()))
                               .duration(aShowcaseDuration())
-                              .build()
-        ).isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 
     @Test
     void construction_missingStartTime_throwsNullPointerException() {
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> ScheduleShowcaseCommand
                               .builder()
                               .showcaseId(aShowcaseId())
                               .title(aShowcaseTitle())
                               .duration(aShowcaseDuration())
-                              .build()
-        ).isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 
     @Test
     void construction_missingDuration_throwsNullPointerException() {
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> ScheduleShowcaseCommand
                               .builder()
                               .showcaseId(aShowcaseId())
                               .title(aShowcaseTitle())
                               .startTime(aShowcaseStartTime(Instant.now()))
-                              .build()
-        ).isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 
     @Test

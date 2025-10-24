@@ -1,7 +1,6 @@
 package showcase.query;
 
 import com.google.protobuf.ByteString;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.apache.commons.lang3.ClassUtils;
@@ -22,7 +21,7 @@ public final class QueryMessageRequestMapper {
 
     private final Serializer messageSerializer;
 
-    public QueryRequest messageToRequest(@NonNull StreamingQueryMessage<?, ?> message) {
+    public QueryRequest messageToRequest(StreamingQueryMessage<?, ?> message) {
         val payload = message.serializePayload(messageSerializer, byte[].class);
         val metaData = message.serializeMetaData(messageSerializer, byte[].class);
         val requestBuilder =
@@ -40,8 +39,7 @@ public final class QueryMessageRequestMapper {
         return requestBuilder.build();
     }
 
-    public StreamingQueryMessage<?, ?> requestToMessage(@NonNull QueryRequest request)
-            throws ClassNotFoundException {
+    public StreamingQueryMessage<?, ?> requestToMessage(QueryRequest request) throws ClassNotFoundException {
         val payloadType =
                 new SimpleSerializedType(
                         request.getPayloadType(),

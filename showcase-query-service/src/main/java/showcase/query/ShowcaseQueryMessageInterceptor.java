@@ -2,7 +2,6 @@ package showcase.query;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Path;
-import lombok.NonNull;
 import lombok.val;
 import one.util.streamex.StreamEx;
 import org.axonframework.messaging.InterceptorChain;
@@ -18,7 +17,7 @@ final class ShowcaseQueryMessageInterceptor<T extends Message<?>> implements Mes
     private final BeanValidationInterceptor<T> beanValidationInterceptor = new BeanValidationInterceptor<>();
 
     @Override
-    public Object handle(@NonNull UnitOfWork<? extends T> unitOfWork, @NonNull InterceptorChain interceptorChain)
+    public Object handle(UnitOfWork<? extends T> unitOfWork, InterceptorChain interceptorChain)
             throws Exception {
         try {
             return beanValidationInterceptor.handle(unitOfWork, interceptorChain);

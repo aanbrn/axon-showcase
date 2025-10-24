@@ -2,13 +2,17 @@ package showcase.resilience4j;
 
 import lombok.Setter;
 import lombok.val;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.autoconfigure.AutoConfigurationImportFilter;
 import org.springframework.boot.autoconfigure.AutoConfigurationMetadata;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+
+import static com.google.common.base.Preconditions.checkState;
 
 public class Resilience4jAutoConfigurationImportFilter implements AutoConfigurationImportFilter, EnvironmentAware {
 
@@ -37,11 +41,15 @@ public class Resilience4jAutoConfigurationImportFilter implements AutoConfigurat
                                     ".*AutoConfiguration")
                    .asMatchPredicate();
 
+    @Nullable
     @Setter
     private Environment environment;
 
     @Override
-    public boolean[] match(String[] autoConfigurationClasses, AutoConfigurationMetadata autoConfigurationMetadata) {
+    public boolean[] match(@Nullable String[] autoConfigurationClasses,
+                           AutoConfigurationMetadata autoConfigurationMetadata) {
+        checkState(Objects.nonNull(environment), "\"environment\" is required");
+
         val resilienceEnabled = environment.getProperty("resilience4j.enabled", Boolean.TYPE, Boolean.TRUE);
         val bulkheadEnabled = environment.getProperty("resilience4j.bulkhead.enabled", Boolean.TYPE, Boolean.TRUE);
         val threadPoolBulkheadEnabled = environment.getProperty(

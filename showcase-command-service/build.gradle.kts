@@ -36,6 +36,7 @@ dependencies {
     implementation(libs.caffeine.jcache)
 
     implementation(libs.commons.lang3)
+    implementation(libs.guava)
     implementation(libs.streamex)
 
     implementation(libs.axon.micrometer)

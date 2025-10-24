@@ -2,7 +2,6 @@ package showcase.api;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -10,7 +9,9 @@ import one.util.streamex.StreamEx;
 import org.apache.commons.lang3.function.Predicates;
 import org.axonframework.common.AxonException;
 import org.axonframework.common.IdentifierFactory;
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.MessageSource;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -73,19 +74,14 @@ import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 @Slf4j
 final class ShowcaseApiController implements ShowcaseApi {
 
-    @NonNull
     private final ShowcaseCommandOperations commandOperations;
 
-    @NonNull
     private final ShowcaseQueryOperations queryOperations;
 
-    @NonNull
-    private final Cache<@NonNull FetchShowcaseListQuery, @NonNull List<@NonNull String>> fetchShowcaseListCache;
+    private final Cache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache;
 
-    @NonNull
-    private final Cache<@NonNull String, Showcase> fetchShowcaseByIdCache;
+    private final Cache<String, Showcase> fetchShowcaseByIdCache;
 
-    @NonNull
     private final MessageSource messageSource;
 
     @PostMapping(consumes = APPLICATION_JSON_VALUE)
@@ -255,7 +251,6 @@ final class ShowcaseApiController implements ShowcaseApi {
     private ProblemDetail handleHandlerMethodValidationException(
             HandlerMethodValidationException e, Locale locale) {
         val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request.");
-        val resolvedLocale = Optional.ofNullable(locale).orElse(Locale.ENGLISH);
 
         val cookieErrors = new LinkedHashMap<String, List<String>>();
         val modelErrors = new LinkedHashMap<String, Map<String, List<String>>>();
@@ -269,106 +264,136 @@ final class ShowcaseApiController implements ShowcaseApi {
         e.visitResults(new Visitor() {
 
             @Override
-            public void cookieValue(@NonNull CookieValue cookieValue, @NonNull ParameterValidationResult result) {
+            public void cookieValue(CookieValue cookieValue, ParameterValidationResult result) {
                 cookieErrors.put(
                         Optional.of(cookieValue.name())
                                 .filter(Predicate.not(String::isBlank))
-                                .orElse(result.getMethodParameter().getParameterName()),
+                                .or(() -> Optional.of(result.getMethodParameter())
+                                                  .map(MethodParameter::getParameterName))
+                                .orElseThrow(() -> new IllegalStateException(
+                                        "Unable to resolve cookie name for %s"
+                                                .formatted(result.getMethodParameter()))),
                         StreamEx.of(result.getResolvableErrors())
                                 .map(error -> messageSource.getMessage(error, locale))
                                 .toList());
             }
 
             @Override
-            public void matrixVariable(
-                    @NonNull MatrixVariable matrixVariable, @NonNull ParameterValidationResult result) {
+            public void matrixVariable(MatrixVariable matrixVariable, ParameterValidationResult result) {
                 pathErrors.put(
                         Optional.of(matrixVariable.name())
                                 .filter(Predicate.not(String::isBlank))
-                                .orElse(result.getMethodParameter().getParameterName()),
+                                .or(() -> Optional.of(result.getMethodParameter())
+                                                  .map(MethodParameter::getParameterName))
+                                .orElseThrow(() -> new IllegalStateException(
+                                        "Unable to resolve matrix variable name for %s"
+                                                .formatted(result.getMethodParameter()))),
                         StreamEx.of(result.getResolvableErrors())
                                 .map(error -> messageSource.getMessage(error, locale))
                                 .toList());
             }
 
             @Override
-            public void modelAttribute(ModelAttribute modelAttribute, @NonNull ParameterErrors errors) {
+            public void modelAttribute(@Nullable ModelAttribute modelAttribute, ParameterErrors errors) {
                 modelErrors.put(
-                        Optional.of(modelAttribute.name())
+                        Optional.ofNullable(modelAttribute)
+                                .map(ModelAttribute::name)
                                 .filter(Predicate.not(String::isBlank))
-                                .orElse(errors.getMethodParameter().getParameterName()),
+                                .or(() -> Optional.of(errors.getMethodParameter())
+                                                  .map(MethodParameter::getParameterName))
+                                .orElseThrow(() -> new IllegalStateException(
+                                        "Unable to resolve model attribute name for %s"
+                                                .formatted(errors.getMethodParameter()))),
                         StreamEx.of(errors.getFieldErrors())
                                 .mapToEntry(
                                         FieldError::getField,
-                                        fieldError -> messageSource.getMessage(fieldError, resolvedLocale))
+                                        fieldError -> messageSource.getMessage(fieldError, locale))
                                 .collapseKeys()
                                 .toMap());
             }
 
             @Override
-            public void pathVariable(@NonNull PathVariable pathVariable,
-                                     @NonNull ParameterValidationResult result) {
+            public void pathVariable(PathVariable pathVariable, ParameterValidationResult result) {
                 pathErrors.put(
                         Optional.of(pathVariable.name())
                                 .filter(Predicate.not(String::isBlank))
-                                .orElse(result.getMethodParameter().getParameterName()),
+                                .or(() -> Optional.of(result.getMethodParameter())
+                                                  .map(MethodParameter::getParameterName))
+                                .orElseThrow(() -> new IllegalStateException(
+                                        "Unable to resolve path variable name for %s"
+                                                .formatted(result.getMethodParameter()))),
                         StreamEx.of(result.getResolvableErrors())
                                 .map(error -> messageSource.getMessage(error, locale))
                                 .toList());
             }
 
             @Override
-            public void requestBody(@NonNull RequestBody requestBody, @NonNull ParameterErrors errors) {
+            public void requestBody(RequestBody requestBody, ParameterErrors errors) {
                 bodyErrors.putAll(
                         StreamEx.of(errors.getFieldErrors())
                                 .mapToEntry(
                                         FieldError::getField,
-                                        fieldError -> messageSource.getMessage(fieldError, resolvedLocale))
+                                        fieldError -> messageSource.getMessage(fieldError, locale))
                                 .collapseKeys()
                                 .toMap());
             }
 
             @Override
-            public void requestHeader(@NonNull RequestHeader requestHeader,
-                                      @NonNull ParameterValidationResult result) {
+            public void requestHeader(RequestHeader requestHeader, ParameterValidationResult result) {
                 headerErrors.put(
                         Optional.of(requestHeader.name())
                                 .filter(Predicate.not(String::isBlank))
-                                .orElse(result.getMethodParameter().getParameterName()),
+                                .or(() -> Optional.of(result.getMethodParameter())
+                                                  .map(MethodParameter::getParameterName))
+                                .orElseThrow(() -> new IllegalStateException(
+                                        "Unable to resolve request header name for %s"
+                                                .formatted(result.getMethodParameter()))),
                         StreamEx.of(result.getResolvableErrors())
                                 .map(error -> messageSource.getMessage(error, locale))
                                 .toList());
             }
 
             @Override
-            public void requestParam(RequestParam requestParam, @NonNull ParameterValidationResult result) {
+            public void requestParam(@Nullable RequestParam requestParam, ParameterValidationResult result) {
                 paramErrors.put(
-                        Optional.of(requestParam.name())
+                        Optional.ofNullable(requestParam)
+                                .map(RequestParam::name)
                                 .filter(Predicate.not(String::isBlank))
-                                .orElse(result.getMethodParameter().getParameterName()),
+                                .or(() -> Optional.of(result.getMethodParameter())
+                                                  .map(MethodParameter::getParameterName))
+                                .orElseThrow(() -> new IllegalStateException(
+                                        "Unable to resolve request parameter name for %s"
+                                                .formatted(result.getMethodParameter()))),
                         StreamEx.of(result.getResolvableErrors())
                                 .map(error -> messageSource.getMessage(error, locale))
                                 .toList());
             }
 
             @Override
-            public void requestPart(@NonNull RequestPart requestPart, @NonNull ParameterErrors errors) {
+            public void requestPart(RequestPart requestPart, ParameterErrors errors) {
                 partErrors.put(
                         Optional.of(requestPart.name())
                                 .filter(Predicate.not(String::isBlank))
-                                .orElse(errors.getMethodParameter().getParameterName()),
+                                .or(() -> Optional.of(errors.getMethodParameter())
+                                                  .map(MethodParameter::getParameterName))
+                                .orElseThrow(() -> new IllegalStateException(
+                                        "Unable to resolve request part name for %s"
+                                                .formatted(errors.getMethodParameter()))),
                         StreamEx.of(errors.getFieldErrors())
                                 .mapToEntry(
                                         FieldError::getField,
-                                        fieldError -> messageSource.getMessage(fieldError, resolvedLocale))
+                                        fieldError -> messageSource.getMessage(fieldError, locale))
                                 .collapseKeys()
                                 .toMap());
             }
 
             @Override
-            public void other(@NonNull ParameterValidationResult result) {
+            public void other(ParameterValidationResult result) {
                 otherErrors.put(
-                        result.getMethodParameter().getParameterName(),
+                        Optional.of(result.getMethodParameter())
+                                .map(MethodParameter::getParameterName)
+                                .orElseThrow(() -> new IllegalStateException(
+                                        "Unable to resolve name for %s".formatted(result.getMethodParameter()))),
                         StreamEx.of(result.getResolvableErrors())
                                 .map(error -> messageSource.getMessage(error, locale))
                                 .toList());
@@ -409,12 +434,11 @@ final class ShowcaseApiController implements ShowcaseApi {
 
         val methodParameter = e.getMethodParameter();
         if (methodParameter != null) {
-            val resolvedLocale = Optional.ofNullable(locale).orElse(Locale.ENGLISH);
             val fieldErrors =
                     StreamEx.of(e.getFieldErrors())
                             .mapToEntry(
                                     FieldError::getField,
-                                    fieldError -> messageSource.getMessage(fieldError, resolvedLocale))
+                                    fieldError -> messageSource.getMessage(fieldError, locale))
                             .collapseKeys()
                             .toMap();
 
@@ -434,8 +458,7 @@ final class ShowcaseApiController implements ShowcaseApi {
 
     @ExceptionHandler
     private ProblemDetail handleErrorResponseException(ErrorResponseException e, Locale locale) {
-        val resolvedLocale = Optional.ofNullable(locale).orElse(Locale.ENGLISH);
-        return e.updateAndGetBody(messageSource, resolvedLocale);
+        return e.updateAndGetBody(messageSource, locale);
     }
 
     @ExceptionHandler

@@ -4,7 +4,7 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static showcase.command.RandomCommandTestUtils.aShowcaseCommandErrorCode;
 import static showcase.command.RandomCommandTestUtils.aShowcaseCommandErrorMessage;
 
@@ -28,21 +28,19 @@ class ShowcaseCommandErrorDetailsTests {
 
     @Test
     void construction_missingErrorCode_throwsNullPointerException() {
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> ShowcaseCommandErrorDetails
                               .builder()
                               .errorMessage(aShowcaseCommandErrorMessage())
-                              .build()
-        ).isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 
     @Test
     void construction_missingErrorMessage_throwsNullPointerException() {
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> ShowcaseCommandErrorDetails
                               .builder()
                               .errorCode(aShowcaseCommandErrorCode())
-                              .build()
-        ).isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 }

@@ -13,7 +13,7 @@ dependencies {
     api(project(":showcase-identifier-extension"))
     api(libs.axon.modelling)
     api(libs.hibernate.validator)
-    api(libs.jackson.annotations)
+    api(libs.jackson.databind)
 
     implementation(libs.commons.lang3)
     implementation(libs.expressly)

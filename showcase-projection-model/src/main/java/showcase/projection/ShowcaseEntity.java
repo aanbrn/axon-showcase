@@ -1,12 +1,14 @@
 package showcase.projection;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.EqualsAndHashCode.CacheStrategy;
 import lombok.Value;
 import lombok.experimental.Accessors;
+import lombok.extern.jackson.Jacksonized;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -23,31 +25,40 @@ import java.time.Instant;
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
+@EqualsAndHashCode(cacheStrategy = CacheStrategy.LAZY)
 @Builder(toBuilder = true)
-@JsonAutoDetect(fieldVisibility = Visibility.ANY)
+@Jacksonized
 public class ShowcaseEntity {
 
     @Id
     @Field(type = FieldType.Keyword)
+    @Nullable
     String showcaseId;
 
     @Field(type = FieldType.Text)
+    @Nullable
     String title;
 
     @Field(type = FieldType.Date_Nanos, format = DateFormat.strict_date_optional_time_nanos)
+    @Nullable
     Instant startTime;
 
+    @Nullable
     Duration duration;
 
     @Field(type = FieldType.Keyword)
+    @Nullable
     ShowcaseStatus status;
 
     @Field(type = FieldType.Date_Nanos, format = DateFormat.strict_date_optional_time_nanos)
+    @Nullable
     Instant scheduledAt;
 
     @Field(type = FieldType.Date_Nanos, format = DateFormat.strict_date_optional_time_nanos)
+    @Nullable
     Instant startedAt;
 
     @Field(type = FieldType.Date_Nanos, format = DateFormat.strict_date_optional_time_nanos)
+    @Nullable
     Instant finishedAt;
 }

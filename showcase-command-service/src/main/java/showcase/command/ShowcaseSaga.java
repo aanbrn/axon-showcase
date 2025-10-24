@@ -1,6 +1,5 @@
 package showcase.command;
 
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.ObjectUtils;
@@ -13,17 +12,19 @@ import org.axonframework.modelling.saga.EndSaga;
 import org.axonframework.modelling.saga.SagaEventHandler;
 import org.axonframework.modelling.saga.StartSaga;
 import org.axonframework.spring.stereotype.Saga;
+import org.jspecify.annotations.Nullable;
 
 @Saga
 @ProcessingGroup("showcase-saga")
 @Slf4j
 public class ShowcaseSaga {
 
+    @Nullable
     private ShowcaseStatus showcaseStatus;
 
     @StartSaga
     @SagaEventHandler(associationProperty = "showcaseId")
-    void handle(@NonNull ShowcaseScheduledEvent event, @NonNull DeadlineManager deadlineManager) {
+    void handle(ShowcaseScheduledEvent event, DeadlineManager deadlineManager) {
         showcaseStatus = ShowcaseStatus.SCHEDULED;
 
         deadlineManager.schedule(event.startTime(), "startShowcase", event.showcaseId());
@@ -32,7 +33,7 @@ public class ShowcaseSaga {
     }
 
     @DeadlineHandler(deadlineName = "startShowcase")
-    void startShowcase(@NonNull String showcaseId, @NonNull CommandGateway commandGateway) {
+    void startShowcase(String showcaseId, CommandGateway commandGateway) {
         if (ObjectUtils.notEqual(showcaseStatus, ShowcaseStatus.SCHEDULED)) {
             log.trace("On starting deadline, showcase has status {}, so skipping", showcaseStatus);
             return;
@@ -59,7 +60,7 @@ public class ShowcaseSaga {
     }
 
     @SagaEventHandler(associationProperty = "showcaseId")
-    void handle(@NonNull ShowcaseStartedEvent event, @NonNull DeadlineManager deadlineManager) {
+    void handle(ShowcaseStartedEvent event, DeadlineManager deadlineManager) {
         showcaseStatus = ShowcaseStatus.STARTED;
 
         val finishTime = event.startedAt().plus(event.duration());
@@ -70,7 +71,7 @@ public class ShowcaseSaga {
     }
 
     @DeadlineHandler(deadlineName = "finishShowcase")
-    void finishShowcase(@NonNull String showcaseId, @NonNull CommandGateway commandGateway) {
+    void finishShowcase(String showcaseId, CommandGateway commandGateway) {
         if (ObjectUtils.notEqual(showcaseStatus, ShowcaseStatus.STARTED)) {
             log.trace("On finishing deadline, showcase has status {}, so skipping", showcaseStatus);
             return;
@@ -98,13 +99,13 @@ public class ShowcaseSaga {
 
     @EndSaga
     @SagaEventHandler(associationProperty = "showcaseId")
-    void handle(@NonNull ShowcaseFinishedEvent event) {
+    void handle(ShowcaseFinishedEvent event) {
         showcaseStatus = ShowcaseStatus.FINISHED;
     }
 
     @EndSaga
     @SagaEventHandler(associationProperty = "showcaseId")
-    void handle(@NonNull ShowcaseRemovedEvent event) {
+    void handle(ShowcaseRemovedEvent event) {
         showcaseStatus = null;
     }
 }

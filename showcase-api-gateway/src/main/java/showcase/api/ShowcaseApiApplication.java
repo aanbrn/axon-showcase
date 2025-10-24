@@ -3,7 +3,6 @@ package showcase.api;
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandBus;
@@ -19,6 +18,7 @@ import org.axonframework.extensions.jgroups.commandhandling.JGroupsConnectorFact
 import org.axonframework.serialization.Serializer;
 import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
 import org.axonframework.tracing.SpanFactory;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -107,7 +107,7 @@ class ShowcaseApiApplication {
     }
 
     @Bean
-    Cache<@NonNull FetchShowcaseListQuery, @NonNull List<@NonNull String>> fetchShowcaseListCache(
+    Cache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache(
             ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME);
         if (cacheSettings == null) {
@@ -123,7 +123,7 @@ class ShowcaseApiApplication {
     }
 
     @Bean
-    Cache<@NonNull String, @NonNull Showcase> fetchShowcaseByIdCache(
+    Cache<String, Showcase> fetchShowcaseByIdCache(
             ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME);
         if (cacheSettings == null) {

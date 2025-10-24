@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseFinishedAt;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
@@ -86,85 +86,79 @@ class ShowcaseTests {
     void construction_missingShowcaseId_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> Showcase.builder()
                               .title(aShowcaseTitle())
                               .startTime(aShowcaseStartTime(scheduleTime))
                               .duration(aShowcaseDuration())
                               .status(aShowcaseStatus())
                               .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                              .build()
-        ).isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 
     @Test
     void construction_missingTitle_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> Showcase.builder()
                               .showcaseId(aShowcaseId())
                               .startTime(aShowcaseStartTime(scheduleTime))
                               .duration(aShowcaseDuration())
                               .status(aShowcaseStatus())
                               .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                              .build()
-        ).isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 
     @Test
     void construction_missingStartTime_throwsNullPointerException() {
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> Showcase.builder()
                               .showcaseId(aShowcaseId())
                               .title(aShowcaseTitle())
                               .duration(aShowcaseDuration())
                               .status(aShowcaseStatus())
                               .scheduledAt(aShowcaseScheduledAt(Instant.now()))
-                              .build()
-        ).isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 
     @Test
     void construction_missingDuration_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> Showcase.builder()
                               .showcaseId(aShowcaseId())
                               .title(aShowcaseTitle())
                               .startTime(aShowcaseStartTime(scheduleTime))
                               .status(aShowcaseStatus())
                               .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                              .build()
-        ).isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 
     @Test
     void construction_missingStatus_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> Showcase.builder()
                               .showcaseId(aShowcaseId())
                               .title(aShowcaseTitle())
                               .startTime(aShowcaseStartTime(scheduleTime))
                               .duration(aShowcaseDuration())
                               .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                              .build()
-        ).isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 
     @Test
     void construction_missingScheduledAt_throwsNullPointerException() {
-        assertThatThrownBy(
+        assertThatNullPointerException().isThrownBy(
                 () -> Showcase.builder()
                               .showcaseId(aShowcaseId())
                               .title(aShowcaseTitle())
                               .startTime(aShowcaseStartTime(Instant.now()))
                               .duration(aShowcaseDuration())
                               .status(aShowcaseStatus())
-                              .build()
-        ).isExactlyInstanceOf(NullPointerException.class);
+                              .build());
     }
 }

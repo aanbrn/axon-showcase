@@ -109,10 +109,7 @@ class ShowcaseQueryApplication {
                                 .setMaxConnPerRoute(maxConnectionsPerRoute)
                                 .build());
             }
-            if (evictIdleConnections != null) {
-                httpClientBuilder.evictIdleConnections(TimeValue.of(evictIdleConnections));
-            }
-            return httpClientBuilder;
+            return httpClientBuilder.evictIdleConnections(TimeValue.of(evictIdleConnections));
         });
     }
 

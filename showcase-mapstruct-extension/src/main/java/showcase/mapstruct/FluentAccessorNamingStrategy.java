@@ -22,7 +22,7 @@ public final class FluentAccessorNamingStrategy extends DefaultAccessorNamingStr
     }
 
     private boolean isFluentGetter(ExecutableElement method) {
-        if (method.getParameters().isEmpty()) {
+        if (method.getParameters().isEmpty() && method.getEnclosingElement() != null) {
             for (val element : method.getEnclosingElement().getEnclosedElements()) {
                 if (element.getKind().isField()
                             && element.getSimpleName().equals(method.getSimpleName())

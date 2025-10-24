@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import showcase.identifier.KSUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.command.RandomCommandTestUtils.anInvalidShowcaseId;
 
@@ -27,8 +27,7 @@ class StartShowcaseCommandTests {
 
     @Test
     void construction_missingShowcaseId_throwsNullPointerException() {
-        assertThatThrownBy(() -> StartShowcaseCommand.builder().build())
-                .isExactlyInstanceOf(NullPointerException.class);
+        assertThatNullPointerException().isThrownBy(() -> StartShowcaseCommand.builder().build());
     }
 
     @Test

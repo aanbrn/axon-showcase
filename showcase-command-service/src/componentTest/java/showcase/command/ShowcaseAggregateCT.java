@@ -2,6 +2,7 @@ package showcase.command;
 
 import lombok.val;
 import org.axonframework.test.aggregate.AggregateTestFixture;
+import org.jspecify.annotations.NullUnmarked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +33,7 @@ import static showcase.command.ShowcaseCommandMatchers.aCommandErrorDetailsWithE
 import static showcase.command.ShowcaseCommandMatchers.aCommandErrorDetailsWithMetaData;
 
 @ExtendWith(MockitoExtension.class)
+@NullUnmarked
 class ShowcaseAggregateCT {
 
     private AggregateTestFixture<ShowcaseAggregate> fixture;

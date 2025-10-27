@@ -225,7 +225,9 @@ class ShowcaseProjector implements SmartLifecycle {
                                () -> Schedulers.fromExecutorService(
                                        newScheduledThreadPool(
                                                projectionProperties.getBatch().getMinThreads(),
-                                               Thread.ofVirtual().name("showcase-projector").factory()),
+                                               Thread.ofVirtual()
+                                                     .name("showcase-projector", 0)
+                                                     .factory()),
                                        "showcase-projector"),
                                scheduler -> records.bufferTimeout(
                                                            projectionProperties.getBatch().getMaxSize(),

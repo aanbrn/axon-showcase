@@ -67,15 +67,9 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import static com.github.kagkarlsson.scheduler.ExecutorUtils.defaultThreadFactoryWithPrefix;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static java.lang.Runtime.getRuntime;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static showcase.command.ShowcaseCommandConstants.SAGA_ASSOCIATIONS_CACHE_NAME;
 import static showcase.command.ShowcaseCommandConstants.SAGA_CACHE_NAME;
 import static showcase.command.ShowcaseCommandConstants.SHOWCASE_CACHE_NAME;
@@ -315,13 +309,11 @@ class ShowcaseCommandApplication {
         return new DbSchedulerCustomizer() {
             @Override
             public Optional<ExecutorService> executorService() {
-                return Optional.of(
-                        new ThreadPoolExecutor(
-                                min(dbSchedulerProperties.getThreads(), getRuntime().availableProcessors()),
-                                max(dbSchedulerProperties.getThreads(), getRuntime().availableProcessors()),
-                                60L, TimeUnit.SECONDS,
-                                new LinkedBlockingQueue<>(),
-                                defaultThreadFactoryWithPrefix(Scheduler.THREAD_PREFIX + "-")));
+                return Optional.of(newFixedThreadPool(
+                        dbSchedulerProperties.getThreads(),
+                        Thread.ofVirtual()
+                              .name(Scheduler.THREAD_PREFIX, 0)
+                              .factory()));
             }
         };
     }

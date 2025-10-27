@@ -100,7 +100,6 @@ commons-io = { group = "commons-io", name = "commons-io", version.ref = "commons
 flyway-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql" }
 hibernate-validator = { group = "org.hibernate.validator", name = "hibernate-validator" }
 expressly = { group = "org.glassfish.expressly", name = "expressly", version.ref = "expressly" }
-guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 kotlin-bom = { group = "org.jetbrains.kotlin", name = "kotlin-bom", version.ref = "kotlin" }
 resilience4j-bom = { group = "io.github.resilience4j", name = "resilience4j-bom", version.ref = "resilience4j-bom" }
 resilience4j-all = { group = "io.github.resilience4j", name = "resilience4j-all" }
@@ -166,9 +165,10 @@ micrometer-tracing-bom = { group = "io.micrometer", name = "micrometer-tracing-b
 micrometer-tracing-bridge-otel = { group = "io.micrometer", name = "micrometer-tracing-bridge-otel" }
 opentelemetry-bom = { group = "io.opentelemetry", name = "opentelemetry-bom", version.ref = "opentelemetry-bom" }
 opentelemetry-exporter-otlp = { group = "io.opentelemetry", name = "opentelemetry-exporter-otlp" }
-ksuid = { group = "com.github.ksuid", name = "ksuid", version.ref = "ksuid" }
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 jakarta-validation-api = { group = "jakarta.validation", name = "jakarta.validation-api", version.ref = "jakarta-validation-api" }
 jspecify = { group = "org.jspecify", name = "jspecify", version.ref = "jspecify" }
+ksuid = { group = "com.github.ksuid", name = "ksuid", version.ref = "ksuid" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 lombok-plugin = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok-plugin" }
 spring-boot-plugin = { group = "org.springframework.boot", name = "spring-boot-gradle-plugin", version.ref = "spring-boot" }

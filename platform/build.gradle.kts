@@ -32,6 +32,7 @@ dependencies {
         api(libs.guava)
         api(libs.hamcrest)
         api(libs.jgroups)
+        api(libs.jgroups.kunernetes)
         api(libs.log4j.api)
         api(libs.log4j.core)
         api(libs.log4j.toSlf4j)

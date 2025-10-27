@@ -29,7 +29,7 @@ public class ShowcaseSaga {
 
         deadlineManager.schedule(event.startTime(), "startShowcase", event.showcaseId());
 
-        log.debug("Scheduled deadline to start showcase with ID {} at {}", event.showcaseId(), event.startTime());
+        log.trace("Scheduled deadline to start showcase with ID {} at {}", event.showcaseId(), event.startTime());
     }
 
     @DeadlineHandler(deadlineName = "startShowcase")

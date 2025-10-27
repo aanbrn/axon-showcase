@@ -81,10 +81,9 @@ axon:
 
 db-scheduler:
   delay-startup-until-context-ready: true
+  threads: 100
   polling-interval: PT0.5S
-  polling-strategy: fetch
-  polling-strategy-lower-limit-fraction-of-threads: 1.0
-  polling-strategy-upper-limit-fraction-of-threads: 4.0
+  polling-strategy: lock_and_fetch
 
 showcase:
   command:

@@ -2054,6 +2054,141 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 68
+      },
+      "id": 73,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(dbscheduler_executionLag_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
+          "hide": false,
+          "legendFormat": "P95",
+          "range": true,
+          "refId": "P95"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(dbscheduler_executionLag_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
+          "hide": false,
+          "legendFormat": "P99",
+          "range": true,
+          "refId": "P99"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(1.0, sum by(le) (rate(dbscheduler_executionLag_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
+          "hide": false,
+          "legendFormat": "Max",
+          "range": true,
+          "refId": "Max"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by(deadline) (rate(dbscheduler_executionLag_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])) / sum by (deadline) (rate(dbscheduler_executionLag_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m]))",
+          "hide": false,
+          "legendFormat": "{{deadline}}",
+          "range": true,
+          "refId": "By Deadline"
+        }
+      ],
+      "title": "Deadline Handling Lag",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "deadlines/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2105,7 +2240,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 68
+        "y": 75
       },
       "id": 12,
       "options": {
@@ -2129,7 +2264,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(dbscheduler_task_completions_total{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\", result=\"ok\"}[1m]))",
+          "expr": "sum(rate(dbscheduler_executions_total{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\", result=\"ok\"}[1m]))",
           "legendFormat": "Succeeded",
           "range": true,
           "refId": "Succeeded"
@@ -2140,9 +2275,9 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(dbscheduler_task_completions_total{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\", result=\"failed\"}[1m]))",
+          "expr": "sum by (deadline, error) (rate(dbscheduler_executions_total{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\", result=\"failed\"}[1m]))",
           "hide": false,
-          "legendFormat": "Failed",
+          "legendFormat": "Failed {{deadline}} {{error}}",
           "range": true,
           "refId": "Failed"
         }
@@ -2215,7 +2350,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 68
+        "y": 75
       },
       "id": 13,
       "options": {
@@ -2239,18 +2374,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(dbscheduler_task_duration_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])) / sum(rate(dbscheduler_task_duration_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m]))",
-          "legendFormat": "Avg",
-          "range": true,
-          "refId": "Avg"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(dbscheduler_task_duration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(dbscheduler_executionDuration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
           "hide": false,
           "legendFormat": "P95",
           "range": true,
@@ -2262,7 +2386,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(dbscheduler_task_duration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(dbscheduler_executionDuration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -2274,11 +2398,23 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(1.0, sum by(le) (rate(dbscheduler_task_duration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
+          "expr": "histogram_quantile(1.0, sum by(le) (rate(dbscheduler_executionDuration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
           "hide": false,
           "legendFormat": "Max",
           "range": true,
           "refId": "Max"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (deadline) (rate(dbscheduler_executionDuration_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])) / sum by (deadline) (rate(dbscheduler_executionDuration_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m]))",
+          "hide": false,
+          "legendFormat": "{{deadline}}",
+          "range": true,
+          "refId": "By Deadline"
         }
       ],
       "title": "Deadline Handling Latency",
@@ -2348,7 +2484,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 75
+        "y": 82
       },
       "id": 10,
       "options": {
@@ -2454,7 +2590,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 75
+        "y": 82
       },
       "id": 11,
       "options": {
@@ -2579,7 +2715,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 82
+        "y": 89
       },
       "id": 51,
       "options": {
@@ -2676,7 +2812,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 82
+        "y": 89
       },
       "id": 52,
       "options": {
@@ -2715,7 +2851,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 89
+        "y": 96
       },
       "id": 16,
       "panels": [],
@@ -2787,7 +2923,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 90
+        "y": 97
       },
       "id": 19,
       "options": {
@@ -2908,7 +3044,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 97
+        "y": 104
       },
       "id": 65,
       "options": {
@@ -3018,7 +3154,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 97
+        "y": 104
       },
       "id": 71,
       "options": {
@@ -3140,7 +3276,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 104
+        "y": 111
       },
       "id": 72,
       "options": {
@@ -3273,7 +3409,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 104
+        "y": 111
       },
       "id": 66,
       "options": {
@@ -3336,7 +3472,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 111
+        "y": 118
       },
       "id": 22,
       "panels": [],
@@ -3408,7 +3544,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 112
+        "y": 119
       },
       "id": 60,
       "options": {
@@ -3536,7 +3672,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 112
+        "y": 119
       },
       "id": 61,
       "options": {
@@ -3680,7 +3816,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 119
+        "y": 126
       },
       "id": 64,
       "options": {

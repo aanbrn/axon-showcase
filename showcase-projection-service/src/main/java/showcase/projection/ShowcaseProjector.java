@@ -80,7 +80,7 @@ class ShowcaseProjector implements SmartLifecycle {
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     @Builder
     @NullUnmarked
-    private static class ProjectionTimerMonitor implements MessageMonitor<EventMessage<?>> {
+    private static class ProjectionLagMonitor implements MessageMonitor<EventMessage<?>> {
 
         @NonNull
         private final String meterNamePrefix;
@@ -98,36 +98,20 @@ class ShowcaseProjector implements SmartLifecycle {
         @Override
         public MonitorCallback onMessageIngested(EventMessage<?> message) {
             if (message.getPayload() instanceof ShowcaseEvent event) {
-                val projectionTimer =
-                        Timer.builder(meterNamePrefix + ".projectionTimer")
-                             .distributionStatisticExpiry(Duration.of(10, ChronoUnit.MINUTES))
-                             .publishPercentiles(0.5, 0.75, 0.95, 0.98, 0.99, 0.999)
-                             .tags(tagsBuilder.apply(message))
-                             .register(meterRegistry);
-
-                val startTime = switch (event) {
+                val lag = clock.wallTime() - switch (event) {
                     case ShowcaseScheduledEvent scheduledEvent -> scheduledEvent.scheduledAt().toEpochMilli();
                     case ShowcaseStartedEvent startedEvent -> startedEvent.startedAt().toEpochMilli();
                     case ShowcaseFinishedEvent finishedEvent -> finishedEvent.finishedAt().toEpochMilli();
                     case ShowcaseRemovedEvent removedEvent -> removedEvent.removedAt().toEpochMilli();
                 };
-
-                return new MonitorCallback() {
-
-                    @Override
-                    public void reportSuccess() {
-                        projectionTimer.record(clock.wallTime() - startTime, TimeUnit.MILLISECONDS);
-                    }
-
-                    @Override
-                    public void reportFailure(Throwable cause) {
-                        projectionTimer.record(clock.wallTime() - startTime, TimeUnit.MILLISECONDS);
-                    }
-
-                    @Override
-                    public void reportIgnored() {
-                    }
-                };
+                if (lag >= 0) {
+                    Timer.builder(meterNamePrefix + ".projectionLag")
+                         .distributionStatisticExpiry(Duration.of(10, ChronoUnit.MINUTES))
+                         .publishPercentiles(0.5, 0.75, 0.95, 0.98, 0.99, 0.999)
+                         .tags(tagsBuilder.apply(message))
+                         .register(meterRegistry)
+                         .record(lag, TimeUnit.MILLISECONDS);
+                }
             }
             return NoOpMessageMonitorCallback.INSTANCE;
         }
@@ -183,7 +167,7 @@ class ShowcaseProjector implements SmartLifecycle {
                         METER_NAME_PREFIX,
                         meterRegistry,
                         PAYLOAD_TYPE_TAGGER_FUNCTION),
-                ProjectionTimerMonitor
+                ProjectionLagMonitor
                         .builder()
                         .meterNamePrefix(METER_NAME_PREFIX)
                         .meterRegistry(meterRegistry)

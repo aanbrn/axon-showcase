@@ -2153,18 +2153,6 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(1.0, sum by(le) (rate(dbscheduler_executionLag_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
-          "hide": false,
-          "legendFormat": "Max",
-          "range": true,
-          "refId": "Max"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
           "expr": "sum by(deadline) (rate(dbscheduler_executionLag_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])) / sum by (deadline) (rate(dbscheduler_executionLag_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m]))",
           "hide": false,
           "legendFormat": "{{deadline}}",
@@ -2391,18 +2379,6 @@
           "legendFormat": "P99",
           "range": true,
           "refId": "P99"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "histogram_quantile(1.0, sum by(le) (rate(dbscheduler_executionDuration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
-          "hide": false,
-          "legendFormat": "Max",
-          "range": true,
-          "refId": "Max"
         },
         {
           "datasource": {
@@ -2947,7 +2923,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(showcaseProjector_projectionTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(showcaseProjector_projectionLag_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
           "legendFormat": "P95",
           "range": true,
           "refId": "P95"
@@ -2958,7 +2934,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(showcaseProjector_projectionTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(showcaseProjector_projectionLag_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -2970,7 +2946,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(payloadType) (rate(showcaseProjector_projectionTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])) / sum by(payloadType) (rate(showcaseProjector_projectionTimer_seconds_count{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
+          "expr": "sum by(payloadType) (rate(showcaseProjector_projectionLag_seconds_sum{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])) / sum by(payloadType) (rate(showcaseProjector_projectionLag_seconds_count{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
           "hide": false,
           "legendFormat": "__auto",
           "range": true,

@@ -6,10 +6,11 @@ spring-framework-bom = "6.2.12"
 spring-data-bom = "2025.0.5"
 spring-data-opensearch = "2.0.2"
 springdoc-openapi-starter = "2.8.13"
-swagger = "2.2.39"
-swagger-ui = "5.29.3"
+swagger = "2.2.40"
+swagger-ui = "5.30.0"
 postgresql = "42.7.8"
-caffeine = "3.2.2"
+flyway = "11.15.0"
+caffeine = "3.2.3"
 db-scheduler = "13.0.0"
 mapstruct = "1.6.3"
 jackson-bom = "2.20.0"
@@ -97,7 +98,8 @@ commons-compress = { group = "org.apache.commons", name = "commons-compress", ve
 commons-fileupload = { group = "commons-fileupload", name = "commons-fileupload", version.ref = "commons-fileupload" }
 commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commons-lang3" }
 commons-io = { group = "commons-io", name = "commons-io", version.ref = "commons-io" }
-flyway-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql" }
+flyway-core = { group = "org.flywaydb", name = "flyway-core", version.ref = "flyway" }
+flyway-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql", version.ref = "flyway" }
 hibernate-validator = { group = "org.hibernate.validator", name = "hibernate-validator" }
 expressly = { group = "org.glassfish.expressly", name = "expressly", version.ref = "expressly" }
 kotlin-bom = { group = "org.jetbrains.kotlin", name = "kotlin-bom", version.ref = "kotlin" }

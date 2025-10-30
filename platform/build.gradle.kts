@@ -29,6 +29,7 @@ dependencies {
         api(libs.commons.fileupload)
         api(libs.commons.io)
         api(libs.commons.lang3)
+        api(libs.flyway.core)
         api(libs.guava)
         api(libs.hamcrest)
         api(libs.jgroups)

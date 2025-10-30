@@ -15,6 +15,7 @@ import org.axonframework.deadline.dbscheduler.DbSchedulerBinaryDeadlineDetails;
 import org.axonframework.deadline.dbscheduler.DbSchedulerHumanReadableDeadlineDetails;
 import org.axonframework.eventhandling.scheduling.dbscheduler.DbSchedulerBinaryEventData;
 import org.axonframework.eventhandling.scheduling.dbscheduler.DbSchedulerHumanReadableEventData;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -27,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import static java.util.Objects.requireNonNull;
 
 @Component
+@ConditionalOnBean(MeterRegistry.class)
 @RequiredArgsConstructor
 @Slf4j
 class ShowcaseDbSchedulerMetrics implements StatsRegistry {

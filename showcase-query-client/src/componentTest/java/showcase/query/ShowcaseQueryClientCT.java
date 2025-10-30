@@ -269,9 +269,8 @@ class ShowcaseQueryClientCT {
                             .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
                             .willReturn(aResponse().withStatus(statusCode)));
 
-            showcaseQueryOperations
-                    .fetchList(query)
-                    .as(it -> StepVerifier.withVirtualTime(() -> it))
+            StepVerifier
+                    .withVirtualTime(() -> showcaseQueryOperations.fetchList(query))
                     .thenAwait(timeout)
                     .verifyErrorSatisfies(
                             t -> assertThat(t)
@@ -299,9 +298,8 @@ class ShowcaseQueryClientCT {
                             .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
                             .willReturn(aResponse().withStatus(statusCode)));
 
-            showcaseQueryOperations
-                    .fetchById(query)
-                    .as(it -> StepVerifier.withVirtualTime(() -> it))
+            StepVerifier
+                    .withVirtualTime(() -> showcaseQueryOperations.fetchById(query))
                     .thenAwait(timeout)
                     .verifyErrorSatisfies(
                             t -> assertThat(t)

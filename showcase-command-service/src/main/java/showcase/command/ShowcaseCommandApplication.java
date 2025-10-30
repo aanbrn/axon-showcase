@@ -335,4 +335,12 @@ class ShowcaseCommandApplication {
             }
         };
     }
+
+    @Bean
+    ShowcaseDbSchedulerMetrics showcaseDbSchedulerMetrics(MeterRegistry meterRegistry) {
+        return ShowcaseDbSchedulerMetrics
+                       .builder()
+                       .meterRegistry(meterRegistry)
+                       .build();
+    }
 }

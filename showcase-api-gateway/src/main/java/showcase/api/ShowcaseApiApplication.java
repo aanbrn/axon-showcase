@@ -1,7 +1,7 @@
 package showcase.api;
 
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
-import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.AsyncCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -107,7 +107,7 @@ class ShowcaseApiApplication {
     }
 
     @Bean
-    Cache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache(
+    AsyncCache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache(
             ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME);
         if (cacheSettings == null) {
@@ -119,11 +119,11 @@ class ShowcaseApiApplication {
                        .expireAfterAccess(cacheSettings.getExpiresAfterAccess())
                        .expireAfterWrite(cacheSettings.getExpiresAfterWrite())
                        .recordStats()
-                       .build();
+                       .buildAsync();
     }
 
     @Bean
-    Cache<String, Showcase> fetchShowcaseByIdCache(
+    AsyncCache<String, Showcase> fetchShowcaseByIdCache(
             ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME);
         if (cacheSettings == null) {
@@ -135,19 +135,19 @@ class ShowcaseApiApplication {
                        .expireAfterAccess(cacheSettings.getExpiresAfterAccess())
                        .expireAfterWrite(cacheSettings.getExpiresAfterWrite())
                        .recordStats()
-                       .build();
+                       .buildAsync();
     }
 
     @Bean
     @SuppressWarnings("unchecked")
     CacheManagerCustomizer<CaffeineCacheManager> caffeineCacheManagerCustomizer(
-            Cache<?, ?> fetchShowcaseListCache,
-            Cache<?, ?> fetchShowcaseByIdCache) {
+            AsyncCache<?, ?> fetchShowcaseListCache,
+            AsyncCache<?, ?> fetchShowcaseByIdCache) {
         return cacheManager -> {
             cacheManager.registerCustomCache(
-                    "fetch-showcase-list-cache", (Cache<@NonNull Object, Object>) fetchShowcaseListCache);
+                    "fetch-showcase-list-cache", (AsyncCache<@NonNull Object, Object>) fetchShowcaseListCache);
             cacheManager.registerCustomCache(
-                    "fetch-showcase-by-id-cache", (Cache<@NonNull Object, Object>) fetchShowcaseByIdCache);
+                    "fetch-showcase-by-id-cache", (AsyncCache<@NonNull Object, Object>) fetchShowcaseByIdCache);
         };
     }
 }

@@ -7,6 +7,8 @@ import com.github.kagkarlsson.scheduler.task.TaskInstance;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -15,8 +17,6 @@ import org.axonframework.deadline.dbscheduler.DbSchedulerBinaryDeadlineDetails;
 import org.axonframework.deadline.dbscheduler.DbSchedulerHumanReadableDeadlineDetails;
 import org.axonframework.eventhandling.scheduling.dbscheduler.DbSchedulerBinaryEventData;
 import org.axonframework.eventhandling.scheduling.dbscheduler.DbSchedulerHumanReadableEventData;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.time.Duration;
@@ -27,11 +27,10 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.requireNonNull;
 
-@Component
-@ConditionalOnBean(MeterRegistry.class)
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 @Slf4j
-class ShowcaseDbSchedulerMetrics implements StatsRegistry {
+final class ShowcaseDbSchedulerMetrics implements StatsRegistry {
 
     private final MeterRegistry meterRegistry;
 

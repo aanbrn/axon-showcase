@@ -1,6 +1,6 @@
 package showcase.api;
 
-import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.AsyncCache;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +65,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
@@ -78,9 +79,9 @@ final class ShowcaseApiController implements ShowcaseApi {
 
     private final ShowcaseQueryOperations queryOperations;
 
-    private final Cache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache;
+    private final AsyncCache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache;
 
-    private final Cache<String, Showcase> fetchShowcaseByIdCache;
+    private final AsyncCache<String, Showcase> fetchShowcaseByIdCache;
 
     private final MessageSource messageSource;
 
@@ -170,27 +171,31 @@ final class ShowcaseApiController implements ShowcaseApi {
                         .build();
         return queryOperations
                        .fetchList(query)
+                       .doOnNext(showcase -> fetchShowcaseByIdCache.put(
+                               showcase.showcaseId(), completedFuture(showcase)))
                        .collectList()
-                       .doOnNext(showcases -> {
-                           fetchShowcaseListCache
-                                   .put(query, showcases.stream()
-                                                        .map(Showcase::showcaseId)
-                                                        .toList());
-                           fetchShowcaseByIdCache
-                                   .putAll(StreamEx.of(showcases)
-                                                   .mapToEntry(Showcase::showcaseId, Function.identity())
-                                                   .toMap());
-                       })
+                       .doOnNext(showcases -> fetchShowcaseListCache.put(
+                               query, completedFuture(showcases.stream()
+                                                               .map(Showcase::showcaseId)
+                                                               .toList())))
                        .flatMapIterable(Function.identity())
                        .onErrorResume(
                                Predicate.not(ShowcaseQueryException.class::isInstance),
-                               t -> Mono.justOrEmpty(fetchShowcaseListCache.getIfPresent(query))
-                                        .switchIfEmpty(Mono.error(t))
-                                        .flatMapIterable(Function.identity())
-                                        .map(fetchShowcaseByIdCache::getIfPresent)
-                                        .<Showcase>handle((showcase, sink) -> {
-                                            if (showcase != null) {
-                                                sink.next(showcase);
+                               t -> Flux.<String>create(sink -> {
+                                            val future = fetchShowcaseListCache.getIfPresent(query);
+                                            if (future != null) {
+                                                future.thenAccept(showcaseIds -> {
+                                                    showcaseIds.forEach(sink::next);
+                                                    sink.complete();
+                                                });
+                                            } else {
+                                                sink.error(t);
+                                            }
+                                        })
+                                        .<Showcase>handle((showcaseId, sink) -> {
+                                            val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
+                                            if (future != null) {
+                                                future.thenAccept(sink::next);
                                             } else {
                                                 sink.error(t);
                                             }
@@ -207,11 +212,17 @@ final class ShowcaseApiController implements ShowcaseApi {
                         .build();
         return queryOperations
                        .fetchById(query)
-                       .doOnNext(showcase -> fetchShowcaseByIdCache.put(showcaseId, showcase))
+                       .doOnNext(showcase -> fetchShowcaseByIdCache.put(showcaseId, completedFuture(showcase)))
                        .onErrorResume(
                                Predicate.not(ShowcaseQueryException.class::isInstance),
-                               t -> Mono.justOrEmpty(fetchShowcaseByIdCache.getIfPresent(showcaseId))
-                                        .switchIfEmpty(Mono.error(t))
+                               t -> Mono.<Showcase>create(sink -> {
+                                            val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
+                                            if (future != null) {
+                                                future.thenAccept(sink::success);
+                                            } else {
+                                                sink.error(t);
+                                            }
+                                        })
                                         .doOnSuccess(__ -> log.warn("Fallback on {}", query, t)));
     }
 

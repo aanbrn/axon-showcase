@@ -47,6 +47,7 @@ testing {
                 implementation(libs.commons.lang3)
                 implementation(libs.reactor.test)
                 implementation(libs.reactor.blockhound)
+                implementation(libs.reactor.tools)
                 implementation(libs.resilience4j.springBoot3)
                 implementation(libs.spring.boot.starter.aop)
                 implementation(libs.spring.boot.starter.test)

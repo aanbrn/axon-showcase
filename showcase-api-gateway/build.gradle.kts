@@ -75,6 +75,7 @@ testing {
                 implementation(libs.streamex)
                 implementation(libs.netty.resolver.dnsNativeMacos)
                 implementation(libs.reactor.blockhound)
+                implementation(libs.reactor.tools)
                 implementation(libs.resilience4j.all)
             }
 

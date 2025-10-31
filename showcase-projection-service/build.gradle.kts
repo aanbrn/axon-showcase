@@ -77,6 +77,7 @@ testing {
                 implementation(libs.testcontainers.kafka)
                 implementation(libs.testcontainers.opensearch)
                 implementation(libs.reactor.blockhound)
+                implementation(libs.reactor.tools)
             }
 
             targets {

@@ -81,6 +81,7 @@ testing {
                 implementation(libs.testcontainers.opensearch)
                 implementation(libs.netty.resolver.dnsNativeMacos)
                 implementation(libs.reactor.blockhound)
+                implementation(libs.reactor.tools)
             }
 
             targets {

@@ -140,6 +140,7 @@ reactor-core-micrometer = { group = "io.projectreactor", name = "reactor-core-mi
 reactor-extra = { group = "io.projectreactor.addons", name = "reactor-extra" }
 reactor-kafka = { group = "io.projectreactor.kafka", name = "reactor-kafka" }
 reactor-test = { group = "io.projectreactor", name = "reactor-test" }
+reactor-tools = { group = "io.projectreactor", name = "reactor-tools" }
 reactor-blockhound = { group = "io.projectreactor.tools", name = "blockhound", version.ref = "reactor-blockhound" }
 netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty-bom" }
 netty-resolver-dnsNativeMacos = { group = "io.netty", name = "netty-resolver-dns-native-macos" }

@@ -62,8 +62,9 @@ opensearch:
 
 showcase:
   projector:
+    min-concurrency: ${PROJECTOR_MIN_CONCURRENCY:1}
+    max-concurrency: ${PROJECTOR_MAX_CONCURRENCY:256}
     batch:
-      min-threads: ${PROJECTOR_BATCH_MIN_THREADS:1}
       max-size: ${PROJECTOR_BATCH_MAX_SIZE:100}
       max-time: ${PROJECTOR_BATCH_MAX_TIME:PT0.1S}
       buffer-max-size: ${PROJECTOR_BATCH_BUFFER_MAX_SIZE:10000}

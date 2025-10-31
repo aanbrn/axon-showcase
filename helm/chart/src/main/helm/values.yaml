@@ -441,8 +441,9 @@ projectionService:
     evictIdleConnections: PT5S
 
   projector:
+    minConcurrency: 1
+    maxConcurrency: 256
     batch:
-      minThreads: 1
       maxSize: 100
       maxTime: PT0.1S
       bufferMaxSize: 10000

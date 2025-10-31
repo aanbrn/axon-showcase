@@ -23,9 +23,6 @@ class ShowcaseProjectorProperties {
     static class Batch {
 
         @Min(1)
-        private int minThreads;
-
-        @Min(1)
         @Max(1_000)
         private int maxSize;
 
@@ -62,9 +59,15 @@ class ShowcaseProjectorProperties {
         private Duration delay;
     }
 
+    @Min(1)
+    private int minConcurrency = 1;
+
+    @Min(1)
+    private int maxConcurrency = 256;
+
     @NotNull
     @Valid
-    private Batch batch = new Batch(1, 100, Duration.ofMillis(100), 10_000);
+    private Batch batch = new Batch(100, Duration.ofMillis(100), 10_000);
 
     @NotNull
     @Valid

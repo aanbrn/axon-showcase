@@ -204,31 +204,34 @@ class ShowcaseProjector implements SmartLifecycle {
                        .name("project-showcase")
                        .doOnSubscribe(subscription -> log.info("Projector has started"))
                        .doOnCancel(() -> log.info("Projector has stopped"))
-                       .groupBy(record -> record.receiverOffset().topicPartition())
+                       .groupBy(record -> record.receiverOffset().topicPartition(),
+                                projectionProperties.getMaxConcurrency())
                        .flatMap(records -> Flux.using(
-                               () -> Schedulers.fromExecutorService(
-                                       newScheduledThreadPool(
-                                               projectionProperties.getBatch().getMinThreads(),
-                                               Thread.ofVirtual()
-                                                     .name("showcase-projector", 0)
-                                                     .factory()),
-                                       "showcase-projector"),
-                               scheduler -> records.bufferTimeout(
-                                                           projectionProperties.getBatch().getMaxSize(),
-                                                           projectionProperties.getBatch().getMaxTime(),
-                                                           scheduler)
-                                                   .onBackpressureBuffer(
-                                                           projectionProperties.getBatch().getBufferMaxSize(),
-                                                           BufferOverflowStrategy.ERROR)
-                                                   .concatMap(messages -> {
-                                                       log.trace("Received {} message(s)", messages.size());
-                                                       return processMessages(messages)
-                                                                      .then(Flux.fromIterable(messages)
-                                                                                .map(ReceiverRecord::receiverOffset)
-                                                                                .doOnNext(ReceiverOffset::acknowledge)
-                                                                                .then());
-                                                   }),
-                               Scheduler::dispose))
+                                        () -> Schedulers.fromExecutorService(
+                                                newScheduledThreadPool(
+                                                        projectionProperties.getMinConcurrency(),
+                                                        Thread.ofVirtual()
+                                                              .name("showcase-projector", 0)
+                                                              .factory()),
+                                                "showcase-projector"),
+                                        scheduler -> records.bufferTimeout(
+                                                                    projectionProperties.getBatch().getMaxSize(),
+                                                                    projectionProperties.getBatch().getMaxTime(),
+                                                                    scheduler)
+                                                            .onBackpressureBuffer(
+                                                                    projectionProperties.getBatch().getBufferMaxSize(),
+                                                                    BufferOverflowStrategy.ERROR)
+                                                            .concatMap(messages -> {
+                                                                log.trace("Received {} message(s)", messages.size());
+                                                                return processMessages(messages).then(
+                                                                        Flux.fromIterable(messages)
+                                                                            .map(ReceiverRecord::receiverOffset)
+                                                                            .doOnNext(ReceiverOffset::acknowledge)
+                                                                            .then());
+                                                            }),
+                                        Scheduler::dispose),
+                                projectionProperties.getMaxConcurrency(),
+                                projectionProperties.getBatch().getMaxSize())
                        .tap(Micrometer.observation(observationRegistry))
                        .retryWhen(Retry.fixedDelay(Long.MAX_VALUE, projectionProperties.getRestart().getDelay())
                                        .doBeforeRetry(signal -> log.warn(

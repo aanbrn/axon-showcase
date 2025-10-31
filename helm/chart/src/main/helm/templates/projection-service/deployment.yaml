@@ -117,8 +117,10 @@ spec:
               value: {{ .Values.projectionService.osViews.maxConnectionsPerRoute | int | toString | quote }}
             - name: "OS_EVICT_IDLE_CONNECTIONS"
               value: {{ .Values.projectionService.osViews.evictIdleConnections | quote }}
-            - name: "PROJECTOR_BATCH_MIN_THREADS"
-              value: {{ .Values.projectionService.projector.batch.minThreads | int | quote }}
+            - name: "PROJECTOR_MIN_CONCURRENCY"
+              value: {{ .Values.projectionService.projector.minConcurrency | int | quote }}
+            - name: "PROJECTOR_MAX_CONCURRENCY"
+              value: {{ .Values.projectionService.projector.maxConcurrency | int | quote }}
             - name: "PROJECTOR_BATCH_MAX_SIZE"
               value: {{ .Values.projectionService.projector.batch.maxSize | int | quote }}
             - name: "PROJECTOR_BATCH_MAX_TIME"

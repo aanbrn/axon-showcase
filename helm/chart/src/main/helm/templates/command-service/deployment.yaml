@@ -128,6 +128,24 @@ spec:
               value: {{ .Values.commandService.dbEvents.pool.idleTimeout | int64 | toString | quote }}
             - name: "DB_POOL_LEAK_DETECTION_THRESHOLD"
               value: {{ .Values.commandService.dbEvents.pool.leakDetectionThreshold | int64 | toString | quote }}
+            - name: "DB_SCHEDULER_THREADS"
+              value: {{ .Values.commandService.dbScheduler.threads | int | toString | quote }}
+            - name: "DB_SCHEDULER_HEARTBEAT_INTERVAL"
+              value: {{ .Values.commandService.dbScheduler.heartbeatInterval | quote }}
+            - name: "DB_SCHEDULER_IMMEDIATE_EXECUTION_ENABLED"
+              value: {{ .Values.commandService.dbScheduler.immediateExecutionEnabled | quote }}
+            - name: "DB_SCHEDULER_POLLING_INTERVAL"
+              value: {{ .Values.commandService.dbScheduler.pollingInterval | quote }}
+            - name: "DB_SCHEDULER_POLLING_STRATEGY"
+              value: {{ .Values.commandService.dbScheduler.pollingStrategy | quote }}
+            - name: "DB_SCHEDULER_POLLING_STRATEGY_LOWER_LIMIT_FRACTION_OF_THREADS"
+              value: {{ .Values.commandService.dbScheduler.pollingStrategyLowerLimitFractionOfThreads | float64 | toString | quote }}
+            - name: "DB_SCHEDULER_POLLING_STRATEGY_UPPER_LIMIT_FRACTION_OF_THREADS"
+              value: {{ .Values.commandService.dbScheduler.pollingStrategyUpperLimitFractionOfThreads | float64 | toString | quote }}
+            - name: "DB_SCHEDULER_SHUTDOWN_MAX_WAIT"
+              value: {{ .Values.commandService.dbScheduler.shutdownMaxWait | quote }}
+            - name: "DB_SCHEDULER_DELETE_UNRESOLVED_AFTER"
+              value: {{ .Values.commandService.dbScheduler.deleteUnresolvedAfter | quote }}
             - name: "FLYWAY_MIGRATION_ENABLED"
               value: "false"
             - name: "KAFKA_BOOTSTRAP_SERVERS"

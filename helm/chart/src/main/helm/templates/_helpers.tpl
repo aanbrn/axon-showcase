@@ -56,7 +56,7 @@
     {{- end }}
     {{- /* @formatter:off */}}
 - name: "MANAGEMENT_TRACING_SAMPLING_PROBABILITY"
-  value: {{ .Values.observability.tracing.sampling.probability | float64 | quote }}
+  value: {{ .Values.observability.tracing.sampling.probability | float64 | toString | quote }}
     {{- /* @formatter:on */}}
     {{- if .Values.observability.prometheus.metrics.export.enabled }}
         {{- /* @formatter:off */}}

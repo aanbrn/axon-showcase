@@ -76,6 +76,17 @@ commandService:
       idleTimeout: 600000
       leakDetectionThreshold: 0
 
+  dbScheduler:
+    threads: 100
+    heartbeatInterval: PT5M
+    immediateExecutionEnabled: false
+    pollingInterval: PT0.5S
+    pollingStrategy: lock_and_fetch
+    pollingStrategyLowerLimitFractionOfThreads: 0.5
+    pollingStrategyUpperLimitFractionOfThreads: 3.0
+    shutdownMaxWait: PT30M
+    deleteUnresolvedAfter: P14D
+
   kafka:
     producer:
       retries: 3

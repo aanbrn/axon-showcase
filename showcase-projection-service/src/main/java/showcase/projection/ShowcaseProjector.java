@@ -180,8 +180,8 @@ class ShowcaseProjector implements SmartLifecycle {
                         .baseUnit("events")
                         .distributionStatisticExpiry(Duration.of(10, ChronoUnit.MINUTES))
                         .publishPercentiles(0.5, 0.75, 0.95, 0.98, 0.99, 0.999)
-                        .minimumExpectedValue(Integer.valueOf(1).doubleValue())
-                        .maximumExpectedValue(Integer.valueOf(100).doubleValue())
+                        .minimumExpectedValue(1d)
+                        .maximumExpectedValue((double) projectionProperties.getBatch().getMaxSize())
                         .register(meterRegistry);
         this.observationRegistry = observationRegistry;
     }

@@ -1,5 +1,4 @@
 #!/bin/bash
 
 createuser -d showcase \
-  && createdb -U showcase -E UTF8 showcase-events \
-  && createdb -U showcase -E UTF8 showcase-sagas
+  && createdb -E UTF-8 -l en_US.UTF-8 -T template0 -U showcase showcase-events

@@ -1,6 +1,5 @@
 package showcase.command;
 
-import lombok.val;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.jspecify.annotations.Nullable;
 
@@ -24,13 +23,5 @@ public final class ShowcaseCommandException extends CommandExecutionException {
 
     public ShowcaseCommandErrorDetails getErrorDetails() {
         return getDetails().orElseThrow();
-    }
-
-    @Override
-    public String toString() {
-        val errorDetails = getErrorDetails();
-        return getClass().getName()
-                       + " [errorCode = " + errorDetails.errorCode()
-                       + ", errorMessage = " + errorDetails.errorMessage() + "]";
     }
 }

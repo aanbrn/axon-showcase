@@ -86,6 +86,7 @@ final class ShowcaseApiController implements ShowcaseApi {
     private final MessageSource messageSource;
 
     @PostMapping(consumes = APPLICATION_JSON_VALUE)
+    @Override
     public Mono<ResponseEntity<ScheduleShowcaseResponse>> schedule(
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
             @RequestBody ScheduleShowcaseRequest request) {
@@ -120,6 +121,7 @@ final class ShowcaseApiController implements ShowcaseApi {
     }
 
     @PutMapping("/{showcaseId}/start")
+    @Override
     public Mono<ResponseEntity<Void>> start(@PathVariable String showcaseId) {
         return commandOperations
                        .start(StartShowcaseCommand
@@ -132,6 +134,7 @@ final class ShowcaseApiController implements ShowcaseApi {
     }
 
     @PutMapping("/{showcaseId}/finish")
+    @Override
     public Mono<ResponseEntity<Void>> finish(@PathVariable String showcaseId) {
         return commandOperations
                        .finish(FinishShowcaseCommand
@@ -144,6 +147,7 @@ final class ShowcaseApiController implements ShowcaseApi {
     }
 
     @DeleteMapping("/{showcaseId}")
+    @Override
     public Mono<ResponseEntity<Void>> remove(@PathVariable String showcaseId) {
         return commandOperations
                        .remove(RemoveShowcaseCommand
@@ -156,6 +160,8 @@ final class ShowcaseApiController implements ShowcaseApi {
     }
 
     @GetMapping
+    @Override
+    @SuppressWarnings("FutureReturnValueIgnored")
     public Flux<Showcase> fetchList(
             @RequestParam(required = false) String title,
             @RequestParam(name = "status", required = false) List<ShowcaseStatus> statuses,
@@ -184,9 +190,13 @@ final class ShowcaseApiController implements ShowcaseApi {
                                t -> Flux.<String>create(sink -> {
                                             val future = fetchShowcaseListCache.getIfPresent(query);
                                             if (future != null) {
-                                                future.thenAccept(showcaseIds -> {
-                                                    showcaseIds.forEach(sink::next);
-                                                    sink.complete();
+                                                future.whenComplete((showcaseIds, t2) -> {
+                                                    if (t2 == null) {
+                                                        showcaseIds.forEach(sink::next);
+                                                        sink.complete();
+                                                    } else {
+                                                        sink.error(t);
+                                                    }
                                                 });
                                             } else {
                                                 sink.error(t);
@@ -195,7 +205,13 @@ final class ShowcaseApiController implements ShowcaseApi {
                                         .<Showcase>handle((showcaseId, sink) -> {
                                             val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
                                             if (future != null) {
-                                                future.thenAccept(sink::next);
+                                                future.whenComplete((showcase, t2) -> {
+                                                    if (t2 == null) {
+                                                        sink.next(showcase);
+                                                    } else {
+                                                        sink.error(t);
+                                                    }
+                                                });
                                             } else {
                                                 sink.error(t);
                                             }
@@ -204,6 +220,8 @@ final class ShowcaseApiController implements ShowcaseApi {
     }
 
     @GetMapping("/{showcaseId}")
+    @Override
+    @SuppressWarnings("FutureReturnValueIgnored")
     public Mono<Showcase> fetchById(@PathVariable String showcaseId) {
         val query =
                 FetchShowcaseByIdQuery
@@ -218,7 +236,13 @@ final class ShowcaseApiController implements ShowcaseApi {
                                t -> Mono.<Showcase>create(sink -> {
                                             val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
                                             if (future != null) {
-                                                future.thenAccept(sink::success);
+                                                future.whenComplete((showcase, t2) -> {
+                                                    if (t2 == null) {
+                                                        sink.success(showcase);
+                                                    } else {
+                                                        sink.error(t);
+                                                    }
+                                                });
                                             } else {
                                                 sink.error(t);
                                             }
@@ -509,7 +533,8 @@ final class ShowcaseApiController implements ShowcaseApi {
     }
 
     @ExceptionHandler
-    private Object handleException(Exception e, ServerWebExchange exchange) {
+    @SuppressWarnings("unused")
+    private Object handleException(Exception e, ServerWebExchange exchange, Locale locale) {
         return switch (findCause(e, Predicates.<Throwable>falsePredicate()
                                               .or(ShowcaseCommandException.class::isInstance)
                                               .or(ShowcaseQueryException.class::isInstance)
@@ -522,6 +547,9 @@ final class ShowcaseApiController implements ShowcaseApi {
             case ShowcaseCommandException ex -> handleShowcaseCommandException(ex);
             case ShowcaseQueryException ex -> handleShowcaseQueryException(ex);
             case AxonException ex -> handleAxonException(ex);
+            case HandlerMethodValidationException ex -> handleHandlerMethodValidationException(ex, locale);
+            case WebExchangeBindException ex -> handleWebExchangeBindException(ex, locale);
+            case ErrorResponseException ex -> handleErrorResponseException(ex, locale);
             case WebClientException ex -> handleWebClientException(ex);
             case CallNotPermittedException ex -> handleCallNotPermittedException(ex);
             case TimeoutException ex -> handleTimeoutException(ex);

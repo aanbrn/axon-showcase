@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.health.AbstractReactiveHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Health.Builder;
 import org.springframework.boot.actuate.health.ReactiveHealthIndicator;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -122,7 +121,7 @@ class ShowcaseQueryApplication {
     ReactiveHealthIndicator openSearchHealthIndicator(ReactiveOpenSearchClient openSearchClient) {
         return new AbstractReactiveHealthIndicator("OpenSearch health check failed") {
             @Override
-            protected Mono<Health> doHealthCheck(Builder builder) {
+            protected Mono<Health> doHealthCheck(Health.Builder builder) {
                 return openSearchClient.cluster().health((b) -> b).map(response -> {
                     if (!response.timedOut()) {
                         HealthStatus status = response.status();

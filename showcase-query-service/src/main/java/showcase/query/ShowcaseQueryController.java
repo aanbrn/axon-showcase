@@ -110,6 +110,7 @@ final class ShowcaseQueryController {
     }
 
     @ExceptionHandler
+    @SuppressWarnings("unused")
     private Object handleException(Exception e, ServerWebExchange exchange) {
         return switch (findCause(e, Predicates.<Throwable>falsePredicate()
                                               .or(ShowcaseQueryException.class::isInstance)

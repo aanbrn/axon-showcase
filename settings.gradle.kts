@@ -11,6 +11,8 @@ dependencyResolutionManagement {
     }
 }
 
+includeBuild("build-logic")
+
 include(
     "platform",
     "showcase-identifier-extension",

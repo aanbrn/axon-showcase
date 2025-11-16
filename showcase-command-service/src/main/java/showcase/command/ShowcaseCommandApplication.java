@@ -306,7 +306,7 @@ class ShowcaseCommandApplication {
 
     @Bean
     DbSchedulerCustomizer dbSchedulerCustomizer(DbSchedulerProperties dbSchedulerProperties) {
-        return  new DbSchedulerCustomizer() {
+        return new DbSchedulerCustomizer() {
             @Override
             public Optional<ExecutorService> executorService() {
                 return Optional.of(newFixedThreadPool(

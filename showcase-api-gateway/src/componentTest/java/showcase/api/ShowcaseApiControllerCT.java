@@ -1,7 +1,5 @@
 package showcase.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.AsyncCache;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
@@ -235,28 +233,10 @@ class ShowcaseApiControllerCT {
         verifyNoMoreInteractions(showcaseCommandOperations);
     }
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @ParameterizedTest
     @EnumSource(ShowcaseCommandErrorCode.class)
     void scheduleShowcase_commandFailure_respondsWithRelatedStatusAndProblemInBody(
             ShowcaseCommandErrorCode errorCode) {
-
-        try {
-            var s = objectMapper.writeValueAsString(
-                    ScheduleShowcaseRequest
-                            .builder()
-                            .title(aShowcaseTitle())
-                            .startTime(aShowcaseStartTime(Instant.now()))
-                            .duration(aShowcaseDuration())
-                            .build());
-            var request = objectMapper.readValue(s, ScheduleShowcaseRequest.class);
-            System.out.println(request);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-
         val errorMessage = anAlphabeticString(10);
 
         given(showcaseCommandOperations.schedule(any()))

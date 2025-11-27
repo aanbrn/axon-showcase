@@ -48,11 +48,17 @@ tasks.withType<SpotBugsTask> {
 }
 
 tasks.withType<JavaCompile> {
-    options.errorprone {
-        check("NullAway", CheckSeverity.ERROR)
-        option("NullAway:AnnotatedPackages", "showcase")
+    if (name.endsWith("TestJava")) {
+        options.errorprone {
+            disable("NullAway")
+        }
+    } else {
+        options.errorprone {
+            check("NullAway", CheckSeverity.ERROR)
+            option("NullAway:AnnotatedPackages", "showcase")
 
-        disable("StringConcatToTextBlock")
-        disableWarningsInGeneratedCode = true
+            disable("StringConcatToTextBlock")
+            disableWarningsInGeneratedCode = true
+        }
     }
 }

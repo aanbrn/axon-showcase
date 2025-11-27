@@ -1,6 +1,5 @@
 package showcase.command;
 
-import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import org.axonframework.messaging.MetaData;
 import org.hamcrest.FeatureMatcher;
@@ -12,7 +11,7 @@ import java.util.Map;
 public class ShowcaseCommandMatchers {
 
     public static Matcher<ShowcaseCommandErrorDetails> aCommandErrorDetailsWithErrorCode(
-            @NonNull Matcher<ShowcaseCommandErrorCode> matcher) {
+            Matcher<ShowcaseCommandErrorCode> matcher) {
         return new FeatureMatcher<>(matcher, "A command error details with error code", "errorCode") {
             @Override
             protected ShowcaseCommandErrorCode featureValueOf(ShowcaseCommandErrorDetails actual) {
@@ -21,8 +20,7 @@ public class ShowcaseCommandMatchers {
         };
     }
 
-    public static Matcher<ShowcaseCommandErrorDetails> aCommandErrorDetailsWithErrorMessage(
-            @NonNull Matcher<String> matcher) {
+    public static Matcher<ShowcaseCommandErrorDetails> aCommandErrorDetailsWithErrorMessage(Matcher<String> matcher) {
         return new FeatureMatcher<>(matcher, "A command error details with error message", "errorCode") {
             @Override
             protected String featureValueOf(ShowcaseCommandErrorDetails actual) {
@@ -31,8 +29,7 @@ public class ShowcaseCommandMatchers {
         };
     }
 
-    public static Matcher<ShowcaseCommandErrorDetails> aCommandErrorDetailsWithMetaData(
-            @NonNull Matcher<Map<?, ?>> matcher) {
+    public static Matcher<ShowcaseCommandErrorDetails> aCommandErrorDetailsWithMetaData(Matcher<Map<?, ?>> matcher) {
         return new FeatureMatcher<>(matcher, "A command error details with metadata", "metaData") {
             @Override
             protected MetaData featureValueOf(ShowcaseCommandErrorDetails actual) {

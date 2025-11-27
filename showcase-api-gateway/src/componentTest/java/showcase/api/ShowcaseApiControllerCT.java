@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.AsyncCache;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import lombok.val;
+import org.apache.commons.lang3.ArrayUtils;
 import org.axonframework.commandhandling.NoHandlerForCommandException;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeAll;
@@ -60,7 +61,6 @@ import static io.github.resilience4j.circuitbreaker.CallNotPermittedException.cr
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.assertArg;
@@ -106,7 +106,11 @@ class ShowcaseApiControllerCT {
         return List.of(
                 argumentSet("WebClient Error",
                             WebClientResponseException.create(
-                                    HttpStatus.BAD_GATEWAY.value(), anAlphabeticString(10), null, null, null)),
+                                    HttpStatus.BAD_GATEWAY.value(),
+                                    anAlphabeticString(10),
+                                    HttpHeaders.EMPTY,
+                                    ArrayUtils.EMPTY_BYTE_ARRAY,
+                                    null)),
                 argumentSet("CircuitBreaker Error",
                             createCallNotPermittedException(CircuitBreaker.of(
                                     ShowcaseCommandOperations.SHOWCASE_COMMAND_SERVICE,
@@ -156,7 +160,7 @@ class ShowcaseApiControllerCT {
                          .expectStatus()
                          .isCreated()
                          .expectHeader()
-                         .value(HttpHeaders.LOCATION, startsWith("/showcases/"))
+                         .value(HttpHeaders.LOCATION, location -> assertThat(location).startsWith("/showcases/"))
                          .expectHeader()
                          .contentTypeCompatibleWith(APPLICATION_JSON)
                          .expectBody(ScheduleShowcaseResponse.class)

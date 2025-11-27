@@ -2,7 +2,6 @@ package showcase.command;
 
 import io.github.resilience4j.core.functions.Either;
 import io.github.resilience4j.retry.RetryRegistry;
-import lombok.NonNull;
 import lombok.val;
 import org.axonframework.commandhandling.CommandBus;
 import org.axonframework.commandhandling.CommandExecutionException;
@@ -312,7 +311,7 @@ class ShowcaseCommandClientCT {
 
         @ParameterizedTest
         @MethodSource("retryableErrors")
-        void scheduleShowcase_retryableError_retriesAndFailsWithError(@NonNull Throwable error) {
+        void scheduleShowcase_retryableError_retriesAndFailsWithError(Throwable error) {
             val command = aScheduleShowcaseCommand();
 
             willDoNothing().given(commandBus).dispatch(
@@ -333,7 +332,7 @@ class ShowcaseCommandClientCT {
 
         @ParameterizedTest
         @MethodSource("retryableErrors")
-        void startShowcase_retryableError_retriesAndFailsWithError(@NonNull Throwable error) {
+        void startShowcase_retryableError_retriesAndFailsWithError(Throwable error) {
             val command = aStartShowcaseCommand();
 
             willDoNothing().given(commandBus).dispatch(
@@ -354,7 +353,7 @@ class ShowcaseCommandClientCT {
 
         @ParameterizedTest
         @MethodSource("retryableErrors")
-        void finishShowcase_retryableError_retriesAndFailsWithError(@NonNull Throwable error) {
+        void finishShowcase_retryableError_retriesAndFailsWithError(Throwable error) {
             val command = aFinishShowcaseCommand();
 
             willDoNothing().given(commandBus).dispatch(
@@ -375,7 +374,7 @@ class ShowcaseCommandClientCT {
 
         @ParameterizedTest
         @MethodSource("retryableErrors")
-        void removeShowcase_retryableError_retriesAndFailsWithError(@NonNull Throwable error) {
+        void removeShowcase_retryableError_retriesAndFailsWithError(Throwable error) {
             val command = aRemoveShowcaseCommand();
 
             willDoNothing().given(commandBus).dispatch(

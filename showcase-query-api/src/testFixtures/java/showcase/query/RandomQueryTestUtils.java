@@ -1,6 +1,5 @@
 package showcase.query;
 
-import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 
@@ -57,7 +56,7 @@ public class RandomQueryTestUtils {
         return aShowcase(aShowcaseStatus());
     }
 
-    public static Showcase aShowcase(@NonNull ShowcaseStatus status) {
+    public static Showcase aShowcase(ShowcaseStatus status) {
         val scheduleTime = Instant.now();
         val startTime = aShowcaseStartTime(scheduleTime);
         val duration = aShowcaseDuration();

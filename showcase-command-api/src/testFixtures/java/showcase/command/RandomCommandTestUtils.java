@@ -1,6 +1,5 @@
 package showcase.command;
 
-import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
@@ -23,7 +22,7 @@ public class RandomCommandTestUtils {
         return RandomStringUtils.secure().nextAlphabetic(10, 20);
     }
 
-    public static Instant aShowcaseStartTime(@NonNull Instant scheduleTime) {
+    public static Instant aShowcaseStartTime(Instant scheduleTime) {
         return scheduleTime.plus(Duration.ofMinutes(RandomUtils.secure().randomLong(1, 10)));
     }
 
@@ -32,7 +31,7 @@ public class RandomCommandTestUtils {
                 ShowcaseDuration.MIN_MINUTES * 60, ShowcaseDuration.MAX_MINUTES * 60 + 1));
     }
 
-    public static Instant aShowcaseScheduledAt(@NonNull Instant scheduleTime) {
+    public static Instant aShowcaseScheduledAt(Instant scheduleTime) {
         return scheduleTime.plusMillis(
                 RandomUtils.secure().randomLong(
                         1, Duration.between(scheduleTime, Instant.now())
@@ -40,11 +39,11 @@ public class RandomCommandTestUtils {
                                    .toMillis()));
     }
 
-    public static Instant aShowcaseStartedAt(@NonNull Instant startTime) {
+    public static Instant aShowcaseStartedAt(Instant startTime) {
         return startTime.plusMillis(RandomUtils.secure().randomLong(1, 1000));
     }
 
-    public static Instant aShowcaseFinishedAt(@NonNull Instant startedAt, @NonNull Duration duration) {
+    public static Instant aShowcaseFinishedAt(Instant startedAt, Duration duration) {
         return startedAt.plus(duration).plusMillis(RandomUtils.secure().randomLong(1, 1000));
     }
 
@@ -74,7 +73,7 @@ public class RandomCommandTestUtils {
                        .build();
     }
 
-    public static ScheduleShowcaseCommand aScheduleShowcaseCommand(@NonNull Instant currentTime) {
+    public static ScheduleShowcaseCommand aScheduleShowcaseCommand(Instant currentTime) {
         return ScheduleShowcaseCommand
                        .builder()
                        .showcaseId(aShowcaseId())

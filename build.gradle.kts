@@ -7,6 +7,23 @@ plugins {
 allprojects {
     group = "com.github.aanbrn"
     version = "0.1.0-SNAPSHOT"
+
+    configurations.configureEach {
+        resolutionStrategy {
+            dependencySubstitution {
+                substitute(module("org.lz4:lz4-java"))
+                    .using(module(libs.lz4.java.get().toString()))
+                    .because("Force relocation of LZ4 implementation")
+            }
+
+            eachDependency {
+                if (requested.group == "org.lz4" && requested.name == "lz4-java") {
+                    useTarget(libs.lz4.java.get().toString())
+                    because("Force relocation of LZ4 implementation")
+                }
+            }
+        }
+    }
 }
 
 helm {

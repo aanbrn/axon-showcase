@@ -191,7 +191,7 @@ final class ShowcaseApiController implements ShowcaseApi {
                                             val future = fetchShowcaseListCache.getIfPresent(query);
                                             if (future != null) {
                                                 future.whenComplete((showcaseIds, t2) -> {
-                                                    if (t2 == null) {
+                                                    if (showcaseIds != null && t2 == null) {
                                                         showcaseIds.forEach(sink::next);
                                                         sink.complete();
                                                     } else {
@@ -206,7 +206,7 @@ final class ShowcaseApiController implements ShowcaseApi {
                                             val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
                                             if (future != null) {
                                                 future.whenComplete((showcase, t2) -> {
-                                                    if (t2 == null) {
+                                                    if (showcase != null && t2 == null) {
                                                         sink.next(showcase);
                                                     } else {
                                                         sink.error(t);
@@ -237,7 +237,7 @@ final class ShowcaseApiController implements ShowcaseApi {
                                             val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
                                             if (future != null) {
                                                 future.whenComplete((showcase, t2) -> {
-                                                    if (t2 == null) {
+                                                    if (showcase != null && t2 == null) {
                                                         sink.success(showcase);
                                                     } else {
                                                         sink.error(t);

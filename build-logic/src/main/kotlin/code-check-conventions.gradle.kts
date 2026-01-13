@@ -48,6 +48,8 @@ tasks.withType<SpotBugsTask> {
 }
 
 tasks.withType<JavaCompile> {
+    options.compilerArgs.add("-XDaddTypeAnnotationsToSymbol=true")
+
     if (name.endsWith("TestJava")) {
         options.errorprone {
             disable("NullAway")

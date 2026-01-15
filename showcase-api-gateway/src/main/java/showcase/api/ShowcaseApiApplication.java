@@ -107,8 +107,7 @@ class ShowcaseApiApplication {
     }
 
     @Bean
-    AsyncCache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache(
-            ShowcaseApiProperties apiProperties) {
+    AsyncCache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache(ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME);
         if (cacheSettings == null) {
             throw new IllegalStateException("Settings for cache '%s' is missing"
@@ -123,8 +122,7 @@ class ShowcaseApiApplication {
     }
 
     @Bean
-    AsyncCache<String, Showcase> fetchShowcaseByIdCache(
-            ShowcaseApiProperties apiProperties) {
+    AsyncCache<String, Showcase> fetchShowcaseByIdCache(ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME);
         if (cacheSettings == null) {
             throw new IllegalStateException("Settings for cache '%s' is missing"

@@ -25,6 +25,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static java.util.Comparator.comparing;
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROTOBUF;
@@ -318,7 +319,7 @@ class ShowcaseQueryControllerIT {
         val showcase = aShowcase();
 
         openSearchTemplate.save(
-                showcaseMapper.dtoToEntity(showcase),
+                requireNonNull(showcaseMapper.dtoToEntity(showcase)),
                 showcaseIndexOperations.getIndexCoordinates());
 
         showcaseIndexOperations.refresh();

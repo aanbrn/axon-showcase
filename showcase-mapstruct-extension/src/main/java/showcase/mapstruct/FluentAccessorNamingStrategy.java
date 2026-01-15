@@ -21,6 +21,7 @@ public final class FluentAccessorNamingStrategy extends DefaultAccessorNamingStr
         return isFluentGetter(method) || super.isGetterMethod(method);
     }
 
+    @SuppressWarnings("ConstantValue")
     private boolean isFluentGetter(ExecutableElement method) {
         if (method.getParameters().isEmpty() && method.getEnclosingElement() != null) {
             for (val element : method.getEnclosingElement().getEnclosedElements()) {

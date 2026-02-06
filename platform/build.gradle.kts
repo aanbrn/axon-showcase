@@ -9,6 +9,7 @@ javaPlatform {
 }
 
 dependencies {
+    api(platform(libs.assertj.bom))
     api(platform(libs.axon.bom))
     api(platform(libs.jackson.bom))
     api(platform(libs.kotlin.bom))

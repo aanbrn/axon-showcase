@@ -16,6 +16,8 @@ dependencies {
     api(platform(libs.micrometer.bom))
     api(platform(libs.micrometer.tracing.bom))
     api(platform(libs.mockito.bom))
+    api(platform(libs.jetty.bom))
+    api(platform(libs.jetty.ee10.bom))
     api(platform(libs.netty.bom))
     api(platform(libs.opentelemetry.bom))
     api(platform(libs.protobuf.bom))

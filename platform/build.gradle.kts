@@ -26,6 +26,7 @@ dependencies {
     api(platform(libs.spring.boot.dependencies))
     api(platform(libs.spring.data.bom))
     api(platform(libs.spring.framework.bom))
+    api(platform(libs.spring.security.bom))
 
     constraints {
         api(libs.commons.compress)

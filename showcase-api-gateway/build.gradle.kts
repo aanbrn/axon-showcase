@@ -24,8 +24,9 @@ dependencies {
 
     implementation(libs.spring.boot.starter.aop)
     implementation(libs.spring.boot.starter.cache)
-    implementation(libs.spring.boot.starter.webflux)
+    implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.validation)
+    implementation(libs.spring.boot.starter.webflux)
     implementation(libs.springdoc.openapi.starter.webflux.ui)
 
     implementation(libs.spring.data.commons)
@@ -69,6 +70,7 @@ testing {
                 implementation(project(":showcase-command-client"))
                 implementation(project(":showcase-query-client"))
 
+                implementation(libs.spring.boot.starter.security)
                 implementation(libs.spring.boot.starter.test)
                 implementation(libs.spring.boot.starter.webflux)
                 implementation(libs.caffeine)
@@ -98,6 +100,7 @@ testing {
                 implementation(libs.spring.boot.starter.test)
                 implementation(libs.spring.boot.starter.webflux)
                 implementation(libs.spring.boot.testcontainers)
+                implementation(libs.spring.security.web)
 
                 implementation(libs.testcontainers.junit.jupiter)
                 implementation(libs.testcontainers.postgresql)

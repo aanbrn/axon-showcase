@@ -22,12 +22,16 @@ import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguratio
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -71,6 +75,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
+import static org.springframework.security.web.server.header.CacheControlServerHttpHeadersWriter.CACHE_CONTRTOL_VALUE;
 import static showcase.api.ShowcaseApi.IDEMPOTENCY_KEY_HEADER;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
@@ -89,6 +94,13 @@ class ShowcaseApiControllerCT {
     @ComponentScan(excludeFilters = @Filter(type = FilterType.ANNOTATION, classes = SpringBootApplication.class))
     @ImportAutoConfiguration(TaskExecutionAutoConfiguration.class)
     static class TestConfig {
+
+        @Bean
+        SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
+            return http.csrf(CsrfSpec::disable)
+                       .authorizeExchange(authorize -> authorize.anyExchange().permitAll())
+                       .build();
+        }
     }
 
     static List<Arguments> commandAvailabilityFailures() {
@@ -159,6 +171,8 @@ class ShowcaseApiControllerCT {
                          .exchange()
                          .expectStatus()
                          .isCreated()
+                         .expectHeader()
+                         .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                          .expectHeader()
                          .value(HttpHeaders.LOCATION, location -> assertThat(location).startsWith("/showcases/"))
                          .expectHeader()
@@ -393,6 +407,8 @@ class ShowcaseApiControllerCT {
                  .exchange()
                  .expectStatus()
                  .isOk()
+                 .expectHeader()
+                 .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                  .expectBody()
                  .isEmpty();
 
@@ -526,6 +542,8 @@ class ShowcaseApiControllerCT {
                  .exchange()
                  .expectStatus()
                  .isOk()
+                 .expectHeader()
+                 .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                  .expectBody()
                  .isEmpty();
 
@@ -659,6 +677,8 @@ class ShowcaseApiControllerCT {
                  .exchange()
                  .expectStatus()
                  .isOk()
+                 .expectHeader()
+                 .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                  .expectBody()
                  .isEmpty();
 
@@ -795,6 +815,8 @@ class ShowcaseApiControllerCT {
                  .exchange()
                  .expectStatus()
                  .isOk()
+                 .expectHeader()
+                 .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                  .expectBodyList(Showcase.class)
                  .isEqualTo(showcases);
 
@@ -1121,6 +1143,8 @@ class ShowcaseApiControllerCT {
                  .exchange()
                  .expectStatus()
                  .isOk()
+                 .expectHeader()
+                 .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                  .expectBody(Showcase.class)
                  .isEqualTo(showcase);
 

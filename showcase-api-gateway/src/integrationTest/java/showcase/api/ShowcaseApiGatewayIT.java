@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
+import static org.springframework.security.web.server.header.CacheControlServerHttpHeadersWriter.CACHE_CONTRTOL_VALUE;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.command.RandomCommandTestUtils.aShowcaseStartTime;
@@ -180,6 +181,8 @@ class ShowcaseApiGatewayIT {
                          .value(HttpHeaders.LOCATION, startsWith("/showcases/"))
                          .expectHeader()
                          .contentTypeCompatibleWith(APPLICATION_JSON)
+                         .expectHeader()
+                         .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                          .expectBody(ScheduleShowcaseResponse.class)
                          .returnResult()
                          .getResponseBody();
@@ -288,6 +291,8 @@ class ShowcaseApiGatewayIT {
                                .exchange()
                                .expectStatus()
                                .isOk()
+                               .expectHeader()
+                               .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                                .expectBody()
                                .jsonPath("$.showcaseId").isEqualTo(showcaseId)
                                .jsonPath("$.title").isEqualTo(title)
@@ -361,6 +366,8 @@ class ShowcaseApiGatewayIT {
                                .exchange()
                                .expectStatus()
                                .isOk()
+                               .expectHeader()
+                               .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                                .expectBody()
                                .jsonPath("$.showcaseId").isEqualTo(showcaseId)
                                .jsonPath("$.title").isEqualTo(title)
@@ -422,6 +429,8 @@ class ShowcaseApiGatewayIT {
                  .exchange()
                  .expectStatus()
                  .isOk()
+                 .expectHeader()
+                 .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                  .expectBody()
                  .isEmpty();
 
@@ -583,6 +592,8 @@ class ShowcaseApiGatewayIT {
                      .exchange()
                      .expectStatus()
                      .isOk()
+                     .expectHeader()
+                     .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                      .expectBodyList(Showcase.class)
                      .value(showcases ->
                                     assertThat(showcases)
@@ -598,6 +609,8 @@ class ShowcaseApiGatewayIT {
                              .exchange()
                              .expectStatus()
                              .isOk()
+                             .expectHeader()
+                             .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                              .expectBodyList(Showcase.class)
                              .returnResult()
                              .getResponseBody();
@@ -625,6 +638,8 @@ class ShowcaseApiGatewayIT {
                      .exchange()
                      .expectStatus()
                      .isOk()
+                     .expectHeader()
+                     .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                      .expectBodyList(Showcase.class)
                      .value(showcases ->
                                     assertThat(showcases)
@@ -642,6 +657,8 @@ class ShowcaseApiGatewayIT {
                      .exchange()
                      .expectStatus()
                      .isOk()
+                     .expectHeader()
+                     .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                      .expectBodyList(Showcase.class)
                      .value(showcases ->
                                     assertThat(showcases)

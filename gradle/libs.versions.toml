@@ -6,6 +6,7 @@ spring-boot = "3.5.14"
 spring-framework-bom = "6.2.18"
 spring-data-bom = "2025.0.11"
 spring-data-opensearch = "2.0.6"
+spring-security-bom = "6.5.10"
 springdoc-openapi-starter = "2.8.17"
 swagger = "2.2.48"
 swagger-ui = "5.32.4"
@@ -82,6 +83,7 @@ spring-boot-starter-jdbc = { group = "org.springframework.boot", name = "spring-
 spring-boot-starter-webflux = { group = "org.springframework.boot", name = "spring-boot-starter-webflux" }
 spring-boot-starter-validation = { group = "org.springframework.boot", name = "spring-boot-starter-validation" }
 spring-boot-starter-actuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator" }
+spring-boot-starter-security = { group = "org.springframework.boot", name = "spring-boot-starter-security" }
 spring-boot-starter-test = { group = "org.springframework.boot", name = "spring-boot-starter-test" }
 spring-boot-testcontainers = { group = "org.springframework.boot", name = "spring-boot-testcontainers" }
 spring-framework-bom = { group = "org.springframework", name = "spring-framework-bom", version.ref = "spring-framework-bom" }
@@ -91,6 +93,8 @@ spring-data-jdbc = { group = "org.springframework.data", name = "spring-data-jdb
 spring-data-opensearch = { group = "org.opensearch.client", name = "spring-data-opensearch", version.ref = "spring-data-opensearch" }
 spring-data-opensearch-starter = { group = "org.opensearch.client", name = "spring-data-opensearch-starter", version.ref = "spring-data-opensearch" }
 spring-data-opensearch-testcontainers = { group = "org.opensearch.client", name = "spring-data-opensearch-testcontainers", version.ref = "spring-data-opensearch" }
+spring-security-bom = { group = "org.springframework.security", name = "spring-security-bom", version.ref = "spring-security-bom" }
+spring-security-web = { group = "org.springframework.security", name = "spring-security-web" }
 springdoc-openapi-starter-webflux-ui = { group = "org.springdoc", name = "springdoc-openapi-starter-webflux-ui", version.ref = "springdoc-openapi-starter" }
 elasticsearch-client-java = { group = "co.elastic.clients", name = "elasticsearch-java", version.ref = "elasticsearch-client" }
 opensearch-client-java = { group = "org.opensearch.client", name = "opensearch-java", version.ref = "opensearch-client" }

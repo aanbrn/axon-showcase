@@ -31,6 +31,9 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import showcase.query.FetchShowcaseListQuery;
 import showcase.query.Showcase;
 
@@ -147,5 +150,12 @@ class ShowcaseApiApplication {
             cacheManager.registerCustomCache(
                     "fetch-showcase-by-id-cache", (AsyncCache<@NonNull Object, Object>) fetchShowcaseByIdCache);
         };
+    }
+
+    @Bean
+    SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
+        return http.csrf(CsrfSpec::disable)
+                   .authorizeExchange(authorize -> authorize.anyExchange().permitAll())
+                   .build();
     }
 }

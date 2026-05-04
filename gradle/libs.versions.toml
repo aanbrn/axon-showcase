@@ -1,7 +1,8 @@
 [versions]
 java = "21"
-axon-bom = "4.13.0"
+axon-bom = "4.13.1"
 axon-framework = "4.13.1"
+axon-kafka = "4.12.1"
 spring-boot = "3.5.14"
 spring-framework-bom = "6.2.18"
 spring-data-bom = "2025.0.11"
@@ -12,7 +13,7 @@ swagger = "2.2.49"
 swagger-ui = "5.32.5"
 postgresql = "42.7.11"
 flyway = "11.20.3"
-caffeine = "3.2.3"
+caffeine = "3.2.4"
 db-scheduler = "13.0.0"
 mapstruct = "1.6.3"
 jackson-bom = "2.21.3"
@@ -164,8 +165,8 @@ axon-springBoot-starter = { group = "org.axonframework", name = "axon-spring-boo
 axon-serverConnector = { group = "org.axonframework", name = "axon-server-connector", version.ref = "axon-framework" }
 axon-micrometer = { group = "org.axonframework", name = "axon-micrometer", version.ref = "axon-framework" }
 axon-tracing-opentelemetry = { group = "org.axonframework", name = "axon-tracing-opentelemetry", version.ref = "axon-framework" }
-axon-extensions-kafka = { group = "org.axonframework.extensions.kafka", name = "axon-kafka" }
-axon-extensions-kafka-springBootStarter = { group = "org.axonframework.extensions.kafka", name = "axon-kafka-spring-boot-starter" }
+axon-extensions-kafka = { group = "org.axonframework.extensions.kafka", name = "axon-kafka", version.ref = "axon-kafka" }
+axon-extensions-kafka-springBootStarter = { group = "org.axonframework.extensions.kafka", name = "axon-kafka-spring-boot-starter", version.ref = "axon-kafka" }
 axon-extensions-jgroups-springBootStarter = { group = "org.axonframework.extensions.jgroups", name = "axon-jgroups-spring-boot-starter" }
 axon-extensions-reactor-springBootStarter = { group = "org.axonframework.extensions.reactor", name = "axon-reactor-spring-boot-starter" }
 axon-test = { group = "org.axonframework", name = "axon-test", version.ref = "axon-framework" }

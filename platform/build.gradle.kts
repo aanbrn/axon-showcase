@@ -37,6 +37,7 @@ dependencies {
         api(libs.flyway.core)
         api(libs.guava)
         api(libs.hamcrest)
+        api(libs.handlebars)
         api(libs.jgroups)
         api(libs.jgroups.kunernetes)
         api(libs.log4j.api)

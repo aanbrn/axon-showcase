@@ -13,7 +13,7 @@ dependencies {
 
     api(libs.axon.messaging)
     api(libs.spring.data.commons)
-    api(libs.jackson.databind)
+    api(libs.jackson2.databind)
     api(libs.swagger.annotations.jakarta)
 
     implementation(libs.commons.lang3)

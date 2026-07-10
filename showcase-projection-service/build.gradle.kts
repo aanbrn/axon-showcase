@@ -33,7 +33,7 @@ dependencies {
     implementation(libs.opensearch.client.java)
     implementation(libs.elasticsearch.client.java)
 
-    implementation(libs.jackson.module.blackbird)
+    implementation(libs.jackson2.module.blackbird)
 
     implementation(libs.commons.lang3)
 

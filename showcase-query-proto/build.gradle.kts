@@ -30,8 +30,8 @@ testing {
 
         register<JvmTestSuite>("componentTest") {
             dependencies {
-                implementation(libs.jackson.databind)
-                implementation(libs.jackson.jsr310)
+                implementation(libs.jackson2.databind)
+                implementation(libs.jackson2.jsr310)
             }
 
             targets {

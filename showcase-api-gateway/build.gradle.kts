@@ -33,7 +33,7 @@ dependencies {
 
     implementation(libs.hibernate.validator)
 
-    implementation(libs.jackson.module.blackbird)
+    implementation(libs.jackson2.module.blackbird)
 
     implementation(libs.caffeine)
 

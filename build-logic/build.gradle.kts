@@ -5,6 +5,8 @@ plugins {
 project.description = "Build Convention Plugins"
 
 dependencies {
+    api(platform(libs.jackson2.bom))
+
     implementation(libs.kotlin.plugin)
     implementation(libs.lombok.plugin)
     implementation(libs.spring.boot.plugin)

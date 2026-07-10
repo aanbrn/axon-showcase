@@ -31,7 +31,7 @@ dependencies {
 
     implementation(libs.dbScheduler.springBootStarter)
 
-    implementation(libs.jackson.module.blackbird)
+    implementation(libs.jackson2.module.blackbird)
 
     implementation(libs.caffeine.jcache)
 

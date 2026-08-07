@@ -47,6 +47,7 @@ dependencies {
         api(libs.logback.classic)
         api(libs.logback.core)
         api(libs.lombok)
+        api(libs.lz4.java)
         api(libs.opensearch.client.java)
         api(libs.opensearch.client.rest)
         api(libs.opensearch.client.restHighLevel)

@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import showcase.identifier.KSUID;
 import showcase.query.FetchShowcaseListQuery;
 import showcase.query.Showcase;
+import showcase.query.ShowcaseQueryException;
 import showcase.query.ShowcaseStatus;
 
 import java.util.List;
@@ -28,6 +29,13 @@ import java.util.List;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 
+/**
+ * REST API for managing showcases.
+ *
+ * <p>Operations are split between command and query sides. Commands are handled asynchronously — if the operation
+ * times out, a {@code 202} is returned with the idempotency key in the response header so the client can retry
+ * safely. Queries are served from read-side projections backed by OpenSearch.
+ */
 @OpenAPIDefinition(
         info = @Info(
                 title = "Showcase REST API",
@@ -39,8 +47,23 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 @SuppressWarnings("unused")
 interface ShowcaseApi {
 
+    /**
+     * The HTTP header name used for idempotency keys on write operations.
+     */
     String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
 
+    /**
+     * Schedules a new showcase.
+     *
+     * <p>If the request is accepted for asynchronous processing, a {@code 202} is returned with the idempotency key
+     * in the {@code Idempotency-Key} header. The client should retry the same request using that key to obtain the
+     * final result.
+     *
+     * @param idempotencyKey optional unique key ensuring idempotency; generated automatically if omitted
+     * @param request        the schedule parameters
+     * @return {@code 201} with the scheduled showcase ID and a {@code Location} header, or {@code 202} if still
+     * processing, or {@code 409} if the title is already in use
+     */
     @Operation(
             description = "Schedules a showcase with the given parameters.",
             method = "POST",
@@ -104,6 +127,13 @@ interface ShowcaseApi {
             @KSUID String idempotencyKey,
             @Valid ScheduleShowcaseRequest request);
 
+    /**
+     * Starts a scheduled showcase explicitly before its automatic start time.
+     *
+     * @param showcaseId the ID of the showcase to start
+     * @return {@code 200} on success, {@code 202} if still processing, {@code 400} for an invalid ID, {@code 404} if
+     * not found, or {@code 409} if already finished
+     */
     @Operation(
             description = "Starts the scheduled showcase explicitly before it's started automatically at the " +
                                   "scheduled date-time.",
@@ -176,6 +206,13 @@ interface ShowcaseApi {
     )
     Mono<ResponseEntity<Void>> start(@KSUID String showcaseId);
 
+    /**
+     * Finishes a started showcase explicitly before its automatic end time.
+     *
+     * @param showcaseId the ID of the showcase to finish
+     * @return {@code 200} on success, {@code 202} if still processing, {@code 400} for an invalid ID, {@code 404} if
+     * not found, or {@code 409} if not started yet
+     */
     @Operation(
             description = "Finishes the started showcase explicitly before it's finished automatically at the end of " +
                                   "the duration.",
@@ -248,6 +285,12 @@ interface ShowcaseApi {
     )
     Mono<ResponseEntity<Void>> finish(@KSUID String showcaseId);
 
+    /**
+     * Removes a showcase, finishing it first if it has already been started.
+     *
+     * @param showcaseId the ID of the showcase to remove
+     * @return {@code 200} on success, or {@code 202} if still processing
+     */
     @Operation(
             description = "Removes the given showcase finishing it when it's already started.",
             method = "DELETE",
@@ -274,6 +317,16 @@ interface ShowcaseApi {
     )
     Mono<ResponseEntity<Void>> remove(@KSUID String showcaseId);
 
+    /**
+     * Fetches the existing showcases, sorted by ID in reverse chronological order, optionally filtered by title and
+     * status.
+     *
+     * @param title    filter by full-text title match
+     * @param statuses filter by one or more statuses
+     * @param afterId  fetch only showcases with an ID after this one (for pagination)
+     * @param size     number of showcases to return (between 1 and 1000, default 20)
+     * @return the matching showcase list
+     */
     @Operation(
             description = "Fetches the existing showcases sorting them by IDs in reverse order and optionally " +
                                   "filtering by the given status(es).",
@@ -315,6 +368,13 @@ interface ShowcaseApi {
             @KSUID String afterId,
             @Min(FetchShowcaseListQuery.MIN_SIZE) @Max(FetchShowcaseListQuery.MAX_SIZE) int size);
 
+    /**
+     * Fetches a single showcase by its ID.
+     *
+     * @param showcaseId the ID of the showcase
+     * @return the showcase if found
+     * @throws ShowcaseQueryException with {@code NOT_FOUND} if the showcase does not exist
+     */
     @Operation(
             description = "Fetches the showcase given by ID.",
             method = "GET",

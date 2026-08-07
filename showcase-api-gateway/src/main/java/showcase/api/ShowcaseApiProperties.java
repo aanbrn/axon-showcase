@@ -16,27 +16,45 @@ import java.util.Map;
 import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME;
 import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME;
 
+/**
+ * Configuration properties bound to the {@code showcase.api} prefix.
+ *
+ * <p>Configures the in-memory caches used by the showcase API gateway.
+ */
 @ConfigurationProperties("showcase.api")
 @Data
 @Validated
 final class ShowcaseApiProperties {
-
+    /**
+     * Configuration for a single in-memory cache.
+     */
     @Data
     @AllArgsConstructor
     static final class Cache {
-
+        /**
+         * The maximum number of entries the cache may hold.
+         */
         @Min(0)
         private long maximumSize;
 
+        /**
+         * The duration after which an entry is eligible for eviction when it has not been accessed.
+         */
         @NotNull
         @DurationMin(nanos = 0)
         private Duration expiresAfterAccess;
 
+        /**
+         * The duration after which an entry is eligible for eviction regardless of access.
+         */
         @NotNull
         @DurationMin(nanos = 0)
         private Duration expiresAfterWrite;
     }
 
+    /**
+     * The caches configured by name, keyed by the cache name and holding its Cache settings.
+     */
     @NotNull
     @Valid
     private Map<@NotBlank String, @NotNull @Valid Cache> caches = Map.of(

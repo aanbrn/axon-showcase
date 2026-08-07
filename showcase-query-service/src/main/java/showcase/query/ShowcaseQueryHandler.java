@@ -20,17 +20,38 @@ import showcase.projection.ShowcaseEntity;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Handles showcase queries by searching the OpenSearch index.
+ */
 @Component
 class ShowcaseQueryHandler {
-
+    /**
+     * The OpenSearch template used to run searches.
+     */
     private final ReactiveOpenSearchTemplate openSearchTemplate;
 
+    /**
+     * The mapper converting entities to DTOs.
+     */
     private final ShowcaseMapper showcaseMapper;
 
+    /**
+     * The index coordinates of the showcase index.
+     */
     private final IndexCoordinates showcaseIndex;
 
+    /**
+     * The listener factory wiring Micrometer observations.
+     */
     private final SignalListenerFactory<Showcase, ?> observationListenerFactory;
 
+    /**
+     * Creates the handler resolving index coordinates and observation listeners.
+     *
+     * @param openSearchTemplate the OpenSearch template
+     * @param showcaseMapper the entity-to-DTO mapper
+     * @param observationRegistry the Micrometer observation registry
+     */
     ShowcaseQueryHandler(
             ReactiveOpenSearchTemplate openSearchTemplate,
             ShowcaseMapper showcaseMapper,
@@ -41,6 +62,12 @@ class ShowcaseQueryHandler {
         this.observationListenerFactory = Micrometer.observation(observationRegistry);
     }
 
+    /**
+     * Handles the list query, filtering by title and status and sorting by showcase ID descending.
+     *
+     * @param query the list query to handle
+     * @return a flux of matching showcases
+     */
     @QueryHandler
     Flux<Showcase> handle(FetchShowcaseListQuery query) {
         var criteria = new Criteria();
@@ -74,6 +101,13 @@ class ShowcaseQueryHandler {
                        .checkpoint("ShowcaseQueryHandler.handle(%s)".formatted(query));
     }
 
+    /**
+     * Handles the by-ID query, erroring with {@link ShowcaseQueryErrorCode#NOT_FOUND} when the showcase is absent.
+     *
+     * @param query the by-ID query to handle
+     * @return a mono of the matching showcase
+     * @throws ShowcaseQueryException if no showcase with the given ID exists
+     */
     @QueryHandler
     Mono<Showcase> handle(FetchShowcaseByIdQuery query) throws ShowcaseQueryException {
         return openSearchTemplate

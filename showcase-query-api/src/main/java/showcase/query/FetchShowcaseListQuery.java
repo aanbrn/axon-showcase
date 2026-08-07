@@ -16,6 +16,9 @@ import showcase.identifier.KSUID;
 
 import java.util.Set;
 
+/**
+ * Query to fetch a paginated list of showcases, optionally filtered by title and status.
+ */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
@@ -23,23 +26,43 @@ import java.util.Set;
 @Builder
 @Jacksonized
 public class FetchShowcaseListQuery {
-
+    /**
+     * The minimum allowed page size.
+     */
     public static final int MIN_SIZE = 1;
 
+    /**
+     * The maximum allowed page size.
+     */
     public static final int MAX_SIZE = 1_000;
 
+    /**
+     * The default page size.
+     */
     public static final int DEFAULT_SIZE = 20;
 
+    /**
+     * The title to filter by with full-text matching, if any.
+     */
     @Nullable
     String title;
 
+    /**
+     * The statuses to filter by, if any.
+     */
     @Singular(ignoreNullCollections = true)
     Set<ShowcaseStatus> statuses;
 
+    /**
+     * The ID of the showcase after which to fetch, for pagination.
+     */
     @Nullable
     @KSUID
     String afterId;
 
+    /**
+     * The number of showcases to fetch.
+     */
     @Min(MIN_SIZE)
     @Max(MAX_SIZE)
     @Builder.Default

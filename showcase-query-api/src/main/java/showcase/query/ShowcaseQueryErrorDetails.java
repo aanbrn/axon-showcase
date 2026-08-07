@@ -12,6 +12,9 @@ import lombok.extern.jackson.Jacksonized;
 import org.axonframework.messaging.MetaData;
 import org.jspecify.annotations.NullUnmarked;
 
+/**
+ * Structured details describing a failed showcase query.
+ */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(cacheStrategy = CacheStrategy.LAZY)
@@ -20,13 +23,21 @@ import org.jspecify.annotations.NullUnmarked;
 @Jacksonized
 @NullUnmarked
 public class ShowcaseQueryErrorDetails {
-
+    /**
+     * The error code categorizing the failure.
+     */
     @NonNull
     ShowcaseQueryErrorCode errorCode;
 
+    /**
+     * The human-readable error message.
+     */
     @NonNull
     String errorMessage;
 
+    /**
+     * Additional metadata associated with the error, empty by default.
+     */
     @Builder.Default
     MetaData metaData = MetaData.emptyInstance();
 }

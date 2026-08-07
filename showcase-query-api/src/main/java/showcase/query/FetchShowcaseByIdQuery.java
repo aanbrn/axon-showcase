@@ -12,6 +12,9 @@ import lombok.extern.jackson.Jacksonized;
 import org.jspecify.annotations.NullUnmarked;
 import showcase.identifier.KSUID;
 
+/**
+ * Query to fetch a single showcase by its ID.
+ */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
@@ -21,7 +24,9 @@ import showcase.identifier.KSUID;
 @NullUnmarked
 @SuppressWarnings("ClassCanBeRecord")
 public class FetchShowcaseByIdQuery {
-
+    /**
+     * The ID of the showcase to fetch.
+     */
     @NonNull
     @KSUID
     String showcaseId;

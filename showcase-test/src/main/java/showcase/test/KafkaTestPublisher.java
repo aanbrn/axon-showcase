@@ -19,22 +19,43 @@ import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Publishes events to Kafka for testing purposes, tracking per-aggregate sequence numbers.
+ *
+ * @param <E> the event type published by this helper
+ */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @NullUnmarked
 public final class KafkaTestPublisher<E> {
-
+    /**
+     * The Kafka publisher sending the events.
+     */
     @NonNull
     private final KafkaPublisher<?, ?> kafkaPublisher;
 
+    /**
+     * The aggregate type used for the domain events.
+     */
     @NonNull
     private final String aggregateType;
 
+    /**
+     * Extracts the aggregate identifier from an event.
+     */
     @NonNull
     private final Function<E, String> aggregateIdentifierExtractor;
 
+    /**
+     * Tracks the last sequence number per aggregate identifier.
+     */
     private final Map<String, AtomicLong> sequenceNumbers = new ConcurrentHashMap<>();
 
+    /**
+     * Publishes a single event as a domain event message with an incremented sequence number.
+     *
+     * @param event the event to publish
+     */
     @NullMarked
     public void publishEvent(E event) {
         val aggregateIdentifier =
@@ -45,11 +66,21 @@ public final class KafkaTestPublisher<E> {
         new DefaultUnitOfWork<>(eventMessage).execute(() -> kafkaPublisher.send(eventMessage));
     }
 
+    /**
+     * Publishes the given event twice.
+     *
+     * @param event the event to publish
+     */
     @NullMarked
     public void publishEventTwice(E event) {
         publishEvents(List.of(event, event));
     }
 
+    /**
+     * Publishes each of the given events as a domain event message.
+     *
+     * @param events the events to publish
+     */
     @NullMarked
     public void publishEvents(List<? extends E> events) {
         events.forEach(this::publishEvent);

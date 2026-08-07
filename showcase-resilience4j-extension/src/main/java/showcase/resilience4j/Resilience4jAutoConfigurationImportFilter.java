@@ -14,37 +14,70 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkState;
 
+/**
+ * Auto-configuration import filter that conditionally disables Resilience4j features based on configuration
+ * properties.
+ *
+ * <p>Each feature (bulkhead, time limiter, rate limiter, circuit breaker, retry) is only imported when both the
+ * overall {@code resilience4j.enabled} and the feature-specific flag are enabled.
+ */
 public class Resilience4jAutoConfigurationImportFilter implements AutoConfigurationImportFilter, EnvironmentAware {
-
+    /**
+     * Matches Resilience4j bulkhead auto-configuration classes.
+     */
     private static final Predicate<String> BULKHEAD_AUTO_CONFIGURATION_MATCH_PREDICATE =
             Pattern.compile("io\\.github\\.resilience4j\\.springboot3\\.bulkhead\\.autoconfigure\\..*Bulkhead" +
                                     ".*AutoConfiguration")
                    .asMatchPredicate();
 
+    /**
+     * Matches Resilience4j time limiter auto-configuration classes.
+     */
     private static final Predicate<String> TIMELIMITER_AUTO_CONFIGURATION_MATCH_PREDICATE =
             Pattern.compile("io\\.github\\.resilience4j\\.springboot3\\.timelimiter\\.autoconfigure\\..*TimeLimiter" +
                                     ".*AutoConfiguration")
                    .asMatchPredicate();
 
+    /**
+     * Matches Resilience4j rate limiter auto-configuration classes.
+     */
     private static final Predicate<String> RATELIMITER_AUTO_CONFIGURATION_MATCH_PREDICATE =
             Pattern.compile("io\\.github\\.resilience4j\\.springboot3\\.ratelimiter\\.autoconfigure\\..*RateLimiter" +
                                     ".*AutoConfiguration")
                    .asMatchPredicate();
 
+    /**
+     * Matches Resilience4j circuit breaker auto-configuration classes.
+     */
     private static final Predicate<String> CIRCUITBREAKER_AUTO_CONFIGURATION_MATCH_PREDICATE =
             Pattern.compile("io\\.github\\.resilience4j\\.springboot3\\.circuitbreaker\\.autoconfigure\\." +
                                     ".*CircuitBreaker.*AutoConfiguration")
                    .asMatchPredicate();
 
+    /**
+     * Matches Resilience4j retry auto-configuration classes.
+     */
     private static final Predicate<String> RETRY_AUTO_CONFIGURATION_MATCH_PREDICATE =
             Pattern.compile("io\\.github\\.resilience4j\\.springboot3\\.retry\\.autoconfigure\\..*Retry" +
                                     ".*AutoConfiguration")
                    .asMatchPredicate();
 
+    /**
+     * The environment used to resolve the Resilience4j feature flags.
+     */
     @Nullable
     @Setter
     private Environment environment;
 
+    /**
+     * Determines which auto-configuration classes should be selected.
+     *
+     * <p>Resilience4j auto-configurations are excluded when the corresponding feature flag is disabled.
+     *
+     * @param autoConfigurationClasses  the auto-configuration class names to filter
+     * @param autoConfigurationMetadata the auto-configuration metadata
+     * @return an array where each {@code true} entry keeps the corresponding class
+     */
     @Override
     public boolean[] match(@Nullable String[] autoConfigurationClasses,
                            AutoConfigurationMetadata autoConfigurationMetadata) {

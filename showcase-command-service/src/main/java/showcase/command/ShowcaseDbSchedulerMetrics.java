@@ -27,17 +27,30 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Micrometer-backed {@link StatsRegistry} exposing DB Scheduler metrics.
+ */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Slf4j
 final class ShowcaseDbSchedulerMetrics implements StatsRegistry {
-
+    /**
+     * The registry to which the metrics are registered.
+     */
     private final MeterRegistry meterRegistry;
 
+    /**
+     * The reflection handle to the {@code ExecutionComplete::timeStarted} field.
+     */
     private final Field executionCompleteTimeStartedField =
             requireNonNull(FieldUtils.getField(ExecutionComplete.class, "timeStarted", true),
                            "\"ExecutionComplete::timeStarted\" field must be accessible");
 
+    /**
+     * Records a scheduler-level event.
+     *
+     * @param event the event to record
+     */
     @Override
     public void register(SchedulerStatsEvent event) {
         Counter.builder("dbscheduler.schedulerEvents")
@@ -46,6 +59,11 @@ final class ShowcaseDbSchedulerMetrics implements StatsRegistry {
                .increment();
     }
 
+    /**
+     * Records a candidate-level event.
+     *
+     * @param event the event to record
+     */
     @Override
     public void register(CandidateStatsEvent event) {
         Counter.builder("dbscheduler.candidateEvents")
@@ -54,6 +72,11 @@ final class ShowcaseDbSchedulerMetrics implements StatsRegistry {
                .increment();
     }
 
+    /**
+     * Records an execution-level event.
+     *
+     * @param event the event to record
+     */
     @Override
     public void register(ExecutionStatsEvent event) {
         Counter.builder("dbscheduler.executionEvents")
@@ -62,6 +85,11 @@ final class ShowcaseDbSchedulerMetrics implements StatsRegistry {
                .increment();
     }
 
+    /**
+     * Records a completed execution, its duration, and the scheduling lag.
+     *
+     * @param event the completed execution
+     */
     @Override
     public void registerSingleCompletedExecution(ExecutionComplete event) {
         val taskInstance = Optional.ofNullable(event.getExecution())

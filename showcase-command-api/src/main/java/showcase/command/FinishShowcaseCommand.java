@@ -12,6 +12,9 @@ import lombok.extern.jackson.Jacksonized;
 import org.jspecify.annotations.NullUnmarked;
 import showcase.identifier.KSUID;
 
+/**
+ * Command to finish a started showcase.
+ */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
@@ -21,7 +24,9 @@ import showcase.identifier.KSUID;
 @NullUnmarked
 @SuppressWarnings("ClassCanBeRecord")
 public class FinishShowcaseCommand implements ShowcaseCommand {
-
+    /**
+     * The ID of the showcase to finish.
+     */
     @NonNull
     @KSUID
     String showcaseId;

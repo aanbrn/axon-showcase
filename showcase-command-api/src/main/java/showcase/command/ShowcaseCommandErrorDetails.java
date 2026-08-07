@@ -14,6 +14,9 @@ import org.jspecify.annotations.NullUnmarked;
 
 import java.io.Serializable;
 
+/**
+ * Structured details describing a failed showcase command.
+ */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
@@ -22,13 +25,21 @@ import java.io.Serializable;
 @Jacksonized
 @NullUnmarked
 public class ShowcaseCommandErrorDetails implements Serializable {
-
+    /**
+     * The error code categorizing the failure.
+     */
     @NonNull
     ShowcaseCommandErrorCode errorCode;
 
+    /**
+     * The human-readable error message.
+     */
     @NonNull
     String errorMessage;
 
+    /**
+     * Additional metadata associated with the error, empty by default.
+     */
     @Builder.Default
     MetaData metaData = MetaData.emptyInstance();
 }

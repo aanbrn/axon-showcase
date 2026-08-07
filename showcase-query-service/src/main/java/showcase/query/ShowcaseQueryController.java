@@ -29,19 +29,39 @@ import java.util.function.Predicate;
 
 import static org.springframework.http.MediaType.APPLICATION_PROTOBUF_VALUE;
 
+/**
+ * REST controller exposing showcase queries over a protobuf transport.
+ */
 @RestController
 @RequiredArgsConstructor
 @Slf4j
 final class ShowcaseQueryController {
-
+    /**
+     * The query bus used to dispatch queries.
+     */
     private final QueryBus queryBus;
 
+    /**
+     * The mapper converting query requests to query messages.
+     */
     private final QueryMessageRequestMapper queryMessageRequestMapper;
 
+    /**
+     * The span factory used to propagate tracing context.
+     */
     private final QueryBusSpanFactory spanFactory;
 
+    /**
+     * The printer formatting query requests into single-line text for debug output.
+     */
     private final Printer queryRequestPrinter = TextFormat.debugFormatPrinter().emittingSingleLine(true);
 
+    /**
+     * Dispatches a query and returns the full response stream.
+     *
+     * @param queryRequest the query request
+     * @return the flux of query responses
+     */
     @PostMapping(path = "/streaming-query", consumes = APPLICATION_PROTOBUF_VALUE)
     Flux<?> streamingQuery(@RequestBody QueryRequest queryRequest) {
         return dispatchQuery(queryRequest)
@@ -49,6 +69,12 @@ final class ShowcaseQueryController {
                                queryRequestPrinter.printToString(queryRequest)));
     }
 
+    /**
+     * Dispatches a query and returns only the first response.
+     *
+     * @param queryRequest the query request
+     * @return a mono of the first query response
+     */
     @PostMapping(path = "/query", consumes = APPLICATION_PROTOBUF_VALUE)
     Mono<?> query(@RequestBody QueryRequest queryRequest) {
         return dispatchQuery(queryRequest)
@@ -57,6 +83,12 @@ final class ShowcaseQueryController {
                                queryRequestPrinter.printToString(queryRequest)));
     }
 
+    /**
+     * Maps the query request to a message, propagates tracing context, and dispatches it on the query bus.
+     *
+     * @param queryRequest the query request to dispatch
+     * @return a flux of query responses
+     */
     private Flux<?> dispatchQuery(QueryRequest queryRequest) {
         return Mono.fromCallable(() -> queryMessageRequestMapper.requestToMessage(queryRequest))
                    .onErrorMap(ClassNotFoundException.class, e -> {
@@ -73,6 +105,12 @@ final class ShowcaseQueryController {
                    .map(QueryResponseMessage::getPayload);
     }
 
+    /**
+     * Maps {@link ShowcaseQueryException} to structured problem details.
+     *
+     * @param e the query exception to map
+     * @return the problem detail for the exception
+     */
     @ExceptionHandler
     private ProblemDetail handleShowcaseQueryException(ShowcaseQueryException e) {
         val errorDetails = e.getErrorDetails();
@@ -87,6 +125,12 @@ final class ShowcaseQueryController {
         };
     }
 
+    /**
+     * Maps data access failures to a {@code 503 Service Unavailable}.
+     *
+     * @param e the data access exception to map
+     * @return the problem detail for the exception
+     */
     @ExceptionHandler
     private ProblemDetail handleDataAccessException(DataAccessException e) {
         log.error("Data access failure", e);
@@ -94,6 +138,12 @@ final class ShowcaseQueryController {
         return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
     }
 
+    /**
+     * Maps timeouts to a {@code 504 Gateway Timeout}.
+     *
+     * @param e the timeout exception to map
+     * @return the problem detail for the exception
+     */
     @ExceptionHandler
     private ProblemDetail handleTimeoutException(TimeoutException e) {
         log.trace("Operation timeout exceeded", e);
@@ -101,6 +151,13 @@ final class ShowcaseQueryController {
         return ProblemDetail.forStatusAndDetail(HttpStatus.GATEWAY_TIMEOUT, "Operation timeout exceeded");
     }
 
+    /**
+     * Maps aborted inbound connections to a {@code 408 Request Timeout}.
+     *
+     * @param e the aborted exception to map
+     * @param exchange the current server exchange
+     * @return a mono that completes the exchange response
+     */
     @ExceptionHandler
     private Mono<Void> handleAbortedException(AbortedException e, ServerWebExchange exchange) {
         log.trace("Inbound connection aborted", e);
@@ -109,6 +166,16 @@ final class ShowcaseQueryController {
         return exchange.getResponse().setComplete();
     }
 
+    /**
+     * Fallback handler mapping any unhandled exception by unwrapping its cause chain.
+     *
+     * <p>Known exception types are delegated to their dedicated handlers, and unknown errors yield a generic
+     * {@code 503 Service Unavailable}.
+     *
+     * @param e the exception to map
+     * @param exchange the current server exchange
+     * @return the mapped response body
+     */
     @ExceptionHandler
     @SuppressWarnings("unused")
     private Object handleException(Exception e, ServerWebExchange exchange) {
@@ -130,6 +197,13 @@ final class ShowcaseQueryController {
         };
     }
 
+    /**
+     * Walks the exception cause chain to find the first matching exception.
+     *
+     * @param t the exception to inspect
+     * @param predicate the predicate testing candidate causes
+     * @return the first matching exception in the chain, if any
+     */
     private Optional<Throwable> findCause(Throwable t, Predicate<Throwable> predicate) {
         while (t != null) {
             if (predicate.test(t)) {

@@ -13,6 +13,9 @@ import lombok.extern.jackson.Jacksonized;
 import org.jspecify.annotations.NullUnmarked;
 import showcase.identifier.KSUID;
 
+/**
+ * Response payload returned after scheduling a showcase.
+ */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
@@ -23,7 +26,9 @@ import showcase.identifier.KSUID;
 @Schema(description = "Response payload on schedule a showcase.")
 @SuppressWarnings("ClassCanBeRecord")
 class ScheduleShowcaseResponse {
-
+    /**
+     * The ID of the scheduled showcase.
+     */
     @NonNull
     @KSUID
     @Schema(

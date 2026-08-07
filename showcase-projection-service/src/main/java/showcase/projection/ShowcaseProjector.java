@@ -71,29 +71,55 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.apache.commons.lang3.time.DurationFormatUtils.formatDurationWords;
 import static org.axonframework.micrometer.TagsUtil.PAYLOAD_TYPE_TAGGER_FUNCTION;
 
+/**
+ * Consumes showcase events from Kafka and upserts the corresponding projections into OpenSearch.
+ *
+ * <p>Messages are started and stopped via {@link SmartLifecycle}. Events are processed in batches per partition,
+ * acknowledged after a successful write, and monitored with Micrometer metrics.
+ */
 @Component
 @Slf4j
 class ShowcaseProjector implements SmartLifecycle {
 
     private static final String METER_NAME_PREFIX = "showcaseProjector";
 
+    /**
+     * Message monitor recording the projection lag for {@link ShowcaseEvent} messages.
+     */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     @Builder
     @NullUnmarked
     private static class ProjectionLagMonitor implements MessageMonitor<EventMessage<?>> {
-
+        /**
+         * The prefix for the recorded metric names.
+         */
         @NonNull
         private final String meterNamePrefix;
 
+        /**
+         * The registry to which the metrics are registered.
+         */
         @NonNull
         private final MeterRegistry meterRegistry;
 
+        /**
+         * Builds the tags applied to the recorded metrics, empty by default.
+         */
         @Builder.Default
         private final Function<Message<?>, Iterable<Tag>> tagsBuilder = message -> Tags.empty();
 
+        /**
+         * The clock used to measure the lag, defaults to the system clock.
+         */
         @Builder.Default
         private final Clock clock = Clock.SYSTEM;
 
+        /**
+         * Records the projection lag for a showcase event and returns a no-op callback.
+         *
+         * @param message the ingested event message
+         * @return the message monitor callback
+         */
         @NullMarked
         @Override
         public MonitorCallback onMessageIngested(EventMessage<?> message) {
@@ -117,24 +143,54 @@ class ShowcaseProjector implements SmartLifecycle {
         }
     }
 
+    /**
+     * The projection configuration.
+     */
     private final ShowcaseProjectorProperties projectionProperties;
 
+    /**
+     * The Kafka receiver used to consume event messages.
+     */
     private final KafkaReceiver<String, byte[]> kafkaReceiver;
 
+    /**
+     * The converter used to deserialize consumed Kafka messages.
+     */
     private final KafkaMessageConverter<String, byte[]> kafkaMessageConverter;
 
+    /**
+     * The OpenSearch template used to write projections.
+     */
     private final ReactiveOpenSearchTemplate openSearchTemplate;
 
+    /**
+     * The converter used to map entities to their OpenSearch representation.
+     */
     private final ElasticsearchConverter elasticsearchConverter;
 
+    /**
+     * The coordinates of the showcase index.
+     */
     private final IndexCoordinates showcaseIndex;
 
+    /**
+     * The composite monitor tracking message processing metrics.
+     */
     private final MessageMonitor<? super EventMessage<?>> messageMonitor;
 
+    /**
+     * The distribution tracking the size of processed batches.
+     */
     private final DistributionSummary batchSizeDistribution;
 
+    /**
+     * The observation registry for tracing the projection flow.
+     */
     private final ObservationRegistry observationRegistry;
 
+    /**
+     * The current stream subscription, if the projector is running.
+     */
     private final AtomicReference<@Nullable Disposable> subscription = new AtomicReference<>();
 
     ShowcaseProjector(
@@ -186,11 +242,19 @@ class ShowcaseProjector implements SmartLifecycle {
         this.observationRegistry = observationRegistry;
     }
 
+    /**
+     * Returns whether the projector is currently running.
+     *
+     * @return {@code true} if the subscription is active
+     */
     @Override
     public boolean isRunning() {
         return subscription.get() != null;
     }
 
+    /**
+     * Starts the projection stream, consuming and processing events from Kafka.
+     */
     @Override
     public void start() {
         this.subscription.updateAndGet(current -> {
@@ -244,6 +308,9 @@ class ShowcaseProjector implements SmartLifecycle {
         });
     }
 
+    /**
+     * Stops the projection stream and disposes the active subscription.
+     */
     @Override
     public void stop() {
         val subscription = this.subscription.getAndSet(null);
@@ -256,6 +323,12 @@ class ShowcaseProjector implements SmartLifecycle {
         subscription.dispose();
     }
 
+    /**
+     * Converts the given Kafka records into showcase events.
+     *
+     * @param messages the consumed Kafka records
+     * @return a {@link Mono} completing once the messages are converted
+     */
     private Mono<Void> processMessages(List<? extends ConsumerRecord<String, byte[]>> messages) {
         return Flux.fromIterable(messages)
                    .map(kafkaMessageConverter::readKafkaMessage)
@@ -298,6 +371,12 @@ class ShowcaseProjector implements SmartLifecycle {
                    .flatMap(this::processEvents);
     }
 
+    /**
+     * Writes the given events to OpenSearch as a bulk operation and reports their outcome.
+     *
+     * @param events the events paired with their monitor callbacks
+     * @return a {@link Mono} completing once the batch is processed
+     */
     private Mono<Void> processEvents(List<Tuple2<ShowcaseEvent, MonitorCallback>> events) {
         return Flux.zip(Flux.fromIterable(events)
                             .map(Tuple2::getT1),
@@ -339,6 +418,12 @@ class ShowcaseProjector implements SmartLifecycle {
                    .then();
     }
 
+    /**
+     * Maps a showcase event to the corresponding OpenSearch bulk operation.
+     *
+     * @param event the event to map
+     * @return the bulk operation applying the event to the showcase index
+     */
     private BulkOperation eventToBulkOperation(ShowcaseEvent event) {
         return switch (event) {
             case ShowcaseScheduledEvent scheduledEvent -> BulkOperation.of(operation -> operation.create(
@@ -383,6 +468,12 @@ class ShowcaseProjector implements SmartLifecycle {
         };
     }
 
+    /**
+     * Executes the given bulk request against OpenSearch with retry on transient failures.
+     *
+     * @param request the bulk request to execute
+     * @return the bulk response
+     */
     private Mono<BulkResponse> execute(BulkRequest request) {
         return Mono.from(openSearchTemplate.execute(client -> client.bulk(request)))
                    .retryWhen(Retry.backoff(projectionProperties.getRetry().getMaxAttempts(),

@@ -69,6 +69,12 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
+/**
+ * REST controller implementing the showcase management API.
+ *
+ * <p>Coordinates command and query operations, with in-memory caching as a fallback layer when downstream calls fail
+ * transiently.
+ */
 @RestController
 @RequestMapping("/showcases")
 @RequiredArgsConstructor
@@ -79,19 +85,32 @@ final class ShowcaseApiController implements ShowcaseApi {
 
     private final ShowcaseQueryOperations queryOperations;
 
+    /**
+     * Cache for {@link FetchShowcaseListQuery} → showcase IDs, used as a fallback on query errors.
+     */
     private final AsyncCache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache;
 
+    /**
+     * Cache for showcase ID → {@link Showcase}, used as a fallback on query errors.
+     */
     private final AsyncCache<String, Showcase> fetchShowcaseByIdCache;
 
     private final MessageSource messageSource;
 
+    /**
+     * Schedules a new showcase.
+     *
+     * <p>An idempotency key is either taken from the request header or generate automatically. On timeout,
+     * a {@code 202} is returned with the key so the client can retry.
+     */
     @PostMapping(consumes = APPLICATION_JSON_VALUE)
     @Override
     public Mono<ResponseEntity<ScheduleShowcaseResponse>> schedule(
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
             @RequestBody ScheduleShowcaseRequest request) {
         return Mono.justOrEmpty(idempotencyKey)
-                   .switchIfEmpty(Mono.fromSupplier(() -> IdentifierFactory.getInstance().generateIdentifier())
+                   .switchIfEmpty(Mono.fromSupplier(() -> IdentifierFactory.getInstance()
+                                                                           .generateIdentifier())
                                       .subscribeOn(Schedulers.boundedElastic()))
                    .flatMap(showcaseId ->
                                     commandOperations
@@ -120,6 +139,11 @@ final class ShowcaseApiController implements ShowcaseApi {
                                                             .build()));
     }
 
+    /**
+     * Starts a scheduled showcase.
+     *
+     * <p>Returns {@code 202} if the command times out, allowing the client to retry and check the final state later.
+     */
     @PutMapping("/{showcaseId}/start")
     @Override
     public Mono<ResponseEntity<Void>> start(@PathVariable String showcaseId) {
@@ -133,6 +157,11 @@ final class ShowcaseApiController implements ShowcaseApi {
                        .map(status -> ResponseEntity.status(status).build());
     }
 
+    /**
+     * Finishes a started showcase.
+     *
+     * <p>Returns {@code 202} if the command times out, allowing the client to retry and check the final state later.
+     */
     @PutMapping("/{showcaseId}/finish")
     @Override
     public Mono<ResponseEntity<Void>> finish(@PathVariable String showcaseId) {
@@ -146,6 +175,11 @@ final class ShowcaseApiController implements ShowcaseApi {
                        .map(status -> ResponseEntity.status(status).build());
     }
 
+    /**
+     * Removes a showcase, finishing it first if it has already started.
+     *
+     * <p>Returns {@code 202} if the command times out, allowing the client to retry and check the final state later.
+     */
     @DeleteMapping("/{showcaseId}")
     @Override
     public Mono<ResponseEntity<Void>> remove(@PathVariable String showcaseId) {
@@ -159,6 +193,13 @@ final class ShowcaseApiController implements ShowcaseApi {
                        .map(status -> ResponseEntity.status(status).build());
     }
 
+    /**
+     * Fetches a paginated list of showcases, with in-memory cache fallback.
+     *
+     * <p>On a transient query error, the method attempts to serve cached IDs from {@link #fetchShowcaseListCache}
+     * and then resolves each showcase from {@link #fetchShowcaseByIdCache}. If no cached data is available, the
+     * error is propagated and a warning is logged.
+     */
     @GetMapping
     @Override
     @SuppressWarnings("FutureReturnValueIgnored")
@@ -219,6 +260,12 @@ final class ShowcaseApiController implements ShowcaseApi {
                                         .doOnComplete(() -> log.warn("Fallback on {}", query, t)));
     }
 
+    /**
+     * Fetches a single showcase by ID, with in-memory cache fallback.
+     *
+     * <p>On a transient query error, the method attempts to serve the showcase from {@link #fetchShowcaseByIdCache}.
+     * If no cached entry exists, the error is propagated and a warning is logged.
+     */
     @GetMapping("/{showcaseId}")
     @Override
     @SuppressWarnings("FutureReturnValueIgnored")
@@ -250,6 +297,12 @@ final class ShowcaseApiController implements ShowcaseApi {
                                         .doOnSuccess(__ -> log.warn("Fallback on {}", query, t)));
     }
 
+    /**
+     * Maps {@link ShowcaseCommandException} to structured problem details.
+     *
+     * @param e the command exception to map
+     * @return the problem detail for the exception
+     */
     @ExceptionHandler
     private ProblemDetail handleShowcaseCommandException(ShowcaseCommandException e) {
         val errorDetails = e.getErrorDetails();
@@ -267,6 +320,12 @@ final class ShowcaseApiController implements ShowcaseApi {
         return problemDetail;
     }
 
+    /**
+     * Maps {@link ShowcaseQueryException} to structured problem details.
+     *
+     * @param e the query exception to map
+     * @return the problem detail for the exception
+     */
     @ExceptionHandler
     private ProblemDetail handleShowcaseQueryException(ShowcaseQueryException e) {
         val errorDetails = e.getErrorDetails();
@@ -282,6 +341,14 @@ final class ShowcaseApiController implements ShowcaseApi {
         return problemDetail;
     }
 
+    /**
+     * Maps {@link HandlerMethodValidationException} to structured problem details with per-parameter error
+     * breakdowns.
+     *
+     * @param e the handler method validation exception to map
+     * @param locale the locale used for error messages
+     * @return the problem detail for the exception
+     */
     @ExceptionHandler
     private ProblemDetail handleHandlerMethodValidationException(
             HandlerMethodValidationException e, Locale locale) {
@@ -463,6 +530,13 @@ final class ShowcaseApiController implements ShowcaseApi {
         return problemDetail;
     }
 
+    /**
+     * Maps {@link WebExchangeBindException} to structured problem details.
+     *
+     * @param e the binding exception to map
+     * @param locale the locale used for error messages
+     * @return the problem detail for the exception
+     */
     @ExceptionHandler
     private ProblemDetail handleWebExchangeBindException(WebExchangeBindException e, Locale locale) {
         val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request.");
@@ -491,11 +565,24 @@ final class ShowcaseApiController implements ShowcaseApi {
         return problemDetail;
     }
 
+    /**
+     * Maps {@link ErrorResponseException} to its {@link ProblemDetail} representation.
+     *
+     * @param e the error response exception to map
+     * @param locale the locale used for error messages
+     * @return the problem detail for the exception
+     */
     @ExceptionHandler
     private ProblemDetail handleErrorResponseException(ErrorResponseException e, Locale locale) {
         return e.updateAndGetBody(messageSource, locale);
     }
 
+    /**
+     * Maps Axon Framework failures to a {@code 503 Service Unavailable}.
+     *
+     * @param e the Axon exception to map
+     * @return the problem detail for the exception
+     */
     @ExceptionHandler
     private ProblemDetail handleAxonException(AxonException e) {
         log.error("AxonFramework failure", e);
@@ -503,6 +590,12 @@ final class ShowcaseApiController implements ShowcaseApi {
         return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
     }
 
+    /**
+     * Maps WebClient failures to a {@code 503 Service Unavailable}.
+     *
+     * @param e the WebClient exception to map
+     * @return the problem detail for the exception
+     */
     @ExceptionHandler
     private ProblemDetail handleWebClientException(WebClientException e) {
         log.error("WebClient failure", e);
@@ -510,6 +603,12 @@ final class ShowcaseApiController implements ShowcaseApi {
         return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
     }
 
+    /**
+     * Maps Resilience4j circuit breaker rejections to a {@code 503 Service Unavailable}.
+     *
+     * @param e the circuit breaker rejection to map
+     * @return the problem detail for the exception
+     */
     @ExceptionHandler
     private ProblemDetail handleCallNotPermittedException(CallNotPermittedException e) {
         log.error(e.getMessage());
@@ -517,6 +616,12 @@ final class ShowcaseApiController implements ShowcaseApi {
         return ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
     }
 
+    /**
+     * Maps timeouts to a {@code 504 Gateway Timeout}.
+     *
+     * @param e the timeout exception to map
+     * @return the problem detail for the exception
+     */
     @ExceptionHandler
     private ProblemDetail handleTimeoutException(TimeoutException e) {
         log.trace("Operation timeout exceeded", e);
@@ -524,6 +629,13 @@ final class ShowcaseApiController implements ShowcaseApi {
         return ProblemDetail.forStatusAndDetail(HttpStatus.GATEWAY_TIMEOUT, "Operation timeout exceeded.");
     }
 
+    /**
+     * Maps aborted inbound connections to a {@code 408 Request Timeout}.
+     *
+     * @param e the aborted exception to map
+     * @param exchange the current server exchange
+     * @return a mono that completes the exchange response
+     */
     @ExceptionHandler
     private Mono<Void> handleAbortedException(AbortedException e, ServerWebExchange exchange) {
         log.trace("Inbound connection aborted", e);
@@ -532,6 +644,17 @@ final class ShowcaseApiController implements ShowcaseApi {
         return exchange.getResponse().setComplete();
     }
 
+    /**
+     * Fallback handler mapping any unhandled exception to a {@code 503 Service Unavailable}.
+     *
+     * <p>The method unwraps the exception chain to find a known exception type and delegates to the corresponding
+     * handler, or returns a generic {@code 503} for unknown errors.
+     *
+     * @param e the exception to map
+     * @param exchange the current server exchange
+     * @param locale the locale used for error messages
+     * @return the mapped response body or {@code null}
+     */
     @ExceptionHandler
     @SuppressWarnings("unused")
     private Object handleException(Exception e, ServerWebExchange exchange, Locale locale) {

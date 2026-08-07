@@ -33,16 +33,31 @@ import showcase.projection.ShowcaseEntity;
 import java.time.Duration;
 import java.util.List;
 
+/**
+ * Application entry point for the query service.
+ */
 @SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
 @EnableConfigurationProperties(ShowcaseQueryProperties.class)
 @Slf4j
 class ShowcaseQueryApplication {
-
+    /**
+     * Application entry point that disables the AxonIQ console message and starts the Spring context.
+     *
+     * @param args command-line arguments passed to the application
+     */
     public static void main(String[] args) {
         System.setProperty("disable-axoniq-console-message", "true");
         SpringApplication.run(ShowcaseQueryApplication.class, args);
     }
 
+    /**
+     * Creates the index initializer that creates the OpenSearch index with its mapping on startup.
+     *
+     * @param openSearchTemplate the OpenSearch template used to manage the index
+     * @param queryProperties the query service properties
+     * @param applicationContext the application context used to exit the JVM
+     * @return an initializing bean creating the index
+     */
     @Bean
     @Order(0)
     @ConditionalOnProperty(
@@ -83,17 +98,37 @@ class ShowcaseQueryApplication {
         };
     }
 
+    /**
+     * Registers the query message interceptor on the query bus.
+     *
+     * @param queryBus the query bus to customize
+     * @return an initializing bean registering the interceptor
+     */
     @Bean
     @SuppressWarnings("resource")
     InitializingBean queryBusCustomizer(QueryBus queryBus) {
         return () -> queryBus.registerHandlerInterceptor(new ShowcaseQueryMessageInterceptor<>());
     }
 
+    /**
+     * Creates the mapper converting query requests to query messages.
+     *
+     * @param messageSerializer the message serializer
+     * @return the query message request mapper
+     */
     @Bean
     QueryMessageRequestMapper queryMessageRequestMapper(@Qualifier("messageSerializer") Serializer messageSerializer) {
         return new QueryMessageRequestMapper(messageSerializer);
     }
 
+    /**
+     * Customizes the OpenSearch REST client with connection pool and idle-eviction settings.
+     *
+     * @param maxConnections the total maximum connections, or {@code 0} to keep the default
+     * @param maxConnectionsPerRoute the maximum connections per route
+     * @param evictIdleConnections the idle connection eviction duration
+     * @return the REST client builder customizer
+     */
     @Bean
     RestClientBuilderCustomizer openSearchRestClientBuilderCustomizer(
             @Value("${opensearch.max-connections}") int maxConnections,
@@ -112,11 +147,22 @@ class ShowcaseQueryApplication {
         });
     }
 
+    /**
+     * Registers the Jackson Blackbird module for efficient serialization.
+     *
+     * @return the customizer registering the Blackbird module
+     */
     @Bean
     Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
         return builder -> builder.modules(new BlackbirdModule());
     }
 
+    /**
+     * Creates a reactive health indicator reporting the OpenSearch cluster status.
+     *
+     * @param openSearchClient the reactive OpenSearch client
+     * @return the OpenSearch health indicator
+     */
     @Bean
     ReactiveHealthIndicator openSearchHealthIndicator(ReactiveOpenSearchClient openSearchClient) {
         return new AbstractReactiveHealthIndicator("OpenSearch health check failed") {

@@ -24,41 +24,84 @@ import static org.axonframework.eventhandling.GenericEventMessage.clock;
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 import static org.axonframework.modelling.command.AggregateLifecycle.markDeleted;
 
+/**
+ * Axon aggregate managing the lifecycle of a showcase.
+ *
+ * <p>Supports four commands: schedule, start, finish, and remove. Events are persisted via Axon's event sourcing
+ * mechanism and also published to Kafka through the command service. The aggregate uses a title reservation service
+ * to enforce uniqueness of showcase titles.
+ */
 @Aggregate(cache = "showcaseCache", snapshotTriggerDefinition = "showcaseSnapshotTrigger")
 @Revision("1.0")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter(AccessLevel.PACKAGE)
 @Slf4j
 final class ShowcaseAggregate {
-
+    /**
+     * The unique identifier of the showcase.
+     */
     @AggregateIdentifier
     @Nullable
     private String showcaseId;
 
+    /**
+     * The unique title of the showcase.
+     */
     @Nullable
     private String title;
 
+    /**
+     * The date-time when the showcase should start automatically.
+     */
     @Nullable
     private Instant startTime;
 
+    /**
+     * The duration after which the started showcase should be finished automatically.
+     */
     @Nullable
     private Duration duration;
 
+    /**
+     * The current lifecycle status of the showcase.
+     */
     @Nullable
     private ShowcaseStatus status;
 
+    /**
+     * The date-time when the showcase was scheduled.
+     */
     @Nullable
     private Instant scheduledAt;
 
+    /**
+     * The date-time when the showcase was started.
+     */
     @Nullable
     private Instant startedAt;
 
+    /**
+     * The date-time when the showcase was finished.
+     */
     @Nullable
     private Instant finishedAt;
 
+    /**
+     * The date-time when the showcase was removed.
+     */
     @Nullable
     private Instant removedAt;
 
+    /**
+     * Schedules a new showcase.
+     *
+     * <p>If the aggregate already exists with the same ID and identical parameters, the command is a no-op
+     * (idempotent retry). Reusing an ID with different parameters is rejected. Title uniqueness is enforced via the
+     * title reservation service.
+     *
+     * @param command the schedule command to handle
+     * @param showcaseTitleReservation the title reservation service
+     */
     @CommandHandler
     @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
     void handle(ScheduleShowcaseCommand command, ShowcaseTitleReservation showcaseTitleReservation) {
@@ -110,6 +153,14 @@ final class ShowcaseAggregate {
         apply(event);
     }
 
+    /**
+     * Starts a scheduled showcase.
+     *
+     * <p>The showcase must be in {@link ShowcaseStatus#SCHEDULED} state. Starting an already started showcase is
+     * a no-op (idempotent retry). Finishing an already finished showcase is rejected.
+     *
+     * @param command the start command to handle
+     */
     @CommandHandler
     void handle(StartShowcaseCommand command) {
         checkState(Objects.equals(showcaseId, command.showcaseId()), "\"showcaseId\" must be same as command's one");
@@ -143,6 +194,14 @@ final class ShowcaseAggregate {
         apply(event);
     }
 
+    /**
+     * Finishes a started showcase.
+     *
+     * <p>The showcase must be in {@link ShowcaseStatus#STARTED} state. Finishing an already finished showcase is
+     * a no-op (idempotent retry). Finishing a not-yet-started showcase is rejected.
+     *
+     * @param command the finish command to handle
+     */
     @CommandHandler
     void handle(FinishShowcaseCommand command) {
         checkState(Objects.equals(showcaseId, command.showcaseId()), "\"showcaseId\" must be same as command's one");
@@ -174,6 +233,15 @@ final class ShowcaseAggregate {
         apply(event);
     }
 
+    /**
+     * Removes a showcase, finishing it first if it has already started.
+     *
+     * <p>Releases the title reservation before applying events. If the showcase was started, a
+     * {@link ShowcaseFinishedEvent} is emitted first, followed by a {@link ShowcaseRemovedEvent}.
+     *
+     * @param command the remove command to handle
+     * @param showcaseTitleReservation the title reservation service
+     */
     @CommandHandler
     void handle(RemoveShowcaseCommand command, ShowcaseTitleReservation showcaseTitleReservation) {
         checkState(Objects.equals(showcaseId, command.showcaseId()), "\"showcaseId\" must be same as command's one");
@@ -209,6 +277,11 @@ final class ShowcaseAggregate {
         }
     }
 
+    /**
+     * Applies the scheduled event to the aggregate state.
+     *
+     * @param event the event to apply
+     */
     @EventSourcingHandler
     void on(ShowcaseScheduledEvent event) {
         this.showcaseId = event.showcaseId();
@@ -219,6 +292,11 @@ final class ShowcaseAggregate {
         this.scheduledAt = event.scheduledAt();
     }
 
+    /**
+     * Applies the started event to the aggregate state.
+     *
+     * @param event the event to apply
+     */
     @EventSourcingHandler
     void on(ShowcaseStartedEvent event) {
         this.status = ShowcaseStatus.STARTED;
@@ -226,12 +304,22 @@ final class ShowcaseAggregate {
         this.startedAt = event.startedAt();
     }
 
+    /**
+     * Applies the finished event to the aggregate state.
+     *
+     * @param event the event to apply
+     */
     @EventSourcingHandler
     void on(ShowcaseFinishedEvent event) {
         this.status = ShowcaseStatus.FINISHED;
         this.finishedAt = event.finishedAt();
     }
 
+    /**
+     * Applies the removed event to the aggregate state and marks the aggregate as deleted.
+     *
+     * @param event the event to apply
+     */
     @EventSourcingHandler
     void on(ShowcaseRemovedEvent event) {
         this.removedAt = event.removedAt();

@@ -17,6 +17,9 @@ import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * Validates that the annotated value is a valid showcase title (non-blank and not exceeding {@link #MAX_LENGTH}).
+ */
 @Documented
 @Constraint(validatedBy = {})
 @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE })
@@ -24,7 +27,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Length(max = ShowcaseTitle.MAX_LENGTH)
 @ReportAsSingleViolation
 public @interface ShowcaseTitle {
-
+    /**
+     * The maximum allowed title length.
+     */
     int MAX_LENGTH = 255;
 
     String message() default "{showcase.ShowcaseTitle.message}";

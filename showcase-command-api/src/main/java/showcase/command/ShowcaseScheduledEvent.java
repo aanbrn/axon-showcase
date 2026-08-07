@@ -14,6 +14,9 @@ import org.jspecify.annotations.NullUnmarked;
 import java.time.Duration;
 import java.time.Instant;
 
+/**
+ * Event emitted when a showcase has been scheduled.
+ */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
@@ -23,19 +26,33 @@ import java.time.Instant;
 @NullUnmarked
 @SuppressWarnings("ClassCanBeRecord")
 public class ShowcaseScheduledEvent implements ShowcaseEvent {
-
+    /**
+     * The ID of the scheduled showcase.
+     */
     @NonNull
     String showcaseId;
 
+    /**
+     * The title of the scheduled showcase.
+     */
     @NonNull
     String title;
 
+    /**
+     * The date-time when the showcase is scheduled to start automatically.
+     */
     @NonNull
     Instant startTime;
 
+    /**
+     * The duration after which the started showcase should be finished automatically.
+     */
     @NonNull
     Duration duration;
 
+    /**
+     * The date-time when the showcase was scheduled.
+     */
     @NonNull
     Instant scheduledAt;
 }

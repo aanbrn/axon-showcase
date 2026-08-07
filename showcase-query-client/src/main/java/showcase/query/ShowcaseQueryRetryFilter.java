@@ -6,8 +6,17 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 
+/**
+ * Decides which exceptions should trigger a retry on the query service.
+ */
 final class ShowcaseQueryRetryFilter implements Predicate<Throwable> {
-
+    /**
+     * Returns {@code true} when the exception is retryable, matching retryable HTTP status codes, timeouts, and
+     * WebClient request failures.
+     *
+     * @param t the exception to examine
+     * @return {@code true} if the exception should trigger a retry
+     */
     @Override
     public boolean test(Throwable t) {
         if (t instanceof WebClientResponseException e) {

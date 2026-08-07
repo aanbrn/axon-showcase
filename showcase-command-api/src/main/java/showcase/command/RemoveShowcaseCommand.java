@@ -12,6 +12,9 @@ import lombok.extern.jackson.Jacksonized;
 import org.jspecify.annotations.NullUnmarked;
 import showcase.identifier.KSUID;
 
+/**
+ * Command to remove a showcase.
+ */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
@@ -21,7 +24,9 @@ import showcase.identifier.KSUID;
 @NullUnmarked
 @SuppressWarnings("ClassCanBeRecord")
 public class RemoveShowcaseCommand implements ShowcaseCommand {
-
+    /**
+     * The ID of the showcase to remove.
+     */
     @NonNull
     @KSUID
     String showcaseId;

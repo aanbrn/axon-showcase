@@ -15,12 +15,23 @@ import org.axonframework.serialization.SimpleSerializedType;
 
 import java.util.Optional;
 
+/**
+ * Maps between Axon streaming query messages and their Protobuf {@link QueryRequest} representations.
+ */
 @RequiredArgsConstructor
 @SuppressWarnings("ClassCanBeRecord")
 public final class QueryMessageRequestMapper {
-
+    /**
+     * The serializer used to serialize and deserialize payloads and metadata.
+     */
     private final Serializer messageSerializer;
 
+    /**
+     * Converts the given streaming query message into a {@link QueryRequest}.
+     *
+     * @param message the message to convert
+     * @return the serialized query request
+     */
     public QueryRequest messageToRequest(StreamingQueryMessage<?, ?> message) {
         val payload = message.serializePayload(messageSerializer, byte[].class);
         val metaData = message.serializeMetaData(messageSerializer, byte[].class);
@@ -39,6 +50,13 @@ public final class QueryMessageRequestMapper {
         return requestBuilder.build();
     }
 
+    /**
+     * Converts the given {@link QueryRequest} into a streaming query message.
+     *
+     * @param request the request to convert
+     * @return the deserialized streaming query message
+     * @throws ClassNotFoundException if the response type class cannot be resolved
+     */
     public StreamingQueryMessage<?, ?> requestToMessage(QueryRequest request) throws ClassNotFoundException {
         val payloadType =
                 new SimpleSerializedType(

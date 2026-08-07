@@ -13,6 +13,9 @@ import org.jspecify.annotations.NullUnmarked;
 
 import java.time.Instant;
 
+/**
+ * Event emitted when a started showcase has been finished.
+ */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
@@ -22,10 +25,15 @@ import java.time.Instant;
 @NullUnmarked
 @SuppressWarnings("ClassCanBeRecord")
 public class ShowcaseFinishedEvent implements ShowcaseEvent {
-
+    /**
+     * The ID of the finished showcase.
+     */
     @NonNull
     String showcaseId;
 
+    /**
+     * The date-time when the showcase was finished.
+     */
     @NonNull
     Instant finishedAt;
 }

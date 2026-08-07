@@ -21,15 +21,32 @@ import org.springframework.context.annotation.Bean;
 import java.time.Duration;
 import java.util.Optional;
 
+/**
+ * Application entry point for the showcase projection service.
+ *
+ * <p>Boots the Spring application and declares the beans wiring the Kafka message converter and the OpenSearch
+ * REST client.
+ */
 @SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
 @EnableConfigurationProperties({ KafkaProperties.class, ShowcaseProjectorProperties.class })
 class ShowcaseProjectionApplication {
-
+    /**
+     * Application entry point that disables the AxonIQ console message and starts the Spring context.
+     *
+     * @param args command-line arguments passed to the application
+     */
     public static void main(String[] args) {
         System.setProperty("disable-axoniq-console-message", "true");
         SpringApplication.run(ShowcaseProjectionApplication.class, args);
     }
 
+    /**
+     * Builds the Kafka message converter used to deserialize consumed event messages.
+     *
+     * @param eventSerializer the Axon event serializer
+     * @param configuration   the Axon configuration providing the upcaster chain
+     * @return the configured Kafka message converter
+     */
     @Bean
     KafkaMessageConverter<String, byte[]> kafkaMessageConverter(
             @Qualifier("eventSerializer") Serializer eventSerializer,
@@ -42,6 +59,14 @@ class ShowcaseProjectionApplication {
                        .build();
     }
 
+    /**
+     * Customizes the OpenSearch REST client connection pooling and idle connection eviction.
+     *
+     * @param maxConnections         the maximum total connections, {@code 0} keeps the client default
+     * @param maxConnectionsPerRoute the maximum connections per route
+     * @param evictIdleConnections   the duration after which idle connections are evicted
+     * @return the customizer for the REST client builder
+     */
     @Bean
     RestClientBuilderCustomizer openSearchRestClientBuilderCustomizer(
             @Value("${opensearch.max-connections}") int maxConnections,
@@ -60,6 +85,11 @@ class ShowcaseProjectionApplication {
         });
     }
 
+    /**
+     * Registers the Blackbird Jackson module for faster reflective serialization.
+     *
+     * @return the customizer applying the Blackbird module to the object mapper
+     */
     @Bean
     Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
         return builder -> builder.modules(new BlackbirdModule());

@@ -18,38 +18,49 @@ import showcase.command.ShowcaseTitle;
 import java.time.Duration;
 import java.time.Instant;
 
+/**
+ * Request payload to schedule a new showcase.
+ */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
 @EqualsAndHashCode(cacheStrategy = CacheStrategy.LAZY)
 @Builder
 @Jacksonized
-@Schema(description = "Request payload to schedule a showcase.")
+@Schema(description = "Request payload to schedule a new showcase.")
 @SuppressWarnings("ClassCanBeRecord")
 class ScheduleShowcaseRequest {
-
+    /**
+     * A unique title for the showcase.
+     */
     @NotBlank
     @ShowcaseTitle
     @Schema(
-            description = "A unique title.",
+            description = "A unique title for the showcase.",
             example = "My Showcase",
             maxLength = ShowcaseTitle.MAX_LENGTH
     )
     String title;
 
+    /**
+     * The date-time when the showcase should start automatically (must be in the future).
+     */
     @NotNull
     @ShowcaseStartTime
     @Schema(
-            description = "A date-time (in ISO-8601 format) when the scheduled showcase should be started " +
-                                  "automatically (must be in the future).",
+            description = "The date-time (in ISO-8601 format) when the showcase should start automatically (must be " +
+                                  "in the future).",
             type = "string"
     )
     Instant startTime;
 
+    /**
+     * The duration after which the started showcase should be finished automatically (min: 1 minute, max: 10 minutes).
+     */
     @NotNull
     @ShowcaseDuration
     @Schema(
-            description = "A duration (in ISO-8601 format) after which the started showcase should be finished " +
+            description = "The duration (in ISO-8601 format) after which the started showcase should be finished " +
                                   "automatically (min: 1 minute, max: 10 minutes).",
             type = "string",
             example = "PT5M30S",

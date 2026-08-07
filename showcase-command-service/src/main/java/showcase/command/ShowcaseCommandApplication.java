@@ -74,17 +74,35 @@ import static showcase.command.ShowcaseCommandConstants.SAGA_ASSOCIATIONS_CACHE_
 import static showcase.command.ShowcaseCommandConstants.SAGA_CACHE_NAME;
 import static showcase.command.ShowcaseCommandConstants.SHOWCASE_CACHE_NAME;
 
+/**
+ * Command-side Spring Boot application for the showcase CQRS service.
+ *
+ * <p>Configures Axon Framework components including event sourcing, distributed command bus via JGroups, saga
+ * persistence, snapshot triggers, caching, and metrics instrumentation.
+ */
 @SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
 @EnableConfigurationProperties(ShowcaseCommandProperties.class)
 @EnableCaching
 @Slf4j
 class ShowcaseCommandApplication {
-
+    /**
+     * Application entry point that disables the AxonIQ console message and starts the Spring context.
+     *
+     * @param args command-line arguments passed to the application
+     */
     public static void main(String[] args) {
         System.setProperty("disable-axoniq-console-message", "true");
         SpringApplication.run(ShowcaseCommandApplication.class, args);
     }
 
+    /**
+     * Custom Flyway migration strategy that optionally exits the JVM after migration completes (used in container
+     * startup).
+     *
+     * @param commandProperties  the command service properties
+     * @param applicationContext the application context used to exit the JVM
+     * @return the custom migration strategy
+     */
     @Bean
     FlywayMigrationStrategy flywayMigrationStrategy(
             ShowcaseCommandProperties commandProperties,
@@ -100,6 +118,21 @@ class ShowcaseCommandApplication {
         };
     }
 
+    /**
+     * Creates the JGroups connector factory for distributed command bus, setting system properties for tunnel, bind
+     * address, and Kubernetes discovery before instantiating the factory bean.
+     *
+     * @param properties                   the distributed command bus properties
+     * @param tcpPingHosts                 the TCP ping hosts
+     * @param kubePingNamespace            the Kubernetes namespace
+     * @param kubePingLabels               the Kubernetes labels
+     * @param messageSerializer            the message serializer
+     * @param localSegment                 the local command bus segment
+     * @param routingStrategy              the routing strategy
+     * @param consistentHashChangeListener the consistent hash change listener
+     * @param spanFactory                  the span factory
+     * @return the JGroups connector factory bean
+     */
     @Bean
     JGroupsConnectorFactoryBean jgroupsConnectorFactoryBean(
             DistributedCommandBusProperties properties,
@@ -130,6 +163,16 @@ class ShowcaseCommandApplication {
         return jGroupsConnectorFactoryBean;
     }
 
+    /**
+     * Builds the primary {@link DistributedCommandBus} with the command router, connector, span factory, and message
+     * monitor. Registers a message interceptor for command handling.
+     *
+     * @param axonConfiguration               the Axon configuration
+     * @param commandRouter                   the command router
+     * @param commandBusConnector             the command bus connector
+     * @param distributedCommandBusProperties the distributed command bus properties
+     * @return the primary distributed command bus
+     */
     @Bean
     @Primary
     @SuppressWarnings("resource")
@@ -153,11 +196,28 @@ class ShowcaseCommandApplication {
         return commandBus;
     }
 
+    /**
+     * Resolves SQL state codes from PostgreSQL for Axon's persistence exception handling.
+     *
+     * @return the SQL state persistence exception resolver
+     */
     @Bean
     PersistenceExceptionResolver persistenceExceptionResolver() {
         return new SQLStateResolver();
     }
 
+    /**
+     * Creates the snapshotter that periodically snapshots aggregates to reduce event store replay overhead.
+     *
+     * @param configuration            the Axon configuration providing repositories
+     * @param eventStore               the event store to snapshot from
+     * @param transactionManager       the transaction manager
+     * @param executor                 the executor used for snapshotting
+     * @param parameterResolverFactory the parameter resolver factory
+     * @param handlerDefinition        the handler definition
+     * @param spanFactory              the snapshotter span factory
+     * @return the aggregate snapshotter
+     */
     @Bean
     SpringAggregateSnapshotter aggregateSnapshotter(
             Configuration configuration,
@@ -179,11 +239,23 @@ class ShowcaseCommandApplication {
                        .build();
     }
 
+    /**
+     * Registers the Jackson Blackbird module for efficient serialization.
+     *
+     * @return the customizer registering the Blackbird module
+     */
     @Bean
     Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
         return builder -> builder.modules(new BlackbirdModule());
     }
 
+    /**
+     * Configures Caffeine caches for aggregates, sagas, and saga associations with sizes and expiration policies
+     * from application properties.
+     *
+     * @param commandProperties the command service properties
+     * @return the customizer creating the Caffeine caches
+     */
     @Bean
     JCacheManagerCustomizer jCacheManagerCustomizer(ShowcaseCommandProperties commandProperties) {
         return cacheManager -> {
@@ -246,26 +318,58 @@ class ShowcaseCommandApplication {
         };
     }
 
+    /**
+     * Wraps the {@link ShowcaseCommandConstants#SHOWCASE_CACHE_NAME} Caffeine cache as an Axon {@link Cache}.
+     *
+     * @param cacheManager the JCache cache manager
+     * @return the Axon cache wrapping the showcase cache
+     */
     @Bean
     Cache showcaseCache(CacheManager cacheManager) {
         return new JCacheAdapter(cacheManager.getCache(SHOWCASE_CACHE_NAME));
     }
 
+    /**
+     * Wraps the {@link ShowcaseCommandConstants#SAGA_CACHE_NAME} Caffeine cache as an Axon {@link Cache}.
+     *
+     * @param cacheManager the JCache cache manager
+     * @return the Axon cache wrapping the saga cache
+     */
     @Bean
     Cache sagaCache(CacheManager cacheManager) {
         return new JCacheAdapter(cacheManager.getCache(SAGA_CACHE_NAME));
     }
 
+    /**
+     * Wraps the {@link ShowcaseCommandConstants#SAGA_ASSOCIATIONS_CACHE_NAME} Caffeine cache as an Axon {@link Cache}.
+     *
+     * @param cacheManager the JCache cache manager
+     * @return the Axon cache wrapping the saga associations cache
+     */
     @Bean
     Cache sagaAssociationsCache(CacheManager cacheManager) {
         return new JCacheAdapter(cacheManager.getCache(SAGA_ASSOCIATIONS_CACHE_NAME));
     }
 
+    /**
+     * Clears all caches whenever the consistent hash ring changes (e.g., on node join/leave).
+     *
+     * @param showcaseCache the showcase cache to clear
+     * @return the listener clearing the cache on ring changes
+     */
     @Bean
     ConsistentHashChangeListener consistentHashChangeListener(Cache showcaseCache) {
         return __ -> showcaseCache.removeAll();
     }
 
+    /**
+     * Defines the snapshot trigger that decides when aggregates should be snapshotted based on the number of events
+     * since the last snapshot.
+     *
+     * @param snapshotter       the snapshotter used to take snapshots
+     * @param commandProperties the command service properties
+     * @return the snapshot trigger definition
+     */
     @Bean
     SnapshotTriggerDefinition showcaseSnapshotTrigger(
             Snapshotter snapshotter, ShowcaseCommandProperties commandProperties) {
@@ -277,11 +381,27 @@ class ShowcaseCommandApplication {
                         .toMillis());
     }
 
+    /**
+     * Provides the PostgreSQL-specific SQL schema for saga persistence.
+     *
+     * @return the PostgreSQL saga SQL schema
+     */
     @Bean
     SagaSqlSchema sagaSqlSchema() {
         return new PostgresSagaSqlSchema();
     }
 
+    /**
+     * Builds the saga store with JDBC persistence, Caffeine caching for saga data, and a separate cache for saga
+     * associations.
+     *
+     * @param connectionProvider    the JDBC connection provider
+     * @param serializer            the serializer used for saga data
+     * @param schema                the saga SQL schema
+     * @param sagaCache             the cache for saga data
+     * @param sagaAssociationsCache the cache for saga associations
+     * @return the caching saga store
+     */
     @Bean
     public SagaStore<Object> sagaStore(
             ConnectionProvider connectionProvider,
@@ -304,6 +424,12 @@ class ShowcaseCommandApplication {
                        .build();
     }
 
+    /**
+     * Customizes the DB Scheduler to use virtual threads for concurrent task execution.
+     *
+     * @param dbSchedulerProperties the DB Scheduler properties
+     * @return the customizer providing the virtual-thread executor
+     */
     @Bean
     DbSchedulerCustomizer dbSchedulerCustomizer(DbSchedulerProperties dbSchedulerProperties) {
         return new DbSchedulerCustomizer() {
@@ -318,6 +444,13 @@ class ShowcaseCommandApplication {
         };
     }
 
+    /**
+     * Wraps the Micrometer {@link MeterRegistry} with Axon's {@link GlobalMetricRegistry}, wiring message counting
+     * and timers for the event bus.
+     *
+     * @param meterRegistry the Micrometer meter registry
+     * @return the Axon global metric registry
+     */
     @Bean
     GlobalMetricRegistry globalMetricRegistry(MeterRegistry meterRegistry) {
         return new GlobalMetricRegistry(meterRegistry) {
@@ -336,6 +469,12 @@ class ShowcaseCommandApplication {
         };
     }
 
+    /**
+     * Registers a {@link ShowcaseDbSchedulerMetrics} bean for exposing DB Scheduler metrics through Micrometer.
+     *
+     * @param meterRegistry the Micrometer meter registry
+     * @return the DB Scheduler metrics bean
+     */
     @Bean
     ShowcaseDbSchedulerMetrics showcaseDbSchedulerMetrics(MeterRegistry meterRegistry) {
         return ShowcaseDbSchedulerMetrics

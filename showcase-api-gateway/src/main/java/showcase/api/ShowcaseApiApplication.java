@@ -42,19 +42,48 @@ import java.util.List;
 import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME;
 import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME;
 
+/**
+ * Application entry point for the showcase API gateway.
+ *
+ * <p>Boots the Spring application and declares the beans wiring the distributed command bus, query-side caches,
+ * and security configuration.
+ */
 @SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
 @EnableConfigurationProperties(ShowcaseApiProperties.class)
 @EnableCaching
 @Slf4j
 class ShowcaseApiApplication {
 
+    /**
+     * Application entry point that disables the AxonIQ console message and starts the Spring context.
+     *
+     * @param args command-line arguments passed to the application
+     */
     public static void main(String[] args) {
         System.setProperty("disable-axoniq-console-message", "true");
         SpringApplication.run(ShowcaseApiApplication.class, args);
     }
 
+    /**
+     * Configures and exposes the JGroups connector used by the distributed command bus.
+     *
+     * <p>Reads the discovery and binding settings from {@link DistributedCommandBusProperties} and the injected
+     * values, applies them as system properties, and wires the local segment, serializer, routing strategy,
+     * and span factory into the connector.
+     *
+     * @param properties                   the JGroups distributed command bus properties
+     * @param tcpPingHosts                 the initial TCP ping hosts
+     * @param kubePingNamespace            the Kubernetes namespace used for KUBE_PING discovery
+     * @param kubePingLabels               the Kubernetes labels used for KUBE_PING discovery
+     * @param messageSerializer            the Axon message serializer
+     * @param localSegment                 the local command bus segment
+     * @param routingStrategy              the routing strategy for commands
+     * @param consistentHashChangeListener the optional consistent hash change listener
+     * @param spanFactory                  the tracing span factory
+     * @return the configured JGroups connector factory bean
+     */
     @Bean
-    public JGroupsConnectorFactoryBean jgroupsConnectorFactoryBean(
+    JGroupsConnectorFactoryBean jgroupsConnectorFactoryBean(
             DistributedCommandBusProperties properties,
             @Value("${axon.distributed.jgroups.tcp-ping.hosts}") String tcpPingHosts,
             @Value("${axon.distributed.jgroups.kube-ping.namespace}") String kubePingNamespace,
@@ -83,9 +112,18 @@ class ShowcaseApiApplication {
         return jGroupsConnectorFactoryBean;
     }
 
+    /**
+     * Builds the primary distributed command bus that routes commands to the connected segments.
+     *
+     * @param axonConfiguration               the Axon configuration providing the span factory and message monitor
+     * @param commandRouter                   the router distributing commands across segments
+     * @param commandBusConnector             the connector to the given segments
+     * @param distributedCommandBusProperties the properties holding the load factor
+     * @return the configured distributed command bus
+     */
     @Bean
     @Primary
-    public DistributedCommandBus distributedCommandBus(
+    DistributedCommandBus distributedCommandBus(
             Configuration axonConfiguration,
             CommandRouter commandRouter,
             CommandBusConnector commandBusConnector,
@@ -104,11 +142,22 @@ class ShowcaseApiApplication {
         return commandBus;
     }
 
+    /**
+     * Registers the Blackbird Jackson module for faster reflective serialization.
+     *
+     * @return the customizer applying the Blackbird module to the object mapper
+     */
     @Bean
     Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
         return builder -> builder.modules(new BlackbirdModule());
     }
 
+    /**
+     * Creates the asynchronous cache backing fetch-showcase-list queries.
+     *
+     * @param apiProperties the properties holding the cache configuration
+     * @return the configured asynchronous cache
+     */
     @Bean
     AsyncCache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache(ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME);
@@ -124,6 +173,12 @@ class ShowcaseApiApplication {
                        .buildAsync();
     }
 
+    /**
+     * Creates the asynchronous cache backing fetch-showcase-by-id queries.
+     *
+     * @param apiProperties the properties holding the cache configuration
+     * @return the configured asynchronous cache
+     */
     @Bean
     AsyncCache<String, Showcase> fetchShowcaseByIdCache(ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME);
@@ -139,6 +194,13 @@ class ShowcaseApiApplication {
                        .buildAsync();
     }
 
+    /**
+     * Registers the asynchronous caches with the {@link CaffeineCacheManager} under their cache names.
+     *
+     * @param fetchShowcaseListCache the fetch-showcase-list cache
+     * @param fetchShowcaseByIdCache the fetch-showcase-by-id cache
+     * @return the customizer registering the custom caches
+     */
     @Bean
     @SuppressWarnings("unchecked")
     CacheManagerCustomizer<CaffeineCacheManager> caffeineCacheManagerCustomizer(
@@ -152,6 +214,12 @@ class ShowcaseApiApplication {
         };
     }
 
+    /**
+     * Defines the security filter chain permitting all requests.
+     *
+     * @param http the {@link ServerHttpSecurity} to configure
+     * @return the configured security filter chain
+     */
     @Bean
     SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
         return http.csrf(CsrfSpec::disable)

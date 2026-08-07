@@ -16,10 +16,29 @@ import org.axonframework.messaging.unitofwork.UnitOfWork;
 import org.axonframework.modelling.command.AggregateNotFoundException;
 import org.jspecify.annotations.Nullable;
 
+/**
+ * Intercepts command handling to translate Axon and validation failures into {@link ShowcaseCommandException}s.
+ *
+ * @param <T> the message type handled by this interceptor
+ */
 final class ShowcaseCommandMessageInterceptor<T extends Message<?>> implements MessageHandlerInterceptor<T> {
-
+    /**
+     * The interceptor performing bean validation on the command payload.
+     */
     private final BeanValidationInterceptor<T> beanValidationInterceptor = new BeanValidationInterceptor<>();
 
+    /**
+     * Validates the command and maps known failures to {@link ShowcaseCommandException}s.
+     *
+     * <p>Validation violations produce an {@link ShowcaseCommandErrorCode#INVALID_COMMAND} error, missing
+     * aggregates produce {@link ShowcaseCommandErrorCode#NOT_FOUND} (except removes, which are ignored), and
+     * deleted aggregates produce {@link ShowcaseCommandErrorCode#ILLEGAL_STATE}.
+     *
+     * @param unitOfWork       the unit of work for the command
+     * @param interceptorChain the chain to proceed with
+     * @return the result of the next interceptor in the chain
+     * @throws Exception if the command processing fails
+     */
     @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
     @Override
     public @Nullable Object handle(UnitOfWork<? extends T> unitOfWork, InterceptorChain interceptorChain)

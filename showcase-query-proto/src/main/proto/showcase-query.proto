@@ -5,12 +5,26 @@ option java_outer_classname = "QueryProto";
 
 package showcase.query;
 
+// A serialized Axon streaming query message exchanged between services.
 message QueryRequest {
+  // The name of the query handler to invoke.
   string queryName = 1;
+
+  // The unique identifier of the query message.
   string queryIdentifier = 2;
+
+  // The fully-qualified name of the query payload type.
   string payloadType = 3;
+
+  // The revision of the query payload type, if set.
   optional string payloadRevision = 4;
+
+  // The serialized query payload.
   bytes serializedPayload = 5;
+
+  // The serialized query metadata.
   bytes serializedMetaData = 6;
+
+  // The fully-qualified name of the expected response type.
   string responseType = 7;
 }

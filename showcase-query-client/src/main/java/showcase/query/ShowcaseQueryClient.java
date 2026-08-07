@@ -24,17 +24,33 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROTOBUF;
 import static showcase.query.ShowcaseQueryOperations.SHOWCASE_QUERY_SERVICE;
 
+/**
+ * Reactive client fetching showcases from the query service over a protobuf transport, protected by Resilience4j
+ * time limiter, circuit breaker, and retry.
+ */
 @Component
 @TimeLimiter(name = SHOWCASE_QUERY_SERVICE)
 @CircuitBreaker(name = SHOWCASE_QUERY_SERVICE)
 @Retry(name = SHOWCASE_QUERY_SERVICE)
 @SuppressFBWarnings("CT_CONSTRUCTOR_THROW")
 class ShowcaseQueryClient implements ShowcaseQueryOperations {
-
+    /**
+     * The WebClient used to call the query service.
+     */
     private final WebClient webClient;
 
+    /**
+     * The mapper converting query messages to query requests.
+     */
     private final QueryMessageRequestMapper queryMessageRequestMapper;
 
+    /**
+     * Creates the client, configuring the WebClient base URL and the message mapper.
+     *
+     * @param clientProperties the query client properties
+     * @param webClientBuilder the WebClient builder
+     * @param messageSerializer the message serializer
+     */
     ShowcaseQueryClient(
             ShowcaseQueryClientProperties clientProperties,
             WebClient.Builder webClientBuilder,
@@ -46,6 +62,12 @@ class ShowcaseQueryClient implements ShowcaseQueryOperations {
         this.queryMessageRequestMapper = new QueryMessageRequestMapper(messageSerializer);
     }
 
+    /**
+     * Fetches a filtered list of showcases via the streaming query endpoint.
+     *
+     * @param query the list query to send
+     * @return a flux of matching showcases
+     */
     @Override
     public Flux<Showcase> fetchList(FetchShowcaseListQuery query) {
         return createQueryRequest(query, Showcase.class)
@@ -60,6 +82,12 @@ class ShowcaseQueryClient implements ShowcaseQueryOperations {
                        .checkpoint("ShowcaseQueryClient.fetchList(%s)".formatted(query));
     }
 
+    /**
+     * Fetches a single showcase by ID via the query endpoint.
+     *
+     * @param query the by-ID query to send
+     * @return a mono of the matching showcase
+     */
     @Override
     public Mono<Showcase> fetchById(FetchShowcaseByIdQuery query) {
         return createQueryRequest(query, Showcase.class)
@@ -74,6 +102,13 @@ class ShowcaseQueryClient implements ShowcaseQueryOperations {
                        .checkpoint("ShowcaseQueryClient.fetchById(%s)".formatted(query));
     }
 
+    /**
+     * Creates the protobuf query request for the given query and expected response type.
+     *
+     * @param query the query object to send
+     * @param responseType the expected response type
+     * @return a mono of the encoded query request
+     */
     @SuppressWarnings("SameParameterValue")
     private Mono<QueryRequest> createQueryRequest(Object query, Class<?> responseType) {
         return Mono.just(new GenericStreamingQueryMessage<>(query, responseType))
@@ -84,6 +119,13 @@ class ShowcaseQueryClient implements ShowcaseQueryOperations {
                    .map(queryMessageRequestMapper::messageToRequest);
     }
 
+    /**
+     * Translates an error response into a {@link ShowcaseQueryException} when it carries problem details, otherwise
+     * delegates to the default WebClient exception.
+     *
+     * @param response the error response
+     * @return a mono of the mapped exception
+     */
     private Mono<? extends Throwable> handleError(ClientResponse response) {
         if (response.headers()
                     .contentType()

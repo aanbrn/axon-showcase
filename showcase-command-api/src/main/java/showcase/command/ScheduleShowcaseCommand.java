@@ -16,6 +16,9 @@ import showcase.identifier.KSUID;
 import java.time.Duration;
 import java.time.Instant;
 
+/**
+ * Command to schedule a new showcase.
+ */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
@@ -25,20 +28,31 @@ import java.time.Instant;
 @NullUnmarked
 @SuppressWarnings("ClassCanBeRecord")
 public class ScheduleShowcaseCommand implements ShowcaseCommand {
-
+    /**
+     * The ID of the showcase to schedule.
+     */
     @NonNull
     @KSUID
     String showcaseId;
 
+    /**
+     * The unique title of the showcase.
+     */
     @NonNull
     @NotBlank
     @ShowcaseTitle
     String title;
 
+    /**
+     * The date-time when the showcase should start automatically.
+     */
     @NonNull
     @ShowcaseStartTime
     Instant startTime;
 
+    /**
+     * The duration after which the started showcase should be finished automatically.
+     */
     @NonNull
     @ShowcaseDuration
     Duration duration;

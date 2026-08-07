@@ -18,6 +18,9 @@ import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * Validates that the annotated value is a showcase duration between {@link #MIN_MINUTES} and {@link #MAX_MINUTES}.
+ */
 @Documented
 @Constraint(validatedBy = {})
 @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE })
@@ -26,9 +29,14 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @DurationMax(minutes = ShowcaseDuration.MAX_MINUTES)
 @ReportAsSingleViolation
 public @interface ShowcaseDuration {
-
+    /**
+     * The minimum allowed duration in minutes.
+     */
     int MIN_MINUTES = 1;
 
+    /**
+     * The maximum allowed duration in minutes.
+     */
     int MAX_MINUTES = 10;
 
     String message() default "{showcase.ShowcaseDuration.message}";

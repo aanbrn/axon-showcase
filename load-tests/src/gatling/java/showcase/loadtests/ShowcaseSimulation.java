@@ -19,6 +19,7 @@ import static io.gatling.javaapi.core.CoreDsl.jsonPath;
 import static io.gatling.javaapi.core.CoreDsl.pause;
 import static io.gatling.javaapi.core.CoreDsl.percent;
 import static io.gatling.javaapi.core.CoreDsl.rampUsersPerSec;
+import static io.gatling.javaapi.core.CoreDsl.randomSwitch;
 import static io.gatling.javaapi.core.CoreDsl.randomSwitchOrElse;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.core.CoreDsl.stressPeakUsers;
@@ -61,7 +62,7 @@ public class ShowcaseSimulation extends Simulation {
             scenario("Showcase")
                     .exitBlockOnFail()
                     .on(fetchShowcases,
-                        randomSwitchOrElse().on(percent(50).then(exitHere())).orElse(
+                        randomSwitch().on(percent(50).then(
                                 exec(session -> session.set("title", aShowcaseTitle())
                                                        .set("startTime", aShowcaseStartTime(Instant.now()))
                                                        .set("duration", aShowcaseDuration())),
@@ -87,9 +88,10 @@ public class ShowcaseSimulation extends Simulation {
                                                                             status().in(200, 404),
                                                                             jsonPath("$.status")
                                                                                     .saveAs("showcaseStatus"))),
-                                                        removeShowcase.check(status().is(200)))))));
+                                                        removeShowcase.check(status().is(200))))))));
 
     {
+        val baseUrl = System.getProperty("baseUrl", "http://localhost");
         val testType = System.getProperty("testType", "smoke");
 
         val injectionProfile = switch (testType) {
@@ -115,14 +117,16 @@ public class ShowcaseSimulation extends Simulation {
 
         val assertions = switch (testType) {
             case "average", "stress", "spike", "breakpoint", "soak" -> List.of(
+                    global().responseTime().mean().lte(100),
                     global().responseTime().percentile(95.0).lte(500),
                     global().responseTime().percentile(99.0).lte(1000),
                     global().successfulRequests().percent().gte(99.99));
             default -> List.of(global().failedRequests().count().is(0L));
         };
 
-        val protocol = http.baseUrl("http://localhost")
-                           .header("Host", "axon-showcase");
+        val protocol = http.baseUrl(baseUrl)
+                           .header("Host", "axon-showcase")
+                           .shareConnections();
 
         setUp(injectionProfile)
                 .assertions(assertions)

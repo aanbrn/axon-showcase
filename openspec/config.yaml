@@ -1,0 +1,78 @@
+schema: spec-driven
+
+# Project context
+# This is shown to AI when creating artifacts.
+context: |
+  axon-showcase — a CQRS/Event Sourcing reference app built on the Axon Framework.
+  Java 21, Spring Boot 3, Gradle 8.14.5 (Kotlin DSL), monorepo with 18 modules.
+
+  Architecture (4 services + API gateway):
+    - showcase-command-service — write side, Axon aggregate, publishes events to Kafka,
+      PostgreSQL event store
+    - showcase-projection-service — consumes Kafka events, writes projections to OpenSearch
+    - showcase-query-service — read side, queries OpenSearch
+    - showcase-api-gateway — REST entry point (/showcases), routes to command/query services
+  Key library modules: showcase-command-api / showcase-query-api (interfaces + testFixtures),
+  showcase-command-client / showcase-query-client (reactive clients), showcase-query-proto
+  (Protobuf), showcase-projection-model, showcase-test, showcase-identifier-extension (KSUID),
+  showcase-mapstruct-extension, showcase-resilience4j-extension, platform (Java BOM),
+  build-logic (Gradle convention plugins), helm (Helm releases), load-tests (Gatling).
+
+  Conventions:
+    - No comments in source code
+    - Wrap code and text at 120 characters
+    - Lombok: addNullAnnotations = jspecify; copyable annotations @Qualifier and @Value
+    - MapStruct: default component model is spring
+    - ErrorProne NullAway on showcase.* packages in production code
+    - SpotBugs with findsecbugs and fbContrib; excludes in spotbugs-exclude.xml
+    - All JavaCompile tasks add -parameters
+
+  Build & test (./gradlew):
+    - test -> componentTest -> integrationTest (in that order)
+    - componentTest is faster, no containers
+    - integrationTest requires Docker (Testcontainers)
+    - Integration tests set disable-axoniq-console-message=true
+    - showcase-api-gateway integrationTest must run after the client integration tests
+      and depends on Docker images of all other services (bootBuildImage)
+    - citi gradle-helm-plugin tasks are not configuration-cache compatible; do not enable
+      org.gradle.configuration-cache=true
+    - ./db-init.sh creates user `showcase` and database `showcase-events` before running
+      the command-service standalone
+
+  Docker images: aanbrn/axon-showcase-{command-service,api-gateway,query-service,projection-service}
+  Deployment: Helm chart in helm/chart (use ./gradlew helm:helmReleaseLocal)
+
+# Per-artifact rules
+rules:
+  proposal:
+    - Keep the "Why" section concrete: what breaks today without the change
+    - List "What Changes" at the file level, not as a rephrasing of Why
+    - Declare "New Capabilities" / "Modified Capabilities" using existing capability names
+    - Note the "Impact" on build, tests, and deployment explicitly
+  specs:
+    - Requirements are declarative SHALL statements, testable via WHEN/THEN scenarios
+    - Delta specs use ADDED/MODIFIED/DEPRECATED/REMOVED requirement blocks
+    - Keep scenario wording consistent with existing captured specs
+  design:
+    - Start with "Context" referencing the proposal, then "Goals / Non-Goals"
+    - Capture "Decisions" with the alternatives considered and why they were rejected
+    - Flag "Risks / Trade-offs" with concrete mitigation
+  tasks:
+    - Break tasks into chunks of max 2 hours
+    - Reference exact file paths and commands so each task is verifiable
+    - Group into sections: implementation tasks, then a verification section
+
+# Per-operation guidance
+operations:
+  apply:
+    guidance:
+      - Fetch status and apply instructions with --json before starting
+      - Read the change's proposal, spec, design, and tasks first
+      - Verify each deliverable against its task description; note pre-existing work
+      - Mark task checkboxes as they are completed, with verification evidence
+      - Run the exact commands listed in the verification tasks
+  archive:
+    guidance:
+      - Run openspec archive --yes only after all tasks are complete
+      - Confirm the specs update output (+/- deltas) and summarize the outcome
+      - Finish by running openspec validate --specs

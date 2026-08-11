@@ -144,7 +144,7 @@ helm install axon-showcase ./helm/chart \
 Or use the bundled Helm release:
 
 ```bash
-./gradlew helm:helmReleaseLocal
+./gradlew helmInstallToLocal
 ```
 
 ### Helm Values

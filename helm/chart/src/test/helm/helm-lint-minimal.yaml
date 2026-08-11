@@ -1,0 +1,108 @@
+# Helm lint values: disables every optional-by-default feature so the negative template branches are rendered.
+# Exercises the absence of ServiceAccount, RBAC, NetworkPolicies, PDBs, ServiceMonitors, probes, and autoscaling.
+
+serviceAccount:
+  create: false
+  name: pre-existing-sa
+
+rbac:
+  create: false
+
+apiGateway:
+  ingress:
+    enabled: false
+  route:
+    enabled: false
+  startupProbe:
+    enabled: false
+  livenessProbe:
+    enabled: false
+  readinessProbe:
+    enabled: false
+  autoscaling:
+    vpa:
+      enabled: false
+    hpa:
+      enabled: false
+  pdb:
+    create: false
+  networkPolicy:
+    enabled: false
+  serviceMonitor:
+    enabled: false
+
+commandService:
+  startupProbe:
+    enabled: false
+  livenessProbe:
+    enabled: false
+  readinessProbe:
+    enabled: false
+  autoscaling:
+    vpa:
+      enabled: false
+    hpa:
+      enabled: false
+  pdb:
+    create: false
+  networkPolicy:
+    enabled: false
+  serviceMonitor:
+    enabled: false
+
+projectionService:
+  startupProbe:
+    enabled: false
+  livenessProbe:
+    enabled: false
+  readinessProbe:
+    enabled: false
+  autoscaling:
+    vpa:
+      enabled: false
+    hpa:
+      enabled: false
+  pdb:
+    create: false
+  networkPolicy:
+    enabled: false
+  serviceMonitor:
+    enabled: false
+
+queryService:
+  startupProbe:
+    enabled: false
+  livenessProbe:
+    enabled: false
+  readinessProbe:
+    enabled: false
+  autoscaling:
+    vpa:
+      enabled: false
+    hpa:
+      enabled: false
+  pdb:
+    create: false
+  networkPolicy:
+    enabled: false
+  serviceMonitor:
+    enabled: false
+
+osViews:
+  secured: false
+
+observability:
+  logging:
+    structured:
+      enabled: false
+  prometheus:
+    metrics:
+      export:
+        enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false
+    tracing:
+      export:
+        enabled: false

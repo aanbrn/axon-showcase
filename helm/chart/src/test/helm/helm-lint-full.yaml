@@ -1,0 +1,373 @@
+# Helm lint values: enables every optional feature so all conditional template branches are rendered.
+# Exercises ingress, HTTPRoute, VPA, HPA, secured OpenSearch, observability, extraDeploy, RBAC rules,
+# network policy extras, ServiceMonitor tuning, and additional env/ports.
+
+commonLabels:
+  team: platform
+
+commonAnnotations:
+  example.com/owner: showcase-team
+
+dbEvents:
+  params: "?sslmode=disable"
+
+apiGateway:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: showcase.example.com
+    path: /
+    pathType: Prefix
+    extraPaths:
+      - path: /metrics
+        pathType: Prefix
+        backend:
+          service:
+            name: metrics
+            port:
+              number: 9090
+    extraHosts:
+      - name: showcase-alt.example.com
+        path: /
+        pathType: Prefix
+    extraRules:
+      - host: showcase-extra.example.com
+        http:
+          paths:
+            - path: /extra
+              pathType: Prefix
+              backend:
+                service:
+                  name: metrics
+                  port:
+                    number: 9090
+  route:
+    enabled: true
+    hostnames:
+      - showcase.example.com
+      - showcase-alt.example.com
+    parentRefs:
+      - name: showcase-gateway
+        namespace: gateway-system
+    filters:
+      - type: RequestHeaderModifier
+        requestHeaderModifier:
+          set:
+            - name: X-Forwarded-Host
+              value: showcase.example.com
+    extraRules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /metrics
+        backendRefs:
+          - name: metrics
+            port: 9090
+  extraEnvVarsCM: showcase-config
+  extraEnvVarsSecret: showcase-secret
+  extraContainerPorts:
+    - name: metrics
+      containerPort: 9090
+  autoscaling:
+    vpa:
+      enabled: true
+      controlledResources:
+        - cpu
+        - memory
+      maxAllowed:
+        cpu: 4
+        memory: 4Gi
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi
+      updatePolicy:
+        updateMode: Auto
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPU: 80
+      targetMemory: 80
+      metrics:
+        - type: Pods
+          pods:
+            metric:
+              name: http_requests_per_second
+            target:
+              type: AverageValue
+              averageValue: 100
+  pdb:
+    create: true
+    minAvailable: 1
+  networkPolicy:
+    enabled: true
+    addExternalClientAccess: true
+    ingressPodMatchLabels:
+      app: external-client
+    ingressManagementNSMatchLabels:
+      name: monitoring
+    ingressManagementNSPodMatchLabels:
+      prometheus: kps
+    extraIngress:
+      - from:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - port: 8080
+    extraEgress:
+      - to:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - port: 53
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    labels:
+      release: kps
+    interval: 30s
+    scrapeTimeout: 10s
+    relabelings:
+      - sourceLabels: [ __meta_kubernetes_pod_label_app ]
+        action: keep
+        regex: api-gateway
+    metricRelabelings:
+      - sourceLabels: [ __name__ ]
+        regex: "jvm_.*"
+        action: drop
+    honorLabels: true
+
+commandService:
+  autoscaling:
+    vpa:
+      enabled: true
+      controlledResources:
+        - cpu
+        - memory
+      maxAllowed:
+        cpu: 4
+        memory: 4Gi
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi
+      updatePolicy:
+        updateMode: Auto
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPU: 80
+      targetMemory: 80
+      metrics:
+        - type: Pods
+          pods:
+            metric:
+              name: http_requests_per_second
+            target:
+              type: AverageValue
+              averageValue: 100
+  pdb:
+    create: true
+    minAvailable: 1
+  networkPolicy:
+    enabled: true
+    addExternalClientAccess: true
+    ingressPodMatchLabels:
+      app: external-client
+    ingressManagementNSMatchLabels:
+      name: monitoring
+    ingressManagementNSPodMatchLabels:
+      prometheus: kps
+    extraIngress:
+      - from:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - port: 8080
+    extraEgress:
+      - to:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - port: 53
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    labels:
+      release: kps
+    interval: 30s
+    scrapeTimeout: 10s
+    relabelings:
+      - sourceLabels: [ __meta_kubernetes_pod_label_app ]
+        action: keep
+        regex: command-service
+    metricRelabelings:
+      - sourceLabels: [ __name__ ]
+        regex: "jvm_.*"
+        action: drop
+    honorLabels: true
+
+projectionService:
+  autoscaling:
+    vpa:
+      enabled: true
+      controlledResources:
+        - cpu
+        - memory
+      maxAllowed:
+        cpu: 4
+        memory: 4Gi
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi
+      updatePolicy:
+        updateMode: Auto
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPU: 80
+      targetMemory: 80
+  pdb:
+    create: true
+    minAvailable: 1
+  networkPolicy:
+    enabled: true
+    addExternalClientAccess: true
+    ingressPodMatchLabels:
+      app: external-client
+    ingressManagementNSMatchLabels:
+      name: monitoring
+    ingressManagementNSPodMatchLabels:
+      prometheus: kps
+    extraIngress:
+      - from:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - port: 8080
+    extraEgress:
+      - to:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - port: 53
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    labels:
+      release: kps
+    interval: 30s
+    scrapeTimeout: 10s
+    relabelings:
+      - sourceLabels: [ __meta_kubernetes_pod_label_app ]
+        action: keep
+        regex: projection-service
+    metricRelabelings:
+      - sourceLabels: [ __name__ ]
+        regex: "jvm_.*"
+        action: drop
+    honorLabels: true
+
+queryService:
+  autoscaling:
+    vpa:
+      enabled: true
+      controlledResources:
+        - cpu
+        - memory
+      maxAllowed:
+        cpu: 4
+        memory: 4Gi
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi
+      updatePolicy:
+        updateMode: Auto
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPU: 80
+      targetMemory: 80
+  pdb:
+    create: true
+    minAvailable: 1
+  networkPolicy:
+    enabled: true
+    addExternalClientAccess: true
+    ingressPodMatchLabels:
+      app: external-client
+    ingressManagementNSMatchLabels:
+      name: monitoring
+    ingressManagementNSPodMatchLabels:
+      prometheus: kps
+    extraIngress:
+      - from:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - port: 8080
+    extraEgress:
+      - to:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - port: 53
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    labels:
+      release: kps
+    interval: 30s
+    scrapeTimeout: 10s
+    relabelings:
+      - sourceLabels: [ __meta_kubernetes_pod_label_app ]
+        action: keep
+        regex: query-service
+    metricRelabelings:
+      - sourceLabels: [ __name__ ]
+        regex: "jvm_.*"
+        action: drop
+    honorLabels: true
+
+osViews:
+  secured: true
+
+observability:
+  logging:
+    structured:
+      enabled: true
+      format: ecs
+  tracing:
+    sampling:
+      probability: 1.0
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  otlp:
+    metrics:
+      export:
+        enabled: true
+        endpoint: http://tempo.monitoring.svc.cluster.local:4318
+        step: PT30S
+    tracing:
+      export:
+        enabled: true
+        endpoint: http://tempo.monitoring.svc.cluster.local:4317
+        compression: gzip
+
+rbac:
+  rules:
+    - apiGroups: [ "" ]
+      resources: [ "services", "endpoints" ]
+      verbs: [ "get", "list" ]
+
+extraDeploy:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: extra-configmap
+    data:
+      key: value

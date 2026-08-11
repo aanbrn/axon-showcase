@@ -1,3 +1,7 @@
+{{- /*
+Prometheus ServiceMonitor for the projection service.
+Scrapes the actuator Prometheus endpoint on the management port.
+*/ -}}
 {{- if and .Values.observability.prometheus.metrics.export.enabled .Values.projectionService.serviceMonitor.enabled }}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.serviceMonitor.labels .Values.commonLabels) "context" $) }}
 {{- $svcLabels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.labels .Values.commonLabels) "context" $) }}
@@ -13,10 +17,12 @@ metadata:
   annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
   {{- end }}
 spec:
+  # Targets the projection service Service.
   selector:
     matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $svcLabels "context" $) | nindent 6 }}
       app.kubernetes.io/component: projection-service
   endpoints:
+    # Actuator Prometheus endpoint exposed on the http-management port.
     - port: http-management
       path: /actuator/prometheus
       {{- if .Values.projectionService.serviceMonitor.interval }}

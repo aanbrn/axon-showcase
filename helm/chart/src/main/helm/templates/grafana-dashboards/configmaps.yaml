@@ -1,3 +1,7 @@
+{{- /*
+Creates a ConfigMap per Grafana dashboard JSON found under files/grafana-dashboards/.
+The configmaps are labeled for Grafana sidecar auto-provisioning.
+*/ -}}
 {{- $context := $ }}
 {{- range $path, $_ := .Files.Glob "files/grafana-dashboards/*.json"}}
 {{- $name := base $path | trimSuffix ".json" }}

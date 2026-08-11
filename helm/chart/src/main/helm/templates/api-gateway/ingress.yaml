@@ -1,3 +1,7 @@
+{{- /*
+Ingress for the API gateway.
+Exposes the gateway HTTP API externally through a Kubernetes Ingress controller.
+*/ -}}
 {{- if .Values.apiGateway.ingress.enabled }}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.labels .Values.commonLabels) "context" $) }}
 {{- $backend := include "common.ingress.backend" (dict
@@ -20,6 +24,7 @@ spec:
   ingressClassName: {{ include "common.tplvalues.render" (dict "value" .Values.apiGateway.ingress.ingressClassName "context" $) }}
   {{- end }}
   rules:
+    # Primary rule for the configured hostname; defaults to a root path.
     - host: {{ include "common.tplvalues.render" (dict "value" .Values.apiGateway.ingress.hostname "context" $) | quote }}
       http:
         paths:
@@ -29,6 +34,7 @@ spec:
           {{- if .Values.apiGateway.ingress.extraPaths }}
           {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.ingress.extraPaths "context" $) | nindent 10 }}
           {{- end }}
+    # One rule per extra host, all routing to the same backend.
     {{- range .Values.apiGateway.ingress.extraHosts }}
     - host: {{ .name | quote }}
       http:

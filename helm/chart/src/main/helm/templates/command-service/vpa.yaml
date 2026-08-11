@@ -1,3 +1,7 @@
+{{- /*
+VerticalPodAutoscaler for the command service.
+Recommends CPU/memory limits for the main container.
+*/ -}}
 {{- if and .Values.commandService.autoscaling.vpa.enabled }}
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
@@ -11,6 +15,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
   {{- end }}
 spec:
+  # VPA policy applied to the main container (controlled/min/max resources).
   resourcePolicy:
     containerPolicies:
       - containerName: main
@@ -26,6 +31,7 @@ spec:
         minAllowed:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+  # Targets the command service Deployment.
   targetRef:
     apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
     kind: Deployment

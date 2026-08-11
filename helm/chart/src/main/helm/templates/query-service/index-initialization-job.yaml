@@ -1,7 +1,12 @@
+{{- /*
+Index initialization Job for the query service.
+Creates the OpenSearch projections/indices before install/upgrade.
+*/ -}}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.labels .Values.commonLabels) "context" $) }}
 {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.podLabels .Values.commonLabels) "context" $) }}
 apiVersion: {{ include "common.capabilities.job.apiVersion" $ }}
 kind: Job
+# Executed as a Helm hook before install/upgrade; deleted once it succeeds or before it re-runs.
 metadata:
   name: {{ printf "%s-index-initialization" (include "axon-showcase.query-service.fullname" $) | trunc 63 | trimSuffix "-" }}
   namespace: {{ include "common.names.namespace" $ }}
@@ -34,6 +39,7 @@ spec:
           image: {{ include "common.images.image" (dict "imageRoot" .Values.queryService.image "global" .Values.global) }}
           imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.queryService.image "context" $) }}
           env:
+            # OpenSearch read-side connection.
             - name: "OS_URIS"
               value: {{ .Values.osViews.uris | quote }}
             {{- if .Values.osViews.secured }}
@@ -43,6 +49,7 @@ spec:
                   name: {{ .Values.osViews.passwordSecret.name }}
                   key: {{ .Values.osViews.passwordSecret.key }}
             {{- end }}
+            # Exit after the indices are created instead of starting the service.
             - name: "EXIT_AFTER_INDEX_INITIALIZATION"
               value: "true"
           volumeMounts:

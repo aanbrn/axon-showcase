@@ -1,3 +1,7 @@
+{{- /*
+PodDisruptionBudget for the api-gateway.
+Limits how many pods may be unavailable during voluntary disruptions.
+*/ -}}
 {{- if .Values.apiGateway.pdb.create }}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.labels .Values.commonLabels) "context" $) }}
 {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.podLabels .Values.commonLabels) "context" $) }}
@@ -13,12 +17,14 @@ metadata:
   annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
   {{- end }}
 spec:
+  # Prefer minAvailable; fall back to maxUnavailable (default 1) otherwise.
   {{- if .Values.apiGateway.pdb.minAvailable }}
   minAvailable: {{ .Values.apiGateway.pdb.minAvailable }}
   {{- end  }}
   {{- if or .Values.apiGateway.pdb.maxUnavailable ( not .Values.apiGateway.pdb.minAvailable ) }}
   maxUnavailable: {{ .Values.apiGateway.pdb.maxUnavailable | default 1 }}
   {{- end  }}
+  # Selects the api-gateway pods.
   selector:
     matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
       app.kubernetes.io/component: api-gateway

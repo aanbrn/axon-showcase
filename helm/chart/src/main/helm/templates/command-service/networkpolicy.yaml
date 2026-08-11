@@ -1,8 +1,13 @@
+{{- /*
+NetworkPolicy for the command service.
+Restricts ingress/egress traffic to the ports and peers the service needs.
+*/ -}}
 {{- if .Values.commandService.networkPolicy.enabled }}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.labels .Values.commonLabels) "context" $) }}
 {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.podLabels .Values.commonLabels) "context" $) }}
 apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" $ }}
 kind: NetworkPolicy
+# Applies to the command service pods; both ingress and egress are constrained.
 metadata:
   name: {{ include "axon-showcase.command-service.fullname" $ }}
   namespace: {{ include "common.names.namespace" $ | quote }}
@@ -20,8 +25,10 @@ spec:
     - Ingress
     - Egress
   ingress:
+    # Allow HTTP traffic on the server port from anywhere.
     - ports:
         - port: {{ .Values.commandService.containerPorts.server }}
+    # Allow management traffic only from selected peers (clients, monitoring, etc.).
     - ports:
         - port: {{ .Values.commandService.containerPorts.managementServer }}
       from:
@@ -50,6 +57,7 @@ spec:
               {{- end }}
           {{- end }}
         {{- end }}
+    # Allow JGroups clustering traffic between cluster peers.
     - ports:
         - port: {{ .Values.commandService.containerPorts.jgroups }}
       from:
@@ -60,15 +68,18 @@ spec:
     {{- include "common.tplvalues.render" (dict "value" .Values.commandService.networkPolicy.extraIngress "context" $) | nindent 4 }}
     {{- end }}
   egress:
+    # DNS lookups.
     - ports:
         - port: 53
           protocol: UDP
         - port: 53
           protocol: TCP
+    # All traffic to other services in the same namespace (DB, Kafka, OpenSearch, ...).
     - to:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: {{ include "common.names.namespace" $ | quote }}
+    # Access to the Kubernetes API server (discovered via the kubernetes EndpointSlice).
     {{- with (lookup "discovery.k8s.io/v1" "EndpointSlice" (include "common.names.namespace" $) "kubernetes") }}
     - to:
         {{- range .endpoints }}
@@ -83,6 +94,7 @@ spec:
           protocol: {{ .protocol }}
         {{- end }}
     {{- end }}
+    # OTLP export endpoints when observability export is enabled.
     {{- if (include "axon-showcase.observability.otlp.export.enabled" $) }}
     - ports:
         - port: 4317

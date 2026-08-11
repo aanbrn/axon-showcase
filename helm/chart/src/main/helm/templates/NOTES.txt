@@ -1,3 +1,73 @@
 CHART NAME: {{ .Chart.Name }}
 CHART VERSION: {{ .Chart.Version }}
 APP VERSION: {{ .Chart.AppVersion }}
+
+###############################################################################
+# Access the API gateway
+###############################################################################
+{{- if .Values.apiGateway.ingress.enabled }}
+  The API gateway is exposed through an Ingress:
+
+    http://{{ .Values.apiGateway.ingress.hostname }}{{ .Values.apiGateway.ingress.path }}
+
+{{- else if .Values.apiGateway.route.enabled }}
+  The API gateway is exposed through a Gateway API HTTPRoute:
+{{- range .Values.apiGateway.route.hostnames }}
+    http://{{ . }}
+{{- end }}
+
+{{- else }}
+  The API gateway is not exposed externally. Forward its service port locally:
+
+    kubectl --namespace {{ include "common.names.namespace" $ }} port-forward svc/{{ include "axon-showcase.api-gateway.fullname" $ }} 8080:8080
+
+  Then call the API:
+
+    curl http://localhost:8080/showcases
+{{- end }}
+
+###############################################################################
+# Verify the deployment
+###############################################################################
+  Watch all pods become ready:
+
+    kubectl --namespace {{ include "common.names.namespace" $ }} get pods -w -l "app.kubernetes.io/name={{ include "common.names.name" $ }}"
+
+  Check the API gateway health (management port {{ .Values.apiGateway.containerPorts.managementServer }}):
+
+    kubectl --namespace {{ include "common.names.namespace" $ }} port-forward svc/{{ include "axon-showcase.api-gateway.fullname" $ }} 8888:8888
+    curl http://localhost:8888/actuator/health
+
+###############################################################################
+# Deployed services
+###############################################################################
+  Command service:     {{ include "axon-showcase.command-service.fullname" $ }}       (write side, events -> Kafka, event store -> PostgreSQL)
+  Query service:       {{ include "axon-showcase.query-service.fullname" $ }}       (read side, projections -> OpenSearch)
+  Projection service:  {{ include "axon-showcase.projection-service.fullname" $ }}  (consumes Kafka events, writes projections -> OpenSearch)
+  API gateway:         {{ include "axon-showcase.api-gateway.fullname" $ }}       (REST entry point, routes to command/query services)
+{{- if (include "axon-showcase.observability.enabled" $) }}
+
+###############################################################################
+# Observability
+###############################################################################
+{{- if .Values.observability.prometheus.metrics.export.enabled }}
+  Prometheus metrics are exported and ServiceMonitors are created.
+{{- end }}
+{{- if .Values.observability.otlp.metrics.export.enabled }}
+  Metrics are exported via OTLP to {{ .Values.observability.otlp.metrics.export.endpoint }}.
+{{- end }}
+{{- if .Values.observability.otlp.tracing.export.enabled }}
+  Traces are exported via OTLP to {{ .Values.observability.otlp.tracing.export.endpoint }}.
+{{- end }}
+{{- end }}
+
+###############################################################################
+# Upgrade / uninstall
+###############################################################################
+  Upgrade the release:
+
+    helm upgrade {{ .Release.Name }} <chart> --namespace {{ include "common.names.namespace" $ }}
+
+  Uninstall the release:
+
+    helm uninstall {{ .Release.Name }} --namespace {{ include "common.names.namespace" $ }}

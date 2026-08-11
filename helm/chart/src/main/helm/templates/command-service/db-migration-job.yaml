@@ -1,7 +1,12 @@
+{{- /*
+DB migration Job for the command service.
+Runs Flyway migrations against the PostgreSQL event store before install/upgrade.
+*/ -}}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.labels .Values.commonLabels) "context" $) }}
 {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.podLabels .Values.commonLabels) "context" $) }}
 apiVersion: {{ include "common.capabilities.job.apiVersion" $ }}
 kind: Job
+# Executed as a Helm hook before install/upgrade; deleted once it succeeds or before it re-runs.
 metadata:
   name: {{ printf "%s-db-migration" (include "axon-showcase.command-service.fullname" $) | trunc 63 | trimSuffix "-" }}
   namespace: {{ include "common.names.namespace" $ }}
@@ -34,6 +39,7 @@ spec:
           image: {{ include "common.images.image" (dict "imageRoot" .Values.commandService.image "global" .Values.global) }}
           imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.commandService.image "context" $) }}
           env:
+            # PostgreSQL event store connection.
             - name: "DB_HOSTS"
               value: {{ .Values.dbEvents.hosts | quote }}
             - name: "DB_NAME"
@@ -49,6 +55,7 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.dbEvents.passwordSecret.name }}
                   key: {{ .Values.dbEvents.passwordSecret.key }}
+            # Exit after the migrations complete instead of starting the service.
             - name: "EXIT_AFTER_FLYWAY_MIGRATION"
               value: "true"
           volumeMounts:

@@ -1,3 +1,7 @@
+{{- /*
+Role bound to the shared ServiceAccount.
+Grants read access to pods so the services can discover JGroups cluster peers.
+*/ -}}
 {{- if .Values.rbac.create }}
 apiVersion: {{ include "common.capabilities.rbac.apiVersion" $ }}
 kind: Role
@@ -9,6 +13,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" (dict "value" .Values.commonAnnotations "context" $) | nindent 4 }}
   {{- end }}
 rules:
+  # Pod discovery used by kube-ping for JGroups clustering.
   - apiGroups: [ "" ]
     resources: [ "pods" ]
     verbs: [ "get", "list" ]

@@ -1,7 +1,13 @@
+{{- /*
+Command service Deployment.
+Merge service-level labels/annotations with the common ones, then render the standard Kubernetes labels.
+*/ -}}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.labels .Values.commonLabels) "context" $) }}
 {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.podLabels .Values.commonLabels) "context" $) }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
 kind: Deployment
+# Metadata for the command service Deployment.
+# Labels select this object as part of the command-service component.
 metadata:
   name: {{ include "axon-showcase.command-service.fullname" $ }}
   namespace: {{ include "common.names.namespace" $ | quote }}
@@ -12,6 +18,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
   {{- end }}
 spec:
+  # Replicas are only set when the HPA is disabled (the HPA manages them otherwise).
   {{- if not .Values.commandService.autoscaling.hpa.enabled }}
   replicas: {{ .Values.commandService.replicaCount }}
   {{- end }}
@@ -26,6 +33,7 @@ spec:
     metadata:
       labels: {{- include "common.labels.standard" (dict "customLabels" $podLabels "context" $) | nindent 8 }}
         app.kubernetes.io/component: command-service
+        # JGroups cluster label used by kube-ping to discover peers (see _helpers.tpl).
         jgroups-cluster: axon-showcase
       {{- if or .Values.commandService.podAnnotations .Values.commonAnnotations }}
       {{- $podAnnotations := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.podAnnotations .Values.commonAnnotations) "context" $) }}
@@ -41,6 +49,7 @@ spec:
       {{- if .Values.commandService.hostAliases }}
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.hostAliases "context" $) | nindent 8 }}
       {{- end }}
+      # Scheduling preferences: custom affinity overrides the presets.
       affinity:
         {{- if .Values.commandService.affinity }}
         {{- include "common.tplvalues.render" (dict "value" .Values.commandService.affinity "context" $) | nindent 8 }}
@@ -80,6 +89,7 @@ spec:
       initContainers: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.initContainers "context" $) | nindent 8 }}
       {{- end }}
       containers:
+        # Main command service container.
         - name: main
           image: {{ include "common.images.image" (dict "imageRoot" .Values.commandService.image "global" .Values.global) }}
           imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.commandService.image "context" $) }}
@@ -87,6 +97,7 @@ spec:
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.commandService.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
           env:
+            # Core runtime settings: ports and JGroups cluster discovery.
             - name: "SERVER_PORT"
               value: {{ .Values.commandService.containerPorts.server | toString | quote }}
             - name: "MANAGEMENT_SERVER_PORT"
@@ -99,6 +110,7 @@ spec:
               value: {{ include "common.names.namespace" $ | quote }}
             - name: "JGROUPS_KUBE_PING_LABELS"
               value: {{ include "axon-showcase.jgroups-cluster.labels" $ | quote }}
+            # PostgreSQL event store connection.
             - name: "DB_HOSTS"
               value: {{ .Values.dbEvents.hosts | quote }}
             - name: "DB_NAME"
@@ -114,6 +126,7 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.dbEvents.passwordSecret.name }}
                   key: {{ .Values.dbEvents.passwordSecret.key }}
+            # HikariCP pool tuning.
             - name: "DB_POOL_MAX_SIZE"
               value: {{ .Values.commandService.dbEvents.pool.maxSize | int | toString | quote }}
             - name: "DB_POOL_MIN_IDLE"
@@ -146,8 +159,10 @@ spec:
               value: {{ .Values.commandService.dbScheduler.shutdownMaxWait | quote }}
             - name: "DB_SCHEDULER_DELETE_UNRESOLVED_AFTER"
               value: {{ .Values.commandService.dbScheduler.deleteUnresolvedAfter | quote }}
+            # Flyway runs as a one-off job (db-migration-job), not in the service.
             - name: "FLYWAY_MIGRATION_ENABLED"
               value: "false"
+            # Kafka producer connection and event topic.
             - name: "KAFKA_BOOTSTRAP_SERVERS"
               value: {{ .Values.kafka.bootstrapServers | quote }}
             - name: "KAFKA_TOPIC_EVENTS"
@@ -181,6 +196,7 @@ spec:
                 name: {{ include "common.tplvalues.render" (dict "value" .Values.commandService.extraEnvVarsSecret "context" $) }}
             {{- end }}
           {{- end }}
+          # Ports exposed by the container: HTTP API, management and JGroups.
           ports:
             - name: http
               containerPort: {{ .Values.commandService.containerPorts.server }}
@@ -191,6 +207,7 @@ spec:
             {{- if .Values.commandService.extraContainerPorts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.commandService.extraContainerPorts "context" $) | nindent 12 }}
             {{- end }}
+          # Probes hit the actuator endpoints on the management port.
           {{- if .Values.commandService.startupProbe.enabled }}
           startupProbe:
             httpGet:
@@ -221,6 +238,7 @@ spec:
           {{- if .Values.commandService.lifecycleHooks }}
           lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.lifecycleHooks "context" $) | nindent 12 }}
           {{- end }}
+          # Empty-dir volume for the writable /tmp (read-only root filesystem).
           volumeMounts:
             - name: empty-dir
               mountPath: /tmp

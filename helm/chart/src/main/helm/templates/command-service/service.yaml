@@ -1,3 +1,7 @@
+{{- /*
+Service for the command service.
+Exposes the management port only (the HTTP API is reached via the API gateway).
+*/ -}}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.labels .Values.commonLabels) "context" $) }}
 {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.podLabels .Values.commonLabels) "context" $) }}
 apiVersion: v1

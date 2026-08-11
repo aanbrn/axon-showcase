@@ -1,3 +1,7 @@
+{{- /*
+Service for the API gateway.
+Exposes the HTTP API (main entry point for clients) and the management port.
+*/ -}}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.labels .Values.commonLabels) "context" $) }}
 {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.podLabels .Values.commonLabels) "context" $) }}
 apiVersion: v1

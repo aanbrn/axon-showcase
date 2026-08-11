@@ -1,3 +1,7 @@
+{{- /*
+Service for the query service.
+Exposes the HTTP API (reached via the API gateway) and the management port.
+*/ -}}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.labels .Values.commonLabels) "context" $) }}
 {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.podLabels .Values.commonLabels) "context" $) }}
 apiVersion: v1

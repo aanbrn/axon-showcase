@@ -1,3 +1,8 @@
+{{- /*
+Renders environment variables for a container from a map or slice of values.
+Expected dot: .envVars (map of name -> value or name -> { value, valueFrom, ... }) or slice of env entries,
+and .context (root context used to render templated values).
+*/ -}}
 {{- define "axon-showcase.renderEnvVars" }}
     {{- if not (empty .envVars) }}
         {{- if kindIs "map" .envVars }}
@@ -20,11 +25,20 @@
     {{- end }}
 {{- end }}
 
+{{- /*
+Computes the image pull policy for a container.
+Uses the explicitly configured pullPolicy, defaulting to Always for "latest" tags and IfNotPresent otherwise.
+Expected dot: .imageRoot (image dict) and .context.
+*/ -}}
 {{- define "axon-showcase.images.imagePullPolicy" }}
     {{- $imageRoot := include "common.tplvalues.render" (dict "value" .imageRoot "context" .context ) | fromYaml }}
     {{- $imageRoot.pullPolicy | default (eq $imageRoot.tag "latest" | ternary "Always" "IfNotPresent") }}
 {{- end }}
 
+{{- /*
+Returns true when at least one observability feature (structured logging, Prometheus or OTLP export) is enabled.
+Used to add observability annotations (e.g. micrometer tags, OTLP) to pods.
+*/ -}}
 {{- define "axon-showcase.observability.enabled" }}
     {{- /* @formatter:off */}}
     {{- if or
@@ -38,12 +52,21 @@
     {{- /* @formatter:on */}}
 {{- end }}
 
+{{- /*
+Returns true when OTLP export (metrics or tracing) is enabled at all.
+Used to allow OTLP ports in NetworkPolicies.
+*/ -}}
 {{- define "axon-showcase.observability.otlp.export.enabled" }}
     {{- if or .Values.observability.otlp.metrics.export.enabled .Values.observability.otlp.tracing.export.enabled }}
         {{- true }}
     {{- end }}
 {{- end }}
 
+{{- /*
+Renders the environment variables shared by all services to configure observability
+(structured logging, sampling probability, Prometheus and OTLP metrics/traces export).
+Fails with a descriptive message when a feature is enabled without its required settings.
+*/ -}}
 {{- define "axon-showcase.observability.renderEnvVars" }}
     {{- if .Values.observability.logging.structured.enabled }}
         {{- if empty .Values.observability.logging.structured.format }}
@@ -135,6 +158,10 @@
     {{- end }}
 {{- end }}
 
+{{- /*
+Returns the ServiceAccount name to reference from pods:
+the configured name when a dedicated ServiceAccount is created, otherwise the configured name or "default".
+*/ -}}
 {{- define "axon-showcase.serviceAccountName" }}
     {{- if .Values.serviceAccount.create }}
         {{- .Values.serviceAccount.name | default (include "common.names.fullname" $) }}
@@ -143,10 +170,18 @@
     {{- end }}
 {{- end }}
 
+{{- /*
+Returns the comma-separated label selector used to discover JGroups cluster peers
+(e.g. for the jgroups-ping environment or network policies).
+*/ -}}
 {{- define "axon-showcase.jgroups-cluster.labels" }}
     {{- printf "app.kubernetes.io/instance=%s,app.kubernetes.io/name=%s,jgroups-cluster=axon-showcase" .Release.Name (include "common.names.name" $) }}
 {{- end }}
 
+{{- /*
+Per-component names, truncated to the Kubernetes resource name limit (63 chars)
+and trimmed of a trailing dash after truncation.
+*/ -}}
 {{- define "axon-showcase.command-service.fullname" }}
     {{- printf "%s-%s" (include "common.names.fullname" $) "command-service" | trunc 63 | trimSuffix "-" }}
 {{- end }}
@@ -163,6 +198,9 @@
     {{- printf "%s-%s" (include "common.names.fullname" $) "query-service" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
+{{- /*
+Internal HTTP URL of the query service (used by the API gateway to route requests).
+*/ -}}
 {{- define "axon-showcase.query-service.url" }}
     {{- printf "http://%s:%d" (include "axon-showcase.query-service.fullname" $) (.Values.queryService.containerPorts.server | int) }}
 {{- end }}

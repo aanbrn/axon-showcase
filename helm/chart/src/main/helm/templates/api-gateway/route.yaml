@@ -1,3 +1,7 @@
+{{- /*
+Gateway API HTTPRoute for the API gateway.
+Exposes the gateway HTTP API externally through a Gateway API implementation.
+*/ -}}
 {{- if .Values.apiGateway.route.enabled }}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.route.labels .Values.commonLabels) "context" $) }}
 apiVersion: gateway.networking.k8s.io/v1
@@ -12,6 +16,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
   {{- end }}
 spec:
+  # Optional hostnames and parent Gateway references.
   {{- if .Values.apiGateway.route.hostnames }}
   hostnames: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.route.hostnames "context" $) | nindent 4 }}
   {{- end }}
@@ -19,6 +24,7 @@ spec:
   parentRefs: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.route.parentRefs "context" $) | nindent 4 }}
   {{- end }}
   rules:
+    # Route matching the configured paths to the gateway service.
     - matches: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.route.matches "context" $) | nindent 6 }}
       {{- if .Values.apiGateway.route.filters }}
       filters: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.route.filters "context" $) | nindent 6 }}

@@ -1,7 +1,13 @@
+{{- /*
+Query service Deployment.
+Merge service-level labels/annotations with the common ones, then render the standard Kubernetes labels.
+*/ -}}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.labels .Values.commonLabels) "context" $) }}
 {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.podLabels .Values.commonLabels) "context" $) }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
 kind: Deployment
+# Metadata for the query service Deployment.
+# Labels select this object as part of the query-service component.
 metadata:
   name: {{ include "axon-showcase.query-service.fullname" $ }}
   namespace: {{ include "common.names.namespace" $ | quote }}
@@ -12,6 +18,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
   {{- end }}
 spec:
+  # Replicas are only set when the HPA is disabled (the HPA manages them otherwise).
   {{- if not .Values.queryService.autoscaling.hpa.enabled }}
   replicas: {{ .Values.queryService.replicaCount }}
   {{- end }}
@@ -40,6 +47,7 @@ spec:
       {{- if .Values.queryService.hostAliases }}
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.queryService.hostAliases "context" $) | nindent 8 }}
       {{- end }}
+      # Scheduling preferences: custom affinity overrides the presets.
       affinity:
         {{- if .Values.queryService.affinity }}
         {{- include "common.tplvalues.render" (dict "value" .Values.queryService.affinity "context" $) | nindent 8 }}
@@ -79,6 +87,7 @@ spec:
       initContainers: {{- include "common.tplvalues.render" (dict "value" .Values.queryService.initContainers "context" $) | nindent 8 }}
       {{- end }}
       containers:
+        # Main query service container.
         - name: main
           image: {{ include "common.images.image" (dict "imageRoot" .Values.queryService.image "global" .Values.global) }}
           imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.queryService.image "context" $) }}
@@ -86,10 +95,12 @@ spec:
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.queryService.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
           env:
+            # Core runtime settings: ports.
             - name: "SERVER_PORT"
               value: {{ .Values.queryService.containerPorts.server | toString | quote }}
             - name: "MANAGEMENT_SERVER_PORT"
               value: {{ .Values.queryService.containerPorts.managementServer | toString | quote }}
+            # OpenSearch read-side connection.
             - name: "OS_URIS"
               value: {{ .Values.osViews.uris | quote }}
             {{- if .Values.osViews.secured }}
@@ -99,6 +110,7 @@ spec:
                   name: {{ .Values.osViews.passwordSecret.name }}
                   key: {{ .Values.osViews.passwordSecret.key }}
             {{- end }}
+            # OpenSearch HTTP client tuning.
             - name: "OS_CONNECTION_TIMEOUT"
               value: {{ .Values.queryService.osViews.connectionTimeout | quote }}
             - name: "OS_SOCKET_TIMEOUT"
@@ -111,6 +123,7 @@ spec:
               value: {{ .Values.queryService.osViews.maxConnectionsPerRoute | int | toString | quote }}
             - name: "OS_EVICT_IDLE_CONNECTIONS"
               value: {{ .Values.queryService.osViews.evictIdleConnections | quote }}
+            # Index initialization runs as a one-off job (index-initialization-job), not in the service.
             - name: "INDEX_INITIALIZATION_ENABLED"
               value: "false"
             - name: "MANAGEMENT_METRICS_TAGS_APPLICATION"
@@ -132,6 +145,7 @@ spec:
                 name: {{ include "common.tplvalues.render" (dict "value" .Values.queryService.extraEnvVarsSecret "context" $) }}
             {{- end }}
           {{- end }}
+          # Ports exposed by the container: HTTP API and management.
           ports:
             - name: http
               containerPort: {{ .Values.queryService.containerPorts.server }}
@@ -140,6 +154,7 @@ spec:
             {{- if .Values.queryService.extraContainerPorts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.queryService.extraContainerPorts "context" $) | nindent 12 }}
             {{- end }}
+          # Probes hit the actuator endpoints on the management port.
           {{- if .Values.queryService.startupProbe.enabled }}
           startupProbe:
             httpGet:
@@ -170,6 +185,7 @@ spec:
           {{- if .Values.queryService.lifecycleHooks }}
           lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.queryService.lifecycleHooks "context" $) | nindent 12 }}
           {{- end }}
+          # Empty-dir volume for the writable /tmp (read-only root filesystem).
           volumeMounts:
             - name: empty-dir
               mountPath: /tmp

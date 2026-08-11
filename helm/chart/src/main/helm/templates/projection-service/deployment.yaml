@@ -1,7 +1,13 @@
+{{- /*
+Projection service Deployment.
+Merge service-level labels/annotations with the common ones, then render the standard Kubernetes labels.
+*/ -}}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.labels .Values.commonLabels) "context" $) }}
 {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.podLabels .Values.commonLabels) "context" $) }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
 kind: Deployment
+# Metadata for the projection service Deployment.
+# Labels select this object as part of the projection-service component.
 metadata:
   name: {{ include "axon-showcase.projection-service.fullname" $ }}
   namespace: {{ include "common.names.namespace" $ | quote }}
@@ -12,6 +18,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
   {{- end }}
 spec:
+  # Replicas are only set when the HPA is disabled (the HPA manages them otherwise).
   {{- if not .Values.projectionService.autoscaling.hpa.enabled }}
   replicas: {{ .Values.projectionService.replicaCount }}
   {{- end }}
@@ -40,6 +47,7 @@ spec:
       {{- if .Values.projectionService.hostAliases }}
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.hostAliases "context" $) | nindent 8 }}
       {{- end }}
+      # Scheduling preferences: custom affinity overrides the presets.
       affinity:
         {{- if .Values.projectionService.affinity }}
         {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.affinity "context" $) | nindent 8 }}
@@ -79,6 +87,7 @@ spec:
       initContainers: {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.initContainers "context" $) | nindent 8 }}
       {{- end }}
       containers:
+        # Main projection service container.
         - name: main
           image: {{ include "common.images.image" (dict "imageRoot" .Values.projectionService.image "global" .Values.global) }}
           imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.projectionService.image "context" $) }}
@@ -86,16 +95,19 @@ spec:
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.projectionService.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
           env:
+            # Core runtime settings: ports.
             - name: "SERVER_PORT"
               value: {{ .Values.projectionService.containerPorts.server | toString | quote }}
             - name: "MANAGEMENT_SERVER_PORT"
               value: {{ .Values.projectionService.containerPorts.managementServer | toString | quote }}
+            # Kafka consumer connection and event topic.
             - name: "KAFKA_BOOTSTRAP_SERVERS"
               value: {{ .Values.kafka.bootstrapServers | quote }}
             - name: "KAFKA_TOPIC_EVENTS"
               value: {{ .Values.kafka.topics.events | quote }}
             - name: "KAFKA_SECURITY_PROTOCOL"
               value: {{ .Values.kafka.securityProtocol | quote }}
+            # OpenSearch write-side connection.
             - name: "OS_URIS"
               value: {{ .Values.osViews.uris | quote }}
             {{- if .Values.osViews.secured }}
@@ -105,6 +117,7 @@ spec:
                   name: {{ .Values.osViews.passwordSecret.name }}
                   key: {{ .Values.osViews.passwordSecret.key }}
             {{- end }}
+            # OpenSearch HTTP client tuning.
             - name: "OS_CONNECTION_TIMEOUT"
               value: {{ .Values.projectionService.osViews.connectionTimeout | quote }}
             - name: "OS_SOCKET_TIMEOUT"
@@ -117,6 +130,7 @@ spec:
               value: {{ .Values.projectionService.osViews.maxConnectionsPerRoute | int | toString | quote }}
             - name: "OS_EVICT_IDLE_CONNECTIONS"
               value: {{ .Values.projectionService.osViews.evictIdleConnections | quote }}
+            # Projector settings (concurrency, batching, retry and restart).
             - name: "PROJECTOR_MIN_CONCURRENCY"
               value: {{ .Values.projectionService.projector.minConcurrency | int | quote }}
             - name: "PROJECTOR_MAX_CONCURRENCY"
@@ -152,6 +166,7 @@ spec:
                 name: {{ include "common.tplvalues.render" (dict "value" .Values.projectionService.extraEnvVarsSecret "context" $) }}
             {{- end }}
           {{- end }}
+          # Ports exposed by the container: HTTP API and management.
           ports:
             - name: http
               containerPort: {{ .Values.projectionService.containerPorts.server }}
@@ -160,6 +175,7 @@ spec:
             {{- if .Values.projectionService.extraContainerPorts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.extraContainerPorts "context" $) | nindent 12 }}
             {{- end }}
+          # Probes hit the actuator endpoints on the management port.
           {{- if .Values.projectionService.startupProbe.enabled }}
           startupProbe:
             httpGet:
@@ -190,6 +206,7 @@ spec:
           {{- if .Values.projectionService.lifecycleHooks }}
           lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.projectionService.lifecycleHooks "context" $) | nindent 12 }}
           {{- end }}
+          # Empty-dir volume for the writable /tmp (read-only root filesystem).
           volumeMounts:
             - name: empty-dir
               mountPath: /tmp

@@ -1,7 +1,13 @@
+{{- /*
+API gateway Deployment.
+Merge service-level labels/annotations with the common ones, then render the standard Kubernetes labels.
+*/ -}}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.labels .Values.commonLabels) "context" $) }}
 {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.podLabels .Values.commonLabels) "context" $) }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
 kind: Deployment
+# Metadata for the API gateway Deployment.
+# Labels select this object as part of the api-gateway component.
 metadata:
   name: {{ include "axon-showcase.api-gateway.fullname" $ }}
   namespace: {{ include "common.names.namespace" $ | quote }}
@@ -12,6 +18,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
   {{- end }}
 spec:
+  # Replicas are only set when the HPA is disabled (the HPA manages them otherwise).
   {{- if not .Values.apiGateway.autoscaling.hpa.enabled }}
   replicas: {{ .Values.apiGateway.replicaCount }}
   {{- end }}
@@ -26,6 +33,7 @@ spec:
     metadata:
       labels: {{- include "common.labels.standard" (dict "customLabels" $podLabels "context" $) | nindent 8 }}
         app.kubernetes.io/component: api-gateway
+        # JGroups cluster label used by kube-ping to discover peers (see _helpers.tpl).
         jgroups-cluster: axon-showcase
       {{- if or .Values.apiGateway.podAnnotations .Values.commonAnnotations }}
       {{- $podAnnotations := include "common.tplvalues.merge" (dict "values" (list .Values.apiGateway.podAnnotations .Values.commonAnnotations) "context" $) }}
@@ -41,6 +49,7 @@ spec:
       {{- if .Values.apiGateway.hostAliases }}
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.hostAliases "context" $) | nindent 8 }}
       {{- end }}
+      # Scheduling preferences: custom affinity overrides the presets.
       affinity:
         {{- if .Values.apiGateway.affinity }}
         {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.affinity "context" $) | nindent 8 }}
@@ -80,6 +89,7 @@ spec:
       initContainers: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.initContainers "context" $) | nindent 8 }}
       {{- end }}
       containers:
+        # Main API gateway container.
         - name: main
           image: {{ include "common.images.image" (dict "imageRoot" .Values.apiGateway.image "global" .Values.global) }}
           imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.apiGateway.image "context" $) }}
@@ -87,6 +97,7 @@ spec:
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.apiGateway.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
           env:
+            # Core runtime settings: ports and JGroups cluster discovery.
             - name: "SERVER_PORT"
               value: {{ .Values.apiGateway.containerPorts.server | toString | quote }}
             - name: "MANAGEMENT_SERVER_PORT"
@@ -99,8 +110,10 @@ spec:
               value: {{ include "common.names.namespace" $ | quote }}
             - name: "JGROUPS_KUBE_PING_LABELS"
               value: {{ include "axon-showcase.jgroups-cluster.labels" $ | quote }}
+            # Query service endpoint used to forward read requests.
             - name: "SHOWCASE_QUERY_SERVICE_URL"
               value: {{ include "axon-showcase.query-service.url" $ | quote }}
+            # Caffeine caches for the showcase queries.
             - name: "FETCH_SHOWCASE_LIST_QUERY_CACHE_MAX_SIZE"
               value: {{ .Values.apiGateway.caches.FetchShowcaseListQuery.maxSize | int64 | toString | quote }}
             - name: "FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_ACCESS"
@@ -113,6 +126,8 @@ spec:
               value: {{ .Values.apiGateway.caches.FetchShowcaseByIdQuery.expiresAfterAccess | quote }}
             - name: "FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_WRITE"
               value: {{ .Values.apiGateway.caches.FetchShowcaseByIdQuery.expiresAfterWrite | quote }}
+            # Resilience4j settings: time limiter, circuit breaker and retry,
+            # with defaults plus per-target (command/query service) overrides.
             - name: "RESILIENCE_ENABLED"
               value: {{ .Values.apiGateway.resilience.enabled | quote }}
             - name: "TIMELIMITER_ENABLED"
@@ -346,6 +361,7 @@ spec:
                 name: {{ include "common.tplvalues.render" (dict "value" .Values.apiGateway.extraEnvVarsSecret "context" $) }}
             {{- end }}
           {{- end }}
+          # Ports exposed by the container: HTTP API, management and JGroups.
           ports:
             - name: http
               containerPort: {{ .Values.apiGateway.containerPorts.server }}
@@ -356,6 +372,7 @@ spec:
             {{- if .Values.apiGateway.extraContainerPorts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.extraContainerPorts "context" $) | nindent 12 }}
             {{- end }}
+          # Probes hit the actuator endpoints on the management port.
           {{- if .Values.apiGateway.startupProbe.enabled }}
           startupProbe:
             httpGet:
@@ -386,6 +403,7 @@ spec:
           {{- if .Values.apiGateway.lifecycleHooks }}
           lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.lifecycleHooks "context" $) | nindent 12 }}
           {{- end }}
+          # Empty-dir volume for the writable /tmp (read-only root filesystem).
           volumeMounts:
             - name: empty-dir
               mountPath: /tmp

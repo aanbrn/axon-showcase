@@ -1,3 +1,7 @@
+{{- /*
+HorizontalPodAutoscaler for the command service.
+Scales replicas based on CPU/memory utilization or custom metrics.
+*/ -}}
 {{- if .Values.commandService.autoscaling.hpa.enabled }}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.commandService.labels .Values.commonLabels) "context" $) }}
 apiVersion: {{ include "common.capabilities.hpa.apiVersion" (dict "context" $) }}
@@ -12,6 +16,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
   {{- end }}
 spec:
+  # Targets the command service Deployment.
   scaleTargetRef:
     apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
     kind: Deployment
@@ -20,6 +25,7 @@ spec:
   maxReplicas: {{ .Values.commandService.autoscaling.hpa.maxReplicas }}
   metrics:
   {{- if .Values.commandService.autoscaling.hpa.targetCPU }}
+    # Scale on CPU utilization (uses the modern `target` form on recent Kubernetes).
     - type: Resource
       resource:
         name: cpu
@@ -32,6 +38,7 @@ spec:
       {{- end }}
   {{- end }}
   {{- if .Values.commandService.autoscaling.hpa.targetMemory }}
+    # Scale on memory utilization (uses the modern `target` form on recent Kubernetes).
     - type: Resource
       resource:
         name: memory

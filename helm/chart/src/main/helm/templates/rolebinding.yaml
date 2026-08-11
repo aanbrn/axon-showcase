@@ -1,3 +1,6 @@
+{{- /*
+RoleBinding binding the Role to the shared ServiceAccount.
+*/ -}}
 {{- if .Values.rbac.create }}
 apiVersion: {{ include "common.capabilities.rbac.apiVersion" $ }}
 kind: RoleBinding

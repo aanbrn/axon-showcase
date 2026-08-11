@@ -1,3 +1,7 @@
+{{- /*
+Renders any additional manifests supplied via extraDeploy.
+Each entry is templated and emitted as a separate document.
+*/ -}}
 {{- $context := $ }}
 {{- range .Values.extraDeploy }}
 ---

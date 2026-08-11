@@ -1,3 +1,7 @@
+{{- /*
+Service for the projection service.
+Exposes the HTTP API and the management port.
+*/ -}}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.labels .Values.commonLabels) "context" $) }}
 {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.projectionService.podLabels .Values.commonLabels) "context" $) }}
 apiVersion: v1

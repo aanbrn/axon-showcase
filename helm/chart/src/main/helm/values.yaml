@@ -1,7 +1,23 @@
+# Default values for axon-showcase.
+# This is a YAML-formatted file. Declare variables to be passed into your templates.
+
+# @section Global parameters
+# Global Docker image parameters.
+# @param global.imageRegistry Global Docker image registry
+# @param global.imagePullSecrets Global Docker registry secret names as an array
 global:
   imageRegistry: ""
   imagePullSecrets: [ ]
 
+# @section Common parameters
+# @param kubeVersion Override Kubernetes version
+# @param nameOverride String to partially override common.names.fullname template (will maintain the release name)
+# @param fullnameOverride String to fully override common.names.fullname template
+# @param namespaceOverride Override the deployment namespace
+# @param clusterDomain Kubernetes cluster domain name
+# @param extraDeploy Array of extra objects to deploy with the release
+# @param commonLabels Labels to add to all deployed objects
+# @param commonAnnotations Annotations to add to all deployed objects
 kubeVersion: ""
 
 nameOverride: ""
@@ -18,6 +34,16 @@ commonLabels: { }
 
 commonAnnotations: { }
 
+# @section Infrastructure connection parameters
+# Shared connection settings for the external infrastructure the services talk to.
+
+# @param dbEvents.hosts PostgreSQL event store host(s)
+# @param dbEvents.name PostgreSQL database name
+# @param dbEvents.schema PostgreSQL schema
+# @param dbEvents.params Additional JDBC connection parameters
+# @param dbEvents.username PostgreSQL username
+# @param dbEvents.passwordSecret.name Name of the Secret holding the DB password
+# @param dbEvents.passwordSecret.key Key in the Secret holding the DB password
 dbEvents:
   hosts: axon-showcase-db-events
   name: showcase-events
@@ -28,6 +54,10 @@ dbEvents:
     name: axon-showcase-db-events
     key: password
 
+# @param osViews.uris OpenSearch REST endpoint(s)
+# @param osViews.secured Whether OpenSearch requires authentication
+# @param osViews.passwordSecret.name Name of the Secret holding the OpenSearch password
+# @param osViews.passwordSecret.key Key in the Secret holding the OpenSearch password
 osViews:
   uris: http://axon-showcase-os-views:9200
   secured: false
@@ -35,14 +65,23 @@ osViews:
     name: axon-showcase-os-views
     key: elasticsearch-password
 
+# @param kafka.bootstrapServers Kafka bootstrap servers
+# @param kafka.topics.events Kafka topic carrying domain events
+# @param kafka.securityProtocol Kafka security protocol
 kafka:
   bootstrapServers: axon-showcase-kafka:9092
   topics:
     events: axon-showcase-events
   securityProtocol: PLAINTEXT
 
+# @section Command service parameters
+# Write-side service: receives commands, stores events in PostgreSQL and publishes them to Kafka.
 commandService:
 
+  # @param commandService.labels Additional labels for the service resources
+  # @param commandService.annotations Additional annotations for the service resources
+  # @param commandService.podLabels Additional labels for the pods
+  # @param commandService.podAnnotations Additional annotations for the pods
   labels: { }
 
   annotations: { }
@@ -51,6 +90,12 @@ commandService:
 
   podAnnotations: { }
 
+  # @param commandService.image.registry Command service image registry
+  # @param commandService.image.repository Command service image repository
+  # @param commandService.image.tag Command service image tag
+  # @param commandService.image.digest Command service image digest (overrides tag if set)
+  # @param commandService.image.pullPolicy Command service image pull policy
+  # @param commandService.image.pullSecrets Command service image pull secrets
   image:
     registry: ""
     repository: aanbrn/axon-showcase-command-service
@@ -59,6 +104,9 @@ commandService:
     pullPolicy: null
     pullSecrets: [ ]
 
+  # @param commandService.replicaCount Number of command service replicas
+  # @param commandService.revisionHistoryLimit Number of old ReplicaSets to keep
+  # @param commandService.updateStrategy.type Deployment update strategy type
   replicaCount: 1
 
   revisionHistoryLimit: 10
@@ -66,6 +114,14 @@ commandService:
   updateStrategy:
     type: RollingUpdate
 
+  # PostgreSQL connection pool settings (HikariCP).
+  # @param commandService.dbEvents.pool.maxSize Maximum pool size
+  # @param commandService.dbEvents.pool.minIdle Minimum number of idle connections
+  # @param commandService.dbEvents.pool.maxLifetime Maximum connection lifetime (ms)
+  # @param commandService.dbEvents.pool.connectionTimeout Connection timeout (ms)
+  # @param commandService.dbEvents.pool.validationTimeout Validation timeout (ms)
+  # @param commandService.dbEvents.pool.idleTimeout Idle connection timeout (ms)
+  # @param commandService.dbEvents.pool.leakDetectionThreshold Leak detection threshold (ms)
   dbEvents:
     pool:
       maxSize: 100
@@ -76,6 +132,16 @@ commandService:
       idleTimeout: 600000
       leakDetectionThreshold: 0
 
+  # Axon Server scheduler settings for the embedded event scheduler.
+  # @param commandService.dbScheduler.threads Scheduler worker threads
+  # @param commandService.dbScheduler.heartbeatInterval Scheduler heartbeat interval
+  # @param commandService.dbScheduler.immediateExecutionEnabled Allow immediate execution
+  # @param commandService.dbScheduler.pollingInterval Scheduler polling interval
+  # @param commandService.dbScheduler.pollingStrategy Scheduler polling strategy
+  # @param commandService.dbScheduler.pollingStrategyLowerLimitFractionOfThreads Lower bound for polling strategy threads
+  # @param commandService.dbScheduler.pollingStrategyUpperLimitFractionOfThreads Upper bound for polling strategy threads
+  # @param commandService.dbScheduler.shutdownMaxWait Maximum wait for graceful shutdown
+  # @param commandService.dbScheduler.deleteUnresolvedAfter Delay before deleting unresolved tasks
   dbScheduler:
     threads: 100
     heartbeatInterval: PT5M
@@ -87,15 +153,24 @@ commandService:
     shutdownMaxWait: PT30M
     deleteUnresolvedAfter: P14D
 
+  # Kafka producer settings.
+  # @param commandService.kafka.producer.retries Producer retry count
   kafka:
     producer:
       retries: 3
 
+  # Caffeine cache settings for the showcase model.
+  # @param commandService.showcaseCache.maxSize Maximum cache entries
+  # @param commandService.showcaseCache.expiresAfterAccess Entry expiry after access
+  # @param commandService.showcaseCache.expiresAfterWrite Entry expiry after write
   showcaseCache:
     maxSize: 100000
     expiresAfterAccess: PT10M
     expiresAfterWrite: PT5M
 
+  # @param commandService.extraEnvVars Extra environment variables (string map)
+  # @param commandService.extraEnvVarsCM Name of a ConfigMap providing extra env vars
+  # @param commandService.extraEnvVarsSecret Name of a Secret providing extra env vars
   extraEnvVars:
     JAVA_OPTS: "-XX:MaxDirectMemorySize=128M -XX:MaxGCPauseMillis=20"
 
@@ -103,6 +178,10 @@ commandService:
 
   extraEnvVarsSecret: ""
 
+  # @param commandService.containerPorts.server Application HTTP port
+  # @param commandService.containerPorts.managementServer Actuator HTTP port
+  # @param commandService.containerPorts.jgroups JGroups clustering port
+  # @param commandService.extraContainerPorts Additional container ports
   containerPorts:
     server: 8080
     managementServer: 8888
@@ -110,6 +189,9 @@ commandService:
 
   extraContainerPorts: [ ]
 
+  # @param commandService.startupProbe Startup probe configuration
+  # @param commandService.livenessProbe Liveness probe configuration
+  # @param commandService.readinessProbe Readiness probe configuration
   startupProbe:
     enabled: true
     initialDelaySeconds: 3
@@ -134,6 +216,8 @@ commandService:
     failureThreshold: 3
     successThreshold: 1
 
+  # @param commandService.resources.requests CPU/memory requests
+  # @param commandService.resources.limits CPU/memory limits
   resources:
     requests:
       cpu: 1.0
@@ -142,6 +226,11 @@ commandService:
       cpu: 3.0
       memory: 1Gi
 
+  # @param commandService.lifecycleHooks Container lifecycle hooks
+  # @param commandService.affinity Pod affinity
+  # @param commandService.podAffinityPreset Pod affinity preset
+  # @param commandService.podAntiAffinityPreset Pod anti-affinity preset
+  # @param commandService.nodeAffinityPreset Node affinity preset
   lifecycleHooks: { }
 
   affinity: { }
@@ -155,6 +244,15 @@ commandService:
     key: ""
     values: [ ]
 
+  # @param commandService.automountServiceAccountToken Mount the service account token into the pods
+  # @param commandService.hostAliases Pod host aliases
+  # @param commandService.nodeSelector Node labels for pod assignment
+  # @param commandService.tolerations Pod tolerations
+  # @param commandService.priorityClassName Pod priority class name
+  # @param commandService.schedulerName Custom pod scheduler name
+  # @param commandService.topologySpreadConstraints Pod topology spread constraints
+  # @param commandService.terminationGracePeriodSeconds Pod termination grace period (seconds)
+  # @param commandService.terminationMessagePolicy Termination message policy
   automountServiceAccountToken: true
 
   hostAliases: [ ]
@@ -173,6 +271,8 @@ commandService:
 
   terminationMessagePolicy: FallbackToLogsOnError
 
+  # @param commandService.podSecurityContext Pod security context
+  # @param commandService.containerSecurityContext Container security context
   podSecurityContext:
     enabled: true
     fsGroupChangePolicy: Always
@@ -190,6 +290,11 @@ commandService:
     seccompProfile:
       type: RuntimeDefault
 
+  # @param commandService.extraVolumeMounts Additional volume mounts
+  # @param commandService.extraVolumes Additional volumes
+  # @param commandService.initContainers Additional init containers
+  # @param commandService.sidecars Additional sidecar containers
+  # @param commandService.extraPodSpec Extra pod spec fields
   extraVolumeMounts: [ ]
 
   extraVolumes: [ ]
@@ -200,6 +305,9 @@ commandService:
 
   extraPodSpec: { }
 
+  # Autoscaling configuration.
+  # @param commandService.autoscaling.vpa.enabled Enable a Vertical Pod Autoscaler
+  # @param commandService.autoscaling.hpa.enabled Enable a Horizontal Pod Autoscaler
   autoscaling:
     vpa:
       enabled: false
@@ -216,11 +324,21 @@ commandService:
       targetMemory: ""
       metrics: [ ]
 
+  # @param commandService.pdb.create Enable a PodDisruptionBudget
+  # @param commandService.pdb.minAvailable Minimum available replicas
+  # @param commandService.pdb.maxUnavailable Maximum unavailable replicas
   pdb:
     create: true
     minAvailable: ""
     maxUnavailable: ""
 
+  # @param commandService.networkPolicy.enabled Enable a NetworkPolicy
+  # @param commandService.networkPolicy.addExternalClientAccess Allow access from external client pods
+  # @param commandService.networkPolicy.ingressPodMatchLabels Ingress sources matching pod labels
+  # @param commandService.networkPolicy.ingressManagementNSMatchLabels Ingress namespaces for the management port
+  # @param commandService.networkPolicy.ingressManagementNSPodMatchLabels Ingress pods for the management port
+  # @param commandService.networkPolicy.extraIngress Extra ingress rules
+  # @param commandService.networkPolicy.extraEgress Extra egress rules
   networkPolicy:
     enabled: true
     addExternalClientAccess: true
@@ -230,6 +348,16 @@ commandService:
     extraIngress: [ ]
     extraEgress: [ ]
 
+  # Prometheus ServiceMonitor configuration.
+  # @param commandService.serviceMonitor.enabled Enable scraping via a ServiceMonitor
+  # @param commandService.serviceMonitor.namespace Namespace for the ServiceMonitor
+  # @param commandService.serviceMonitor.labels Additional labels for the ServiceMonitor
+  # @param commandService.serviceMonitor.annotations Additional annotations for the ServiceMonitor
+  # @param commandService.serviceMonitor.interval Scrape interval
+  # @param commandService.serviceMonitor.scrapeTimeout Scrape timeout
+  # @param commandService.serviceMonitor.relabelings Metric relabelings
+  # @param commandService.serviceMonitor.metricRelabelings Label relabelings
+  # @param commandService.serviceMonitor.honorLabels Honor original labels
   serviceMonitor:
     enabled: true
     namespace: ""
@@ -241,8 +369,14 @@ commandService:
     metricRelabelings: [ ]
     honorLabels: false
 
+# @section Query service parameters
+# Read-side service: serves queries against projections stored in OpenSearch.
 queryService:
 
+  # @param queryService.labels Additional labels for the service resources
+  # @param queryService.annotations Additional annotations for the service resources
+  # @param queryService.podLabels Additional labels for the pods
+  # @param queryService.podAnnotations Additional annotations for the pods
   labels: { }
 
   annotations: { }
@@ -251,6 +385,12 @@ queryService:
 
   podAnnotations: { }
 
+  # @param queryService.image.registry Query service image registry
+  # @param queryService.image.repository Query service image repository
+  # @param queryService.image.tag Query service image tag
+  # @param queryService.image.digest Query service image digest (overrides tag if set)
+  # @param queryService.image.pullPolicy Query service image pull policy
+  # @param queryService.image.pullSecrets Query service image pull secrets
   image:
     registry: ""
     repository: aanbrn/axon-showcase-query-service
@@ -259,6 +399,9 @@ queryService:
     pullPolicy: null
     pullSecrets: [ ]
 
+  # @param queryService.replicaCount Number of query service replicas
+  # @param queryService.revisionHistoryLimit Number of old ReplicaSets to keep
+  # @param queryService.updateStrategy.type Deployment update strategy type
   replicaCount: 1
 
   revisionHistoryLimit: 10
@@ -266,6 +409,13 @@ queryService:
   updateStrategy:
     type: RollingUpdate
 
+  # OpenSearch HTTP client settings.
+  # @param queryService.osViews.connectionTimeout Connection timeout
+  # @param queryService.osViews.socketTimeout Socket timeout
+  # @param queryService.osViews.socketKeepAlive Keep the socket alive
+  # @param queryService.osViews.maxConnections Maximum total connections
+  # @param queryService.osViews.maxConnectionsPerRoute Maximum connections per route
+  # @param queryService.osViews.evictIdleConnections Interval for evicting idle connections
   osViews:
     connectionTimeout: PT1S
     socketTimeout: PT2S
@@ -274,6 +424,9 @@ queryService:
     maxConnectionsPerRoute: 100
     evictIdleConnections: PT5S
 
+  # @param queryService.extraEnvVars Extra environment variables (string map)
+  # @param queryService.extraEnvVarsCM Name of a ConfigMap providing extra env vars
+  # @param queryService.extraEnvVarsSecret Name of a Secret providing extra env vars
   extraEnvVars:
     JAVA_OPTS: "-XX:MaxDirectMemorySize=128M -XX:MaxGCPauseMillis=20"
 
@@ -281,12 +434,18 @@ queryService:
 
   extraEnvVarsSecret: ""
 
+  # @param queryService.containerPorts.server Application HTTP port
+  # @param queryService.containerPorts.managementServer Actuator HTTP port
+  # @param queryService.extraContainerPorts Additional container ports
   containerPorts:
     server: 8080
     managementServer: 8888
 
   extraContainerPorts: [ ]
 
+  # @param queryService.startupProbe Startup probe configuration
+  # @param queryService.livenessProbe Liveness probe configuration
+  # @param queryService.readinessProbe Readiness probe configuration
   startupProbe:
     enabled: true
     initialDelaySeconds: 3
@@ -311,6 +470,8 @@ queryService:
     failureThreshold: 3
     successThreshold: 1
 
+  # @param queryService.resources.requests CPU/memory requests
+  # @param queryService.resources.limits CPU/memory limits
   resources:
     requests:
       cpu: 1.0
@@ -319,6 +480,11 @@ queryService:
       cpu: 3.0
       memory: 1Gi
 
+  # @param queryService.lifecycleHooks Container lifecycle hooks
+  # @param queryService.affinity Pod affinity
+  # @param queryService.podAffinityPreset Pod affinity preset
+  # @param queryService.podAntiAffinityPreset Pod anti-affinity preset
+  # @param queryService.nodeAffinityPreset Node affinity preset
   lifecycleHooks: { }
 
   affinity: { }
@@ -332,6 +498,15 @@ queryService:
     key: ""
     values: [ ]
 
+  # @param queryService.automountServiceAccountToken Mount the service account token into the pods
+  # @param queryService.hostAliases Pod host aliases
+  # @param queryService.nodeSelector Node labels for pod assignment
+  # @param queryService.tolerations Pod tolerations
+  # @param queryService.priorityClassName Pod priority class name
+  # @param queryService.schedulerName Custom pod scheduler name
+  # @param queryService.topologySpreadConstraints Pod topology spread constraints
+  # @param queryService.terminationGracePeriodSeconds Pod termination grace period (seconds)
+  # @param queryService.terminationMessagePolicy Termination message policy
   automountServiceAccountToken: true
 
   hostAliases: [ ]
@@ -350,6 +525,8 @@ queryService:
 
   terminationMessagePolicy: FallbackToLogsOnError
 
+  # @param queryService.podSecurityContext Pod security context
+  # @param queryService.containerSecurityContext Container security context
   podSecurityContext:
     enabled: true
     fsGroupChangePolicy: Always
@@ -367,6 +544,11 @@ queryService:
     seccompProfile:
       type: RuntimeDefault
 
+  # @param queryService.extraVolumeMounts Additional volume mounts
+  # @param queryService.extraVolumes Additional volumes
+  # @param queryService.initContainers Additional init containers
+  # @param queryService.sidecars Additional sidecar containers
+  # @param queryService.extraPodSpec Extra pod spec fields
   extraVolumeMounts: [ ]
 
   extraVolumes: [ ]
@@ -377,6 +559,9 @@ queryService:
 
   extraPodSpec: { }
 
+  # Autoscaling configuration.
+  # @param queryService.autoscaling.vpa.enabled Enable a Vertical Pod Autoscaler
+  # @param queryService.autoscaling.hpa.enabled Enable a Horizontal Pod Autoscaler
   autoscaling:
     vpa:
       enabled: false
@@ -393,11 +578,21 @@ queryService:
       targetMemory: ""
       metrics: [ ]
 
+  # @param queryService.pdb.create Enable a PodDisruptionBudget
+  # @param queryService.pdb.minAvailable Minimum available replicas
+  # @param queryService.pdb.maxUnavailable Maximum unavailable replicas
   pdb:
     create: true
     minAvailable: ""
     maxUnavailable: ""
 
+  # @param queryService.networkPolicy.enabled Enable a NetworkPolicy
+  # @param queryService.networkPolicy.addExternalClientAccess Allow access from external client pods
+  # @param queryService.networkPolicy.ingressPodMatchLabels Ingress sources matching pod labels
+  # @param queryService.networkPolicy.ingressManagementNSMatchLabels Ingress namespaces for the management port
+  # @param queryService.networkPolicy.ingressManagementNSPodMatchLabels Ingress pods for the management port
+  # @param queryService.networkPolicy.extraIngress Extra ingress rules
+  # @param queryService.networkPolicy.extraEgress Extra egress rules
   networkPolicy:
     enabled: true
     addExternalClientAccess: true
@@ -407,6 +602,16 @@ queryService:
     extraIngress: [ ]
     extraEgress: [ ]
 
+  # Prometheus ServiceMonitor configuration.
+  # @param queryService.serviceMonitor.enabled Enable scraping via a ServiceMonitor
+  # @param queryService.serviceMonitor.namespace Namespace for the ServiceMonitor
+  # @param queryService.serviceMonitor.labels Additional labels for the ServiceMonitor
+  # @param queryService.serviceMonitor.annotations Additional annotations for the ServiceMonitor
+  # @param queryService.serviceMonitor.interval Scrape interval
+  # @param queryService.serviceMonitor.scrapeTimeout Scrape timeout
+  # @param queryService.serviceMonitor.relabelings Metric relabelings
+  # @param queryService.serviceMonitor.metricRelabelings Label relabelings
+  # @param queryService.serviceMonitor.honorLabels Honor original labels
   serviceMonitor:
     enabled: true
     namespace: ""
@@ -418,8 +623,14 @@ queryService:
     metricRelabelings: [ ]
     honorLabels: false
 
+# @section Projection service parameters
+# Projection service: consumes Kafka events and writes projections to OpenSearch.
 projectionService:
 
+  # @param projectionService.labels Additional labels for the service resources
+  # @param projectionService.annotations Additional annotations for the service resources
+  # @param projectionService.podLabels Additional labels for the pods
+  # @param projectionService.podAnnotations Additional annotations for the pods
   labels: { }
 
   annotations: { }
@@ -428,6 +639,12 @@ projectionService:
 
   podAnnotations: { }
 
+  # @param projectionService.image.registry Projection service image registry
+  # @param projectionService.image.repository Projection service image repository
+  # @param projectionService.image.tag Projection service image tag
+  # @param projectionService.image.digest Projection service image digest (overrides tag if set)
+  # @param projectionService.image.pullPolicy Projection service image pull policy
+  # @param projectionService.image.pullSecrets Projection service image pull secrets
   image:
     registry: ""
     repository: aanbrn/axon-showcase-projection-service
@@ -436,6 +653,9 @@ projectionService:
     pullPolicy: null
     pullSecrets: [ ]
 
+  # @param projectionService.replicaCount Number of projection service replicas
+  # @param projectionService.revisionHistoryLimit Number of old ReplicaSets to keep
+  # @param projectionService.updateStrategy.type Deployment update strategy type
   replicaCount: 1
 
   revisionHistoryLimit: 10
@@ -443,6 +663,13 @@ projectionService:
   updateStrategy:
     type: RollingUpdate
 
+  # OpenSearch HTTP client settings.
+  # @param projectionService.osViews.connectionTimeout Connection timeout
+  # @param projectionService.osViews.socketTimeout Socket timeout
+  # @param projectionService.osViews.socketKeepAlive Keep the socket alive
+  # @param projectionService.osViews.maxConnections Maximum total connections
+  # @param projectionService.osViews.maxConnectionsPerRoute Maximum connections per route
+  # @param projectionService.osViews.evictIdleConnections Interval for evicting idle connections
   osViews:
     connectionTimeout: PT10S
     socketTimeout: PT30S
@@ -451,6 +678,15 @@ projectionService:
     maxConnectionsPerRoute: 100
     evictIdleConnections: PT5S
 
+  # Event projector settings.
+  # @param projectionService.projector.minConcurrency Minimum projector concurrency
+  # @param projectionService.projector.maxConcurrency Maximum projector concurrency
+  # @param projectionService.projector.batch.maxSize Maximum events per batch
+  # @param projectionService.projector.batch.maxTime Maximum time per batch
+  # @param projectionService.projector.batch.bufferMaxSize Maximum buffered events
+  # @param projectionService.projector.retry.maxAttempts Projector retry attempts
+  # @param projectionService.projector.retry.minBackoff Minimum retry backoff
+  # @param projectionService.projector.restart.delay Delay before projector restart
   projector:
     minConcurrency: 1
     maxConcurrency: 256
@@ -464,6 +700,9 @@ projectionService:
     restart:
       delay: PT10S
 
+  # @param projectionService.extraEnvVars Extra environment variables (string map)
+  # @param projectionService.extraEnvVarsCM Name of a ConfigMap providing extra env vars
+  # @param projectionService.extraEnvVarsSecret Name of a Secret providing extra env vars
   extraEnvVars:
     JAVA_OPTS: "-XX:MaxDirectMemorySize=128M -XX:MaxGCPauseMillis=20"
 
@@ -471,12 +710,18 @@ projectionService:
 
   extraEnvVarsSecret: ""
 
+  # @param projectionService.containerPorts.server Application HTTP port
+  # @param projectionService.containerPorts.managementServer Actuator HTTP port
+  # @param projectionService.extraContainerPorts Additional container ports
   containerPorts:
     server: 8080
     managementServer: 8888
 
   extraContainerPorts: [ ]
 
+  # @param projectionService.startupProbe Startup probe configuration
+  # @param projectionService.livenessProbe Liveness probe configuration
+  # @param projectionService.readinessProbe Readiness probe configuration
   startupProbe:
     enabled: true
     initialDelaySeconds: 3
@@ -501,6 +746,8 @@ projectionService:
     failureThreshold: 3
     successThreshold: 1
 
+  # @param projectionService.resources.requests CPU/memory requests
+  # @param projectionService.resources.limits CPU/memory limits
   resources:
     requests:
       cpu: 1.0
@@ -509,6 +756,11 @@ projectionService:
       cpu: 3.0
       memory: 0.75Gi
 
+  # @param projectionService.lifecycleHooks Container lifecycle hooks
+  # @param projectionService.affinity Pod affinity
+  # @param projectionService.podAffinityPreset Pod affinity preset
+  # @param projectionService.podAntiAffinityPreset Pod anti-affinity preset
+  # @param projectionService.nodeAffinityPreset Node affinity preset
   lifecycleHooks: { }
 
   affinity: { }
@@ -522,6 +774,15 @@ projectionService:
     key: ""
     values: [ ]
 
+  # @param projectionService.automountServiceAccountToken Mount the service account token into the pods
+  # @param projectionService.hostAliases Pod host aliases
+  # @param projectionService.nodeSelector Node labels for pod assignment
+  # @param projectionService.tolerations Pod tolerations
+  # @param projectionService.priorityClassName Pod priority class name
+  # @param projectionService.schedulerName Custom pod scheduler name
+  # @param projectionService.topologySpreadConstraints Pod topology spread constraints
+  # @param projectionService.terminationGracePeriodSeconds Pod termination grace period (seconds)
+  # @param projectionService.terminationMessagePolicy Termination message policy
   automountServiceAccountToken: true
 
   hostAliases: [ ]
@@ -540,6 +801,8 @@ projectionService:
 
   terminationMessagePolicy: FallbackToLogsOnError
 
+  # @param projectionService.podSecurityContext Pod security context
+  # @param projectionService.containerSecurityContext Container security context
   podSecurityContext:
     enabled: true
     fsGroupChangePolicy: Always
@@ -557,6 +820,11 @@ projectionService:
     seccompProfile:
       type: RuntimeDefault
 
+  # @param projectionService.extraVolumeMounts Additional volume mounts
+  # @param projectionService.extraVolumes Additional volumes
+  # @param projectionService.initContainers Additional init containers
+  # @param projectionService.sidecars Additional sidecar containers
+  # @param projectionService.extraPodSpec Extra pod spec fields
   extraVolumeMounts: [ ]
 
   extraVolumes: [ ]
@@ -567,6 +835,9 @@ projectionService:
 
   extraPodSpec: { }
 
+  # Autoscaling configuration.
+  # @param projectionService.autoscaling.vpa.enabled Enable a Vertical Pod Autoscaler
+  # @param projectionService.autoscaling.hpa.enabled Enable a Horizontal Pod Autoscaler
   autoscaling:
     vpa:
       enabled: false
@@ -583,11 +854,21 @@ projectionService:
       targetMemory: ""
       metrics: [ ]
 
+  # @param projectionService.pdb.create Enable a PodDisruptionBudget
+  # @param projectionService.pdb.minAvailable Minimum available replicas
+  # @param projectionService.pdb.maxUnavailable Maximum unavailable replicas
   pdb:
     create: true
     minAvailable: ""
     maxUnavailable: ""
 
+  # @param projectionService.networkPolicy.enabled Enable a NetworkPolicy
+  # @param projectionService.networkPolicy.addExternalClientAccess Allow access from external client pods
+  # @param projectionService.networkPolicy.ingressPodMatchLabels Ingress sources matching pod labels
+  # @param projectionService.networkPolicy.ingressManagementNSMatchLabels Ingress namespaces for the management port
+  # @param projectionService.networkPolicy.ingressManagementNSPodMatchLabels Ingress pods for the management port
+  # @param projectionService.networkPolicy.extraIngress Extra ingress rules
+  # @param projectionService.networkPolicy.extraEgress Extra egress rules
   networkPolicy:
     enabled: true
     addExternalClientAccess: true
@@ -597,6 +878,16 @@ projectionService:
     extraIngress: [ ]
     extraEgress: [ ]
 
+  # Prometheus ServiceMonitor configuration.
+  # @param projectionService.serviceMonitor.enabled Enable scraping via a ServiceMonitor
+  # @param projectionService.serviceMonitor.namespace Namespace for the ServiceMonitor
+  # @param projectionService.serviceMonitor.labels Additional labels for the ServiceMonitor
+  # @param projectionService.serviceMonitor.annotations Additional annotations for the ServiceMonitor
+  # @param projectionService.serviceMonitor.interval Scrape interval
+  # @param projectionService.serviceMonitor.scrapeTimeout Scrape timeout
+  # @param projectionService.serviceMonitor.relabelings Metric relabelings
+  # @param projectionService.serviceMonitor.metricRelabelings Label relabelings
+  # @param projectionService.serviceMonitor.honorLabels Honor original labels
   serviceMonitor:
     enabled: true
     namespace: ""
@@ -608,8 +899,14 @@ projectionService:
     metricRelabelings: [ ]
     honorLabels: false
 
+# @section API gateway parameters
+# API gateway: REST entry point that routes requests to the command and query services.
 apiGateway:
 
+  # @param apiGateway.labels Additional labels for the service resources
+  # @param apiGateway.annotations Additional annotations for the service resources
+  # @param apiGateway.podLabels Additional labels for the pods
+  # @param apiGateway.podAnnotations Additional annotations for the pods
   labels: { }
 
   annotations: { }
@@ -618,6 +915,12 @@ apiGateway:
 
   podAnnotations: { }
 
+  # @param apiGateway.image.registry API gateway image registry
+  # @param apiGateway.image.repository API gateway image repository
+  # @param apiGateway.image.tag API gateway image tag
+  # @param apiGateway.image.digest API gateway image digest (overrides tag if set)
+  # @param apiGateway.image.pullPolicy API gateway image pull policy
+  # @param apiGateway.image.pullSecrets API gateway image pull secrets
   image:
     registry: ""
     repository: aanbrn/axon-showcase-api-gateway
@@ -626,6 +929,9 @@ apiGateway:
     pullPolicy: null
     pullSecrets: [ ]
 
+  # @param apiGateway.replicaCount Number of API gateway replicas
+  # @param apiGateway.revisionHistoryLimit Number of old ReplicaSets to keep
+  # @param apiGateway.updateStrategy.type Deployment update strategy type
   replicaCount: 1
 
   revisionHistoryLimit: 10
@@ -633,6 +939,10 @@ apiGateway:
   updateStrategy:
     type: RollingUpdate
 
+  # Caffeine cache settings per query class.
+  # @param apiGateway.caches.CacheName.maxSize Maximum entries for the query cache
+  # @param apiGateway.caches.CacheName.expiresAfterAccess Cache entry expiry after access
+  # @param apiGateway.caches.CacheName.expiresAfterWrite Cache entry expiry after write
   caches:
     FetchShowcaseListQuery:
       maxSize: 100000
@@ -643,6 +953,9 @@ apiGateway:
       expiresAfterAccess: PT24H
       expiresAfterWrite: PT12H
 
+  # @param apiGateway.extraEnvVars Extra environment variables (string map)
+  # @param apiGateway.extraEnvVarsCM Name of a ConfigMap providing extra env vars
+  # @param apiGateway.extraEnvVarsSecret Name of a Secret providing extra env vars
   extraEnvVars:
     JAVA_OPTS: "-XX:MaxDirectMemorySize=128M -XX:MaxGCPauseMillis=20"
 
@@ -650,6 +963,10 @@ apiGateway:
 
   extraEnvVarsSecret: ""
 
+  # @param apiGateway.containerPorts.server Application HTTP port
+  # @param apiGateway.containerPorts.managementServer Actuator HTTP port
+  # @param apiGateway.containerPorts.jgroups JGroups clustering port
+  # @param apiGateway.extraContainerPorts Additional container ports
   containerPorts:
     server: 8080
     managementServer: 8888
@@ -657,6 +974,9 @@ apiGateway:
 
   extraContainerPorts: [ ]
 
+  # @param apiGateway.startupProbe Startup probe configuration
+  # @param apiGateway.livenessProbe Liveness probe configuration
+  # @param apiGateway.readinessProbe Readiness probe configuration
   startupProbe:
     enabled: true
     initialDelaySeconds: 3
@@ -681,6 +1001,8 @@ apiGateway:
     failureThreshold: 3
     successThreshold: 1
 
+  # @param apiGateway.resources.requests CPU/memory requests
+  # @param apiGateway.resources.limits CPU/memory limits
   resources:
     requests:
       cpu: 1.0
@@ -689,6 +1011,11 @@ apiGateway:
       cpu: 3.0
       memory: 1Gi
 
+  # @param apiGateway.lifecycleHooks Container lifecycle hooks
+  # @param apiGateway.affinity Pod affinity
+  # @param apiGateway.podAffinityPreset Pod affinity preset
+  # @param apiGateway.podAntiAffinityPreset Pod anti-affinity preset
+  # @param apiGateway.nodeAffinityPreset Node affinity preset
   lifecycleHooks: { }
 
   affinity: { }
@@ -702,6 +1029,15 @@ apiGateway:
     key: ""
     values: [ ]
 
+  # @param apiGateway.automountServiceAccountToken Mount the service account token into the pods
+  # @param apiGateway.hostAliases Pod host aliases
+  # @param apiGateway.nodeSelector Node labels for pod assignment
+  # @param apiGateway.tolerations Pod tolerations
+  # @param apiGateway.priorityClassName Pod priority class name
+  # @param apiGateway.schedulerName Custom pod scheduler name
+  # @param apiGateway.topologySpreadConstraints Pod topology spread constraints
+  # @param apiGateway.terminationGracePeriodSeconds Pod termination grace period (seconds)
+  # @param apiGateway.terminationMessagePolicy Termination message policy
   automountServiceAccountToken: true
 
   hostAliases: [ ]
@@ -720,6 +1056,8 @@ apiGateway:
 
   terminationMessagePolicy: FallbackToLogsOnError
 
+  # @param apiGateway.podSecurityContext Pod security context
+  # @param apiGateway.containerSecurityContext Container security context
   podSecurityContext:
     enabled: true
     fsGroupChangePolicy: Always
@@ -737,6 +1075,11 @@ apiGateway:
     seccompProfile:
       type: RuntimeDefault
 
+  # @param apiGateway.extraVolumeMounts Additional volume mounts
+  # @param apiGateway.extraVolumes Additional volumes
+  # @param apiGateway.initContainers Additional init containers
+  # @param apiGateway.sidecars Additional sidecar containers
+  # @param apiGateway.extraPodSpec Extra pod spec fields
   extraVolumeMounts: [ ]
 
   extraVolumes: [ ]
@@ -747,6 +1090,12 @@ apiGateway:
 
   extraPodSpec: { }
 
+  # Resilience4j settings for outbound calls to the command/query services.
+  # @param apiGateway.resilience.enabled Master switch for resilience features
+  # @param apiGateway.resilience.timelimiter.enabled Enable time limiter per call
+  # @param apiGateway.resilience.circuitbreaker.enabled Enable circuit breaker
+  # @param apiGateway.resilience.retry.enabled Enable retries
+  # Per-target overrides may be specified under <commandService|queryService>.
   resilience:
     enabled: true
     timelimiter:
@@ -816,6 +1165,9 @@ apiGateway:
         randomizedWaitFactor: ""
         exponentialMaxWaitDuration: ""
 
+  # Autoscaling configuration.
+  # @param apiGateway.autoscaling.vpa.enabled Enable a Vertical Pod Autoscaler
+  # @param apiGateway.autoscaling.hpa.enabled Enable a Horizontal Pod Autoscaler
   autoscaling:
     vpa:
       enabled: false
@@ -832,11 +1184,21 @@ apiGateway:
       targetMemory: ""
       metrics: [ ]
 
+  # @param apiGateway.pdb.create Enable a PodDisruptionBudget
+  # @param apiGateway.pdb.minAvailable Minimum available replicas
+  # @param apiGateway.pdb.maxUnavailable Maximum unavailable replicas
   pdb:
     create: true
     minAvailable: ""
     maxUnavailable: ""
 
+  # @param apiGateway.networkPolicy.enabled Enable a NetworkPolicy
+  # @param apiGateway.networkPolicy.addExternalClientAccess Allow access from external client pods
+  # @param apiGateway.networkPolicy.ingressPodMatchLabels Ingress sources matching pod labels
+  # @param apiGateway.networkPolicy.ingressManagementNSMatchLabels Ingress namespaces for the management port
+  # @param apiGateway.networkPolicy.ingressManagementNSPodMatchLabels Ingress pods for the management port
+  # @param apiGateway.networkPolicy.extraIngress Extra ingress rules
+  # @param apiGateway.networkPolicy.extraEgress Extra egress rules
   networkPolicy:
     enabled: true
     addExternalClientAccess: true
@@ -846,6 +1208,16 @@ apiGateway:
     extraIngress: [ ]
     extraEgress: [ ]
 
+  # Prometheus ServiceMonitor configuration.
+  # @param apiGateway.serviceMonitor.enabled Enable scraping via a ServiceMonitor
+  # @param apiGateway.serviceMonitor.namespace Namespace for the ServiceMonitor
+  # @param apiGateway.serviceMonitor.labels Additional labels for the ServiceMonitor
+  # @param apiGateway.serviceMonitor.annotations Additional annotations for the ServiceMonitor
+  # @param apiGateway.serviceMonitor.interval Scrape interval
+  # @param apiGateway.serviceMonitor.scrapeTimeout Scrape timeout
+  # @param apiGateway.serviceMonitor.relabelings Metric relabelings
+  # @param apiGateway.serviceMonitor.metricRelabelings Label relabelings
+  # @param apiGateway.serviceMonitor.honorLabels Honor original labels
   serviceMonitor:
     enabled: true
     namespace: ""
@@ -857,6 +1229,15 @@ apiGateway:
     metricRelabelings: [ ]
     honorLabels: false
 
+  # Ingress configuration (Kubernetes Ingress).
+  # @param apiGateway.ingress.enabled Enable an Ingress
+  # @param apiGateway.ingress.ingressClassName Ingress class name
+  # @param apiGateway.ingress.hostname Ingress hostname
+  # @param apiGateway.ingress.path Path for the service
+  # @param apiGateway.ingress.pathType Ingress path type
+  # @param apiGateway.ingress.extraPaths Additional paths
+  # @param apiGateway.ingress.extraHosts Additional hosts
+  # @param apiGateway.ingress.extraRules Additional rules
   ingress:
     enabled: false
     ingressClassName: ""
@@ -867,6 +1248,15 @@ apiGateway:
     extraHosts: [ ]
     extraRules: [ ]
 
+  # Gateway API HTTPRoute configuration.
+  # @param apiGateway.route.enabled Enable an HTTPRoute
+  # @param apiGateway.route.labels Additional labels for the HTTPRoute
+  # @param apiGateway.route.annotations Additional annotations for the HTTPRoute
+  # @param apiGateway.route.hostnames HTTPRoute hostnames
+  # @param apiGateway.route.parentRefs Parent gateway references
+  # @param apiGateway.route.matches HTTPRoute match rules
+  # @param apiGateway.route.filters HTTPRoute filters
+  # @param apiGateway.route.extraRules Additional rules
   route:
     enabled: false
     labels: { }
@@ -880,6 +1270,18 @@ apiGateway:
     filters: [ ]
     extraRules: [ ]
 
+# @section Observability parameters
+# Observability configuration shared by all services.
+# @param observability.logging.structured.enabled Enable structured logging
+# @param observability.logging.structured.format Structured logging format
+# @param observability.tracing.sampling.probability Sampling probability for traces
+# @param observability.prometheus.metrics.export.enabled Export metrics to Prometheus
+# @param observability.otlp.metrics.export.enabled Export metrics via OTLP
+# @param observability.otlp.metrics.export.endpoint OTLP metrics endpoint
+# @param observability.otlp.metrics.export.step OTLP metrics export interval
+# @param observability.otlp.tracing.export.enabled Export traces via OTLP
+# @param observability.otlp.tracing.export.endpoint OTLP tracing endpoint
+# @param observability.otlp.tracing.export.compression OTLP tracing compression
 observability:
   logging:
     structured:
@@ -904,6 +1306,13 @@ observability:
         endpoint: ""
         compression: none
 
+# @section RBAC parameters
+# Service account and RBAC configuration.
+# @param serviceAccount.create Enable creation of a dedicated ServiceAccount
+# @param serviceAccount.name Name of the ServiceAccount (defaults to the fullname)
+# @param serviceAccount.labels Additional labels for the ServiceAccount
+# @param serviceAccount.annotations Additional annotations for the ServiceAccount
+# @param serviceAccount.automountServiceAccountToken Mount the token into the pods
 serviceAccount:
 
   create: true
@@ -916,6 +1325,8 @@ serviceAccount:
 
   automountServiceAccountToken: true
 
+# @param rbac.create Enable creation of a Role and RoleBinding
+# @param rbac.rules Additional RBAC rules
 rbac:
   create: true
   rules: [ ]

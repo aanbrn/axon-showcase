@@ -1,13 +1,20 @@
 apiVersion: v2
 name: ${chartName}
 description: Axon Showcase
+type: application
 version: ${chartVersion}
 appVersion: ${projectVersion}
+home: https://github.com/aanbrn/axon-showcase
+kubeVersion: ">=1.21-0"
 
 keywords:
-  - axon
-  - framework
+  - axon-framework
+  - cqrs
+  - event-sourcing
   - showcase
+
+sources:
+  - https://github.com/aanbrn/axon-showcase
 
 maintainers:
   - name: Alexey Afanasyev

@@ -1,3 +1,7 @@
+{{- /*
+VerticalPodAutoscaler for the query service.
+Recommends CPU/memory limits for the main container.
+*/ -}}
 {{- if and .Values.queryService.autoscaling.vpa.enabled }}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.labels .Values.commonLabels) "context" $) }}
 apiVersion: autoscaling.k8s.io/v1
@@ -12,6 +16,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
   {{- end }}
 spec:
+  # VPA policy applied to the main container (controlled/min/max resources).
   resourcePolicy:
     containerPolicies:
       - containerName: main
@@ -27,6 +32,7 @@ spec:
         minAllowed:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+  # Targets the query service Deployment.
   targetRef:
     apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
     kind: Deployment

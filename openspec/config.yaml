@@ -4,7 +4,7 @@ schema: spec-driven
 # This is shown to AI when creating artifacts.
 context: |
   axon-showcase — a CQRS/Event Sourcing reference app built on the Axon Framework.
-  Java 21, Spring Boot 3, Gradle 8.14.5 (Kotlin DSL), monorepo with 18 modules.
+  Java 21, Spring Boot 3.5.16, Gradle 8.14.5 (Kotlin DSL), monorepo with 18 modules.
 
   Architecture (4 services + API gateway):
     - showcase-command-service — write side, Axon aggregate, publishes events to Kafka,
@@ -24,14 +24,15 @@ context: |
     - Lombok: addNullAnnotations = jspecify; copyable annotations @Qualifier and @Value
     - MapStruct: default component model is spring
     - ErrorProne NullAway on showcase.* packages in production code
-    - SpotBugs with findsecbugs and fbContrib; excludes in spotbugs-exclude.xml
+    - SpotBugs with findsecbugs and fbContrib; uses spotbugs-include.xml and spotbugs-exclude.xml filters if present
     - All JavaCompile tasks add -parameters
 
   Build & test (./gradlew):
     - test -> componentTest -> integrationTest (in that order)
     - componentTest is faster, no containers
     - integrationTest requires Docker (Testcontainers)
-    - Integration tests set disable-axoniq-console-message=true
+    - disable-axoniq-console-message=true is set both in integration tests and in each service's main
+      application source
     - showcase-api-gateway integrationTest must run after the client integration tests
       and depends on Docker images of all other services (bootBuildImage)
     - citi gradle-helm-plugin tasks are not configuration-cache compatible; do not enable
@@ -40,7 +41,7 @@ context: |
       the command-service standalone
 
   Docker images: aanbrn/axon-showcase-{command-service,api-gateway,query-service,projection-service}
-  Deployment: Helm chart in helm/chart (use ./gradlew helm:helmReleaseLocal)
+  Deployment: Helm chart in helm/chart (use ./gradlew helmInstallToLocal)
 
 # Per-artifact rules
 rules:

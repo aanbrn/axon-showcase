@@ -22,23 +22,25 @@ and removed, with polling fetches between steps.
 - **THEN** with a 50 percent probability a random title, future start time, and duration are generated and a
   `POST /showcases` request is sent, expecting status `201` and saving the returned `showcaseId`
 
-#### Scenario: Started showcase is finished with a 5 percent probability
+#### Scenario: Scheduled showcase is polled until queryable then started
 
-- **WHEN** the scenario has scheduled a showcase and the started showcase is polled until it reports status `STARTED`
-- **THEN** a `PUT /showcases/{showcaseId}/start` request is sent expecting status `200`, and with a 5 percent
-  probability the scenario continues to finish and remove the showcase
+- **WHEN** the scenario has scheduled a showcase
+- **THEN** it polls `GET /showcases/{showcaseId}` until the response is `200` (showcase exists), then sends a
+  `PUT /showcases/{showcaseId}/start` request expecting status `200`, and with a 5 percent probability the scenario
+  continues to finish and remove the showcase
 
-#### Scenario: Finished showcase is removed with a 5 percent probability
+#### Scenario: Started showcase is polled until STARTED then finished
 
-- **WHEN** the scenario continues past the start step and the showcase is polled until it reports status `FINISHED`
-- **THEN** a `PUT /showcases/{showcaseId}/finish` request is sent expecting status `200`, and with a 5 percent
-  probability the showcase is then removed via `DELETE /showcases/{showcaseId}` expecting status `200`
+- **WHEN** the scenario continues past the start step
+- **THEN** it polls `GET /showcases/{showcaseId}` until the showcase reports status `STARTED`, then sends a
+  `PUT /showcases/{showcaseId}/finish` request expecting status `200`, and with a 5 percent probability the showcase
+  is then removed via `DELETE /showcases/{showcaseId}` expecting status `200`
 
 #### Scenario: Polling fetches retry until the expected state
 
 - **WHEN** the scenario polls a showcase after scheduling, starting, or finishing
-- **THEN** it issues `GET /showcases/{showcaseId}` requests every 500 milliseconds until the expected status is reached
-  or a 5-minute window elapses
+- **THEN** it issues `GET /showcases/{showcaseId}` requests every 500 milliseconds until the expected HTTP status or
+  showcase status is reached or a 5-minute window elapses
 
 #### Scenario: Step failures stop the scenario
 

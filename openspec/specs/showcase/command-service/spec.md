@@ -36,7 +36,7 @@ aggregate.
 ### Requirement: Showcase lifecycle state machine
 
 Each showcase SHALL transition through the statuses SCHEDULED, STARTED, and FINISHED in order, and removal SHALL be
-terminal. The final status of a removed showcase is REMOVED.
+terminal. A removed aggregate is marked as deleted and can no longer process lifecycle commands.
 
 #### Scenario: Showcase finishes after being started
 
@@ -122,13 +122,12 @@ The system SHALL reject commands for unknown or removed aggregates with a normal
 
 #### Scenario: Unknown showcase produces NOT_FOUND
 
-- **WHEN** a `StartShowcaseCommand`, `FinishShowcaseCommand`, or `ScheduleShowcaseCommand` is dispatched for an ID with
-  no aggregate
+- **WHEN** a `StartShowcaseCommand` or `FinishShowcaseCommand` is dispatched for an ID with no aggregate
 - **THEN** the system rejects the command with error code NOT_FOUND and message "No showcase with given ID"
 
 #### Scenario: Command on a removed showcase produces ILLEGAL_STATE
 
-- **WHEN** a command is dispatched for an ID of an already removed showcase
+- **WHEN** a `StartShowcaseCommand` or `FinishShowcaseCommand` is dispatched for an ID of an already removed showcase
 - **THEN** the system rejects the command with error code ILLEGAL_STATE and message "Showcase is removed already"
 
 #### Scenario: Removing a removed or unknown showcase succeeds

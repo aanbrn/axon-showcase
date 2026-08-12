@@ -7,34 +7,34 @@ Sourcing), Spring Boot, and Kubernetes.
 
 ```
 axon-showcase/
-├── platform/                  # Shared platform BOM and dependency management
-├── build-logic/               # Gradle build conventions and plugins
-├── helm/                      # Helm charts for Kubernetes deployment
-│   └── chart/                 # Main chart for the application
-├── docker-compose.yml         # Local development with Docker Compose
-├── showcase-api-gateway/      # REST API gateway (entry point)
-├── showcase-command-api/      # Command-side API definitions
-├── showcase-command-client/   # Command-side client library
-├── showcase-command-service/  # Command service (write side)
-├── showcase-projection-model/ # Shared query model definitions
-├── showcase-projection-service# Projection service (event handlers)
-├── showcase-query-api/        # Query-side API definitions
-├── showcase-query-client/     # Query-side client library
-├── showcase-query-proto/      # Protobuf definitions for queries
-├── showcase-query-service/    # Query service (read side)
+├── platform/                       # Shared platform BOM and dependency management
+├── build-logic/                    # Gradle build conventions and plugins
+├── helm/                           # Helm charts for Kubernetes deployment
+│   └── chart/                      # Main chart for the application
+├── docker-compose.yml              # Local development with Docker Compose
+├── showcase-api-gateway/           # REST API gateway (entry point)
+├── showcase-command-api/           # Command-side API definitions
+├── showcase-command-client/        # Command-side client library
+├── showcase-command-service/       # Command service (write side)
+├── showcase-projection-model/      # Shared query model definitions
+├── showcase-projection-service/    # Projection service (event handlers)
+├── showcase-query-api/             # Query-side API definitions
+├── showcase-query-client/          # Query-side client library
+├── showcase-query-proto/           # Protobuf definitions for queries
+├── showcase-query-service/         # Query service (read side)
 ├── showcase-identifier-extension/  # KSUID identifier support
 ├── showcase-mapstruct-extension/   # MapStruct extensions
 ├── showcase-resilience4j-extension # Resilience4j integration
-├── showcase-test/             # Shared test utilities
-├── load-tests/                # Gatling-based load tests
-├── helm/values/               # Helm values for local deployment
-└── db-{init,drop}.sh          # Database setup scripts
+├── showcase-test/                  # Shared test utilities
+├── load-tests/                     # Gatling-based load tests
+├── helm/values/                    # Helm values for local deployment
+└── db-{init,drop}.sh               # Database setup scripts
 ```
 
 ## Technologies
 
 - **Java 21+**
-- **Spring Boot 3.x**
+- **Spring Boot 3.5.x**
 - **Axon Framework** — CQRS, Event Sourcing, Command/Query Bus
 - **PostgreSQL** — Event store (events)
 - **Apache Kafka** — Event streaming and messaging
@@ -79,11 +79,18 @@ Read: Client → API Gateway → Query Service → OpenSearch
 docker compose up -d
 ```
 
-This starts:
+This starts all infrastructure and application services:
 
 - **PostgreSQL** — event store database
 - **OpenSearch** — projection store (read model)
 - **Apache Kafka** — event streaming
+- **Kafka Init** — creates the `axon-showcase-events` topic
+- **API Gateway** — REST entry point (port 8080, debug 8000)
+- **Command Service** — write side (port 8001)
+- **Query Service** — read side (port 8002)
+- **Projection Service** — event handlers (port 8003)
+
+Application images must be built first (`./gradlew bootBuildImage`) or set `PROJECT_VERSION` accordingly.
 
 ### Build the Project
 
@@ -195,6 +202,28 @@ curl "http://localhost:8080/showcases?title=My&status=SCHEDULED&size=10"
 
 ```bash
 curl http://localhost:8080/showcases/{showcaseId}
+```
+
+### Query (Protobuf)
+
+Dispatches an Axon query and returns the first response. Used internally by the
+query-client for inter-service communication (`application/protobuf` body).
+
+```bash
+curl -X POST http://localhost:8082/query \
+  -H "Content-Type: application/x-protobuf" \
+  -d '<serialized QueryRequest>'
+```
+
+### Streaming Query (Protobuf)
+
+Dispatches an Axon query and returns the full response stream. Used internally by the
+query-client for inter-service communication (`application/protobuf` body).
+
+```bash
+curl -X POST http://localhost:8082/streaming-query \
+  -H "Content-Type: application/x-protobuf" \
+  -d '<serialized QueryRequest>'
 ```
 
 ## Load Testing

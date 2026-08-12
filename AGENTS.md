@@ -6,8 +6,8 @@
 
 ## Project Overview
 
-**axon-showcase** — a CQRS/Event Sourcing reference app using the Axon Framework. Java 21, Spring Boot 3, Gradle 8.14.5
-(Kotlin DSL), monorepo with 18 modules.
+**axon-showcase** — a CQRS/Event Sourcing reference app using the Axon Framework. Java 21, Spring Boot 3.5.16, Gradle
+8.14.5 (Kotlin DSL), monorepo with 18 modules.
 
 ## Prerequisites
 
@@ -44,7 +44,8 @@
 **Test suite order matters:** `test` → `componentTest` → `integrationTest`. Integration tests for `showcase-api-gateway`
 must run after `showcase-command-client` and `showcase-query-client` integration tests (`mustRunAfter`).
 
-Integration tests set `disable-axoniq-console-message=true`.
+`disable-axoniq-console-message=true` is set both in integration tests and in each service's main application
+source (e.g., `ShowcaseApiApplication.java`).
 
 **DB scripts** — before running the command-service standalone (outside Docker), ensure the PostgreSQL event store is
 initialized:
@@ -83,7 +84,8 @@ Key modules (libraries, not services):
 - **Lombok**: `addNullAnnotations = jspecify`; copyable annotations include `@Qualifier` and `@Value`
 - **MapStruct**: default component model is `spring` (`-Amapstruct.defaultComponentModel=spring`)
 - **ErrorProne**: NullAway on `showcase.*` packages in production code; disabled in `TestJava` tasks
-- **SpotBugs**: finds bugs with findsecbugs and fbContrib plugins; excludes `spotbugs-exclude.xml`
+- **SpotBugs**: finds bugs with findsecbugs and fbContrib plugins; uses `spotbugs-include.xml` and
+  `spotbugs-exclude.xml` filters if present (see `code-check-conventions.gradle.kts`)
 - **LZ4 relocation**: root build forces `org.lz4:lz4-java` substitution (see `build.gradle.kts`)
 - **All JavaCompile tasks** add `-parameters` flag
 - **No comments** in source code (per project convention)
@@ -141,8 +143,9 @@ docker compose up -d
 ./gradlew :showcase-projection-service:bootRun  # :8003
 ```
 
-Docker Compose (`docker-compose.yml`) starts all infrastructure but **not** the Java services — those must be run
-separately or built as images.
+Docker Compose (`docker-compose.yml`) starts all infrastructure **and** the Java services (using pre-built Docker
+images `aanbrn/axon-showcase-*:${PROJECT_VERSION}`). Build the images first (`./gradlew bootBuildImage`) or set
+`PROJECT_VERSION` accordingly. To run services from source instead, use `bootRun` as shown above.
 
 ## Key Environment Variables
 

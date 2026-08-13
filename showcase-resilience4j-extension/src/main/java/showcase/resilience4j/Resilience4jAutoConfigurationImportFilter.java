@@ -8,11 +8,10 @@ import org.springframework.boot.autoconfigure.AutoConfigurationMetadata;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 
-import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkState;
+import org.springframework.util.Assert;
 
 /**
  * Auto-configuration import filter that conditionally disables Resilience4j features based on configuration
@@ -81,7 +80,7 @@ public class Resilience4jAutoConfigurationImportFilter implements AutoConfigurat
     @Override
     public boolean[] match(@Nullable String[] autoConfigurationClasses,
                            AutoConfigurationMetadata autoConfigurationMetadata) {
-        checkState(Objects.nonNull(environment), "\"environment\" is required");
+        Assert.state(environment != null, "\"environment\" is required");
 
         val resilienceEnabled = environment.getProperty("resilience4j.enabled", Boolean.TYPE, Boolean.TRUE);
         val bulkheadEnabled = environment.getProperty("resilience4j.bulkhead.enabled", Boolean.TYPE, Boolean.TRUE);

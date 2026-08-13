@@ -85,8 +85,6 @@ public class Resilience4jAutoConfigurationImportFilter implements AutoConfigurat
 
         val resilienceEnabled = environment.getProperty("resilience4j.enabled", Boolean.TYPE, Boolean.TRUE);
         val bulkheadEnabled = environment.getProperty("resilience4j.bulkhead.enabled", Boolean.TYPE, Boolean.TRUE);
-        val threadPoolBulkheadEnabled = environment.getProperty(
-                "resilience4j.thread-pool-bulkhead.enabled", Boolean.TYPE, Boolean.TRUE);
         val timeLimiterEnabled = environment.getProperty(
                 "resilience4j.timelimiter.enabled", Boolean.TYPE, Boolean.TRUE);
         val rateLimiterEnabled = environment.getProperty(
@@ -103,7 +101,7 @@ public class Resilience4jAutoConfigurationImportFilter implements AutoConfigurat
             }
             result[i] = switch (clazz) {
                 case String s when BULKHEAD_AUTO_CONFIGURATION_MATCH_PREDICATE.test(s) ->
-                        resilienceEnabled && bulkheadEnabled && threadPoolBulkheadEnabled;
+                        resilienceEnabled && bulkheadEnabled;
                 case String s when TIMELIMITER_AUTO_CONFIGURATION_MATCH_PREDICATE.test(s) ->
                         resilienceEnabled && timeLimiterEnabled;
                 case String s when RATELIMITER_AUTO_CONFIGURATION_MATCH_PREDICATE.test(s) ->

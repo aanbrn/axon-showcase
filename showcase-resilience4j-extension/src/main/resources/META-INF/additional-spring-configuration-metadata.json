@@ -19,12 +19,6 @@
       "defaultValue": true
     },
     {
-      "name": "resilience4j.thread-pool-bulkhead.enabled",
-      "type": "java.lang.Boolean",
-      "description": "Whether to enable the Resilience4j's Thread Pool Bulkhead.",
-      "defaultValue": true
-    },
-    {
       "name": "resilience4j.ratelimiter.enabled",
       "type": "java.lang.Boolean",
       "description": "Whether to enable the Resilience4j's Rate Limiter.",

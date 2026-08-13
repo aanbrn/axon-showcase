@@ -4,4 +4,6 @@ plugins {
 
 dependencies {
     implementation(libs.mapstruct.processor)
+
+    testImplementation(libs.mockito.core)
 }

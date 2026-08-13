@@ -88,6 +88,9 @@ Key modules (libraries, not services):
   `spotbugs-exclude.xml` filters if present (see `code-check-conventions.gradle.kts`)
 - **LZ4 relocation**: root build forces `org.lz4:lz4-java` substitution (see `build.gradle.kts`)
 - **All JavaCompile tasks** add `-parameters` flag
+- **Unit test classes** use the suffix `Tests` (e.g., `KSUIDTests`, `KsuidIdentifierFactoryTests`)
+- **Component test classes** use the suffix `CT` (e.g., `QueryMessageRequestMapperCT`)
+- **Integration test classes** use the suffix `IT`
 - **No comments** in source code (per project convention)
 
 ## Docker Images

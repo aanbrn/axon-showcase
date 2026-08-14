@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
     id("java-library-conventions")
 }
@@ -12,5 +14,32 @@ dependencies {
             group = libs.opensearch.client.restHighLevel.get().group,
             module = libs.opensearch.client.restHighLevel.get().name
         )
+    }
+}
+
+testing {
+    suites {
+        withType<JvmTestSuite> {
+            dependencies {
+                implementation(project())
+            }
+        }
+
+        val test by getting(JvmTestSuite::class)
+
+        register<JvmTestSuite>("componentTest") {
+            dependencies {
+                implementation(libs.jackson2.databind)
+                implementation(libs.jackson2.jsr310)
+            }
+
+            targets {
+                all {
+                    testTask.configure {
+                        shouldRunAfter(test)
+                    }
+                }
+            }
+        }
     }
 }

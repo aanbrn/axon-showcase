@@ -95,7 +95,7 @@ testing {
             }
         }
 
-        register<JvmTestSuite>("integrationTest") {
+        register<JvmTestSuite>("e2eTest") {
             dependencies {
                 implementation(libs.spring.boot.starter.test)
                 implementation(libs.spring.boot.starter.webflux)

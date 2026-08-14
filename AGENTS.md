@@ -34,15 +34,18 @@
 # Run integration tests (requires Docker, spins up Testcontainers)
 ./gradlew :showcase-command-service:integrationTest
 
-# Check runs: compile → spotbugs → errorprone → test → componentTest → integrationTest
+# Run end-to-end tests (gateway: boots all services + infra via Testcontainers)
+./gradlew :showcase-api-gateway:e2eTest
+
+# Check runs: compile → spotbugs → errorprone → test → componentTest → integrationTest → e2eTest
 ./gradlew :showcase-command-service:check
 
 # Load tests (Gatling)
 ./gradlew :load-tests:test
 ```
 
-**Test suite order matters:** `test` → `componentTest` → `integrationTest`. Integration tests for `showcase-api-gateway`
-must run after `showcase-command-client` and `showcase-query-client` integration tests (`mustRunAfter`).
+**Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. The `showcase-api-gateway`
+`e2eTest` must run after `showcase-command-client` and `showcase-query-client` integration tests (`mustRunAfter`).
 
 **Test tiers** — a test's tier is decided by its collaborators (what is real vs. faked), not by how long it takes to run:
 
@@ -54,6 +57,9 @@ must run after `showcase-command-client` and `showcase-query-client` integration
   (e.g. `QueryMessageRequestMapperCT`, `ShowcaseAggregateCT`).
 - **Integration** (`src/integrationTest/java`, suffix `IT`): real external infrastructure via Testcontainers
   (PostgreSQL, Kafka, OpenSearch). Verifies services against the real things they talk to.
+- **End-to-end** (`src/e2eTest/java`, suffix `E2E`): the whole system is booted — all four service containers plus
+  Testcontainers infrastructure — and exercised over HTTP. Verifies cross-service propagation over the full
+  command → Kafka → projection → query pipeline (e.g. `ShowcaseApiGatewayE2E`).
 
 `disable-axoniq-console-message=true` is set both in integration tests and in each service's main application
 source (e.g., `ShowcaseApiApplication.java`).
@@ -102,6 +108,7 @@ Key modules (libraries, not services):
 - **Unit test classes** use the suffix `Tests` (e.g., `KSUIDTests`, `KsuidIdentifierFactoryTests`)
 - **Component test classes** use the suffix `CT` (e.g., `QueryMessageRequestMapperCT`)
 - **Integration test classes** use the suffix `IT`
+- **E2E test classes** use the suffix `E2E`
 - **No comments** in source code (per project convention)
 
 ## Docker Images
@@ -170,9 +177,9 @@ images `aanbrn/axon-showcase-*:${PROJECT_VERSION}`). Build the images first (`./
 
 ## Gotchas
 
-- Integration tests for `showcase-api-gateway` depend on Docker images of all other services being built
+- E2E tests for `showcase-api-gateway` depend on Docker images of all other services being built
   (`bootBuildImage`). Run those first.
-- The `showcase-api-gateway` integrationTest must run after `showcase-command-client` and `showcase-query-client`
+- The `showcase-api-gateway` e2eTest must run after `showcase-command-client` and `showcase-query-client`
   integration tests.
 - citi gradle-helm-plugin tasks are not configuration-cache compatible — do not enable
   `org.gradle.configuration-cache=true` (verify with `--configuration-cache` before adding it).

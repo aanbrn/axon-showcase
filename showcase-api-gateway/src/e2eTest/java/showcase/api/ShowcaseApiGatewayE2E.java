@@ -43,7 +43,7 @@ import static showcase.test.RandomTestUtils.anElementOf;
 
 @Testcontainers(parallel = true)
 @Execution(ExecutionMode.SAME_THREAD)
-class ShowcaseApiGatewayIT {
+class ShowcaseApiGatewayE2E {
 
     static final Network network = Network.newNetwork();
 
@@ -319,7 +319,7 @@ class ShowcaseApiGatewayIT {
                  .jsonPath("$.type").isEqualTo("about:blank")
                  .jsonPath("$.title").isEqualTo(HttpStatus.NOT_FOUND.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
-                 .jsonPath("detail").isEqualTo("No showcase with given ID");
+                 .jsonPath("$.detail").isEqualTo("No showcase with given ID");
     }
 
     @Test
@@ -394,7 +394,7 @@ class ShowcaseApiGatewayIT {
                  .jsonPath("$.type").isEqualTo("about:blank")
                  .jsonPath("$.title").isEqualTo(HttpStatus.NOT_FOUND.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
-                 .jsonPath("detail").isEqualTo("No showcase with given ID");
+                 .jsonPath("$.detail").isEqualTo("No showcase with given ID");
     }
 
     @Test

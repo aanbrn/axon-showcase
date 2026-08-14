@@ -44,6 +44,17 @@
 **Test suite order matters:** `test` → `componentTest` → `integrationTest`. Integration tests for `showcase-api-gateway`
 must run after `showcase-command-client` and `showcase-query-client` integration tests (`mustRunAfter`).
 
+**Test tiers** — a test's tier is decided by its collaborators (what is real vs. faked), not by how long it takes to run:
+
+- **Unit** (`src/test/java`, suffix `Tests`): the subject under test is isolated — its collaborators are mocks/fakes,
+  no Spring context. Verifies single-class logic (e.g. `KsuidIdentifierFactoryTests`).
+- **Component** (`src/componentTest/java`, suffix `CT`): the subject is composed with real, in-process collaborators —
+  real serializers, Axon `AggregateTestFixture`/`SagaTestFixture`, or a Spring context with WireMock — but external
+  infrastructure is never started. Verifies a component behaves correctly against its real neighbors
+  (e.g. `QueryMessageRequestMapperCT`, `ShowcaseAggregateCT`).
+- **Integration** (`src/integrationTest/java`, suffix `IT`): real external infrastructure via Testcontainers
+  (PostgreSQL, Kafka, OpenSearch). Verifies services against the real things they talk to.
+
 `disable-axoniq-console-message=true` is set both in integration tests and in each service's main application
 source (e.g., `ShowcaseApiApplication.java`).
 

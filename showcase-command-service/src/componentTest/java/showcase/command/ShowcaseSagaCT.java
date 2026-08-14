@@ -3,6 +3,7 @@ package showcase.command;
 import lombok.val;
 import org.axonframework.test.saga.SagaTestFixture;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.allOf;
@@ -13,6 +14,7 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.command.RandomCommandTestUtils.aShowcaseStartTime;
 import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 
+@DisplayName("Showcase saga component tests")
 class ShowcaseSagaCT {
 
     private SagaTestFixture<ShowcaseSaga> fixture;
@@ -23,6 +25,7 @@ class ShowcaseSagaCT {
     }
 
     @Test
+    @DisplayName("A scheduled event schedules a start-showcase deadline")
     void showcaseScheduledEvent_success_schedulesStartShowcaseDeadline() {
         val showcaseId = aShowcaseId();
         val scheduleTime = fixture.currentTime();
@@ -44,6 +47,7 @@ class ShowcaseSagaCT {
     }
 
     @Test
+    @DisplayName("The start-showcase deadline starts the showcase")
     void startShowcaseDeadline_success_startsShowcase() {
         val showcaseId = aShowcaseId();
         val scheduleTime = fixture.currentTime();
@@ -68,6 +72,7 @@ class ShowcaseSagaCT {
     }
 
     @Test
+    @DisplayName("The start-showcase deadline on an already started showcase dispatches nothing")
     void startShowcaseDeadline_alreadyStarted_startsShowcase() {
         val showcaseId = aShowcaseId();
         val scheduleTime = fixture.currentTime();
@@ -95,6 +100,7 @@ class ShowcaseSagaCT {
     }
 
     @Test
+    @DisplayName("A started event schedules a finish-showcase deadline")
     void showcaseStartedEvent_success_schedulesFinishShowcaseDeadline() throws Exception {
         val showcaseId = aShowcaseId();
         val scheduleTime = fixture.currentTime();
@@ -126,6 +132,7 @@ class ShowcaseSagaCT {
     }
 
     @Test
+    @DisplayName("The finish-showcase deadline finishes the showcase")
     void finishShowcaseDeadline_success_finishesShowcase() throws Exception {
         val showcaseId = aShowcaseId();
         val scheduleTime = fixture.currentTime();
@@ -160,6 +167,7 @@ class ShowcaseSagaCT {
     }
 
     @Test
+    @DisplayName("A finished event ends the saga")
     void showcaseFinishedEvent_success_endsSaga() throws Exception {
         val showcaseId = aShowcaseId();
         val scheduleTime = fixture.currentTime();
@@ -195,6 +203,7 @@ class ShowcaseSagaCT {
     }
 
     @Test
+    @DisplayName("A removed event ends the saga")
     void showcaseRemovedEvent_success_endsSaga() {
         val showcaseId = aShowcaseId();
         val scheduleTime = fixture.currentTime();

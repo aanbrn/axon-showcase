@@ -3,15 +3,18 @@ package showcase.identifier;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import lombok.val;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static com.github.ksuid.Ksuid.newKsuid;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("KSUID constraint tests")
 class KSUIDTests {
 
     @Test
+    @DisplayName("A valid KSUID detects no constraint violation")
     void validation_valid_detectsNoConstraintViolation() {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();
@@ -24,6 +27,7 @@ class KSUIDTests {
     }
 
     @Test
+    @DisplayName("An invalid KSUID detects a constraint violation")
     void validation_invalid_detectsConstraintViolation() {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();

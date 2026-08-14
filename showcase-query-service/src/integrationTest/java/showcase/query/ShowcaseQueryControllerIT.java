@@ -6,6 +6,7 @@ import org.axonframework.queryhandling.GenericStreamingQueryMessage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.opensearch.data.client.osc.OpenSearchTemplate;
 import org.opensearch.testcontainers.OpenSearchContainer;
@@ -39,6 +40,7 @@ import static showcase.test.RandomTestUtils.anElementOf;
 @SpringBootTest
 @AutoConfigureWebTestClient
 @Testcontainers
+@DisplayName("Showcase query controller integration tests")
 class ShowcaseQueryControllerIT {
 
     @Container
@@ -81,6 +83,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
+    @DisplayName("Fetching the list without filtering responds with all showcases sorted by ID in reverse order")
     void fetchList_noFiltering_respondsWithAllShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases = showcases();
 
@@ -110,6 +113,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
+    @DisplayName("Fetching the list with a title to filter by responds with the matching showcases")
     void fetchList_titleToFilterBy_respondsWithMatchingShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases = showcases();
         val showcase = anElementOf(showcases);
@@ -141,6 +145,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
+    @DisplayName("Fetching the list with a single status to filter by responds with the matching showcases")
     void fetchList_singleStatusToFilterBy_respondsWithMatchingShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases = showcases();
         val status = aShowcaseStatus();
@@ -175,6 +180,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
+    @DisplayName("Fetching the list with multiple statuses to filter by responds with the matching showcases")
     void fetchList_multipleStatusesToFilterBy_respondsWithMatchingShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases = showcases();
         val status1 = aShowcaseStatus();
@@ -211,6 +217,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
+    @DisplayName("Fetching the list with an afterId responds with the subsequent showcases")
     void fetchList_afterId_respondsWithSubsequentShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases =
                 showcases()
@@ -247,6 +254,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
+    @DisplayName("Fetching the list with a size responds with the requested number of showcases")
     void fetchList_size_respondsWithRequestedNumberOfShowcasesSortedByShowcaseIdInReverseOrder() {
         val showcases =
                 showcases()
@@ -282,6 +290,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
+    @DisplayName("Fetching the list with an invalid query responds with bad request status and a problem in the body")
     void fetchList_invalidQuery_respondsWithBadRequestStatusAndProblemInBody() {
         val query = FetchShowcaseListQuery
                             .builder()
@@ -315,6 +324,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
+    @DisplayName("Fetching by ID with an existing showcase responds with the requested showcase")
     void fetchById_existingShowcase_respondsWithRequestedShowcase() {
         val showcase = aShowcase();
 
@@ -343,6 +353,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
+    @DisplayName("Fetching by ID with a non-existing showcase responds with a not-found problem")
     void fetchById_nonExistingShowcase_respondsWithNotFoundProblem() {
         val query = FetchShowcaseByIdQuery
                             .builder()
@@ -368,6 +379,7 @@ class ShowcaseQueryControllerIT {
     }
 
     @Test
+    @DisplayName("Fetching by ID with an invalid query responds with bad request status and a problem in the body")
     void fetchById_invalidQuery_respondsWithBadRequestStatusAndProblemInBody() {
         val query = FetchShowcaseByIdQuery
                             .builder()

@@ -3,6 +3,7 @@ package showcase.command;
 import jakarta.validation.Validation;
 import jakarta.validation.constraints.NotBlank;
 import lombok.val;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -21,9 +22,11 @@ import static showcase.command.RandomCommandTestUtils.aTooLongShowcaseTitle;
 import static showcase.command.RandomCommandTestUtils.aTooShortShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.anInvalidShowcaseId;
 
+@DisplayName("Schedule showcase command tests")
 class ScheduleShowcaseCommandTests {
 
     @Test
+    @DisplayName("A command with all params specified creates an instance with all fields set")
     void construction_allParamsSpecified_createsInstanceWithAllFieldsSet() {
         val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
@@ -46,6 +49,7 @@ class ScheduleShowcaseCommandTests {
     }
 
     @Test
+    @DisplayName("A command without a showcase ID throws a null pointer exception")
     void construction_missingShowcaseId_throwsNullPointerException() {
         assertThatNullPointerException().isThrownBy(
                 () -> ScheduleShowcaseCommand
@@ -57,6 +61,7 @@ class ScheduleShowcaseCommandTests {
     }
 
     @Test
+    @DisplayName("A command without a title throws a null pointer exception")
     void construction_missingTitle_throwsNullPointerException() {
         assertThatNullPointerException().isThrownBy(
                 () -> ScheduleShowcaseCommand
@@ -68,6 +73,7 @@ class ScheduleShowcaseCommandTests {
     }
 
     @Test
+    @DisplayName("A command without a start time throws a null pointer exception")
     void construction_missingStartTime_throwsNullPointerException() {
         assertThatNullPointerException().isThrownBy(
                 () -> ScheduleShowcaseCommand
@@ -79,6 +85,7 @@ class ScheduleShowcaseCommandTests {
     }
 
     @Test
+    @DisplayName("A command without a duration throws a null pointer exception")
     void construction_missingDuration_throwsNullPointerException() {
         assertThatNullPointerException().isThrownBy(
                 () -> ScheduleShowcaseCommand
@@ -90,6 +97,7 @@ class ScheduleShowcaseCommandTests {
     }
 
     @Test
+    @DisplayName("A command with all fields valid detects no constraint violations")
     void validation_allFieldsValid_detectsNoConstrainViolations() {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();
@@ -106,6 +114,7 @@ class ScheduleShowcaseCommandTests {
     }
 
     @Test
+    @DisplayName("An invalid showcase ID detects a showcase ID constraint violation")
     void construction_invalidShowcaseId_detectsShowcaseIdConstrainViolation() {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();
@@ -130,6 +139,7 @@ class ScheduleShowcaseCommandTests {
 
     @ParameterizedTest
     @ValueSource(strings = { "", " ", "   ", "\t", "\n" })
+    @DisplayName("An empty or blank title detects a not-blank constraint violation")
     void validation_emptyOrBlankTitle_detectsNotBlankConstrainViolation(String emptyOrBlankTitle) {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();
@@ -153,6 +163,7 @@ class ScheduleShowcaseCommandTests {
     }
 
     @Test
+    @DisplayName("A too long title detects a showcase title constraint violation")
     void validation_tooLongTitle_detectsShowcaseTitleConstrainViolation() {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();
@@ -176,6 +187,7 @@ class ScheduleShowcaseCommandTests {
     }
 
     @Test
+    @DisplayName("A non-future start time detects a showcase start time constraint violation")
     void validation_nowStartTime_detectsShowcaseStartTimeConstrainViolation() {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();
@@ -199,6 +211,7 @@ class ScheduleShowcaseCommandTests {
     }
 
     @Test
+    @DisplayName("A too short duration detects a showcase duration constraint violation")
     void validation_tooShortDuration_detectsShowcaseDurationConstrainViolation() {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();
@@ -222,6 +235,7 @@ class ScheduleShowcaseCommandTests {
     }
 
     @Test
+    @DisplayName("A too long duration detects a showcase duration constraint violation")
     void validation_tooLongDuration_detectsShowcaseDurationConstrainViolation() {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();

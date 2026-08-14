@@ -47,22 +47,23 @@
 **Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. The `showcase-api-gateway`
 `e2eTest` must run after `showcase-command-client` and `showcase-query-client` integration tests (`mustRunAfter`).
 
-**Test tiers** — a test's tier is decided by its collaborators (what is real vs. faked), not by how long it takes to run:
+**Test tiers** — a test's tier is decided by its collaborators (what is real vs. faked), not by how long it takes to
+run:
 
-- **Unit** (`src/test/java`, suffix `Tests`): the subject under test is isolated — its collaborators are mocks/fakes,
-  no Spring context. Verifies single-class logic (e.g. `KsuidIdentifierFactoryTests`).
+- **Unit** (`src/test/java`, suffix `Tests`): the subject under test is isolated — its collaborators are mocks/fakes, no
+  Spring context. Verifies single-class logic (e.g. `KsuidIdentifierFactoryTests`).
 - **Component** (`src/componentTest/java`, suffix `CT`): the subject is composed with real, in-process collaborators —
   real serializers, Axon `AggregateTestFixture`/`SagaTestFixture`, or a Spring context with WireMock — but external
-  infrastructure is never started. Verifies a component behaves correctly against its real neighbors
-  (e.g. `QueryMessageRequestMapperCT`, `ShowcaseAggregateCT`).
+  infrastructure is never started. Verifies a component behaves correctly against its real neighbors (e.g.
+  `QueryMessageRequestMapperCT`, `ShowcaseAggregateCT`).
 - **Integration** (`src/integrationTest/java`, suffix `IT`): real external infrastructure via Testcontainers
   (PostgreSQL, Kafka, OpenSearch). Verifies services against the real things they talk to.
 - **End-to-end** (`src/e2eTest/java`, suffix `E2E`): the whole system is booted — all four service containers plus
-  Testcontainers infrastructure — and exercised over HTTP. Verifies cross-service propagation over the full
-  command → Kafka → projection → query pipeline (e.g. `ShowcaseApiGatewayE2E`).
+  Testcontainers infrastructure — and exercised over HTTP. Verifies cross-service propagation over the full command →
+  Kafka → projection → query pipeline (e.g. `ShowcaseApiGatewayE2E`).
 
-`disable-axoniq-console-message=true` is set both in integration tests and in each service's main application
-source (e.g., `ShowcaseApiApplication.java`).
+`disable-axoniq-console-message=true` is set both in integration tests and in each service's main application source
+(e.g., `ShowcaseApiApplication.java`).
 
 **DB scripts** — before running the command-service standalone (outside Docker), ensure the PostgreSQL event store is
 initialized:
@@ -109,7 +110,13 @@ Key modules (libraries, not services):
 - **Component test classes** use the suffix `CT` (e.g., `QueryMessageRequestMapperCT`)
 - **Integration test classes** use the suffix `IT`
 - **E2E test classes** use the suffix `E2E`
+- **Test display names**: every test class and every `@Test`/`@ParameterizedTest` method (plus `@Nested` groups) carries
+  a static-sentence `@DisplayName` (e.g., `@DisplayName("Showcase aggregate component tests")`,
+  `@DisplayName("Finishing a showcase with a valid command succeeds")`). Do not use `{0}`-style placeholders — named
+  `argumentSet("...", ...)` invocations already render their own detail
 - **No comments** in source code (per project convention)
+- **Formatting**: format edited files with the IntelliJ IDE formatter (Code → Reformat Code), not an external CLI
+  formatter, so the result matches the project's configured code style
 
 ## Docker Images
 
@@ -164,8 +171,8 @@ docker compose up -d
 ./gradlew :showcase-projection-service:bootRun  # :8003
 ```
 
-Docker Compose (`docker-compose.yml`) starts all infrastructure **and** the Java services (using pre-built Docker
-images `aanbrn/axon-showcase-*:${PROJECT_VERSION}`). Build the images first (`./gradlew bootBuildImage`) or set
+Docker Compose (`docker-compose.yml`) starts all infrastructure **and** the Java services (using pre-built Docker images
+`aanbrn/axon-showcase-*:${PROJECT_VERSION}`). Build the images first (`./gradlew bootBuildImage`) or set
 `PROJECT_VERSION` accordingly. To run services from source instead, use `bootRun` as shown above.
 
 ## Key Environment Variables
@@ -177,8 +184,8 @@ images `aanbrn/axon-showcase-*:${PROJECT_VERSION}`). Build the images first (`./
 
 ## Gotchas
 
-- E2E tests for `showcase-api-gateway` depend on Docker images of all other services being built
-  (`bootBuildImage`). Run those first.
+- E2E tests for `showcase-api-gateway` depend on Docker images of all other services being built (`bootBuildImage`). Run
+  those first.
 - The `showcase-api-gateway` e2eTest must run after `showcase-command-client` and `showcase-query-client`
   integration tests.
 - citi gradle-helm-plugin tasks are not configuration-cache compatible — do not enable

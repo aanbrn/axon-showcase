@@ -11,6 +11,7 @@ import org.axonframework.messaging.RemoteExceptionDescription;
 import org.axonframework.messaging.RemoteHandlingException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,6 +56,7 @@ import static showcase.command.ShowcaseCommandOperations.SHOWCASE_COMMAND_SERVIC
 import static showcase.test.RandomTestUtils.anAlphabeticString;
 
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
+@DisplayName("Showcase command client component tests")
 class ShowcaseCommandClientCT {
 
     @SpringBootApplication
@@ -73,6 +75,7 @@ class ShowcaseCommandClientCT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with a successful dispatch succeeds")
     void scheduleShowcase_successfulCommandDispatch_succeeds() {
         val command =
                 ScheduleShowcaseCommand
@@ -99,6 +102,7 @@ class ShowcaseCommandClientCT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with a failed dispatch fails with a showcase command exception")
     void scheduleShowcase_failedCommandDispatch_failsWithShowcaseCommandException() {
         val command = aScheduleShowcaseCommand();
         val errorDetails = aShowcaseCommandErrorDetails();
@@ -125,6 +129,7 @@ class ShowcaseCommandClientCT {
     }
 
     @Test
+    @DisplayName("Starting a showcase with a successful dispatch succeeds")
     void startShowcase_successfulCommandDispatch_succeeds() {
         val command = aStartShowcaseCommand();
 
@@ -144,6 +149,7 @@ class ShowcaseCommandClientCT {
     }
 
     @Test
+    @DisplayName("Starting a showcase with a failed dispatch fails with a showcase command exception")
     void startShowcase_failedCommandDispatch_failsWithShowcaseCommandException() {
         val command = aStartShowcaseCommand();
         val errorDetails = aShowcaseCommandErrorDetails();
@@ -170,6 +176,7 @@ class ShowcaseCommandClientCT {
     }
 
     @Test
+    @DisplayName("Finishing a showcase with a successful dispatch succeeds")
     void finishShowcase_successfulCommandDispatch_succeeds() {
         val command = aFinishShowcaseCommand();
 
@@ -189,6 +196,7 @@ class ShowcaseCommandClientCT {
     }
 
     @Test
+    @DisplayName("Finishing a showcase with a failed dispatch fails with a showcase command exception")
     void finishShowcase_failedCommandDispatch_failsWithShowcaseCommandException() {
         val command = aFinishShowcaseCommand();
         val errorDetails = aShowcaseCommandErrorDetails();
@@ -215,6 +223,7 @@ class ShowcaseCommandClientCT {
     }
 
     @Test
+    @DisplayName("Removing a showcase with a successful dispatch succeeds")
     void removeShowcase_successfulCommandDispatch_succeeds() {
         val command = aRemoveShowcaseCommand();
 
@@ -234,6 +243,7 @@ class ShowcaseCommandClientCT {
     }
 
     @Test
+    @DisplayName("Removing a showcase with a failed dispatch fails with a showcase command exception")
     void removeShowcase_failedCommandDispatch_failsWithShowcaseCommandException() {
         val command = aRemoveShowcaseCommand();
         val errorDetails = aShowcaseCommandErrorDetails();
@@ -262,6 +272,7 @@ class ShowcaseCommandClientCT {
     @Nested
     @ActiveProfiles("retry")
     @DirtiesContext
+    @DisplayName("Retry")
     class Retry {
 
         static List<Arguments> retryableErrors() {
@@ -311,6 +322,7 @@ class ShowcaseCommandClientCT {
 
         @ParameterizedTest
         @MethodSource("retryableErrors")
+        @DisplayName("Scheduling a showcase with a retryable error retries and fails with the error")
         void scheduleShowcase_retryableError_retriesAndFailsWithError(Throwable error) {
             val command = aScheduleShowcaseCommand();
 
@@ -332,6 +344,7 @@ class ShowcaseCommandClientCT {
 
         @ParameterizedTest
         @MethodSource("retryableErrors")
+        @DisplayName("Starting a showcase with a retryable error retries and fails with the error")
         void startShowcase_retryableError_retriesAndFailsWithError(Throwable error) {
             val command = aStartShowcaseCommand();
 
@@ -353,6 +366,7 @@ class ShowcaseCommandClientCT {
 
         @ParameterizedTest
         @MethodSource("retryableErrors")
+        @DisplayName("Finishing a showcase with a retryable error retries and fails with the error")
         void finishShowcase_retryableError_retriesAndFailsWithError(Throwable error) {
             val command = aFinishShowcaseCommand();
 
@@ -374,6 +388,7 @@ class ShowcaseCommandClientCT {
 
         @ParameterizedTest
         @MethodSource("retryableErrors")
+        @DisplayName("Removing a showcase with a retryable error retries and fails with the error")
         void removeShowcase_retryableError_retriesAndFailsWithError(Throwable error) {
             val command = aRemoveShowcaseCommand();
 

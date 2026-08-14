@@ -2,14 +2,17 @@ package showcase.query;
 
 import lombok.val;
 import org.axonframework.queryhandling.QueryExecutionException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static showcase.query.RandomQueryTestUtils.aShowcaseQueryErrorDetails;
 
+@DisplayName("Showcase query exception tests")
 class ShowcaseQueryExceptionTests {
 
     @Test
+    @DisplayName("An exception with error details creates an instance with error details and no cause")
     void construction_errorDetailsOnly_createsInstanceWithErrorDetailsAndNoCause() {
         val errorDetails = aShowcaseQueryErrorDetails();
 
@@ -20,6 +23,7 @@ class ShowcaseQueryExceptionTests {
     }
 
     @Test
+    @DisplayName("An exception with error details and a cause creates an instance with both")
     void construction_errorDetailsAndCause_createsInstanceWithErrorDetailsAndCause() {
         val errorDetails = aShowcaseQueryErrorDetails();
         val cause = new IllegalStateException();
@@ -31,6 +35,7 @@ class ShowcaseQueryExceptionTests {
     }
 
     @Test
+    @DisplayName("An exception with non-null error details and a null cause creates an instance with no cause")
     void construction_nonNullErrorDetailsAndNullCause_createsInstanceWithErrorDetailsAndNoCause() {
         val errorDetails = aShowcaseQueryErrorDetails();
 

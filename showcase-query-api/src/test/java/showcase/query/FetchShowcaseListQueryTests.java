@@ -2,6 +2,7 @@ package showcase.query;
 
 import lombok.val;
 import org.apache.commons.lang3.RandomUtils;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -12,9 +13,11 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 import static showcase.query.RandomQueryTestUtils.aShowcaseStatus;
 
+@DisplayName("Fetch showcase list query tests")
 class FetchShowcaseListQueryTests {
 
     @Test
+    @DisplayName("A query with defaults creates an instance with default field values")
     void construction_defaults_createsInstanceWithDefaultFieldValues() {
         val query = FetchShowcaseListQuery.builder().build();
 
@@ -26,6 +29,7 @@ class FetchShowcaseListQueryTests {
     }
 
     @Test
+    @DisplayName("A query with all fields creates an instance with the specified field values")
     void construction_allFields_createsInstanceWithSpecifiedFieldValues() {
         val title = aShowcaseTitle();
         val status1 = aShowcaseStatus();
@@ -51,6 +55,7 @@ class FetchShowcaseListQueryTests {
     }
 
     @Test
+    @DisplayName("A query with duplicate statuses creates an instance with distinct statuses")
     void construction_duplicateStatuses_createsInstanceWithDistinctStatuses() {
         val statuses =
                 IntStream.range(0, 10)

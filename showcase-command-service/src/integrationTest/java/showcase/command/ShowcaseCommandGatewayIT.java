@@ -3,6 +3,7 @@ package showcase.command;
 import lombok.val;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,6 +37,7 @@ import static showcase.command.RandomCommandTestUtils.anInvalidShowcaseId;
 @SpringBootTest(webEnvironment = NONE)
 @Testcontainers(parallel = true)
 @DirtiesContext
+@DisplayName("Showcase command gateway integration tests")
 class ShowcaseCommandGatewayIT {
 
     @Container
@@ -55,6 +57,7 @@ class ShowcaseCommandGatewayIT {
     CommandGateway commandGateway;
 
     @Test
+    @DisplayName("Scheduling a showcase with a valid command succeeds")
     void scheduleShowcase_validCommand_success() {
         commandGateway.sendAndWait(
                 ScheduleShowcaseCommand
@@ -67,6 +70,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Scheduling a duplicate command succeeds")
     void scheduleShowcase_duplicateCommand_success() {
         val command = ScheduleShowcaseCommand
                               .builder()
@@ -82,6 +86,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with an invalid command throws an exception with an invalid-command error")
     void scheduleShowcase_invalidCommand_throwsCommandExecutionExceptionWithInvalidCommandError() {
         assertThatThrownBy(
                 () -> commandGateway.sendAndWait(
@@ -108,6 +113,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Rescheduling an existing showcase throws an exception")
     void scheduleShowcase_reschedulingCommand_throwsCommandExecutionException() {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
@@ -144,6 +150,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with an already used title throws an exception with a title-in-use error")
     void scheduleShowcase_alreadyUsedTitle_throwsShowcaseCommandExceptionCausedByTitleInUseError() {
         val title = aShowcaseTitle();
         val scheduleTime = Instant.now();
@@ -180,6 +187,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Scheduling an already removed showcase throws an exception with an illegal-state error")
     void scheduleShowcase_alreadyRemovedShowcase_throwsCommandExecutionExceptionWithIllegalStateError() {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
@@ -222,6 +230,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Starting a showcase with a valid command succeeds")
     void startShowcase_validCommand_success() {
         val showcaseId = aShowcaseId();
 
@@ -242,6 +251,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Starting an already started showcase succeeds")
     void startShowcase_alreadyStartedShowcase_success() {
         val showcaseId = aShowcaseId();
 
@@ -266,6 +276,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Starting an already finished showcase throws an exception with an illegal-state error")
     void startShowcase_alreadyFinishedShowcase_throwsShowcaseCommandExceptionCausedByIllegalStateError() {
         val showcaseId = aShowcaseId();
 
@@ -310,6 +321,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Starting an already removed showcase throws an exception with a not-found error")
     void startShowcase_alreadyRemovedShowcase_throwsShowcaseCommandExceptionCausedByNotFoundError() {
         val showcaseId = aShowcaseId();
 
@@ -354,6 +366,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Starting a showcase with an invalid command throws an exception with an invalid-command error")
     void startShowcase_invalidCommand_throwsCommandExecutionExceptionWithInvalidCommandError() {
         assertThatThrownBy(
                 () -> commandGateway.sendAndWait(
@@ -377,6 +390,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Finishing a showcase with a valid command succeeds")
     void finishShowcase_validCommand_success() {
         val showcaseId = aShowcaseId();
 
@@ -403,6 +417,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Finishing an already finished showcase succeeds")
     void finishShowcase_alreadyFinishedShowcase_success() {
         val showcaseId = aShowcaseId();
 
@@ -433,6 +448,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Finishing a showcase with an invalid command throws an exception with an invalid-command error")
     void finishShowcase_invalidCommand_throwsCommandExecutionExceptionWithInvalidCommandError() {
         assertThatThrownBy(
                 () -> commandGateway.sendAndWait(
@@ -456,6 +472,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Finishing a not-started showcase throws an exception with an illegal-state error")
     void finishShowcase_notStartedShowcase_throwsShowcaseCommandExceptionCausedByIllegalStateError() {
         val showcaseId = aShowcaseId();
 
@@ -488,6 +505,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Finishing an already removed showcase throws an exception with a not-found error")
     void finishShowcase_alreadyRemovedShowcase_throwsShowcaseCommandExceptionCausedByNotFoundError() {
         val showcaseId = aShowcaseId();
 
@@ -526,6 +544,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Removing a showcase with a valid command succeeds")
     void removeShowcase_validCommand_success() {
         val showcaseId = aShowcaseId();
 
@@ -546,6 +565,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Removing a showcase with an invalid command throws an exception with an invalid-command error")
     void removeShowcase_invalidCommand_throwsCommandExecutionExceptionWithInvalidCommandError() {
         assertThatThrownBy(
                 () -> commandGateway.sendAndWait(
@@ -569,6 +589,7 @@ class ShowcaseCommandGatewayIT {
     }
 
     @Test
+    @DisplayName("Removing an already removed showcase throws an exception with a not-found error")
     void removeShowcase_alreadyRemovedShowcase_throwsShowcaseCommandExceptionCausedByNotFoundError() {
         val showcaseId = aShowcaseId();
 

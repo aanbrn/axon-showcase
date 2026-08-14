@@ -1,6 +1,7 @@
 package showcase.query;
 
 import lombok.val;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -16,9 +17,11 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseStartedAt;
 import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 import static showcase.query.RandomQueryTestUtils.aShowcaseStatus;
 
+@DisplayName("Showcase tests")
 class ShowcaseTests {
 
     @Test
+    @DisplayName("A showcase with all params specified creates an instance with all fields set")
     void construction_allParamsSpecified_createsInstanceWithAllFieldsSet() {
         val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
@@ -53,6 +56,7 @@ class ShowcaseTests {
     }
 
     @Test
+    @DisplayName("A showcase with only required params specified creates an instance with required fields set")
     void construction_onlyRequiredParamsSpecified_createsInstanceWithRequiredFieldsSet() {
         val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
@@ -83,6 +87,7 @@ class ShowcaseTests {
     }
 
     @Test
+    @DisplayName("A showcase without a showcase ID throws a null pointer exception")
     void construction_missingShowcaseId_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
@@ -97,6 +102,7 @@ class ShowcaseTests {
     }
 
     @Test
+    @DisplayName("A showcase without a title throws a null pointer exception")
     void construction_missingTitle_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
@@ -111,6 +117,7 @@ class ShowcaseTests {
     }
 
     @Test
+    @DisplayName("A showcase without a start time throws a null pointer exception")
     void construction_missingStartTime_throwsNullPointerException() {
         assertThatNullPointerException().isThrownBy(
                 () -> Showcase.builder()
@@ -123,6 +130,7 @@ class ShowcaseTests {
     }
 
     @Test
+    @DisplayName("A showcase without a duration throws a null pointer exception")
     void construction_missingDuration_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
@@ -137,6 +145,7 @@ class ShowcaseTests {
     }
 
     @Test
+    @DisplayName("A showcase without a status throws a null pointer exception")
     void construction_missingStatus_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
@@ -151,6 +160,7 @@ class ShowcaseTests {
     }
 
     @Test
+    @DisplayName("A showcase without a scheduled-at time throws a null pointer exception")
     void construction_missingScheduledAt_throwsNullPointerException() {
         assertThatNullPointerException().isThrownBy(
                 () -> Showcase.builder()

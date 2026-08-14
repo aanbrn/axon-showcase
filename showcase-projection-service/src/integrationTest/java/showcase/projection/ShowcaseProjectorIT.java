@@ -5,6 +5,7 @@ import org.axonframework.extensions.kafka.eventhandling.producer.KafkaPublisher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.opensearch.data.client.osc.OpenSearchTemplate;
@@ -49,6 +50,7 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 @ActiveProfiles("test")
 @DirtiesContext
 @Testcontainers(parallel = true)
+@DisplayName("Showcase projector integration tests")
 class ShowcaseProjectorIT {
 
     @Container
@@ -103,6 +105,7 @@ class ShowcaseProjectorIT {
     }
 
     @Test
+    @DisplayName("A scheduled event inserts the showcase into the database")
     void showcaseScheduledEvent_singleEvent_insertsShowcaseIntoDatabase() {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
@@ -124,6 +127,7 @@ class ShowcaseProjectorIT {
 
     @Test
     @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("Publishing the same scheduled event twice logs an error")
     void showcaseScheduledEvent_sameEventTwice_logsError(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
@@ -144,6 +148,7 @@ class ShowcaseProjectorIT {
     }
 
     @Test
+    @DisplayName("A started event updates the showcase in the database")
     void showcaseStartedEvent_singleEvent_updatesShowcaseInDatabase() {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
@@ -177,6 +182,7 @@ class ShowcaseProjectorIT {
 
     @Test
     @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("A started event for a non-existing showcase logs an error")
     void showcaseStartedEvent_nonExistingShowcase_logsError(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val startTime = aShowcaseStartTime(Instant.now());
@@ -197,6 +203,7 @@ class ShowcaseProjectorIT {
     }
 
     @Test
+    @DisplayName("A finished event updates the showcase in the database")
     void showcaseFinishedEvent_singleEvent_updatesShowcaseInDatabase() {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
@@ -239,6 +246,7 @@ class ShowcaseProjectorIT {
 
     @Test
     @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("A finished event for a non-existing showcase logs an error")
     void showcaseFinishedEvent_nonExistingShowcase_logsError(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val startTime = aShowcaseStartTime(Instant.now());
@@ -259,6 +267,7 @@ class ShowcaseProjectorIT {
     }
 
     @Test
+    @DisplayName("A removed event deletes the showcase from the database")
     void showcaseRemovedEvent_singleEvent_deletesShowcaseFromDatabase() {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
@@ -289,6 +298,7 @@ class ShowcaseProjectorIT {
 
     @Test
     @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("Publishing the same removed event twice logs a warning")
     void showcaseRemovedEvent_sameEventTwice_logsWarning(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();

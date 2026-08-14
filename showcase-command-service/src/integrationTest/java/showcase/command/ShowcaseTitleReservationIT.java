@@ -1,6 +1,7 @@
 package showcase.command;
 
 import lombok.val;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
@@ -30,6 +31,7 @@ import static showcase.command.RandomCommandTestUtils.aTooLongShowcaseTitle;
 @JdbcTest
 @DirtiesContext
 @Testcontainers
+@DisplayName("Showcase title reservation integration tests")
 class ShowcaseTitleReservationIT {
 
     @Configuration
@@ -51,6 +53,7 @@ class ShowcaseTitleReservationIT {
     private JdbcClient jdbcClient;
 
     @Test
+    @DisplayName("Saving a unique title saves it successfully")
     void save_uniqueTitle_savesSuccessfully() {
         val title = aShowcaseTitle();
 
@@ -63,6 +66,7 @@ class ShowcaseTitleReservationIT {
     }
 
     @Test
+    @DisplayName("Saving an already used title throws a duplicate key exception")
     void save_alreadyUsedTitle_throwsDuplicateKeyException() {
         val title = aShowcaseTitle();
 
@@ -77,12 +81,14 @@ class ShowcaseTitleReservationIT {
     }
 
     @Test
+    @DisplayName("Saving a too long title throws a data integrity violation exception")
     void save_tooLongTitle_throwsDataIntegrityViolationException() {
         assertThatExceptionOfType(DataIntegrityViolationException.class).isThrownBy(
                 () -> showcaseTitleReservation.save(aTooLongShowcaseTitle()));
     }
 
     @Test
+    @DisplayName("Deleting an existing reservation deletes it successfully")
     void deleteByShowcaseId_existingReservation_deletesSuccessfully() {
         val title = aShowcaseTitle();
 

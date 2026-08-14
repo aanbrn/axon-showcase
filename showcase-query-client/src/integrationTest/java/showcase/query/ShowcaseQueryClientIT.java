@@ -4,6 +4,7 @@ import lombok.val;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.opensearch.data.client.osc.OpenSearchTemplate;
 import org.opensearch.testcontainers.OpenSearchContainer;
@@ -38,6 +39,7 @@ import static showcase.test.RandomTestUtils.anElementOf;
 
 @SpringBootTest(webEnvironment = NONE)
 @Testcontainers
+@DisplayName("Showcase query client integration tests")
 class ShowcaseQueryClientIT {
 
     @SpringBootApplication
@@ -124,6 +126,7 @@ class ShowcaseQueryClientIT {
     }
 
     @Test
+    @DisplayName("Fetching the list without filtering succeeds with the existing showcases sorted by start time")
     void fetchList_noFiltering_succeedsWithListExistingShowcasesSortedByStartTime() {
         val expected =
                 this.showcases
@@ -144,6 +147,7 @@ class ShowcaseQueryClientIT {
     }
 
     @Test
+    @DisplayName("Fetching the list with a title to filter by succeeds with the matching showcase")
     void fetchList_titleToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
         val expected = anElementOf(showcases);
         val query =
@@ -161,6 +165,7 @@ class ShowcaseQueryClientIT {
     }
 
     @Test
+    @DisplayName("Fetching the list with a single status to filter by succeeds with the matching showcases")
     void fetchList_singleStatusToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
         val status = aShowcaseStatus();
         val expected =
@@ -184,6 +189,7 @@ class ShowcaseQueryClientIT {
     }
 
     @Test
+    @DisplayName("Fetching the list with multiple statuses to filter by succeeds with the matching showcases")
     void fetchList_multipleStatusesToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
         val status1 = aShowcaseStatus();
         val status2 = aShowcaseStatus(status1);
@@ -209,6 +215,7 @@ class ShowcaseQueryClientIT {
     }
 
     @Test
+    @DisplayName("Fetching by ID with an existing showcase succeeds with the requested showcase")
     void fetchById_existingShowcase_succeedWithRequestedShowcase() {
         val expected = anElementOf(showcases);
         val query =
@@ -226,6 +233,7 @@ class ShowcaseQueryClientIT {
     }
 
     @Test
+    @DisplayName("Fetching by ID with a non-existing showcase fails with a not-found error")
     void fetchById_nonExistingShowcase_failsWithNotFoundError() {
         val query =
                 FetchShowcaseByIdQuery

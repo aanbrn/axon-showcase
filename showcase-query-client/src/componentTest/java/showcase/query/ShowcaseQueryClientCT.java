@@ -9,6 +9,7 @@ import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import lombok.val;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,6 +56,7 @@ import static showcase.query.ShowcaseQueryOperations.SHOWCASE_QUERY_SERVICE;
 @SpringBootTest(webEnvironment = NONE)
 @EnableWireMock(@ConfigureWireMock(baseUrlProperties = "showcase.query.api-url", registerSpringBean = true))
 @DirtiesContext
+@DisplayName("Showcase query client component tests")
 class ShowcaseQueryClientCT {
 
     @SpringBootApplication
@@ -76,6 +78,7 @@ class ShowcaseQueryClientCT {
     }
 
     @Test
+    @DisplayName("Fetching the list with an OK response succeeds")
     void fetchList_okResponse_succeeds() throws Exception {
         val query = FetchShowcaseListQuery.builder().build();
         val showcases = showcases();
@@ -95,6 +98,7 @@ class ShowcaseQueryClientCT {
     }
 
     @Test
+    @DisplayName("Fetching by ID with an OK response succeeds")
     void fetchById_okResponse_succeeds() throws Exception {
         val showcase = aShowcase();
         val query =
@@ -118,6 +122,7 @@ class ShowcaseQueryClientCT {
     }
 
     @Test
+    @DisplayName("Fetching by ID with a not-found response fails with a not-found error")
     void fetchById_notFoundResponse_failsWithNotFoundError() throws Exception {
         val query =
                 FetchShowcaseByIdQuery
@@ -158,6 +163,7 @@ class ShowcaseQueryClientCT {
     @Nested
     @ActiveProfiles("timelimiter")
     @DirtiesContext
+    @DisplayName("Time limiter")
     class TimeLimiter {
 
         @Autowired
@@ -182,6 +188,7 @@ class ShowcaseQueryClientCT {
         }
 
         @Test
+        @DisplayName("Fetching the list with a long delay fails with a timeout error")
         void fetchList_longDelay_failsWithTimeoutError() {
             val query = FetchShowcaseListQuery.builder().build();
 
@@ -197,6 +204,7 @@ class ShowcaseQueryClientCT {
         }
 
         @Test
+        @DisplayName("Fetching by ID with a long delay fails with a timeout error")
         void fetchById_longDelay_failsWithTimeoutError() {
             val query =
                     FetchShowcaseByIdQuery
@@ -219,6 +227,7 @@ class ShowcaseQueryClientCT {
     @Nested
     @ActiveProfiles("retry")
     @DirtiesContext
+    @DisplayName("Retry")
     class Retry {
 
         @Autowired
@@ -261,6 +270,7 @@ class ShowcaseQueryClientCT {
 
         @ParameterizedTest
         @MethodSource("retryableStatusCodes")
+        @DisplayName("Fetching the list with a retryable status code retries and fails with that status code")
         void fetchList_retryableStatusCode_retriesAndFailsWithStatusCode(int statusCode) {
             val query = FetchShowcaseListQuery.builder().build();
 
@@ -286,6 +296,7 @@ class ShowcaseQueryClientCT {
 
         @ParameterizedTest
         @MethodSource("retryableStatusCodes")
+        @DisplayName("Fetching by ID with a retryable status code retries and fails with that status code")
         void fetchById_retryableStatusCode_retriesAndFailsWithStatusCode(int statusCode) {
             val query =
                     FetchShowcaseByIdQuery

@@ -1,6 +1,7 @@
 package showcase.resilience4j;
 
 import lombok.val;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 
@@ -15,6 +16,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@DisplayName("Resilience4j auto-configuration import filter tests")
 class Resilience4jAutoConfigurationImportFilterTests {
 
     private static final String BULKHEAD_AUTOCONFIGURATION =
@@ -29,6 +31,7 @@ class Resilience4jAutoConfigurationImportFilterTests {
             "io.github.resilience4j.springboot3.retry.autoconfigure.RetryAutoConfiguration";
 
     @Test
+    @DisplayName("Matching without an injected environment throws an illegal state exception")
     void match_environmentNotInjected_throwsIllegalStateException() {
         val filter = new Resilience4jAutoConfigurationImportFilter();
 
@@ -38,6 +41,7 @@ class Resilience4jAutoConfigurationImportFilterTests {
     }
 
     @Test
+    @DisplayName("A disabled master flag excludes all feature auto-configurations")
     void match_masterDisabled_excludesAllFeatureAutoConfigurations() {
         val filter = newFilter(Map.of("resilience4j.enabled", false));
 
@@ -47,6 +51,7 @@ class Resilience4jAutoConfigurationImportFilterTests {
     }
 
     @Test
+    @DisplayName("No flags set leaves all feature auto-configurations eligible")
     void match_noFlagsSet_allFeatureAutoConfigurationsEligible() {
         val filter = newFilter(Map.of());
 
@@ -56,6 +61,7 @@ class Resilience4jAutoConfigurationImportFilterTests {
     }
 
     @Test
+    @DisplayName("A disabled circuit breaker flag excludes only the circuit breaker")
     void match_circuitBreakerDisabled_excludesOnlyCircuitBreaker() {
         val filter = newFilter(Map.of("resilience4j.circuitbreaker.enabled", false));
 
@@ -65,6 +71,7 @@ class Resilience4jAutoConfigurationImportFilterTests {
     }
 
     @Test
+    @DisplayName("A disabled bulkhead flag excludes only the bulkhead")
     void match_bulkheadDisabled_excludesOnlyBulkhead() {
         val filter = newFilter(Map.of("resilience4j.bulkhead.enabled", false));
 
@@ -74,6 +81,7 @@ class Resilience4jAutoConfigurationImportFilterTests {
     }
 
     @Test
+    @DisplayName("A non-Resilience4j class passes through")
     void match_nonResilience4jClass_passesThrough() {
         val filter = newFilter(Map.of("resilience4j.enabled", false));
 
@@ -84,6 +92,7 @@ class Resilience4jAutoConfigurationImportFilterTests {
     }
 
     @Test
+    @DisplayName("A circuit breaker class is gated by its feature flag")
     void match_circuitBreakerFqcn_isGatedByFeatureFlag() {
         val filter = newFilter(Map.of("resilience4j.circuitbreaker.enabled", false));
 
@@ -93,6 +102,7 @@ class Resilience4jAutoConfigurationImportFilterTests {
     }
 
     @Test
+    @DisplayName("Null and empty class names are excluded")
     void match_nullAndEmptyClassNames_areExcluded() {
         val filter = newFilter(Map.of());
 
@@ -102,6 +112,7 @@ class Resilience4jAutoConfigurationImportFilterTests {
     }
 
     @Test
+    @DisplayName("Spring factories lists the filter")
     void springFactories_listsTheFilter() throws IOException {
         try (InputStream in = getClass().getClassLoader().getResourceAsStream("META-INF/spring.factories")) {
             assertThat(in).isNotNull();
@@ -114,6 +125,7 @@ class Resilience4jAutoConfigurationImportFilterTests {
     }
 
     @Test
+    @DisplayName("Configuration metadata declares all six properties")
     void configurationMetadata_declaresAllSixProperties() throws IOException {
         val propertyNames = new String[] {
                 "resilience4j.enabled",

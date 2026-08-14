@@ -2,6 +2,7 @@ package showcase.mapstruct;
 
 import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.ap.spi.MapStructProcessingEnvironment;
 
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@DisplayName("Fluent accessor naming strategy tests")
 class FluentAccessorNamingStrategyTests {
 
     private FluentAccessorNamingStrategy strategy;
@@ -47,6 +49,7 @@ class FluentAccessorNamingStrategyTests {
     }
 
     @Test
+    @DisplayName("A parameterless method matching a field is a getter")
     void isGetterMethod_parameterlessMethodMatchingField_returnsTrue() {
         val clazz = buildClass(buildField("showcaseId", "java.lang.String"));
         val method = buildMethod(clazz, "showcaseId", "java.lang.String");
@@ -55,6 +58,7 @@ class FluentAccessorNamingStrategyTests {
     }
 
     @Test
+    @DisplayName("A parameterless method without a matching field is not a getter")
     void isGetterMethod_parameterlessMethodWithoutMatchingField_returnsFalse() {
         val clazz = buildClass(buildField("showcaseId", "java.lang.String"));
         val method = buildMethod(clazz, "computedValue", "java.lang.String");
@@ -63,6 +67,7 @@ class FluentAccessorNamingStrategyTests {
     }
 
     @Test
+    @DisplayName("A method with parameters is not a getter")
     void isGetterMethod_methodWithParameters_returnsFalse() {
         val clazz = buildClass(buildField("showcaseId", "java.lang.String"));
         val method = buildMethod(clazz, "showcaseId", "java.lang.String", true);
@@ -71,6 +76,7 @@ class FluentAccessorNamingStrategyTests {
     }
 
     @Test
+    @DisplayName("A method with a different return type is not a getter")
     void isGetterMethod_methodWithDifferentReturnType_returnsFalse() {
         val clazz = buildClass(buildField("showcaseId", "java.lang.String"));
         val method = buildMethod(clazz, "showcaseId", "int");
@@ -79,6 +85,7 @@ class FluentAccessorNamingStrategyTests {
     }
 
     @Test
+    @DisplayName("The property name of a fluent getter is the method simple name")
     void getPropertyName_fluentGetter_returnsMethodSimpleName() {
         val clazz = buildClass(buildField("showcaseId", "java.lang.String"));
         val method = buildMethod(clazz, "showcaseId", "java.lang.String");
@@ -87,6 +94,7 @@ class FluentAccessorNamingStrategyTests {
     }
 
     @Test
+    @DisplayName("The property name of a standard getter uses the default strategy")
     void getPropertyName_standardGetter_usesDefaultStrategy() {
         val clazz = buildClass(buildField("showcaseId", "java.lang.String"));
         val method = buildMethod(clazz, "getShowcaseId", "java.lang.String");
@@ -95,6 +103,7 @@ class FluentAccessorNamingStrategyTests {
     }
 
     @Test
+    @DisplayName("Fluent and standard getters can coexist and are both recognized")
     void isGetterMethod_coexistenceOfFluentAndStandardGetters_isRecognized() {
         val clazz = buildClass(buildField("title", "java.lang.String"),
                                buildField("description", "java.lang.String"));
@@ -107,6 +116,7 @@ class FluentAccessorNamingStrategyTests {
     }
 
     @Test
+    @DisplayName("The SPI registration lists the fluent accessor naming strategy")
     void spiRegistration_listsFluentAccessorNamingStrategy() throws IOException {
         try (InputStream in = getClass().getClassLoader().getResourceAsStream(
                 "META-INF/services/org.mapstruct.ap.spi.AccessorNamingStrategy")) {

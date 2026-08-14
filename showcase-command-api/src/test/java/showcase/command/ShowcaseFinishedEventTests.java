@@ -1,6 +1,7 @@
 package showcase.command;
 
 import lombok.val;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -9,9 +10,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 
+@DisplayName("Showcase finished event tests")
 class ShowcaseFinishedEventTests {
 
     @Test
+    @DisplayName("An event with all params specified creates an instance with all fields set")
     void construction_allParamsSpecified_createsInstanceWithAllFieldsSet() {
         val showcaseId = aShowcaseId();
         val finishedAt = Instant.now();
@@ -28,6 +31,7 @@ class ShowcaseFinishedEventTests {
     }
 
     @Test
+    @DisplayName("An event without a showcase ID throws a null pointer exception")
     void construction_missingShowcaseId_throwsNullPointerException() {
         assertThatNullPointerException().isThrownBy(
                 () -> ShowcaseFinishedEvent
@@ -37,6 +41,7 @@ class ShowcaseFinishedEventTests {
     }
 
     @Test
+    @DisplayName("An event without a finished-at time throws a null pointer exception")
     void construction_missingFinishedAt_throwsNullPointerException() {
         assertThatNullPointerException().isThrownBy(
                 () -> ShowcaseFinishedEvent

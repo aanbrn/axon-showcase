@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.axonframework.commandhandling.NoHandlerForCommandException;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -88,6 +89,7 @@ import static showcase.test.RandomTestUtils.anAlphabeticString;
 import static showcase.test.RandomTestUtils.anEnum;
 
 @WebFluxTest(ShowcaseApiController.class)
+@DisplayName("Showcase API controller component tests")
 class ShowcaseApiControllerCT {
 
     @Configuration
@@ -152,6 +154,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase responds with created status, a location header, and the showcase ID")
     void scheduleShowcase_success_respondsWithCreatedStatusAndLocationHeaderAndShowcaseIdInBody() {
         val title = aShowcaseTitle();
         val startTime = aShowcaseStartTime(Instant.now());
@@ -195,6 +198,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with an invalid request responds with bad request and a problem in the body")
     void scheduleShowcase_invalidRequest_respondsWithBadRequestStatusAndProblemInBody() {
         webClient.post()
                  .uri("/showcases")
@@ -218,6 +222,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with an already used title responds with conflict and a problem in the body")
     void scheduleShowcase_alreadyUsedTitle_respondsWithConflictStatusAndProblemInBody() {
         given(showcaseCommandOperations.schedule(any()))
                 .willReturn(Mono.error(
@@ -253,6 +258,7 @@ class ShowcaseApiControllerCT {
 
     @ParameterizedTest
     @EnumSource(ShowcaseCommandErrorCode.class)
+    @DisplayName("Scheduling a showcase with a command failure responds with the related status and a problem")
     void scheduleShowcase_commandFailure_respondsWithRelatedStatusAndProblemInBody(
             ShowcaseCommandErrorCode errorCode) {
         val errorMessage = anAlphabeticString(10);
@@ -296,6 +302,7 @@ class ShowcaseApiControllerCT {
 
     @ParameterizedTest
     @MethodSource("commandAvailabilityFailures")
+    @DisplayName("Scheduling a showcase on an availability failure responds with service unavailable and a problem")
     void scheduleShowcase_availabilityFailure_respondsWithServiceUnavailableStatusAndProblemInBody(Exception error) {
         given(showcaseCommandOperations.schedule(any())).willReturn(Mono.error(error));
 
@@ -323,6 +330,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with an aborted request responds with request timeout status and an empty body")
     void scheduleShowcase_abortedRequest_respondsWithRequestTimeoutStatusAndEmptyBody() {
         given(showcaseCommandOperations.schedule(any())).willReturn(Mono.error(
                 new AbortedException(anAlphabeticString(10))));
@@ -346,6 +354,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with a timeout responds with accepted status and an idempotency key header")
     void scheduleShowcase_timeout_respondsWithAcceptedStatusAndIdempotencyKeyHeader() {
         given(showcaseCommandOperations.schedule(any())).willReturn(Mono.error(new TimeoutException()));
 
@@ -368,6 +377,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with an invalid idempotency key responds with bad request and a problem")
     void scheduleShowcase_invalidIdempotencyKey_respondsWithBadRequestStatusAndProblemInBody() {
         given(showcaseCommandOperations.schedule(any())).willReturn(Mono.error(new TimeoutException()));
 
@@ -397,6 +407,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Starting a showcase responds with OK status and an empty body")
     void startShowcase_success_respondsWithOkStatusAndEmptyBody() {
         val showcaseId = aShowcaseId();
 
@@ -421,6 +432,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Starting a showcase with an invalid showcase ID responds with bad request and a problem in the body")
     void startShowcase_invalidShowcaseId_respondsWithBadRequestStatusAndProblemInBody() {
         webClient.put()
                  .uri("/showcases/{showcaseId}/start", anInvalidShowcaseId())
@@ -442,6 +454,7 @@ class ShowcaseApiControllerCT {
 
     @ParameterizedTest
     @EnumSource(ShowcaseCommandErrorCode.class)
+    @DisplayName("Starting a showcase with a command failure responds with the related status and a problem")
     void startShowcase_commandFailure_respondsWithRelatedStatusAndProblemInBody(ShowcaseCommandErrorCode errorCode) {
         val errorMessage = anAlphabeticString(10);
 
@@ -478,6 +491,7 @@ class ShowcaseApiControllerCT {
 
     @ParameterizedTest
     @MethodSource("commandAvailabilityFailures")
+    @DisplayName("Starting a showcase on an availability failure responds with service unavailable and a problem")
     void startShowcase_availabilityFailure_respondsWithServiceUnavailableStatusAndProblemInBody(Exception error) {
         given(showcaseCommandOperations.start(any())).willReturn(Mono.error(error));
 
@@ -499,6 +513,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Starting a showcase with an aborted request responds with request timeout status and an empty body")
     void startShowcase_abortedRequest_respondsWithRequestTimeoutStatusAndEmptyBody() {
         given(showcaseCommandOperations.start(any())).willReturn(Mono.error(
                 new AbortedException(anAlphabeticString(10))));
@@ -516,6 +531,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Starting a showcase with a timeout responds with accepted status")
     void startShowcase_timeout_respondsWithAcceptedStatus() {
         val showcaseId = aShowcaseId();
 
@@ -532,6 +548,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Finishing a showcase responds with OK status and an empty body")
     void finishShowcase_success_respondsWithOkStatusAndEmptyBody() {
         val showcaseId = aShowcaseId();
 
@@ -556,6 +573,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Finishing a showcase with an invalid showcase ID responds with bad request and a problem in the body")
     void finishShowcase_invalidShowcaseId_respondsWithBadRequestStatusAndProblemInBody() {
         webClient.put()
                  .uri("/showcases/{showcaseId}/finish", anInvalidShowcaseId())
@@ -577,6 +595,7 @@ class ShowcaseApiControllerCT {
 
     @ParameterizedTest
     @EnumSource(ShowcaseCommandErrorCode.class)
+    @DisplayName("Finishing a showcase with a command failure responds with the related status and a problem")
     void finishShowcase_commandFailure_respondsWithRelatedStatusAndProblemInBody(ShowcaseCommandErrorCode errorCode) {
         val errorMessage = anAlphabeticString(10);
 
@@ -613,6 +632,7 @@ class ShowcaseApiControllerCT {
 
     @ParameterizedTest
     @MethodSource("commandAvailabilityFailures")
+    @DisplayName("Finishing a showcase on an availability failure responds with service unavailable and a problem")
     void finishShowcase_availabilityFailure_respondsWithServiceUnavailableStatusAndProblemInBody(Exception error) {
         given(showcaseCommandOperations.finish(any())).willReturn(Mono.error(error));
 
@@ -634,6 +654,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Finishing a showcase with an aborted request responds with request timeout status and an empty body")
     void finishShowcase_abortedRequest_respondsWithRequestTimeoutStatusAndEmptyBody() {
         given(showcaseCommandOperations.finish(any())).willReturn(Mono.error(
                 new AbortedException(anAlphabeticString(10))));
@@ -651,6 +672,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Finishing a showcase with a timeout responds with accepted status")
     void finishShowcase_timeout_respondsWithAcceptedStatus() {
         val showcaseId = aShowcaseId();
 
@@ -667,6 +689,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Removing a showcase responds with OK status and an empty body")
     void removeShowcase_success_respondsWithOkStatusAndEmptyBody() {
         val showcaseId = aShowcaseId();
 
@@ -691,6 +714,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Removing a showcase with an invalid showcase ID responds with bad request and a problem in the body")
     void removeShowcase_invalidShowcaseId_respondsWithBadRequestStatusAndProblemInBody() {
         webClient.delete()
                  .uri("/showcases/{showcaseId}", anInvalidShowcaseId())
@@ -712,6 +736,7 @@ class ShowcaseApiControllerCT {
 
     @ParameterizedTest
     @EnumSource(ShowcaseCommandErrorCode.class)
+    @DisplayName("Removing a showcase with a command failure responds with the related status and a problem")
     void removeShowcase_commandFailure_respondsWithRelatedStatusAndProblemInBody(ShowcaseCommandErrorCode errorCode) {
         val errorMessage = anAlphabeticString(10);
 
@@ -748,6 +773,7 @@ class ShowcaseApiControllerCT {
 
     @ParameterizedTest
     @MethodSource("commandAvailabilityFailures")
+    @DisplayName("Removing a showcase on an availability failure responds with service unavailable and a problem")
     void removeShowcase_availabilityFailure_respondsWithServiceUnavailableStatusAndProblemInBody(Exception error) {
         given(showcaseCommandOperations.remove(any())).willReturn(Mono.error(error));
 
@@ -769,6 +795,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Removing a showcase with an aborted request responds with request timeout status and an empty body")
     void removeShowcase_abortedRequest_respondsWithRequestTimeoutStatusAndEmptyBody() {
         given(showcaseCommandOperations.remove(any())).willReturn(Mono.error(
                 new AbortedException(anAlphabeticString(10))));
@@ -786,6 +813,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Removing a showcase with a timeout responds with accepted status")
     void removeShowcase_timeout_respondsWithAcceptedStatus() {
         val showcaseId = aShowcaseId();
 
@@ -802,6 +830,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Fetching the list puts showcases into caches and responds with OK status and showcases in the body")
     void fetchShowcaseList_success_putShowcasesIntoCachesAndRespondsWithOkStatusAndShowcasesInBody() {
         val showcases = showcases();
         val query = FetchShowcaseListQuery.builder().build();
@@ -839,6 +868,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Fetching the list with an invalid afterId responds with bad request status and a problem in the body")
     void fetchShowcaseList_invalidAfterId_respondsWithBadRequestStatusAndProblemInBody() {
         webClient.get()
                  .uri(uriBuilder -> uriBuilder.path("/showcases")
@@ -866,6 +896,7 @@ class ShowcaseApiControllerCT {
 
     @ParameterizedTest
     @ValueSource(ints = { FetchShowcaseListQuery.MIN_SIZE - 1, FetchShowcaseListQuery.MAX_SIZE + 1 })
+    @DisplayName("Fetching the list with an invalid size responds with bad request status and a problem in the body")
     void fetchShowcaseList_invalidSize_respondsWithBadRequestStatusAndProblemInBody(int size) {
         webClient.get()
                  .uri(uriBuilder -> uriBuilder.path("/showcases")
@@ -893,6 +924,7 @@ class ShowcaseApiControllerCT {
 
     @Test
     @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("Fetching the list with a fallback cache hit logs the failure and responds with the cached result")
     void fetchShowcaseList_fallbackFetchShowcaseListCacheHit_logsFailureAndRespondsWithCachedResult(
             CapturedOutput output) {
         val showcases = showcases();
@@ -944,6 +976,7 @@ class ShowcaseApiControllerCT {
 
     @Test
     @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("Fetching the list with a fallback cache miss responds with service unavailable and a problem")
     void fetchShowcaseList_fallbackFetchShowcaseListCacheMiss_respondsWithServiceUnavailableStatusAndProblemInBody(
             CapturedOutput output) {
         val query = FetchShowcaseListQuery.builder().build();
@@ -987,6 +1020,7 @@ class ShowcaseApiControllerCT {
 
     @Test
     @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("Fetching the list on a fallback fetch-by-ID cache miss fails with service unavailable")
     void fetchShowcaseList_fallbackFetchShowcaseByIdCacheMiss_respondsWithServiceUnavailableStatusAndProblemInBody(
             CapturedOutput output) {
         val query = FetchShowcaseListQuery.builder().build();
@@ -1033,6 +1067,7 @@ class ShowcaseApiControllerCT {
 
     @ParameterizedTest
     @EnumSource(ShowcaseQueryErrorCode.class)
+    @DisplayName("Fetching the list with a query failure responds with the related status and a problem in the body")
     void fetchShowcaseList_queryFailure_respondsWithRelatedStatusAndProblemInBody(ShowcaseQueryErrorCode errorCode) {
         val errorMessage = anAlphabeticString(10);
 
@@ -1073,6 +1108,7 @@ class ShowcaseApiControllerCT {
 
     @ParameterizedTest
     @MethodSource("queryAvailabilityFailures")
+    @DisplayName("Fetching the list on an availability failure responds with service unavailable and a problem")
     void fetchShowcaseList_availabilityFailure_respondsWithRelatedStatusAndProblemInBody(Exception error) {
         given(showcaseQueryOperations.fetchList(any())).willReturn(Flux.error(error));
 
@@ -1101,6 +1137,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Fetching the list with a timeout responds with gateway timeout and a problem in the body")
     void fetchShowcaseList_timeout_respondsWithGatewayTimeoutAndProblemInBody() {
         given(showcaseQueryOperations.fetchList(any())).willReturn(Flux.error(new TimeoutException()));
 
@@ -1129,6 +1166,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Fetching by ID puts the showcase into cache and responds with OK status and the showcase in the body")
     void fetchShowcaseById_success_putsShowcaseIntoCacheAndRespondsWithOkStatusAndShowcaseInBody() {
         val showcase = aShowcase();
         val query = FetchShowcaseByIdQuery
@@ -1160,6 +1198,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Fetching by ID with an invalid showcase ID responds with bad request and a problem in the body")
     void fetchShowcaseById_invalidShowcaseId_respondsWithBadRequestStatusAndProblemInBody() {
         webClient.get()
                  .uri("/showcases/{showcaseId}", anInvalidShowcaseId())
@@ -1184,6 +1223,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Fetching by ID with a non-existing showcase responds with not-found status and a problem in the body")
     void fetchShowcaseById_nonExistingShowcase_respondsWithNotFoundStatusAndProblemInBody() {
         val showcaseId = aShowcaseId();
         val query = FetchShowcaseByIdQuery
@@ -1221,6 +1261,7 @@ class ShowcaseApiControllerCT {
 
     @Test
     @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("Fetching by ID with a fallback cache hit logs the failure and responds with the cached result")
     void fetchShowcaseById_fallbackFetchShowcaseByCacheHit_logsFailureAndRespondsWithCachedResult(
             CapturedOutput output) {
         val showcase = aShowcase();
@@ -1266,6 +1307,7 @@ class ShowcaseApiControllerCT {
 
     @Test
     @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("Fetching by ID with a fallback cache miss responds with service unavailable and a problem")
     void fetchShowcaseById_fallbackFetchShowcaseByIdCacheMiss_respondsWithServiceUnavailableStatusAndProblemInBody(
             CapturedOutput output) {
         val showcaseId = aShowcaseId();
@@ -1313,6 +1355,7 @@ class ShowcaseApiControllerCT {
 
     @ParameterizedTest
     @EnumSource(ShowcaseQueryErrorCode.class)
+    @DisplayName("Fetching by ID with a query failure responds with the related status and a problem in the body")
     void fetchShowcaseById_queryFailure_respondsWithRelatedStatusAndProblemInBody(ShowcaseQueryErrorCode errorCode) {
         val query = FetchShowcaseByIdQuery
                             .builder()
@@ -1355,6 +1398,7 @@ class ShowcaseApiControllerCT {
 
     @ParameterizedTest
     @MethodSource("queryAvailabilityFailures")
+    @DisplayName("Fetching by ID on an availability failure responds with service unavailable and a problem")
     void fetchShowcaseById_availabilityFailure_respondsWithRelatedStatusAndProblemInBody(Exception error) {
         val showcaseId = aShowcaseId();
         val query = FetchShowcaseByIdQuery
@@ -1387,6 +1431,7 @@ class ShowcaseApiControllerCT {
     }
 
     @Test
+    @DisplayName("Fetching by ID with a timeout responds with gateway timeout and a problem in the body")
     void fetchShowcaseById_timeout_respondsWithGatewayTimeoutAndProblemInBody() {
         val showcaseId = aShowcaseId();
         val query = FetchShowcaseByIdQuery

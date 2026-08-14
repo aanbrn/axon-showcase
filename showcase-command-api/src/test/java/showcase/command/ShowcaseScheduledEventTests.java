@@ -1,6 +1,7 @@
 package showcase.command;
 
 import lombok.val;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -14,9 +15,11 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseScheduledAt;
 import static showcase.command.RandomCommandTestUtils.aShowcaseStartTime;
 import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 
+@DisplayName("Showcase scheduled event tests")
 class ShowcaseScheduledEventTests {
 
     @Test
+    @DisplayName("An event with all params specified creates an instance with all fields set")
     void construction_allParamsSpecified_createsInstanceWithAllFieldsSet() {
         val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
@@ -43,6 +46,7 @@ class ShowcaseScheduledEventTests {
     }
 
     @Test
+    @DisplayName("An event without a showcase ID throws a null pointer exception")
     void construction_missingShowcaseId_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
@@ -57,6 +61,7 @@ class ShowcaseScheduledEventTests {
     }
 
     @Test
+    @DisplayName("An event without a title throws a null pointer exception")
     void construction_missingTitle_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
@@ -71,6 +76,7 @@ class ShowcaseScheduledEventTests {
     }
 
     @Test
+    @DisplayName("An event without a start time throws a null pointer exception")
     void construction_missingStartTime_throwsNullPointerException() {
         assertThatNullPointerException().isThrownBy(
                 () -> ShowcaseScheduledEvent
@@ -83,6 +89,7 @@ class ShowcaseScheduledEventTests {
     }
 
     @Test
+    @DisplayName("An event without a duration throws a null pointer exception")
     void construction_missingDuration_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
@@ -97,6 +104,7 @@ class ShowcaseScheduledEventTests {
     }
 
     @Test
+    @DisplayName("An event without a scheduled-at time throws a null pointer exception")
     void construction_missingScheduledAt_throwsNullPointerException() {
         assertThatNullPointerException().isThrownBy(
                 () -> ShowcaseScheduledEvent

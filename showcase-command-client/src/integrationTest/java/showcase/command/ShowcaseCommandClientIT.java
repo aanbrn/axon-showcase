@@ -3,6 +3,7 @@ package showcase.command;
 import lombok.val;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,7 @@ import static showcase.command.RandomCommandTestUtils.anInvalidShowcaseId;
 @DirtiesContext
 @Testcontainers(parallel = true)
 @ExtendWith(OutputCaptureExtension.class)
+@DisplayName("Showcase command client integration tests")
 class ShowcaseCommandClientIT {
 
     static final Network network = Network.newNetwork();
@@ -109,6 +111,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with a valid command succeeds")
     void scheduleShowcase_validCommand_succeeds() {
         val scheduleCommand =
                 ScheduleShowcaseCommand
@@ -126,6 +129,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Scheduling the same command repeatedly succeeds")
     void scheduleShowcase_repeatedSchedule_succeeds() {
         val scheduleCommand =
                 ScheduleShowcaseCommand
@@ -143,6 +147,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with an invalid command fails with an invalid-command error")
     void scheduleShowcase_invalidCommand_failsWithInvalidCommandError() {
         val invalidScheduleCommand =
                 ScheduleShowcaseCommand
@@ -174,6 +179,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Scheduling an already removed showcase fails with an illegal-state error")
     void scheduleShowcase_alreadyRemoved_failsWithIllegalStateError() {
         val showcaseId = aShowcaseId();
         val now = Instant.now();
@@ -220,6 +226,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with a reused title fails with a title-in-use error")
     void scheduleShowcase_reusedTitle_failsWithTitleInUseError() {
         val title = aShowcaseTitle();
         val now = Instant.now();
@@ -259,6 +266,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Starting a scheduled showcase succeeds")
     void startShowcase_scheduledShowcase_succeeds() {
         val showcaseId = aShowcaseId();
 
@@ -282,6 +290,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Starting the same showcase repeatedly succeeds")
     void startShowcase_repeatedStart_succeeds() {
         val showcaseId = aShowcaseId();
 
@@ -308,6 +317,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Starting a finished showcase fails with an illegal-state error")
     void startShowcase_finishedShowcase_failsWithIllegalStateError() {
         val showcaseId = aShowcaseId();
 
@@ -357,6 +367,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Starting a non-existing showcase fails with a not-found error")
     void startShowcase_nonExistingShowcase_failsWithNotFoundError() {
         val showcaseId = aShowcaseId();
 
@@ -382,6 +393,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Starting a showcase with an invalid command fails with an invalid-command error")
     void startShowcase_invalidCommand_failsWithInvalidCommandError() {
         val invalidStartCommand =
                 StartShowcaseCommand
@@ -410,6 +422,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Finishing a started showcase succeeds")
     void finishShowcase_startedShowcase_succeeds() {
         val showcaseId = aShowcaseId();
 
@@ -440,6 +453,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Finishing the same showcase repeatedly succeeds")
     void finishShowcase_repeatedFinish_succeeds() {
         val showcaseId = aShowcaseId();
 
@@ -477,6 +491,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Finishing a not-started showcase fails with an illegal-state error")
     void finishShowcase_notStartedShowcase_failsWithIllegalStateError() {
         val showcaseId = aShowcaseId();
 
@@ -512,6 +527,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Finishing a non-existing showcase fails with a not-found error")
     void finishShowcase_nonExistingShowcase_failsWithNotFoundError() {
         val showcaseId = aShowcaseId();
 
@@ -537,6 +553,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Finishing a showcase with an invalid command fails with an invalid-command error")
     void finishShowcase_invalidCommand_failsWithInvalidCommandError() {
         val invalidFinishCommand =
                 FinishShowcaseCommand
@@ -565,6 +582,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Removing an existing showcase succeeds")
     void removeShowcase_existingShowcase_succeeds() {
         val showcaseId = aShowcaseId();
 
@@ -588,6 +606,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Removing the same showcase repeatedly succeeds")
     void removeShowcase_repeatedRemove_succeeds() {
         val showcaseId = aShowcaseId();
 
@@ -614,6 +633,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Removing a non-existing showcase succeeds")
     void removeShowcase_nonExistingShowcase_succeeds() {
         val showcaseId = aShowcaseId();
 
@@ -627,6 +647,7 @@ class ShowcaseCommandClientIT {
     }
 
     @Test
+    @DisplayName("Removing a showcase with an invalid command fails with an invalid-command error")
     void removeShowcase_invalidCommand_failsWithInvalidCommandError() {
         val invalidRemoveCommand =
                 RemoveShowcaseCommand

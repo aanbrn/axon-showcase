@@ -8,6 +8,7 @@ import org.axonframework.queryhandling.GenericStreamingQueryMessage;
 import org.axonframework.serialization.Revision;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.serialization.json.JacksonSerializer;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -18,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static showcase.test.RandomTestUtils.anAlphabeticString;
 
+@DisplayName("Query message request mapper component tests")
 class QueryMessageRequestMapperCT {
 
     private record Payload(String value) {
@@ -46,6 +48,7 @@ class QueryMessageRequestMapperCT {
 
     @ParameterizedTest
     @MethodSource("payloadAndMetaDataAndResponseType")
+    @DisplayName("Mapping a query message to a request preserves its payload, metadata, and response type")
     void messageToRequest(Object payload, MetaData metaData, Class<?> responseType) {
         val message = new GenericStreamingQueryMessage<>(payload, responseType).withMetaData(metaData);
 
@@ -70,6 +73,7 @@ class QueryMessageRequestMapperCT {
 
     @ParameterizedTest
     @MethodSource("payloadAndMetaDataAndResponseType")
+    @DisplayName("Mapping a request to a query message preserves its payload, metadata, and response type")
     void requestToMessage(Object payload, MetaData metaData, Class<?> responseType) throws Exception {
         val serializedPayload = messageSerializer.serialize(payload, byte[].class);
         val serializedMetaData = messageSerializer.serialize(metaData, byte[].class);

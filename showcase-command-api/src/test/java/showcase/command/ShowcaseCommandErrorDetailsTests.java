@@ -1,6 +1,7 @@
 package showcase.command;
 
 import lombok.val;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -8,9 +9,11 @@ import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static showcase.command.RandomCommandTestUtils.aShowcaseCommandErrorCode;
 import static showcase.command.RandomCommandTestUtils.aShowcaseCommandErrorMessage;
 
+@DisplayName("Showcase command error details tests")
 class ShowcaseCommandErrorDetailsTests {
 
     @Test
+    @DisplayName("Error details with all params specified create an instance with all fields set")
     void construction_allParamsSpecified_createsInstanceWithAllFieldsSet() {
         val errorCode = aShowcaseCommandErrorCode();
         val errorMessage = aShowcaseCommandErrorMessage();
@@ -27,6 +30,7 @@ class ShowcaseCommandErrorDetailsTests {
     }
 
     @Test
+    @DisplayName("Error details without an error code throw a null pointer exception")
     void construction_missingErrorCode_throwsNullPointerException() {
         assertThatNullPointerException().isThrownBy(
                 () -> ShowcaseCommandErrorDetails
@@ -36,6 +40,7 @@ class ShowcaseCommandErrorDetailsTests {
     }
 
     @Test
+    @DisplayName("Error details without an error message throw a null pointer exception")
     void construction_missingErrorMessage_throwsNullPointerException() {
         assertThatNullPointerException().isThrownBy(
                 () -> ShowcaseCommandErrorDetails

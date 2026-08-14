@@ -3,6 +3,7 @@ package showcase.command;
 import lombok.val;
 import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -32,6 +33,7 @@ import static showcase.command.ShowcaseCommandMatchers.aCommandErrorDetailsWithE
 import static showcase.command.ShowcaseCommandMatchers.aCommandErrorDetailsWithMetaData;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("Showcase aggregate component tests")
 class ShowcaseAggregateCT {
 
     private AggregateTestFixture<ShowcaseAggregate> fixture;
@@ -47,6 +49,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with a valid command emits a scheduled event and updates state")
     void scheduleShowcase_validCommand_emitsShowcaseScheduledEvent_updatesState() {
         val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
@@ -83,6 +86,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Scheduling a duplicated showcase executes successfully and emits no events")
     void scheduleShowcase_duplicatedSchedule_executesHandlerSuccessfully_emitsNoEvents() {
         val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
@@ -118,6 +122,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with an invalid command throws an exception with an invalid-command error")
     void scheduleShowcase_invalidCommand_throwsShowcaseCommandExceptionWithInvalidCommandError() {
         fixture.givenNoPriorActivity()
                .when(ScheduleShowcaseCommand
@@ -140,6 +145,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with a reused showcase ID throws an exception with an illegal-state error")
     void scheduleShowcase_reusedShowcaseId_throwsShowcaseCommandExceptionWithIllegalStateError() {
         val showcaseId = aShowcaseId();
 
@@ -168,6 +174,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Scheduling a showcase with a reused title throws an exception with a title-in-use error")
     void scheduleShowcase_reusedTitle_throwsShowcaseCommandExceptionWithTitleInUseError() {
         val command = aScheduleShowcaseCommand(fixture.currentTime());
 
@@ -186,6 +193,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Scheduling an already removed showcase throws an exception with an illegal-state error")
     void scheduleShowcase_alreadyRemoved_throwsShowcaseCommandExceptionWithIllegalStateError() {
         val showcaseId = aShowcaseId();
 
@@ -219,6 +227,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Starting a showcase with a valid command emits a started event and updates state")
     void startShowcase_validCommand_emitsShowcaseStartedEvent_updatesState() {
         val showcaseId = aShowcaseId();
         val startTime = aShowcaseStartTime(fixture.currentTime());
@@ -252,6 +261,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Starting an already started showcase succeeds with no events")
     void startShowcase_alreadyStartedShowcase_succeedsWithNoEvents() {
         val showcaseId = aShowcaseId();
         val startTime = aShowcaseStartTime(fixture.currentTime());
@@ -280,6 +290,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Starting a showcase with an invalid command throws an exception with an invalid-command error")
     void startShowcase_invalidCommand_throwsShowcaseCommandExceptionWithInvalidCommandError() {
         fixture.givenNoPriorActivity()
                .when(StartShowcaseCommand
@@ -293,6 +304,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Starting a finished showcase throws an exception with an illegal-state error")
     void startShowcase_finishedShowcase_throwsShowcaseCommandExceptionWithIllegalStateError() {
         val showcaseId = aShowcaseId();
         val startTime = aShowcaseStartTime(fixture.currentTime());
@@ -334,6 +346,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Starting a non-existing showcase throws an exception with a not-found error")
     void startShowcase_nonExistingShowcase_throwsShowcaseCommandExceptionWithInvalidCommandError() {
         fixture.givenNoPriorActivity()
                .when(StartShowcaseCommand
@@ -348,6 +361,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Finishing a showcase with a valid command emits a finished event and updates state")
     void finishShowcase_validCommand_emitsShowcaseFinishedEvent_updatesState() {
         val showcaseId = aShowcaseId();
         val startTime = aShowcaseStartTime(fixture.currentTime());
@@ -386,6 +400,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Finishing an already finished showcase succeeds with no events")
     void finishShowcase_alreadyFinishedShowcase_succeedsWithNoEvents() {
         val showcaseId = aShowcaseId();
 
@@ -411,6 +426,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Finishing a showcase with an invalid command throws an exception with an invalid-command error")
     void finishShowcase_invalidCommand_throwsShowcaseCommandExceptionWithInvalidCommandError() {
         fixture.givenNoPriorActivity()
                .when(FinishShowcaseCommand
@@ -424,6 +440,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Finishing a non-existing showcase throws an exception with a not-found error")
     void finishShowcase_nonExistingShowcase_throwsShowcaseCommandExceptionWithInvalidCommandError() {
         fixture.givenNoPriorActivity()
                .when(FinishShowcaseCommand
@@ -438,6 +455,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Finishing a not-started showcase throws an exception with an illegal-state error")
     void finishShowcase_notStartedShowcase_throwsShowcaseCommandExceptionWithIllegalStateError() {
         val showcaseId = aShowcaseId();
 
@@ -464,6 +482,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Removing a scheduled showcase emits a removed event and marks it deleted")
     void removeShowcase_scheduledShowcase_emitsShowcaseRemovedEvent_marksDeleted() {
         val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
@@ -493,6 +512,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Removing a started showcase finishes it, emits a removed event, updates state, and marks it deleted")
     void removeShowcase_startedShowcase_emitsShowcaseFinishedEvent_publishesShowcaseRemovedEvent_updatesState_marksDeleted() {
         val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
@@ -542,6 +562,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Removing a finished showcase emits a removed event and marks it deleted")
     void removeShowcase_finishedShowcase_emitsShowcaseRemovedEvent_marksDeleted() {
         val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
@@ -586,6 +607,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Removing an already removed showcase succeeds with no events")
     void removeShowcase_alreadyRemovedShowcase_succeedsWithNoEvents() {
         val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
@@ -629,6 +651,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Removing a non-existing showcase succeeds with no events")
     void removeShowcase_nonExistingShowcase_succeedsWithNoEvents() {
         fixture.givenNoPriorActivity()
                .when(RemoveShowcaseCommand
@@ -640,6 +663,7 @@ class ShowcaseAggregateCT {
     }
 
     @Test
+    @DisplayName("Removing a showcase with an invalid command throws an exception with an invalid-command error")
     void removeShowcase_invalidCommand_throwsShowcaseCommandExceptionWithInvalidCommandError() {
         fixture.givenNoPriorActivity()
                .when(RemoveShowcaseCommand

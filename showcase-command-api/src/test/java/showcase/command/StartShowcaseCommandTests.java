@@ -2,6 +2,7 @@ package showcase.command;
 
 import jakarta.validation.Validation;
 import lombok.val;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import showcase.identifier.KSUID;
 
@@ -10,9 +11,11 @@ import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.command.RandomCommandTestUtils.anInvalidShowcaseId;
 
+@DisplayName("Start showcase command tests")
 class StartShowcaseCommandTests {
 
     @Test
+    @DisplayName("A command with all params specified creates an instance with all fields set")
     void construction_allParamsSpecified_createsInstanceWithAllFieldsSet() {
         val showcaseId = aShowcaseId();
 
@@ -26,11 +29,13 @@ class StartShowcaseCommandTests {
     }
 
     @Test
+    @DisplayName("A command without a showcase ID throws a null pointer exception")
     void construction_missingShowcaseId_throwsNullPointerException() {
         assertThatNullPointerException().isThrownBy(() -> StartShowcaseCommand.builder().build());
     }
 
     @Test
+    @DisplayName("A command with a valid showcase ID detects no constraint violations")
     void validation_allFieldsValid_detectsNoConstraintViolations() {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();
@@ -44,6 +49,7 @@ class StartShowcaseCommandTests {
     }
 
     @Test
+    @DisplayName("An invalid showcase ID detects a showcase ID constraint violation")
     void validation_invalidShowcaseId_detectsShowcaseIdConstraintViolation() {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();

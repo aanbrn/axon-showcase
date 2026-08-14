@@ -41,6 +41,7 @@ class ShowcaseEntityMappingCT {
         assertThat(mapping.at("/properties/startTime/type").asText()).isEqualTo("date_nanos");
         assertThat(mapping.at("/properties/startTime/format").asText()).isEqualTo("strict_date_optional_time_nanos");
         assertThat(mapping.at("/properties/status/type").asText()).isEqualTo("keyword");
+        assertThat(mapping.at("/properties/duration/type").asText()).isEqualTo("keyword");
         assertThat(mapping.at("/properties/scheduledAt/type").asText()).isEqualTo("date_nanos");
         assertThat(mapping.at("/properties/scheduledAt/format").asText()).isEqualTo("strict_date_optional_time_nanos");
         assertThat(mapping.at("/properties/startedAt/type").asText()).isEqualTo("date_nanos");
@@ -56,8 +57,8 @@ class ShowcaseEntityMappingCT {
         val properties = objectMapper.readTree(new MappingBuilder(converter).buildPropertyMapping(ShowcaseEntity.class))
                                      .path("properties");
 
-        assertThat(properties.size()).isEqualTo(8);
+        assertThat(properties.size()).isEqualTo(9);
         assertThat(properties.has("_class")).isTrue();
-        assertThat(properties.has("duration")).isFalse();
+        assertThat(properties.has("duration")).isTrue();
     }
 }

@@ -57,6 +57,7 @@ public class ShowcaseEntity {
     /**
      * The duration after which the started showcase should be finished automatically.
      */
+    @Field(type = FieldType.Keyword)
     @Nullable
     Duration duration;
 

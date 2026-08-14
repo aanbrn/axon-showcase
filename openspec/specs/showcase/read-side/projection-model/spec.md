@@ -25,14 +25,14 @@ The system SHALL store the read-model document in the OpenSearch index named `sh
 
 ### Requirement: Field mapping
 
-The system SHALL map the document fields with the following OpenSearch types and formats: `showcaseId` and `status` as
-`keyword`, `title` as `text`, and `startTime`, `scheduledAt`, `startedAt`, and `finishedAt` as `date_nanos` with the
-`strict_date_optional_time_nanos` format. The `duration` field SHALL not be mapped.
+The system SHALL map the document fields with the following OpenSearch types and formats: `showcaseId`, `status`, and
+`duration` as `keyword`, `title` as `text`, and `startTime`, `scheduledAt`, `startedAt`, and `finishedAt` as `date_nanos`
+with the `strict_date_optional_time_nanos` format.
 
-#### Scenario: Identifier and status map as keyword
+#### Scenario: Identifier, status, and duration map as keyword
 
-- **WHEN** the mapping of the `showcaseId` and `status` fields is inspected
-- **THEN** both are mapped with type `keyword`
+- **WHEN** the mapping of the `showcaseId`, `status`, and `duration` fields is inspected
+- **THEN** all three are mapped with type `keyword`
 
 #### Scenario: Title maps as text
 
@@ -44,10 +44,10 @@ The system SHALL map the document fields with the following OpenSearch types and
 - **WHEN** the mapping of the `startTime`, `scheduledAt`, `startedAt`, and `finishedAt` fields is inspected
 - **THEN** each is mapped with type `date_nanos` and format `strict_date_optional_time_nanos`
 
-#### Scenario: Duration is not mapped
+#### Scenario: Type-hint class property is present
 
 - **WHEN** the mapping of the document is inspected
-- **THEN** the `duration` field is not present, while the type-hint `_class` property is present
+- **THEN** the type-hint `_class` property is present
 
 ### Requirement: Jackson serialization contract
 

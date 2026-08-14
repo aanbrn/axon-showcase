@@ -29,9 +29,8 @@ testing {
             dependencies {
                 implementation(project())
                 implementation(project(":showcase-test"))
-                implementation(testFixtures(project(":showcase-projection-model")))
+                implementation(testFixtures(project(":showcase-command-api")))
                 implementation(testFixtures(project(":showcase-query-api")))
-                implementation(testFixtures(project(":showcase-query-proto")))
             }
         }
 
@@ -81,6 +80,8 @@ testing {
 
         register<JvmTestSuite>("integrationTest") {
             dependencies {
+                implementation(project(":showcase-projection-model"))
+
                 implementation(libs.axon.springBoot.starter) {
                     exclude(
                         group = libs.axon.serverConnector.get().group,

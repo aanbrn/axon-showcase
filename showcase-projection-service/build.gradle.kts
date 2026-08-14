@@ -55,7 +55,6 @@ testing {
                 implementation(project())
                 implementation(project(":showcase-test"))
                 implementation(testFixtures(project(":showcase-command-api")))
-                implementation(testFixtures(project(":showcase-projection-model")))
             }
         }
 
@@ -63,6 +62,8 @@ testing {
 
         register<JvmTestSuite>("integrationTest") {
             dependencies {
+                implementation(project(":showcase-projection-model"))
+
                 implementation(libs.axon.extensions.kafka)
                 implementation(libs.axon.test)
                 implementation(libs.spring.boot.starter.test)

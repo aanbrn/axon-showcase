@@ -56,9 +56,8 @@ testing {
             dependencies {
                 implementation(project())
                 implementation(project(":showcase-test"))
-                implementation(testFixtures(project(":showcase-projection-model")))
+                implementation(testFixtures(project(":showcase-command-api")))
                 implementation(testFixtures(project(":showcase-query-api")))
-                implementation(testFixtures(project(":showcase-query-proto")))
             }
         }
 
@@ -66,6 +65,9 @@ testing {
 
         register<JvmTestSuite>("integrationTest") {
             dependencies {
+                implementation(project(":showcase-projection-model"))
+                implementation(project(":showcase-query-proto"))
+
                 implementation(libs.axon.test)
                 implementation(libs.reactor.test)
                 implementation(libs.spring.boot.starter.test)

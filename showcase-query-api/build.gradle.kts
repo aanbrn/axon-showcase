@@ -18,7 +18,17 @@ dependencies {
 
     implementation(libs.commons.lang3)
 
-    testFixturesApi(testFixtures(project(":showcase-command-api")))
+    testFixturesImplementation(testFixtures(project(":showcase-command-api")))
 
     testFixturesImplementation(project(":showcase-test"))
+}
+
+testing {
+    suites {
+        withType<JvmTestSuite> {
+            dependencies {
+                implementation(testFixtures(project(":showcase-command-api")))
+            }
+        }
+    }
 }

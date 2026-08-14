@@ -13,8 +13,4 @@ dependencies {
             module = libs.opensearch.client.restHighLevel.get().name
         )
     }
-
-    testFixturesApi(testFixtures(project(":showcase-command-api")))
-
-    testFixturesImplementation(project(":showcase-test"))
 }

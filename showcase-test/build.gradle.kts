@@ -12,4 +12,6 @@ dependencies {
     api(libs.junit.jupiter.api)
 
     implementation(libs.axon.extensions.kafka)
+
+    testImplementation(libs.mockito.core)
 }

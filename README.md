@@ -86,9 +86,9 @@ This starts all infrastructure and application services:
 - **Apache Kafka** — event streaming
 - **Kafka Init** — creates the `axon-showcase-events` topic
 - **API Gateway** — REST entry point (port 8080, debug 8000)
-- **Command Service** — write side (port 8001)
-- **Query Service** — read side (port 8002)
-- **Projection Service** — event handlers (port 8003)
+- **Command Service** — write side (debug 8001)
+- **Query Service** — read side (debug 8002)
+- **Projection Service** — event handlers (debug 8003)
 
 Application images must be built first (`./gradlew bootBuildImage`) or set `PROJECT_VERSION` accordingly.
 
@@ -170,7 +170,7 @@ curl -X POST http://localhost:8080/showcases \
   -d '{
     "title": "My Showcase",
     "startTime": "2026-08-01T10:00:00Z",
-    "duration": "PT2H"
+    "duration": "PT5M30S"
   }'
 ```
 
@@ -210,7 +210,7 @@ Dispatches an Axon query and returns the first response. Used internally by the
 query-client for inter-service communication (`application/protobuf` body).
 
 ```bash
-curl -X POST http://localhost:8082/query \
+curl -X POST http://localhost:8083/query \
   -H "Content-Type: application/x-protobuf" \
   -d '<serialized QueryRequest>'
 ```
@@ -221,7 +221,7 @@ Dispatches an Axon query and returns the full response stream. Used internally b
 query-client for inter-service communication (`application/protobuf` body).
 
 ```bash
-curl -X POST http://localhost:8082/streaming-query \
+curl -X POST http://localhost:8083/streaming-query \
   -H "Content-Type: application/x-protobuf" \
   -d '<serialized QueryRequest>'
 ```

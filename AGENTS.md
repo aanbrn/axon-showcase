@@ -172,14 +172,19 @@ docker compose up -d
 
 # Run services individually (each on separate port)
 ./gradlew :showcase-api-gateway:bootRun        # :8080
-./gradlew :showcase-command-service:bootRun     # :8001
-./gradlew :showcase-query-service:bootRun       # :8002
-./gradlew :showcase-projection-service:bootRun  # :8003
+./gradlew :showcase-command-service:bootRun     # :8081
+./gradlew :showcase-query-service:bootRun       # :8083
+./gradlew :showcase-projection-service:bootRun  # :8082
 ```
 
 Docker Compose (`docker-compose.yml`) starts all infrastructure **and** the Java services (using pre-built Docker images
 `aanbrn/axon-showcase-*:${PROJECT_VERSION}`). Build the images first (`./gradlew bootBuildImage`) or set
 `PROJECT_VERSION` accordingly. To run services from source instead, use `bootRun` as shown above.
+
+**Ports:** the HTTP ports (`server.port` in each service's `application.yml`) are the API Gateway `8080`, Command Service
+`8081`, Query Service `8083`, Projection Service `8082`. In `docker-compose.yml`, the published `8000`–`8003` mappings are
+**JVM debug ports** (`BPL_DEBUG_PORT`), not the services' HTTP ports — only the API Gateway publishes its HTTP port
+(`8080`); the other services' HTTP ports are reachable only via the Docker network or `bootRun`.
 
 The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wrap Docker Compose and set
 `PROJECT_VERSION` + image versions automatically (also `composeBuildAndUp`, `composeBuildAndRestart`):
@@ -188,7 +193,8 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
 ## Key Environment Variables
 
 - `DB_PASSWORD=showcase` — PostgreSQL password for command-service
-- `BPL_DEBUG_ENABLED=true` / `BPL_DEBUG_PORT=8000-8003` — Spring Boot Actuator debug
+- `BPL_DEBUG_ENABLED=true` / `BPL_DEBUG_PORT=8000-8003` — JVM debug (JDWP) agent ports (`8000`–`8003` are the published
+  debug ports in `docker-compose.yml`; see Local Development)
 - `THC_PATH=/actuator/health` — health check path
 - `JAVA_OPTS=-XX:MaxDirectMemorySize=128m -XX:MaxGCPauseMillis=20` — container JVM tuning
 

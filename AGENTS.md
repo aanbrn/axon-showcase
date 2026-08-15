@@ -9,6 +9,11 @@
 **axon-showcase** — a CQRS/Event Sourcing reference app using the Axon Framework. Java 21, Spring Boot 3.5.16, Gradle
 8.14.5 (Kotlin DSL), monorepo with 18 modules.
 
+This repo uses **spec-driven development**: behavior is captured as OpenSpec specs in `openspec/specs/showcase/`
+(organized by architectural role: `gateway`, `write-side`, `read-side`, `clients`, `platform`, `deployment`, `quality`).
+Code changes go through the `opsx-*` opencode commands / `openspec-*` skills (propose → apply → archive). Follow these
+workflows for new work, and treat the captured specs as the behavioral source of truth.
+
 ## Prerequisites
 
 - Java 21+
@@ -127,7 +132,8 @@ Each boot service builds a Docker image:
 - `aanbrn/axon-showcase-query-service:${project.version}`
 - `aanbrn/axon-showcase-projection-service:${project.version}`
 
-Image names are set in each service's `bootBuildImage` task configuration.
+Image names are set in each service's `bootBuildImage` task configuration. To build for a non-default platform (e.g.,
+ARM64 host), pass `-PimagePlatform=linux/amd64` (supported by the `spring-boot-conventions` plugin).
 
 ## Kubernetes Deployment
 
@@ -174,6 +180,10 @@ docker compose up -d
 Docker Compose (`docker-compose.yml`) starts all infrastructure **and** the Java services (using pre-built Docker images
 `aanbrn/axon-showcase-*:${PROJECT_VERSION}`). Build the images first (`./gradlew bootBuildImage`) or set
 `PROJECT_VERSION` accordingly. To run services from source instead, use `bootRun` as shown above.
+
+The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wrap Docker Compose and set
+`PROJECT_VERSION` + image versions automatically (also `composeBuildAndUp`, `composeBuildAndRestart`):
+`./gradlew composeUp`, `./gradlew composeDown`.
 
 ## Key Environment Variables
 

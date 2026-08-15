@@ -6,6 +6,10 @@ Documents the behavior of the showcase query client: a reactive protobuf consume
 service's streaming and single-query endpoints, translating problem-detail errors, and protecting the service with
 Resilience4j time limiter, circuit breaker, and conditional retry over retryable HTTP status codes.
 
+**Contract source:** the endpoints, query types, and error codes this client calls are owned by the
+`read-side/query-service` spec — the endpoints `/streaming-query` and `/query`, the queries `FetchShowcaseListQuery` and
+`FetchShowcaseByIdQuery`, and the error codes `INVALID_QUERY`, `NOT_FOUND`.
+
 ## Requirements
 
 ### Requirement: Query operations and endpoints

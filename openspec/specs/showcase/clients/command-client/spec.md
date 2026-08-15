@@ -6,6 +6,11 @@ Documents the behavior of the showcase command client: a reactive wrapper dispat
 command service through the Axon reactor command gateway, translating business errors, and protecting the service with
 Resilience4j time limiter, circuit breaker, and conditional retry.
 
+**Contract source:** the commands and error codes this client dispatches and translates are owned by the
+`write-side/command-service` spec — the commands `ScheduleShowcaseCommand`, `StartShowcaseCommand`,
+`FinishShowcaseCommand`, `RemoveShowcaseCommand` and the error codes `ILLEGAL_STATE`, `NOT_FOUND`, `TITLE_IN_USE`,
+`INVALID_COMMAND`.
+
 ## Requirements
 
 ### Requirement: Command dispatch operations

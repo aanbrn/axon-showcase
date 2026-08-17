@@ -14,6 +14,11 @@ This repo uses **spec-driven development**: behavior is captured as OpenSpec spe
 Code changes go through the `opsx-*` opencode commands / `openspec-*` skills (propose → apply → archive). Follow these
 workflows for new work, and treat the captured specs as the behavioral source of truth.
 
+## OpenSpec Workflow Agreement
+
+**Never archive a change automatically after apply.** Stop after implementation, report, and let the user review the
+changes made and decide when (or whether) to archive.
+
 ## Prerequisites
 
 - Java 21+

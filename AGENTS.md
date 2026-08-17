@@ -126,6 +126,9 @@ Key modules (libraries, not services):
   `@DisplayName("Finishing a showcase with a valid command succeeds")`). Do not use `{0}`-style placeholders — named
   `argumentSet("...", ...)` invocations already render their own detail
 - **No comments** in source code (per project convention)
+- **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
+  arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
+  simplest construct that compiles and stays readable
 - **Formatting**: format edited files with the IntelliJ IDE formatter (Code → Reformat Code), not an external CLI
   formatter, so the result matches the project's configured code style. After each edit, run the IntelliJ formatter
   (`ReformatCodeProcessor`, plus `OptimizeImportsProcessor` for JVM sources) through the Steroid MCP

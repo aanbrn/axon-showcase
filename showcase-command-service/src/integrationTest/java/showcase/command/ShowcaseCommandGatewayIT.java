@@ -9,12 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
@@ -37,6 +35,7 @@ import static showcase.command.RandomCommandTestUtils.anInvalidShowcaseId;
 @SpringBootTest(webEnvironment = NONE)
 @Testcontainers(parallel = true)
 @DirtiesContext
+@TestPropertySource(properties = "axon.kafka.publisher.enabled=false")
 @DisplayName("Showcase command gateway integration tests")
 class ShowcaseCommandGatewayIT {
 
@@ -44,14 +43,6 @@ class ShowcaseCommandGatewayIT {
     @ServiceConnection
     static final PostgreSQLContainer<?> dbEvents =
             new PostgreSQLContainer<>("postgres:" + System.getProperty("postgres.image.version"));
-
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:" + System.getProperty("kafka.image.version"));
-
-    @DynamicPropertySource
-    static void kafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("axon.kafka.bootstrap-servers", kafka::getBootstrapServers);
-    }
 
     @Autowired
     CommandGateway commandGateway;

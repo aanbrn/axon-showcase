@@ -109,7 +109,8 @@ Key modules (libraries, not services):
 
 ## Conventions
 
-- **Lombok**: `addNullAnnotations = jspecify`; copyable annotations include `@Qualifier` and `@Value`
+- **Lombok**: use Lombok where possible (e.g., `@RequiredArgsConstructor`, `@Data`, `@Builder`, `@Value`) instead of
+  writing boilerplate manually; `addNullAnnotations = jspecify`; copyable annotations include `@Qualifier` and `@Value`
 - **MapStruct**: default component model is `spring` (`-Amapstruct.defaultComponentModel=spring`)
 - **ErrorProne**: NullAway on `showcase.*` packages in production code; disabled in `TestJava` tasks
 - **SpotBugs**: finds bugs with findsecbugs and fbContrib plugins; uses `spotbugs-include.xml` and

@@ -127,7 +127,9 @@ Key modules (libraries, not services):
   `argumentSet("...", ...)` invocations already render their own detail
 - **No comments** in source code (per project convention)
 - **Formatting**: format edited files with the IntelliJ IDE formatter (Code → Reformat Code), not an external CLI
-  formatter, so the result matches the project's configured code style
+  formatter, so the result matches the project's configured code style. After each edit, run the IntelliJ formatter
+  (`ReformatCodeProcessor`, plus `OptimizeImportsProcessor` for JVM sources) through the Steroid MCP
+  (`steroid_execute_code` against the open `axon-showcase` project) before reporting the change done
 
 ## Docker Images
 

@@ -66,7 +66,7 @@ class ShowcaseSagaDeadlinesIT {
         val startedFuture = new CompletableFuture<ShowcaseStartedEvent>();
         val finishedFuture = new CompletableFuture<ShowcaseFinishedEvent>();
 
-        val registration = eventBus.subscribe(events -> events.forEach(event -> {
+        try (val ignored = eventBus.subscribe(events -> events.forEach(event -> {
             val payload = event.getPayload();
             if (payload instanceof ShowcaseStartedEvent started && showcaseId.equals(started.showcaseId())) {
                 startedFuture.complete(started);
@@ -74,9 +74,7 @@ class ShowcaseSagaDeadlinesIT {
             if (payload instanceof ShowcaseFinishedEvent finished && showcaseId.equals(finished.showcaseId())) {
                 finishedFuture.complete(finished);
             }
-        }));
-
-        try {
+        }))) {
             commandGateway.sendAndWait(
                     ScheduleShowcaseCommand
                             .builder()
@@ -94,8 +92,6 @@ class ShowcaseSagaDeadlinesIT {
                             .get(duration.plusSeconds(60).toSeconds(), TimeUnit.SECONDS)
                             .finishedAt())
                     .isAfterOrEqualTo(startTime.plus(duration));
-        } finally {
-            registration.close();
         }
     }
 }

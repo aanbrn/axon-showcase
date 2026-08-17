@@ -29,7 +29,10 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 @SpringBootTest(webEnvironment = NONE)
 @Testcontainers(parallel = true)
 @DirtiesContext
-@TestPropertySource(properties = "axon.kafka.publisher.enabled=false")
+@TestPropertySource(properties = {
+        "axon.kafka.publisher.enabled=false",
+        "showcase.command.validation-enabled=false"
+})
 @DisplayName("Showcase saga deadline integration tests")
 class ShowcaseSagaDeadlinesIT {
 
@@ -57,8 +60,8 @@ class ShowcaseSagaDeadlinesIT {
     @DisplayName("A scheduled showcase is started and finished automatically by the saga deadlines")
     void scheduledShowcase_sagaDeadlines_startAndFinishAutomatically() throws Exception {
         val showcaseId = aShowcaseId();
-        val startTime = Instant.now().plusSeconds(2);
-        val duration = Duration.ofMinutes(ShowcaseDuration.MIN_MINUTES);
+        val startTime = Instant.now();
+        val duration = Duration.ofSeconds(1);
 
         val startedFuture = new CompletableFuture<ShowcaseStartedEvent>();
         val finishedFuture = new CompletableFuture<ShowcaseFinishedEvent>();

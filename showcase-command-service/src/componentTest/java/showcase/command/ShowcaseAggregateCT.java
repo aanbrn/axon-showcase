@@ -44,7 +44,7 @@ class ShowcaseAggregateCT {
     @BeforeEach
     void initFixture() {
         fixture = new AggregateTestFixture<>(ShowcaseAggregate.class);
-        fixture.registerCommandHandlerInterceptor(new ShowcaseCommandMessageInterceptor<>());
+        fixture.registerCommandHandlerInterceptor(new ShowcaseCommandMessageInterceptor<>(true));
         fixture.registerInjectableResource(showcaseTitleReservation);
     }
 

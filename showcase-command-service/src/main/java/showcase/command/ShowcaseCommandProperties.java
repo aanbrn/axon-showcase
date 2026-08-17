@@ -63,6 +63,11 @@ final class ShowcaseCommandProperties {
     private boolean exitAfterFlywayMigration;
 
     /**
+     * Whether command payloads are validated against bean validation constraints before handling.
+     */
+    private boolean validationEnabled = true;
+
+    /**
      * The aggregate cache configuration.
      */
     @NotNull

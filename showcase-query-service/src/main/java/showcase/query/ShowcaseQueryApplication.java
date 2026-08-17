@@ -54,7 +54,7 @@ class ShowcaseQueryApplication {
      * Creates the index initializer that creates the OpenSearch index with its mapping on startup.
      *
      * @param openSearchTemplate the OpenSearch template used to manage the index
-     * @param queryProperties the query service properties
+     * @param queryProperties    the query service properties
      * @param applicationContext the application context used to exit the JVM
      * @return an initializing bean creating the index
      */
@@ -101,13 +101,16 @@ class ShowcaseQueryApplication {
     /**
      * Registers the query message interceptor on the query bus.
      *
-     * @param queryBus the query bus to customize
+     * @param queryBus        the query bus to customize
+     * @param queryProperties the query service properties
      * @return an initializing bean registering the interceptor
      */
     @Bean
     @SuppressWarnings("resource")
-    InitializingBean queryBusCustomizer(QueryBus queryBus) {
-        return () -> queryBus.registerHandlerInterceptor(new ShowcaseQueryMessageInterceptor<>());
+    InitializingBean queryBusCustomizer(
+            QueryBus queryBus, ShowcaseQueryProperties queryProperties) {
+        return () -> queryBus.registerHandlerInterceptor(
+                new ShowcaseQueryMessageInterceptor<>(queryProperties.isValidationEnabled()));
     }
 
     /**
@@ -124,9 +127,9 @@ class ShowcaseQueryApplication {
     /**
      * Customizes the OpenSearch REST client with connection pool and idle-eviction settings.
      *
-     * @param maxConnections the total maximum connections, or {@code 0} to keep the default
+     * @param maxConnections         the total maximum connections, or {@code 0} to keep the default
      * @param maxConnectionsPerRoute the maximum connections per route
-     * @param evictIdleConnections the idle connection eviction duration
+     * @param evictIdleConnections   the idle connection eviction duration
      * @return the REST client builder customizer
      */
     @Bean

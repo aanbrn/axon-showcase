@@ -45,6 +45,7 @@ showcase:
   query:
     index-initialization-enabled: ${INDEX_INITIALIZATION_ENABLED:true}
     exit-after-index-initialization: ${EXIT_AFTER_INDEX_INITIALIZATION:false}
+    validation-enabled: ${SHOWCASE_QUERY_VALIDATION_ENABLED:true}
 
 server:
   port: 8083

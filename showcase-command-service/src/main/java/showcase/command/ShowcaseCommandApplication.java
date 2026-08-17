@@ -168,6 +168,7 @@ class ShowcaseCommandApplication {
      * monitor. Registers a message interceptor for command handling.
      *
      * @param axonConfiguration               the Axon configuration
+     * @param commandProperties               the command service properties
      * @param commandRouter                   the command router
      * @param commandBusConnector             the command bus connector
      * @param distributedCommandBusProperties the distributed command bus properties
@@ -176,8 +177,9 @@ class ShowcaseCommandApplication {
     @Bean
     @Primary
     @SuppressWarnings("resource")
-    public DistributedCommandBus distributedCommandBus(
+    DistributedCommandBus distributedCommandBus(
             Configuration axonConfiguration,
+            ShowcaseCommandProperties commandProperties,
             CommandRouter commandRouter,
             CommandBusConnector commandBusConnector,
             DistributedCommandBusProperties distributedCommandBusProperties) {
@@ -192,7 +194,8 @@ class ShowcaseCommandApplication {
                         .messageMonitor(messagedMonitor)
                         .build();
         commandBus.updateLoadFactor(distributedCommandBusProperties.getLoadFactor());
-        commandBus.registerHandlerInterceptor(new ShowcaseCommandMessageInterceptor<>());
+        commandBus.registerHandlerInterceptor(
+                new ShowcaseCommandMessageInterceptor<>(commandProperties.isValidationEnabled()));
         return commandBus;
     }
 
@@ -438,7 +441,7 @@ class ShowcaseCommandApplication {
                 return Optional.of(newFixedThreadPool(
                         dbSchedulerProperties.getThreads(),
                         Thread.ofVirtual()
-                              .name(Scheduler.THREAD_PREFIX, 0)
+                              .name(Scheduler.THREAD_PREFIX + "-", 0)
                               .factory()));
             }
         };

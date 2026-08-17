@@ -20,4 +20,9 @@ final class ShowcaseQueryProperties {
      * Whether to exit the JVM after the index is initialized (used in containers).
      */
     private boolean exitAfterIndexInitialization;
+
+    /**
+     * Whether query payloads are validated against bean validation constraints before handling.
+     */
+    private boolean validationEnabled = true;
 }

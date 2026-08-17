@@ -3,6 +3,7 @@ package showcase.command;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Path;
+import lombok.RequiredArgsConstructor;
 import lombok.val;
 import one.util.streamex.StreamEx;
 import org.axonframework.eventsourcing.AggregateDeletedException;
@@ -21,6 +22,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @param <T> the message type handled by this interceptor
  */
+@RequiredArgsConstructor
 final class ShowcaseCommandMessageInterceptor<T extends Message<?>> implements MessageHandlerInterceptor<T> {
     /**
      * The interceptor performing bean validation on the command payload.
@@ -28,11 +30,17 @@ final class ShowcaseCommandMessageInterceptor<T extends Message<?>> implements M
     private final BeanValidationInterceptor<T> beanValidationInterceptor = new BeanValidationInterceptor<>();
 
     /**
+     * Whether bean validation is applied to command payloads.
+     */
+    private final boolean validationEnabled;
+
+    /**
      * Validates the command and maps known failures to {@link ShowcaseCommandException}s.
      *
-     * <p>Validation violations produce an {@link ShowcaseCommandErrorCode#INVALID_COMMAND} error, missing
-     * aggregates produce {@link ShowcaseCommandErrorCode#NOT_FOUND} (except removes, which are ignored), and
-     * deleted aggregates produce {@link ShowcaseCommandErrorCode#ILLEGAL_STATE}.
+     * <p>When validation is disabled, validation is skipped but error translation still applies. Validation violations
+     * produce an {@link ShowcaseCommandErrorCode#INVALID_COMMAND} error, missing aggregates produce
+     * {@link ShowcaseCommandErrorCode#NOT_FOUND} (except removes, which are ignored), and deleted aggregates produce
+     * {@link ShowcaseCommandErrorCode#ILLEGAL_STATE}.
      *
      * @param unitOfWork       the unit of work for the command
      * @param interceptorChain the chain to proceed with
@@ -44,7 +52,10 @@ final class ShowcaseCommandMessageInterceptor<T extends Message<?>> implements M
     public @Nullable Object handle(UnitOfWork<? extends T> unitOfWork, InterceptorChain interceptorChain)
             throws Exception {
         try {
-            return beanValidationInterceptor.handle(unitOfWork, interceptorChain);
+            if (validationEnabled) {
+                return beanValidationInterceptor.handle(unitOfWork, interceptorChain);
+            }
+            return interceptorChain.proceed();
         } catch (JSR303ViolationException e) {
             val fieldErrors =
                     StreamEx.of(e.getViolations())

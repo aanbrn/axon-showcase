@@ -61,7 +61,28 @@ testing {
             }
         }
 
-        val test by getting(JvmTestSuite::class)
+        val test by getting(JvmTestSuite::class) {
+            dependencies {
+                implementation(libs.mockito.junit.jupiter)
+            }
+        }
+
+        val componentTest by register<JvmTestSuite>("componentTest") {
+            dependencies {
+                implementation(libs.axon.test)
+                implementation(libs.hamcrest)
+                implementation(libs.mockito.junit.jupiter)
+                implementation(libs.spring.boot.starter.test)
+            }
+
+            targets {
+                all {
+                    testTask.configure {
+                        shouldRunAfter(test)
+                    }
+                }
+            }
+        }
 
         register<JvmTestSuite>("integrationTest") {
             dependencies {
@@ -94,7 +115,7 @@ testing {
                             "-XX:+EnableDynamicAgentLoading"
                         )
 
-                        shouldRunAfter(test)
+                        shouldRunAfter(componentTest)
                     }
                 }
             }

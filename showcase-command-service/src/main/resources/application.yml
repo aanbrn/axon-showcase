@@ -88,6 +88,7 @@ db-scheduler:
 showcase:
   command:
     exit-after-flyway-migration: ${EXIT_AFTER_FLYWAY_MIGRATION:false}
+    validation-enabled: ${SHOWCASE_COMMAND_VALIDATION_ENABLED:true}
     showcase-cache:
       maximum-size: ${SHOWCASE_CACHE_MAX_SIZE:100000}
       expires-after-access: ${SHOWCASE_CACHE_EXPIRES_AFTER_ACCESS:PT10M}

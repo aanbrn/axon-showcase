@@ -2,6 +2,7 @@ package showcase.query;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Path;
+import lombok.RequiredArgsConstructor;
 import lombok.val;
 import one.util.streamex.StreamEx;
 import org.axonframework.messaging.InterceptorChain;
@@ -17,6 +18,7 @@ import org.axonframework.messaging.unitofwork.UnitOfWork;
  *
  * @param <T> the message type handled by this interceptor
  */
+@RequiredArgsConstructor
 final class ShowcaseQueryMessageInterceptor<T extends Message<?>> implements MessageHandlerInterceptor<T> {
     /**
      * The interceptor performing bean validation on the query payload.
@@ -24,7 +26,14 @@ final class ShowcaseQueryMessageInterceptor<T extends Message<?>> implements Mes
     private final BeanValidationInterceptor<T> beanValidationInterceptor = new BeanValidationInterceptor<>();
 
     /**
+     * Whether bean validation is applied to query payloads.
+     */
+    private final boolean validationEnabled;
+
+    /**
      * Validates the query and maps validation violations to {@link ShowcaseQueryErrorCode#INVALID_QUERY} errors.
+     *
+     * <p>When validation is disabled, validation is skipped and the query proceeds without validation.
      *
      * @param unitOfWork       the unit of work for the query
      * @param interceptorChain the chain to proceed with
@@ -35,7 +44,10 @@ final class ShowcaseQueryMessageInterceptor<T extends Message<?>> implements Mes
     public Object handle(UnitOfWork<? extends T> unitOfWork, InterceptorChain interceptorChain)
             throws Exception {
         try {
-            return beanValidationInterceptor.handle(unitOfWork, interceptorChain);
+            if (validationEnabled) {
+                return beanValidationInterceptor.handle(unitOfWork, interceptorChain);
+            }
+            return interceptorChain.proceed();
         } catch (JSR303ViolationException e) {
             val fieldErrors =
                     StreamEx.of(e.getViolations())

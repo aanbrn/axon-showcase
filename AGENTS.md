@@ -138,6 +138,10 @@ Key modules (libraries, not services):
 - **BlockHound jvmArgs**: only suites whose tests call `BlockHound.install()` need
   `-XX:+AllowRedefinitionToAddDeleteMethods` and `-XX:+EnableDynamicAgentLoading` (e.g. the client `integrationTest`
   and `e2eTest`); leave them off suites that don't (e.g. `componentTest` with only an `ApplicationContextRunner` test)
+- **`@DirtiesContext`**: add it only where a full-context boot leaks global JVM state — JGroups (ports and system
+  properties) and JCache (a JVM-global cache manager). Contexts that are safely cacheable don't need it: service slices,
+  and `@Nested` classes with distinct `@ActiveProfiles` (which already get separate cached contexts). Keep it on the
+  gateway/command-service full-context ITs (and the command-client IT, which pulls in JGroups); drop it elsewhere
 - **Code coverage**: modules opt in via `code-coverage-conventions`. Coverage is measured per module with
   `jacocoTestReport` (unit + component + integration exec data) and aggregated with the root `jacocoRootReport`. The
   `jacocoTestCoverageVerification` gate is wired into `check` at the baseline in

@@ -131,9 +131,9 @@ protobuf-bom = { group = "com.google.protobuf", name = "protobuf-bom", version.r
 protobuf-java = { group = "com.google.protobuf", name = "protobuf-java" }
 parsson = { group = "org.eclipse.parsson", name = "parsson", version.ref = "parsson" }
 testcontainers-bom = { group = "org.testcontainers", name = "testcontainers-bom", version.ref = "testcontainers" }
-testcontainers-junit-jupiter = { group = "org.testcontainers", name = "junit-jupiter" }
-testcontainers-postgresql = { group = "org.testcontainers", name = "postgresql" }
-testcontainers-kafka = { group = "org.testcontainers", name = "kafka" }
+testcontainers-junit-jupiter = { group = "org.testcontainers", name = "testcontainers-junit-jupiter" }
+testcontainers-postgresql = { group = "org.testcontainers", name = "testcontainers-postgresql" }
+testcontainers-kafka = { group = "org.testcontainers", name = "testcontainers-kafka" }
 testcontainers-opensearch = { group = "org.opensearch", name = "opensearch-testcontainers", version.ref = "opensearch" }
 log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
 log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }

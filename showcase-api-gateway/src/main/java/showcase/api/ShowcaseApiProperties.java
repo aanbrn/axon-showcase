@@ -58,6 +58,6 @@ final class ShowcaseApiProperties {
     @NotNull
     @Valid
     private Map<@NotBlank String, @NotNull @Valid Cache> caches = Map.of(
-            FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME, new Cache(1000, Duration.ofMinutes(10), Duration.ofMinutes(5)),
-            FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME, new Cache(1000, Duration.ofMinutes(10), Duration.ofMinutes(5)));
+            FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME, new Cache(10000, Duration.ofMinutes(10), Duration.ofMinutes(5)),
+            FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME, new Cache(100000, Duration.ofMinutes(10), Duration.ofMinutes(5)));
 }

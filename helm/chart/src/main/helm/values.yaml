@@ -968,13 +968,13 @@ apiGateway:
   # @param apiGateway.caches.CacheName.expiresAfterWrite Cache entry expiry after write
   caches:
     FetchShowcaseListQuery:
-      maxSize: 100000
-      expiresAfterAccess: PT24H
-      expiresAfterWrite: PT12H
+      maxSize: 10000
+      expiresAfterAccess: PT10M
+      expiresAfterWrite: PT5M
     FetchShowcaseByIdQuery:
-      maxSize: 1000000
-      expiresAfterAccess: PT24H
-      expiresAfterWrite: PT12H
+      maxSize: 100000
+      expiresAfterAccess: PT10M
+      expiresAfterWrite: PT5M
 
   # @param apiGateway.extraEnvVars Extra environment variables (string map)
   # @param apiGateway.extraEnvVarsCM Name of a ConfigMap providing extra env vars

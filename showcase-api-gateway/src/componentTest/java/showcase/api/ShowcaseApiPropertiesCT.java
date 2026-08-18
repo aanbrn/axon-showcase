@@ -43,12 +43,12 @@ class ShowcaseApiPropertiesCT {
             val properties = context.getBean(ShowcaseApiProperties.class);
             assertThat(properties.getCaches()).hasSize(2);
             assertThat(cacheFor(properties, FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME)).satisfies(cache -> {
-                assertThat(cache.getMaximumSize()).isEqualTo(1000);
+                assertThat(cache.getMaximumSize()).isEqualTo(10000);
                 assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofMinutes(10));
                 assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofMinutes(5));
             });
             assertThat(cacheFor(properties, FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME)).satisfies(cache -> {
-                assertThat(cache.getMaximumSize()).isEqualTo(1000);
+                assertThat(cache.getMaximumSize()).isEqualTo(100000);
                 assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofMinutes(10));
                 assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofMinutes(5));
             });
@@ -62,14 +62,14 @@ class ShowcaseApiPropertiesCT {
         ymlContextRunner.run(context -> {
             val properties = context.getBean(ShowcaseApiProperties.class);
             assertThat(cacheFor(properties, FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME)).satisfies(cache -> {
-                assertThat(cache.getMaximumSize()).isEqualTo(100000);
-                assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofHours(24));
-                assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofHours(12));
+                assertThat(cache.getMaximumSize()).isEqualTo(10000);
+                assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofMinutes(10));
+                assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofMinutes(5));
             });
             assertThat(cacheFor(properties, FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME)).satisfies(cache -> {
-                assertThat(cache.getMaximumSize()).isEqualTo(1000000);
-                assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofHours(24));
-                assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofHours(12));
+                assertThat(cache.getMaximumSize()).isEqualTo(100000);
+                assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofMinutes(10));
+                assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofMinutes(5));
             });
             assertThat(context.getEnvironment().getProperty("showcase.query.api-url"))
                     .isEqualTo("http://localhost:8084");

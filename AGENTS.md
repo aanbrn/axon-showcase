@@ -147,6 +147,8 @@ Key modules (libraries, not services):
   (Nygard format — Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture
   the *why* behind structural choices. Capture a decision as an ADR when it is made, not after the fact
 - **No comments** in source code (per project convention)
+- **Javadoc**: classes, methods, and fields carry a Javadoc comment describing their purpose (see
+  `ShowcaseApiErrorResolver`, `ShowcaseApiController`); wrap at 120 characters
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable

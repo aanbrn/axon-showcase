@@ -4,7 +4,10 @@ import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
 plugins {
     id("spring-boot-conventions")
+    id("code-coverage-conventions")
 }
+
+extra["coverage.gate.enabled"] = false
 
 project.description = "Showcase API Gateway"
 

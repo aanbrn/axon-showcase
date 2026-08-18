@@ -3,6 +3,7 @@
 
 plugins {
     id("java-library-conventions")
+    id("code-coverage-conventions")
 }
 
 project.description = "Showcase Command Client"

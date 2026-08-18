@@ -4,6 +4,7 @@ import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
 plugins {
     id("spring-boot-conventions")
+    id("code-coverage-conventions")
 }
 
 project.description = "Showcase Projection Service"

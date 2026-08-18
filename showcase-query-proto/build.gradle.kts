@@ -3,7 +3,10 @@
 plugins {
     id("java-library-conventions")
     id("protobuf-conventions")
+    id("code-coverage-conventions")
 }
+
+extra["coverage.gate.enabled"] = false
 
 project.description = "Showcase Query Protocol"
 

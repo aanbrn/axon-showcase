@@ -1,7 +1,4 @@
 import com.github.spotbugs.snom.SpotBugsTask
-import gradle.kotlin.dsl.accessors._3fabc307f302faa21b960092cb0d45d5.errorprone
-import gradle.kotlin.dsl.accessors._3fabc307f302faa21b960092cb0d45d5.spotbugs
-import gradle.kotlin.dsl.accessors._3fabc307f302faa21b960092cb0d45d5.spotbugsPlugins
 import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
 import org.gradle.accessors.dm.LibrariesForLibs

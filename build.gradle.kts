@@ -2,6 +2,7 @@ plugins {
     id("dependency-versions-conventions")
     id("docker-conventions")
     id("helm-releases-conventions")
+    jacoco
 }
 
 allprojects {
@@ -23,6 +24,42 @@ allprojects {
                 }
             }
         }
+    }
+}
+
+tasks.register<JacocoReport>("jacocoRootReport") {
+    description = "Aggregates JaCoCo coverage across all modules that apply code-coverage-conventions"
+
+    val covered = subprojects.filter { it.plugins.hasPlugin("code-coverage-conventions") }
+
+    dependsOn(covered.map { "${it.path}:jacocoTestReport" })
+
+    executionData.setFrom(
+        covered.map {
+            it.layout.buildDirectory.dir("jacoco").get().asFileTree.matching { include("*.exec") }
+        }
+    )
+    sourceDirectories.setFrom(
+        covered.map {
+            it.extensions.getByType<SourceSetContainer>().named("main").get().allSource.srcDirs
+        }
+    )
+    classDirectories.setFrom(
+        covered.map {
+            it.extensions.getByType<SourceSetContainer>().named("main").get().output.classesDirs.asFileTree.matching {
+                exclude(
+                    "**/*Proto.class",
+                    "**/*OrBuilder.class",
+                    "**/*OuterClass.class",
+                    "**/*Grpc.class"
+                )
+            }
+        }
+    )
+
+    reports {
+        html.required = true
+        xml.required = true
     }
 }
 

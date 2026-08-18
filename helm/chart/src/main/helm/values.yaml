@@ -37,7 +37,7 @@ commonAnnotations: { }
 # @section Infrastructure connection parameters
 # Shared connection settings for the external infrastructure the services talk to.
 
-# @param dbEvents.hosts PostgreSQL event store host(s)
+# @param dbEvents.hosts PostgreSQL event store host(s) (comma-separated list)
 # @param dbEvents.name PostgreSQL database name
 # @param dbEvents.schema PostgreSQL schema
 # @param dbEvents.params Additional JDBC connection parameters
@@ -54,7 +54,7 @@ dbEvents:
     name: axon-showcase-db-events
     key: password
 
-# @param osViews.uris OpenSearch REST endpoint(s)
+# @param osViews.uris OpenSearch REST endpoint(s) (comma-separated list)
 # @param osViews.secured Whether OpenSearch requires authentication
 # @param osViews.passwordSecret.name Name of the Secret holding the OpenSearch password
 # @param osViews.passwordSecret.key Key in the Secret holding the OpenSearch password
@@ -67,7 +67,7 @@ osViews:
 
 # @param kafka.bootstrapServers Kafka bootstrap servers
 # @param kafka.topics.events Kafka topic carrying domain events
-# @param kafka.securityProtocol Kafka security protocol
+# @param kafka.securityProtocol Kafka security protocol (PLAINTEXT, SSL)
 kafka:
   bootstrapServers: axon-showcase-kafka:9092
   topics:
@@ -94,7 +94,7 @@ commandService:
   # @param commandService.image.repository Command service image repository
   # @param commandService.image.tag Command service image tag
   # @param commandService.image.digest Command service image digest (overrides tag if set)
-  # @param commandService.image.pullPolicy Command service image pull policy
+  # @param commandService.image.pullPolicy Command service image pull policy (Always, IfNotPresent, Never)
   # @param commandService.image.pullSecrets Command service image pull secrets
   image:
     registry: ""
@@ -106,7 +106,7 @@ commandService:
 
   # @param commandService.replicaCount Number of command service replicas
   # @param commandService.revisionHistoryLimit Number of old ReplicaSets to keep
-  # @param commandService.updateStrategy.type Deployment update strategy type
+  # @param commandService.updateStrategy.type Deployment update strategy type (RollingUpdate, Recreate)
   replicaCount: 1
 
   revisionHistoryLimit: 10
@@ -137,7 +137,7 @@ commandService:
   # @param commandService.dbScheduler.heartbeatInterval Scheduler heartbeat interval
   # @param commandService.dbScheduler.immediateExecutionEnabled Allow immediate execution
   # @param commandService.dbScheduler.pollingInterval Scheduler polling interval
-  # @param commandService.dbScheduler.pollingStrategy Scheduler polling strategy
+  # @param commandService.dbScheduler.pollingStrategy Scheduler polling strategy (lock_and_fetch, fetch)
   # @param commandService.dbScheduler.pollingStrategyLowerLimitFractionOfThreads Lower bound for polling strategy threads
   # @param commandService.dbScheduler.pollingStrategyUpperLimitFractionOfThreads Upper bound for polling strategy threads
   # @param commandService.dbScheduler.shutdownMaxWait Maximum wait for graceful shutdown
@@ -275,7 +275,7 @@ commandService:
   # @param commandService.schedulerName Custom pod scheduler name
   # @param commandService.topologySpreadConstraints Pod topology spread constraints
   # @param commandService.terminationGracePeriodSeconds Pod termination grace period (seconds)
-  # @param commandService.terminationMessagePolicy Termination message policy
+  # @param commandService.terminationMessagePolicy Termination message policy (File, FallbackToLogsOnError)
   automountServiceAccountToken: true
 
   hostAliases: [ ]
@@ -412,7 +412,7 @@ queryService:
   # @param queryService.image.repository Query service image repository
   # @param queryService.image.tag Query service image tag
   # @param queryService.image.digest Query service image digest (overrides tag if set)
-  # @param queryService.image.pullPolicy Query service image pull policy
+  # @param queryService.image.pullPolicy Query service image pull policy (Always, IfNotPresent, Never)
   # @param queryService.image.pullSecrets Query service image pull secrets
   image:
     registry: ""
@@ -424,7 +424,7 @@ queryService:
 
   # @param queryService.replicaCount Number of query service replicas
   # @param queryService.revisionHistoryLimit Number of old ReplicaSets to keep
-  # @param queryService.updateStrategy.type Deployment update strategy type
+  # @param queryService.updateStrategy.type Deployment update strategy type (RollingUpdate, Recreate)
   replicaCount: 1
 
   revisionHistoryLimit: 10
@@ -529,7 +529,7 @@ queryService:
   # @param queryService.schedulerName Custom pod scheduler name
   # @param queryService.topologySpreadConstraints Pod topology spread constraints
   # @param queryService.terminationGracePeriodSeconds Pod termination grace period (seconds)
-  # @param queryService.terminationMessagePolicy Termination message policy
+  # @param queryService.terminationMessagePolicy Termination message policy (File, FallbackToLogsOnError)
   automountServiceAccountToken: true
 
   hostAliases: [ ]
@@ -666,7 +666,7 @@ projectionService:
   # @param projectionService.image.repository Projection service image repository
   # @param projectionService.image.tag Projection service image tag
   # @param projectionService.image.digest Projection service image digest (overrides tag if set)
-  # @param projectionService.image.pullPolicy Projection service image pull policy
+  # @param projectionService.image.pullPolicy Projection service image pull policy (Always, IfNotPresent, Never)
   # @param projectionService.image.pullSecrets Projection service image pull secrets
   image:
     registry: ""
@@ -678,7 +678,7 @@ projectionService:
 
   # @param projectionService.replicaCount Number of projection service replicas
   # @param projectionService.revisionHistoryLimit Number of old ReplicaSets to keep
-  # @param projectionService.updateStrategy.type Deployment update strategy type
+  # @param projectionService.updateStrategy.type Deployment update strategy type (RollingUpdate, Recreate)
   replicaCount: 1
 
   revisionHistoryLimit: 10
@@ -805,7 +805,7 @@ projectionService:
   # @param projectionService.schedulerName Custom pod scheduler name
   # @param projectionService.topologySpreadConstraints Pod topology spread constraints
   # @param projectionService.terminationGracePeriodSeconds Pod termination grace period (seconds)
-  # @param projectionService.terminationMessagePolicy Termination message policy
+  # @param projectionService.terminationMessagePolicy Termination message policy (File, FallbackToLogsOnError)
   automountServiceAccountToken: true
 
   hostAliases: [ ]
@@ -942,7 +942,7 @@ apiGateway:
   # @param apiGateway.image.repository API gateway image repository
   # @param apiGateway.image.tag API gateway image tag
   # @param apiGateway.image.digest API gateway image digest (overrides tag if set)
-  # @param apiGateway.image.pullPolicy API gateway image pull policy
+  # @param apiGateway.image.pullPolicy API gateway image pull policy (Always, IfNotPresent, Never)
   # @param apiGateway.image.pullSecrets API gateway image pull secrets
   image:
     registry: ""
@@ -954,7 +954,7 @@ apiGateway:
 
   # @param apiGateway.replicaCount Number of API gateway replicas
   # @param apiGateway.revisionHistoryLimit Number of old ReplicaSets to keep
-  # @param apiGateway.updateStrategy.type Deployment update strategy type
+  # @param apiGateway.updateStrategy.type Deployment update strategy type (RollingUpdate, Recreate)
   replicaCount: 1
 
   revisionHistoryLimit: 10
@@ -1060,7 +1060,7 @@ apiGateway:
   # @param apiGateway.schedulerName Custom pod scheduler name
   # @param apiGateway.topologySpreadConstraints Pod topology spread constraints
   # @param apiGateway.terminationGracePeriodSeconds Pod termination grace period (seconds)
-  # @param apiGateway.terminationMessagePolicy Termination message policy
+  # @param apiGateway.terminationMessagePolicy Termination message policy (File, FallbackToLogsOnError)
   automountServiceAccountToken: true
 
   hostAliases: [ ]
@@ -1257,7 +1257,7 @@ apiGateway:
   # @param apiGateway.ingress.ingressClassName Ingress class name
   # @param apiGateway.ingress.hostname Ingress hostname
   # @param apiGateway.ingress.path Path for the service
-  # @param apiGateway.ingress.pathType Ingress path type
+  # @param apiGateway.ingress.pathType Ingress path type (Prefix, Exact, ImplementationSpecific)
   # @param apiGateway.ingress.extraPaths Additional paths
   # @param apiGateway.ingress.extraHosts Additional hosts
   # @param apiGateway.ingress.extraRules Additional rules

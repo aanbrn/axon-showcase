@@ -6,8 +6,6 @@ plugins {
     id("code-coverage-conventions")
 }
 
-extra["coverage.gate.enabled"] = false
-
 project.description = "Showcase Query Client"
 
 dependencies {
@@ -70,18 +68,56 @@ testing {
             targets {
                 all {
                     testTask.configure {
-                        jvmArgs = listOf(
-                            "-XX:+AllowRedefinitionToAddDeleteMethods",
-                            "-XX:+EnableDynamicAgentLoading"
-                        )
-
                         shouldRunAfter(test)
                     }
                 }
             }
         }
 
-        register<JvmTestSuite>("integrationTest") {
+        val integrationTest by register<JvmTestSuite>("integrationTest") {
+            dependencies {
+                implementation(project(":showcase-resilience4j-extension"))
+                implementation(project(":showcase-query-proto"))
+
+                implementation(libs.axon.springBoot.starter) {
+                    exclude(
+                        group = libs.axon.serverConnector.get().group,
+                        module = libs.axon.serverConnector.get().name
+                    )
+                }
+                implementation(libs.spring.data.opensearch.starter) {
+                    exclude(
+                        group = libs.opensearch.client.restHighLevel.get().group,
+                        module = libs.opensearch.client.restHighLevel.get().name
+                    )
+                }
+                implementation(libs.opensearch.client.java)
+                implementation(libs.elasticsearch.client.java)
+                implementation(libs.reactor.test)
+                implementation(libs.reactor.blockhound)
+                implementation(libs.reactor.tools)
+                implementation(libs.resilience4j.springBoot3)
+                implementation(libs.spring.boot.starter.aop)
+                implementation(libs.spring.boot.starter.test)
+                implementation(libs.spring.boot.starter.webflux)
+                implementation(libs.wiremock.springBoot)
+            }
+
+            targets {
+                all {
+                    testTask.configure {
+                        jvmArgs = listOf(
+                            "-XX:+AllowRedefinitionToAddDeleteMethods",
+                            "-XX:+EnableDynamicAgentLoading"
+                        )
+
+                        shouldRunAfter(componentTest)
+                    }
+                }
+            }
+        }
+
+        register<JvmTestSuite>("e2eTest") {
             dependencies {
                 implementation(project(":showcase-projection-model"))
 
@@ -121,7 +157,7 @@ testing {
                             "-XX:+EnableDynamicAgentLoading"
                         )
 
-                        shouldRunAfter(componentTest)
+                        shouldRunAfter(integrationTest)
 
                         dependsOn(":showcase-query-service:bootBuildImage")
 

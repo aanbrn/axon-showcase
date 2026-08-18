@@ -118,7 +118,7 @@ testing {
                     testTask.configure {
                         shouldRunAfter(componentTest)
                         mustRunAfter(":showcase-command-client:integrationTest")
-                        mustRunAfter(":showcase-query-client:integrationTest")
+                        mustRunAfter(":showcase-query-client:e2eTest")
 
                         dependsOn(
                             "bootBuildImage",

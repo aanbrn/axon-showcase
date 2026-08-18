@@ -7,8 +7,6 @@ plugins {
     id("code-coverage-conventions")
 }
 
-extra["coverage.gate.enabled"] = false
-
 project.description = "Showcase API Gateway"
 
 dependencies {
@@ -98,6 +96,63 @@ testing {
             }
         }
 
+        val integrationTest by register<JvmTestSuite>("integrationTest") {
+            dependencies {
+                implementation(project(":showcase-command-client"))
+                implementation(project(":showcase-query-client"))
+
+                implementation(libs.axon.springBoot.starter) {
+                    exclude(
+                        group = libs.axon.serverConnector.get().group,
+                        module = libs.axon.serverConnector.get().name
+                    )
+                }
+                implementation(libs.axon.extensions.jgroups.springBootStarter)
+                implementation(libs.axon.extensions.reactor.springBootStarter)
+                implementation(libs.axon.micrometer)
+                implementation(libs.axon.tracing.opentelemetry)
+
+                implementation(libs.jgroups.kunernetes)
+
+                implementation(libs.spring.boot.starter.aop)
+                implementation(libs.spring.boot.starter.actuator)
+                implementation(libs.spring.boot.starter.cache)
+                implementation(libs.spring.boot.starter.security)
+                implementation(libs.spring.boot.starter.test)
+                implementation(libs.spring.boot.starter.validation)
+                implementation(libs.spring.boot.starter.webflux)
+
+                implementation(libs.springdoc.openapi.starter.webflux.ui)
+
+                implementation(libs.spring.data.commons)
+
+                implementation(libs.hibernate.validator)
+                implementation(libs.jackson2.module.blackbird)
+                implementation(libs.caffeine)
+                implementation(libs.commons.lang3)
+                implementation(libs.streamex)
+                implementation(libs.resilience4j.springBoot3)
+
+                implementation(libs.micrometer.registry.prometheus)
+                implementation(libs.micrometer.registry.otlp)
+                implementation(libs.micrometer.tracing.bridge.otel)
+                implementation(libs.opentelemetry.exporter.otlp)
+
+                implementation(libs.reactor.test)
+                implementation(libs.netty.resolver.dnsNativeMacos)
+            }
+
+            targets {
+                all {
+                    testTask.configure {
+                        systemProperty("disable-axoniq-console-message", "true")
+
+                        shouldRunAfter(componentTest)
+                    }
+                }
+            }
+        }
+
         register<JvmTestSuite>("e2eTest") {
             dependencies {
                 implementation(libs.spring.boot.starter.test)
@@ -116,7 +171,7 @@ testing {
             targets {
                 all {
                     testTask.configure {
-                        shouldRunAfter(componentTest)
+                        shouldRunAfter(integrationTest)
                         mustRunAfter(":showcase-command-client:integrationTest")
                         mustRunAfter(":showcase-query-client:e2eTest")
 

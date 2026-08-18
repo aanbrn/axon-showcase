@@ -1,6 +1,7 @@
 package showcase.api;
 
 import com.github.benmanes.caffeine.cache.AsyncCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import lombok.val;
@@ -8,6 +9,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.axonframework.commandhandling.NoHandlerForCommandException;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,7 +61,6 @@ import showcase.query.ShowcaseQueryOperations;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 import static io.github.resilience4j.circuitbreaker.CallNotPermittedException.createCallNotPermittedException;
@@ -68,8 +69,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.assertArg;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -102,6 +101,16 @@ class ShowcaseApiControllerCT {
             return http.csrf(CsrfSpec::disable)
                        .authorizeExchange(authorize -> authorize.anyExchange().permitAll())
                        .build();
+        }
+
+        @Bean
+        AsyncCache<@NonNull FetchShowcaseListQuery, List<String>> fetchShowcaseListCache() {
+            return Caffeine.newBuilder().maximumSize(100).buildAsync();
+        }
+
+        @Bean
+        AsyncCache<@NonNull String, Showcase> fetchShowcaseByIdCache() {
+            return Caffeine.newBuilder().maximumSize(100).buildAsync();
         }
     }
 
@@ -142,15 +151,21 @@ class ShowcaseApiControllerCT {
     @MockitoBean
     private ShowcaseQueryOperations showcaseQueryOperations;
 
-    @MockitoBean
+    @Autowired
     private AsyncCache<@NonNull FetchShowcaseListQuery, List<String>> fetchShowcaseListCache;
 
-    @MockitoBean
+    @Autowired
     private AsyncCache<@NonNull String, Showcase> fetchShowcaseByIdCache;
 
     @BeforeAll
     static void installBlockHound() {
         BlockHound.install();
+    }
+
+    @BeforeEach
+    void clearCaches() {
+        fetchShowcaseListCache.synchronous().invalidateAll();
+        fetchShowcaseByIdCache.synchronous().invalidateAll();
     }
 
     @Test
@@ -852,19 +867,18 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchList(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        verify(fetchShowcaseListCache)
-                .put(eq(query), assertArg(future -> assertThat(future).isCompletedWithValueMatching(
-                        value -> Objects.equals(value, showcases.stream()
-                                                                .map(Showcase::showcaseId)
-                                                                .toList()))));
-        verifyNoMoreInteractions(fetchShowcaseListCache);
-
-        for (val showcase : showcases) {
-            verify(fetchShowcaseByIdCache)
-                    .put(eq(showcase.showcaseId()), assertArg(future -> assertThat(future).isCompletedWithValueMatching(
-                            value -> Objects.equals(value, showcase))));
-        }
-        verifyNoMoreInteractions(fetchShowcaseByIdCache);
+        await().untilAsserted(() -> {
+            val cachedIds = fetchShowcaseListCache.getIfPresent(query);
+            assertThat(cachedIds).isNotNull();
+            assertThat(cachedIds.join()).isEqualTo(showcases.stream().map(Showcase::showcaseId).toList());
+        });
+        await().untilAsserted(() -> {
+            for (val showcase : showcases) {
+                val cachedShowcase = fetchShowcaseByIdCache.getIfPresent(showcase.showcaseId());
+                assertThat(cachedShowcase).isNotNull();
+                assertThat(cachedShowcase.join()).isEqualTo(showcase);
+            }
+        });
     }
 
     @Test
@@ -890,8 +904,6 @@ class ShowcaseApiControllerCT {
                  .jsonPath("$.paramErrors.afterId[1]").doesNotHaveJsonPath();
 
         verifyNoInteractions(showcaseCommandOperations);
-        verifyNoInteractions(fetchShowcaseListCache);
-        verifyNoInteractions(fetchShowcaseByIdCache);
     }
 
     @ParameterizedTest
@@ -918,8 +930,6 @@ class ShowcaseApiControllerCT {
                  .jsonPath("$.paramErrors.size[1]").doesNotHaveJsonPath();
 
         verifyNoInteractions(showcaseCommandOperations);
-        verifyNoInteractions(fetchShowcaseListCache);
-        verifyNoInteractions(fetchShowcaseByIdCache);
     }
 
     @Test
@@ -939,12 +949,9 @@ class ShowcaseApiControllerCT {
                         null);
 
         given(showcaseQueryOperations.fetchList(query)).willReturn(Flux.error(failure));
-        given(fetchShowcaseListCache.getIfPresent(query))
-                .willReturn(completedFuture(showcases.stream()
-                                                     .map(Showcase::showcaseId)
-                                                     .toList()));
+        fetchShowcaseListCache.put(query, completedFuture(showcases.stream().map(Showcase::showcaseId).toList()));
         for (val showcase : showcases) {
-            given(fetchShowcaseByIdCache.getIfPresent(showcase.showcaseId())).willReturn(completedFuture(showcase));
+            fetchShowcaseByIdCache.put(showcase.showcaseId(), completedFuture(showcase));
         }
 
         webClient.get()
@@ -959,14 +966,6 @@ class ShowcaseApiControllerCT {
 
         verify(showcaseQueryOperations).fetchList(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
-
-        verify(fetchShowcaseListCache).getIfPresent(query);
-        verifyNoMoreInteractions(fetchShowcaseListCache);
-
-        for (val showcase : showcases) {
-            verify(fetchShowcaseByIdCache).getIfPresent(showcase.showcaseId());
-        }
-        verifyNoMoreInteractions(fetchShowcaseByIdCache);
 
         await().untilAsserted(
                 () -> assertThat(output)
@@ -1007,11 +1006,6 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchList(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        verify(fetchShowcaseListCache).getIfPresent(query);
-        verifyNoMoreInteractions(fetchShowcaseListCache);
-
-        verifyNoInteractions(fetchShowcaseByIdCache);
-
         await().untilAsserted(
                 () -> assertThat(output)
                               .doesNotContain("Fallback on %s".formatted(query))
@@ -1035,7 +1029,7 @@ class ShowcaseApiControllerCT {
                         null);
 
         given(showcaseQueryOperations.fetchList(query)).willReturn(Flux.error(failure));
-        given(fetchShowcaseListCache.getIfPresent(query)).willReturn(completedFuture(List.of(showcaseId)));
+        fetchShowcaseListCache.put(query, completedFuture(List.of(showcaseId)));
 
         webClient.get()
                  .uri("/showcases")
@@ -1052,12 +1046,6 @@ class ShowcaseApiControllerCT {
 
         verify(showcaseQueryOperations).fetchList(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
-
-        verify(fetchShowcaseListCache).getIfPresent(query);
-        verifyNoMoreInteractions(fetchShowcaseListCache);
-
-        verify(fetchShowcaseByIdCache).getIfPresent(showcaseId);
-        verifyNoMoreInteractions(fetchShowcaseByIdCache);
 
         await().untilAsserted(
                 () -> assertThat(output)
@@ -1101,9 +1089,6 @@ class ShowcaseApiControllerCT {
 
         verify(showcaseQueryOperations).fetchList(any());
         verifyNoMoreInteractions(showcaseQueryOperations);
-
-        verifyNoInteractions(fetchShowcaseListCache);
-        verifyNoInteractions(fetchShowcaseByIdCache);
     }
 
     @ParameterizedTest
@@ -1129,11 +1114,6 @@ class ShowcaseApiControllerCT {
 
         verify(showcaseQueryOperations).fetchList(any());
         verifyNoMoreInteractions(showcaseQueryOperations);
-
-        verify(fetchShowcaseListCache).getIfPresent(any());
-        verifyNoMoreInteractions(fetchShowcaseListCache);
-
-        verifyNoInteractions(fetchShowcaseByIdCache);
     }
 
     @Test
@@ -1158,11 +1138,6 @@ class ShowcaseApiControllerCT {
 
         verify(showcaseQueryOperations).fetchList(any());
         verifyNoMoreInteractions(showcaseQueryOperations);
-
-        verify(fetchShowcaseListCache).getIfPresent(any());
-        verifyNoMoreInteractions(fetchShowcaseListCache);
-
-        verifyNoInteractions(fetchShowcaseByIdCache);
     }
 
     @Test
@@ -1189,12 +1164,11 @@ class ShowcaseApiControllerCT {
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
 
-        verify(fetchShowcaseByIdCache)
-                .put(eq(showcase.showcaseId()), assertArg(future -> assertThat(future).isCompletedWithValueMatching(
-                        value -> Objects.equals(value, showcase))));
-        verifyNoMoreInteractions(fetchShowcaseByIdCache);
-
-        verifyNoInteractions(fetchShowcaseListCache);
+        await().untilAsserted(() -> {
+            val cachedShowcase = fetchShowcaseByIdCache.getIfPresent(showcase.showcaseId());
+            assertThat(cachedShowcase).isNotNull();
+            assertThat(cachedShowcase.join()).isEqualTo(showcase);
+        });
     }
 
     @Test
@@ -1218,8 +1192,6 @@ class ShowcaseApiControllerCT {
                  .jsonPath("$.pathErrors.showcaseId[1]").doesNotHaveJsonPath();
 
         verifyNoInteractions(showcaseCommandOperations);
-        verifyNoInteractions(fetchShowcaseByIdCache);
-        verifyNoInteractions(fetchShowcaseListCache);
     }
 
     @Test
@@ -1254,9 +1226,6 @@ class ShowcaseApiControllerCT {
 
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
-
-        verifyNoInteractions(fetchShowcaseByIdCache);
-        verifyNoInteractions(fetchShowcaseListCache);
     }
 
     @Test
@@ -1279,7 +1248,7 @@ class ShowcaseApiControllerCT {
                         null);
 
         given(showcaseQueryOperations.fetchById(any())).willReturn(Mono.error(failure));
-        given(fetchShowcaseByIdCache.getIfPresent(showcase.showcaseId())).willReturn(completedFuture(showcase));
+        fetchShowcaseByIdCache.put(showcase.showcaseId(), completedFuture(showcase));
 
         webClient.get()
                  .uri("/showcases/{showcaseId}", showcase.showcaseId())
@@ -1293,11 +1262,6 @@ class ShowcaseApiControllerCT {
 
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
-
-        verify(fetchShowcaseByIdCache).getIfPresent(showcase.showcaseId());
-        verifyNoMoreInteractions(fetchShowcaseByIdCache);
-
-        verifyNoInteractions(fetchShowcaseListCache);
 
         await().untilAsserted(
                 () -> assertThat(output)
@@ -1341,11 +1305,6 @@ class ShowcaseApiControllerCT {
 
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
-
-        verify(fetchShowcaseByIdCache).getIfPresent(showcaseId);
-        verifyNoMoreInteractions(fetchShowcaseByIdCache);
-
-        verifyNoInteractions(fetchShowcaseListCache);
 
         await().untilAsserted(
                 () -> assertThat(output)
@@ -1391,9 +1350,6 @@ class ShowcaseApiControllerCT {
 
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
-
-        verifyNoInteractions(fetchShowcaseListCache);
-        verifyNoInteractions(fetchShowcaseByIdCache);
     }
 
     @ParameterizedTest
@@ -1423,11 +1379,6 @@ class ShowcaseApiControllerCT {
 
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
-
-        verifyNoInteractions(fetchShowcaseListCache);
-
-        verify(fetchShowcaseByIdCache).getIfPresent(showcaseId);
-        verifyNoMoreInteractions(fetchShowcaseByIdCache);
     }
 
     @Test
@@ -1456,10 +1407,5 @@ class ShowcaseApiControllerCT {
 
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
-
-        verifyNoInteractions(fetchShowcaseListCache);
-
-        verify(fetchShowcaseByIdCache).getIfPresent(showcaseId);
-        verifyNoMoreInteractions(fetchShowcaseByIdCache);
     }
 }

@@ -132,6 +132,12 @@ Key modules (libraries, not services):
   bean wiring (`@SpringBootApplication` config) at the **integration** tier via a real context boot — do not write
   component tests that mock the app's own collaborators. Component tests compose real in-process collaborators (e.g.
   a real mapper) with only external infrastructure faked
+- **Nested test groups for resilience features**: a `@Nested` class that groups Resilience4j scenarios is named
+  `<Feature>Behavior` (e.g., `TimeLimiterBehavior`, `RetryBehavior`, `CircuitBreakerBehavior`), both for uniformity and
+  to avoid shadowing the library's `CircuitBreaker` type
+- **BlockHound jvmArgs**: only suites whose tests call `BlockHound.install()` need
+  `-XX:+AllowRedefinitionToAddDeleteMethods` and `-XX:+EnableDynamicAgentLoading` (e.g. the client `integrationTest`
+  and `e2eTest`); leave them off suites that don't (e.g. `componentTest` with only an `ApplicationContextRunner` test)
 - **Code coverage**: modules opt in via `code-coverage-conventions`. Coverage is measured per module with
   `jacocoTestReport` (unit + component + integration exec data) and aggregated with the root `jacocoRootReport`. The
   `jacocoTestCoverageVerification` gate is wired into `check` at the baseline in
@@ -252,3 +258,8 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
 - `helmInstallToLocal` tags `"*"` select all releases; deployment order defined by `mustInstallAfter`/
   `mustUninstallAfter` in `build.gradle.kts`.
 - NullAway is strict on `showcase.*` packages — ensure proper `@Nullable`/`@NonNull` annotations from `jspecify`.
+- Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
+  `implementation`-only dependencies — each suite re-declares what it needs (client integration suites duplicate
+  axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be
+  referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g. `val integrationTest by
+  register<JvmTestSuite>("integrationTest")`).

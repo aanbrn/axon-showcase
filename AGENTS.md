@@ -132,7 +132,18 @@ Key modules (libraries, not services):
 - **Formatting**: format edited files with the IntelliJ IDE formatter (Code → Reformat Code), not an external CLI
   formatter, so the result matches the project's configured code style. After each edit, run the IntelliJ formatter
   (`ReformatCodeProcessor`, plus `OptimizeImportsProcessor` for JVM sources) through the Steroid MCP
-  (`steroid_execute_code` against the open `axon-showcase` project) before reporting the change done
+  (`steroid_execute_code` against the open `axon-showcase` project) before reporting the change done.
+  - Keep every line within 120 characters; verify with `awk 'length > 120'` over edited files. When a long assignment
+    must wrap, break it right after the `=` and then chain the expression, e.g.
+    ```java
+    private final ApplicationContextRunner runner =
+            new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(SomeAutoConfig.class));
+    ```
+    rather than deep-aligning a chained call on a single long line.
+  - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body
+    (`(x) -> { ... }`) so the formatter indents the statements normally instead of deep-aligning one long expression.
+    The resulting "Statement lambda can be replaced with expression lambda" inspection is suppressed with
+    `@SuppressWarnings("CodeBlock2Expr")` on the source method (the correct token — not `StatementLambdaInspection`).
 
 ## Docker Images
 

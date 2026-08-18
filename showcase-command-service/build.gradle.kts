@@ -68,8 +68,10 @@ testing {
         val componentTest by register<JvmTestSuite>("componentTest") {
             dependencies {
                 implementation(libs.axon.test)
+                implementation(libs.dbScheduler.springBootStarter)
                 implementation(libs.hamcrest)
                 implementation(libs.mockito.junit.jupiter)
+                implementation(libs.spring.boot.starter.actuator)
                 implementation(libs.spring.boot.starter.test)
             }
 
@@ -84,6 +86,16 @@ testing {
 
         register<JvmTestSuite>("integrationTest") {
             dependencies {
+                implementation(libs.axon.springBoot.starter) {
+                    exclude(
+                        group = libs.axon.serverConnector.get().group,
+                        module = libs.axon.serverConnector.get().name
+                    )
+                }
+                implementation(libs.axon.extensions.jgroups.springBootStarter)
+                implementation(libs.axon.micrometer)
+                implementation(libs.dbScheduler.springBootStarter)
+
                 implementation(libs.spring.boot.starter.test)
                 implementation(libs.spring.boot.testcontainers)
                 implementation(libs.spring.data.jdbc)

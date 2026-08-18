@@ -60,6 +60,28 @@ testing {
 
         val test by getting(JvmTestSuite::class)
 
+        val componentTest by register<JvmTestSuite>("componentTest") {
+            dependencies {
+                implementation(libs.axon.test)
+                implementation(libs.hamcrest)
+                implementation(libs.mockito.junit.jupiter)
+                implementation(libs.spring.boot.starter.test)
+            }
+
+            targets {
+                all {
+                    testTask.configure {
+                        jvmArgs = listOf(
+                            "-XX:+AllowRedefinitionToAddDeleteMethods",
+                            "-XX:+EnableDynamicAgentLoading"
+                        )
+
+                        shouldRunAfter(test)
+                    }
+                }
+            }
+        }
+
         register<JvmTestSuite>("integrationTest") {
             dependencies {
                 implementation(project(":showcase-projection-model"))
@@ -89,7 +111,7 @@ testing {
                             "-XX:+EnableDynamicAgentLoading"
                         )
 
-                        shouldRunAfter(test)
+                        shouldRunAfter(componentTest)
 
                         systemProperty("disable-axoniq-console-message", "true")
                     }

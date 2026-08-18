@@ -177,6 +177,20 @@ spec:
               value: {{ .Values.commandService.showcaseCache.expiresAfterAccess | quote }}
             - name: "SHOWCASE_CACHE_EXPIRES_AFTER_WRITE"
               value: {{ .Values.commandService.showcaseCache.expiresAfterWrite | quote }}
+            - name: "SAGA_CACHE_MAX_SIZE"
+              value: {{ .Values.commandService.sagaCache.maxSize | int64 | toString | quote }}
+            - name: "SAGA_CACHE_EXPIRES_AFTER_ACCESS"
+              value: {{ .Values.commandService.sagaCache.expiresAfterAccess | quote }}
+            - name: "SAGA_CACHE_EXPIRES_AFTER_WRITE"
+              value: {{ .Values.commandService.sagaCache.expiresAfterWrite | quote }}
+            - name: "SAGA_ASSOCIATIONS_CACHE_MAX_SIZE"
+              value: {{ .Values.commandService.sagaAssociationsCache.maxSize | int64 | toString | quote }}
+            - name: "SAGA_ASSOCIATIONS_CACHE_EXPIRES_AFTER_ACCESS"
+              value: {{ .Values.commandService.sagaAssociationsCache.expiresAfterAccess | quote }}
+            - name: "SAGA_ASSOCIATIONS_CACHE_EXPIRES_AFTER_WRITE"
+              value: {{ .Values.commandService.sagaAssociationsCache.expiresAfterWrite | quote }}
+            - name: "SHOWCASE_SNAPSHOT_TRIGGER_LOAD_TIME_THRESHOLD"
+              value: {{ .Values.commandService.showcaseSnapshotTrigger.loadTimeThreshold | quote }}
             - name: "MANAGEMENT_METRICS_TAGS_APPLICATION"
               value: {{ include "common.names.fullname" $ }}
             {{- if (include "axon-showcase.observability.enabled" $) }}

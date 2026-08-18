@@ -168,6 +168,29 @@ commandService:
     expiresAfterAccess: PT10M
     expiresAfterWrite: PT5M
 
+  # Caffeine cache settings for the saga model.
+  # @param commandService.sagaCache.maxSize Maximum cache entries
+  # @param commandService.sagaCache.expiresAfterAccess Entry expiry after access
+  # @param commandService.sagaCache.expiresAfterWrite Entry expiry after write
+  sagaCache:
+    maxSize: 1000
+    expiresAfterAccess: PT10M
+    expiresAfterWrite: PT5M
+
+  # Caffeine cache settings for the saga associations model.
+  # @param commandService.sagaAssociationsCache.maxSize Maximum cache entries
+  # @param commandService.sagaAssociationsCache.expiresAfterAccess Entry expiry after access
+  # @param commandService.sagaAssociationsCache.expiresAfterWrite Entry expiry after write
+  sagaAssociationsCache:
+    maxSize: 1000
+    expiresAfterAccess: PT10M
+    expiresAfterWrite: PT5M
+
+  # Snapshot trigger settings for the showcase aggregate.
+  # @param commandService.showcaseSnapshotTrigger.loadTimeThreshold Load time threshold before snapshotting
+  showcaseSnapshotTrigger:
+    loadTimeThreshold: PT0.5S
+
   # @param commandService.extraEnvVars Extra environment variables (string map)
   # @param commandService.extraEnvVarsCM Name of a ConfigMap providing extra env vars
   # @param commandService.extraEnvVarsSecret Name of a Secret providing extra env vars

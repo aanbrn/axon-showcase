@@ -7,8 +7,6 @@ plugins {
     id("code-coverage-conventions")
 }
 
-extra["coverage.gate.enabled"] = false
-
 project.description = "Showcase Query Service"
 
 dependencies {
@@ -76,6 +74,18 @@ testing {
                 implementation(libs.hamcrest)
                 implementation(libs.mockito.junit.jupiter)
                 implementation(libs.spring.boot.starter.test)
+                implementation(libs.spring.boot.starter.webflux)
+                implementation(libs.spring.boot.starter.actuator)
+                implementation(libs.spring.data.opensearch.starter) {
+                    exclude(
+                        group = libs.opensearch.client.restHighLevel.get().group,
+                        module = libs.opensearch.client.restHighLevel.get().name
+                    )
+                }
+                implementation(libs.opensearch.client.java)
+                implementation(libs.spring.tx)
+                implementation(project(":showcase-projection-model"))
+                implementation(project(":showcase-query-proto"))
             }
 
             targets {

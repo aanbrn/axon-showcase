@@ -97,6 +97,7 @@ spring-framework-bom = { group = "org.springframework", name = "spring-framework
 spring-data-bom = { group = "org.springframework.data", name = "spring-data-bom", version.ref = "spring-data-bom" }
 spring-data-commons = { group = "org.springframework.data", name = "spring-data-commons" }
 spring-data-jdbc = { group = "org.springframework.data", name = "spring-data-jdbc" }
+spring-tx = { group = "org.springframework", name = "spring-tx" }
 spring-data-opensearch = { group = "org.opensearch.client", name = "spring-data-opensearch", version.ref = "spring-data-opensearch" }
 spring-data-opensearch-starter = { group = "org.opensearch.client", name = "spring-data-opensearch-starter", version.ref = "spring-data-opensearch" }
 spring-data-opensearch-testcontainers = { group = "org.opensearch.client", name = "spring-data-opensearch-testcontainers", version.ref = "spring-data-opensearch" }

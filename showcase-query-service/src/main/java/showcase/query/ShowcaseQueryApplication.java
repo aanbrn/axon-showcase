@@ -41,6 +41,19 @@ import java.util.List;
 @Slf4j
 class ShowcaseQueryApplication {
     /**
+     * Terminates the JVM after the index is initialized when exit-after is enabled.
+     */
+    @FunctionalInterface
+    interface ApplicationExitHandler {
+        /**
+         * Exits the application, closing the given context and terminating the JVM.
+         *
+         * @param applicationContext the application context to close
+         */
+        void exit(ApplicationContext applicationContext);
+    }
+
+    /**
      * Application entry point that disables the AxonIQ console message and starts the Spring context.
      *
      * @param args command-line arguments passed to the application
@@ -69,7 +82,8 @@ class ShowcaseQueryApplication {
     InitializingBean opensearchIndexInitializer(
             OpenSearchTemplate openSearchTemplate,
             ShowcaseQueryProperties queryProperties,
-            ApplicationContext applicationContext) {
+            ApplicationContext applicationContext,
+            ApplicationExitHandler exitHandler) {
         return () -> {
             for (val entityType : List.of(ShowcaseEntity.class)) {
                 val indexOperations = openSearchTemplate.indexOps(entityType);
@@ -93,9 +107,19 @@ class ShowcaseQueryApplication {
             if (queryProperties.isExitAfterIndexInitialization()) {
                 log.info("Exiting after index initialization...");
 
-                System.exit(SpringApplication.exit(applicationContext, () -> 0));
+                exitHandler.exit(applicationContext);
             }
         };
+    }
+
+    /**
+     * Provides the JVM exit action invoked when index initialization completes with exit-after enabled.
+     *
+     * @return the exit handler, closing the context and terminating the JVM by default
+     */
+    @Bean
+    ApplicationExitHandler applicationExitHandler() {
+        return applicationContext -> System.exit(SpringApplication.exit(applicationContext, () -> 0));
     }
 
     /**

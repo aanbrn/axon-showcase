@@ -16,7 +16,6 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.data.elasticsearch.core.IndexOperations;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -48,7 +47,6 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 
 @SpringBootTest(webEnvironment = NONE)
 @ActiveProfiles("test")
-@DirtiesContext
 @Testcontainers(parallel = true)
 @DisplayName("Showcase projector integration tests")
 class ShowcaseProjectorIT {

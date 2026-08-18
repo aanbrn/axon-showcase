@@ -28,7 +28,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.wiremock.spring.ConfigureWireMock;
@@ -63,7 +62,6 @@ import static showcase.query.ShowcaseQueryOperations.SHOWCASE_QUERY_SERVICE;
 
 @SpringBootTest(webEnvironment = NONE)
 @EnableWireMock(@ConfigureWireMock(baseUrlProperties = "showcase.query.api-url", registerSpringBean = true))
-@DirtiesContext
 @DisplayName("Showcase query client integration tests")
 class ShowcaseQueryClientIT {
 
@@ -314,7 +312,6 @@ class ShowcaseQueryClientIT {
 
     @Nested
     @ActiveProfiles("timelimiter")
-    @DirtiesContext
     @DisplayName("Time limiter")
     class TimeLimiterBehavior {
 
@@ -378,7 +375,6 @@ class ShowcaseQueryClientIT {
 
     @Nested
     @ActiveProfiles("retry")
-    @DirtiesContext
     @DisplayName("Retry")
     class RetryBehavior {
 
@@ -479,7 +475,6 @@ class ShowcaseQueryClientIT {
 
     @Nested
     @ActiveProfiles("circuitbreaker")
-    @DirtiesContext
     @DisplayName("Circuit breaker")
     class CircuitBreakerBehavior {
 

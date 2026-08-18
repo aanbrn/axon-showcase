@@ -156,8 +156,10 @@ Key modules (libraries, not services):
   formatter, so the result matches the project's configured code style. After each edit, run the IntelliJ formatter
   (`ReformatCodeProcessor`, plus `OptimizeImportsProcessor` for JVM sources) through the Steroid MCP
   (`steroid_execute_code` against the open `axon-showcase` project) before reporting the change done.
-  - Keep every line within 120 characters; verify with `awk 'length > 120'` over edited files. When a long assignment
-    must wrap, break it right after the `=` and then chain the expression, e.g.
+  - Keep every line within 120 characters; verify with `awk 'length > 120'` over edited files. Avoid redundant line
+    wraps: keep a line on one line whenever it fits within 120 characters, rather than breaking early after `=` or
+    splitting short chains. Only wrap when a line genuinely exceeds 120 — and when a long assignment must wrap, break
+    it right after the `=` and then chain the expression, e.g.
     ```java
     private final ApplicationContextRunner runner =
             new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(SomeAutoConfig.class));
@@ -268,3 +270,6 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
 - `@Nested` test classes are incompatible with Spring Boot slice tests (`@WebFluxTest`/`@WebMvcTest`): nested classes
   load the full application context instead of the slice and fail on infrastructure beans (e.g. the gateway's JGroups
   `DistributedCommandBusProperties`). Keep slice-test classes flat (see `ShowcaseApiControllerCT`).
+- Testcontainers 2.0.5 moved `PostgreSQLContainer` from `org.testcontainers.containers` (now a deprecated shim) to the
+  non-generic `org.testcontainers.postgresql.PostgreSQLContainer` — use the new import without the `<?>`/`<>` type
+  arguments.

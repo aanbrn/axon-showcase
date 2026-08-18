@@ -51,13 +51,13 @@ val coverageGateEnabled = providers.provider { project.extra.properties["coverag
 
 tasks.named<JacocoReport>("jacocoTestReport") {
     classDirectories.setFrom(mainClasses.asFileTree.matching { exclude(generatedClassExcludes()) })
-    executionData.setFrom(fileTree(jacocoExecDir) { include("*.exec") })
+    executionData.setFrom(fileTree(jacocoExecDir) { include("*.exec"); exclude("e2eTest.exec") })
     dependsOn(allSuiteTestTasks)
 }
 
 tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
     classDirectories.setFrom(mainClasses.asFileTree.matching { exclude(generatedClassExcludes()) })
-    executionData.setFrom(fileTree(jacocoExecDir) { include("*.exec") })
+    executionData.setFrom(fileTree(jacocoExecDir) { include("*.exec"); exclude("e2eTest.exec") })
     dependsOn(allSuiteTestTasks)
 
     violationRules {

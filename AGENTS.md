@@ -265,3 +265,6 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
   axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be
   referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g. `val integrationTest by
   register<JvmTestSuite>("integrationTest")`).
+- `@Nested` test classes are incompatible with Spring Boot slice tests (`@WebFluxTest`/`@WebMvcTest`): nested classes
+  load the full application context instead of the slice and fail on infrastructure beans (e.g. the gateway's JGroups
+  `DistributedCommandBusProperties`). Keep slice-test classes flat (see `ShowcaseApiControllerCT`).

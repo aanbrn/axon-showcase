@@ -125,6 +125,18 @@ Key modules (libraries, not services):
   a static-sentence `@DisplayName` (e.g., `@DisplayName("Showcase aggregate component tests")`,
   `@DisplayName("Finishing a showcase with a valid command succeeds")`). Do not use `{0}`-style placeholders — named
   `argumentSet("...", ...)` invocations already render their own detail
+- **Spring bean mocks in tests**: use `@MockitoBean` (from `org.springframework.test.context.bean.override.mockito`),
+  not the deprecated-for-removal `@MockBean` (`org.springframework.boot.test.mock.mockito`), which has been deprecated
+  since Spring Boot 3.4
+- **Test tier placement**: a test's tier is decided by its collaborators (see Test tiers). Verify the application's
+  bean wiring (`@SpringBootApplication` config) at the **integration** tier via a real context boot — do not write
+  component tests that mock the app's own collaborators. Component tests compose real in-process collaborators (e.g.
+  a real mapper) with only external infrastructure faked
+- **Code coverage**: modules opt in via `code-coverage-conventions`. Coverage is measured per module with
+  `jacocoTestReport` (unit + component + integration exec data) and aggregated with the root `jacocoRootReport`. The
+  `jacocoTestCoverageVerification` gate is wired into `check` at the baseline in
+  `config/jacoco/coverage-baseline.properties` and requires Docker (integration tests). A module can extend the
+  generated-class excludes via `coverage.generatedClassExcludes`
 - **Architecture Decision Records**: record cross-cutting architecture decisions as numbered ADRs under `docs/adr/`
   (Nygard format — Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture
   the *why* behind structural choices. Capture a decision as an ADR when it is made, not after the fact

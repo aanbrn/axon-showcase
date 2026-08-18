@@ -26,12 +26,15 @@ val mainClasses = extensions.getByType<SourceSetContainer>()
     .output
     .classesDirs
 
-val generatedClassExcludes = listOf(
-    "**/*Proto.class",
-    "**/*OrBuilder.class",
-    "**/*OuterClass.class",
-    "**/*Grpc.class"
-)
+fun generatedClassExcludes(): List<String> {
+    val moduleExcludes = project.extra.properties["coverage.generatedClassExcludes"] as? List<*> ?: emptyList<Any?>()
+    return listOf(
+        "**/*Proto.class",
+        "**/*OrBuilder.class",
+        "**/*OuterClass.class",
+        "**/*Grpc.class"
+    ) + moduleExcludes.map { it.toString() }
+}
 
 val coverageBaselineMinimum: BigDecimal = run {
     val baselineFile = rootProject.layout.projectDirectory
@@ -47,13 +50,13 @@ val coverageBaselineMinimum: BigDecimal = run {
 val coverageGateEnabled = providers.provider { project.extra.properties["coverage.gate.enabled"] != false }
 
 tasks.named<JacocoReport>("jacocoTestReport") {
-    classDirectories.setFrom(mainClasses.asFileTree.matching { exclude(generatedClassExcludes) })
+    classDirectories.setFrom(mainClasses.asFileTree.matching { exclude(generatedClassExcludes()) })
     executionData.setFrom(fileTree(jacocoExecDir) { include("*.exec") })
     dependsOn(allSuiteTestTasks)
 }
 
 tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
-    classDirectories.setFrom(mainClasses.asFileTree.matching { exclude(generatedClassExcludes) })
+    classDirectories.setFrom(mainClasses.asFileTree.matching { exclude(generatedClassExcludes()) })
     executionData.setFrom(fileTree(jacocoExecDir) { include("*.exec") })
     dependsOn(allSuiteTestTasks)
 

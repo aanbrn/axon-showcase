@@ -6,7 +6,10 @@ plugins {
     id("code-coverage-conventions")
 }
 
-extra["coverage.gate.enabled"] = false
+extra["coverage.generatedClassExcludes"] = listOf(
+    "**/QueryProto*.class",
+    "**/QueryRequest*.class"
+)
 
 project.description = "Showcase Query Protocol"
 

@@ -125,6 +125,9 @@ Key modules (libraries, not services):
   a static-sentence `@DisplayName` (e.g., `@DisplayName("Showcase aggregate component tests")`,
   `@DisplayName("Finishing a showcase with a valid command succeeds")`). Do not use `{0}`-style placeholders — named
   `argumentSet("...", ...)` invocations already render their own detail
+- **Architecture Decision Records**: record cross-cutting architecture decisions as numbered ADRs under `docs/adr/`
+  (Nygard format — Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture
+  the *why* behind structural choices. Capture a decision as an ADR when it is made, not after the fact
 - **No comments** in source code (per project convention)
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the

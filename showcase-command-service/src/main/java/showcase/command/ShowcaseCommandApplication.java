@@ -96,16 +96,31 @@ class ShowcaseCommandApplication {
     }
 
     /**
+     * Terminates the JVM after Flyway migration when exit-after is enabled.
+     */
+    @FunctionalInterface
+    interface ApplicationExitHandler {
+        /**
+         * Exits the application.
+         *
+         * @param applicationContext the application context used to exit the JVM
+         */
+        void exit(ApplicationContext applicationContext);
+    }
+
+    /**
      * Custom Flyway migration strategy that optionally exits the JVM after migration completes (used in container
      * startup).
      *
      * @param commandProperties  the command service properties
+     * @param exitHandler        the handler terminating the JVM
      * @param applicationContext the application context used to exit the JVM
      * @return the custom migration strategy
      */
     @Bean
     FlywayMigrationStrategy flywayMigrationStrategy(
             ShowcaseCommandProperties commandProperties,
+            ApplicationExitHandler exitHandler,
             ApplicationContext applicationContext) {
         return flyway -> {
             flyway.migrate();
@@ -113,9 +128,19 @@ class ShowcaseCommandApplication {
             if (commandProperties.isExitAfterFlywayMigration()) {
                 log.info("Exiting after flyway migration...");
 
-                System.exit(SpringApplication.exit(applicationContext, () -> 0));
+                exitHandler.exit(applicationContext);
             }
         };
+    }
+
+    /**
+     * Provides the JVM exit action invoked when Flyway migration completes with exit-after enabled.
+     *
+     * @return the exit handler, closing the context and terminating the JVM by default
+     */
+    @Bean
+    ApplicationExitHandler applicationExitHandler() {
+        return context -> System.exit(SpringApplication.exit(context, () -> 0));
     }
 
     /**

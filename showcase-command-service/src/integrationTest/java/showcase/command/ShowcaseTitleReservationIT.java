@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -29,7 +28,6 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 import static showcase.command.RandomCommandTestUtils.aTooLongShowcaseTitle;
 
 @JdbcTest
-@DirtiesContext
 @Testcontainers
 @DisplayName("Showcase title reservation integration tests")
 class ShowcaseTitleReservationIT {

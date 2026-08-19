@@ -10,7 +10,8 @@
 8.14.5 (Kotlin DSL), monorepo with 18 modules.
 
 This repo uses **spec-driven development**: behavior is captured as OpenSpec specs in `openspec/specs/showcase/`
-(organized by architectural role: `gateway`, `write-side`, `read-side`, `clients`, `platform`, `deployment`, `quality`).
+(organized by architectural role: `gateway`, `write-side`, `read-side`, `clients`, `extensions`, `deployment`,
+`quality`).
 Code changes go through the `opsx-*` opencode commands / `openspec-*` skills (propose → apply → archive). Follow these
 workflows for new work, and treat the captured specs as the behavioral source of truth.
 

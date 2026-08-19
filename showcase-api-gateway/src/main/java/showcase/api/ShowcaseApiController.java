@@ -12,7 +12,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.ErrorResponseException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.server.ServerWebExchange;
@@ -341,32 +339,6 @@ final class ShowcaseApiController implements ShowcaseApi {
     }
 
     /**
-     * Maps {@link WebExchangeBindException} to structured problem details.
-     *
-     * @param e      the binding exception to map
-     * @param locale the locale used for error messages
-     * @return the problem detail for the exception
-     */
-    @ExceptionHandler
-    private ProblemDetail handleWebExchangeBindException(WebExchangeBindException e, Locale locale) {
-        val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request.");
-        errorResolver.resolve(e, locale, problemDetail);
-        return problemDetail;
-    }
-
-    /**
-     * Maps {@link ErrorResponseException} to its {@link ProblemDetail} representation.
-     *
-     * @param e      the error response exception to map
-     * @param locale the locale used for error messages
-     * @return the problem detail for the exception
-     */
-    @ExceptionHandler
-    private ProblemDetail handleErrorResponseException(ErrorResponseException e, Locale locale) {
-        return e.updateAndGetBody(messageSource, locale);
-    }
-
-    /**
      * Maps Axon Framework failures to a {@code 503 Service Unavailable}.
      *
      * @param e the Axon exception to map
@@ -459,9 +431,6 @@ final class ShowcaseApiController implements ShowcaseApi {
             case ShowcaseCommandException ex -> handleShowcaseCommandException(ex);
             case ShowcaseQueryException ex -> handleShowcaseQueryException(ex);
             case AxonException ex -> handleAxonException(ex);
-            case HandlerMethodValidationException ex -> handleHandlerMethodValidationException(ex, locale);
-            case WebExchangeBindException ex -> handleWebExchangeBindException(ex, locale);
-            case ErrorResponseException ex -> handleErrorResponseException(ex, locale);
             case WebClientException ex -> handleWebClientException(ex);
             case CallNotPermittedException ex -> handleCallNotPermittedException(ex);
             case TimeoutException ex -> handleTimeoutException(ex);
@@ -474,6 +443,13 @@ final class ShowcaseApiController implements ShowcaseApi {
         };
     }
 
+    /**
+     * Walks the exception cause chain to find the first throwable matching the given predicate.
+     *
+     * @param t         the throwable to inspect
+     * @param predicate the predicate the cause must satisfy
+     * @return the first matching cause, or an empty optional if none matches
+     */
     private Optional<Throwable> findCause(Throwable t, Predicate<Throwable> predicate) {
         while (t != null) {
             if (predicate.test(t)) {

@@ -142,6 +142,43 @@ class ShowcaseApiControllerCT {
         );
     }
 
+    static List<Arguments> wrappedClientErrorStatuses() {
+        return List.of(
+                argumentSet("Command error",
+                            new ShowcaseCommandException(ShowcaseCommandErrorDetails
+                                                                 .builder()
+                                                                 .errorCode(ShowcaseCommandErrorCode.INVALID_COMMAND)
+                                                                 .errorMessage(anAlphabeticString(10))
+                                                                 .build()),
+                            HttpStatus.BAD_REQUEST),
+                argumentSet("Query error",
+                            new ShowcaseQueryException(ShowcaseQueryErrorDetails
+                                                               .builder()
+                                                               .errorCode(ShowcaseQueryErrorCode.INVALID_QUERY)
+                                                               .errorMessage(anAlphabeticString(10))
+                                                               .build()),
+                            HttpStatus.BAD_REQUEST),
+                argumentSet("Axon error",
+                            new NoHandlerForCommandException(anAlphabeticString(10)),
+                            HttpStatus.SERVICE_UNAVAILABLE),
+                argumentSet("WebClient error",
+                            WebClientResponseException.create(
+                                    anEnum(HttpStatus.class),
+                                    anAlphabeticString(32),
+                                    new HttpHeaders(),
+                                    new byte[0],
+                                    null,
+                                    null),
+                            HttpStatus.SERVICE_UNAVAILABLE),
+                argumentSet("Circuit breaker error",
+                            createCallNotPermittedException(CircuitBreaker.of(
+                                    ShowcaseCommandOperations.SHOWCASE_COMMAND_SERVICE,
+                                    CircuitBreakerConfig.ofDefaults())),
+                            HttpStatus.SERVICE_UNAVAILABLE),
+                argumentSet("Timeout", new TimeoutException(), HttpStatus.GATEWAY_TIMEOUT)
+        );
+    }
+
     @Autowired
     private WebTestClient webClient;
 
@@ -339,6 +376,28 @@ class ShowcaseApiControllerCT {
                  .jsonPath("$.title").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
                  .jsonPath("$.status").isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
                  .jsonPath("$.detail").doesNotHaveJsonPath();
+
+        verify(showcaseCommandOperations).schedule(any());
+        verifyNoMoreInteractions(showcaseCommandOperations);
+    }
+
+    @ParameterizedTest
+    @MethodSource("wrappedClientErrorStatuses")
+    @DisplayName("Scheduling a showcase on a wrapped client error responds with the related status")
+    void scheduleShowcase_wrappedClientError_respondsWithRelatedStatus(Throwable cause, HttpStatus expectedStatus) {
+        given(showcaseCommandOperations.schedule(any())).willReturn(Mono.error(new RuntimeException(cause)));
+
+        webClient.post()
+                 .uri("/showcases")
+                 .bodyValue(ScheduleShowcaseRequest
+                                    .builder()
+                                    .title(aShowcaseTitle())
+                                    .startTime(aShowcaseStartTime(Instant.now()))
+                                    .duration(aShowcaseDuration())
+                                    .build())
+                 .exchange()
+                 .expectStatus()
+                 .isEqualTo(expectedStatus);
 
         verify(showcaseCommandOperations).schedule(any());
         verifyNoMoreInteractions(showcaseCommandOperations);

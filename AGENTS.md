@@ -19,6 +19,9 @@ workflows for new work, and treat the captured specs as the behavioral source of
 **Never archive a change automatically after apply.** Stop after implementation, report, and let the user review the
 changes made and decide when (or whether) to archive.
 
+**Never push to the remote automatically.** Commit locally when asked, but only `git push` when the user explicitly
+requests it (e.g., "push" or "commit and push").
+
 ## Prerequisites
 
 - Java 21+

@@ -231,13 +231,9 @@ final class ShowcaseApiController implements ShowcaseApi {
                                t -> Flux.<String>create(sink -> {
                                             val future = fetchShowcaseListCache.getIfPresent(query);
                                             if (future != null) {
-                                                future.whenComplete((showcaseIds, t2) -> {
-                                                    if (showcaseIds != null && t2 == null) {
-                                                        showcaseIds.forEach(sink::next);
-                                                        sink.complete();
-                                                    } else {
-                                                        sink.error(t);
-                                                    }
+                                                future.thenAccept(showcaseIds -> {
+                                                    showcaseIds.forEach(sink::next);
+                                                    sink.complete();
                                                 });
                                             } else {
                                                 sink.error(t);
@@ -246,13 +242,7 @@ final class ShowcaseApiController implements ShowcaseApi {
                                         .<Showcase>handle((showcaseId, sink) -> {
                                             val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
                                             if (future != null) {
-                                                future.whenComplete((showcase, t2) -> {
-                                                    if (showcase != null && t2 == null) {
-                                                        sink.next(showcase);
-                                                    } else {
-                                                        sink.error(t);
-                                                    }
-                                                });
+                                                future.thenAccept(sink::next);
                                             } else {
                                                 sink.error(t);
                                             }
@@ -283,13 +273,7 @@ final class ShowcaseApiController implements ShowcaseApi {
                                t -> Mono.<Showcase>create(sink -> {
                                             val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
                                             if (future != null) {
-                                                future.whenComplete((showcase, t2) -> {
-                                                    if (showcase != null && t2 == null) {
-                                                        sink.success(showcase);
-                                                    } else {
-                                                        sink.error(t);
-                                                    }
-                                                });
+                                                future.thenAccept(sink::success);
                                             } else {
                                                 sink.error(t);
                                             }

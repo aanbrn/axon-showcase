@@ -8,7 +8,6 @@ import lombok.val;
 import org.apache.commons.lang3.function.Predicates;
 import org.axonframework.common.AxonException;
 import org.axonframework.common.IdentifierFactory;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -84,11 +83,6 @@ final class ShowcaseApiController implements ShowcaseApi {
      * Cache for showcase ID → {@link Showcase}, used as a fallback on query errors.
      */
     private final AsyncCache<String, Showcase> fetchShowcaseByIdCache;
-
-    /**
-     * The message source used to resolve localized error messages.
-     */
-    private final MessageSource messageSource;
 
     /**
      * Resolves Spring validation exceptions into per-parameter error maps on problem details.

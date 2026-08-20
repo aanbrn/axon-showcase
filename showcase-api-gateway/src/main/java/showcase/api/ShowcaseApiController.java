@@ -326,6 +326,7 @@ final class ShowcaseApiController implements ShowcaseApi {
      * @return the problem detail for the exception
      */
     @ExceptionHandler
+    @SuppressWarnings("unused")
     private ProblemDetail handleHandlerMethodValidationException(HandlerMethodValidationException e, Locale locale) {
         val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request.");
         errorResolver.resolve(e, locale, problemDetail);

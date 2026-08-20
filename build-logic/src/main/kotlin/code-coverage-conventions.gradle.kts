@@ -27,7 +27,7 @@ val mainClasses = extensions.getByType<SourceSetContainer>()
     .classesDirs
 
 fun generatedClassExcludes(): List<String> {
-    val moduleExcludes = project.extra.properties["coverage.generatedClassExcludes"] as? List<*> ?: emptyList<Any?>()
+    val moduleExcludes = project.findProperty("coverage.generatedClassExcludes") as? List<*> ?: emptyList<Any?>()
     return listOf(
         "**/*Proto.class",
         "**/*OrBuilder.class",
@@ -47,7 +47,7 @@ val coverageBaselineMinimum: BigDecimal = run {
     props.getProperty("coverage.instruction.minimum", "0.80").toBigDecimal()
 }
 
-val coverageGateEnabled = providers.provider { project.extra.properties["coverage.gate.enabled"] != false }
+val coverageGateEnabled = providers.provider { project.findProperty("coverage.gate.enabled") != false }
 
 tasks.named<JacocoReport>("jacocoTestReport") {
     classDirectories.setFrom(mainClasses.asFileTree.matching { exclude(generatedClassExcludes()) })

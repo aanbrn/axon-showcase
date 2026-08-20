@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.lang.reflect.Method;
@@ -152,46 +151,6 @@ class ShowcaseApiErrorResolverCT {
         resolver.resolve(exceptionAt(OTHER), Locale.ENGLISH, problemDetail);
 
         assertThat(problemDetail.getProperties()).containsEntry("otherErrors", Map.of("other", List.of("boom")));
-    }
-
-    @Test
-    @DisplayName("Resolving a web exchange bind exception for a request body produces body errors")
-    void resolve_webExchangeBindException_requestBody_producesBodyErrors() {
-        val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        resolver.resolve(new WebExchangeBindException(parameter(BODY), bindingWithError()), Locale.ENGLISH,
-                         problemDetail);
-
-        assertThat(problemDetail.getProperties()).containsEntry("bodyErrors", Map.of("name", List.of("bad name")));
-    }
-
-    @Test
-    @DisplayName("Resolving a web exchange bind exception for a model attribute produces model errors")
-    void resolve_webExchangeBindException_modelAttribute_producesModelErrors() {
-        val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        resolver.resolve(new WebExchangeBindException(parameter(MODEL), bindingWithError()), Locale.ENGLISH,
-                         problemDetail);
-
-        assertThat(problemDetail.getProperties()).containsEntry("modelErrors", Map.of("name", List.of("bad name")));
-    }
-
-    @Test
-    @DisplayName("Resolving a web exchange bind exception for a request part produces part errors")
-    void resolve_webExchangeBindException_requestPart_producesPartErrors() {
-        val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        resolver.resolve(new WebExchangeBindException(parameter(PART), bindingWithError()), Locale.ENGLISH,
-                         problemDetail);
-
-        assertThat(problemDetail.getProperties()).containsEntry("partErrors", Map.of("name", List.of("bad name")));
-    }
-
-    @Test
-    @DisplayName("Resolving a web exchange bind exception without a recognized annotation produces other errors")
-    void resolve_webExchangeBindException_other_producesOtherErrors() {
-        val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        resolver.resolve(new WebExchangeBindException(parameter(OTHER), bindingWithError()), Locale.ENGLISH,
-                         problemDetail);
-
-        assertThat(problemDetail.getProperties()).containsEntry("otherErrors", Map.of("name", List.of("bad name")));
     }
 
     private HandlerMethodValidationException exceptionAt(int index) {

@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException.Visitor;
 
@@ -233,39 +232,6 @@ class ShowcaseApiErrorResolver {
         }
         if (!otherErrors.isEmpty()) {
             problemDetail.setProperty("otherErrors", otherErrors);
-        }
-    }
-
-    /**
-     * Resolves a {@link WebExchangeBindException} into per-parameter error maps on the given problem detail.
-     *
-     * <p>Maps the binding field errors under the error property matching the bound method parameter's annotation
-     * (request body, model attribute, request part, or other).
-     *
-     * @param e             the binding exception to resolve
-     * @param locale        the locale used to resolve error messages
-     * @param problemDetail the problem detail to populate with the error maps
-     */
-    void resolve(WebExchangeBindException e, Locale locale, ProblemDetail problemDetail) {
-        val methodParameter = e.getMethodParameter();
-        if (methodParameter != null) {
-            val fieldErrors =
-                    StreamEx.of(e.getFieldErrors())
-                            .mapToEntry(
-                                    FieldError::getField,
-                                    fieldError -> messageSource.getMessage(fieldError, locale))
-                            .collapseKeys()
-                            .toMap();
-
-            if (methodParameter.hasParameterAnnotation(RequestBody.class)) {
-                problemDetail.setProperty("bodyErrors", fieldErrors);
-            } else if (methodParameter.hasParameterAnnotation(ModelAttribute.class)) {
-                problemDetail.setProperty("modelErrors", fieldErrors);
-            } else if (methodParameter.hasParameterAnnotation(RequestPart.class)) {
-                problemDetail.setProperty("partErrors", fieldErrors);
-            } else {
-                problemDetail.setProperty("otherErrors", fieldErrors);
-            }
         }
     }
 }

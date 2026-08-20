@@ -1,4 +1,4 @@
 plugins {
     id("helm-conventions")
-    id("com.citi.helm-releases")
+    id("io.github.build-extensions-oss.helm-releases")
 }

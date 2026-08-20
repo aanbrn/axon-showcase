@@ -35,8 +35,8 @@ context: |
       application source
     - showcase-api-gateway integrationTest must run after the client integration tests
       and depends on Docker images of all other services (bootBuildImage)
-    - citi gradle-helm-plugin tasks are not configuration-cache compatible; do not enable
-      org.gradle.configuration-cache=true
+    - the io.github.build-extensions-oss.helm / io.github.build-extensions-oss.helm-releases gradle-helm-plugin tasks
+      are not configuration-cache compatible; do not enable org.gradle.configuration-cache=true
     - ./db-init.sh creates user `showcase` and database `showcase-events` before running
       the command-service standalone
 

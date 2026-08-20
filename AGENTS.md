@@ -265,8 +265,9 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
   those first.
 - The `showcase-api-gateway` e2eTest must run after `showcase-command-client` and `showcase-query-client`
   integration tests.
-- citi gradle-helm-plugin tasks are not configuration-cache compatible — do not enable
-  `org.gradle.configuration-cache=true` (verify with `--configuration-cache` before adding it).
+- The `io.github.build-extensions-oss.helm` / `io.github.build-extensions-oss.helm-releases` gradle-helm-plugin tasks are
+  not configuration-cache compatible — do not enable `org.gradle.configuration-cache=true` (verify with
+  `--configuration-cache` before adding it).
 - `helmInstallToLocal` tags `"*"` select all releases; deployment order defined by `mustInstallAfter`/
   `mustUninstallAfter` in `build.gradle.kts`.
 - NullAway is strict on `showcase.*` packages — ensure proper `@Nullable`/`@NonNull` annotations from `jspecify`.

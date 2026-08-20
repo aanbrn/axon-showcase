@@ -70,7 +70,7 @@ spotbugs-plugin = "6.5.5"
 spotbugs-findsecbugs-plugin = "1.14.0"
 spotbugs-fbContrib-plugin = "7.7.4"
 helm = "4.2.3"
-helm-plugin = "2.2.0"
+helm-plugin = "3.1.2"
 bitnami-common = "2.x.x"
 bitnami-postgresql = "16.x.x"
 bitnami-kafka = "31.x.x"
@@ -211,8 +211,8 @@ spotbugs = { group = "com.github.spotbugs", name = "spotbugs", version.ref = "sp
 spotbugs-plugin = { group = "com.github.spotbugs.snom", name = "spotbugs-gradle-plugin", version.ref = "spotbugs-plugin" }
 spotbugs-findsecbugs-plugin = { group = "com.h3xstream.findsecbugs", name = "findsecbugs-plugin", version.ref = "spotbugs-findsecbugs-plugin" }
 spotbugs-fbContrib-plugin = { group = "com.mebigfatguy.fb-contrib", name = "fb-contrib", version.ref = "spotbugs-fbContrib-plugin" }
-helm-plugin = { group = "com.citi.gradle-plugins.helm", name = "helm-plugin", version.ref = "helm-plugin" }
-helm-releases-plugin = { group = "com.citi.gradle-plugins.helm", name = "helm-releases-plugin", version.ref = "helm-plugin" }
+helm-plugin = { group = "io.github.build-extensions-oss.helm", name = "helm-plugin", version.ref = "helm-plugin" }
+helm-releases-plugin = { group = "io.github.build-extensions-oss.helm", name = "helm-releases-plugin", version.ref = "helm-plugin" }
 kotlin-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 
 [plugins]

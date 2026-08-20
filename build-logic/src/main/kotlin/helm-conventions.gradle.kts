@@ -1,7 +1,7 @@
 import org.gradle.accessors.dm.LibrariesForLibs
 
 plugins {
-    id("com.citi.helm")
+    id("io.github.build-extensions-oss.helm")
 }
 
 val libs = the<LibrariesForLibs>()

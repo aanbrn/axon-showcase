@@ -64,9 +64,9 @@ testing {
             }
         }
 
-        val test by getting(JvmTestSuite::class)
+        val test = suites.getByName<JvmTestSuite>("test")
 
-        val componentTest by register<JvmTestSuite>("componentTest") {
+        val componentTest = suites.register<JvmTestSuite>("componentTest") {
             dependencies {
                 implementation(project(":showcase-command-client"))
                 implementation(project(":showcase-query-client"))
@@ -96,7 +96,7 @@ testing {
             }
         }
 
-        val integrationTest by register<JvmTestSuite>("integrationTest") {
+        val integrationTest = suites.register<JvmTestSuite>("integrationTest") {
             dependencies {
                 implementation(project(":showcase-command-client"))
                 implementation(project(":showcase-query-client"))

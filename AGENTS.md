@@ -274,8 +274,8 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
 - Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
   `implementation`-only dependencies — each suite re-declares what it needs (client integration suites duplicate
   axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be
-  referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g. `val integrationTest by
-  register<JvmTestSuite>("integrationTest")`).
+  referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g. `val integrationTest =
+  suites.register<JvmTestSuite>("integrationTest")`).
 - `@Nested` test classes are incompatible with Spring Boot slice tests (`@WebFluxTest`/`@WebMvcTest`): nested classes
   load the full application context instead of the slice and fail on infrastructure beans (e.g. the gateway's JGroups
   `DistributedCommandBusProperties`). Keep slice-test classes flat (see `ShowcaseApiControllerCT`).

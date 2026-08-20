@@ -34,7 +34,7 @@ testing {
             }
         }
 
-        val test by getting(JvmTestSuite::class)
+        val test = suites.getByName<JvmTestSuite>("test")
 
         val componentTest = register<JvmTestSuite>("componentTest") {
             dependencies {

@@ -59,9 +59,9 @@ testing {
             }
         }
 
-        val test by getting(JvmTestSuite::class)
+        val test = suites.getByName<JvmTestSuite>("test")
 
-        val componentTest by register<JvmTestSuite>("componentTest") {
+        val componentTest = suites.register<JvmTestSuite>("componentTest") {
             dependencies {
                 implementation(libs.axon.test)
                 implementation(libs.hamcrest)

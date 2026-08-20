@@ -25,7 +25,7 @@ testing {
             }
         }
 
-        val test by getting(JvmTestSuite::class)
+        val test = suites.getByName<JvmTestSuite>("test")
 
         register<JvmTestSuite>("componentTest") {
             dependencies {

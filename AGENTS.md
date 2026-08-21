@@ -269,6 +269,9 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
 - The `io.github.build-extensions-oss.helm` / `io.github.build-extensions-oss.helm-releases` gradle-helm-plugin tasks are
   not configuration-cache compatible — do not enable `org.gradle.configuration-cache=true` (verify with
   `--configuration-cache` before adding it).
+- The gradle-helm-plugin 3.1.2 calls the deprecated `Project.getProperties()` (a `--warning-mode all` deprecation that
+  becomes a hard error in Gradle 10). Tracked upstream as build-extensions-oss/gradle-helm-plugin#145; bump the plugin
+  when a fix is released.
 - `helmInstallToLocal` tags `"*"` select all releases; deployment order defined by `mustInstallAfter`/
   `mustUninstallAfter` in `build.gradle.kts`.
 - NullAway is strict on `showcase.*` packages — ensure proper `@Nullable`/`@NonNull` annotations from `jspecify`.

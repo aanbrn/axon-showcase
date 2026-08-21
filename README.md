@@ -73,6 +73,7 @@ Read: Client → API Gateway → Query Service → OpenSearch
 - **Gradle 9.x** (or use the Gradle wrapper)
 - **Helm 4.x** (for Kubernetes deployment)
 - **Kubernetes cluster** (for deployment)
+- **Snyk CLI** (for the dependency security scan)
 
 ## Local Development
 
@@ -148,6 +149,15 @@ Tests are organized into four tiers, run in order:
 
 Run the full check for a module (compile → spotbugs → errorprone → test → componentTest → integrationTest →
 e2eTest) with `./gradlew :<module>:check`.
+
+## Dependency Security
+
+```bash
+./gradlew dependencySecurityCheck
+```
+
+Runs the Snyk dependency scan (`snyk test --all-sub-projects`) across all sub-projects. Requires the Snyk CLI on `PATH`
+and is intentionally not part of `./gradlew check`.
 
 ## Kubernetes Deployment
 

@@ -29,6 +29,7 @@ requests it (e.g., "push" or "commit and push").
 - Docker & Docker Compose (for local dev / integration tests)
 - Gradle wrapper included (use `./gradlew`)
 - Helm 4.x + Kubernetes cluster (for deployment)
+- Snyk CLI (for `./gradlew dependencySecurityCheck`)
 
 ## Build & Test
 
@@ -56,6 +57,9 @@ requests it (e.g., "push" or "commit and push").
 
 # Load tests (Gatling)
 ./gradlew :load-tests:test
+
+# Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
+./gradlew dependencySecurityCheck
 ```
 
 **Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. The `showcase-api-gateway`

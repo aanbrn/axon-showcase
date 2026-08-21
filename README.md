@@ -170,6 +170,8 @@ Reports newer versions of dependencies whose version is declared with an exact `
 or group prefix in `config/dependency-updates/major-disabled.properties` — minor and patch updates for those
 coordinates are still reported. See ADR-0004 for the deferred Spring Boot 4 migration context.
 
+The `/dependency-updates` opencode command runs this report and summarizes the available updates.
+
 ## Kubernetes Deployment
 
 ### Deploy to Local Cluster (Kind/minikube)

@@ -66,6 +66,8 @@ requests it (e.g., "push" or "commit and push").
 ./gradlew dependencyUpdates
 ```
 
+The `/dependency-updates` opencode command runs this task and summarizes the available updates.
+
 **Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. The `showcase-api-gateway`
 `e2eTest` must run after `showcase-command-client` and `showcase-query-client` integration tests (`mustRunAfter`).
 

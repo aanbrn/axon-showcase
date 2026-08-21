@@ -168,7 +168,8 @@ and is intentionally not part of `./gradlew check`.
 Reports newer versions of dependencies whose version is declared with an exact `version.ref` in the version catalog
 (`gradle/libs.versions.toml`); BOM-inherited versions are not reported. Major updates can be suppressed per coordinate
 or group prefix in `config/dependency-updates/major-disabled.properties` — minor and patch updates for those
-coordinates are still reported. See ADR-0004 for the deferred Spring Boot 4 migration context.
+coordinates are still reported. The suppression rationale for each coordinate is recorded in the
+`showcase/quality/dependency-management` spec. See ADR-0004 for the deferred Spring Boot 4 migration context.
 
 The `/dependency-updates` opencode command runs this report and summarizes the available updates.
 

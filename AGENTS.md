@@ -75,6 +75,10 @@ For example, a `log4j-core [2.17.1 -> 2.26.1]` row appears even though `log4j-co
 `gradle-versions-plugin` limitation, not real updates (see upstream ben-manes/gradle-versions-plugin#755); do not chase
 them (see ADR-0007).
 
+Major-blocking entries in `config/dependency-updates/major-disabled.properties` carry a pointer comment naming the
+coordinate and its rationale; the authoritative reasoning for each suppressed coordinate lives in the
+`showcase/quality/dependency-management` spec.
+
 **Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. The `showcase-api-gateway`
 `e2eTest` must run after `showcase-command-client` and `showcase-query-client` integration tests (`mustRunAfter`).
 
@@ -292,6 +296,10 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
 - `helmInstallToLocal` tags `"*"` select all releases; deployment order defined by `mustInstallAfter`/
   `mustUninstallAfter` in `build.gradle.kts`.
 - NullAway is strict on `showcase.*` packages — ensure proper `@Nullable`/`@NonNull` annotations from `jspecify`.
+- Jackson 3 artifacts (`tools.jackson.core:*`) are present on the query-service and projection-service runtime
+  classpaths transitively via `co.elastic.clients:elasticsearch-java`, constrained by the platform's `jackson3-bom`
+  (kept current on minor versions). This is dependency hygiene, not the deferred Jackson 3 backend migration — Jackson
+  2 remains the serialization backend in application code (see ADR-0003).
 - Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
   `implementation`-only dependencies — each suite re-declares what it needs (client integration suites duplicate
   axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be

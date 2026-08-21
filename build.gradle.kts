@@ -1,4 +1,5 @@
 plugins {
+    id("dependency-security-conventions")
     id("dependency-versions-conventions")
     id("docker-conventions")
     id("helm-releases-conventions")

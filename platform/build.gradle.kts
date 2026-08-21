@@ -25,7 +25,6 @@ dependencies {
     api(platform(libs.reactor.bom))
     api(platform(libs.resilience4j.bom))
     api(platform(libs.spring.boot.dependencies))
-    api(platform(libs.spring.data.bom))
     api(platform(libs.spring.framework.bom))
     api(platform(libs.spring.security.bom))
     api(platform(libs.testcontainers.bom))

@@ -64,9 +64,9 @@ lombok = "1.18.46"
 lombok-plugin = "9.5.0"
 protobuf-plugin = "0.10.0"
 gatling-plugin = "3.15.1.2"
-dependencyVersions-plugin = "0.54.0"
+dependencyVersions-plugin = "0.61.0"
 errorprone-plugin = "5.1.0"
-spotbugs-plugin = "6.5.5"
+spotbugs-plugin = "6.5.10"
 spotbugs-findsecbugs-plugin = "1.14.0"
 spotbugs-fbContrib-plugin = "7.7.4"
 helm = "4.2.4"
@@ -203,7 +203,7 @@ lombok-plugin = { group = "io.freefair.gradle", name = "lombok-plugin", version.
 spring-boot-plugin = { group = "org.springframework.boot", name = "spring-boot-gradle-plugin", version.ref = "spring-boot" }
 protobuf-plugin = { group = "com.google.protobuf", name = "protobuf-gradle-plugin", version.ref = "protobuf-plugin" }
 gatling-plugin = { group = "gradle.plugin.io.gatling.gradle", name = "gatling-gradle-plugin", version.ref = "gatling-plugin" }
-dependencyVersions-plugin = { group = "com.github.ben-manes", name = "gradle-versions-plugin", version.ref = "dependencyVersions-plugin" }
+dependencyVersions-plugin = { group = "io.github.ben-manes", name = "gradle-versions-plugin", version.ref = "dependencyVersions-plugin" }
 errorprone-core = { group = "com.google.errorprone", name = "error_prone_core", version.ref = "errorprone" }
 errorprone-plugin = { group = "net.ltgt.errorprone", name = "net.ltgt.errorprone.gradle.plugin", version.ref = "errorprone-plugin" }
 nullaway = { group = "com.uber.nullaway", name = "nullaway", version.ref = "nullaway" }

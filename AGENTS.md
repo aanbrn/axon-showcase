@@ -28,7 +28,7 @@ requests it (e.g., "push" or "commit and push").
 - Java 21+
 - Docker & Docker Compose (for local dev / integration tests)
 - Gradle wrapper included (use `./gradlew`)
-- Helm 3.x + Kubernetes cluster (for deployment)
+- Helm 4.x + Kubernetes cluster (for deployment)
 
 ## Build & Test
 

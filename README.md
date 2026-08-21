@@ -71,7 +71,7 @@ Read: Client → API Gateway → Query Service → OpenSearch
 - **Java 21+**
 - **Docker & Docker Compose** (for local development)
 - **Gradle 9.x** (or use the Gradle wrapper)
-- **Helm 3.x** (for Kubernetes deployment)
+- **Helm 4.x** (for Kubernetes deployment)
 - **Kubernetes cluster** (for deployment)
 
 ## Local Development

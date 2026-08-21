@@ -175,6 +175,8 @@ Key modules (libraries, not services):
 - **Architecture Decision Records**: record cross-cutting architecture decisions as numbered ADRs under `docs/adr/`
   (Nygard format — Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture
   the *why* behind structural choices. Capture a decision as an ADR when it is made, not after the fact
+- **Docs refresh on change**: on every change, verify whether `AGENTS.md` and `README.md` need to be refreshed to
+  reflect the new state (commands, config, conventions, gotchas) and update them before reporting the change done
 - **No comments** in source code (per project convention)
 - **Javadoc**: classes, methods, and fields carry a Javadoc comment describing their purpose (see
   `ShowcaseApiErrorResolver`, `ShowcaseApiController`); wrap at 120 characters

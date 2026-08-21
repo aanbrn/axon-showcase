@@ -2,8 +2,11 @@ package showcase.api;
 
 import lombok.val;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.DefaultParameterNameDiscoverer;
@@ -27,11 +30,13 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 
 @DisplayName("Showcase API error resolver component tests")
 class ShowcaseApiErrorResolverCT {
@@ -43,138 +48,110 @@ class ShowcaseApiErrorResolverCT {
 
     @SuppressWarnings("unused")
     static class Controller {
-        public void handle(
-                @CookieValue(name = "cookie") String cookie,
-                @MatrixVariable(name = "matrix") String matrix,
-                @ModelAttribute(name = "model") Payload model,
-                @PathVariable(name = "id") String id,
-                @RequestBody Payload body,
-                @RequestHeader(name = "h") String header,
-                @RequestParam(name = "p") String param,
-                @RequestPart(name = "part") Payload part,
-                String other) {
+        void cookie(@CookieValue(name = "cookie") String cookie) {
+        }
+
+        void matrix(@MatrixVariable(name = "matrix") String matrix) {
+        }
+
+        void model(@ModelAttribute(name = "model") Payload model) {
+        }
+
+        void path(@PathVariable(name = "id") String id) {
+        }
+
+        void body(@RequestBody Payload body) {
+        }
+
+        void header(@RequestHeader(name = "h") String header) {
+        }
+
+        void param(@RequestParam(name = "p") String param) {
+        }
+
+        void part(@RequestPart(name = "part") Payload part) {
+        }
+
+        void other(String other) {
+        }
+
+        void paramNoName(@RequestParam String value) {
+        }
+
+        void pathNoName(@PathVariable String value) {
+        }
+
+        void otherMultiErrors(String other) {
         }
     }
 
-    private static final int COOKIE = 0;
-    private static final int MATRIX = 1;
-    private static final int MODEL = 2;
-    private static final int PATH = 3;
-    private static final int BODY = 4;
-    private static final int HEADER = 5;
-    private static final int PARAM = 6;
-    private static final int PART = 7;
-    private static final int OTHER = 8;
+    private static final String MULTI_ERROR_METHOD = "otherMultiErrors";
 
-    private final Method method = controllerMethod();
     private final MessageSource messageSource = new ResourceBundleMessageSource();
     private final ShowcaseApiErrorResolver resolver = new ShowcaseApiErrorResolver(messageSource);
 
-    @Test
-    @DisplayName("Resolving a cookie value error produces cookie errors")
-    void resolve_cookieValue_producesCookieErrors() {
+    @ParameterizedTest
+    @DisplayName("Resolving a parameter validation error produces the expected error map")
+    @MethodSource
+    void resolve_producesExpectedErrors(String methodName, String property, Object expected) {
         val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        resolver.resolve(exceptionAt(COOKIE), Locale.ENGLISH, problemDetail);
+        resolver.resolve(exceptionFor(methodName), Locale.ENGLISH, problemDetail);
 
-        assertThat(problemDetail.getProperties()).containsEntry("cookieErrors", Map.of("cookie", List.of("boom")));
+        assertThat(problemDetail.getProperties()).containsEntry(property, expected);
     }
 
-    @Test
-    @DisplayName("Resolving a matrix variable error produces path errors")
-    void resolve_matrixVariable_producesPathErrors() {
-        val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        resolver.resolve(exceptionAt(MATRIX), Locale.ENGLISH, problemDetail);
-
-        assertThat(problemDetail.getProperties()).containsEntry("pathErrors", Map.of("matrix", List.of("boom")));
+    static List<Arguments> resolve_producesExpectedErrors() {
+        return List.of(
+                argumentSet("cookie value", "cookie", "cookieErrors", Map.of("cookie", List.of("boom"))),
+                argumentSet("matrix variable", "matrix", "pathErrors", Map.of("matrix", List.of("boom"))),
+                argumentSet("model attribute", "model", "modelErrors",
+                            Map.of("model", Map.of("name", List.of("bad name")))),
+                argumentSet("path variable", "path", "pathErrors", Map.of("id", List.of("boom"))),
+                argumentSet("request body", "body", "bodyErrors", Map.of("name", List.of("bad name"))),
+                argumentSet("request header", "header", "headerErrors", Map.of("h", List.of("boom"))),
+                argumentSet("request param", "param", "paramErrors", Map.of("p", List.of("boom"))),
+                argumentSet("request part", "part", "partErrors",
+                            Map.of("part", Map.of("name", List.of("bad name")))),
+                argumentSet("unannotated parameter", "other", "otherErrors", Map.of("other", List.of("boom"))),
+                argumentSet("request param without a name falls back to the parameter name",
+                            "paramNoName", "paramErrors", Map.of("value", List.of("boom"))),
+                argumentSet("path variable without a name falls back to the parameter name",
+                            "pathNoName", "pathErrors", Map.of("value", List.of("boom"))),
+                argumentSet("multiple errors on one parameter produce all messages",
+                            "otherMultiErrors", "otherErrors", Map.of("other", List.of("boom 1", "boom 2"))));
     }
 
-    @Test
-    @DisplayName("Resolving a model attribute error produces model errors")
-    void resolve_modelAttribute_producesModelErrors() {
-        val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        resolver.resolve(exceptionAt(MODEL), Locale.ENGLISH, problemDetail);
-
-        assertThat(problemDetail.getProperties())
-                .containsEntry("modelErrors", Map.of("model", Map.of("name", List.of("bad name"))));
-    }
-
-    @Test
-    @DisplayName("Resolving a path variable error produces path errors")
-    void resolve_pathVariable_producesPathErrors() {
-        val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        resolver.resolve(exceptionAt(PATH), Locale.ENGLISH, problemDetail);
-
-        assertThat(problemDetail.getProperties()).containsEntry("pathErrors", Map.of("id", List.of("boom")));
-    }
-
-    @Test
-    @DisplayName("Resolving a request body error produces body errors")
-    void resolve_requestBody_producesBodyErrors() {
-        val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        resolver.resolve(exceptionAt(BODY), Locale.ENGLISH, problemDetail);
-
-        assertThat(problemDetail.getProperties()).containsEntry("bodyErrors", Map.of("name", List.of("bad name")));
-    }
-
-    @Test
-    @DisplayName("Resolving a request header error produces header errors")
-    void resolve_requestHeader_producesHeaderErrors() {
-        val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        resolver.resolve(exceptionAt(HEADER), Locale.ENGLISH, problemDetail);
-
-        assertThat(problemDetail.getProperties()).containsEntry("headerErrors", Map.of("h", List.of("boom")));
-    }
-
-    @Test
-    @DisplayName("Resolving a request parameter error produces param errors")
-    void resolve_requestParam_producesParamErrors() {
-        val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        resolver.resolve(exceptionAt(PARAM), Locale.ENGLISH, problemDetail);
-
-        assertThat(problemDetail.getProperties()).containsEntry("paramErrors", Map.of("p", List.of("boom")));
-    }
-
-    @Test
-    @DisplayName("Resolving a request part error produces part errors")
-    void resolve_requestPart_producesPartErrors() {
-        val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        resolver.resolve(exceptionAt(PART), Locale.ENGLISH, problemDetail);
-
-        assertThat(problemDetail.getProperties())
-                .containsEntry("partErrors", Map.of("part", Map.of("name", List.of("bad name"))));
-    }
-
-    @Test
-    @DisplayName("Resolving an other error produces other errors")
-    void resolve_other_producesOtherErrors() {
-        val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        resolver.resolve(exceptionAt(OTHER), Locale.ENGLISH, problemDetail);
-
-        assertThat(problemDetail.getProperties()).containsEntry("otherErrors", Map.of("other", List.of("boom")));
-    }
-
-    private HandlerMethodValidationException exceptionAt(int index) {
-        val result = switch (index) {
-            case MODEL, BODY, PART -> (ParameterValidationResult) errors(index, bindingWithError());
-            default -> validationResult(index);
-        };
+    private HandlerMethodValidationException exceptionFor(String methodName) {
+        val method = controllerMethod(methodName);
+        val parameter = parameter(method);
+        val messages = MULTI_ERROR_METHOD.equals(methodName)
+                               ? List.of(resolvable("boom 1"), resolvable("boom 2"))
+                               : List.of(resolvable("boom"));
+        val result = method.getParameterTypes()[0] == Payload.class
+                             ? errors(parameter, bindingWithError())
+                             : validationResult(parameter, messages);
         return new HandlerMethodValidationException(
                 MethodValidationResult.create(new Controller(), method, List.of(result)));
     }
 
-    private ParameterValidationResult validationResult(int index) {
+    private ParameterValidationResult validationResult(MethodParameter parameter,
+                                                       List<MessageSourceResolvable> errors) {
         return new ParameterValidationResult(
-                parameter(index),
+                parameter,
                 new Object[0],
-                List.of(new DefaultMessageSourceResolvable(new String[] { "error.code" }, "boom")),
+                errors,
                 null,
                 null,
                 null,
                 (resolvable, type) -> String.class);
     }
 
-    private ParameterErrors errors(int index, BindingResult binding) {
-        return new ParameterErrors(parameter(index), new Object[0], binding, null, null, null);
+    private static MessageSourceResolvable resolvable(String message) {
+        return new DefaultMessageSourceResolvable(new String[] { "error.code" }, message);
+    }
+
+    private ParameterErrors errors(MethodParameter parameter, BindingResult binding) {
+        return new ParameterErrors(parameter, new Object[0], binding, null, null, null);
     }
 
     private BindingResult bindingWithError() {
@@ -183,20 +160,16 @@ class ShowcaseApiErrorResolverCT {
         return binding;
     }
 
-    private MethodParameter parameter(int index) {
-        val methodParameter = new MethodParameter(method, index);
+    private MethodParameter parameter(Method method) {
+        val methodParameter = new MethodParameter(method, 0);
         methodParameter.initParameterNameDiscovery(new DefaultParameterNameDiscoverer());
         return methodParameter;
     }
 
-    private static Method controllerMethod() {
-        try {
-            return Controller.class.getMethod(
-                    "handle",
-                    String.class, String.class, Payload.class, String.class, Payload.class,
-                    String.class, String.class, Payload.class, String.class);
-        } catch (NoSuchMethodException e) {
-            throw new IllegalStateException(e);
-        }
+    private static Method controllerMethod(String name) {
+        return Arrays.stream(Controller.class.getDeclaredMethods())
+                     .filter(method -> method.getName().equals(name))
+                     .findFirst()
+                     .orElseThrow(() -> new IllegalStateException("No controller method: " + name));
     }
 }

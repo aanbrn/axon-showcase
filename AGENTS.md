@@ -68,6 +68,13 @@ requests it (e.g., "push" or "commit and push").
 
 The `/dependency-updates` opencode command runs this task and summarizes the available updates.
 
+Build-environment constraints can surface as spurious "current version" rows in the report: build tooling such as
+SpotBugs publishes module constraints that `checkBuildEnvironmentConstraints` reads and reports as the current version.
+For example, a `log4j-core [2.17.1 -> 2.26.1]` row appears even though `log4j-core` resolves to `2.26.1` everywhere —
+`2.17.1` is the floor of an external Log4Shell guard published by `spotbugs-annotations`. These rows are a known
+`gradle-versions-plugin` limitation, not real updates (see upstream ben-manes/gradle-versions-plugin#755); do not chase
+them (see ADR-0007).
+
 **Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. The `showcase-api-gateway`
 `e2eTest` must run after `showcase-command-client` and `showcase-query-client` integration tests (`mustRunAfter`).
 

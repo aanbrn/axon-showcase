@@ -172,6 +172,13 @@ coordinates are still reported. See ADR-0004 for the deferred Spring Boot 4 migr
 
 The `/dependency-updates` opencode command runs this report and summarizes the available updates.
 
+Note that the report can also surface spurious rows caused by build-environment constraints: build tooling such as
+SpotBugs publishes module constraints that `checkBuildEnvironmentConstraints` reads and reports as the "current
+version". For example, a `log4j-core [2.17.1 -> 2.26.1]` row appears even though `log4j-core` resolves to `2.26.1`
+everywhere — `2.17.1` is the floor of an external Log4Shell guard published by `spotbugs-annotations`. These rows are a
+known `gradle-versions-plugin` limitation, not real updates (see upstream ben-manes/gradle-versions-plugin#755); see
+ADR-0007 for the evidence trail.
+
 ## Kubernetes Deployment
 
 ### Deploy to Local Cluster (Kind/minikube)

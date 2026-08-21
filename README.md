@@ -159,6 +159,17 @@ e2eTest) with `./gradlew :<module>:check`.
 Runs the Snyk dependency scan (`snyk test --all-sub-projects`) across all sub-projects. Requires the Snyk CLI on `PATH`
 and is intentionally not part of `./gradlew check`.
 
+## Dependency Updates
+
+```bash
+./gradlew dependencyUpdates
+```
+
+Reports newer versions of dependencies whose version is declared with an exact `version.ref` in the version catalog
+(`gradle/libs.versions.toml`); BOM-inherited versions are not reported. Major updates can be suppressed per coordinate
+or group prefix in `config/dependency-updates/major-disabled.properties` — minor and patch updates for those
+coordinates are still reported. See ADR-0004 for the deferred Spring Boot 4 migration context.
+
 ## Kubernetes Deployment
 
 ### Deploy to Local Cluster (Kind/minikube)

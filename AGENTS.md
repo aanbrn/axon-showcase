@@ -60,6 +60,10 @@ requests it (e.g., "push" or "commit and push").
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
+
+# Dependency update report (only catalog-owned coordinates; majors suppressed for groups in
+# config/dependency-updates/major-disabled.properties)
+./gradlew dependencyUpdates
 ```
 
 **Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. The `showcase-api-gateway`

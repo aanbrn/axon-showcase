@@ -66,7 +66,8 @@ requests it (e.g., "push" or "commit and push").
 ./gradlew dependencyUpdates
 ```
 
-The `/dependency-updates` opencode command runs this task and summarizes the available updates.
+The `/dependency-updates` opencode command runs this task and summarizes the available updates; the
+`/gradle-update` command updates the Gradle wrapper to the latest stable version when one is available.
 
 Build-environment constraints can surface as spurious "current version" rows in the report: build tooling such as
 SpotBugs publishes module constraints that `checkBuildEnvironmentConstraints` reads and reports as the current version.

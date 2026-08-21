@@ -171,7 +171,8 @@ or group prefix in `config/dependency-updates/major-disabled.properties` — min
 coordinates are still reported. The suppression rationale for each coordinate is recorded in the
 `showcase/quality/dependency-management` spec. See ADR-0004 for the deferred Spring Boot 4 migration context.
 
-The `/dependency-updates` opencode command runs this report and summarizes the available updates.
+The `/dependency-updates` opencode command runs this report and summarizes the available updates; the
+`/gradle-update` command updates the Gradle wrapper to the latest stable version when one is available.
 
 Note that the report can also surface spurious rows caused by build-environment constraints: build tooling such as
 SpotBugs publishes module constraints that `checkBuildEnvironmentConstraints` reads and reports as the "current

@@ -513,7 +513,7 @@ class ShowcaseAggregateCT {
 
     @Test
     @DisplayName("Removing a started showcase finishes it, emits a removed event, updates state, and marks it deleted")
-    void removeShowcase_startedShowcase_emitsShowcaseFinishedEvent_publishesShowcaseRemovedEvent_updatesState_marksDeleted() {
+    void removeShowcase_startedShowcase_emitsFinishedAndRemovedEvents_updatesState_marksDeleted() {
         val showcaseId = aShowcaseId();
         val title = aShowcaseTitle();
         val startTime = aShowcaseStartTime(fixture.currentTime());

@@ -6,9 +6,16 @@ import org.gradle.accessors.dm.LibrariesForLibs
 plugins {
     id("com.github.spotbugs")
     id("net.ltgt.errorprone")
+    id("checkstyle")
 }
 
 val libs = the<LibrariesForLibs>()
+
+checkstyle {
+    toolVersion = libs.versions.checkstyle.get()
+    configDirectory.set(rootProject.layout.projectDirectory.dir("config/checkstyle"))
+    maxErrors = 0
+}
 
 spotbugs {
     showProgress = true

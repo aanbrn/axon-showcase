@@ -7,11 +7,10 @@ import org.springframework.boot.autoconfigure.AutoConfigurationImportFilter;
 import org.springframework.boot.autoconfigure.AutoConfigurationMetadata;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
+import org.springframework.util.Assert;
 
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-
-import org.springframework.util.Assert;
 
 /**
  * Auto-configuration import filter that conditionally disables Resilience4j features based on configuration

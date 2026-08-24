@@ -139,6 +139,8 @@ Key modules (libraries, not services):
   writing boilerplate manually; `addNullAnnotations = jspecify`; copyable annotations include `@Qualifier` and `@Value`
 - **MapStruct**: default component model is `spring` (`-Amapstruct.defaultComponentModel=spring`)
 - **ErrorProne**: NullAway on `showcase.*` packages in production code; disabled in `TestJava` tasks
+- **Checkstyle**: style gate wired into `check` via `code-check-conventions.gradle.kts`; ruleset at
+  `config/checkstyle/checkstyle.xml`, generated sources excluded via `config/checkstyle/suppressions.xml`
 - **SpotBugs**: finds bugs with findsecbugs and fbContrib plugins; uses `spotbugs-include.xml` and
   `spotbugs-exclude.xml` filters if present (see `code-check-conventions.gradle.kts`)
 - **LZ4 relocation**: root build forces `org.lz4:lz4-java` substitution (see `build.gradle.kts`)

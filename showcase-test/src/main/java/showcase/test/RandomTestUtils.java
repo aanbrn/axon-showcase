@@ -15,12 +15,12 @@ public final class RandomTestUtils {
     /**
      * Secure random number generator.
      */
-    private static final RandomUtils random = RandomUtils.secure();
+    private static final RandomUtils RANDOM = RandomUtils.secure();
 
     /**
      * Secure random string generator.
      */
-    private static final RandomStringUtils randomString = RandomStringUtils.secure();
+    private static final RandomStringUtils RANDOM_STRING = RandomStringUtils.secure();
 
     /**
      * Generates a random alphabetic string of the given length.
@@ -29,14 +29,14 @@ public final class RandomTestUtils {
      * @return a random alphabetic string
      */
     public static String anAlphabeticString(int length) {
-        return randomString.nextAlphabetic(length);
+        return RANDOM_STRING.nextAlphabetic(length);
     }
 
     /**
      * Picks a random element from the given array.
      *
      * @param array the array to pick from
-     * @param <E> the element type
+     * @param <E>   the element type
      * @return a random element of the array
      * @throws IllegalArgumentException if the array is empty
      */
@@ -44,14 +44,14 @@ public final class RandomTestUtils {
         if (array.length == 0) {
             throw new IllegalArgumentException("Argument 'array' must not be empty");
         }
-        return array[random.randomInt(0, array.length)];
+        return array[RANDOM.randomInt(0, array.length)];
     }
 
     /**
      * Picks a random element from the given list.
      *
      * @param list the list to pick from
-     * @param <E> the element type
+     * @param <E>  the element type
      * @return a random element of the list
      * @throws IllegalArgumentException if the list is empty
      */
@@ -59,14 +59,14 @@ public final class RandomTestUtils {
         if (list.isEmpty()) {
             throw new IllegalArgumentException("Argument 'list' must not be empty");
         }
-        return list.get(random.randomInt(0, list.size()));
+        return list.get(RANDOM.randomInt(0, list.size()));
     }
 
     /**
      * Picks a random enum constant of the given enum type.
      *
      * @param enumClass the enum class to pick from
-     * @param <E> the enum type
+     * @param <E>       the enum type
      * @return a random enum constant
      * @throws IllegalArgumentException if the enum has no constants
      */

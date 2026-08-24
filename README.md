@@ -147,8 +147,8 @@ Tests are organized into four tiers, run in order:
 | Integration      | `./gradlew :<module>:integrationTest`              | Testcontainers (needs Docker) |
 | End-to-end       | `./gradlew :showcase-api-gateway:e2eTest`          | boots all services + infra    |
 
-Run the full check for a module (compile → spotbugs → errorprone → test → componentTest → integrationTest →
-e2eTest) with `./gradlew :<module>:check`.
+Run the full check for a module (compile → checkstyle → spotbugs → errorprone → test → componentTest →
+integrationTest → e2eTest) with `./gradlew :<module>:check`.
 
 ## Dependency Security
 

@@ -49,10 +49,11 @@ requests it (e.g., "push" or "commit and push").
 # Run integration tests (requires Docker, spins up Testcontainers)
 ./gradlew :showcase-command-service:integrationTest
 
-# Run end-to-end tests (gateway: boots all services + infra via Testcontainers)
+# Run end-to-end tests (separate opt-in task; boots services + infra via Testcontainers, builds service images)
 ./gradlew :showcase-api-gateway:e2eTest
 
-# Check runs: compile → spotbugs → errorprone → test → componentTest → integrationTest → e2eTest
+# Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest
+# (add -PskipITs to drop integration for a Docker-free check; e2e is never part of check)
 ./gradlew :showcase-command-service:check
 
 # Load tests (Gatling)
@@ -80,8 +81,10 @@ Major-blocking entries in `config/dependency-updates/major-disabled.properties` 
 coordinate and its rationale; the authoritative reasoning for each suppressed coordinate lives in the
 `showcase/quality/dependency-management` spec.
 
-**Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. The `showcase-api-gateway`
-`e2eTest` must run after `showcase-command-client` and `showcase-query-client` e2e tests (`mustRunAfter`).
+**Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. `check` runs the first
+three by default (`-PskipITs` drops integration for Docker-free runs); `e2eTest` is a separate opt-in task, and the
+`showcase-api-gateway` `e2eTest` must run after `showcase-command-client` and `showcase-query-client` e2e tests
+(`mustRunAfter`).
 
 **Test tiers** — a test's tier is decided by its collaborators (what is real vs. faked), not by how long it takes to
 run:

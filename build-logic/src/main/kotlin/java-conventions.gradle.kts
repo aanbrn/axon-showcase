@@ -72,6 +72,16 @@ testing {
     }
 }
 
+val skipITs: Provider<Boolean> = providers.gradleProperty("skipITs").map { it != "false" }.orElse(false)
+
 tasks.named("check") {
-    dependsOn(testing.suites)
+    dependsOn(
+        testing.suites.matching { suite ->
+            when (suite.name) {
+                "e2eTest" -> false
+                "integrationTest" -> !skipITs.get()
+                else -> true
+            }
+        }
+    )
 }

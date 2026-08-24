@@ -16,7 +16,11 @@ jacoco {
     toolVersion = libs.versions.jacoco.get()
 }
 
-val allSuiteTestTasks = tasks.withType<Test>().matching { it.name != "e2eTest" }
+val skipITs: Provider<Boolean> = providers.gradleProperty("skipITs").map { it != "false" }.orElse(false)
+
+val allSuiteTestTasks = tasks.withType<Test>().matching {
+    it.name != "e2eTest" && (it.name != "integrationTest" || !skipITs.get())
+}
 
 val jacocoExecDir = layout.buildDirectory.dir("jacoco").get().asFile
 

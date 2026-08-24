@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -57,16 +58,13 @@ final class ShowcaseCommandMessageInterceptor<T extends Message<?>> implements M
             }
             return interceptorChain.proceed();
         } catch (JSR303ViolationException e) {
-            val fieldErrors =
-                    StreamEx.of(e.getViolations())
-                            .mapToEntry(ConstraintViolation::getPropertyPath,
-                                        ConstraintViolation::getMessage)
-                            .mapKeys(Path::toString)
-                            .collapseKeys()
-                            .toMap();
+            val fieldErrors = StreamEx.of(e.getViolations())
+                    .mapToEntry(ConstraintViolation::getPropertyPath, ConstraintViolation::getMessage)
+                    .mapKeys(Path::toString)
+                    .collapseKeys()
+                    .toMap();
             throw new ShowcaseCommandException(
-                    ShowcaseCommandErrorDetails
-                            .builder()
+                    ShowcaseCommandErrorDetails.builder()
                             .errorCode(ShowcaseCommandErrorCode.INVALID_COMMAND)
                             .errorMessage("Given command is not valid")
                             .metaData(MetaData.from(fieldErrors))
@@ -77,16 +75,14 @@ final class ShowcaseCommandMessageInterceptor<T extends Message<?>> implements M
                 return null;
             } else if (e instanceof AggregateDeletedException) {
                 throw new ShowcaseCommandException(
-                        ShowcaseCommandErrorDetails
-                                .builder()
+                        ShowcaseCommandErrorDetails.builder()
                                 .errorCode(ShowcaseCommandErrorCode.ILLEGAL_STATE)
                                 .errorMessage("Showcase is removed already")
                                 .build(),
                         e);
             } else {
                 throw new ShowcaseCommandException(
-                        ShowcaseCommandErrorDetails
-                                .builder()
+                        ShowcaseCommandErrorDetails.builder()
                                 .errorCode(ShowcaseCommandErrorCode.NOT_FOUND)
                                 .errorMessage("No showcase with given ID")
                                 .build(),

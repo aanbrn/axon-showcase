@@ -1,8 +1,13 @@
+// SPDX-License-Identifier: MIT
 package showcase.api;
+
+import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME;
+import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME;
 
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import com.github.benmanes.caffeine.cache.AsyncCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandBus;
@@ -37,11 +42,6 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import showcase.query.FetchShowcaseListQuery;
 import showcase.query.Showcase;
 
-import java.util.List;
-
-import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME;
-import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME;
-
 /**
  * Application entry point for the showcase API gateway.
  *
@@ -53,7 +53,6 @@ import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_LIST_QUERY_CACHE_
 @EnableCaching
 @Slf4j
 class ShowcaseApiApplication {
-
     /**
      * Application entry point that disables the AxonIQ console message and starts the Spring context.
      *
@@ -92,11 +91,14 @@ class ShowcaseApiApplication {
             @Qualifier("localSegment") CommandBus localSegment,
             RoutingStrategy routingStrategy,
             ObjectProvider<ConsistentHashChangeListener> consistentHashChangeListener,
-            SpanFactory spanFactory
-    ) {
-        System.setProperty("jgroups.tunnel.gossip_router_hosts", properties.getJgroups().getGossip().getHosts());
-        System.setProperty("jgroups.bind_addr", String.valueOf(properties.getJgroups().getBindAddr()));
-        System.setProperty("jgroups.bind_port", String.valueOf(properties.getJgroups().getBindPort()));
+            SpanFactory spanFactory) {
+        System.setProperty(
+                "jgroups.tunnel.gossip_router_hosts",
+                properties.getJgroups().getGossip().getHosts());
+        System.setProperty(
+                "jgroups.bind_addr", String.valueOf(properties.getJgroups().getBindAddr()));
+        System.setProperty(
+                "jgroups.bind_port", String.valueOf(properties.getJgroups().getBindPort()));
         System.setProperty("jgroups.tcpping.initial_hosts", tcpPingHosts);
         System.setProperty("KUBERNETES_NAMESPACE", kubePingNamespace);
         System.setProperty("KUBERNETES_LABELS", kubePingLabels);
@@ -130,14 +132,12 @@ class ShowcaseApiApplication {
             DistributedCommandBusProperties distributedCommandBusProperties) {
         val spanFactory = axonConfiguration.getComponent(CommandBusSpanFactory.class);
         val messagedMonitor = axonConfiguration.messageMonitor(DistributedCommandBus.class, "distributedCommandBus");
-        val commandBus =
-                DistributedCommandBus
-                        .builder()
-                        .commandRouter(commandRouter)
-                        .connector(commandBusConnector)
-                        .spanFactory(spanFactory)
-                        .messageMonitor(messagedMonitor)
-                        .build();
+        val commandBus = DistributedCommandBus.builder()
+                .commandRouter(commandRouter)
+                .connector(commandBusConnector)
+                .spanFactory(spanFactory)
+                .messageMonitor(messagedMonitor)
+                .build();
         commandBus.updateLoadFactor(distributedCommandBusProperties.getLoadFactor());
         return commandBus;
     }
@@ -162,15 +162,15 @@ class ShowcaseApiApplication {
     AsyncCache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache(ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME);
         if (cacheSettings == null) {
-            throw new IllegalStateException("Settings for cache '%s' is missing"
-                                                    .formatted(FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME));
+            throw new IllegalStateException(
+                    "Settings for cache '%s' is missing".formatted(FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME));
         }
         return Caffeine.newBuilder()
-                       .maximumSize(cacheSettings.getMaximumSize())
-                       .expireAfterAccess(cacheSettings.getExpiresAfterAccess())
-                       .expireAfterWrite(cacheSettings.getExpiresAfterWrite())
-                       .recordStats()
-                       .buildAsync();
+                .maximumSize(cacheSettings.getMaximumSize())
+                .expireAfterAccess(cacheSettings.getExpiresAfterAccess())
+                .expireAfterWrite(cacheSettings.getExpiresAfterWrite())
+                .recordStats()
+                .buildAsync();
     }
 
     /**
@@ -183,15 +183,15 @@ class ShowcaseApiApplication {
     AsyncCache<String, Showcase> fetchShowcaseByIdCache(ShowcaseApiProperties apiProperties) {
         val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME);
         if (cacheSettings == null) {
-            throw new IllegalStateException("Settings for cache '%s' is missing"
-                                                    .formatted(FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME));
+            throw new IllegalStateException(
+                    "Settings for cache '%s' is missing".formatted(FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME));
         }
         return Caffeine.newBuilder()
-                       .maximumSize(cacheSettings.getMaximumSize())
-                       .expireAfterAccess(cacheSettings.getExpiresAfterAccess())
-                       .expireAfterWrite(cacheSettings.getExpiresAfterWrite())
-                       .recordStats()
-                       .buildAsync();
+                .maximumSize(cacheSettings.getMaximumSize())
+                .expireAfterAccess(cacheSettings.getExpiresAfterAccess())
+                .expireAfterWrite(cacheSettings.getExpiresAfterWrite())
+                .recordStats()
+                .buildAsync();
     }
 
     /**
@@ -204,8 +204,7 @@ class ShowcaseApiApplication {
     @Bean
     @SuppressWarnings("unchecked")
     CacheManagerCustomizer<CaffeineCacheManager> caffeineCacheManagerCustomizer(
-            AsyncCache<?, ?> fetchShowcaseListCache,
-            AsyncCache<?, ?> fetchShowcaseByIdCache) {
+            AsyncCache<?, ?> fetchShowcaseListCache, AsyncCache<?, ?> fetchShowcaseByIdCache) {
         return cacheManager -> {
             cacheManager.registerCustomCache(
                     "fetch-showcase-list-cache", (AsyncCache<@NonNull Object, Object>) fetchShowcaseListCache);
@@ -223,7 +222,7 @@ class ShowcaseApiApplication {
     @Bean
     SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
         return http.csrf(CsrfSpec::disable)
-                   .authorizeExchange(authorize -> authorize.anyExchange().permitAll())
-                   .build();
+                .authorizeExchange(authorize -> authorize.anyExchange().permitAll())
+                .build();
     }
 }

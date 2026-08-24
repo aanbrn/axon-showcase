@@ -1,6 +1,9 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
 
 import jakarta.validation.constraints.NotBlank;
+import java.time.Duration;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,9 +15,6 @@ import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 import org.jspecify.annotations.NullUnmarked;
 import showcase.identifier.KSUID;
-
-import java.time.Duration;
-import java.time.Instant;
 
 /**
  * Command to schedule a new showcase.

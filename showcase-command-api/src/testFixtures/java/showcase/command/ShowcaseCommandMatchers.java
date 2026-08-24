@@ -1,11 +1,11 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
 
+import java.util.Map;
 import lombok.experimental.UtilityClass;
 import org.axonframework.messaging.MetaData;
 import org.hamcrest.FeatureMatcher;
 import org.hamcrest.Matcher;
-
-import java.util.Map;
 
 /**
  * Matchers for asserting on {@link ShowcaseCommandErrorDetails} values.

@@ -1,4 +1,9 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,19 +17,16 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
-
 @SpringBootTest(webEnvironment = NONE)
 @Testcontainers(parallel = true)
 @DirtiesContext
-@TestPropertySource(properties = {
-        "showcase.command.exit-after-flyway-migration=true",
-        "axon.kafka.publisher.enabled=false",
-        "axon.distributed.jgroups.bind-port=17801",
-        "axon.distributed.jgroups.cluster-name=axon-showcase-command-exit-it"
-})
+@TestPropertySource(
+        properties = {
+            "showcase.command.exit-after-flyway-migration=true",
+            "axon.kafka.publisher.enabled=false",
+            "axon.distributed.jgroups.bind-port=17801",
+            "axon.distributed.jgroups.cluster-name=axon-showcase-command-exit-it"
+        })
 @DisplayName("Showcase command application exit after flyway migration integration tests")
 class ShowcaseCommandApplicationExitAfterFlywayMigrationIT {
 

@@ -1,17 +1,17 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
-
-import lombok.val;
-import org.apache.commons.lang3.RandomUtils;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 import static showcase.query.RandomQueryTestUtils.aShowcaseStatus;
+
+import java.util.HashSet;
+import java.util.stream.IntStream;
+import lombok.val;
+import org.apache.commons.lang3.RandomUtils;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Fetch showcase list query tests")
 class FetchShowcaseListQueryTests {
@@ -35,18 +35,15 @@ class FetchShowcaseListQueryTests {
         val status1 = aShowcaseStatus();
         val status2 = aShowcaseStatus(status1);
         val afterId = aShowcaseId();
-        val size = RandomUtils.secure().randomInt(
-                FetchShowcaseListQuery.MIN_SIZE, FetchShowcaseListQuery.MAX_SIZE + 1);
+        val size = RandomUtils.secure().randomInt(FetchShowcaseListQuery.MIN_SIZE, FetchShowcaseListQuery.MAX_SIZE + 1);
 
-        val query =
-                FetchShowcaseListQuery
-                        .builder()
-                        .title(title)
-                        .status(status1)
-                        .status(status2)
-                        .afterId(afterId)
-                        .size(size)
-                        .build();
+        val query = FetchShowcaseListQuery.builder()
+                .title(title)
+                .status(status1)
+                .status(status2)
+                .afterId(afterId)
+                .size(size)
+                .build();
         assertThat(query).isNotNull();
         assertThat(query.title()).isEqualTo(title);
         assertThat(query.statuses()).containsExactly(status1, status2);
@@ -57,16 +54,9 @@ class FetchShowcaseListQueryTests {
     @Test
     @DisplayName("A query with duplicate statuses creates an instance with distinct statuses")
     void construction_duplicateStatuses_createsInstanceWithDistinctStatuses() {
-        val statuses =
-                IntStream.range(0, 10)
-                         .mapToObj(__ -> aShowcaseStatus())
-                         .toList();
+        val statuses = IntStream.range(0, 10).mapToObj(__ -> aShowcaseStatus()).toList();
 
-        val query =
-                FetchShowcaseListQuery
-                        .builder()
-                        .statuses(statuses)
-                        .build();
+        val query = FetchShowcaseListQuery.builder().statuses(statuses).build();
         assertThat(query).isNotNull();
         assertThat(query.statuses()).containsExactlyInAnyOrderElementsOf(new HashSet<>(statuses));
     }

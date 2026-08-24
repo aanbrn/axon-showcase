@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.dependencyVersions.plugin)
     implementation(libs.errorprone.plugin)
     implementation(libs.spotbugs.plugin)
+    implementation(libs.spotless.plugin)
     implementation(libs.helm.plugin)
     implementation(libs.helm.releases.plugin)
 

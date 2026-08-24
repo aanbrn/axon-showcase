@@ -69,6 +69,7 @@ gatling-plugin = "3.15.1.2"
 dependencyVersions-plugin = "0.61.0"
 errorprone-plugin = "5.1.0"
 spotbugs-plugin = "6.5.10"
+spotless-plugin = "8.10.0"
 spotbugs-findsecbugs-plugin = "1.14.0"
 spotbugs-fbContrib-plugin = "7.7.4"
 helm = "4.2.4"
@@ -214,6 +215,7 @@ spotbugs = { group = "com.github.spotbugs", name = "spotbugs", version.ref = "sp
 spotbugs-plugin = { group = "com.github.spotbugs.snom", name = "spotbugs-gradle-plugin", version.ref = "spotbugs-plugin" }
 spotbugs-findsecbugs-plugin = { group = "com.h3xstream.findsecbugs", name = "findsecbugs-plugin", version.ref = "spotbugs-findsecbugs-plugin" }
 spotbugs-fbContrib-plugin = { group = "com.mebigfatguy.fb-contrib", name = "fb-contrib", version.ref = "spotbugs-fbContrib-plugin" }
+spotless-plugin = { group = "com.diffplug.spotless", name = "com.diffplug.spotless.gradle.plugin", version.ref = "spotless-plugin" }
 helm-plugin = { group = "io.github.build-extensions-oss.helm", name = "helm-plugin", version.ref = "helm-plugin" }
 helm-releases-plugin = { group = "io.github.build-extensions-oss.helm", name = "helm-releases-plugin", version.ref = "helm-plugin" }
 kotlin-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }

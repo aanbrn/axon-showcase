@@ -1,6 +1,15 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import io.micrometer.observation.ObservationRegistry;
+import java.util.List;
 import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,15 +23,6 @@ import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import showcase.projection.ShowcaseEntity;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Showcase query handler component tests")
@@ -47,26 +47,24 @@ class ShowcaseQueryHandlerCT {
     @SuppressWarnings("unchecked")
     @DisplayName("Handling the list query filters by title and status and maps entities to DTOs")
     void handle_listQuery_returnsMappedShowcases() {
-        val entity = ShowcaseEntity
-                             .builder()
-                             .showcaseId(SHOWCASE_ID)
-                             .title("My Showcase")
-                             .startTime(java.time.Instant.parse("2026-08-01T10:00:00Z"))
-                             .duration(java.time.Duration.ofMinutes(5))
-                             .status(showcase.projection.ShowcaseStatus.SCHEDULED)
-                             .scheduledAt(java.time.Instant.parse("2026-08-01T09:00:00Z"))
-                             .build();
+        val entity = ShowcaseEntity.builder()
+                .showcaseId(SHOWCASE_ID)
+                .title("My Showcase")
+                .startTime(java.time.Instant.parse("2026-08-01T10:00:00Z"))
+                .duration(java.time.Duration.ofMinutes(5))
+                .status(showcase.projection.ShowcaseStatus.SCHEDULED)
+                .scheduledAt(java.time.Instant.parse("2026-08-01T09:00:00Z"))
+                .build();
         val hit = mock(SearchHit.class);
         when(hit.getContent()).thenReturn(entity);
         when(openSearchTemplate.search(any(), eq(ShowcaseEntity.class), eq(SHOWCASE_INDEX)))
                 .thenReturn(Flux.just(hit));
 
-        val query = FetchShowcaseListQuery
-                            .builder()
-                            .title("My Showcase")
-                            .statuses(List.of(ShowcaseStatus.SCHEDULED))
-                            .size(10)
-                            .build();
+        val query = FetchShowcaseListQuery.builder()
+                .title("My Showcase")
+                .statuses(List.of(ShowcaseStatus.SCHEDULED))
+                .size(10)
+                .build();
 
         val result = handler.handle(query).collectList().block();
 
@@ -78,15 +76,14 @@ class ShowcaseQueryHandlerCT {
     @Test
     @DisplayName("Handling the by-ID query returns the mapped showcase when found")
     void handle_byIdQuery_found_returnsMappedShowcase() {
-        val entity = ShowcaseEntity
-                             .builder()
-                             .showcaseId(SHOWCASE_ID)
-                             .title("My Showcase")
-                             .startTime(java.time.Instant.parse("2026-08-01T10:00:00Z"))
-                             .duration(java.time.Duration.ofMinutes(5))
-                             .status(showcase.projection.ShowcaseStatus.SCHEDULED)
-                             .scheduledAt(java.time.Instant.parse("2026-08-01T09:00:00Z"))
-                             .build();
+        val entity = ShowcaseEntity.builder()
+                .showcaseId(SHOWCASE_ID)
+                .title("My Showcase")
+                .startTime(java.time.Instant.parse("2026-08-01T10:00:00Z"))
+                .duration(java.time.Duration.ofMinutes(5))
+                .status(showcase.projection.ShowcaseStatus.SCHEDULED)
+                .scheduledAt(java.time.Instant.parse("2026-08-01T09:00:00Z"))
+                .build();
         when(openSearchTemplate.get(eq(SHOWCASE_ID), eq(ShowcaseEntity.class), eq(SHOWCASE_INDEX)))
                 .thenReturn(Mono.just(entity));
 
@@ -110,8 +107,7 @@ class ShowcaseQueryHandlerCT {
                 .isInstanceOf(ShowcaseQueryException.class)
                 .satisfies(it -> {
                     val exception = (ShowcaseQueryException) it;
-                    assertThat(exception.getErrorDetails().errorCode())
-                            .isEqualTo(ShowcaseQueryErrorCode.NOT_FOUND);
+                    assertThat(exception.getErrorDetails().errorCode()).isEqualTo(ShowcaseQueryErrorCode.NOT_FOUND);
                 });
     }
 }

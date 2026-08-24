@@ -1,12 +1,13 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
+
+import static showcase.command.ShowcaseCommandOperations.SHOWCASE_COMMAND_SERVICE;
 
 import io.github.resilience4j.common.circuitbreaker.configuration.CircuitBreakerConfigCustomizer;
 import io.github.resilience4j.common.retry.configuration.RetryConfigCustomizer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-
-import static showcase.command.ShowcaseCommandOperations.SHOWCASE_COMMAND_SERVICE;
 
 /**
  * Auto-configuration registering Resilience4j customizers for the showcase command service.

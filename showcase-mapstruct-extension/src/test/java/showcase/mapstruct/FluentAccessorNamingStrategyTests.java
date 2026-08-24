@@ -1,11 +1,18 @@
+// SPDX-License-Identifier: MIT
 package showcase.mapstruct;
 
-import lombok.val;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mapstruct.ap.spi.MapStructProcessingEnvironment;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -15,18 +22,11 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import lombok.val;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mapstruct.ap.spi.MapStructProcessingEnvironment;
 
 @DisplayName("Fluent accessor naming strategy tests")
 class FluentAccessorNamingStrategyTests {
@@ -105,8 +105,7 @@ class FluentAccessorNamingStrategyTests {
     @Test
     @DisplayName("Fluent and standard getters can coexist and are both recognized")
     void isGetterMethod_coexistenceOfFluentAndStandardGetters_isRecognized() {
-        val clazz = buildClass(buildField("title", "java.lang.String"),
-                               buildField("description", "java.lang.String"));
+        val clazz = buildClass(buildField("title", "java.lang.String"), buildField("description", "java.lang.String"));
         val fluentGetter = buildMethod(clazz, "title", "java.lang.String");
         val standardGetter = buildMethod(clazz, "getDescription", "java.lang.String");
 
@@ -118,8 +117,9 @@ class FluentAccessorNamingStrategyTests {
     @Test
     @DisplayName("The SPI registration lists the fluent accessor naming strategy")
     void spiRegistration_listsFluentAccessorNamingStrategy() throws IOException {
-        try (InputStream in = getClass().getClassLoader().getResourceAsStream(
-                "META-INF/services/org.mapstruct.ap.spi.AccessorNamingStrategy")) {
+        try (InputStream in = getClass()
+                .getClassLoader()
+                .getResourceAsStream("META-INF/services/org.mapstruct.ap.spi.AccessorNamingStrategy")) {
             assertThat(in).isNotNull();
             val content = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             assertThat(content).contains("showcase.mapstruct.FluentAccessorNamingStrategy");
@@ -155,7 +155,8 @@ class FluentAccessorNamingStrategyTests {
         when(method.getReturnType()).thenReturn(returnTypeMock);
         if (withParameter) {
             doReturn(java.util.Collections.singletonList(mock(VariableElement.class)))
-                    .when(method).getParameters();
+                    .when(method)
+                    .getParameters();
         }
         return method;
     }

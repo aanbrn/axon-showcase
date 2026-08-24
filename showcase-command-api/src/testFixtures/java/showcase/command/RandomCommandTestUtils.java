@@ -1,15 +1,15 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
 
+import static showcase.test.RandomTestUtils.anAlphabeticString;
+import static showcase.test.RandomTestUtils.anEnum;
+
+import java.time.Duration;
+import java.time.Instant;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.axonframework.common.IdentifierFactory;
-
-import java.time.Duration;
-import java.time.Instant;
-
-import static showcase.test.RandomTestUtils.anAlphabeticString;
-import static showcase.test.RandomTestUtils.anEnum;
 
 /**
  * Utility methods generating random command-related test values.
@@ -50,8 +50,8 @@ public class RandomCommandTestUtils {
      * @return a random showcase duration
      */
     public static Duration aShowcaseDuration() {
-        return Duration.ofSeconds(RandomUtils.secure().randomLong(
-                ShowcaseDuration.MIN_MINUTES * 60, ShowcaseDuration.MAX_MINUTES * 60 + 1));
+        return Duration.ofSeconds(RandomUtils.secure()
+                .randomLong(ShowcaseDuration.MIN_MINUTES * 60, ShowcaseDuration.MAX_MINUTES * 60 + 1));
     }
 
     /**
@@ -61,11 +61,12 @@ public class RandomCommandTestUtils {
      * @return a random scheduled time
      */
     public static Instant aShowcaseScheduledAt(Instant scheduleTime) {
-        return scheduleTime.plusMillis(
-                RandomUtils.secure().randomLong(
-                        1, Duration.between(scheduleTime, Instant.now())
-                                   .plusMillis(2)
-                                   .toMillis()));
+        return scheduleTime.plusMillis(RandomUtils.secure()
+                .randomLong(
+                        1,
+                        Duration.between(scheduleTime, Instant.now())
+                                .plusMillis(2)
+                                .toMillis()));
     }
 
     /**
@@ -131,13 +132,12 @@ public class RandomCommandTestUtils {
      * @return a random schedule command
      */
     public static ScheduleShowcaseCommand aScheduleShowcaseCommand() {
-        return ScheduleShowcaseCommand
-                       .builder()
-                       .showcaseId(aShowcaseId())
-                       .title(aShowcaseTitle())
-                       .startTime(aShowcaseStartTime(Instant.now()))
-                       .duration(aShowcaseDuration())
-                       .build();
+        return ScheduleShowcaseCommand.builder()
+                .showcaseId(aShowcaseId())
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build();
     }
 
     /**
@@ -147,13 +147,12 @@ public class RandomCommandTestUtils {
      * @return a random schedule command
      */
     public static ScheduleShowcaseCommand aScheduleShowcaseCommand(Instant currentTime) {
-        return ScheduleShowcaseCommand
-                       .builder()
-                       .showcaseId(aShowcaseId())
-                       .title(aShowcaseTitle())
-                       .startTime(aShowcaseStartTime(currentTime))
-                       .duration(aShowcaseDuration())
-                       .build();
+        return ScheduleShowcaseCommand.builder()
+                .showcaseId(aShowcaseId())
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(currentTime))
+                .duration(aShowcaseDuration())
+                .build();
     }
 
     /**
@@ -162,10 +161,7 @@ public class RandomCommandTestUtils {
      * @return a random start command
      */
     public static StartShowcaseCommand aStartShowcaseCommand() {
-        return StartShowcaseCommand
-                       .builder()
-                       .showcaseId(aShowcaseId())
-                       .build();
+        return StartShowcaseCommand.builder().showcaseId(aShowcaseId()).build();
     }
 
     /**
@@ -174,10 +170,7 @@ public class RandomCommandTestUtils {
      * @return a random finish command
      */
     public static FinishShowcaseCommand aFinishShowcaseCommand() {
-        return FinishShowcaseCommand
-                       .builder()
-                       .showcaseId(aShowcaseId())
-                       .build();
+        return FinishShowcaseCommand.builder().showcaseId(aShowcaseId()).build();
     }
 
     /**
@@ -186,10 +179,7 @@ public class RandomCommandTestUtils {
      * @return a random remove command
      */
     public static RemoveShowcaseCommand aRemoveShowcaseCommand() {
-        return RemoveShowcaseCommand
-                       .builder()
-                       .showcaseId(aShowcaseId())
-                       .build();
+        return RemoveShowcaseCommand.builder().showcaseId(aShowcaseId()).build();
     }
 
     /**
@@ -216,10 +206,9 @@ public class RandomCommandTestUtils {
      * @return random command error details
      */
     public static ShowcaseCommandErrorDetails aShowcaseCommandErrorDetails() {
-        return ShowcaseCommandErrorDetails
-                       .builder()
-                       .errorCode(aShowcaseCommandErrorCode())
-                       .errorMessage(aShowcaseCommandErrorMessage())
-                       .build();
+        return ShowcaseCommandErrorDetails.builder()
+                .errorCode(aShowcaseCommandErrorCode())
+                .errorMessage(aShowcaseCommandErrorMessage())
+                .build();
     }
 }

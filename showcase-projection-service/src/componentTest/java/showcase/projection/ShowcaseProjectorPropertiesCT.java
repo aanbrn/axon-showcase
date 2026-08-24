@@ -1,5 +1,13 @@
+// SPDX-License-Identifier: MIT
 package showcase.projection;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import lombok.val;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,21 +23,12 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.SystemEnvironmentPropertySource;
 
-import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.params.provider.Arguments.argumentSet;
-
 @DisplayName("Showcase projector properties binding component tests")
 class ShowcaseProjectorPropertiesCT {
 
-    private final ApplicationContextRunner contextRunner =
-            new ApplicationContextRunner()
-                    .withConfiguration(AutoConfigurations.of(ValidationAutoConfiguration.class))
-                    .withUserConfiguration(PropertiesConfig.class);
+    private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(ValidationAutoConfiguration.class))
+            .withUserConfiguration(PropertiesConfig.class);
 
     private final ApplicationContextRunner ymlContextRunner =
             contextRunner.withInitializer(new ConfigDataApplicationContextInitializer());
@@ -77,58 +76,59 @@ class ShowcaseProjectorPropertiesCT {
     @ParameterizedTest
     @MethodSource("envVarBindings")
     @DisplayName("An env-var-form property value overrides the default through the application.yml placeholder")
-    void envVarFormPropertyOverridesDefault(Map<String, Object> envVars,
-                                            Consumer<ShowcaseProjectorProperties> assertions) {
+    void envVarFormPropertyOverridesDefault(
+            Map<String, Object> envVars, Consumer<ShowcaseProjectorProperties> assertions) {
         ymlContextRunner
-                .withInitializer(context -> context.getEnvironment().getPropertySources().addFirst(
-                        new SystemEnvironmentPropertySource("test-env-vars", envVars)))
+                .withInitializer(context -> context.getEnvironment()
+                        .getPropertySources()
+                        .addFirst(new SystemEnvironmentPropertySource("test-env-vars", envVars)))
                 .run(context -> assertions.accept(context.getBean(ShowcaseProjectorProperties.class)));
     }
 
     @SuppressWarnings("CodeBlock2Expr")
     static List<Arguments> envVarBindings() {
         return List.of(
-                argumentSet("PROJECTOR_MIN_CONCURRENCY",
-                            Map.of("PROJECTOR_MIN_CONCURRENCY", "2"),
-                            (Consumer<ShowcaseProjectorProperties>) properties -> {
-                                assertThat(properties.getMinConcurrency()).isEqualTo(2);
-                            }),
-                argumentSet("PROJECTOR_MAX_CONCURRENCY",
-                            Map.of("PROJECTOR_MAX_CONCURRENCY", "300"),
-                            (Consumer<ShowcaseProjectorProperties>) properties -> {
-                                assertThat(properties.getMaxConcurrency()).isEqualTo(300);
-                            }),
-                argumentSet("PROJECTOR_BATCH_MAX_SIZE",
-                            Map.of("PROJECTOR_BATCH_MAX_SIZE", "200"),
-                            (Consumer<ShowcaseProjectorProperties>) properties -> {
-                                assertThat(properties.getBatch().getMaxSize()).isEqualTo(200);
-                            }),
-                argumentSet("PROJECTOR_BATCH_MAX_TIME",
-                            Map.of("PROJECTOR_BATCH_MAX_TIME", "PT0.2S"),
-                            (Consumer<ShowcaseProjectorProperties>) properties -> {
-                                assertThat(properties.getBatch().getMaxTime()).isEqualTo(Duration.ofMillis(200));
-                            }),
-                argumentSet("PROJECTOR_BATCH_BUFFER_MAX_SIZE",
-                            Map.of("PROJECTOR_BATCH_BUFFER_MAX_SIZE", "20000"),
-                            (Consumer<ShowcaseProjectorProperties>) properties -> {
-                                assertThat(properties.getBatch().getBufferMaxSize()).isEqualTo(20000);
-                            }),
-                argumentSet("PROJECTOR_RETRY_MAX_ATTEMPTS",
-                            Map.of("PROJECTOR_RETRY_MAX_ATTEMPTS", "5"),
-                            (Consumer<ShowcaseProjectorProperties>) properties -> {
-                                assertThat(properties.getRetry().getMaxAttempts()).isEqualTo(5);
-                            }),
-                argumentSet("PROJECTOR_RETRY_MIN_BACKOFF",
-                            Map.of("PROJECTOR_RETRY_MIN_BACKOFF", "PT0.2S"),
-                            (Consumer<ShowcaseProjectorProperties>) properties -> {
-                                assertThat(properties.getRetry().getMinBackoff()).isEqualTo(Duration.ofMillis(200));
-                            }),
-                argumentSet("PROJECTOR_RESTART_DELAY",
-                            Map.of("PROJECTOR_RESTART_DELAY", "PT20S"),
-                            (Consumer<ShowcaseProjectorProperties>) properties -> {
-                                assertThat(properties.getRestart().getDelay()).isEqualTo(Duration.ofSeconds(20));
-                            })
-        );
+                argumentSet("PROJECTOR_MIN_CONCURRENCY", Map.of("PROJECTOR_MIN_CONCURRENCY", "2"), (Consumer<
+                                ShowcaseProjectorProperties>)
+                        properties -> {
+                            assertThat(properties.getMinConcurrency()).isEqualTo(2);
+                        }),
+                argumentSet("PROJECTOR_MAX_CONCURRENCY", Map.of("PROJECTOR_MAX_CONCURRENCY", "300"), (Consumer<
+                                ShowcaseProjectorProperties>)
+                        properties -> {
+                            assertThat(properties.getMaxConcurrency()).isEqualTo(300);
+                        }),
+                argumentSet("PROJECTOR_BATCH_MAX_SIZE", Map.of("PROJECTOR_BATCH_MAX_SIZE", "200"), (Consumer<
+                                ShowcaseProjectorProperties>)
+                        properties -> {
+                            assertThat(properties.getBatch().getMaxSize()).isEqualTo(200);
+                        }),
+                argumentSet("PROJECTOR_BATCH_MAX_TIME", Map.of("PROJECTOR_BATCH_MAX_TIME", "PT0.2S"), (Consumer<
+                                ShowcaseProjectorProperties>)
+                        properties -> {
+                            assertThat(properties.getBatch().getMaxTime()).isEqualTo(Duration.ofMillis(200));
+                        }),
+                argumentSet(
+                        "PROJECTOR_BATCH_BUFFER_MAX_SIZE",
+                        Map.of("PROJECTOR_BATCH_BUFFER_MAX_SIZE", "20000"),
+                        (Consumer<ShowcaseProjectorProperties>) properties -> {
+                            assertThat(properties.getBatch().getBufferMaxSize()).isEqualTo(20000);
+                        }),
+                argumentSet("PROJECTOR_RETRY_MAX_ATTEMPTS", Map.of("PROJECTOR_RETRY_MAX_ATTEMPTS", "5"), (Consumer<
+                                ShowcaseProjectorProperties>)
+                        properties -> {
+                            assertThat(properties.getRetry().getMaxAttempts()).isEqualTo(5);
+                        }),
+                argumentSet("PROJECTOR_RETRY_MIN_BACKOFF", Map.of("PROJECTOR_RETRY_MIN_BACKOFF", "PT0.2S"), (Consumer<
+                                ShowcaseProjectorProperties>)
+                        properties -> {
+                            assertThat(properties.getRetry().getMinBackoff()).isEqualTo(Duration.ofMillis(200));
+                        }),
+                argumentSet("PROJECTOR_RESTART_DELAY", Map.of("PROJECTOR_RESTART_DELAY", "PT20S"), (Consumer<
+                                ShowcaseProjectorProperties>)
+                        properties -> {
+                            assertThat(properties.getRestart().getDelay()).isEqualTo(Duration.ofSeconds(20));
+                        }));
     }
 
     @ParameterizedTest
@@ -136,8 +136,9 @@ class ShowcaseProjectorPropertiesCT {
     @DisplayName("An out-of-range env-var-form property value fails the context")
     void outOfRangeEnvVarFailsContext(Map<String, Object> envVars) {
         ymlContextRunner
-                .withInitializer(context -> context.getEnvironment().getPropertySources().addFirst(
-                        new SystemEnvironmentPropertySource("test-env-vars", envVars)))
+                .withInitializer(context -> context.getEnvironment()
+                        .getPropertySources()
+                        .addFirst(new SystemEnvironmentPropertySource("test-env-vars", envVars)))
                 .run(context -> {
                     assertThat(context).hasFailed();
                     assertThat(context.getStartupFailure()).hasRootCauseInstanceOf(BindValidationException.class);
@@ -158,12 +159,10 @@ class ShowcaseProjectorPropertiesCT {
                 argumentSet("PROJECTOR_RETRY_MIN_BACKOFF", Map.of("PROJECTOR_RETRY_MIN_BACKOFF", "PT-1S")),
                 argumentSet("PROJECTOR_RETRY_MIN_BACKOFF", Map.of("PROJECTOR_RETRY_MIN_BACKOFF", "PT2S")),
                 argumentSet("PROJECTOR_RESTART_DELAY", Map.of("PROJECTOR_RESTART_DELAY", "PT0.5S")),
-                argumentSet("PROJECTOR_RESTART_DELAY", Map.of("PROJECTOR_RESTART_DELAY", "PT61S"))
-        );
+                argumentSet("PROJECTOR_RESTART_DELAY", Map.of("PROJECTOR_RESTART_DELAY", "PT61S")));
     }
 
     @Configuration
     @EnableConfigurationProperties(ShowcaseProjectorProperties.class)
-    static class PropertiesConfig {
-    }
+    static class PropertiesConfig {}
 }

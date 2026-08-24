@@ -1,0 +1,13 @@
+<component name="ProjectCodeStyleConfiguration">
+  <code_scheme name="Project" version="173">
+    <JavaCodeStyleSettings>
+      <option name="IMPORT_LAYOUT_TABLE">
+        <value>
+          <package name="" static="true" withSubpackages="true"/>
+          <emptyLine/>
+          <package name="" static="false" withSubpackages="true"/>
+        </value>
+      </option>
+    </JavaCodeStyleSettings>
+  </code_scheme>
+</component>

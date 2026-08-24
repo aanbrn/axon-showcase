@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
 
 import lombok.extern.slf4j.Slf4j;
@@ -67,10 +68,7 @@ public class ShowcaseSaga {
 
         try {
             commandGateway.sendAndWait(
-                    StartShowcaseCommand
-                            .builder()
-                            .showcaseId(showcaseId)
-                            .build());
+                    StartShowcaseCommand.builder().showcaseId(showcaseId).build());
 
             log.trace("Started showcase with ID {}", showcaseId);
         } catch (CommandExecutionException e) {
@@ -121,10 +119,7 @@ public class ShowcaseSaga {
 
         try {
             commandGateway.sendAndWait(
-                    FinishShowcaseCommand
-                            .builder()
-                            .showcaseId(showcaseId)
-                            .build());
+                    FinishShowcaseCommand.builder().showcaseId(showcaseId).build());
 
             log.trace("Finished showcase with ID {}", showcaseId);
         } catch (CommandExecutionException e) {

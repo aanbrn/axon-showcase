@@ -1,9 +1,9 @@
+// SPDX-License-Identifier: MIT
 package showcase.mapstruct;
 
+import javax.lang.model.element.ExecutableElement;
 import lombok.val;
 import org.mapstruct.ap.spi.DefaultAccessorNamingStrategy;
-
-import javax.lang.model.element.ExecutableElement;
 
 /**
  * MapStruct naming strategy supporting fluent accessors, where a getter is a parameterless method matching a field
@@ -49,8 +49,8 @@ public final class FluentAccessorNamingStrategy extends DefaultAccessorNamingStr
         if (method.getParameters().isEmpty() && method.getEnclosingElement() != null) {
             for (val element : method.getEnclosingElement().getEnclosedElements()) {
                 if (element.getKind().isField()
-                            && element.getSimpleName().equals(method.getSimpleName())
-                            && typeUtils.isSameType(element.asType(), method.getReturnType())) {
+                        && element.getSimpleName().equals(method.getSimpleName())
+                        && typeUtils.isSameType(element.asType(), method.getReturnType())) {
                     return true;
                 }
             }

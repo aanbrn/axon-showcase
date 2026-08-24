@@ -1,5 +1,14 @@
+// SPDX-License-Identifier: MIT
 package showcase.api;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import lombok.val;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,15 +38,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.params.provider.Arguments.argumentSet;
-
 @DisplayName("Showcase API error resolver component tests")
 class ShowcaseApiErrorResolverCT {
 
@@ -48,41 +48,29 @@ class ShowcaseApiErrorResolverCT {
 
     @SuppressWarnings("unused")
     static class Controller {
-        void cookie(@CookieValue(name = "cookie") String cookie) {
-        }
+        void cookie(@CookieValue(name = "cookie") String cookie) {}
 
-        void matrix(@MatrixVariable(name = "matrix") String matrix) {
-        }
+        void matrix(@MatrixVariable(name = "matrix") String matrix) {}
 
-        void model(@ModelAttribute(name = "model") Payload model) {
-        }
+        void model(@ModelAttribute(name = "model") Payload model) {}
 
-        void path(@PathVariable(name = "id") String id) {
-        }
+        void path(@PathVariable(name = "id") String id) {}
 
-        void body(@RequestBody Payload body) {
-        }
+        void body(@RequestBody Payload body) {}
 
-        void header(@RequestHeader(name = "h") String header) {
-        }
+        void header(@RequestHeader(name = "h") String header) {}
 
-        void param(@RequestParam(name = "p") String param) {
-        }
+        void param(@RequestParam(name = "p") String param) {}
 
-        void part(@RequestPart(name = "part") Payload part) {
-        }
+        void part(@RequestPart(name = "part") Payload part) {}
 
-        void other(String other) {
-        }
+        void other(String other) {}
 
-        void paramNoName(@RequestParam String value) {
-        }
+        void paramNoName(@RequestParam String value) {}
 
-        void pathNoName(@PathVariable String value) {
-        }
+        void pathNoName(@PathVariable String value) {}
 
-        void otherMultiErrors(String other) {
-        }
+        void otherMultiErrors(String other) {}
     }
 
     private static final String MULTI_ERROR_METHOD = "otherMultiErrors";
@@ -104,50 +92,55 @@ class ShowcaseApiErrorResolverCT {
         return List.of(
                 argumentSet("cookie value", "cookie", "cookieErrors", Map.of("cookie", List.of("boom"))),
                 argumentSet("matrix variable", "matrix", "pathErrors", Map.of("matrix", List.of("boom"))),
-                argumentSet("model attribute", "model", "modelErrors",
-                            Map.of("model", Map.of("name", List.of("bad name")))),
+                argumentSet(
+                        "model attribute",
+                        "model",
+                        "modelErrors",
+                        Map.of("model", Map.of("name", List.of("bad name")))),
                 argumentSet("path variable", "path", "pathErrors", Map.of("id", List.of("boom"))),
                 argumentSet("request body", "body", "bodyErrors", Map.of("name", List.of("bad name"))),
                 argumentSet("request header", "header", "headerErrors", Map.of("h", List.of("boom"))),
                 argumentSet("request param", "param", "paramErrors", Map.of("p", List.of("boom"))),
-                argumentSet("request part", "part", "partErrors",
-                            Map.of("part", Map.of("name", List.of("bad name")))),
+                argumentSet("request part", "part", "partErrors", Map.of("part", Map.of("name", List.of("bad name")))),
                 argumentSet("unannotated parameter", "other", "otherErrors", Map.of("other", List.of("boom"))),
-                argumentSet("request param without a name falls back to the parameter name",
-                            "paramNoName", "paramErrors", Map.of("value", List.of("boom"))),
-                argumentSet("path variable without a name falls back to the parameter name",
-                            "pathNoName", "pathErrors", Map.of("value", List.of("boom"))),
-                argumentSet("multiple errors on one parameter produce all messages",
-                            "otherMultiErrors", "otherErrors", Map.of("other", List.of("boom 1", "boom 2"))));
+                argumentSet(
+                        "request param without a name falls back to the parameter name",
+                        "paramNoName",
+                        "paramErrors",
+                        Map.of("value", List.of("boom"))),
+                argumentSet(
+                        "path variable without a name falls back to the parameter name",
+                        "pathNoName",
+                        "pathErrors",
+                        Map.of("value", List.of("boom"))),
+                argumentSet(
+                        "multiple errors on one parameter produce all messages",
+                        "otherMultiErrors",
+                        "otherErrors",
+                        Map.of("other", List.of("boom 1", "boom 2"))));
     }
 
     private HandlerMethodValidationException exceptionFor(String methodName) {
         val method = controllerMethod(methodName);
         val parameter = parameter(method);
         val messages = MULTI_ERROR_METHOD.equals(methodName)
-                               ? List.of(resolvable("boom 1"), resolvable("boom 2"))
-                               : List.of(resolvable("boom"));
+                ? List.of(resolvable("boom 1"), resolvable("boom 2"))
+                : List.of(resolvable("boom"));
         val result = method.getParameterTypes()[0] == Payload.class
-                             ? errors(parameter, bindingWithError())
-                             : validationResult(parameter, messages);
+                ? errors(parameter, bindingWithError())
+                : validationResult(parameter, messages);
         return new HandlerMethodValidationException(
                 MethodValidationResult.create(new Controller(), method, List.of(result)));
     }
 
-    private ParameterValidationResult validationResult(MethodParameter parameter,
-                                                       List<MessageSourceResolvable> errors) {
+    private ParameterValidationResult validationResult(
+            MethodParameter parameter, List<MessageSourceResolvable> errors) {
         return new ParameterValidationResult(
-                parameter,
-                new Object[0],
-                errors,
-                null,
-                null,
-                null,
-                (resolvable, type) -> String.class);
+                parameter, new Object[0], errors, null, null, null, (resolvable, type) -> String.class);
     }
 
     private static MessageSourceResolvable resolvable(String message) {
-        return new DefaultMessageSourceResolvable(new String[] { "error.code" }, message);
+        return new DefaultMessageSourceResolvable(new String[] {"error.code"}, message);
     }
 
     private ParameterErrors errors(MethodParameter parameter, BindingResult binding) {
@@ -168,8 +161,8 @@ class ShowcaseApiErrorResolverCT {
 
     private static Method controllerMethod(String name) {
         return Arrays.stream(Controller.class.getDeclaredMethods())
-                     .filter(method -> method.getName().equals(name))
-                     .findFirst()
-                     .orElseThrow(() -> new IllegalStateException("No controller method: " + name));
+                .filter(method -> method.getName().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No controller method: " + name));
     }
 }

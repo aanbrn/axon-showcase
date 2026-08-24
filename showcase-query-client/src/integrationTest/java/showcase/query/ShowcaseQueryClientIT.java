@@ -1,4 +1,25 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROTOBUF_VALUE;
+import static showcase.command.RandomCommandTestUtils.aShowcaseId;
+import static showcase.query.RandomQueryTestUtils.aShowcase;
+import static showcase.query.RandomQueryTestUtils.showcases;
+import static showcase.query.ShowcaseQueryOperations.SHOWCASE_QUERY_SERVICE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -9,6 +30,10 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.core.functions.Either;
 import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
 import lombok.val;
 import org.axonframework.messaging.MetaData;
 import org.axonframework.serialization.SerializedMetaData;
@@ -35,39 +60,13 @@ import org.wiremock.spring.EnableWireMock;
 import reactor.blockhound.BlockHound;
 import reactor.test.StepVerifier;
 
-import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.IntStream;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.type;
-import static org.junit.jupiter.params.provider.Arguments.argumentSet;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
-import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_PROTOBUF_VALUE;
-import static showcase.command.RandomCommandTestUtils.aShowcaseId;
-import static showcase.query.RandomQueryTestUtils.aShowcase;
-import static showcase.query.RandomQueryTestUtils.showcases;
-import static showcase.query.ShowcaseQueryOperations.SHOWCASE_QUERY_SERVICE;
-
 @SpringBootTest(webEnvironment = NONE)
 @EnableWireMock(@ConfigureWireMock(baseUrlProperties = "showcase.query.api-url", registerSpringBean = true))
 @DisplayName("Showcase query client integration tests")
 class ShowcaseQueryClientIT {
 
     @SpringBootApplication
-    static class TestApp {
-    }
+    static class TestApp {}
 
     @Autowired
     private ShowcaseQueryOperations showcaseQueryOperations;
@@ -93,10 +92,9 @@ class ShowcaseQueryClientIT {
         val query = FetchShowcaseListQuery.builder().build();
         val showcases = showcases();
 
-        wireMockServer.stubFor(
-                post("/streaming-query")
-                        .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
-                        .willReturn(okJson(objectMapper.writeValueAsString(showcases))));
+        wireMockServer.stubFor(post("/streaming-query")
+                .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
+                .willReturn(okJson(objectMapper.writeValueAsString(showcases))));
 
         showcaseQueryOperations
                 .fetchList(query)
@@ -113,10 +111,9 @@ class ShowcaseQueryClientIT {
         val query = FetchShowcaseListQuery.builder().build();
         val showcases = showcases();
 
-        wireMockServer.stubFor(
-                post("/streaming-query")
-                        .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
-                        .willReturn(okJson(objectMapper.writeValueAsString(showcases))));
+        wireMockServer.stubFor(post("/streaming-query")
+                .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
+                .willReturn(okJson(objectMapper.writeValueAsString(showcases))));
 
         showcaseQueryOperations
                 .fetchList(query)
@@ -125,13 +122,12 @@ class ShowcaseQueryClientIT {
                 .expectNextSequence(showcases)
                 .verifyComplete();
 
-        val request = wireMockServer.getAllServeEvents()
-                                    .stream()
-                                    .filter(event -> event.getRequest().getUrl().equals("/streaming-query"))
-                                    .findFirst()
-                                    .orElseThrow()
-                                    .getRequest()
-                                    .getBody();
+        val request = wireMockServer.getAllServeEvents().stream()
+                .filter(event -> event.getRequest().getUrl().equals("/streaming-query"))
+                .findFirst()
+                .orElseThrow()
+                .getRequest()
+                .getBody();
         val queryRequest = QueryRequest.parseFrom(request);
         val metaData = messageSerializer.<byte[], MetaData>deserialize(
                 new SerializedMetaData<>(queryRequest.getSerializedMetaData().toByteArray(), byte[].class));
@@ -142,16 +138,13 @@ class ShowcaseQueryClientIT {
     @DisplayName("Fetching by ID with an OK response succeeds")
     void fetchById_okResponse_succeeds() throws Exception {
         val showcase = aShowcase();
-        val query =
-                FetchShowcaseByIdQuery
-                        .builder()
-                        .showcaseId(showcase.showcaseId())
-                        .build();
+        val query = FetchShowcaseByIdQuery.builder()
+                .showcaseId(showcase.showcaseId())
+                .build();
 
-        wireMockServer.stubFor(
-                post("/query")
-                        .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
-                        .willReturn(okJson(objectMapper.writeValueAsString(showcase))));
+        wireMockServer.stubFor(post("/query")
+                .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
+                .willReturn(okJson(objectMapper.writeValueAsString(showcase))));
 
         showcaseQueryOperations
                 .fetchById(query)
@@ -165,38 +158,26 @@ class ShowcaseQueryClientIT {
     @Test
     @DisplayName("Fetching by ID with a not-found response fails with a not-found error")
     void fetchById_notFoundResponse_failsWithNotFoundError() throws Exception {
-        val query =
-                FetchShowcaseByIdQuery
-                        .builder()
-                        .showcaseId(aShowcaseId())
-                        .build();
+        val query = FetchShowcaseByIdQuery.builder().showcaseId(aShowcaseId()).build();
 
-        wireMockServer.stubFor(
-                post("/query")
-                        .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
-                        .willReturn(aResponse()
-                                            .withStatus(HTTP_NOT_FOUND)
-                                            .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-                                            .withBody(objectMapper.writeValueAsString(
-                                                    ProblemDetail.forStatusAndDetail(
-                                                            HttpStatus.NOT_FOUND,
-                                                            "No showcase with given ID")))));
+        wireMockServer.stubFor(post("/query")
+                .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
+                .willReturn(aResponse()
+                        .withStatus(HTTP_NOT_FOUND)
+                        .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(
+                                ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "No showcase with given ID")))));
 
-        showcaseQueryOperations
-                .fetchById(query)
-                .as(StepVerifier::create)
-                .verifyErrorSatisfies(
-                        t -> assertThat(t)
-                                     .isExactlyInstanceOf(ShowcaseQueryException.class)
-                                     .asInstanceOf(type(ShowcaseQueryException.class))
-                                     .extracting(ShowcaseQueryException::getErrorDetails)
-                                     .asInstanceOf(type(ShowcaseQueryErrorDetails.class))
-                                     .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.errorCode())
-                                                 .isEqualTo(ShowcaseQueryErrorCode.NOT_FOUND);
-                                         assertThat(errorDetails.errorMessage()).isEqualTo("No showcase with given ID");
-                                         assertThat(errorDetails.metaData()).isEmpty();
-                                     }));
+        showcaseQueryOperations.fetchById(query).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
+                .isExactlyInstanceOf(ShowcaseQueryException.class)
+                .asInstanceOf(type(ShowcaseQueryException.class))
+                .extracting(ShowcaseQueryException::getErrorDetails)
+                .asInstanceOf(type(ShowcaseQueryErrorDetails.class))
+                .satisfies(errorDetails -> {
+                    assertThat(errorDetails.errorCode()).isEqualTo(ShowcaseQueryErrorCode.NOT_FOUND);
+                    assertThat(errorDetails.errorMessage()).isEqualTo("No showcase with given ID");
+                    assertThat(errorDetails.metaData()).isEmpty();
+                }));
 
         wireMockServer.verify(1, postRequestedFor(urlEqualTo("/query")));
     }
@@ -204,111 +185,79 @@ class ShowcaseQueryClientIT {
     @Test
     @DisplayName("Fetching by ID with a bad-request response carrying field errors fails with an invalid-query error")
     void fetchById_badRequestWithFieldErrors_failsWithInvalidQueryError() throws Exception {
-        val query =
-                FetchShowcaseByIdQuery
-                        .builder()
-                        .showcaseId(aShowcaseId())
-                        .build();
+        val query = FetchShowcaseByIdQuery.builder().showcaseId(aShowcaseId()).build();
         val problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Given query is not valid");
         problem.setProperty("fieldErrors", Map.of("showcaseId", List.of("must be a valid KSUID")));
 
-        wireMockServer.stubFor(
-                post("/query")
-                        .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
-                        .willReturn(aResponse()
-                                            .withStatus(HttpStatus.BAD_REQUEST.value())
-                                            .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-                                            .withBody(objectMapper.writeValueAsString(problem))));
+        wireMockServer.stubFor(post("/query")
+                .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.BAD_REQUEST.value())
+                        .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(problem))));
 
-        showcaseQueryOperations
-                .fetchById(query)
-                .as(StepVerifier::create)
-                .verifyErrorSatisfies(
-                        t -> assertThat(t)
-                                     .isExactlyInstanceOf(ShowcaseQueryException.class)
-                                     .asInstanceOf(type(ShowcaseQueryException.class))
-                                     .extracting(ShowcaseQueryException::getErrorDetails)
-                                     .asInstanceOf(type(ShowcaseQueryErrorDetails.class))
-                                     .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.errorCode())
-                                                 .isEqualTo(ShowcaseQueryErrorCode.INVALID_QUERY);
-                                         assertThat(errorDetails.errorMessage()).isEqualTo("Given query is not valid");
-                                         assertThat(errorDetails.metaData()).containsKey("showcaseId");
-                                     }));
+        showcaseQueryOperations.fetchById(query).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
+                .isExactlyInstanceOf(ShowcaseQueryException.class)
+                .asInstanceOf(type(ShowcaseQueryException.class))
+                .extracting(ShowcaseQueryException::getErrorDetails)
+                .asInstanceOf(type(ShowcaseQueryErrorDetails.class))
+                .satisfies(errorDetails -> {
+                    assertThat(errorDetails.errorCode()).isEqualTo(ShowcaseQueryErrorCode.INVALID_QUERY);
+                    assertThat(errorDetails.errorMessage()).isEqualTo("Given query is not valid");
+                    assertThat(errorDetails.metaData()).containsKey("showcaseId");
+                }));
     }
 
     @Test
     @DisplayName("Fetching by ID with a bad-request response without field errors fails with a response exception")
     void fetchById_badRequestWithoutFieldErrors_failsWithResponseException() throws Exception {
-        val query =
-                FetchShowcaseByIdQuery
-                        .builder()
-                        .showcaseId(aShowcaseId())
-                        .build();
+        val query = FetchShowcaseByIdQuery.builder().showcaseId(aShowcaseId()).build();
         val problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Given query is not valid");
 
-        wireMockServer.stubFor(
-                post("/query")
-                        .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
-                        .willReturn(aResponse()
-                                            .withStatus(HttpStatus.BAD_REQUEST.value())
-                                            .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-                                            .withBody(objectMapper.writeValueAsString(problem))));
+        wireMockServer.stubFor(post("/query")
+                .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.BAD_REQUEST.value())
+                        .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(problem))));
 
-        showcaseQueryOperations
-                .fetchById(query)
-                .as(StepVerifier::create)
-                .verifyErrorSatisfies(t -> assertThat(t).isInstanceOf(WebClientResponseException.class));
+        showcaseQueryOperations.fetchById(query).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
+                .isInstanceOf(WebClientResponseException.class));
     }
 
     @Test
     @DisplayName("Fetching by ID with a not-found response without a detail fails with a response exception")
     void fetchById_notFoundWithoutDetail_failsWithResponseException() throws Exception {
-        val query =
-                FetchShowcaseByIdQuery
-                        .builder()
-                        .showcaseId(aShowcaseId())
-                        .build();
+        val query = FetchShowcaseByIdQuery.builder().showcaseId(aShowcaseId()).build();
         val problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
 
-        wireMockServer.stubFor(
-                post("/query")
-                        .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
-                        .willReturn(aResponse()
-                                            .withStatus(HttpStatus.NOT_FOUND.value())
-                                            .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-                                            .withBody(objectMapper.writeValueAsString(problem))));
+        wireMockServer.stubFor(post("/query")
+                .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.NOT_FOUND.value())
+                        .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(problem))));
 
-        showcaseQueryOperations
-                .fetchById(query)
-                .as(StepVerifier::create)
-                .verifyErrorSatisfies(t -> assertThat(t).isInstanceOf(WebClientResponseException.class));
+        showcaseQueryOperations.fetchById(query).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
+                .isInstanceOf(WebClientResponseException.class));
     }
 
     @Test
     @DisplayName("Fetching by ID with a problem-detail error of an unmapped status fails with a response exception")
     void fetchById_problemJsonUnmappedStatus_failsWithResponseException() throws Exception {
-        val query =
-                FetchShowcaseByIdQuery
-                        .builder()
-                        .showcaseId(aShowcaseId())
-                        .build();
+        val query = FetchShowcaseByIdQuery.builder().showcaseId(aShowcaseId()).build();
         val problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "forbidden");
 
-        wireMockServer.stubFor(
-                post("/query")
-                        .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
-                        .willReturn(aResponse()
-                                            .withStatus(HttpStatus.FORBIDDEN.value())
-                                            .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-                                            .withBody(objectMapper.writeValueAsString(problem))));
+        wireMockServer.stubFor(post("/query")
+                .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.FORBIDDEN.value())
+                        .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(problem))));
 
-        showcaseQueryOperations
-                .fetchById(query)
-                .as(StepVerifier::create)
-                .verifyErrorSatisfies(t -> assertThat(t).isInstanceOf(WebClientResponseException.class));
+        showcaseQueryOperations.fetchById(query).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
+                .isInstanceOf(WebClientResponseException.class));
     }
-
 
     @Nested
     @ActiveProfiles("timelimiter")
@@ -328,12 +277,11 @@ class ShowcaseQueryClientIT {
 
         @BeforeEach
         void setUp() {
-            timeout =
-                    timeLimiterRegistry
-                            .timeLimiter(SHOWCASE_QUERY_SERVICE)
-                            .getTimeLimiterConfig()
-                            .getTimeoutDuration()
-                            .plusSeconds(1);
+            timeout = timeLimiterRegistry
+                    .timeLimiter(SHOWCASE_QUERY_SERVICE)
+                    .getTimeLimiterConfig()
+                    .getTimeoutDuration()
+                    .plusSeconds(1);
         }
 
         @Test
@@ -341,35 +289,24 @@ class ShowcaseQueryClientIT {
         void fetchList_longDelay_failsWithTimeoutError() {
             val query = FetchShowcaseListQuery.builder().build();
 
-            wireMockServer.stubFor(
-                    post("/streaming-query")
-                            .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
-                            .willReturn(ok().withFixedDelay(Ints.checkedCast(timeout.toMillis()))));
+            wireMockServer.stubFor(post("/streaming-query")
+                    .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
+                    .willReturn(ok().withFixedDelay(Ints.checkedCast(timeout.toMillis()))));
 
-            showcaseQueryOperations
-                    .fetchList(query)
-                    .as(StepVerifier::create)
-                    .verifyTimeout(timeout);
+            showcaseQueryOperations.fetchList(query).as(StepVerifier::create).verifyTimeout(timeout);
         }
 
         @Test
         @DisplayName("Fetching by ID with a long delay fails with a timeout error")
         void fetchById_longDelay_failsWithTimeoutError() {
             val query =
-                    FetchShowcaseByIdQuery
-                            .builder()
-                            .showcaseId(aShowcaseId())
-                            .build();
+                    FetchShowcaseByIdQuery.builder().showcaseId(aShowcaseId()).build();
 
-            wireMockServer.stubFor(
-                    post("/query")
-                            .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
-                            .willReturn(ok().withFixedDelay(Ints.checkedCast(timeout.toMillis()))));
+            wireMockServer.stubFor(post("/query")
+                    .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
+                    .willReturn(ok().withFixedDelay(Ints.checkedCast(timeout.toMillis()))));
 
-            showcaseQueryOperations
-                    .fetchById(query)
-                    .as(StepVerifier::create)
-                    .verifyTimeout(timeout);
+            showcaseQueryOperations.fetchById(query).as(StepVerifier::create).verifyTimeout(timeout);
         }
     }
 
@@ -400,8 +337,7 @@ class ShowcaseQueryClientIT {
                     argumentSet("Bad Gateway", 502),
                     argumentSet("Service Unavailable", 503),
                     argumentSet("Gateway Timeout", 504),
-                    argumentSet("Timeout Occurred", 524)
-            );
+                    argumentSet("Timeout Occurred", 524));
         }
 
         @BeforeEach
@@ -410,10 +346,9 @@ class ShowcaseQueryClientIT {
 
             maxAttempts = retryConfig.getMaxAttempts();
             timeout = IntStream.rangeClosed(1, maxAttempts)
-                               .mapToLong(i -> retryConfig.getIntervalBiFunction()
-                                                          .apply(i, Either.left(null)))
-                               .mapToObj(Duration::ofMillis)
-                               .reduce(Duration.ZERO, Duration::plus);
+                    .mapToLong(i -> retryConfig.getIntervalBiFunction().apply(i, Either.left(null)))
+                    .mapToObj(Duration::ofMillis)
+                    .reduce(Duration.ZERO, Duration::plus);
         }
 
         @ParameterizedTest
@@ -422,22 +357,19 @@ class ShowcaseQueryClientIT {
         void fetchList_retryableStatusCode_retriesAndFailsWithStatusCode(int statusCode) {
             val query = FetchShowcaseListQuery.builder().build();
 
-            wireMockServer.stubFor(
-                    post("/streaming-query")
-                            .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
-                            .willReturn(aResponse().withStatus(statusCode)));
+            wireMockServer.stubFor(post("/streaming-query")
+                    .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
+                    .willReturn(aResponse().withStatus(statusCode)));
 
-            StepVerifier
-                    .withVirtualTime(() -> showcaseQueryOperations.fetchList(query))
+            StepVerifier.withVirtualTime(() -> showcaseQueryOperations.fetchList(query))
                     .thenAwait(timeout)
-                    .verifyErrorSatisfies(
-                            t -> assertThat(t)
-                                         .isInstanceOf(WebClientResponseException.class)
-                                         .asInstanceOf(type(WebClientResponseException.class))
-                                         .extracting(WebClientResponseException::getStatusCode)
-                                         .asInstanceOf(type(HttpStatusCode.class))
-                                         .extracting(HttpStatusCode::value)
-                                         .isEqualTo(statusCode));
+                    .verifyErrorSatisfies(t -> assertThat(t)
+                            .isInstanceOf(WebClientResponseException.class)
+                            .asInstanceOf(type(WebClientResponseException.class))
+                            .extracting(WebClientResponseException::getStatusCode)
+                            .asInstanceOf(type(HttpStatusCode.class))
+                            .extracting(HttpStatusCode::value)
+                            .isEqualTo(statusCode));
 
             wireMockServer.verify(maxAttempts, postRequestedFor(urlEqualTo("/streaming-query")));
         }
@@ -447,27 +379,21 @@ class ShowcaseQueryClientIT {
         @DisplayName("Fetching by ID with a retryable status code retries and fails with that status code")
         void fetchById_retryableStatusCode_retriesAndFailsWithStatusCode(int statusCode) {
             val query =
-                    FetchShowcaseByIdQuery
-                            .builder()
-                            .showcaseId(aShowcaseId())
-                            .build();
+                    FetchShowcaseByIdQuery.builder().showcaseId(aShowcaseId()).build();
 
-            wireMockServer.stubFor(
-                    post("/query")
-                            .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
-                            .willReturn(aResponse().withStatus(statusCode)));
+            wireMockServer.stubFor(post("/query")
+                    .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
+                    .willReturn(aResponse().withStatus(statusCode)));
 
-            StepVerifier
-                    .withVirtualTime(() -> showcaseQueryOperations.fetchById(query))
+            StepVerifier.withVirtualTime(() -> showcaseQueryOperations.fetchById(query))
                     .thenAwait(timeout)
-                    .verifyErrorSatisfies(
-                            t -> assertThat(t)
-                                         .isInstanceOf(WebClientResponseException.class)
-                                         .asInstanceOf(type(WebClientResponseException.class))
-                                         .extracting(WebClientResponseException::getStatusCode)
-                                         .asInstanceOf(type(HttpStatusCode.class))
-                                         .extracting(HttpStatusCode::value)
-                                         .isEqualTo(statusCode));
+                    .verifyErrorSatisfies(t -> assertThat(t)
+                            .isInstanceOf(WebClientResponseException.class)
+                            .asInstanceOf(type(WebClientResponseException.class))
+                            .extracting(WebClientResponseException::getStatusCode)
+                            .asInstanceOf(type(HttpStatusCode.class))
+                            .extracting(HttpStatusCode::value)
+                            .isEqualTo(statusCode));
 
             wireMockServer.verify(maxAttempts, postRequestedFor(urlEqualTo("/query")));
         }
@@ -492,24 +418,24 @@ class ShowcaseQueryClientIT {
         void fetchList_repeatedFailures_openCircuitAndFailFast() {
             val query = FetchShowcaseListQuery.builder().build();
 
-            wireMockServer.stubFor(
-                    post("/streaming-query")
-                            .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
-                            .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())));
+            wireMockServer.stubFor(post("/streaming-query")
+                    .withHeader(CONTENT_TYPE, equalTo(APPLICATION_PROTOBUF_VALUE))
+                    .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())));
 
             val circuitBreaker = circuitBreakerRegistry.circuitBreaker(SHOWCASE_QUERY_SERVICE);
             val minimumNumberOfCalls = circuitBreaker.getCircuitBreakerConfig().getMinimumNumberOfCalls();
 
             for (int i = 0; i < minimumNumberOfCalls; i++) {
-                showcaseQueryOperations.fetchList(query).as(StepVerifier::create).verifyError();
+                showcaseQueryOperations
+                        .fetchList(query)
+                        .as(StepVerifier::create)
+                        .verifyError();
             }
 
             assertThat(circuitBreaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 
-            showcaseQueryOperations
-                    .fetchList(query)
-                    .as(StepVerifier::create)
-                    .verifyErrorSatisfies(t -> assertThat(t).isInstanceOf(CallNotPermittedException.class));
+            showcaseQueryOperations.fetchList(query).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
+                    .isInstanceOf(CallNotPermittedException.class));
         }
     }
 }

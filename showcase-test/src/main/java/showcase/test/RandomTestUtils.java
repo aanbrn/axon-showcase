@@ -1,11 +1,11 @@
+// SPDX-License-Identifier: MIT
 package showcase.test;
 
+import java.util.List;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
-
-import java.util.List;
 
 /**
  * Utility methods generating random test values.

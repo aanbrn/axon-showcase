@@ -1,4 +1,7 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
+
+import static showcase.query.ShowcaseQueryOperations.SHOWCASE_QUERY_SERVICE;
 
 import io.github.resilience4j.common.circuitbreaker.configuration.CircuitBreakerConfigCustomizer;
 import io.github.resilience4j.common.retry.configuration.RetryConfigCustomizer;
@@ -6,8 +9,6 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-
-import static showcase.query.ShowcaseQueryOperations.SHOWCASE_QUERY_SERVICE;
 
 /**
  * Auto-configuration registering Resilience4j customizers for the showcase query service.

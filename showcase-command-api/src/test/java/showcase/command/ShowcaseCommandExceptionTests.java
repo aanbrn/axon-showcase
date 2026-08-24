@@ -1,12 +1,13 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static showcase.command.RandomCommandTestUtils.aShowcaseCommandErrorDetails;
 
 import lombok.val;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static showcase.command.RandomCommandTestUtils.aShowcaseCommandErrorDetails;
 
 @DisplayName("Showcase command exception tests")
 class ShowcaseCommandExceptionTests {

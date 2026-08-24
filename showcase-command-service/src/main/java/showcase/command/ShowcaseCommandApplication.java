@@ -1,4 +1,10 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
+
+import static java.util.concurrent.Executors.newFixedThreadPool;
+import static showcase.command.ShowcaseCommandConstants.SAGA_ASSOCIATIONS_CACHE_NAME;
+import static showcase.command.ShowcaseCommandConstants.SAGA_CACHE_NAME;
+import static showcase.command.ShowcaseCommandConstants.SHOWCASE_CACHE_NAME;
 
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
@@ -7,6 +13,12 @@ import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer;
 import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import java.util.Optional;
+import java.util.OptionalLong;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
+import javax.cache.CacheManager;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandBus;
@@ -61,18 +73,6 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-
-import javax.cache.CacheManager;
-import java.util.Optional;
-import java.util.OptionalLong;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.function.Function;
-
-import static java.util.concurrent.Executors.newFixedThreadPool;
-import static showcase.command.ShowcaseCommandConstants.SAGA_ASSOCIATIONS_CACHE_NAME;
-import static showcase.command.ShowcaseCommandConstants.SAGA_CACHE_NAME;
-import static showcase.command.ShowcaseCommandConstants.SHOWCASE_CACHE_NAME;
 
 /**
  * Command-side Spring Boot application for the showcase CQRS service.
@@ -168,11 +168,14 @@ class ShowcaseCommandApplication {
             @Qualifier("localSegment") CommandBus localSegment,
             RoutingStrategy routingStrategy,
             ObjectProvider<ConsistentHashChangeListener> consistentHashChangeListener,
-            SpanFactory spanFactory
-    ) {
-        System.setProperty("jgroups.tunnel.gossip_router_hosts", properties.getJgroups().getGossip().getHosts());
-        System.setProperty("jgroups.bind_addr", String.valueOf(properties.getJgroups().getBindAddr()));
-        System.setProperty("jgroups.bind_port", String.valueOf(properties.getJgroups().getBindPort()));
+            SpanFactory spanFactory) {
+        System.setProperty(
+                "jgroups.tunnel.gossip_router_hosts",
+                properties.getJgroups().getGossip().getHosts());
+        System.setProperty(
+                "jgroups.bind_addr", String.valueOf(properties.getJgroups().getBindAddr()));
+        System.setProperty(
+                "jgroups.bind_port", String.valueOf(properties.getJgroups().getBindPort()));
         System.setProperty("jgroups.tcpping.initial_hosts", tcpPingHosts);
         System.setProperty("KUBERNETES_NAMESPACE", kubePingNamespace);
         System.setProperty("KUBERNETES_LABELS", kubePingLabels);
@@ -210,14 +213,12 @@ class ShowcaseCommandApplication {
             DistributedCommandBusProperties distributedCommandBusProperties) {
         val spanFactory = axonConfiguration.getComponent(CommandBusSpanFactory.class);
         val messagedMonitor = axonConfiguration.messageMonitor(DistributedCommandBus.class, "distributedCommandBus");
-        val commandBus =
-                DistributedCommandBus
-                        .builder()
-                        .commandRouter(commandRouter)
-                        .connector(commandBusConnector)
-                        .spanFactory(spanFactory)
-                        .messageMonitor(messagedMonitor)
-                        .build();
+        val commandBus = DistributedCommandBus.builder()
+                .commandRouter(commandRouter)
+                .connector(commandBusConnector)
+                .spanFactory(spanFactory)
+                .messageMonitor(messagedMonitor)
+                .build();
         commandBus.updateLoadFactor(distributedCommandBusProperties.getLoadFactor());
         commandBus.registerHandlerInterceptor(
                 new ShowcaseCommandMessageInterceptor<>(commandProperties.isValidationEnabled()));
@@ -255,16 +256,15 @@ class ShowcaseCommandApplication {
             ParameterResolverFactory parameterResolverFactory,
             HandlerDefinition handlerDefinition,
             SnapshotterSpanFactory spanFactory) {
-        return SpringAggregateSnapshotter
-                       .builder()
-                       .repositoryProvider(configuration::repository)
-                       .eventStore(eventStore)
-                       .transactionManager(transactionManager)
-                       .executor(executor)
-                       .parameterResolverFactory(parameterResolverFactory)
-                       .handlerDefinition(handlerDefinition)
-                       .spanFactory(spanFactory)
-                       .build();
+        return SpringAggregateSnapshotter.builder()
+                .repositoryProvider(configuration::repository)
+                .eventStore(eventStore)
+                .transactionManager(transactionManager)
+                .executor(executor)
+                .parameterResolverFactory(parameterResolverFactory)
+                .handlerDefinition(handlerDefinition)
+                .spanFactory(spanFactory)
+                .build();
     }
 
     /**
@@ -291,57 +291,45 @@ class ShowcaseCommandApplication {
                     SHOWCASE_CACHE_NAME,
                     new CaffeineConfiguration<>()
                             .setMaximumSize(OptionalLong.of(
-                                    commandProperties
-                                            .getShowcaseCache()
-                                            .getMaximumSize()))
-                            .setExpireAfterAccess(OptionalLong.of(
-                                    commandProperties
-                                            .getShowcaseCache()
-                                            .getExpiresAfterAccess()
-                                            .toNanos()))
-                            .setExpireAfterWrite(OptionalLong.of(
-                                    commandProperties
-                                            .getShowcaseCache()
-                                            .getExpiresAfterWrite()
-                                            .toNanos())));
+                                    commandProperties.getShowcaseCache().getMaximumSize()))
+                            .setExpireAfterAccess(OptionalLong.of(commandProperties
+                                    .getShowcaseCache()
+                                    .getExpiresAfterAccess()
+                                    .toNanos()))
+                            .setExpireAfterWrite(OptionalLong.of(commandProperties
+                                    .getShowcaseCache()
+                                    .getExpiresAfterWrite()
+                                    .toNanos())));
             cacheManager.enableStatistics(SHOWCASE_CACHE_NAME, true);
 
             cacheManager.createCache(
                     SAGA_CACHE_NAME,
                     new CaffeineConfiguration<>()
                             .setMaximumSize(OptionalLong.of(
-                                    commandProperties
-                                            .getSagaCache()
-                                            .getMaximumSize()))
-                            .setExpireAfterAccess(OptionalLong.of(
-                                    commandProperties
-                                            .getSagaCache()
-                                            .getExpiresAfterAccess()
-                                            .toNanos()))
-                            .setExpireAfterWrite(OptionalLong.of(
-                                    commandProperties
-                                            .getSagaCache()
-                                            .getExpiresAfterWrite()
-                                            .toNanos())));
+                                    commandProperties.getSagaCache().getMaximumSize()))
+                            .setExpireAfterAccess(OptionalLong.of(commandProperties
+                                    .getSagaCache()
+                                    .getExpiresAfterAccess()
+                                    .toNanos()))
+                            .setExpireAfterWrite(OptionalLong.of(commandProperties
+                                    .getSagaCache()
+                                    .getExpiresAfterWrite()
+                                    .toNanos())));
             cacheManager.enableStatistics(SAGA_CACHE_NAME, true);
 
             cacheManager.createCache(
                     SAGA_ASSOCIATIONS_CACHE_NAME,
                     new CaffeineConfiguration<>()
                             .setMaximumSize(OptionalLong.of(
-                                    commandProperties
-                                            .getSagaAssociationsCache()
-                                            .getMaximumSize()))
-                            .setExpireAfterAccess(OptionalLong.of(
-                                    commandProperties
-                                            .getSagaAssociationsCache()
-                                            .getExpiresAfterAccess()
-                                            .toNanos()))
-                            .setExpireAfterWrite(OptionalLong.of(
-                                    commandProperties
-                                            .getSagaAssociationsCache()
-                                            .getExpiresAfterWrite()
-                                            .toNanos())));
+                                    commandProperties.getSagaAssociationsCache().getMaximumSize()))
+                            .setExpireAfterAccess(OptionalLong.of(commandProperties
+                                    .getSagaAssociationsCache()
+                                    .getExpiresAfterAccess()
+                                    .toNanos()))
+                            .setExpireAfterWrite(OptionalLong.of(commandProperties
+                                    .getSagaAssociationsCache()
+                                    .getExpiresAfterWrite()
+                                    .toNanos())));
             cacheManager.enableStatistics(SAGA_ASSOCIATIONS_CACHE_NAME, true);
         };
     }
@@ -437,19 +425,16 @@ class ShowcaseCommandApplication {
             SagaSqlSchema schema,
             Cache sagaCache,
             Cache sagaAssociationsCache) {
-        val sagaStore =
-                JdbcSagaStore
-                        .builder()
-                        .connectionProvider(connectionProvider)
-                        .sqlSchema(schema)
-                        .serializer(serializer)
-                        .build();
-        return CachingSagaStore
-                       .builder()
-                       .delegateSagaStore(sagaStore)
-                       .sagaCache(sagaCache)
-                       .associationsCache(sagaAssociationsCache)
-                       .build();
+        val sagaStore = JdbcSagaStore.builder()
+                .connectionProvider(connectionProvider)
+                .sqlSchema(schema)
+                .serializer(serializer)
+                .build();
+        return CachingSagaStore.builder()
+                .delegateSagaStore(sagaStore)
+                .sagaCache(sagaCache)
+                .associationsCache(sagaAssociationsCache)
+                .build();
     }
 
     /**
@@ -466,8 +451,8 @@ class ShowcaseCommandApplication {
                 return Optional.of(newFixedThreadPool(
                         dbSchedulerProperties.getThreads(),
                         Thread.ofVirtual()
-                              .name(Scheduler.THREAD_PREFIX + "-", 0)
-                              .factory()));
+                                .name(Scheduler.THREAD_PREFIX + "-", 0)
+                                .factory()));
             }
         };
     }
@@ -487,8 +472,7 @@ class ShowcaseCommandApplication {
                     String eventBusName, Function<Message<?>, Iterable<Tag>> tagsBuilder) {
                 return new MultiMessageMonitor<>(
                         MessageCountingMonitor.buildMonitor(eventBusName, meterRegistry, tagsBuilder),
-                        MessageTimerMonitor
-                                .builder()
+                        MessageTimerMonitor.builder()
                                 .meterNamePrefix(eventBusName)
                                 .meterRegistry(meterRegistry)
                                 .tagsBuilder(tagsBuilder)
@@ -505,9 +489,6 @@ class ShowcaseCommandApplication {
      */
     @Bean
     ShowcaseDbSchedulerMetrics showcaseDbSchedulerMetrics(MeterRegistry meterRegistry) {
-        return ShowcaseDbSchedulerMetrics
-                       .builder()
-                       .meterRegistry(meterRegistry)
-                       .build();
+        return ShowcaseDbSchedulerMetrics.builder().meterRegistry(meterRegistry).build();
     }
 }

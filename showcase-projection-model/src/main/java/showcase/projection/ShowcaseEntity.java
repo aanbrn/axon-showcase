@@ -1,5 +1,8 @@
+// SPDX-License-Identifier: MIT
 package showcase.projection;
 
+import java.time.Duration;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,9 +19,6 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.Setting;
 import org.springframework.data.elasticsearch.annotations.Setting.SortOrder;
-
-import java.time.Duration;
-import java.time.Instant;
 
 /**
  * Elasticsearch document backing the read-side showcase projection.

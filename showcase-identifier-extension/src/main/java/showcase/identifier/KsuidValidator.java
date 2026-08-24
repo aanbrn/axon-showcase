@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package showcase.identifier;
 
 import com.github.ksuid.Ksuid;

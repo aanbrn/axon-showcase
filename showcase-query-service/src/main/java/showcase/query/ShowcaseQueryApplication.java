@@ -1,6 +1,9 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
 
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
+import java.time.Duration;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
@@ -29,9 +32,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import reactor.core.publisher.Mono;
 import showcase.projection.ShowcaseEntity;
-
-import java.time.Duration;
-import java.util.List;
 
 /**
  * Application entry point for the query service.
@@ -77,8 +77,7 @@ class ShowcaseQueryApplication {
             prefix = "showcase.query",
             name = "index-initialization-enabled",
             havingValue = "true",
-            matchIfMissing = true
-    )
+            matchIfMissing = true)
     InitializingBean opensearchIndexInitializer(
             OpenSearchTemplate openSearchTemplate,
             ShowcaseQueryProperties queryProperties,
@@ -131,8 +130,7 @@ class ShowcaseQueryApplication {
      */
     @Bean
     @SuppressWarnings("resource")
-    InitializingBean queryBusCustomizer(
-            QueryBus queryBus, ShowcaseQueryProperties queryProperties) {
+    InitializingBean queryBusCustomizer(QueryBus queryBus, ShowcaseQueryProperties queryProperties) {
         return () -> queryBus.registerHandlerInterceptor(
                 new ShowcaseQueryMessageInterceptor<>(queryProperties.isValidationEnabled()));
     }
@@ -163,12 +161,10 @@ class ShowcaseQueryApplication {
             @Value("${opensearch.evict-idle-connections}") Duration evictIdleConnections) {
         return restClientBuilder -> restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> {
             if (maxConnections > 0) {
-                httpClientBuilder.setConnectionManager(
-                        PoolingAsyncClientConnectionManagerBuilder
-                                .create()
-                                .setMaxConnTotal(maxConnections)
-                                .setMaxConnPerRoute(maxConnectionsPerRoute)
-                                .build());
+                httpClientBuilder.setConnectionManager(PoolingAsyncClientConnectionManagerBuilder.create()
+                        .setMaxConnTotal(maxConnections)
+                        .setMaxConnPerRoute(maxConnectionsPerRoute)
+                        .build());
             }
             return httpClientBuilder.evictIdleConnections(TimeValue.of(evictIdleConnections));
         });

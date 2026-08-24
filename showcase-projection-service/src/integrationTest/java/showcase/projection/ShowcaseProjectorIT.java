@@ -1,5 +1,19 @@
+// SPDX-License-Identifier: MIT
 package showcase.projection;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
+import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
+import static showcase.command.RandomCommandTestUtils.aShowcaseFinishedAt;
+import static showcase.command.RandomCommandTestUtils.aShowcaseId;
+import static showcase.command.RandomCommandTestUtils.aShowcaseScheduledAt;
+import static showcase.command.RandomCommandTestUtils.aShowcaseStartTime;
+import static showcase.command.RandomCommandTestUtils.aShowcaseStartedAt;
+import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
+
+import java.time.Instant;
+import java.util.Optional;
 import lombok.val;
 import org.axonframework.extensions.kafka.eventhandling.producer.KafkaPublisher;
 import org.junit.jupiter.api.AfterEach;
@@ -31,20 +45,6 @@ import showcase.command.ShowcaseScheduledEvent;
 import showcase.command.ShowcaseStartedEvent;
 import showcase.test.KafkaTestPublisher;
 
-import java.time.Instant;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
-import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
-import static showcase.command.RandomCommandTestUtils.aShowcaseFinishedAt;
-import static showcase.command.RandomCommandTestUtils.aShowcaseId;
-import static showcase.command.RandomCommandTestUtils.aShowcaseScheduledAt;
-import static showcase.command.RandomCommandTestUtils.aShowcaseStartTime;
-import static showcase.command.RandomCommandTestUtils.aShowcaseStartedAt;
-import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
-
 @SpringBootTest(webEnvironment = NONE)
 @ActiveProfiles("test")
 @Testcontainers(parallel = true)
@@ -52,9 +52,8 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 class ShowcaseProjectorIT {
 
     @Container
-    static final KafkaContainer kafka =
-            new KafkaContainer("apache/kafka:" + System.getProperty("kafka.image.version"))
-                    .waitingFor(Wait.forListeningPort());
+    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:" + System.getProperty("kafka.image.version"))
+            .waitingFor(Wait.forListeningPort());
 
     @Container
     @ServiceConnection
@@ -83,13 +82,11 @@ class ShowcaseProjectorIT {
 
     @BeforeEach
     void setUp() {
-        kafkaTestPublisher =
-                KafkaTestPublisher
-                        .<ShowcaseEvent>builder()
-                        .kafkaPublisher(kafkaPublisher)
-                        .aggregateType("ShowcaseAggregate")
-                        .aggregateIdentifierExtractor(ShowcaseEvent::showcaseId)
-                        .build();
+        kafkaTestPublisher = KafkaTestPublisher.<ShowcaseEvent>builder()
+                .kafkaPublisher(kafkaPublisher)
+                .aggregateType("ShowcaseAggregate")
+                .aggregateIdentifierExtractor(ShowcaseEvent::showcaseId)
+                .build();
 
         if (showcaseIndexOperations == null) {
             showcaseIndexOperations = openSearchTemplate.indexOps(ShowcaseEntity.class);
@@ -108,19 +105,17 @@ class ShowcaseProjectorIT {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
 
-        kafkaTestPublisher.publishEvent(
-                ShowcaseScheduledEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(scheduleTime))
-                        .duration(aShowcaseDuration())
-                        .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                        .build());
+        kafkaTestPublisher.publishEvent(ShowcaseScheduledEvent.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(scheduleTime))
+                .duration(aShowcaseDuration())
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                .build());
 
         await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
-                                    .filter(showcase -> showcase.status() == ShowcaseStatus.SCHEDULED)
-                                    .isPresent());
+                .filter(showcase -> showcase.status() == ShowcaseStatus.SCHEDULED)
+                .isPresent());
     }
 
     @Test
@@ -130,19 +125,20 @@ class ShowcaseProjectorIT {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
 
-        kafkaTestPublisher.publishEventTwice(
-                ShowcaseScheduledEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(scheduleTime))
-                        .duration(aShowcaseDuration())
-                        .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                        .build());
+        kafkaTestPublisher.publishEventTwice(ShowcaseScheduledEvent.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(scheduleTime))
+                .duration(aShowcaseDuration())
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                .build());
 
-        await().until(() -> output.getOut().lines().anyMatch(line -> line.matches(
-                (".+(ERROR).+(On ShowcaseScheduledEvent, \\[Create\\] \\[version_conflict_engine_exception\\] " +
-                         "\\[%s\\]: version conflict, document already exists).+").formatted(showcaseId))));
+        await().until(() -> output.getOut()
+                .lines()
+                .anyMatch(line -> line.matches(
+                        (".+(ERROR).+(On ShowcaseScheduledEvent, \\[Create\\] \\[version_conflict_engine_exception\\] "
+                                        + "\\[%s\\]: version conflict, document already exists).+")
+                                .formatted(showcaseId))));
     }
 
     @Test
@@ -153,29 +149,25 @@ class ShowcaseProjectorIT {
         val startTime = aShowcaseStartTime(scheduleTime);
         val duration = aShowcaseDuration();
 
-        kafkaTestPublisher.publishEvent(
-                ShowcaseScheduledEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(startTime)
-                        .duration(duration)
-                        .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                        .build());
+        kafkaTestPublisher.publishEvent(ShowcaseScheduledEvent.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(startTime)
+                .duration(duration)
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                .build());
 
         val startedAt = aShowcaseStartedAt(startTime);
 
-        kafkaTestPublisher.publishEvent(
-                ShowcaseStartedEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .duration(duration)
-                        .startedAt(startedAt)
-                        .build());
+        kafkaTestPublisher.publishEvent(ShowcaseStartedEvent.builder()
+                .showcaseId(showcaseId)
+                .duration(duration)
+                .startedAt(startedAt)
+                .build());
 
         await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
-                                    .filter(showcase -> showcase.status() == ShowcaseStatus.STARTED)
-                                    .isPresent());
+                .filter(showcase -> showcase.status() == ShowcaseStatus.STARTED)
+                .isPresent());
     }
 
     @Test
@@ -187,17 +179,18 @@ class ShowcaseProjectorIT {
         val duration = aShowcaseDuration();
         val startedAt = aShowcaseStartedAt(startTime);
 
-        kafkaTestPublisher.publishEvent(
-                ShowcaseStartedEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .duration(duration)
-                        .startedAt(startedAt)
-                        .build());
+        kafkaTestPublisher.publishEvent(ShowcaseStartedEvent.builder()
+                .showcaseId(showcaseId)
+                .duration(duration)
+                .startedAt(startedAt)
+                .build());
 
-        await().until(() -> output.getOut().lines().anyMatch(line -> line.matches(
-                (".+(ERROR).+(On ShowcaseStartedEvent, \\[Update\\] \\[document_missing_exception\\] \\[%s\\]: " +
-                         "document missing)").formatted(showcaseId))));
+        await().until(() -> output.getOut()
+                .lines()
+                .anyMatch(line -> line.matches(
+                        (".+(ERROR).+(On ShowcaseStartedEvent, \\[Update\\] \\[document_missing_exception\\] \\[%s\\]: "
+                                        + "document missing)")
+                                .formatted(showcaseId))));
     }
 
     @Test
@@ -208,38 +201,32 @@ class ShowcaseProjectorIT {
         val startTime = aShowcaseStartTime(scheduleTime);
         val duration = aShowcaseDuration();
 
-        kafkaTestPublisher.publishEvent(
-                ShowcaseScheduledEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(startTime)
-                        .duration(duration)
-                        .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                        .build());
+        kafkaTestPublisher.publishEvent(ShowcaseScheduledEvent.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(startTime)
+                .duration(duration)
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                .build());
 
         val startedAt = aShowcaseStartedAt(startTime);
 
-        kafkaTestPublisher.publishEvent(
-                ShowcaseStartedEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .duration(duration)
-                        .startedAt(startedAt)
-                        .build());
+        kafkaTestPublisher.publishEvent(ShowcaseStartedEvent.builder()
+                .showcaseId(showcaseId)
+                .duration(duration)
+                .startedAt(startedAt)
+                .build());
 
         val finishedAt = aShowcaseFinishedAt(startedAt, duration);
 
-        kafkaTestPublisher.publishEvent(
-                ShowcaseFinishedEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .finishedAt(finishedAt)
-                        .build());
+        kafkaTestPublisher.publishEvent(ShowcaseFinishedEvent.builder()
+                .showcaseId(showcaseId)
+                .finishedAt(finishedAt)
+                .build());
 
         await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
-                                    .filter(showcase -> showcase.status() == ShowcaseStatus.FINISHED)
-                                    .isPresent());
+                .filter(showcase -> showcase.status() == ShowcaseStatus.FINISHED)
+                .isPresent());
     }
 
     @Test
@@ -252,16 +239,17 @@ class ShowcaseProjectorIT {
         val startedAt = aShowcaseStartedAt(startTime);
         val finishedAt = aShowcaseFinishedAt(startedAt, duration);
 
-        kafkaTestPublisher.publishEvent(
-                ShowcaseFinishedEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .finishedAt(finishedAt)
-                        .build());
+        kafkaTestPublisher.publishEvent(ShowcaseFinishedEvent.builder()
+                .showcaseId(showcaseId)
+                .finishedAt(finishedAt)
+                .build());
 
-        await().until(() -> output.getOut().lines().anyMatch(line -> line.matches(
-                (".+(ERROR).+(On ShowcaseFinishedEvent, \\[Update\\] \\[document_missing_exception\\] \\[%s\\]: " +
-                         "document missing)").formatted(showcaseId))));
+        await().until(() -> output.getOut()
+                .lines()
+                .anyMatch(line -> line.matches(
+                        (".+(ERROR).+(On ShowcaseFinishedEvent, \\[Update\\] \\[document_missing_exception\\] \\[%s\\]: "
+                                        + "document missing)")
+                                .formatted(showcaseId))));
     }
 
     @Test
@@ -270,26 +258,22 @@ class ShowcaseProjectorIT {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
 
-        kafkaTestPublisher.publishEvent(
-                ShowcaseScheduledEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(scheduleTime))
-                        .duration(aShowcaseDuration())
-                        .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                        .build());
+        kafkaTestPublisher.publishEvent(ShowcaseScheduledEvent.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(scheduleTime))
+                .duration(aShowcaseDuration())
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                .build());
 
         await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
-                                    .filter(showcase -> showcase.status() == ShowcaseStatus.SCHEDULED)
-                                    .isPresent());
+                .filter(showcase -> showcase.status() == ShowcaseStatus.SCHEDULED)
+                .isPresent());
 
-        kafkaTestPublisher.publishEvent(
-                ShowcaseRemovedEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .removedAt(Instant.now())
-                        .build());
+        kafkaTestPublisher.publishEvent(ShowcaseRemovedEvent.builder()
+                .showcaseId(showcaseId)
+                .removedAt(Instant.now())
+                .build());
 
         await().until(() -> !openSearchTemplate.exists(showcaseId, ShowcaseEntity.class));
     }
@@ -301,29 +285,27 @@ class ShowcaseProjectorIT {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
 
-        kafkaTestPublisher.publishEvent(
-                ShowcaseScheduledEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(scheduleTime))
-                        .duration(aShowcaseDuration())
-                        .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                        .build());
+        kafkaTestPublisher.publishEvent(ShowcaseScheduledEvent.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(scheduleTime))
+                .duration(aShowcaseDuration())
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                .build());
 
         await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
-                                    .filter(showcase -> showcase.status() == ShowcaseStatus.SCHEDULED)
-                                    .isPresent());
+                .filter(showcase -> showcase.status() == ShowcaseStatus.SCHEDULED)
+                .isPresent());
 
-        kafkaTestPublisher.publishEventTwice(
-                ShowcaseRemovedEvent
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .removedAt(Instant.now())
-                        .build());
+        kafkaTestPublisher.publishEventTwice(ShowcaseRemovedEvent.builder()
+                .showcaseId(showcaseId)
+                .removedAt(Instant.now())
+                .build());
 
-        await().until(() -> output.getOut().lines().anyMatch(line -> line.matches(
-                ".+(WARN).+(On ShowcaseRemovedEvent, \\[Delete\\] \\[not_found\\] \\[%s\\]: document missing)"
-                        .formatted(showcaseId))));
+        await().until(() -> output.getOut()
+                .lines()
+                .anyMatch(line -> line.matches(
+                        ".+(WARN).+(On ShowcaseRemovedEvent, \\[Delete\\] \\[not_found\\] \\[%s\\]: document missing)"
+                                .formatted(showcaseId))));
     }
 }

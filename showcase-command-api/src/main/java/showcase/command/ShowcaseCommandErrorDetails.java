@@ -1,5 +1,7 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
 
+import java.io.Serializable;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,8 +13,6 @@ import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 import org.axonframework.messaging.MetaData;
 import org.jspecify.annotations.NullUnmarked;
-
-import java.io.Serializable;
 
 /**
  * Structured details describing a failed showcase command.

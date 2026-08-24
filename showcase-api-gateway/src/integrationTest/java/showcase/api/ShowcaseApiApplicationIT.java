@@ -1,4 +1,8 @@
+// SPDX-License-Identifier: MIT
 package showcase.api;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import org.axonframework.commandhandling.CommandBus;
 import org.axonframework.commandhandling.distributed.DistributedCommandBus;
@@ -13,14 +17,12 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-@TestPropertySource(properties = {
-        "axon.distributed.jgroups.bind-port=17800",
-        "axon.distributed.jgroups.cluster-name=axon-showcase-it"
-})
+@TestPropertySource(
+        properties = {
+            "axon.distributed.jgroups.bind-port=17800",
+            "axon.distributed.jgroups.cluster-name=axon-showcase-it"
+        })
 @DirtiesContext
 @DisplayName("Showcase API application integration tests")
 class ShowcaseApiApplicationIT {

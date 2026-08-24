@@ -1,4 +1,7 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
+
+import static showcase.command.ShowcaseCommandOperations.SHOWCASE_COMMAND_SERVICE;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -9,8 +12,6 @@ import org.axonframework.extensions.reactor.commandhandling.gateway.ReactorComma
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
-import static showcase.command.ShowcaseCommandOperations.SHOWCASE_COMMAND_SERVICE;
 
 /**
  * Reactive client sending showcase commands through the Axon reactor command gateway, protected by Resilience4j
@@ -80,15 +81,15 @@ class ShowcaseCommandClient implements ShowcaseCommandOperations {
      */
     private Mono<Void> sendCommand(ShowcaseCommand command) {
         return commandGateway
-                       .<Void>send(command)
-                       .subscribeOn(Schedulers.boundedElastic())
-                       .onErrorMap(CommandExecutionException.class, e -> {
-                           if (e.getDetails().isPresent()
-                                       && e.getDetails().get() instanceof ShowcaseCommandErrorDetails errorDetails) {
-                               return new ShowcaseCommandException(errorDetails);
-                           } else {
-                               return e;
-                           }
-                       });
+                .<Void>send(command)
+                .subscribeOn(Schedulers.boundedElastic())
+                .onErrorMap(CommandExecutionException.class, e -> {
+                    if (e.getDetails().isPresent()
+                            && e.getDetails().get() instanceof ShowcaseCommandErrorDetails errorDetails) {
+                        return new ShowcaseCommandException(errorDetails);
+                    } else {
+                        return e;
+                    }
+                });
     }
 }

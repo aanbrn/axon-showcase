@@ -1,4 +1,10 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 import lombok.val;
 import org.axonframework.messaging.InterceptorChain;
@@ -11,11 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Showcase query message interceptor unit tests")
@@ -38,10 +39,8 @@ class ShowcaseQueryMessageInterceptorTests {
                 .isInstanceOf(ShowcaseQueryException.class)
                 .satisfies(it -> {
                     val exception = (ShowcaseQueryException) it;
-                    assertThat(exception.getErrorDetails().errorCode())
-                            .isEqualTo(ShowcaseQueryErrorCode.INVALID_QUERY);
-                    assertThat(exception.getErrorDetails().errorMessage())
-                            .isEqualTo("Given query is not valid");
+                    assertThat(exception.getErrorDetails().errorCode()).isEqualTo(ShowcaseQueryErrorCode.INVALID_QUERY);
+                    assertThat(exception.getErrorDetails().errorMessage()).isEqualTo("Given query is not valid");
                     assertThat(exception.getErrorDetails().metaData()).isNotEmpty();
                 });
     }

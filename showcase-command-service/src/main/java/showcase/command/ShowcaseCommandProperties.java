@@ -1,14 +1,14 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import java.time.Duration;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
-
-import java.time.Duration;
 
 /**
  * Configuration properties bound to the {@code showcase.command} prefix.

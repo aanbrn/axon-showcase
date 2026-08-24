@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package showcase.api;
 
 import org.springframework.stereotype.Component;

@@ -1,14 +1,14 @@
+// SPDX-License-Identifier: MIT
 package showcase.identifier;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.ksuid.Ksuid;
+import java.util.HashSet;
 import lombok.val;
 import org.axonframework.common.IdentifierFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("KSUID identifier factory tests")
 class KsuidIdentifierFactoryTests {

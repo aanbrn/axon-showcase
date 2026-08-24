@@ -1,15 +1,16 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
+import static showcase.command.RandomCommandTestUtils.aShowcaseId;
+import static showcase.command.RandomCommandTestUtils.anInvalidShowcaseId;
 
 import jakarta.validation.Validation;
 import lombok.val;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import showcase.identifier.KSUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNullPointerException;
-import static showcase.command.RandomCommandTestUtils.aShowcaseId;
-import static showcase.command.RandomCommandTestUtils.anInvalidShowcaseId;
 
 @DisplayName("Start showcase command tests")
 class StartShowcaseCommandTests {
@@ -19,11 +20,7 @@ class StartShowcaseCommandTests {
     void construction_allParamsSpecified_createsInstanceWithAllFieldsSet() {
         val showcaseId = aShowcaseId();
 
-        val command =
-                StartShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build();
+        val command = StartShowcaseCommand.builder().showcaseId(showcaseId).build();
         assertThat(command).isNotNull();
         assertThat(command.showcaseId()).isEqualTo(showcaseId);
     }
@@ -31,7 +28,8 @@ class StartShowcaseCommandTests {
     @Test
     @DisplayName("A command without a showcase ID throws a null pointer exception")
     void construction_missingShowcaseId_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> StartShowcaseCommand.builder().build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> StartShowcaseCommand.builder().build());
     }
 
     @Test
@@ -39,12 +37,10 @@ class StartShowcaseCommandTests {
     void validation_allFieldsValid_detectsNoConstraintViolations() {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();
-            assertThat(validator.validate(
-                    StartShowcaseCommand
-                            .builder()
+            assertThat(validator.validate(StartShowcaseCommand.builder()
                             .showcaseId(aShowcaseId())
-                            .build())
-            ).isEmpty();
+                            .build()))
+                    .isEmpty();
         }
     }
 
@@ -53,19 +49,17 @@ class StartShowcaseCommandTests {
     void validation_invalidShowcaseId_detectsShowcaseIdConstraintViolation() {
         try (val validatorFactory = Validation.buildDefaultValidatorFactory()) {
             val validator = validatorFactory.getValidator();
-            assertThat(validator.validate(
-                    StartShowcaseCommand
-                            .builder()
+            assertThat(validator.validate(StartShowcaseCommand.builder()
                             .showcaseId(anInvalidShowcaseId())
-                            .build())
-            ).hasSize(1)
-             .first()
-             .satisfies(it -> {
-                 assertThat(it.getConstraintDescriptor()).isNotNull();
-                 assertThat(it.getConstraintDescriptor().getAnnotation()).isInstanceOf(KSUID.class);
-                 assertThat(it.getPropertyPath()).isNotNull();
-                 assertThat(it.getPropertyPath().toString()).isEqualTo("showcaseId");
-             });
+                            .build()))
+                    .hasSize(1)
+                    .first()
+                    .satisfies(it -> {
+                        assertThat(it.getConstraintDescriptor()).isNotNull();
+                        assertThat(it.getConstraintDescriptor().getAnnotation()).isInstanceOf(KSUID.class);
+                        assertThat(it.getPropertyPath()).isNotNull();
+                        assertThat(it.getPropertyPath().toString()).isEqualTo("showcaseId");
+                    });
         }
     }
 }

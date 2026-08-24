@@ -186,19 +186,12 @@ Key modules (libraries, not services):
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable
-- **Formatting**: format edited files with the IntelliJ IDE formatter (Code → Reformat Code), not an external CLI
-  formatter, so the result matches the project's configured code style. After each edit, run the IntelliJ formatter
-  (`ReformatCodeProcessor`, plus `OptimizeImportsProcessor` for JVM sources) through the Steroid MCP
-  (`steroid_execute_code` against the open `axon-showcase` project) before reporting the change done.
-  - Keep every line within 120 characters; verify with `awk 'length > 120'` over edited files. Avoid redundant line
-    wraps: keep a line on one line whenever it fits within 120 characters, rather than breaking early after `=` or
-    splitting short chains. Only wrap when a line genuinely exceeds 120 — and when a long assignment must wrap, break
-    it right after the `=` and then chain the expression, e.g.
-    ```java
-    private final ApplicationContextRunner runner =
-            new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(SomeAutoConfig.class));
-    ```
-    rather than deep-aligning a chained call on a single long line.
+- **Formatting**: format Java sources with `./gradlew spotlessApply` (Spotless + palantir-java-format, fixed 120
+  columns) — the canonical format step, enforced by `spotlessCheck` in `check` with no IDE required. After each edit,
+  run `spotlessApply` (via the `codefmt` skill's Spotless path) before reporting the change done; the IntelliJ
+  formatter is no longer canonical, and import order is owned by the formatter.
+  - The 120-character wrapping convention still applies manually to non-Java content the formatter does not touch
+    (Markdown, YAML, and so on); verify with `awk 'length > 120'` over edited files.
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body
     (`(x) -> { ... }`) so the formatter indents the statements normally instead of deep-aligning one long expression.
     The resulting "Statement lambda can be replaced with expression lambda" inspection is suppressed with
@@ -288,6 +281,14 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
 
 ## Gotchas
 
+- IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless/palantir format, so the
+  auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**, **Auto Import → Optimize imports
+  on the fly**) only cause drift if the **palantir-java-format** plugin is not active. With the plugin enabled (and
+  the repo's code style + import layout in `.idea/`), IntelliJ's reformat and optimize-imports match `spotlessApply`
+  and the triggers are safe to keep on. Install the plugin via `./scripts/setup-idea.sh` (locates the IDE and runs
+  `installPlugins palantir-java-format`); the repo ships `.idea/palantir-java-format.xml` with `enabled=true` and the
+  palantir import layout in `.idea/codeStyles/` (enabled by `USE_PER_PROJECT_SETTINGS`), so `Optimize Imports`
+  matches `spotlessApply` without manual setup (see README → Local Development → IntelliJ IDEA Setup).
 - E2E tests for `showcase-api-gateway` depend on Docker images of all other services being built (`bootBuildImage`). Run
   those first.
 - The `showcase-api-gateway` e2eTest must run after `showcase-command-client` and `showcase-query-client`

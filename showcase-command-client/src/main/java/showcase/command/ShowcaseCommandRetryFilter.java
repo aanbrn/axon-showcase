@@ -1,8 +1,8 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
 
-import org.axonframework.common.AxonNonTransientException;
-
 import java.util.function.Predicate;
+import org.axonframework.common.AxonNonTransientException;
 
 /**
  * Decides which exceptions should trigger a retry on the command service.
@@ -18,7 +18,7 @@ final class ShowcaseCommandRetryFilter implements Predicate<Throwable> {
     @Override
     public boolean test(Throwable t) {
         return !(t instanceof ShowcaseCommandException)
-                       && !(t instanceof AxonNonTransientException)
-                       && !(t.getCause() instanceof AxonNonTransientException);
+                && !(t instanceof AxonNonTransientException)
+                && !(t.getCause() instanceof AxonNonTransientException);
     }
 }

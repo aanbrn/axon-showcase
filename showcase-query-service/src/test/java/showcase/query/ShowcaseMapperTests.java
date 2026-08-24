@@ -1,14 +1,14 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.Duration;
+import java.time.Instant;
 import lombok.val;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import showcase.projection.ShowcaseEntity;
-
-import java.time.Duration;
-import java.time.Instant;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Showcase mapper unit tests")
 class ShowcaseMapperTests {
@@ -18,8 +18,7 @@ class ShowcaseMapperTests {
     @Test
     @DisplayName("Mapping an entity to a DTO preserves all fields")
     void entityToDto_preservesAllFields() {
-        val entity = ShowcaseEntity
-                .builder()
+        val entity = ShowcaseEntity.builder()
                 .showcaseId("33gkCN0UNn3Kzr3x7iuDaVT6sZi")
                 .title("My Showcase")
                 .startTime(Instant.parse("2026-08-01T10:00:00Z"))
@@ -50,8 +49,7 @@ class ShowcaseMapperTests {
     @Test
     @DisplayName("Mapping a DTO to an entity preserves all fields")
     void dtoToEntity_preservesAllFields() {
-        val dto = Showcase
-                .builder()
+        val dto = Showcase.builder()
                 .showcaseId("33gkCN0UNn3Kzr3x7iuDaVT6sZi")
                 .title("My Showcase")
                 .startTime(Instant.parse("2026-08-01T10:00:00Z"))

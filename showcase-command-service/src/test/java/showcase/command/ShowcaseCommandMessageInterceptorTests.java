@@ -1,4 +1,14 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static showcase.command.RandomCommandTestUtils.aRemoveShowcaseCommand;
+import static showcase.command.RandomCommandTestUtils.aScheduleShowcaseCommand;
+import static showcase.command.RandomCommandTestUtils.aTooShortShowcaseDuration;
 
 import lombok.val;
 import org.axonframework.commandhandling.CommandMessage;
@@ -12,15 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static showcase.command.RandomCommandTestUtils.aRemoveShowcaseCommand;
-import static showcase.command.RandomCommandTestUtils.aScheduleShowcaseCommand;
-import static showcase.command.RandomCommandTestUtils.aTooShortShowcaseDuration;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Showcase command message interceptor unit tests")
@@ -45,8 +46,7 @@ class ShowcaseCommandMessageInterceptorTests {
                     val exception = (ShowcaseCommandException) it;
                     assertThat(exception.getErrorDetails().errorCode())
                             .isEqualTo(ShowcaseCommandErrorCode.INVALID_COMMAND);
-                    assertThat(exception.getErrorDetails().errorMessage())
-                            .isEqualTo("Given command is not valid");
+                    assertThat(exception.getErrorDetails().errorMessage()).isEqualTo("Given command is not valid");
                     assertThat(exception.getErrorDetails().metaData()).isNotEmpty();
                 });
     }
@@ -74,10 +74,8 @@ class ShowcaseCommandMessageInterceptorTests {
                 .isInstanceOf(ShowcaseCommandException.class)
                 .satisfies(it -> {
                     val exception = (ShowcaseCommandException) it;
-                    assertThat(exception.getErrorDetails().errorCode())
-                            .isEqualTo(ShowcaseCommandErrorCode.NOT_FOUND);
-                    assertThat(exception.getErrorDetails().errorMessage())
-                            .isEqualTo("No showcase with given ID");
+                    assertThat(exception.getErrorDetails().errorCode()).isEqualTo(ShowcaseCommandErrorCode.NOT_FOUND);
+                    assertThat(exception.getErrorDetails().errorMessage()).isEqualTo("No showcase with given ID");
                 });
     }
 
@@ -87,8 +85,7 @@ class ShowcaseCommandMessageInterceptorTests {
         val interceptor = new ShowcaseCommandMessageInterceptor<>(false);
         val message = aCommandMessage();
         doReturn(message).when(unitOfWork).getMessage();
-        when(interceptorChain.proceed())
-                .thenThrow(new AggregateDeletedException("deleted-showcase"));
+        when(interceptorChain.proceed()).thenThrow(new AggregateDeletedException("deleted-showcase"));
 
         assertThatThrownBy(() -> interceptor.handle(unitOfWork, interceptorChain))
                 .isInstanceOf(ShowcaseCommandException.class)
@@ -96,8 +93,7 @@ class ShowcaseCommandMessageInterceptorTests {
                     val exception = (ShowcaseCommandException) it;
                     assertThat(exception.getErrorDetails().errorCode())
                             .isEqualTo(ShowcaseCommandErrorCode.ILLEGAL_STATE);
-                    assertThat(exception.getErrorDetails().errorMessage())
-                            .isEqualTo("Showcase is removed already");
+                    assertThat(exception.getErrorDetails().errorMessage()).isEqualTo("Showcase is removed already");
                 });
     }
 
@@ -119,7 +115,9 @@ class ShowcaseCommandMessageInterceptorTests {
 
     private static CommandMessage<?> aCommandMessageWithTooShortDuration() {
         return org.axonframework.commandhandling.GenericCommandMessage.asCommandMessage(
-                aScheduleShowcaseCommand().toBuilder().duration(aTooShortShowcaseDuration()).build());
+                aScheduleShowcaseCommand().toBuilder()
+                        .duration(aTooShortShowcaseDuration())
+                        .build());
     }
 
     private static CommandMessage<?> aRemoveCommandMessage() {

@@ -1,5 +1,17 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
 
+import static java.util.Comparator.comparing;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
+import static org.awaitility.Awaitility.await;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
+import static showcase.command.RandomCommandTestUtils.aShowcaseId;
+import static showcase.query.RandomQueryTestUtils.aShowcaseStatus;
+import static showcase.query.RandomQueryTestUtils.showcases;
+import static showcase.test.RandomTestUtils.anElementOf;
+
+import java.util.List;
 import lombok.val;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -25,49 +37,34 @@ import reactor.test.StepVerifier;
 import showcase.projection.ShowcaseEntity;
 import showcase.projection.ShowcaseStatus;
 
-import java.util.List;
-
-import static java.util.Comparator.comparing;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.type;
-import static org.awaitility.Awaitility.await;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
-import static showcase.command.RandomCommandTestUtils.aShowcaseId;
-import static showcase.query.RandomQueryTestUtils.aShowcaseStatus;
-import static showcase.query.RandomQueryTestUtils.showcases;
-import static showcase.test.RandomTestUtils.anElementOf;
-
 @SpringBootTest(webEnvironment = NONE)
 @Testcontainers
 @DisplayName("Showcase query client end-to-end tests")
 class ShowcaseQueryClientE2E {
 
     @SpringBootApplication
-    static class TestApp {
-    }
+    static class TestApp {}
 
     static final Network network = Network.newNetwork();
 
     @Container
     @ServiceConnection
     @SuppressWarnings("resource")
-    static final OpenSearchContainer<?> osViews =
-            new OpenSearchContainer<>("opensearchproject/opensearch:" + System.getProperty("opensearch.image.version"))
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-os-views"))
-                    .withNetwork(network);
+    static final OpenSearchContainer<?> osViews = new OpenSearchContainer<>(
+                    "opensearchproject/opensearch:" + System.getProperty("opensearch.image.version"))
+            .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-os-views"))
+            .withNetwork(network);
 
     @Container
     @SuppressWarnings("resource")
-    static final GenericContainer<?> queryService =
-            new GenericContainer<>("aanbrn/axon-showcase-query-service:" + System.getProperty("project.version"))
-                    .dependsOn(osViews)
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-query-service"))
-                    .withNetwork(network)
-                    .withExposedPorts(8080)
-                    .waitingFor(Wait.forHttp("/actuator/health")
-                                    .forPort(8080)
-                                    .forStatusCode(200))
-                    .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
+    static final GenericContainer<?> queryService = new GenericContainer<>(
+                    "aanbrn/axon-showcase-query-service:" + System.getProperty("project.version"))
+            .dependsOn(osViews)
+            .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-query-service"))
+            .withNetwork(network)
+            .withExposedPorts(8080)
+            .waitingFor(Wait.forHttp("/actuator/health").forPort(8080).forStatusCode(200))
+            .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
 
     @DynamicPropertySource
     static void showcaseQueryClientProperties(DynamicPropertyRegistry registry) {
@@ -102,19 +99,17 @@ class ShowcaseQueryClientE2E {
 
         openSearchTemplate.save(
                 showcases.stream()
-                         .map(showcase ->
-                                      ShowcaseEntity
-                                              .builder()
-                                              .showcaseId(showcase.showcaseId())
-                                              .title(showcase.title())
-                                              .startTime(showcase.startTime())
-                                              .duration(showcase.duration())
-                                              .status(ShowcaseStatus.valueOf(showcase.status().name()))
-                                              .startedAt(showcase.startedAt())
-                                              .finishedAt(showcase.finishedAt())
-                                              .scheduledAt(showcase.scheduledAt())
-                                              .build())
-                         .toList(),
+                        .map(showcase -> ShowcaseEntity.builder()
+                                .showcaseId(showcase.showcaseId())
+                                .title(showcase.title())
+                                .startTime(showcase.startTime())
+                                .duration(showcase.duration())
+                                .status(ShowcaseStatus.valueOf(showcase.status().name()))
+                                .startedAt(showcase.startedAt())
+                                .finishedAt(showcase.finishedAt())
+                                .scheduledAt(showcase.scheduledAt())
+                                .build())
+                        .toList(),
                 showcaseIndexOperations.getIndexCoordinates());
 
         showcaseIndexOperations.refresh();
@@ -128,64 +123,46 @@ class ShowcaseQueryClientE2E {
     @Test
     @DisplayName("Fetching the list without filtering succeeds with the existing showcases sorted by start time")
     void fetchList_noFiltering_succeedsWithListExistingShowcasesSortedByStartTime() {
-        val expected =
-                this.showcases
-                        .stream()
-                        .sorted(comparing(Showcase::showcaseId).reversed())
-                        .toList();
-        val query =
-                FetchShowcaseListQuery
-                        .builder()
-                        .build();
+        val expected = this.showcases.stream()
+                .sorted(comparing(Showcase::showcaseId).reversed())
+                .toList();
+        val query = FetchShowcaseListQuery.builder().build();
 
-        await().untilAsserted(
-                () -> showcaseQueryOperations
-                              .fetchList(query)
-                              .as(StepVerifier::create)
-                              .expectNextSequence(expected)
-                              .verifyComplete());
+        await().untilAsserted(() -> showcaseQueryOperations
+                .fetchList(query)
+                .as(StepVerifier::create)
+                .expectNextSequence(expected)
+                .verifyComplete());
     }
 
     @Test
     @DisplayName("Fetching the list with a title to filter by succeeds with the matching showcase")
     void fetchList_titleToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
         val expected = anElementOf(showcases);
-        val query =
-                FetchShowcaseListQuery
-                        .builder()
-                        .title(expected.title())
-                        .build();
+        val query = FetchShowcaseListQuery.builder().title(expected.title()).build();
 
-        await().untilAsserted(
-                () -> showcaseQueryOperations
-                              .fetchList(query)
-                              .as(StepVerifier::create)
-                              .expectNext(expected)
-                              .verifyComplete());
+        await().untilAsserted(() -> showcaseQueryOperations
+                .fetchList(query)
+                .as(StepVerifier::create)
+                .expectNext(expected)
+                .verifyComplete());
     }
 
     @Test
     @DisplayName("Fetching the list with a single status to filter by succeeds with the matching showcases")
     void fetchList_singleStatusToFilterBy_succeedsWithMatchingShowcasesSortedByStartTime() {
         val status = aShowcaseStatus();
-        val expected =
-                showcases
-                        .stream()
-                        .filter(it -> it.status() == status)
-                        .sorted(comparing(Showcase::showcaseId).reversed())
-                        .toList();
-        val query =
-                FetchShowcaseListQuery
-                        .builder()
-                        .status(status)
-                        .build();
+        val expected = showcases.stream()
+                .filter(it -> it.status() == status)
+                .sorted(comparing(Showcase::showcaseId).reversed())
+                .toList();
+        val query = FetchShowcaseListQuery.builder().status(status).build();
 
-        await().untilAsserted(
-                () -> showcaseQueryOperations
-                              .fetchList(query)
-                              .as(StepVerifier::create)
-                              .expectNextSequence(expected)
-                              .verifyComplete());
+        await().untilAsserted(() -> showcaseQueryOperations
+                .fetchList(query)
+                .as(StepVerifier::create)
+                .expectNextSequence(expected)
+                .verifyComplete());
     }
 
     @Test
@@ -194,68 +171,48 @@ class ShowcaseQueryClientE2E {
         val status1 = aShowcaseStatus();
         val status2 = aShowcaseStatus(status1);
         val query =
-                FetchShowcaseListQuery
-                        .builder()
-                        .status(status1)
-                        .status(status2)
-                        .build();
-        val expected =
-                showcases
-                        .stream()
-                        .filter(showcase -> showcase.status() == status1 || showcase.status() == status2)
-                        .sorted(comparing(Showcase::showcaseId).reversed())
-                        .toList();
+                FetchShowcaseListQuery.builder().status(status1).status(status2).build();
+        val expected = showcases.stream()
+                .filter(showcase -> showcase.status() == status1 || showcase.status() == status2)
+                .sorted(comparing(Showcase::showcaseId).reversed())
+                .toList();
 
-        await().untilAsserted(
-                () -> showcaseQueryOperations
-                              .fetchList(query)
-                              .as(StepVerifier::create)
-                              .expectNextSequence(expected)
-                              .verifyComplete());
+        await().untilAsserted(() -> showcaseQueryOperations
+                .fetchList(query)
+                .as(StepVerifier::create)
+                .expectNextSequence(expected)
+                .verifyComplete());
     }
 
     @Test
     @DisplayName("Fetching by ID with an existing showcase succeeds with the requested showcase")
     void fetchById_existingShowcase_succeedWithRequestedShowcase() {
         val expected = anElementOf(showcases);
-        val query =
-                FetchShowcaseByIdQuery
-                        .builder()
-                        .showcaseId(expected.showcaseId())
-                        .build();
+        val query = FetchShowcaseByIdQuery.builder()
+                .showcaseId(expected.showcaseId())
+                .build();
 
-        await().untilAsserted(
-                () -> showcaseQueryOperations
-                              .fetchById(query)
-                              .as(StepVerifier::create)
-                              .expectNext(expected)
-                              .verifyComplete());
+        await().untilAsserted(() -> showcaseQueryOperations
+                .fetchById(query)
+                .as(StepVerifier::create)
+                .expectNext(expected)
+                .verifyComplete());
     }
 
     @Test
     @DisplayName("Fetching by ID with a non-existing showcase fails with a not-found error")
     void fetchById_nonExistingShowcase_failsWithNotFoundError() {
-        val query =
-                FetchShowcaseByIdQuery
-                        .builder()
-                        .showcaseId(aShowcaseId())
-                        .build();
+        val query = FetchShowcaseByIdQuery.builder().showcaseId(aShowcaseId()).build();
 
-        showcaseQueryOperations
-                .fetchById(query)
-                .as(StepVerifier::create)
-                .verifyErrorSatisfies(
-                        t -> assertThat(t)
-                                     .isExactlyInstanceOf(ShowcaseQueryException.class)
-                                     .asInstanceOf(type(ShowcaseQueryException.class))
-                                     .extracting(ShowcaseQueryException::getErrorDetails)
-                                     .asInstanceOf(type(ShowcaseQueryErrorDetails.class))
-                                     .satisfies(errorDetails -> {
-                                         assertThat(errorDetails.errorCode())
-                                                 .isEqualTo(ShowcaseQueryErrorCode.NOT_FOUND);
-                                         assertThat(errorDetails.errorMessage())
-                                                 .isEqualTo("No showcase with given ID");
-                                         assertThat(errorDetails.metaData()).isEmpty();
-                                     }));
+        showcaseQueryOperations.fetchById(query).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
+                .isExactlyInstanceOf(ShowcaseQueryException.class)
+                .asInstanceOf(type(ShowcaseQueryException.class))
+                .extracting(ShowcaseQueryException::getErrorDetails)
+                .asInstanceOf(type(ShowcaseQueryErrorDetails.class))
+                .satisfies(errorDetails -> {
+                    assertThat(errorDetails.errorCode()).isEqualTo(ShowcaseQueryErrorCode.NOT_FOUND);
+                    assertThat(errorDetails.errorMessage()).isEqualTo("No showcase with given ID");
+                    assertThat(errorDetails.metaData()).isEmpty();
+                }));
     }
 }

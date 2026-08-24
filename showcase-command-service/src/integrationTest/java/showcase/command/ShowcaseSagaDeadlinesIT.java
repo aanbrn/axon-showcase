@@ -1,5 +1,15 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
+import static showcase.command.RandomCommandTestUtils.aShowcaseId;
+import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.deadline.DeadlineManager;
@@ -12,27 +22,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
-import static showcase.command.RandomCommandTestUtils.aShowcaseId;
-import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @SpringBootTest(webEnvironment = NONE)
 @Testcontainers(parallel = true)
 @DirtiesContext
-@TestPropertySource(properties = {
-        "axon.kafka.publisher.enabled=false",
-        "showcase.command.validation-enabled=false"
-})
+@TestPropertySource(properties = {"axon.kafka.publisher.enabled=false", "showcase.command.validation-enabled=false"})
 @DisplayName("Showcase saga deadline integration tests")
 class ShowcaseSagaDeadlinesIT {
 
@@ -75,20 +72,16 @@ class ShowcaseSagaDeadlinesIT {
                 finishedFuture.complete(finished);
             }
         }))) {
-            commandGateway.sendAndWait(
-                    ScheduleShowcaseCommand
-                            .builder()
-                            .showcaseId(showcaseId)
-                            .title(aShowcaseTitle())
-                            .startTime(startTime)
-                            .duration(duration)
-                            .build());
+            commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                    .showcaseId(showcaseId)
+                    .title(aShowcaseTitle())
+                    .startTime(startTime)
+                    .duration(duration)
+                    .build());
 
-            assertThat(startedFuture.get(15, TimeUnit.SECONDS).startedAt())
-                    .isAfterOrEqualTo(startTime);
+            assertThat(startedFuture.get(15, TimeUnit.SECONDS).startedAt()).isAfterOrEqualTo(startTime);
 
-            assertThat(
-                    finishedFuture
+            assertThat(finishedFuture
                             .get(duration.plusSeconds(60).toSeconds(), TimeUnit.SECONDS)
                             .finishedAt())
                     .isAfterOrEqualTo(startTime.plus(duration));

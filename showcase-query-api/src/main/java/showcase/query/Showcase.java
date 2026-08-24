@@ -1,6 +1,9 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.Duration;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,9 +15,6 @@ import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
-
-import java.time.Duration;
-import java.time.Instant;
 
 /**
  * Read-side projection of a showcase.
@@ -55,11 +55,10 @@ public class Showcase {
      */
     @NonNull
     @Schema(
-            description = "The duration (in ISO-8601 format) after which the showcase should be finished " +
-                                  "automatically.",
+            description =
+                    "The duration (in ISO-8601 format) after which the showcase should be finished " + "automatically.",
             type = "string",
-            example = "PT5M30S"
-    )
+            example = "PT5M30S")
     Duration duration;
 
     /**

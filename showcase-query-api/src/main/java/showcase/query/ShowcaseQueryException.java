@@ -1,9 +1,9 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
 
+import java.util.Optional;
 import org.axonframework.queryhandling.QueryExecutionException;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Optional;
 
 /**
  * Exception thrown when a showcase query cannot be executed.

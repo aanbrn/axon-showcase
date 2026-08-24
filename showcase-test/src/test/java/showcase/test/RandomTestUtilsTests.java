@@ -1,18 +1,18 @@
+// SPDX-License-Identifier: MIT
 package showcase.test;
-
-import lombok.val;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.List;
+import lombok.val;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("Random test utility tests")
 class RandomTestUtilsTests {
 
-    private static final String[] STRINGS = { "alpha", "beta", "gamma" };
+    private static final String[] STRINGS = {"alpha", "beta", "gamma"};
     private static final List<String> STRING_LIST = List.of("alpha", "beta", "gamma");
 
     @Test
@@ -50,7 +50,7 @@ class RandomTestUtilsTests {
     @Test
     @DisplayName("An element of a single-element array is that element")
     void anElementOf_singleElementArray_returnsThatElement() {
-        val result = RandomTestUtils.anElementOf(new String[] { "only" });
+        val result = RandomTestUtils.anElementOf(new String[] {"only"});
 
         assertThat(result).isEqualTo("only");
     }
@@ -96,9 +96,10 @@ class RandomTestUtilsTests {
     }
 
     private enum SampleEnum {
-        FIRST, SECOND, THIRD
+        FIRST,
+        SECOND,
+        THIRD
     }
 
-    private enum EmptyEnum {
-    }
+    private enum EmptyEnum {}
 }

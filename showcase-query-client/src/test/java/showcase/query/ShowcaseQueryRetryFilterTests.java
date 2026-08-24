@@ -1,5 +1,13 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
+
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -9,14 +17,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.concurrent.TimeoutException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 
 @DisplayName("Showcase query retry filter tests")
 class ShowcaseQueryRetryFilterTests {
@@ -32,8 +32,7 @@ class ShowcaseQueryRetryFilterTests {
                 argumentSet("Bad Gateway", 502),
                 argumentSet("Service Unavailable", 503),
                 argumentSet("Gateway Timeout", 504),
-                argumentSet("Timeout Occurred", 524)
-        );
+                argumentSet("Timeout Occurred", 524));
     }
 
     static List<Arguments> nonRetryableStatusCodes() {
@@ -41,8 +40,7 @@ class ShowcaseQueryRetryFilterTests {
                 argumentSet("Bad Request", 400),
                 argumentSet("Forbidden", 403),
                 argumentSet("Not Found", 404),
-                argumentSet("Not Implemented", 501)
-        );
+                argumentSet("Not Implemented", 501));
     }
 
     @ParameterizedTest
@@ -79,11 +77,7 @@ class ShowcaseQueryRetryFilterTests {
 
     private static WebClientResponseException responseException(int statusCode) {
         return WebClientResponseException.create(
-                statusCode,
-                "Status " + statusCode,
-                HttpHeaders.EMPTY,
-                new byte[0],
-                StandardCharsets.UTF_8);
+                statusCode, "Status " + statusCode, HttpHeaders.EMPTY, new byte[0], StandardCharsets.UTF_8);
     }
 
     private static WebClientRequestException requestException() {

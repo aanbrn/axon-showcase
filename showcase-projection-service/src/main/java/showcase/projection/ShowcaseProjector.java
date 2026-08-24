@@ -1,4 +1,9 @@
+// SPDX-License-Identifier: MIT
 package showcase.projection;
+
+import static java.util.concurrent.Executors.newScheduledThreadPool;
+import static org.apache.commons.lang3.time.DurationFormatUtils.formatDurationWords;
+import static org.axonframework.micrometer.TagsUtil.PAYLOAD_TYPE_TAGGER_FUNCTION;
 
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.DistributionSummary;
@@ -7,6 +12,14 @@ import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.observation.ObservationRegistry;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.NonNull;
@@ -57,19 +70,6 @@ import showcase.command.ShowcaseFinishedEvent;
 import showcase.command.ShowcaseRemovedEvent;
 import showcase.command.ShowcaseScheduledEvent;
 import showcase.command.ShowcaseStartedEvent;
-
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-
-import static java.util.concurrent.Executors.newScheduledThreadPool;
-import static org.apache.commons.lang3.time.DurationFormatUtils.formatDurationWords;
-import static org.axonframework.micrometer.TagsUtil.PAYLOAD_TYPE_TAGGER_FUNCTION;
 
 /**
  * Consumes showcase events from Kafka and upserts the corresponding projections into OpenSearch.
@@ -124,19 +124,24 @@ class ShowcaseProjector implements SmartLifecycle {
         @Override
         public MonitorCallback onMessageIngested(EventMessage<?> message) {
             if (message.getPayload() instanceof ShowcaseEvent event) {
-                val lag = clock.wallTime() - switch (event) {
-                    case ShowcaseScheduledEvent scheduledEvent -> scheduledEvent.scheduledAt().toEpochMilli();
-                    case ShowcaseStartedEvent startedEvent -> startedEvent.startedAt().toEpochMilli();
-                    case ShowcaseFinishedEvent finishedEvent -> finishedEvent.finishedAt().toEpochMilli();
-                    case ShowcaseRemovedEvent removedEvent -> removedEvent.removedAt().toEpochMilli();
-                };
+                val lag = clock.wallTime()
+                        - switch (event) {
+                            case ShowcaseScheduledEvent scheduledEvent ->
+                                scheduledEvent.scheduledAt().toEpochMilli();
+                            case ShowcaseStartedEvent startedEvent ->
+                                startedEvent.startedAt().toEpochMilli();
+                            case ShowcaseFinishedEvent finishedEvent ->
+                                finishedEvent.finishedAt().toEpochMilli();
+                            case ShowcaseRemovedEvent removedEvent ->
+                                removedEvent.removedAt().toEpochMilli();
+                        };
                 if (lag >= 0) {
                     Timer.builder(meterNamePrefix + ".projectionLag")
-                         .distributionStatisticExpiry(Duration.of(10, ChronoUnit.MINUTES))
-                         .publishPercentiles(0.5, 0.75, 0.95, 0.98, 0.99, 0.999)
-                         .tags(tagsBuilder.apply(message))
-                         .register(meterRegistry)
-                         .record(lag, TimeUnit.MILLISECONDS);
+                            .distributionStatisticExpiry(Duration.of(10, ChronoUnit.MINUTES))
+                            .publishPercentiles(0.5, 0.75, 0.95, 0.98, 0.99, 0.999)
+                            .tags(tagsBuilder.apply(message))
+                            .register(meterRegistry)
+                            .record(lag, TimeUnit.MILLISECONDS);
                 }
             }
             return NoOpMessageMonitorCallback.INSTANCE;
@@ -203,42 +208,34 @@ class ShowcaseProjector implements SmartLifecycle {
             ObservationRegistry observationRegistry) {
         this.projectionProperties = projectionProperties;
         this.kafkaReceiver =
-                KafkaReceiver.create(
-                        ReceiverOptions.<String, byte[]>create(kafkaProperties.buildConsumerProperties())
-                                       .withObservation(observationRegistry)
-                                       .subscription(List.of(kafkaProperties.getDefaultTopic())));
+                KafkaReceiver.create(ReceiverOptions.<String, byte[]>create(kafkaProperties.buildConsumerProperties())
+                        .withObservation(observationRegistry)
+                        .subscription(List.of(kafkaProperties.getDefaultTopic())));
         this.kafkaMessageConverter = kafkaMessageConverter;
         this.openSearchTemplate = openSearchTemplate;
         this.elasticsearchConverter = elasticsearchConverter;
         this.showcaseIndex = openSearchTemplate.getIndexCoordinatesFor(ShowcaseEntity.class);
         this.messageMonitor = new MultiMessageMonitor<>(
-                MessageTimerMonitor
-                        .builder()
+                MessageTimerMonitor.builder()
                         .meterNamePrefix(METER_NAME_PREFIX)
                         .meterRegistry(meterRegistry)
                         .tagsBuilder(PAYLOAD_TYPE_TAGGER_FUNCTION)
                         .timerCustomization(timerBuilder -> timerBuilder.publishPercentileHistogram(true))
                         .build(),
-                MessageCountingMonitor.buildMonitor(
-                        METER_NAME_PREFIX,
-                        meterRegistry,
-                        PAYLOAD_TYPE_TAGGER_FUNCTION),
-                ProjectionLagMonitor
-                        .builder()
+                MessageCountingMonitor.buildMonitor(METER_NAME_PREFIX, meterRegistry, PAYLOAD_TYPE_TAGGER_FUNCTION),
+                ProjectionLagMonitor.builder()
                         .meterNamePrefix(METER_NAME_PREFIX)
                         .meterRegistry(meterRegistry)
                         .tagsBuilder(PAYLOAD_TYPE_TAGGER_FUNCTION)
                         .build());
-        this.batchSizeDistribution =
-                DistributionSummary
-                        .builder(METER_NAME_PREFIX + ".batch.size")
-                        .description("Size of processed batches (in events)")
-                        .baseUnit("events")
-                        .distributionStatisticExpiry(Duration.of(10, ChronoUnit.MINUTES))
-                        .publishPercentiles(0.5, 0.75, 0.95, 0.98, 0.99, 0.999)
-                        .minimumExpectedValue(1d)
-                        .maximumExpectedValue((double) projectionProperties.getBatch().getMaxSize())
-                        .register(meterRegistry);
+        this.batchSizeDistribution = DistributionSummary.builder(METER_NAME_PREFIX + ".batch.size")
+                .description("Size of processed batches (in events)")
+                .baseUnit("events")
+                .distributionStatisticExpiry(Duration.of(10, ChronoUnit.MINUTES))
+                .publishPercentiles(0.5, 0.75, 0.95, 0.98, 0.99, 0.999)
+                .minimumExpectedValue(1d)
+                .maximumExpectedValue((double) projectionProperties.getBatch().getMaxSize())
+                .register(meterRegistry);
         this.observationRegistry = observationRegistry;
     }
 
@@ -265,46 +262,60 @@ class ShowcaseProjector implements SmartLifecycle {
             log.info("Projector is starting...");
 
             return Flux.defer(kafkaReceiver::receive)
-                       .name("project-showcase")
-                       .doOnSubscribe(subscription -> log.info("Projector has started"))
-                       .doOnCancel(() -> log.info("Projector has stopped"))
-                       .groupBy(record -> record.receiverOffset().topicPartition(),
-                                projectionProperties.getMaxConcurrency())
-                       .flatMap(records -> Flux.using(
-                                        () -> Schedulers.fromExecutorService(
-                                                newScheduledThreadPool(
-                                                        projectionProperties.getMinConcurrency(),
-                                                        Thread.ofVirtual()
-                                                              .name("showcase-projector", 0)
-                                                              .factory()),
-                                                "showcase-projector"),
-                                        scheduler -> records.bufferTimeout(
-                                                                    projectionProperties.getBatch().getMaxSize(),
-                                                                    projectionProperties.getBatch().getMaxTime(),
-                                                                    scheduler)
-                                                            .onBackpressureBuffer(
-                                                                    projectionProperties.getBatch().getBufferMaxSize(),
-                                                                    BufferOverflowStrategy.ERROR)
-                                                            .concatMap(messages -> {
-                                                                log.trace("Received {} message(s)", messages.size());
-                                                                return processMessages(messages).then(
-                                                                        Flux.fromIterable(messages)
-                                                                            .map(ReceiverRecord::receiverOffset)
-                                                                            .doOnNext(ReceiverOffset::acknowledge)
-                                                                            .then());
-                                                            }),
-                                        Scheduler::dispose),
-                                projectionProperties.getMaxConcurrency(),
-                                projectionProperties.getBatch().getMaxSize())
-                       .tap(Micrometer.observation(observationRegistry))
-                       .retryWhen(Retry.fixedDelay(Long.MAX_VALUE, projectionProperties.getRestart().getDelay())
-                                       .doBeforeRetry(signal -> log.warn(
-                                               "Projector has failed and will restart in {}...",
-                                               formatDurationWords(
-                                                       projectionProperties.getRestart().getDelay().toMillis(),
-                                                       true, true),
-                                               signal.failure())))
-                       .subscribe();
+                    .name("project-showcase")
+                    .doOnSubscribe(subscription -> log.info("Projector has started"))
+                    .doOnCancel(() -> log.info("Projector has stopped"))
+                    .groupBy(
+                            record -> record.receiverOffset().topicPartition(),
+                            projectionProperties.getMaxConcurrency())
+                    .flatMap(
+                            records -> Flux.using(
+                                    () -> Schedulers.fromExecutorService(
+                                            newScheduledThreadPool(
+                                                    projectionProperties.getMinConcurrency(),
+                                                    Thread.ofVirtual()
+                                                            .name("showcase-projector", 0)
+                                                            .factory()),
+                                            "showcase-projector"),
+                                    scheduler -> records.bufferTimeout(
+                                                    projectionProperties
+                                                            .getBatch()
+                                                            .getMaxSize(),
+                                                    projectionProperties
+                                                            .getBatch()
+                                                            .getMaxTime(),
+                                                    scheduler)
+                                            .onBackpressureBuffer(
+                                                    projectionProperties
+                                                            .getBatch()
+                                                            .getBufferMaxSize(),
+                                                    BufferOverflowStrategy.ERROR)
+                                            .concatMap(messages -> {
+                                                log.trace("Received {} message(s)", messages.size());
+                                                return processMessages(messages)
+                                                        .then(Flux.fromIterable(messages)
+                                                                .map(ReceiverRecord::receiverOffset)
+                                                                .doOnNext(ReceiverOffset::acknowledge)
+                                                                .then());
+                                            }),
+                                    Scheduler::dispose),
+                            projectionProperties.getMaxConcurrency(),
+                            projectionProperties.getBatch().getMaxSize())
+                    .tap(Micrometer.observation(observationRegistry))
+                    .retryWhen(Retry.fixedDelay(
+                                    Long.MAX_VALUE,
+                                    projectionProperties.getRestart().getDelay())
+                            .doBeforeRetry(signal -> log.warn(
+                                    "Projector has failed and will restart in {}...",
+                                    formatDurationWords(
+                                            projectionProperties
+                                                    .getRestart()
+                                                    .getDelay()
+                                                    .toMillis(),
+                                            true,
+                                            true),
+                                    signal.failure())))
+                    .subscribe();
         });
     }
 
@@ -331,44 +342,44 @@ class ShowcaseProjector implements SmartLifecycle {
      */
     private Mono<Void> processMessages(List<? extends ConsumerRecord<String, byte[]>> messages) {
         return Flux.fromIterable(messages)
-                   .map(kafkaMessageConverter::readKafkaMessage)
-                   .filter(Optional::isPresent)
-                   .map(Optional::get)
-                   .collectList()
-                   .filter(eventMessages -> {
-                       if (eventMessages.isEmpty()) {
-                           log.trace("No event messages");
-                           return false;
-                       } else {
-                           log.trace("Extracted {} event message(s)", eventMessages.size());
-                           return true;
-                       }
-                   })
-                   .flatMapIterable(Function.identity())
-                   .map(eventMessage -> Tuples.of(eventMessage, messageMonitor.onMessageIngested(eventMessage)))
-                   .filter(TupleUtils.predicate((eventMessage, monitorCallback) -> {
-                       if (eventMessage.getPayload() instanceof ShowcaseEvent) {
-                           return true;
-                       } else {
-                           monitorCallback.reportIgnored();
-                           log.warn("Skipped event message with payload type: {}", eventMessage.getPayloadType());
-                           return false;
-                       }
-                   }))
-                   .map(it -> it.mapT1(EventMessage::getPayload))
-                   .map(it -> it.mapT1(ShowcaseEvent.class::cast))
-                   .collectList()
-                   .filter(events -> {
-                       if (events.isEmpty()) {
-                           log.trace("No events");
-                           return false;
-                       } else {
-                           batchSizeDistribution.record(events.size());
-                           log.trace("Extracted {} event(s)", events.size());
-                           return true;
-                       }
-                   })
-                   .flatMap(this::processEvents);
+                .map(kafkaMessageConverter::readKafkaMessage)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collectList()
+                .filter(eventMessages -> {
+                    if (eventMessages.isEmpty()) {
+                        log.trace("No event messages");
+                        return false;
+                    } else {
+                        log.trace("Extracted {} event message(s)", eventMessages.size());
+                        return true;
+                    }
+                })
+                .flatMapIterable(Function.identity())
+                .map(eventMessage -> Tuples.of(eventMessage, messageMonitor.onMessageIngested(eventMessage)))
+                .filter(TupleUtils.predicate((eventMessage, monitorCallback) -> {
+                    if (eventMessage.getPayload() instanceof ShowcaseEvent) {
+                        return true;
+                    } else {
+                        monitorCallback.reportIgnored();
+                        log.warn("Skipped event message with payload type: {}", eventMessage.getPayloadType());
+                        return false;
+                    }
+                }))
+                .map(it -> it.mapT1(EventMessage::getPayload))
+                .map(it -> it.mapT1(ShowcaseEvent.class::cast))
+                .collectList()
+                .filter(events -> {
+                    if (events.isEmpty()) {
+                        log.trace("No events");
+                        return false;
+                    } else {
+                        batchSizeDistribution.record(events.size());
+                        log.trace("Extracted {} event(s)", events.size());
+                        return true;
+                    }
+                })
+                .flatMap(this::processEvents);
     }
 
     /**
@@ -378,44 +389,43 @@ class ShowcaseProjector implements SmartLifecycle {
      * @return a {@link Mono} completing once the batch is processed
      */
     private Mono<Void> processEvents(List<Tuple2<ShowcaseEvent, MonitorCallback>> events) {
-        return Flux.zip(Flux.fromIterable(events)
-                            .map(Tuple2::getT1),
+        return Flux.zip(
+                        Flux.fromIterable(events).map(Tuple2::getT1),
+                        Flux.fromIterable(events).map(Tuple2::getT2),
                         Flux.fromIterable(events)
-                            .map(Tuple2::getT2),
-                        Flux.fromIterable(events)
-                            .map(Tuple2::getT1)
-                            .map(this::eventToBulkOperation)
-                            .collectList()
-                            .map(operations -> BulkRequest.of(request -> request.operations(operations)))
-                            .flatMap(this::execute)
-                            .map(BulkResponse::items)
-                            .flatMapIterable(Function.identity()))
-                   .doOnNext(TupleUtils.consumer((event, monitorCallback, responseItem) -> {
-                       if (responseItem.error() == null) {
-                           monitorCallback.reportSuccess();
+                                .map(Tuple2::getT1)
+                                .map(this::eventToBulkOperation)
+                                .collectList()
+                                .map(operations -> BulkRequest.of(request -> request.operations(operations)))
+                                .flatMap(this::execute)
+                                .map(BulkResponse::items)
+                                .flatMapIterable(Function.identity()))
+                .doOnNext(TupleUtils.consumer((event, monitorCallback, responseItem) -> {
+                    if (responseItem.error() == null) {
+                        monitorCallback.reportSuccess();
 
-                           if (Result.NotFound.jsonValue().equals(responseItem.result())) {
-                               log.warn("On {}, [{}] [{}] [{}]: document missing",
-                                        event.getClass().getSimpleName(),
-                                        responseItem.operationType(),
-                                        Result.NotFound.jsonValue(),
-                                        responseItem.id());
-                           } else {
-                               log.trace("On {}, [{}]: succeeded",
-                                         event.getClass().getSimpleName(),
-                                         event.showcaseId());
-                           }
-                       } else {
-                           monitorCallback.reportFailure(null);
+                        if (Result.NotFound.jsonValue().equals(responseItem.result())) {
+                            log.warn(
+                                    "On {}, [{}] [{}] [{}]: document missing",
+                                    event.getClass().getSimpleName(),
+                                    responseItem.operationType(),
+                                    Result.NotFound.jsonValue(),
+                                    responseItem.id());
+                        } else {
+                            log.trace("On {}, [{}]: succeeded", event.getClass().getSimpleName(), event.showcaseId());
+                        }
+                    } else {
+                        monitorCallback.reportFailure(null);
 
-                           log.error("On {}, [{}] [{}] {}",
-                                     event.getClass().getSimpleName(),
-                                     responseItem.operationType(),
-                                     responseItem.error().type(),
-                                     Objects.toString(responseItem.error().reason(), ""));
-                       }
-                   }))
-                   .then();
+                        log.error(
+                                "On {}, [{}] [{}] {}",
+                                event.getClass().getSimpleName(),
+                                responseItem.operationType(),
+                                responseItem.error().type(),
+                                Objects.toString(responseItem.error().reason(), ""));
+                    }
+                }))
+                .then();
     }
 
     /**
@@ -426,45 +436,39 @@ class ShowcaseProjector implements SmartLifecycle {
      */
     private BulkOperation eventToBulkOperation(ShowcaseEvent event) {
         return switch (event) {
-            case ShowcaseScheduledEvent scheduledEvent -> BulkOperation.of(operation -> operation.create(
-                    request -> request.id(scheduledEvent.showcaseId())
-                                      .document(elasticsearchConverter.mapObject(
-                                              ShowcaseEntity
-                                                      .builder()
-                                                      .showcaseId(scheduledEvent.showcaseId())
-                                                      .title(scheduledEvent.title())
-                                                      .startTime(scheduledEvent.startTime())
-                                                      .duration(scheduledEvent.duration())
-                                                      .status(ShowcaseStatus.SCHEDULED)
-                                                      .scheduledAt(scheduledEvent.scheduledAt())
-                                                      .build()))
-                                      .index(showcaseIndex.getIndexName())
-                                      .routing(scheduledEvent.showcaseId())));
-            case ShowcaseStartedEvent startedEvent -> BulkOperation.of(operation -> operation.update(
-                    request -> request.id(startedEvent.showcaseId())
-                                      .document(elasticsearchConverter.mapObject(
-                                              ShowcaseEntity
-                                                      .builder()
-                                                      .duration(startedEvent.duration())
-                                                      .status(ShowcaseStatus.STARTED)
-                                                      .startedAt(startedEvent.startedAt())
-                                                      .build()))
-                                      .index(showcaseIndex.getIndexName())
-                                      .routing(startedEvent.showcaseId())));
-            case ShowcaseFinishedEvent finishedEvent -> BulkOperation.of(operation -> operation.update(
-                    request -> request.id(finishedEvent.showcaseId())
-                                      .document(elasticsearchConverter.mapObject(
-                                              ShowcaseEntity
-                                                      .builder()
-                                                      .status(ShowcaseStatus.FINISHED)
-                                                      .finishedAt(finishedEvent.finishedAt())
-                                                      .build()))
-                                      .index(showcaseIndex.getIndexName())
-                                      .routing(finishedEvent.showcaseId())));
-            case ShowcaseRemovedEvent removedEvent -> BulkOperation.of(operation -> operation.delete(
-                    request -> request.id(removedEvent.showcaseId())
-                                      .index(showcaseIndex.getIndexName())
-                                      .routing(removedEvent.showcaseId())));
+            case ShowcaseScheduledEvent scheduledEvent ->
+                BulkOperation.of(operation -> operation.create(request -> request.id(scheduledEvent.showcaseId())
+                        .document(elasticsearchConverter.mapObject(ShowcaseEntity.builder()
+                                .showcaseId(scheduledEvent.showcaseId())
+                                .title(scheduledEvent.title())
+                                .startTime(scheduledEvent.startTime())
+                                .duration(scheduledEvent.duration())
+                                .status(ShowcaseStatus.SCHEDULED)
+                                .scheduledAt(scheduledEvent.scheduledAt())
+                                .build()))
+                        .index(showcaseIndex.getIndexName())
+                        .routing(scheduledEvent.showcaseId())));
+            case ShowcaseStartedEvent startedEvent ->
+                BulkOperation.of(operation -> operation.update(request -> request.id(startedEvent.showcaseId())
+                        .document(elasticsearchConverter.mapObject(ShowcaseEntity.builder()
+                                .duration(startedEvent.duration())
+                                .status(ShowcaseStatus.STARTED)
+                                .startedAt(startedEvent.startedAt())
+                                .build()))
+                        .index(showcaseIndex.getIndexName())
+                        .routing(startedEvent.showcaseId())));
+            case ShowcaseFinishedEvent finishedEvent ->
+                BulkOperation.of(operation -> operation.update(request -> request.id(finishedEvent.showcaseId())
+                        .document(elasticsearchConverter.mapObject(ShowcaseEntity.builder()
+                                .status(ShowcaseStatus.FINISHED)
+                                .finishedAt(finishedEvent.finishedAt())
+                                .build()))
+                        .index(showcaseIndex.getIndexName())
+                        .routing(finishedEvent.showcaseId())));
+            case ShowcaseRemovedEvent removedEvent ->
+                BulkOperation.of(operation -> operation.delete(request -> request.id(removedEvent.showcaseId())
+                        .index(showcaseIndex.getIndexName())
+                        .routing(removedEvent.showcaseId())));
         };
     }
 
@@ -476,9 +480,10 @@ class ShowcaseProjector implements SmartLifecycle {
      */
     private Mono<BulkResponse> execute(BulkRequest request) {
         return Mono.from(openSearchTemplate.execute(client -> client.bulk(request)))
-                   .retryWhen(Retry.backoff(projectionProperties.getRetry().getMaxAttempts(),
-                                            projectionProperties.getRetry().getMinBackoff())
-                                   .filter(TransientDataAccessException.class::isInstance)
-                                   .onRetryExhaustedThrow((__, signal) -> signal.failure()));
+                .retryWhen(Retry.backoff(
+                                projectionProperties.getRetry().getMaxAttempts(),
+                                projectionProperties.getRetry().getMinBackoff())
+                        .filter(TransientDataAccessException.class::isInstance)
+                        .onRetryExhaustedThrow((__, signal) -> signal.failure()));
     }
 }

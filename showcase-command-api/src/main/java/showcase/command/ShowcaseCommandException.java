@@ -1,9 +1,9 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
 
+import java.util.Optional;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Optional;
 
 /**
  * Exception thrown when a showcase command cannot be executed.

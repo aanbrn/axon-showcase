@@ -1,7 +1,18 @@
+// SPDX-License-Identifier: MIT
 package showcase.api;
+
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
 import com.github.benmanes.caffeine.cache.AsyncCache;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -41,17 +52,6 @@ import showcase.query.Showcase;
 import showcase.query.ShowcaseQueryException;
 import showcase.query.ShowcaseQueryOperations;
 import showcase.query.ShowcaseStatus;
-
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
-import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
 /**
  * REST controller implementing the showcase management API.
@@ -101,34 +101,28 @@ final class ShowcaseApiController implements ShowcaseApi {
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
             @RequestBody ScheduleShowcaseRequest request) {
         return Mono.justOrEmpty(idempotencyKey)
-                   .switchIfEmpty(Mono.fromSupplier(() -> IdentifierFactory.getInstance()
-                                                                           .generateIdentifier())
-                                      .subscribeOn(Schedulers.boundedElastic()))
-                   .flatMap(showcaseId ->
-                                    commandOperations
-                                            .schedule(ScheduleShowcaseCommand
-                                                              .builder()
-                                                              .showcaseId(showcaseId)
-                                                              .title(request.title())
-                                                              .startTime(request.startTime())
-                                                              .duration(request.duration())
-                                                              .build())
-                                            .thenReturn(
-                                                    ResponseEntity
-                                                            .created(fromUriString("/showcases/")
-                                                                             .path(showcaseId)
-                                                                             .build()
-                                                                             .toUri())
-                                                            .body(ScheduleShowcaseResponse
-                                                                          .builder()
-                                                                          .showcaseId(showcaseId)
-                                                                          .build()))
-                                            .onErrorReturn(
-                                                    TimeoutException.class,
-                                                    ResponseEntity
-                                                            .accepted()
-                                                            .header(IDEMPOTENCY_KEY_HEADER, showcaseId)
-                                                            .build()));
+                .switchIfEmpty(
+                        Mono.fromSupplier(() -> IdentifierFactory.getInstance().generateIdentifier())
+                                .subscribeOn(Schedulers.boundedElastic()))
+                .flatMap(showcaseId -> commandOperations
+                        .schedule(ScheduleShowcaseCommand.builder()
+                                .showcaseId(showcaseId)
+                                .title(request.title())
+                                .startTime(request.startTime())
+                                .duration(request.duration())
+                                .build())
+                        .thenReturn(ResponseEntity.created(fromUriString("/showcases/")
+                                        .path(showcaseId)
+                                        .build()
+                                        .toUri())
+                                .body(ScheduleShowcaseResponse.builder()
+                                        .showcaseId(showcaseId)
+                                        .build()))
+                        .onErrorReturn(
+                                TimeoutException.class,
+                                ResponseEntity.accepted()
+                                        .header(IDEMPOTENCY_KEY_HEADER, showcaseId)
+                                        .build()));
     }
 
     /**
@@ -140,13 +134,10 @@ final class ShowcaseApiController implements ShowcaseApi {
     @Override
     public Mono<ResponseEntity<Void>> start(@PathVariable String showcaseId) {
         return commandOperations
-                       .start(StartShowcaseCommand
-                                      .builder()
-                                      .showcaseId(showcaseId)
-                                      .build())
-                       .thenReturn(HttpStatus.OK)
-                       .onErrorReturn(TimeoutException.class, HttpStatus.ACCEPTED)
-                       .map(status -> ResponseEntity.status(status).build());
+                .start(StartShowcaseCommand.builder().showcaseId(showcaseId).build())
+                .thenReturn(HttpStatus.OK)
+                .onErrorReturn(TimeoutException.class, HttpStatus.ACCEPTED)
+                .map(status -> ResponseEntity.status(status).build());
     }
 
     /**
@@ -158,13 +149,10 @@ final class ShowcaseApiController implements ShowcaseApi {
     @Override
     public Mono<ResponseEntity<Void>> finish(@PathVariable String showcaseId) {
         return commandOperations
-                       .finish(FinishShowcaseCommand
-                                       .builder()
-                                       .showcaseId(showcaseId)
-                                       .build())
-                       .thenReturn(HttpStatus.OK)
-                       .onErrorReturn(TimeoutException.class, HttpStatus.ACCEPTED)
-                       .map(status -> ResponseEntity.status(status).build());
+                .finish(FinishShowcaseCommand.builder().showcaseId(showcaseId).build())
+                .thenReturn(HttpStatus.OK)
+                .onErrorReturn(TimeoutException.class, HttpStatus.ACCEPTED)
+                .map(status -> ResponseEntity.status(status).build());
     }
 
     /**
@@ -176,13 +164,10 @@ final class ShowcaseApiController implements ShowcaseApi {
     @Override
     public Mono<ResponseEntity<Void>> remove(@PathVariable String showcaseId) {
         return commandOperations
-                       .remove(RemoveShowcaseCommand
-                                       .builder()
-                                       .showcaseId(showcaseId)
-                                       .build())
-                       .thenReturn(HttpStatus.OK)
-                       .onErrorReturn(TimeoutException.class, HttpStatus.ACCEPTED)
-                       .map(status -> ResponseEntity.status(status).build());
+                .remove(RemoveShowcaseCommand.builder().showcaseId(showcaseId).build())
+                .thenReturn(HttpStatus.OK)
+                .onErrorReturn(TimeoutException.class, HttpStatus.ACCEPTED)
+                .map(status -> ResponseEntity.status(status).build());
     }
 
     /**
@@ -200,46 +185,42 @@ final class ShowcaseApiController implements ShowcaseApi {
             @RequestParam(name = "status", required = false) List<ShowcaseStatus> statuses,
             @RequestParam(required = false) String afterId,
             @RequestParam(required = false, defaultValue = "" + FetchShowcaseListQuery.DEFAULT_SIZE) int size) {
-        val query =
-                FetchShowcaseListQuery
-                        .builder()
-                        .title(title)
-                        .statuses(statuses)
-                        .afterId(afterId)
-                        .size(size)
-                        .build();
+        val query = FetchShowcaseListQuery.builder()
+                .title(title)
+                .statuses(statuses)
+                .afterId(afterId)
+                .size(size)
+                .build();
         return queryOperations
-                       .fetchList(query)
-                       .doOnNext(showcase -> fetchShowcaseByIdCache.put(
-                               showcase.showcaseId(), completedFuture(showcase)))
-                       .collectList()
-                       .doOnNext(showcases -> fetchShowcaseListCache.put(
-                               query, completedFuture(showcases.stream()
-                                                               .map(Showcase::showcaseId)
-                                                               .toList())))
-                       .flatMapIterable(Function.identity())
-                       .onErrorResume(
-                               Predicate.not(ShowcaseQueryException.class::isInstance),
-                               t -> Flux.<String>create(sink -> {
-                                            val future = fetchShowcaseListCache.getIfPresent(query);
-                                            if (future != null) {
-                                                future.thenAccept(showcaseIds -> {
-                                                    showcaseIds.forEach(sink::next);
-                                                    sink.complete();
-                                                });
-                                            } else {
-                                                sink.error(t);
-                                            }
-                                        })
-                                        .<Showcase>handle((showcaseId, sink) -> {
-                                            val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
-                                            if (future != null) {
-                                                future.thenAccept(sink::next);
-                                            } else {
-                                                sink.error(t);
-                                            }
-                                        })
-                                        .doOnComplete(() -> log.warn("Fallback on {}", query, t)));
+                .fetchList(query)
+                .doOnNext(showcase -> fetchShowcaseByIdCache.put(showcase.showcaseId(), completedFuture(showcase)))
+                .collectList()
+                .doOnNext(showcases -> fetchShowcaseListCache.put(
+                        query,
+                        completedFuture(
+                                showcases.stream().map(Showcase::showcaseId).toList())))
+                .flatMapIterable(Function.identity())
+                .onErrorResume(
+                        Predicate.not(ShowcaseQueryException.class::isInstance), t -> Flux.<String>create(sink -> {
+                                    val future = fetchShowcaseListCache.getIfPresent(query);
+                                    if (future != null) {
+                                        future.thenAccept(showcaseIds -> {
+                                            showcaseIds.forEach(sink::next);
+                                            sink.complete();
+                                        });
+                                    } else {
+                                        sink.error(t);
+                                    }
+                                })
+                                .<Showcase>handle((showcaseId, sink) -> {
+                                    val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
+                                    if (future != null) {
+                                        future.thenAccept(sink::next);
+                                    } else {
+                                        sink.error(t);
+                                    }
+                                })
+                                .doOnComplete(() -> log.warn("Fallback on {}", query, t)));
     }
 
     /**
@@ -252,25 +233,20 @@ final class ShowcaseApiController implements ShowcaseApi {
     @Override
     @SuppressWarnings("FutureReturnValueIgnored")
     public Mono<Showcase> fetchById(@PathVariable String showcaseId) {
-        val query =
-                FetchShowcaseByIdQuery
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build();
+        val query = FetchShowcaseByIdQuery.builder().showcaseId(showcaseId).build();
         return queryOperations
-                       .fetchById(query)
-                       .doOnNext(showcase -> fetchShowcaseByIdCache.put(showcaseId, completedFuture(showcase)))
-                       .onErrorResume(
-                               Predicate.not(ShowcaseQueryException.class::isInstance),
-                               t -> Mono.<Showcase>create(sink -> {
-                                            val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
-                                            if (future != null) {
-                                                future.thenAccept(sink::success);
-                                            } else {
-                                                sink.error(t);
-                                            }
-                                        })
-                                        .doOnSuccess(__ -> log.warn("Fallback on {}", query, t)));
+                .fetchById(query)
+                .doOnNext(showcase -> fetchShowcaseByIdCache.put(showcaseId, completedFuture(showcase)))
+                .onErrorResume(
+                        Predicate.not(ShowcaseQueryException.class::isInstance), t -> Mono.<Showcase>create(sink -> {
+                                    val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
+                                    if (future != null) {
+                                        future.thenAccept(sink::success);
+                                    } else {
+                                        sink.error(t);
+                                    }
+                                })
+                                .doOnSuccess(__ -> log.warn("Fallback on {}", query, t)));
     }
 
     /**
@@ -282,16 +258,18 @@ final class ShowcaseApiController implements ShowcaseApi {
     @ExceptionHandler
     private ProblemDetail handleShowcaseCommandException(ShowcaseCommandException e) {
         val errorDetails = e.getErrorDetails();
-        val problemDetail = switch (errorDetails.errorCode()) {
-            case INVALID_COMMAND -> {
-                val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.errorMessage());
-                pd.setProperty("fieldErrors", errorDetails.metaData());
-                yield pd;
-            }
-            case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.errorMessage());
-            case TITLE_IN_USE, ILLEGAL_STATE -> ProblemDetail.forStatusAndDetail(
-                    HttpStatus.CONFLICT, errorDetails.errorMessage());
-        };
+        val problemDetail =
+                switch (errorDetails.errorCode()) {
+                    case INVALID_COMMAND -> {
+                        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.errorMessage());
+                        pd.setProperty("fieldErrors", errorDetails.metaData());
+                        yield pd;
+                    }
+                    case NOT_FOUND ->
+                        ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.errorMessage());
+                    case TITLE_IN_USE, ILLEGAL_STATE ->
+                        ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, errorDetails.errorMessage());
+                };
         problemDetail.setProperty("code", errorDetails.errorCode());
         return problemDetail;
     }
@@ -305,14 +283,16 @@ final class ShowcaseApiController implements ShowcaseApi {
     @ExceptionHandler
     private ProblemDetail handleShowcaseQueryException(ShowcaseQueryException e) {
         val errorDetails = e.getErrorDetails();
-        val problemDetail = switch (errorDetails.errorCode()) {
-            case INVALID_QUERY -> {
-                val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.errorMessage());
-                pd.setProperty("fieldErrors", errorDetails.metaData());
-                yield pd;
-            }
-            case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.errorMessage());
-        };
+        val problemDetail =
+                switch (errorDetails.errorCode()) {
+                    case INVALID_QUERY -> {
+                        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.errorMessage());
+                        pd.setProperty("fieldErrors", errorDetails.metaData());
+                        yield pd;
+                    }
+                    case NOT_FOUND ->
+                        ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.errorMessage());
+                };
         problemDetail.setProperty("code", errorDetails.errorCode());
         return problemDetail;
     }
@@ -414,15 +394,17 @@ final class ShowcaseApiController implements ShowcaseApi {
     @ExceptionHandler
     @SuppressWarnings("unused")
     private Object handleException(Exception e, ServerWebExchange exchange, Locale locale) {
-        return switch (findCause(e, Predicates.<Throwable>falsePredicate()
-                                              .or(ShowcaseCommandException.class::isInstance)
-                                              .or(ShowcaseQueryException.class::isInstance)
-                                              .or(AxonException.class::isInstance)
-                                              .or(WebClientException.class::isInstance)
-                                              .or(CallNotPermittedException.class::isInstance)
-                                              .or(TimeoutException.class::isInstance)
-                                              .or(AbortedException.class::isInstance))
-                               .orElse(e)) {
+        return switch (findCause(
+                        e,
+                        Predicates.<Throwable>falsePredicate()
+                                .or(ShowcaseCommandException.class::isInstance)
+                                .or(ShowcaseQueryException.class::isInstance)
+                                .or(AxonException.class::isInstance)
+                                .or(WebClientException.class::isInstance)
+                                .or(CallNotPermittedException.class::isInstance)
+                                .or(TimeoutException.class::isInstance)
+                                .or(AbortedException.class::isInstance))
+                .orElse(e)) {
             case ShowcaseCommandException ex -> handleShowcaseCommandException(ex);
             case ShowcaseQueryException ex -> handleShowcaseQueryException(ex);
             case AxonException ex -> handleAxonException(ex);

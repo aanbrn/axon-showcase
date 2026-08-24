@@ -1,35 +1,5 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
-
-import io.github.resilience4j.core.functions.Either;
-import io.github.resilience4j.retry.RetryRegistry;
-import lombok.val;
-import org.axonframework.commandhandling.CommandBus;
-import org.axonframework.commandhandling.CommandExecutionException;
-import org.axonframework.commandhandling.NoHandlerForCommandException;
-import org.axonframework.commandhandling.distributed.CommandDispatchException;
-import org.axonframework.messaging.RemoteExceptionDescription;
-import org.axonframework.messaging.RemoteHandlingException;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import reactor.blockhound.BlockHound;
-import reactor.test.StepVerifier;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.List;
-import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
@@ -54,13 +24,42 @@ import static showcase.command.RandomCommandTestUtils.aStartShowcaseCommand;
 import static showcase.command.ShowcaseCommandOperations.SHOWCASE_COMMAND_SERVICE;
 import static showcase.test.RandomTestUtils.anAlphabeticString;
 
+import io.github.resilience4j.core.functions.Either;
+import io.github.resilience4j.retry.RetryRegistry;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.stream.IntStream;
+import lombok.val;
+import org.axonframework.commandhandling.CommandBus;
+import org.axonframework.commandhandling.CommandExecutionException;
+import org.axonframework.commandhandling.NoHandlerForCommandException;
+import org.axonframework.commandhandling.distributed.CommandDispatchException;
+import org.axonframework.messaging.RemoteExceptionDescription;
+import org.axonframework.messaging.RemoteHandlingException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import reactor.blockhound.BlockHound;
+import reactor.test.StepVerifier;
+
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
 @DisplayName("Showcase command client component tests")
 class ShowcaseCommandClientCT {
 
     @SpringBootApplication
-    static class TestApp {
-    }
+    static class TestApp {}
 
     @MockitoBean
     private CommandBus commandBus;
@@ -76,26 +75,19 @@ class ShowcaseCommandClientCT {
     @Test
     @DisplayName("Scheduling a showcase with a successful dispatch succeeds")
     void scheduleShowcase_successfulCommandDispatch_succeeds() {
-        val command =
-                ScheduleShowcaseCommand
-                        .builder()
-                        .showcaseId(aShowcaseId())
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(Instant.now()))
-                        .duration(aShowcaseDuration())
-                        .build();
+        val command = ScheduleShowcaseCommand.builder()
+                .showcaseId(aShowcaseId())
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build();
 
-        willDoNothing().given(commandBus).dispatch(
-                any(),
-                argThat(callback -> {
-                    callback.onResult(asCommandMessage(command), asCommandResultMessage(asMessage(null)));
-                    return true;
-                }));
+        willDoNothing().given(commandBus).dispatch(any(), argThat(callback -> {
+            callback.onResult(asCommandMessage(command), asCommandResultMessage(asMessage(null)));
+            return true;
+        }));
 
-        showcaseCommandClient
-                .schedule(command)
-                .as(StepVerifier::create)
-                .verifyComplete();
+        showcaseCommandClient.schedule(command).as(StepVerifier::create).verifyComplete();
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -106,23 +98,18 @@ class ShowcaseCommandClientCT {
         val command = aScheduleShowcaseCommand();
         val errorDetails = aShowcaseCommandErrorDetails();
 
-        willDoNothing().given(commandBus).dispatch(
-                any(),
-                argThat(callback -> {
-                    callback.onResult(asCommandMessage(command), asCommandResultMessage(
-                            new CommandExecutionException(null, null, errorDetails)));
-                    return true;
-                }));
+        willDoNothing().given(commandBus).dispatch(any(), argThat(callback -> {
+            callback.onResult(
+                    asCommandMessage(command),
+                    asCommandResultMessage(new CommandExecutionException(null, null, errorDetails)));
+            return true;
+        }));
 
-        showcaseCommandClient
-                .schedule(command)
-                .as(StepVerifier::create)
-                .verifyErrorSatisfies(
-                        t -> assertThat(t)
-                                     .isExactlyInstanceOf(ShowcaseCommandException.class)
-                                     .asInstanceOf(type(ShowcaseCommandException.class))
-                                     .extracting(ShowcaseCommandException::getErrorDetails)
-                                     .isEqualTo(errorDetails));
+        showcaseCommandClient.schedule(command).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
+                .isExactlyInstanceOf(ShowcaseCommandException.class)
+                .asInstanceOf(type(ShowcaseCommandException.class))
+                .extracting(ShowcaseCommandException::getErrorDetails)
+                .isEqualTo(errorDetails));
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -132,17 +119,12 @@ class ShowcaseCommandClientCT {
     void startShowcase_successfulCommandDispatch_succeeds() {
         val command = aStartShowcaseCommand();
 
-        willDoNothing().given(commandBus).dispatch(
-                any(),
-                argThat(callback -> {
-                    callback.onResult(asCommandMessage(command), asCommandResultMessage(asMessage(null)));
-                    return true;
-                }));
+        willDoNothing().given(commandBus).dispatch(any(), argThat(callback -> {
+            callback.onResult(asCommandMessage(command), asCommandResultMessage(asMessage(null)));
+            return true;
+        }));
 
-        showcaseCommandClient
-                .start(command)
-                .as(StepVerifier::create)
-                .verifyComplete();
+        showcaseCommandClient.start(command).as(StepVerifier::create).verifyComplete();
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -153,23 +135,18 @@ class ShowcaseCommandClientCT {
         val command = aStartShowcaseCommand();
         val errorDetails = aShowcaseCommandErrorDetails();
 
-        willDoNothing().given(commandBus).dispatch(
-                any(),
-                argThat(callback -> {
-                    callback.onResult(asCommandMessage(command), asCommandResultMessage(
-                            new CommandExecutionException(null, null, errorDetails)));
-                    return true;
-                }));
+        willDoNothing().given(commandBus).dispatch(any(), argThat(callback -> {
+            callback.onResult(
+                    asCommandMessage(command),
+                    asCommandResultMessage(new CommandExecutionException(null, null, errorDetails)));
+            return true;
+        }));
 
-        showcaseCommandClient
-                .start(command)
-                .as(StepVerifier::create)
-                .verifyErrorSatisfies(
-                        t -> assertThat(t)
-                                     .isExactlyInstanceOf(ShowcaseCommandException.class)
-                                     .asInstanceOf(type(ShowcaseCommandException.class))
-                                     .extracting(ShowcaseCommandException::getErrorDetails)
-                                     .isEqualTo(errorDetails));
+        showcaseCommandClient.start(command).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
+                .isExactlyInstanceOf(ShowcaseCommandException.class)
+                .asInstanceOf(type(ShowcaseCommandException.class))
+                .extracting(ShowcaseCommandException::getErrorDetails)
+                .isEqualTo(errorDetails));
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -179,17 +156,12 @@ class ShowcaseCommandClientCT {
     void finishShowcase_successfulCommandDispatch_succeeds() {
         val command = aFinishShowcaseCommand();
 
-        willDoNothing().given(commandBus).dispatch(
-                any(),
-                argThat(callback -> {
-                    callback.onResult(asCommandMessage(command), asCommandResultMessage(asMessage(null)));
-                    return true;
-                }));
+        willDoNothing().given(commandBus).dispatch(any(), argThat(callback -> {
+            callback.onResult(asCommandMessage(command), asCommandResultMessage(asMessage(null)));
+            return true;
+        }));
 
-        showcaseCommandClient
-                .finish(command)
-                .as(StepVerifier::create)
-                .verifyComplete();
+        showcaseCommandClient.finish(command).as(StepVerifier::create).verifyComplete();
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -200,23 +172,18 @@ class ShowcaseCommandClientCT {
         val command = aFinishShowcaseCommand();
         val errorDetails = aShowcaseCommandErrorDetails();
 
-        willDoNothing().given(commandBus).dispatch(
-                any(),
-                argThat(callback -> {
-                    callback.onResult(asCommandMessage(command), asCommandResultMessage(
-                            new CommandExecutionException(null, null, errorDetails)));
-                    return true;
-                }));
+        willDoNothing().given(commandBus).dispatch(any(), argThat(callback -> {
+            callback.onResult(
+                    asCommandMessage(command),
+                    asCommandResultMessage(new CommandExecutionException(null, null, errorDetails)));
+            return true;
+        }));
 
-        showcaseCommandClient
-                .finish(command)
-                .as(StepVerifier::create)
-                .verifyErrorSatisfies(
-                        t -> assertThat(t)
-                                     .isExactlyInstanceOf(ShowcaseCommandException.class)
-                                     .asInstanceOf(type(ShowcaseCommandException.class))
-                                     .extracting(ShowcaseCommandException::getErrorDetails)
-                                     .isEqualTo(errorDetails));
+        showcaseCommandClient.finish(command).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
+                .isExactlyInstanceOf(ShowcaseCommandException.class)
+                .asInstanceOf(type(ShowcaseCommandException.class))
+                .extracting(ShowcaseCommandException::getErrorDetails)
+                .isEqualTo(errorDetails));
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -226,17 +193,12 @@ class ShowcaseCommandClientCT {
     void removeShowcase_successfulCommandDispatch_succeeds() {
         val command = aRemoveShowcaseCommand();
 
-        willDoNothing().given(commandBus).dispatch(
-                any(),
-                argThat(callback -> {
-                    callback.onResult(asCommandMessage(command), asCommandResultMessage(asMessage(null)));
-                    return true;
-                }));
+        willDoNothing().given(commandBus).dispatch(any(), argThat(callback -> {
+            callback.onResult(asCommandMessage(command), asCommandResultMessage(asMessage(null)));
+            return true;
+        }));
 
-        showcaseCommandClient
-                .remove(command)
-                .as(StepVerifier::create)
-                .verifyComplete();
+        showcaseCommandClient.remove(command).as(StepVerifier::create).verifyComplete();
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -247,23 +209,18 @@ class ShowcaseCommandClientCT {
         val command = aRemoveShowcaseCommand();
         val errorDetails = aShowcaseCommandErrorDetails();
 
-        willDoNothing().given(commandBus).dispatch(
-                any(),
-                argThat(callback -> {
-                    callback.onResult(asCommandMessage(command), asCommandResultMessage(
-                            new CommandExecutionException(null, null, errorDetails)));
-                    return true;
-                }));
+        willDoNothing().given(commandBus).dispatch(any(), argThat(callback -> {
+            callback.onResult(
+                    asCommandMessage(command),
+                    asCommandResultMessage(new CommandExecutionException(null, null, errorDetails)));
+            return true;
+        }));
 
-        showcaseCommandClient
-                .remove(command)
-                .as(StepVerifier::create)
-                .verifyErrorSatisfies(
-                        t -> assertThat(t)
-                                     .isExactlyInstanceOf(ShowcaseCommandException.class)
-                                     .asInstanceOf(type(ShowcaseCommandException.class))
-                                     .extracting(ShowcaseCommandException::getErrorDetails)
-                                     .isEqualTo(errorDetails));
+        showcaseCommandClient.remove(command).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
+                .isExactlyInstanceOf(ShowcaseCommandException.class)
+                .asInstanceOf(type(ShowcaseCommandException.class))
+                .extracting(ShowcaseCommandException::getErrorDetails)
+                .isEqualTo(errorDetails));
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -275,9 +232,7 @@ class ShowcaseCommandClientCT {
 
         static List<Arguments> retryableErrors() {
             return List.of(
-                    argumentSet(
-                            "No Handler Error",
-                            new NoHandlerForCommandException(anAlphabeticString(10))),
+                    argumentSet("No Handler Error", new NoHandlerForCommandException(anAlphabeticString(10))),
                     argumentSet(
                             "Dispatch Error",
                             new CommandDispatchException(
@@ -286,10 +241,8 @@ class ShowcaseCommandClientCT {
                             "Remote Transient Error",
                             new CommandExecutionException(
                                     anAlphabeticString(10),
-                                    new RemoteHandlingException(
-                                            RemoteExceptionDescription.describing(
-                                                    new RuntimeException(anAlphabeticString(10))))))
-            );
+                                    new RemoteHandlingException(RemoteExceptionDescription.describing(
+                                            new RuntimeException(anAlphabeticString(10)))))));
         }
 
         @MockitoBean(enforceOverride = true)
@@ -311,11 +264,10 @@ class ShowcaseCommandClientCT {
 
             maxAttempts = retryConfig.getMaxAttempts();
             timeout = IntStream.rangeClosed(1, maxAttempts)
-                               .mapToLong(i -> retryConfig.getIntervalBiFunction()
-                                                          .apply(i, Either.left(null)))
-                               .mapToObj(Duration::ofMillis)
-                               .reduce(Duration.ZERO, Duration::plus)
-                               .plusSeconds(1);
+                    .mapToLong(i -> retryConfig.getIntervalBiFunction().apply(i, Either.left(null)))
+                    .mapToObj(Duration::ofMillis)
+                    .reduce(Duration.ZERO, Duration::plus)
+                    .plusSeconds(1);
         }
 
         @ParameterizedTest
@@ -324,12 +276,10 @@ class ShowcaseCommandClientCT {
         void scheduleShowcase_retryableError_retriesAndFailsWithError(Throwable error) {
             val command = aScheduleShowcaseCommand();
 
-            willDoNothing().given(commandBus).dispatch(
-                    any(),
-                    argThat(callback -> {
-                        callback.onResult(asCommandMessage(command), asCommandResultMessage(error));
-                        return true;
-                    }));
+            willDoNothing().given(commandBus).dispatch(any(), argThat(callback -> {
+                callback.onResult(asCommandMessage(command), asCommandResultMessage(error));
+                return true;
+            }));
 
             showcaseCommandClient
                     .schedule(command)
@@ -346,12 +296,10 @@ class ShowcaseCommandClientCT {
         void startShowcase_retryableError_retriesAndFailsWithError(Throwable error) {
             val command = aStartShowcaseCommand();
 
-            willDoNothing().given(commandBus).dispatch(
-                    any(),
-                    argThat(callback -> {
-                        callback.onResult(asCommandMessage(command), asCommandResultMessage(error));
-                        return true;
-                    }));
+            willDoNothing().given(commandBus).dispatch(any(), argThat(callback -> {
+                callback.onResult(asCommandMessage(command), asCommandResultMessage(error));
+                return true;
+            }));
 
             showcaseCommandClient
                     .start(command)
@@ -368,12 +316,10 @@ class ShowcaseCommandClientCT {
         void finishShowcase_retryableError_retriesAndFailsWithError(Throwable error) {
             val command = aFinishShowcaseCommand();
 
-            willDoNothing().given(commandBus).dispatch(
-                    any(),
-                    argThat(callback -> {
-                        callback.onResult(asCommandMessage(command), asCommandResultMessage(error));
-                        return true;
-                    }));
+            willDoNothing().given(commandBus).dispatch(any(), argThat(callback -> {
+                callback.onResult(asCommandMessage(command), asCommandResultMessage(error));
+                return true;
+            }));
 
             showcaseCommandClient
                     .finish(command)
@@ -390,12 +336,10 @@ class ShowcaseCommandClientCT {
         void removeShowcase_retryableError_retriesAndFailsWithError(Throwable error) {
             val command = aRemoveShowcaseCommand();
 
-            willDoNothing().given(commandBus).dispatch(
-                    any(),
-                    argThat(callback -> {
-                        callback.onResult(asCommandMessage(command), asCommandResultMessage(error));
-                        return true;
-                    }));
+            willDoNothing().given(commandBus).dispatch(any(), argThat(callback -> {
+                callback.onResult(asCommandMessage(command), asCommandResultMessage(error));
+                return true;
+            }));
 
             showcaseCommandClient
                     .remove(command)

@@ -77,6 +77,37 @@ Read: Client → API Gateway → Query Service → OpenSearch
 
 ## Local Development
 
+### IntelliJ IDEA Setup
+
+Formatting is enforced by Spotless (palantir-java-format): `./gradlew spotlessApply` formats, `spotlessCheck`
+verifies, and the build never depends on an IDE. IntelliJ's built-in formatter uses its own code style and would
+reformat files differently, so configure the IDE to stay in sync:
+
+- Install the **palantir-java-format** plugin by running the setup script — it locates your IntelliJ and runs
+  `installPlugins palantir-java-format` (run it with the IDE closed, then restart):
+
+  ```bash
+  ./scripts/setup-idea.sh
+  ```
+
+  The repo ships `.idea/palantir-java-format.xml` with `enabled=true`, so once installed the plugin is auto-enabled
+  for this project; where it is disabled by default (only auto-enabled by the `com.palantir.java-format` Gradle
+  plugin, which this project does not use), enable it via **Settings → Other Settings → palantir-java-format
+  Settings**. When enabled it replaces `Reformat Code` (`Ctrl+Alt+L`) with the palantir formatter.
+- The plugin only replaces `Reformat Code`; **import order is a separate mechanism** — IntelliJ's `Optimize Imports`
+  (`Ctrl+Alt+O`) uses the code style's *Import Layout*. The repo ships `.idea/codeStyles/Project.xml` (enabled by
+  `USE_PER_PROJECT_SETTINGS` in `codeStyleConfig.xml`) with the palantir layout — *import static all other imports*,
+  blank line, *import all other imports* — so `Optimize Imports` matches `spotlessApply` automatically. If the
+  project scheme is not picked up, set the layout manually: **Settings → Editor → Code Style → Java → Imports**,
+  *Import Layout* panel → clear the rows and add: *import static all other imports*, blank line, *import all other
+  imports* (single imports, no wildcards).
+- With the plugin enabled and the repo's code style in effect, IntelliJ's `Reformat Code` and `Optimize Imports`
+  produce spotless-compatible output, so the automatic reformat triggers are safe to keep on: **Actions on Save** →
+  *Reformat code* / *Optimize imports*, and **Auto Import** → *Optimize imports on the fly*. If the plugin is not
+  active on a machine, disable those triggers instead to avoid drift; `spotlessCheck` in `check` is the backstop
+  either way.
+- When in doubt, format with `./gradlew spotlessApply` — it is the single source of truth.
+
 ### Start Dependencies with Docker Compose
 
 ```bash
@@ -147,7 +178,7 @@ Tests are organized into four tiers, run in order:
 | Integration      | `./gradlew :<module>:integrationTest`              | Testcontainers (needs Docker) |
 | End-to-end       | `./gradlew :showcase-api-gateway:e2eTest`          | boots all services + infra    |
 
-Run the full check for a module (compile → checkstyle → spotbugs → errorprone → test → componentTest →
+Run the full check for a module (compile → spotless → checkstyle → spotbugs → errorprone → test → componentTest →
 integrationTest → e2eTest) with `./gradlew :<module>:check`.
 
 ## Dependency Security

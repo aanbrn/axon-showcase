@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
 
 import org.jspecify.annotations.NullUnmarked;
@@ -19,7 +20,8 @@ interface ShowcaseMapper {
      * @param entity the entity to convert
      * @return the converted DTO, or {@code null} if the entity is {@code null}
      */
-    @Nullable Showcase entityToDto(@Nullable ShowcaseEntity entity);
+    @Nullable
+    Showcase entityToDto(@Nullable ShowcaseEntity entity);
 
     /**
      * Converts a DTO to an entity.
@@ -27,5 +29,6 @@ interface ShowcaseMapper {
      * @param dto the DTO to convert
      * @return the converted entity, or {@code null} if the DTO is {@code null}
      */
-    @Nullable ShowcaseEntity dtoToEntity(@Nullable Showcase dto);
+    @Nullable
+    ShowcaseEntity dtoToEntity(@Nullable Showcase dto);
 }

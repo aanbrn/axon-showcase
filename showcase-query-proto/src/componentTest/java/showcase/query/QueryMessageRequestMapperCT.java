@@ -1,6 +1,12 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
+import static showcase.test.RandomTestUtils.anAlphabeticString;
+
 import com.google.protobuf.ByteString;
+import java.util.List;
 import lombok.val;
 import org.axonframework.common.IdentifierFactory;
 import org.axonframework.messaging.MetaData;
@@ -13,35 +19,28 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.params.provider.Arguments.argumentSet;
-import static showcase.test.RandomTestUtils.anAlphabeticString;
-
 @DisplayName("Query message request mapper component tests")
 class QueryMessageRequestMapperCT {
 
-    private record Payload(String value) {
-    }
+    private record Payload(String value) {}
 
     @Revision("1")
-    private record PayloadWithRevision(String value) {
-    }
+    private record PayloadWithRevision(String value) {}
 
-    private static class Response {
-    }
+    private static class Response {}
 
     static List<Arguments> payloadAndMetaDataAndResponseType() {
         return List.of(
-                argumentSet("Payload without Revision",
-                            new Payload(anAlphabeticString(12)),
-                            MetaData.with(anAlphabeticString(12), anAlphabeticString(12)),
-                            Response.class),
-                argumentSet("Payload with Revision",
-                            new PayloadWithRevision(anAlphabeticString(12)),
-                            MetaData.with(anAlphabeticString(12), anAlphabeticString(12)),
-                            Response.class));
+                argumentSet(
+                        "Payload without Revision",
+                        new Payload(anAlphabeticString(12)),
+                        MetaData.with(anAlphabeticString(12), anAlphabeticString(12)),
+                        Response.class),
+                argumentSet(
+                        "Payload with Revision",
+                        new PayloadWithRevision(anAlphabeticString(12)),
+                        MetaData.with(anAlphabeticString(12), anAlphabeticString(12)),
+                        Response.class));
     }
 
     private final Serializer messageSerializer = JacksonSerializer.defaultSerializer();
@@ -59,10 +58,12 @@ class QueryMessageRequestMapperCT {
         assertThat(queryRequest).isNotNull();
         assertThat(queryRequest.getQueryName()).isEqualTo(message.getQueryName());
         assertThat(queryRequest.getQueryIdentifier()).isEqualTo(message.getIdentifier());
-        assertThat(queryRequest.getPayloadType()).isEqualTo(serializedPayload.getType().getName());
+        assertThat(queryRequest.getPayloadType())
+                .isEqualTo(serializedPayload.getType().getName());
         if (serializedPayload.getType().getRevision() != null) {
             assertThat(queryRequest.hasPayloadRevision()).isTrue();
-            assertThat(queryRequest.getPayloadRevision()).isEqualTo(serializedPayload.getType().getRevision());
+            assertThat(queryRequest.getPayloadRevision())
+                    .isEqualTo(serializedPayload.getType().getRevision());
         } else {
             assertThat(queryRequest.hasPayloadRevision()).isFalse();
         }
@@ -78,15 +79,13 @@ class QueryMessageRequestMapperCT {
         val serializedPayload = messageSerializer.serialize(payload, byte[].class);
         val serializedMetaData = messageSerializer.serialize(metaData, byte[].class);
 
-        val queryRequestBuilder =
-                QueryRequest
-                        .newBuilder()
-                        .setQueryName(Payload.class.getName())
-                        .setQueryIdentifier(IdentifierFactory.getInstance().generateIdentifier())
-                        .setPayloadType(serializedPayload.getType().getName())
-                        .setSerializedPayload(ByteString.copyFrom(serializedPayload.getData()))
-                        .setSerializedMetaData(ByteString.copyFrom(serializedMetaData.getData()))
-                        .setResponseType(responseType.getName());
+        val queryRequestBuilder = QueryRequest.newBuilder()
+                .setQueryName(Payload.class.getName())
+                .setQueryIdentifier(IdentifierFactory.getInstance().generateIdentifier())
+                .setPayloadType(serializedPayload.getType().getName())
+                .setSerializedPayload(ByteString.copyFrom(serializedPayload.getData()))
+                .setSerializedMetaData(ByteString.copyFrom(serializedMetaData.getData()))
+                .setResponseType(responseType.getName());
         if (serializedPayload.getType().getRevision() != null) {
             queryRequestBuilder.setPayloadRevision(serializedPayload.getType().getRevision());
         }

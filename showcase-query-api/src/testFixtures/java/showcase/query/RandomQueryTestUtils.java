@@ -1,14 +1,5 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
-
-import lombok.experimental.UtilityClass;
-import lombok.val;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseFinishedAt;
@@ -20,6 +11,15 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 import static showcase.test.RandomTestUtils.anAlphabeticString;
 import static showcase.test.RandomTestUtils.anElementOf;
 import static showcase.test.RandomTestUtils.anEnum;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import lombok.experimental.UtilityClass;
+import lombok.val;
 
 /**
  * Utility methods generating random query-related test values.
@@ -69,11 +69,10 @@ public class RandomQueryTestUtils {
      * @return random query error details
      */
     public static ShowcaseQueryErrorDetails aShowcaseQueryErrorDetails() {
-        return ShowcaseQueryErrorDetails
-                       .builder()
-                       .errorCode(aShowcaseQueryErrorCode())
-                       .errorMessage(aShowcaseQueryErrorMessage())
-                       .build();
+        return ShowcaseQueryErrorDetails.builder()
+                .errorCode(aShowcaseQueryErrorCode())
+                .errorMessage(aShowcaseQueryErrorMessage())
+                .build();
     }
 
     /**
@@ -95,14 +94,13 @@ public class RandomQueryTestUtils {
         val scheduleTime = Instant.now();
         val startTime = aShowcaseStartTime(scheduleTime);
         val duration = aShowcaseDuration();
-        val showcaseBuilder =
-                Showcase.builder()
-                        .showcaseId(aShowcaseId())
-                        .title(aShowcaseTitle())
-                        .startTime(startTime)
-                        .duration(duration)
-                        .status(status)
-                        .scheduledAt(aShowcaseScheduledAt(scheduleTime));
+        val showcaseBuilder = Showcase.builder()
+                .showcaseId(aShowcaseId())
+                .title(aShowcaseTitle())
+                .startTime(startTime)
+                .duration(duration)
+                .status(status)
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime));
         if (status == ShowcaseStatus.SCHEDULED) {
             return showcaseBuilder.build();
         }
@@ -112,8 +110,8 @@ public class RandomQueryTestUtils {
             return showcaseBuilder.build();
         }
         return showcaseBuilder
-                       .finishedAt(aShowcaseFinishedAt(startedAt, duration))
-                       .build();
+                .finishedAt(aShowcaseFinishedAt(startedAt, duration))
+                .build();
     }
 
     /**
@@ -124,8 +122,8 @@ public class RandomQueryTestUtils {
      */
     public static List<Showcase> showcases(ShowcaseStatus... statuses) {
         return Stream.of(statuses.length == 0 ? ShowcaseStatus.values() : statuses)
-                     .flatMap(status -> IntStream.range(0, 3).mapToObj(__ -> status))
-                     .map(RandomQueryTestUtils::aShowcase)
-                     .toList();
+                .flatMap(status -> IntStream.range(0, 3).mapToObj(__ -> status))
+                .map(RandomQueryTestUtils::aShowcase)
+                .toList();
     }
 }

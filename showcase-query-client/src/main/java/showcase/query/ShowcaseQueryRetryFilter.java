@@ -1,10 +1,10 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
-
-import org.springframework.web.reactive.function.client.WebClientRequestException;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 /**
  * Decides which exceptions should trigger a retry on the query service.
@@ -22,14 +22,14 @@ final class ShowcaseQueryRetryFilter implements Predicate<Throwable> {
         if (t instanceof WebClientResponseException e) {
             return switch (e.getStatusCode().value()) {
                 case 408, // Request Timeout
-                     425, // Too Early
-                     429, // Too Many Requests
-                     500, // Internal Server Error
-                     502, // Bad Gateway
-                     503, // Service Unavailable
-                     504, // Gateway Timeout
-                     524  // Timeout Occurred
-                        -> true;
+                        425, // Too Early
+                        429, // Too Many Requests
+                        500, // Internal Server Error
+                        502, // Bad Gateway
+                        503, // Service Unavailable
+                        504, // Gateway Timeout
+                        524 // Timeout Occurred
+                -> true;
                 default -> false;
             };
         }

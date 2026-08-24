@@ -1,4 +1,8 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
 import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer;
 import org.axonframework.commandhandling.CommandBus;
@@ -22,17 +26,15 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
-
 @SpringBootTest(webEnvironment = NONE)
 @Testcontainers(parallel = true)
 @DirtiesContext
-@TestPropertySource(properties = {
-        "axon.kafka.publisher.enabled=false",
-        "axon.distributed.jgroups.bind-port=17800",
-        "axon.distributed.jgroups.cluster-name=axon-showcase-command-it"
-})
+@TestPropertySource(
+        properties = {
+            "axon.kafka.publisher.enabled=false",
+            "axon.distributed.jgroups.bind-port=17800",
+            "axon.distributed.jgroups.cluster-name=axon-showcase-command-it"
+        })
 @DisplayName("Showcase command application integration tests")
 class ShowcaseCommandApplicationIT {
 

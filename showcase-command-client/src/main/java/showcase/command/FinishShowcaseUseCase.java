@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
 
 import reactor.core.publisher.Mono;

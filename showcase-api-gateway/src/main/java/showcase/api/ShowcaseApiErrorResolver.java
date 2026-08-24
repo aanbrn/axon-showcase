@@ -1,5 +1,13 @@
+// SPDX-License-Identifier: MIT
 package showcase.api;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import one.util.streamex.StreamEx;
@@ -21,14 +29,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException.Visitor;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Predicate;
 
 /**
  * Resolves Spring framework validation exceptions into per-parameter error maps on a {@link ProblemDetail}.
@@ -71,11 +71,10 @@ class ShowcaseApiErrorResolver {
                 cookieErrors.put(
                         Optional.of(cookieValue.name())
                                 .filter(Predicate.not(String::isBlank))
-                                .or(() -> Optional.of(result.getMethodParameter())
-                                                  .map(MethodParameter::getParameterName))
+                                .or(() ->
+                                        Optional.of(result.getMethodParameter()).map(MethodParameter::getParameterName))
                                 .orElseThrow(() -> new IllegalStateException(
-                                        "Unable to resolve cookie name for %s"
-                                                .formatted(result.getMethodParameter()))),
+                                        "Unable to resolve cookie name for %s".formatted(result.getMethodParameter()))),
                         StreamEx.of(result.getResolvableErrors())
                                 .filter(Objects::nonNull)
                                 .map(error -> messageSource.getMessage(error, locale))
@@ -87,10 +86,10 @@ class ShowcaseApiErrorResolver {
                 pathErrors.put(
                         Optional.of(matrixVariable.name())
                                 .filter(Predicate.not(String::isBlank))
-                                .or(() -> Optional.of(result.getMethodParameter())
-                                                  .map(MethodParameter::getParameterName))
-                                .orElseThrow(() -> new IllegalStateException(
-                                        "Unable to resolve matrix variable name for %s"
+                                .or(() ->
+                                        Optional.of(result.getMethodParameter()).map(MethodParameter::getParameterName))
+                                .orElseThrow(
+                                        () -> new IllegalStateException("Unable to resolve matrix variable name for %s"
                                                 .formatted(result.getMethodParameter()))),
                         StreamEx.of(result.getResolvableErrors())
                                 .filter(Objects::nonNull)
@@ -104,10 +103,10 @@ class ShowcaseApiErrorResolver {
                         Optional.ofNullable(modelAttribute)
                                 .map(ModelAttribute::name)
                                 .filter(Predicate.not(String::isBlank))
-                                .or(() -> Optional.of(errors.getMethodParameter())
-                                                  .map(MethodParameter::getParameterName))
-                                .orElseThrow(() -> new IllegalStateException(
-                                        "Unable to resolve model attribute name for %s"
+                                .or(() ->
+                                        Optional.of(errors.getMethodParameter()).map(MethodParameter::getParameterName))
+                                .orElseThrow(
+                                        () -> new IllegalStateException("Unable to resolve model attribute name for %s"
                                                 .formatted(errors.getMethodParameter()))),
                         StreamEx.of(errors.getFieldErrors())
                                 .mapToEntry(
@@ -122,10 +121,10 @@ class ShowcaseApiErrorResolver {
                 pathErrors.put(
                         Optional.of(pathVariable.name())
                                 .filter(Predicate.not(String::isBlank))
-                                .or(() -> Optional.of(result.getMethodParameter())
-                                                  .map(MethodParameter::getParameterName))
-                                .orElseThrow(() -> new IllegalStateException(
-                                        "Unable to resolve path variable name for %s"
+                                .or(() ->
+                                        Optional.of(result.getMethodParameter()).map(MethodParameter::getParameterName))
+                                .orElseThrow(
+                                        () -> new IllegalStateException("Unable to resolve path variable name for %s"
                                                 .formatted(result.getMethodParameter()))),
                         StreamEx.of(result.getResolvableErrors())
                                 .filter(Objects::nonNull)
@@ -135,13 +134,10 @@ class ShowcaseApiErrorResolver {
 
             @Override
             public void requestBody(RequestBody requestBody, ParameterErrors errors) {
-                bodyErrors.putAll(
-                        StreamEx.of(errors.getFieldErrors())
-                                .mapToEntry(
-                                        FieldError::getField,
-                                        fieldError -> messageSource.getMessage(fieldError, locale))
-                                .collapseKeys()
-                                .toMap());
+                bodyErrors.putAll(StreamEx.of(errors.getFieldErrors())
+                        .mapToEntry(FieldError::getField, fieldError -> messageSource.getMessage(fieldError, locale))
+                        .collapseKeys()
+                        .toMap());
             }
 
             @Override
@@ -149,10 +145,10 @@ class ShowcaseApiErrorResolver {
                 headerErrors.put(
                         Optional.of(requestHeader.name())
                                 .filter(Predicate.not(String::isBlank))
-                                .or(() -> Optional.of(result.getMethodParameter())
-                                                  .map(MethodParameter::getParameterName))
-                                .orElseThrow(() -> new IllegalStateException(
-                                        "Unable to resolve request header name for %s"
+                                .or(() ->
+                                        Optional.of(result.getMethodParameter()).map(MethodParameter::getParameterName))
+                                .orElseThrow(
+                                        () -> new IllegalStateException("Unable to resolve request header name for %s"
                                                 .formatted(result.getMethodParameter()))),
                         StreamEx.of(result.getResolvableErrors())
                                 .filter(Objects::nonNull)
@@ -166,10 +162,10 @@ class ShowcaseApiErrorResolver {
                         Optional.ofNullable(requestParam)
                                 .map(RequestParam::name)
                                 .filter(Predicate.not(String::isBlank))
-                                .or(() -> Optional.of(result.getMethodParameter())
-                                                  .map(MethodParameter::getParameterName))
-                                .orElseThrow(() -> new IllegalStateException(
-                                        "Unable to resolve request parameter name for %s"
+                                .or(() ->
+                                        Optional.of(result.getMethodParameter()).map(MethodParameter::getParameterName))
+                                .orElseThrow(() ->
+                                        new IllegalStateException("Unable to resolve request parameter name for %s"
                                                 .formatted(result.getMethodParameter()))),
                         StreamEx.of(result.getResolvableErrors())
                                 .filter(Objects::nonNull)
@@ -182,10 +178,10 @@ class ShowcaseApiErrorResolver {
                 partErrors.put(
                         Optional.of(requestPart.name())
                                 .filter(Predicate.not(String::isBlank))
-                                .or(() -> Optional.of(errors.getMethodParameter())
-                                                  .map(MethodParameter::getParameterName))
-                                .orElseThrow(() -> new IllegalStateException(
-                                        "Unable to resolve request part name for %s"
+                                .or(() ->
+                                        Optional.of(errors.getMethodParameter()).map(MethodParameter::getParameterName))
+                                .orElseThrow(
+                                        () -> new IllegalStateException("Unable to resolve request part name for %s"
                                                 .formatted(errors.getMethodParameter()))),
                         StreamEx.of(errors.getFieldErrors())
                                 .mapToEntry(

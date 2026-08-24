@@ -1,22 +1,5 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
-
-import lombok.val;
-import org.axonframework.commandhandling.CommandExecutionException;
-import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.postgresql.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.IntStream;
 
 import static java.lang.Runtime.getRuntime;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +14,23 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 import static showcase.command.RandomCommandTestUtils.aTooLongShowcaseTitle;
 import static showcase.command.RandomCommandTestUtils.aTooShortShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.anInvalidShowcaseId;
+
+import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.IntStream;
+import lombok.val;
+import org.axonframework.commandhandling.CommandExecutionException;
+import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestPropertySource;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @SpringBootTest(webEnvironment = NONE)
 @Testcontainers(parallel = true)
@@ -50,26 +50,23 @@ class ShowcaseCommandGatewayIT {
     @Test
     @DisplayName("Scheduling a showcase with a valid command succeeds")
     void scheduleShowcase_validCommand_success() {
-        commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
-                        .showcaseId(aShowcaseId())
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(Instant.now()))
-                        .duration(aShowcaseDuration())
-                        .build());
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(aShowcaseId())
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build());
     }
 
     @Test
     @DisplayName("Scheduling a duplicate command succeeds")
     void scheduleShowcase_duplicateCommand_success() {
-        val command = ScheduleShowcaseCommand
-                              .builder()
-                              .showcaseId(aShowcaseId())
-                              .title(aShowcaseTitle())
-                              .startTime(aShowcaseStartTime(Instant.now()))
-                              .duration(aShowcaseDuration())
-                              .build();
+        val command = ScheduleShowcaseCommand.builder()
+                .showcaseId(aShowcaseId())
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build();
 
         commandGateway.sendAndWait(command);
 
@@ -79,15 +76,12 @@ class ShowcaseCommandGatewayIT {
     @Test
     @DisplayName("Scheduling a showcase with an invalid command throws an exception with an invalid-command error")
     void scheduleShowcase_invalidCommand_throwsCommandExecutionExceptionWithInvalidCommandError() {
-        assertThatThrownBy(
-                () -> commandGateway.sendAndWait(
-                        ScheduleShowcaseCommand
-                                .builder()
-                                .showcaseId(anInvalidShowcaseId())
-                                .title(aTooLongShowcaseTitle())
-                                .startTime(Instant.now())
-                                .duration(aTooShortShowcaseDuration())
-                                .build()))
+        assertThatThrownBy(() -> commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                        .showcaseId(anInvalidShowcaseId())
+                        .title(aTooLongShowcaseTitle())
+                        .startTime(Instant.now())
+                        .duration(aTooShortShowcaseDuration())
+                        .build()))
                 .isExactlyInstanceOf(CommandExecutionException.class)
                 .asInstanceOf(type(CommandExecutionException.class))
                 .extracting(CommandExecutionException::getDetails)
@@ -109,24 +103,19 @@ class ShowcaseCommandGatewayIT {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
 
-        commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(scheduleTime))
+                .duration(aShowcaseDuration())
+                .build());
+
+        assertThatThrownBy(() -> commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
                         .showcaseId(showcaseId)
                         .title(aShowcaseTitle())
                         .startTime(aShowcaseStartTime(scheduleTime))
                         .duration(aShowcaseDuration())
-                        .build());
-
-        assertThatThrownBy(
-                () -> commandGateway.sendAndWait(
-                        ScheduleShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .title(aShowcaseTitle())
-                                .startTime(aShowcaseStartTime(scheduleTime))
-                                .duration(aShowcaseDuration())
-                                .build()))
+                        .build()))
                 .isExactlyInstanceOf(CommandExecutionException.class)
                 .asInstanceOf(type(CommandExecutionException.class))
                 .extracting(CommandExecutionException::getDetails)
@@ -146,24 +135,19 @@ class ShowcaseCommandGatewayIT {
         val title = aShowcaseTitle();
         val scheduleTime = Instant.now();
 
-        commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(aShowcaseId())
+                .title(title)
+                .startTime(aShowcaseStartTime(scheduleTime))
+                .duration(aShowcaseDuration())
+                .build());
+
+        assertThatThrownBy(() -> commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
                         .showcaseId(aShowcaseId())
                         .title(title)
                         .startTime(aShowcaseStartTime(scheduleTime))
                         .duration(aShowcaseDuration())
-                        .build());
-
-        assertThatThrownBy(
-                () -> commandGateway.sendAndWait(
-                        ScheduleShowcaseCommand
-                                .builder()
-                                .showcaseId(aShowcaseId())
-                                .title(title)
-                                .startTime(aShowcaseStartTime(scheduleTime))
-                                .duration(aShowcaseDuration())
-                                .build()))
+                        .build()))
                 .isExactlyInstanceOf(CommandExecutionException.class)
                 .asInstanceOf(type(CommandExecutionException.class))
                 .extracting(CommandExecutionException::getDetails)
@@ -183,30 +167,22 @@ class ShowcaseCommandGatewayIT {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
 
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(scheduleTime))
+                .duration(aShowcaseDuration())
+                .build());
+
         commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
+                RemoveShowcaseCommand.builder().showcaseId(showcaseId).build());
+
+        assertThatThrownBy(() -> commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
                         .showcaseId(showcaseId)
                         .title(aShowcaseTitle())
                         .startTime(aShowcaseStartTime(scheduleTime))
                         .duration(aShowcaseDuration())
-                        .build());
-
-        commandGateway.sendAndWait(
-                RemoveShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build());
-
-        assertThatThrownBy(
-                () -> commandGateway.sendAndWait(
-                        ScheduleShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .title(aShowcaseTitle())
-                                .startTime(aShowcaseStartTime(scheduleTime))
-                                .duration(aShowcaseDuration())
-                                .build()))
+                        .build()))
                 .isExactlyInstanceOf(CommandExecutionException.class)
                 .asInstanceOf(type(CommandExecutionException.class))
                 .extracting(CommandExecutionException::getDetails)
@@ -225,20 +201,15 @@ class ShowcaseCommandGatewayIT {
     void startShowcase_validCommand_success() {
         val showcaseId = aShowcaseId();
 
-        commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(Instant.now()))
-                        .duration(aShowcaseDuration())
-                        .build());
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build());
 
         commandGateway.sendAndWait(
-                StartShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build());
+                StartShowcaseCommand.builder().showcaseId(showcaseId).build());
     }
 
     @Test
@@ -246,23 +217,18 @@ class ShowcaseCommandGatewayIT {
     void startShowcase_alreadyStartedShowcase_success() {
         val showcaseId = aShowcaseId();
 
-        commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(Instant.now()))
-                        .duration(aShowcaseDuration())
-                        .build());
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build());
 
-        CompletableFuture
-                .allOf(IntStream.rangeClosed(1, getRuntime().availableProcessors())
-                                .mapToObj(__ -> commandGateway.send(
-                                        StartShowcaseCommand
-                                                .builder()
-                                                .showcaseId(showcaseId)
-                                                .build()))
-                                .toArray(length -> new CompletableFuture<?>[length]))
+        CompletableFuture.allOf(IntStream.rangeClosed(1, getRuntime().availableProcessors())
+                        .mapToObj(__ -> commandGateway.send(StartShowcaseCommand.builder()
+                                .showcaseId(showcaseId)
+                                .build()))
+                        .toArray(length -> new CompletableFuture<?>[length]))
                 .join();
     }
 
@@ -271,33 +237,21 @@ class ShowcaseCommandGatewayIT {
     void startShowcase_alreadyFinishedShowcase_throwsShowcaseCommandExceptionCausedByIllegalStateError() {
         val showcaseId = aShowcaseId();
 
-        commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(Instant.now()))
-                        .duration(aShowcaseDuration())
-                        .build());
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build());
 
         commandGateway.sendAndWait(
-                StartShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build());
+                StartShowcaseCommand.builder().showcaseId(showcaseId).build());
 
         commandGateway.sendAndWait(
-                FinishShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build());
+                FinishShowcaseCommand.builder().showcaseId(showcaseId).build());
 
-        assertThatThrownBy(
-                () -> commandGateway.sendAndWait(
-                        StartShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .build()))
+        assertThatThrownBy(() -> commandGateway.sendAndWait(
+                        StartShowcaseCommand.builder().showcaseId(showcaseId).build()))
                 .isExactlyInstanceOf(CommandExecutionException.class)
                 .asInstanceOf(type(CommandExecutionException.class))
                 .extracting(CommandExecutionException::getDetails)
@@ -316,33 +270,21 @@ class ShowcaseCommandGatewayIT {
     void startShowcase_alreadyRemovedShowcase_throwsShowcaseCommandExceptionCausedByNotFoundError() {
         val showcaseId = aShowcaseId();
 
-        commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(Instant.now()))
-                        .duration(aShowcaseDuration())
-                        .build());
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build());
 
         commandGateway.sendAndWait(
-                StartShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build());
+                StartShowcaseCommand.builder().showcaseId(showcaseId).build());
 
         commandGateway.sendAndWait(
-                RemoveShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build());
+                RemoveShowcaseCommand.builder().showcaseId(showcaseId).build());
 
-        assertThatThrownBy(
-                () -> commandGateway.sendAndWait(
-                        StartShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .build()))
+        assertThatThrownBy(() -> commandGateway.sendAndWait(
+                        StartShowcaseCommand.builder().showcaseId(showcaseId).build()))
                 .isExactlyInstanceOf(CommandExecutionException.class)
                 .asInstanceOf(type(CommandExecutionException.class))
                 .extracting(CommandExecutionException::getDetails)
@@ -359,12 +301,9 @@ class ShowcaseCommandGatewayIT {
     @Test
     @DisplayName("Starting a showcase with an invalid command throws an exception with an invalid-command error")
     void startShowcase_invalidCommand_throwsCommandExecutionExceptionWithInvalidCommandError() {
-        assertThatThrownBy(
-                () -> commandGateway.sendAndWait(
-                        StartShowcaseCommand
-                                .builder()
-                                .showcaseId(anInvalidShowcaseId())
-                                .build()))
+        assertThatThrownBy(() -> commandGateway.sendAndWait(StartShowcaseCommand.builder()
+                        .showcaseId(anInvalidShowcaseId())
+                        .build()))
                 .isExactlyInstanceOf(CommandExecutionException.class)
                 .asInstanceOf(type(CommandExecutionException.class))
                 .extracting(CommandExecutionException::getDetails)
@@ -374,9 +313,7 @@ class ShowcaseCommandGatewayIT {
                 .satisfies(errorDetails -> {
                     assertThat(errorDetails.errorCode()).isEqualTo(ShowcaseCommandErrorCode.INVALID_COMMAND);
                     assertThat(errorDetails.errorMessage()).isEqualTo("Given command is not valid");
-                    assertThat(errorDetails.metaData())
-                            .hasSize(1)
-                            .containsKey("showcaseId");
+                    assertThat(errorDetails.metaData()).hasSize(1).containsKey("showcaseId");
                 });
     }
 
@@ -385,26 +322,18 @@ class ShowcaseCommandGatewayIT {
     void finishShowcase_validCommand_success() {
         val showcaseId = aShowcaseId();
 
-        commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(Instant.now()))
-                        .duration(aShowcaseDuration())
-                        .build());
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build());
 
         commandGateway.sendAndWait(
-                StartShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build());
+                StartShowcaseCommand.builder().showcaseId(showcaseId).build());
 
         commandGateway.sendAndWait(
-                FinishShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build());
+                FinishShowcaseCommand.builder().showcaseId(showcaseId).build());
     }
 
     @Test
@@ -412,41 +341,30 @@ class ShowcaseCommandGatewayIT {
     void finishShowcase_alreadyFinishedShowcase_success() {
         val showcaseId = aShowcaseId();
 
-        commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(Instant.now()))
-                        .duration(aShowcaseDuration())
-                        .build());
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build());
 
         commandGateway.sendAndWait(
-                StartShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build());
+                StartShowcaseCommand.builder().showcaseId(showcaseId).build());
 
-        CompletableFuture
-                .allOf(IntStream.rangeClosed(1, getRuntime().availableProcessors())
-                                .mapToObj(__ -> commandGateway.send(
-                                        FinishShowcaseCommand
-                                                .builder()
-                                                .showcaseId(showcaseId)
-                                                .build()))
-                                .toArray(length -> new CompletableFuture<?>[length]))
+        CompletableFuture.allOf(IntStream.rangeClosed(1, getRuntime().availableProcessors())
+                        .mapToObj(__ -> commandGateway.send(FinishShowcaseCommand.builder()
+                                .showcaseId(showcaseId)
+                                .build()))
+                        .toArray(length -> new CompletableFuture<?>[length]))
                 .join();
     }
 
     @Test
     @DisplayName("Finishing a showcase with an invalid command throws an exception with an invalid-command error")
     void finishShowcase_invalidCommand_throwsCommandExecutionExceptionWithInvalidCommandError() {
-        assertThatThrownBy(
-                () -> commandGateway.sendAndWait(
-                        FinishShowcaseCommand
-                                .builder()
-                                .showcaseId(anInvalidShowcaseId())
-                                .build()))
+        assertThatThrownBy(() -> commandGateway.sendAndWait(FinishShowcaseCommand.builder()
+                        .showcaseId(anInvalidShowcaseId())
+                        .build()))
                 .isExactlyInstanceOf(CommandExecutionException.class)
                 .asInstanceOf(type(CommandExecutionException.class))
                 .extracting(CommandExecutionException::getDetails)
@@ -456,9 +374,7 @@ class ShowcaseCommandGatewayIT {
                 .satisfies(errorDetails -> {
                     assertThat(errorDetails.errorCode()).isEqualTo(ShowcaseCommandErrorCode.INVALID_COMMAND);
                     assertThat(errorDetails.errorMessage()).isEqualTo("Given command is not valid");
-                    assertThat(errorDetails.metaData())
-                            .hasSize(1)
-                            .containsKey("showcaseId");
+                    assertThat(errorDetails.metaData()).hasSize(1).containsKey("showcaseId");
                 });
     }
 
@@ -467,21 +383,15 @@ class ShowcaseCommandGatewayIT {
     void finishShowcase_notStartedShowcase_throwsShowcaseCommandExceptionCausedByIllegalStateError() {
         val showcaseId = aShowcaseId();
 
-        commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(Instant.now()))
-                        .duration(aShowcaseDuration())
-                        .build());
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build());
 
-        assertThatThrownBy(
-                () -> commandGateway.sendAndWait(
-                        FinishShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .build()))
+        assertThatThrownBy(() -> commandGateway.sendAndWait(
+                        FinishShowcaseCommand.builder().showcaseId(showcaseId).build()))
                 .isExactlyInstanceOf(CommandExecutionException.class)
                 .asInstanceOf(type(CommandExecutionException.class))
                 .extracting(CommandExecutionException::getDetails)
@@ -500,27 +410,18 @@ class ShowcaseCommandGatewayIT {
     void finishShowcase_alreadyRemovedShowcase_throwsShowcaseCommandExceptionCausedByNotFoundError() {
         val showcaseId = aShowcaseId();
 
-        commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(Instant.now()))
-                        .duration(aShowcaseDuration())
-                        .build());
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build());
 
         commandGateway.sendAndWait(
-                RemoveShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build());
+                RemoveShowcaseCommand.builder().showcaseId(showcaseId).build());
 
-        assertThatThrownBy(
-                () -> commandGateway.sendAndWait(
-                        FinishShowcaseCommand
-                                .builder()
-                                .showcaseId(showcaseId)
-                                .build()))
+        assertThatThrownBy(() -> commandGateway.sendAndWait(
+                        FinishShowcaseCommand.builder().showcaseId(showcaseId).build()))
                 .isExactlyInstanceOf(CommandExecutionException.class)
                 .asInstanceOf(type(CommandExecutionException.class))
                 .extracting(CommandExecutionException::getDetails)
@@ -539,31 +440,23 @@ class ShowcaseCommandGatewayIT {
     void removeShowcase_validCommand_success() {
         val showcaseId = aShowcaseId();
 
-        commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(Instant.now()))
-                        .duration(aShowcaseDuration())
-                        .build());
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build());
 
         commandGateway.sendAndWait(
-                RemoveShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build());
+                RemoveShowcaseCommand.builder().showcaseId(showcaseId).build());
     }
 
     @Test
     @DisplayName("Removing a showcase with an invalid command throws an exception with an invalid-command error")
     void removeShowcase_invalidCommand_throwsCommandExecutionExceptionWithInvalidCommandError() {
-        assertThatThrownBy(
-                () -> commandGateway.sendAndWait(
-                        RemoveShowcaseCommand
-                                .builder()
-                                .showcaseId(anInvalidShowcaseId())
-                                .build()))
+        assertThatThrownBy(() -> commandGateway.sendAndWait(RemoveShowcaseCommand.builder()
+                        .showcaseId(anInvalidShowcaseId())
+                        .build()))
                 .isExactlyInstanceOf(CommandExecutionException.class)
                 .asInstanceOf(type(CommandExecutionException.class))
                 .extracting(CommandExecutionException::getDetails)
@@ -573,9 +466,7 @@ class ShowcaseCommandGatewayIT {
                 .satisfies(errorDetails -> {
                     assertThat(errorDetails.errorCode()).isEqualTo(ShowcaseCommandErrorCode.INVALID_COMMAND);
                     assertThat(errorDetails.errorMessage()).isEqualTo("Given command is not valid");
-                    assertThat(errorDetails.metaData())
-                            .hasSize(1)
-                            .containsKey("showcaseId");
+                    assertThat(errorDetails.metaData()).hasSize(1).containsKey("showcaseId");
                 });
     }
 
@@ -584,25 +475,17 @@ class ShowcaseCommandGatewayIT {
     void removeShowcase_alreadyRemovedShowcase_throwsShowcaseCommandExceptionCausedByNotFoundError() {
         val showcaseId = aShowcaseId();
 
-        commandGateway.sendAndWait(
-                ScheduleShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .title(aShowcaseTitle())
-                        .startTime(aShowcaseStartTime(Instant.now()))
-                        .duration(aShowcaseDuration())
-                        .build());
+        commandGateway.sendAndWait(ScheduleShowcaseCommand.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .build());
 
         commandGateway.sendAndWait(
-                RemoveShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build());
+                RemoveShowcaseCommand.builder().showcaseId(showcaseId).build());
 
         commandGateway.sendAndWait(
-                RemoveShowcaseCommand
-                        .builder()
-                        .showcaseId(showcaseId)
-                        .build());
+                RemoveShowcaseCommand.builder().showcaseId(showcaseId).build());
     }
 }

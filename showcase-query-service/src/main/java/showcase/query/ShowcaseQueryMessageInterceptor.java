@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
 
 import jakarta.validation.ConstraintViolation;
@@ -41,24 +42,20 @@ final class ShowcaseQueryMessageInterceptor<T extends Message<?>> implements Mes
      * @throws Exception if the query processing fails
      */
     @Override
-    public Object handle(UnitOfWork<? extends T> unitOfWork, InterceptorChain interceptorChain)
-            throws Exception {
+    public Object handle(UnitOfWork<? extends T> unitOfWork, InterceptorChain interceptorChain) throws Exception {
         try {
             if (validationEnabled) {
                 return beanValidationInterceptor.handle(unitOfWork, interceptorChain);
             }
             return interceptorChain.proceed();
         } catch (JSR303ViolationException e) {
-            val fieldErrors =
-                    StreamEx.of(e.getViolations())
-                            .mapToEntry(ConstraintViolation::getPropertyPath,
-                                        ConstraintViolation::getMessage)
-                            .mapKeys(Path::toString)
-                            .collapseKeys()
-                            .toMap();
+            val fieldErrors = StreamEx.of(e.getViolations())
+                    .mapToEntry(ConstraintViolation::getPropertyPath, ConstraintViolation::getMessage)
+                    .mapKeys(Path::toString)
+                    .collapseKeys()
+                    .toMap();
             throw new ShowcaseQueryException(
-                    ShowcaseQueryErrorDetails
-                            .builder()
+                    ShowcaseQueryErrorDetails.builder()
                             .errorCode(ShowcaseQueryErrorCode.INVALID_QUERY)
                             .errorMessage("Given query is not valid")
                             .metaData(MetaData.from(fieldErrors))

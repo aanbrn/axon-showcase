@@ -7,6 +7,7 @@ plugins {
     id("com.github.spotbugs")
     id("net.ltgt.errorprone")
     id("checkstyle")
+    id("com.diffplug.spotless")
 }
 
 val libs = the<LibrariesForLibs>()
@@ -15,6 +16,14 @@ checkstyle {
     toolVersion = libs.versions.checkstyle.get()
     configDirectory.set(rootProject.layout.projectDirectory.dir("config/checkstyle"))
     maxErrors = 0
+}
+
+spotless {
+    java {
+        target("src/**/*.java")
+        palantirJavaFormat()
+        licenseHeader("// SPDX-License-Identifier: MIT\n")
+    }
 }
 
 spotbugs {

@@ -1,13 +1,14 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
-
-import lombok.val;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static showcase.command.RandomCommandTestUtils.aShowcaseCommandErrorCode;
 import static showcase.command.RandomCommandTestUtils.aShowcaseCommandErrorMessage;
+
+import lombok.val;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Showcase command error details tests")
 class ShowcaseCommandErrorDetailsTests {
@@ -18,12 +19,10 @@ class ShowcaseCommandErrorDetailsTests {
         val errorCode = aShowcaseCommandErrorCode();
         val errorMessage = aShowcaseCommandErrorMessage();
 
-        val errorDetails =
-                ShowcaseCommandErrorDetails
-                        .builder()
-                        .errorCode(errorCode)
-                        .errorMessage(errorMessage)
-                        .build();
+        val errorDetails = ShowcaseCommandErrorDetails.builder()
+                .errorCode(errorCode)
+                .errorMessage(errorMessage)
+                .build();
         assertThat(errorDetails).isNotNull();
         assertThat(errorDetails.errorCode()).isEqualTo(errorCode);
         assertThat(errorDetails.errorMessage()).isEqualTo(errorMessage);
@@ -32,20 +31,16 @@ class ShowcaseCommandErrorDetailsTests {
     @Test
     @DisplayName("Error details without an error code throw a null pointer exception")
     void construction_missingErrorCode_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(
-                () -> ShowcaseCommandErrorDetails
-                              .builder()
-                              .errorMessage(aShowcaseCommandErrorMessage())
-                              .build());
+        assertThatNullPointerException().isThrownBy(() -> ShowcaseCommandErrorDetails.builder()
+                .errorMessage(aShowcaseCommandErrorMessage())
+                .build());
     }
 
     @Test
     @DisplayName("Error details without an error message throw a null pointer exception")
     void construction_missingErrorMessage_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(
-                () -> ShowcaseCommandErrorDetails
-                              .builder()
-                              .errorCode(aShowcaseCommandErrorCode())
-                              .build());
+        assertThatNullPointerException().isThrownBy(() -> ShowcaseCommandErrorDetails.builder()
+                .errorCode(aShowcaseCommandErrorCode())
+                .build());
     }
 }

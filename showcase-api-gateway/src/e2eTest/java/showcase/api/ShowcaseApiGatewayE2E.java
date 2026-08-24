@@ -1,37 +1,5 @@
+// SPDX-License-Identifier: MIT
 package showcase.api;
-
-import lombok.val;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.opensearch.testcontainers.OpenSearchContainer;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.test.web.reactive.server.WebTestClient;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
-import org.testcontainers.postgresql.PostgreSQLContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
-import showcase.query.Showcase;
-import showcase.query.ShowcaseStatus;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -53,6 +21,38 @@ import static showcase.command.RandomCommandTestUtils.anInvalidShowcaseId;
 import static showcase.query.RandomQueryTestUtils.aShowcaseStatus;
 import static showcase.test.RandomTestUtils.anElementOf;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+import lombok.val;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.opensearch.testcontainers.OpenSearchContainer;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.kafka.KafkaContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
+import showcase.query.Showcase;
+import showcase.query.ShowcaseStatus;
+
 @Testcontainers(parallel = true)
 @Execution(ExecutionMode.SAME_THREAD)
 @DisplayName("Showcase API gateway end-to-end tests")
@@ -64,11 +64,11 @@ class ShowcaseApiGatewayE2E {
 
     @Container
     @SuppressWarnings("resource")
-    static final PostgreSQLContainer dbEvents =
-            new PostgreSQLContainer("postgres:" + System.getProperty("postgres.image.version"))
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-db-events"))
-                    .withNetwork(network)
-                    .withDatabaseName("showcase-events");
+    static final PostgreSQLContainer dbEvents = new PostgreSQLContainer(
+                    "postgres:" + System.getProperty("postgres.image.version"))
+            .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-db-events"))
+            .withNetwork(network)
+            .withDatabaseName("showcase-events");
 
     @Container
     @SuppressWarnings("resource")
@@ -78,77 +78,68 @@ class ShowcaseApiGatewayE2E {
                 public String getBootstrapServers() {
                     return "axon-showcase-kafka:9092";
                 }
-            }
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-kafka"))
+            }.withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-kafka"))
                     .withNetwork(network);
 
     @Container
     @SuppressWarnings("resource")
-    static final OpenSearchContainer<?> osViews =
-            new OpenSearchContainer<>("opensearchproject/opensearch:" + System.getProperty("opensearch.image.version"))
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-os-views"))
-                    .withNetwork(network);
+    static final OpenSearchContainer<?> osViews = new OpenSearchContainer<>(
+                    "opensearchproject/opensearch:" + System.getProperty("opensearch.image.version"))
+            .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-os-views"))
+            .withNetwork(network);
 
     @Container
     @SuppressWarnings("resource")
-    static final GenericContainer<?> commandService =
-            new GenericContainer<>("aanbrn/axon-showcase-command-service:" + System.getProperty("project.version"))
-                    .dependsOn(dbEvents, kafka)
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-command-service"))
-                    .withNetwork(network)
-                    .withEnv("DB_USER", dbEvents.getUsername())
-                    .withEnv("DB_PASSWORD", dbEvents.getPassword())
-                    .withEnv("LOGGING_LEVEL_SHOWCASE_COMMAND", "DEBUG")
-                    .withExposedPorts(8080)
-                    .waitingFor(Wait.forHttp("/actuator/health")
-                                    .forPort(8080)
-                                    .forStatusCode(200))
-                    .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
+    static final GenericContainer<?> commandService = new GenericContainer<>(
+                    "aanbrn/axon-showcase-command-service:" + System.getProperty("project.version"))
+            .dependsOn(dbEvents, kafka)
+            .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-command-service"))
+            .withNetwork(network)
+            .withEnv("DB_USER", dbEvents.getUsername())
+            .withEnv("DB_PASSWORD", dbEvents.getPassword())
+            .withEnv("LOGGING_LEVEL_SHOWCASE_COMMAND", "DEBUG")
+            .withExposedPorts(8080)
+            .waitingFor(Wait.forHttp("/actuator/health").forPort(8080).forStatusCode(200))
+            .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
 
     @Container
     @SuppressWarnings("resource")
-    static final GenericContainer<?> projectionService =
-            new GenericContainer<>("aanbrn/axon-showcase-projection-service:" + System.getProperty("project.version"))
-                    .dependsOn(kafka, osViews)
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-projection-service"))
-                    .withNetwork(network)
-                    .withEnv("DB_USER", dbEvents.getUsername())
-                    .withEnv("DB_PASSWORD", dbEvents.getPassword())
-                    .withEnv("REDIS_CLUSTER_DYNAMIC_REFRESH_SOURCES", "off")
-                    .withEnv("LOGGING_LEVEL_SHOWCASE_PROJECTION", "DEBUG")
-                    .withExposedPorts(8080)
-                    .waitingFor(Wait.forHttp("/actuator/health")
-                                    .forPort(8080)
-                                    .forStatusCode(200))
-                    .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
+    static final GenericContainer<?> projectionService = new GenericContainer<>(
+                    "aanbrn/axon-showcase-projection-service:" + System.getProperty("project.version"))
+            .dependsOn(kafka, osViews)
+            .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-projection-service"))
+            .withNetwork(network)
+            .withEnv("DB_USER", dbEvents.getUsername())
+            .withEnv("DB_PASSWORD", dbEvents.getPassword())
+            .withEnv("REDIS_CLUSTER_DYNAMIC_REFRESH_SOURCES", "off")
+            .withEnv("LOGGING_LEVEL_SHOWCASE_PROJECTION", "DEBUG")
+            .withExposedPorts(8080)
+            .waitingFor(Wait.forHttp("/actuator/health").forPort(8080).forStatusCode(200))
+            .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
 
     @Container
     @SuppressWarnings("resource")
-    static final GenericContainer<?> queryService =
-            new GenericContainer<>("aanbrn/axon-showcase-query-service:" + System.getProperty("project.version"))
-                    .dependsOn(osViews)
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-query-service"))
-                    .withNetwork(network)
-                    .withEnv("LOGGING_LEVEL_SHOWCASE_QUERY", "DEBUG")
-                    .withExposedPorts(8080)
-                    .waitingFor(Wait.forHttp("/actuator/health")
-                                    .forPort(8080)
-                                    .forStatusCode(200))
-                    .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
+    static final GenericContainer<?> queryService = new GenericContainer<>(
+                    "aanbrn/axon-showcase-query-service:" + System.getProperty("project.version"))
+            .dependsOn(osViews)
+            .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-query-service"))
+            .withNetwork(network)
+            .withEnv("LOGGING_LEVEL_SHOWCASE_QUERY", "DEBUG")
+            .withExposedPorts(8080)
+            .waitingFor(Wait.forHttp("/actuator/health").forPort(8080).forStatusCode(200))
+            .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
 
     @Container
     @SuppressWarnings("resource")
-    static final GenericContainer<?> apiGateway =
-            new GenericContainer<>("aanbrn/axon-showcase-api-gateway:" + System.getProperty("project.version"))
-                    .dependsOn(commandService, queryService)
-                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-api-gateway"))
-                    .withNetwork(network)
-                    .withEnv("LOGGING_LEVEL_SHOWCASE_API", "DEBUG")
-                    .withExposedPorts(8080)
-                    .waitingFor(Wait.forHttp("/actuator/health")
-                                    .forPort(8080)
-                                    .forStatusCode(200))
-                    .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
+    static final GenericContainer<?> apiGateway = new GenericContainer<>(
+                    "aanbrn/axon-showcase-api-gateway:" + System.getProperty("project.version"))
+            .dependsOn(commandService, queryService)
+            .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-api-gateway"))
+            .withNetwork(network)
+            .withEnv("LOGGING_LEVEL_SHOWCASE_API", "DEBUG")
+            .withExposedPorts(8080)
+            .waitingFor(Wait.forHttp("/actuator/health").forPort(8080).forStatusCode(200))
+            .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
 
     private WebTestClient webClient;
     private final List<String> createdShowcaseIds = new ArrayList<>();
@@ -160,11 +151,9 @@ class ShowcaseApiGatewayE2E {
 
     @BeforeEach
     void setUp() {
-        webClient =
-                WebTestClient
-                        .bindToServer()
-                        .baseUrl("http://localhost:" + apiGateway.getMappedPort(8080))
-                        .build();
+        webClient = WebTestClient.bindToServer()
+                .baseUrl("http://localhost:" + apiGateway.getMappedPort(8080))
+                .build();
     }
 
     @AfterEach
@@ -172,11 +161,12 @@ class ShowcaseApiGatewayE2E {
     void tearDown() {
         for (val showcaseId : new ArrayList<>(createdShowcaseIds)) {
             try {
-                webClient.delete()
-                         .uri("/showcases/{showcaseId}", showcaseId)
-                         .exchange()
-                         .expectStatus()
-                         .isOk();
+                webClient
+                        .delete()
+                        .uri("/showcases/{showcaseId}", showcaseId)
+                        .exchange()
+                        .expectStatus()
+                        .isOk();
             } catch (RuntimeException ignored) {
             }
         }
@@ -188,25 +178,25 @@ class ShowcaseApiGatewayE2E {
     }
 
     String scheduleShowcase(String title, Instant startTime, Duration duration) {
-        val response =
-                webClient.post()
-                         .uri("/showcases")
-                         .bodyValue(Map.of(
-                                 "title", title,
-                                 "startTime", startTime,
-                                 "duration", duration))
-                         .exchange()
-                         .expectStatus()
-                         .isCreated()
-                         .expectHeader()
-                         .value(HttpHeaders.LOCATION, startsWith("/showcases/"))
-                         .expectHeader()
-                         .contentTypeCompatibleWith(APPLICATION_JSON)
-                         .expectHeader()
-                         .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
-                         .expectBody(ScheduleShowcaseResponse.class)
-                         .returnResult()
-                         .getResponseBody();
+        val response = webClient
+                .post()
+                .uri("/showcases")
+                .bodyValue(Map.of(
+                        "title", title,
+                        "startTime", startTime,
+                        "duration", duration))
+                .exchange()
+                .expectStatus()
+                .isCreated()
+                .expectHeader()
+                .value(HttpHeaders.LOCATION, startsWith("/showcases/"))
+                .expectHeader()
+                .contentTypeCompatibleWith(APPLICATION_JSON)
+                .expectHeader()
+                .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
+                .expectBody(ScheduleShowcaseResponse.class)
+                .returnResult()
+                .getResponseBody();
 
         assertThat(response).isNotNull();
 
@@ -216,15 +206,15 @@ class ShowcaseApiGatewayE2E {
     }
 
     Showcase fetchShowcase(String showcaseId) {
-        val body =
-                webClient.get()
-                         .uri("/showcases/{showcaseId}", showcaseId)
-                         .exchange()
-                         .expectStatus()
-                         .isOk()
-                         .expectBody(Showcase.class)
-                         .returnResult()
-                         .getResponseBody();
+        val body = webClient
+                .get()
+                .uri("/showcases/{showcaseId}", showcaseId)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(Showcase.class)
+                .returnResult()
+                .getResponseBody();
 
         assertThat(body).isNotNull();
 
@@ -232,15 +222,15 @@ class ShowcaseApiGatewayE2E {
     }
 
     List<Showcase> fetchShowcases(String uriTemplate, Object... uriVariables) {
-        val body =
-                webClient.get()
-                         .uri(uriTemplate, uriVariables)
-                         .exchange()
-                         .expectStatus()
-                         .isOk()
-                         .expectBodyList(Showcase.class)
-                         .returnResult()
-                         .getResponseBody();
+        val body = webClient
+                .get()
+                .uri(uriTemplate, uriVariables)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBodyList(Showcase.class)
+                .returnResult()
+                .getResponseBody();
 
         assertThat(body).isNotNull();
 
@@ -261,55 +251,58 @@ class ShowcaseApiGatewayE2E {
     }
 
     void awaitShowcaseStatus(String showcaseId, ShowcaseStatus status) {
-        await().untilAsserted(
-                () -> webClient.get()
-                               .uri("/showcases/{showcaseId}", showcaseId)
-                               .exchange()
-                               .expectStatus()
-                               .isOk()
-                               .expectBody(Showcase.class)
-                               .value(Showcase::status, equalTo(status)));
+        await().untilAsserted(() -> webClient
+                .get()
+                .uri("/showcases/{showcaseId}", showcaseId)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(Showcase.class)
+                .value(Showcase::status, equalTo(status)));
     }
 
     void awaitShowcaseRemoved(String showcaseId) {
-        await().untilAsserted(
-                () -> webClient.get()
-                               .uri("/showcases/{showcaseId}", showcaseId)
-                               .exchange()
-                               .expectStatus()
-                               .isNotFound());
+        await().untilAsserted(() -> webClient
+                .get()
+                .uri("/showcases/{showcaseId}", showcaseId)
+                .exchange()
+                .expectStatus()
+                .isNotFound());
     }
 
     void startShowcase(String showcaseId) {
-        webClient.put()
-                 .uri("/showcases/{showcaseId}/start", showcaseId)
-                 .exchange()
-                 .expectStatus()
-                 .isOk()
-                 .expectBody()
-                 .isEmpty();
+        webClient
+                .put()
+                .uri("/showcases/{showcaseId}/start", showcaseId)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .isEmpty();
     }
 
     void finishShowcase(String showcaseId) {
-        webClient.put()
-                 .uri("/showcases/{showcaseId}/finish", showcaseId)
-                 .exchange()
-                 .expectStatus()
-                 .isOk()
-                 .expectBody()
-                 .isEmpty();
+        webClient
+                .put()
+                .uri("/showcases/{showcaseId}/finish", showcaseId)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .isEmpty();
     }
 
     void removeShowcase(String showcaseId) {
-        webClient.delete()
-                 .uri("/showcases/{showcaseId}", showcaseId)
-                 .exchange()
-                 .expectStatus()
-                 .isOk()
-                 .expectHeader()
-                 .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
-                 .expectBody()
-                 .isEmpty();
+        webClient
+                .delete()
+                .uri("/showcases/{showcaseId}", showcaseId)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectHeader()
+                .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
+                .expectBody()
+                .isEmpty();
 
         awaitShowcaseRemoved(showcaseId);
 
@@ -334,23 +327,29 @@ class ShowcaseApiGatewayE2E {
         }
     }
 
-    WebTestClient.BodyContentSpec assertProblemDetail(WebTestClient.ResponseSpec response, HttpStatus status,
-                                                      String detail) {
+    WebTestClient.BodyContentSpec assertProblemDetail(
+            WebTestClient.ResponseSpec response, HttpStatus status, String detail) {
         return response.expectStatus()
-                       .isEqualTo(status.value())
-                       .expectHeader()
-                       .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
-                       .expectBody()
-                       .jsonPath("$.type").isEqualTo("about:blank")
-                       .jsonPath("$.title").isEqualTo(status.getReasonPhrase())
-                       .jsonPath("$.status").isEqualTo(status.value())
-                       .jsonPath("$.detail").isEqualTo(detail);
+                .isEqualTo(status.value())
+                .expectHeader()
+                .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.type")
+                .isEqualTo("about:blank")
+                .jsonPath("$.title")
+                .isEqualTo(status.getReasonPhrase())
+                .jsonPath("$.status")
+                .isEqualTo(status.value())
+                .jsonPath("$.detail")
+                .isEqualTo(detail);
     }
 
     void assertInvalidShowcaseIdProblem(WebTestClient.ResponseSpec response) {
         assertProblemDetail(response, HttpStatus.BAD_REQUEST, "Invalid request.")
-                .jsonPath("$.pathErrors").isMap()
-                .jsonPath("$.pathErrors.showcaseId").isNotEmpty();
+                .jsonPath("$.pathErrors")
+                .isMap()
+                .jsonPath("$.pathErrors.showcaseId")
+                .isNotEmpty();
     }
 
     @Nested
@@ -377,16 +376,18 @@ class ShowcaseApiGatewayE2E {
             scheduleShowcase(title, aShowcaseStartTime(Instant.now()), aShowcaseDuration());
 
             assertProblemDetail(
-                    webClient.post()
-                             .uri("/showcases")
-                             .bodyValue(Map.of(
-                                     "title", title,
-                                     "startTime", aShowcaseStartTime(Instant.now()),
-                                     "duration", aShowcaseDuration()))
-                             .exchange(),
-                    HttpStatus.CONFLICT,
-                    "Given title is in use already")
-                    .jsonPath("$.instance").isEqualTo("/showcases");
+                            webClient
+                                    .post()
+                                    .uri("/showcases")
+                                    .bodyValue(Map.of(
+                                            "title", title,
+                                            "startTime", aShowcaseStartTime(Instant.now()),
+                                            "duration", aShowcaseDuration()))
+                                    .exchange(),
+                            HttpStatus.CONFLICT,
+                            "Given title is in use already")
+                    .jsonPath("$.instance")
+                    .isEqualTo("/showcases");
         }
 
         @ParameterizedTest
@@ -394,38 +395,52 @@ class ShowcaseApiGatewayE2E {
         @DisplayName("An invalid request fails with a validation problem")
         void scheduleShowcase_invalidRequest_failsWithValidationProblem(Map<String, Object> body, String field) {
             assertProblemDetail(
-                    webClient.post()
-                             .uri("/showcases")
-                             .bodyValue(body)
-                             .exchange(),
-                    HttpStatus.BAD_REQUEST,
-                    "Invalid request.")
-                    .jsonPath("$.bodyErrors").isMap()
-                    .jsonPath("$.bodyErrors." + field).isNotEmpty();
+                            webClient.post().uri("/showcases").bodyValue(body).exchange(),
+                            HttpStatus.BAD_REQUEST,
+                            "Invalid request.")
+                    .jsonPath("$.bodyErrors")
+                    .isMap()
+                    .jsonPath("$.bodyErrors." + field)
+                    .isNotEmpty();
         }
 
         static Stream<Arguments> invalidScheduleRequests() {
             return Stream.of(
-                    argumentSet("blank title", Map.of(
-                            "title", "",
-                            "startTime", aShowcaseStartTime(Instant.now()),
-                            "duration", aShowcaseDuration()), "title"),
-                    argumentSet("too long title", Map.of(
-                            "title", aTooLongShowcaseTitle(),
-                            "startTime", aShowcaseStartTime(Instant.now()),
-                            "duration", aShowcaseDuration()), "title"),
-                    argumentSet("past start time", Map.of(
-                            "title", aShowcaseTitle(),
-                            "startTime", Instant.now().minusSeconds(1),
-                            "duration", aShowcaseDuration()), "startTime"),
-                    argumentSet("too short duration", Map.of(
-                            "title", aShowcaseTitle(),
-                            "startTime", aShowcaseStartTime(Instant.now()),
-                            "duration", aTooShortShowcaseDuration()), "duration"),
-                    argumentSet("too long duration", Map.of(
-                            "title", aShowcaseTitle(),
-                            "startTime", aShowcaseStartTime(Instant.now()),
-                            "duration", aTooLongShowcaseDuration()), "duration"));
+                    argumentSet(
+                            "blank title",
+                            Map.of(
+                                    "title", "",
+                                    "startTime", aShowcaseStartTime(Instant.now()),
+                                    "duration", aShowcaseDuration()),
+                            "title"),
+                    argumentSet(
+                            "too long title",
+                            Map.of(
+                                    "title", aTooLongShowcaseTitle(),
+                                    "startTime", aShowcaseStartTime(Instant.now()),
+                                    "duration", aShowcaseDuration()),
+                            "title"),
+                    argumentSet(
+                            "past start time",
+                            Map.of(
+                                    "title", aShowcaseTitle(),
+                                    "startTime", Instant.now().minusSeconds(1),
+                                    "duration", aShowcaseDuration()),
+                            "startTime"),
+                    argumentSet(
+                            "too short duration",
+                            Map.of(
+                                    "title", aShowcaseTitle(),
+                                    "startTime", aShowcaseStartTime(Instant.now()),
+                                    "duration", aTooShortShowcaseDuration()),
+                            "duration"),
+                    argumentSet(
+                            "too long duration",
+                            Map.of(
+                                    "title", aShowcaseTitle(),
+                                    "startTime", aShowcaseStartTime(Instant.now()),
+                                    "duration", aTooLongShowcaseDuration()),
+                            "duration"));
         }
     }
 
@@ -451,9 +466,10 @@ class ShowcaseApiGatewayE2E {
         @DisplayName("Starting a non-existing showcase fails with a not-found problem")
         void startShowcase_nonExistingShowcase_failsWithNotFoundProblem() {
             assertProblemDetail(
-                    webClient.put()
-                             .uri("/showcases/{showcaseId}/start", aShowcaseId())
-                             .exchange(),
+                    webClient
+                            .put()
+                            .uri("/showcases/{showcaseId}/start", aShowcaseId())
+                            .exchange(),
                     HttpStatus.NOT_FOUND,
                     "No showcase with given ID");
         }
@@ -467,9 +483,10 @@ class ShowcaseApiGatewayE2E {
             awaitShowcaseStatus(showcaseId, ShowcaseStatus.FINISHED);
 
             assertProblemDetail(
-                    webClient.put()
-                             .uri("/showcases/{showcaseId}/start", showcaseId)
-                             .exchange(),
+                    webClient
+                            .put()
+                            .uri("/showcases/{showcaseId}/start", showcaseId)
+                            .exchange(),
                     HttpStatus.CONFLICT,
                     "Showcase is finished already");
         }
@@ -493,10 +510,10 @@ class ShowcaseApiGatewayE2E {
         @Test
         @DisplayName("Starting with an invalid showcase ID fails with a validation problem")
         void startShowcase_invalidShowcaseId_failsWithValidationProblem() {
-            assertInvalidShowcaseIdProblem(
-                    webClient.put()
-                             .uri("/showcases/{showcaseId}/start", anInvalidShowcaseId())
-                             .exchange());
+            assertInvalidShowcaseIdProblem(webClient
+                    .put()
+                    .uri("/showcases/{showcaseId}/start", anInvalidShowcaseId())
+                    .exchange());
         }
     }
 
@@ -523,9 +540,10 @@ class ShowcaseApiGatewayE2E {
         @DisplayName("Finishing a non-existing showcase fails with a not-found problem")
         void finishShowcase_nonExistingShowcase_failsWithNotFoundProblem() {
             assertProblemDetail(
-                    webClient.put()
-                             .uri("/showcases/{showcaseId}/finish", aShowcaseId())
-                             .exchange(),
+                    webClient
+                            .put()
+                            .uri("/showcases/{showcaseId}/finish", aShowcaseId())
+                            .exchange(),
                     HttpStatus.NOT_FOUND,
                     "No showcase with given ID");
         }
@@ -536,9 +554,10 @@ class ShowcaseApiGatewayE2E {
             val showcaseId = scheduleShowcase();
 
             assertProblemDetail(
-                    webClient.put()
-                             .uri("/showcases/{showcaseId}/finish", showcaseId)
-                             .exchange(),
+                    webClient
+                            .put()
+                            .uri("/showcases/{showcaseId}/finish", showcaseId)
+                            .exchange(),
                     HttpStatus.CONFLICT,
                     "Showcase must be started first");
         }
@@ -563,10 +582,10 @@ class ShowcaseApiGatewayE2E {
         @Test
         @DisplayName("Finishing with an invalid showcase ID fails with a validation problem")
         void finishShowcase_invalidShowcaseId_failsWithValidationProblem() {
-            assertInvalidShowcaseIdProblem(
-                    webClient.put()
-                             .uri("/showcases/{showcaseId}/finish", anInvalidShowcaseId())
-                             .exchange());
+            assertInvalidShowcaseIdProblem(webClient
+                    .put()
+                    .uri("/showcases/{showcaseId}/finish", anInvalidShowcaseId())
+                    .exchange());
         }
     }
 
@@ -588,19 +607,21 @@ class ShowcaseApiGatewayE2E {
         void removeShowcase_nonExistingShowcase_doesNotFail() {
             val showcaseId = aShowcaseId();
 
-            webClient.get()
-                     .uri("/showcases/{showcaseId}", showcaseId)
-                     .exchange()
-                     .expectStatus()
-                     .isNotFound();
+            webClient
+                    .get()
+                    .uri("/showcases/{showcaseId}", showcaseId)
+                    .exchange()
+                    .expectStatus()
+                    .isNotFound();
 
-            webClient.delete()
-                     .uri("/showcases/{showcaseId}", showcaseId)
-                     .exchange()
-                     .expectStatus()
-                     .isOk()
-                     .expectBody()
-                     .isEmpty();
+            webClient
+                    .delete()
+                    .uri("/showcases/{showcaseId}", showcaseId)
+                    .exchange()
+                    .expectStatus()
+                    .isOk()
+                    .expectBody()
+                    .isEmpty();
         }
     }
 
@@ -618,17 +639,17 @@ class ShowcaseApiGatewayE2E {
             val showcaseId = scheduleShowcase(title, startTime, duration);
             awaitShowcaseStatus(showcaseId, ShowcaseStatus.SCHEDULED);
 
-            val showcase =
-                    webClient.get()
-                             .uri("/showcases/{showcaseId}", showcaseId)
-                             .exchange()
-                             .expectStatus()
-                             .isOk()
-                             .expectHeader()
-                             .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
-                             .expectBody(Showcase.class)
-                             .returnResult()
-                             .getResponseBody();
+            val showcase = webClient
+                    .get()
+                    .uri("/showcases/{showcaseId}", showcaseId)
+                    .exchange()
+                    .expectStatus()
+                    .isOk()
+                    .expectHeader()
+                    .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
+                    .expectBody(Showcase.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(showcase).isNotNull();
             assertThat(showcase.showcaseId()).isEqualTo(showcaseId);
@@ -643,9 +664,10 @@ class ShowcaseApiGatewayE2E {
         @DisplayName("A non-existing showcase returns a not-found problem")
         void fetchById_nonExistingShowcase_returnsNotFound() {
             assertProblemDetail(
-                    webClient.get()
-                             .uri("/showcases/{showcaseId}", aShowcaseId())
-                             .exchange(),
+                    webClient
+                            .get()
+                            .uri("/showcases/{showcaseId}", aShowcaseId())
+                            .exchange(),
                     HttpStatus.NOT_FOUND,
                     "No showcase with given ID");
         }
@@ -653,10 +675,10 @@ class ShowcaseApiGatewayE2E {
         @Test
         @DisplayName("An invalid showcase ID returns a validation problem")
         void fetchById_invalidShowcaseId_returnsBadRequest() {
-            assertInvalidShowcaseIdProblem(
-                    webClient.get()
-                             .uri("/showcases/{showcaseId}", anInvalidShowcaseId())
-                             .exchange());
+            assertInvalidShowcaseIdProblem(webClient
+                    .get()
+                    .uri("/showcases/{showcaseId}", anInvalidShowcaseId())
+                    .exchange());
         }
     }
 
@@ -668,28 +690,27 @@ class ShowcaseApiGatewayE2E {
 
         @BeforeEach
         void setUp() {
-            await().untilAsserted(
-                    () -> webClient.get()
-                                   .uri("/showcases")
-                                   .exchange()
-                                   .expectStatus()
-                                   .isOk()
-                                   .expectBodyList(Showcase.class)
-                                   .hasSize(0));
+            await().untilAsserted(() -> webClient
+                    .get()
+                    .uri("/showcases")
+                    .exchange()
+                    .expectStatus()
+                    .isOk()
+                    .expectBodyList(Showcase.class)
+                    .hasSize(0));
 
             showcaseIds = seedShowcases();
 
-            await().untilAsserted(
-                    () -> webClient.get()
-                                   .uri("/showcases")
-                                   .exchange()
-                                   .expectStatus()
-                                   .isOk()
-                                   .expectBodyList(Showcase.class)
-                                   .value(showcases ->
-                                                  assertThat(showcases)
-                                                          .extracting(Showcase::showcaseId)
-                                                          .containsExactlyInAnyOrderElementsOf(showcaseIds)));
+            await().untilAsserted(() -> webClient
+                    .get()
+                    .uri("/showcases")
+                    .exchange()
+                    .expectStatus()
+                    .isOk()
+                    .expectBodyList(Showcase.class)
+                    .value(showcases -> assertThat(showcases)
+                            .extracting(Showcase::showcaseId)
+                            .containsExactlyInAnyOrderElementsOf(showcaseIds)));
         }
 
         List<String> seedShowcases() {
@@ -717,18 +738,18 @@ class ShowcaseApiGatewayE2E {
         @Test
         @DisplayName("Fetching the list without filters exposes the existing showcases")
         void fetchList_noFiltering_exposesExistingShowcases() {
-            webClient.get()
-                     .uri("/showcases")
-                     .exchange()
-                     .expectStatus()
-                     .isOk()
-                     .expectHeader()
-                     .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
-                     .expectBodyList(Showcase.class)
-                     .value(showcases ->
-                                    assertThat(showcases)
-                                            .extracting(Showcase::showcaseId)
-                                            .containsExactlyInAnyOrderElementsOf(showcaseIds));
+            webClient
+                    .get()
+                    .uri("/showcases")
+                    .exchange()
+                    .expectStatus()
+                    .isOk()
+                    .expectHeader()
+                    .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
+                    .expectBodyList(Showcase.class)
+                    .value(showcases -> assertThat(showcases)
+                            .extracting(Showcase::showcaseId)
+                            .containsExactlyInAnyOrderElementsOf(showcaseIds));
         }
 
         @Test
@@ -740,14 +761,15 @@ class ShowcaseApiGatewayE2E {
 
             val showcase = anElementOf(showcases);
 
-            webClient.get()
-                     .uri("/showcases?title={title}", showcase.title())
-                     .exchange()
-                     .expectStatus()
-                     .isOk()
-                     .expectBodyList(Showcase.class)
-                     .hasSize(1)
-                     .contains(showcase);
+            webClient
+                    .get()
+                    .uri("/showcases?title={title}", showcase.title())
+                    .exchange()
+                    .expectStatus()
+                    .isOk()
+                    .expectBodyList(Showcase.class)
+                    .hasSize(1)
+                    .contains(showcase);
         }
 
         @Test
@@ -755,18 +777,17 @@ class ShowcaseApiGatewayE2E {
         void fetchList_singleStatusToFilterBy_exposesFilteredShowcases() {
             val status = aShowcaseStatus();
 
-            webClient.get()
-                     .uri("/showcases?status={status}", status)
-                     .exchange()
-                     .expectStatus()
-                     .isOk()
-                     .expectHeader()
-                     .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
-                     .expectBodyList(Showcase.class)
-                     .value(showcases ->
-                                    assertThat(showcases)
-                                            .isNotEmpty()
-                                            .allMatch(showcase -> showcase.status() == status));
+            webClient
+                    .get()
+                    .uri("/showcases?status={status}", status)
+                    .exchange()
+                    .expectStatus()
+                    .isOk()
+                    .expectHeader()
+                    .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
+                    .expectBodyList(Showcase.class)
+                    .value(showcases ->
+                            assertThat(showcases).isNotEmpty().allMatch(showcase -> showcase.status() == status));
         }
 
         @Test
@@ -775,52 +796,54 @@ class ShowcaseApiGatewayE2E {
             val status1 = aShowcaseStatus();
             val status2 = aShowcaseStatus(status1);
 
-            webClient.get()
-                     .uri("/showcases?status={status1}&status={status2}", status1, status2)
-                     .exchange()
-                     .expectStatus()
-                     .isOk()
-                     .expectHeader()
-                     .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
-                     .expectBodyList(Showcase.class)
-                     .value(showcases ->
-                                    assertThat(showcases)
-                                            .isNotEmpty()
-                                            .allMatch(showcase -> showcase.status() == status1
-                                                                          || showcase.status() == status2));
+            webClient
+                    .get()
+                    .uri("/showcases?status={status1}&status={status2}", status1, status2)
+                    .exchange()
+                    .expectStatus()
+                    .isOk()
+                    .expectHeader()
+                    .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
+                    .expectBodyList(Showcase.class)
+                    .value(showcases -> assertThat(showcases)
+                            .isNotEmpty()
+                            .allMatch(showcase -> showcase.status() == status1 || showcase.status() == status2));
         }
 
         @Test
         @DisplayName("Fetching the list with a size parameter returns at most that many showcases")
         void fetchList_withSizeParameter_returnsLimitedResults() {
-            webClient.get()
-                     .uri("/showcases?size={size}", 1)
-                     .exchange()
-                     .expectStatus()
-                     .isOk()
-                     .expectBodyList(Showcase.class)
-                     .hasSize(1);
+            webClient
+                    .get()
+                    .uri("/showcases?size={size}", 1)
+                    .exchange()
+                    .expectStatus()
+                    .isOk()
+                    .expectBodyList(Showcase.class)
+                    .hasSize(1);
         }
 
         @Test
         @DisplayName("Fetching the list with an afterId cursor returns the next page")
         void fetchList_withAfterIdCursor_returnsPaginatedResults() {
-            val orderedIds =
-                    fetchShowcases("/showcases").stream()
-                                                .map(Showcase::showcaseId)
-                                                .toList();
+            val orderedIds = fetchShowcases("/showcases").stream()
+                    .map(Showcase::showcaseId)
+                    .toList();
 
             assertThat(orderedIds).hasSizeGreaterThanOrEqualTo(2);
 
             val firstPage = fetchShowcases("/showcases?size={size}", 1);
             assertThat(firstPage).hasSize(1);
 
-            val secondPage =
-                    fetchShowcases("/showcases?size={size}&afterId={afterId}", 1, firstPage.getFirst().showcaseId());
+            val secondPage = fetchShowcases(
+                    "/showcases?size={size}&afterId={afterId}",
+                    1,
+                    firstPage.getFirst().showcaseId());
 
             assertThat(secondPage).hasSize(1);
             assertThat(secondPage.getFirst().showcaseId()).isEqualTo(orderedIds.get(1));
-            assertThat(secondPage.getFirst().showcaseId()).isNotEqualTo(firstPage.getFirst().showcaseId());
+            assertThat(secondPage.getFirst().showcaseId())
+                    .isNotEqualTo(firstPage.getFirst().showcaseId());
         }
     }
 }

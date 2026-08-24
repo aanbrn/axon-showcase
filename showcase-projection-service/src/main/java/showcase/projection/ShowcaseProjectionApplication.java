@@ -1,6 +1,9 @@
+// SPDX-License-Identifier: MIT
 package showcase.projection;
 
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
+import java.time.Duration;
+import java.util.Optional;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.core5.util.TimeValue;
 import org.axonframework.extensions.kafka.KafkaProperties;
@@ -18,9 +21,6 @@ import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilde
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import java.time.Duration;
-import java.util.Optional;
-
 /**
  * Application entry point for the showcase projection service.
  *
@@ -28,7 +28,7 @@ import java.util.Optional;
  * REST client.
  */
 @SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
-@EnableConfigurationProperties({ KafkaProperties.class, ShowcaseProjectorProperties.class })
+@EnableConfigurationProperties({KafkaProperties.class, ShowcaseProjectorProperties.class})
 class ShowcaseProjectionApplication {
     /**
      * Application entry point that disables the AxonIQ console message and starts the Spring context.
@@ -51,12 +51,11 @@ class ShowcaseProjectionApplication {
     KafkaMessageConverter<String, byte[]> kafkaMessageConverter(
             @Qualifier("eventSerializer") Serializer eventSerializer,
             org.axonframework.config.Configuration configuration) {
-        return DefaultKafkaMessageConverter
-                       .builder()
-                       .serializer(eventSerializer)
-                       .upcasterChain(Optional.ofNullable(configuration.upcasterChain())
-                                              .orElseGet(EventUpcasterChain::new))
-                       .build();
+        return DefaultKafkaMessageConverter.builder()
+                .serializer(eventSerializer)
+                .upcasterChain(
+                        Optional.ofNullable(configuration.upcasterChain()).orElseGet(EventUpcasterChain::new))
+                .build();
     }
 
     /**
@@ -74,12 +73,10 @@ class ShowcaseProjectionApplication {
             @Value("${opensearch.evict-idle-connections}") Duration evictIdleConnections) {
         return restClientBuilder -> restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> {
             if (maxConnections > 0) {
-                httpClientBuilder.setConnectionManager(
-                        PoolingAsyncClientConnectionManagerBuilder
-                                .create()
-                                .setMaxConnTotal(maxConnections)
-                                .setMaxConnPerRoute(maxConnectionsPerRoute)
-                                .build());
+                httpClientBuilder.setConnectionManager(PoolingAsyncClientConnectionManagerBuilder.create()
+                        .setMaxConnTotal(maxConnections)
+                        .setMaxConnPerRoute(maxConnectionsPerRoute)
+                        .build());
             }
             return httpClientBuilder.evictIdleConnections(TimeValue.of(evictIdleConnections));
         });

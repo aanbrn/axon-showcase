@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
 
 import reactor.core.publisher.Flux;

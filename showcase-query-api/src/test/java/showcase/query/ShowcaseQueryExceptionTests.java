@@ -1,12 +1,13 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static showcase.query.RandomQueryTestUtils.aShowcaseQueryErrorDetails;
 
 import lombok.val;
 import org.axonframework.queryhandling.QueryExecutionException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static showcase.query.RandomQueryTestUtils.aShowcaseQueryErrorDetails;
 
 @DisplayName("Showcase query exception tests")
 class ShowcaseQueryExceptionTests {

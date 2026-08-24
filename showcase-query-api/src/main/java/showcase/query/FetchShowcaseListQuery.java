@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,8 +15,6 @@ import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 import org.jspecify.annotations.Nullable;
 import showcase.identifier.KSUID;
-
-import java.util.Set;
 
 /**
  * Query to fetch a paginated list of showcases, optionally filtered by title and status.

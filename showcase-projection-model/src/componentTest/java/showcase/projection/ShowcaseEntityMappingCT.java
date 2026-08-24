@@ -1,4 +1,7 @@
+// SPDX-License-Identifier: MIT
 package showcase.projection;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.val;
@@ -7,8 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.elasticsearch.core.convert.MappingElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.index.MappingBuilder;
 import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMappingContext;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Showcase entity OpenSearch mapping component tests")
 class ShowcaseEntityMappingCT {
@@ -54,8 +55,9 @@ class ShowcaseEntityMappingCT {
     @DisplayName("The showcase entity mapping has no unexpected fields")
     void noUnexpectedFields() throws Exception {
         converter.afterPropertiesSet();
-        val properties = objectMapper.readTree(new MappingBuilder(converter).buildPropertyMapping(ShowcaseEntity.class))
-                                     .path("properties");
+        val properties = objectMapper
+                .readTree(new MappingBuilder(converter).buildPropertyMapping(ShowcaseEntity.class))
+                .path("properties");
 
         assertThat(properties.size()).isEqualTo(9);
         assertThat(properties.has("_class")).isTrue();

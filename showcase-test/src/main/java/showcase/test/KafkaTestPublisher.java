@@ -1,5 +1,13 @@
+// SPDX-License-Identifier: MIT
 package showcase.test;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,14 +18,6 @@ import org.axonframework.extensions.kafka.eventhandling.producer.KafkaPublisher;
 import org.axonframework.messaging.unitofwork.DefaultUnitOfWork;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.NullUnmarked;
-
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Publishes events to Kafka for testing purposes, tracking per-aggregate sequence numbers.

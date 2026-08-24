@@ -1,10 +1,5 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
-
-import lombok.val;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
@@ -16,6 +11,11 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseStartTime;
 import static showcase.command.RandomCommandTestUtils.aShowcaseStartedAt;
 import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 import static showcase.query.RandomQueryTestUtils.aShowcaseStatus;
+
+import java.time.Instant;
+import lombok.val;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Showcase tests")
 class ShowcaseTests {
@@ -33,17 +33,16 @@ class ShowcaseTests {
         val startedAt = aShowcaseStartedAt(startTime);
         val finishedAt = aShowcaseFinishedAt(startedAt, duration);
 
-        val showcase =
-                Showcase.builder()
-                        .showcaseId(showcaseId)
-                        .title(title)
-                        .startTime(startTime)
-                        .duration(duration)
-                        .status(status)
-                        .scheduledAt(scheduledAt)
-                        .startedAt(startedAt)
-                        .finishedAt(finishedAt)
-                        .build();
+        val showcase = Showcase.builder()
+                .showcaseId(showcaseId)
+                .title(title)
+                .startTime(startTime)
+                .duration(duration)
+                .status(status)
+                .scheduledAt(scheduledAt)
+                .startedAt(startedAt)
+                .finishedAt(finishedAt)
+                .build();
         assertThat(showcase).isNotNull();
         assertThat(showcase.showcaseId()).isEqualTo(showcaseId);
         assertThat(showcase.title()).isEqualTo(title);
@@ -66,15 +65,14 @@ class ShowcaseTests {
         val status = aShowcaseStatus();
         val scheduledAt = aShowcaseScheduledAt(scheduleTime);
 
-        val showcase =
-                Showcase.builder()
-                        .showcaseId(showcaseId)
-                        .title(title)
-                        .startTime(startTime)
-                        .duration(duration)
-                        .status(status)
-                        .scheduledAt(scheduledAt)
-                        .build();
+        val showcase = Showcase.builder()
+                .showcaseId(showcaseId)
+                .title(title)
+                .startTime(startTime)
+                .duration(duration)
+                .status(status)
+                .scheduledAt(scheduledAt)
+                .build();
         assertThat(showcase).isNotNull();
         assertThat(showcase.showcaseId()).isEqualTo(showcaseId);
         assertThat(showcase.title()).isEqualTo(title);
@@ -91,14 +89,13 @@ class ShowcaseTests {
     void construction_missingShowcaseId_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatNullPointerException().isThrownBy(
-                () -> Showcase.builder()
-                              .title(aShowcaseTitle())
-                              .startTime(aShowcaseStartTime(scheduleTime))
-                              .duration(aShowcaseDuration())
-                              .status(aShowcaseStatus())
-                              .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                              .build());
+        assertThatNullPointerException().isThrownBy(() -> Showcase.builder()
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(scheduleTime))
+                .duration(aShowcaseDuration())
+                .status(aShowcaseStatus())
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                .build());
     }
 
     @Test
@@ -106,27 +103,25 @@ class ShowcaseTests {
     void construction_missingTitle_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatNullPointerException().isThrownBy(
-                () -> Showcase.builder()
-                              .showcaseId(aShowcaseId())
-                              .startTime(aShowcaseStartTime(scheduleTime))
-                              .duration(aShowcaseDuration())
-                              .status(aShowcaseStatus())
-                              .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                              .build());
+        assertThatNullPointerException().isThrownBy(() -> Showcase.builder()
+                .showcaseId(aShowcaseId())
+                .startTime(aShowcaseStartTime(scheduleTime))
+                .duration(aShowcaseDuration())
+                .status(aShowcaseStatus())
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                .build());
     }
 
     @Test
     @DisplayName("A showcase without a start time throws a null pointer exception")
     void construction_missingStartTime_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(
-                () -> Showcase.builder()
-                              .showcaseId(aShowcaseId())
-                              .title(aShowcaseTitle())
-                              .duration(aShowcaseDuration())
-                              .status(aShowcaseStatus())
-                              .scheduledAt(aShowcaseScheduledAt(Instant.now()))
-                              .build());
+        assertThatNullPointerException().isThrownBy(() -> Showcase.builder()
+                .showcaseId(aShowcaseId())
+                .title(aShowcaseTitle())
+                .duration(aShowcaseDuration())
+                .status(aShowcaseStatus())
+                .scheduledAt(aShowcaseScheduledAt(Instant.now()))
+                .build());
     }
 
     @Test
@@ -134,14 +129,13 @@ class ShowcaseTests {
     void construction_missingDuration_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatNullPointerException().isThrownBy(
-                () -> Showcase.builder()
-                              .showcaseId(aShowcaseId())
-                              .title(aShowcaseTitle())
-                              .startTime(aShowcaseStartTime(scheduleTime))
-                              .status(aShowcaseStatus())
-                              .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                              .build());
+        assertThatNullPointerException().isThrownBy(() -> Showcase.builder()
+                .showcaseId(aShowcaseId())
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(scheduleTime))
+                .status(aShowcaseStatus())
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                .build());
     }
 
     @Test
@@ -149,26 +143,24 @@ class ShowcaseTests {
     void construction_missingStatus_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatNullPointerException().isThrownBy(
-                () -> Showcase.builder()
-                              .showcaseId(aShowcaseId())
-                              .title(aShowcaseTitle())
-                              .startTime(aShowcaseStartTime(scheduleTime))
-                              .duration(aShowcaseDuration())
-                              .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                              .build());
+        assertThatNullPointerException().isThrownBy(() -> Showcase.builder()
+                .showcaseId(aShowcaseId())
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(scheduleTime))
+                .duration(aShowcaseDuration())
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                .build());
     }
 
     @Test
     @DisplayName("A showcase without a scheduled-at time throws a null pointer exception")
     void construction_missingScheduledAt_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(
-                () -> Showcase.builder()
-                              .showcaseId(aShowcaseId())
-                              .title(aShowcaseTitle())
-                              .startTime(aShowcaseStartTime(Instant.now()))
-                              .duration(aShowcaseDuration())
-                              .status(aShowcaseStatus())
-                              .build());
+        assertThatNullPointerException().isThrownBy(() -> Showcase.builder()
+                .showcaseId(aShowcaseId())
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .status(aShowcaseStatus())
+                .build());
     }
 }

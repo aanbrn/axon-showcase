@@ -1,7 +1,13 @@
+// SPDX-License-Identifier: MIT
 package showcase.query;
+
+import static org.springframework.http.MediaType.APPLICATION_PROTOBUF_VALUE;
 
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.TextFormat.Printer;
+import java.util.Optional;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -22,12 +28,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.channel.AbortedException;
-
-import java.util.Optional;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Predicate;
-
-import static org.springframework.http.MediaType.APPLICATION_PROTOBUF_VALUE;
 
 /**
  * REST controller exposing showcase queries over a protobuf transport.
@@ -65,8 +65,8 @@ final class ShowcaseQueryController {
     @PostMapping(path = "/streaming-query", consumes = APPLICATION_PROTOBUF_VALUE)
     Flux<?> streamingQuery(@RequestBody QueryRequest queryRequest) {
         return dispatchQuery(queryRequest)
-                       .checkpoint("ShowcaseQueryController.streamingQuery(%s)".formatted(
-                               queryRequestPrinter.printToString(queryRequest)));
+                .checkpoint("ShowcaseQueryController.streamingQuery(%s)"
+                        .formatted(queryRequestPrinter.printToString(queryRequest)));
     }
 
     /**
@@ -78,9 +78,9 @@ final class ShowcaseQueryController {
     @PostMapping(path = "/query", consumes = APPLICATION_PROTOBUF_VALUE)
     Mono<?> query(@RequestBody QueryRequest queryRequest) {
         return dispatchQuery(queryRequest)
-                       .next()
-                       .checkpoint("ShowcaseQueryController.query(%s)".formatted(
-                               queryRequestPrinter.printToString(queryRequest)));
+                .next()
+                .checkpoint(
+                        "ShowcaseQueryController.query(%s)".formatted(queryRequestPrinter.printToString(queryRequest)));
     }
 
     /**
@@ -91,18 +91,18 @@ final class ShowcaseQueryController {
      */
     private Flux<?> dispatchQuery(QueryRequest queryRequest) {
         return Mono.fromCallable(() -> queryMessageRequestMapper.requestToMessage(queryRequest))
-                   .onErrorMap(ClassNotFoundException.class, e -> {
-                       log.warn("Unknown expected response type {}", e.getMessage());
+                .onErrorMap(ClassNotFoundException.class, e -> {
+                    log.warn("Unknown expected response type {}", e.getMessage());
 
-                       return new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown expected response type");
-                   })
-                   .transformDeferredContextual((queryMessageMono, ctx) -> queryMessageMono.map(queryMessage -> {
-                       val metaData = ctx.getOrDefault(MetaData.class, MetaData.emptyInstance());
-                       return queryMessage.andMetaData(metaData);
-                   }))
-                   .map(spanFactory::propagateContext)
-                   .flatMapMany(queryBus::streamingQuery)
-                   .map(QueryResponseMessage::getPayload);
+                    return new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown expected response type");
+                })
+                .transformDeferredContextual((queryMessageMono, ctx) -> queryMessageMono.map(queryMessage -> {
+                    val metaData = ctx.getOrDefault(MetaData.class, MetaData.emptyInstance());
+                    return queryMessage.andMetaData(metaData);
+                }))
+                .map(spanFactory::propagateContext)
+                .flatMapMany(queryBus::streamingQuery)
+                .map(QueryResponseMessage::getPayload);
     }
 
     /**
@@ -116,8 +116,8 @@ final class ShowcaseQueryController {
         val errorDetails = e.getErrorDetails();
         return switch (errorDetails.errorCode()) {
             case INVALID_QUERY -> {
-                val problemDetail = ProblemDetail.forStatusAndDetail(
-                        HttpStatus.BAD_REQUEST, errorDetails.errorMessage());
+                val problemDetail =
+                        ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.errorMessage());
                 problemDetail.setProperty("fieldErrors", errorDetails.metaData());
                 yield problemDetail;
             }
@@ -179,12 +179,14 @@ final class ShowcaseQueryController {
     @ExceptionHandler
     @SuppressWarnings("unused")
     private Object handleException(Exception e, ServerWebExchange exchange) {
-        return switch (findCause(e, Predicates.<Throwable>falsePredicate()
-                                              .or(ShowcaseQueryException.class::isInstance)
-                                              .or(DataAccessException.class::isInstance)
-                                              .or(TimeoutException.class::isInstance)
-                                              .or(AbortedException.class::isInstance))
-                               .orElse(e)) {
+        return switch (findCause(
+                        e,
+                        Predicates.<Throwable>falsePredicate()
+                                .or(ShowcaseQueryException.class::isInstance)
+                                .or(DataAccessException.class::isInstance)
+                                .or(TimeoutException.class::isInstance)
+                                .or(AbortedException.class::isInstance))
+                .orElse(e)) {
             case ShowcaseQueryException ex -> handleShowcaseQueryException(ex);
             case DataAccessException ex -> handleDataAccessException(ex);
             case TimeoutException ex -> handleTimeoutException(ex);

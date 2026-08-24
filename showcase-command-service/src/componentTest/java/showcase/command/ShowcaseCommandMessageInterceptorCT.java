@@ -1,5 +1,13 @@
+// SPDX-License-Identifier: MIT
 package showcase.command;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static showcase.command.RandomCommandTestUtils.aScheduleShowcaseCommand;
+import static showcase.command.RandomCommandTestUtils.aTooShortShowcaseDuration;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.val;
 import org.axonframework.commandhandling.CommandMessage;
 import org.axonframework.commandhandling.GenericCommandMessage;
@@ -10,14 +18,6 @@ import org.axonframework.messaging.unitofwork.DefaultUnitOfWork;
 import org.axonframework.modelling.command.AggregateNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static showcase.command.RandomCommandTestUtils.aScheduleShowcaseCommand;
-import static showcase.command.RandomCommandTestUtils.aTooShortShowcaseDuration;
 
 @DisplayName("Showcase command message interceptor component tests")
 class ShowcaseCommandMessageInterceptorCT {
@@ -37,8 +37,7 @@ class ShowcaseCommandMessageInterceptorCT {
                     val exception = (ShowcaseCommandException) it;
                     assertThat(exception.getErrorDetails().errorCode())
                             .isEqualTo(ShowcaseCommandErrorCode.INVALID_COMMAND);
-                    assertThat(exception.getErrorDetails().errorMessage())
-                            .isEqualTo("Given command is not valid");
+                    assertThat(exception.getErrorDetails().errorMessage()).isEqualTo("Given command is not valid");
                     assertThat(exception.getErrorDetails().metaData()).isNotEmpty();
                 });
     }
@@ -76,15 +75,14 @@ class ShowcaseCommandMessageInterceptorCT {
                 .isInstanceOf(ShowcaseCommandException.class)
                 .satisfies(it -> {
                     val exception = (ShowcaseCommandException) it;
-                    assertThat(exception.getErrorDetails().errorCode())
-                            .isEqualTo(ShowcaseCommandErrorCode.NOT_FOUND);
-                    assertThat(exception.getErrorDetails().errorMessage())
-                            .isEqualTo("No showcase with given ID");
+                    assertThat(exception.getErrorDetails().errorCode()).isEqualTo(ShowcaseCommandErrorCode.NOT_FOUND);
+                    assertThat(exception.getErrorDetails().errorMessage()).isEqualTo("No showcase with given ID");
                 });
     }
 
     private static CommandMessage<?> aCommandMessageWithTooShortDuration() {
-        return GenericCommandMessage.asCommandMessage(
-                aScheduleShowcaseCommand().toBuilder().duration(aTooShortShowcaseDuration()).build());
+        return GenericCommandMessage.asCommandMessage(aScheduleShowcaseCommand().toBuilder()
+                .duration(aTooShortShowcaseDuration())
+                .build());
     }
 }

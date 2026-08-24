@@ -1,9 +1,10 @@
+// SPDX-License-Identifier: MIT
 package showcase.identifier;
+
+import static com.github.ksuid.Ksuid.newKsuid;
 
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.common.IdentifierFactory;
-
-import static com.github.ksuid.Ksuid.newKsuid;
 
 /**
  * Axon {@link IdentifierFactory} generating KSUID identifiers.

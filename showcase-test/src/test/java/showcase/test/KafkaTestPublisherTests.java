@@ -1,19 +1,19 @@
+// SPDX-License-Identifier: MIT
 package showcase.test;
-
-import lombok.val;
-import org.axonframework.eventhandling.GenericDomainEventMessage;
-import org.axonframework.extensions.kafka.eventhandling.producer.KafkaPublisher;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
+import java.util.List;
+import lombok.val;
+import org.axonframework.eventhandling.GenericDomainEventMessage;
+import org.axonframework.extensions.kafka.eventhandling.producer.KafkaPublisher;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 @DisplayName("Kafka test publisher tests")
 class KafkaTestPublisherTests {
@@ -48,7 +48,9 @@ class KafkaTestPublisherTests {
 
         val messages = sentMessages(kafkaPublisher);
         assertThat(messages).hasSize(2);
-        assertThat(messages).extracting(GenericDomainEventMessage::getSequenceNumber).containsExactly(0L, 1L);
+        assertThat(messages)
+                .extracting(GenericDomainEventMessage::getSequenceNumber)
+                .containsExactly(0L, 1L);
     }
 
     @Test
@@ -62,7 +64,9 @@ class KafkaTestPublisherTests {
         secondAggregate.publishEvent(new Object());
 
         val messages = sentMessages(kafkaPublisher);
-        assertThat(messages).extracting(GenericDomainEventMessage::getSequenceNumber).containsExactly(0L, 0L);
+        assertThat(messages)
+                .extracting(GenericDomainEventMessage::getSequenceNumber)
+                .containsExactly(0L, 0L);
     }
 
     @Test
@@ -77,7 +81,9 @@ class KafkaTestPublisherTests {
         val messages = sentMessages(kafkaPublisher);
         assertThat(messages).hasSize(2);
         assertThat(messages).extracting(GenericDomainEventMessage::getPayload).containsExactly(event, event);
-        assertThat(messages).extracting(GenericDomainEventMessage::getSequenceNumber).containsExactly(0L, 1L);
+        assertThat(messages)
+                .extracting(GenericDomainEventMessage::getSequenceNumber)
+                .containsExactly(0L, 1L);
     }
 
     @Test
@@ -99,23 +105,21 @@ class KafkaTestPublisherTests {
     @DisplayName("A null aggregate identifier from the extractor is rejected")
     void publishEvent_nullAggregateIdentifier_throwsNullPointerException() {
         val kafkaPublisher = mock(KafkaPublisher.class);
-        val publisher = KafkaTestPublisher
-                               .<Object>builder()
-                               .kafkaPublisher(kafkaPublisher)
-                               .aggregateType(AGGREGATE_TYPE)
-                               .aggregateIdentifierExtractor(__ -> null)
-                               .build();
+        val publisher = KafkaTestPublisher.<Object>builder()
+                .kafkaPublisher(kafkaPublisher)
+                .aggregateType(AGGREGATE_TYPE)
+                .aggregateIdentifierExtractor(__ -> null)
+                .build();
 
         assertThatNullPointerException().isThrownBy(() -> publisher.publishEvent(new Object()));
     }
 
     private KafkaTestPublisher<Object> publisher(KafkaPublisher<?, ?> kafkaPublisher, String aggregateIdentifier) {
-        return KafkaTestPublisher
-                       .<Object>builder()
-                       .kafkaPublisher(kafkaPublisher)
-                       .aggregateType(AGGREGATE_TYPE)
-                       .aggregateIdentifierExtractor(__ -> aggregateIdentifier)
-                       .build();
+        return KafkaTestPublisher.<Object>builder()
+                .kafkaPublisher(kafkaPublisher)
+                .aggregateType(AGGREGATE_TYPE)
+                .aggregateIdentifierExtractor(__ -> aggregateIdentifier)
+                .build();
     }
 
     @SuppressWarnings("unchecked")

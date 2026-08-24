@@ -178,8 +178,10 @@ Tests are organized into four tiers, run in order:
 | Integration      | `./gradlew :<module>:integrationTest`              | Testcontainers (needs Docker) |
 | End-to-end       | `./gradlew :showcase-api-gateway:e2eTest`          | boots all services + infra    |
 
-Run the full check for a module (compile → spotless → checkstyle → spotbugs → errorprone → test → componentTest →
-integrationTest → e2eTest) with `./gradlew :<module>:check`.
+Run the full check for a module — compile, spotless, checkstyle, spotbugs, errorprone, test, componentTest,
+integrationTest, e2eTest — with `./gradlew :<module>:check`. All quality gates run in the Gradle build, so no IDE is
+required to verify a change. An IDE (e.g. IntelliJ IDEA) is an optional convenience for interactive editing, debugging,
+and inspection.
 
 ## Dependency Security
 

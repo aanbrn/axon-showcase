@@ -18,5 +18,11 @@
         </module>
 
         <module name="UnusedImports"/>
+
+        <module name="EqualsHashCode"/>
+        <module name="StringLiteralEquality"/>
+        <module name="SimplifyBooleanReturn"/>
+        <module name="UnusedLocalVariable"/>
+        <module name="AvoidStarImport"/>
     </module>
 </module>

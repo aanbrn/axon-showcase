@@ -196,13 +196,12 @@ Key modules (libraries, not services):
     (`(x) -> { ... }`) so the formatter indents the statements normally instead of deep-aligning one long expression.
     The resulting "Statement lambda can be replaced with expression lambda" inspection is suppressed with
     `@SuppressWarnings("CodeBlock2Expr")` on the source method (the correct token — not `StatementLambdaInspection`).
-- **IDE inspections**: after each edit, run the IDE inspections on the touched files (through the Steroid MCP
-  `steroid_execute_code` / `runInspectionsDirectly`) and fix the reported warnings before reporting the change done.
-  This applies to test classes as well — run inspections on edited `*Tests`, `CT`, `IT`, and `E2E` files and fix any
-  warnings they report, not just production code. Prefer assertions like `assertThat(x).isNotNull()` over
-  `Objects.requireNonNull(x)` when guarding nullable values in tests, since the IDE recognizes them for dataflow. Ignore
-  the `NewClassNamingConvention` inspection on `CT`-, `IT`-, and `E2E`-suffixed test classes alike — the inspection's
-  regex reflects a generic `Test`/`IT` naming convention rather than the project's suffix-based test tiers.
+- **IDE inspections (optional)**: the build gates are the canonical verification — after each edit, run
+  `./gradlew spotlessApply` and the touched module's quality gates (`compileJava`/`check`); no IDE is required. If the
+  IDE is available, you may additionally run its inspections on the touched files (through the Steroid MCP
+  `steroid_execute_code` / `runInspectionsDirectly`) and fix warnings, but this is not required and never a gate.
+  Prefer assertions like `assertThat(x).isNotNull()` over `Objects.requireNonNull(x)` when guarding nullable values in
+  tests, since the IDE recognizes them for dataflow.
 
 ## Docker Images
 

@@ -35,11 +35,11 @@ dependencies {
 }
 
 tasks.withType<SpotBugsTask> {
-    val includeFile = rootProject.layout.projectDirectory.file("spotbugs-include.xml")
+    val includeFile = rootProject.layout.projectDirectory.file("config/spotbugs/spotbugs-include.xml")
     if (includeFile.asFile.exists()) {
         includeFilter = includeFile
     }
-    val excludeFile = rootProject.layout.projectDirectory.file("spotbugs-exclude.xml")
+    val excludeFile = rootProject.layout.projectDirectory.file("config/spotbugs/spotbugs-exclude.xml")
     if (excludeFile.asFile.exists()) {
         excludeFilter = excludeFile
     }

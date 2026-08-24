@@ -19,12 +19,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -42,11 +39,12 @@ import reactor.test.StepVerifier;
 @SpringBootTest(webEnvironment = NONE)
 @DirtiesContext
 @Testcontainers(parallel = true)
-@ExtendWith(OutputCaptureExtension.class)
-@DisplayName("Showcase command client integration tests")
-class ShowcaseCommandClientIT {
+@DisplayName("Showcase command client end-to-end tests")
+class ShowcaseCommandClientE2E {
 
     static final Network network = Network.newNetwork();
+
+    static final StringBuilder commandServiceLog = new StringBuilder();
 
     @Container
     @SuppressWarnings("resource")
@@ -81,7 +79,12 @@ class ShowcaseCommandClientIT {
             .withEnv("JGROUPS_GOSSIP_HOSTS", "axon-showcase-command-service[12001]")
             .withExposedPorts(8080, 12001)
             .waitingFor(Wait.forHttp("/actuator/health").forPort(8080).forStatusCode(200))
-            .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
+            .withLogConsumer(frame -> {
+                System.out.print(frame.getUtf8String());
+                synchronized (commandServiceLog) {
+                    commandServiceLog.append(frame.getUtf8String());
+                }
+            });
 
     @DynamicPropertySource
     static void jgroupsProperties(DynamicPropertyRegistry registry) {
@@ -101,9 +104,9 @@ class ShowcaseCommandClientIT {
     }
 
     @BeforeEach
-    void awaitUntilClusterFormed(CapturedOutput output) {
-        await().untilAsserted(
-                        () -> assertThat(output).matches("(?s).*axon-showcase-command-service.+joined the cluster.*"));
+    void awaitUntilClusterFormed() {
+        await().untilAsserted(() -> assertThat(commandServiceLog.toString())
+                .matches("(?s).*axon-showcase-command-service.+joined the cluster.*"));
     }
 
     @Test

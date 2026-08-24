@@ -176,7 +176,7 @@ Tests are organized into four tiers, run in order:
 | Unit             | `./gradlew :<module>:test`                         | isolated, no Spring context   |
 | Component        | `./gradlew :<module>:componentTest`                | real in-process collaborators |
 | Integration      | `./gradlew :<module>:integrationTest`              | Testcontainers (needs Docker) |
-| End-to-end       | `./gradlew :showcase-api-gateway:e2eTest`          | boots all services + infra    |
+| End-to-end       | `./gradlew :<module>:e2eTest`                      | real deployed service + infra |
 
 Run the full check for a module — compile, spotless, checkstyle, spotbugs, errorprone, test, componentTest,
 integrationTest, e2eTest — with `./gradlew :<module>:check`. All quality gates run in the Gradle build, so no IDE is

@@ -68,7 +68,7 @@ testing {
             }
         }
 
-        register<JvmTestSuite>("integrationTest") {
+        register<JvmTestSuite>("e2eTest") {
             dependencies {
                 implementation(libs.axon.springBoot.starter) {
                     exclude(

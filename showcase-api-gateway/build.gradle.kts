@@ -172,7 +172,7 @@ testing {
                 all {
                     testTask.configure {
                         shouldRunAfter(integrationTest)
-                        mustRunAfter(":showcase-command-client:integrationTest")
+                        mustRunAfter(":showcase-command-client:e2eTest")
                         mustRunAfter(":showcase-query-client:e2eTest")
 
                         dependsOn(

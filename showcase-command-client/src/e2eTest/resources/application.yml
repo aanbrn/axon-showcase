@@ -1,6 +1,6 @@
 spring:
   application:
-    name: showcase-command-client-integration-test
+    name: showcase-command-client-end-to-end-test
   main:
     banner-mode: off
 

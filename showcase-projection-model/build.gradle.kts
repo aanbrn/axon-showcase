@@ -12,7 +12,7 @@ dependencies {
     api(libs.spring.data.opensearch) {
         exclude(
             group = libs.opensearch.client.restHighLevel.get().group,
-            module = libs.opensearch.client.restHighLevel.get().name
+            module = libs.opensearch.client.restHighLevel.get().name,
         )
     }
 }

@@ -1,6 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-
 plugins {
     id("java-library-conventions")
     id("code-coverage-conventions")
@@ -37,85 +36,88 @@ testing {
 
         val test = suites.getByName<JvmTestSuite>("test")
 
-        val componentTest = suites.register<JvmTestSuite>("componentTest") {
-            dependencies {
-                implementation(project(":showcase-resilience4j-extension"))
+        val componentTest =
+            suites.register<JvmTestSuite>("componentTest") {
+                dependencies {
+                    implementation(project(":showcase-resilience4j-extension"))
 
-                implementation(libs.axon.springBoot.starter) {
-                    exclude(
-                        group = libs.axon.serverConnector.get().group,
-                        module = libs.axon.serverConnector.get().name
-                    )
-                }
-                implementation(libs.spring.data.opensearch.starter) {
-                    exclude(
-                        group = libs.opensearch.client.restHighLevel.get().group,
-                        module = libs.opensearch.client.restHighLevel.get().name
-                    )
-                }
-                implementation(libs.opensearch.client.java)
-                implementation(libs.elasticsearch.client.java)
-                implementation(libs.reactor.test)
-                implementation(libs.reactor.blockhound)
-                implementation(libs.reactor.tools)
-                implementation(libs.resilience4j.springBoot3)
-                implementation(libs.spring.boot.starter.aop)
-                implementation(libs.spring.boot.starter.test)
-                implementation(libs.spring.boot.starter.webflux)
-                implementation(libs.wiremock.springBoot)
-            }
-
-            targets {
-                all {
-                    testTask.configure {
-                        shouldRunAfter(test)
-                    }
-                }
-            }
-        }
-
-        val integrationTest = suites.register<JvmTestSuite>("integrationTest") {
-            dependencies {
-                implementation(project(":showcase-resilience4j-extension"))
-                implementation(project(":showcase-query-proto"))
-
-                implementation(libs.axon.springBoot.starter) {
-                    exclude(
-                        group = libs.axon.serverConnector.get().group,
-                        module = libs.axon.serverConnector.get().name
-                    )
-                }
-                implementation(libs.spring.data.opensearch.starter) {
-                    exclude(
-                        group = libs.opensearch.client.restHighLevel.get().group,
-                        module = libs.opensearch.client.restHighLevel.get().name
-                    )
-                }
-                implementation(libs.opensearch.client.java)
-                implementation(libs.elasticsearch.client.java)
-                implementation(libs.reactor.test)
-                implementation(libs.reactor.blockhound)
-                implementation(libs.reactor.tools)
-                implementation(libs.resilience4j.springBoot3)
-                implementation(libs.spring.boot.starter.aop)
-                implementation(libs.spring.boot.starter.test)
-                implementation(libs.spring.boot.starter.webflux)
-                implementation(libs.wiremock.springBoot)
-            }
-
-            targets {
-                all {
-                    testTask.configure {
-                        jvmArgs = listOf(
-                            "-XX:+AllowRedefinitionToAddDeleteMethods",
-                            "-XX:+EnableDynamicAgentLoading"
+                    implementation(libs.axon.springBoot.starter) {
+                        exclude(
+                            group = libs.axon.serverConnector.get().group,
+                            module = libs.axon.serverConnector.get().name,
                         )
+                    }
+                    implementation(libs.spring.data.opensearch.starter) {
+                        exclude(
+                            group = libs.opensearch.client.restHighLevel.get().group,
+                            module = libs.opensearch.client.restHighLevel.get().name,
+                        )
+                    }
+                    implementation(libs.opensearch.client.java)
+                    implementation(libs.elasticsearch.client.java)
+                    implementation(libs.reactor.test)
+                    implementation(libs.reactor.blockhound)
+                    implementation(libs.reactor.tools)
+                    implementation(libs.resilience4j.springBoot3)
+                    implementation(libs.spring.boot.starter.aop)
+                    implementation(libs.spring.boot.starter.test)
+                    implementation(libs.spring.boot.starter.webflux)
+                    implementation(libs.wiremock.springBoot)
+                }
 
-                        shouldRunAfter(componentTest)
+                targets {
+                    all {
+                        testTask.configure {
+                            shouldRunAfter(test)
+                        }
                     }
                 }
             }
-        }
+
+        val integrationTest =
+            suites.register<JvmTestSuite>("integrationTest") {
+                dependencies {
+                    implementation(project(":showcase-resilience4j-extension"))
+                    implementation(project(":showcase-query-proto"))
+
+                    implementation(libs.axon.springBoot.starter) {
+                        exclude(
+                            group = libs.axon.serverConnector.get().group,
+                            module = libs.axon.serverConnector.get().name,
+                        )
+                    }
+                    implementation(libs.spring.data.opensearch.starter) {
+                        exclude(
+                            group = libs.opensearch.client.restHighLevel.get().group,
+                            module = libs.opensearch.client.restHighLevel.get().name,
+                        )
+                    }
+                    implementation(libs.opensearch.client.java)
+                    implementation(libs.elasticsearch.client.java)
+                    implementation(libs.reactor.test)
+                    implementation(libs.reactor.blockhound)
+                    implementation(libs.reactor.tools)
+                    implementation(libs.resilience4j.springBoot3)
+                    implementation(libs.spring.boot.starter.aop)
+                    implementation(libs.spring.boot.starter.test)
+                    implementation(libs.spring.boot.starter.webflux)
+                    implementation(libs.wiremock.springBoot)
+                }
+
+                targets {
+                    all {
+                        testTask.configure {
+                            jvmArgs =
+                                listOf(
+                                    "-XX:+AllowRedefinitionToAddDeleteMethods",
+                                    "-XX:+EnableDynamicAgentLoading",
+                                )
+
+                            shouldRunAfter(componentTest)
+                        }
+                    }
+                }
+            }
 
         register<JvmTestSuite>("e2eTest") {
             dependencies {
@@ -124,13 +126,13 @@ testing {
                 implementation(libs.axon.springBoot.starter) {
                     exclude(
                         group = libs.axon.serverConnector.get().group,
-                        module = libs.axon.serverConnector.get().name
+                        module = libs.axon.serverConnector.get().name,
                     )
                 }
                 implementation(libs.spring.data.opensearch.starter) {
                     exclude(
                         group = libs.opensearch.client.restHighLevel.get().group,
-                        module = libs.opensearch.client.restHighLevel.get().name
+                        module = libs.opensearch.client.restHighLevel.get().name,
                     )
                 }
                 implementation(libs.opensearch.client.java)
@@ -142,7 +144,7 @@ testing {
                 implementation(libs.spring.data.opensearch.testcontainers) {
                     exclude(
                         group = libs.opensearch.client.restHighLevel.get().group,
-                        module = libs.opensearch.client.restHighLevel.get().name
+                        module = libs.opensearch.client.restHighLevel.get().name,
                     )
                 }
                 implementation(libs.testcontainers.junit.jupiter)
@@ -152,10 +154,11 @@ testing {
             targets {
                 all {
                     testTask.configure {
-                        jvmArgs = listOf(
-                            "-XX:+AllowRedefinitionToAddDeleteMethods",
-                            "-XX:+EnableDynamicAgentLoading"
-                        )
+                        jvmArgs =
+                            listOf(
+                                "-XX:+AllowRedefinitionToAddDeleteMethods",
+                                "-XX:+EnableDynamicAgentLoading",
+                            )
 
                         shouldRunAfter(integrationTest)
 

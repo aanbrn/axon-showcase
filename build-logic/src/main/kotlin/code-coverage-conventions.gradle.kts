@@ -1,10 +1,9 @@
+import java.math.BigDecimal
+import java.util.Properties
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
-
-import java.math.BigDecimal
-import java.util.Properties
 
 plugins {
     jacoco
@@ -18,17 +17,14 @@ jacoco {
 
 val skipITs: Provider<Boolean> = providers.gradleProperty("skipITs").map { it != "false" }.orElse(false)
 
-val allSuiteTestTasks = tasks.withType<Test>().matching {
-    it.name != "e2eTest" && (it.name != "integrationTest" || !skipITs.get())
-}
+val allSuiteTestTasks =
+    tasks.withType<Test>().matching {
+        it.name != "e2eTest" && (it.name != "integrationTest" || !skipITs.get())
+    }
 
 val jacocoExecDir = layout.buildDirectory.dir("jacoco").get().asFile
 
-val mainClasses = extensions.getByType<SourceSetContainer>()
-    .named("main")
-    .get()
-    .output
-    .classesDirs
+val mainClasses = extensions.getByType<SourceSetContainer>().named("main").get().output.classesDirs
 
 fun generatedClassExcludes(): List<String> {
     val moduleExcludes = project.findProperty("coverage.generatedClassExcludes") as? List<*> ?: emptyList<Any?>()
@@ -36,14 +32,12 @@ fun generatedClassExcludes(): List<String> {
         "**/*Proto.class",
         "**/*OrBuilder.class",
         "**/*OuterClass.class",
-        "**/*Grpc.class"
+        "**/*Grpc.class",
     ) + moduleExcludes.map { it.toString() }
 }
 
 val coverageBaselineMinimum: BigDecimal = run {
-    val baselineFile = rootProject.layout.projectDirectory
-        .file("config/jacoco/coverage-baseline.properties")
-        .asFile
+    val baselineFile = rootProject.layout.projectDirectory.file("config/jacoco/coverage-baseline.properties").asFile
     val props = Properties()
     if (baselineFile.exists()) {
         baselineFile.inputStream().use { props.load(it) }
@@ -55,13 +49,23 @@ val coverageGateEnabled = providers.provider { project.findProperty("coverage.ga
 
 tasks.named<JacocoReport>("jacocoTestReport") {
     classDirectories.setFrom(mainClasses.asFileTree.matching { exclude(generatedClassExcludes()) })
-    executionData.setFrom(fileTree(jacocoExecDir) { include("*.exec"); exclude("e2eTest.exec") })
+    executionData.setFrom(
+        fileTree(jacocoExecDir) {
+            include("*.exec")
+            exclude("e2eTest.exec")
+        }
+    )
     dependsOn(allSuiteTestTasks)
 }
 
 tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
     classDirectories.setFrom(mainClasses.asFileTree.matching { exclude(generatedClassExcludes()) })
-    executionData.setFrom(fileTree(jacocoExecDir) { include("*.exec"); exclude("e2eTest.exec") })
+    executionData.setFrom(
+        fileTree(jacocoExecDir) {
+            include("*.exec")
+            exclude("e2eTest.exec")
+        }
+    )
     dependsOn(allSuiteTestTasks)
 
     violationRules {

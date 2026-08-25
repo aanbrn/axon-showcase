@@ -55,8 +55,8 @@ suffixes (`Tests`, `CT`, `IT`, `E2E`).
 
 ### Requirement: Source formatting is enforced by the build
 
-The build SHALL format Java sources to a canonical style and verify formatting as part of the standard `check` task,
-with no IDE required.
+The build SHALL format Java and Kotlin DSL (`.gradle.kts`) sources to a canonical style — including removal of unused
+imports — and verify formatting as part of the standard `check` task, with no IDE required.
 
 #### Scenario: Formatting check runs in the standard check
 
@@ -66,6 +66,11 @@ with no IDE required.
 #### Scenario: Unformatted source fails the build
 
 - **WHEN** a source file does not conform to the canonical formatting
+- **THEN** the formatting check fails and reports the offending file
+
+#### Scenario: Unused import fails the build
+
+- **WHEN** a Kotlin DSL (`.gradle.kts`) source file contains an unused import
 - **THEN** the formatting check fails and reports the offending file
 
 #### Scenario: Formatting runs without an IDE

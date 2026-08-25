@@ -3,7 +3,15 @@ plugins {
     id("dependency-versions-conventions")
     id("docker-conventions")
     id("helm-releases-conventions")
+    alias(libs.plugins.spotless)
     jacoco
+}
+
+spotless {
+    kotlinGradle {
+        target("*.gradle.kts", "build-logic/*.gradle.kts", "build-logic/src/**/*.gradle.kts")
+        ktfmt().kotlinlangStyle().configure { it.setMaxWidth(120) }
+    }
 }
 
 allprojects {
@@ -36,14 +44,10 @@ tasks.register<JacocoReport>("jacocoRootReport") {
     dependsOn(covered.map { "${it.path}:jacocoTestReport" })
 
     executionData.setFrom(
-        covered.map {
-            it.layout.buildDirectory.dir("jacoco").get().asFileTree.matching { include("*.exec") }
-        }
+        covered.map { it.layout.buildDirectory.dir("jacoco").get().asFileTree.matching { include("*.exec") } }
     )
     sourceDirectories.setFrom(
-        covered.map {
-            it.extensions.getByType<SourceSetContainer>().named("main").get().allSource.srcDirs
-        }
+        covered.map { it.extensions.getByType<SourceSetContainer>().named("main").get().allSource.srcDirs }
     )
     classDirectories.setFrom(
         covered.map {
@@ -52,7 +56,7 @@ tasks.register<JacocoReport>("jacocoRootReport") {
                     "**/*Proto.class",
                     "**/*OrBuilder.class",
                     "**/*OuterClass.class",
-                    "**/*Grpc.class"
+                    "**/*Grpc.class",
                 )
             }
         }
@@ -72,9 +76,7 @@ helm {
             wait = true
             waitForJobs = true
 
-            test {
-                enabled = false
-            }
+            test { enabled = false }
         }
 
         create("kps") {
@@ -92,7 +94,7 @@ helm {
                 "axon-showcase-db-events",
                 "axon-showcase-kafka",
                 "axon-showcase-os-views",
-                "axon-showcase"
+                "axon-showcase",
             )
         }
 
@@ -156,7 +158,7 @@ helm {
                 ":showcase-command-service:bootBuildImage",
                 ":showcase-projection-service:bootBuildImage",
                 ":showcase-query-service:bootBuildImage",
-                ":showcase-api-gateway:bootBuildImage"
+                ":showcase-api-gateway:bootBuildImage",
             )
 
             mustInstallAfter(
@@ -164,14 +166,10 @@ helm {
                 "tempo",
                 "axon-showcase-db-events",
                 "axon-showcase-kafka",
-                "axon-showcase-os-views"
+                "axon-showcase-os-views",
             )
         }
     }
 
-    releaseTargets {
-        create("local") {
-            selectTags = "*"
-        }
-    }
+    releaseTargets { create("local") { selectTags = "*" } }
 }

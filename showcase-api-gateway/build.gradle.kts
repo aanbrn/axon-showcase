@@ -66,92 +66,95 @@ testing {
 
         val test = suites.getByName<JvmTestSuite>("test")
 
-        val componentTest = suites.register<JvmTestSuite>("componentTest") {
-            dependencies {
-                implementation(project(":showcase-command-client"))
-                implementation(project(":showcase-query-client"))
+        val componentTest =
+            suites.register<JvmTestSuite>("componentTest") {
+                dependencies {
+                    implementation(project(":showcase-command-client"))
+                    implementation(project(":showcase-query-client"))
 
-                implementation(libs.spring.boot.starter.security)
-                implementation(libs.spring.boot.starter.test)
-                implementation(libs.spring.boot.starter.webflux)
-                implementation(libs.caffeine)
-                implementation(libs.streamex)
-                implementation(libs.netty.resolver.dnsNativeMacos)
-                implementation(libs.reactor.blockhound)
-                implementation(libs.reactor.tools)
-                implementation(libs.resilience4j.all)
+                    implementation(libs.spring.boot.starter.security)
+                    implementation(libs.spring.boot.starter.test)
+                    implementation(libs.spring.boot.starter.webflux)
+                    implementation(libs.caffeine)
+                    implementation(libs.streamex)
+                    implementation(libs.netty.resolver.dnsNativeMacos)
+                    implementation(libs.reactor.blockhound)
+                    implementation(libs.reactor.tools)
+                    implementation(libs.resilience4j.all)
+                }
+
+                targets {
+                    all {
+                        testTask.configure {
+                            jvmArgs =
+                                listOf(
+                                    "-XX:+AllowRedefinitionToAddDeleteMethods",
+                                    "-XX:+EnableDynamicAgentLoading",
+                                )
+
+                            shouldRunAfter(test)
+                        }
+                    }
+                }
             }
 
-            targets {
-                all {
-                    testTask.configure {
-                        jvmArgs = listOf(
-                            "-XX:+AllowRedefinitionToAddDeleteMethods",
-                            "-XX:+EnableDynamicAgentLoading"
+        val integrationTest =
+            suites.register<JvmTestSuite>("integrationTest") {
+                dependencies {
+                    implementation(project(":showcase-command-client"))
+                    implementation(project(":showcase-query-client"))
+
+                    implementation(libs.axon.springBoot.starter) {
+                        exclude(
+                            group = libs.axon.serverConnector.get().group,
+                            module = libs.axon.serverConnector.get().name,
                         )
+                    }
+                    implementation(libs.axon.extensions.jgroups.springBootStarter)
+                    implementation(libs.axon.extensions.reactor.springBootStarter)
+                    implementation(libs.axon.micrometer)
+                    implementation(libs.axon.tracing.opentelemetry)
 
-                        shouldRunAfter(test)
+                    implementation(libs.jgroups.kunernetes)
+
+                    implementation(libs.spring.boot.starter.aop)
+                    implementation(libs.spring.boot.starter.actuator)
+                    implementation(libs.spring.boot.starter.cache)
+                    implementation(libs.spring.boot.starter.security)
+                    implementation(libs.spring.boot.starter.test)
+                    implementation(libs.spring.boot.starter.validation)
+                    implementation(libs.spring.boot.starter.webflux)
+
+                    implementation(libs.springdoc.openapi.starter.webflux.ui)
+
+                    implementation(libs.spring.data.commons)
+
+                    implementation(libs.hibernate.validator)
+                    implementation(libs.jackson2.module.blackbird)
+                    implementation(libs.caffeine)
+                    implementation(libs.commons.lang3)
+                    implementation(libs.streamex)
+                    implementation(libs.resilience4j.springBoot3)
+
+                    implementation(libs.micrometer.registry.prometheus)
+                    implementation(libs.micrometer.registry.otlp)
+                    implementation(libs.micrometer.tracing.bridge.otel)
+                    implementation(libs.opentelemetry.exporter.otlp)
+
+                    implementation(libs.reactor.test)
+                    implementation(libs.netty.resolver.dnsNativeMacos)
+                }
+
+                targets {
+                    all {
+                        testTask.configure {
+                            systemProperty("disable-axoniq-console-message", "true")
+
+                            shouldRunAfter(componentTest)
+                        }
                     }
                 }
             }
-        }
-
-        val integrationTest = suites.register<JvmTestSuite>("integrationTest") {
-            dependencies {
-                implementation(project(":showcase-command-client"))
-                implementation(project(":showcase-query-client"))
-
-                implementation(libs.axon.springBoot.starter) {
-                    exclude(
-                        group = libs.axon.serverConnector.get().group,
-                        module = libs.axon.serverConnector.get().name
-                    )
-                }
-                implementation(libs.axon.extensions.jgroups.springBootStarter)
-                implementation(libs.axon.extensions.reactor.springBootStarter)
-                implementation(libs.axon.micrometer)
-                implementation(libs.axon.tracing.opentelemetry)
-
-                implementation(libs.jgroups.kunernetes)
-
-                implementation(libs.spring.boot.starter.aop)
-                implementation(libs.spring.boot.starter.actuator)
-                implementation(libs.spring.boot.starter.cache)
-                implementation(libs.spring.boot.starter.security)
-                implementation(libs.spring.boot.starter.test)
-                implementation(libs.spring.boot.starter.validation)
-                implementation(libs.spring.boot.starter.webflux)
-
-                implementation(libs.springdoc.openapi.starter.webflux.ui)
-
-                implementation(libs.spring.data.commons)
-
-                implementation(libs.hibernate.validator)
-                implementation(libs.jackson2.module.blackbird)
-                implementation(libs.caffeine)
-                implementation(libs.commons.lang3)
-                implementation(libs.streamex)
-                implementation(libs.resilience4j.springBoot3)
-
-                implementation(libs.micrometer.registry.prometheus)
-                implementation(libs.micrometer.registry.otlp)
-                implementation(libs.micrometer.tracing.bridge.otel)
-                implementation(libs.opentelemetry.exporter.otlp)
-
-                implementation(libs.reactor.test)
-                implementation(libs.netty.resolver.dnsNativeMacos)
-            }
-
-            targets {
-                all {
-                    testTask.configure {
-                        systemProperty("disable-axoniq-console-message", "true")
-
-                        shouldRunAfter(componentTest)
-                    }
-                }
-            }
-        }
 
         register<JvmTestSuite>("e2eTest") {
             dependencies {
@@ -179,7 +182,7 @@ testing {
                             "bootBuildImage",
                             ":showcase-command-service:bootBuildImage",
                             ":showcase-projection-service:bootBuildImage",
-                            ":showcase-query-service:bootBuildImage"
+                            ":showcase-query-service:bootBuildImage",
                         )
 
                         systemProperty("disable-axoniq-console-message", "true")
@@ -200,7 +203,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
             "BPE_DEFAULT_JGROUPS_BIND_ADDR" to "SITE_LOCAL",
             "BPE_DEFAULT_JGROUPS_BIND_PORT" to "7800",
             "BPE_DEFAULT_JGROUPS_TCP_PING_HOSTS" to
-                    "axon-showcase-api-gateway[7800],axon-showcase-command-service[7800]"
+                "axon-showcase-api-gateway[7800],axon-showcase-command-service[7800]",
         )
     )
 }

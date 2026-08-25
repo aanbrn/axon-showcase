@@ -79,20 +79,24 @@ Read: Client → API Gateway → Query Service → OpenSearch
 
 ### IntelliJ IDEA Setup
 
-Formatting is enforced by Spotless (palantir-java-format): `./gradlew spotlessApply` formats, `spotlessCheck`
-verifies, and the build never depends on an IDE. IntelliJ's built-in formatter uses its own code style and would
-reformat files differently, so configure the IDE to stay in sync:
+Formatting is enforced by Spotless — palantir-java-format for Java, ktfmt for Gradle Kotlin DSL (`*.gradle.kts`):
+`./gradlew spotlessApply` formats, `spotlessCheck` verifies, and the build never depends on an IDE. IntelliJ's built-in
+formatter uses its own code style and would reformat files differently, so configure the IDE to stay in sync:
 
-- Install the **palantir-java-format** plugin by running the setup script — it locates your IntelliJ and runs
-  `installPlugins palantir-java-format` (run it with the IDE closed, then restart):
+- Install the **palantir-java-format** and **ktfmt** plugins by running the setup script — it locates your IntelliJ
+  and runs `installPlugins` for both (run it with the IDE closed, then restart):
 
   ```bash
   ./scripts/setup-idea.sh
   ```
 
-  The repo ships `.idea/palantir-java-format.xml` with `enabled=true`, so once installed the plugin is auto-enabled
-  for this project; where it is disabled by default (only auto-enabled by the `com.palantir.java-format` Gradle
-  plugin, which this project does not use), enable it via **Settings → Other Settings → palantir-java-format
+  The repo ships `.idea/palantir-java-format.xml` and `.idea/ktfmt.xml` with the enabled flags (the ktfmt config uses
+  the plugin's **Custom** style to reproduce ktfmt's kotlinlang style at 120 columns with unused-import removal — the
+  plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the line-length option), so once
+  installed the
+  plugins are auto-enabled for this project; where a plugin is disabled by default (palantir only auto-enables with the
+  `com.palantir.java-format` Gradle plugin, which this project does not use), enable it via **Settings → Other
+  Settings → palantir-java-format
   Settings**. When enabled it replaces `Reformat Code` (`Ctrl+Alt+L`) with the palantir formatter.
 - The plugin only replaces `Reformat Code`; **import order is a separate mechanism** — IntelliJ's `Optimize Imports`
   (`Ctrl+Alt+O`) uses the code style's *Import Layout*. The repo ships `.idea/codeStyles/Project.xml` (enabled by

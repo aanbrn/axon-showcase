@@ -59,37 +59,39 @@ testing {
             }
         }
 
-        val test = suites.getByName<JvmTestSuite>("test") {
-            dependencies {
-                implementation(libs.mockito.junit.jupiter)
-            }
-        }
-
-        val componentTest = suites.register<JvmTestSuite>("componentTest") {
-            dependencies {
-                implementation(libs.axon.test)
-                implementation(libs.dbScheduler.springBootStarter)
-                implementation(libs.hamcrest)
-                implementation(libs.mockito.junit.jupiter)
-                implementation(libs.spring.boot.starter.actuator)
-                implementation(libs.spring.boot.starter.test)
+        val test =
+            suites.getByName<JvmTestSuite>("test") {
+                dependencies {
+                    implementation(libs.mockito.junit.jupiter)
+                }
             }
 
-            targets {
-                all {
-                    testTask.configure {
-                        shouldRunAfter(test)
+        val componentTest =
+            suites.register<JvmTestSuite>("componentTest") {
+                dependencies {
+                    implementation(libs.axon.test)
+                    implementation(libs.dbScheduler.springBootStarter)
+                    implementation(libs.hamcrest)
+                    implementation(libs.mockito.junit.jupiter)
+                    implementation(libs.spring.boot.starter.actuator)
+                    implementation(libs.spring.boot.starter.test)
+                }
+
+                targets {
+                    all {
+                        testTask.configure {
+                            shouldRunAfter(test)
+                        }
                     }
                 }
             }
-        }
 
         register<JvmTestSuite>("integrationTest") {
             dependencies {
                 implementation(libs.axon.springBoot.starter) {
                     exclude(
                         group = libs.axon.serverConnector.get().group,
-                        module = libs.axon.serverConnector.get().name
+                        module = libs.axon.serverConnector.get().name,
                     )
                 }
                 implementation(libs.axon.extensions.jgroups.springBootStarter)
@@ -127,8 +129,8 @@ tasks.named<BootBuildImage>("bootBuildImage") {
             "BPE_DEFAULT_JGROUPS_BIND_ADDR" to "SITE_LOCAL",
             "BPE_DEFAULT_JGROUPS_BIND_PORT" to "7800",
             "BPE_DEFAULT_JGROUPS_TCP_PING_HOSTS" to
-                    "axon-showcase-api-gateway[7800],axon-showcase-command-service[7800]",
-            "BPE_DEFAULT_KAFKA_BOOTSTRAP_SERVERS" to "axon-showcase-kafka:9092"
+                "axon-showcase-api-gateway[7800],axon-showcase-command-service[7800]",
+            "BPE_DEFAULT_KAFKA_BOOTSTRAP_SERVERS" to "axon-showcase-kafka:9092",
         )
     )
 }

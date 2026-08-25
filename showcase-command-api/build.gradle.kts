@@ -1,6 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-
 plugins {
     id("java-library-conventions")
 }

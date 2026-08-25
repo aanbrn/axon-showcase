@@ -1,7 +1,7 @@
+import java.util.concurrent.locks.ReentrantLock
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.plugins.ExtraPropertiesExtension.UnknownPropertyException
-import java.util.concurrent.locks.ReentrantLock
 
 val libs = the<LibrariesForLibs>()
 
@@ -22,17 +22,16 @@ tasks.register<Exec>("composeBuildAndUp") {
             "Builds an image and starts the ${project.name} service"
         }
 
-    dependsOn(
-        allprojects.flatMap { project -> project.tasks.named { it == "bootBuildImage" } }
-    )
+    dependsOn(allprojects.flatMap { project -> project.tasks.named { it == "bootBuildImage" } })
 
-    commandLine = dockerCli(
-        if (project == rootProject) {
-            "compose up -d"
-        } else {
-            "compose up -d ${project.name}"
-        }
-    )
+    commandLine =
+        dockerCli(
+            if (project == rootProject) {
+                "compose up -d"
+            } else {
+                "compose up -d ${project.name}"
+            }
+        )
 }
 
 tasks.register<Exec>("composeBuildAndRestart") {
@@ -44,17 +43,16 @@ tasks.register<Exec>("composeBuildAndRestart") {
             "Builds an image and restarts the ${project.name} service"
         }
 
-    dependsOn(
-        allprojects.flatMap { project -> project.tasks.named { it == "bootBuildImage" } }
-    )
+    dependsOn(allprojects.flatMap { project -> project.tasks.named { it == "bootBuildImage" } })
 
-    commandLine = dockerCli(
-        if (project == rootProject) {
-            "compose restart"
-        } else {
-            "compose restart ${project.name}"
-        }
-    )
+    commandLine =
+        dockerCli(
+            if (project == rootProject) {
+                "compose restart"
+            } else {
+                "compose restart ${project.name}"
+            }
+        )
 }
 
 tasks.register<Exec>("composeUp") {
@@ -66,13 +64,14 @@ tasks.register<Exec>("composeUp") {
             "Starts the ${project.name} service"
         }
 
-    commandLine = dockerCli(
-        if (project == rootProject) {
-            "compose up -d"
-        } else {
-            "compose up -d ${project.name}"
-        }
-    )
+    commandLine =
+        dockerCli(
+            if (project == rootProject) {
+                "compose up -d"
+            } else {
+                "compose up -d ${project.name}"
+            }
+        )
 }
 
 tasks.register<Exec>("composeRestart") {
@@ -84,13 +83,14 @@ tasks.register<Exec>("composeRestart") {
             "Restarts the ${project.name} service"
         }
 
-    commandLine = dockerCli(
-        if (project == rootProject) {
-            "compose restart"
-        } else {
-            "compose restart ${project.name}"
-        }
-    )
+    commandLine =
+        dockerCli(
+            if (project == rootProject) {
+                "compose restart"
+            } else {
+                "compose restart ${project.name}"
+            }
+        )
 }
 
 tasks.register<Exec>("composeStop") {
@@ -102,13 +102,14 @@ tasks.register<Exec>("composeStop") {
             "Stops the ${project.name} service"
         }
 
-    commandLine = dockerCli(
-        if (project == rootProject) {
-            "compose stop"
-        } else {
-            "compose stop ${project.name}"
-        }
-    )
+    commandLine =
+        dockerCli(
+            if (project == rootProject) {
+                "compose stop"
+            } else {
+                "compose stop ${project.name}"
+            }
+        )
 }
 
 tasks.register<Exec>("composeDown") {
@@ -120,13 +121,14 @@ tasks.register<Exec>("composeDown") {
             "Stops and removes the ${project.name} service"
         }
 
-    commandLine = dockerCli(
-        if (project == rootProject) {
-            "compose down"
-        } else {
-            "compose down ${project.name}"
-        }
-    )
+    commandLine =
+        dockerCli(
+            if (project == rootProject) {
+                "compose down"
+            } else {
+                "compose down ${project.name}"
+            }
+        )
 }
 
 val dockerLock =
@@ -140,36 +142,43 @@ val dockerLock =
         }
     }
 
-val defaultProject = allprojects.find {
-    it.layout.projectDirectory.asFile == gradle.startParameter.projectDir
-} ?: rootProject
+val defaultProject =
+    allprojects.find {
+        it.layout.projectDirectory.asFile == gradle.startParameter.projectDir
+    } ?: rootProject
 
-tasks.withType<Exec>().matching { task ->
-    task.name.startsWith("compose")
-}.configureEach {
-    environment["PROJECT_VERSION"] = project.version
-    environment["POSTGRES_VERSION"] = libs.versions.postgres.image.get()
-    environment["OPENSEARCH_VERSION"] = libs.versions.opensearch.image.get()
-    environment["KAFKA_VERSION"] = libs.versions.kafka.image.get()
-    workingDir = rootProject.layout.projectDirectory.asFile
-
-    doFirst {
-        dockerLock.lock()
+tasks
+    .withType<Exec>()
+    .matching { task ->
+        task.name.startsWith("compose")
     }
+    .configureEach {
+        environment["PROJECT_VERSION"] = project.version
+        environment["POSTGRES_VERSION"] = libs.versions.postgres.image.get()
+        environment["OPENSEARCH_VERSION"] = libs.versions.opensearch.image.get()
+        environment["KAFKA_VERSION"] = libs.versions.kafka.image.get()
+        workingDir = rootProject.layout.projectDirectory.asFile
 
-    doLast {
-        dockerLock.unlock()
-    }
+        doFirst {
+            dockerLock.lock()
+        }
 
-    onlyIf {
-        gradle.startParameter.taskRequests.flatMap { it.args }.any {
-            it == if (project == defaultProject) {
-                name
-            } else if (defaultProject == rootProject) {
-                project.path + ":" + name
-            } else {
-                project.path.removePrefix(defaultProject.path) + ":" + name
-            }
+        doLast {
+            dockerLock.unlock()
+        }
+
+        onlyIf {
+            gradle.startParameter.taskRequests
+                .flatMap { it.args }
+                .any {
+                    it ==
+                        if (project == defaultProject) {
+                            name
+                        } else if (defaultProject == rootProject) {
+                            project.path + ":" + name
+                        } else {
+                            project.path.removePrefix(defaultProject.path) + ":" + name
+                        }
+                }
         }
     }
-}

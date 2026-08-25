@@ -221,3 +221,4 @@ helm-releases-plugin = { group = "io.github.build-extensions-oss.helm", name = "
 kotlin-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 
 [plugins]
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless-plugin" }

@@ -12,6 +12,7 @@ out/
 !.idea/codeStyles/Project.xml
 !.idea/codeStyles/codeStyleConfig.xml
 !.idea/palantir-java-format.xml
+!.idea/ktfmt.xml
 *.iws
 *.iml
 *.ipr

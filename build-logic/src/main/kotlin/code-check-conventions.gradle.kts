@@ -24,6 +24,13 @@ spotless {
         palantirJavaFormat()
         licenseHeader("// SPDX-License-Identifier: MIT\n")
     }
+
+    kotlinGradle {
+        ktfmt().kotlinlangStyle().configure {
+            it.setMaxWidth(120)
+            it.setRemoveUnusedImports(true)
+        }
+    }
 }
 
 spotbugs {

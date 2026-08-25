@@ -28,7 +28,7 @@ dependencies {
     implementation(libs.spring.data.opensearch.starter) {
         exclude(
             group = libs.opensearch.client.restHighLevel.get().group,
-            module = libs.opensearch.client.restHighLevel.get().name
+            module = libs.opensearch.client.restHighLevel.get().name,
         )
     }
     implementation(libs.opensearch.client.java)
@@ -61,27 +61,29 @@ testing {
 
         val test = suites.getByName<JvmTestSuite>("test")
 
-        val componentTest = suites.register<JvmTestSuite>("componentTest") {
-            dependencies {
-                implementation(libs.axon.test)
-                implementation(libs.hamcrest)
-                implementation(libs.mockito.junit.jupiter)
-                implementation(libs.spring.boot.starter.test)
-            }
+        val componentTest =
+            suites.register<JvmTestSuite>("componentTest") {
+                dependencies {
+                    implementation(libs.axon.test)
+                    implementation(libs.hamcrest)
+                    implementation(libs.mockito.junit.jupiter)
+                    implementation(libs.spring.boot.starter.test)
+                }
 
-            targets {
-                all {
-                    testTask.configure {
-                        jvmArgs = listOf(
-                            "-XX:+AllowRedefinitionToAddDeleteMethods",
-                            "-XX:+EnableDynamicAgentLoading"
-                        )
+                targets {
+                    all {
+                        testTask.configure {
+                            jvmArgs =
+                                listOf(
+                                    "-XX:+AllowRedefinitionToAddDeleteMethods",
+                                    "-XX:+EnableDynamicAgentLoading",
+                                )
 
-                        shouldRunAfter(test)
+                            shouldRunAfter(test)
+                        }
                     }
                 }
             }
-        }
 
         register<JvmTestSuite>("integrationTest") {
             dependencies {
@@ -94,7 +96,7 @@ testing {
                 implementation(libs.spring.data.opensearch.testcontainers) {
                     exclude(
                         group = libs.opensearch.client.restHighLevel.get().group,
-                        module = libs.opensearch.client.restHighLevel.get().name
+                        module = libs.opensearch.client.restHighLevel.get().name,
                     )
                 }
                 implementation(libs.testcontainers.junit.jupiter)
@@ -107,10 +109,11 @@ testing {
             targets {
                 all {
                     testTask.configure {
-                        jvmArgs = listOf(
-                            "-XX:+AllowRedefinitionToAddDeleteMethods",
-                            "-XX:+EnableDynamicAgentLoading"
-                        )
+                        jvmArgs =
+                            listOf(
+                                "-XX:+AllowRedefinitionToAddDeleteMethods",
+                                "-XX:+EnableDynamicAgentLoading",
+                            )
 
                         shouldRunAfter(componentTest)
 
@@ -130,7 +133,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
             "BPE_DEFAULT_SERVER_PORT" to "8080",
             "BPE_DEFAULT_DB_HOSTS" to "axon-showcase-db-events",
             "BPE_DEFAULT_KAFKA_BOOTSTRAP_SERVERS" to "axon-showcase-kafka:9092",
-            "BPE_DEFAULT_OS_URIS" to "http://axon-showcase-os-views:9200"
+            "BPE_DEFAULT_OS_URIS" to "http://axon-showcase-os-views:9200",
         )
     )
 }

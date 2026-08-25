@@ -194,12 +194,13 @@ Key modules (libraries, not services):
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable
-- **Formatting**: format Java sources with `./gradlew spotlessApply` (Spotless + palantir-java-format, fixed 120
-  columns) — the canonical format step, enforced by `spotlessCheck` in `check` with no IDE required. After each edit,
-  run `spotlessApply` (via the `codefmt` skill's Spotless path) before reporting the change done; the IntelliJ
-  formatter is no longer canonical, and import order is owned by the formatter.
-  - The 120-character wrapping convention still applies manually to non-Java content the formatter does not touch
-    (Markdown, YAML, and so on); verify with `awk 'length > 120'` over edited files.
+- **Formatting**: format Java sources and Gradle Kotlin DSL (`*.gradle.kts`) files with `./gradlew spotlessApply`
+  (Spotless: palantir-java-format for Java, ktfmt for `.gradle.kts`, both fixed 120 columns) — the canonical format
+  step, enforced by `spotlessCheck` in `check` with no IDE required. After each edit, run `spotlessApply` (via the
+  `codefmt` skill's Spotless path) before reporting the change done; the IntelliJ formatter is no longer canonical,
+  and import order is owned by the formatter.
+  - The 120-character wrapping convention still applies manually to content the formatter does not touch (Markdown,
+    YAML, and so on); verify with `awk 'length > 120'` over edited files.
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body
     (`(x) -> { ... }`) so the formatter indents the statements normally instead of deep-aligning one long expression.
     The resulting "Statement lambda can be replaced with expression lambda" inspection is suppressed with
@@ -288,14 +289,18 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
 
 ## Gotchas
 
-- IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless/palantir format, so the
-  auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**, **Auto Import → Optimize imports
-  on the fly**) only cause drift if the **palantir-java-format** plugin is not active. With the plugin enabled (and
-  the repo's code style + import layout in `.idea/`), IntelliJ's reformat and optimize-imports match `spotlessApply`
-  and the triggers are safe to keep on. Install the plugin via `./scripts/setup-idea.sh` (locates the IDE and runs
-  `installPlugins palantir-java-format`); the repo ships `.idea/palantir-java-format.xml` with `enabled=true` and the
-  palantir import layout in `.idea/codeStyles/` (enabled by `USE_PER_PROJECT_SETTINGS`), so `Optimize Imports`
-  matches `spotlessApply` without manual setup (see README → Local Development → IntelliJ IDEA Setup).
+- IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java,
+  ktfmt for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**,
+  **Auto Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins
+  are not active. With the plugins enabled (and the repo's code style + import layout in `.idea/`), IntelliJ's
+  reformat and optimize-imports match `spotlessApply` and the triggers are safe to keep on. Install the plugins via
+  `./scripts/setup-idea.sh` (locates the IDE and runs `installPlugins` for both); the repo ships
+  `.idea/palantir-java-format.xml` and `.idea/ktfmt.xml` with the enabled flags — the ktfmt config uses the plugin's
+  **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with unused-import removal, because
+  the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the line-length option — and the
+  palantir import layout in
+  `.idea/codeStyles/` (enabled by `USE_PER_PROJECT_SETTINGS`), so `Optimize Imports` matches `spotlessApply` without
+  manual setup (see README → Local Development → IntelliJ IDEA Setup).
 - E2E tests for `showcase-api-gateway` depend on Docker images of all other services being built (`bootBuildImage`). Run
   those first.
 - The `showcase-api-gateway` e2eTest must run after `showcase-command-client` and `showcase-query-client`

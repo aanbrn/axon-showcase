@@ -1,6 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-
 plugins {
     id("java-library-conventions")
     id("code-coverage-conventions")
@@ -36,44 +35,46 @@ testing {
 
         val test = suites.getByName<JvmTestSuite>("test")
 
-        val componentTest = register<JvmTestSuite>("componentTest") {
-            dependencies {
-                implementation(libs.axon.springBoot.starter) {
-                    exclude(
-                        group = libs.axon.serverConnector.get().group,
-                        module = libs.axon.serverConnector.get().name
-                    )
-                }
-                implementation(libs.axon.extensions.reactor.springBootStarter)
-                implementation(libs.commons.lang3)
-                implementation(libs.reactor.test)
-                implementation(libs.reactor.blockhound)
-                implementation(libs.reactor.tools)
-                implementation(libs.resilience4j.springBoot3)
-                implementation(libs.spring.boot.starter.aop)
-                implementation(libs.spring.boot.starter.test)
-            }
-
-            targets {
-                all {
-                    testTask.configure {
-                        jvmArgs = listOf(
-                            "-XX:+AllowRedefinitionToAddDeleteMethods",
-                            "-XX:+EnableDynamicAgentLoading"
+        val componentTest =
+            register<JvmTestSuite>("componentTest") {
+                dependencies {
+                    implementation(libs.axon.springBoot.starter) {
+                        exclude(
+                            group = libs.axon.serverConnector.get().group,
+                            module = libs.axon.serverConnector.get().name,
                         )
+                    }
+                    implementation(libs.axon.extensions.reactor.springBootStarter)
+                    implementation(libs.commons.lang3)
+                    implementation(libs.reactor.test)
+                    implementation(libs.reactor.blockhound)
+                    implementation(libs.reactor.tools)
+                    implementation(libs.resilience4j.springBoot3)
+                    implementation(libs.spring.boot.starter.aop)
+                    implementation(libs.spring.boot.starter.test)
+                }
 
-                        shouldRunAfter(test)
+                targets {
+                    all {
+                        testTask.configure {
+                            jvmArgs =
+                                listOf(
+                                    "-XX:+AllowRedefinitionToAddDeleteMethods",
+                                    "-XX:+EnableDynamicAgentLoading",
+                                )
+
+                            shouldRunAfter(test)
+                        }
                     }
                 }
             }
-        }
 
         register<JvmTestSuite>("e2eTest") {
             dependencies {
                 implementation(libs.axon.springBoot.starter) {
                     exclude(
                         group = libs.axon.serverConnector.get().group,
-                        module = libs.axon.serverConnector.get().name
+                        module = libs.axon.serverConnector.get().name,
                     )
                 }
                 implementation(libs.axon.extensions.jgroups.springBootStarter)
@@ -90,10 +91,11 @@ testing {
             targets {
                 all {
                     testTask.configure {
-                        jvmArgs = listOf(
-                            "-XX:+AllowRedefinitionToAddDeleteMethods",
-                            "-XX:+EnableDynamicAgentLoading"
-                        )
+                        jvmArgs =
+                            listOf(
+                                "-XX:+AllowRedefinitionToAddDeleteMethods",
+                                "-XX:+EnableDynamicAgentLoading",
+                            )
 
                         shouldRunAfter(componentTest)
                         mustRunAfter(":showcase-command-service:integrationTest")

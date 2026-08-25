@@ -22,14 +22,14 @@ tasks.named<BootBuildImage>("bootBuildImage") {
         listOf(
             "paketo-buildpacks/java",
             "paketo-buildpacks/spring-boot",
-            "paketobuildpacks/health-checker"
+            "paketobuildpacks/health-checker",
         )
     )
 
     environment.putAll(
         mapOf(
             "BP_JVM_VERSION" to libs.versions.java.get(),
-            "BP_HEALTH_CHECKER_ENABLED" to "true"
+            "BP_HEALTH_CHECKER_ENABLED" to "true",
         )
     )
 }

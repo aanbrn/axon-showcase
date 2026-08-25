@@ -31,5 +31,5 @@ include(
     "showcase-api-gateway",
     "helm",
     "helm:chart",
-    "load-tests"
+    "load-tests",
 )

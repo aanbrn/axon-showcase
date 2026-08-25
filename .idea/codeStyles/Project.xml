@@ -3,9 +3,9 @@
     <JavaCodeStyleSettings>
       <option name="IMPORT_LAYOUT_TABLE">
         <value>
-          <package name="" static="true" withSubpackages="true"/>
-          <emptyLine/>
-          <package name="" static="false" withSubpackages="true"/>
+          <package name="" withSubpackages="true" static="true" />
+          <emptyLine />
+          <package name="" withSubpackages="true" static="false" />
         </value>
       </option>
     </JavaCodeStyleSettings>

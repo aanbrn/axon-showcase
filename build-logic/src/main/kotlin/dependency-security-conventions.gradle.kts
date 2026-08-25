@@ -1,6 +1,6 @@
+import java.io.File
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.GradleException
-import java.io.File
 
 tasks.register<Exec>("dependencySecurityCheck") {
     group = "verification"

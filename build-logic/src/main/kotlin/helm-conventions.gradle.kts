@@ -25,10 +25,6 @@ helm {
     }
 
     filtering {
-        values.putAll(
-            mapOf(
-                "bitnamiCommonVersion" to libs.versions.bitnami.common.get()
-            )
-        )
+        values.putAll(mapOf("bitnamiCommonVersion" to libs.versions.bitnami.common.get()))
     }
 }

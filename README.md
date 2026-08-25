@@ -154,11 +154,14 @@ service `8083`.
 ### Database Scripts
 
 ```bash
-# Initialize the event store database
-./db-init.sh
+# Initialize the event store database (idempotent)
+./db.sh init
 
 # Drop the event store database
-./db-drop.sh
+./db.sh drop
+
+# Drop and recreate the event store database
+./db.sh reset
 ```
 
 ## Spec-Driven Development

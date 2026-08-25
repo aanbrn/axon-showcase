@@ -37,7 +37,7 @@ context: |
       and depends on Docker images of all other services (bootBuildImage)
     - the io.github.build-extensions-oss.helm / io.github.build-extensions-oss.helm-releases gradle-helm-plugin tasks
       are not configuration-cache compatible; do not enable org.gradle.configuration-cache=true
-    - ./db-init.sh creates user `showcase` and database `showcase-events` before running
+    - ./db.sh init creates user `showcase` and database `showcase-events` before running
       the command-service standalone
 
   Docker images: aanbrn/axon-showcase-{command-service,api-gateway,query-service,projection-service}

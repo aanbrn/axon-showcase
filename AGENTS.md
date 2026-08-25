@@ -108,8 +108,8 @@ run:
 initialized:
 
 ```bash
-./db-init.sh   # creates user `showcase` and database `showcase-events`
-./db-drop.sh   # drops the database
+./db.sh init   # creates user `showcase` and database `showcase-events` if absent
+./db.sh reset  # drops the database and recreates it
 ```
 
 ## Architecture

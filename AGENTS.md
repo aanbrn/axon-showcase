@@ -81,6 +81,12 @@ Major-blocking entries in `config/dependency-updates/major-disabled.properties` 
 coordinate and its rationale; the authoritative reasoning for each suppressed coordinate lives in the
 `showcase/quality/dependency-management` spec.
 
+For calendar-versioned coordinates (leading segment is a 4-digit year, e.g. Spring `YYYY.MINOR.MICRO` such as
+`reactor-bom 2025.0.7`), the report treats a change in the `YYYY.TRAIN` pair (the first two version segments) as a major
+update — matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains — while a change
+only in the service-release (third) segment within the same train is a minor/patch update. Semver coordinates keep the
+leading-integer major comparison.
+
 **Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. `check` runs the first
 three by default (`-PskipITs` drops integration for Docker-free runs); `e2eTest` is a separate opt-in task, and the
 only e2e suite is `showcase-api-gateway`'s (it builds all four service images).

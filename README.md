@@ -211,6 +211,12 @@ or group prefix in `config/dependency-updates/major-disabled.properties` — min
 coordinates are still reported. The suppression rationale for each coordinate is recorded in the
 `showcase/quality/dependency-management` spec. See ADR-0004 for the deferred Spring Boot 4 migration context.
 
+For calendar-versioned coordinates (leading segment is a 4-digit year, e.g. Spring `YYYY.MINOR.MICRO` such as
+`reactor-bom 2025.0.7`), a change in the `YYYY.TRAIN` pair (the first two version segments) is treated as a major
+update — matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains — while a change
+only in the service-release (third) segment within the same train is a minor/patch update. Semver coordinates keep the
+leading-integer major comparison.
+
 The `/dependency-updates` opencode command runs this report and summarizes the available updates; the
 `/gradle-update` command updates the Gradle wrapper to the latest stable version when one is available.
 

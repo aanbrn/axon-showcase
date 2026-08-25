@@ -12,10 +12,18 @@ fun isNonStable(version: String): Boolean {
     return isStable.not()
 }
 
-fun majorOf(version: String): Int? {
-    val numeric = version.takeWhile { it.isDigit() }
-    return numeric.toIntOrNull()
-}
+fun isCalendarVersioned(version: String): Boolean = version.takeWhile { it.isDigit() }.length == 4
+
+fun isMajorBump(currentVersion: String, candidateVersion: String): Boolean =
+    if (isCalendarVersioned(currentVersion)) {
+        versionTrain(currentVersion) != versionTrain(candidateVersion)
+    } else {
+        (leadingInteger(candidateVersion) ?: 0) > (leadingInteger(currentVersion) ?: 0)
+    }
+
+fun versionTrain(version: String): String = version.split('.').take(2).joinToString(".")
+
+fun leadingInteger(version: String): Int? = version.takeWhile { it.isDigit() }.toIntOrNull()
 
 fun matchesDisabled(entry: String, group: String, name: String): Boolean {
     return if (entry.contains(":")) {
@@ -60,7 +68,7 @@ tasks.withType<DependencyUpdatesTask> {
         val notOwned = coordinate !in catalogOwned && candidate.version != currentVersion
         val blockedMajor =
             majorDisabled.any { matchesDisabled(it, candidate.group, candidate.module) } &&
-                (majorOf(candidate.version) ?: 0) > (majorOf(currentVersion) ?: 0)
+                isMajorBump(currentVersion, candidate.version)
         isNonStable(candidate.version) && !isNonStable(currentVersion) || notOwned || blockedMajor
     }
 }

@@ -1,6 +1,7 @@
 rootProject.name = "axon-showcase"
 
 dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
     repositories {
         mavenCentral()
         gradlePluginPortal()

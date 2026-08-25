@@ -83,8 +83,7 @@ coordinate and its rationale; the authoritative reasoning for each suppressed co
 
 **Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. `check` runs the first
 three by default (`-PskipITs` drops integration for Docker-free runs); `e2eTest` is a separate opt-in task, and the
-`showcase-api-gateway` `e2eTest` must run after `showcase-command-client` and `showcase-query-client` e2e tests
-(`mustRunAfter`).
+only e2e suite is `showcase-api-gateway`'s (it builds all four service images).
 
 **Test tiers** — a test's tier is decided by its collaborators (what is real vs. faked), not by how long it takes to
 run:
@@ -99,10 +98,8 @@ run:
   (PostgreSQL, Kafka, OpenSearch). Verifies services against the real things they talk to.
 - **End-to-end** (`src/e2eTest/java`, suffix `E2E`): a real deployed system is booted and exercised against
   all-real collaborators, transport-independent — HTTP for the gateway/query-service, the distributed command bus
-  (JGroups) for the command-service. Client e2e tests boot one real service plus its Testcontainers infrastructure
-  (e.g. `ShowcaseCommandClientE2E`, `ShowcaseQueryClientE2E`); the gateway e2e boots the full four-service pipeline
-  and verifies cross-service propagation over the full command → Kafka → projection → query pipeline (e.g.
-  `ShowcaseApiGatewayE2E`).
+  (JGroups) for the command-service. The gateway e2e boots the full four-service pipeline and verifies cross-service
+  propagation over the full command → Kafka → projection → query pipeline (e.g. `ShowcaseApiGatewayE2E`).
 
 `disable-axoniq-console-message=true` is set both in integration tests and in each service's main application source
 (e.g., `ShowcaseApiApplication.java`).
@@ -171,12 +168,12 @@ Key modules (libraries, not services):
   to avoid shadowing the library's `CircuitBreaker` type
 - **BlockHound jvmArgs**: only suites whose tests call `BlockHound.install()` need
   `-XX:+AllowRedefinitionToAddDeleteMethods` and `-XX:+EnableDynamicAgentLoading` (e.g. the query-client
-  `componentTest` and the client `e2eTest` suites); leave them off suites that don't (e.g. a `componentTest` with only
+  `componentTest` and the gateway `e2eTest` suites); leave them off suites that don't (e.g. a `componentTest` with only
   an `ApplicationContextRunner` test)
 - **`@DirtiesContext`**: add it only where a full-context boot leaks global JVM state — JGroups (ports and system
   properties) and JCache (a JVM-global cache manager). Contexts that are safely cacheable don't need it: service slices,
   and `@Nested` classes with distinct `@ActiveProfiles` (which already get separate cached contexts). Keep it on the
-  gateway/command-service full-context ITs (and the command-client e2e test, which pulls in JGroups); drop it
+  gateway/command-service full-context ITs (and the gateway e2e test, which pulls in JGroups); drop it
   elsewhere
 - **Code coverage**: modules opt in via `code-coverage-conventions`. Coverage is measured per module with
   `jacocoTestReport` (unit + component + integration exec data) and aggregated with the root `jacocoRootReport`. The
@@ -303,8 +300,6 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
   manual setup (see README → Local Development → IntelliJ IDEA Setup).
 - E2E tests for `showcase-api-gateway` depend on Docker images of all other services being built (`bootBuildImage`). Run
   those first.
-- The `showcase-api-gateway` e2eTest must run after `showcase-command-client` and `showcase-query-client`
-  e2e tests.
 - The `io.github.build-extensions-oss.helm` / `io.github.build-extensions-oss.helm-releases` gradle-helm-plugin tasks are
   not configuration-cache compatible — do not enable `org.gradle.configuration-cache=true` (verify with
   `--configuration-cache` before adding it).
@@ -319,7 +314,7 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
   (kept current on minor versions). This is dependency hygiene, not the deferred Jackson 3 backend migration — Jackson
   2 remains the serialization backend in application code (see ADR-0003).
 - Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
-  `implementation`-only dependencies — each suite re-declares what it needs (client integration/e2e suites duplicate
+  `implementation`-only dependencies — each suite re-declares what it needs (client component suites duplicate
   axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be
   referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g. `val integrationTest =
   suites.register<JvmTestSuite>("integrationTest")`).

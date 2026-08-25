@@ -15,6 +15,8 @@ dependencies {
     implementation(libs.commons.lang3)
     implementation(libs.expressly)
 
+    testImplementation(libs.jackson2.jsr310)
+
     testFixturesImplementation(project(":showcase-test"))
     testFixturesImplementation(libs.commons.lang3)
     testFixturesImplementation(libs.hamcrest)

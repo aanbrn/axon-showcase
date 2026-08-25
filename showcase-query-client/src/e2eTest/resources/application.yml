@@ -1,9 +1,0 @@
-spring:
-  application:
-    name: showcase-query-client-integration-test
-  main:
-    banner-mode: off
-
-axon:
-  serializer:
-    messages: jackson

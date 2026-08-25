@@ -158,6 +158,7 @@ testing {
 
         register<JvmTestSuite>("e2eTest") {
             dependencies {
+                implementation(libs.reactor.blockhound)
                 implementation(libs.spring.boot.starter.test)
                 implementation(libs.spring.boot.starter.webflux)
                 implementation(libs.spring.boot.testcontainers)
@@ -174,9 +175,13 @@ testing {
             targets {
                 all {
                     testTask.configure {
+                        jvmArgs =
+                            listOf(
+                                "-XX:+AllowRedefinitionToAddDeleteMethods",
+                                "-XX:+EnableDynamicAgentLoading",
+                            )
+
                         shouldRunAfter(integrationTest)
-                        mustRunAfter(":showcase-command-client:e2eTest")
-                        mustRunAfter(":showcase-query-client:e2eTest")
 
                         dependsOn(
                             "bootBuildImage",

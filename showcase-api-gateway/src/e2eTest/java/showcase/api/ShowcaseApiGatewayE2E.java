@@ -24,6 +24,7 @@ import static showcase.test.RandomTestUtils.anElementOf;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -50,6 +51,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
+import reactor.blockhound.BlockHound;
 import showcase.query.Showcase;
 import showcase.query.ShowcaseStatus;
 
@@ -63,7 +65,6 @@ class ShowcaseApiGatewayE2E {
     static final Network network = Network.newNetwork();
 
     @Container
-    @SuppressWarnings("resource")
     static final PostgreSQLContainer dbEvents = new PostgreSQLContainer(
                     "postgres:" + System.getProperty("postgres.image.version"))
             .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-db-events"))
@@ -143,6 +144,11 @@ class ShowcaseApiGatewayE2E {
 
     private WebTestClient webClient;
     private final List<String> createdShowcaseIds = new ArrayList<>();
+
+    @BeforeAll
+    static void installBlockHound() {
+        BlockHound.install();
+    }
 
     @BeforeAll
     static void setUpAwaitility() {
@@ -747,9 +753,17 @@ class ShowcaseApiGatewayE2E {
                     .expectHeader()
                     .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                     .expectBodyList(Showcase.class)
-                    .value(showcases -> assertThat(showcases)
-                            .extracting(Showcase::showcaseId)
-                            .containsExactlyInAnyOrderElementsOf(showcaseIds));
+                    .value(showcases -> {
+                        assertThat(showcases)
+                                .extracting(Showcase::showcaseId)
+                                .containsExactlyInAnyOrderElementsOf(showcaseIds);
+                        assertThat(showcases)
+                                .extracting(Showcase::showcaseId)
+                                .isEqualTo(showcases.stream()
+                                        .map(Showcase::showcaseId)
+                                        .sorted(Comparator.reverseOrder())
+                                        .toList());
+                    });
         }
 
         @Test
@@ -787,7 +801,7 @@ class ShowcaseApiGatewayE2E {
                     .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                     .expectBodyList(Showcase.class)
                     .value(showcases ->
-                            assertThat(showcases).isNotEmpty().allMatch(showcase -> showcase.status() == status));
+                            assertThat(showcases).hasSize(1).allMatch(showcase -> showcase.status() == status));
         }
 
         @Test
@@ -806,7 +820,7 @@ class ShowcaseApiGatewayE2E {
                     .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
                     .expectBodyList(Showcase.class)
                     .value(showcases -> assertThat(showcases)
-                            .isNotEmpty()
+                            .hasSize(2)
                             .allMatch(showcase -> showcase.status() == status1 || showcase.status() == status2));
         }
 

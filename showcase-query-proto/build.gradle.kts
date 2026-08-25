@@ -1,5 +1,3 @@
-@file:Suppress("UnstableApiUsage")
-
 plugins {
     id("java-library-conventions")
     id("protobuf-conventions")

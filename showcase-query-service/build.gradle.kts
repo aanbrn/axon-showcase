@@ -1,5 +1,3 @@
-@file:Suppress("UnstableApiUsage")
-
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
 plugins {

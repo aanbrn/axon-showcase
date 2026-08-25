@@ -1,5 +1,3 @@
-@file:Suppress("UnstableApiUsage")
-
 import org.gradle.accessors.dm.LibrariesForLibs
 
 plugins {

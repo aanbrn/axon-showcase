@@ -1,165 +1,44 @@
+import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.api.GradleException
 import org.gradle.api.plugins.ExtraPropertiesExtension.UnknownPropertyException
 
 val libs = the<LibrariesForLibs>()
 
-fun dockerCli(command: String): List<String> {
-    return if (SystemUtils.IS_OS_WINDOWS) {
-        listOf("cmd.exe", "/c", "docker.exe $command")
-    } else {
-        listOf("/bin/sh", "-c", "docker $command")
-    }
-}
+val composeServices = if (project == rootProject) listOf<String>() else listOf(project.name)
 
-tasks.register<Exec>("composeBuildAndUp") {
-    group = "docker"
-    description =
-        if (project == rootProject) {
-            "Builds images and starts the system"
-        } else {
-            "Builds an image and starts the ${project.name} service"
+fun registerComposeTask(
+    taskName: String,
+    action: List<String>,
+    systemDescription: String,
+    serviceDescription: String,
+    buildFirst: Boolean = false,
+) {
+    tasks.register<Exec>(taskName) {
+        group = "docker"
+        description = if (project == rootProject) systemDescription else serviceDescription
+
+        if (buildFirst) {
+            dependsOn(allprojects.flatMap { project -> project.tasks.named { it == "bootBuildImage" } })
         }
 
-    dependsOn(allprojects.flatMap { project -> project.tasks.named { it == "bootBuildImage" } })
+        commandLine = listOf("docker", "compose") + action + composeServices
 
-    commandLine =
-        dockerCli(
-            if (project == rootProject) {
-                "compose up -d"
-            } else {
-                "compose up -d ${project.name}"
-            }
-        )
-}
+        workingDir = rootProject.layout.projectDirectory.asFile
 
-tasks.register<Exec>("composeBuildAndRestart") {
-    group = "docker"
-    description =
-        if (project == rootProject) {
-            "Builds images and restarts the system"
-        } else {
-            "Builds an image and restarts the ${project.name} service"
-        }
-
-    dependsOn(allprojects.flatMap { project -> project.tasks.named { it == "bootBuildImage" } })
-
-    commandLine =
-        dockerCli(
-            if (project == rootProject) {
-                "compose restart"
-            } else {
-                "compose restart ${project.name}"
-            }
-        )
-}
-
-tasks.register<Exec>("composeUp") {
-    group = "docker"
-    description =
-        if (project == rootProject) {
-            "Starts the system"
-        } else {
-            "Starts the ${project.name} service"
-        }
-
-    commandLine =
-        dockerCli(
-            if (project == rootProject) {
-                "compose up -d"
-            } else {
-                "compose up -d ${project.name}"
-            }
-        )
-}
-
-tasks.register<Exec>("composeRestart") {
-    group = "docker"
-    description =
-        if (project == rootProject) {
-            "Restarts the system"
-        } else {
-            "Restarts the ${project.name} service"
-        }
-
-    commandLine =
-        dockerCli(
-            if (project == rootProject) {
-                "compose restart"
-            } else {
-                "compose restart ${project.name}"
-            }
-        )
-}
-
-tasks.register<Exec>("composeStop") {
-    group = "docker"
-    description =
-        if (project == rootProject) {
-            "Stops the system"
-        } else {
-            "Stops the ${project.name} service"
-        }
-
-    commandLine =
-        dockerCli(
-            if (project == rootProject) {
-                "compose stop"
-            } else {
-                "compose stop ${project.name}"
-            }
-        )
-}
-
-tasks.register<Exec>("composeDown") {
-    group = "docker"
-    description =
-        if (project == rootProject) {
-            "Stops and removes the system"
-        } else {
-            "Stops and removes the ${project.name} service"
-        }
-
-    commandLine =
-        dockerCli(
-            if (project == rootProject) {
-                "compose down"
-            } else {
-                "compose down ${project.name}"
-            }
-        )
-}
-
-val dockerLock =
-    synchronized(rootProject) {
-        try {
-            rootProject.extra.get("dockerLock") as ReentrantLock
-        } catch (_: UnknownPropertyException) {
-            val lock = ReentrantLock()
-            rootProject.extra.set("dockerLock", lock)
-            lock
-        }
-    }
-
-val defaultProject =
-    allprojects.find {
-        it.layout.projectDirectory.asFile == gradle.startParameter.projectDir
-    } ?: rootProject
-
-tasks
-    .withType<Exec>()
-    .matching { task ->
-        task.name.startsWith("compose")
-    }
-    .configureEach {
         environment["PROJECT_VERSION"] = project.version
         environment["POSTGRES_VERSION"] = libs.versions.postgres.image.get()
         environment["OPENSEARCH_VERSION"] = libs.versions.opensearch.image.get()
         environment["KAFKA_VERSION"] = libs.versions.kafka.image.get()
-        workingDir = rootProject.layout.projectDirectory.asFile
 
         doFirst {
+            if (!dockerCliOnPath()) {
+                throw GradleException(
+                    "The Docker CLI is required to run the compose tasks. Install Docker and make 'docker' available on PATH."
+                )
+            }
             dockerLock.lock()
         }
 
@@ -182,3 +61,75 @@ tasks
                 }
         }
     }
+}
+
+registerComposeTask(
+    "composeUp",
+    listOf("up", "-d"),
+    "Starts the system",
+    "Starts the ${project.name} service",
+)
+registerComposeTask(
+    "composeRestart",
+    listOf("restart"),
+    "Restarts the system",
+    "Restarts the ${project.name} service",
+)
+registerComposeTask(
+    "composeStop",
+    listOf("stop"),
+    "Stops the system",
+    "Stops the ${project.name} service",
+)
+registerComposeTask(
+    "composeDown",
+    listOf("down"),
+    "Stops and removes the system",
+    "Stops and removes the ${project.name} service",
+)
+registerComposeTask(
+    "composeBuildAndUp",
+    listOf("up", "-d"),
+    "Builds images and starts the system",
+    "Builds an image and starts the ${project.name} service",
+    buildFirst = true,
+)
+registerComposeTask(
+    "composeBuildAndRestart",
+    listOf("restart"),
+    "Builds images and restarts the system",
+    "Builds an image and restarts the ${project.name} service",
+    buildFirst = true,
+)
+
+val dockerLock =
+    synchronized(rootProject) {
+        try {
+            rootProject.extra.get("dockerLock") as ReentrantLock
+        } catch (_: UnknownPropertyException) {
+            val lock = ReentrantLock()
+            rootProject.extra.set("dockerLock", lock)
+            lock
+        }
+    }
+
+val defaultProject =
+    allprojects.find {
+        it.layout.projectDirectory.asFile == gradle.startParameter.projectDir
+    } ?: rootProject
+
+fun dockerCliOnPath(): Boolean {
+    val path = System.getenv("PATH") ?: return false
+    val executableNames =
+        if (SystemUtils.IS_OS_WINDOWS) {
+            listOf("docker.exe")
+        } else {
+            listOf("docker")
+        }
+    return path.split(File.pathSeparator).any { dir ->
+        executableNames.any { name ->
+            val executable = File(dir, name)
+            executable.isFile && executable.canExecute()
+        }
+    }
+}

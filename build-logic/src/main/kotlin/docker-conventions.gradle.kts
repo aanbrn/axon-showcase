@@ -69,24 +69,28 @@ registerComposeTask(
     "Starts the system",
     "Starts the ${project.name} service",
 )
+
 registerComposeTask(
     "composeRestart",
     listOf("restart"),
     "Restarts the system",
     "Restarts the ${project.name} service",
 )
+
 registerComposeTask(
     "composeStop",
     listOf("stop"),
     "Stops the system",
     "Stops the ${project.name} service",
 )
+
 registerComposeTask(
     "composeDown",
     listOf("down"),
     "Stops and removes the system",
     "Stops and removes the ${project.name} service",
 )
+
 registerComposeTask(
     "composeBuildAndUp",
     listOf("up", "-d"),
@@ -94,6 +98,7 @@ registerComposeTask(
     "Builds an image and starts the ${project.name} service",
     buildFirst = true,
 )
+
 registerComposeTask(
     "composeBuildAndRestart",
     listOf("restart"),

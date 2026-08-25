@@ -62,8 +62,8 @@ import reactor.test.StepVerifier;
 
 @SpringBootTest(webEnvironment = NONE)
 @EnableWireMock(@ConfigureWireMock(baseUrlProperties = "showcase.query.api-url", registerSpringBean = true))
-@DisplayName("Showcase query client integration tests")
-class ShowcaseQueryClientIT {
+@DisplayName("Showcase query client component tests")
+class ShowcaseQueryClientCT {
 
     @SpringBootApplication
     static class TestApp {}

@@ -94,7 +94,7 @@ run:
 - **Component** (`src/componentTest/java`, suffix `CT`): the subject is composed with real, in-process collaborators —
   real serializers, Axon `AggregateTestFixture`/`SagaTestFixture`, or a Spring context with WireMock — but external
   infrastructure is never started. Verifies a component behaves correctly against its real neighbors (e.g.
-  `QueryMessageRequestMapperCT`, `ShowcaseAggregateCT`).
+  `QueryMessageRequestMapperCT`, `ShowcaseAggregateCT`, `ShowcaseQueryClientCT`).
 - **Integration** (`src/integrationTest/java`, suffix `IT`): real external infrastructure via Testcontainers
   (PostgreSQL, Kafka, OpenSearch). Verifies services against the real things they talk to.
 - **End-to-end** (`src/e2eTest/java`, suffix `E2E`): a real deployed system is booted and exercised against
@@ -171,7 +171,7 @@ Key modules (libraries, not services):
   to avoid shadowing the library's `CircuitBreaker` type
 - **BlockHound jvmArgs**: only suites whose tests call `BlockHound.install()` need
   `-XX:+AllowRedefinitionToAddDeleteMethods` and `-XX:+EnableDynamicAgentLoading` (e.g. the query-client
-  `integrationTest` and the client `e2eTest` suites); leave them off suites that don't (e.g. `componentTest` with only
+  `componentTest` and the client `e2eTest` suites); leave them off suites that don't (e.g. a `componentTest` with only
   an `ApplicationContextRunner` test)
 - **`@DirtiesContext`**: add it only where a full-context boot leaks global JVM state — JGroups (ports and system
   properties) and JCache (a JVM-global cache manager). Contexts that are safely cacheable don't need it: service slices,

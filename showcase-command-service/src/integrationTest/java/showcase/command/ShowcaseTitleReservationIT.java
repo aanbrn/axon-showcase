@@ -38,7 +38,7 @@ class ShowcaseTitleReservationIT {
 
     @Container
     @ServiceConnection
-    @SuppressWarnings({"resource", "unused"})
+    @SuppressWarnings("unused")
     private static final PostgreSQLContainer dbEvents = new PostgreSQLContainer(
                     "postgres:" + System.getProperty("postgres.image.version"))
             .waitingFor(Wait.forListeningPort());

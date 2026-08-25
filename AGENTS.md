@@ -170,6 +170,11 @@ Key modules (libraries, not services):
   `-XX:+AllowRedefinitionToAddDeleteMethods` and `-XX:+EnableDynamicAgentLoading` (e.g. the query-client
   `componentTest` and the gateway `e2eTest` suites); leave them off suites that don't (e.g. a `componentTest` with only
   an `ApplicationContextRunner` test)
+- **Asserting log output**: use `OutputCaptureExtension` (`CapturedOutput`) when the code under test runs **in the
+  test JVM** (e.g. `ShowcaseProjectorIT`'s projector logging, `ShowcaseApiControllerCT`'s gateway fallback logging).
+  It cannot capture a separate process's output — to assert a **containerized** service's logs (the code-under-test
+  runs in a different JVM), collect them via `withLogConsumer` into a `static StringBuilder` and poll it, as the
+  command-client e2e did before the suite was consolidated (see `69f2811`)
 - **`@DirtiesContext`**: add it only where a full-context boot leaks global JVM state — JGroups (ports and system
   properties) and JCache (a JVM-global cache manager). Contexts that are safely cacheable don't need it: service slices,
   and `@Nested` classes with distinct `@ActiveProfiles` (which already get separate cached contexts). Keep it on the

@@ -1,0 +1,15 @@
+resilience4j:
+  enabled: true
+  timelimiter:
+    enabled: false
+  circuitbreaker:
+    enabled: true
+    instances:
+      showcase-command-service:
+        sliding-window-size: 2
+        minimum-number-of-calls: 2
+        permitted-number-of-calls-in-half-open-state: 1
+        wait-duration-in-open-state: PT1S
+        failure-rate-threshold: 50
+  retry:
+    enabled: false

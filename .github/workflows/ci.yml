@@ -24,7 +24,7 @@ jobs:
           java-version: "21"
 
       - name: Install OpenSpec CLI
-        run: brew install openspec
+        run: npm install -g @fission-ai/openspec@1.10.0
 
       - name: Run quality gates
         env:

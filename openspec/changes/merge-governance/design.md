@@ -45,9 +45,14 @@ on:
     branches: [main]                # merge gate
 
 job build (ubuntu-latest, Temurin 21, Docker preinstalled):
-  PR:    ./gradlew check -PskipITs && openspec validate
-  main:  ./gradlew check            && openspec validate
+  PR:    ./gradlew check -PskipITs -Pcoverage.gate.enabled=false && openspec validate --all
+  main:  ./gradlew check                             && openspec validate --all
 ```
+
+The PR path disables the coverage gate (`-Pcoverage.gate.enabled=false`) because the 0.80 baseline is calibrated
+on integration-test coverage (AGENTS.md), and `-PskipITs` drops the integration tier — so the fast path cannot meet
+the coverage gate for `showcase-api-gateway` (0.74 without ITs). The coverage gate therefore runs only on the `main`
+full gate, where integration tests are present.
 
 Alternatives rejected:
 - **Full `check` on every PR** — every PR would pay Testcontainers + coverage time; the fast/slow split is the
@@ -98,9 +103,10 @@ ruleset IDs, and gains nothing since the rulesets already match the spec.
 ## Risks / Trade-offs
 
 - **Check chicken-and-egg** → the ruleset is created last (D3); documented ordering in tasks.md, not implied.
-- **Owner can bypass `check -PskipITs` scope on PR** → by design, integration tier only runs on `main`; a regression
-  in wiring would surface as a failing `main` gate. Mitigation: the `main` gate is required (same `build` check,
-  no bypass).
+- **Owner can bypass `check -PskipITs` scope on PR** → by design, the integration tier and the coverage gate only run
+  on `main` (the coverage gate cannot be met without integration-test coverage — 0.74 vs 0.80 for the gateway on the
+  fast path). A wiring or coverage regression would surface as a failing `main` gate. Mitigation: the `main` gate is
+  required (same `build` check, no bypass).
 - **Slow `main` gate on every merge** → `check` with integration tests is the heaviest tier; acceptable because
   merges are squash-only (one run per merged PR) and gating correctness over speed at the trunk.
 - **One job means one failure mode for both paths** → acceptable at this scale; split workflows only if the

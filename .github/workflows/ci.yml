@@ -31,7 +31,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           if [ "$EVENT_NAME" = "pull_request" ]; then
-            ./gradlew check -PskipITs
+            ./gradlew check -PskipITs -Pcoverage.gate.enabled=false
           else
             ./gradlew check
           fi

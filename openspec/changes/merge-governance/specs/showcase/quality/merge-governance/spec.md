@@ -77,17 +77,19 @@ bypass actors.
 
 A pull request to the repository SHALL run the Docker-free quality tiers as a single CI check named `build`: the
 standard `check` task with `-PskipITs` (unit tests, component tests, and all static gates — formatting, checkstyle,
-SpotBugs, ErrorProne, JaCoCo coverage) plus an OpenSpec validation of changes and specs. The check SHALL run on
-`ubuntu-latest` with a Temurin JDK 21 and SHALL NOT require Docker.
+SpotBugs, ErrorProne) plus an OpenSpec validation of changes and specs. The coverage gate SHALL NOT run on the
+pull-request path, because it is calibrated on integration-test coverage that only the `main` gate provides. The
+check SHALL run on `ubuntu-latest` with a Temurin JDK 21 and SHALL NOT require Docker.
 
 #### Scenario: Pull request triggers the fast gate
 
 - **WHEN** a pull request is opened or updated
-- **THEN** the `build` check runs `./gradlew check -PskipITs` and `openspec validate` against the pull request head
+- **THEN** the `build` check runs `./gradlew check -PskipITs` (without the coverage gate) and `openspec validate`
+  against the pull request head
 
 #### Scenario: Fast gate failure blocks merging
 
-- **WHEN** a pull request's `build` check fails (style, unit, component, coverage, or OpenSpec validation)
+- **WHEN** a pull request's `build` check fails (style, unit, component, or OpenSpec validation)
 - **THEN** the pull request is not mergeable until the check passes
 
 ### Requirement: Pushes to main run the full quality gate

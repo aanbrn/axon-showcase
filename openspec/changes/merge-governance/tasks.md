@@ -5,9 +5,9 @@
 - [x] 1.1 Add `.github/workflows/ci.yml` with a single `build` job on `ubuntu-latest` (Temurin JDK 21), triggering on
       `pull_request` and `push` to `main`, and verify the workflow file parses (`yaml` lint / Actions preview shows no
       syntax errors)
-- [x] 1.2 Wire the job so a pull-request run executes `./gradlew check -PskipITs` and `openspec validate`, and a
-      `main` push executes `./gradlew check` and `openspec validate`, and verify the event-dependent command is
-      selected correctly (e.g. via `github.event_name` conditional in the run step)
+- [x] 1.2 Wire the job so a pull-request run executes `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` and
+      `openspec validate`, and a `main` push executes `./gradlew check` and `openspec validate`, and verify the
+      event-dependent command is selected correctly (e.g. via `github.event_name` conditional in the run step)
 - [x] 1.3 Configure the Gradle invocation with the wrapper (`./gradlew`) and a JDK 21 setup step, and verify the job
       resolves Java 21 and the wrapper without a local JDK
 

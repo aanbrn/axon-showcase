@@ -19,6 +19,10 @@
       (main path: full `check` with integration tests and coverage)
 - [ ] 2.3 Confirm `openspec validate` passes for the `merge-governance` change itself and that no existing spec is
       broken by the workflow (the CI spec gate is green on both paths)
+- [ ] 2.4 Fix `coverageGateEnabled` in `code-coverage-conventions.gradle.kts` so `-Pcoverage.gate.enabled=false`
+      disables the coverage gate (treat the property value as a string: `"false"` from `-P`, `false` from per-module
+      `extra`, `null` means enabled) and verify `:showcase-command-service:check --dry-run -PskipITs
+      -Pcoverage.gate.enabled=false` no longer includes `jacocoTestCoverageVerification`
 
 ## 3. Verify baseline rulesets match the spec
 

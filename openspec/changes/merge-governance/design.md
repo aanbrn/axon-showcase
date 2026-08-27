@@ -52,7 +52,9 @@ job build (ubuntu-latest, Temurin 21, Docker preinstalled):
 The PR path disables the coverage gate (`-Pcoverage.gate.enabled=false`) because the 0.80 baseline is calibrated
 on integration-test coverage (AGENTS.md), and `-PskipITs` drops the integration tier — so the fast path cannot meet
 the coverage gate for `showcase-api-gateway` (0.74 without ITs). The coverage gate therefore runs only on the `main`
-full gate, where integration tests are present.
+full gate, where integration tests are present. This flag was broken: `coverageGateEnabled` compared the property
+against Boolean `false`, but `-P` delivers a String `"false"`, so the gate never disabled. It is fixed to treat the
+value as a string (`"false"` from `-P`, Boolean `false` from per-module `extra`, `null` means enabled).
 
 Alternatives rejected:
 - **Full `check` on every PR** — every PR would pay Testcontainers + coverage time; the fast/slow split is the

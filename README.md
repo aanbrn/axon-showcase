@@ -192,8 +192,9 @@ observational, never a merge gate.
 
 `.github/workflows/dependency-updates.yml` runs the Gradle dependency update report (`dependencyUpdates`) on a weekly
 schedule and via `workflow_dispatch`, opening or updating the "Dependency updates" issue with only the actionable
-sections of the report (stable catalog updates + Gradle wrapper status) using the `GITHUB_TOKEN` (`issues: write`)
-and mentioning the repository owner — observational, never a merge gate.
+sections of the report (stable catalog updates + Gradle wrapper status) using the `GITHUB_TOKEN` (`issues: write`).
+When there are actionable updates it posts a comment mentioning the repository owner (so they are notified); runs
+with no updates update the issue silently — observational, never a merge gate.
 
 ## Testing
 

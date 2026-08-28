@@ -155,8 +155,9 @@ sub-projects with the root `.snyk` policy) on a weekly schedule and via `workflo
 `.github/workflows/dependency-updates.yml` runs the Gradle dependency update report (`./gradlew dependencyUpdates`)
 on a weekly schedule and via `workflow_dispatch`, opening or updating the "Dependency updates" issue with only the
 actionable sections of `build/dependencyUpdates/report.txt` (stable catalog updates + the Gradle wrapper status)
-using the `GITHUB_TOKEN` (`issues: write`) and mentioning the repository owner. It is observational — never a merge
-gate.
+using the `GITHUB_TOKEN` (`issues: write`). When there are actionable updates it posts a comment mentioning the
+repository owner (so they are notified); runs with no updates update the issue silently. It is observational — never
+a merge gate.
 
 ## Architecture
 

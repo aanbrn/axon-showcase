@@ -8,7 +8,7 @@ tasks.register<Exec>("dependencySecurityCheck") {
 
     workingDir = rootProject.layout.projectDirectory.asFile
 
-    commandLine("snyk", "test", "--all-sub-projects")
+    commandLine("snyk", "test", "--all-sub-projects", "--policy-path=.snyk")
 
     doFirst {
         if (!snykExecutableOnPath()) {

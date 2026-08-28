@@ -3,8 +3,8 @@
 ## Purpose
 
 Documents the behavior of the showcase projection model: the shared `showcases` read-model document, its OpenSearch
-index mapping and sort configuration, and its Jackson serialization contract — the contract between the projection side
-that writes the document and the query side that reads it.
+index mapping and sort configuration, and its Jackson serialization contract — the contract between the projection
+side that writes the document and the query side that reads it.
 
 ## Requirements
 
@@ -26,8 +26,9 @@ The system SHALL store the read-model document in the OpenSearch index named `sh
 ### Requirement: Field mapping
 
 The system SHALL map the document fields with the following OpenSearch types and formats: `showcaseId`, `status`, and
-`duration` as `keyword`, `title` as `text`, and `startTime`, `scheduledAt`, `startedAt`, and `finishedAt` as `date_nanos`
-with the `strict_date_optional_time_nanos` format.
+`duration` as `keyword`, `title` as `text`, and `startTime`, `scheduledAt`, `startedAt`, and `finishedAt` as
+`date_nanos` with the custom nanosecond pattern `yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]` (Spring Data's built-in
+`strict_date_optional_time_nanos` truncates to microseconds — see upstream spring-data-elasticsearch#3334).
 
 #### Scenario: Identifier, status, and duration map as keyword
 
@@ -42,7 +43,7 @@ with the `strict_date_optional_time_nanos` format.
 #### Scenario: Timestamps map as nanosecond dates
 
 - **WHEN** the mapping of the `startTime`, `scheduledAt`, `startedAt`, and `finishedAt` fields is inspected
-- **THEN** each is mapped with type `date_nanos` and format `strict_date_optional_time_nanos`
+- **THEN** each is mapped with type `date_nanos` and the custom `yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]` pattern
 
 #### Scenario: Type-hint class property is present
 

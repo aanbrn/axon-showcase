@@ -330,6 +330,11 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
   classpaths transitively via `co.elastic.clients:elasticsearch-java`, constrained by the platform's `jackson3-bom`
   (kept current on minor versions). This is dependency hygiene, not the deferred Jackson 3 backend migration — Jackson
   2 remains the serialization backend in application code (see ADR-0003).
+- Spring Data Elasticsearch's `DateFormat.strict_date_optional_time_nanos` maps to a **microsecond** Java pattern
+  (`SSSSSS`, not 9 digits) despite its name — see upstream spring-data-elasticsearch#3334. `ShowcaseEntity` uses a
+  custom `NANOS_DATE_PATTERN` (`yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]`) with `format = {}` instead; do not "simplify"
+  it back to the built-in enum. The truncation is invisible on macOS (microsecond clocks) and surfaces only on
+  nanosecond clocks (Linux CI).
 - Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
   `implementation`-only dependencies — each suite re-declares what it needs (client component suites duplicate
   axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be

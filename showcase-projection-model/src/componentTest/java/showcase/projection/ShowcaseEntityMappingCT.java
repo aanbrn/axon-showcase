@@ -40,15 +40,19 @@ class ShowcaseEntityMappingCT {
         assertThat(mapping.at("/properties/showcaseId/type").asText()).isEqualTo("keyword");
         assertThat(mapping.at("/properties/title/type").asText()).isEqualTo("text");
         assertThat(mapping.at("/properties/startTime/type").asText()).isEqualTo("date_nanos");
-        assertThat(mapping.at("/properties/startTime/format").asText()).isEqualTo("strict_date_optional_time_nanos");
+        assertThat(mapping.at("/properties/startTime/format").asText())
+                .isEqualTo("yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]");
         assertThat(mapping.at("/properties/status/type").asText()).isEqualTo("keyword");
         assertThat(mapping.at("/properties/duration/type").asText()).isEqualTo("keyword");
         assertThat(mapping.at("/properties/scheduledAt/type").asText()).isEqualTo("date_nanos");
-        assertThat(mapping.at("/properties/scheduledAt/format").asText()).isEqualTo("strict_date_optional_time_nanos");
+        assertThat(mapping.at("/properties/scheduledAt/format").asText())
+                .isEqualTo("yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]");
         assertThat(mapping.at("/properties/startedAt/type").asText()).isEqualTo("date_nanos");
-        assertThat(mapping.at("/properties/startedAt/format").asText()).isEqualTo("strict_date_optional_time_nanos");
+        assertThat(mapping.at("/properties/startedAt/format").asText())
+                .isEqualTo("yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]");
         assertThat(mapping.at("/properties/finishedAt/type").asText()).isEqualTo("date_nanos");
-        assertThat(mapping.at("/properties/finishedAt/format").asText()).isEqualTo("strict_date_optional_time_nanos");
+        assertThat(mapping.at("/properties/finishedAt/format").asText())
+                .isEqualTo("yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]");
     }
 
     @Test

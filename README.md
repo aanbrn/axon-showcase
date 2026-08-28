@@ -186,6 +186,10 @@ merges into `main`, with no bypass actors.
 images and boots the full pipeline) on a nightly schedule and via `workflow_dispatch` — observational, never a merge
 gate, no secrets.
 
+`.github/workflows/snyk.yml` runs the dependency security scan (`dependencySecurityCheck`, all sub-projects with the
+root `.snyk` policy) on a weekly schedule and via `workflow_dispatch`, authenticated with the `SNYK_TOKEN` secret —
+observational, never a merge gate.
+
 ## Testing
 
 Tests are organized into four tiers, run in order:

@@ -152,6 +152,11 @@ never a merge gate, no secrets, and it shares the same `gradle/actions/setup-gra
 sub-projects with the root `.snyk` policy) on a weekly schedule and via `workflow_dispatch`, authenticated with the
 `SNYK_TOKEN` secret. It is observational — never a merge gate.
 
+`.github/workflows/dependency-updates.yml` runs the Gradle dependency update report (`./gradlew dependencyUpdates`)
+on a weekly schedule and via `workflow_dispatch`, opening or updating the "Dependency updates" issue from
+`build/dependencyUpdates/report.txt` with the `GITHUB_TOKEN` (`issues: write`) and mentioning the repository owner.
+It is observational — never a merge gate.
+
 ## Architecture
 
 CQRS with 4 services + an API gateway:

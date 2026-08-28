@@ -61,6 +61,15 @@ requests it (e.g., "push" or "commit and push").
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
+# The scan passes --policy-path=.snyk (the root Snyk policy). Suppressed findings are tracked
+# there with a short-term expires (2026-11-28, quarterly) so they re-surface if not resolved in time:
+# the Spring Framework 6.2.x / Spring Security 6.5.x cluster is fixed only by the deferred
+# Spring Boot 4 migration (ADR-0004), and the remaining findings are transitive checkstyle/Maven
+# tooling dependencies in the load-tests module. See the /dependency-security-check command for
+# the version-pinned ignore format and the Snyk rate-limit gotcha: the free org allows 200 Open
+# Source tests/billing period, counted only for manifests with identified vulnerabilities — so
+# the policy-suppressed task consumes no quota (a passing scan works even once the limit is
+# exhausted by unfiltered runs), and only raw `snyk test` runs that find issues hit the cap.
 
 # Dependency update report (only catalog-owned coordinates; majors suppressed for groups in
 # config/dependency-updates/major-disabled.properties)

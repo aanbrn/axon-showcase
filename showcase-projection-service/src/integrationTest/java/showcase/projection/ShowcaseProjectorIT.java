@@ -91,12 +91,16 @@ class ShowcaseProjectorIT {
         if (showcaseIndexOperations == null) {
             showcaseIndexOperations = openSearchTemplate.indexOps(ShowcaseEntity.class);
         }
+        assertThat(showcaseIndexOperations.exists()).isFalse();
         assertThat(showcaseIndexOperations.createWithMapping()).isTrue();
+        assertThat(showcaseIndexOperations.exists()).isTrue();
     }
 
     @AfterEach
     void tearDown() {
+        assertThat(showcaseIndexOperations.exists()).isTrue();
         assertThat(showcaseIndexOperations.delete()).isTrue();
+        assertThat(showcaseIndexOperations.exists()).isFalse();
     }
 
     @Test
@@ -247,8 +251,8 @@ class ShowcaseProjectorIT {
         await().until(() -> output.getOut()
                 .lines()
                 .anyMatch(line -> line.matches(
-                        (".+(ERROR).+(On ShowcaseFinishedEvent, \\[Update\\] \\[document_missing_exception\\] \\[%s\\]: "
-                                        + "document missing)")
+                        (".+(ERROR).+(On ShowcaseFinishedEvent, \\[Update\\] \\[document_missing_exception\\]"
+                                        + " \\[%s\\]: document missing)")
                                 .formatted(showcaseId))));
     }
 

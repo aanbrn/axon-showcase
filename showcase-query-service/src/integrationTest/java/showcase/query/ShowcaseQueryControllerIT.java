@@ -37,7 +37,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import reactor.blockhound.BlockHound;
 import showcase.projection.ShowcaseEntity;
 
-@SpringBootTest
+@SpringBootTest(properties = "showcase.query.index-initialization-enabled=false")
 @AutoConfigureWebTestClient
 @Testcontainers
 @DisplayName("Showcase query controller integration tests")
@@ -73,13 +73,16 @@ class ShowcaseQueryControllerIT {
             showcaseIndexOperations = openSearchTemplate.indexOps(ShowcaseEntity.class);
         }
 
+        assertThat(showcaseIndexOperations.exists()).isFalse();
+        assertThat(showcaseIndexOperations.createWithMapping()).isTrue();
         assertThat(showcaseIndexOperations.exists()).isTrue();
     }
 
     @AfterEach
     void tearDown() {
+        assertThat(showcaseIndexOperations.exists()).isTrue();
         assertThat(showcaseIndexOperations.delete()).isTrue();
-        assertThat(showcaseIndexOperations.createWithMapping()).isTrue();
+        assertThat(showcaseIndexOperations.exists()).isFalse();
     }
 
     @Test

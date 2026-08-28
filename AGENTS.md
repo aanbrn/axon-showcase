@@ -148,6 +148,10 @@ no bypass actors.
 service images and boots the full pipeline) on a nightly schedule and via `workflow_dispatch`. It is observational —
 never a merge gate, no secrets, and it shares the same `gradle/actions/setup-gradle` caching rules as `ci.yml`.
 
+`.github/workflows/snyk.yml` runs the credentialed dependency security scan (`./gradlew dependencySecurityCheck`, all
+sub-projects with the root `.snyk` policy) on a weekly schedule and via `workflow_dispatch`, authenticated with the
+`SNYK_TOKEN` secret. It is observational — never a merge gate.
+
 ## Architecture
 
 CQRS with 4 services + an API gateway:

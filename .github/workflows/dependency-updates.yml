@@ -35,13 +35,8 @@ jobs:
 
           report=build/dependencyUpdates/report.txt
           issue_title="Dependency updates"
-          body=""
-
-          if [ -f "$report" ]; then
-            body="\`\`\`text"$'\n'"$(cat "$report")"$'\n'"\`\`\`"
-          else
-            body="The dependency update report produced no output file."
-          fi
+          owner="${{ github.repository_owner }}"
+          body="cc @$owner"$'\n\n'"\`\`\`text"$'\n'"$(cat "$report" 2>/dev/null)"$'\n'"\`\`\`"
 
           existing="$(gh issue list --repo "${{ github.repository }}" \
             --search "in:title \"$issue_title\" is:issue is:open" \

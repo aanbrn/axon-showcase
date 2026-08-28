@@ -218,7 +218,9 @@ only in the service-release (third) segment within the same train is a minor/pat
 leading-integer major comparison.
 
 The `/dependency-updates` opencode command runs this report and summarizes the available updates; the
-`/gradle-update` command updates the Gradle wrapper to the latest stable version when one is available.
+`/gradle-update` command updates the Gradle wrapper to the latest stable version when one is available, and the
+`/opsx-tool-update` command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI
+release.
 
 Note that the report can also surface spurious rows caused by build-environment constraints: build tooling such as
 SpotBugs publishes module constraints that `checkBuildEnvironmentConstraints` reads and reports as the "current

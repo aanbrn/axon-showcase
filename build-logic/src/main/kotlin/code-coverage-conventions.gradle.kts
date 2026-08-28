@@ -45,7 +45,10 @@ val coverageBaselineMinimum: BigDecimal = run {
     props.getProperty("coverage.instruction.minimum", "0.80").toBigDecimal()
 }
 
-val coverageGateEnabled = providers.provider { project.findProperty("coverage.gate.enabled") != false }
+val coverageGateEnabled = providers.provider {
+    val value = project.findProperty("coverage.gate.enabled")
+    value == null || value.toString() != "false"
+}
 
 tasks.named<JacocoReport>("jacocoTestReport") {
     classDirectories.setFrom(mainClasses.asFileTree.matching { exclude(generatedClassExcludes()) })

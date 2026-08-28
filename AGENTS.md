@@ -120,6 +120,21 @@ initialized:
 ./db.sh reset  # drops the database and recreates it
 ```
 
+## Continuous Integration
+
+`.github/workflows/ci.yml` runs a single `build` job on every pull request and every push to `main`:
+
+- **Pull requests** run the Docker-free fast gate: `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` plus
+  `openspec validate --all` — the coverage gate is disabled because the 0.80 baseline is calibrated on
+  integration-test coverage, which PRs skip by design.
+- **Pushes to `main`** run the full gate: `./gradlew check` (with integration tests and the coverage gate) plus
+  `openspec validate --all`.
+
+The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (dependencies, wrapper, and local build
+cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the
+coverage gate. The `main-required-checks` branch ruleset requires the `build` check for every merge into `main`, with
+no bypass actors.
+
 ## Architecture
 
 CQRS with 4 services + an API gateway:

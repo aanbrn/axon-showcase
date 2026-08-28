@@ -5,7 +5,7 @@ is a scratchpad, not a backlog of planned work.
 
 ## 2026-08-25
 
-- Add CI: the repo has no workflows today, but every quality gate already lives inside Gradle tasks (`check`,
-  `integrationTest` via Testcontainers, `e2eTest` building the four service images, Snyk, Helm lint). Open question: PR
-  fast-check (`-PskipITs`, Docker-free) vs full `check` on main, e2e cadence, Snyk scheduling, OpenSpec validation as a
-  gate.
+- ~~Add CI~~ — captured by the `merge-governance` change: `.github/workflows/ci.yml` runs a fast Docker-free gate on
+  PRs (`check -PskipITs`, coverage gate disabled) and the full `check` on pushes to `main`, plus `openspec validate
+  --all`. The required `build` check is enforced by the `main-required-checks` ruleset with no bypass actors. e2e
+  cadence and Snyk scheduling remain open follow-ups.

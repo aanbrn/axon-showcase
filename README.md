@@ -174,6 +174,14 @@ Cross-cutting architecture decisions and their rationale are recorded as Archite
 `docs/adr/`. OpenSpec captures what the system does and how a change is planned; ADRs capture why the system is shaped
 the way it is.
 
+## Continuous Integration
+
+`.github/workflows/ci.yml` gates every pull request and push to `main` with a single `build` check. Pull requests run
+the Docker-free fast gate (`check -PskipITs` with the coverage gate disabled), while pushes to `main` run the full
+gate (`check` with integration tests and coverage); both run `openspec validate --all`. The Gradle cache is restored
+across runs via `gradle/actions/setup-gradle`. The `main-required-checks` ruleset requires the `build` check for all
+merges into `main`, with no bypass actors.
+
 ## Testing
 
 Tests are organized into four tiers, run in order:

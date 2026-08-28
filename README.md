@@ -182,6 +182,10 @@ gate (`check` with integration tests and coverage); both run `openspec validate 
 across runs via `gradle/actions/setup-gradle`. The `main-required-checks` ruleset requires the `build` check for all
 merges into `main`, with no bypass actors.
 
+`.github/workflows/e2e.yml` runs the end-to-end suite (`:showcase-api-gateway:e2eTest`, which builds all four service
+images and boots the full pipeline) on a nightly schedule and via `workflow_dispatch` — observational, never a merge
+gate, no secrets.
+
 ## Testing
 
 Tests are organized into four tiers, run in order:

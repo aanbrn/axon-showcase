@@ -706,17 +706,6 @@ class ShowcaseApiGatewayE2E {
                     .hasSize(0));
 
             showcaseIds = seedShowcases();
-
-            await().untilAsserted(() -> webClient
-                    .get()
-                    .uri("/showcases")
-                    .exchange()
-                    .expectStatus()
-                    .isOk()
-                    .expectBodyList(Showcase.class)
-                    .value(showcases -> assertThat(showcases)
-                            .extracting(Showcase::showcaseId)
-                            .containsExactlyInAnyOrderElementsOf(showcaseIds)));
         }
 
         List<String> seedShowcases() {
@@ -738,7 +727,23 @@ class ShowcaseApiGatewayE2E {
                 }
             }
 
+            awaitSeededStatusesSearchVisible();
+
             return List.copyOf(seededIds);
+        }
+
+        void awaitSeededStatusesSearchVisible() {
+            for (val status : ShowcaseStatus.values()) {
+                await().untilAsserted(() -> webClient
+                        .get()
+                        .uri("/showcases?status={status}", status)
+                        .exchange()
+                        .expectStatus()
+                        .isOk()
+                        .expectBodyList(Showcase.class)
+                        .value(showcases ->
+                                assertThat(showcases).hasSize(1).allMatch(showcase -> showcase.status() == status)));
+            }
         }
 
         @Test

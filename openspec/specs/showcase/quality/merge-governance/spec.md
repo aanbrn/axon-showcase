@@ -197,8 +197,8 @@ the result by opening or updating a GitHub issue, SHALL run on `ubuntu-latest` w
 
 - **WHEN** the scheduled trigger fires
 - **THEN** the `dependency-updates` job runs `./gradlew dependencyUpdates` and opens or updates the "Dependency
-  updates" issue with the available catalog updates and the Gradle wrapper section, mentioning the repository owner
-  so they are notified
+  updates" issue with the available stable catalog updates and the Gradle wrapper section (the actionable sections
+  of the report only), mentioning the repository owner so they are notified
 
 #### Scenario: Manual trigger runs the dependency update report
 
@@ -210,3 +210,9 @@ the result by opening or updating a GitHub issue, SHALL run on `ubuntu-latest` w
 - **WHEN** a pull request or push to `main` is evaluated for merging
 - **THEN** the dependency-updates run is not required, because it is not part of the merge-gate `build` check and no
   ruleset requires it
+
+#### Scenario: No stable updates are available
+
+- **WHEN** the report contains no stable catalog updates (no "dependencies have newer versions" section)
+- **THEN** the issue states that no stable catalog updates are available, without listing the non-actionable
+  milestone sections

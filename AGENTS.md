@@ -135,6 +135,10 @@ cache) across runs — it never caches workspace `build/` directories, since sta
 coverage gate. The `main-required-checks` branch ruleset requires the `build` check for every merge into `main`, with
 no bypass actors.
 
+`.github/workflows/e2e.yml` runs the heavy end-to-end suite (`:showcase-api-gateway:e2eTest`, which builds all four
+service images and boots the full pipeline) on a nightly schedule and via `workflow_dispatch`. It is observational —
+never a merge gate, no secrets, and it shares the same `gradle/actions/setup-gradle` caching rules as `ci.yml`.
+
 ## Architecture
 
 CQRS with 4 services + an API gateway:

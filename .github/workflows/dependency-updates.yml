@@ -47,11 +47,23 @@ jobs:
             /^Gradle CURRENT updates:/ { in_gradle = 1; print; next }
             in_gradle { print }
           ' "$report" 2>/dev/null)"
+          gradle_version_line="$(awk '
+            /^Gradle CURRENT updates:/ { in_gradle = 1; next }
+            in_gradle && /Gradle:/ { print; exit }
+          ' "$report" 2>/dev/null)"
 
-          if [ -n "$updates" ] || [ -n "$gradle" ]; then
+          has_updates=false
+          if [ -n "$updates" ]; then
+            has_updates=true
+          fi
+          if [ -n "$gradle_version_line" ] && ! printf '%s' "$gradle_version_line" | grep -q "UP-TO-DATE"; then
+            has_updates=true
+          fi
+
+          if [ "$has_updates" = true ]; then
             body="cc @$owner"$'\n\n'"\`\`\`text"$'\n'"$updates"$'\n'"$gradle"$'\n'"\`\`\`"
           else
-            body="cc @$owner"$'\n\n'"No stable catalog updates available."
+            body="No stable catalog updates available."
           fi
 
           existing="$(gh issue list --repo "${{ github.repository }}" \
@@ -61,9 +73,23 @@ jobs:
           if [ -n "$existing" ]; then
             gh issue edit "$existing" --repo "${{ github.repository }}" --body "$body"
             echo "Updated issue #$existing"
+            issue_number="$existing"
           else
-            gh issue create --repo "${{ github.repository }}" --title "$issue_title" --body "$body"
+            created="$(gh issue create --repo "${{ github.repository }}" --title "$issue_title" --body "$body")"
             echo "Created new issue"
+            issue_number="$(gh issue list --repo "${{ github.repository }}" \
+              --search "in:title \"$issue_title\" is:issue is:open" \
+              --json number --jq '.[0].number // empty')"
+          fi
+
+          if [ "$has_updates" = true ] && [ -n "$issue_number" ]; then
+            previous="$(gh api "repos/${{ github.repository }}/issues/$issue_number/comments" \
+              --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | contains("cc @")))][0].id // empty')"
+            if [ -n "$previous" ]; then
+              gh api "repos/${{ github.repository }}/issues/comments/$previous" --method DELETE --silent
+            fi
+            gh issue comment "$issue_number" --repo "${{ github.repository }}" --body "$body"
+            echo "Commented on issue #$issue_number"
           fi
         env:
           GH_TOKEN: ${{ github.token }}

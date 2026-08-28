@@ -36,7 +36,23 @@ jobs:
           report=build/dependencyUpdates/report.txt
           issue_title="Dependency updates"
           owner="${{ github.repository_owner }}"
-          body="cc @$owner"$'\n\n'"\`\`\`text"$'\n'"$(cat "$report" 2>/dev/null)"$'\n'"\`\`\`"
+
+          updates="$(awk '
+            /^The following dependencies have newer versions:/ { in_updates = 1; print; next }
+            /^The following dependencies have later milestone versions:/ { in_updates = 0 }
+            /^Gradle CURRENT updates:/ { in_updates = 0 }
+            in_updates { print }
+          ' "$report" 2>/dev/null)"
+          gradle="$(awk '
+            /^Gradle CURRENT updates:/ { in_gradle = 1; print; next }
+            in_gradle { print }
+          ' "$report" 2>/dev/null)"
+
+          if [ -n "$updates" ] || [ -n "$gradle" ]; then
+            body="cc @$owner"$'\n\n'"\`\`\`text"$'\n'"$updates"$'\n'"$gradle"$'\n'"\`\`\`"
+          else
+            body="cc @$owner"$'\n\n'"No stable catalog updates available."
+          fi
 
           existing="$(gh issue list --repo "${{ github.repository }}" \
             --search "in:title \"$issue_title\" is:issue is:open" \

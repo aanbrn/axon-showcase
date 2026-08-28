@@ -191,8 +191,9 @@ root `.snyk` policy) on a weekly schedule and via `workflow_dispatch`, authentic
 observational, never a merge gate.
 
 `.github/workflows/dependency-updates.yml` runs the Gradle dependency update report (`dependencyUpdates`) on a weekly
-schedule and via `workflow_dispatch`, opening or updating the "Dependency updates" issue from the report file with
-the `GITHUB_TOKEN` (`issues: write`) and mentioning the repository owner — observational, never a merge gate.
+schedule and via `workflow_dispatch`, opening or updating the "Dependency updates" issue with only the actionable
+sections of the report (stable catalog updates + Gradle wrapper status) using the `GITHUB_TOKEN` (`issues: write`)
+and mentioning the repository owner — observational, never a merge gate.
 
 ## Testing
 

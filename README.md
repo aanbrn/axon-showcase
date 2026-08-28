@@ -190,6 +190,10 @@ gate, no secrets.
 root `.snyk` policy) on a weekly schedule and via `workflow_dispatch`, authenticated with the `SNYK_TOKEN` secret —
 observational, never a merge gate.
 
+`.github/workflows/dependency-updates.yml` runs the Gradle dependency update report (`dependencyUpdates`) on a weekly
+schedule and via `workflow_dispatch`, opening or updating the "Dependency updates" issue from the report file with
+the `GITHUB_TOKEN` (`issues: write`) and mentioning the repository owner — observational, never a merge gate.
+
 ## Testing
 
 Tests are organized into four tiers, run in order:

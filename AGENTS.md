@@ -301,15 +301,20 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
 - IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java,
   ktfmt for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**,
   **Auto Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins
-  are not active. With the plugins enabled (and the repo's code style + import layout in `.idea/`), IntelliJ's
-  reformat and optimize-imports match `spotlessApply` and the triggers are safe to keep on. Install the plugins via
-  `./scripts/setup-idea.sh` (locates the IDE and runs `installPlugins` for both); the repo ships
-  `.idea/palantir-java-format.xml` and `.idea/ktfmt.xml` with the enabled flags — the ktfmt config uses the plugin's
-  **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with unused-import removal, because
-  the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the line-length option — and the
-  palantir import layout in
+  are not active. Install the plugins via `./scripts/setup-idea.sh` (locates the IDE and runs `installPlugins` for
+  both); the repo ships `.idea/palantir-java-format.xml` and `.idea/ktfmt.xml` with the enabled flags — the ktfmt
+  config uses the plugin's **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with
+  unused-import removal, because the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the
+  line-length option — and the palantir import layout in
   `.idea/codeStyles/` (enabled by `USE_PER_PROJECT_SETTINGS`), so `Optimize Imports` matches `spotlessApply` without
   manual setup (see README → Local Development → IntelliJ IDEA Setup).
+- **palantir-java-format does not manage imports**: since 2.47.0 the plugin only takes over **Reformat Code**, and
+  `Optimize Imports` is always run by IDEA's native optimizer, governed by the code-style scheme. The scheme's
+  `USE_SINGLE_CLASS_IMPORTS=true` (plus `CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND`/`NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND`
+  set to `999`) is what stops IDEA collapsing to wildcard imports; without it, `spotlessApply` cannot auto-expand a
+  wildcard (palantir never touches imports), so a wildcard must be expanded by hand or via Optimize Imports. The
+  build gate is Spotless `forbidWildcardImports()` (fails on any `import x.*;`). A change to the code-style scheme
+  requires an IDEA restart to take effect.
 - E2E tests for `showcase-api-gateway` depend on Docker images of all other services being built (`bootBuildImage`). Run
   those first.
 - The `io.github.build-extensions-oss.helm` / `io.github.build-extensions-oss.helm-releases` gradle-helm-plugin tasks are

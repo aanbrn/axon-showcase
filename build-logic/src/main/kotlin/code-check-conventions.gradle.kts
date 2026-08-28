@@ -21,6 +21,9 @@ checkstyle {
 spotless {
     java {
         target("src/**/*.java")
+        importOrder()
+        removeUnusedImports()
+        forbidWildcardImports()
         palantirJavaFormat()
         licenseHeader("// SPDX-License-Identifier: MIT\n")
     }

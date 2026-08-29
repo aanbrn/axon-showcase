@@ -261,6 +261,11 @@ Key modules (libraries, not services):
   `steroid_execute_code` / `runInspectionsDirectly`) and fix warnings, but this is not required and never a gate.
   Prefer assertions like `assertThat(x).isNotNull()` over `Objects.requireNonNull(x)` when guarding nullable values in
   tests, since the IDE recognizes them for dataflow.
+- **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
+  `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
+  `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the
+  desired plugin version and update the recorded version here and in the `showcase/quality/agent-skills` spec — a
+  deliberate, reviewed change, not silent drift.
 
 ## Docker Images
 

@@ -7,14 +7,7 @@ out/
 .kotlin/
 
 ### IntelliJ IDEA ###
-.idea/*
-!.idea/codeStyles/
-!.idea/codeStyles/Project.xml
-!.idea/codeStyles/codeStyleConfig.xml
-!.idea/palantir-java-format.xml
-!.idea/ktfmt.xml
-!.idea/inspectionProfiles/
-!.idea/inspectionProfiles/Project_Default.xml
+.idea/
 *.iws
 *.iml
 *.ipr

@@ -79,7 +79,8 @@ class ShowcaseApiGatewayE2E {
                 public String getBootstrapServers() {
                     return "axon-showcase-kafka:9092";
                 }
-            }.withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-kafka"))
+            }.withEnv("KAFKA_LISTENERS", "PLAINTEXT://:9092,BROKER://:9093,CONTROLLER://:9094")
+                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-kafka"))
                     .withNetwork(network);
 
     @Container

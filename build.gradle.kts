@@ -1,3 +1,7 @@
+import io.github.build.extensions.oss.gradle.plugins.helm.release.dsl.HelmRelease
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.plugins.ExtensionAware
+
 plugins {
     id("dependency-security-conventions")
     id("dependency-versions-conventions")
@@ -66,6 +70,50 @@ tasks.register<JacocoReport>("jacocoRootReport") {
         html.required = true
         xml.required = true
     }
+}
+
+val infraChartSpecs =
+    mapOf(
+        "bitnami/postgresql" to ("postgres" to libs.versions.postgres.image.tag),
+        "bitnami/kafka" to ("kafka" to libs.versions.kafka.image.tag),
+        "bitnami/opensearch" to ("opensearch" to libs.versions.opensearch.image.tag),
+    )
+
+tasks.register("verifyInfraImageVersions", VerifyInfraImageVersionsTask::class.java) {
+    group = "verification"
+    description = "Verifies each infra image tag matches the image tag preconfigured in its pinned Bitnami Helm chart"
+
+    checks.set(
+        providers.provider {
+            val helmExtension = project.extensions.getByName("helm") as ExtensionAware
+            @Suppress("UNCHECKED_CAST")
+            val releases = helmExtension.extensions.getByName("releases") as NamedDomainObjectContainer<HelmRelease>
+            releases.mapNotNull { release ->
+                val chartRef = release.chart.map { it.chartLocation }.getOrNull()
+                val spec = chartRef?.let { infraChartSpecs[it] }
+                if (chartRef == null || spec == null) {
+                    null
+                } else {
+                    InfraImageVersionCheck(
+                        component = spec.first,
+                        chartRef = chartRef,
+                        chartVersion = release.version.get(),
+                        imageTag = spec.second.get(),
+                        valuesDirs =
+                            release.valuesDirs.get().map { dir ->
+                                rootProject.layout.projectDirectory.asFile.toPath().relativize(dir.toPath()).toString()
+                            },
+                    )
+                }
+            }
+        }
+    )
+
+    dependsOn("helmUpdateRepositories")
+}
+
+tasks.named("check") {
+    dependsOn("verifyInfraImageVersions")
 }
 
 helm {

@@ -334,6 +334,27 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
 `PROJECT_VERSION` + image versions automatically (also `composeBuildAndUp`, `composeBuildAndRestart`):
 `./gradlew composeUp`, `./gradlew composeDown`.
 
+**Infra image versions are single-sourced** in `gradle/libs.versions.toml`: `*-image-tag` coordinates
+(`postgres-image-tag`, `kafka-image-tag`, `opensearch-image-tag`) for the official Docker Hub images used by
+docker-compose and the Testcontainers IT/e2e suites (`postgres`, `apache/kafka`, `opensearchproject/opensearch`;
+postgres omits a trailing `.0`), and pinned `bitnami-*` chart versions (`bitnami-postgresql`, `bitnami-kafka`,
+`bitnami-opensearch`) for the Helm deployment. Each chart ships its own preconfigured `image.tag`, which the Helm
+charts deploy as-is — no `image.tag` override in build logic or values files. To bump an infra component, update its
+`*-image-tag` and/or its `bitnami-*` chart version together. The `verifyInfraImageVersions` task (part of `check`)
+derives its checks from the actual `helm.releases` container, resolves each pinned chart's preconfigured `image.tag` via
+the Helm CLI (`helm show values bitnami/<chart> --version <pinned>`, using the plugin-managed client and
+`helmUpdateRepositories`' TTL-cached repo index), fails the build if its app version drifts from the `*-image-tag`
+after stripping trailing `.0` zero-padding from both sides (so `17.6` vs `17.6.0`, or `17` vs `17.0.0`, are
+equivalent), and fails if any infra values file (`helm/values/*/values*.yaml`) pins `image.tag` —
+so the repo cannot reintroduce a separate override. Deriving the checks from the configured releases means renaming an
+infra release retargets its check and removing one drops it. External `image.tag` overrides at deploy time (e.g. `--set`
+in a release pipeline) are outside this in-repo gate.
+
+**Kafka 3.9.0 Testcontainers note**: Kafka 3.9.0 has a validation bug (KAFKA-18281) that rejects Testcontainers'
+default listener config (`0.0.0.0` binds). The `KafkaContainer` usages in the IT/e2e suites override
+`KAFKA_LISTENERS` to `PLAINTEXT://:9092,BROKER://:9093,CONTROLLER://:9094` (empty hosts make the listeners implicit)
+so 3.9.0 starts; keep that override when bumping the Kafka image tag.
+
 ## Key Environment Variables
 
 - `DB_PASSWORD=showcase` — PostgreSQL password for command-service

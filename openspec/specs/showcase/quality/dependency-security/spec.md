@@ -12,7 +12,7 @@ clean.
 The platform SHALL constrain the transitive dependencies that dependency scans flag as vulnerable to their patched
 versions: `tools.jackson.core` modules SHALL resolve through the `tools.jackson:jackson-bom` at a version that fixes
 the reported issues (`jackson-core` at least `3.1.4`, `jackson-databind` at least `3.1.5`), and
-`org.apache.httpcomponents.client5:httpclient5` SHALL resolve to at least `5.6.3`.
+`org.apache.httpcomponents.client5:httpclient5` SHALL resolve to at least `5.6.4`.
 
 #### Scenario: Jackson 3 modules resolve to the aligned BOM version
 
@@ -23,7 +23,7 @@ the reported issues (`jackson-core` at least `3.1.4`, `jackson-databind` at leas
 #### Scenario: httpclient5 resolves to a patched version in every consuming module
 
 - **WHEN** a module that depends on `opensearch-rest-client` resolves its runtime classpath
-- **THEN** `org.apache.httpcomponents.client5:httpclient5` resolves to version `5.6.3` or newer
+- **THEN** `org.apache.httpcomponents.client5:httpclient5` resolves to version `5.6.4` or newer
 
 #### Scenario: Dependency scan reports no vulnerable paths
 

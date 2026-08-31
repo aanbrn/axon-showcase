@@ -82,38 +82,4 @@ ignore:
         reason: Spring Boot 4 migration deferred; fix requires Spring Security 7.0.7 (ADR-0004)
         expires: 2026-11-28T00:00:00.000Z
         created: 2026-08-28T00:00:00.000Z
-  # Transitive checkstyle / Maven tooling dependencies in the load-tests module (checkstyle ->
-  # doxia/Saxon/xmlresolver). Not part of the application runtime; fixes exist upstream but forcing
-  # newer versions would override checkstyle's declared dependency tree. Short-term expires so the
-  # scan re-surfaces these if checkstyle publishes a fixed transitive set.
-  SNYK-JAVA-ORGCODEHAUSPLEXUS-15766699:
-    - '* > org.codehaus.plexus:plexus-utils@3.3.0':
-        reason: Transitive checkstyle/Maven tooling dependency; no app-runtime exposure
-        expires: 2026-11-28T00:00:00.000Z
-        created: 2026-08-28T00:00:00.000Z
-  SNYK-JAVA-ORGAPACHECOMMONS-10734078:
-    - '* > org.apache.commons:commons-lang3@3.8.1':
-        reason: Transitive checkstyle/Maven tooling dependency; no app-runtime exposure
-        expires: 2026-11-28T00:00:00.000Z
-        created: 2026-08-28T00:00:00.000Z
-  SNYK-JAVA-ORGAPACHEHTTPCOMPONENTSCLIENT5-18857813:
-    - '* > org.apache.httpcomponents.client5:httpclient5@5.1.3':
-        reason: Transitive checkstyle/Maven tooling dependency; no app-runtime exposure
-        expires: 2026-11-28T00:00:00.000Z
-        created: 2026-08-28T00:00:00.000Z
-  SNYK-JAVA-ORGAPACHEHTTPCOMPONENTSCORE5-15857052:
-    - '* > org.apache.httpcomponents.core5:httpcore5-h2@5.1.3':
-        reason: Transitive checkstyle/Maven tooling dependency; no app-runtime exposure
-        expires: 2026-11-28T00:00:00.000Z
-        created: 2026-08-28T00:00:00.000Z
-  SNYK-JAVA-ORGAPACHEHTTPCOMPONENTSCORE5-17817217:
-    - '* > org.apache.httpcomponents.core5:httpcore5-h2@5.1.3':
-        reason: Transitive checkstyle/Maven tooling dependency; no app-runtime exposure
-        expires: 2026-11-28T00:00:00.000Z
-        created: 2026-08-28T00:00:00.000Z
-  SNYK-JAVA-ORGAPACHEHTTPCOMPONENTSCORE5-17817218:
-    - '* > org.apache.httpcomponents.core5:httpcore5-h2@5.1.3':
-        reason: Transitive checkstyle/Maven tooling dependency; no app-runtime exposure
-        expires: 2026-11-28T00:00:00.000Z
-        created: 2026-08-28T00:00:00.000Z
 patch: {}

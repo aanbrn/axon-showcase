@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Installs the IntelliJ formatter plugins so Reformat Code matches the Spotless
-# style enforced by `spotlessApply`: palantir-java-format (Java) and ktfmt
-# (Gradle Kotlin DSL).
+# Installs the IntelliJ formatter plugins and ensures the project IDE config so
+# Reformat Code / Optimize Imports match the Spotless style enforced by
+# `spotlessApply`: palantir-java-format (Java), ktfmt (Gradle Kotlin DSL), and
+# the palantir import layout + test-tier naming inspection.
 # Usage: ./scripts/setup-idea.sh [path/to/idea-launcher]
 # The IDE must be closed: installPlugins silently no-ops when the IDE is running
 # (the launcher can't start a second instance), so the script aborts if it detects
-# one. Works for any standard IntelliJ install.
+# one. Works for any standard IntelliJ install. Requires Python 3 (for the
+# inspection-profile upsert) and a Gradle-compatible JDK on PATH.
 
 PLUGIN_IDS=("palantir-java-format" "com.facebook.ktfmt_idea_plugin")
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 is_idea_running() {
     if pgrep -f "Contents/MacOS/idea" >/dev/null 2>&1 || pgrep -f "idea64.exe" >/dev/null 2>&1; then
@@ -55,6 +59,25 @@ find_idea() {
     return 1
 }
 
+ensure_config_file() {
+    local template="$1" target="$2"
+    if [ -f "$target" ]; then
+        echo "exists: $target"
+    else
+        mkdir -p "$(dirname "$target")"
+        cp "$template" "$target"
+        echo "created: $target"
+    fi
+}
+
+ensure_project_config() {
+    local idea_dir="$REPO_ROOT/.idea"
+    ensure_config_file "$REPO_ROOT/config/idea/palantir-java-format.xml" "$idea_dir/palantir-java-format.xml"
+    ensure_config_file "$REPO_ROOT/config/idea/ktfmt.xml" "$idea_dir/ktfmt.xml"
+    ensure_config_file "$REPO_ROOT/config/idea/codeStyleConfig.xml" "$idea_dir/codeStyles/codeStyleConfig.xml"
+    python3 "$REPO_ROOT/scripts/ensure-idea-inspection.py"
+}
+
 idea_bin="$(find_idea "${1:-}")"
 if is_idea_running; then
     echo "IntelliJ IDEA is running — close it (File → Exit) before installing, then re-run." >&2
@@ -64,4 +87,5 @@ for plugin_id in "${PLUGIN_IDS[@]}"; do
     echo "Installing $plugin_id via launcher $idea_bin"
     "$idea_bin" installPlugins "$plugin_id"
 done
-echo "Done. Restart the IDE; the plugins are auto-enabled for this project via .idea/."
+ensure_project_config
+echo "Done. Restart the IDE; the plugins are auto-enabled and the config is in place."

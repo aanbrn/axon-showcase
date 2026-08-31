@@ -83,33 +83,32 @@ Formatting is enforced by Spotless — palantir-java-format for Java, ktfmt for 
 `./gradlew spotlessApply` formats, `spotlessCheck` verifies, and the build never depends on an IDE. IntelliJ's built-in
 formatter uses its own code style and would reformat files differently, so configure the IDE to stay in sync:
 
-- Install the **palantir-java-format** and **ktfmt** plugins by running the setup script — it locates your IntelliJ
-  and runs `installPlugins` for both (run it with the IDE closed, then restart):
+- The repo's IntelliJ config is **not versioned** — `.idea/` is git-ignored. Run the setup script once (IDE closed,
+  then restart): it locates your IntelliJ, installs the **palantir-java-format** and **ktfmt** plugins, writes the
+  project config from the committed templates in `config/idea/`, and ensures the test-tier naming inspection:
 
   ```bash
   ./scripts/setup-idea.sh
   ```
 
-  The repo ships `.idea/palantir-java-format.xml` and `.idea/ktfmt.xml` with the enabled flags (the ktfmt config uses
-  the plugin's **Custom** style to reproduce ktfmt's kotlinlang style at 120 columns with unused-import removal — the
-  plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the line-length option), so once
-  installed the
-  plugins are auto-enabled for this project; where a plugin is disabled by default (palantir only auto-enables with the
+  The ktfmt template uses the plugin's **Custom** style to reproduce ktfmt's kotlinlang style at 120 columns with
+  unused-import removal (the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the
+  line-length option). Where a plugin is disabled by default (palantir only auto-enables with the
   `com.palantir.java-format` Gradle plugin, which this project does not use), enable it via **Settings → Other
-  Settings → palantir-java-format
-  Settings**. When enabled it replaces `Reformat Code` (`Ctrl+Alt+L`) with the palantir formatter.
+  Settings → palantir-java-format Settings**. When enabled it replaces `Reformat Code` (`Ctrl+Alt+L`) with the
+  palantir formatter.
 - The plugin only replaces `Reformat Code`; **import order is a separate mechanism** — IntelliJ's `Optimize Imports`
-  (`Ctrl+Alt+O`) uses the code style's *Import Layout*. The repo ships `.idea/codeStyles/Project.xml` (enabled by
-  `USE_PER_PROJECT_SETTINGS` in `codeStyleConfig.xml`) with the palantir layout — *import static all other imports*,
-  blank line, *import all other imports* — so `Optimize Imports` matches `spotlessApply` automatically. If the
-  project scheme is not picked up, set the layout manually: **Settings → Editor → Code Style → Java → Imports**,
-  *Import Layout* panel → clear the rows and add: *import static all other imports*, blank line, *import all other
-  imports* (single imports, no wildcards).
-- With the plugin enabled and the repo's code style in effect, IntelliJ's `Reformat Code` and `Optimize Imports`
-  produce spotless-compatible output, so the automatic reformat triggers are safe to keep on: **Actions on Save** →
-  *Reformat code* / *Optimize imports*, and **Auto Import** → *Optimize imports on the fly*. If the plugin is not
-  active on a machine, disable those triggers instead to avoid drift; `spotlessCheck` in `check` is the backstop
-  either way.
+  (`Ctrl+Alt+O`) is governed by `.editorconfig`, which the repo ships with the palantir layout
+  (`ij_java_imports_layout = $*,|,*` — *import static all other imports*, blank line, *import all other imports*) so
+  `Optimize Imports` matches `spotlessApply` automatically. If the layout is not picked up, set it manually:
+  **Settings → Editor → Code Style → Java → Imports**, *Import Layout* panel → clear the rows and add: *import
+  static all other imports*, blank line, *import all other imports* (single imports, no wildcards).
+- With the plugins enabled and the `.editorconfig` import layout in effect, IntelliJ's `Reformat Code` and
+  `Optimize Imports` produce spotless-compatible output, so the automatic reformat triggers are safe to keep on:
+  **Actions on Save** → *Reformat code* / *Optimize imports*, and **Auto Import** →
+  *Optimize imports on the fly*. If
+  the plugin is not active on a machine, disable those triggers instead to avoid drift; `spotlessCheck` in `check` is
+  the backstop either way.
 - When in doubt, format with `./gradlew spotlessApply` — it is the single source of truth.
 
 ### Start Dependencies with Docker Compose

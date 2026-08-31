@@ -29,9 +29,9 @@ fun registerComposeTask(
         workingDir = rootProject.layout.projectDirectory.asFile
 
         environment["PROJECT_VERSION"] = project.version
-        environment["POSTGRES_VERSION"] = libs.versions.postgres.image.get()
-        environment["OPENSEARCH_VERSION"] = libs.versions.opensearch.image.get()
-        environment["KAFKA_VERSION"] = libs.versions.kafka.image.get()
+        environment["POSTGRES_VERSION"] = libs.versions.postgres.image.tag.get()
+        environment["OPENSEARCH_VERSION"] = libs.versions.opensearch.image.tag.get()
+        environment["KAFKA_VERSION"] = libs.versions.kafka.image.tag.get()
 
         doFirst {
             if (!dockerCliOnPath()) {

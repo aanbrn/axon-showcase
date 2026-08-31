@@ -62,9 +62,9 @@ testing {
                         jvmArgs("-javaagent:$mockitoAgentAsPath")
 
                         systemProperty("project.version", project.version)
-                        systemProperty("postgres.image.version", libs.versions.postgres.image.get())
-                        systemProperty("kafka.image.version", libs.versions.kafka.image.get())
-                        systemProperty("opensearch.image.version", libs.versions.opensearch.image.get())
+                        systemProperty("postgres.image.version", libs.versions.postgres.image.tag.get())
+                        systemProperty("kafka.image.version", libs.versions.kafka.image.tag.get())
+                        systemProperty("opensearch.image.version", libs.versions.opensearch.image.tag.get())
                     }
                 }
             }

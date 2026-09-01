@@ -23,6 +23,19 @@ changes made and decide when (or whether) to archive.
 **Never push to the remote automatically.** Commit locally when asked, but only `git push` when the user explicitly
 requests it (e.g., "push" or "commit and push").
 
+**Create the change's branch at propose.** As soon as a change is proposed, put its artifacts on their own branch (named
+after the change). The change dir and all subsequent work live on that branch; rejecting a proposal is a branch delete,
+never a `main` cleanup.
+
+**Sync the main spec only at archive.** Apply edits code and the change dir's *delta* spec — never the main spec under
+`openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source of
+truth never describes behavior the code hasn't yet been verified against.
+
+**Run CI before archiving; one PR per change.** Push the implementation branch and open a PR with the code and the
+active change dir. After the `build` check is green and the user approves, archive the change (move the change dir and
+sync the main spec) as an additional commit in the *same* PR, then merge once. The archive — the declaration that a
+change is done — always follows CI, never precedes it.
+
 ## Prerequisites
 
 - Java 21+

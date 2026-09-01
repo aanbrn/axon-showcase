@@ -420,6 +420,10 @@ so 3.9.0 starts; keep that override when bumping the Kafka image tag.
   the `kubernetes` EndpointSlice `lookup` namespace in the network policies (`fix-kube-ping-api-egress`) and the
   missing release-namespace declarations (`declare-axon-showcase-namespace`). Prefer rendering the chart locally with
   `helm template` to inspect what the source produces before (or alongside) inspecting live resources.
+- **Checking CI status**: don't poll a PR build with an idle `sleep` loop — query the GitHub check-runs API directly
+  (via the GitHub MCP `pull_request_read` / `get_check_runs`, or the commits endpoint) when the status is needed. A
+  docs/build change's `build` check typically completes in about a minute; check once shortly after pushing, then
+  confirm green before archiving/merging. Idle sleep loops only waste time and add no information.
 - IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java,
   ktfmt for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**,
   **Auto Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins

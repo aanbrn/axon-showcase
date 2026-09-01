@@ -1,9 +1,9 @@
-import io.github.build.extensions.oss.gradle.plugins.helm.command.tasks.AbstractHelmCommandTask
 import java.io.Serializable
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -21,10 +21,13 @@ data class InfraImageVersionCheck(
 ) : Serializable
 
 @CacheableTask
-abstract class VerifyInfraImageVersionsTask : AbstractHelmCommandTask() {
+abstract class VerifyInfraImageVersionsTask : AbstractHelmRepositoriesTask() {
 
     @get:Input
     abstract val checks: ListProperty<InfraImageVersionCheck>
+
+    @get:Input
+    abstract val repos: MapProperty<String, String>
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
@@ -35,7 +38,7 @@ abstract class VerifyInfraImageVersionsTask : AbstractHelmCommandTask() {
 
     @TaskAction
     fun verify() {
-        setupBitnamiRepository()
+        addHelmRepositories(repos.get())
 
         checks.get().forEach { check ->
             val values = execHelmCaptureOutput("show", "values") {
@@ -77,18 +80,6 @@ abstract class VerifyInfraImageVersionsTask : AbstractHelmCommandTask() {
         verifyValuesFiles()
 
         resultFile.get().asFile.writeText("ok")
-    }
-
-    private fun setupBitnamiRepository() {
-        // execHelm submits asynchronously to the worker queue and returns immediately; use the output-capturing
-        // variant so each setup step blocks until it completes, keeping repo add -> repo update -> show values in
-        // order even on a fresh machine where the repo does not yet exist.
-        execHelmCaptureOutput("repo", "add") {
-            args("bitnami", "https://charts.bitnami.com/bitnami")
-        }
-        execHelmCaptureOutput("repo", "update") {
-            args("bitnami")
-        }
     }
 
     private fun verifyValuesFiles() {

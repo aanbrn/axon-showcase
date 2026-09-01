@@ -1,4 +1,6 @@
+import io.github.build.extensions.oss.gradle.plugins.helm.dsl.HelmRepository
 import io.github.build.extensions.oss.gradle.plugins.helm.release.dsl.HelmRelease
+import java.util.Properties
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.plugins.ExtensionAware
 
@@ -79,6 +81,15 @@ val infraChartSpecs =
         "bitnami/opensearch" to ("opensearch" to libs.versions.opensearch.image.tag),
     )
 
+val helmRepoUrls = providers.provider {
+    val helmExtension = project.extensions.getByName("helm") as ExtensionAware
+    @Suppress("UNCHECKED_CAST")
+    val repositories = helmExtension.extensions.getByName("repositories") as NamedDomainObjectContainer<HelmRepository>
+    repositories.associate { repo ->
+        repo.name to repo.url.get().toString()
+    }
+}
+
 val infraChecks = providers.provider {
     val helmExtension = project.extensions.getByName("helm") as ExtensionAware
     @Suppress("UNCHECKED_CAST")
@@ -109,6 +120,8 @@ tasks.register("verifyInfraImageVersions", VerifyInfraImageVersionsTask::class.j
 
     checks.set(infraChecks)
 
+    repos.set(helmRepoUrls)
+
     valuesFiles.from(
         infraChecks.map { checks ->
             checks
@@ -120,6 +133,75 @@ tasks.register("verifyInfraImageVersions", VerifyInfraImageVersionsTask::class.j
     )
 
     resultFile.set(layout.buildDirectory.file("verification/infra-image-versions.txt"))
+}
+
+val helmChartChecks =
+    listOf(
+        HelmChartUpdateCheck(
+            name = "bitnami-common",
+            chartRef = "bitnami/common",
+            pinnedVersion = libs.versions.bitnami.common.get(),
+            repo = "bitnami",
+        ),
+        HelmChartUpdateCheck(
+            name = "bitnami-postgresql",
+            chartRef = "bitnami/postgresql",
+            pinnedVersion = libs.versions.bitnami.postgresql.get(),
+            repo = "bitnami",
+        ),
+        HelmChartUpdateCheck(
+            name = "bitnami-kafka",
+            chartRef = "bitnami/kafka",
+            pinnedVersion = libs.versions.bitnami.kafka.get(),
+            repo = "bitnami",
+        ),
+        HelmChartUpdateCheck(
+            name = "bitnami-opensearch",
+            chartRef = "bitnami/opensearch",
+            pinnedVersion = libs.versions.bitnami.opensearch.get(),
+            repo = "bitnami",
+        ),
+        HelmChartUpdateCheck(
+            name = "prometheus-community-stack",
+            chartRef = "prometheus-community/kube-prometheus-stack",
+            pinnedVersion = libs.versions.prometheus.community.stack.get(),
+            repo = "prometheus-community",
+        ),
+        HelmChartUpdateCheck(
+            name = "grafana-tempo",
+            chartRef = "grafana/tempo",
+            pinnedVersion = libs.versions.grafana.tempo.get(),
+            repo = "grafana",
+        ),
+    )
+
+tasks.register("helmUpdates", HelmUpdatesTask::class.java) {
+    group = "help"
+    description = "Displays the Helm CLI and chart updates for the project."
+
+    helmCliVersion.set(libs.versions.helm.asProvider().get())
+
+    chartChecks.set(helmChartChecks)
+
+    repoUrls.set(helmRepoUrls)
+
+    majorDisabled.set(
+        providers.provider {
+            val file = rootProject.layout.projectDirectory.file("config/helm-updates/major-disabled.properties")
+            if (file.asFile.exists()) {
+                Properties()
+                    .apply { file.asFile.inputStream().use { load(it) } }
+                    .stringPropertyNames()
+                    .filter { it.isNotBlank() }
+            } else {
+                emptyList()
+            }
+        }
+    )
+
+    reportFile.set(layout.buildDirectory.file("helm-updates/report.txt"))
+
+    outputs.upToDateWhen { false }
 }
 
 tasks.named("check") {

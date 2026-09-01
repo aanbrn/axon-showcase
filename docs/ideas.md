@@ -17,3 +17,7 @@ change); only open, not-yet-implemented ideas remain.
   accepting ephemerality. Reference: `nce/oci-free-cloud-k8s` runs OKE free but on a leaner stack. Open decision:
   how faithful staging must be to the observability stack (the real decider between OKE-free and AKS-paid), and
   whether always-on vs on-demand node-pool stop/start changes the budget.
+- Web-based UI — build a beautiful web-based UI for the showcase so the CQRS/Event-Sourcing pipeline can be
+  interacted with and demonstrated visually rather than only via the REST API / `curl`. Parked; no change yet. Open
+  questions for later: single-page app served by the API gateway, what it interacts with (create/browse showcases,
+  event timeline), and how it fits the existing read/write-side separation.

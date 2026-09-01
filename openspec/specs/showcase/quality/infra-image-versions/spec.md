@@ -105,9 +105,9 @@ against its new name and values directory, and a removed release drops its check
 #### Scenario: An infra release is renamed
 
 - **WHEN** an infra release (and its values directory) is renamed
-- **THEN** `check` still verifies the renamed release's chart-preconfigured image tag against the `*-image-tag` (after
-  stripping trailing `.0` zero-padding from both), using the release's own chart reference, version, and values
-  directory
+- **THEN** `check` still verifies the renamed release's chart-preconfigured image tag against the `*-image-tag` at the
+  official tag's declared granularity (chart app version truncated to the official tag's segment count), using the
+  release's own chart reference, version, and values directory
 
 #### Scenario: An infra release is removed
 

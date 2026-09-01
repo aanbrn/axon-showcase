@@ -165,7 +165,9 @@ The chart SHALL render an HPA and a VPA per service, both gated by their `enable
 ### Requirement: Network policies
 
 The chart SHALL render a NetworkPolicy per service gated by the service's `networkPolicy.enabled` flag (default true),
-restricting ingress to the server and management ports and allowing DNS, same-namespace, and OTLP egress.
+restricting ingress to the server and management ports and allowing DNS, same-namespace, OTLP, and Kubernetes API
+egress. The `commandService` and `apiGateway` NetworkPolicies SHALL allow egress to the Kubernetes API so JGroups
+kube-ping discovery can reach the API server.
 
 #### Scenario: Command and API gateway server ports are open
 
@@ -197,7 +199,9 @@ restricting ingress to the server and management ports and allowing DNS, same-na
 #### Scenario: Kubernetes API egress enables kube-ping discovery
 
 - **WHEN** the command-service or api-gateway NetworkPolicy is rendered
-- **THEN** egress is allowed to the Kubernetes API EndpointSlices so JGroups kube-ping can discover cluster members
+- **THEN** egress is allowed to the Kubernetes API via an `ipBlock` for the apiserver address on the apiserver port,
+  discovered from the `default` namespace's `kubernetes` EndpointSlice, so JGroups kube-ping can discover cluster
+  members
 
 ### Requirement: JGroups clustering
 

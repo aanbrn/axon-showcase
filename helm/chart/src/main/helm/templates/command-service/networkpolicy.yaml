@@ -80,7 +80,7 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: {{ include "common.names.namespace" $ | quote }}
     # Access to the Kubernetes API server (discovered via the kubernetes EndpointSlice).
-    {{- with (lookup "discovery.k8s.io/v1" "EndpointSlice" (include "common.names.namespace" $) "kubernetes") }}
+    {{- with (lookup "discovery.k8s.io/v1" "EndpointSlice" "default" "kubernetes") }}
     - to:
         {{- range .endpoints }}
         {{- range .addresses }}

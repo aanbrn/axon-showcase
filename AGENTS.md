@@ -173,6 +173,12 @@ using the `GITHUB_TOKEN` (`issues: write`). When there are actionable updates it
 repository owner (so they are notified); runs with no updates update the issue silently. It is observational — never
 a merge gate.
 
+`.github/workflows/helm-updates.yml` runs the Helm update check (`./gradlew helmUpdates`) on a weekly schedule and
+via `workflow_dispatch`, opening or updating the "Helm updates" issue with the actionable coordinates from
+`build/helm-updates/report.txt` (the Helm CLI and pinned chart versions that have a newer version), using the
+`GITHUB_TOKEN` (`issues: write`). When there are updates it posts a comment mentioning the repository owner (so they
+are notified); runs with no updates update the issue silently. It is observational — never a merge gate.
+
 ## Architecture
 
 CQRS with 4 services + an API gateway:

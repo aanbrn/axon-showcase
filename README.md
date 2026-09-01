@@ -263,24 +263,28 @@ helm install kps prometheus-community/kube-prometheus-stack \
 
 helm install tempo grafana/tempo \
   --version 1.24.4 \
-  --namespace monitoring \
+  --namespace monitoring --create-namespace \
   --wait
 
 # Install infrastructure
 helm install axon-showcase-db-events bitnami/postgresql \
   --version 16.7.27 \
+  --namespace axon-showcase --create-namespace \
   --wait
 
 helm install axon-showcase-kafka bitnami/kafka \
   --version 31.5.0 \
+  --namespace axon-showcase --create-namespace \
   --wait
 
 helm install axon-showcase-os-views bitnami/opensearch \
   --version 2.0.10 \
+  --namespace axon-showcase --create-namespace \
   --wait
 
 # Install the application
 helm install axon-showcase ./helm/chart \
+  --namespace axon-showcase --create-namespace \
   --wait
 ```
 

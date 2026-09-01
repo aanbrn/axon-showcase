@@ -49,10 +49,19 @@ abstract class VerifyInfraImageVersionsTask : AbstractHelmCommandTask() {
                     )
             val imageAppVersion = check.imageTag.takeWhile { it.isDigit() || it == '.' }
             val chartAppVersion = chartImageTag.takeWhile { it.isDigit() || it == '.' }
-            // The official image tag and the chart's preconfigured app version may differ only by trailing ".0"
-            // zero-padding (e.g. postgres official 17.6 vs chart app version 17.6.0, or 17 vs 17.0.0); strip it from
-            // both sides so such equivalent versions compare equal while a genuine patch difference still fails.
-            if (stripTrailingZeroSegments(imageAppVersion) != stripTrailingZeroSegments(chartAppVersion)) {
+            val imageSegments = imageAppVersion.split('.').size
+            // The official tag must declare at least the minor version: a bare major (e.g. '17') is a floating
+            // reference that Docker Hub re-points to the latest 17.x, so it cannot be a single source of truth.
+            if (imageSegments < 2) {
+                throw GradleException(
+                    "${check.component} image tag '${check.imageTag}' is a floating reference; " +
+                        "the official tag must declare at least the minor version (e.g. '17.6', not '17')."
+                )
+            }
+            // The official tag is never mutated: the chart app version is truncated to the official tag's segment
+            // count and compared exactly, so a two-segment official tag (17.6) matches a chart app version 17.6.0 at
+            // minor granularity, while a full-patch official tag (3.9.0) requires an exact chart app version match.
+            if (truncateToSegments(chartAppVersion, imageSegments) != imageAppVersion) {
                 throw GradleException(
                     "Infra image version mismatch: ${check.component} image tag '${check.imageTag}' is inconsistent with " +
                         "chart '${check.chartRef}@${check.chartVersion}' preconfigured image tag '$chartImageTag' " +
@@ -106,11 +115,6 @@ abstract class VerifyInfraImageVersionsTask : AbstractHelmCommandTask() {
             ?.trim()
     }
 
-    private fun stripTrailingZeroSegments(version: String): String {
-        var normalized = version
-        while (normalized.endsWith(".0")) {
-            normalized = normalized.removeSuffix(".0")
-        }
-        return normalized
-    }
+    private fun truncateToSegments(version: String, segments: Int): String =
+        version.split('.').take(segments).joinToString(".")
 }

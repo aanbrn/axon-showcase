@@ -258,6 +258,9 @@ helm {
 
             version = libs.versions.bitnami.postgresql
 
+            namespace = "axon-showcase"
+            createNamespace = true
+
             tags.addAll(listOf("database", "db-events"))
 
             mustInstallAfter("kps")
@@ -269,6 +272,9 @@ helm {
             from("bitnami/opensearch")
 
             version = libs.versions.bitnami.opensearch
+
+            namespace = "axon-showcase"
+            createNamespace = true
 
             tags.addAll(listOf("database", "os-views"))
 
@@ -282,6 +288,9 @@ helm {
 
             version = libs.versions.bitnami.kafka
 
+            namespace = "axon-showcase"
+            createNamespace = true
+
             tags.add("kafka")
 
             mustInstallAfter("kps")
@@ -291,6 +300,9 @@ helm {
 
         create("axon-showcase") {
             from(chart(":helm:chart", "main"))
+
+            namespace = "axon-showcase"
+            createNamespace = true
 
             tags.add("application")
 

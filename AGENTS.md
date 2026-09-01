@@ -305,17 +305,25 @@ ARM64 host), pass `-PimagePlatform=linux/amd64` (supported by the `spring-boot-c
 # Deploy to local cluster (must be ordered)
 helm install kps prometheus-community/kube-prometheus-stack --version 77.14.0 \
   --namespace monitoring --create-namespace --wait
-helm install tempo grafana/tempo --version 1.24.4 --namespace monitoring --wait
-helm install axon-showcase-db-events bitnami/postgresql --version 16.7.27 --wait
-helm install axon-showcase-kafka bitnami/kafka --version 31.5.0 --wait
-helm install axon-showcase-os-views bitnami/opensearch --version 2.0.10 --wait
-helm install axon-showcase ./helm/chart --wait
+helm install tempo grafana/tempo --version 1.24.4 --namespace monitoring --create-namespace --wait
+helm install axon-showcase-db-events bitnami/postgresql --version 16.7.27 \
+  --namespace axon-showcase --create-namespace --wait
+helm install axon-showcase-kafka bitnami/kafka --version 31.5.0 \
+  --namespace axon-showcase --create-namespace --wait
+helm install axon-showcase-os-views bitnami/opensearch --version 2.0.10 \
+  --namespace axon-showcase --create-namespace --wait
+helm install axon-showcase ./helm/chart --namespace axon-showcase --create-namespace --wait
 
 # Or use Gradle Helm plugin (builds images, then installs all releases to the local target)
 ./gradlew helmInstallToLocal
 ```
 
 **Helm release order**: kps → tempo → db-events/kafka/os-views → axon-showcase. Uninstall in reverse.
+
+**Helm release namespaces**: declared in `build.gradle.kts` — the observability releases (kps, tempo) deploy into the
+`monitoring` namespace, and the application and infrastructure releases (db-events, kafka, os-views, axon-showcase)
+deploy into a dedicated `axon-showcase` namespace (created on install). The local deployment does not depend on the
+kube context's current namespace or a `helm.namespace` gradle property.
 
 **Chart validation**: the chart is linted as part of packaging (`helmPackageMainChart` → `helmLintMainChart`). Lint runs
 strict (warnings are errors) and lints the Bitnami `common` subchart, rendering two extra value sets:

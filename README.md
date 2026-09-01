@@ -294,6 +294,11 @@ Or use the bundled Helm release:
 ./gradlew helmInstallToLocal
 ```
 
+The `local` release target deploys to your local cluster: it uses the `helm.local.kubeContext` Gradle property when set
+(in `~/.gradle/gradle.properties` or via `-P`), otherwise your current kube context. Set `helm.local.kubeContext` only
+if you have multiple kube contexts and need to pin the local one — e.g. macOS colima users may add
+`helm.local.kubeContext=colima`.
+
 ### Helm Values
 
 Custom values can be placed in `helm/values/axon-showcase/values-local.yaml`.

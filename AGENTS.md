@@ -404,6 +404,15 @@ so 3.9.0 starts; keep that override when bumping the Kafka image tag.
 
 ## Gotchas
 
+- **Deployment investigations must include the Helm chart and values files.** When diagnosing a deployment issue, the
+  chart (`helm/chart/src/main/helm/`) and its values (`helm/values/*/values-*.yaml`) are always in scope alongside the
+  live cluster — the deployed resources are generated output of the chart, so a wrong live resource usually means a
+  wrong source (or a stale apply), not a standalone "cluster problem." The chart also introduces k8s-specific concerns
+  (namespaces, NetworkPolicies, KUBE_PING discovery) that do not exist under `bootRun`/`docker-compose`, so a bug can
+  be invisible locally and only surface once deployed. Recent deployment bugs were both chart bugs, not code bugs:
+  the `kubernetes` EndpointSlice `lookup` namespace in the network policies (`fix-kube-ping-api-egress`) and the
+  missing release-namespace declarations (`declare-axon-showcase-namespace`). Prefer rendering the chart locally with
+  `helm template` to inspect what the source produces before (or alongside) inspecting live resources.
 - IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java,
   ktfmt for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**,
   **Auto Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins

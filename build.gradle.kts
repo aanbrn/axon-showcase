@@ -79,37 +79,47 @@ val infraChartSpecs =
         "bitnami/opensearch" to ("opensearch" to libs.versions.opensearch.image.tag),
     )
 
+val infraChecks = providers.provider {
+    val helmExtension = project.extensions.getByName("helm") as ExtensionAware
+    @Suppress("UNCHECKED_CAST")
+    val releases = helmExtension.extensions.getByName("releases") as NamedDomainObjectContainer<HelmRelease>
+    releases.mapNotNull { release ->
+        val chartRef = release.chart.map { it.chartLocation }.getOrNull()
+        val spec = chartRef?.let { infraChartSpecs[it] }
+        if (chartRef == null || spec == null) {
+            null
+        } else {
+            InfraImageVersionCheck(
+                component = spec.first,
+                chartRef = chartRef,
+                chartVersion = release.version.get(),
+                imageTag = spec.second.get(),
+                valuesDirs =
+                    release.valuesDirs.get().map { dir ->
+                        rootProject.layout.projectDirectory.asFile.toPath().relativize(dir.toPath()).toString()
+                    },
+            )
+        }
+    }
+}
+
 tasks.register("verifyInfraImageVersions", VerifyInfraImageVersionsTask::class.java) {
     group = "verification"
     description = "Verifies each infra image tag matches the image tag preconfigured in its pinned Bitnami Helm chart"
 
-    checks.set(
-        providers.provider {
-            val helmExtension = project.extensions.getByName("helm") as ExtensionAware
-            @Suppress("UNCHECKED_CAST")
-            val releases = helmExtension.extensions.getByName("releases") as NamedDomainObjectContainer<HelmRelease>
-            releases.mapNotNull { release ->
-                val chartRef = release.chart.map { it.chartLocation }.getOrNull()
-                val spec = chartRef?.let { infraChartSpecs[it] }
-                if (chartRef == null || spec == null) {
-                    null
-                } else {
-                    InfraImageVersionCheck(
-                        component = spec.first,
-                        chartRef = chartRef,
-                        chartVersion = release.version.get(),
-                        imageTag = spec.second.get(),
-                        valuesDirs =
-                            release.valuesDirs.get().map { dir ->
-                                rootProject.layout.projectDirectory.asFile.toPath().relativize(dir.toPath()).toString()
-                            },
-                    )
+    checks.set(infraChecks)
+
+    valuesFiles.from(
+        infraChecks.map { checks ->
+            checks
+                .flatMap { it.valuesDirs }
+                .map { valuesDir ->
+                    fileTree(rootProject.layout.projectDirectory.dir(valuesDir)) { include("values*.yaml") }
                 }
-            }
         }
     )
 
-    dependsOn("helmUpdateRepositories")
+    resultFile.set(layout.buildDirectory.file("verification/infra-image-versions.txt"))
 }
 
 tasks.named("check") {

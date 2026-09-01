@@ -325,6 +325,13 @@ helm install axon-showcase ./helm/chart --namespace axon-showcase --create-names
 deploy into a dedicated `axon-showcase` namespace (created on install). The local deployment does not depend on the
 kube context's current namespace or a `helm.namespace` gradle property.
 
+**Helm release target kube contexts**: each release target declares the kube context it deploys to in
+`build.gradle.kts`. The `local` target resolves its context per-machine from the `helm.local.kubeContext` Gradle
+property (set in `~/.gradle/gradle.properties` or via `-P`), falling back to the developer's current kube context when
+unset — so macOS (colima) and Linux (kind/minikube) contributors each deploy to their own local cluster without a
+hard-coded context name in the repo. A remote target (e.g. a future staging) would declare a shared, fixed context in
+the build. Do not hard-code a machine-specific local context name (like `colima`) in the versioned build.
+
 **Chart validation**: the chart is linted as part of packaging (`helmPackageMainChart` → `helmLintMainChart`). Lint runs
 strict (warnings are errors) and lints the Bitnami `common` subchart, rendering two extra value sets:
 

@@ -323,5 +323,13 @@ helm {
         }
     }
 
-    releaseTargets { create("local") { selectTags = "*" } }
+    releaseTargets {
+        create("local") {
+            selectTags = "*"
+            val localKubeContext = providers.gradleProperty("helm.local.kubeContext")
+            if (localKubeContext.isPresent) {
+                kubeContext.set(localKubeContext)
+            }
+        }
+    }
 }

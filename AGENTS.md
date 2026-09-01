@@ -297,11 +297,12 @@ ARM64 host), pass `-PimagePlatform=linux/amd64` (supported by the `spring-boot-c
 
 ```bash
 # Deploy to local cluster (must be ordered)
-helm install kps prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --wait
-helm install tempo grafana/tempo --namespace monitoring --wait
-helm install axon-showcase-db-events bitnami/postgresql --wait
-helm install axon-showcase-kafka bitnami/kafka --wait
-helm install axon-showcase-os-views bitnami/opensearch --wait
+helm install kps prometheus-community/kube-prometheus-stack --version 77.14.0 \
+  --namespace monitoring --create-namespace --wait
+helm install tempo grafana/tempo --version 1.24.4 --namespace monitoring --wait
+helm install axon-showcase-db-events bitnami/postgresql --version 16.7.27 --wait
+helm install axon-showcase-kafka bitnami/kafka --version 31.5.0 --wait
+helm install axon-showcase-os-views bitnami/opensearch --version 2.0.10 --wait
 helm install axon-showcase ./helm/chart --wait
 
 # Or use Gradle Helm plugin (builds images, then installs all releases to the local target)
@@ -368,6 +369,11 @@ verification from the Gradle build cache and skip the Helm resolution entirely. 
 releases means renaming an infra release retargets its check and removing one drops it. External `image.tag` overrides
 at deploy time (e.g. `--set`
 in a release pipeline) are outside this in-repo gate.
+
+**Every Helm chart coordinate in the version catalog is a concrete version** — never a floating major-line pin such as
+`77.x.x`. This covers the observability charts (`prometheus-community-stack`, `grafana-tempo`) and the `common`
+subchart dependency as well as the `bitnami-*` infra charts, so the Helm deployment is reproducible at a reviewable
+version. Bump a chart by updating its concrete coordinate (e.g. `77.14.0` → `77.15.0`).
 
 **Kafka 3.9.0 Testcontainers note**: Kafka 3.9.0 has a validation bug (KAFKA-18281) that rejects Testcontainers'
 default listener config (`0.0.0.0` binds). The `KafkaContainer` usages in the IT/e2e suites override

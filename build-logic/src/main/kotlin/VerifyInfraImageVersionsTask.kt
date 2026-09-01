@@ -1,8 +1,15 @@
 import io.github.build.extensions.oss.gradle.plugins.helm.command.tasks.AbstractHelmCommandTask
 import java.io.Serializable
 import org.gradle.api.GradleException
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 data class InfraImageVersionCheck(
@@ -13,13 +20,23 @@ data class InfraImageVersionCheck(
     val valuesDirs: List<String>,
 ) : Serializable
 
+@CacheableTask
 abstract class VerifyInfraImageVersionsTask : AbstractHelmCommandTask() {
 
     @get:Input
     abstract val checks: ListProperty<InfraImageVersionCheck>
 
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val valuesFiles: ConfigurableFileCollection
+
+    @get:OutputFile
+    abstract val resultFile: RegularFileProperty
+
     @TaskAction
     fun verify() {
+        setupBitnamiRepository()
+
         checks.get().forEach { check ->
             val values = execHelmCaptureOutput("show", "values") {
                 args(check.chartRef)
@@ -46,25 +63,34 @@ abstract class VerifyInfraImageVersionsTask : AbstractHelmCommandTask() {
                 "${check.component}: image tag '${check.imageTag}' and chart '${check.chartRef}@${check.chartVersion}' " +
                     "preconfigured image tag '$chartImageTag' are consistent"
             )
+        }
 
-            verifyValuesFiles(check)
+        verifyValuesFiles()
+
+        resultFile.get().asFile.writeText("ok")
+    }
+
+    private fun setupBitnamiRepository() {
+        // execHelm submits asynchronously to the worker queue and returns immediately; use the output-capturing
+        // variant so each setup step blocks until it completes, keeping repo add -> repo update -> show values in
+        // order even on a fresh machine where the repo does not yet exist.
+        execHelmCaptureOutput("repo", "add") {
+            args("bitnami", "https://charts.bitnami.com/bitnami")
+        }
+        execHelmCaptureOutput("repo", "update") {
+            args("bitnami")
         }
     }
 
-    private fun verifyValuesFiles(check: InfraImageVersionCheck) {
-        check.valuesDirs.forEach { valuesDir ->
-            project.file(valuesDir).listFiles()
-                .orEmpty()
-                .filter { it.isFile && it.name.matches(Regex("values.*\\.ya?ml")) }
-                .forEach { file ->
-                    val pinnedTag = topLevelImageTag(file.readLines())
-                    if (pinnedTag != null) {
-                        throw GradleException(
-                            "${check.component} values file '${file.path}' overrides 'image.tag' to '$pinnedTag'; " +
-                                "the Helm deployment must use the chart's preconfigured image tag."
-                        )
-                    }
-                }
+    private fun verifyValuesFiles() {
+        valuesFiles.forEach { file ->
+            val pinnedTag = topLevelImageTag(file.readLines())
+            if (pinnedTag != null) {
+                throw GradleException(
+                    "values file '${file.path}' overrides 'image.tag' to '$pinnedTag'; " +
+                        "the Helm deployment must use the chart's preconfigured image tag."
+                )
+            }
         }
     }
 

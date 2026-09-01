@@ -257,21 +257,26 @@ ADR-0007 for the evidence trail.
 ```bash
 # Install monitoring stack (Prometheus + Grafana + Tempo)
 helm install kps prometheus-community/kube-prometheus-stack \
+  --version 77.14.0 \
   --namespace monitoring --create-namespace \
   --wait
 
 helm install tempo grafana/tempo \
+  --version 1.24.4 \
   --namespace monitoring \
   --wait
 
 # Install infrastructure
 helm install axon-showcase-db-events bitnami/postgresql \
+  --version 16.7.27 \
   --wait
 
 helm install axon-showcase-kafka bitnami/kafka \
+  --version 31.5.0 \
   --wait
 
 helm install axon-showcase-os-views bitnami/opensearch \
+  --version 2.0.10 \
   --wait
 
 # Install the application

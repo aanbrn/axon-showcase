@@ -106,6 +106,13 @@ Major-blocking entries in `config/dependency-updates/major-disabled.properties` 
 coordinate and its rationale; the authoritative reasoning for each suppressed coordinate lives in the
 `showcase/quality/dependency-management` spec.
 
+The Helm update check has its own suppression file, `config/helm-updates/major-disabled.properties`: major bumps of the
+bitnami infra charts (postgres, kafka, opensearch) are suppressed there because a major chart ships a new preconfigured
+`image.tag` that diverges from the test-surface `*-image-tag` pins (docker-compose/Testcontainers) — a coordinated
+migration, not an automatic update. The observability charts (kps, tempo) carry no `*-image-tag`, so their major bumps
+surface as actionable; verify them with a live install + smoke test (pods ready, Prometheus targets up, Grafana
+datasources wired), since `verifyInfraImageVersions` covers only the bitnami infra charts.
+
 For calendar-versioned coordinates (leading segment is a 4-digit year, e.g. Spring `YYYY.MINOR.MICRO` such as
 `reactor-bom 2025.0.7`), the report treats a change in the `YYYY.TRAIN` pair (the first two version segments) as a major
 update — matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains — while a change
@@ -318,6 +325,12 @@ helm install axon-showcase ./helm/chart --namespace axon-showcase --create-names
 ./gradlew helmInstallToLocal
 ```
 
+Per-release install/uninstall tasks follow `helmInstall<Release>To<Target>` / `helmUninstall<Release>From<Target>`,
+e.g. `helmInstallKpsToLocal` and `helmUninstallKpsFromLocal` (to install/verify a single chart without building
+images — the app-release install task additionally depends on the four `bootBuildImage` tasks). Uninstalling leaves
+`createNamespace` namespaces (`monitoring`, `axon-showcase`) behind; remove them with `kubectl delete namespace`
+afterwards.
+
 **Helm release order**: kps → tempo → db-events/kafka/os-views → axon-showcase. Uninstall in reverse.
 
 **Helm release namespaces**: declared in `build.gradle.kts` — the observability releases (kps, tempo) deploy into the
@@ -394,7 +407,10 @@ in a release pipeline) are outside this in-repo gate.
 **Every Helm chart coordinate in the version catalog is a concrete version** — never a floating major-line pin such as
 `77.x.x`. This covers the observability charts (`prometheus-community-stack`, `grafana-tempo`) and the `common`
 subchart dependency as well as the `bitnami-*` infra charts, so the Helm deployment is reproducible at a reviewable
-version. Bump a chart by updating its concrete coordinate (e.g. `77.14.0` → `77.15.0`).
+version. Bump a chart by updating its concrete coordinate (e.g. `77.14.0` → `77.15.0`), and verify the bump with a
+live install + smoke test (`helmInstall<Release>ToLocal`: pods ready, Prometheus targets up, Grafana datasources
+wired) — `verifyInfraImageVersions` gates only the bitnami image-tag drift, not that the bumped chart deploys
+correctly.
 
 **Kafka 3.9.0 Testcontainers note**: Kafka 3.9.0 has a validation bug (KAFKA-18281) that rejects Testcontainers'
 default listener config (`0.0.0.0` binds). The `KafkaContainer` usages in the IT/e2e suites override

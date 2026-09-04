@@ -11,11 +11,13 @@ change to the enforced lint rules or the `npm run lint` gate.
 
 ## What Changes
 
-- Upgrade `eslint` from `^8.57.1` to a flat-config version (`^9.x` or `^10.x`) in `showcase-web-ui/package.json`,
-  keeping the lint script and gate semantics identical.
+- Upgrade `eslint` from `^8.57.1` to the current 10.x line in `showcase-web-ui/package.json`, keeping the lint script
+  and gate semantics identical.
 - Migrate `.eslintrc.cjs` to `eslint.config.js` (flat config): `@eslint/js` recommended, `typescript-eslint`
   flat config, `eslint-plugin-react-hooks` flat config, `eslint-config-prettier`, and the `header/header` SPDX
-  rule in flat-plugin form.
+  rule in flat-plugin form. The original `eslint-plugin-header` is unmaintained (2021) and declares no rule schema,
+  which ESLint 9/10's config validation rejects — replace it with the maintained drop-in fork
+  `@tony.ganchev/eslint-plugin-header` (same rule semantics, flat-config-native).
 - Keep the same enforced rules and the `npm run lint`/`npm run format:check` check wiring — the lint gate behavior
   does not change.
 - Optionally suppress the remaining upstream `whatwg-encoding` deprecation only if it is resolvable; it is an
@@ -33,8 +35,9 @@ _(none — `npm run lint`, the rules enforced, and the `check` gate are unchange
 
 ## Impact
 
-- **Dependencies**: `showcase-web-ui/package.json` / `package-lock.json` — bump `eslint`, add
-  `@eslint/js`; adjust `eslint-plugin-react-hooks`/`typescript-eslint` flat-config setup if needed.
+- **Dependencies**: `showcase-web-ui/package.json` / `package-lock.json` — bump `eslint` to 10.x, add
+  `@eslint/js`, bump `eslint-plugin-react-hooks` to 7.x, and swap `eslint-plugin-header` for the maintained fork
+  `@tony.ganchev/eslint-plugin-header`.
 - **Code**: `showcase-web-ui/.eslintrc.cjs` → `showcase-web-ui/eslint.config.js` (flat config rewrite).
 - **Docs**: note the flat-config setup in `AGENTS.md`'s frontend conventions bullet if wording changes.
 - **Behavior**: none — lint rules, gate, and scripts are unchanged. The deprecation warnings for the ESLint 8

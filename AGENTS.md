@@ -283,15 +283,17 @@ Key modules (libraries, not services):
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md` and `README.md` need to be refreshed to
   reflect the new state (commands, config, conventions, gotchas) and update them before reporting the change done
 - **No comments** in source code (per project convention). The sole exception is the `// SPDX-License-Identifier: MIT`
-  header, enforced by Spotless on every Java file and by `eslint-plugin-header` on every `showcase-web-ui` source file
-  (the project is MIT licensed; see the LICENSE file)
+  header, enforced by Spotless on every Java file and by `eslint-plugin-header` (`@tony.ganchev/eslint-plugin-header`
+  in the flat `eslint.config.js`, since the original plugin is unmaintained and does not support ESLint 9/10) on every
+  `showcase-web-ui` source file (the project is MIT licensed; see the LICENSE file)
 - **Javadoc**: classes, methods, and fields carry a Javadoc comment describing their purpose (see
   `ShowcaseApiErrorResolver`, `ShowcaseApiController`); wrap at 120 characters. The `showcase-web-ui` uses JSDoc the
   same way: exported components, hooks, and helpers carry a `/** ... */` comment describing their purpose (e.g.
   `ShowcasesPage`, `contextualTime`, `waitForReadModel`); wrap at 120 characters
 - **Frontend (`showcase-web-ui`)**: organized per Feature-Sliced Design (`app`/`pages`/`widgets`/`features`/`entities`/
   `shared`, importing only downward, `@/` alias → `src/`). Server state via TanStack Query, client state via a Redux
-  Toolkit slice, forms via React Hook Form + Zod. Format with Prettier (`format:check` gated in `check`); lint with ESLint
+  Toolkit slice, forms via React Hook Form + Zod. Format with Prettier (`format:check` gated in `check`); lint with
+  ESLint 10 via the flat `eslint.config.js`
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable

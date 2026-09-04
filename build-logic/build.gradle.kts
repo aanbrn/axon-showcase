@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.spotless.plugin)
     implementation(libs.helm.plugin)
     implementation(libs.helm.releases.plugin)
+    implementation(libs.node.plugin)
 
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 

@@ -9,6 +9,7 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
+import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
 import static org.springframework.security.web.server.header.CacheControlServerHttpHeadersWriter.CACHE_CONTRTOL_VALUE;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 import lombok.val;
 import org.junit.jupiter.api.AfterEach;
@@ -41,9 +43,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.opensearch.testcontainers.OpenSearchContainer;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -52,6 +57,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import reactor.blockhound.BlockHound;
+import showcase.api.events.ShowcaseEventDto;
+import showcase.api.rest.ScheduleShowcaseResponse;
 import showcase.query.Showcase;
 import showcase.query.ShowcaseStatus;
 
@@ -144,6 +151,7 @@ class ShowcaseApiGatewayE2E {
             .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
 
     private WebTestClient webClient;
+    private WebClient sseClient;
     private final List<String> createdShowcaseIds = new ArrayList<>();
 
     @BeforeAll
@@ -159,6 +167,9 @@ class ShowcaseApiGatewayE2E {
     @BeforeEach
     void setUp() {
         webClient = WebTestClient.bindToServer()
+                .baseUrl("http://localhost:" + apiGateway.getMappedPort(8080))
+                .build();
+        sseClient = WebClient.builder()
                 .baseUrl("http://localhost:" + apiGateway.getMappedPort(8080))
                 .build();
     }
@@ -373,6 +384,27 @@ class ShowcaseApiGatewayE2E {
             val showcaseId = scheduleShowcase(title, startTime, duration);
 
             awaitShowcase(showcaseId, title, startTime, duration, ShowcaseStatus.SCHEDULED);
+        }
+
+        @Test
+        @DisplayName("A valid request streams the scheduled event over the live event stream")
+        void scheduleShowcase_validRequest_streamsScheduledEventOverLiveEventStream() {
+            val received = new CopyOnWriteArrayList<ShowcaseEventDto>();
+            sseClient
+                    .get()
+                    .uri("/events")
+                    .accept(TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<ShowcaseEventDto>>() {})
+                    .mapNotNull(ServerSentEvent::data)
+                    .subscribe(received::add);
+
+            val title = aShowcaseTitle();
+            val showcaseId = scheduleShowcase(title, aShowcaseStartTime(Instant.now()), aShowcaseDuration());
+
+            await().atMost(Duration.ofSeconds(30)).until(() -> received.stream()
+                    .anyMatch(event -> event.showcaseId().equals(showcaseId)
+                            && event.type().equals("SCHEDULED")));
         }
 
         @Test

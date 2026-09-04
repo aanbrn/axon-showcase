@@ -29,6 +29,7 @@ include(
     "showcase-query-service",
     "showcase-query-client",
     "showcase-api-gateway",
+    "showcase-web-ui",
     "helm",
     "helm:chart",
     "load-tests",

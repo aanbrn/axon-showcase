@@ -110,6 +110,9 @@ spec:
               value: {{ include "common.names.namespace" $ | quote }}
             - name: "JGROUPS_KUBE_PING_LABELS"
               value: {{ include "axon-showcase.jgroups-cluster.labels" $ | quote }}
+            # Browser origins allowed to call the gateway cross-origin.
+            - name: "SHOWCASE_CORS_ALLOWED_ORIGINS"
+              value: {{ join "," .Values.apiGateway.cors.allowedOrigins | quote }}
             # Query service endpoint used to forward read requests.
             - name: "SHOWCASE_QUERY_SERVICE_URL"
               value: {{ include "axon-showcase.query-service.url" $ | quote }}

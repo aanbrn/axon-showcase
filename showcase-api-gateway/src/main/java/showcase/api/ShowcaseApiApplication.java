@@ -1,13 +1,7 @@
 // SPDX-License-Identifier: MIT
 package showcase.api;
 
-import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME;
-import static showcase.api.ShowcaseApiConstants.FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME;
-
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
-import com.github.benmanes.caffeine.cache.AsyncCache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandBus;
@@ -20,36 +14,33 @@ import org.axonframework.commandhandling.distributed.RoutingStrategy;
 import org.axonframework.config.Configuration;
 import org.axonframework.extensions.jgroups.DistributedCommandBusProperties;
 import org.axonframework.extensions.jgroups.commandhandling.JGroupsConnectorFactoryBean;
+import org.axonframework.extensions.kafka.KafkaProperties;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.springboot.autoconfig.UpdateCheckerAutoConfiguration;
 import org.axonframework.tracing.SpanFactory;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.cache.CacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import showcase.query.FetchShowcaseListQuery;
-import showcase.query.Showcase;
 
 /**
  * Application entry point for the showcase API gateway.
  *
- * <p>Boots the Spring application and declares the beans wiring the distributed command bus, query-side caches,
- * and security configuration.
+ * <p>Boots the Spring application and declares the beans wiring the distributed command bus, the serialization
+ * customizer, and the security configuration. The REST controller's query-side caches live in
+ * {@code ShowcaseRestConfiguration}.
  */
 @SpringBootApplication(exclude = UpdateCheckerAutoConfiguration.class)
-@EnableConfigurationProperties(ShowcaseApiProperties.class)
+@EnableConfigurationProperties({ShowcaseApiProperties.class, KafkaProperties.class})
 @EnableCaching
 @Slf4j
 class ShowcaseApiApplication {
@@ -150,67 +141,6 @@ class ShowcaseApiApplication {
     @Bean
     Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
         return builder -> builder.modules(new BlackbirdModule());
-    }
-
-    /**
-     * Creates the asynchronous cache backing fetch-showcase-list queries.
-     *
-     * @param apiProperties the properties holding the cache configuration
-     * @return the configured asynchronous cache
-     */
-    @Bean
-    AsyncCache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache(ShowcaseApiProperties apiProperties) {
-        val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME);
-        if (cacheSettings == null) {
-            throw new IllegalStateException(
-                    "Settings for cache '%s' is missing".formatted(FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME));
-        }
-        return Caffeine.newBuilder()
-                .maximumSize(cacheSettings.getMaximumSize())
-                .expireAfterAccess(cacheSettings.getExpiresAfterAccess())
-                .expireAfterWrite(cacheSettings.getExpiresAfterWrite())
-                .recordStats()
-                .buildAsync();
-    }
-
-    /**
-     * Creates the asynchronous cache backing fetch-showcase-by-id queries.
-     *
-     * @param apiProperties the properties holding the cache configuration
-     * @return the configured asynchronous cache
-     */
-    @Bean
-    AsyncCache<String, Showcase> fetchShowcaseByIdCache(ShowcaseApiProperties apiProperties) {
-        val cacheSettings = apiProperties.getCaches().get(FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME);
-        if (cacheSettings == null) {
-            throw new IllegalStateException(
-                    "Settings for cache '%s' is missing".formatted(FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME));
-        }
-        return Caffeine.newBuilder()
-                .maximumSize(cacheSettings.getMaximumSize())
-                .expireAfterAccess(cacheSettings.getExpiresAfterAccess())
-                .expireAfterWrite(cacheSettings.getExpiresAfterWrite())
-                .recordStats()
-                .buildAsync();
-    }
-
-    /**
-     * Registers the asynchronous caches with the {@link CaffeineCacheManager} under their cache names.
-     *
-     * @param fetchShowcaseListCache the fetch-showcase-list cache
-     * @param fetchShowcaseByIdCache the fetch-showcase-by-id cache
-     * @return the customizer registering the custom caches
-     */
-    @Bean
-    @SuppressWarnings("unchecked")
-    CacheManagerCustomizer<CaffeineCacheManager> caffeineCacheManagerCustomizer(
-            AsyncCache<?, ?> fetchShowcaseListCache, AsyncCache<?, ?> fetchShowcaseByIdCache) {
-        return cacheManager -> {
-            cacheManager.registerCustomCache(
-                    "fetch-showcase-list-cache", (AsyncCache<@NonNull Object, Object>) fetchShowcaseListCache);
-            cacheManager.registerCustomCache(
-                    "fetch-showcase-by-id-cache", (AsyncCache<@NonNull Object, Object>) fetchShowcaseByIdCache);
-        };
     }
 
     /**

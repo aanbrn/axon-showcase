@@ -25,6 +25,7 @@ axon-showcase/
 ├── showcase-query-client/          # Query-side client library
 ├── showcase-query-proto/           # Protobuf definitions for queries
 ├── showcase-query-service/         # Query service (read side)
+├── showcase-web-ui/                # Standalone web UI (React + Vite, Feature-Sliced Design)
 ├── showcase-identifier-extension/  # KSUID identifier support
 ├── showcase-mapstruct-extension/   # MapStruct extensions
 ├── showcase-resilience4j-extension # Resilience4j integration
@@ -46,6 +47,7 @@ axon-showcase/
 - **Helm** — Kubernetes packaging and deployment
 - **Gatling** — Load testing
 - **Gradle** — Build orchestration
+- **React + Vite + TypeScript** — Web UI (TanStack Query, Redux Toolkit, React Hook Form + Zod, Prettier, Vitest)
 
 ## Architecture
 
@@ -150,6 +152,18 @@ Each service can be run individually or via `docker compose`:
 Each service runs on its own HTTP port: API gateway `8080`, command service `8081`, projection service `8082`, query
 service `8083`.
 
+#### Run the Web UI
+
+With the services running (via `docker compose` or `bootRun`), start the Vite dev server:
+
+```bash
+./gradlew :showcase-web-ui:viteDev
+```
+
+Open http://localhost:5173. The dev server proxies `/showcases` and `/events` to the gateway on `:8080`, so you can
+create showcases, watch their lifecycle transitions happen live over SSE (including saga-triggered ones), and drive
+start/finish/remove from the browser.
+
 ### Database Scripts
 
 ```bash
@@ -181,9 +195,9 @@ gate (`check` with integration tests and coverage); both run `openspec validate 
 across runs via `gradle/actions/setup-gradle`. The `main-required-checks` ruleset requires the `build` check for all
 merges into `main`, with no bypass actors.
 
-`.github/workflows/e2e.yml` runs the end-to-end suite (`:showcase-api-gateway:e2eTest`, which builds all four service
-images and boots the full pipeline) on a nightly schedule and via `workflow_dispatch` — observational, never a merge
-gate, no secrets.
+`.github/workflows/e2e.yml` runs the end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four service
+images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same pipeline
+with Playwright) on a nightly schedule and via `workflow_dispatch` — observational, never a merge gate, no secrets.
 
 `.github/workflows/snyk.yml` runs the dependency security scan (`dependencySecurityCheck`, all sub-projects with the
 root `.snyk` policy) on a weekly schedule and via `workflow_dispatch`, authenticated with the `SNYK_TOKEN` secret —
@@ -205,6 +219,11 @@ Tests are organized into four tiers, run in order:
 | Component        | `./gradlew :<module>:componentTest`                | real in-process collaborators |
 | Integration      | `./gradlew :<module>:integrationTest`              | Testcontainers (needs Docker) |
 | End-to-end       | `./gradlew :<module>:e2eTest`                      | real deployed service + infra |
+
+The gateway e2e boots the full four-service pipeline with Testcontainers and verifies cross-service propagation. The
+web UI e2e (`./gradlew :showcase-web-ui:e2eTest`) boots the same pipeline via docker compose, serves the built UI with
+Vite preview, and drives it with Playwright — creating a showcase, starting it, observing a saga-triggered transition
+over SSE, live events appending to the timeline, and a duplicate title surfacing the gateway error.
 
 Run the full check for a module — compile, spotless, checkstyle, spotbugs, errorprone, test, componentTest,
 integrationTest — with `./gradlew :<module>:check` (add `-PskipITs` to drop integration for a Docker-free check;
@@ -306,6 +325,17 @@ Custom values can be placed in `helm/values/axon-showcase/values-local.yaml`.
 ## API Usage
 
 The API is exposed at `http://localhost:8080/showcases`.
+
+### Live Event Stream (SSE)
+
+Streams real domain events (scheduled, started, finished, removed) from Kafka as they occur:
+
+```bash
+curl -N http://localhost:8080/events
+```
+
+Events are delivered as named `showcase` Server-Sent-Events carrying the event type, showcase ID, and timestamp. The
+gateway consumes a consumer group distinct from the projection service's, and never reads the Axon event store.
 
 ### Schedule a Showcase
 

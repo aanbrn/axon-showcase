@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-package showcase.api;
+package showcase.api.rest;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -40,6 +40,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.netty.channel.AbortedException;
+import showcase.api.ShowcaseApiErrorResolver;
 import showcase.command.FinishShowcaseCommand;
 import showcase.command.RemoveShowcaseCommand;
 import showcase.command.ScheduleShowcaseCommand;
@@ -63,7 +64,7 @@ import showcase.query.ShowcaseStatus;
 @RequestMapping("/showcases")
 @RequiredArgsConstructor
 @Slf4j
-final class ShowcaseApiController implements ShowcaseApi {
+final class ShowcaseRestController implements ShowcaseRestApi {
     /**
      * Operations for dispatching showcase commands to the command side.
      */

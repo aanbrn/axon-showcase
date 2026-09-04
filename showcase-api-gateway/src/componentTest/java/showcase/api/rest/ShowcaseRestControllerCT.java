@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-package showcase.api;
+package showcase.api.rest;
 
 import static io.github.resilience4j.circuitbreaker.CallNotPermittedException.createCallNotPermittedException;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -14,7 +14,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.security.web.server.header.CacheControlServerHttpHeadersWriter.CACHE_CONTRTOL_VALUE;
-import static showcase.api.ShowcaseApi.IDEMPOTENCY_KEY_HEADER;
+import static showcase.api.rest.ShowcaseRestApi.IDEMPOTENCY_KEY_HEADER;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
 import static showcase.command.RandomCommandTestUtils.aShowcaseId;
 import static showcase.command.RandomCommandTestUtils.aShowcaseStartTime;
@@ -49,11 +49,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -71,6 +72,8 @@ import reactor.blockhound.BlockHound;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.channel.AbortedException;
+import showcase.api.ShowcaseApiErrorResolver;
+import showcase.api.ShowcaseApiProperties;
 import showcase.command.FinishShowcaseCommand;
 import showcase.command.RemoveShowcaseCommand;
 import showcase.command.ScheduleShowcaseCommand;
@@ -87,14 +90,22 @@ import showcase.query.ShowcaseQueryErrorDetails;
 import showcase.query.ShowcaseQueryException;
 import showcase.query.ShowcaseQueryOperations;
 
-@WebFluxTest(ShowcaseApiController.class)
+@WebFluxTest(ShowcaseRestController.class)
 @DisplayName("Showcase API controller component tests")
-class ShowcaseApiControllerCT {
+class ShowcaseRestControllerCT {
 
     @Configuration
-    @ComponentScan(excludeFilters = @Filter(type = FilterType.ANNOTATION, classes = SpringBootApplication.class))
+    @ComponentScan(
+            basePackages = "showcase.api.rest",
+            excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ShowcaseRestConfiguration.class))
+    @EnableConfigurationProperties(ShowcaseApiProperties.class)
     @ImportAutoConfiguration(TaskExecutionAutoConfiguration.class)
     static class TestConfig {
+
+        @Bean
+        ShowcaseApiErrorResolver showcaseApiErrorResolver(MessageSource messageSource) {
+            return new ShowcaseApiErrorResolver(messageSource);
+        }
 
         @Bean
         SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {

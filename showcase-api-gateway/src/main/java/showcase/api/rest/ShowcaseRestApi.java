@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-package showcase.api;
+package showcase.api.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -40,7 +40,7 @@ import showcase.query.ShowcaseStatus;
         info = @Info(title = "Showcase REST API", version = "0.1.0", description = "The REST API to manage showcases."))
 @Tag(name = "Showcase Operations")
 @SuppressWarnings("unused")
-interface ShowcaseApi {
+interface ShowcaseRestApi {
     /**
      * The HTTP header name used for idempotency keys on write operations.
      */

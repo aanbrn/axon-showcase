@@ -20,6 +20,8 @@ dependencies {
     }
     implementation(libs.axon.extensions.jgroups.springBootStarter)
     implementation(libs.axon.extensions.reactor.springBootStarter)
+    implementation(libs.axon.extensions.kafka.springBootStarter)
+    implementation(libs.reactor.kafka)
 
     implementation(libs.jgroups.kunernetes)
 
@@ -39,7 +41,10 @@ dependencies {
     implementation(libs.caffeine)
 
     implementation(libs.commons.lang3)
+    implementation(libs.mapstruct)
     implementation(libs.streamex)
+
+    annotationProcessor(project(":showcase-mapstruct-extension"))
 
     implementation(libs.resilience4j.springBoot3)
 
@@ -143,6 +148,11 @@ testing {
 
                     implementation(libs.reactor.test)
                     implementation(libs.netty.resolver.dnsNativeMacos)
+
+                    implementation(libs.axon.extensions.kafka)
+                    implementation(libs.spring.boot.testcontainers)
+                    implementation(libs.testcontainers.junit.jupiter)
+                    implementation(libs.testcontainers.kafka)
                 }
 
                 targets {
@@ -204,7 +214,9 @@ tasks.named<BootBuildImage>("bootBuildImage") {
     environment.putAll(
         mapOf(
             "BPE_DEFAULT_SERVER_PORT" to "8080",
+            "BPE_DEFAULT_SHOWCASE_CORS_ALLOWED_ORIGINS" to "",
             "BPE_DEFAULT_SHOWCASE_QUERY_SERVICE_URL" to "http://axon-showcase-query-service:8080",
+            "BPE_DEFAULT_KAFKA_BOOTSTRAP_SERVERS" to "axon-showcase-kafka:9092",
             "BPE_DEFAULT_JGROUPS_BIND_ADDR" to "SITE_LOCAL",
             "BPE_DEFAULT_JGROUPS_BIND_PORT" to "7800",
             "BPE_DEFAULT_JGROUPS_TCP_PING_HOSTS" to

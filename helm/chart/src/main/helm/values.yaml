@@ -976,6 +976,11 @@ apiGateway:
       expiresAfterAccess: PT10M
       expiresAfterWrite: PT5M
 
+  # Browser origins allowed to call the gateway cross-origin.
+  # @param apiGateway.cors.allowedOrigins List of allowed origins (empty denies all browser origins)
+  cors:
+    allowedOrigins: []
+
   # @param apiGateway.extraEnvVars Extra environment variables (string map)
   # @param apiGateway.extraEnvVarsCM Name of a ConfigMap providing extra env vars
   # @param apiGateway.extraEnvVarsSecret Name of a Secret providing extra env vars

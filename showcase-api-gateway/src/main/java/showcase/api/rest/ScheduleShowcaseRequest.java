@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-package showcase.api;
+package showcase.api.rest;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -29,7 +29,7 @@ import showcase.command.ShowcaseTitle;
 @Jacksonized
 @Schema(description = "Request payload to schedule a new showcase.")
 @SuppressWarnings("ClassCanBeRecord")
-class ScheduleShowcaseRequest {
+public class ScheduleShowcaseRequest {
     /**
      * A unique title for the showcase.
      */

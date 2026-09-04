@@ -72,6 +72,8 @@ spotbugs-plugin = "6.5.10"
 spotless-plugin = "8.10.0"
 spotbugs-findsecbugs-plugin = "1.14.0"
 spotbugs-fbContrib-plugin = "7.7.4"
+node = "24.20.0"
+node-plugin = "7.1.0"
 helm = "4.2.4"
 helm-plugin = "3.1.2"
 bitnami-common = "2.41.0"
@@ -219,6 +221,7 @@ spotless-plugin = { group = "com.diffplug.spotless", name = "com.diffplug.spotle
 helm-plugin = { group = "io.github.build-extensions-oss.helm", name = "helm-plugin", version.ref = "helm-plugin" }
 helm-releases-plugin = { group = "io.github.build-extensions-oss.helm", name = "helm-releases-plugin", version.ref = "helm-plugin" }
 kotlin-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+node-plugin = { group = "com.github.node-gradle.node", name = "com.github.node-gradle.node.gradle.plugin", version.ref = "node-plugin" }
 
 [plugins]
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless-plugin" }

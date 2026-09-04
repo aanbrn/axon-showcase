@@ -28,13 +28,13 @@ build time). The four JVM services build images via Spring Boot `bootBuildImage`
 
 Use the Paketo buildpack pipeline for the same security benefits as the JVM services (CVE-patched run images, SBOM,
 reproducible rebuilds), but driven by the **`pack` CLI** rather than Spring's `bootBuildImage` — the latter is
-Spring-specific (wired to `bootJar` + the `java` plugin) and doesn't fit a pure frontend module. `frontend-conventions`
-registers an `Exec` task that runs:
-`pack build aanbrn/axon-showcase-web-ui:${project.version} --path build/dist --builder
-paketobuildpacks/builder-jammy-base --buildpack paketo-buildpacks/nginx --env BP_WEB_SERVER=nginx --env
-BP_WEB_SERVER_ROOT=/workspace`.
-The NGINX buildpack auto-generates an `nginx.conf` and serves the built bundle; no committed `Dockerfile`. The task
-honors `imagePlatform` (via `--platform`) and depends on `npmBuild`. The `pack` CLI becomes a build prerequisite
+Spring-specific (wired to `bootJar` + the `java` plugin) and doesn't fit a pure frontend module. Following the repo's
+convention/mechanism split: `frontend-conventions` registers a **generic** `dockerBuildImage` task (the `pack` build
+mechanism — `pack build --path build/dist --builder paketobuildpacks/builder-jammy-base --buildpack
+paketo-buildpacks/nginx --env BP_WEB_SERVER=nginx --env BP_WEB_SERVER_ROOT=/workspace`, `imagePlatform` passthrough
+via `--platform`, depends on `npmBuild`), and each frontend module's `build.gradle.kts` configures its own `imageName`
+(as `showcase-api-gateway/build.gradle.kts` sets `bootBuildImage`'s `imageName`). The NGINX buildpack auto-generates an
+`nginx.conf` and serves the built bundle; no committed `Dockerfile`. The `pack` CLI becomes a build prerequisite
 (like Helm/Snyk).
 *Alternatives considered:* a committed `nginx:alpine` Dockerfile — rejected for security and consistency (hand-pinned
 base image + config to patch/maintain, diverging from the buildpack-everywhere approach); Spring's `bootBuildImage`
@@ -44,9 +44,9 @@ task registered manually — rejected (it's a Spring class requiring a placehold
 ### D2: `docker-conventions` compose build-first tasks also depend on the web-UI image
 
 `composeBuildAndUp`/`composeBuildAndRestart` currently depend on every `bootBuildImage` (the JVM services). The
-web-UI image is built by a `pack` Exec task (`dockerBuildWebUiImage` in `frontend-conventions`), which is not a
+web-UI image is built by the generic `dockerBuildImage` task (`frontend-conventions`), which is not a
 `bootBuildImage` — so the `allprojects` `bootBuildImage` scan won't pick it up. Extend the build-first dependency to
-also include the web-UI image task (all `bootBuildImage` + the `frontend-conventions` `dockerBuildWebUiImage`).
+also include the `frontend-conventions` `dockerBuildImage` task (all `bootBuildImage` + all `dockerBuildImage`).
 `composeUp` (no build) stays as-is — it expects pre-built images.
 
 ### D3: docker-compose `web-ui` service and CORS

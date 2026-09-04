@@ -1,14 +1,17 @@
 ## 1. Build the web-UI image
 
-- [ ] 1.1 In `frontend-conventions`, register a `dockerBuildWebUiImage` Exec task that runs the `pack` CLI:
-      `pack build aanbrn/axon-showcase-web-ui:${project.version} --path build/dist --builder
-      paketobuildpacks/builder-jammy-base --buildpack paketo-buildpacks/nginx --env BP_WEB_SERVER=nginx --env
-      BP_WEB_SERVER_ROOT=/workspace`, honoring `imagePlatform` (`--platform`) like the JVM services. It depends on
-      `npmBuild`. Group under `build`.
-- [ ] 1.2 Run `./gradlew :showcase-web-ui:dockerBuildWebUiImage` and verify the image builds and serves the bundle when
-      run (curl the container's port).
-- [ ] 1.3 In `docker-conventions`, extend the build-first compose tasks (`composeBuildAndUp`/`composeBuildAndRestart`)
-      to also depend on the web-UI `dockerBuildWebUiImage` task (all `bootBuildImage` + the frontend image task).
+- [ ] 1.1 In `frontend-conventions`, register a generic `dockerBuildImage` Exec task: runs the `pack` CLI
+      (`pack build --path build/dist --builder paketobuildpacks/builder-jammy-base --buildpack
+      paketo-buildpacks/nginx --env BP_WEB_SERVER=nginx --env BP_WEB_SERVER_ROOT=/workspace`), honoring `imagePlatform`
+      (`--platform`) like the JVM services. It depends on `npmBuild` and reads the image name from the module
+      (configurable), leaving the module's `build.gradle.kts` to set it — mirroring how `bootBuildImage`'s `imageName`
+      is module-owned. Group under `build`.
+- [ ] 1.2 In `showcase-web-ui/build.gradle.kts`, set the image name for the generic task to
+      `aanbrn/axon-showcase-web-ui:${project.version}`.
+- [ ] 1.3 Run `./gradlew :showcase-web-ui:dockerBuildImage` and verify the image builds and serves the bundle when run
+      (curl the container's port).
+- [ ] 1.4 In `docker-conventions`, extend the build-first compose tasks (`composeBuildAndUp`/`composeBuildAndRestart`)
+      to also depend on the generic `dockerBuildImage` task (all `bootBuildImage` + all `dockerBuildImage`).
 
 ## 2. Wire the compose stack
 

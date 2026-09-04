@@ -12,10 +12,11 @@ Deployment/Service with its values and the CORS origin it needs.
 
 - Build a dedicated web-UI image: a static nginx image serving the `npmBuild` output (`build/dist`), produced by the
   Paketo buildpack pipeline via the **`pack` CLI** (the canonical CNB tool for static sites — Spring's
-  `bootBuildImage` is JVM/Spring-specific and doesn't fit a frontend module). `frontend-conventions` registers an
-  `Exec` task running `pack build` with the Paketo NGINX buildpack (`BP_WEB_SERVER=nginx`, `BP_WEB_SERVER_ROOT` =
-  the built bundle), so the image is built with patched run images, an SBOM, and no committed Dockerfile. The
-  compose build-first tasks gain a dependency on this task.
+  `bootBuildImage` is JVM/Spring-specific and doesn't fit a frontend module). Following the repo's
+  convention/mechanism split, `frontend-conventions` registers a **generic** `dockerBuildImage` task (the `pack`
+  build mechanism over `build/dist` with the Paketo NGINX buildpack), and `showcase-web-ui/build.gradle.kts` sets its
+  `imageName`. The image is built with patched run images, an SBOM, and no committed Dockerfile. The compose
+  build-first tasks gain a dependency on the generic task.
 - Add the web UI to `docker-compose.yml`: a `web-ui` service publishing the static site on a host port (e.g. `8084`),
   built from the `aanbrn/axon-showcase-web-ui:${PROJECT_VERSION}` image, with the gateway's CORS allow-list updated to
   include the UI's origin.
@@ -39,9 +40,9 @@ Deployment/Service with its values and the CORS origin it needs.
 
 ## Impact
 
-- **Build**: `frontend-conventions` — register the `pack`-based `dockerBuildWebUiImage` Exec task (Paketo NGINX
-  buildpack over `build/dist`); `docker-conventions` — compose build-first tasks depend on it too. The `pack` CLI is a
-  new build prerequisite.
+- **Build**: `frontend-conventions` — register the generic `dockerBuildImage` task (`pack` + Paketo NGINX buildpack
+  over `build/dist`); `showcase-web-ui/build.gradle.kts` — set the image name; `docker-conventions` — compose
+  build-first tasks depend on `dockerBuildImage` too. The `pack` CLI is a new build prerequisite.
 - **Compose**: `docker-compose.yml` — `web-ui` service + gateway CORS origin.
 - **Helm**: `helm/chart` — `web-ui` Deployment/Service/ingress templates, `webUi` values, gateway CORS origin in
   values, lint value files updated.

@@ -7,7 +7,7 @@
 ## Project Overview
 
 **axon-showcase** — a CQRS/Event Sourcing reference app using the Axon Framework. Java 21, Spring Boot 3.5.16, Gradle
-8.14.5 (Kotlin DSL), monorepo with 18 modules.
+8.14.5 (Kotlin DSL), monorepo with 19 modules (18 JVM + `showcase-web-ui`).
 
 This repo uses **spec-driven development**: behavior is captured as OpenSpec specs in `openspec/specs/showcase/`
 (organized by architectural role: `gateway`, `write-side`, `read-side`, `clients`, `extensions`, `deployment`,
@@ -66,6 +66,10 @@ change is done — always follows CI, never precedes it.
 # Run end-to-end tests (separate opt-in task; boots services + infra via Testcontainers, builds service images)
 ./gradlew :showcase-api-gateway:e2eTest
 
+# Run web UI end-to-end tests (separate opt-in task; builds service images + boots infra via docker compose,
+# serves the built UI via vite preview, drives it with Playwright, then tears the stack down)
+./gradlew :showcase-web-ui:e2eTest
+
 # Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest
 # (add -PskipITs to drop integration for a Docker-free check; e2e is never part of check)
 ./gradlew :showcase-command-service:check
@@ -88,6 +92,10 @@ change is done — always follows CI, never precedes it.
 # Dependency update report (only catalog-owned coordinates; majors suppressed for groups in
 # config/dependency-updates/major-disabled.properties)
 ./gradlew dependencyUpdates
+
+# Frontend (showcase-web-ui): install, lint, format-check, tests (verification; the production bundle
+# is built by `build`/`assemble`, like the JVM modules' bootJar)
+./gradlew :showcase-web-ui:check
 ```
 
 The `/dependency-updates` opencode command runs this task and summarizes the available updates; the
@@ -137,7 +145,10 @@ run:
 - **End-to-end** (`src/e2eTest/java`, suffix `E2E`): a real deployed system is booted and exercised against
   all-real collaborators, transport-independent — HTTP for the gateway/query-service, the distributed command bus
   (JGroups) for the command-service. The gateway e2e boots the full four-service pipeline and verifies cross-service
-  propagation over the full command → Kafka → projection → query pipeline (e.g. `ShowcaseApiGatewayE2E`).
+  propagation over the full command → Kafka → projection → query pipeline (e.g. `ShowcaseApiGatewayE2E`). The web UI
+  e2e (`showcase-web-ui/e2e`, Playwright) boots the same pipeline via docker compose and drives the browser against it:
+  create → appears, start → STARTED, saga auto-start reflected over SSE, live events appended to the timeline, and a
+  duplicate title surfacing the gateway validation error.
 
 `disable-axoniq-console-message=true` is set both in integration tests and in each service's main application source
 (e.g., `ShowcaseApiApplication.java`).
@@ -165,9 +176,10 @@ cache) across runs — it never caches workspace `build/` directories, since sta
 coverage gate. The `main-required-checks` branch ruleset requires the `build` check for every merge into `main`, with
 no bypass actors.
 
-`.github/workflows/e2e.yml` runs the heavy end-to-end suite (`:showcase-api-gateway:e2eTest`, which builds all four
-service images and boots the full pipeline) on a nightly schedule and via `workflow_dispatch`. It is observational —
-never a merge gate, no secrets, and it shares the same `gradle/actions/setup-gradle` caching rules as `ci.yml`.
+`.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
+service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
+pipeline with Playwright) on a nightly schedule and via `workflow_dispatch`. It is observational — never a merge gate,
+no secrets, and it shares the same `gradle/actions/setup-gradle` caching rules as `ci.yml`.
 
 `.github/workflows/snyk.yml` runs the credentialed dependency security scan (`./gradlew dependencySecurityCheck`, all
 sub-projects with the root `.snyk` policy) on a weekly schedule and via `workflow_dispatch`, authenticated with the
@@ -193,7 +205,10 @@ CQRS with 4 services + an API gateway:
 - **showcase-command-service** — write side, publishes events to Kafka, uses PostgreSQL event store
 - **showcase-projection-service** — consumes Kafka events, writes projections to OpenSearch
 - **showcase-query-service** — read side, queries OpenSearch
-- **showcase-api-gateway** — REST entry point (`/showcases`), routes to command/query services
+- **showcase-api-gateway** — REST entry point (`/showcases`), routes to command/query services; also exposes the live
+  event stream over SSE (`/events`) and applies CORS for the web UI origin
+- **showcase-web-ui** — standalone browser UI (React + Vite, Feature-Sliced Design) that browses and drives showcases
+  through the gateway and renders the live event timeline
 
 Key modules (libraries, not services):
 
@@ -265,9 +280,15 @@ Key modules (libraries, not services):
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md` and `README.md` need to be refreshed to
   reflect the new state (commands, config, conventions, gotchas) and update them before reporting the change done
 - **No comments** in source code (per project convention). The sole exception is the `// SPDX-License-Identifier: MIT`
-  header that Spotless enforces on every Java file (the project is MIT licensed; see the LICENSE file)
+  header, enforced by Spotless on every Java file and by `eslint-plugin-header` on every `showcase-web-ui` source file
+  (the project is MIT licensed; see the LICENSE file)
 - **Javadoc**: classes, methods, and fields carry a Javadoc comment describing their purpose (see
-  `ShowcaseApiErrorResolver`, `ShowcaseApiController`); wrap at 120 characters
+  `ShowcaseApiErrorResolver`, `ShowcaseApiController`); wrap at 120 characters. The `showcase-web-ui` uses JSDoc the
+  same way: exported components, hooks, and helpers carry a `/** ... */` comment describing their purpose (e.g.
+  `ShowcasesPage`, `contextualTime`, `waitForReadModel`); wrap at 120 characters
+- **Frontend (`showcase-web-ui`)**: organized per Feature-Sliced Design (`app`/`pages`/`widgets`/`features`/`entities`/
+  `shared`, importing only downward, `@/` alias → `src/`). Server state via TanStack Query, client state via a Redux
+  Toolkit slice, forms via React Hook Form + Zod. Format with Prettier (`format:check` gated in `check`); lint with ESLint
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable
@@ -288,6 +309,11 @@ Key modules (libraries, not services):
   `steroid_execute_code` / `runInspectionsDirectly`) and fix warnings, but this is not required and never a gate.
   Prefer assertions like `assertThat(x).isNotNull()` over `Objects.requireNonNull(x)` when guarding nullable values in
   tests, since the IDE recognizes them for dataflow.
+- **Vision subagent for screenshot review**: the main agent runs on the cheap `opencode-go/deepseek-v4-flash`
+  (text-only); a `vision` subagent (`.opencode/agent/vision.md`) is pinned to `opencode-go/deepseek-v4-flash-vision-exp`
+  to read screenshots. When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent —
+  it inherits the Playwright MCP, captures the screenshot into its own context, reads it, and returns a description,
+  while the main session stays on the cheap model. This auto-routes vision work without manual model switching.
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the
@@ -368,6 +394,9 @@ docker compose up -d
 ./gradlew :showcase-command-service:bootRun     # :8081
 ./gradlew :showcase-query-service:bootRun       # :8083
 ./gradlew :showcase-projection-service:bootRun  # :8082
+
+# Web UI (Vite dev server, proxies /showcases and /events to :8080)
+./gradlew :showcase-web-ui:viteDev              # :5173
 ```
 
 Docker Compose (`docker-compose.yml`) starts all infrastructure **and** the Java services (using pre-built Docker images
@@ -419,6 +448,9 @@ so 3.9.0 starts; keep that override when bumping the Kafka image tag.
 
 ## Key Environment Variables
 
+- `SHOWCASE_CORS_ALLOWED_ORIGINS` — comma-separated browser origins allowed cross-origin access to the gateway. The
+  container image defaults to empty (fail-closed — deployments must allow their UI origin explicitly); docker-compose
+  sets it to the local dev + preview origins, and the Helm chart exposes it as `apiGateway.cors.allowedOrigins`.
 - `DB_PASSWORD=showcase` — PostgreSQL password for command-service
 - `BPL_DEBUG_ENABLED=true` / `BPL_DEBUG_PORT=8000-8003` — JVM debug (JDWP) agent ports (`8000`–`8003` are the published
   debug ports in `docker-compose.yml`; see Local Development)

@@ -12,5 +12,8 @@ out/
 *.iml
 *.ipr
 
+### Playwright MCP ###
+.playwright-mcp/
+
 ### Mac OS ###
 .DS_Store

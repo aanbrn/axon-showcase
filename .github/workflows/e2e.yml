@@ -25,4 +25,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Run end-to-end tests
-        run: ./gradlew :showcase-api-gateway:e2eTest
+        run: ./gradlew e2eTest

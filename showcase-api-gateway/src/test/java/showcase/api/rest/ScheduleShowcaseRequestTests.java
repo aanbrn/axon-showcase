@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-package showcase.api;
+package showcase.api.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static showcase.command.RandomCommandTestUtils.aShowcaseDuration;
@@ -106,7 +106,6 @@ class ScheduleShowcaseRequestTests {
             val validator = validatorFactory.getValidator();
             assertThat(validator.validate(ScheduleShowcaseRequest.builder()
                             .title(aShowcaseTitle())
-                            .startTime(null)
                             .duration(aShowcaseDuration())
                             .build()))
                     .hasSize(1)
@@ -128,7 +127,6 @@ class ScheduleShowcaseRequestTests {
             assertThat(validator.validate(ScheduleShowcaseRequest.builder()
                             .title(aShowcaseTitle())
                             .startTime(aShowcaseStartTime(Instant.now()))
-                            .duration(null)
                             .build()))
                     .hasSize(1)
                     .first()

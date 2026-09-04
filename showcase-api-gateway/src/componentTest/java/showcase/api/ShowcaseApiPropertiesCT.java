@@ -37,7 +37,7 @@ class ShowcaseApiPropertiesCT {
 
     @Test
     @DisplayName("All properties have their documented defaults when nothing is set")
-    void allPropertiesHaveDocumentedDefaults() {
+    void allProperties_whenNothingSet_useDocumentedDefaults() {
         contextRunner.run(context -> {
             val properties = context.getBean(ShowcaseApiProperties.class);
             assertThat(properties.getCaches()).hasSize(2);
@@ -59,7 +59,7 @@ class ShowcaseApiPropertiesCT {
     @Test
     @DisplayName("The application.yml placeholders bind their documented defaults and an env var overrides through "
             + "the placeholder")
-    void applicationYmlPlaceholdersBindDefaultsAndEnvVarOverrides() {
+    void applicationYml_placeholders_bindDefaultsAndEnvVarOverrides() {
         ymlContextRunner.run(context -> {
             val properties = context.getBean(ShowcaseApiProperties.class);
             assertThat(cacheFor(properties, FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME))
@@ -90,7 +90,7 @@ class ShowcaseApiPropertiesCT {
     @ParameterizedTest
     @MethodSource("envVarBindings")
     @DisplayName("An env-var-form property value overrides the default through the application.yml placeholder")
-    void envVarFormPropertyOverridesDefault(Map<String, Object> envVars, Consumer<ShowcaseApiProperties> assertions) {
+    void envVarForm_property_overridesDefault(Map<String, Object> envVars, Consumer<ShowcaseApiProperties> assertions) {
         ymlContextRunner
                 .withInitializer(context -> context.getEnvironment()
                         .getPropertySources()
@@ -147,10 +147,34 @@ class ShowcaseApiPropertiesCT {
                         }));
     }
 
+    @Test
+    @DisplayName("The CORS allowed origins default to the local web UI origins (dev and preview)")
+    void corsAllowedOrigins_defaultToUiOrigins() {
+        contextRunner.run(context -> {
+            val properties = context.getBean(ShowcaseApiProperties.class);
+            assertThat(properties.getCors().getAllowedOrigins())
+                    .containsExactly("http://localhost:5173", "http://localhost:4173");
+        });
+    }
+
+    @Test
+    @DisplayName("An env var overrides the CORS allowed origins through the placeholder")
+    void corsAllowedOrigins_envVar_overridesDefault() {
+        ymlContextRunner
+                .withInitializer(context -> context.getEnvironment()
+                        .getPropertySources()
+                        .addFirst(new SystemEnvironmentPropertySource(
+                                "test-env-vars", Map.of("SHOWCASE_CORS_ALLOWED_ORIGINS", "http://example.com"))))
+                .run(context -> assertThat(context.getBean(ShowcaseApiProperties.class)
+                                .getCors()
+                                .getAllowedOrigins())
+                        .containsExactly("http://example.com"));
+    }
+
     @ParameterizedTest
     @MethodSource("invalidEnvVars")
     @DisplayName("An out-of-range env-var-form property value fails the context")
-    void outOfRangeEnvVarFailsContext(Map<String, Object> envVars) {
+    void outOfRangeEnvVar_failsContext(Map<String, Object> envVars) {
         ymlContextRunner
                 .withInitializer(context -> context.getEnvironment()
                         .getPropertySources()
@@ -174,7 +198,8 @@ class ShowcaseApiPropertiesCT {
                         Map.of("FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_ACCESS", "PT-1S")),
                 argumentSet(
                         "FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_ACCESS",
-                        Map.of("FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_ACCESS", "PT-1S")));
+                        Map.of("FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_ACCESS", "PT-1S")),
+                argumentSet("SHOWCASE_CORS_ALLOWED_ORIGINS", Map.of("SHOWCASE_CORS_ALLOWED_ORIGINS", "not-a-url")));
     }
 
     private static ShowcaseApiProperties.Cache cacheFor(ShowcaseApiProperties properties, String name) {

@@ -45,6 +45,10 @@ queryService:
       release: kps
 
 apiGateway:
+  cors:
+    allowedOrigins:
+      - http://localhost:5173
+      - http://localhost:4173
   ingress:
     enabled: true
     hostname: axon-showcase

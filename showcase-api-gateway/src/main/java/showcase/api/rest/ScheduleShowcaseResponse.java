@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-package showcase.api;
+package showcase.api.rest;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -26,7 +26,7 @@ import showcase.identifier.KSUID;
 @NullUnmarked
 @Schema(description = "Response payload on schedule a showcase.")
 @SuppressWarnings("ClassCanBeRecord")
-class ScheduleShowcaseResponse {
+public class ScheduleShowcaseResponse {
     /**
      * The ID of the scheduled showcase.
      */

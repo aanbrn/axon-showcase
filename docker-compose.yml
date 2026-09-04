@@ -71,6 +71,7 @@ services:
       start_interval: 3s
       retries: 10
     environment:
+      - SHOWCASE_CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:4173
       - JAVA_OPTS=-XX:MaxDirectMemorySize=128m -XX:MaxGCPauseMillis=20
       - THC_PATH=/actuator/health
       - BPL_DEBUG_ENABLED=true

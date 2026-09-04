@@ -38,7 +38,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
  */
 @Component
 @RequiredArgsConstructor
-class ShowcaseApiErrorResolver {
+public class ShowcaseApiErrorResolver {
     /**
      * Resolves error messages for the validation errors.
      */
@@ -54,7 +54,7 @@ class ShowcaseApiErrorResolver {
      * @param locale        the locale used to resolve error messages
      * @param problemDetail the problem detail to populate with the error maps
      */
-    void resolve(HandlerMethodValidationException e, Locale locale, ProblemDetail problemDetail) {
+    public void resolve(HandlerMethodValidationException e, Locale locale, ProblemDetail problemDetail) {
         val cookieErrors = new LinkedHashMap<String, List<String>>();
         val modelErrors = new LinkedHashMap<String, Map<String, List<String>>>();
         val pathErrors = new LinkedHashMap<String, List<String>>();

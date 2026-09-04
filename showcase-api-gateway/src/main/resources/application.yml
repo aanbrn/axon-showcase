@@ -34,6 +34,19 @@ axon:
       kube-ping:
         namespace: ${JGROUPS_KUBE_PING_NAMESPACE:default}
         labels: ${JGROUPS_KUBE_PING_LABELS:jgroups-cluster=axon-showcase}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    default-topic: ${KAFKA_TOPIC_EVENTS:axon-showcase-events}
+    client-id: ${spring.application.name}
+    properties:
+      security.protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+    consumer:
+      properties:
+        group.id: ${KAFKA_CONSUMER_GROUP_ID:showcase-live-events}
+    publisher:
+      enabled: false
+    fetcher:
+      enabled: false
   metrics:
     micrometer:
       dimensional: true
@@ -43,6 +56,8 @@ axon:
 
 showcase:
   api:
+    cors:
+      allowed-origins: ${SHOWCASE_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:4173}
     caches:
       FetchShowcaseListQuery:
         maximum-size: ${FETCH_SHOWCASE_LIST_QUERY_CACHE_MAX_SIZE:10000}
@@ -147,7 +162,7 @@ server:
       enabled: false
 
 springdoc:
-  packages-to-scan: showcase.api.rest
+  packages-to-scan: showcase.api.rest, showcase.api.events
 
 management:
   endpoints:

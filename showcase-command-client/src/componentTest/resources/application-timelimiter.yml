@@ -4,7 +4,7 @@ resilience4j:
     enabled: true
     instances:
       showcase-command-service:
-        timeout-duration: PT0.01S
+        timeout-duration: PT0.5S
   circuitbreaker:
     enabled: false
   retry:

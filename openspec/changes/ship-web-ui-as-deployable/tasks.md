@@ -1,13 +1,14 @@
 ## 1. Build the web-UI image
 
-- [ ] 1.1 Add `showcase-web-ui/Dockerfile` (nginx serving `build/dist`) and `showcase-web-ui/nginx.conf` (serve the
-      bundle, `try_files $uri /index.html` fallback, gzip). Verify locally with `docker build` that the image serves
-      the built bundle.
-- [ ] 1.2 In `frontend-conventions`, add a `dockerBuildWebUiImage` task (or equivalent): runs `docker build -t
-      aanbrn/axon-showcase-web-ui:${project.version}`, depends on `npmBuild`, honors `imagePlatform` (`--platform`)
-      like the JVM services. Group under `build`.
-- [ ] 1.3 In `docker-conventions`, make the build-first compose tasks (`composeBuildAndUp`/`composeBuildAndRestart`)
-      also depend on the web-UI image task (all `bootBuildImage` + web-UI image).
+- [ ] 1.1 In `frontend-conventions`, register a `dockerBuildWebUiImage` Exec task that runs the `pack` CLI:
+      `pack build aanbrn/axon-showcase-web-ui:${project.version} --path build/dist --builder
+      paketobuildpacks/builder-jammy-base --buildpack paketo-buildpacks/nginx --env BP_WEB_SERVER=nginx --env
+      BP_WEB_SERVER_ROOT=/workspace`, honoring `imagePlatform` (`--platform`) like the JVM services. It depends on
+      `npmBuild`. Group under `build`.
+- [ ] 1.2 Run `./gradlew :showcase-web-ui:dockerBuildWebUiImage` and verify the image builds and serves the bundle when
+      run (curl the container's port).
+- [ ] 1.3 In `docker-conventions`, extend the build-first compose tasks (`composeBuildAndUp`/`composeBuildAndRestart`)
+      to also depend on the web-UI `dockerBuildWebUiImage` task (all `bootBuildImage` + the frontend image task).
 
 ## 2. Wire the compose stack
 
@@ -33,7 +34,8 @@
 
 ## 4. Docs and verify
 
-- [ ] 4.1 Update `AGENTS.md` / `README.md`: the web-UI image name, the `webUi` chart values, the compose `web-ui`
-      service and its `8084` port, and the per-target `VITE_API_BASE_URL` build-time parameter.
+- [ ] 4.1 Update `AGENTS.md` / `README.md`: the web-UI image name, the `pack` CLI prerequisite, the `webUi` chart
+      values, the compose `web-ui` service and its `8084` port, and the per-target `VITE_API_BASE_URL` build-time
+      parameter.
 - [ ] 4.2 Run `openspec validate --all` and the module checks (`./gradlew :showcase-web-ui:check`), confirm the change
       passes.

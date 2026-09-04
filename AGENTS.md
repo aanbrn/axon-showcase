@@ -173,8 +173,11 @@ initialized:
 
 The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (dependencies, wrapper, and local build
 cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the
-coverage gate. The `main-required-checks` branch ruleset requires the `build` check for every merge into `main`, with
-no bypass actors.
+coverage gate. The `ci.yml` and `e2e.yml` workflows additionally extend `gradle-home-cache-includes` with `nodejs` (the
+node-gradle plugin's Node download in `~/.gradle/nodejs`) and add an `actions/cache` step for the npm package cache
+(`~/.npm`, keyed on `showcase-web-ui/package-lock.json`), so the web-UI build does not re-download the Node runtime or
+the dependency tree on every run. The `main-required-checks` branch ruleset requires the `build` check for every merge
+into `main`, with no bypass actors.
 
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same

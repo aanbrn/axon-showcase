@@ -11,7 +11,7 @@
     "test": "vitest run",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "e2e": "playwright test"
+    "e2e": "playwright install chromium && playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

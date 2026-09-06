@@ -47,28 +47,10 @@ fun registerComposeTask(
         }
 
         // Run only when this compose task is explicitly requested on the command line (standalone
-        // `./gradlew composeUp`) or when another scheduled task needs it as a dependency or finalizer (the
-        // web-UI `e2eTest` boots the stack via `composeBuildAndUp` and tears it down via `composeDown`). The
-        // task-request check covers the standalone case; the scheduled flag, computed from the fully populated
-        // task graph in `graphPopulated` (safe — later than `onlyIf` evaluation, which can race lazily
-        // configured tasks), covers the dependency case while still excluding the per-service compose tasks
-        // that Gradle schedules alongside a root compose run.
-        val composeTask = this
-        gradle.taskGraph.addTaskExecutionGraphListener { graph ->
-            // Only root-project tasks can pull a compose task in as a dependency/finalizer (the
-            // web-UI `e2eTest` lives in the root; per-service compose tasks are only ever reached by
-            // name-matching, which the explicit-request check handles). Inspecting only root tasks
-            // avoids resolving lazily configured subproject tasks (e.g. the gateway e2e's
-            // `bootBuildImage` deps) during graph population.
-            val neededByScheduledTask =
-                graph.allTasks
-                    .filter { it.project == rootProject }
-                    .any { scheduledTask ->
-                        scheduledTask.taskDependencies.getDependencies(scheduledTask).contains(composeTask) ||
-                            scheduledTask.finalizedBy.getDependencies(scheduledTask).contains(composeTask)
-                    }
-            rootProject.extra.set("composeTaskScheduled-${composeTask.path}", neededByScheduledTask)
-        }
+        // `./gradlew composeUp`) or when a consuming task marks it scheduled (the web-UI `e2eTest` sets
+        // `composeTaskScheduled-<path>` at configuration time for the `composeBuildAndUp`/`composeDown` it
+        // depends on / finalizes with). The explicit-request check covers the standalone case and naturally
+        // excludes the per-service compose tasks that Gradle schedules alongside a root compose run.
         onlyIf {
             val explicitlyRequested =
                 gradle.startParameter.taskRequests
@@ -83,7 +65,10 @@ fun registerComposeTask(
                                 project.path.removePrefix(defaultProject.path) + ":" + name
                             }
                     }
-            explicitlyRequested || (rootProject.extra.get("composeTaskScheduled-${path}") as? Boolean ?: false)
+            val markedScheduled =
+                rootProject.extra.has("composeTaskScheduled-${path}") &&
+                    (rootProject.extra.get("composeTaskScheduled-${path}") as? Boolean ?: false)
+            explicitlyRequested || markedScheduled
         }
     }
 }
@@ -118,7 +103,7 @@ registerComposeTask(
 
 registerComposeTask(
     "composeBuildAndUp",
-    listOf("up", "-d", "--wait", "--wait-timeout", "300"),
+    listOf("up", "-d"),
     "Builds images and starts the system",
     "Builds an image and starts the ${project.name} service",
     buildFirst = true,

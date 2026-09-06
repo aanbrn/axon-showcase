@@ -1,5 +1,7 @@
 import com.github.gradle.node.npm.task.NpmTask
+import java.util.concurrent.TimeUnit
 import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.api.GradleException
 
 plugins {
     id("base")
@@ -83,6 +85,39 @@ val npmE2e =
         args.set(listOf("run", "e2e"))
         inputs.files(fileTree("e2e"))
         inputs.file("playwright.config.ts")
+
+        // Mark the compose tasks this e2e depends on / finalizes with as scheduled, so the
+        // docker-conventions onlyIf guard lets them run when reached as dependencies (not just when
+        // requested by name). Set at configuration time because onlyIf for the dependency tasks is
+        // evaluated before this task's actions run. This is explicit rather than a task-graph scan, which
+        // can re-enter Gradle's scheduler on lazily configured tasks (e.g. the gateway e2e's
+        // bootBuildImage deps). The key uses the compose task's own `path` (`:composeBuildAndUp`).
+        rootProject.extra.set(
+            "composeTaskScheduled-:composeBuildAndUp",
+            true,
+        )
+        rootProject.extra.set(
+            "composeTaskScheduled-:composeDown",
+            true,
+        )
+
+        // composeBuildAndUp returns as soon as containers start (no --wait: a one-shot kafka-init exits,
+        // which `--wait` treats as a failure). The gateway is the last service the e2e talks to, so poll
+        // its health endpoint before Playwright runs.
+        doFirst {
+            val gatewayUrl = "http://localhost:8080/actuator/health"
+            val deadline = System.currentTimeMillis() + 5 * 60 * 1000
+            while (System.currentTimeMillis() < deadline) {
+                val process = ProcessBuilder("curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", gatewayUrl).start()
+                val exit = process.waitFor(15, TimeUnit.SECONDS)
+                val code = if (exit) process.inputStream.bufferedReader().readText().trim() else ""
+                if (code == "200") {
+                    return@doFirst
+                }
+                Thread.sleep(5 * 1000)
+            }
+            throw GradleException("The API gateway did not become healthy at $gatewayUrl within 5 minutes.")
+        }
     }
 
 tasks.named("check") {

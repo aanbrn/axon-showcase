@@ -415,7 +415,12 @@ Docker Compose (`docker-compose.yml`) starts all infrastructure **and** the Java
 
 The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wrap Docker Compose and set
 `PROJECT_VERSION` + image versions automatically (also `composeBuildAndUp`, `composeBuildAndRestart`):
-`./gradlew composeUp`, `./gradlew composeDown`.
+`./gradlew composeUp`, `./gradlew composeDown`. A compose task runs only when it is explicitly requested on the
+command line (standalone `./gradlew composeUp`) or when a scheduled task needs it as a dependency or finalizer —
+the web-UI `e2eTest` boots the stack via `composeBuildAndUp` and tears it down via `composeDown`. Broad builds that
+do not schedule a compose task never start/stop containers as a side effect. `composeBuildAndUp` uses
+`docker compose up -d --wait`, so it blocks until every healthchecked service (including the gateway) reports
+healthy — the e2e depends on this to avoid racing gateway startup.
 
 **Infra image versions are single-sourced** in `gradle/libs.versions.toml`: `*-image-tag` coordinates
 (`postgres-image-tag`, `kafka-image-tag`, `opensearch-image-tag`) for the official Docker Hub images used by

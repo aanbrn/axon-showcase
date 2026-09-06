@@ -7,7 +7,7 @@ import org.gradle.api.plugins.ExtraPropertiesExtension.UnknownPropertyException
 
 val libs = the<LibrariesForLibs>()
 
-val composeServices = if (project == rootProject) listOf<String>() else listOf(project.name)
+val composeServices = if (project == rootProject) listOf() else listOf(project.name)
 
 fun registerComposeTask(
     taskName: String,
@@ -46,19 +46,31 @@ fun registerComposeTask(
             dockerLock.unlock()
         }
 
+        // Run only when this compose task is explicitly requested on the command line (standalone
+        // `./gradlew composeUp`) or when another scheduled task needs it as a dependency or finalizer (the
+        // web-UI `e2eTest` boots the stack via `composeBuildAndUp` and tears it down via `composeDown`). The
+        // task-request check covers the standalone case; the graph check covers the dependency case while
+        // still excluding the per-service compose tasks that Gradle schedules alongside a root compose run.
         onlyIf {
-            gradle.startParameter.taskRequests
-                .flatMap { it.args }
-                .any {
-                    it ==
-                        if (project == defaultProject) {
-                            name
-                        } else if (defaultProject == rootProject) {
-                            project.path + ":" + name
-                        } else {
-                            project.path.removePrefix(defaultProject.path) + ":" + name
-                        }
+            val explicitlyRequested =
+                gradle.startParameter.taskRequests
+                    .flatMap { it.args }
+                    .any {
+                        it ==
+                            if (project == defaultProject) {
+                                name
+                            } else if (defaultProject == rootProject) {
+                                project.path + ":" + name
+                            } else {
+                                project.path.removePrefix(defaultProject.path) + ":" + name
+                            }
+                    }
+            val neededByScheduledTask =
+                gradle.taskGraph.allTasks.any { scheduledTask ->
+                    scheduledTask.taskDependencies.getDependencies(scheduledTask).contains(this) ||
+                        scheduledTask.finalizedBy.getDependencies(scheduledTask).contains(this)
                 }
+            explicitlyRequested || neededByScheduledTask
         }
     }
 }
@@ -93,7 +105,7 @@ registerComposeTask(
 
 registerComposeTask(
     "composeBuildAndUp",
-    listOf("up", "-d"),
+    listOf("up", "-d", "--wait"),
     "Builds images and starts the system",
     "Builds an image and starts the ${project.name} service",
     buildFirst = true,

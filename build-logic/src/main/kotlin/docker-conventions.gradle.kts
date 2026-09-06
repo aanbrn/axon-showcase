@@ -105,7 +105,7 @@ registerComposeTask(
 
 registerComposeTask(
     "composeBuildAndUp",
-    listOf("up", "-d", "--wait"),
+    listOf("up", "-d", "--wait", "--wait-timeout", "300"),
     "Builds images and starts the system",
     "Builds an image and starts the ${project.name} service",
     buildFirst = true,

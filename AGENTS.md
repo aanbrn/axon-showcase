@@ -27,6 +27,11 @@ requests it (e.g., "push" or "commit and push").
 after the change). The change dir and all subsequent work live on that branch; rejecting a proposal is a branch delete,
 never a `main` cleanup.
 
+**Fork branches from `main` only.** Every new branch — a change branch or a standalone fix — is created from
+`origin/main` (fetch first), never from another work branch. Branching from a work branch silently carries its commits
+into the new PR (a fix PR ended up shipping a change's commit history); recover by rebasing `--onto origin/main` and
+force-pushing, then verify the PR's changed-file set is the intended one.
+
 **Sync the main spec only at archive.** Apply edits code and the change dir's *delta* spec — never the main spec under
 `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source of
 truth never describes behavior the code hasn't yet been verified against.

@@ -46,6 +46,13 @@ to a GitHub issue that links to the eventual OpenSpec change.
   baselines (e.g. from the Gatling load tests / kube-state-metrics) so requests/limits reflect real usage, decide on
   CPU limits (the JVM services set them; the web UI does not), and align defaults across services for consistency.
 
+- Fix the per-service compose tasks' "no such service" failure — parked; no change yet. The `docker-conventions`
+  per-service `compose*` tasks pass `project.name` (e.g. `showcase-api-gateway`) as the compose service argument, but
+  the `docker-compose.yml` services are named differently (`api-gateway`, `command-service`, `query-service`,
+  `projection-service`, `web-ui`, `db-events`, ...), so `./gradlew :showcase-api-gateway:composeStop` fails with
+  `no such service`. Fix: map each module to its compose service name (or drop the service argument and rely on the
+  compose project scope).
+
 ## 2026-09-04
 
 - Root Prettier for markdown — parked (option A from the formatting discussion); no change yet. Automate markdown

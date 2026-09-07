@@ -29,6 +29,10 @@ to a GitHub issue that links to the eventual OpenSpec change.
   `kotlinGradle` config: `kotlinlangStyle`, `setMaxWidth(120)`) covering `build-logic/src/**/*.kt`, so these classes
   are enforced by `spotlessCheck` like the rest of the repo; cost is a one-time reflow of the existing task classes.
 
+- Remove unused functions from the web UI — parked; no change yet. The UI codebase has accumulated helper functions
+  that are no longer referenced (e.g. in `shared/`). Clean them up to keep the surface minimal; use TypeScript
+  `noUnusedLocals`/`noUnusedParameters` (or a lint rule) to catch them going forward.
+
 ## 2026-09-04
 
 - Root Prettier for markdown — parked (option A from the formatting discussion); no change yet. Automate markdown

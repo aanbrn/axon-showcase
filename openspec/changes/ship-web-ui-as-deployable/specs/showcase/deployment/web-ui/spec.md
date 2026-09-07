@@ -20,10 +20,21 @@ output that the local dev/preview flow serves, so the packaged UI is the same bu
 - **THEN** it serves the `build/dist` output over HTTP on the standard container port, with no backend application
   process
 
+#### Scenario: The API base URL is runtime-configurable
+
+- **WHEN** a deployment sets the `SHOWCASE_API_BASE_URL` env var (or relies on the baked default)
+- **THEN** the container renders `config.js` from it at start and the UI uses it at runtime, so a single image works
+  across environments without rebuilding or ConfigMap/mount
+
 #### Scenario: The image is versioned
 
 - **WHEN** the web-UI image is built
 - **THEN** it is tagged with the project version, matching the image naming convention of the other services
+
+#### Scenario: nginx server metrics are exposed
+
+- **WHEN** the web-UI image is built with the stub-status port enabled
+- **THEN** nginx exposes basic server metrics (`/stub_status`) that a ServiceMonitor can scrape into Prometheus
 
 ### Requirement: The UI is reachable in the local compose stack
 
@@ -44,13 +55,33 @@ compose UI origin.
 ### Requirement: The UI is deployed by the Helm chart
 
 The Helm chart SHALL render a web-UI Deployment and Service running the web-UI image, with its own `webUi` values
-(image, replicas, service port, resources), and the gateway's CORS allow-list in the chart SHALL include the web-UI
-origin.
+(image, replicas, service port, resources, autoscaling, pdb), external exposure via both an Ingress and an HTTPRoute
+(like the api-gateway), availability via HPA/VPA/PDB templates (defaulted off, like the other services), a
+NetworkPolicy restricting its traffic (public HTTP ingress, monitoring-only metrics port, minimal egress), and the
+gateway's CORS allow-list in the chart SHALL include the web-UI origin. The Deployment SHALL follow the shared
+service conventions (common ServiceAccount, `/tmp` emptyDir, securityContexts, readiness probe), and the Service
+SHALL expose named ports for the UI and its metrics.
 
 #### Scenario: Helm deploys the UI
 
 - **WHEN** the chart is installed
 - **THEN** a web-UI Deployment and Service are rendered, serving the UI image on its service port
+
+#### Scenario: The Deployment follows the shared service conventions
+
+- **WHEN** the web-UI Deployment is rendered
+- **THEN** it references the common ServiceAccount, mounts an emptyDir at `/tmp`, sets securityContexts, and defines a
+  readiness probe, matching the other services
+
+#### Scenario: Autoscaling and disruption budget are available
+
+- **WHEN** an operator enables the web-UI `autoscaling` or `pdb` value
+- **THEN** the chart renders the corresponding HPA/VPA/PDB for the web-UI, like the other services
+
+#### Scenario: The UI can be exposed via Ingress or HTTPRoute
+
+- **WHEN** an operator enables the web-UI `ingress` or `route` value
+- **THEN** the chart renders the corresponding Ingress or HTTPRoute for the web-UI service
 
 #### Scenario: The deployed UI can call the gateway
 

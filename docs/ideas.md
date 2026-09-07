@@ -4,6 +4,17 @@ Short notes to remember emerging development ideas. An idea becomes an OpenSpec 
 is a scratchpad, not a backlog of planned work. An idea is removed from the list once implemented (captured by a
 change); only open, not-yet-implemented ideas remain.
 
+Changes to this file are committed as their own docs PR (like `AGENTS.md`/`README.md` refresh PRs) — never bundled
+with an OpenSpec change or its branch. When an idea graduates into a concrete candidate for work, it may be promoted
+to a GitHub issue that links to the eventual OpenSpec change.
+
+## 2026-09-06
+
+- Measure code coverage for the web UI — parked; no change yet. The JVM modules have a JaCoCo coverage gate
+  (`jacocoTestCoverageVerification`, baseline in `config/jacoco/coverage-baseline.properties`), but `showcase-web-ui`
+  (Vitest) has no coverage measurement. Explore wiring Vitest's built-in `--coverage` (via `@vitest/coverage-v8`) into
+  the frontend `check`, and whether a coverage gate (threshold) makes sense for the UI or just a reporting step.
+
 ## 2026-09-04
 
 - Root Prettier for markdown — parked (option A from the formatting discussion); no change yet. Automate markdown

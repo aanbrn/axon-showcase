@@ -33,6 +33,12 @@ to a GitHub issue that links to the eventual OpenSpec change.
   that are no longer referenced (e.g. in `shared/`). Clean them up to keep the surface minimal; use TypeScript
   `noUnusedLocals`/`noUnusedParameters` (or a lint rule) to catch them going forward.
 
+- Rethink reconciliation in the web UI — parked; no change yet. `ShowcasesPage` reconciles local writes and
+  saga-triggered events against the eventually-consistent read model by waiting on the projected state per event
+  (`waitForEvent`/`waitForReadModel`, with a connect-time filter). This works but couples the page to polling; a
+  redesign could subscribe the read model itself to the event stream (server-side projection push) or refetch on
+  event with a single debounced invalidation instead of one wait per event.
+
 ## 2026-09-04
 
 - Root Prettier for markdown — parked (option A from the formatting discussion); no change yet. Automate markdown

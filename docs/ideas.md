@@ -53,6 +53,15 @@ to a GitHub issue that links to the eventual OpenSpec change.
   `no such service`. Fix: map each module to its compose service name (or drop the service argument and rely on the
   compose project scope).
 
+- Migrate off the deprecated OpenSearch low-level REST client — parked; no change yet.
+  `org.opensearch.client.RestClientBuilder` (and the `RestClient` it builds) is `@Deprecated`, to be removed in
+  future releases in favor of the official OpenSearch Java Client. The projection service's
+  `openSearchRestClientBuilderCustomizer` bean (`ShowcaseProjectionApplication`) surfaces a `[deprecation]` compile
+  warning because Spring Data OpenSearch's `RestClientBuilderCustomizer` contract forces touching the deprecated type
+  to configure connection pooling / idle eviction. When Spring Data OpenSearch updates its customizer to the newer
+  client (or we migrate the projection/query services to the OpenSearch Java Client transport directly), the warning
+  resolves; track so it does not become a hard break when the low-level client is removed.
+
 ## 2026-09-04
 
 - Root Prettier for markdown — parked (option A from the formatting discussion); no change yet. Automate markdown

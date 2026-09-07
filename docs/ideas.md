@@ -15,6 +15,13 @@ to a GitHub issue that links to the eventual OpenSpec change.
   (Vitest) has no coverage measurement. Explore wiring Vitest's built-in `--coverage` (via `@vitest/coverage-v8`) into
   the frontend `check`, and whether a coverage gate (threshold) makes sense for the UI or just a reporting step.
 
+- Client-side (RUM) observability for the web UI — parked; no change yet. The deployable-UI change adds only
+  server-side nginx metrics (stub_status + ServiceMonitor); the UI's user-facing experience is still unobserved. A
+  separate UI change would add: (1) web-vitals + JS-error reporting (e.g. Grafana Faro or a push-to-gateway metrics
+  endpoint), and (2) W3C Trace Context propagation (`traceparent` header) on API calls so the browser's requests join
+  the existing Tempo traces from the gateway onward — the highest-leverage piece, since the pipeline already traces
+  gateway → command/query. Consider whether the gateway CORS needs to allow the trace header.
+
 ## 2026-09-04
 
 - Root Prettier for markdown — parked (option A from the formatting discussion); no change yet. Automate markdown

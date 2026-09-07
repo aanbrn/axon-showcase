@@ -22,6 +22,13 @@ to a GitHub issue that links to the eventual OpenSpec change.
   the existing Tempo traces from the gateway onward — the highest-leverage piece, since the pipeline already traces
   gateway → command/query. Consider whether the gateway CORS needs to allow the trace header.
 
+- Extend the root Spotless config to cover `build-logic/src/**/*.kt` — parked; no change yet. The root `spotless`
+  block targets only `*.gradle.kts` (via `kotlinGradle` + ktfmt), so the build-logic Kotlin task classes
+  (`PackBuildImageTask`, `HelmUpdatesTask`, `VerifyInfraImageVersionsTask`, ...) are not format-gated and rely on
+  manual style (imports, no wildcards, 120-column wrapping). Add a `kotlin` target with ktfmt (matching the
+  `kotlinGradle` config: `kotlinlangStyle`, `setMaxWidth(120)`) covering `build-logic/src/**/*.kt`, so these classes
+  are enforced by `spotlessCheck` like the rest of the repo; cost is a one-time reflow of the existing task classes.
+
 ## 2026-09-04
 
 - Root Prettier for markdown — parked (option A from the formatting discussion); no change yet. Automate markdown

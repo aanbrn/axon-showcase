@@ -1,0 +1,10 @@
+# Dependabot for GitHub Actions.
+# Keeps the action versions in the workflows current, so an action whose major bump targets a newer Node runtime
+# (e.g. the Node 20 -> Node 24 migration) surfaces as a reviewable PR instead of a silent CI deprecation warning.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10

@@ -32,6 +32,11 @@ never a `main` cleanup.
 into the new PR (a fix PR ended up shipping a change's commit history); recover by rebasing `--onto origin/main` and
 force-pushing, then verify the PR's changed-file set is the intended one.
 
+**Leave implementation uncommitted until the user has reviewed it.** After applying a change, do not commit the
+implementation before the user has done their review pass — keep the working-tree diff visible (`git status`/`git
+diff`) so they can see exactly which files changed. Commit only after the user approves the implementation (or
+explicitly asks to commit); the planning artifacts may be committed separately.
+
 **Sync the main spec only at archive.** Apply edits code and the change dir's *delta* spec — never the main spec under
 `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source of
 truth never describes behavior the code hasn't yet been verified against.
@@ -48,6 +53,9 @@ change is done — always follows CI, never precedes it.
 - Gradle wrapper included (use `./gradlew`)
 - Helm 4.x + Kubernetes cluster (for deployment)
 - Snyk CLI (for `./gradlew dependencySecurityCheck`)
+- `pack` CLI (for the web-UI `dockerBuildImage` image build; see
+  https://buildpacks.io/docs/for-platform-operators/how-to/integrate-ci/pack/, e.g. `brew install buildpacks/tap/pack`
+  on macOS)
 - Python 3 (for `./scripts/setup-idea.sh`'s inspection-profile upsert; macOS ships it via Command Line Tools)
 
 ## Build & Test
@@ -216,7 +224,8 @@ CQRS with 4 services + an API gateway:
 - **showcase-api-gateway** — REST entry point (`/showcases`), routes to command/query services; also exposes the live
   event stream over SSE (`/events`) and applies CORS for the web UI origin
 - **showcase-web-ui** — standalone browser UI (React + Vite, Feature-Sliced Design) that browses and drives showcases
-  through the gateway and renders the live event timeline
+  through the gateway and renders the live event timeline; deployed as its own nginx container image (see Docker
+  Images) with the API base URL configured via `SHOWCASE_API_BASE_URL`
 
 Key modules (libraries, not services):
 
@@ -338,9 +347,26 @@ Each boot service builds a Docker image:
 - `aanbrn/axon-showcase-api-gateway:${project.version}`
 - `aanbrn/axon-showcase-query-service:${project.version}`
 - `aanbrn/axon-showcase-projection-service:${project.version}`
+- `aanbrn/axon-showcase-web-ui:${project.version}` (static nginx serving the built frontend)
 
 Image names are set in each service's `bootBuildImage` task configuration. To build for a non-default platform (e.g.,
-ARM64 host), pass `-PimagePlatform=linux/amd64` (supported by the `spring-boot-conventions` plugin).
+ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64`), which Gradle maps to the
+`bootBuildImage`/`dockerBuildImage` task's `imagePlatform` `@Option`.
+
+The web-UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
+`PackBuildImageTask`) that runs the `pack` CLI with the Paketo NGINX + Procfile buildpacks over `build/dist` (the
+`pack` CLI is a build prerequisite like Helm/Snyk). The image serves the bundle via nginx on `8080` and exposes nginx
+`stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`). A `PackBuildImageTask` convention defaults the image
+name to `${project.name}:${project.version}`, which the web-UI module overrides with the deployable
+`aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. The UI's API base URL is
+configured at runtime via the `SHOWCASE_API_BASE_URL` env var — **no baked default** (the browser needs the
+externally-visible gateway URL, which only the deployment knows; compose sets `http://localhost:8080`, the Helm chart
+uses `webUi.apiBaseUrl` with an empty default) — which a `start.sh` renders into `/workspace/config.js` at container
+start (failing fast if the env var is unset/empty) — no ConfigMap or volume mount. The `dockerBuildImage` run prints
+two informational warnings from the toolchain, not defects: "Exporting to docker daemon (building without --publish)
+and daemon uses containerd storage" (pack exports to the local daemon's containerd store, losing the fast publish
+path) and "deprecated usage of stack" (an upstream Paketo buildpack still declares the deprecated `stacks` key instead
+of `targets`). Neither is actionable in the build — ignore them.
 
 ## Kubernetes Deployment
 
@@ -393,6 +419,13 @@ Value files live in `helm/chart/src/test/helm/` (`helm-lint-full.yaml` enables a
 
 Custom values can be placed in `helm/values/<release-name>/values-local.yaml`.
 
+The local values expose the API gateway and web UI via ingress at the hostnames `axon-showcase-api` and
+`axon-showcase-ui` respectively. To reach them by hostname (instead of a `Host:`-header curl workaround), run
+`./setup-hosts.sh setup`, which detects the local cluster's ingress-controller LoadBalancer address generically
+(against the current kube context, so it works on colima + Traefik, kind/minikube + ingress-nginx, etc.) and manages
+the `/etc/hosts` entries (`./setup-hosts.sh remove` to clean up; re-run `setup` if the address changes on cluster
+restart).
+
 ## Local Development
 
 ```bash
@@ -410,20 +443,27 @@ docker compose up -d
 ```
 
 Docker Compose (`docker-compose.yml`) starts all infrastructure **and** the Java services (using pre-built Docker images
-`aanbrn/axon-showcase-*:${PROJECT_VERSION}`). Build the images first (`./gradlew bootBuildImage`) or set
-`PROJECT_VERSION` accordingly. To run services from source instead, use `bootRun` as shown above.
+`aanbrn/axon-showcase-*:${PROJECT_VERSION}`). Build the images first (`./gradlew bootBuildImage` for the JVM services,
+`./gradlew :showcase-web-ui:dockerBuildImage` for the UI); `PROJECT_VERSION` resolves the image tags and must equal the
+version the images were built with — the Gradle compose tasks set it automatically, a raw `docker compose up -d` needs
+it set explicitly. To run services from
+source instead, use `bootRun` as shown above. The compose stack also runs the deployed web UI at `http://localhost:8084`
+(its image is the nginx-built `aanbrn/axon-showcase-web-ui:${PROJECT_VERSION}`); the Vite dev server (`viteDev`) remains
+the hot-reload alternative for UI development.
 
 **Ports:** the HTTP ports (`server.port` in each service's `application.yml`) are the API Gateway `8080`, Command Service
 `8081`, Query Service `8083`, Projection Service `8082`. In `docker-compose.yml`, the published `8000`–`8003` mappings are
 **JVM debug ports** (`BPL_DEBUG_PORT`), not the services' HTTP ports — only the API Gateway publishes its HTTP port
-(`8080`); the other services' HTTP ports are reachable only via the Docker network or `bootRun`.
+(`8080`); the other services' HTTP ports are reachable only via the Docker network or `bootRun`. The web UI is published
+on `8084` (its container nginx port is `8080`; `stub_status` metrics on `9090`).
 
 The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wrap Docker Compose and set
 `PROJECT_VERSION` + image versions automatically (also `composeBuildAndUp`, `composeBuildAndRestart`):
 `./gradlew composeUp`, `./gradlew composeDown`. A compose task runs only when it is explicitly requested on the
-command line (standalone `./gradlew composeUp`) or when a scheduled task needs it as a dependency or finalizer —
-the web-UI `e2eTest` boots the stack via `composeBuildAndUp` and tears it down via `composeDown`. Broad builds that
-do not schedule a compose task never start/stop containers as a side effect. `composeBuildAndUp` uses
+command line (standalone `./gradlew composeUp` — a leading `:` from the IDE, e.g. `:composeUp`, is tolerated) or
+when a scheduled task needs it as a dependency or finalizer — the web-UI `e2eTest` boots the stack via
+`composeBuildAndUp` and tears it down via `composeDown`. Broad builds that do not schedule a compose task never
+start/stop containers as a side effect. `composeBuildAndUp` uses
 `docker compose up -d --wait`, so it blocks until every healthchecked service (including the gateway) reports
 healthy — the e2e depends on this to avoid racing gateway startup.
 
@@ -487,6 +527,17 @@ so 3.9.0 starts; keep that override when bumping the Kafka image tag.
   (via the GitHub MCP `pull_request_read` / `get_check_runs`, or the commits endpoint) when the status is needed. A
   docs/build change's `build` check typically completes in about a minute; check once shortly after pushing, then
   confirm green before archiving/merging. Idle sleep loops only waste time and add no information.
+- **Exec tasks (`docker`, `pack`, `snyk`) fail in IDEA on macOS**: an IDEA launched from Finder/Dock (or a stale
+  Gradle daemon) gives the Gradle daemon a minimal PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) without `/opt/homebrew/bin`,
+  so bare-name execs ("command 'docker' not found") fail even though the tools are installed. Root cause: Gradle
+  applies the client's environment to the daemon (`System.getenv("PATH")` is then the full shell PATH), but the JVM
+  caches PATH for native process spawning at daemon start and ignores later changes — so execs that resolve a bare
+  command name via the JVM's cached PATH fail intermittently depending on which client spawned the daemon. The build
+  resolves this by resolving the tool to its absolute path from `System.getenv("PATH")` (which is the real shell
+  PATH) and passing that in the `commandLine` (`dockerCli()` in `docker-conventions`, `packCli()` in
+  `PackBuildImageTask`, `snykExecutable()` in `dependency-security-conventions`), bypassing the JVM's cached PATH
+  entirely. Do not revert to bare command names; do not prepend tool dirs to PATH (the daemon JVM won't honor it).
+  Launching IDEA from a terminal still helps avoid stale minimal-PATH daemons in the first place.
 - IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java,
   ktfmt for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**,
   **Auto Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins

@@ -1,0 +1,44 @@
+{{- /*
+VerticalPodAutoscaler for the web-ui.
+Recommends CPU/memory limits for the main container.
+*/ -}}
+{{- if and .Values.webUi.autoscaling.vpa.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.labels .Values.commonLabels) "context" $) }}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: {{ include "axon-showcase.web-ui.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: web-ui
+  {{- if or .Values.webUi.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  # VPA policy applied to the main container (controlled/min/max resources).
+  resourcePolicy:
+    containerPolicies:
+      - containerName: main
+      {{- with .Values.webUi.autoscaling.vpa.controlledResources }}
+        controlledResources:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.webUi.autoscaling.vpa.maxAllowed }}
+        maxAllowed:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.webUi.autoscaling.vpa.minAllowed }}
+        minAllowed:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  # Targets the web-ui Deployment.
+  targetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+    kind: Deployment
+    name: {{ include "axon-showcase.web-ui.fullname" $ }}
+  {{- if .Values.webUi.autoscaling.vpa.updatePolicy.updateMode }}
+  updatePolicy:
+    updateMode: {{ .Values.webUi.autoscaling.vpa.updatePolicy.updateMode }}
+  {{- end }}
+{{- end }}

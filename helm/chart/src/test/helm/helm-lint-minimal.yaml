@@ -31,6 +31,31 @@ apiGateway:
   serviceMonitor:
     enabled: false
 
+webUi:
+  # The browser needs the externally-visible gateway URL (no computed default); the minimal render supplies one.
+  apiBaseUrl: http://axon-showcase-api
+  ingress:
+    enabled: false
+  route:
+    enabled: false
+  startupProbe:
+    enabled: false
+  livenessProbe:
+    enabled: false
+  readinessProbe:
+    enabled: false
+  autoscaling:
+    vpa:
+      enabled: false
+    hpa:
+      enabled: false
+  pdb:
+    create: false
+  networkPolicy:
+    enabled: false
+  serviceMonitor:
+    enabled: false
+
 commandService:
   startupProbe:
     enabled: false

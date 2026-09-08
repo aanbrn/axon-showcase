@@ -1298,6 +1298,239 @@ apiGateway:
     filters: [ ]
     extraRules: [ ]
 
+webUi:
+
+  # @param webUi.labels Additional labels for the service resources
+  # @param webUi.annotations Additional annotations for the service resources
+  # @param webUi.podLabels Additional labels for the pods
+  # @param webUi.podAnnotations Additional annotations for the pods
+  labels: { }
+
+  annotations: { }
+
+  podLabels: { }
+
+  podAnnotations: { }
+
+  # @param webUi.image.registry Web UI image registry
+  # @param webUi.image.repository Web UI image repository
+  # @param webUi.image.tag Web UI image tag
+  # @param webUi.image.digest Web UI image digest (overrides tag if set)
+  # @param webUi.image.pullPolicy Web UI image pull policy (Always, IfNotPresent, Never)
+  # @param webUi.image.pullSecrets Web UI image pull secrets
+  image:
+    registry: ""
+    repository: aanbrn/axon-showcase-web-ui
+    tag: ${projectVersion}
+    digest: ""
+    pullPolicy: null
+    pullSecrets: [ ]
+
+  # @param webUi.replicaCount Number of Web UI replicas
+  # @param webUi.revisionHistoryLimit Number of old ReplicaSets to keep
+  # @param webUi.updateStrategy.type Deployment update strategy type (RollingUpdate, Recreate)
+  replicaCount: 1
+
+  revisionHistoryLimit: 10
+
+  updateStrategy:
+    type: RollingUpdate
+
+  # Runtime API base URL for the web UI, rendered to config.js at container start.
+  # @param webUi.apiBaseUrl Externally-visible URL of the API gateway the browser calls (the in-cluster Service name is
+  # not resolvable from the browser, so there is no computed default; empty = same-origin). Configured per deployment.
+  apiBaseUrl: ""
+
+  # @param webUi.extraEnvVars Extra environment variables (string map)
+  # @param webUi.extraEnvVarsCM Name of a ConfigMap providing extra env vars
+  # @param webUi.extraEnvVarsSecret Name of a Secret providing extra env vars
+  extraEnvVars: { }
+
+  extraEnvVarsCM: ""
+
+  extraEnvVarsSecret: ""
+
+  # @param webUi.containerPorts.server Application HTTP port
+  # @param webUi.containerPorts.metrics nginx stub_status metrics port
+  # @param webUi.extraContainerPorts Additional container ports
+  containerPorts:
+    server: 8080
+    metrics: 9090
+
+  extraContainerPorts: [ ]
+
+  # @param webUi.startupProbe Startup probe
+  # @param webUi.livenessProbe Liveness probe
+  # @param webUi.readinessProbe Readiness probe
+  startupProbe:
+    enabled: false
+
+  livenessProbe:
+    enabled: false
+
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: http
+
+  # @param webUi.resources Resource requests and limits for the Web UI container
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+  lifecycleHooks: { }
+
+  affinity: { }
+
+  podAffinityPreset: ""
+
+  podAntiAffinityPreset: soft
+
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: [ ]
+
+  automountServiceAccountToken: false
+
+  hostAliases: [ ]
+
+  nodeSelector: { }
+
+  tolerations: [ ]
+
+  priorityClassName: ""
+
+  schedulerName: ""
+
+  topologySpreadConstraints: [ ]
+
+  terminationGracePeriodSeconds: ""
+
+  terminationMessagePolicy: FallbackToLogsOnError
+
+  podSecurityContext:
+    enabled: false
+
+  containerSecurityContext:
+    enabled: false
+
+  extraVolumeMounts: [ ]
+
+  extraVolumes: [ ]
+
+  initContainers: [ ]
+
+  sidecars: [ ]
+
+  extraPodSpec: { }
+
+  # Autoscaling configuration.
+  # @param webUi.autoscaling.vpa.enabled Enable a Vertical Pod Autoscaler
+  # @param webUi.autoscaling.hpa.enabled Enable a Horizontal Pod Autoscaler
+  autoscaling:
+    vpa:
+      enabled: false
+      controlledResources: [ ]
+      maxAllowed: { }
+      minAllowed: { }
+      updatePolicy:
+        updateMode: Auto
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+      metrics: [ ]
+
+  # @param webUi.pdb.create Enable a PodDisruptionBudget
+  # @param webUi.pdb.minAvailable Minimum available replicas
+  # @param webUi.pdb.maxUnavailable Maximum unavailable replicas
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+
+  # @param webUi.networkPolicy.enabled Enable a NetworkPolicy
+  # @param webUi.networkPolicy.addExternalClientAccess Allow access from external client pods
+  # @param webUi.networkPolicy.ingressPodMatchLabels Ingress sources matching pod labels
+  # @param webUi.networkPolicy.ingressManagementNSMatchLabels Namespace labels for management ingress
+  # @param webUi.networkPolicy.ingressManagementNSPodMatchLabels Pod labels for management ingress
+  # @param webUi.networkPolicy.extraIngress Extra ingress rules
+  # @param webUi.networkPolicy.extraEgress Extra egress rules
+  networkPolicy:
+    enabled: true
+    addExternalClientAccess: true
+    ingressPodMatchLabels: { }
+    ingressManagementNSMatchLabels: { }
+    ingressManagementNSPodMatchLabels: { }
+    extraIngress: [ ]
+    extraEgress: [ ]
+
+  # Prometheus ServiceMonitor configuration.
+  # @param webUi.serviceMonitor.enabled Enable scraping via a ServiceMonitor
+  # @param webUi.serviceMonitor.namespace Namespace for the ServiceMonitor
+  # @param webUi.serviceMonitor.labels Additional labels for the ServiceMonitor
+  # @param webUi.serviceMonitor.annotations Additional annotations for the ServiceMonitor
+  # @param webUi.serviceMonitor.interval Scrape interval
+  # @param webUi.serviceMonitor.scrapeTimeout Scrape timeout
+  serviceMonitor:
+    enabled: false
+    namespace: ""
+    labels: { }
+    annotations: { }
+    interval: ""
+    scrapeTimeout: ""
+    relabelings: [ ]
+    metricRelabelings: [ ]
+    honorLabels: false
+
+  # Ingress configuration.
+  # @param webUi.ingress.enabled Enable an Ingress
+  # @param webUi.ingress.ingressClassName Ingress class name
+  # @param webUi.ingress.hostname Ingress hostname
+  # @param webUi.ingress.path Path for the service
+  # @param webUi.ingress.pathType Ingress path type (Prefix, Exact, ImplementationSpecific)
+  # @param webUi.ingress.extraPaths Additional paths
+  # @param webUi.ingress.extraHosts Additional hosts
+  # @param webUi.ingress.extraRules Additional rules
+  ingress:
+    enabled: false
+    ingressClassName: ""
+    hostname: ""
+    path: /
+    pathType: Prefix
+    extraPaths: [ ]
+    extraHosts: [ ]
+    extraRules: [ ]
+
+  # Gateway API HTTPRoute configuration.
+  # @param webUi.route.enabled Enable an HTTPRoute
+  # @param webUi.route.labels Additional labels for the HTTPRoute
+  # @param webUi.route.annotations Additional annotations for the HTTPRoute
+  # @param webUi.route.hostnames HTTPRoute hostnames
+  # @param webUi.route.parentRefs Parent gateway references
+  # @param webUi.route.matches HTTPRoute match rules
+  # @param webUi.route.filters HTTPRoute filters
+  # @param webUi.route.extraRules Additional rules
+  route:
+    enabled: false
+    labels: { }
+    annotations: { }
+    hostnames: [ ]
+    parentRefs: [ ]
+    matches:
+      - path:
+          type: PathPrefix
+          value: /
+    filters: [ ]
+    extraRules: [ ]
+
 # @section Observability parameters
 # Observability configuration shared by all services.
 # @param observability.logging.structured.enabled Enable structured logging

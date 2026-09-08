@@ -1,7 +1,6 @@
 import com.github.gradle.node.npm.task.NpmTask
-import java.util.concurrent.TimeUnit
+import gradle.kotlin.dsl.accessors._31ffc96443a0302ceb6c1c60c45624ec.node
 import org.gradle.accessors.dm.LibrariesForLibs
-import org.gradle.api.GradleException
 
 plugins {
     id("base")
@@ -73,6 +72,45 @@ val npmDev =
         description = "Starts the Vite dev server (blocking; Ctrl+C to stop)."
         dependsOn(npmCi)
         args.set(listOf("run", "dev"))
+    }
+
+// The Procfile and start.sh are staged into the built bundle so the Paketo nginx/procfile buildpacks see them in the
+// build context (--path build/dist), while they remain source files for the frontend module. A Copy (not Sync) so
+// the Vite-built bundle in build/dist is preserved.
+val stageImageFiles =
+    tasks.register<Copy>("stageImageFiles") {
+        description = "Stages Procfile and start.sh into the built bundle for the container image."
+        dependsOn(npmBuild)
+        into(layout.buildDirectory.dir("dist"))
+        from("Procfile", "start.sh")
+    }
+
+// The dockerBuildImage task exposes bootBuildImage-style module-owned inputs (imageName, imagePlatform,
+// environment) on the PackBuildImageTask type; the mechanism (builder, buildpacks, app dir, baked BP_* build
+// settings) is provided here in the convention.
+val dockerBuildImage =
+    tasks.register<PackBuildImageTask>("dockerBuildImage") {
+        group = "build"
+        description = "Builds a container image from the built frontend with Paketo buildpacks."
+        dependsOn(stageImageFiles)
+
+        builder.set("paketobuildpacks/builder-jammy-base")
+        buildpacks.set(
+            listOf(
+                "paketo-buildpacks/nginx",
+                "paketo-buildpacks/procfile",
+            )
+        )
+        environment.putAll(
+            mapOf(
+                "BP_WEB_SERVER" to "nginx",
+                "BP_WEB_SERVER_ROOT" to "/workspace",
+                "BP_NGINX_STUB_STATUS_PORT" to "9090",
+            )
+        )
+        appDir.set(layout.buildDirectory.dir("dist"))
+        inputs.file("Procfile")
+        inputs.file("start.sh")
     }
 
 val npmE2e =

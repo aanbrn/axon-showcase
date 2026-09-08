@@ -1,0 +1,49 @@
+{{- /*
+Ingress for the Web UI.
+Exposes the UI externally through a Kubernetes Ingress controller.
+*/ -}}
+{{- if .Values.webUi.ingress.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.labels .Values.commonLabels) "context" $) }}
+{{- $backend := include "common.ingress.backend" (dict
+      "serviceName" (include "axon-showcase.web-ui.fullname" $)
+      "servicePort" .Values.webUi.containerPorts.server
+      "context" $) }}
+apiVersion: {{ include "common.capabilities.ingress.apiVersion" $ }}
+kind: Ingress
+metadata:
+  name: {{ include "axon-showcase.web-ui.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: web-ui
+  {{- if or .Values.webUi.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.webUi.ingress.ingressClassName }}
+  ingressClassName: {{ include "common.tplvalues.render" (dict "value" .Values.webUi.ingress.ingressClassName "context" $) }}
+  {{- end }}
+  rules:
+    # Primary rule for the configured hostname; defaults to a root path.
+    - host: {{ include "common.tplvalues.render" (dict "value" .Values.webUi.ingress.hostname "context" $) | quote }}
+      http:
+        paths:
+          - path: {{ .Values.webUi.ingress.path | default "/" }}
+            pathType: {{ .Values.webUi.ingress.pathType | default "ImplementationSpecific" }}
+            backend: {{- $backend | nindent 14 }}
+          {{- if .Values.webUi.ingress.extraPaths }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.webUi.ingress.extraPaths "context" $) | nindent 10 }}
+          {{- end }}
+    # One rule per extra host, all routing to the same backend.
+    {{- range .Values.webUi.ingress.extraHosts }}
+    - host: {{ .name | quote }}
+      http:
+        paths:
+          - path: {{ .path | default "/" }}
+            pathType: {{ .pathType | default "ImplementationSpecific" }}
+            backend: {{- $backend | nindent 14 }}
+    {{- end }}
+    {{- if .Values.webUi.ingress.extraRules }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.webUi.ingress.extraRules "context" $) | nindent 4 }}
+    {{- end }}
+{{- end }}

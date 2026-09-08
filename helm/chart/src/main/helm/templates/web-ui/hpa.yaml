@@ -1,0 +1,56 @@
+{{- /*
+HorizontalPodAutoscaler for the web-ui.
+Scales replicas based on CPU/memory utilization or custom metrics.
+*/ -}}
+{{- if .Values.webUi.autoscaling.hpa.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.labels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.hpa.apiVersion" (dict "context" $) }}
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "axon-showcase.web-ui.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: web-ui
+  {{- if or .Values.webUi.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  # Targets the web-ui Deployment.
+  scaleTargetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+    kind: Deployment
+    name: {{ include "axon-showcase.web-ui.fullname" $ }}
+  minReplicas: {{ .Values.webUi.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.webUi.autoscaling.hpa.maxReplicas }}
+  metrics:
+  {{- if .Values.webUi.autoscaling.hpa.targetCPU }}
+    # Scale on CPU utilization (uses the modern `target` form on recent Kubernetes).
+    - type: Resource
+      resource:
+        name: cpu
+      {{- if semverCompare "<1.23-0" (include "common.capabilities.kubeVersion" $) }}
+        targetAverageUtilization: {{ .Values.webUi.autoscaling.hpa.targetCPU }}
+      {{- else }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.webUi.autoscaling.hpa.targetCPU }}
+      {{- end }}
+  {{- end }}
+  {{- if .Values.webUi.autoscaling.hpa.targetMemory }}
+    # Scale on memory utilization (uses the modern `target` form on recent Kubernetes).
+    - type: Resource
+      resource:
+        name: memory
+      {{- if semverCompare "<1.23-0" (include "common.capabilities.kubeVersion" $) }}
+        targetAverageUtilization: {{ .Values.webUi.autoscaling.hpa.targetMemory }}
+      {{- else }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.webUi.autoscaling.hpa.targetMemory }}
+      {{- end }}
+  {{- end }}
+  {{- if .Values.webUi.autoscaling.hpa.metrics }}
+  {{- include "common.tplvalues.render" (dict "value" .Values.webUi.autoscaling.hpa.metrics "context" $) | nindent 4 }}
+  {{- end }}
+{{- end }}

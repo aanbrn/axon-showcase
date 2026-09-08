@@ -18,9 +18,10 @@ SHALL declare the Bitnami `common` chart as a dependency.
 
 ### Requirement: Service deployments
 
-The chart SHALL render one Deployment per service (command-service, query-service, projection-service, api-gateway),
-each with a single `main` container running the service image, exposing the server, management, and (for command-service
-and api-gateway) JGroups ports, and mounting an empty-dir volume at `/tmp`.
+The chart SHALL render one Deployment per service (command-service, query-service, projection-service, api-gateway,
+web-ui), each with a single `main` container running the service image, exposing the server, management, and (for
+command-service and api-gateway) JGroups ports, and mounting an empty-dir volume at `/tmp`. The web-ui Deployment
+runs the static web-UI image on its container port (8080) and has no JGroups or management port.
 
 #### Scenario: Deployment replicas are taken from the replica count
 
@@ -42,13 +43,20 @@ and api-gateway) JGroups ports, and mounting an empty-dir volume at `/tmp`.
 
 - **WHEN** a service Deployment is rendered
 - **THEN** the container exposes the server port (default 8080) and management port (default 8888), and the JGroups
-  port (default 7800) for command-service and api-gateway
+  port (default 7800) for command-service and api-gateway; the web-ui container exposes its static-serve port (8080)
 
 #### Scenario: Environment comes from values with defaults
 
 - **WHEN** a service Deployment is rendered
 - **THEN** it applies `extraEnvVars`, `extraEnvVarsCM`, and `extraEnvVarsSecret`, defaulting `JAVA_OPTS` to
-  `-XX:MaxDirectMemorySize=128M -XX:MaxGCPauseMillis=20`
+  `-XX:MaxDirectMemorySize=128M -XX:MaxGCPauseMillis=20`; the web-ui container (nginx) needs no `JAVA_OPTS`
+
+#### Scenario: The web-UI Deployment configures the API base URL from values
+
+- **WHEN** a web-UI Deployment is rendered
+- **THEN** it sets the `SHOWCASE_API_BASE_URL` env var from `webUi.apiBaseUrl` (the externally-visible gateway URL the
+  browser calls; empty default = same-origin), rendered to `config.js` at container start — the chart never bakes a
+  per-environment base URL into the image
 
 ### Requirement: Health and readiness probes
 

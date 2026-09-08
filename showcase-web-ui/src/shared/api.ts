@@ -1,11 +1,19 @@
 // SPDX-License-Identifier: MIT
+declare global {
+  interface Window {
+    __API_BASE_URL__?: string;
+  }
+}
+
 /**
- * The base URL for all API requests, resolved from the VITE_API_BASE_URL environment variable.
+ * The base URL for all API requests.
  *
- * <p>Defaults to the empty string so requests are same-origin relative paths, which works with the Vite dev-server
+ * <p>Resolved at runtime from `window.__API_BASE_URL__` (set by a deploy-time `config.js` rendered from the
+ * `SHOWCASE_API_BASE_URL` env var at container start), falling back to the build-time `VITE_API_BASE_URL`, then the
+ * empty string. The empty default makes requests same-origin relative paths, which works with the Vite dev-server
  * proxy and the gateway serving the UI from the same origin.
  */
-export const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+export const BASE = window.__API_BASE_URL__ ?? import.meta.env.VITE_API_BASE_URL ?? '';
 
 /**
  * The outcome of a state-changing request.

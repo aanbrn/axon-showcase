@@ -1,0 +1,31 @@
+{{- /*
+PodDisruptionBudget for the web-ui.
+Limits how many pods may be unavailable during voluntary disruptions.
+*/ -}}
+{{- if .Values.webUi.pdb.create }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.policy.apiVersion" $ }}
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "axon-showcase.web-ui.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: web-ui
+  {{- if or .Values.webUi.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  # Prefer minAvailable; fall back to maxUnavailable (default 1) otherwise.
+  {{- if .Values.webUi.pdb.minAvailable }}
+  minAvailable: {{ .Values.webUi.pdb.minAvailable }}
+  {{- end  }}
+  {{- if or .Values.webUi.pdb.maxUnavailable ( not .Values.webUi.pdb.minAvailable ) }}
+  maxUnavailable: {{ .Values.webUi.pdb.maxUnavailable | default 1 }}
+  {{- end  }}
+  # Selects the web-ui pods.
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: web-ui
+{{- end }}

@@ -43,13 +43,6 @@ appending to the most recent one).
   Tempo traces from the gateway onward — the highest-leverage piece, since the pipeline already traces gateway →
   command/query. Consider whether the gateway CORS needs to allow the trace header.
 
-- Extend the root Spotless config to cover `build-logic/src/**/*.kt` — parked; no change yet. The root `spotless` block
-  targets only `*.gradle.kts` (via `kotlinGradle` + ktfmt), so the build-logic Kotlin task classes
-  (`PackBuildImageTask`, `HelmUpdatesTask`, `VerifyInfraImageVersionsTask`, ...) are not format-gated and rely on manual
-  style (imports, no wildcards, 120-column wrapping). Add a `kotlin` target with ktfmt (matching the `kotlinGradle`
-  config: `kotlinlangStyle`, `setMaxWidth(120)`) covering `build-logic/src/**/*.kt`, so these classes are enforced by
-  `spotlessCheck` like the rest of the repo; cost is a one-time reflow of the existing task classes.
-
 - Remove unused functions from the web UI — parked; no change yet. The UI codebase has accumulated helper functions that
   are no longer referenced (e.g. in `shared/`). Clean them up to keep the surface minimal; use TypeScript
   `noUnusedLocals`/`noUnusedParameters` (or a lint rule) to catch them going forward.
@@ -86,22 +79,15 @@ appending to the most recent one).
 
 ## 2026-09-04
 
-- Root Prettier for markdown — parked (option A from the formatting discussion); no change yet. Automate markdown
-  formatting the way Java (Spotless) and the web UI (Prettier) already are: add a root Prettier config with
-  `proseWrap: "always"` and `printWidth: 120` (not the Prettier default `preserve`), plus a `format` / `format:check`
-  pair wired into CI. This ends the manual 120-char wrapping convention for `docs/`, `AGENTS.md`, `README.md`, and
-  OpenSpec specs. Cost to accept: a one-time reflow of existing markdown on first run (may reflow long inline code,
-  tables, and `→`/`—` sequences), and a separate decision on whether YAML gets included in the same Prettier run.
-
 - Dependency updates for the web UI — parked; explore whether it's possible to check frontend dependency updates the way
   the JVM modules do (`dependencyUpdates`), and whether we can also scan the web UI for dependency vulnerabilities. The
   `dependency-updates` machinery currently only covers catalog-owned Gradle coordinates; the web UI's npm dependencies
   (`package.json` / `package-lock.json`) are outside it. To explore: `npm outdated` / `npm audit` (and
   `npm audit --omit=dev`) as analogues of `dependencyUpdates` / `dependencySecurityCheck`, wired as Gradle tasks or npm
   scripts and reported like the existing update/security issues; whether the observability chart has no `*-image-tag`
-  for the UI (it would be an nginx image once the UI is a dedicated deployable — see that idea), so a UI image-tag bump
-  would be a manual coordinate; and whether Snyk can also scan `package-lock.json` (the existing
-  `dependencySecurityCheck` uses the Snyk CLI with the root `.snyk` policy).
+  for the UI (it is now a dedicated nginx image serving the built frontend), so a UI image-tag bump would be a manual
+  coordinate; and whether Snyk can also scan `package-lock.json` (the existing `dependencySecurityCheck` uses the Snyk
+  CLI with the root `.snyk` policy).
 
 - Document the IDE-tooling MCP setup in the README — parked; recommended resolution for the MCP-config question. The
   repo uses several MCPs but only Playwright is in the project config (`.opencode/opencode.json`); the rest live in the
@@ -113,13 +99,6 @@ appending to the most recent one).
   global GitHub MCP setup (`gh auth login` + the `gh mcp` entry), (2) Steroid/Amplicode for IDEA-based work and which of
   them help with repo-specific problems (Steroid for the Spotless/`codefmt` inspection flow, Amplicode for Spring/Axon
   work), and (3) that Playwright is project-configured for the web-UI e2e.
-
-- Ship the web UI as a dedicated deployable unit — parked; no change yet. Today `showcase-web-ui` is a build-only module
-  (`npmBuild` → `build/dist`): no Docker image is built and nothing serves it in deployment — it runs only via the Vite
-  dev server (`viteDev`) or preview, so the Docker/Helm stack has no UI. The UI is a standalone deployable (not served
-  by the API gateway — decided): (1) build a dedicated UI image (an nginx image serving `build/dist`), (2) add it to the
-  Helm chart as its own deployment/service (not under the gateway) including its values and the CORS origin it needs,
-  and (3) wire the boot image + chart values so the UI is reachable in the local and deployed stacks.
 
 - Enforce web UI conventions with tooling — parked; do as its own change after `add-web-ui` is merged. Prettier is a
   formatter, not a style linter: it gates formatting (width, quotes, semicolons) but not _conventions_. ESLint

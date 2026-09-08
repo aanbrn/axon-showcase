@@ -194,8 +194,10 @@ into `main`, with no bypass actors.
 
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
-pipeline with Playwright) on a nightly schedule and via `workflow_dispatch`. It is observational — never a merge gate,
-no secrets, and it shares the same `gradle/actions/setup-gradle` caching rules as `ci.yml`.
+pipeline with Playwright) on a nightly schedule and via `workflow_dispatch`. It installs the `pack` CLI explicitly
+(`buildpacks/github-actions/setup-pack`, pinned to the same version as local development — the GitHub runner image
+does not guarantee it), and uses `actions/cache@v5` for the npm cache. It is observational — never a merge gate, no
+secrets, and it shares the same `gradle/actions/setup-gradle` caching rules as `ci.yml`.
 
 `.github/workflows/snyk.yml` runs the credentialed dependency security scan (`./gradlew dependencySecurityCheck`, all
 sub-projects with the root `.snyk` policy) on a weekly schedule and via `workflow_dispatch`, authenticated with the
@@ -213,6 +215,11 @@ via `workflow_dispatch`, opening or updating the "Helm updates" issue with the a
 `build/helm-updates/report.txt` (the Helm CLI and pinned chart versions that have a newer version), using the
 `GITHUB_TOKEN` (`issues: write`). When there are updates it posts a comment mentioning the repository owner (so they
 are notified); runs with no updates update the issue silently. It is observational — never a merge gate.
+
+`.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so an action
+whose major bump targets a newer Node runtime (e.g. the Node 20 → Node 24 migration) surfaces as a reviewable PR
+instead of a silent CI deprecation warning. The `opencode` workflow's `anomalyco/opencode/github@latest` is a
+deliberate floating ref that Dependabot does not manage.
 
 ## Architecture
 

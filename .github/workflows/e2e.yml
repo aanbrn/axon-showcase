@@ -31,10 +31,15 @@ jobs:
             nodejs
 
       - name: Cache npm packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('showcase-web-ui/package-lock.json') }}
+
+      - name: Set up pack CLI
+        uses: buildpacks/github-actions/setup-pack@v5.12.5
+        with:
+          pack-version: 0.40.9
 
       - name: Run end-to-end tests
         run: ./gradlew e2eTest

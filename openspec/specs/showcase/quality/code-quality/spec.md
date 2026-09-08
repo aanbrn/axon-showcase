@@ -58,7 +58,10 @@ suffixes (`Tests`, `CT`, `IT`, `E2E`).
 ### Requirement: Source formatting is enforced by the build
 
 The build SHALL format Java and Kotlin DSL (`.gradle.kts`) sources to a canonical style — including removal of unused
-imports — and verify formatting as part of the standard `check` task, with no IDE required.
+imports — and verify formatting as part of the standard `check` task, with no IDE required. The build SHALL also format
+root markdown (`docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, and active `openspec/changes/*/`) with Prettier at
+`printWidth: 120` with `proseWrap: "always"`, and verify it in `check` — ending the manual 120-char wrapping convention.
+The `openspec/changes/archive/` historical record is not reformatted.
 
 #### Scenario: Formatting check runs in the standard check
 
@@ -79,6 +82,17 @@ imports — and verify formatting as part of the standard `check` task, with no 
 
 - **WHEN** the formatting check runs on a machine with no IDE installed
 - **THEN** it executes entirely within the Gradle build
+
+#### Scenario: Unformatted markdown fails the build
+
+- **WHEN** a root markdown file (`docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, an active `openspec/changes/*/`)
+  is not Prettier-formatted
+- **THEN** the root markdown formatting check fails and reports the offending file
+
+#### Scenario: Archived change markdown is not reformatted
+
+- **WHEN** the root markdown formatting check runs
+- **THEN** it does not check `openspec/changes/archive/` (the historical record is left as recorded)
 
 ### Requirement: License headers are enforced
 

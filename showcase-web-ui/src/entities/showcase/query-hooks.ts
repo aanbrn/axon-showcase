@@ -2,7 +2,6 @@
 import { type QueryClient } from '@tanstack/react-query';
 import { retryUntilCompleted } from '@/shared/retry';
 import type { ShowcaseEvent } from '@/entities/showcase-event/types';
-import type { ShowcaseStatus } from './types';
 import { fetchShowcases } from './api';
 import type { Showcase } from './types';
 import { SHOWCASES_QUERY_KEY } from './query-keys';
@@ -90,52 +89,6 @@ function reconcileShowcase(
 export function waitForEvent(queryClient: QueryClient, event: ShowcaseEvent): Promise<boolean> {
   const predicate = predicateForEvent(event);
   return reconcileShowcase(queryClient, event.showcaseId, predicate);
-}
-
-/**
- * Waits until the showcase appears in the read model.
- *
- * @param queryClient the TanStack Query client
- * @param showcaseId the id of the showcase to wait for
- * @returns true when the showcase appeared, false when the poll budget was exhausted
- */
-export function waitForShowcasePresence(queryClient: QueryClient, showcaseId: string): Promise<boolean> {
-  return reconcileShowcase(queryClient, showcaseId, (showcases) =>
-    showcases.some((showcase) => showcase.showcaseId === showcaseId),
-  );
-}
-
-/**
- * Waits until the showcase reaches the expected status in the read model.
- *
- * @param queryClient the TanStack Query client
- * @param showcaseId the id of the showcase to wait for
- * @param status the expected status
- * @returns true when the status was observed, false when the poll budget was exhausted
- */
-export function waitForShowcaseStatus(
-  queryClient: QueryClient,
-  showcaseId: string,
-  status: ShowcaseStatus,
-): Promise<boolean> {
-  return reconcileShowcase(queryClient, showcaseId, (showcases) =>
-    showcases.some((showcase) => showcase.showcaseId === showcaseId && showcase.status === status),
-  );
-}
-
-/**
- * Waits until the showcase disappears from the read model.
- *
- * @param queryClient the TanStack Query client
- * @param showcaseId the id of the showcase to wait for
- * @returns true when the showcase was removed, false when the poll budget was exhausted
- */
-export function waitForShowcaseRemoval(queryClient: QueryClient, showcaseId: string): Promise<boolean> {
-  return reconcileShowcase(
-    queryClient,
-    showcaseId,
-    (showcases) => !showcases.some((showcase) => showcase.showcaseId === showcaseId),
-  );
 }
 
 function predicateForEvent(event: ShowcaseEvent): (showcases: Showcase[]) => boolean {

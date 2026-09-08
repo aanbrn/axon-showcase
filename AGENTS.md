@@ -533,6 +533,13 @@ that override when bumping the Kafka image tag.
 
 ## Gotchas
 
+- **`git stash pop` can leave conflict markers after a rebase.** The "leave implementation uncommitted until reviewed"
+  workflow stashes the change on every rebase; if a docs file (e.g. `docs/ideas.md`) advances on `main` between the
+  stash and the rebase, popping the stash after the rebase can leave `<<<<<<<` conflict markers in the working tree (the
+  stash carries the pre-rebase copy). This surfaced when the ideas-dates fix (PR #64) merged mid-rebase. Resolve by
+  restoring the docs file to `origin/main` (the change branch carries no docs changes) rather than resolving the markers
+  by hand.
+
 - **Deployment investigations must include the Helm chart and values files.** When diagnosing a deployment issue, the
   chart (`helm/chart/src/main/helm/`) and its values (`helm/values/*/values-*.yaml`) are always in scope alongside the
   live cluster — the deployed resources are generated output of the chart, so a wrong live resource usually means a

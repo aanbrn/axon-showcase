@@ -22,13 +22,6 @@ appending to the most recent one).
   include `axon-showcase-kafka-client: "true"`, or make the kafka netpol match on the services' stable component labels
   instead of a bespoke per-client label.
 
-- Note the `git stash pop` merge-conflict gotcha in AGENTS.md when the change work is done — parked; apply after the
-  current change. The "leave implementation uncommitted until reviewed" workflow stashes the change on every rebase; if
-  a docs file (e.g. `docs/ideas.md`) advances on `main` between the stash and the rebase, popping the stash after the
-  rebase can leave `<<<<<<<` conflict markers in the working tree (the stash carries the pre-rebase copy). Today this
-  surfaced when PR #64 (ideas-dates fix) merged mid-rebase; resolve by restoring the docs file to `origin/main` (the
-  change branch carries no docs changes). Add a gotcha to AGENTS.md once the current change ships.
-
 ## 2026-09-07
 
 - Measure code coverage for the web UI — parked; no change yet. The JVM modules have a JaCoCo coverage gate

@@ -24,12 +24,10 @@ import org.gradle.process.ExecOperations
  */
 abstract class PackBuildImageTask : DefaultTask() {
 
-    @get:Inject
-    abstract val execOperations: ExecOperations
+    @get:Inject abstract val execOperations: ExecOperations
 
     /** The image name and tag; defaults to `${project.name}:${project.version}`, overridable by the module. */
-    @get:Input
-    abstract val imageName: Property<String>
+    @get:Input abstract val imageName: Property<String>
 
     // Captured at configuration time: Task.project is deprecated at execution time (fails in Gradle 10).
     private val projectDir = project.projectDir
@@ -45,29 +43,25 @@ abstract class PackBuildImageTask : DefaultTask() {
     abstract val imagePlatform: Property<String>
 
     /** The CNB builder image. */
-    @get:Input
-    abstract val builder: Property<String>
+    @get:Input abstract val builder: Property<String>
 
     /** The buildpacks to apply. */
-    @get:Input
-    abstract val buildpacks: ListProperty<String>
+    @get:Input abstract val buildpacks: ListProperty<String>
 
     /** Build-time and launch-time environment (`BP_*` and `BPE_DEFAULT_*`), passed as `--env KEY=VALUE`. */
-    @get:Input
-    abstract val environment: MapProperty<String, String>
+    @get:Input abstract val environment: MapProperty<String, String>
 
     /** The built application directory passed to `pack build --path`. */
-    @get:InputFiles
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val appDir: DirectoryProperty
+    @get:InputFiles @get:PathSensitive(PathSensitivity.RELATIVE) abstract val appDir: DirectoryProperty
 
     @TaskAction
     fun buildImage() {
         val packCli = packCli()
         if (packCli.isEmpty()) {
             throw GradleException(
-                "The pack CLI is required to build the container image. Install it (" + installHint() +
-                    ") and make 'pack' available on PATH.",
+                "The pack CLI is required to build the container image. Install it (" +
+                    installHint() +
+                    ") and make 'pack' available on PATH."
             )
         }
         val args =
@@ -106,10 +100,12 @@ abstract class PackBuildImageTask : DefaultTask() {
                 listOf("pack")
             }
         return path.split(File.pathSeparator).firstNotNullOfOrNull { dir ->
-            executableNames.firstOrNull { name ->
-                val executable = File(dir, name)
-                executable.isFile && executable.canExecute()
-            }?.let { File(dir, it).absolutePath }
+            executableNames
+                .firstOrNull { name ->
+                    val executable = File(dir, name)
+                    executable.isFile && executable.canExecute()
+                }
+                ?.let { File(dir, it).absolutePath }
         } ?: ""
     }
 }

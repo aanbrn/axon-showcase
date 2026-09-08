@@ -33,6 +33,11 @@ spotless {
         target("*.gradle.kts", "build-logic/*.gradle.kts", "build-logic/src/**/*.gradle.kts")
         ktfmt().kotlinlangStyle().configure { it.setMaxWidth(120) }
     }
+
+    kotlin {
+        target("build-logic/src/**/*.kt")
+        ktfmt().kotlinlangStyle().configure { it.setMaxWidth(120) }
+    }
 }
 
 allprojects {

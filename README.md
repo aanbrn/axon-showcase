@@ -84,10 +84,11 @@ Read: Client → API Gateway → Query Service → OpenSearch
 
 ### IntelliJ IDEA Setup
 
-Formatting is enforced by Spotless — palantir-java-format for Java, ktfmt for Gradle Kotlin DSL (`*.gradle.kts`),
-Prettier for markdown (`docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`): `./gradlew spotlessApply` formats,
-`spotlessCheck` verifies, and the build never depends on an IDE. IntelliJ's built-in formatter uses its own code style
-and would reformat files differently, so configure the IDE to stay in sync:
+Formatting is enforced by Spotless — palantir-java-format for Java, ktfmt for Gradle Kotlin DSL (`*.gradle.kts`) and
+build-logic Kotlin (`build-logic/src/**/*.kt`), Prettier for markdown (`docs/`, `AGENTS.md`, `README.md`,
+`openspec/specs/`): `./gradlew spotlessApply` formats, `spotlessCheck` verifies, and the build never depends on an IDE.
+IntelliJ's built-in formatter uses its own code style and would reformat files differently, so configure the IDE to stay
+in sync:
 
 - The repo's IntelliJ config is **not versioned** — `.idea/` is git-ignored. Run the setup script once (IDE closed, then
   restart): it locates your IntelliJ, installs the **palantir-java-format** and **ktfmt** plugins, writes the project

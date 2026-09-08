@@ -59,9 +59,10 @@ suffixes (`Tests`, `CT`, `IT`, `E2E`).
 
 The build SHALL format Java and Kotlin DSL (`.gradle.kts`) sources to a canonical style — including removal of unused
 imports — and verify formatting as part of the standard `check` task, with no IDE required. The build SHALL also format
-root markdown (`docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, and active `openspec/changes/*/`) with Prettier at
-`printWidth: 120` with `proseWrap: "always"`, and verify it in `check` — ending the manual 120-char wrapping convention.
-The `openspec/changes/archive/` historical record is not reformatted.
+build-logic Kotlin (`build-logic/src/**/*.kt`) with ktfmt matching the Gradle-DSL style, root markdown (`docs/`,
+`AGENTS.md`, `README.md`, `openspec/specs/`, and active `openspec/changes/*/`) with Prettier at `printWidth: 120` with
+`proseWrap: "always"`, and verify each in `check` — ending the manual 120-char wrapping convention. The
+`openspec/changes/archive/` historical record is not reformatted.
 
 #### Scenario: Formatting check runs in the standard check
 
@@ -82,6 +83,11 @@ The `openspec/changes/archive/` historical record is not reformatted.
 
 - **WHEN** the formatting check runs on a machine with no IDE installed
 - **THEN** it executes entirely within the Gradle build
+
+#### Scenario: Build-logic Kotlin is format-gated
+
+- **WHEN** a `build-logic/src/**/*.kt` file does not conform to the ktfmt style
+- **THEN** the formatting check fails and reports the offending file
 
 #### Scenario: Unformatted markdown fails the build
 

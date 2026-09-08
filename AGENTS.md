@@ -196,7 +196,7 @@ into `main`, with no bypass actors.
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
 pipeline with Playwright) on a nightly schedule and via `workflow_dispatch`. It installs the `pack` CLI explicitly
 (`buildpacks/github-actions/setup-pack`, pinned to the same version as local development — the GitHub runner image
-does not guarantee it), and uses `actions/cache@v5` for the npm cache. It is observational — never a merge gate, no
+does not guarantee it), and uses `actions/cache@v6` for the npm cache. It is observational — never a merge gate, no
 secrets, and it shares the same `gradle/actions/setup-gradle` caching rules as `ci.yml`.
 
 `.github/workflows/snyk.yml` runs the credentialed dependency security scan (`./gradlew dependencySecurityCheck`, all

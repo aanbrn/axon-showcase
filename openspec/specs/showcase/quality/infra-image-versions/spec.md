@@ -44,6 +44,14 @@ is reproducible at a reviewable version.
 - **WHEN** the project adds or updates a Helm chart version coordinate in the catalog
 - **THEN** the coordinate is concrete, so a change from a floating pin to a concrete version is never reverted
 
+#### Scenario: An observability chart major bump is actionable and smoke-tested
+
+- **WHEN** an observability chart (`prometheus-community-stack`, `grafana-tempo`) has a newer version available
+- **THEN** the update surfaces in the Helm update report (not suppressed, since these charts carry no `*-image-tag`),
+  and bumping the coordinate to a new concrete version is verified with a live install + smoke test — the release
+  installs cleanly, the metrics/observability pods are ready, and the Prometheus targets and Grafana datasources are
+  wired — before the bump is merged
+
 ### Requirement: The deployed Bitnami image tag is the chart's preconfigured tag
 
 The Helm deployment SHALL use the Bitnami image tag preconfigured in the pinned chart version — the infra releases

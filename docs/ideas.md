@@ -62,6 +62,16 @@ to a GitHub issue that links to the eventual OpenSpec change.
   client (or we migrate the projection/query services to the OpenSearch Java Client transport directly), the warning
   resolves; track so it does not become a hard break when the low-level client is removed.
 
+- Make the api-gateway's kafka-client NetworkPolicy label a chart default — parked; no change yet. The gateway
+  consumes Kafka for the live-events SSE stream (`showcase-live-events` consumer group), so its pod needs the
+  `axon-showcase-kafka-client: "true"` label whenever the kafka NetworkPolicy is active (the bitnami kafka chart
+  allows ingress from pods carrying that label). Today the label is only set in `values-local.yaml` per service
+  (command/projection and now api-gateway), so a deployment that activates the kafka netpol without that label
+  silently loses the live-events stream — the gateway's Kafka consumer can't connect, the SSE stream stays empty,
+  and the web UI only reconciles on window focus. Fix: default `apiGateway.podLabels` (and the other kafka consumers)
+  in the chart to include `axon-showcase-kafka-client: "true"`, or make the kafka netpol match on the services'
+  stable component labels instead of a bespoke per-client label.
+
 ## 2026-09-04
 
 - Root Prettier for markdown — parked (option A from the formatting discussion); no change yet. Automate markdown

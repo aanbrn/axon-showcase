@@ -48,6 +48,14 @@ active change dir. After the `build` check is green and the user approves, archi
 sync the main spec) as an additional commit in the _same_ PR, then merge once. The archive — the declaration that a
 change is done — always follows CI, never precedes it.
 
+**Merging PRs: the `--admin` flag is for admin users only.** The `main-require-pr-on-merge` ruleset requires an
+approving review (`required_approving_review_count: 1`), but the repo owner (`aanbrn`) is a bypass actor on that ruleset
+(`bypass_mode: always`). When the active GitHub user **is** the repo owner/admin, merge directly with
+`gh pr merge --squash --delete-branch --admin` once CI is green — do not first attempt a plain merge (it will be
+rejected by the ruleset) and do not wait on a Copilot review (it never approves). When the active user is **not** an
+admin (e.g. a team member), `--admin` is meaningless and the normal review-required flow applies: request a reviewer and
+wait for approval before merging.
+
 ## Prerequisites
 
 - Java 21+

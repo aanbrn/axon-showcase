@@ -8,7 +8,19 @@ Changes to this file are committed as their own docs PR (like `AGENTS.md`/`READM
 with an OpenSpec change or its branch. When an idea graduates into a concrete candidate for work, it may be promoted
 to a GitHub issue that links to the eventual OpenSpec change.
 
-## 2026-09-06
+## 2026-09-08
+
+- Make the api-gateway's kafka-client NetworkPolicy label a chart default — parked; no change yet. The gateway
+  consumes Kafka for the live-events SSE stream (`showcase-live-events` consumer group), so its pod needs the
+  `axon-showcase-kafka-client: "true"` label whenever the kafka NetworkPolicy is active (the bitnami kafka chart
+  allows ingress from pods carrying that label). Today the label is only set in `values-local.yaml` per service
+  (command/projection and now api-gateway), so a deployment that activates the kafka netpol without that label
+  silently loses the live-events stream — the gateway's Kafka consumer can't connect, the SSE stream stays empty,
+  and the web UI only reconciles on window focus. Fix: default `apiGateway.podLabels` (and the other kafka consumers)
+  in the chart to include `axon-showcase-kafka-client: "true"`, or make the kafka netpol match on the services'
+  stable component labels instead of a bespoke per-client label.
+
+## 2026-09-07
 
 - Measure code coverage for the web UI — parked; no change yet. The JVM modules have a JaCoCo coverage gate
   (`jacocoTestCoverageVerification`, baseline in `config/jacoco/coverage-baseline.properties`), but `showcase-web-ui`
@@ -61,16 +73,6 @@ to a GitHub issue that links to the eventual OpenSpec change.
   to configure connection pooling / idle eviction. When Spring Data OpenSearch updates its customizer to the newer
   client (or we migrate the projection/query services to the OpenSearch Java Client transport directly), the warning
   resolves; track so it does not become a hard break when the low-level client is removed.
-
-- Make the api-gateway's kafka-client NetworkPolicy label a chart default — parked; no change yet. The gateway
-  consumes Kafka for the live-events SSE stream (`showcase-live-events` consumer group), so its pod needs the
-  `axon-showcase-kafka-client: "true"` label whenever the kafka NetworkPolicy is active (the bitnami kafka chart
-  allows ingress from pods carrying that label). Today the label is only set in `values-local.yaml` per service
-  (command/projection and now api-gateway), so a deployment that activates the kafka netpol without that label
-  silently loses the live-events stream — the gateway's Kafka consumer can't connect, the SSE stream stays empty,
-  and the web UI only reconciles on window focus. Fix: default `apiGateway.podLabels` (and the other kafka consumers)
-  in the chart to include `axon-showcase-kafka-client: "true"`, or make the kafka netpol match on the services'
-  stable component labels instead of a bespoke per-client label.
 
 ## 2026-09-04
 

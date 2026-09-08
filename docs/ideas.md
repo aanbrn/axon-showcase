@@ -36,10 +36,6 @@ appending to the most recent one).
   Tempo traces from the gateway onward — the highest-leverage piece, since the pipeline already traces gateway →
   command/query. Consider whether the gateway CORS needs to allow the trace header.
 
-- Remove unused functions from the web UI — parked; no change yet. The UI codebase has accumulated helper functions that
-  are no longer referenced (e.g. in `shared/`). Clean them up to keep the surface minimal; use TypeScript
-  `noUnusedLocals`/`noUnusedParameters` (or a lint rule) to catch them going forward.
-
 - Rethink reconciliation in the web UI — parked; no change yet. `ShowcasesPage` reconciles local writes and
   saga-triggered events against the eventually-consistent read model by waiting on the projected state per event
   (`waitForEvent`/`waitForReadModel`, with a connect-time filter). This works but couples the page to polling; a

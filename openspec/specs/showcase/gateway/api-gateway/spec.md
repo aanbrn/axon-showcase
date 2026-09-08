@@ -1,11 +1,13 @@
 # showcase/api-gateway Specification
 
 ## Purpose
+
 Documents the current behavior of the REST entry point of the CQRS showcase application: the `/showcases` command and
 query endpoints, asynchronous write handling with idempotency keys, cache fallback on query failures, and structured
 error mapping.
 
 ## Requirements
+
 ### Requirement: Schedule showcase endpoint
 
 The system SHALL expose `POST /showcases` accepting a JSON request with a unique title, a future start time, and a
@@ -64,8 +66,8 @@ the command times out.
 
 ### Requirement: Finish showcase endpoint
 
-The system SHALL expose `PUT /showcases/{showcaseId}/finish` and SHALL return `200 OK` on success or `202 Accepted`
-when the command times out.
+The system SHALL expose `PUT /showcases/{showcaseId}/finish` and SHALL return `200 OK` on success or `202 Accepted` when
+the command times out.
 
 #### Scenario: Successful finish returns 200
 
@@ -85,8 +87,8 @@ when the command times out.
 
 ### Requirement: Remove showcase endpoint
 
-The system SHALL expose `DELETE /showcases/{showcaseId}` and SHALL return `200 OK` on success or `202 Accepted` when
-the command times out.
+The system SHALL expose `DELETE /showcases/{showcaseId}` and SHALL return `200 OK` on success or `202 Accepted` when the
+command times out.
 
 #### Scenario: Successful removal returns 200
 
@@ -244,8 +246,8 @@ failures, WebClient failures, circuit breaker rejections, and unknown errors.
 
 The gateway SHALL allow browser cross-origin requests from the standalone web UI origin, so the UI can call the
 `/showcases` REST endpoints and the `/events` SSE endpoint directly. The allowed origins SHALL be configurable; the
-container image default SHALL be empty (fail-closed — every deployment must allow its UI origin explicitly), while
-local development (docker-compose and `bootRun`) SHALL permit the local UI dev-server and preview origins.
+container image default SHALL be empty (fail-closed — every deployment must allow its UI origin explicitly), while local
+development (docker-compose and `bootRun`) SHALL permit the local UI dev-server and preview origins.
 
 #### Scenario: The UI origin is allowed
 

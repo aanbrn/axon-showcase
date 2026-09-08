@@ -1,17 +1,17 @@
 # showcase/quality/dependency-security Specification
 
 ## Purpose
-Ensures the build does not ship known-vulnerable transitive dependencies: the platform constrains vulnerable
-transitives — Jackson 3 (`tools.jackson.core`) and Apache HttpClient 5 — to patched versions so dependency scans report
-clean.
+
+Ensures the build does not ship known-vulnerable transitive dependencies: the platform constrains vulnerable transitives
+— Jackson 3 (`tools.jackson.core`) and Apache HttpClient 5 — to patched versions so dependency scans report clean.
 
 ## Requirements
 
 ### Requirement: Vulnerable transitive dependencies are constrained to patched versions
 
 The platform SHALL constrain the transitive dependencies that dependency scans flag as vulnerable to their patched
-versions: `tools.jackson.core` modules SHALL resolve through the `tools.jackson:jackson-bom` at a version that fixes
-the reported issues (`jackson-core` at least `3.1.4`, `jackson-databind` at least `3.1.5`), and
+versions: `tools.jackson.core` modules SHALL resolve through the `tools.jackson:jackson-bom` at a version that fixes the
+reported issues (`jackson-core` at least `3.1.4`, `jackson-databind` at least `3.1.5`), and
 `org.apache.httpcomponents.client5:httpclient5` SHALL resolve to at least `5.6.4`.
 
 #### Scenario: Jackson 3 modules resolve to the aligned BOM version
@@ -33,9 +33,9 @@ the reported issues (`jackson-core` at least `3.1.4`, `jackson-databind` at leas
 
 ### Requirement: Local dependency security scan task
 
-The build SHALL provide a `dependencySecurityCheck` Gradle task that runs the Snyk dependency scan (`snyk test
---all-sub-projects`) across all sub-projects and reports the result to the developer. The task SHALL NOT be part of the
-`check` lifecycle.
+The build SHALL provide a `dependencySecurityCheck` Gradle task that runs the Snyk dependency scan
+(`snyk test --all-sub-projects`) across all sub-projects and reports the result to the developer. The task SHALL NOT be
+part of the `check` lifecycle.
 
 #### Scenario: Developer runs the dependency security scan
 

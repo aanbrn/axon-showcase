@@ -14,6 +14,21 @@ plugins {
 }
 
 spotless {
+    format("markdown") {
+        target("docs/**/*.md", "AGENTS.md", "README.md", "openspec/specs/**/*.md", "openspec/changes/**/*.md")
+        targetExclude("openspec/changes/archive/**")
+        prettier("3.9.6")
+            .config(
+                mapOf(
+                    "printWidth" to 120,
+                    "proseWrap" to "always",
+                    "singleQuote" to true,
+                    "trailingComma" to "all",
+                    "semi" to true,
+                )
+            )
+    }
+
     kotlinGradle {
         target("*.gradle.kts", "build-logic/*.gradle.kts", "build-logic/src/**/*.gradle.kts")
         ktfmt().kotlinlangStyle().configure { it.setMaxWidth(120) }

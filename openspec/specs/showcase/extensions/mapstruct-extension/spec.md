@@ -1,10 +1,13 @@
 # showcase/mapstruct-extension Specification
 
 ## Purpose
+
 Documents the behavior of the custom MapStruct `AccessorNamingStrategy` that enables MapStruct to recognize Lombok
 fluent accessors (methods matching a field by name and return type, without `get`/`set` prefixes) during compile-time
 mapper generation.
+
 ## Requirements
+
 ### Requirement: Fluent getter detection via field match
 
 The system SHALL recognize a parameterless method as a fluent getter when the method's enclosing class contains a field
@@ -72,8 +75,8 @@ apply the strategy automatically at compile time when the module is present on t
 
 ### Requirement: Compile-time-only annotation processor dependency
 
-The system SHALL be consumed as an annotation processor dependency, not as a regular compile or runtime dependency.
-The module SHALL NOT appear on the runtime classpath of consuming services. The module's sole dependency SHALL be the
+The system SHALL be consumed as an annotation processor dependency, not as a regular compile or runtime dependency. The
+module SHALL NOT appear on the runtime classpath of consuming services. The module's sole dependency SHALL be the
 MapStruct annotation processor library.
 
 #### Scenario: Consumer declares annotationProcessor dependency
@@ -88,4 +91,3 @@ MapStruct annotation processor library.
 - **WHEN** a service module uses MapStruct with fluent accessor types but does not declare the module as an annotation
   processor
 - **THEN** MapStruct fails to recognize fluent accessors, resulting in unmapped properties or compilation errors
-

@@ -1,9 +1,12 @@
 # showcase/identifier-extension Specification
 
 ## Purpose
+
 Documents the behavior of the KSUID identifier extension: automatic KSUID generation via the Axon `IdentifierFactory`
 SPI and Bean Validation of KSUID-formatted strings across commands, queries, and REST endpoints.
+
 ## Requirements
+
 ### Requirement: KSUID identifier generation via Axon SPI
 
 The system SHALL generate KSUID (K-Sortable Unique IDentifier) identifiers for all Axon aggregates by registering a
@@ -57,8 +60,8 @@ constraint validates presence.
 ### Requirement: KSUID validation message is externalized
 
 The system SHALL resolve the `@KSUID` constraint violation message from a `ValidationMessages.properties` resource
-bundle using the key `showcase.identifier.KSUID.message`. The resolved message SHALL be
-"must be a valid KSUID (K-Sortable Unique IDentifier).".
+bundle using the key `showcase.identifier.KSUID.message`. The resolved message SHALL be "must be a valid KSUID
+(K-Sortable Unique IDentifier).".
 
 #### Scenario: Constraint violation message resolution
 
@@ -79,8 +82,6 @@ dependency, not transitively exposed to consumers.
 
 #### Scenario: Consumer module depends on identifier-extension via implementation configuration
 
-- **WHEN** a module declares `implementation(project(":showcase-identifier-extension"))` (e.g.,
-  `showcase-query-proto`)
+- **WHEN** a module declares `implementation(project(":showcase-identifier-extension"))` (e.g., `showcase-query-proto`)
 - **THEN** the identifier-extension types are available at compile time but are not exposed on the consumer's API
   classpath
-

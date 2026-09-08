@@ -1,6 +1,7 @@
 # showcase/quality/dependency-management Specification
 
 ## Purpose
+
 Defines how the build's `dependencyUpdates` report is scoped and filtered: it reports only catalog-owned versions and
 lets the project opt in to suppressing major-version updates for specific coordinates while keeping their minor/patch
 updates visible.
@@ -42,11 +43,11 @@ including major version upgrades — with no major-blocking configuration requir
 
 ### Requirement: Major updates can be suppressed per coordinate
 
-The build SHALL provide an opt-in configuration listing coordinates whose major version updates are suppressed from
-the `dependencyUpdates` report. Minor and patch updates for those coordinates SHALL remain reported. For calendar
-versioned coordinates (versions following the Spring `YYYY.MINOR.MICRO` scheme, where the leading segment is a 4-digit
-year), a change in the `YYYY.TRAIN` pair (the first two version segments) SHALL be treated as a major update — matching
-the Spring release-train definition, where `2025.0` and `2025.1` are distinct trains — while a change only in the
+The build SHALL provide an opt-in configuration listing coordinates whose major version updates are suppressed from the
+`dependencyUpdates` report. Minor and patch updates for those coordinates SHALL remain reported. For calendar versioned
+coordinates (versions following the Spring `YYYY.MINOR.MICRO` scheme, where the leading segment is a 4-digit year), a
+change in the `YYYY.TRAIN` pair (the first two version segments) SHALL be treated as a major update — matching the
+Spring release-train definition, where `2025.0` and `2025.1` are distinct trains — while a change only in the
 service-release segment (the third segment) within the same train SHALL be treated as a non-major update. For
 non-calendar (semver) coordinates, the existing leading-integer major comparison SHALL be unchanged.
 
@@ -81,11 +82,11 @@ non-calendar (semver) coordinates, the existing leading-integer major comparison
 
 ### Requirement: Major-disabled entries are limited to majors the project cannot migrate
 
-The major-disabled configuration SHALL only list coordinates whose major version the project cannot migrate to while
-its ecosystem remains on the current major. The shipped list SHALL therefore include `org.jgroups`: JGroups is used
-only through Axon's JGroups extension and the `jgroups-kubernetes` (KUBE_PING) discovery, both of which pin JGroups
-4.x, so a JGroups 5 migration is not actionable until those components support it. Minor and patch updates for these
-coordinates SHALL remain reported.
+The major-disabled configuration SHALL only list coordinates whose major version the project cannot migrate to while its
+ecosystem remains on the current major. The shipped list SHALL therefore include `org.jgroups`: JGroups is used only
+through Axon's JGroups extension and the `jgroups-kubernetes` (KUBE_PING) discovery, both of which pin JGroups 4.x, so a
+JGroups 5 migration is not actionable until those components support it. Minor and patch updates for these coordinates
+SHALL remain reported.
 
 #### Scenario: JGroups major jump is suppressed
 
@@ -101,10 +102,10 @@ coordinates SHALL remain reported.
 
 ### Requirement: Flyway major updates are suppressed until the Spring Boot 4 migration
 
-The shipped major-disabled configuration SHALL include `org.flywaydb` as a group prefix: Flyway major bumps (12.x,
-13.x) belong with the deferred Spring Boot 4 migration, because Spring Boot 3.5 (the current baseline, per ADR-0004)
-manages Flyway 11.x, and even Spring Boot 4.0 manages Flyway 11.x — Flyway major 12 only appears with Spring Boot 4.1.
-Minor and patch updates for these coordinates SHALL remain reported.
+The shipped major-disabled configuration SHALL include `org.flywaydb` as a group prefix: Flyway major bumps (12.x, 13.x)
+belong with the deferred Spring Boot 4 migration, because Spring Boot 3.5 (the current baseline, per ADR-0004) manages
+Flyway 11.x, and even Spring Boot 4.0 manages Flyway 11.x — Flyway major 12 only appears with Spring Boot 4.1. Minor and
+patch updates for these coordinates SHALL remain reported.
 
 #### Scenario: Flyway major jump is suppressed
 
@@ -114,53 +115,55 @@ Minor and patch updates for these coordinates SHALL remain reported.
 
 #### Scenario: Flyway minor and patch updates stay visible
 
-- **WHEN** a developer runs `./gradlew dependencyUpdates` and a 11.x (same-major) version of
-  `org.flywaydb:flyway-core` is available
+- **WHEN** a developer runs `./gradlew dependencyUpdates` and a 11.x (same-major) version of `org.flywaydb:flyway-core`
+  is available
 - **THEN** the report lists that 11.x update
 
 ### Requirement: spring-data-opensearch major updates are suppressed until the Spring Boot 4 migration
 
-The shipped major-disabled configuration SHALL include the exact coordinates `org.opensearch.client:
-spring-data-opensearch`, `org.opensearch.client:spring-data-opensearch-starter`, and `org.opensearch.client:
-spring-data-opensearch-testcontainers`: spring-data-opensearch 3.x is built on the Spring Data 2025.1 train and
-Spring Framework 7, which belong with the deferred Spring Boot 4 migration (per ADR-0004). Minor and patch updates for
-these coordinates SHALL remain reported. The suppression SHALL NOT cover `opensearch-java` or `opensearch-rest-client`
-(the transport clients in the same group), which are independent and remain reported for their majors.
+The shipped major-disabled configuration SHALL include the exact coordinates
+`org.opensearch.client: spring-data-opensearch`, `org.opensearch.client:spring-data-opensearch-starter`, and
+`org.opensearch.client: spring-data-opensearch-testcontainers`: spring-data-opensearch 3.x is built on the Spring Data
+2025.1 train and Spring Framework 7, which belong with the deferred Spring Boot 4 migration (per ADR-0004). Minor and
+patch updates for these coordinates SHALL remain reported. The suppression SHALL NOT cover `opensearch-java` or
+`opensearch-rest-client` (the transport clients in the same group), which are independent and remain reported for their
+majors.
 
 #### Scenario: spring-data-opensearch major jump is suppressed
 
-- **WHEN** a developer runs `./gradlew dependencyUpdates` and a candidate version of `org.opensearch.client:
-  spring-data-opensearch` (or its `-starter`/`-testcontainers` variants) whose major exceeds the current major (3.x vs
-  2.x) is available
+- **WHEN** a developer runs `./gradlew dependencyUpdates` and a candidate version of
+  `org.opensearch.client: spring-data-opensearch` (or its `-starter`/`-testcontainers` variants) whose major exceeds the
+  current major (3.x vs 2.x) is available
 - **THEN** the report does not list that major-jump update
 
 #### Scenario: spring-data-opensearch minor and patch updates stay visible
 
-- **WHEN** a developer runs `./gradlew dependencyUpdates` and a 2.x (same-major) version of `org.opensearch.client:
-  spring-data-opensearch` is available
+- **WHEN** a developer runs `./gradlew dependencyUpdates` and a 2.x (same-major) version of
+  `org.opensearch.client: spring-data-opensearch` is available
 - **THEN** the report lists that 2.x update
 
 #### Scenario: transport client majors remain reported
 
-- **WHEN** a developer runs `./gradlew dependencyUpdates` and a candidate version of `org.opensearch.client:
-  opensearch-java` or `org.opensearch.client:opensearch-rest-client` whose major exceeds the current major is available
+- **WHEN** a developer runs `./gradlew dependencyUpdates` and a candidate version of
+  `org.opensearch.client: opensearch-java` or `org.opensearch.client:opensearch-rest-client` whose major exceeds the
+  current major is available
 - **THEN** the report lists that major-jump update
 
 ### Requirement: springdoc major updates are suppressed until the Spring Boot 4 migration
 
-The shipped major-disabled configuration SHALL include the exact coordinate `org.springdoc:
-springdoc-openapi-starter-webflux-ui`: springdoc 3.x is built against Spring Boot 4.x (both 3.0.3 on SB 4.0 and 3.1.0
-on SB 4.1) and pulls the SB4-modularized auto-configuration artifacts, which belong with the deferred Spring Boot 4
-migration (per ADR-0004). Minor and patch updates for this coordinate SHALL remain reported.
+The shipped major-disabled configuration SHALL include the exact coordinate
+`org.springdoc: springdoc-openapi-starter-webflux-ui`: springdoc 3.x is built against Spring Boot 4.x (both 3.0.3 on SB
+4.0 and 3.1.0 on SB 4.1) and pulls the SB4-modularized auto-configuration artifacts, which belong with the deferred
+Spring Boot 4 migration (per ADR-0004). Minor and patch updates for this coordinate SHALL remain reported.
 
 #### Scenario: springdoc major jump is suppressed
 
-- **WHEN** a developer runs `./gradlew dependencyUpdates` and a candidate version of `org.springdoc:
-  springdoc-openapi-starter-webflux-ui` whose major exceeds the current major (3.x vs 2.x) is available
+- **WHEN** a developer runs `./gradlew dependencyUpdates` and a candidate version of
+  `org.springdoc: springdoc-openapi-starter-webflux-ui` whose major exceeds the current major (3.x vs 2.x) is available
 - **THEN** the report does not list that major-jump update
 
 #### Scenario: springdoc minor and patch updates stay visible
 
-- **WHEN** a developer runs `./gradlew dependencyUpdates` and a 2.x (same-major) version of `org.springdoc:
-  springdoc-openapi-starter-webflux-ui` is available
+- **WHEN** a developer runs `./gradlew dependencyUpdates` and a 2.x (same-major) version of
+  `org.springdoc: springdoc-openapi-starter-webflux-ui` is available
 - **THEN** the report lists that 2.x update

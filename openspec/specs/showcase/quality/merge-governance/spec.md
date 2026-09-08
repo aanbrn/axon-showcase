@@ -2,9 +2,9 @@
 
 ## Purpose
 
-Defines how changes land on `main`: the branch-protection rulesets that constrain pushes and merges (force-push,
-linear history, PR approval, deletion), and the continuous-integration gates that run on pull requests and pushes.
-The workflows run existing Gradle gates without introducing new application behavior.
+Defines how changes land on `main`: the branch-protection rulesets that constrain pushes and merges (force-push, linear
+history, PR approval, deletion), and the continuous-integration gates that run on pull requests and pushes. The
+workflows run existing Gradle gates without introducing new application behavior.
 
 ## Requirements
 
@@ -25,8 +25,8 @@ repository owner SHALL be an always-bypass actor for this ruleset.
 
 ### Requirement: Main history is linear
 
-The repository SHALL require linear history on `main` via an active branch ruleset targeting `refs/heads/main` with
-NO bypass actors — merge commits SHALL NOT be pushed to `main` by anyone, including repository administrators.
+The repository SHALL require linear history on `main` via an active branch ruleset targeting `refs/heads/main` with NO
+bypass actors — merge commits SHALL NOT be pushed to `main` by anyone, including repository administrators.
 
 #### Scenario: Non-linear push to main is rejected
 
@@ -41,8 +41,8 @@ NO bypass actors — merge commits SHALL NOT be pushed to `main` by anyone, incl
 ### Requirement: Merges into main require a pull request review
 
 The repository SHALL require pull request reviews before merging into `main` via an active branch ruleset targeting
-`refs/heads/main`: at least one approving review SHALL be required, and the allowed merge method SHALL be squash
-merge only. The repository owner SHALL be an always-bypass actor for this ruleset.
+`refs/heads/main`: at least one approving review SHALL be required, and the allowed merge method SHALL be squash merge
+only. The repository owner SHALL be an always-bypass actor for this ruleset.
 
 #### Scenario: Merge without approval is blocked
 
@@ -61,8 +61,8 @@ merge only. The repository owner SHALL be an always-bypass actor for this rulese
 
 ### Requirement: Main branch cannot be deleted
 
-The repository SHALL prevent deletion of `main` via an active branch ruleset targeting `refs/heads/main` with NO
-bypass actors.
+The repository SHALL prevent deletion of `main` via an active branch ruleset targeting `refs/heads/main` with NO bypass
+actors.
 
 #### Scenario: Branch deletion is rejected
 
@@ -79,14 +79,14 @@ bypass actors.
 A pull request to the repository SHALL run the Docker-free quality tiers as a single CI check named `build`: the
 standard `check` task with `-PskipITs` (unit tests, component tests, and all static gates — formatting, checkstyle,
 SpotBugs, ErrorProne) plus an OpenSpec validation of changes and specs. The coverage gate SHALL NOT run on the
-pull-request path, because it is calibrated on integration-test coverage that only the `main` gate provides. The
-check SHALL run on `ubuntu-latest` with a Temurin JDK 21 and SHALL NOT require Docker.
+pull-request path, because it is calibrated on integration-test coverage that only the `main` gate provides. The check
+SHALL run on `ubuntu-latest` with a Temurin JDK 21 and SHALL NOT require Docker.
 
 #### Scenario: Pull request triggers the fast gate
 
 - **WHEN** a pull request is opened or updated
-- **THEN** the `build` check runs `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (without the coverage
-  gate) and `openspec validate --all` against the pull request head
+- **THEN** the `build` check runs `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (without the coverage gate)
+  and `openspec validate --all` against the pull request head
 
 #### Scenario: Fast gate failure blocks merging
 
@@ -111,9 +111,9 @@ validation. The full gate SHALL require Docker.
 
 ### Requirement: Merge protection requires the CI check for everyone
 
-The repository SHALL require the `build` status check before any commit merges into `main`, enforced by a branch
-ruleset targeting `refs/heads/main` with NO bypass actors — the check SHALL bind repository administrators as well as
-ordinary contributors.
+The repository SHALL require the `build` status check before any commit merges into `main`, enforced by a branch ruleset
+targeting `refs/heads/main` with NO bypass actors — the check SHALL bind repository administrators as well as ordinary
+contributors.
 
 #### Scenario: Contributors cannot merge without a passing check
 
@@ -137,11 +137,11 @@ Both the pull-request fast gate and the `main` full gate SHALL report the CI res
 
 ### Requirement: End-to-end tests run on a schedule and on demand
 
-The end-to-end test suite SHALL run automatically on a nightly schedule and be manually triggerable, as the same
-`e2e` job in a dedicated workflow separate from the merge gate. It SHALL build all four service images and boot the
-full pipeline (PostgreSQL, Kafka, OpenSearch, and the four services) via the existing
-`:showcase-api-gateway:e2eTest` task, SHALL run on `ubuntu-latest` with a Temurin JDK 21, and SHALL NOT be part of
-the merge-gate `build` check or a required check for merging into `main`.
+The end-to-end test suite SHALL run automatically on a nightly schedule and be manually triggerable, as the same `e2e`
+job in a dedicated workflow separate from the merge gate. It SHALL build all four service images and boot the full
+pipeline (PostgreSQL, Kafka, OpenSearch, and the four services) via the existing `:showcase-api-gateway:e2eTest` task,
+SHALL run on `ubuntu-latest` with a Temurin JDK 21, and SHALL NOT be part of the merge-gate `build` check or a required
+check for merging into `main`.
 
 #### Scenario: Nightly schedule triggers the e2e suite
 
@@ -162,11 +162,11 @@ the merge-gate `build` check or a required check for merging into `main`.
 
 ### Requirement: Dependency security scan runs on a schedule and on demand
 
-The dependency security scan SHALL run automatically on a schedule and be manually triggerable, as the same `snyk`
-job in a dedicated workflow separate from the merge gate. It SHALL install the Snyk CLI, SHALL run the existing
+The dependency security scan SHALL run automatically on a schedule and be manually triggerable, as the same `snyk` job
+in a dedicated workflow separate from the merge gate. It SHALL install the Snyk CLI, SHALL run the existing
 `:dependencySecurityCheck` task (Snyk `test --all-sub-projects --policy-path=.snyk`), SHALL authenticate with the
-`SNYK_TOKEN` secret, SHALL run on `ubuntu-latest`, and SHALL NOT be part of the merge-gate `build` check or a
-required check for merging into `main`.
+`SNYK_TOKEN` secret, SHALL run on `ubuntu-latest`, and SHALL NOT be part of the merge-gate `build` check or a required
+check for merging into `main`.
 
 #### Scenario: Scheduled trigger runs the dependency security scan
 
@@ -182,23 +182,23 @@ required check for merging into `main`.
 #### Scenario: The dependency security scan is not a merge gate
 
 - **WHEN** a pull request or push to `main` is evaluated for merging
-- **THEN** the snyk run is not required, because it is not part of the merge-gate `build` check and no ruleset
-  requires it
+- **THEN** the snyk run is not required, because it is not part of the merge-gate `build` check and no ruleset requires
+  it
 
 ### Requirement: Dependency update report runs on a schedule and on demand
 
 The dependency update report SHALL run automatically on a schedule and be manually triggerable, as the same
 `dependency-updates` job in a dedicated workflow separate from the merge gate. It SHALL run the existing
-`dependencyUpdates` Gradle task (catalog-owned coordinates, majors for deferred groups suppressed) and SHALL surface
-the result by opening or updating a GitHub issue, SHALL run on `ubuntu-latest` with the `GITHUB_TOKEN` granted
+`dependencyUpdates` Gradle task (catalog-owned coordinates, majors for deferred groups suppressed) and SHALL surface the
+result by opening or updating a GitHub issue, SHALL run on `ubuntu-latest` with the `GITHUB_TOKEN` granted
 `issues: write`, and SHALL NOT be part of the merge-gate `build` check or a required check for merging into `main`.
 
 #### Scenario: Scheduled trigger runs the dependency update report
 
 - **WHEN** the scheduled trigger fires
-- **THEN** the `dependency-updates` job runs `./gradlew dependencyUpdates` and opens or updates the "Dependency
-  updates" issue with the available stable catalog updates and the Gradle wrapper section (the actionable sections
-  of the report only), and posts a new comment mentioning the repository owner so they are notified
+- **THEN** the `dependency-updates` job runs `./gradlew dependencyUpdates` and opens or updates the "Dependency updates"
+  issue with the available stable catalog updates and the Gradle wrapper section (the actionable sections of the report
+  only), and posts a new comment mentioning the repository owner so they are notified
 
 #### Scenario: Manual trigger runs the dependency update report
 
@@ -214,24 +214,24 @@ the result by opening or updating a GitHub issue, SHALL run on `ubuntu-latest` w
 #### Scenario: No stable updates are available
 
 - **WHEN** the report contains no stable catalog updates (no "dependencies have newer versions" section)
-- **THEN** the issue states that no stable catalog updates are available, without listing the non-actionable
-  milestone sections, and no notification comment is posted
+- **THEN** the issue states that no stable catalog updates are available, without listing the non-actionable milestone
+  sections, and no notification comment is posted
 
 #### Scenario: Repeated runs notify the owner without accumulating comments
 
 - **WHEN** the workflow runs again on an existing issue and finds actionable updates (stable dependency updates or a
   newer Gradle wrapper)
-- **THEN** it posts a new comment mentioning the repository owner (so the owner is notified) and removes the
-  previous bot-authored comment, keeping at most one bot comment on the issue
+- **THEN** it posts a new comment mentioning the repository owner (so the owner is notified) and removes the previous
+  bot-authored comment, keeping at most one bot comment on the issue
 
 ### Requirement: Helm update report runs on a schedule and on demand
 
-The Helm update report SHALL run automatically on a schedule and be manually triggerable, as the same `helm-updates`
-job in a dedicated workflow separate from the merge gate. It SHALL run an existing Gradle check (e.g.
-`helmUpdates`) that reports, for the pinned Helm CLI version and each pinned Helm chart coordinate in the version
-catalog, the latest available version from the Helm CLI's release channel and the charts' repositories, and SHALL
-surface the result by opening or updating a GitHub issue, SHALL run on `ubuntu-latest` with the `GITHUB_TOKEN` granted
-`issues: write`, and SHALL NOT be part of the merge-gate `build` check or a required check for merging into `main`.
+The Helm update report SHALL run automatically on a schedule and be manually triggerable, as the same `helm-updates` job
+in a dedicated workflow separate from the merge gate. It SHALL run an existing Gradle check (e.g. `helmUpdates`) that
+reports, for the pinned Helm CLI version and each pinned Helm chart coordinate in the version catalog, the latest
+available version from the Helm CLI's release channel and the charts' repositories, and SHALL surface the result by
+opening or updating a GitHub issue, SHALL run on `ubuntu-latest` with the `GITHUB_TOKEN` granted `issues: write`, and
+SHALL NOT be part of the merge-gate `build` check or a required check for merging into `main`.
 
 #### Scenario: Scheduled trigger runs the Helm update report
 
@@ -261,22 +261,21 @@ surface the result by opening or updating a GitHub issue, SHALL run on `ubuntu-l
 - **WHEN** a pinned chart is listed in the helm major-disabled configuration and only a major-jump chart version is
   available
 - **THEN** the issue does not list that chart, because the major bump would carry a new preconfigured image tag that
-  diverges from the test-surface `*-image-tag` pins; a same-major (minor or patch) chart update SHALL still be
-  reported
+  diverges from the test-surface `*-image-tag` pins; a same-major (minor or patch) chart update SHALL still be reported
 
 #### Scenario: Repeated runs notify the owner without accumulating comments
 
 - **WHEN** the workflow runs again on an existing issue and finds available Helm updates
-- **THEN** it posts a new comment mentioning the repository owner (so the owner is notified) and removes the
-  previous bot-authored comment, keeping at most one bot comment on the issue
+- **THEN** it posts a new comment mentioning the repository owner (so the owner is notified) and removes the previous
+  bot-authored comment, keeping at most one bot comment on the issue
 
 ### Requirement: Helm release namespaces are declared in the build
 
 The Helm releases for the local deployment target SHALL declare their namespaces explicitly in `build.gradle.kts`: the
 observability releases (kps, tempo) SHALL use the `monitoring` namespace, and the application and infrastructure
-releases (db-events, kafka, os-views, axon-showcase) SHALL use a dedicated `axon-showcase` namespace created on
-install. The local deployment SHALL NOT depend on the user's kube-context current namespace or a `helm.namespace`
-gradle property for the release namespaces.
+releases (db-events, kafka, os-views, axon-showcase) SHALL use a dedicated `axon-showcase` namespace created on install.
+The local deployment SHALL NOT depend on the user's kube-context current namespace or a `helm.namespace` gradle property
+for the release namespaces.
 
 #### Scenario: All releases declare their namespaces explicitly
 

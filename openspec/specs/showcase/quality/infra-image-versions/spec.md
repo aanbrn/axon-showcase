@@ -13,11 +13,11 @@ tests.
 
 The version catalog SHALL declare, for each infrastructure component used across deployment, local dev, and tests —
 PostgreSQL, Kafka, and OpenSearch — the concrete official Docker Hub image tag (`*-image-tag`) used by docker-compose
-and Testcontainers, and the Bitnami Helm chart version (`bitnami-*`) used by the Helm charts. No surface SHALL
-hard-code an independent version. Every Helm chart coordinate in the version catalog — including the observability
-charts (`prometheus-community-stack`, `grafana-tempo`) and the application chart's `common` subchart dependency —
-SHALL be a concrete version (e.g. `77.14.0`), never a floating major-line pin such as `77.x.x`, so the Helm deployment
-is reproducible at a reviewable version.
+and Testcontainers, and the Bitnami Helm chart version (`bitnami-*`) used by the Helm charts. No surface SHALL hard-code
+an independent version. Every Helm chart coordinate in the version catalog — including the observability charts
+(`prometheus-community-stack`, `grafana-tempo`) and the application chart's `common` subchart dependency — SHALL be a
+concrete version (e.g. `77.14.0`), never a floating major-line pin such as `77.x.x`, so the Helm deployment is
+reproducible at a reviewable version.
 
 #### Scenario: All surfaces resolve from the catalog
 
@@ -35,8 +35,8 @@ is reproducible at a reviewable version.
 
 #### Scenario: Every Helm chart coordinate is a concrete version
 
-- **WHEN** a maintainer looks up any Helm chart version coordinate in the catalog (infra, observability, or the
-  `common` subchart dependency)
+- **WHEN** a maintainer looks up any Helm chart version coordinate in the catalog (infra, observability, or the `common`
+  subchart dependency)
 - **THEN** the coordinate declares a concrete version such as `77.14.0`, not a floating major-line pin such as `77.x.x`
 
 #### Scenario: A floating chart pin is not used
@@ -54,9 +54,9 @@ is reproducible at a reviewable version.
 
 ### Requirement: The deployed Bitnami image tag is the chart's preconfigured tag
 
-The Helm deployment SHALL use the Bitnami image tag preconfigured in the pinned chart version — the infra releases
-SHALL NOT override `image.tag` in build logic or values files. The chart version is the single source for the deployed
-Bitnami image tag.
+The Helm deployment SHALL use the Bitnami image tag preconfigured in the pinned chart version — the infra releases SHALL
+NOT override `image.tag` in build logic or values files. The chart version is the single source for the deployed Bitnami
+image tag.
 
 #### Scenario: The chart's preconfigured tag is deployed
 
@@ -79,13 +79,13 @@ equals the official `*-image-tag`'s leading numeric version, and SHALL fail the 
 tag is never mutated: a two-segment official tag (`17.6`) matches a chart app version `17.6.0` because the chart is
 truncated to two segments, while a full-patch official tag (`3.9.0`) requires an exact chart app version match
 (`3.9.0`); a genuine patch difference still fails. The official `*-image-tag` SHALL declare at least a minor version
-(two numeric segments): a bare-major tag such as `17` is a floating reference (Docker Hub re-points `postgres:17` to
-the latest 17.x) and SHALL be rejected, because a floating tag cannot be a single source of truth for the version used
-in tests. The verification resolves the chart's preconfigured tag from the chart repository at the pinned version, so
-it requires the Helm CLI (the plugin-managed client) and network access to the chart repository. The verification
-SHALL be cacheable on its inputs (the pinned coordinates and the infra values files): when none of them change, `check`
-SHALL NOT re-run the Helm resolution, because a pinned chart version's preconfigured `image.tag` is immutable and a
-cached result remains valid until a coordinate or values file changes.
+(two numeric segments): a bare-major tag such as `17` is a floating reference (Docker Hub re-points `postgres:17` to the
+latest 17.x) and SHALL be rejected, because a floating tag cannot be a single source of truth for the version used in
+tests. The verification resolves the chart's preconfigured tag from the chart repository at the pinned version, so it
+requires the Helm CLI (the plugin-managed client) and network access to the chart repository. The verification SHALL be
+cacheable on its inputs (the pinned coordinates and the infra values files): when none of them change, `check` SHALL NOT
+re-run the Helm resolution, because a pinned chart version's preconfigured `image.tag` is immutable and a cached result
+remains valid until a coordinate or values file changes.
 
 #### Scenario: Image and chart-preconfigured tags agree
 
@@ -103,8 +103,8 @@ cached result remains valid until a coordinate or values file changes.
 #### Scenario: A bare-major official tag is rejected
 
 - **WHEN** an official `*-image-tag` carries fewer than two numeric version segments (e.g. `17`)
-- **THEN** `check` fails with a message stating that the tag is a floating reference and must declare at least the
-  minor version
+- **THEN** `check` fails with a message stating that the tag is a floating reference and must declare at least the minor
+  version
 
 #### Scenario: Unchanged inputs skip the Helm resolution
 
@@ -119,10 +119,10 @@ cached result remains valid until a coordinate or values file changes.
 
 ### Requirement: The drift gate follows the configured releases
 
-The drift verification SHALL derive the set of infra checks from the actual Helm releases configured in the build
-(their chart references, chart versions, and values directories), rather than from a separately maintained list. A
-release that is renamed, moved, or removed SHALL automatically retarget the gate: a renamed release is still verified
-against its new name and values directory, and a removed release drops its check.
+The drift verification SHALL derive the set of infra checks from the actual Helm releases configured in the build (their
+chart references, chart versions, and values directories), rather than from a separately maintained list. A release that
+is renamed, moved, or removed SHALL automatically retarget the gate: a renamed release is still verified against its new
+name and values directory, and a removed release drops its check.
 
 #### Scenario: An infra release is renamed
 

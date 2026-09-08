@@ -48,8 +48,8 @@ test-tier naming inspection are in effect.
 #### Scenario: Running setup configures the IDE
 
 - **WHEN** a contributor runs the setup script on a fresh clone
-- **THEN** the palantir and ktfmt plugins are enabled for the project, the import layout is in effect, and the
-  test-tier naming inspection is present in the inspection profile
+- **THEN** the palantir and ktfmt plugins are enabled for the project, the import layout is in effect, and the test-tier
+  naming inspection is present in the inspection profile
 
 #### Scenario: Running setup is idempotent
 

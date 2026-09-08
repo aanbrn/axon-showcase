@@ -9,9 +9,9 @@ Status: Accepted
 The `dependencyUpdates` report (ben-manes `io.github.ben-manes.versions` 0.61.0) shows a spurious update row for
 `org.apache.logging.log4j:log4j-core [2.17.1 -> 2.26.1]` even though `log4j-core` is already resolved at `2.26.1`
 everywhere. The false positive comes from `checkBuildEnvironmentConstraints = true`, which makes the plugin read
-*external* build-tooling constraints and report the constraint's range floor as the "current version". The culprit is
-`com.github.spotbugs:spotbugs-annotations:4.10.3`, which publishes a `{strictly [2.17.1, 3[}` constraint on
-`log4j-core` as a Log4Shell (CVE-2021-44228) guard.
+_external_ build-tooling constraints and report the constraint's range floor as the "current version". The culprit is
+`com.github.spotbugs:spotbugs-annotations:4.10.3`, which publishes a `{strictly [2.17.1, 3[}` constraint on `log4j-core`
+as a Log4Shell (CVE-2021-44228) guard.
 
 Three experiments confirm the mechanism:
 
@@ -30,11 +30,11 @@ locally.
 
 Alternatives considered and rejected:
 
-- *Disable `checkBuildEnvironmentConstraints`* — removes the row but also drops visibility into genuine external
+- _Disable `checkBuildEnvironmentConstraints`_ — removes the row but also drops visibility into genuine external
   constraint updates (e.g. a tool raising its minimum version). Too broad a trade-off for one noisy row.
-- *`filterConfigurations` excluding `spotbugs*`* — proven ineffective: the row persists because the constraint is read
+- _`filterConfigurations` excluding `spotbugs*`_ — proven ineffective: the row persists because the constraint is read
   via the build-environment path, not a project configuration.
-- *Per-coordinate suppression in `config/dependency-updates/major-disabled.properties`* — inapplicable: `2.26.1` vs
+- _Per-coordinate suppression in `config/dependency-updates/major-disabled.properties`_ — inapplicable: `2.26.1` vs
   `2.17.1` is same-major, so the major-blocking rule cannot reject it.
 
 ## Consequences

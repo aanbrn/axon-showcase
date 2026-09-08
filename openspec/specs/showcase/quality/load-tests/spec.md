@@ -1,10 +1,12 @@
 # showcase/load-tests Specification
 
 ## Purpose
+
 Documents the current behavior of the Gatling-based load-testing setup: the showcase simulation exercising the API
 gateway, the scenario flow, the configurable injection profiles, and the per-profile pass assertions.
 
 ## Requirements
+
 ### Requirement: Simulation exercises the showcase REST API
 
 The system SHALL provide a Gatling simulation named `ShowcaseSimulation` that exercises the API gateway over HTTP: a
@@ -33,8 +35,8 @@ and removed, with polling fetches between steps.
 
 - **WHEN** the scenario continues past the start step
 - **THEN** it polls `GET /showcases/{showcaseId}` until the showcase reports status `STARTED`, then sends a
-  `PUT /showcases/{showcaseId}/finish` request expecting status `200`, and with a 5 percent probability the showcase
-  is then removed via `DELETE /showcases/{showcaseId}` expecting status `200`
+  `PUT /showcases/{showcaseId}/finish` request expecting status `200`, and with a 5 percent probability the showcase is
+  then removed via `DELETE /showcases/{showcaseId}` expecting status `200`
 
 #### Scenario: Polling fetches retry until the expected state
 
@@ -87,8 +89,8 @@ defined user-injection curve; any other value SHALL fall back to the smoke profi
 #### Scenario: Stress profile ramps to 400 users per second
 
 - **WHEN** the `testType` is `stress`
-- **THEN** the simulation ramps from 0 to 400 users per second over 10 minutes, holds 400 for 30 minutes, and ramps
-  back to 0 over 5 minutes
+- **THEN** the simulation ramps from 0 to 400 users per second over 10 minutes, holds 400 for 30 minutes, and ramps back
+  to 0 over 5 minutes
 
 #### Scenario: Spike profile bursts 4000 users
 

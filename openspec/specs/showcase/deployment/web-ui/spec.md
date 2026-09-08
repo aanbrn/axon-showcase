@@ -50,6 +50,12 @@ output that the local dev/preview flow serves, so the packaged UI is the same bu
 - **WHEN** the web-UI image is built with the stub-status port enabled
 - **THEN** nginx exposes basic server metrics (`/stub_status`) that a ServiceMonitor can scrape into Prometheus
 
+#### Scenario: The metrics exporter makes the target scrapable
+
+- **WHEN** a metrics exporter sidecar is wired to the web-UI deployment
+- **THEN** the exporter converts nginx stub_status to Prometheus format (`/metrics`), the ServiceMonitor scrapes that
+  endpoint, and the web-UI metrics target is up in Prometheus
+
 ### Requirement: The UI is reachable in the local compose stack
 
 The docker-compose stack SHALL include a `web-ui` service that runs the web-UI image, publishes the UI on a host

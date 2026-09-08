@@ -1351,11 +1351,11 @@ webUi:
   extraEnvVarsSecret: ""
 
   # @param webUi.containerPorts.server Application HTTP port
-  # @param webUi.containerPorts.metrics nginx stub_status metrics port
+  # @param webUi.containerPorts.stubStatus nginx stub_status port (scraped by the metrics exporter)
   # @param webUi.extraContainerPorts Additional container ports
   containerPorts:
     server: 8080
-    metrics: 9090
+    stubStatus: 9090
 
   extraContainerPorts: [ ]
 
@@ -1471,6 +1471,20 @@ webUi:
     ingressManagementNSPodMatchLabels: { }
     extraIngress: [ ]
     extraEgress: [ ]
+
+  # Metrics exporter for nginx stub_status, rendered as a sidecar when observability metrics export and the
+  # serviceMonitor are enabled. It scrapes nginx stub_status on the stub-status port and serves Prometheus-format
+  # /metrics on its own port, which the ServiceMonitor scrapes.
+  # @param webUi.metricsExporter.image.registry Metrics exporter image registry
+  # @param webUi.metricsExporter.image.repository Metrics exporter image repository
+  # @param webUi.metricsExporter.image.tag Metrics exporter image tag
+  # @param webUi.metricsExporter.port Port the exporter serves Prometheus /metrics on
+  metricsExporter:
+    image:
+      registry: ""
+      repository: nginx/nginx-prometheus-exporter
+      tag: ${nginxPrometheusExporterVersion}
+    port: 9113
 
   # Prometheus ServiceMonitor configuration.
   # @param webUi.serviceMonitor.enabled Enable scraping via a ServiceMonitor

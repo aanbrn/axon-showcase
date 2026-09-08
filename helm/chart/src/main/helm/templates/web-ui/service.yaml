@@ -23,5 +23,6 @@ spec:
       port: {{ .Values.webUi.containerPorts.server }}
       targetPort: {{ .Values.webUi.containerPorts.server }}
     - name: http-metrics
-      port: {{ .Values.webUi.containerPorts.metrics }}
-      targetPort: {{ .Values.webUi.containerPorts.metrics }}
+      # Served by the nginx-exporter sidecar (Prometheus /metrics); nginx stub_status is pod-internal.
+      port: {{ .Values.webUi.metricsExporter.port }}
+      targetPort: {{ .Values.webUi.metricsExporter.port }}

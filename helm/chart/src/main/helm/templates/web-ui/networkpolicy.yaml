@@ -29,7 +29,7 @@ spec:
         - port: {{ .Values.webUi.containerPorts.server }}
     # Allow metrics traffic only from selected peers (monitoring namespace).
     - ports:
-        - port: {{ .Values.webUi.containerPorts.metrics }}
+        - port: {{ .Values.webUi.metricsExporter.port }}
       from:
         - podSelector:
             matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 14 }}

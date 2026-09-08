@@ -22,20 +22,15 @@ data class HelmChartUpdateCheck(
 
 abstract class HelmUpdatesTask : AbstractHelmRepositoriesTask() {
 
-    @get:Input
-    abstract val helmCliVersion: Property<String>
+    @get:Input abstract val helmCliVersion: Property<String>
 
-    @get:Input
-    abstract val chartChecks: ListProperty<HelmChartUpdateCheck>
+    @get:Input abstract val chartChecks: ListProperty<HelmChartUpdateCheck>
 
-    @get:Input
-    abstract val repoUrls: MapProperty<String, String>
+    @get:Input abstract val repoUrls: MapProperty<String, String>
 
-    @get:Input
-    abstract val majorDisabled: SetProperty<String>
+    @get:Input abstract val majorDisabled: SetProperty<String>
 
-    @get:OutputFile
-    abstract val reportFile: RegularFileProperty
+    @get:OutputFile abstract val reportFile: RegularFileProperty
 
     @TaskAction
     fun check() {
@@ -74,13 +69,7 @@ abstract class HelmUpdatesTask : AbstractHelmRepositoriesTask() {
                 execHelmCaptureOutput("search", "repo") {
                     args(check.chartRef)
                 }
-            output
-                .lines()
-                .drop(1)
-                .firstOrNull()
-                ?.trim()
-                ?.split(Regex("\\s+"))
-                ?.getOrNull(1)
+            output.lines().drop(1).firstOrNull()?.trim()?.split(Regex("\\s+"))?.getOrNull(1)
         } catch (_: Exception) {
             null
         }
@@ -111,13 +100,8 @@ abstract class HelmUpdatesTask : AbstractHelmRepositoriesTask() {
                     .header("Accept", "application/vnd.github+json")
                     .GET()
                     .build()
-            val response =
-                HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString())
-            Regex("\"tag_name\":\"([^\"]+)\"")
-                .find(response.body())
-                ?.groupValues
-                ?.get(1)
-                ?.removePrefix("v")
+            val response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString())
+            Regex("\"tag_name\":\"([^\"]+)\"").find(response.body())?.groupValues?.get(1)?.removePrefix("v")
         } catch (_: Exception) {
             null
         }

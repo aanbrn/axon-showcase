@@ -23,33 +23,27 @@ data class InfraImageVersionCheck(
 @CacheableTask
 abstract class VerifyInfraImageVersionsTask : AbstractHelmRepositoriesTask() {
 
-    @get:Input
-    abstract val checks: ListProperty<InfraImageVersionCheck>
+    @get:Input abstract val checks: ListProperty<InfraImageVersionCheck>
 
-    @get:Input
-    abstract val repos: MapProperty<String, String>
+    @get:Input abstract val repos: MapProperty<String, String>
 
-    @get:InputFiles
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val valuesFiles: ConfigurableFileCollection
+    @get:InputFiles @get:PathSensitive(PathSensitivity.RELATIVE) abstract val valuesFiles: ConfigurableFileCollection
 
-    @get:OutputFile
-    abstract val resultFile: RegularFileProperty
+    @get:OutputFile abstract val resultFile: RegularFileProperty
 
     @TaskAction
     fun verify() {
         addHelmRepositories(repos.get())
 
         checks.get().forEach { check ->
-            val values = execHelmCaptureOutput("show", "values") {
-                args(check.chartRef)
-                option("--version", check.chartVersion)
-            }
+            val values =
+                execHelmCaptureOutput("show", "values") {
+                    args(check.chartRef)
+                    option("--version", check.chartVersion)
+                }
             val chartImageTag =
                 topLevelImageTag(values.lines())
-                    ?: throw GradleException(
-                        "Chart '${check.chartRef}' values contain no top-level 'image.tag'."
-                    )
+                    ?: throw GradleException("Chart '${check.chartRef}' values contain no top-level 'image.tag'.")
             val imageAppVersion = check.imageTag.takeWhile { it.isDigit() || it == '.' }
             val chartAppVersion = chartImageTag.takeWhile { it.isDigit() || it == '.' }
             val imageSegments = imageAppVersion.split('.').size
@@ -99,7 +93,8 @@ abstract class VerifyInfraImageVersionsTask : AbstractHelmRepositoriesTask() {
         if (imageIndex < 0) {
             return null
         }
-        return lines.drop(imageIndex + 1)
+        return lines
+            .drop(imageIndex + 1)
             .takeWhile { it.startsWith("  ") }
             .firstOrNull { it.trimStart().startsWith("tag:") }
             ?.substringAfter("tag:")

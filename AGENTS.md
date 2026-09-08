@@ -330,11 +330,11 @@ Key modules (libraries, not services):
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable
-- **Formatting**: format Java sources and Gradle Kotlin DSL (`*.gradle.kts`) files with `./gradlew spotlessApply`
-  (Spotless: palantir-java-format for Java, ktfmt for `.gradle.kts`, both fixed 120 columns) — the canonical format
-  step, enforced by `spotlessCheck` in `check` with no IDE required. After each edit, run `spotlessApply` (via the
-  `codefmt` skill's Spotless path) before reporting the change done; the IntelliJ formatter is no longer canonical, and
-  import order is owned by the formatter.
+- **Formatting**: format Java sources, Gradle Kotlin DSL (`*.gradle.kts`), and build-logic Kotlin
+  (`build-logic/src/**/*.kt`) files with `./gradlew spotlessApply` (Spotless: palantir-java-format for Java, ktfmt for
+  `.gradle.kts` and build-logic `.kt`, both fixed 120 columns) — the canonical format step, enforced by `spotlessCheck`
+  in `check` with no IDE required. After each edit, run `spotlessApply` (via the `codefmt` skill's Spotless path) before
+  reporting the change done; the IntelliJ formatter is no longer canonical, and import order is owned by the formatter.
   - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML, and so
     on); markdown is formatted by the root Spotless `markdown` format (Prettier at `printWidth: 120` — a preference, not
     a hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating markdown wrapping).

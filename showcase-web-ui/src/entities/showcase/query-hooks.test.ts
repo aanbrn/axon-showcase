@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { retryUntilCompleted } from '@/shared/retry';
 import type { Showcase } from '@/entities/showcase/types';
 import type { ShowcaseEvent } from '@/entities/showcase-event/types';
-import { waitForEvent, waitForReadModel, waitForShowcaseStatus } from './query-hooks';
+import { waitForEvent, waitForReadModel } from './query-hooks';
 
 vi.mock('@/shared/retry', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/shared/retry')>();
@@ -127,13 +127,13 @@ describe('reconciliation deduplication', () => {
       timestamp: '2026-09-02T10:05:00Z',
     };
 
-    const [fromEvent, fromStatus] = await Promise.all([
+    const [fromEvent, fromEventAgain] = await Promise.all([
       waitForEvent(queryClient, event),
-      waitForShowcaseStatus(queryClient, '1', 'STARTED'),
+      waitForEvent(queryClient, event),
     ]);
 
     expect(fromEvent).toBe(true);
-    expect(fromStatus).toBe(true);
+    expect(fromEventAgain).toBe(true);
     expect(attempts).toBe(1);
   });
 

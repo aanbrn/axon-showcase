@@ -31,7 +31,8 @@ eventually consistent: the gateway confirms a command before the projection has 
 SHALL be driven by the live event stream: when the UI receives a domain event, it SHALL poll the showcase list until the
 event's effect is visible, so the list does not briefly show stale state. Concurrent reconciliations for the same
 showcase SHALL coalesce into a single poll, and events replayed from history on a new SSE connection SHALL NOT trigger
-reconciliation (the list is already fresh after an initial load).
+reconciliation (the list is already fresh after an initial load). The event-stream reconciliation (`waitForEvent`) is
+the only supported entry point; the UI SHALL NOT expose reconciliation helpers that bypass the event stream.
 
 #### Scenario: A created showcase appears only once projected
 
@@ -53,6 +54,11 @@ reconciliation (the list is already fresh after an initial load).
 - **WHEN** several events for the same showcase arrive in quick succession (e.g. a saga starting a just-scheduled
   showcase)
 - **THEN** the UI runs a single poll loop tracking the latest expected state, rather than one poll per event
+
+#### Scenario: Reconciliation is driven by the event stream
+
+- **WHEN** a producer of the showcase list wants to wait for the read model to reflect a state change
+- **THEN** the only supported way is the event-stream reconciliation, and event-free helpers are not used
 
 ### Requirement: Drive lifecycle actions
 

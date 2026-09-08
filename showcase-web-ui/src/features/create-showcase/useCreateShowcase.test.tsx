@@ -5,17 +5,11 @@ import { type PropsWithChildren } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as api from './api';
 import { retryUntilCompleted } from '@/shared/retry';
-import { waitForShowcasePresence } from '@/entities/showcase/query-hooks';
 import { useCreateShowcase } from './useCreateShowcase';
 
 vi.mock('@/shared/retry', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/shared/retry')>();
   return { ...actual, retryUntilCompleted: vi.fn() };
-});
-
-vi.mock('@/entities/showcase/query-hooks', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/entities/showcase/query-hooks')>();
-  return { ...actual, waitForShowcasePresence: vi.fn() };
 });
 
 function createWrapper() {
@@ -46,7 +40,6 @@ describe('useCreateShowcase', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual({ status: 'scheduled', showcaseId: 'abc' });
     expect(retryUntilCompleted).not.toHaveBeenCalled();
-    expect(waitForShowcasePresence).not.toHaveBeenCalled();
   });
 
   it('reports scheduled when the retry confirms the showcase', async () => {
@@ -61,7 +54,6 @@ describe('useCreateShowcase', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual({ status: 'scheduled', showcaseId: 'abc' });
     expect(api.scheduleShowcase).toHaveBeenCalledTimes(2);
-    expect(waitForShowcasePresence).not.toHaveBeenCalled();
   });
 
   it('reports unknown when the retry budget is exhausted', async () => {
@@ -73,6 +65,5 @@ describe('useCreateShowcase', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual({ status: 'unknown' });
-    expect(waitForShowcasePresence).not.toHaveBeenCalled();
   });
 });

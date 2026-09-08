@@ -37,7 +37,7 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('showcase-web-ui/package-lock.json') }}
 
       - name: Set up pack CLI
-        uses: buildpacks/github-actions/setup-pack@v5.12.5
+        uses: buildpacks/github-actions/setup-pack@v6.1.1
         with:
           pack-version: 0.40.9
 

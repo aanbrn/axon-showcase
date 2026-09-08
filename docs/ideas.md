@@ -6,7 +6,9 @@ change); only open, not-yet-implemented ideas remain.
 
 Changes to this file are committed as their own docs PR (like `AGENTS.md`/`README.md` refresh PRs) — never bundled
 with an OpenSpec change or its branch. When an idea graduates into a concrete candidate for work, it may be promoted
-to a GitHub issue that links to the eventual OpenSpec change.
+to a GitHub issue that links to the eventual OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered
+newest-first; each idea goes under a section dated when it was added (start a new section for a new day rather than
+appending to the most recent one).
 
 ## 2026-09-08
 

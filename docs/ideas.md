@@ -10,6 +10,16 @@ GitHub issue that links to the eventual OpenSpec change. Ideas are grouped into 
 newest-first; each idea goes under a section dated when it was added (start a new section for a new day rather than
 appending to the most recent one).
 
+## 2026-09-09
+
+- Format YAML files with Prettier (via the root Spotless step, like markdown) — explored, **decided against**; no
+  change. Rationale: the Helm chart templates (56 files) are half Go-template logic — a YAML formatter that re-indents
+  or reflows `{{ }}` lines can silently change the rendered manifest, and they are already gated by `helm lint`; the
+  safe populations (GitHub workflows, `application*.yml`, `docker-compose.yml`, `openspec/config.yaml`) are small,
+  hand-consistent, and rarely churn; the `.playwright-mcp/*.yml` snapshots are machine-generated and would need
+  excluding. The risk outweighs the payoff for a surface that is not a real pain today — unlike markdown, whose manual
+  120-char wrapping drove the Prettier gate. Revisit only if YAML drift actually becomes a pain.
+
 ## 2026-09-08
 
 - Make the api-gateway's kafka-client NetworkPolicy label a chart default — parked; no change yet. The gateway consumes

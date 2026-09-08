@@ -25,6 +25,11 @@ helm {
     }
 
     filtering {
-        values.putAll(mapOf("bitnamiCommonVersion" to libs.versions.bitnami.common.get()))
+        values.putAll(
+            mapOf(
+                "bitnamiCommonVersion" to libs.versions.bitnami.common.get(),
+                "nginxPrometheusExporterVersion" to libs.versions.nginx.prometheus.exporter.get(),
+            )
+        )
     }
 }

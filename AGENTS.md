@@ -356,7 +356,10 @@ ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64
 The web-UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
 `PackBuildImageTask`) that runs the `pack` CLI with the Paketo NGINX + Procfile buildpacks over `build/dist` (the
 `pack` CLI is a build prerequisite like Helm/Snyk). The image serves the bundle via nginx on `8080` and exposes nginx
-`stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`). A `PackBuildImageTask` convention defaults the image
+`stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a gated
+`nginx-prometheus-exporter` sidecar (`webUi.metricsExporter`, on by default when observability metrics export and the
+web-UI ServiceMonitor are enabled) converts stub_status to Prometheus `/metrics` on port `9113`, which the Service
+`http-metrics` port and ServiceMonitor scrape. A `PackBuildImageTask` convention defaults the image
 name to `${project.name}:${project.version}`, which the web-UI module overrides with the deployable
 `aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. The UI's API base URL is
 configured at runtime via the `SHOWCASE_API_BASE_URL` env var — **no baked default** (the browser needs the

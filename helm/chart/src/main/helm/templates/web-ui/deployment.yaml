@@ -92,8 +92,8 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.webUi.containerPorts.server }}
-            - name: http-metrics
-              containerPort: {{ .Values.webUi.containerPorts.metrics }}
+            - name: stub-status
+              containerPort: {{ .Values.webUi.containerPorts.stubStatus }}
           env:
             # The browser needs the externally-visible gateway URL, which only the deployment knows (the in-cluster
             # Service name is unresolvable from the browser), so it is configured per deployment (empty default =
@@ -137,6 +137,19 @@ spec:
             {{- if .Values.webUi.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.webUi.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
+        {{- if and .Values.observability.prometheus.metrics.export.enabled .Values.webUi.serviceMonitor.enabled }}
+        # Converts nginx stub_status (plaintext on the stub-status port) to Prometheus-format /metrics for the ServiceMonitor.
+        - name: nginx-exporter
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.webUi.metricsExporter.image "global" .Values.global) }}
+          args:
+            - --nginx.scrape-uri=http://127.0.0.1:{{ .Values.webUi.containerPorts.stubStatus }}/stub_status
+          ports:
+            - name: http-metrics
+              containerPort: {{ .Values.webUi.metricsExporter.port }}
+          {{- if .Values.webUi.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.webUi.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+        {{- end }}
         {{- if .Values.webUi.sidecars }}
         {{- include "common.tplvalues.render" (dict "value" .Values.webUi.sidecars "context" $) | nindent 8 }}
         {{- end }}

@@ -1,0 +1,27 @@
+{{- /*
+Service for the Web UI.
+Exposes the UI and its nginx stub_status metrics port.
+*/ -}}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "axon-showcase.web-ui.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: web-ui
+  {{- if or .Values.webUi.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  selector: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: web-ui
+  ports:
+    - name: http
+      port: {{ .Values.webUi.containerPorts.server }}
+      targetPort: {{ .Values.webUi.containerPorts.server }}
+    - name: http-metrics
+      port: {{ .Values.webUi.containerPorts.metrics }}
+      targetPort: {{ .Values.webUi.containerPorts.metrics }}

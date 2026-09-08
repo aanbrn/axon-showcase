@@ -21,7 +21,7 @@ Deployment/Service with its values and the CORS origin it needs.
   built from the `aanbrn/axon-showcase-web-ui:${PROJECT_VERSION}` image, with the gateway's CORS allow-list updated
   to include the UI's origin.
 - Add a `web-ui` Deployment + Service to the Helm chart, mirroring the existing service structure but with an nginx
-  static container (port 80) and its own `webUi` values section (image, replicaCount, port, resources, `ingress` +
+  static container (port 8080) and its own `webUi` values section (image, replicaCount, port, resources, `ingress` +
   `route` blocks, networkPolicy), plus the api-gateway's external-exposure and network templates (Ingress, HTTPRoute,
   NetworkPolicy). The gateway CORS origin is updated to the UI's in-cluster address, and the local deployment exposes
   the UI alongside the gateway's existing ingress. The local gateway ingress hostname is renamed `axon-showcase` →
@@ -33,8 +33,8 @@ Deployment/Service with its values and the CORS origin it needs.
 - No behavioral change to the UI's features — the same bundle is served; the one app change is that the API base URL
   is read at runtime from `window.__API_BASE_URL__`, which the container renders from the `SHOWCASE_API_BASE_URL`
   env var at start (`start.sh` → `config.js`), falling back to the build-time `VITE_API_BASE_URL`. This keeps
-  configuration a plain runtime env var (with a baked `BPE_DEFAULT_SHOWCASE_API_BASE_URL` default), matching the JVM
-  services — no ConfigMap/mount, no per-target rebuild.
+  configuration a plain runtime env var (no baked default — the browser needs the externally-visible gateway URL,
+  which only the deployment knows), matching the JVM services — no ConfigMap/mount, no per-target rebuild.
 
 ## Capabilities
 
@@ -55,8 +55,8 @@ Deployment/Service with its values and the CORS origin it needs.
   build-first tasks depend on `dockerBuildImage` too. The `pack` CLI is a new build prerequisite.
 - **Code**: `showcase-web-ui/src/shared/api.ts` — read `window.__API_BASE_URL__` at runtime; add `start.sh` rendering
   `config.js` from the `SHOWCASE_API_BASE_URL` env var at container start.
-- **Compose**: `docker-compose.yml` — `web-ui` service + gateway CORS origin + `SHOWCASE_API_BASE_URL` env (or the
-  baked `BPE_DEFAULT_SHOWCASE_API_BASE_URL`).
+- **Compose**: `docker-compose.yml` — `web-ui` service + gateway CORS origin + `SHOWCASE_API_BASE_URL` env
+  (`http://localhost:8080`).
 - **Helm**: `helm/chart` — `web-ui` Deployment/Service/ingress/route/hpa/vpa/pdb/networkpolicy/servicemonitor
   templates, `webUi`
   values incl. `SHOWCASE_API_BASE_URL`, gateway CORS origin in values, local values expose the UI via ingress, local
@@ -65,4 +65,10 @@ Deployment/Service with its values and the CORS origin it needs.
   for the local `/etc/hosts` hostname access.
 - **Behavior**: the UI becomes reachable in the local and deployed stacks at its own address; the API base URL is
   runtime-configurable via the `SHOWCASE_API_BASE_URL` env var (rendered to `config.js` at container start,
-  `BPE_DEFAULT_*` baked default) — no per-target image rebuild, no ConfigMap/mount.
+  no baked default — the browser needs the externally-visible gateway URL) — no per-target image rebuild, no
+  ConfigMap/mount.
+- **Incidental build hardening** (not web-UI-deployable behavior, but shipped in the same change): `docker-conventions`
+  and `PackBuildImageTask` resolve `docker`/`pack` to their absolute paths (`dockerCli()`/`packCli()`) so exec tasks
+  work regardless of the daemon JVM's cached PATH (macOS IDEA daemons), and `dependency-security-conventions`
+  resolves `snyk` the same way (`snykExecutable()`); the compose tasks' `onlyIf` tolerates the leading `:` IDEA adds
+  to task names.

@@ -208,3 +208,7 @@ Internal HTTP URL of the query service (used by the API gateway to route request
 {{- define "axon-showcase.api-gateway.fullname" }}
     {{- printf "%s-%s" (include "common.names.fullname" $) "api-gateway" | trunc 63 | trimSuffix "-" }}
 {{- end }}
+
+{{- define "axon-showcase.web-ui.fullname" }}
+    {{- printf "%s-%s" (include "common.names.fullname" $) "web-ui" | trunc 63 | trimSuffix "-" }}
+{{- end }}

@@ -2,8 +2,9 @@
 
 `showcase-web-ui` is a build-only module: `npmBuild` → `build/dist`, run via `viteDev`/preview, absent from
 docker-compose and Helm. It is a standalone SPA (no client-side router — no history fallback needed) that talks to the
-gateway over REST + SSE using `BASE = import.meta.env.VITE_API_BASE_URL ?? ''` (same-origin by default, overridable at
-build time). The four JVM services build images via Spring Boot `bootBuildImage` (Paketo), named
+gateway over REST + SSE using `BASE = window.__API_BASE_URL__ ?? import.meta.env.VITE_API_BASE_URL ?? ''`
+(same-origin by default, overridable at build time and at runtime via the served `config.js`). The four JVM services
+build images via Spring Boot `bootBuildImage` (Paketo), named
 `aanbrn/axon-showcase-<service>:${project.version}`, and the `docker-conventions` `composeBuildAndUp`/
 `composeBuildAndRestart` tasks depend on all `bootBuildImage` tasks.
 
@@ -55,17 +56,18 @@ also include the `frontend-conventions` `dockerBuildImage` task (all `bootBuildI
 
 ### D3: docker-compose `web-ui` service and CORS
 
-Add a `web-ui` service publishing the static site on `8084:80` (the next free host port after the four services'
+Add a `web-ui` service publishing the static site on `8084:8080` (the next free host port after the four services'
 8080/8081/8082/8083), image `aanbrn/axon-showcase-web-ui:${PROJECT_VERSION}`, no healthcheck (static). The gateway's
-`SHOWCASE_CORS_ALLOWED_ORIGINS` in compose gains `http://localhost:8084`. The compose service sets the
-`SHOWCASE_API_BASE_URL` env var to `http://localhost:8080` (the gateway's published host port) — or relies on the
-baked `BPE_DEFAULT_SHOWCASE_API_BASE_URL` — so the browser loads the UI from `http://localhost:8084` and reaches the
-gateway cross-origin via the runtime-rendered `config.js`.
+`SHOWCASE_CORS_ALLOWED_ORIGINS` in compose gains `http://localhost:8084`. The compose service explicitly sets the
+`SHOWCASE_API_BASE_URL` env var to `http://localhost:8080` (the gateway's published host port) — the browser-reachable
+gateway URL, which the image does not bake (compose needs host access to the gateway). The browser loads the UI
+from `http://localhost:8084` and reaches the gateway cross-origin via the runtime-rendered `config.js`.
 
 ### D4: Helm `webUi` values + Deployment/Service + ingress/route + gateway CORS
 
 Mirror the existing per-service chart structure, following the `apiGateway` pattern exactly: a `webUi` values block
-(image, replicaCount, service port 80, resources, autoscaling, pdb, networkPolicy), a `templates/web-ui/deployment.yaml`
+(image, replicaCount, service port 8080, resources, autoscaling, pdb, networkPolicy), a
+`templates/web-ui/deployment.yaml`
 + `service.yaml` (no JGroups, no management port), **and the external-exposure, network, and availability templates the
 api-gateway provides: `templates/web-ui/ingress.yaml`, `route.yaml`, `hpa.yaml`, `vpa.yaml`, `pdb.yaml`,
 `networkpolicy.yaml`** (an `ingress` block, a `route` HTTPRoute block, an `autoscaling` block with `hpa`/`vpa`, a
@@ -77,14 +79,14 @@ its pid to `/tmp/nginx.pid`), sets pod/container securityContexts, and defines a
 The web-UI Service declares named ports — `http` (the UI) and `http-metrics` (the stub-status port) — so the
 ServiceMonitor can target the metrics port by name. The gateway's CORS env (`SHOWCASE_CORS_ALLOWED_ORIGINS`) in the
 chart adds the UI's in-cluster origin (`http://<release>-web-ui:<port>`), driven by a `webUi` value so operators can
-override. The deployed UI's `SHOWCASE_API_BASE_URL` env var defaults to the in-cluster gateway URL (via `webUi`
-values) and is rendered to `config.js` at container start; the chart never bakes a per-environment base URL into the
-image.
+override. The deployed UI's `SHOWCASE_API_BASE_URL` env var is set from `webUi.apiBaseUrl` — the
+externally-visible gateway URL, since the in-cluster Service name is unresolvable from the browser — and is rendered
+to `config.js` at container start; the chart never bakes a per-environment base URL into the image.
 
 ### D4c: Web-UI NetworkPolicy
 
 Add a `webUi.networkPolicy` block (mirroring the api-gateway's) and a `templates/web-ui/networkpolicy.yaml`. For the
-static nginx serving a public UI, the policy is: **ingress** allows HTTP on port 80 from anywhere (the public UI via
+static nginx serving a public UI, the policy is: **ingress** allows HTTP on port 8080 from anywhere (the public UI via
 Ingress/HTTPRoute) and the stub-status/metrics port only from monitoring peers (the `monitoring` namespace, matching
 how the gateway's management port is gated); **egress** allows DNS and same-namespace traffic only (the static UI
 makes no outbound calls — the browser talks to the gateway, not the pod).
@@ -110,32 +112,35 @@ controller, a colima LoadBalancer), not a real DNS name — it is referenced onl
 `helm/values/axon-showcase/values-local.yaml`, so the rename is contained and zero-risk.
 
 Local access today uses `curl -H "Host: axon-showcase" ...` because `/etc/hosts` has no entry for the hostname. For
-convenience, add a `setup-hosts.sh` helper that resolves the colima LoadBalancer IP (`kubectl get svc -n kube-system
-traefik`) and manages the `/etc/hosts` entries for both hostnames idempotently (`./setup-hosts.sh setup` /
-`remove`), so curl/httpie/browser can use `http://axon-showcase-api/...` and `http://axon-showcase-ui/...` directly —
-no Host-header workaround. The IP can change on colima restart; re-running `setup` refreshes the entries. This is
-also what makes the deployed UI usable from a browser (the browser needs `http://axon-showcase-ui` to resolve).
+convenience, add a `setup-hosts.sh` helper that detects the local cluster's ingress-controller LoadBalancer address
+generically — against the current kube context, finding LoadBalancer Services across namespaces and accepting an IP or
+hostname (so it works on colima + Traefik, kind/minikube + ingress-nginx, etc.) — and manages the `/etc/hosts` entries
+for both hostnames idempotently (`./setup-hosts.sh setup` / `remove`), so curl/httpie/browser can use
+`http://axon-showcase-api/...` and `http://axon-showcase-ui/...` directly — no Host-header workaround. The address can
+change on cluster restart; re-running `setup` refreshes the entries. This is also what makes the deployed UI usable
+from a browser (the browser needs `http://axon-showcase-ui` to resolve).
 
 ### D5: `SHOWCASE_API_BASE_URL` is a runtime env var (SPA rendered at container start)
 
 Vite inlines `import.meta.env.*` at build, so the base URL cannot be a plain runtime env the browser reads directly —
 but the project's convention is env-var configuration, not ConfigMaps/mounts, and the gateway already names its
-downstream URLs `SHOWCASE_*` (`SHOWCASE_QUERY_SERVICE_URL` for `showcase.query.api-url`). Reconcile all three: the
-image bakes a `BPE_DEFAULT_SHOWCASE_API_BASE_URL` runtime-env default (like the JVM services' `BPE_DEFAULT_*`), and
-the container renders `config.js` from the `SHOWCASE_API_BASE_URL` env var at start. The UI reads
-`window.__API_BASE_URL__` at runtime, falling back to the build-time `import.meta.env.VITE_API_BASE_URL`, then `''`.
-Operators configure the deployment with a plain `SHOWCASE_API_BASE_URL` env var (no ConfigMap/mount); the default is
-baked at build time via `BPE_DEFAULT_*`, exactly matching the JVM services. The browser still consumes the served
-`config.js` (a static SPA cannot read container env), but the configuration surface is a runtime env var following
-the gateway's `SHOWCASE_*` naming.
+downstream URLs `SHOWCASE_*` (`SHOWCASE_QUERY_SERVICE_URL` for `showcase.query.api-url`). The image bakes **no**
+default for the base URL: the browser needs the externally-visible gateway URL, which only the deployment knows (the
+in-cluster Service name is unresolvable from the browser), so `SHOWCASE_API_BASE_URL` is configured per deployment.
+The container renders `config.js` from the `SHOWCASE_API_BASE_URL` env var at start, and **fails fast if it is
+unset/empty** (`start.sh` exits non-zero, so the container is restarted until configured) rather than serve a UI
+silently calling the wrong origin. The UI reads `window.__API_BASE_URL__` at runtime, falling back to the build-time
+`import.meta.env.VITE_API_BASE_URL`, then `''`. Operators configure the deployment with a plain `SHOWCASE_API_BASE_URL`
+env var (no ConfigMap/mount). The browser still consumes the served `config.js` (a static SPA cannot read container
+env), but the configuration surface is a runtime env var following the gateway's `SHOWCASE_*` naming.
 
 **Concrete wiring (verified against the Paketo nginx + Procfile buildpacks):** the nginx buildpack sets the default
 `web` process to `nginx -p /workspace -c /workspace/nginx.conf -g "pid /tmp/nginx.pid;"` (workingDir + the generated
-`nginx.conf`). To run `start.sh` first: add `paketo-buildpacks/procfile` to the buildpacks list (the nginx buildpack
-alone does not include it), ship a `Procfile` with `web: ./start.sh` (overriding the default `web` process), and have
-`start.sh` render `config.js` from `SHOWCASE_API_BASE_URL` into the served root (`/workspace/config.js`, matching
-`BP_WEB_SERVER_ROOT=/workspace`), then `exec` the same nginx command (nginx is on PATH from the buildpack), keeping
-nginx as PID 1. `BPE_DEFAULT_SHOWCASE_API_BASE_URL` supplies the default at launch.
+`nginx.conf`). To run `start.sh` first: add `paketo-buildpacks/procfile` (the nginx buildpack alone does not include
+it) to the buildpacks list, ship a `Procfile` with `web: ./start.sh` (overriding the default `web` process), and have
+`start.sh` render `config.js` from the `SHOWCASE_API_BASE_URL` into the served root (`/workspace/config.js`,
+matching `BP_WEB_SERVER_ROOT=/workspace`), then `exec` the same nginx command (nginx is on PATH from the buildpack),
+keeping nginx as PID 1.
 
 ### D6: Server-side nginx metrics via stub_status + ServiceMonitor
 
@@ -144,18 +149,20 @@ The UI container's nginx can expose basic server metrics via the Paketo nginx bu
 handled connections, reading/writing/waiting). Add a `webUi` `serviceMonitor` block (mirroring the api-gateway's) and
 a `templates/web-ui/servicemonitor.yaml` that scrapes the UI Service on the `http-metrics` port, so nginx liveness and
 traffic are visible in the existing Prometheus/Grafana stack. The stub_status endpoint is plaintext (not Prometheus
-format), so the ServiceMonitor scrapes it via a metrics endpoint that converts it — either the NGINX Prometheus
-Exporter as a sidecar or a metric-relabeling scrape; the exact conversion mechanism is confirmed during
-implementation. The stub-status/metrics port is gated by the web-UI NetworkPolicy to monitoring peers (D4c). This is
-server-side nginx observability only — client-side (RUM: web vitals, JS errors, trace propagation) is explicitly out
-of scope (see Non-Goals).
+format), so the ServiceMonitor scrapes `/metrics` and the conversion is left configurable via the `webUi.sidecars`
+value (an NGINX Prometheus Exporter sidecar) — the chart does not pin a specific converter. The stub-status/metrics
+port is gated by the web-UI NetworkPolicy to monitoring peers (D4c). This is server-side nginx observability only —
+client-side (RUM: web vitals, JS errors, trace propagation) is explicitly out of scope (see Non-Goals).
 
 ## Risks / Trade-offs
 
 - **Runtime base URL via env-rendered `config.js`** → The container must render `config.js` from
-  `SHOWCASE_API_BASE_URL` at start (a `start.sh` before nginx), and a mismatch would block the browser. Mitigation:
-  `BPE_DEFAULT_SHOWCASE_API_BASE_URL` bakes the default, the `start.sh` renders it, and deployments set the
-  `SHOWCASE_API_BASE_URL` env var — the same configuration surface as the JVM services (no ConfigMap/mount).
+  `SHOWCASE_API_BASE_URL` at start (a `start.sh` before nginx), and a missing/empty value is a deployment error.
+  Mitigation: `start.sh` fails fast (exits non-zero when the env var is unset/empty, so the container is restarted
+  until configured), and deployments set the env var explicitly — compose sets `http://localhost:8080`, the chart's
+  `webUi.apiBaseUrl` (empty default = same-origin, like the gateway's CORS allow-list). The image bakes no default, so
+  a deployment without configuration is visibly broken rather than silently mispointed. This is the same runtime
+  env-var configuration surface as the JVM services (no ConfigMap/mount).
 - **Paketo-generated nginx config** → The auto-generated `nginx.conf` (serving the bundle at `BP_WEB_SERVER_ROOT`)
   differs from `vite preview`. Mitigation: point `BP_WEB_SERVER_ROOT` at the built bundle and verify the served page;
   the e2e suite still exercises the built bundle via Vite preview, so app behavior parity is covered. If SPA push-state

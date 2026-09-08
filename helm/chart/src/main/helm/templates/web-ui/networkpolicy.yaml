@@ -1,0 +1,92 @@
+{{- /*
+NetworkPolicy for the Web UI.
+Restricts ingress/egress traffic: public HTTP ingress, monitoring-only metrics access, minimal egress.
+*/ -}}
+{{- if .Values.webUi.networkPolicy.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" $ }}
+kind: NetworkPolicy
+metadata:
+  name: {{ include "axon-showcase.web-ui.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: web-ui
+  {{- if or .Values.webUi.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: web-ui
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow HTTP traffic on the UI port from anywhere (the public UI via Ingress/HTTPRoute).
+    - ports:
+        - port: {{ .Values.webUi.containerPorts.server }}
+    # Allow metrics traffic only from selected peers (monitoring namespace).
+    - ports:
+        - port: {{ .Values.webUi.containerPorts.metrics }}
+      from:
+        - podSelector:
+            matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 14 }}
+        {{- if .Values.webUi.networkPolicy.addExternalClientAccess }}
+        - podSelector:
+            matchLabels:
+              {{ include "common.names.fullname" $ }}-client: "true"
+        {{- end }}
+        {{- if .Values.webUi.networkPolicy.ingressPodMatchLabels }}
+        - podSelector:
+            matchLabels: {{- include "common.tplvalues.render" (dict "value" .Values.webUi.networkPolicy.ingressPodMatchLabels "context" $) | nindent 14 }}
+        {{- end }}
+        {{- if .Values.webUi.networkPolicy.ingressManagementNSMatchLabels }}
+        - namespaceSelector:
+            matchLabels:
+              {{- range $key, $value := .Values.webUi.networkPolicy.ingressManagementNSMatchLabels }}
+              {{ $key | quote }}: {{ $value | quote }}
+              {{- end }}
+          {{- if .Values.webUi.networkPolicy.ingressManagementNSPodMatchLabels }}
+          podSelector:
+            matchLabels:
+              {{- range $key, $value := .Values.webUi.networkPolicy.ingressManagementNSPodMatchLabels }}
+              {{ $key | quote }}: {{ $value | quote }}
+              {{- end }}
+          {{- end }}
+        {{- end }}
+    {{- if .Values.webUi.networkPolicy.extraIngress }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.webUi.networkPolicy.extraIngress "context" $) | nindent 4 }}
+    {{- end }}
+  egress:
+    # DNS lookups.
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # All traffic to other services in the same namespace.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ include "common.names.namespace" $ | quote }}
+    # Access to the Kubernetes API server (discovered via the kubernetes EndpointSlice).
+    {{- with (lookup "discovery.k8s.io/v1" "EndpointSlice" "default" "kubernetes") }}
+    - to:
+        {{- range .endpoints }}
+        {{- range .addresses }}
+        - ipBlock:
+            cidr: {{ . }}/32
+        {{- end }}
+        {{- end }}
+      ports:
+        {{- range .ports }}
+        - port: {{ .port }}
+          protocol: {{ .protocol }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.webUi.networkPolicy.extraEgress }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.webUi.networkPolicy.extraEgress "context" $) | nindent 4 }}
+    {{- end }}
+{{- end }}

@@ -1,9 +1,7 @@
 import java.io.File
-import java.util.concurrent.locks.ReentrantLock
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.GradleException
-import org.gradle.api.plugins.ExtraPropertiesExtension.UnknownPropertyException
 
 val libs = the<LibrariesForLibs>()
 
@@ -22,9 +20,10 @@ fun registerComposeTask(
 
         if (buildFirst) {
             dependsOn(allprojects.flatMap { project -> project.tasks.named { it == "bootBuildImage" } })
+            dependsOn(allprojects.flatMap { project -> project.tasks.named { it == "dockerBuildImage" } })
         }
 
-        commandLine = listOf("docker", "compose") + action + composeServices
+        commandLine = listOf(dockerCli(), "compose") + action + composeServices
 
         workingDir = rootProject.layout.projectDirectory.asFile
 
@@ -34,35 +33,32 @@ fun registerComposeTask(
         environment["KAFKA_VERSION"] = libs.versions.kafka.image.tag.get()
 
         doFirst {
-            if (!dockerCliOnPath()) {
+            if (!dockerCli().isNotEmpty()) {
                 throw GradleException(
                     "The Docker CLI is required to run the compose tasks. Install Docker and make 'docker' available on PATH."
                 )
             }
-            dockerLock.lock()
-        }
-
-        doLast {
-            dockerLock.unlock()
         }
 
         // Run only when this compose task is explicitly requested on the command line (standalone
         // `./gradlew composeUp`) or when a consuming task marks it scheduled (the web-UI `e2eTest` sets
         // `composeTaskScheduled-<path>` at configuration time for the `composeBuildAndUp`/`composeDown` it
         // depends on / finalizes with). The explicit-request check covers the standalone case and naturally
-        // excludes the per-service compose tasks that Gradle schedules alongside a root compose run.
+        // excludes the per-service compose tasks that Gradle schedules alongside a root compose run. The
+        // comparison tolerates the leading ':' IDEA/Tooling API adds (e.g. `:composeUp`), matching both the
+        // CLI and IDE invocations.
         onlyIf {
             val explicitlyRequested =
                 gradle.startParameter.taskRequests
                     .flatMap { it.args }
                     .any {
-                        it ==
+                        it.removePrefix(":") ==
                             if (project == defaultProject) {
                                 name
                             } else if (defaultProject == rootProject) {
-                                project.path + ":" + name
+                                project.path.removePrefix(":") + ":" + name
                             } else {
-                                project.path.removePrefix(defaultProject.path) + ":" + name
+                                project.path.removePrefix(defaultProject.path).removePrefix(":") + ":" + name
                             }
                     }
             val markedScheduled =
@@ -117,34 +113,30 @@ registerComposeTask(
     buildFirst = true,
 )
 
-val dockerLock =
-    synchronized(rootProject) {
-        try {
-            rootProject.extra.get("dockerLock") as ReentrantLock
-        } catch (_: UnknownPropertyException) {
-            val lock = ReentrantLock()
-            rootProject.extra.set("dockerLock", lock)
-            lock
-        }
-    }
-
 val defaultProject =
     allprojects.find {
         it.layout.projectDirectory.asFile == gradle.startParameter.projectDir
     } ?: rootProject
 
-fun dockerCliOnPath(): Boolean {
-    val path = System.getenv("PATH") ?: return false
+// Resolves the absolute path of the docker executable from the current PATH. The absolute path is used in the
+// compose commandLine so the exec does not depend on the daemon JVM's cached PATH for native process spawning
+// (which is frozen at JVM start and ignores later PATH changes) — System.getenv("PATH") reflects the real shell
+// PATH, so resolving the tool's absolute location from it works regardless of how the daemon was spawned. Returns
+// an empty string if docker cannot be found.
+fun dockerCli(): String {
+    val path = System.getenv("PATH") ?: return ""
     val executableNames =
         if (SystemUtils.IS_OS_WINDOWS) {
             listOf("docker.exe")
         } else {
             listOf("docker")
         }
-    return path.split(File.pathSeparator).any { dir ->
-        executableNames.any { name ->
-            val executable = File(dir, name)
-            executable.isFile && executable.canExecute()
-        }
-    }
+    return path.split(File.pathSeparator).firstNotNullOfOrNull { dir ->
+        executableNames
+            .firstOrNull { name ->
+                val executable = File(dir, name)
+                executable.isFile && executable.canExecute()
+            }
+            ?.let { File(dir, it).absolutePath }
+    } ?: ""
 }

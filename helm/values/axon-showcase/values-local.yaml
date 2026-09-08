@@ -45,19 +45,38 @@ queryService:
       release: kps
 
 apiGateway:
+  podLabels:
+    axon-showcase-kafka-client: "true"
   cors:
     allowedOrigins:
-      - http://localhost:5173
-      - http://localhost:4173
+      - http://axon-showcase-ui
   ingress:
     enabled: true
-    hostname: axon-showcase
+    hostname: axon-showcase-api
   networkPolicy:
     ingressManagementNSMatchLabels:
       name: monitoring
     ingressManagementNSPodMatchLabels:
       prometheus: kps
   serviceMonitor:
+    namespace: monitoring
+    labels:
+      release: kps
+
+webUi:
+  # The browser reaches the gateway via its ingress hostname (resolved by setup-hosts.sh), not the in-cluster Service
+  # name, so the UI is pointed at the externally-visible gateway URL.
+  apiBaseUrl: http://axon-showcase-api
+  ingress:
+    enabled: true
+    hostname: axon-showcase-ui
+  networkPolicy:
+    ingressManagementNSMatchLabels:
+      name: monitoring
+    ingressManagementNSPodMatchLabels:
+      prometheus: kps
+  serviceMonitor:
+    enabled: true
     namespace: monitoring
     labels:
       release: kps

@@ -1,0 +1,148 @@
+{{- /*
+Web UI Deployment.
+Serves the static frontend bundle via nginx. No JGroups, no management port — a simple static workload.
+*/ -}}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.labels .Values.commonLabels) "context" $) }}
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.podLabels .Values.commonLabels) "context" $) }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+kind: Deployment
+metadata:
+  name: {{ include "axon-showcase.web-ui.fullname" $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: web-ui
+  {{- if or .Values.webUi.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.webUi.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.webUi.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.webUi.revisionHistoryLimit }}
+  {{- if .Values.webUi.updateStrategy }}
+  strategy: {{- include "common.tplvalues.render" (dict "value" .Values.webUi.updateStrategy "context" $) | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: web-ui
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" (dict "customLabels" $podLabels "context" $) | nindent 8 }}
+        app.kubernetes.io/component: web-ui
+      {{- if or .Values.webUi.podAnnotations .Values.commonAnnotations }}
+      {{- $podAnnotations := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.podAnnotations .Values.commonAnnotations) "context" $) }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" $podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.webUi.extraPodSpec }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.webUi.extraPodSpec "context" $) | nindent 6 }}
+      {{- end }}
+      {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.webUi.image) "context" $) | nindent 6 }}
+      serviceAccountName: {{ include "axon-showcase.serviceAccountName" $ }}
+      automountServiceAccountToken: {{ .Values.webUi.automountServiceAccountToken }}
+      {{- if .Values.webUi.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.webUi.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      affinity:
+        {{- if .Values.webUi.affinity }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.webUi.affinity "context" $) | nindent 8 }}
+        {{- else }}
+        {{- if .Values.webUi.podAffinityPreset }}
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.webUi.podAffinityPreset "component" "web-ui" "customLabels" $podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if .Values.webUi.podAntiAffinityPreset }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.webUi.podAntiAffinityPreset "component" "web-ui" "customLabels" $podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if and .Values.webUi.nodeAffinityPreset.type .Values.webUi.nodeAffinityPreset.key .Values.webUi.nodeAffinityPreset.values }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.webUi.nodeAffinityPreset.type "key" .Values.webUi.nodeAffinityPreset.key "values" .Values.webUi.nodeAffinityPreset.values) | nindent 10 }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.webUi.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.webUi.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.webUi.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.webUi.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.webUi.priorityClassName }}
+      priorityClassName: {{ .Values.webUi.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.webUi.schedulerName }}
+      schedulerName: {{ .Values.webUi.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.webUi.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.webUi.topologySpreadConstraints "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.webUi.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.webUi.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.webUi.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.webUi.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.webUi.initContainers }}
+      initContainers: {{- include "common.tplvalues.render" (dict "value" .Values.webUi.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: main
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.webUi.image "global" .Values.global) }}
+          imagePullPolicy: {{ include "axon-showcase.images.imagePullPolicy" (dict "imageRoot" .Values.webUi.image "context" $) }}
+          {{- if .Values.webUi.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.webUi.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.webUi.containerPorts.server }}
+            - name: http-metrics
+              containerPort: {{ .Values.webUi.containerPorts.metrics }}
+          env:
+            # The browser needs the externally-visible gateway URL, which only the deployment knows (the in-cluster
+            # Service name is unresolvable from the browser), so it is configured per deployment (empty default =
+            # same-origin). The chart does not compute an in-cluster default.
+            - name: "SHOWCASE_API_BASE_URL"
+              value: {{ .Values.webUi.apiBaseUrl | quote }}
+          {{- if .Values.webUi.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.webUi.startupProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.webUi.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.webUi.livenessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.webUi.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            {{- include "common.tplvalues.render" (dict "value" (omit .Values.webUi.readinessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.webUi.terminationMessagePolicy }}
+          terminationMessagePolicy: {{ include "common.tplvalues.render" (dict "value" .Values.webUi.terminationMessagePolicy "context" $) }}
+          {{- end }}
+          {{- if .Values.webUi.resources }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.webUi.resources "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.webUi.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.webUi.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            {{- if .Values.webUi.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.webUi.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if .Values.webUi.sidecars }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.webUi.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: empty-dir
+          emptyDir: { }
+        {{- if .Values.webUi.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.webUi.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

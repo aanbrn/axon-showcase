@@ -137,6 +137,134 @@ apiGateway:
         action: drop
     honorLabels: true
 
+webUi:
+  # Externally-visible gateway URL (the browser calls the ingress hostname, not the in-cluster Service).
+  apiBaseUrl: http://axon-showcase-api
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: showcase-ui.example.com
+    path: /
+    pathType: Prefix
+    extraPaths:
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: metrics
+            port:
+              number: 9090
+    extraHosts:
+      - name: showcase-ui-alt.example.com
+        path: /
+        pathType: Prefix
+    extraRules:
+      - host: showcase-ui-extra.example.com
+        http:
+          paths:
+            - path: /extra
+              pathType: Prefix
+              backend:
+                service:
+                  name: metrics
+                  port:
+                    number: 9090
+  route:
+    enabled: true
+    hostnames:
+      - showcase-ui.example.com
+      - showcase-ui-alt.example.com
+    parentRefs:
+      - name: showcase-gateway
+        namespace: gateway-system
+    filters:
+      - type: RequestHeaderModifier
+        requestHeaderModifier:
+          set:
+            - name: X-Forwarded-Host
+              value: showcase-ui.example.com
+    extraRules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /health
+        backendRefs:
+          - name: metrics
+            port: 9090
+  extraEnvVarsCM: showcase-config
+  extraEnvVarsSecret: showcase-secret
+  extraContainerPorts:
+    - name: metrics
+      containerPort: 9090
+  autoscaling:
+    vpa:
+      enabled: true
+      controlledResources:
+        - cpu
+        - memory
+      maxAllowed:
+        cpu: 4
+        memory: 4Gi
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi
+      updatePolicy:
+        updateMode: Auto
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPU: 80
+      targetMemory: 80
+      metrics:
+        - type: Pods
+          pods:
+            metric:
+              name: nginx_connections_active
+            target:
+              type: AverageValue
+              averageValue: 100
+  pdb:
+    create: true
+    minAvailable: 1
+  networkPolicy:
+    enabled: true
+    addExternalClientAccess: true
+    ingressPodMatchLabels:
+      app: external-client
+    ingressManagementNSMatchLabels:
+      name: monitoring
+    ingressManagementNSPodMatchLabels:
+      prometheus: kps
+    extraIngress:
+      - from:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - port: 8080
+    extraEgress:
+      - to:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - port: 53
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    labels:
+      release: kps
+    interval: 30s
+    scrapeTimeout: 10s
+    relabelings:
+      - sourceLabels: [ __meta_kubernetes_pod_label_app ]
+        action: keep
+        regex: web-ui
+    metricRelabelings:
+      - sourceLabels: [ __name__ ]
+        regex: "nginx_.*"
+        action: drop
+    honorLabels: true
+
 commandService:
   autoscaling:
     vpa:

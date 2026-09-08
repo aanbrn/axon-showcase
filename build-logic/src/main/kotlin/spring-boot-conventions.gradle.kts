@@ -14,10 +14,6 @@ tasks.named<JavaCompile>("compileJava") {
 }
 
 tasks.named<BootBuildImage>("bootBuildImage") {
-    if (project.hasProperty("imagePlatform")) {
-        imagePlatform = project.property("imagePlatform") as String
-    }
-
     buildpacks.addAll(
         listOf(
             "paketo-buildpacks/java",

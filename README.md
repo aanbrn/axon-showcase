@@ -76,6 +76,9 @@ Read: Client → API Gateway → Query Service → OpenSearch
 - **Helm 4.x** (for Kubernetes deployment)
 - **Kubernetes cluster** (for deployment)
 - **Snyk CLI** (for the dependency security scan)
+- **`pack` CLI** (for the web-UI image build; see
+  https://buildpacks.io/docs/for-platform-operators/how-to/integrate-ci/pack/, e.g. `brew install
+  buildpacks/tap/pack` on macOS)
 
 ## Local Development
 
@@ -129,8 +132,13 @@ This starts all infrastructure and application services:
 - **Command Service** — write side (debug 8001)
 - **Query Service** — read side (debug 8002)
 - **Projection Service** — event handlers (debug 8003)
+- **Web UI** — the deployed frontend (port 8084, served by an nginx container image)
 
-Application images must be built first (`./gradlew bootBuildImage`) or set `PROJECT_VERSION` accordingly.
+Application images must be built first (`./gradlew bootBuildImage` for the JVM services,
+`./gradlew :showcase-web-ui:dockerBuildImage` for the UI). The compose stack resolves image tags from
+`PROJECT_VERSION` (e.g. `0.1.0-SNAPSHOT`), which must equal the version the images were built with — the Gradle
+compose tasks set it automatically; a raw `docker compose up -d` needs `PROJECT_VERSION` set explicitly so the tags
+match.
 
 ### Build the Project
 

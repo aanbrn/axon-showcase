@@ -22,9 +22,23 @@ output that the local dev/preview flow serves, so the packaged UI is the same bu
 
 #### Scenario: The API base URL is runtime-configurable
 
-- **WHEN** a deployment sets the `SHOWCASE_API_BASE_URL` env var (or relies on the baked default)
+- **WHEN** a deployment sets the `SHOWCASE_API_BASE_URL` env var (no baked default — the browser needs the
+  externally-visible gateway URL, which only the deployment knows)
 - **THEN** the container renders `config.js` from it at start and the UI uses it at runtime, so a single image works
   across environments without rebuilding or ConfigMap/mount
+
+#### Scenario: The served page loads config.js before the app bundle
+
+- **WHEN** a browser loads the served web-UI page
+- **THEN** the HTML includes a `<script src="/config.js">` tag before the app bundle, so `window.__API_BASE_URL__` is
+  set (from the runtime-rendered `config.js`) before the app boots — otherwise the app would fall back to same-origin
+  and call the web-UI's own nginx instead of the gateway
+
+#### Scenario: A missing base URL fails fast
+
+- **WHEN** the `SHOWCASE_API_BASE_URL` env var is unset or empty at container start
+- **THEN** the container exits non-zero (the start script refuses to serve a UI that would call the wrong origin),
+  restarting until configured
 
 #### Scenario: The image is versioned
 
@@ -86,7 +100,9 @@ SHALL expose named ports for the UI and its metrics.
 #### Scenario: The deployed UI can call the gateway
 
 - **WHEN** a browser at the deployed UI origin calls the gateway
-- **THEN** the gateway's CORS allow-list includes the UI origin, so the REST and SSE endpoints work cross-origin
+- **THEN** the gateway's CORS allow-list includes the UI origin, so the REST and SSE endpoints work cross-origin; the
+  served UI loads `config.js` (setting `window.__API_BASE_URL__` to the externally-visible gateway URL) and a
+  create-showcase POST from the UI origin reaches the gateway with a success status
 
 #### Scenario: The UI origin is configurable
 

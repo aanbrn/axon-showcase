@@ -1,0 +1,48 @@
+{{- /*
+Prometheus ServiceMonitor for the web-ui.
+Scrapes nginx stub_status metrics on the metrics port. The stub_status endpoint is plaintext (not Prometheus
+format); the metrics are converted via an NGINX Prometheus Exporter sidecar (see the deployment's sidecars) or a
+metric-relabeling scrape, whichever the deployment wires.
+*/ -}}
+{{- if and .Values.observability.prometheus.metrics.export.enabled  .Values.webUi.serviceMonitor.enabled }}
+{{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.serviceMonitor.labels .Values.commonLabels) "context" $) }}
+{{- $svcLabels := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.labels .Values.commonLabels) "context" $) }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "axon-showcase.web-ui.fullname" $ }}
+  namespace: {{ .Values.webUi.serviceMonitor.namespace | default (include "common.names.namespace" $) | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" $labels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: web-ui
+  {{- if or .Values.webUi.serviceMonitor.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.webUi.serviceMonitor.annotations .Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  # Targets the web-ui Service.
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $svcLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: web-ui
+  endpoints:
+    # nginx stub_status metrics exposed on the http-metrics port (via the exporter sidecar).
+    - port: http-metrics
+      path: /metrics
+      {{- if .Values.webUi.serviceMonitor.interval }}
+      interval: {{ .Values.webUi.serviceMonitor.interval }}
+      {{- end }}
+      {{- if .Values.webUi.serviceMonitor.scrapeTimeout }}
+      scrapeTimeout: {{ .Values.webUi.serviceMonitor.scrapeTimeout }}
+      {{- end }}
+      {{- if .Values.webUi.serviceMonitor.relabelings }}
+      relabelings: {{- include "common.tplvalues.render" (dict "value" .Values.webUi.serviceMonitor.relabelings "context" $) | nindent 6 }}
+      {{- end }}
+      {{- if .Values.webUi.serviceMonitor.metricRelabelings }}
+      metricRelabelings: {{- include "common.tplvalues.render" (dict "value" .Values.webUi.serviceMonitor.metricRelabelings "context" $) | nindent 6 }}
+      {{- end }}
+      {{- if .Values.webUi.serviceMonitor.honorLabels }}
+      honorLabels: {{ .Values.webUi.serviceMonitor.honorLabels }}
+      {{- end }}
+  namespaceSelector:
+    matchNames:
+      - {{ include "common.names.namespace" $ | quote }}
+{{- end }}

@@ -526,10 +526,12 @@ so 3.9.0 starts; keep that override when bumping the Kafka image tag.
   the `kubernetes` EndpointSlice `lookup` namespace in the network policies (`fix-kube-ping-api-egress`) and the
   missing release-namespace declarations (`declare-axon-showcase-namespace`). Prefer rendering the chart locally with
   `helm template` to inspect what the source produces before (or alongside) inspecting live resources.
-- **Checking CI status**: don't poll a PR build with an idle `sleep` loop — query the GitHub check-runs API directly
-  (via the GitHub MCP `pull_request_read` / `get_check_runs`, or the commits endpoint) when the status is needed. A
-  docs/build change's `build` check typically completes in about a minute; check once shortly after pushing, then
-  confirm green before archiving/merging. Idle sleep loops only waste time and add no information.
+- **Checking CI status**: don't poll a PR build with an idle `sleep` loop — use `gh run watch <run-id> --exit-status`
+  (or `gh pr checks <pr> --watch`), which blocks until the check finishes and exits non-zero on failure. When the run
+  id isn't known, fetch it once via the GitHub MCP `pull_request_read` / `get_check_runs` (or `gh run list`), then
+  `gh run watch` it — one blocking call, no manual polling. A docs/build change's `build` check typically completes in
+  about a minute; check once shortly after pushing, then confirm green before archiving/merging. Idle sleep loops only
+  waste time and add no information.
 - **Exec tasks (`docker`, `pack`, `snyk`) fail in IDEA on macOS**: an IDEA launched from Finder/Dock (or a stale
   Gradle daemon) gives the Gradle daemon a minimal PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) without `/opt/homebrew/bin`,
   so bare-name execs ("command 'docker' not found") fail even though the tools are installed. Root cause: Gradle

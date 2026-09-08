@@ -17,16 +17,15 @@ transitive dependency today without adopting it as a serialization backend.
 ## Decision
 
 Retain Jackson 2 as the serialization backend. When moving to Spring Boot 4, use the framework's Jackson 2 bridge to
-keep the existing `jackson2-bom`, `jackson2-databind`, `jackson2-jsr310`, and `jackson2-module-blackbird`
-configuration. A Jackson 3 migration is a separate, later change, undertaken only once Axon and the OpenSearch client
-support it.
+keep the existing `jackson2-bom`, `jackson2-databind`, `jackson2-jsr310`, and `jackson2-module-blackbird` configuration.
+A Jackson 3 migration is a separate, later change, undertaken only once Axon and the OpenSearch client support it.
 
 ## Consequences
 
 - The serialized event format stays stable across the Spring Boot upgrade, protecting event-store replay and
   cross-service wire compatibility.
-- The project carries the Jackson 2 bridge on Spring Boot 4, which may emit deprecation warnings until a future
-  Jackson 3 migration.
+- The project carries the Jackson 2 bridge on Spring Boot 4, which may emit deprecation warnings until a future Jackson
+  3 migration.
 - A dedicated effort (new change + ADR update) is required before adopting Jackson 3.
 - The `jackson3-bom` is kept current on minor versions so the transitively-present Jackson 3 artifacts (via
   `elasticsearch-java`) track upstream patch/minor fixes; this is dependency hygiene, not the deferred migration.

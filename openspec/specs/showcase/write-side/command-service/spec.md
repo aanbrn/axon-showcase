@@ -1,10 +1,12 @@
 # showcase/command-service Specification
 
 ## Purpose
+
 Documents the current behavior of the write side of the CQRS showcase application: command handling, aggregate state
 transitions, event emission, validation, saga deadlines, and event store persistence.
 
 ## Requirements
+
 ### Requirement: Command handling contract
 
 The system SHALL receive the commands `ScheduleShowcaseCommand`, `StartShowcaseCommand`, `FinishShowcaseCommand`, and
@@ -30,8 +32,8 @@ aggregate.
 #### Scenario: RemoveShowcaseCommand dispatched
 
 - **WHEN** a `RemoveShowcaseCommand` is dispatched for an existing showcase
-- **THEN** the title reservation is released, and a `ShowcaseRemovedEvent` is emitted with showcaseId and removedAt;
-  if the showcase was started, a `ShowcaseFinishedEvent` is emitted before `ShowcaseRemovedEvent`
+- **THEN** the title reservation is released, and a `ShowcaseRemovedEvent` is emitted with showcaseId and removedAt; if
+  the showcase was started, a `ShowcaseFinishedEvent` is emitted before `ShowcaseRemovedEvent`
 
 ### Requirement: Showcase lifecycle state machine
 
@@ -200,14 +202,14 @@ record key and the Axon event message as the record value.
 
 - **WHEN** a `ShowcaseScheduledEvent` is emitted and persisted
 - **THEN** the event is published to the Kafka topic `axon-showcase-events` keyed by the showcase ID
-    
+
 ### Requirement: Configurable caching and snapshotting
 
 The system SHALL expose the aggregate caches and the showcase snapshot trigger through the `showcase.command`
-configuration properties: the showcase, saga, and saga-associations caches each with a maximum size and access and
-write expiry durations, and the snapshot trigger with a load time threshold. The properties SHALL default to a maximum
-size of 1000, an access expiry of PT10M, a write expiry of PT5M, and a snapshot load time threshold of PT0.5S, and SHALL
-be overridable through environment variables.
+configuration properties: the showcase, saga, and saga-associations caches each with a maximum size and access and write
+expiry durations, and the snapshot trigger with a load time threshold. The properties SHALL default to a maximum size of
+1000, an access expiry of PT10M, a write expiry of PT5M, and a snapshot load time threshold of PT0.5S, and SHALL be
+overridable through environment variables.
 
 #### Scenario: Default cache configuration applies
 

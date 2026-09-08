@@ -1,10 +1,12 @@
 # showcase/quality/code-quality Specification
 
 ## Purpose
+
 Enforces the project's code style and static quality conventions through the build, so style checks are uniform and
 independent of any developer IDE.
 
 ## Requirements
+
 ### Requirement: Code style is enforced by the build
 
 The build SHALL run a code-style check as part of the standard `check` task across all modules.
@@ -92,6 +94,7 @@ file.
 
 - **WHEN** a source file does not carry the SPDX license header
 - **THEN** the formatting check fails on that file
+
 ### Requirement: Quality verification does not require an IDE
 
 The standard `check` task SHALL verify all code-quality gates entirely within the Gradle build, so a contributor never

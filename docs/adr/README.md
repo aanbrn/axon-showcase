@@ -1,8 +1,8 @@
 # Architecture Decision Records
 
-This directory records the project's architecture decisions as lightweight, numbered ADRs using the Nygard format.
-They capture the **context, decision, and consequences** behind cross-cutting choices — the *why* that specs and code
-do not express. OpenSpec specs capture what the system does; ADRs capture why it is shaped that way.
+This directory records the project's architecture decisions as lightweight, numbered ADRs using the Nygard format. They
+capture the **context, decision, and consequences** behind cross-cutting choices — the _why_ that specs and code do not
+express. OpenSpec specs capture what the system does; ADRs capture why it is shaped that way.
 
 ## Naming
 
@@ -27,8 +27,7 @@ What was decided, and the alternatives considered and rejected.
 
 ## Consequences
 
-What becomes easier or harder, what this enables and what it forecloses. Update this section
-if the trade-offs change.
+What becomes easier or harder, what this enables and what it forecloses. Update this section if the trade-offs change.
 ```
 
 ## Writing a new ADR

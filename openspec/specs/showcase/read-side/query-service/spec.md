@@ -1,10 +1,12 @@
 # showcase/query-service Specification
 
 ## Purpose
+
 Documents the current behavior of the read side of the CQRS showcase application: exposing protobuf query endpoints,
 dispatching Axon streaming queries, and searching the `showcases` projection in OpenSearch.
 
 ## Requirements
+
 ### Requirement: Query transport and endpoints
 
 The system SHALL expose two HTTP endpoints accepting a protobuf `QueryRequest` body: `POST /streaming-query` returning
@@ -91,15 +93,15 @@ whose `fieldErrors` property maps each offending property path to its violation 
 
 - **WHEN** a `FetchShowcaseListQuery` is dispatched whose payload violates its constraints (for example an `afterId`
   that is not a valid KSUID or a `size` outside 1 to 1000 inclusive) and validation is enabled (the default)
-- **THEN** the system rejects the request with a 400 Bad Request, detail "Given query is not valid", and a
-  `fieldErrors` map of each offending property path to its validation messages
+- **THEN** the system rejects the request with a 400 Bad Request, detail "Given query is not valid", and a `fieldErrors`
+  map of each offending property path to its validation messages
 
 #### Scenario: Invalid by-ID query is rejected with property errors
 
 - **WHEN** a `FetchShowcaseByIdQuery` is dispatched with a `showcaseId` that is not a valid KSUID and validation is
   enabled (the default)
-- **THEN** the system rejects the request with a 400 Bad Request, detail "Given query is not valid", and a
-  `fieldErrors` map of the `showcaseId` property to its validation messages
+- **THEN** the system rejects the request with a 400 Bad Request, detail "Given query is not valid", and a `fieldErrors`
+  map of the `showcaseId` property to its validation messages
 
 #### Scenario: Query violating constraints succeeds when validation is disabled
 

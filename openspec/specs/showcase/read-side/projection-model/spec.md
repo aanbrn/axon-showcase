@@ -3,8 +3,8 @@
 ## Purpose
 
 Documents the behavior of the showcase projection model: the shared `showcases` read-model document, its OpenSearch
-index mapping and sort configuration, and its Jackson serialization contract — the contract between the projection
-side that writes the document and the query side that reads it.
+index mapping and sort configuration, and its Jackson serialization contract — the contract between the projection side
+that writes the document and the query side that reads it.
 
 ## Requirements
 

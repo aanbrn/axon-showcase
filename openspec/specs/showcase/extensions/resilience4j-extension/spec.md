@@ -1,11 +1,13 @@
 # showcase/resilience4j-extension Specification
 
 ## Purpose
+
 Documents the behavior of the Resilience4j extension: a Spring Boot `AutoConfigurationImportFilter` that provides
 hierarchical, property-driven control over which Resilience4j feature auto-configurations are imported, enabling a
 master enable/disable switch and per-feature toggles.
 
 ## Requirements
+
 ### Requirement: Master Resilience4j enablement flag
 
 The system SHALL provide a `resilience4j.enabled` property (default `true`) that acts as a master switch for all
@@ -20,16 +22,15 @@ excluded from the Spring Boot auto-configuration import process, regardless of i
 #### Scenario: Master switch disabled
 
 - **WHEN** `resilience4j.enabled` is set to `false`
-- **THEN** all Resilience4j feature auto-configurations are excluded from import, regardless of individual feature
-  flag values
+- **THEN** all Resilience4j feature auto-configurations are excluded from import, regardless of individual feature flag
+  values
 
 ### Requirement: Per-feature enablement flags
 
 The system SHALL provide individual boolean properties (all default `true`) that control whether each Resilience4j
-feature's auto-configuration classes are imported: `resilience4j.bulkhead.enabled`,
-`resilience4j.timelimiter.enabled`, `resilience4j.ratelimiter.enabled`, `resilience4j.circuitbreaker.enabled`, and
-`resilience4j.retry.enabled`. A feature's auto-configuration SHALL be imported only when both the master flag and
-the feature's flag are enabled.
+feature's auto-configuration classes are imported: `resilience4j.bulkhead.enabled`, `resilience4j.timelimiter.enabled`,
+`resilience4j.ratelimiter.enabled`, `resilience4j.circuitbreaker.enabled`, and `resilience4j.retry.enabled`. A feature's
+auto-configuration SHALL be imported only when both the master flag and the feature's flag are enabled.
 
 #### Scenario: Feature flag disabled while master is enabled
 
@@ -44,8 +45,8 @@ the feature's flag are enabled.
 ### Requirement: Bulkhead auto-configuration gated by single flag
 
 The system SHALL gate the bulkhead auto-configuration class import on `resilience4j.enabled` &&
-`resilience4j.bulkhead.enabled`. There is no separate thread-pool-bulkhead auto-configuration class or property;
-the `resilience4j.thread-pool-bulkhead.enabled` property is no longer recognized.
+`resilience4j.bulkhead.enabled`. There is no separate thread-pool-bulkhead auto-configuration class or property; the
+`resilience4j.thread-pool-bulkhead.enabled` property is no longer recognized.
 
 #### Scenario: Bulkhead flag enabled
 
@@ -59,9 +60,9 @@ the `resilience4j.thread-pool-bulkhead.enabled` property is no longer recognized
 
 ### Requirement: Auto-configuration class matching by regex
 
-The system SHALL identify Resilience4j auto-configuration classes by matching their fully qualified class names
-against feature-specific regex patterns. Classes that do not match any feature pattern SHALL pass through
-unfiltered (i.e., remain eligible for import).
+The system SHALL identify Resilience4j auto-configuration classes by matching their fully qualified class names against
+feature-specific regex patterns. Classes that do not match any feature pattern SHALL pass through unfiltered (i.e.,
+remain eligible for import).
 
 #### Scenario: Non-Resilience4j auto-configuration class
 
@@ -76,22 +77,20 @@ unfiltered (i.e., remain eligible for import).
 
 ### Requirement: SPI registration via spring.factories
 
-The system SHALL register the `AutoConfigurationImportFilter` implementation via the
-`META-INF/spring.factories` resource under the
-`org.springframework.boot.autoconfigure.AutoConfigurationImportFilter` key, ensuring the filter is discovered by
-Spring Boot's auto-configuration mechanism.
+The system SHALL register the `AutoConfigurationImportFilter` implementation via the `META-INF/spring.factories`
+resource under the `org.springframework.boot.autoconfigure.AutoConfigurationImportFilter` key, ensuring the filter is
+discovered by Spring Boot's auto-configuration mechanism.
 
 #### Scenario: Filter is discovered by Spring Boot
 
 - **WHEN** a Spring Boot application starts with the `showcase-resilience4j-extension` module on the classpath
-- **THEN** the `AutoConfigurationImportFilter` is instantiated and invoked during the auto-configuration import
-  process
+- **THEN** the `AutoConfigurationImportFilter` is instantiated and invoked during the auto-configuration import process
 
 ### Requirement: Environment injection via EnvironmentAware
 
 The system SHALL obtain the Spring `Environment` via the `EnvironmentAware` callback to resolve Resilience4j feature
-flags. The filter SHALL fail fast with an `IllegalStateException` if the environment has not been injected when
-`match` is invoked.
+flags. The filter SHALL fail fast with an `IllegalStateException` if the environment has not been injected when `match`
+is invoked.
 
 #### Scenario: Environment is injected before match is called
 
@@ -107,8 +106,8 @@ flags. The filter SHALL fail fast with an `IllegalStateException` if the environ
 
 The system SHALL declare all six properties (`resilience4j.enabled`, `resilience4j.bulkhead.enabled`,
 `resilience4j.timelimiter.enabled`, `resilience4j.ratelimiter.enabled`, `resilience4j.circuitbreaker.enabled`,
-`resilience4j.retry.enabled`) in `META-INF/additional-spring-configuration-metadata.json` with type
-`java.lang.Boolean` and `defaultValue` of `true`, enabling IDE auto-completion and documentation in
+`resilience4j.retry.enabled`) in `META-INF/additional-spring-configuration-metadata.json` with type `java.lang.Boolean`
+and `defaultValue` of `true`, enabling IDE auto-completion and documentation in
 `application.properties`/`application.yml` files.
 
 #### Scenario: IDE auto-completion for resilience4j properties
@@ -119,9 +118,9 @@ The system SHALL declare all six properties (`resilience4j.enabled`, `resilience
 ### Requirement: Module dependency exposure
 
 The `showcase-resilience4j-extension` module SHALL be consumed as an `implementation` dependency by client modules
-(e.g., `showcase-command-client`, `showcase-query-client`). The module's types SHALL not be transitively exposed on
-the consumer's API classpath; the filter operates transparently at Spring Boot startup without requiring consumers
-to reference any class from the extension directly.
+(e.g., `showcase-command-client`, `showcase-query-client`). The module's types SHALL not be transitively exposed on the
+consumer's API classpath; the filter operates transparently at Spring Boot startup without requiring consumers to
+reference any class from the extension directly.
 
 #### Scenario: Client module depends on resilience4j-extension via implementation
 

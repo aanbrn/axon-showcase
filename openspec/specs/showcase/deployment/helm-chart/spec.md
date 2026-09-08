@@ -1,6 +1,7 @@
 # showcase/helm-chart Specification
 
 ## Purpose
+
 Documents the current behavior of the Helm chart that deploys the four showcase services, their database migration and
 index initialization jobs, RBAC, network policies, autoscaling, and observability wiring.
 
@@ -20,8 +21,8 @@ SHALL declare the Bitnami `common` chart as a dependency.
 
 The chart SHALL render one Deployment per service (command-service, query-service, projection-service, api-gateway,
 web-ui), each with a single `main` container running the service image, exposing the server, management, and (for
-command-service and api-gateway) JGroups ports, and mounting an empty-dir volume at `/tmp`. The web-ui Deployment
-runs the static web-UI image on its container port (8080) and has no JGroups or management port.
+command-service and api-gateway) JGroups ports, and mounting an empty-dir volume at `/tmp`. The web-ui Deployment runs
+the static web-UI image on its container port (8080) and has no JGroups or management port.
 
 #### Scenario: Deployment replicas are taken from the replica count
 
@@ -42,8 +43,8 @@ runs the static web-UI image on its container port (8080) and has no JGroups or 
 #### Scenario: Container ports are exposed per service
 
 - **WHEN** a service Deployment is rendered
-- **THEN** the container exposes the server port (default 8080) and management port (default 8888), and the JGroups
-  port (default 7800) for command-service and api-gateway; the web-ui container exposes its static-serve port (8080)
+- **THEN** the container exposes the server port (default 8080) and management port (default 8888), and the JGroups port
+  (default 7800) for command-service and api-gateway; the web-ui container exposes its static-serve port (8080)
 
 #### Scenario: Environment comes from values with defaults
 
@@ -81,8 +82,8 @@ Spring Boot actuator endpoints, all gated by their `enabled` flags (default true
 ### Requirement: Security contexts
 
 Each service pod and container SHALL run with hardened security contexts when enabled (default true): the pod with
-`fsGroup` 1001 and `Always` fsGroup change policy, and the container as a non-root user with a read-only root filesystem,
-all Linux capabilities dropped, and the `RuntimeDefault` seccomp profile.
+`fsGroup` 1001 and `Always` fsGroup change policy, and the container as a non-root user with a read-only root
+filesystem, all Linux capabilities dropped, and the `RuntimeDefault` seccomp profile.
 
 #### Scenario: Container drops all capabilities
 
@@ -92,8 +93,8 @@ all Linux capabilities dropped, and the `RuntimeDefault` seccomp profile.
 
 ### Requirement: Per-service services
 
-The chart SHALL render a Service for each service exposing the server and management ports, except command-service
-SHALL expose only the management port.
+The chart SHALL render a Service for each service exposing the server and management ports, except command-service SHALL
+expose only the management port.
 
 #### Scenario: Command service is not directly reachable
 
@@ -163,14 +164,14 @@ The chart SHALL render an HPA and a VPA per service, both gated by their `enable
 #### Scenario: HPA is opt-in
 
 - **WHEN** a service's HPA is enabled
-- **THEN** the chart renders an HPA scaling between the configured minimum and maximum replicas (defaults 3 and 5) on CPU
-  utilization (default target 80 percent)
+- **THEN** the chart renders an HPA scaling between the configured minimum and maximum replicas (defaults 3 and 5) on
+  CPU utilization (default target 80 percent)
 
 #### Scenario: VPA is opt-in
 
 - **WHEN** a service's VPA is enabled
-- **THEN** the chart renders a VPA for the `main` container with the configured resource bounds and update mode
-  (default `Auto`)
+- **THEN** the chart renders a VPA for the `main` container with the configured resource bounds and update mode (default
+  `Auto`)
 
 ### Requirement: Network policies
 
@@ -216,9 +217,9 @@ kube-ping discovery can reach the API server.
 
 ### Requirement: JGroups clustering
 
-The chart SHALL enable JGroups clustering with kube-ping discovery for command-service and api-gateway only: their
-pods carry the `jgroups-cluster: axon-showcase` label and receive the JGroups configuration, bind port, namespace, and
-labels environment.
+The chart SHALL enable JGroups clustering with kube-ping discovery for command-service and api-gateway only: their pods
+carry the `jgroups-cluster: axon-showcase` label and receive the JGroups configuration, bind port, namespace, and labels
+environment.
 
 #### Scenario: JGroups pods carry the cluster label
 
@@ -232,9 +233,8 @@ labels environment.
 
 ### Requirement: Service account and RBAC
 
-The chart SHALL render a ServiceAccount gated by `serviceAccount.create` (default true) and a Role and RoleBinding
-gated by `rbac.create` (default true), granting the service account permission to get and list pods for JGroups
-discovery.
+The chart SHALL render a ServiceAccount gated by `serviceAccount.create` (default true) and a Role and RoleBinding gated
+by `rbac.create` (default true), granting the service account permission to get and list pods for JGroups discovery.
 
 #### Scenario: Role grants pod discovery
 
@@ -260,8 +260,8 @@ false), routing to the api-gateway server port.
 #### Scenario: Route is opt-in
 
 - **WHEN** `apiGateway.route.enabled` is true
-- **THEN** the chart renders an HTTPRoute with the configured hostnames, parent refs, and matches (default a `PathPrefix`
-  of `/`), routing to the api-gateway server port
+- **THEN** the chart renders an HTTPRoute with the configured hostnames, parent refs, and matches (default a
+  `PathPrefix` of `/`), routing to the api-gateway server port
 
 ### Requirement: Connection settings
 
@@ -273,8 +273,8 @@ OpenSearch (default `http://axon-showcase-os-views:9200`, unsecured).
 #### Scenario: Command service connects to the event store database
 
 - **WHEN** a command-service container is rendered
-- **THEN** it receives the database hosts, name, schema, user, and password-from-secret environment and disables
-  in-app Flyway (`FLYWAY_MIGRATION_ENABLED=false`) since migrations run as a hook Job
+- **THEN** it receives the database hosts, name, schema, user, and password-from-secret environment and disables in-app
+  Flyway (`FLYWAY_MIGRATION_ENABLED=false`) since migrations run as a hook Job
 
 #### Scenario: Projection and query services connect to OpenSearch
 
@@ -312,8 +312,8 @@ configured endpoints.
 #### Scenario: OTLP tracing export requires a compatible endpoint
 
 - **WHEN** OTLP tracing export is enabled
-- **THEN** the chart validates that the endpoint is http(s) on port `4317` or `4318`, selects the transport
-  accordingly (grpc or http), and renders the endpoint, transport, and compression
+- **THEN** the chart validates that the endpoint is http(s) on port `4317` or `4318`, selects the transport accordingly
+  (grpc or http), and renders the endpoint, transport, and compression
 
 ### Requirement: Extra deployments and dashboards
 
@@ -333,8 +333,8 @@ dashboard under the `grafana_dashboard: "1"` label so dashboards auto-provision.
 
 ### Requirement: Chart linting
 
-The chart SHALL be linted with `helm lint` in strict mode, treating warnings as errors, and SHALL also lint the
-Bitnami `common` subchart.
+The chart SHALL be linted with `helm lint` in strict mode, treating warnings as errors, and SHALL also lint the Bitnami
+`common` subchart.
 
 #### Scenario: Chart lints clean in strict mode
 
@@ -343,20 +343,20 @@ Bitnami `common` subchart.
 
 ### Requirement: Lint configurations cover template branches
 
-The chart SHALL be linted with a `full` configuration that enables every optional feature and a `minimal`
-configuration that disables the default-on features, so all conditional template branches are rendered during lint.
+The chart SHALL be linted with a `full` configuration that enables every optional feature and a `minimal` configuration
+that disables the default-on features, so all conditional template branches are rendered during lint.
 
 #### Scenario: Full configuration renders optional branches
 
 - **WHEN** the chart is linted with the `full` configuration
-- **THEN** the optional template branches are rendered, including ingress, HTTPRoute, VPA and HPA, secured
-  OpenSearch, observability, extraDeploy, RBAC rules, NetworkPolicy extras, and ServiceMonitor tuning
+- **THEN** the optional template branches are rendered, including ingress, HTTPRoute, VPA and HPA, secured OpenSearch,
+  observability, extraDeploy, RBAC rules, NetworkPolicy extras, and ServiceMonitor tuning
 
 #### Scenario: Minimal configuration renders disabled branches
 
 - **WHEN** the chart is linted with the `minimal` configuration
-- **THEN** the templates render with the default-on features disabled, including ServiceAccount, RBAC,
-  NetworkPolicies, PDBs, ServiceMonitors, probes, autoscaling, and observability
+- **THEN** the templates render with the default-on features disabled, including ServiceAccount, RBAC, NetworkPolicies,
+  PDBs, ServiceMonitors, probes, autoscaling, and observability
 
 ### Requirement: Command-service saga and snapshot environment
 
@@ -386,8 +386,8 @@ deployment.
 ### Requirement: API gateway runtime tuning
 
 The api-gateway Deployment SHALL wire its runtime tuning through environment: the query-service internal URL for read
-routing, two Caffeine query caches (the showcase list and showcase-by-id queries) with size and expiry settings, and
-the resilience4j environment for the time limiter, circuit breaker, and retry, each with defaults and per-service
+routing, two Caffeine query caches (the showcase list and showcase-by-id queries) with size and expiry settings, and the
+resilience4j environment for the time limiter, circuit breaker, and retry, each with defaults and per-service
 command/query overrides.
 
 #### Scenario: Gateway routes reads to the query service
@@ -500,8 +500,8 @@ maximum allowed resource bounds.
 
 ### Requirement: Pod disruption budget details
 
-A service's PDB SHALL use the configured `minAvailable` when set, and otherwise fall back to `maxUnavailable`
-(default 1).
+A service's PDB SHALL use the configured `minAvailable` when set, and otherwise fall back to `maxUnavailable` (default
+1).
 
 #### Scenario: PDB prefers minAvailable
 

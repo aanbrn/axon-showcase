@@ -3,8 +3,8 @@
 ## Purpose
 
 Documents the gateway's live event stream: a Server-Sent-Events endpoint that streams real domain events as they are
-published to Kafka, so clients can observe the CQRS event flow live without reaching into the write side (the Axon
-event store is never read by the gateway).
+published to Kafka, so clients can observe the CQRS event flow live without reaching into the write side (the Axon event
+store is never read by the gateway).
 
 ## Requirements
 
@@ -12,14 +12,13 @@ event store is never read by the gateway).
 
 The gateway SHALL expose a Server-Sent-Events endpoint that streams showcase domain events as they occur. Events are
 consumed from the Kafka topic the command service publishes to, using a consumer group distinct from the projection
-service's, and are decoded with the Axon event serializer. The event stream is the sole event source — the gateway
-SHALL NOT read the Axon event store and no projected events index SHALL be introduced.
+service's, and are decoded with the Axon event serializer. The event stream is the sole event source — the gateway SHALL
+NOT read the Axon event store and no projected events index SHALL be introduced.
 
 #### Scenario: A domain event is streamed
 
 - **WHEN** a showcase domain event is published to the Kafka topic
-- **THEN** the SSE stream delivers the event, carrying at least the event type, the showcase ID, and the event
-  timestamp
+- **THEN** the SSE stream delivers the event, carrying at least the event type, the showcase ID, and the event timestamp
 
 #### Scenario: Events carry their type and identity
 

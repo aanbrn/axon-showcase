@@ -2,7 +2,10 @@
 
 ## Conventions
 
-- Wrap code and text at 120 characters.
+- Wrap code and text at 120 characters. Markdown (`docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, and active
+  `openspec/changes/*/`; archived changes are excluded) is formatted automatically by the root Spotless `markdown`
+  format (Prettier at `printWidth: 120` with `proseWrap: "always"`), gated in `check` via `spotlessCheck` — no manual
+  wrapping needed for those files; Java/Kotlin are gated by Spotless too.
 
 ## Project Overview
 
@@ -11,9 +14,8 @@
 
 This repo uses **spec-driven development**: behavior is captured as OpenSpec specs in `openspec/specs/showcase/`
 (organized by architectural role: `gateway`, `write-side`, `read-side`, `clients`, `extensions`, `deployment`,
-`quality`).
-Code changes go through the `opsx-*` opencode commands / `openspec-*` skills (propose → apply → archive). Follow these
-workflows for new work, and treat the captured specs as the behavioral source of truth.
+`quality`). Code changes go through the `opsx-*` opencode commands / `openspec-*` skills (propose → apply → archive).
+Follow these workflows for new work, and treat the captured specs as the behavioral source of truth.
 
 ## OpenSpec Workflow Agreement
 
@@ -33,17 +35,17 @@ into the new PR (a fix PR ended up shipping a change's commit history); recover 
 force-pushing, then verify the PR's changed-file set is the intended one.
 
 **Leave implementation uncommitted until the user has reviewed it.** After applying a change, do not commit the
-implementation before the user has done their review pass — keep the working-tree diff visible (`git status`/`git
-diff`) so they can see exactly which files changed. Commit only after the user approves the implementation (or
-explicitly asks to commit); the planning artifacts may be committed separately.
+implementation before the user has done their review pass — keep the working-tree diff visible (`git status`/`git diff`)
+so they can see exactly which files changed. Commit only after the user approves the implementation (or explicitly asks
+to commit); the planning artifacts may be committed separately.
 
-**Sync the main spec only at archive.** Apply edits code and the change dir's *delta* spec — never the main spec under
+**Sync the main spec only at archive.** Apply edits code and the change dir's _delta_ spec — never the main spec under
 `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source of
 truth never describes behavior the code hasn't yet been verified against.
 
 **Run CI before archiving; one PR per change.** Push the implementation branch and open a PR with the code and the
 active change dir. After the `build` check is green and the user approves, archive the change (move the change dir and
-sync the main spec) as an additional commit in the *same* PR, then merge once. The archive — the declaration that a
+sync the main spec) as an additional commit in the _same_ PR, then merge once. The archive — the declaration that a
 change is done — always follows CI, never precedes it.
 
 ## Prerequisites
@@ -111,10 +113,9 @@ change is done — always follows CI, never precedes it.
 ./gradlew :showcase-web-ui:check
 ```
 
-The `/dependency-updates` opencode command runs this task and summarizes the available updates; the
-`/gradle-update` command updates the Gradle wrapper to the latest stable version when one is available, and the
-`/opsx-tool-update` command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI
-release.
+The `/dependency-updates` opencode command runs this task and summarizes the available updates; the `/gradle-update`
+command updates the Gradle wrapper to the latest stable version when one is available, and the `/opsx-tool-update`
+command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI release.
 
 Build-environment constraints can surface as spurious "current version" rows in the report: build tooling such as
 SpotBugs publishes module constraints that `checkBuildEnvironmentConstraints` reads and reports as the current version.
@@ -140,9 +141,9 @@ update — matching Spring's release-train definition where `2025.0` and `2025.1
 only in the service-release (third) segment within the same train is a minor/patch update. Semver coordinates keep the
 leading-integer major comparison.
 
-**Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. `check` runs the first
-three by default (`-PskipITs` drops integration for Docker-free runs); `e2eTest` is a separate opt-in task, and the
-only e2e suite is `showcase-api-gateway`'s (it builds all four service images).
+**Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. `check` runs the first three by
+default (`-PskipITs` drops integration for Docker-free runs); `e2eTest` is a separate opt-in task, and the only e2e
+suite is `showcase-api-gateway`'s (it builds all four service images).
 
 **Test tiers** — a test's tier is decided by its collaborators (what is real vs. faked), not by how long it takes to
 run:
@@ -155,11 +156,11 @@ run:
   `QueryMessageRequestMapperCT`, `ShowcaseAggregateCT`, `ShowcaseQueryClientCT`).
 - **Integration** (`src/integrationTest/java`, suffix `IT`): real external infrastructure via Testcontainers
   (PostgreSQL, Kafka, OpenSearch). Verifies services against the real things they talk to.
-- **End-to-end** (`src/e2eTest/java`, suffix `E2E`): a real deployed system is booted and exercised against
-  all-real collaborators, transport-independent — HTTP for the gateway/query-service, the distributed command bus
-  (JGroups) for the command-service. The gateway e2e boots the full four-service pipeline and verifies cross-service
-  propagation over the full command → Kafka → projection → query pipeline (e.g. `ShowcaseApiGatewayE2E`). The web UI
-  e2e (`showcase-web-ui/e2e`, Playwright) boots the same pipeline via docker compose and drives the browser against it:
+- **End-to-end** (`src/e2eTest/java`, suffix `E2E`): a real deployed system is booted and exercised against all-real
+  collaborators, transport-independent — HTTP for the gateway/query-service, the distributed command bus (JGroups) for
+  the command-service. The gateway e2e boots the full four-service pipeline and verifies cross-service propagation over
+  the full command → Kafka → projection → query pipeline (e.g. `ShowcaseApiGatewayE2E`). The web UI e2e
+  (`showcase-web-ui/e2e`, Playwright) boots the same pipeline via docker compose and drives the browser against it:
   create → appears, start → STARTED, saga auto-start reflected over SSE, live events appended to the timeline, and a
   duplicate title surfacing the gateway validation error.
 
@@ -179,47 +180,46 @@ initialized:
 `.github/workflows/ci.yml` runs a single `build` job on every pull request and every push to `main`:
 
 - **Pull requests** run the Docker-free fast gate: `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` plus
-  `openspec validate --all` — the coverage gate is disabled because the 0.80 baseline is calibrated on
-  integration-test coverage, which PRs skip by design.
+  `openspec validate --all` — the coverage gate is disabled because the 0.80 baseline is calibrated on integration-test
+  coverage, which PRs skip by design.
 - **Pushes to `main`** run the full gate: `./gradlew check` (with integration tests and the coverage gate) plus
   `openspec validate --all`.
 
 The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (dependencies, wrapper, and local build
 cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the
-coverage gate. The `ci.yml` and `e2e.yml` workflows additionally extend `gradle-home-cache-includes` with `nodejs` (the
-node-gradle plugin's Node download in `~/.gradle/nodejs`) and add an `actions/cache` step for the npm package cache
-(`~/.npm`, keyed on `showcase-web-ui/package-lock.json`), so the web-UI build does not re-download the Node runtime or
-the dependency tree on every run. The `main-required-checks` branch ruleset requires the `build` check for every merge
-into `main`, with no bypass actors.
+coverage gate. The `.github/workflows/ci.yml` and `.github/workflows/e2e.yml` workflows additionally extend
+`gradle-home-cache-includes` with `nodejs` (the node-gradle plugin's Node download in `~/.gradle/nodejs`) and add an
+`actions/cache` step for the npm package cache (`~/.npm`, keyed on `showcase-web-ui/package-lock.json`), so the web-UI
+build does not re-download the Node runtime or the dependency tree on every run. The `main-required-checks` branch
+ruleset requires the `build` check for every merge into `main`, with no bypass actors.
 
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
 pipeline with Playwright) on a nightly schedule and via `workflow_dispatch`. It installs the `pack` CLI explicitly
-(`buildpacks/github-actions/setup-pack`, pinned to the same version as local development — the GitHub runner image
-does not guarantee it), and uses `actions/cache@v6` for the npm cache. It is observational — never a merge gate, no
-secrets, and it shares the same `gradle/actions/setup-gradle` caching rules as `ci.yml`.
+(`buildpacks/github-actions/setup-pack`, pinned to the same version as local development — the GitHub runner image does
+not guarantee it), and uses `actions/cache@v6` for the npm cache. It is observational — never a merge gate, no secrets,
+and it shares the same `gradle/actions/setup-gradle` caching rules as `.github/workflows/ci.yml`.
 
 `.github/workflows/snyk.yml` runs the credentialed dependency security scan (`./gradlew dependencySecurityCheck`, all
 sub-projects with the root `.snyk` policy) on a weekly schedule and via `workflow_dispatch`, authenticated with the
 `SNYK_TOKEN` secret. It is observational — never a merge gate.
 
-`.github/workflows/dependency-updates.yml` runs the Gradle dependency update report (`./gradlew dependencyUpdates`)
-on a weekly schedule and via `workflow_dispatch`, opening or updating the "Dependency updates" issue with only the
-actionable sections of `build/dependencyUpdates/report.txt` (stable catalog updates + the Gradle wrapper status)
-using the `GITHUB_TOKEN` (`issues: write`). When there are actionable updates it posts a comment mentioning the
-repository owner (so they are notified); runs with no updates update the issue silently. It is observational — never
-a merge gate.
+`.github/workflows/dependency-updates.yml` runs the Gradle dependency update report (`./gradlew dependencyUpdates`) on a
+weekly schedule and via `workflow_dispatch`, opening or updating the "Dependency updates" issue with only the actionable
+sections of `build/dependencyUpdates/report.txt` (stable catalog updates + the Gradle wrapper status) using the
+`GITHUB_TOKEN` (`issues: write`). When there are actionable updates it posts a comment mentioning the repository owner
+(so they are notified); runs with no updates update the issue silently. It is observational — never a merge gate.
 
-`.github/workflows/helm-updates.yml` runs the Helm update check (`./gradlew helmUpdates`) on a weekly schedule and
-via `workflow_dispatch`, opening or updating the "Helm updates" issue with the actionable coordinates from
+`.github/workflows/helm-updates.yml` runs the Helm update check (`./gradlew helmUpdates`) on a weekly schedule and via
+`workflow_dispatch`, opening or updating the "Helm updates" issue with the actionable coordinates from
 `build/helm-updates/report.txt` (the Helm CLI and pinned chart versions that have a newer version), using the
-`GITHUB_TOKEN` (`issues: write`). When there are updates it posts a comment mentioning the repository owner (so they
-are notified); runs with no updates update the issue silently. It is observational — never a merge gate.
+`GITHUB_TOKEN` (`issues: write`). When there are updates it posts a comment mentioning the repository owner (so they are
+notified); runs with no updates update the issue silently. It is observational — never a merge gate.
 
-`.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so an action
-whose major bump targets a newer Node runtime (e.g. the Node 20 → Node 24 migration) surfaces as a reviewable PR
-instead of a silent CI deprecation warning. The `opencode` workflow's `anomalyco/opencode/github@latest` is a
-deliberate floating ref that Dependabot does not manage.
+`.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so an action whose
+major bump targets a newer Node runtime (e.g. the Node 20 → Node 24 migration) surfaces as a reviewable PR instead of a
+silent CI deprecation warning. The `opencode` workflow's `anomalyco/opencode/github@latest` is a deliberate floating ref
+that Dependabot does not manage.
 
 ## Architecture
 
@@ -231,8 +231,8 @@ CQRS with 4 services + an API gateway:
 - **showcase-api-gateway** — REST entry point (`/showcases`), routes to command/query services; also exposes the live
   event stream over SSE (`/events`) and applies CORS for the web UI origin
 - **showcase-web-ui** — standalone browser UI (React + Vite, Feature-Sliced Design) that browses and drives showcases
-  through the gateway and renders the live event timeline; deployed as its own nginx container image (see Docker
-  Images) with the API base URL configured via `SHOWCASE_API_BASE_URL`
+  through the gateway and renders the live event timeline; deployed as its own nginx container image (see Docker Images)
+  with the API base URL configured via `SHOWCASE_API_BASE_URL`
 
 Key modules (libraries, not services):
 
@@ -272,41 +272,40 @@ Key modules (libraries, not services):
 - **Spring bean mocks in tests**: use `@MockitoBean` (from `org.springframework.test.context.bean.override.mockito`),
   not the deprecated-for-removal `@MockBean` (`org.springframework.boot.test.mock.mockito`), which has been deprecated
   since Spring Boot 3.4
-- **Test tier placement**: a test's tier is decided by its collaborators (see Test tiers). Verify the application's
-  bean wiring (`@SpringBootApplication` config) at the **integration** tier via a real context boot — do not write
-  component tests that mock the app's own collaborators. Component tests compose real in-process collaborators (e.g.
-  a real mapper) with only external infrastructure faked
+- **Test tier placement**: a test's tier is decided by its collaborators (see Test tiers). Verify the application's bean
+  wiring (`@SpringBootApplication` config) at the **integration** tier via a real context boot — do not write component
+  tests that mock the app's own collaborators. Component tests compose real in-process collaborators (e.g. a real
+  mapper) with only external infrastructure faked
 - **Nested test groups for resilience features**: a `@Nested` class that groups Resilience4j scenarios is named
   `<Feature>Behavior` (e.g., `TimeLimiterBehavior`, `RetryBehavior`, `CircuitBreakerBehavior`), both for uniformity and
   to avoid shadowing the library's `CircuitBreaker` type
 - **BlockHound jvmArgs**: only suites whose tests call `BlockHound.install()` need
-  `-XX:+AllowRedefinitionToAddDeleteMethods` and `-XX:+EnableDynamicAgentLoading` (e.g. the query-client
-  `componentTest` and the gateway `e2eTest` suites); leave them off suites that don't (e.g. a `componentTest` with only
-  an `ApplicationContextRunner` test)
-- **Asserting log output**: use `OutputCaptureExtension` (`CapturedOutput`) when the code under test runs **in the
-  test JVM** (e.g. `ShowcaseProjectorIT`'s projector logging, `ShowcaseApiControllerCT`'s gateway fallback logging).
-  It cannot capture a separate process's output — to assert a **containerized** service's logs (the code-under-test
-  runs in a different JVM), collect them via `withLogConsumer` into a `static StringBuilder` and poll it, as the
-  command-client e2e did before the suite was consolidated (see `69f2811`)
+  `-XX:+AllowRedefinitionToAddDeleteMethods` and `-XX:+EnableDynamicAgentLoading` (e.g. the query-client `componentTest`
+  and the gateway `e2eTest` suites); leave them off suites that don't (e.g. a `componentTest` with only an
+  `ApplicationContextRunner` test)
+- **Asserting log output**: use `OutputCaptureExtension` (`CapturedOutput`) when the code under test runs **in the test
+  JVM** (e.g. `ShowcaseProjectorIT`'s projector logging, `ShowcaseApiControllerCT`'s gateway fallback logging). It
+  cannot capture a separate process's output — to assert a **containerized** service's logs (the code-under-test runs in
+  a different JVM), collect them via `withLogConsumer` into a `static StringBuilder` and poll it, as the command-client
+  e2e did before the suite was consolidated (see `69f2811`)
 - **`@DirtiesContext`**: add it only where a full-context boot leaks global JVM state — JGroups (ports and system
   properties) and JCache (a JVM-global cache manager). Contexts that are safely cacheable don't need it: service slices,
   and `@Nested` classes with distinct `@ActiveProfiles` (which already get separate cached contexts). Keep it on the
-  gateway/command-service full-context ITs (and the gateway e2e test, which pulls in JGroups); drop it
-  elsewhere
+  gateway/command-service full-context ITs (and the gateway e2e test, which pulls in JGroups); drop it elsewhere
 - **Code coverage**: modules opt in via `code-coverage-conventions`. Coverage is measured per module with
   `jacocoTestReport` (unit + component + integration exec data) and aggregated with the root `jacocoRootReport`. The
   `jacocoTestCoverageVerification` gate is wired into `check` at the baseline in
   `config/jacoco/coverage-baseline.properties` and requires Docker (integration tests). A module can extend the
   generated-class excludes via `coverage.generatedClassExcludes`
 - **Architecture Decision Records**: record cross-cutting architecture decisions as numbered ADRs under `docs/adr/`
-  (Nygard format — Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture
-  the *why* behind structural choices. Capture a decision as an ADR when it is made, not after the fact
+  (Nygard format — Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture the
+  _why_ behind structural choices. Capture a decision as an ADR when it is made, not after the fact
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md` and `README.md` need to be refreshed to
   reflect the new state (commands, config, conventions, gotchas) and update them before reporting the change done
 - **No comments** in source code (per project convention). The sole exception is the `// SPDX-License-Identifier: MIT`
-  header, enforced by Spotless on every Java file and by `eslint-plugin-header` (`@tony.ganchev/eslint-plugin-header`
-  in the flat `eslint.config.js`, since the original plugin is unmaintained and does not support ESLint 9/10) on every
-  `showcase-web-ui` source file (the project is MIT licensed; see the LICENSE file)
+  header, enforced by Spotless on every Java file and by `eslint-plugin-header` (`@tony.ganchev/eslint-plugin-header` in
+  the flat `showcase-web-ui/eslint.config.js`, since the original plugin is unmaintained and does not support ESLint
+  9/10) on every `showcase-web-ui` source file (the project is MIT licensed; see the LICENSE file)
 - **Javadoc**: classes, methods, and fields carry a Javadoc comment describing their purpose (see
   `ShowcaseApiErrorResolver`, `ShowcaseApiController`); wrap at 120 characters. The `showcase-web-ui` uses JSDoc the
   same way: exported components, hooks, and helpers carry a `/** ... */` comment describing their purpose (e.g.
@@ -314,27 +313,29 @@ Key modules (libraries, not services):
 - **Frontend (`showcase-web-ui`)**: organized per Feature-Sliced Design (`app`/`pages`/`widgets`/`features`/`entities`/
   `shared`, importing only downward, `@/` alias → `src/`). Server state via TanStack Query, client state via a Redux
   Toolkit slice, forms via React Hook Form + Zod. Format with Prettier (`format:check` gated in `check`); lint with
-  ESLint 10 via the flat `eslint.config.js`
+  ESLint 10 via the flat `showcase-web-ui/eslint.config.js`
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable
 - **Formatting**: format Java sources and Gradle Kotlin DSL (`*.gradle.kts`) files with `./gradlew spotlessApply`
   (Spotless: palantir-java-format for Java, ktfmt for `.gradle.kts`, both fixed 120 columns) — the canonical format
   step, enforced by `spotlessCheck` in `check` with no IDE required. After each edit, run `spotlessApply` (via the
-  `codefmt` skill's Spotless path) before reporting the change done; the IntelliJ formatter is no longer canonical,
-  and import order is owned by the formatter.
-  - The 120-character wrapping convention still applies manually to content the formatter does not touch (Markdown,
-    YAML, and so on); verify with `awk 'length > 120'` over edited files.
-  - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body
-    (`(x) -> { ... }`) so the formatter indents the statements normally instead of deep-aligning one long expression.
-    The resulting "Statement lambda can be replaced with expression lambda" inspection is suppressed with
+  `codefmt` skill's Spotless path) before reporting the change done; the IntelliJ formatter is no longer canonical, and
+  import order is owned by the formatter.
+  - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML, and so
+    on); markdown is formatted by the root Spotless `markdown` format (Prettier at `printWidth: 120` — a preference, not
+    a hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating markdown wrapping).
+    Verify with `awk 'length > 120'` over edited files.
+  - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
+    so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
+    "Statement lambda can be replaced with expression lambda" inspection is suppressed with
     `@SuppressWarnings("CodeBlock2Expr")` on the source method (the correct token — not `StatementLambdaInspection`).
 - **IDE inspections (optional)**: the build gates are the canonical verification — after each edit, run
   `./gradlew spotlessApply` and the touched module's quality gates (`compileJava`/`check`); no IDE is required. If the
   IDE is available, you may additionally run its inspections on the touched files (through the Steroid MCP
-  `steroid_execute_code` / `runInspectionsDirectly`) and fix warnings, but this is not required and never a gate.
-  Prefer assertions like `assertThat(x).isNotNull()` over `Objects.requireNonNull(x)` when guarding nullable values in
-  tests, since the IDE recognizes them for dataflow.
+  `steroid_execute_code` / `runInspectionsDirectly`) and fix warnings, but this is not required and never a gate. Prefer
+  assertions like `assertThat(x).isNotNull()` over `Objects.requireNonNull(x)` when guarding nullable values in tests,
+  since the IDE recognizes them for dataflow.
 - **Vision subagent for screenshot review**: the main agent runs on the cheap `opencode-go/deepseek-v4-flash`
   (text-only); a `vision` subagent (`.opencode/agent/vision.md`) is pinned to `opencode-go/deepseek-v4-flash-vision-exp`
   to read screenshots. When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent —
@@ -342,9 +343,9 @@ Key modules (libraries, not services):
   while the main session stays on the cheap model. This auto-routes vision work without manual model switching.
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
-  `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the
-  desired plugin version and update the recorded version here and in the `showcase/quality/agent-skills` spec — a
-  deliberate, reviewed change, not silent drift.
+  `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired
+  plugin version and update the recorded version here and in the `showcase/quality/agent-skills` spec — a deliberate,
+  reviewed change, not silent drift.
 
 ## Docker Images
 
@@ -361,22 +362,22 @@ ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64
 `bootBuildImage`/`dockerBuildImage` task's `imagePlatform` `@Option`.
 
 The web-UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
-`PackBuildImageTask`) that runs the `pack` CLI with the Paketo NGINX + Procfile buildpacks over `build/dist` (the
-`pack` CLI is a build prerequisite like Helm/Snyk). The image serves the bundle via nginx on `8080` and exposes nginx
+`PackBuildImageTask`) that runs the `pack` CLI with the Paketo NGINX + Procfile buildpacks over `build/dist` (the `pack`
+CLI is a build prerequisite like Helm/Snyk). The image serves the bundle via nginx on `8080` and exposes nginx
 `stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a gated
 `nginx-prometheus-exporter` sidecar (`webUi.metricsExporter`, on by default when observability metrics export and the
 web-UI ServiceMonitor are enabled) converts stub_status to Prometheus `/metrics` on port `9113`, which the Service
-`http-metrics` port and ServiceMonitor scrape. A `PackBuildImageTask` convention defaults the image
-name to `${project.name}:${project.version}`, which the web-UI module overrides with the deployable
+`http-metrics` port and ServiceMonitor scrape. A `PackBuildImageTask` convention defaults the image name to
+`${project.name}:${project.version}`, which the web-UI module overrides with the deployable
 `aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. The UI's API base URL is
 configured at runtime via the `SHOWCASE_API_BASE_URL` env var — **no baked default** (the browser needs the
 externally-visible gateway URL, which only the deployment knows; compose sets `http://localhost:8080`, the Helm chart
 uses `webUi.apiBaseUrl` with an empty default) — which a `start.sh` renders into `/workspace/config.js` at container
-start (failing fast if the env var is unset/empty) — no ConfigMap or volume mount. The `dockerBuildImage` run prints
-two informational warnings from the toolchain, not defects: "Exporting to docker daemon (building without --publish)
-and daemon uses containerd storage" (pack exports to the local daemon's containerd store, losing the fast publish
-path) and "deprecated usage of stack" (an upstream Paketo buildpack still declares the deprecated `stacks` key instead
-of `targets`). Neither is actionable in the build — ignore them.
+start (failing fast if the env var is unset/empty) — no ConfigMap or volume mount. The `dockerBuildImage` run prints two
+informational warnings from the toolchain, not defects: "Exporting to docker daemon (building without --publish) and
+daemon uses containerd storage" (pack exports to the local daemon's containerd store, losing the fast publish path) and
+"deprecated usage of stack" (an upstream Paketo buildpack still declares the deprecated `stacks` key instead of
+`targets`). Neither is actionable in the build — ignore them.
 
 ## Kubernetes Deployment
 
@@ -397,18 +398,17 @@ helm install axon-showcase ./helm/chart --namespace axon-showcase --create-names
 ./gradlew helmInstallToLocal
 ```
 
-Per-release install/uninstall tasks follow `helmInstall<Release>To<Target>` / `helmUninstall<Release>From<Target>`,
-e.g. `helmInstallKpsToLocal` and `helmUninstallKpsFromLocal` (to install/verify a single chart without building
-images — the app-release install task additionally depends on the four `bootBuildImage` tasks). Uninstalling leaves
-`createNamespace` namespaces (`monitoring`, `axon-showcase`) behind; remove them with `kubectl delete namespace`
-afterwards.
+Per-release install/uninstall tasks follow `helmInstall<Release>To<Target>` / `helmUninstall<Release>From<Target>`, e.g.
+`helmInstallKpsToLocal` and `helmUninstallKpsFromLocal` (to install/verify a single chart without building images — the
+app-release install task additionally depends on the four `bootBuildImage` tasks). Uninstalling leaves `createNamespace`
+namespaces (`monitoring`, `axon-showcase`) behind; remove them with `kubectl delete namespace` afterwards.
 
 **Helm release order**: kps → tempo → db-events/kafka/os-views → axon-showcase. Uninstall in reverse.
 
 **Helm release namespaces**: declared in `build.gradle.kts` — the observability releases (kps, tempo) deploy into the
 `monitoring` namespace, and the application and infrastructure releases (db-events, kafka, os-views, axon-showcase)
-deploy into a dedicated `axon-showcase` namespace (created on install). The local deployment does not depend on the
-kube context's current namespace or a `helm.namespace` gradle property.
+deploy into a dedicated `axon-showcase` namespace (created on install). The local deployment does not depend on the kube
+context's current namespace or a `helm.namespace` gradle property.
 
 **Helm release target kube contexts**: each release target declares the kube context it deploys to in
 `build.gradle.kts`. The `local` target resolves its context per-machine from the `helm.local.kubeContext` Gradle
@@ -424,17 +424,16 @@ strict (warnings are errors) and lints the Bitnami `common` subchart, rendering 
 ./gradlew :helm:chart:helmLintMainChartFull :helm:chart:helmLintMainChartMinimal
 ```
 
-Value files live in `helm/chart/src/test/helm/` (`helm-lint-full.yaml` enables all optional features,
-`helm-lint-minimal.yaml` disables the default-on ones).
+Value files live in `helm/chart/src/test/helm/` (`helm/chart/src/test/helm/helm-lint-full.yaml` enables all optional
+features, `helm/chart/src/test/helm/helm-lint-minimal.yaml` disables the default-on ones).
 
 Custom values can be placed in `helm/values/<release-name>/values-local.yaml`.
 
 The local values expose the API gateway and web UI via ingress at the hostnames `axon-showcase-api` and
 `axon-showcase-ui` respectively. To reach them by hostname (instead of a `Host:`-header curl workaround), run
-`./setup-hosts.sh setup`, which detects the local cluster's ingress-controller LoadBalancer address generically
-(against the current kube context, so it works on colima + Traefik, kind/minikube + ingress-nginx, etc.) and manages
-the `/etc/hosts` entries (`./setup-hosts.sh remove` to clean up; re-run `setup` if the address changes on cluster
-restart).
+`./setup-hosts.sh setup`, which detects the local cluster's ingress-controller LoadBalancer address generically (against
+the current kube context, so it works on colima + Traefik, kind/minikube + ingress-nginx, etc.) and manages the
+`/etc/hosts` entries (`./setup-hosts.sh remove` to clean up; re-run `setup` if the address changes on cluster restart).
 
 ## Local Development
 
@@ -456,60 +455,57 @@ Docker Compose (`docker-compose.yml`) starts all infrastructure **and** the Java
 `aanbrn/axon-showcase-*:${PROJECT_VERSION}`). Build the images first (`./gradlew bootBuildImage` for the JVM services,
 `./gradlew :showcase-web-ui:dockerBuildImage` for the UI); `PROJECT_VERSION` resolves the image tags and must equal the
 version the images were built with — the Gradle compose tasks set it automatically, a raw `docker compose up -d` needs
-it set explicitly. To run services from
-source instead, use `bootRun` as shown above. The compose stack also runs the deployed web UI at `http://localhost:8084`
-(its image is the nginx-built `aanbrn/axon-showcase-web-ui:${PROJECT_VERSION}`); the Vite dev server (`viteDev`) remains
-the hot-reload alternative for UI development.
+it set explicitly. To run services from source instead, use `bootRun` as shown above. The compose stack also runs the
+deployed web UI at `http://localhost:8084` (its image is the nginx-built
+`aanbrn/axon-showcase-web-ui:${PROJECT_VERSION}`); the Vite dev server (`viteDev`) remains the hot-reload alternative
+for UI development.
 
-**Ports:** the HTTP ports (`server.port` in each service's `application.yml`) are the API Gateway `8080`, Command Service
-`8081`, Query Service `8083`, Projection Service `8082`. In `docker-compose.yml`, the published `8000`–`8003` mappings are
-**JVM debug ports** (`BPL_DEBUG_PORT`), not the services' HTTP ports — only the API Gateway publishes its HTTP port
-(`8080`); the other services' HTTP ports are reachable only via the Docker network or `bootRun`. The web UI is published
-on `8084` (its container nginx port is `8080`; `stub_status` metrics on `9090`).
+**Ports:** the HTTP ports (`server.port` in each service's `application.yml`) are the API Gateway `8080`, Command
+Service `8081`, Query Service `8083`, Projection Service `8082`. In `docker-compose.yml`, the published `8000`–`8003`
+mappings are **JVM debug ports** (`BPL_DEBUG_PORT`), not the services' HTTP ports — only the API Gateway publishes its
+HTTP port (`8080`); the other services' HTTP ports are reachable only via the Docker network or `bootRun`. The web UI is
+published on `8084` (its container nginx port is `8080`; `stub_status` metrics on `9090`).
 
 The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wrap Docker Compose and set
 `PROJECT_VERSION` + image versions automatically (also `composeBuildAndUp`, `composeBuildAndRestart`):
-`./gradlew composeUp`, `./gradlew composeDown`. A compose task runs only when it is explicitly requested on the
-command line (standalone `./gradlew composeUp` — a leading `:` from the IDE, e.g. `:composeUp`, is tolerated) or
-when a scheduled task needs it as a dependency or finalizer — the web-UI `e2eTest` boots the stack via
-`composeBuildAndUp` and tears it down via `composeDown`. Broad builds that do not schedule a compose task never
-start/stop containers as a side effect. `composeBuildAndUp` uses
-`docker compose up -d --wait`, so it blocks until every healthchecked service (including the gateway) reports
-healthy — the e2e depends on this to avoid racing gateway startup.
+`./gradlew composeUp`, `./gradlew composeDown`. A compose task runs only when it is explicitly requested on the command
+line (standalone `./gradlew composeUp` — a leading `:` from the IDE, e.g. `:composeUp`, is tolerated) or when a
+scheduled task needs it as a dependency or finalizer — the web-UI `e2eTest` boots the stack via `composeBuildAndUp` and
+tears it down via `composeDown`. Broad builds that do not schedule a compose task never start/stop containers as a side
+effect. `composeBuildAndUp` uses `docker compose up -d --wait`, so it blocks until every healthchecked service
+(including the gateway) reports healthy — the e2e depends on this to avoid racing gateway startup.
 
 **Infra image versions are single-sourced** in `gradle/libs.versions.toml`: `*-image-tag` coordinates
 (`postgres-image-tag`, `kafka-image-tag`, `opensearch-image-tag`) for the official Docker Hub images used by
 docker-compose and the Testcontainers IT/e2e suites (`postgres`, `apache/kafka`, `opensearchproject/opensearch`;
 postgres omits a trailing `.0`), and pinned `bitnami-*` chart versions (`bitnami-postgresql`, `bitnami-kafka`,
-`bitnami-opensearch`) for the Helm deployment. Each chart ships its own preconfigured `image.tag`, which the Helm
-charts deploy as-is — no `image.tag` override in build logic or values files. To bump an infra component, update its
+`bitnami-opensearch`) for the Helm deployment. Each chart ships its own preconfigured `image.tag`, which the Helm charts
+deploy as-is — no `image.tag` override in build logic or values files. To bump an infra component, update its
 `*-image-tag` and/or its `bitnami-*` chart version together. The `verifyInfraImageVersions` task (part of `check`)
 derives its checks from the actual `helm.releases` container, resolves each pinned chart's preconfigured `image.tag` via
-the Helm CLI (`helm show values bitnami/<chart> --version <pinned>`, using the plugin-managed client; the task adds
-and updates the bitnami chart repository itself), fails the build if its app version drifts from the `*-image-tag`
-after truncating the chart app version to the official tag's numeric segment count (so `17.6` matches a chart app
-version `17.6.0` at minor granularity, while `3.9.0` requires an exact chart app version match), rejects any official
-tag with fewer than two numeric segments as a floating reference (e.g. `17`, which Docker Hub re-points to the latest
-17.x), and fails if any infra values file (`helm/values/*/values*.yaml`) pins `image.tag` —
-so the repo cannot reintroduce a separate override. The task is build-cacheable on its inputs (the pinned coordinates
-and values files): since a pinned chart version's preconfigured `image.tag` is immutable, unchanged inputs restore the
-verification from the Gradle build cache and skip the Helm resolution entirely. Deriving the checks from the configured
-releases means renaming an infra release retargets its check and removing one drops it. External `image.tag` overrides
-at deploy time (e.g. `--set`
-in a release pipeline) are outside this in-repo gate.
+the Helm CLI (`helm show values bitnami/<chart> --version <pinned>`, using the plugin-managed client; the task adds and
+updates the bitnami chart repository itself), fails the build if its app version drifts from the `*-image-tag` after
+truncating the chart app version to the official tag's numeric segment count (so `17.6` matches a chart app version
+`17.6.0` at minor granularity, while `3.9.0` requires an exact chart app version match), rejects any official tag with
+fewer than two numeric segments as a floating reference (e.g. `17`, which Docker Hub re-points to the latest 17.x), and
+fails if any infra values file (`helm/values/*/values*.yaml`) pins `image.tag` — so the repo cannot reintroduce a
+separate override. The task is build-cacheable on its inputs (the pinned coordinates and values files): since a pinned
+chart version's preconfigured `image.tag` is immutable, unchanged inputs restore the verification from the Gradle build
+cache and skip the Helm resolution entirely. Deriving the checks from the configured releases means renaming an infra
+release retargets its check and removing one drops it. External `image.tag` overrides at deploy time (e.g. `--set` in a
+release pipeline) are outside this in-repo gate.
 
 **Every Helm chart coordinate in the version catalog is a concrete version** — never a floating major-line pin such as
-`77.x.x`. This covers the observability charts (`prometheus-community-stack`, `grafana-tempo`) and the `common`
-subchart dependency as well as the `bitnami-*` infra charts, so the Helm deployment is reproducible at a reviewable
-version. Bump a chart by updating its concrete coordinate (e.g. `77.14.0` → `77.15.0`), and verify the bump with a
-live install + smoke test (`helmInstall<Release>ToLocal`: pods ready, Prometheus targets up, Grafana datasources
-wired) — `verifyInfraImageVersions` gates only the bitnami image-tag drift, not that the bumped chart deploys
-correctly.
+`77.x.x`. This covers the observability charts (`prometheus-community-stack`, `grafana-tempo`) and the `common` subchart
+dependency as well as the `bitnami-*` infra charts, so the Helm deployment is reproducible at a reviewable version. Bump
+a chart by updating its concrete coordinate (e.g. `77.14.0` → `77.15.0`), and verify the bump with a live install +
+smoke test (`helmInstall<Release>ToLocal`: pods ready, Prometheus targets up, Grafana datasources wired) —
+`verifyInfraImageVersions` gates only the bitnami image-tag drift, not that the bumped chart deploys correctly.
 
-**Kafka 3.9.0 Testcontainers note**: Kafka 3.9.0 has a validation bug (KAFKA-18281) that rejects Testcontainers'
-default listener config (`0.0.0.0` binds). The `KafkaContainer` usages in the IT/e2e suites override
-`KAFKA_LISTENERS` to `PLAINTEXT://:9092,BROKER://:9093,CONTROLLER://:9094` (empty hosts make the listeners implicit)
-so 3.9.0 starts; keep that override when bumping the Kafka image tag.
+**Kafka 3.9.0 Testcontainers note**: Kafka 3.9.0 has a validation bug (KAFKA-18281) that rejects Testcontainers' default
+listener config (`0.0.0.0` binds). The `KafkaContainer` usages in the IT/e2e suites override `KAFKA_LISTENERS` to
+`PLAINTEXT://:9092,BROKER://:9093,CONTROLLER://:9094` (empty hosts make the listeners implicit) so 3.9.0 starts; keep
+that override when bumping the Kafka image tag.
 
 ## Key Environment Variables
 
@@ -528,48 +524,48 @@ so 3.9.0 starts; keep that override when bumping the Kafka image tag.
   chart (`helm/chart/src/main/helm/`) and its values (`helm/values/*/values-*.yaml`) are always in scope alongside the
   live cluster — the deployed resources are generated output of the chart, so a wrong live resource usually means a
   wrong source (or a stale apply), not a standalone "cluster problem." The chart also introduces k8s-specific concerns
-  (namespaces, NetworkPolicies, KUBE_PING discovery) that do not exist under `bootRun`/`docker-compose`, so a bug can
-  be invisible locally and only surface once deployed. Recent deployment bugs were both chart bugs, not code bugs:
-  the `kubernetes` EndpointSlice `lookup` namespace in the network policies (`fix-kube-ping-api-egress`) and the
-  missing release-namespace declarations (`declare-axon-showcase-namespace`). Prefer rendering the chart locally with
+  (namespaces, NetworkPolicies, KUBE_PING discovery) that do not exist under `bootRun`/`docker-compose`, so a bug can be
+  invisible locally and only surface once deployed. Recent deployment bugs were both chart bugs, not code bugs: the
+  `kubernetes` EndpointSlice `lookup` namespace in the network policies (`fix-kube-ping-api-egress`) and the missing
+  release-namespace declarations (`declare-axon-showcase-namespace`). Prefer rendering the chart locally with
   `helm template` to inspect what the source produces before (or alongside) inspecting live resources.
 - **Checking CI status**: don't poll a PR build with an idle `sleep` loop — use `gh run watch <run-id> --exit-status`
-  (or `gh pr checks <pr> --watch`), which blocks until the check finishes and exits non-zero on failure. When the run
-  id isn't known, fetch it once via the GitHub MCP `pull_request_read` / `get_check_runs` (or `gh run list`), then
+  (or `gh pr checks <pr> --watch`), which blocks until the check finishes and exits non-zero on failure. When the run id
+  isn't known, fetch it once via the GitHub MCP `pull_request_read` / `get_check_runs` (or `gh run list`), then
   `gh run watch` it — one blocking call, no manual polling. A docs/build change's `build` check typically completes in
   about a minute; check once shortly after pushing, then confirm green before archiving/merging. Idle sleep loops only
   waste time and add no information.
-- **Exec tasks (`docker`, `pack`, `snyk`) fail in IDEA on macOS**: an IDEA launched from Finder/Dock (or a stale
-  Gradle daemon) gives the Gradle daemon a minimal PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) without `/opt/homebrew/bin`,
-  so bare-name execs ("command 'docker' not found") fail even though the tools are installed. Root cause: Gradle
-  applies the client's environment to the daemon (`System.getenv("PATH")` is then the full shell PATH), but the JVM
-  caches PATH for native process spawning at daemon start and ignores later changes — so execs that resolve a bare
-  command name via the JVM's cached PATH fail intermittently depending on which client spawned the daemon. The build
-  resolves this by resolving the tool to its absolute path from `System.getenv("PATH")` (which is the real shell
-  PATH) and passing that in the `commandLine` (`dockerCli()` in `docker-conventions`, `packCli()` in
-  `PackBuildImageTask`, `snykExecutable()` in `dependency-security-conventions`), bypassing the JVM's cached PATH
-  entirely. Do not revert to bare command names; do not prepend tool dirs to PATH (the daemon JVM won't honor it).
-  Launching IDEA from a terminal still helps avoid stale minimal-PATH daemons in the first place.
-- IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java,
-  ktfmt for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**,
-  **Auto Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins
-  are not active. The repo's IntelliJ config is **not versioned** — `.idea/` is git-ignored entirely. Run
-  `./scripts/setup-idea.sh` (locates the IDE, runs `installPlugins` for both plugins, and writes the project config
-  from the committed templates in `config/idea/`) so a fresh clone gets a formatter-matched IDE after one run. The
-  ktfmt config uses the plugin's **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with
+- **Exec tasks (`docker`, `pack`, `snyk`) fail in IDEA on macOS**: an IDEA launched from Finder/Dock (or a stale Gradle
+  daemon) gives the Gradle daemon a minimal PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) without `/opt/homebrew/bin`, so
+  bare-name execs ("command 'docker' not found") fail even though the tools are installed. Root cause: Gradle applies
+  the client's environment to the daemon (`System.getenv("PATH")` is then the full shell PATH), but the JVM caches PATH
+  for native process spawning at daemon start and ignores later changes — so execs that resolve a bare command name via
+  the JVM's cached PATH fail intermittently depending on which client spawned the daemon. The build resolves this by
+  resolving the tool to its absolute path from `System.getenv("PATH")` (which is the real shell PATH) and passing that
+  in the `commandLine` (`dockerCli()` in `docker-conventions`, `packCli()` in `PackBuildImageTask`, `snykExecutable()`
+  in `dependency-security-conventions`), bypassing the JVM's cached PATH entirely. Do not revert to bare command names;
+  do not prepend tool dirs to PATH (the daemon JVM won't honor it). Launching IDEA from a terminal still helps avoid
+  stale minimal-PATH daemons in the first place.
+- IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java, ktfmt
+  for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**, **Auto
+  Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins are not
+  active. The repo's IntelliJ config is **not versioned** — `.idea/` is git-ignored entirely. Run
+  `./scripts/setup-idea.sh` (locates the IDE, runs `installPlugins` for both plugins, and writes the project config from
+  the committed templates in `config/idea/`) so a fresh clone gets a formatter-matched IDE after one run. The ktfmt
+  config uses the plugin's **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with
   unused-import removal, because the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the
   line-length option (see README → Local Development → IntelliJ IDEA Setup).
 - **palantir-java-format does not manage imports**: since 2.47.0 the plugin only takes over **Reformat Code**, and
   `Optimize Imports` is always run by IDEA's native optimizer, governed by `.editorconfig` (the import layout
-  `ij_java_imports_layout = $*,|,*` and `ij_java_use_single_class_imports=true` with the two on-demand counts at
-  `999`). This is what stops IDEA collapsing to wildcard imports; without it, `spotlessApply` cannot auto-expand a
-  wildcard (palantir never touches imports), so a wildcard must be expanded by hand or via Optimize Imports. The
-  build gate is Spotless `forbidWildcardImports()` (fails on any `import x.*;`). A change to the code-style scheme
-  requires an IDEA restart to take effect.
+  `ij_java_imports_layout = $*,|,*` and `ij_java_use_single_class_imports=true` with the two on-demand counts at `999`).
+  This is what stops IDEA collapsing to wildcard imports; without it, `spotlessApply` cannot auto-expand a wildcard
+  (palantir never touches imports), so a wildcard must be expanded by hand or via Optimize Imports. The build gate is
+  Spotless `forbidWildcardImports()` (fails on any `import x.*;`). A change to the code-style scheme requires an IDEA
+  restart to take effect.
 - E2E tests for `showcase-api-gateway` depend on Docker images of all other services being built (`bootBuildImage`). Run
   those first.
-- The `io.github.build-extensions-oss.helm` / `io.github.build-extensions-oss.helm-releases` gradle-helm-plugin tasks are
-  not configuration-cache compatible — do not enable `org.gradle.configuration-cache=true` (verify with
+- The `io.github.build-extensions-oss.helm` / `io.github.build-extensions-oss.helm-releases` gradle-helm-plugin tasks
+  are not configuration-cache compatible — do not enable `org.gradle.configuration-cache=true` (verify with
   `--configuration-cache` before adding it).
 - The gradle-helm-plugin 3.1.2 calls the deprecated `Project.getProperties()` (a `--warning-mode all` deprecation that
   becomes a hard error in Gradle 10). Tracked upstream as build-extensions-oss/gradle-helm-plugin#145; bump the plugin
@@ -579,18 +575,18 @@ so 3.9.0 starts; keep that override when bumping the Kafka image tag.
 - NullAway is strict on `showcase.*` packages — ensure proper `@Nullable`/`@NonNull` annotations from `jspecify`.
 - Jackson 3 artifacts (`tools.jackson.core:*`) are present on the query-service and projection-service runtime
   classpaths transitively via `co.elastic.clients:elasticsearch-java`, constrained by the platform's `jackson3-bom`
-  (kept current on minor versions). This is dependency hygiene, not the deferred Jackson 3 backend migration — Jackson
-  2 remains the serialization backend in application code (see ADR-0003).
+  (kept current on minor versions). This is dependency hygiene, not the deferred Jackson 3 backend migration — Jackson 2
+  remains the serialization backend in application code (see ADR-0003).
 - Spring Data Elasticsearch's `DateFormat.strict_date_optional_time_nanos` maps to a **microsecond** Java pattern
   (`SSSSSS`, not 9 digits) despite its name — see upstream spring-data-elasticsearch#3334. `ShowcaseEntity` uses a
-  custom `NANOS_DATE_PATTERN` (`yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]`) with `format = {}` instead; do not "simplify"
-  it back to the built-in enum. The truncation is invisible on macOS (microsecond clocks) and surfaces only on
-  nanosecond clocks (Linux CI).
+  custom `NANOS_DATE_PATTERN` (`yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]`) with `format = {}` instead; do not "simplify" it
+  back to the built-in enum. The truncation is invisible on macOS (microsecond clocks) and surfaces only on nanosecond
+  clocks (Linux CI).
 - Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
   `implementation`-only dependencies — each suite re-declares what it needs (client component suites duplicate
   axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be
-  referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g. `val integrationTest =
-  suites.register<JvmTestSuite>("integrationTest")`).
+  referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g.
+  `val integrationTest = suites.register<JvmTestSuite>("integrationTest")`).
 - `@Nested` test classes are incompatible with Spring Boot slice tests (`@WebFluxTest`/`@WebMvcTest`): nested classes
   load the full application context instead of the slice and fail on infrastructure beans (e.g. the gateway's JGroups
   `DistributedCommandBusProperties`). Keep slice-test classes flat (see `ShowcaseApiControllerCT`).

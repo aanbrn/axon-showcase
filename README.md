@@ -54,7 +54,7 @@ axon-showcase/
 The application follows a **CQRS (Command Query Responsibility Segregation)** pattern:
 
 | Component              | Role                                                        |
-|------------------------|-------------------------------------------------------------|
+| ---------------------- | ----------------------------------------------------------- |
 | **API Gateway**        | Entry point; routes requests to command or query services   |
 | **Command Service**    | Handles write operations; publishes events via Kafka        |
 | **Projection Service** | Consumes events from Kafka and populates OpenSearch views   |
@@ -77,20 +77,21 @@ Read: Client → API Gateway → Query Service → OpenSearch
 - **Kubernetes cluster** (for deployment)
 - **Snyk CLI** (for the dependency security scan)
 - **`pack` CLI** (for the web-UI image build; see
-  https://buildpacks.io/docs/for-platform-operators/how-to/integrate-ci/pack/, e.g. `brew install
-  buildpacks/tap/pack` on macOS)
+  https://buildpacks.io/docs/for-platform-operators/how-to/integrate-ci/pack/, e.g. `brew install buildpacks/tap/pack`
+  on macOS)
 
 ## Local Development
 
 ### IntelliJ IDEA Setup
 
-Formatting is enforced by Spotless — palantir-java-format for Java, ktfmt for Gradle Kotlin DSL (`*.gradle.kts`):
-`./gradlew spotlessApply` formats, `spotlessCheck` verifies, and the build never depends on an IDE. IntelliJ's built-in
-formatter uses its own code style and would reformat files differently, so configure the IDE to stay in sync:
+Formatting is enforced by Spotless — palantir-java-format for Java, ktfmt for Gradle Kotlin DSL (`*.gradle.kts`),
+Prettier for markdown (`docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`): `./gradlew spotlessApply` formats,
+`spotlessCheck` verifies, and the build never depends on an IDE. IntelliJ's built-in formatter uses its own code style
+and would reformat files differently, so configure the IDE to stay in sync:
 
-- The repo's IntelliJ config is **not versioned** — `.idea/` is git-ignored. Run the setup script once (IDE closed,
-  then restart): it locates your IntelliJ, installs the **palantir-java-format** and **ktfmt** plugins, writes the
-  project config from the committed templates in `config/idea/`, and ensures the test-tier naming inspection:
+- The repo's IntelliJ config is **not versioned** — `.idea/` is git-ignored. Run the setup script once (IDE closed, then
+  restart): it locates your IntelliJ, installs the **palantir-java-format** and **ktfmt** plugins, writes the project
+  config from the committed templates in `config/idea/`, and ensures the test-tier naming inspection:
 
   ```bash
   ./scripts/setup-idea.sh
@@ -99,19 +100,19 @@ formatter uses its own code style and would reformat files differently, so confi
   The ktfmt template uses the plugin's **Custom** style to reproduce ktfmt's kotlinlang style at 120 columns with
   unused-import removal (the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the
   line-length option). Where a plugin is disabled by default (palantir only auto-enables with the
-  `com.palantir.java-format` Gradle plugin, which this project does not use), enable it via **Settings → Other
-  Settings → palantir-java-format Settings**. When enabled it replaces `Reformat Code` (`Ctrl+Alt+L`) with the
-  palantir formatter.
+  `com.palantir.java-format` Gradle plugin, which this project does not use), enable it via **Settings → Other Settings
+  → palantir-java-format Settings**. When enabled it replaces `Reformat Code` (`Ctrl+Alt+L`) with the palantir
+  formatter.
+
 - The plugin only replaces `Reformat Code`; **import order is a separate mechanism** — IntelliJ's `Optimize Imports`
   (`Ctrl+Alt+O`) is governed by `.editorconfig`, which the repo ships with the palantir layout
-  (`ij_java_imports_layout = $*,|,*` — *import static all other imports*, blank line, *import all other imports*) so
-  `Optimize Imports` matches `spotlessApply` automatically. If the layout is not picked up, set it manually:
-  **Settings → Editor → Code Style → Java → Imports**, *Import Layout* panel → clear the rows and add: *import
-  static all other imports*, blank line, *import all other imports* (single imports, no wildcards).
+  (`ij_java_imports_layout = $*,|,*` — _import static all other imports_, blank line, _import all other imports_) so
+  `Optimize Imports` matches `spotlessApply` automatically. If the layout is not picked up, set it manually: **Settings
+  → Editor → Code Style → Java → Imports**, _Import Layout_ panel → clear the rows and add: _import static all other
+  imports_, blank line, _import all other imports_ (single imports, no wildcards).
 - With the plugins enabled and the `.editorconfig` import layout in effect, IntelliJ's `Reformat Code` and
   `Optimize Imports` produce spotless-compatible output, so the automatic reformat triggers are safe to keep on:
-  **Actions on Save** → *Reformat code* / *Optimize imports*, and **Auto Import** →
-  *Optimize imports on the fly*. If
+  **Actions on Save** → _Reformat code_ / _Optimize imports_, and **Auto Import** → _Optimize imports on the fly_. If
   the plugin is not active on a machine, disable those triggers instead to avoid drift; `spotlessCheck` in `check` is
   the backstop either way.
 - When in doubt, format with `./gradlew spotlessApply` — it is the single source of truth.
@@ -135,10 +136,9 @@ This starts all infrastructure and application services:
 - **Web UI** — the deployed frontend (port 8084, served by an nginx container image)
 
 Application images must be built first (`./gradlew bootBuildImage` for the JVM services,
-`./gradlew :showcase-web-ui:dockerBuildImage` for the UI). The compose stack resolves image tags from
-`PROJECT_VERSION` (e.g. `0.1.0-SNAPSHOT`), which must equal the version the images were built with — the Gradle
-compose tasks set it automatically; a raw `docker compose up -d` needs `PROJECT_VERSION` set explicitly so the tags
-match.
+`./gradlew :showcase-web-ui:dockerBuildImage` for the UI). The compose stack resolves image tags from `PROJECT_VERSION`
+(e.g. `0.1.0-SNAPSHOT`), which must equal the version the images were built with — the Gradle compose tasks set it
+automatically; a raw `docker compose up -d` needs `PROJECT_VERSION` set explicitly so the tags match.
 
 ### Build the Project
 
@@ -198,10 +198,10 @@ the way it is.
 ## Continuous Integration
 
 `.github/workflows/ci.yml` gates every pull request and push to `main` with a single `build` check. Pull requests run
-the Docker-free fast gate (`check -PskipITs` with the coverage gate disabled), while pushes to `main` run the full
-gate (`check` with integration tests and coverage); both run `openspec validate --all`. The Gradle cache is restored
-across runs via `gradle/actions/setup-gradle`. The `main-required-checks` ruleset requires the `build` check for all
-merges into `main`, with no bypass actors.
+the Docker-free fast gate (`check -PskipITs` with the coverage gate disabled), while pushes to `main` run the full gate
+(`check` with integration tests and coverage); both run `openspec validate --all`. The Gradle cache is restored across
+runs via `gradle/actions/setup-gradle`. The `main-required-checks` ruleset requires the `build` check for all merges
+into `main`, with no bypass actors.
 
 `.github/workflows/e2e.yml` runs the end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four service
 images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same pipeline
@@ -213,25 +213,25 @@ observational, never a merge gate.
 
 `.github/workflows/dependency-updates.yml` runs the Gradle dependency update report (`dependencyUpdates`) on a weekly
 schedule and via `workflow_dispatch`, opening or updating the "Dependency updates" issue with only the actionable
-sections of the report (stable catalog updates + Gradle wrapper status) using the `GITHUB_TOKEN` (`issues: write`).
-When there are actionable updates it posts a comment mentioning the repository owner (so they are notified); runs
-with no updates update the issue silently — observational, never a merge gate.
+sections of the report (stable catalog updates + Gradle wrapper status) using the `GITHUB_TOKEN` (`issues: write`). When
+there are actionable updates it posts a comment mentioning the repository owner (so they are notified); runs with no
+updates update the issue silently — observational, never a merge gate.
 
 ## Testing
 
 Tests are organized into four tiers, run in order:
 
-| Tier             | Command                                            | Notes                         |
-|------------------|----------------------------------------------------|-------------------------------|
-| Unit             | `./gradlew :<module>:test`                         | isolated, no Spring context   |
-| Component        | `./gradlew :<module>:componentTest`                | real in-process collaborators |
-| Integration      | `./gradlew :<module>:integrationTest`              | Testcontainers (needs Docker) |
-| End-to-end       | `./gradlew :<module>:e2eTest`                      | real deployed service + infra |
+| Tier        | Command                               | Notes                         |
+| ----------- | ------------------------------------- | ----------------------------- |
+| Unit        | `./gradlew :<module>:test`            | isolated, no Spring context   |
+| Component   | `./gradlew :<module>:componentTest`   | real in-process collaborators |
+| Integration | `./gradlew :<module>:integrationTest` | Testcontainers (needs Docker) |
+| End-to-end  | `./gradlew :<module>:e2eTest`         | real deployed service + infra |
 
-The gateway e2e boots the full four-service pipeline with Testcontainers and verifies cross-service propagation. The
-web UI e2e (`./gradlew :showcase-web-ui:e2eTest`) boots the same pipeline via docker compose, serves the built UI with
-Vite preview, and drives it with Playwright — creating a showcase, starting it, observing a saga-triggered transition
-over SSE, live events appending to the timeline, and a duplicate title surfacing the gateway error.
+The gateway e2e boots the full four-service pipeline with Testcontainers and verifies cross-service propagation. The web
+UI e2e (`./gradlew :showcase-web-ui:e2eTest`) boots the same pipeline via docker compose, serves the built UI with Vite
+preview, and drives it with Playwright — creating a showcase, starting it, observing a saga-triggered transition over
+SSE, live events appending to the timeline, and a duplicate title surfacing the gateway error.
 
 Run the full check for a module — compile, spotless, checkstyle, spotbugs, errorprone, test, componentTest,
 integrationTest — with `./gradlew :<module>:check` (add `-PskipITs` to drop integration for a Docker-free check;
@@ -255,20 +255,19 @@ and is intentionally not part of `./gradlew check`.
 
 Reports newer versions of dependencies whose version is declared with an exact `version.ref` in the version catalog
 (`gradle/libs.versions.toml`); BOM-inherited versions are not reported. Major updates can be suppressed per coordinate
-or group prefix in `config/dependency-updates/major-disabled.properties` — minor and patch updates for those
-coordinates are still reported. The suppression rationale for each coordinate is recorded in the
+or group prefix in `config/dependency-updates/major-disabled.properties` — minor and patch updates for those coordinates
+are still reported. The suppression rationale for each coordinate is recorded in the
 `showcase/quality/dependency-management` spec. See ADR-0004 for the deferred Spring Boot 4 migration context.
 
 For calendar-versioned coordinates (leading segment is a 4-digit year, e.g. Spring `YYYY.MINOR.MICRO` such as
-`reactor-bom 2025.0.7`), a change in the `YYYY.TRAIN` pair (the first two version segments) is treated as a major
-update — matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains — while a change
-only in the service-release (third) segment within the same train is a minor/patch update. Semver coordinates keep the
+`reactor-bom 2025.0.7`), a change in the `YYYY.TRAIN` pair (the first two version segments) is treated as a major update
+— matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains — while a change only in
+the service-release (third) segment within the same train is a minor/patch update. Semver coordinates keep the
 leading-integer major comparison.
 
-The `/dependency-updates` opencode command runs this report and summarizes the available updates; the
-`/gradle-update` command updates the Gradle wrapper to the latest stable version when one is available, and the
-`/opsx-tool-update` command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI
-release.
+The `/dependency-updates` opencode command runs this report and summarizes the available updates; the `/gradle-update`
+command updates the Gradle wrapper to the latest stable version when one is available, and the `/opsx-tool-update`
+command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI release.
 
 Note that the report can also surface spurious rows caused by build-environment constraints: build tooling such as
 SpotBugs publishes module constraints that `checkBuildEnvironmentConstraints` reads and reports as the "current
@@ -389,8 +388,8 @@ curl http://localhost:8080/showcases/{showcaseId}
 
 ### Query (Protobuf)
 
-Dispatches an Axon query and returns the first response. Used internally by the
-query-client for inter-service communication (`application/protobuf` body).
+Dispatches an Axon query and returns the first response. Used internally by the query-client for inter-service
+communication (`application/protobuf` body).
 
 ```bash
 curl -X POST http://localhost:8083/query \
@@ -400,8 +399,8 @@ curl -X POST http://localhost:8083/query \
 
 ### Streaming Query (Protobuf)
 
-Dispatches an Axon query and returns the full response stream. Used internally by the
-query-client for inter-service communication (`application/protobuf` body).
+Dispatches an Axon query and returns the full response stream. Used internally by the query-client for inter-service
+communication (`application/protobuf` body).
 
 ```bash
 curl -X POST http://localhost:8083/streaming-query \

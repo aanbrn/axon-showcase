@@ -3,16 +3,16 @@
 ## Purpose
 
 Documents the web UI as a deployable static unit: a dedicated container image serving the built frontend, its
-docker-compose service, and its Helm Deployment/Service, so the browser UI is reachable in the local and deployed
-stacks at its own address (standalone — not served by the API gateway).
+docker-compose service, and its Helm Deployment/Service, so the browser UI is reachable in the local and deployed stacks
+at its own address (standalone — not served by the API gateway).
 
 ## Requirements
 
 ### Requirement: The web UI is packaged as a standalone static image
 
-The web-UI build SHALL produce a container image that serves the built frontend (`build/dist`) over HTTP using a
-static web server (nginx). The image SHALL be tagged with the project version and built from the same `npmBuild`
-output that the local dev/preview flow serves, so the packaged UI is the same bundle.
+The web-UI build SHALL produce a container image that serves the built frontend (`build/dist`) over HTTP using a static
+web server (nginx). The image SHALL be tagged with the project version and built from the same `npmBuild` output that
+the local dev/preview flow serves, so the packaged UI is the same bundle.
 
 #### Scenario: The image serves the built bundle
 
@@ -58,9 +58,9 @@ output that the local dev/preview flow serves, so the packaged UI is the same bu
 
 ### Requirement: The UI is reachable in the local compose stack
 
-The docker-compose stack SHALL include a `web-ui` service that runs the web-UI image, publishes the UI on a host
-port, and lets the browser reach the API gateway cross-origin — the gateway's CORS allow-list SHALL include the
-compose UI origin.
+The docker-compose stack SHALL include a `web-ui` service that runs the web-UI image, publishes the UI on a host port,
+and lets the browser reach the API gateway cross-origin — the gateway's CORS allow-list SHALL include the compose UI
+origin.
 
 #### Scenario: Compose serves the UI
 
@@ -76,11 +76,11 @@ compose UI origin.
 
 The Helm chart SHALL render a web-UI Deployment and Service running the web-UI image, with its own `webUi` values
 (image, replicas, service port, resources, autoscaling, pdb), external exposure via both an Ingress and an HTTPRoute
-(like the api-gateway), availability via HPA/VPA/PDB templates (defaulted off, like the other services), a
-NetworkPolicy restricting its traffic (public HTTP ingress, monitoring-only metrics port, minimal egress), and the
-gateway's CORS allow-list in the chart SHALL include the web-UI origin. The Deployment SHALL follow the shared
-service conventions (common ServiceAccount, `/tmp` emptyDir, securityContexts, readiness probe), and the Service
-SHALL expose named ports for the UI and its metrics.
+(like the api-gateway), availability via HPA/VPA/PDB templates (defaulted off, like the other services), a NetworkPolicy
+restricting its traffic (public HTTP ingress, monitoring-only metrics port, minimal egress), and the gateway's CORS
+allow-list in the chart SHALL include the web-UI origin. The Deployment SHALL follow the shared service conventions
+(common ServiceAccount, `/tmp` emptyDir, securityContexts, readiness probe), and the Service SHALL expose named ports
+for the UI and its metrics.
 
 #### Scenario: Helm deploys the UI
 

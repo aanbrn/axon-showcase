@@ -6,17 +6,17 @@ Status: Accepted
 
 ## Context
 
-The repository captures behavior and change plans through OpenSpec (specs, proposals, designs, tasks), but
-cross-cutting architecture decisions and their rationale have no permanent home. Decisions such as "retain Jackson 2
-over Jackson 3", "defer the Spring Boot 4 migration", and "Java `@ConfigurationProperties` defaults are authoritative"
-were scattered across change designs and commit history, invisible to future contributors.
+The repository captures behavior and change plans through OpenSpec (specs, proposals, designs, tasks), but cross-cutting
+architecture decisions and their rationale have no permanent home. Decisions such as "retain Jackson 2 over Jackson 3",
+"defer the Spring Boot 4 migration", and "Java `@ConfigurationProperties` defaults are authoritative" were scattered
+across change designs and commit history, invisible to future contributors.
 
 ## Decision
 
 Record architecture decisions as lightweight, numbered Architecture Decision Records in `docs/adr/` using the Nygard
 format (Status / Context / Decision / Consequences). Use OpenSpec for behavior and change planning; use ADRs for the
-reasons behind structural and cross-cutting choices. Cross-cutting decisions made during a change are captured as an
-ADR when the change lands.
+reasons behind structural and cross-cutting choices. Cross-cutting decisions made during a change are captured as an ADR
+when the change lands.
 
 ## Consequences
 

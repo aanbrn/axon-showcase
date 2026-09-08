@@ -1,14 +1,16 @@
 # showcase/projection-service Specification
 
 ## Purpose
+
 Documents the current behavior of the read-model side of the CQRS showcase application: consuming showcase events from
 Kafka and maintaining the `showcases` projection in OpenSearch.
 
 ## Requirements
+
 ### Requirement: Kafka event consumption
 
-The system SHALL consume events from the Kafka topic configured as the default topic (default `axon-showcase-events`)
-as an Axon `EventMessage` stream, using consumer group `showcase-projector`.
+The system SHALL consume events from the Kafka topic configured as the default topic (default `axon-showcase-events`) as
+an Axon `EventMessage` stream, using consumer group `showcase-projector`.
 
 #### Scenario: Subscribes to the configured topic
 
@@ -18,8 +20,8 @@ as an Axon `EventMessage` stream, using consumer group `showcase-projector`.
 
 #### Scenario: Deserializes Axon event messages
 
-- **WHEN** a Kafka record with the Axon message headers (`axon-message-id`, `axon-message-type`) and a Jackson-serialized
-  payload is received
+- **WHEN** a Kafka record with the Axon message headers (`axon-message-id`, `axon-message-type`) and a
+  Jackson-serialized payload is received
 - **THEN** the record is converted to an `EventMessage` whose payload is a `ShowcaseEvent`
 
 #### Scenario: Non-showcase payloads are ignored
@@ -96,8 +98,8 @@ record offsets only after the batch's OpenSearch writes complete.
 
 ### Requirement: At-least-once delivery
 
-The system SHALL deliver at-least-once: a record may be redelivered if it was written but not yet acknowledged, and
-the system SHALL handle such duplicates without failing the stream.
+The system SHALL deliver at-least-once: a record may be redelivered if it was written but not yet acknowledged, and the
+system SHALL handle such duplicates without failing the stream.
 
 #### Scenario: Redelivered duplicate event does not halt processing
 

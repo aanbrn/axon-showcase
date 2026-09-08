@@ -39,10 +39,12 @@ implementation before the user has done their review pass — keep the working-t
 so they can see exactly which files changed. Commit only after the user approves the implementation (or explicitly asks
 to commit); the planning artifacts may be committed separately.
 
-**Auto-review the change before asking for a manual review.** After finishing a change's implementation, run a quick
-review of the work against the change's tasks and delta spec (the `review-quick` subagent) and repeat it until it
-reports no new observations — only then ask the user for a manual review pass. Fix everything the quick review finds,
-re-run it, and stop only when it comes back clean.
+**Auto-review the change before asking for a manual review.** After finishing a change's **proposal** (planning
+artifacts) and again after finishing its **implementation**, run a quick review of the work (the `review-quick`
+subagent) against the change's planning artifacts — for the proposal, the proposal/design/tasks/spec-delta coherence and
+repo fit; for the implementation, the tasks and delta spec — and repeat it until it reports no new observations. Fix
+everything the quick review finds, re-run it, and stop only when it comes back clean — only then ask the user for a
+manual review pass.
 
 **Sync the main spec only at archive.** Apply edits code and the change dir's _delta_ spec — never the main spec under
 `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source of

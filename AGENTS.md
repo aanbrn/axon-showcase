@@ -316,7 +316,9 @@ Key modules (libraries, not services):
   (Nygard format — Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture the
   _why_ behind structural choices. Capture a decision as an ADR when it is made, not after the fact
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md` and `README.md` need to be refreshed to
-  reflect the new state (commands, config, conventions, gotchas) and update them before reporting the change done
+  reflect the new state (commands, config, conventions, gotchas) and update them before reporting the change done; also
+  remove the change's idea from `docs/ideas.md` (it is captured once implemented — see the file's header) as a separate
+  docs PR
 - **No comments** in source code (per project convention). The sole exception is the `// SPDX-License-Identifier: MIT`
   header, enforced by Spotless on every Java file and by `eslint-plugin-header` (`@tony.ganchev/eslint-plugin-header` in
   the flat `showcase-web-ui/eslint.config.js`, since the original plugin is unmaintained and does not support ESLint

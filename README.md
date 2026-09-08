@@ -284,7 +284,7 @@ ADR-0007 for the evidence trail.
 ```bash
 # Install monitoring stack (Prometheus + Grafana + Tempo)
 helm install kps prometheus-community/kube-prometheus-stack \
-  --version 88.6.2 \
+  --version 90.0.0 \
   --namespace monitoring --create-namespace \
   --wait
 

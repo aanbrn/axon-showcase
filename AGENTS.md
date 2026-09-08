@@ -372,7 +372,7 @@ of `targets`). Neither is actionable in the build — ignore them.
 
 ```bash
 # Deploy to local cluster (must be ordered)
-helm install kps prometheus-community/kube-prometheus-stack --version 88.6.2 \
+helm install kps prometheus-community/kube-prometheus-stack --version 90.0.0 \
   --namespace monitoring --create-namespace --wait
 helm install tempo grafana/tempo --version 1.24.4 --namespace monitoring --create-namespace --wait
 helm install axon-showcase-db-events bitnami/postgresql --version 16.7.27 \

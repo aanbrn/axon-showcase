@@ -1,4 +1,4 @@
-# showcase/mapstruct-extension Specification
+# showcase/extensions/mapstruct-extension Specification
 
 ## Purpose
 

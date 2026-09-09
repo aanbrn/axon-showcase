@@ -1,4 +1,4 @@
-# showcase/identifier-extension Specification
+# showcase/extensions/identifier-extension Specification
 
 ## Purpose
 

@@ -1,4 +1,4 @@
-# showcase/resilience4j-extension Specification
+# showcase/extensions/resilience4j-extension Specification
 
 ## Purpose
 

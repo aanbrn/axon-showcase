@@ -1,4 +1,4 @@
-# showcase/projection-service Specification
+# showcase/read-side/projection-service Specification
 
 ## Purpose
 

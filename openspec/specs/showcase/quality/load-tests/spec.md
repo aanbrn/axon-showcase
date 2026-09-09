@@ -1,4 +1,4 @@
-# showcase/load-tests Specification
+# showcase/quality/load-tests Specification
 
 ## Purpose
 

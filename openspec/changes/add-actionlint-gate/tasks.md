@@ -5,9 +5,8 @@
       wire it into the root `check`.
 - [x] 1.2 Run `./gradlew workflowLint` and confirm it lints all workflows.
 - [x] 1.3 Add an actionlint install step to `ci.yml` (GitHub-hosted runners don't ship it), so the `check`-wired gate
-      passes in CI — use actionlint's official download script
-      (`bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)`), which
-      works on `ubuntu-latest` and makes the executable available to the `workflowLint` task.
+      passes in CI — use actionlint's official download script (positional args `latest <dir>`, `<dir>` pre-created),
+      which works on `ubuntu-latest` and makes the executable available to the `workflowLint` task.
 
 ## 2. Verify
 

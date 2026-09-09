@@ -66,9 +66,9 @@ mention the `workflowLint` gate in the CI section of `AGENTS.md`.
 ## Risks / Trade-offs
 
 - **Tool availability** → `actionlint` must be installed locally and on CI. GitHub-hosted runners don't ship it, so
-  `ci.yml` gains an install step using actionlint's official **download script**
-  (`bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)`, which works
-  on ubuntu-latest and prints the executable path) alongside the existing openspec CLI install — see task 1.3.
+  `ci.yml` gains an install step using actionlint's official **download script** (positional args:
+  `bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) latest <dir>`,
+  where `<dir>` must already exist) alongside the existing openspec CLI install — see task 1.3.
 - **shellcheck dependency** → actionlint shells out to shellcheck for `run:` script linting. This is the part that found
   real bugs (the dead vars); keep it on. shellcheck is pre-installed on GitHub-hosted ubuntu runners; locally it ships
   with the Homebrew actionlint formula or as its own package.

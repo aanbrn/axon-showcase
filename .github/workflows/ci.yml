@@ -42,8 +42,9 @@ jobs:
       - name: Install actionlint
         shell: bash
         run: |
+          mkdir -p "$RUNNER_TEMP/actionlint"
           bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) \
-            --dir "$RUNNER_TEMP/actionlint"
+            latest "$RUNNER_TEMP/actionlint"
           echo "$RUNNER_TEMP/actionlint" >> "$GITHUB_PATH"
 
       - name: Run quality gates

@@ -57,6 +57,13 @@ capture — this is what makes the capture systematic instead of memory-dependen
 `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source of
 truth never describes behavior the code hasn't yet been verified against.
 
+**A delta spec cannot rename a main-spec requirement header.** A `MODIFIED` requirement in a change's delta spec is
+matched to the main spec by its `### Requirement:` header, so the header must be verbatim-identical to the one it
+modifies — only the description/body can change. Retitling a requirement while rewording it (e.g. renaming "Vendored
+agent skills are available to agents" while narrowing it) fails `openspec validate --changes` with "Archive would refuse
+this delta: MODIFIED failed for header ... not found" and must be reverted. To genuinely retitle a requirement,
+delete-and-add it instead of renaming the MODIFIED header.
+
 **Run CI before archiving; one PR per change.** Push the implementation branch and open a PR with the code and the
 active change dir. After the `build` check is green and the user approves, archive the change (move the change dir and
 sync the main spec) as an additional commit in the _same_ PR, then merge once. The archive — the declaration that a

@@ -13,6 +13,8 @@ fast verification pass:
 - Do the tasks.md items marked done actually correspond to implemented code?
 - Any obvious convention violations (formatting, naming, redundant code, missing Javadoc)?
 - Any obvious correctness problems visible at a glance?
+- Run `awk 'length > 120' <changed-files>` over the change's files and report any lines over 120 (the project's wrapping
+  convention; formatters cannot reflow string literals, so long strings are a common manual-check gap).
 
 Be concise: report findings as a short bullet list, each with a file/line reference. Prioritize concrete, actionable
 gaps over style nitpicks. If everything looks consistent, say so in one line. Do not edit files — the calling agent

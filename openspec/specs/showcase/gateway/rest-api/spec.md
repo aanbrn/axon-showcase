@@ -1,4 +1,4 @@
-# showcase/api-gateway Specification
+# showcase/gateway/rest-api Specification
 
 ## Purpose
 

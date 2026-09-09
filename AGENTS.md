@@ -381,6 +381,10 @@ Key modules (libraries, not services):
   went-well/went-wrong) and improvement suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process`
   (→ AGENTS.md), which the main agent verifies and applies. Retrospectives land in `docs/retrospectives/<date>.md` as a
   docs change.
+- **A subagent is only invocable through a trigger, not its documentation**: documenting an `.opencode/agent/*.md`
+  subagent in AGENTS.md does not make it reachable — ship a `.opencode/commands/*.md` command (e.g. the `/retrospective`
+  trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
+  documentation first and was only usable once the user pointed out it had no trigger and the command was added.
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired
@@ -578,6 +582,16 @@ that override when bumping the Kafka image tag.
   already exist.** When installing actionlint in CI with `bash <(curl .../scripts/download-actionlint.bash)`, pass
   `latest "$RUNNER_TEMP/actionlint"` and `mkdir -p` the dir first — a `--dir` flag is rejected as an invalid version
   (the script exits 1 with its usage).
+- **`gh pr list` does not support a `--since` flag** — filter merged PRs by window with the search qualifier
+  `gh pr list --state merged --search "merged:>=<YYYY-MM-DD>"` (an unknown flag like `--since` is rejected outright, and
+  there is no date variant of `--merged`). This bit the `/retrospective` gather script
+  (`scripts/experience-analysis.sh`), whose first version used `--since`; the proposal/tasks that described
+  `--merged --since <window>` were corrected to the search form during implementation. Any future "what shipped since X"
+  automation must use the `--search "merged:>=..."` form.
+- **Relative `date` arithmetic is not portable across macOS and Linux**: BSD `date` (macOS) uses `-v-7d`, GNU `date`
+  (Linux, incl. CI) rejects it and needs `--date='7 days ago'`. A cross-platform script computing a relative date must
+  probe first (`date -v-7d >/dev/null 2>&1 && … || date --date='…'`), as `scripts/experience-analysis.sh` does for its
+  7-days-ago default — don't hard-code one platform's form.
 
 - **Deployment investigations must include the Helm chart and values files.** When diagnosing a deployment issue, the
   chart (`helm/chart/src/main/helm/`) and its values (`helm/values/*/values-*.yaml`) are always in scope alongside the

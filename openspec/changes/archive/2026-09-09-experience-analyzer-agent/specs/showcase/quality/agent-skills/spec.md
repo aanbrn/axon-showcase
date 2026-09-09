@@ -1,11 +1,4 @@
-# showcase/quality/agent-skills Specification
-
-## Purpose
-
-Provides curated agent skills to the repository by vendoring upstream skill sets under `.opencode/skills/`, so agents
-can run the AxonIQ Axon 4→5 migration recipes against this codebase.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Vendored agent skills are available to agents
 
@@ -28,21 +21,7 @@ provide locally-defined agent subagents under `.opencode/agent/` (e.g. `review-q
 - **THEN** the vendored skill files under `.opencode/skills/` are not part of any module's source set, classpath, or
   Docker image
 
-### Requirement: Vendored skills carry version provenance
-
-The vendored skills SHALL record their upstream source repository and the exact plugin version they were copied from, so
-that an upstream update is a deliberate, reviewable change rather than silent drift.
-
-#### Scenario: Provenance is recorded
-
-- **WHEN** a maintainer inspects the vendored skills or the `agent-skills` capability spec
-- **THEN** the upstream source (`AxonIQ/agent-skills`), plugin (`axoniq-migration`), and version (0.2.2) are documented
-
-#### Scenario: Updating to a new plugin version is an explicit change
-
-- **WHEN** a new `axoniq-migration` plugin version is published upstream
-- **THEN** refreshing the vendored skills is performed as a reviewed change that updates the recorded version, rather
-  than applied silently
+## ADDED Requirements
 
 ### Requirement: Experience analysis is available to agents
 

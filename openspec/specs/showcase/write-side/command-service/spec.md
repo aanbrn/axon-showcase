@@ -1,4 +1,4 @@
-# showcase/command-service Specification
+# showcase/write-side/command-service Specification
 
 ## Purpose
 

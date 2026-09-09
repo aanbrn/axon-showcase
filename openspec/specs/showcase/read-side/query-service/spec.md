@@ -1,4 +1,4 @@
-# showcase/query-service Specification
+# showcase/read-side/query-service Specification
 
 ## Purpose
 

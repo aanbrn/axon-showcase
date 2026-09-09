@@ -1,4 +1,4 @@
-# showcase/helm-chart Specification
+# showcase/deployment/helm-chart Specification
 
 ## Purpose
 

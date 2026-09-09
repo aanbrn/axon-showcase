@@ -76,6 +76,8 @@ Read: Client → API Gateway → Query Service → OpenSearch
 - **Helm 4.x** (for Kubernetes deployment)
 - **Kubernetes cluster** (for deployment)
 - **Snyk CLI** (for the dependency security scan)
+- **actionlint** (for the GitHub workflow lint gate in `check`; see https://github.com/rhysd/actionlint — brew,
+  `go install`, or a release binary)
 - **`pack` CLI** (for the web-UI image build; see
   https://buildpacks.io/docs/for-platform-operators/how-to/integrate-ci/pack/, e.g. `brew install buildpacks/tap/pack`
   on macOS)

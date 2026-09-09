@@ -39,6 +39,14 @@ jobs:
       - name: Install openspec CLI
         run: npm install --global @fission-ai/openspec@1.11.0
 
+      - name: Install actionlint
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/actionlint"
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) \
+            latest "$RUNNER_TEMP/actionlint"
+          echo "$RUNNER_TEMP/actionlint" >> "$GITHUB_PATH"
+
       - name: Run quality gates
         shell: bash
         run: |

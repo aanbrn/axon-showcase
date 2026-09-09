@@ -64,6 +64,14 @@ agent skills are available to agents" while narrowing it) fails `openspec valida
 this delta: MODIFIED failed for header ... not found" and must be reverted. To genuinely retitle a requirement,
 delete-and-add it instead of renaming the MODIFIED header.
 
+**A spec rename/move (`git mv`) does not update the spec's internal `#` title, and nothing validates the title against
+the capability path.** The first line of `openspec/specs/.../spec.md` must be edited separately to match the new path —
+`openspec validate` never checks it, so a stale header is silent drift that passes CI. The 2026-08-14 role-group
+restructure git-mv'd most spec files but left their `#` headers at the old `showcase/<capability>` paths (e.g.
+`# showcase/helm-chart Specification` still under `showcase/deployment/helm-chart/`); the `rest-api` rename fixed one
+such leftover, and several still remain. On any spec move or capability rename, fix the first line in the same change —
+the title does not follow the file.
+
 **Run CI before archiving; one PR per change.** Push the implementation branch and open a PR with the code and the
 active change dir. After the `build` check is green and the user approves, archive the change (move the change dir and
 sync the main spec) as an additional commit in the _same_ PR, then merge once. The archive — the declaration that a

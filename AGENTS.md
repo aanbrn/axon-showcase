@@ -381,6 +381,11 @@ Key modules (libraries, not services):
   went-well/went-wrong) and improvement suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process`
   (→ AGENTS.md), which the main agent verifies and applies. Retrospectives land in `docs/retrospectives/<date>.md` as a
   docs change.
+- **Thorough-review subagent for deep passes**: the `review-thorough` subagent (`.opencode/agent/review-thorough.md`)
+  does a deep review of a change against its proposal, delta specs, design, tasks, and the implementation diff — drift,
+  correctness, architecture, and conventions. It is intentionally not auto-scheduled (the expensive pass); invoke it
+  with the `/review-thorough` opencode command (or ask the main agent to run it manually). Findings come back grouped by
+  severity with file/line references; the main agent applies fixes.
 - **A subagent is only invocable through a trigger, not its documentation**: documenting an `.opencode/agent/*.md`
   subagent in AGENTS.md does not make it reachable — ship a `.opencode/commands/*.md` command (e.g. the `/retrospective`
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as

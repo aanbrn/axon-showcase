@@ -373,6 +373,14 @@ Key modules (libraries, not services):
   to read screenshots. When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent —
   it inherits the Playwright MCP, captures the screenshot into its own context, reads it, and returns a description,
   while the main session stays on the cheap model. This auto-routes vision work without manual model switching.
+- **Experience-analyzer subagent for retrospectives and improvements**: the `experience-analyzer` subagent
+  (`.opencode/agent/experience-analyzer.md`) aggregates recent experience across many changes — above the per-change
+  `review-quick`/`lesson-capture` agents. Trigger it with the `/retrospective` opencode command (or run it manually):
+  the command gathers the digest with `./scripts/experience-analysis.sh [since]` (merged PRs, git log, archived changes,
+  AGENTS.md gotchas, docs/ideas.md), then the subagent returns a retrospective (shipped PRs by theme, lessons,
+  went-well/went-wrong) and improvement suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process`
+  (→ AGENTS.md), which the main agent verifies and applies. Retrospectives land in `docs/retrospectives/<date>.md` as a
+  docs change.
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired

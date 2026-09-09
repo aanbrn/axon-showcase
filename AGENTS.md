@@ -347,7 +347,10 @@ Key modules (libraries, not services):
   - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML, and so
     on); markdown is formatted by the root Spotless `markdown` format (Prettier at `printWidth: 120` — a preference, not
     a hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating markdown wrapping).
-    Verify with `awk 'length > 120'` over edited files.
+    Verify with `awk 'length > 120'` over edited files. Formatters cannot reflow string literals (e.g. an error message
+    in Kotlin/Gradle), so wrap an over-long string with concatenation (`"part1 " + "part2"`) — the formatter preserves
+    it. Write markdown as natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the
+    formatter owns the wrapping and reflows on every run.
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with
@@ -548,6 +551,18 @@ that override when bumping the Kafka image tag.
   stash carries the pre-rebase copy). This surfaced when the ideas-dates fix (PR #64) merged mid-rebase. Resolve by
   restoring the docs file to `origin/main` (the change branch carries no docs changes) rather than resolving the markers
   by hand.
+- **`git reset --hard` on a branch with uncommitted work discards tracked-file edits.** A change branch holds the
+  implementation uncommitted (per the workflow); a `git reset --hard origin/main` to "rebase" the branch reverts every
+  tracked-file modification (`build.gradle.kts`, workflows, docs) while leaving untracked files (the change dir, new
+  sources) intact — silently losing the implementation's edits. This bit the actionlint change when rebasing onto a main
+  that had advanced. Never `reset --hard` a branch carrying uncommitted work: with no local commits,
+  `git reset --soft`/`--mixed` to `origin/main` keeps the working tree; with local commits, `git rebase` (or stash →
+  rebase → stash pop, per the stash-pop gotcha above) is the way. Verify `git status` after to confirm the diff
+  survived.
+- **The actionlint download script takes positional arguments (`version dir`), not `--dir`, and the target dir must
+  already exist.** When installing actionlint in CI with `bash <(curl .../scripts/download-actionlint.bash)`, pass
+  `latest "$RUNNER_TEMP/actionlint"` and `mkdir -p` the dir first — a `--dir` flag is rejected as an invalid version
+  (the script exits 1 with its usage).
 
 - **Deployment investigations must include the Helm chart and values files.** When diagnosing a deployment issue, the
   chart (`helm/chart/src/main/helm/`) and its values (`helm/values/*/values-*.yaml`) are always in scope alongside the

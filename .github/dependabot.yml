@@ -8,3 +8,7 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    # Auto-assign the repo owner as reviewer so Dependabot PRs surface as review requests (GitHub notifies on
+    # reviewer assignment) instead of being silently merged/ignored.
+    reviewers:
+      - aanbrn

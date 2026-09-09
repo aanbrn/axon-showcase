@@ -75,7 +75,7 @@ jobs:
             echo "Updated issue #$existing"
             issue_number="$existing"
           else
-            created="$(gh issue create --repo "${{ github.repository }}" --title "$issue_title" --body "$body")"
+            gh issue create --repo "${{ github.repository }}" --title "$issue_title" --body "$body"
             echo "Created new issue"
             issue_number="$(gh issue list --repo "${{ github.repository }}" \
               --search "in:title \"$issue_title\" is:issue is:open" \

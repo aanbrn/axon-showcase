@@ -70,6 +70,8 @@ wait for approval before merging.
 - Gradle wrapper included (use `./gradlew`)
 - Helm 4.x + Kubernetes cluster (for deployment)
 - Snyk CLI (for `./gradlew dependencySecurityCheck`)
+- actionlint (for `./gradlew workflowLint`, part of `check`; see https://github.com/rhysd/actionlint — brew,
+  `go install`, or a release binary)
 - `pack` CLI (for the web-UI `dockerBuildImage` image build; see
   https://buildpacks.io/docs/for-platform-operators/how-to/integrate-ci/pack/, e.g. `brew install buildpacks/tap/pack`
   on macOS)
@@ -199,6 +201,9 @@ initialized:
   coverage, which PRs skip by design.
 - **Pushes to `main`** run the full gate: `./gradlew check` (with integration tests and the coverage gate) plus
   `openspec validate --all`.
+
+The `check` task also runs `workflowLint`, which lints the GitHub Actions workflows with actionlint (installed on the
+runner via the official download script; see the Prerequisites).
 
 The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (dependencies, wrapper, and local build
 cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the

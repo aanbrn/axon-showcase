@@ -11,6 +11,7 @@ plugins {
     id("helm-releases-conventions")
     alias(libs.plugins.spotless)
     jacoco
+    id("workflow-lint-conventions")
 }
 
 spotless {
@@ -226,6 +227,7 @@ tasks.register("helmUpdates", HelmUpdatesTask::class.java) {
 
 tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
+    dependsOn("workflowLint")
 }
 
 helm {

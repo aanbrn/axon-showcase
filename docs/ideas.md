@@ -20,6 +20,14 @@ appending to the most recent one).
   excluding. The risk outweighs the payoff for a surface that is not a real pain today — unlike markdown, whose manual
   120-char wrapping drove the Prettier gate. Revisit only if YAML drift actually becomes a pain.
 
+- Automate sprint retrospectives — parked; no change yet. Gather the deterministic inputs with shell/gh
+  (`gh pr list --merged --since <sprint-start>`, `git log`, `ls openspec/changes/archive/`, AGENTS.md gotchas,
+  docs/ideas.md), then a `sprint-retrospective` subagent (like `lesson-capture` but sprint-scoped) synthesizes a doc
+  with shipped PRs grouped by theme, lessons learned, went-well/went-wrong, and action items; store in
+  `docs/retrospectives/<date>.md` as a docs change. Open questions: where retrospectives live, how a sprint is defined
+  (date window vs. fixed cadence), and whether to build a `scripts/sprint-retrospective.sh` gatherer or just the
+  subagent.
+
 ## 2026-09-08
 
 - Make the api-gateway's kafka-client NetworkPolicy label a chart default — parked; no change yet. The gateway consumes

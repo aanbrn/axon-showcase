@@ -47,12 +47,14 @@ repo fit; for the implementation, the tasks and delta spec — and repeat it unt
 everything the quick review finds, re-run it, and stop only when it comes back clean — only then ask the user for a
 manual review pass.
 
-**Capture lessons after every change's implementation.** Once the implementation's quick review is clean, run the
-`lesson-capture` subagent (giving it the diff, review findings, the change dir, and a short note on what went wrong or
-was learned) to propose AGENTS.md additions — gotchas and conventions worth recording. Apply the proposals the main
-agent judges durable, then ship them as a docs PR (per the docs-refresh convention) alongside or after the change.
-Process mistakes that leave no diff trace (e.g. a git command that discarded work) are the most valuable thing to
-capture — this is what makes the capture systematic instead of memory-dependent.
+**Capture lessons after every change's implementation and after every merge into `main`.** Once a change's
+implementation quick review is clean — and again after the PR is merged (including docs changes, standalone fixes, and
+dependency bumps that never went through the OpenSpec workflow) — run the `lesson-capture` subagent (giving it the diff,
+review findings, the change dir when one exists, and a short note on what went wrong or was learned) to propose
+AGENTS.md additions — gotchas and conventions worth recording. Apply the proposals the main agent judges durable, then
+ship them as a docs PR (per the docs-refresh convention) alongside or after the change. Process mistakes that leave no
+diff trace (e.g. a git command that discarded work) are the most valuable thing to capture — this is what makes the
+capture systematic instead of memory-dependent.
 
 **Sync the main spec only at archive.** Apply edits to code and the change dir's _delta_ spec — never the main spec
 under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source

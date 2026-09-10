@@ -71,8 +71,8 @@ SHALL propose the retrospective and suggestions without editing files; the main 
 ### Requirement: Per-change quality-gate and analysis subagents are available
 
 The repository SHALL provide locally-defined agent subagents under `.opencode/agent/` for the per-change quality gates
-and analysis workflows: `review-quick`, `review-thorough`, `lesson-capture`, and `vision`. Each SHALL be invocable by
-the main agent, with its purpose described in its agent definition and (where relevant) in `AGENTS.md`.
+and analysis workflows: `review-quick`, `review-thorough`, `lesson-capture`, `vision`, and `diagrammer`. Each SHALL be
+invocable by the main agent, with its purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 
 #### Scenario: Quick review runs after proposal and implementation
 
@@ -96,3 +96,10 @@ the main agent, with its purpose described in its agent definition and (where re
 - **WHEN** the main agent needs to inspect a screenshot, image, or visual UI state (e.g. web-UI styling)
 - **THEN** the `vision` subagent reads the image and returns a description, so the text-only main agent can delegate
   visual review
+
+#### Scenario: ASCII diagrams are drawn by the pro-model diagrammer
+
+- **WHEN** a diagram needs to be created, aligned, or fixed (e.g. a README flow diagram)
+- **THEN** the `diagrammer` subagent renders it with the pro model: it establishes the semantic mapping (which span
+  starts and ends where), aligns by character width, and preserves deliberate asymmetry — so the cheap flash main agent
+  does not spend effort on ASCII geometry

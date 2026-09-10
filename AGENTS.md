@@ -10,7 +10,7 @@
 ## Project Overview
 
 **axon-showcase** — a CQRS/Event Sourcing reference app using the Axon Framework. Java 21, Spring Boot 3.5.16, Gradle
-8.14.5 (Kotlin DSL), monorepo with 19 modules (18 JVM + `showcase-web-ui`).
+9.7.1 (Kotlin DSL), monorepo with 19 modules (18 JVM + `showcase-web-ui`).
 
 This repo uses **spec-driven development**: behavior is captured as OpenSpec specs in `openspec/specs/showcase/`
 (organized by architectural role: `gateway`, `write-side`, `read-side`, `clients`, `extensions`, `deployment`,
@@ -353,6 +353,15 @@ Key modules (libraries, not services):
   reflect the new state (commands, config, conventions, gotchas) and update them before reporting the change done; also
   remove the change's idea from `docs/ideas.md` (it is captured once implemented — see the file's header) as a separate
   docs PR
+- **README design intent**: the README is a human-facing showcase and onboarding guide, not a reference dump. Preserve
+  its intended shape on every edit: section order (intro → Project Structure → Cool Story → Architecture → Technologies
+  → Development Workflow → Getting Started → Development Practices → Deployment and Operations → License/Author);
+  "Getting Started" is a step-by-step path (tools → sources → build → run → play); prefer Gradle tasks over raw
+  `docker compose`/`helm install` commands (they need env vars the Gradle tasks set automatically); use one CLI for API
+  examples (curl) — do not add parallel httpie examples; the development narrative is a prompting exercise (the agent
+  implements, the human approves); observability is Kubernetes-deployment-only via Helm (custom Axon Showcase Grafana
+  dashboard, not in the local compose stack); slash commands render as a table; a worked scenario shows the interactive
+  loop
 - **No comments** in source code (per project convention). The sole exception is the `// SPDX-License-Identifier: MIT`
   header, enforced by Spotless on every Java file and by `eslint-plugin-header` (`@tony.ganchev/eslint-plugin-header` in
   the flat `showcase-web-ui/eslint.config.js`, since the original plugin is unmaintained and does not support ESLint
@@ -551,8 +560,9 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
 line (standalone `./gradlew composeUp` — a leading `:` from the IDE, e.g. `:composeUp`, is tolerated) or when a
 scheduled task needs it as a dependency or finalizer — the web-UI `e2eTest` boots the stack via `composeBuildAndUp` and
 tears it down via `composeDown`. Broad builds that do not schedule a compose task never start/stop containers as a side
-effect. `composeBuildAndUp` uses `docker compose up -d --wait`, so it blocks until every healthchecked service
-(including the gateway) reports healthy — the e2e depends on this to avoid racing gateway startup.
+effect. `composeBuildAndUp` starts the stack with `docker compose up -d` (no `--wait` — a one-shot `kafka-init`
+container would trip `--wait`'s health check), so the e2e suite polls the gateway's health endpoint itself to avoid
+racing gateway startup.
 
 **Infra image versions are single-sourced** in `gradle/libs.versions.toml`: `*-image-tag` coordinates
 (`postgres-image-tag`, `kafka-image-tag`, `opensearch-image-tag`) for the official Docker Hub images used by

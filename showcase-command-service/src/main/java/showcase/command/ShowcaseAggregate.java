@@ -152,7 +152,7 @@ final class ShowcaseAggregate {
      * Starts a scheduled showcase.
      *
      * <p>The showcase must be in {@link ShowcaseStatus#SCHEDULED} state. Starting an already started showcase is
-     * a no-op (idempotent retry). Finishing an already finished showcase is rejected.
+     * a no-op (idempotent retry). Starting an already finished showcase is rejected.
      *
      * @param command the start command to handle
      */

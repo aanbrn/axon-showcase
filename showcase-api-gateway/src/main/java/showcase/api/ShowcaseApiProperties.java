@@ -67,7 +67,7 @@ public final class ShowcaseApiProperties {
     }
 
     /**
-     * The caches configured by name, keyed by the cache name and holding its Cache settings.
+     * The caches configured by key (see {@link ShowcaseApiConstants}), each holding its cache settings.
      */
     @NotNull
     @Valid

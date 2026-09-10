@@ -35,7 +35,7 @@ public class ShowcaseCommandMatchers {
      * @return a matcher on the error details error message
      */
     public static Matcher<ShowcaseCommandErrorDetails> aCommandErrorDetailsWithErrorMessage(Matcher<String> matcher) {
-        return new FeatureMatcher<>(matcher, "A command error details with error message", "errorCode") {
+        return new FeatureMatcher<>(matcher, "A command error details with error message", "errorMessage") {
             @Override
             protected String featureValueOf(ShowcaseCommandErrorDetails actual) {
                 return actual.errorMessage();

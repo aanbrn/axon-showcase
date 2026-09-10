@@ -1,90 +1,399 @@
 # axon-showcase
 
-A reference application demonstrating a **microservice architecture** built with the **Axon Framework** (CQRS/Event
-Sourcing), Spring Boot, and Kubernetes.
+A reference application that demonstrates **microservices with CQRS and Event Sourcing** — built on the Axon Framework,
+Spring Boot, and Kubernetes, and developed through a fully **spec-driven, agent-assisted process**.
+
+It is not a toy CRUD app. It shows a complete event-sourced system you can _watch work_: schedule a showcase and the
+system drives it through its lifecycle itself — starting it at the right time, finishing it after its duration,
+streaming every event live to a browser UI that updates as it happens. And the way the code is written and reviewed is
+itself a demonstration: behavior is captured in specs, changes are proposed, applied, reviewed, and archived by an
+automated agent pipeline.
 
 ## Project Structure
 
 ```
 axon-showcase/
-├── platform/                       # Shared platform BOM and dependency management
-├── build-logic/                    # Gradle build conventions and plugins
-├── gradle/                         # Version catalog (libs.versions.toml)
-├── docs/adr/                       # Architecture decision records
-├── openspec/                       # Spec-driven behavior specs and changes
-├── helm/                           # Helm charts for Kubernetes deployment
-│   └── chart/                      # Main chart for the application
-├── docker-compose.yml              # Local development with Docker Compose
-├── showcase-api-gateway/           # REST API gateway (entry point)
-├── showcase-command-api/           # Command-side API definitions
-├── showcase-command-client/        # Command-side client library
-├── showcase-command-service/       # Command service (write side)
-├── showcase-projection-model/      # Shared query model definitions
-├── showcase-projection-service/    # Projection service (event handlers)
-├── showcase-query-api/             # Query-side API definitions
-├── showcase-query-client/          # Query-side client library
-├── showcase-query-proto/           # Protobuf definitions for queries
-├── showcase-query-service/         # Query service (read side)
-├── showcase-web-ui/                # Standalone web UI (React + Vite, Feature-Sliced Design)
-├── showcase-identifier-extension/  # KSUID identifier support
-├── showcase-mapstruct-extension/   # MapStruct extensions
-├── showcase-resilience4j-extension # Resilience4j integration
-├── showcase-test/                  # Shared test utilities
-├── load-tests/                     # Gatling-based load tests
-├── helm/values/                    # Helm values for local deployment
-└── db-{init,drop}.sh               # Database setup scripts
+├── Services and gateway
+│   ├── showcase-api-gateway/            # REST entry point (/showcases), SSE live events (/events)
+│   ├── showcase-command-service/        # Write side: Axon aggregate, saga, distributed bus
+│   ├── showcase-projection-service/     # Consumes Kafka, writes read models to OpenSearch
+│   ├── showcase-query-service/          # Read side: queries OpenSearch, Protobuf query API
+│   └── showcase-web-ui/                 # Standalone browser UI (React + Vite, Feature-Sliced Design)
+├── API and clients
+│   ├── showcase-command-api/            # Command-side API interfaces
+│   ├── showcase-command-client/         # Reactive command client
+│   ├── showcase-query-api/              # Query-side API interfaces
+│   ├── showcase-query-client/           # Reactive query client
+│   └── showcase-query-proto/            # Protobuf definitions for queries
+├── Shared libraries
+│   ├── showcase-projection-model/       # Shared query model definitions
+│   ├── showcase-identifier-extension/   # KSUID identifier support
+│   ├── showcase-mapstruct-extension/    # MapStruct extensions
+│   ├── showcase-resilience4j-extension/ # Resilience4j integration
+│   └── showcase-test/                   # Shared test utilities
+├── Build and deployment
+│   ├── build-logic/                     # Gradle convention plugins
+│   ├── gradle/                          # Version catalog (libs.versions.toml)
+│   ├── platform/                        # Shared BOM and dependency management
+│   ├── helm/                            # Helm charts for Kubernetes deployment
+│   │   └── chart/                       # Main chart for the application
+│   ├── docker-compose.yml               # Local development with Docker Compose
+│   └── load-tests/                      # Gatling-based load tests
+├── Documentation and process
+│   ├── docs/adr/                        # Architecture decision records
+│   └── openspec/                        # Spec-driven behavior specs and changes
+├── Scripts
+│   ├── db.sh                            # Database setup (init / drop / reset)
+│   ├── setup-hosts.sh                   # Manage /etc/hosts entries for the local ingress
+│   └── scripts/                         # Dev tooling: setup-idea.sh, experience-analysis.sh
 ```
 
-## Technologies
+## The Cool Story
 
-- **Java 21+**
-- **Spring Boot 3.5.16** (a Spring Boot 4 migration is deferred — see `docs/adr/0004`)
-- **Axon Framework** — CQRS, Event Sourcing, Command/Query Bus
-- **PostgreSQL** — Event store (events)
-- **Apache Kafka** — Event streaming and messaging
-- **OpenSearch** — Read-side projection store (query views)
-- **Grafana Tempo** — Distributed tracing
-- **Helm** — Kubernetes packaging and deployment
-- **Gatling** — Load testing
-- **Gradle** — Build orchestration
-- **React + Vite + TypeScript** — Web UI (TanStack Query, Redux Toolkit, React Hook Form + Zod, Prettier, Vitest)
+The domain is deliberately simple — a "showcase" is a scheduled, timed event with a lifecycle. The value is in _what the
+plumbing does with it_:
+
+```
+Scheduled ──(saga deadline: startTime)──► STARTED ──(saga deadline: +duration)──► FINISHED
+    │                                                                              │
+    └────────────────────────────── REMOVED (any time) ────────────────────────────┘
+```
+
+- **The saga runs the show.** When you schedule a showcase, an Axon **saga** (in `ShowcaseSaga`) sets a deadline to
+  start it at the scheduled time, then another to finish it after the configured duration. You can schedule a showcase
+  and literally watch it auto-start and auto-finish without touching anything.
+- **Everything is an event.** Every transition is an Axon domain event, stored in the PostgreSQL event store, published
+  to Kafka, projected into OpenSearch, and streamed live to browsers over **SSE** (`/events`).
+- **The command side scales.** The command service runs a **distributed command bus** (JGroups). In the local deployment
+  its two replicas and the API gateway form one JGroups cluster — peers discover each other through the Kubernetes API
+  (KUBE_PING) and commands route across all nodes — so the write side scales out like a real system. Every service can
+  be autoscaled (HPA/VPA) and protected with Pod Disruption Budgets.
+- **A real browser UI shows it live.** The React UI renders the event timeline, listens to the SSE stream, and
+  reconciles against the eventually-consistent read model — so you see the saga's transitions appear live.
+- **Resilience is built in.** The command and query clients apply **Resilience4j** circuit breakers, time limiters, and
+  retries, and the gateway falls back to a cache when the query side is unavailable.
+- **It is observable.** Tempo traces, Prometheus metrics (including web-UI nginx metrics), a dedicated Grafana
+  dashboard, health checks, and Gatling load tests are wired in — the same observability a production service needs.
+  Observability is available in the **Kubernetes deployment** (Prometheus, Grafana, and Tempo run in the `monitoring`
+  namespace); the local docker-compose stack runs without it.
+- **Identifiers are KSUIDs** (sortable, collision-resistant), enforced through a custom identifier extension.
 
 ## Architecture
 
-The application follows a **CQRS (Command Query Responsibility Segregation)** pattern:
+The application follows **CQRS (Command Query Responsibility Segregation)** with four components:
 
-| Component              | Role                                                        |
-| ---------------------- | ----------------------------------------------------------- |
-| **API Gateway**        | Entry point; routes requests to command or query services   |
-| **Command Service**    | Handles write operations; publishes events via Kafka        |
-| **Projection Service** | Consumes events from Kafka and populates OpenSearch views   |
-| **Query Service**      | Handles read operations; queries OpenSearch for projections |
+| Component              | Role                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------- |
+| **API Gateway**        | REST entry point (`/showcases`), SSE live events (`/events`)                                |
+| **Command Service**    | Write side: Axon aggregate, saga, distributed command bus (JGroups), PostgreSQL event store |
+| **Projection Service** | Consumes events from Kafka, writes read models to OpenSearch                                |
+| **Query Service**      | Read side: queries OpenSearch, Protobuf query API                                           |
 
 ### Event Flow
 
 ```
 Write: Client → API Gateway → Command Service → (Kafka) → Projection Service → OpenSearch
-
-Read: Client → API Gateway → Query Service → OpenSearch
+                              └─ Axon event store (PostgreSQL)                     │
+Read:  Client → API Gateway → Query Service → OpenSearch ◄─────────────────────────┘
+SSE:   Command Service → (Kafka) → Gateway /events → Client
 ```
 
-## Prerequisites
+A scheduled showcase flows through the whole pipeline: the command service stores the event and publishes it, the
+projection service builds the read model, the query service serves it, and the gateway streams the event live to any
+subscribed browser — all from one `POST /showcases`.
 
-- **Java 21+**
-- **Docker & Docker Compose** (for local development)
-- **Gradle 9.x** (or use the Gradle wrapper)
-- **Helm 4.x** (for Kubernetes deployment)
-- **Kubernetes cluster** (for deployment)
-- **Snyk CLI** (for the dependency security scan)
-- **actionlint** (for the GitHub workflow lint gate in `check`; see https://github.com/rhysd/actionlint — brew,
-  `go install`, or a release binary)
-- **`pack` CLI** (for the web-UI image build; see
-  https://buildpacks.io/docs/for-platform-operators/how-to/integrate-ci/pack/, e.g. `brew install buildpacks/tap/pack`
-  on macOS)
+## Technologies
 
-## Local Development
+### In the System
 
-### IntelliJ IDEA Setup
+- **Java 21** and **Spring Boot 3.5.16** (a Spring Boot 4 migration is deferred — see `docs/adr/0004`)
+- **Axon Framework** — aggregates, sagas and deadlines, command/query buses, distributed command bus via **JGroups**
+- **PostgreSQL** — the Axon event store
+- **Apache Kafka** — event streaming between services
+- **OpenSearch** — the read-side projection store
+- **React + Vite + TypeScript** — web UI (TanStack Query, Redux Toolkit, React Hook Form + Zod, Vitest, Playwright),
+  Feature-Sliced Design
+- **KSUID** identifiers, **MapStruct** mapping, **Resilience4j** resilience, **Protobuf** inter-service queries
+- **Helm** + **Kubernetes** — deployment (HPA/VPA/PDB, network policies, ingress)
+- **Prometheus / Grafana / Tempo** — metrics, a custom observability dashboard, and distributed tracing (in the
+  Kubernetes deployment)
+- **Gatling** — load tests
+
+### In the Process
+
+- **Gradle** (Kotlin DSL) with **build-logic convention plugins** and a version catalog
+- **Spotless** — palantir-java-format for Java, ktfmt for Kotlin/Gradle DSL, Prettier for markdown
+- **Checkstyle, SpotBugs, ErrorProne (NullAway), JaCoCo coverage gate** — all in `check`, no IDE required
+- **actionlint** — lints the GitHub Actions workflows
+- **Snyk** — dependency security scanning
+- **OpenSpec** — spec-driven behavior capture (`propose → apply → archive`)
+- **OpenCode** — the agentic coding tool driving the process (slash-commands, spec-aware subagents; see below)
+- **GitHub Actions** — CI, e2e, dependency updates, helm updates, security scans
+
+## Development Workflow
+
+> Just want to run the project? Skip to [Getting Started](#getting-started).
+
+### Spec-Driven Development
+
+This repository is built spec-first. Behavior is captured as OpenSpec specs under `openspec/specs/` and changes are
+planned under `openspec/changes/` using the propose → apply → archive workflow (via the `/opsx-*` OpenCode commands /
+`openspec-*` skills). `AGENTS.md` is the behavioral source of truth — read it before contributing.
+
+The specs are organized by architectural role (`gateway`, `write-side`, `read-side`, `clients`, `extensions`,
+`deployment`, `quality`) — 22 capability specs covering everything from the REST API and the event pipeline to the
+identifier extension and the dependency-management policy. Every implemented change is archived under
+`openspec/changes/archive/` (120+ and counting), so the spec structure itself tells the project's history: the main spec
+is always in sync with behavior the code has been verified against, and a change's delta spec shows what a specific
+feature introduced.
+
+Emerging ideas are parked in `docs/ideas.md` — a lightweight, date-grouped scratchpad (added to via `/ideas`, removed
+once implemented) rather than a backlog of planned work.
+
+Cross-cutting architecture decisions and their rationale are recorded as Architecture Decision Records under
+`docs/adr/`. OpenSpec captures what the system does and how a change is planned; ADRs capture why the system is shaped
+the way it is.
+
+### The Agentic Process
+
+This repository is developed through a **spec-first, agent-assisted workflow** powered by
+[OpenCode](https://opencode.ai) — an AI coding agent you drive interactively from its **TUI** (terminal) or **Desktop**
+app. You describe what you want in plain language, and the agent does the work: it proposes a plan, writes the code,
+runs the gates, reviews itself, and opens the PR. You steer and approve; the agent implements.
+
+The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
+
+| Agent                 | Role                                                                                    |
+| --------------------- | --------------------------------------------------------------------------------------- |
+| `experience-analyzer` | Periodic retrospectives + improvement suggestions (system & process) — `/retrospective` |
+| `lesson-capture`      | Captures gotchas/conventions into AGENTS.md after every change (automatic)              |
+| `review-quick`        | Fast review after proposal & implementation, repeated until clean (automatic)           |
+| `review-thorough`     | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`           |
+| `vision`              | Reads screenshots for the text-only main agent                                          |
+
+#### What the Agent Automates
+
+- **Proposing and applying changes**: the `opsx-*` commands scaffold a change (proposal, design, tasks, spec delta),
+  implement it, and prepare it for review.
+- **Code review**: every change is auto-reviewed after its proposal and after its implementation; the quick-review loop
+  repeats until it finds nothing new. A deep `/review-thorough` pass is available on demand.
+- **Lesson capture**: after each change, `lesson-capture` proposes AGENTS.md gotchas and conventions — so mistakes are
+  recorded systematically instead of relying on memory.
+- **Retrospectives**: `/retrospective` gathers the last week of PRs and changes and produces a sprint retrospective with
+  improvement suggestions.
+- **Formatting, gates, CI, PRs**: formatting and quality gates run in the build; the agent opens PRs, watches CI, and
+  merges them once green.
+
+#### What the Human Decides
+
+Developing on this repo is mostly a **prompting exercise**: you tell the agent what to build, and it plans, codes,
+tests, reviews, and ships. You almost never edit files by hand — the manual work is deciding and approving:
+
+- **Scope and direction**: what to build, and what an idea becomes.
+- **Approval at each step**: the agent proposes; you approve the proposal, the implementation, and the merge.
+- **Archiving**: a change is archived only after CI is green and you approve.
+- **Applying suggestions**: retrospective improvements and lesson captures are proposed by the agent and applied by your
+  judgment.
+- **Merging**: on this repo, the owner merges PRs directly (admin) once CI is green; a non-admin follows the normal
+  review-required flow.
+
+#### A Worked Scenario
+
+Here is what implementing a feature actually looks like — say you want showcases to support a custom title color. You
+sit in the OpenCode TUI (or Desktop) and type:
+
+```
+Add a custom title color to showcases. The API should accept an optional color in the create request, the command
+service should validate it, and the UI should render the title in that color.
+```
+
+That one prompt starts the whole loop. The agent:
+
+1. **Proposes** (`/opsx-propose`): scaffolds the change under `openspec/changes/` — a proposal, design, tasks, and a
+   spec delta that states the new behavior — then runs a quick self-review of the plan and shows it to you.
+2. **You approve the proposal**: reply "looks good", and the agent starts implementing.
+3. **Implements** (`/opsx-apply`): follows the design's tasks — the new API field, the validation, the UI color — writes
+   the code and the tests, and runs the gates (`spotlessApply`, the module's `check`).
+4. **Auto-reviews**: after the implementation it runs the quick-review again, fixes anything it finds, and reports back
+   what changed and what is verified.
+5. **You review the diff**: you look at the actual changes, ask for tweaks ("also validate the hex format"), and the
+   agent applies them.
+6. **Ships**: on your go-ahead it pushes a branch and opens a PR, watches CI until green, and merges it. On this repo
+   the owner's merge is direct (admin); the agent only merges with your approval.
+7. **You approve archiving** (`/opsx-archive`): the change dir moves to the archive and the main spec is updated to
+   match — the feature is now part of the source of truth.
+
+Throughout, the only manual work was the initial prompt and a few approvals. The agent wrote the plan, the code, the
+tests, and the PR; you steered.
+
+### Slash Commands
+
+| Command                      | What it does                                                               |
+| ---------------------------- | -------------------------------------------------------------------------- |
+| `/opsx-propose`              | Scaffolds a new change: proposal, design, tasks, and spec delta            |
+| `/opsx-apply`                | Implements the change's tasks                                              |
+| `/opsx-archive`              | Archives a completed change and syncs the main spec                        |
+| `/opsx-sync`                 | Syncs a change's delta spec to the main spec without archiving             |
+| `/opsx-update`               | Revises a change's planning artifacts                                      |
+| `/opsx-explore`              | Explores an idea before proposing it                                       |
+| `/review-thorough`           | Deep on-demand review of a change                                          |
+| `/retrospective`             | Weekly retrospective with improvement suggestions                          |
+| `/dependency-updates`        | Runs and summarizes the dependency update report                           |
+| `/gradle-update`             | Updates the Gradle wrapper to the latest stable                            |
+| `/dependency-security-check` | Runs the Snyk dependency security scan                                     |
+| `/opsx-tool-update`          | Regenerates the OpenSpec command/skill files after an openspec CLI release |
+| `/ideas`                     | Lists and manages `docs/ideas.md`                                          |
+
+## Getting Started
+
+### Prerequisites
+
+Most verification runs entirely in the Gradle build, so the tool list is small. Gradle itself is not on it — the wrapper
+pins Gradle 9.7.1 and downloads it on first use.
+
+| Tool                   | Needed for                                                   | Install (macOS)                                          |
+| ---------------------- | ------------------------------------------------------------ | -------------------------------------------------------- |
+| **Java 21+**           | Building and running everything                              | `brew install --cask temurin@21`, or SDKMAN              |
+| **Docker & Compose**   | Infrastructure (PostgreSQL, Kafka, OpenSearch) and the stack | Docker Desktop, or `brew install --cask docker` + colima |
+| **actionlint**         | The workflow-lint gate in `check`                            | `brew install actionlint`                                |
+| **`pack` CLI**         | Building the web-UI image                                    | `brew install buildpacks/tap/pack`                       |
+| **Helm 4.x**           | Kubernetes deployment                                        | `brew install helm`                                      |
+| **Kubernetes cluster** | The `helmInstallToLocal` target                              | kind, minikube, or colima with k3s                       |
+| **Snyk CLI**           | `dependencySecurityCheck`                                    | `brew install snyk/tap/snyk`                             |
+| **Python 3**           | `scripts/setup-idea.sh`                                      | Ships with macOS Command Line Tools                      |
+
+Only **Java and Docker** are required to run the application. actionlint is needed for the full `check`; `pack` only
+when building the web-UI image; Helm, a cluster, and Snyk are only for deployment and security scanning.
+
+### Get the Sources
+
+```bash
+git clone https://github.com/aanbrn/axon-showcase.git
+cd axon-showcase
+```
+
+### Build the Project
+
+```bash
+./gradlew build
+```
+
+`build` compiles everything, runs the quality gates, and runs the test suite. Without Docker, use the fast gate —
+`./gradlew check -PskipITs` skips the Testcontainers integration tests.
+
+### Run the Stack with Docker
+
+```bash
+./gradlew composeBuildAndUp
+```
+
+This is the fastest way to see the whole system work: it builds all five service images and starts the complete stack —
+PostgreSQL, Kafka, OpenSearch, the four services, and the web UI. The Gradle compose tasks set `PROJECT_VERSION` and the
+image tags automatically, so no environment variables are needed.
+
+Open http://localhost:8084 for the web UI, or http://localhost:8080 for the API. Stop everything with
+`./gradlew composeDown`.
+
+Other stack tasks:
+
+```bash
+./gradlew composeUp                # start the stack (images must already be built)
+./gradlew composeStop              # stop the stack without removing it
+./gradlew composeRestart           # restart the stack
+./gradlew composeBuildAndRestart   # rebuild the images, then restart
+```
+
+### Develop from Source
+
+The compose stack runs the application as pre-built containers. To develop a service with hot reload, run it from source
+with `bootRun` while the infrastructure stays in Docker:
+
+```bash
+./gradlew :showcase-api-gateway:bootRun        # :8080
+./gradlew :showcase-command-service:bootRun    # :8081
+./gradlew :showcase-projection-service:bootRun # :8082
+./gradlew :showcase-query-service:bootRun      # :8083
+```
+
+Each service runs on its own HTTP port. The web UI runs on the Vite dev server (hot reload, proxies `/showcases` and
+`/events` to the gateway on `:8080`):
+
+```bash
+./gradlew :showcase-web-ui:viteDev
+```
+
+Open http://localhost:5173.
+
+#### Database Scripts
+
+The command service stores events in PostgreSQL. When running it standalone against a native local PostgreSQL (instead
+of the Docker stack), initialize the event store first:
+
+```bash
+./db.sh init    # initialize the event store (idempotent)
+./db.sh drop    # drop the event store database
+./db.sh reset   # drop and recreate the event store database
+```
+
+### Play with the Application
+
+The web UI is the easiest way in: create a showcase, then watch the saga auto-start and auto-finish it — every
+transition appears live in the event timeline. The same flow works over the API:
+
+```bash
+# Watch events stream in real time (SSE)
+curl -N http://localhost:8080/events
+
+# Schedule a showcase — the saga starts it at startTime and finishes it after the duration.
+# Use a future startTime so you can watch the saga auto-start it (e.g. a few minutes from now).
+curl -X POST http://localhost:8080/showcases \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "My Showcase",
+    "startTime": "2026-10-01T10:00:00Z",
+    "duration": "PT5M30S"
+  }'
+
+# Drive it through its lifecycle
+curl -X PUT http://localhost:8080/showcases/{showcaseId}/start
+curl -X PUT http://localhost:8080/showcases/{showcaseId}/finish
+curl -X DELETE http://localhost:8080/showcases/{showcaseId}
+
+# Browse
+curl "http://localhost:8080/showcases?title=My&status=SCHEDULED&size=10"
+curl http://localhost:8080/showcases/{showcaseId}
+```
+
+The query service also exposes two Protobuf endpoints (`/query` and `/streaming-query`, `application/x-protobuf`),
+consumed by the query-client (`showcase-query-client`) for inter-service communication — the gateway queries the query
+service through that client, which in turn queries OpenSearch.
+
+## Development Practices
+
+### Testing
+
+Tests are organized into four tiers, run in order:
+
+| Tier        | Command                               | Notes                         |
+| ----------- | ------------------------------------- | ----------------------------- |
+| Unit        | `./gradlew :<module>:test`            | isolated, no Spring context   |
+| Component   | `./gradlew :<module>:componentTest`   | real in-process collaborators |
+| Integration | `./gradlew :<module>:integrationTest` | Testcontainers (needs Docker) |
+| End-to-end  | `./gradlew :<module>:e2eTest`         | real deployed service + infra |
+
+The gateway e2e boots the full four-service pipeline with Testcontainers and verifies cross-service propagation. The web
+UI e2e (`./gradlew :showcase-web-ui:e2eTest`) boots the same pipeline via docker compose, serves the built UI with Vite
+preview, and drives it with Playwright — creating a showcase, starting it, observing a saga-triggered transition over
+SSE, live events appending to the timeline, and a duplicate title surfacing the gateway error.
+
+### Quality Gates
+
+Run the full check for a module — compile, spotless, checkstyle, spotbugs, errorprone, test, componentTest,
+integrationTest — with `./gradlew :<module>:check` (add `-PskipITs` to drop integration for a Docker-free check;
+`e2eTest` is a separate opt-in task). All quality gates run in the Gradle build, so no IDE is required to verify a
+change. An IDE (e.g. IntelliJ IDEA) is an optional convenience for interactive editing, debugging, and inspection.
+
+### Formatting and IDE Setup
 
 Formatting is enforced by Spotless — palantir-java-format for Java, ktfmt for Gradle Kotlin DSL (`*.gradle.kts`) and
 build-logic Kotlin (`build-logic/src/**/*.kt`), Prettier for markdown (`docs/`, `AGENTS.md`, `README.md`,
@@ -120,85 +429,27 @@ in sync:
   the backstop either way.
 - When in doubt, format with `./gradlew spotlessApply` — it is the single source of truth.
 
-### Start Dependencies with Docker Compose
+## Deployment and Operations
+
+### Kubernetes Deployment
+
+Use the bundled Helm release — it builds all five images and deploys the monitoring stack, infrastructure, and the
+application to your local cluster in dependency order:
 
 ```bash
-docker compose up -d
+./gradlew helmInstallToLocal
 ```
 
-This starts all infrastructure and application services:
+The `local` release target deploys to your local cluster: it uses the `helm.local.kubeContext` Gradle property when set
+(in `~/.gradle/gradle.properties` or via `-P`), otherwise your current kube context. Set `helm.local.kubeContext` only
+if you have multiple kube contexts and need to pin the local one — e.g. macOS colima users may add
+`helm.local.kubeContext=colima`.
 
-- **PostgreSQL** — event store database
-- **OpenSearch** — projection store (read model)
-- **Apache Kafka** — event streaming
-- **Kafka Init** — creates the `axon-showcase-events` topic
-- **API Gateway** — REST entry point (port 8080, debug 8000)
-- **Command Service** — write side (debug 8001)
-- **Query Service** — read side (debug 8002)
-- **Projection Service** — event handlers (debug 8003)
-- **Web UI** — the deployed frontend (port 8084, served by an nginx container image)
+Custom values can be placed in `helm/values/axon-showcase/values-local.yaml`. Per-release install/uninstall tasks follow
+`helmInstall<Release>ToLocal` / `helmUninstall<Release>FromLocal` (e.g. `helmInstallKpsToLocal`), for installing or
+verifying a single chart without building images.
 
-Application images must be built first (`./gradlew bootBuildImage` for the JVM services,
-`./gradlew :showcase-web-ui:dockerBuildImage` for the UI). The compose stack resolves image tags from `PROJECT_VERSION`
-(e.g. `0.1.0-SNAPSHOT`), which must equal the version the images were built with — the Gradle compose tasks set it
-automatically; a raw `docker compose up -d` needs `PROJECT_VERSION` set explicitly so the tags match.
-
-### Build the Project
-
-```bash
-./gradlew build
-```
-
-### Run Locally
-
-Each service can be run individually or via `docker compose`:
-
-```bash
-./gradlew :showcase-api-gateway:bootRun
-./gradlew :showcase-command-service:bootRun
-./gradlew :showcase-query-service:bootRun
-./gradlew :showcase-projection-service:bootRun
-```
-
-Each service runs on its own HTTP port: API gateway `8080`, command service `8081`, projection service `8082`, query
-service `8083`.
-
-#### Run the Web UI
-
-With the services running (via `docker compose` or `bootRun`), start the Vite dev server:
-
-```bash
-./gradlew :showcase-web-ui:viteDev
-```
-
-Open http://localhost:5173. The dev server proxies `/showcases` and `/events` to the gateway on `:8080`, so you can
-create showcases, watch their lifecycle transitions happen live over SSE (including saga-triggered ones), and drive
-start/finish/remove from the browser.
-
-### Database Scripts
-
-```bash
-# Initialize the event store database (idempotent)
-./db.sh init
-
-# Drop the event store database
-./db.sh drop
-
-# Drop and recreate the event store database
-./db.sh reset
-```
-
-## Spec-Driven Development
-
-This repository is built spec-first. Behavior is captured as OpenSpec specs under `openspec/specs/` and changes are
-planned under `openspec/changes/` using the propose → apply → archive workflow (via the `opsx-*` opencode commands /
-`openspec-*` skills). `AGENTS.md` is the behavioral source of truth — read it before contributing.
-
-Cross-cutting architecture decisions and their rationale are recorded as Architecture Decision Records under
-`docs/adr/`. OpenSpec captures what the system does and how a change is planned; ADRs capture why the system is shaped
-the way it is.
-
-## Continuous Integration
+### Continuous Integration
 
 `.github/workflows/ci.yml` gates every pull request and push to `main` with a single `build` check. Pull requests run
 the Docker-free fast gate (`check -PskipITs` with the coverage gate disabled), while pushes to `main` run the full gate
@@ -220,55 +471,27 @@ sections of the report (stable catalog updates + Gradle wrapper status) using th
 there are actionable updates it posts a comment mentioning the repository owner (so they are notified); runs with no
 updates update the issue silently — observational, never a merge gate.
 
-## Testing
+`.github/workflows/helm-updates.yml` runs the Helm update check (`helmUpdates`) on a weekly schedule and via
+`workflow_dispatch`, opening or updating the "Helm updates" issue with the actionable coordinates (the Helm CLI and
+pinned chart versions that have a newer version) — observational, never a merge gate.
 
-Tests are organized into four tiers, run in order:
-
-| Tier        | Command                               | Notes                         |
-| ----------- | ------------------------------------- | ----------------------------- |
-| Unit        | `./gradlew :<module>:test`            | isolated, no Spring context   |
-| Component   | `./gradlew :<module>:componentTest`   | real in-process collaborators |
-| Integration | `./gradlew :<module>:integrationTest` | Testcontainers (needs Docker) |
-| End-to-end  | `./gradlew :<module>:e2eTest`         | real deployed service + infra |
-
-The gateway e2e boots the full four-service pipeline with Testcontainers and verifies cross-service propagation. The web
-UI e2e (`./gradlew :showcase-web-ui:e2eTest`) boots the same pipeline via docker compose, serves the built UI with Vite
-preview, and drives it with Playwright — creating a showcase, starting it, observing a saga-triggered transition over
-SSE, live events appending to the timeline, and a duplicate title surfacing the gateway error.
-
-Run the full check for a module — compile, spotless, checkstyle, spotbugs, errorprone, test, componentTest,
-integrationTest — with `./gradlew :<module>:check` (add `-PskipITs` to drop integration for a Docker-free check;
-`e2eTest` is a separate opt-in task). All quality gates run in the Gradle build, so no IDE is required to verify a
-change. An IDE (e.g. IntelliJ IDEA) is an optional convenience for interactive editing, debugging, and inspection.
-
-## Dependency Security
+### Dependency Updates and Security
 
 ```bash
-./gradlew dependencySecurityCheck
+./gradlew dependencyUpdates            # report available dependency updates
+./gradlew dependencySecurityCheck      # Snyk dependency security scan (needs Snyk CLI, not part of check)
+./gradlew helmUpdates                  # report available Helm chart updates
+./gradlew verifyInfraImageVersions     # verify infra image tags match their pinned charts
+./gradlew workflowLint                 # lint the GitHub Actions workflows with actionlint
 ```
 
-Runs the Snyk dependency scan (`snyk test --all-sub-projects`) across all sub-projects. Requires the Snyk CLI on `PATH`
-and is intentionally not part of `./gradlew check`.
-
-## Dependency Updates
-
-```bash
-./gradlew dependencyUpdates
-```
-
-Reports newer versions of dependencies whose version is declared with an exact `version.ref` in the version catalog
-(`gradle/libs.versions.toml`); BOM-inherited versions are not reported. Major updates can be suppressed per coordinate
-or group prefix in `config/dependency-updates/major-disabled.properties` — minor and patch updates for those coordinates
-are still reported. The suppression rationale for each coordinate is recorded in the
+`dependencyUpdates` reports newer versions of dependencies whose version is declared with an exact `version.ref` in the
+version catalog (`gradle/libs.versions.toml`); BOM-inherited versions are not reported. Major updates can be suppressed
+per coordinate or group prefix in `config/dependency-updates/major-disabled.properties` — minor and patch updates for
+those coordinates are still reported. The suppression rationale for each coordinate is recorded in the
 `showcase/quality/dependency-management` spec. See ADR-0004 for the deferred Spring Boot 4 migration context.
 
-For calendar-versioned coordinates (leading segment is a 4-digit year, e.g. Spring `YYYY.MINOR.MICRO` such as
-`reactor-bom 2025.0.7`), a change in the `YYYY.TRAIN` pair (the first two version segments) is treated as a major update
-— matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains — while a change only in
-the service-release (third) segment within the same train is a minor/patch update. Semver coordinates keep the
-leading-integer major comparison.
-
-The `/dependency-updates` opencode command runs this report and summarizes the available updates; the `/gradle-update`
+The `/dependency-updates` OpenCode command runs this report and summarizes the available updates; the `/gradle-update`
 command updates the Gradle wrapper to the latest stable version when one is available, and the `/opsx-tool-update`
 command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI release.
 
@@ -279,148 +502,41 @@ everywhere — `2.17.1` is the floor of an external Log4Shell guard published by
 known `gradle-versions-plugin` limitation, not real updates (see upstream ben-manes/gradle-versions-plugin#755); see
 ADR-0007 for the evidence trail.
 
-## Kubernetes Deployment
+For calendar-versioned coordinates (leading segment is a 4-digit year, e.g. Spring `YYYY.MINOR.MICRO` such as
+`reactor-bom 2025.0.7`), a change in the `YYYY.TRAIN` pair (the first two version segments) is treated as a major update
+— matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains — while a change only in
+the service-release (third) segment within the same train is a minor/patch update. Semver coordinates keep the
+leading-integer major comparison.
 
-### Deploy to Local Cluster (Kind/minikube)
-
-```bash
-# Install monitoring stack (Prometheus + Grafana + Tempo)
-helm install kps prometheus-community/kube-prometheus-stack \
-  --version 90.0.0 \
-  --namespace monitoring --create-namespace \
-  --wait
-
-helm install tempo grafana/tempo \
-  --version 1.24.4 \
-  --namespace monitoring --create-namespace \
-  --wait
-
-# Install infrastructure
-helm install axon-showcase-db-events bitnami/postgresql \
-  --version 16.7.27 \
-  --namespace axon-showcase --create-namespace \
-  --wait
-
-helm install axon-showcase-kafka bitnami/kafka \
-  --version 31.5.0 \
-  --namespace axon-showcase --create-namespace \
-  --wait
-
-helm install axon-showcase-os-views bitnami/opensearch \
-  --version 2.0.10 \
-  --namespace axon-showcase --create-namespace \
-  --wait
-
-# Install the application
-helm install axon-showcase ./helm/chart \
-  --namespace axon-showcase --create-namespace \
-  --wait
-```
-
-Or use the bundled Helm release:
-
-```bash
-./gradlew helmInstallToLocal
-```
-
-The `local` release target deploys to your local cluster: it uses the `helm.local.kubeContext` Gradle property when set
-(in `~/.gradle/gradle.properties` or via `-P`), otherwise your current kube context. Set `helm.local.kubeContext` only
-if you have multiple kube contexts and need to pin the local one — e.g. macOS colima users may add
-`helm.local.kubeContext=colima`.
-
-### Helm Values
-
-Custom values can be placed in `helm/values/axon-showcase/values-local.yaml`.
-
-## API Usage
-
-The API is exposed at `http://localhost:8080/showcases`.
-
-### Live Event Stream (SSE)
-
-Streams real domain events (scheduled, started, finished, removed) from Kafka as they occur:
-
-```bash
-curl -N http://localhost:8080/events
-```
-
-Events are delivered as named `showcase` Server-Sent-Events carrying the event type, showcase ID, and timestamp. The
-gateway consumes a consumer group distinct from the projection service's, and never reads the Axon event store.
-
-### Schedule a Showcase
-
-```bash
-curl -X POST http://localhost:8080/showcases \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "My Showcase",
-    "startTime": "2026-08-01T10:00:00Z",
-    "duration": "PT5M30S"
-  }'
-```
-
-### Start a Showcase
-
-```bash
-curl -X PUT http://localhost:8080/showcases/{showcaseId}/start
-```
-
-### Finish a Showcase
-
-```bash
-curl -X PUT http://localhost:8080/showcases/{showcaseId}/finish
-```
-
-### Remove a Showcase
-
-```bash
-curl -X DELETE http://localhost:8080/showcases/{showcaseId}
-```
-
-### List Showcases
-
-```bash
-curl "http://localhost:8080/showcases?title=My&status=SCHEDULED&size=10"
-```
-
-### Get Showcase by ID
-
-```bash
-curl http://localhost:8080/showcases/{showcaseId}
-```
-
-### Query (Protobuf)
-
-Dispatches an Axon query and returns the first response. Used internally by the query-client for inter-service
-communication (`application/protobuf` body).
-
-```bash
-curl -X POST http://localhost:8083/query \
-  -H "Content-Type: application/x-protobuf" \
-  -d '<serialized QueryRequest>'
-```
-
-### Streaming Query (Protobuf)
-
-Dispatches an Axon query and returns the full response stream. Used internally by the query-client for inter-service
-communication (`application/protobuf` body).
-
-```bash
-curl -X POST http://localhost:8083/streaming-query \
-  -H "Content-Type: application/x-protobuf" \
-  -d '<serialized QueryRequest>'
-```
-
-## Load Testing
+### Load Testing
 
 ```bash
 ./gradlew :load-tests:test
 ```
 
-## Tracing
+Gatling-based load tests.
 
-Distributed tracing is available via **Grafana Tempo**. Traces can be viewed in the Grafana dashboard at
-`http://localhost:3000`.
+### Observability
+
+Observability is part of the **Kubernetes deployment** — `./gradlew helmInstallToLocal` installs Prometheus, Grafana,
+and Tempo into the `monitoring` namespace alongside the application. The local docker-compose stack does not run it.
+
+- **Metrics**: each service exports Prometheus metrics (HTTP throughput/latency/failure, Axon command bus, event store,
+  saga, deadlines, projection lag, cache hits, query performance); the web UI exports nginx `stub_status` via a sidecar.
+  ServiceMonitors are wired for all of them.
+- **Grafana**: a custom **Axon Showcase** dashboard is provisioned automatically (31 panels across 5 sections covering
+  every service and the Axon internals), and Grafana is preconfigured with a Tempo data source. The default login is
+  `admin` with the password from the chart's generated secret.
+- **Tracing**: services export **OpenTelemetry** traces to **Grafana Tempo** (`tempo.monitoring`), viewable in Grafana's
+  Explore.
+
+Grafana is reached by port-forwarding to its service:
+
+```bash
+kubectl port-forward -n monitoring svc/kps-grafana 3000:80
+```
+
+Then open http://localhost:3000. Traces are available in the Tempo data source under Grafana → Explore.
 
 ## License
 

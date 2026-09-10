@@ -136,9 +136,10 @@ subscribed browser — all from one `POST /showcases`.
 
 ### Spec-Driven Development
 
-This repository is built spec-first. Behavior is captured as OpenSpec specs under `openspec/specs/` and changes are
-planned under `openspec/changes/` using the propose → apply → archive workflow (via the `/opsx-*` OpenCode commands /
-`openspec-*` skills). `AGENTS.md` is the behavioral source of truth — read it before contributing.
+This repository is built spec-first. Behavior is captured as OpenSpec specs under `openspec/specs/` (the behavioral
+source of truth) and changes are planned under `openspec/changes/` using the propose → apply → archive workflow (via the
+`/opsx-*` OpenCode commands / `openspec-*` skills). `AGENTS.md` records the development workflow and conventions — read
+it before contributing.
 
 The specs are organized by architectural role (`gateway`, `write-side`, `read-side`, `clients`, `extensions`,
 `deployment`, `quality`) — 22 capability specs covering everything from the REST API and the event pipeline to the
@@ -160,6 +161,10 @@ This repository is developed through a **spec-first, agent-assisted workflow** p
 [OpenCode](https://opencode.ai) — an AI coding agent you drive interactively from its **TUI** (terminal) or **Desktop**
 app. You describe what you want in plain language, and the agent does the work: it proposes a plan, writes the code,
 runs the gates, reviews itself, and opens the PR. You steer and approve; the agent implements.
+
+The repo's `.opencode/` config pins its agents to `opencode-go/*` models, available through an **OpenCode Go**
+subscription — install OpenCode (see [Prerequisites](#prerequisites)), subscribe, and `/connect` to it to follow along
+with the worked scenarios.
 
 The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 
@@ -251,19 +256,21 @@ tests, and the PR; you steered.
 Most verification runs entirely in the Gradle build, so the tool list is small. Gradle itself is not on it — the wrapper
 pins Gradle 9.7.1 and downloads it on first use.
 
-| Tool                   | Needed for                                                   | Install (macOS)                                          |
-| ---------------------- | ------------------------------------------------------------ | -------------------------------------------------------- |
-| **Java 21+**           | Building and running everything                              | `brew install --cask temurin@21`, or SDKMAN              |
-| **Docker & Compose**   | Infrastructure (PostgreSQL, Kafka, OpenSearch) and the stack | Docker Desktop, or `brew install --cask docker` + colima |
-| **actionlint**         | The workflow-lint gate in `check`                            | `brew install actionlint`                                |
-| **`pack` CLI**         | Building the web-UI image                                    | `brew install buildpacks/tap/pack`                       |
-| **Helm 4.x**           | Kubernetes deployment                                        | `brew install helm`                                      |
-| **Kubernetes cluster** | The `helmInstallToLocal` target                              | kind, minikube, or colima with k3s                       |
-| **Snyk CLI**           | `dependencySecurityCheck`                                    | `brew install snyk/tap/snyk`                             |
-| **Python 3**           | `scripts/setup-idea.sh`                                      | Ships with macOS Command Line Tools                      |
+| Tool                   | Needed for                                                   | Install (macOS)                                                                   |
+| ---------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| **Java 21+**           | Building and running everything                              | `brew install --cask temurin@21`, or SDKMAN                                       |
+| **Docker & Compose**   | Infrastructure (PostgreSQL, Kafka, OpenSearch) and the stack | Docker Desktop, or `brew install colima docker`                                   |
+| **actionlint**         | The workflow-lint gate in `check`                            | `brew install actionlint`                                                         |
+| **`pack` CLI**         | Building the web-UI image                                    | `brew install buildpacks/tap/pack`                                                |
+| **Helm 4.x**           | Kubernetes deployment                                        | `brew install helm`                                                               |
+| **Kubernetes cluster** | The `helmInstallToLocal` target                              | kind, minikube, or colima with k3s                                                |
+| **OpenCode**           | The agentic development workflow (TUI or Desktop)            | `brew install opencode` / `brew install opencode-desktop`, or https://opencode.ai |
+| **Snyk CLI**           | `dependencySecurityCheck`                                    | `brew install snyk/tap/snyk`                                                      |
+| **Python 3**           | `scripts/setup-idea.sh`                                      | Ships with macOS Command Line Tools                                               |
 
 Only **Java and Docker** are required to run the application. actionlint is needed for the full `check`; `pack` only
-when building the web-UI image; Helm, a cluster, and Snyk are only for deployment and security scanning.
+when building the web-UI image; Helm, a cluster, and Snyk are only for deployment and security scanning; OpenCode is
+only for the agentic development workflow.
 
 ### Get the Sources
 
@@ -345,12 +352,12 @@ transition appears live in the event timeline. The same flow works over the API:
 curl -N http://localhost:8080/events
 
 # Schedule a showcase — the saga starts it at startTime and finishes it after the duration.
-# Use a future startTime so you can watch the saga auto-start it (e.g. a few minutes from now).
+# Use a future startTime (e.g. a few minutes from now) so you can watch the saga auto-start it.
 curl -X POST http://localhost:8080/showcases \
   -H "Content-Type: application/json" \
   -d '{
     "title": "My Showcase",
-    "startTime": "2026-10-01T10:00:00Z",
+    "startTime": "<future ISO-8601 timestamp, e.g. 2026-10-01T10:00:00Z>",
     "duration": "PT5M30S"
   }'
 

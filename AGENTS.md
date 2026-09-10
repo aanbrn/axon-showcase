@@ -54,7 +54,8 @@ review findings, the change dir when one exists, and a short note on what went w
 AGENTS.md additions — gotchas and conventions worth recording. Apply the proposals the main agent judges durable, then
 ship them as a docs PR (per the docs-refresh convention) alongside or after the change. Process mistakes that leave no
 diff trace (e.g. a git command that discarded work) are the most valuable thing to capture — this is what makes the
-capture systematic instead of memory-dependent.
+capture systematic instead of memory-dependent. For a docs-only merge that fixes stale facts or removes duplication, the
+fix is the lesson — do not re-capture it as a new gotcha; capture only what the merge left unaddressed.
 
 **Sync the main spec only at archive.** Apply edits to code and the change dir's _delta_ spec — never the main spec
 under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source
@@ -756,3 +757,9 @@ that override when bumping the Kafka image tag.
   lists four components). The quick review against repo files caught all three. Before writing a replica count,
   panel/section count, or diagram count into a doc, read the source (`helm/values/*/values-*.yaml`, the dashboard JSON,
   the component table) and cite the real number.
+- **A "the only X" claim in `AGENTS.md` goes stale the moment a change adds a second X — fix it in that change.** The
+  web UI's Playwright e2e suite was added while `AGENTS.md` still said "the only e2e suite is `showcase-api-gateway`'s",
+  and the stale claim survived until a later cleanup pass (PR #116). When a change adds a second instance of anything
+  the docs call unique (a second e2e suite, image, or workflow), grep `AGENTS.md` for `only`/`sole`/`never` claims about
+  the first and update them; when editing a section, re-verify such claims against the repo instead of trusting the
+  prose.

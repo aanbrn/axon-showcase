@@ -392,6 +392,12 @@ Key modules (libraries, not services):
   experience-oriented framing ("watch the saga auto-start it") over plumbing descriptions. If a feature is deliberately
   not surfaced, note the omission rather than leaving it silent. Examples that were nearly missed: how to reach the
   deployed system (the `setup-hosts.sh` hostnames) and the observability access path (the Grafana port-forward).
+- **Confirm a diagram's semantic mapping with the user before iterating its geometry.** A diagram is a rendering of a
+  fixed mapping — which span starts where and ends where; once the mapping is agreed, alignment is mechanical. The
+  README OpenSpec-flow diagram consumed many revision cycles (quick + thorough reviews, multiple layouts) because the
+  mapping was adjusted through the review loop instead of confirmed up front. State the intended mapping (each span →
+  its end node) in the change's report and get it confirmed before re-rendering; keep review effort proportional to a
+  presentational artifact instead of iterating its geometry through the review agents.
 - **No comments** in source code (per project convention). The sole exception is the `// SPDX-License-Identifier: MIT`
   header, enforced by Spotless on every Java file and by `eslint-plugin-header` (`@tony.ganchev/eslint-plugin-header` in
   the flat `showcase-web-ui/eslint.config.js`, since the original plugin is unmaintained and does not support ESLint
@@ -769,6 +775,13 @@ that override when bumping the Kafka image tag.
   `awk`/`length()` counts UTF-8 box-drawing characters (`│`, `├`, `─`) as multiple bytes, so byte columns ≠ visual
   columns and the `#` comments end up misaligned. Measure with a decoded string (`len(line[:idx]) + 1` in Python) and
   align every comment to the longest entry (the tree's target column 42 is set by `showcase-resilience4j-extension/`).
+- **A diagram's geometry can encode semantics — do not normalize a deliberate asymmetry as a rendering defect.** The
+  README's OpenSpec-flow diagram has two brackets with different right edges on purpose: `human approves` spans
+  Propose→Merge, while `delta spec → main spec` ends at Archive (where the delta folds into main, one node before
+  Merge). A cleanup pass that aligned the body pipes to the full width flattened that distinction and had to be reverted
+  by the user. When a diagram (or any doc) has been hand-edited, treat an asymmetry as intentional until you verify what
+  each element is meant to start and end at — ask rather than "fixing" it, and never regenerate over a human edit
+  without diffing against it.
 - **Verify documented infrastructure/deployment numbers against the config files, not memory.** The README rewrite
   claimed "the API gateway's two replicas" (only `commandService.replicaCount` is 2 in
   `helm/values/axon-showcase/values-local.yaml`; the gateway defaults to 1), "36 panels" (36 is the raw top-level count

@@ -80,7 +80,8 @@ The Helm chart SHALL render a web-UI Deployment and Service running the web-UI i
 restricting its traffic (public HTTP ingress, monitoring-only metrics port, minimal egress), and the gateway's CORS
 allow-list in the chart SHALL include the web-UI origin. The Deployment SHALL follow the shared service conventions
 (common ServiceAccount, `/tmp` emptyDir, securityContexts, readiness probe), and the Service SHALL expose named ports
-for the UI and its metrics.
+for the UI and its metrics. The local deploy task (`helmInstallToLocal`) SHALL build the web-UI image before installing,
+so a fresh local deploy has an image for the web-UI pod.
 
 #### Scenario: Helm deploys the UI
 
@@ -114,3 +115,9 @@ for the UI and its metrics.
 
 - **WHEN** an operator overrides the web-UI origin value
 - **THEN** the gateway's CORS allow-list reflects the override
+
+#### Scenario: The local deploy builds the web-UI image
+
+- **WHEN** `./gradlew helmInstallToLocal` runs
+- **THEN** it builds the web-UI image (alongside the four JVM service images) before installing the chart, so the web-UI
+  pod has an image to run

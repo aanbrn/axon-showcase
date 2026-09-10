@@ -464,8 +464,9 @@ helm install axon-showcase ./helm/chart --namespace axon-showcase --create-names
 
 Per-release install/uninstall tasks follow `helmInstall<Release>To<Target>` / `helmUninstall<Release>From<Target>`, e.g.
 `helmInstallKpsToLocal` and `helmUninstallKpsFromLocal` (to install/verify a single chart without building images — the
-app-release install task additionally depends on the four `bootBuildImage` tasks). Uninstalling leaves `createNamespace`
-namespaces (`monitoring`, `axon-showcase`) behind; remove them with `kubectl delete namespace` afterwards.
+app-release install task additionally depends on the four `bootBuildImage` tasks and the web-UI `dockerBuildImage`).
+Uninstalling leaves `createNamespace` namespaces (`monitoring`, `axon-showcase`) behind; remove them with
+`kubectl delete namespace` afterwards.
 
 **Helm release order**: kps → tempo → db-events/kafka/os-views → axon-showcase. Uninstall in reverse.
 

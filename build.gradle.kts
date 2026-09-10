@@ -333,6 +333,7 @@ helm {
                 ":showcase-projection-service:bootBuildImage",
                 ":showcase-query-service:bootBuildImage",
                 ":showcase-api-gateway:bootBuildImage",
+                ":showcase-web-ui:dockerBuildImage",
             )
 
             mustInstallAfter(

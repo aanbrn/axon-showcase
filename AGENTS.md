@@ -757,6 +757,12 @@ that override when bumping the Kafka image tag.
   lists four components). The quick review against repo files caught all three. Before writing a replica count,
   panel/section count, or diagram count into a doc, read the source (`helm/values/*/values-*.yaml`, the dashboard JSON,
   the component table) and cite the real number.
+- **A change merged without its archive is incomplete — do not merge the implementation PR and defer the archive.** The
+  "one PR per change" rule puts the archive commit in the _same_ PR before merge; a change whose PR merged but whose
+  change dir was never archived is easy to forget (the `remove-redis-client-label` change was merged and sat unarchived
+  until the user pointed it out). When the merge completes, verify the change dir is archived; if archiving post-merge,
+  put it on its own branch and PR — never commit it to local `main` and `git push origin main`, which the branch ruleset
+  rejects and forces a branch-then-reset dance.
 - **A "the only X" claim in `AGENTS.md` goes stale the moment a change adds a second X — fix it in that change.** The
   web UI's Playwright e2e suite was added while `AGENTS.md` still said "the only e2e suite is `showcase-api-gateway`'s",
   and the stale claim survived until a later cleanup pass (PR #116). When a change adds a second instance of anything

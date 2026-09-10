@@ -105,8 +105,9 @@ the title does not follow the file.
 **Run CI before archiving; one PR per change.** Push the implementation branch and open a PR with the code and the
 active change dir. After the `build` check is green and the user approves, archive the change (move the change dir and
 sync the main spec) as an additional commit in the _same_ PR, then merge once. The archive — the declaration that a
-change is done — always follows CI, never precedes it. (Docs refresh — `AGENTS.md`/`README.md`/`docs/ideas.md` updates
-and captured lessons — ships as its own separate docs PR, per the docs-refresh convention.)
+change is done — always follows CI, never precedes it. (Docs refresh that reflects a completed change —
+`AGENTS.md`/`README.md`/`docs/ideas.md` updates and captured lessons — ships as its own separate docs PR; docs that ARE
+the change ship with the change's PR, per the docs-refresh convention.)
 
 **Merging PRs: the `--admin` flag is for admin users only.** The `main-require-pr-on-merge` ruleset requires an
 approving review (`required_approving_review_count: 1`), but the repo owner (`aanbrn`) is a bypass actor on that ruleset
@@ -375,9 +376,8 @@ Key modules (libraries, not services):
   reflect the new state (commands, config, conventions, gotchas) and update them before reporting the change done; also
   remove the change's idea from `docs/ideas.md` — an idea is removed once implemented (captured by a change) or once
   explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open ideas remain
-  (see the file's header) — as a separate docs PR. Docs that ARE the change (new agent/command/skill documentation,
-  README rows describing a new capability) ship with the change's PR; docs that refresh facts about a completed change
-  ship as a separate docs PR.
+  (see the file's header). Docs that ARE the change (new agent/command/skill documentation, README rows describing a new
+  capability) ship with the change's PR; docs that refresh facts about a completed change ship as a separate docs PR.
 - **README design intent**: the README is a human-facing showcase and onboarding guide, not a reference dump. Preserve
   its intended shape on every edit: section order (intro → Project Structure → Cool Story → Architecture → Technologies
   → Development Workflow → Getting Started → Development Practices → Deployment and Operations → License/Author);

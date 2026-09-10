@@ -449,6 +449,22 @@ Custom values can be placed in `helm/values/axon-showcase/values-local.yaml`. Pe
 `helmInstall<Release>ToLocal` / `helmUninstall<Release>FromLocal` (e.g. `helmInstallKpsToLocal`), for installing or
 verifying a single chart without building images.
 
+#### Access the Deployed System
+
+The deployment exposes the API gateway and the web UI through the cluster's ingress controller at the hostnames
+`axon-showcase-api` and `axon-showcase-ui`. To reach them by hostname instead of a `Host:`-header curl workaround,
+manage the `/etc/hosts` entries once per cluster (requires sudo):
+
+```bash
+./setup-hosts.sh setup
+```
+
+The script detects the ingress controller's LoadBalancer address generically against your current kube context (colima
+with Traefik, kind/minikube with ingress-nginx, and similar). After it runs, open http://axon-showcase-ui in the browser
+for the web UI and use http://axon-showcase-api for the API (e.g. `curl http://axon-showcase-api/showcases`). The
+address can change on cluster restart — re-run `./setup-hosts.sh setup` to refresh, or `./setup-hosts.sh remove` to
+clean up.
+
 ### Continuous Integration
 
 `.github/workflows/ci.yml` gates every pull request and push to `main` with a single `build` check. Pull requests run

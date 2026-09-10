@@ -362,6 +362,13 @@ Key modules (libraries, not services):
   implements, the human approves); observability is Kubernetes-deployment-only via Helm (custom Axon Showcase Grafana
   dashboard, not in the local compose stack); slash commands render as a table; a worked scenario shows the interactive
   loop
+- **Surface human-visible capabilities in the README on every change**: while working on a change, actively look for
+  behavior a person can _see or experience_ — a cool story moment, a watcher's flow, a demo-able feature, an access
+  path, a dashboard — and make sure it is mentioned in the README before the change is reported done (the docs-refresh
+  and README-design-intent conventions cover _how_ it is presented; this is the _what_ to look for). Prefer
+  experience-oriented framing ("watch the saga auto-start it") over plumbing descriptions. If a feature is deliberately
+  not surfaced, note the omission rather than leaving it silent. Examples that were nearly missed: how to reach the
+  deployed system (the `setup-hosts.sh` hostnames) and the observability access path (the Grafana port-forward).
 - **No comments** in source code (per project convention). The sole exception is the `// SPDX-License-Identifier: MIT`
   header, enforced by Spotless on every Java file and by `eslint-plugin-header` (`@tony.ganchev/eslint-plugin-header` in
   the flat `showcase-web-ui/eslint.config.js`, since the original plugin is unmaintained and does not support ESLint

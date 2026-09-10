@@ -19,7 +19,6 @@ projectionService:
   podLabels:
     axon-showcase-kafka-client: "true"
     axon-showcase-os-views-client: "true"
-    axon-showcase-redis-client: "true"
   networkPolicy:
     ingressManagementNSMatchLabels:
       name: monitoring
@@ -33,7 +32,6 @@ projectionService:
 queryService:
   podLabels:
     axon-showcase-os-views-client: "true"
-    axon-showcase-redis-client: "true"
   networkPolicy:
     ingressManagementNSMatchLabels:
       name: monitoring

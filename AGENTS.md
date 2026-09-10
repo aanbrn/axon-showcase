@@ -375,7 +375,9 @@ Key modules (libraries, not services):
   reflect the new state (commands, config, conventions, gotchas) and update them before reporting the change done; also
   remove the change's idea from `docs/ideas.md` — an idea is removed once implemented (captured by a change) or once
   explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open ideas remain
-  (see the file's header) — as a separate docs PR
+  (see the file's header) — as a separate docs PR. Docs that ARE the change (new agent/command/skill documentation,
+  README rows describing a new capability) ship with the change's PR; docs that refresh facts about a completed change
+  ship as a separate docs PR.
 - **README design intent**: the README is a human-facing showcase and onboarding guide, not a reference dump. Preserve
   its intended shape on every edit: section order (intro → Project Structure → Cool Story → Architecture → Technologies
   → Development Workflow → Getting Started → Development Practices → Deployment and Operations → License/Author);
@@ -440,6 +442,12 @@ Key modules (libraries, not services):
   to read screenshots. When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent —
   it inherits the Playwright MCP, captures the screenshot into its own context, reads it, and returns a description,
   while the main session stays on the cheap model. This auto-routes vision work without manual model switching.
+- **Diagrammer subagent for ASCII diagrams**: the main agent (cheap `opencode-go/deepseek-v4-flash`) is weak at ASCII
+  diagram geometry — drawing or fixing a diagram (a README flow diagram, alignment, bracket spans) repeatedly cost extra
+  effort and review cycles. A `diagrammer` subagent (`.opencode/agent/diagrammer.md`) is pinned to
+  `opencode-go/deepseek-v4-pro` to draw and fix ASCII diagrams. When a diagram needs creating, aligning, or correcting,
+  delegate to it via the `/diagram` command: it establishes the semantic mapping (which span ends where) before
+  rendering, aligns by character width, and preserves deliberate asymmetry. The main agent stays on the cheap model.
 - **Experience-analyzer subagent for retrospectives and improvements**: the `experience-analyzer` subagent
   (`.opencode/agent/experience-analyzer.md`) aggregates recent experience across many changes — above the per-change
   `review-quick`/`lesson-capture` agents. Trigger it with the `/retrospective` opencode command (or run it manually):

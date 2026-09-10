@@ -64,6 +64,13 @@ agent skills are available to agents" while narrowing it) fails `openspec valida
 this delta: MODIFIED failed for header ... not found" and must be reverted. To genuinely retitle a requirement,
 delete-and-add it instead of renaming the MODIFIED header.
 
+**A `MODIFIED` requirement block replaces the whole requirement — the delta must carry every existing scenario the main
+spec still has, not just the new ones.** `openspec validate --changes` fails with "MODIFIED ... omits scenario(s) the
+current spec still has" when a delta drops an existing scenario (the first `helm-install-builds-webui-image` delta wrote
+only the new web-UI scenario, omitting "The deployed UI can call the gateway" and "The UI origin is configurable"). The
+safe recipe: copy the current spec's full requirement block (description + all scenarios) into the delta, then edit it —
+never hand-write a MODIFIED block from memory.
+
 **A spec rename/move (`git mv`) does not update the spec's internal `#` title, and nothing validates the title against
 the capability path.** The first line of `openspec/specs/.../spec.md` must be edited separately to match the new path —
 `openspec validate` never checks it, so a stale header is silent drift that passes CI. The 2026-08-14 role-group
@@ -467,6 +474,13 @@ Per-release install/uninstall tasks follow `helmInstall<Release>To<Target>` / `h
 app-release install task additionally depends on the four `bootBuildImage` tasks and the web-UI `dockerBuildImage`).
 Uninstalling leaves `createNamespace` namespaces (`monitoring`, `axon-showcase`) behind; remove them with
 `kubectl delete namespace` afterwards.
+
+**A chart Deployment addition must extend the app release's `installDependsOn` in `build.gradle.kts`.** The list must
+enumerate an image-build task for every image the chart's Deployments reference — `ship-web-ui-as-deployable` added the
+web-UI Deployment without adding its image build, so `helmInstallToLocal` deployed a web-UI pod with an image that was
+never built. Note the web-UI image is built by `:showcase-web-ui:dockerBuildImage` (a pack-based task, not a
+`bootBuildImage`); verify the graph with `./gradlew helmInstallToLocal --dry-run` and confirm every chart Deployment's
+image has a build task in it.
 
 **Helm release order**: kps → tempo → db-events/kafka/os-views → axon-showcase. Uninstall in reverse.
 

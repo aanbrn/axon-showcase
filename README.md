@@ -141,6 +141,36 @@ source of truth) and changes are planned under `openspec/changes/` using the pro
 `/opsx-*` OpenCode commands / `openspec-*` skills). `AGENTS.md` records the development workflow and conventions — read
 it before contributing.
 
+Every change flows through the same loop:
+
+```
+                           ┌─────────────────────────────── human approves ───────────────────────────────┐
+                           │                                                                              │
+  Idea  ──►  Explore  ──►  Propose  ──►  Review  ──►  Apply  ──►  Review  ──►  PR  ──►  Archive  ──►  Merge
+                           │ (spec delta)         (code+tests)            (CI green)          │
+                           │         (auto+manual)            (auto+manual)                   │
+                           │         (optional PR)                      (mandatory PR)        │
+                           │                                                                  │
+                           └───────────────────── delta spec → main spec ─────────────────────┘
+```
+
+An idea becomes a **proposal** (what and why), then a **spec delta** (the new behavior, scoped to a capability), a
+**design** (how), and **tasks**. Applying writes the code and tests. Each phase ends in **two reviews**: an
+**auto-review** (the `review-quick` subagent, repeated until it finds nothing new) and your **manual review**. The
+change's single **PR** may be opened as a draft after the proposal review (to share the plan) and is opened for real
+after the implementation review — it's the same PR, on which CI runs. Once CI is green and you approve, the change is
+**archived** — the change dir moves to `openspec/changes/archive/` and its delta spec is folded into the main spec — as
+a commit in the same PR, then merged. So the main spec always describes behavior the code has been verified against.
+
+A vague idea is usually sharpened first in **explore mode** (`/opsx-explore`) — a thinking stance that investigates the
+codebase and clarifies what to build, without writing code. Only when the idea is concrete enough does it become a
+proposal.
+
+The loop is **iterative, not a strict pipeline** — you can step back and rework at any point. A question in review can
+send you back to the proposal, a realization mid-implementation to the spec delta; the agent revises the affected
+artifacts (`/opsx-update` reworks a change's planning artifacts) and re-verifies. The loop repeats until the change is
+right — the archive is a snapshot of a settled state, not the end of a one-way flow.
+
 The specs are organized by architectural role (`gateway`, `write-side`, `read-side`, `clients`, `extensions`,
 `deployment`, `quality`) — 22 capability specs covering everything from the REST API and the event pipeline to the
 identifier extension and the dependency-management policy. Every implemented change is archived under
@@ -149,7 +179,8 @@ is always in sync with behavior the code has been verified against, and a change
 feature introduced.
 
 Emerging ideas are parked in `docs/ideas.md` — a lightweight, date-grouped scratchpad (added to via `/ideas`, removed
-once implemented) rather than a backlog of planned work.
+once implemented or decided against) rather than a backlog of planned work. A parked idea is the usual starting point
+for an explore session that decides whether it deserves a proposal.
 
 Cross-cutting architecture decisions and their rationale are recorded as Architecture Decision Records under
 `docs/adr/`. OpenSpec captures what the system does and how a change is planned; ADRs capture why the system is shaped
@@ -221,12 +252,13 @@ That one prompt starts the whole loop. The agent:
    the code and the tests, and runs the gates (`spotlessApply`, the module's `check`).
 4. **Auto-reviews**: after the implementation it runs the quick-review again, fixes anything it finds, and reports back
    what changed and what is verified.
-5. **You review the diff**: you look at the actual changes, ask for tweaks ("also validate the hex format"), and the
-   agent applies them.
-6. **Ships**: on your go-ahead it pushes a branch and opens a PR, watches CI until green, and merges it. On this repo
-   the owner's merge is direct (admin); the agent only merges with your approval.
+5. **You review the diff**: you look at the actual changes and ask for tweaks ("also validate the hex format"). The
+   agent applies them — and if a tweak changes the intended behavior, the spec delta is reworked to match, not just the
+   code.
+6. **Ships**: on your go-ahead it pushes a branch and opens a PR and watches CI until green.
 7. **You approve archiving** (`/opsx-archive`): the change dir moves to the archive and the main spec is updated to
-   match — the feature is now part of the source of truth.
+   match — as a commit in the same PR — then it merges. The feature is now part of the source of truth. On this repo the
+   owner's merge is direct (admin); the agent only merges with your approval.
 
 Throughout, the only manual work was the initial prompt and a few approvals. The agent wrote the plan, the code, the
 tests, and the PR; you steered.

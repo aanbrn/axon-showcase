@@ -711,3 +711,20 @@ that override when bumping the Kafka image tag.
 - Testcontainers 2.0.5 moved `PostgreSQLContainer` from `org.testcontainers.containers` (now a deprecated shim) to the
   non-generic `org.testcontainers.postgresql.PostgreSQLContainer` — use the new import without the `<?>`/`<>` type
   arguments.
+- **Programmatic file restructuring can silently drop a whole section — verify every expected heading survives.**
+  Reordering the README with a Python boundary script dropped the entire "Getting Started" section: the move used
+  `lines[ends['Development Workflow']:]`, which starts at the _next_ section and skips the block sitting between the
+  two, and only a follow-up grep for `## Getting Started` caught the loss. After any script-driven move/rewrite of a
+  markdown file, grep for each expected heading (or diff the heading list before/after) before reporting done; for a
+  docs reorder, prefer the edit tool over a hand-rolled reordering script.
+- **Align ASCII/Unicode diagram comments by character width, not byte length.** In the README's project-structure tree,
+  `awk`/`length()` counts UTF-8 box-drawing characters (`│`, `├`, `─`) as multiple bytes, so byte columns ≠ visual
+  columns and the `#` comments end up misaligned. Measure with a decoded string (`len(line[:idx]) + 1` in Python) and
+  align every comment to the longest entry (the tree's target column 42 is set by `showcase-resilience4j-extension/`).
+- **Verify documented infrastructure/deployment numbers against the config files, not memory.** The README rewrite
+  claimed "the API gateway's two replicas" (only `commandService.replicaCount` is 2 in
+  `helm/values/axon-showcase/values-local.yaml`; the gateway defaults to 1), "36 panels" (36 is the raw top-level count
+  — 5 are empty row separators, 31 are real panels), and "four services and a gateway" (double-counting a table that
+  lists four components). The quick review against repo files caught all three. Before writing a replica count,
+  panel/section count, or diagram count into a doc, read the source (`helm/values/*/values-*.yaml`, the dashboard JSON,
+  the component table) and cite the real number.

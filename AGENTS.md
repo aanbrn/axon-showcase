@@ -47,6 +47,17 @@ repo fit; for the implementation, the tasks and delta spec — and repeat it unt
 everything the quick review finds, re-run it, and stop only when it comes back clean — only then ask the user for a
 manual review pass.
 
+**Interrogate the premise before designing a change that moves, copies, or removes existing configuration.** Establish
+_why the current state exists_ and whether it is deliberate before designing _how_ to change it — a change that
+relocates configuration already in place can be the best-executed version of the wrong idea. The
+`remove-redis-client-label` detour designed a chart-default for the `*-client` pod labels (hardcode them in the
+templates) and ran a full propose→apply→verify cycle, including a live `helmInstallToLocal`, before the user's question
+("the label name depends on the release name — does this still make sense?") revealed the labels are intentionally
+local-target values that belong in `values-local.yaml`. The design weighed implementation alternatives but never
+questioned the premise. Verify the current state's rationale against the repo — grep for consumers, read the values and
+their comments, check `git log` for the introducing change — and record it in the design's Context; treat "this looks
+redundant" as a hypothesis to verify, not a justification to remove.
+
 **Capture lessons after every change's implementation and after every merge into `main`.** Once a change's
 implementation quick review is clean — and again after the PR is merged (including docs changes, standalone fixes, and
 dependency bumps that never went through the OpenSpec workflow) — run the `lesson-capture` subagent (giving it the diff,
@@ -55,7 +66,15 @@ AGENTS.md additions — gotchas and conventions worth recording. Apply the propo
 ship them as a docs PR (per the docs-refresh convention) alongside or after the change. Process mistakes that leave no
 diff trace (e.g. a git command that discarded work) are the most valuable thing to capture — this is what makes the
 capture systematic instead of memory-dependent. For a docs-only merge that fixes stale facts or removes duplication, the
-fix is the lesson — do not re-capture it as a new gotcha; capture only what the merge left unaddressed.
+fix is the lesson — do not re-capture it as a new gotcha; capture only what the merge left unaddressed. Do not skip the
+subagent on your own judgment that "there's nothing new" — the merge itself is the trigger, and the subagent is the
+arbiter (the archive merge after `remove-redis-client-label` was skipped on exactly such an assumption, and the user had
+to push back before the forgotten-archive and premise-interrogation lessons were captured). When the user asks "is there
+anything else to capture?", treat it as a prompt to run the subagent again over the events — not as a request to justify
+the previous pass. An initial "nothing to capture" verdict is a hypothesis, not a conclusion: the session that produced
+it had process mistakes that were themselves the lesson (e.g. the archive was forgotten and the premise-interrogation
+gap went uncaptured until the user pushed twice). A docs-fix merge has nothing further to capture only if the subagent
+actually reviewed it and said so.
 
 **Sync the main spec only at archive.** Apply edits to code and the change dir's _delta_ spec — never the main spec
 under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source

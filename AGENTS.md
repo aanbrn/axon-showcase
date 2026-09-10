@@ -797,6 +797,14 @@ that override when bumping the Kafka image tag.
   lists four components). The quick review against repo files caught all three. Before writing a replica count,
   panel/section count, or diagram count into a doc, read the source (`helm/values/*/values-*.yaml`, the dashboard JSON,
   the component table) and cite the real number.
+- **Javadoc is a claim about the code — verify direction and subject against the member's own docs and a usage site, and
+  scope a Javadoc-consistency sweep by the convention, not just the review's findings list.** The
+  `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter` reading "OpenSearch results to entities"
+  for a converter that maps entities → OpenSearch (the field Javadoc and its `mapObject(ShowcaseEntity…)` call sites say
+  so); the implementation quick review caught it. For converters/mappers either direction reads plausibly, so read the
+  field's Javadoc and one call site before writing the `@param`/`@return`. The same change also had to add a field
+  Javadoc the review never enumerated (`ShowcaseProjector.METER_NAME_PREFIX`, caught by the user): a consistency sweep
+  must audit every class/method/field in the touched classes, not only the review's findings list.
 - **A change merged without its archive is incomplete — do not merge the implementation PR and defer the archive.** The
   "one PR per change" rule puts the archive commit in the _same_ PR before merge; a change whose PR merged but whose
   change dir was never archived is easy to forget (the `remove-redis-client-label` change was merged and sat unarchived

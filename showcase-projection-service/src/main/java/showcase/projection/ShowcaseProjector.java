@@ -80,7 +80,9 @@ import showcase.command.ShowcaseStartedEvent;
 @Component
 @Slf4j
 class ShowcaseProjector implements SmartLifecycle {
-
+    /**
+     * The prefix for the metric names recorded by the projector.
+     */
     private static final String METER_NAME_PREFIX = "showcaseProjector";
 
     /**
@@ -198,6 +200,17 @@ class ShowcaseProjector implements SmartLifecycle {
      */
     private final AtomicReference<@Nullable Disposable> subscription = new AtomicReference<>();
 
+    /**
+     * Creates a projector that subscribes to the showcase events Kafka topic and projects each event into OpenSearch.
+     *
+     * @param projectionProperties the projector processing settings
+     * @param kafkaProperties the Kafka connection settings (consumer properties and default topic)
+     * @param kafkaMessageConverter the converter from Kafka records to domain events
+     * @param openSearchTemplate the reactive OpenSearch client
+     * @param elasticsearchConverter the converter used to map entities to their OpenSearch representation
+     * @param meterRegistry the registry for projection metrics
+     * @param observationRegistry the registry for tracing the projection flow
+     */
     ShowcaseProjector(
             ShowcaseProjectorProperties projectionProperties,
             KafkaProperties kafkaProperties,

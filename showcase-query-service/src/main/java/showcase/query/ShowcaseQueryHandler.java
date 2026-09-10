@@ -99,14 +99,14 @@ class ShowcaseQueryHandler {
     }
 
     /**
-     * Handles the by-ID query, erroring with {@link ShowcaseQueryErrorCode#NOT_FOUND} when the showcase is absent.
+     * Handles the by-ID query, emitting an error with {@link ShowcaseQueryErrorCode#NOT_FOUND} when the showcase is
+     * absent.
      *
      * @param query the by-ID query to handle
      * @return a mono of the matching showcase
-     * @throws ShowcaseQueryException if no showcase with the given ID exists
      */
     @QueryHandler
-    Mono<Showcase> handle(FetchShowcaseByIdQuery query) throws ShowcaseQueryException {
+    Mono<Showcase> handle(FetchShowcaseByIdQuery query) {
         return openSearchTemplate
                 .get(query.showcaseId(), ShowcaseEntity.class, showcaseIndex)
                 .name("fetch-showcase-by-id")

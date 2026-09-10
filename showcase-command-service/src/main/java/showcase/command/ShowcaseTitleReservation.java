@@ -38,7 +38,7 @@ final class ShowcaseTitleReservation {
      * @param title the title to reserve (stored in lowercase)
      * @throws DuplicateTitleException if the title is already reserved
      */
-    void save(String title) throws DuplicateTitleException {
+    void save(String title) {
         try {
             jdbcClient
                     .sql("INSERT INTO showcase_title_reservation (title) VALUES (lower(:title))")

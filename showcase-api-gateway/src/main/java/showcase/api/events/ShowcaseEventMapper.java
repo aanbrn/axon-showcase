@@ -34,6 +34,7 @@ interface ShowcaseEventMapper {
             case ShowcaseRemovedEvent removedEvent -> removedToDto(removedEvent);
         };
     }
+
     /**
      * Maps a scheduled event to its DTO.
      *

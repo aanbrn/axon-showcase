@@ -6,17 +6,17 @@ import showcase.query.FetchShowcaseByIdQuery;
 import showcase.query.FetchShowcaseListQuery;
 
 /**
- * Holds the cache names used by the showcase API gateway.
+ * Holds the cache configuration keys used by the showcase API gateway.
  */
 @UtilityClass
 public class ShowcaseApiConstants {
     /**
-     * The name of the cache backing {@link FetchShowcaseListQuery} queries.
+     * The configuration key for the cache backing {@link FetchShowcaseListQuery} queries.
      */
     public static final String FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME = FetchShowcaseListQuery.class.getSimpleName();
 
     /**
-     * The name of the cache backing {@link FetchShowcaseByIdQuery} queries.
+     * The configuration key for the cache backing {@link FetchShowcaseByIdQuery} queries.
      */
     public static final String FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME = FetchShowcaseByIdQuery.class.getSimpleName();
 }

@@ -30,6 +30,11 @@ import java.time.Instant;
 import java.util.List;
 import lombok.val;
 
+/**
+ * The Gatling simulation exercising the showcase API gateway: a list fetch, then a lifecycle where a random showcase is
+ * scheduled and, with decreasing probability, started, finished, and removed, with polling fetches between steps. See
+ * the {@code showcase/quality/load-tests} spec for the scenario and per-profile pass assertions.
+ */
 @SuppressWarnings("unused")
 public class ShowcaseSimulation extends Simulation {
 

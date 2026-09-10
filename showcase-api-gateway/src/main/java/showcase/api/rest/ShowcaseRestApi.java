@@ -26,7 +26,6 @@ import reactor.core.publisher.Mono;
 import showcase.identifier.KSUID;
 import showcase.query.FetchShowcaseListQuery;
 import showcase.query.Showcase;
-import showcase.query.ShowcaseQueryException;
 import showcase.query.ShowcaseStatus;
 
 /**
@@ -297,8 +296,7 @@ interface ShowcaseRestApi {
      * Fetches a single showcase by its ID.
      *
      * @param showcaseId the ID of the showcase
-     * @return the showcase if found
-     * @throws ShowcaseQueryException with {@code NOT_FOUND} if the showcase does not exist
+     * @return the showcase if found; emits {@code NOT_FOUND} if the showcase does not exist
      */
     @Operation(
             description = "Fetches the showcase given by ID.",

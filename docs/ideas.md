@@ -1,8 +1,9 @@
 # Ideas
 
 Short notes to remember emerging development ideas. An idea becomes an OpenSpec change only when acted on — this file is
-a scratchpad, not a backlog of planned work. An idea is removed from the list once implemented (captured by a change);
-only open, not-yet-implemented ideas remain.
+a scratchpad, not a backlog of planned work. An idea is removed from the list once implemented (captured by a change) or
+once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open,
+not-yet-implemented ideas remain.
 
 Changes to this file are committed as their own docs PR (like `AGENTS.md`/`README.md` refresh PRs) — never bundled with
 an OpenSpec change or its branch. When an idea graduates into a concrete candidate for work, it may be promoted to a
@@ -26,28 +27,6 @@ appending to the most recent one).
   `axon-showcase-api`/`axon-showcase-ui` hostnames, so Grafana — and the Tempo data source inside it — is reachable by
   hostname with no port-forward. Check whether the kube-prometheus-stack chart exposes `grafana.ingress` to enable, and
   whether `setup-hosts.sh`'s LoadBalancer-address detection needs a monitoring-namespace case.
-
-## 2026-09-09
-
-- Format YAML files with Prettier (via the root Spotless step, like markdown) — explored, **decided against**; no
-  change. Rationale: the Helm chart templates (56 files) are half Go-template logic — a YAML formatter that re-indents
-  or reflows `{{ }}` lines can silently change the rendered manifest, and they are already gated by `helm lint`; the
-  safe populations (GitHub workflows, `application*.yml`, `docker-compose.yml`, `openspec/config.yaml`) are small,
-  hand-consistent, and rarely churn; the `.playwright-mcp/*.yml` snapshots are machine-generated and would need
-  excluding. The risk outweighs the payoff for a surface that is not a real pain today — unlike markdown, whose manual
-  120-char wrapping drove the Prettier gate. Revisit only if YAML drift actually becomes a pain.
-
-## 2026-09-08
-
-- Make the api-gateway's kafka-client NetworkPolicy label a chart default — parked; no change yet. The gateway consumes
-  Kafka for the live-events SSE stream (`showcase-live-events` consumer group), so its pod needs the
-  `axon-showcase-kafka-client: "true"` label whenever the kafka NetworkPolicy is active (the bitnami kafka chart allows
-  ingress from pods carrying that label). Today the label is only set in `values-local.yaml` per service
-  (command/projection and now api-gateway), so a deployment that activates the kafka netpol without that label silently
-  loses the live-events stream — the gateway's Kafka consumer can't connect, the SSE stream stays empty, and the web UI
-  only reconciles on window focus. Fix: default `apiGateway.podLabels` (and the other kafka consumers) in the chart to
-  include `axon-showcase-kafka-client: "true"`, or make the kafka netpol match on the services' stable component labels
-  instead of a bespoke per-client label.
 
 ## 2026-09-07
 

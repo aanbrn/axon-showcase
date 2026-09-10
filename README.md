@@ -1,13 +1,12 @@
 # axon-showcase
 
-A reference application that demonstrates **microservices with CQRS and Event Sourcing** — built on the Axon Framework,
-Spring Boot, and Kubernetes, and developed through a fully **spec-driven, agent-assisted process**.
+A CQRS / event-sourced reference application you can _watch work_ — and a demonstration of an agent-assisted,
+spec-driven way to build it.
 
-It is not a toy CRUD app. It shows a complete event-sourced system you can _watch work_: schedule a showcase and the
-system drives it through its lifecycle itself — starting it at the right time, finishing it after its duration,
-streaming every event live to a browser UI that updates as it happens. And the way the code is written and reviewed is
-itself a demonstration: behavior is captured in specs, changes are proposed, applied, reviewed, and archived by an
-automated agent pipeline.
+It is not a toy CRUD app. It is a complete event-sourced system: schedule a showcase and it drives itself through its
+lifecycle — starting at the right time, finishing after its duration, streaming every event live to a browser UI that
+updates as it happens. And the way the code is written and reviewed is itself a demonstration: behavior is captured in
+specs, changes are proposed, applied, reviewed, and archived by an automated agent pipeline.
 
 ## Project Structure
 

@@ -122,7 +122,7 @@ subscribed browser — all from one `POST /showcases`.
 
 - **Gradle** (Kotlin DSL) with **build-logic convention plugins** and a version catalog
 - **Spotless** — palantir-java-format for Java, ktfmt for Kotlin/Gradle DSL, Prettier for markdown
-- **Checkstyle, SpotBugs, ErrorProne (NullAway), JaCoCo coverage gate** — all in `check`, no IDE required
+- **Checkstyle, SpotBugs, ErrorProne (NullAway + JSpecify), JaCoCo coverage gate** — all in `check`, no IDE required
 - **actionlint** — lints the GitHub Actions workflows
 - **Snyk** — dependency security scanning
 - **OpenSpec** — spec-driven behavior capture (`propose → apply → archive`)

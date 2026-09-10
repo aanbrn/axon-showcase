@@ -206,6 +206,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | `review-quick`        | Fast review after proposal & implementation, repeated until clean (automatic)           |
 | `review-thorough`     | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`           |
 | `vision`              | Reads screenshots for the text-only main agent                                          |
+| `diagrammer`          | Draws/fixes ASCII diagrams with the pro model — `/diagram`                              |
 
 #### What the Agent Automates
 
@@ -274,6 +275,7 @@ tests, and the PR; you steered.
 | `/opsx-update`               | Revises a change's planning artifacts                                      |
 | `/opsx-explore`              | Explores an idea before proposing it                                       |
 | `/review-thorough`           | Deep on-demand review of a change                                          |
+| `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer              |
 | `/retrospective`             | Weekly retrospective with improvement suggestions                          |
 | `/dependency-updates`        | Runs and summarizes the dependency update report                           |
 | `/gradle-update`             | Updates the Gradle wrapper to the latest stable                            |

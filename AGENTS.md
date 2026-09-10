@@ -1,11 +1,12 @@
 # AGENTS.md
 
-## Conventions
+## Line Length
 
 - Wrap code and text at 120 characters. Markdown (`docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, and active
   `openspec/changes/*/`; archived changes are excluded) is formatted automatically by the root Spotless `markdown`
   format (Prettier at `printWidth: 120` with `proseWrap: "always"`), gated in `check` via `spotlessCheck` — no manual
-  wrapping needed for those files; Java/Kotlin are gated by Spotless too.
+  wrapping needed for those files; Java/Kotlin are gated by Spotless too. See the `Formatting` convention for the
+  per-file-type mechanics.
 
 ## Project Overview
 
@@ -53,9 +54,9 @@ agent judges durable, then ship them as a docs PR (per the docs-refresh conventi
 Process mistakes that leave no diff trace (e.g. a git command that discarded work) are the most valuable thing to
 capture — this is what makes the capture systematic instead of memory-dependent.
 
-**Sync the main spec only at archive.** Apply edits code and the change dir's _delta_ spec — never the main spec under
-`openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source of
-truth never describes behavior the code hasn't yet been verified against.
+**Sync the main spec only at archive.** Apply edits to code and the change dir's _delta_ spec — never the main spec
+under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source
+of truth never describes behavior the code hasn't yet been verified against.
 
 **A delta spec cannot rename a main-spec requirement header.** A `MODIFIED` requirement in a change's delta spec is
 matched to the main spec by its `### Requirement:` header, so the header must be verbatim-identical to the one it
@@ -67,7 +68,7 @@ delete-and-add it instead of renaming the MODIFIED header.
 **A `MODIFIED` requirement block replaces the whole requirement — the delta must carry every existing scenario the main
 spec still has, not just the new ones.** `openspec validate --changes` fails with "MODIFIED ... omits scenario(s) the
 current spec still has" when a delta drops an existing scenario (the first `helm-install-builds-webui-image` delta wrote
-only the new web-UI scenario, omitting "The deployed UI can call the gateway" and "The UI origin is configurable"). The
+only the new web UI scenario, omitting "The deployed UI can call the gateway" and "The UI origin is configurable"). The
 safe recipe: copy the current spec's full requirement block (description + all scenarios) into the delta, then edit it —
 never hand-write a MODIFIED block from memory.
 
@@ -82,7 +83,8 @@ the title does not follow the file.
 **Run CI before archiving; one PR per change.** Push the implementation branch and open a PR with the code and the
 active change dir. After the `build` check is green and the user approves, archive the change (move the change dir and
 sync the main spec) as an additional commit in the _same_ PR, then merge once. The archive — the declaration that a
-change is done — always follows CI, never precedes it.
+change is done — always follows CI, never precedes it. (Docs refresh — `AGENTS.md`/`README.md`/`docs/ideas.md` updates
+and captured lessons — ships as its own separate docs PR, per the docs-refresh convention.)
 
 **Merging PRs: the `--admin` flag is for admin users only.** The `main-require-pr-on-merge` ruleset requires an
 approving review (`required_approving_review_count: 1`), but the repo owner (`aanbrn`) is a bypass actor on that ruleset
@@ -101,7 +103,7 @@ wait for approval before merging.
 - Snyk CLI (for `./gradlew dependencySecurityCheck`)
 - actionlint (for `./gradlew workflowLint`, part of `check`; see https://github.com/rhysd/actionlint — brew,
   `go install`, or a release binary)
-- `pack` CLI (for the web-UI `dockerBuildImage` image build; see
+- `pack` CLI (for the web UI `dockerBuildImage` image build; see
   https://buildpacks.io/docs/for-platform-operators/how-to/integrate-ci/pack/, e.g. `brew install buildpacks/tap/pack`
   on macOS)
 - Python 3 (for `./scripts/setup-idea.sh`'s inspection-profile upsert; macOS ships it via Command Line Tools)
@@ -131,7 +133,8 @@ wait for approval before merging.
 # serves the built UI via vite preview, drives it with Playwright, then tears the stack down)
 ./gradlew :showcase-web-ui:e2eTest
 
-# Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest
+# Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
+# plus workflowLint (actionlint) and verifyInfraImageVersions
 # (add -PskipITs to drop integration for a Docker-free check; e2e is never part of check)
 ./gradlew :showcase-command-service:check
 
@@ -188,8 +191,9 @@ only in the service-release (third) segment within the same train is a minor/pat
 leading-integer major comparison.
 
 **Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. `check` runs the first three by
-default (`-PskipITs` drops integration for Docker-free runs); `e2eTest` is a separate opt-in task, and the only e2e
-suite is `showcase-api-gateway`'s (it builds all four service images).
+default (`-PskipITs` drops integration for Docker-free runs); `e2eTest` is a separate opt-in task. There are two e2e
+suites: the gateway's (`showcase-api-gateway`, builds all four service images) and the web UI's (Playwright against the
+compose stack, serving the built UI via `vite preview`).
 
 **Test tiers** — a test's tier is decided by its collaborators (what is real vs. faked), not by how long it takes to
 run:
@@ -238,7 +242,7 @@ The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (depe
 cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the
 coverage gate. The `.github/workflows/ci.yml` and `.github/workflows/e2e.yml` workflows additionally extend
 `gradle-home-cache-includes` with `nodejs` (the node-gradle plugin's Node download in `~/.gradle/nodejs`) and add an
-`actions/cache` step for the npm package cache (`~/.npm`, keyed on `showcase-web-ui/package-lock.json`), so the web-UI
+`actions/cache` step for the npm package cache (`~/.npm`, keyed on `showcase-web-ui/package-lock.json`), so the web UI
 build does not re-download the Node runtime or the dependency tree on every run. The `main-required-checks` branch
 ruleset requires the `build` check for every merge into `main`, with no bypass actors.
 
@@ -310,10 +314,6 @@ Key modules (libraries, not services):
   `spotbugs-exclude.xml` filters in `config/spotbugs/` if present (see `code-check-conventions.gradle.kts`)
 - **LZ4 relocation**: root build forces `org.lz4:lz4-java` substitution (see `build.gradle.kts`)
 - **All JavaCompile tasks** add `-parameters` flag
-- **Unit test classes** use the suffix `Tests` (e.g., `KSUIDTests`, `KsuidIdentifierFactoryTests`)
-- **Component test classes** use the suffix `CT` (e.g., `QueryMessageRequestMapperCT`)
-- **Integration test classes** use the suffix `IT`
-- **E2E test classes** use the suffix `E2E`
 - **Test display names**: every test class and every `@Test`/`@ParameterizedTest` method (plus `@Nested` groups) carries
   a static-sentence `@DisplayName` (e.g., `@DisplayName("Showcase aggregate component tests")`,
   `@DisplayName("Finishing a showcase with a valid command succeeds")`). Do not use `{0}`-style placeholders — named
@@ -449,14 +449,14 @@ Image names are set in each service's `bootBuildImage` task configuration. To bu
 ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64`), which Gradle maps to the
 `bootBuildImage`/`dockerBuildImage` task's `imagePlatform` `@Option`.
 
-The web-UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
+The web UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
 `PackBuildImageTask`) that runs the `pack` CLI with the Paketo NGINX + Procfile buildpacks over `build/dist` (the `pack`
 CLI is a build prerequisite like Helm/Snyk). The image serves the bundle via nginx on `8080` and exposes nginx
 `stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a gated
 `nginx-prometheus-exporter` sidecar (`webUi.metricsExporter`, on by default when observability metrics export and the
-web-UI ServiceMonitor are enabled) converts stub_status to Prometheus `/metrics` on port `9113`, which the Service
+web UI ServiceMonitor are enabled) converts stub_status to Prometheus `/metrics` on port `9113`, which the Service
 `http-metrics` port and ServiceMonitor scrape. A `PackBuildImageTask` convention defaults the image name to
-`${project.name}:${project.version}`, which the web-UI module overrides with the deployable
+`${project.name}:${project.version}`, which the web UI module overrides with the deployable
 `aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. The UI's API base URL is
 configured at runtime via the `SHOWCASE_API_BASE_URL` env var — **no baked default** (the browser needs the
 externally-visible gateway URL, which only the deployment knows; compose sets `http://localhost:8080`, the Helm chart
@@ -488,14 +488,14 @@ helm install axon-showcase ./helm/chart --namespace axon-showcase --create-names
 
 Per-release install/uninstall tasks follow `helmInstall<Release>To<Target>` / `helmUninstall<Release>From<Target>`, e.g.
 `helmInstallKpsToLocal` and `helmUninstallKpsFromLocal` (to install/verify a single chart without building images — the
-app-release install task additionally depends on the four `bootBuildImage` tasks and the web-UI `dockerBuildImage`).
+app-release install task additionally depends on the four `bootBuildImage` tasks and the web UI `dockerBuildImage`).
 Uninstalling leaves `createNamespace` namespaces (`monitoring`, `axon-showcase`) behind; remove them with
 `kubectl delete namespace` afterwards.
 
 **A chart Deployment addition must extend the app release's `installDependsOn` in `build.gradle.kts`.** The list must
 enumerate an image-build task for every image the chart's Deployments reference — `ship-web-ui-as-deployable` added the
-web-UI Deployment without adding its image build, so `helmInstallToLocal` deployed a web-UI pod with an image that was
-never built. Note the web-UI image is built by `:showcase-web-ui:dockerBuildImage` (a pack-based task, not a
+web UI Deployment without adding its image build, so `helmInstallToLocal` deployed a web UI pod with an image that was
+never built. Note the web UI image is built by `:showcase-web-ui:dockerBuildImage` (a pack-based task, not a
 `bootBuildImage`); verify the graph with `./gradlew helmInstallToLocal --dry-run` and confirm every chart Deployment's
 image has a build task in it.
 
@@ -578,11 +578,11 @@ The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wra
 `PROJECT_VERSION` + image versions automatically (also `composeBuildAndUp`, `composeBuildAndRestart`):
 `./gradlew composeUp`, `./gradlew composeDown`. A compose task runs only when it is explicitly requested on the command
 line (standalone `./gradlew composeUp` — a leading `:` from the IDE, e.g. `:composeUp`, is tolerated) or when a
-scheduled task needs it as a dependency or finalizer — the web-UI `e2eTest` boots the stack via `composeBuildAndUp` and
+scheduled task needs it as a dependency or finalizer — the web UI `e2eTest` boots the stack via `composeBuildAndUp` and
 tears it down via `composeDown`. Broad builds that do not schedule a compose task never start/stop containers as a side
 effect. `composeBuildAndUp` starts the stack with `docker compose up -d` (no `--wait` — a one-shot `kafka-init`
-container would trip `--wait`'s health check), so the e2e suite polls the gateway's health endpoint itself to avoid
-racing gateway startup.
+container would trip `--wait`'s health check), so the web UI e2e suite polls the gateway's health endpoint itself to
+avoid racing gateway startup.
 
 **Infra image versions are single-sourced** in `gradle/libs.versions.toml`: `*-image-tag` coordinates
 (`postgres-image-tag`, `kafka-image-tag`, `opensearch-image-tag`) for the official Docker Hub images used by

@@ -351,8 +351,9 @@ Key modules (libraries, not services):
   _why_ behind structural choices. Capture a decision as an ADR when it is made, not after the fact
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md` and `README.md` need to be refreshed to
   reflect the new state (commands, config, conventions, gotchas) and update them before reporting the change done; also
-  remove the change's idea from `docs/ideas.md` (it is captured once implemented — see the file's header) as a separate
-  docs PR
+  remove the change's idea from `docs/ideas.md` — an idea is removed once implemented (captured by a change) or once
+  explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open ideas remain
+  (see the file's header) — as a separate docs PR
 - **README design intent**: the README is a human-facing showcase and onboarding guide, not a reference dump. Preserve
   its intended shape on every edit: section order (intro → Project Structure → Cool Story → Architecture → Technologies
   → Development Workflow → Getting Started → Development Practices → Deployment and Operations → License/Author);
@@ -524,6 +525,18 @@ features, `helm/chart/src/test/helm/helm-lint-minimal.yaml` disables the default
 
 Custom values can be placed in `helm/values/<release-name>/values-local.yaml`.
 
+**The `*-client` pod labels in `helm/values/axon-showcase/values-local.yaml` are a bitnami-netpol × local-target
+artifact — keep them in the local values, never in the chart.** The labels (`axon-showcase-kafka-client`,
+`axon-showcase-db-events-client`, `axon-showcase-os-views-client`) exist only because the local target sets
+`allowExternal: false` on the bitnami infra charts (their netpols admit pods carrying the `<release>-client` label), and
+their values derive from the local target's release names (declared in `build.gradle.kts`). Moving them into the
+reusable app chart would couple it to (a) the bitnami netpol convention, (b) the local release names, and (c) a
+netpol-strictness decision the chart cannot observe — a deployment that leaves the bitnami netpols open would carry
+labels nothing consumes. A `*-client` label with no matching infra release is dead weight (the removed
+`axon-showcase-redis-client` was a leftover from an earlier design — nothing in the stack or code referenced redis).
+This was explored as a chart-default change and reverted; the labels belong co-located with the netpol restrictions that
+require them.
+
 The local values expose the API gateway and web UI via ingress at the hostnames `axon-showcase-api` and
 `axon-showcase-ui` respectively. To reach them by hostname (instead of a `Host:`-header curl workaround), run
 `./setup-hosts.sh setup`, which detects the local cluster's ingress-controller LoadBalancer address generically (against
@@ -660,6 +673,12 @@ that override when bumping the Kafka image tag.
   `gh run watch` it — one blocking call, no manual polling. A docs/build change's `build` check typically completes in
   about a minute; check once shortly after pushing, then confirm green before archiving/merging. Idle sleep loops only
   waste time and add no information.
+- **A PR whose base advanced after its CI ran fails to merge with "Required status check 'build' is expected" and
+  `mergeStateStatus` BEHIND.** When two PRs merge close together (the norm here: a code PR followed by its docs PR), the
+  second PR's branch is behind the new `main`; the `main-required-checks` ruleset demands the `build` check on the
+  latest base, so the merge is blocked even though the branch's own CI is green. The error message does not say "update
+  your branch" — BEHIND is the tell. Fix: `gh pr update-branch` (or `gh pr merge --update-branch`), which re-runs CI
+  against the updated base; merge only once that check is green.
 - **Exec tasks (`docker`, `pack`, `snyk`) fail in IDEA on macOS**: an IDEA launched from Finder/Dock (or a stale Gradle
   daemon) gives the Gradle daemon a minimal PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) without `/opt/homebrew/bin`, so
   bare-name execs ("command 'docker' not found") fail even though the tools are installed. Root cause: Gradle applies

@@ -12,6 +12,14 @@ appending to the most recent one).
 
 ## 2026-09-10
 
+- Rethink or rewrite the load tests — parked; no change yet. The current Gatling setup (`load-tests/src/gatling/java`,
+  `ShowcaseSimulation`) is a single probabilistic scenario exercising the API gateway (list, then schedule/start/
+  finish/remove with decreasing probability) with per-profile pass assertions — it predates the distributed command bus,
+  the web UI, and the current architecture and has not kept pace with the system it tests. Revisit the scenario mix
+  (include the query service / Protobuf paths, the SSE stream, the web UI), the injection profiles and pass assertions,
+  whether load tests should run against the compose stack or the Helm deployment, and how results feed the
+  requests/limits baselines (see the resource-sizing idea below).
+
 - Grafana ingress + hostname instead of port-forward — parked; no change yet. The README documents observability access
   via `kubectl port-forward -n monitoring svc/kps-grafana 3000:80`, which is inconvenient. Add an ingress for the
   Grafana service (e.g. hostname `axon-showcase-grafana`) plus a `setup-hosts.sh` entry, mirroring the app's

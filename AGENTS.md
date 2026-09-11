@@ -437,12 +437,12 @@ Key modules (libraries, not services):
   `steroid_execute_code` / `runInspectionsDirectly`) and fix warnings, but this is not required and never a gate. Prefer
   assertions like `assertThat(x).isNotNull()` over `Objects.requireNonNull(x)` when guarding nullable values in tests,
   since the IDE recognizes them for dataflow.
-- **Vision subagent for screenshot review**: the main agent runs on the cheap `opencode-go/deepseek-v4-flash`
+- **Vision subagent for screenshot review**: the main agent runs on the cheap `opencode-go/deepseek-v4.1-flash`
   (text-only); a `vision` subagent (`.opencode/agent/vision.md`) is pinned to `opencode-go/deepseek-v4-flash-vision-exp`
   to read screenshots. When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent —
   it inherits the Playwright MCP, captures the screenshot into its own context, reads it, and returns a description,
   while the main session stays on the cheap model. This auto-routes vision work without manual model switching.
-- **Diagrammer subagent for ASCII diagrams**: the main agent (cheap `opencode-go/deepseek-v4-flash`) is weak at ASCII
+- **Diagrammer subagent for ASCII diagrams**: the main agent (cheap `opencode-go/deepseek-v4.1-flash`) is weak at ASCII
   diagram geometry — drawing or fixing a diagram (a README flow diagram, alignment, bracket spans) repeatedly cost extra
   effort and review cycles. A `diagrammer` subagent (`.opencode/agent/diagrammer.md`) is pinned to
   `opencode-go/deepseek-v4-pro` to draw and fix ASCII diagrams. When a diagram needs creating, aligning, or correcting,

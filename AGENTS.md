@@ -420,7 +420,10 @@ Key modules (libraries, not services):
   decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open ideas remain (see the file's
   header). Docs that ARE the change (new agent/command/skill documentation, README rows describing a new capability, the
   change's idea removal) ship with the change's PR; docs that refresh facts about a completed change ship as a separate
-  docs PR — a newly parked idea that is not yet a change is such a docs PR.
+  docs PR — a newly parked idea that is not yet a change is such a docs PR. A parked-idea docs PR owes the refresh too:
+  fold any durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced
+  manual pin to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost
+  once the idea is implemented or dropped.
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
@@ -968,14 +971,17 @@ that override when bumping the Kafka image tag.
   update", so a wrongly-built URL or renamed repository reads as current. Verify a new or changed check by temporarily
   pinning a known-older version, confirming the report shows `<name>: <old> -> <latest>`, then reverting the pin (the
   `buildpackUpdates` lookup was proved this way with `0.1.0`). A clean run alone is not evidence the check works.
-- **The Snyk CLI pin is outside every update-check workflow — check it manually.** `dependencyUpdates` /
-  `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` / `helm-updates.yml` cover the Helm CLI and
-  pinned charts, and `buildpackUpdates` / `buildpack-updates.yml` cover the Paketo builder and buildpacks, but the
-  `snyk-version` input in `.github/workflows/snyk.yml` has no check (Dependabot manages action version refs, and
-  `snyk/actions/setup@master` is a floating ref it does not bump), so it goes stale silently. Confirm it against
-  `gh api repos/snyk/cli/releases/latest` when bumping or auditing tooling currency. A bump also cannot be verified
-  locally: `workflowLint` (actionlint) proves only that the YAML lints, not that the version tag is installable — the
-  credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real execution.
+- **The Snyk and OpenSpec CLI pins are outside every update-check workflow — check both manually.** `dependencyUpdates`
+  / `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` / `helm-updates.yml` cover the Helm CLI and
+  pinned charts, and `buildpackUpdates` / `buildpack-updates.yml` cover the Paketo builder and buildpacks, but two pins
+  have no check: the `snyk-version` input in `.github/workflows/snyk.yml` (Dependabot manages action version refs, and
+  `snyk/actions/setup@master` is a floating ref it does not bump) and the `@fission-ai/openspec@<version>` pin in
+  `.github/workflows/ci.yml`'s `npm install --global` step. Both go stale silently: confirm Snyk against
+  `gh api repos/snyk/cli/releases/latest` and OpenSpec against `npm view @fission-ai/openspec version` when bumping or
+  auditing tooling currency (the `/opsx-tool-update` command regenerates the instruction files after a release but does
+  not detect one). A Snyk bump also cannot be verified locally: `workflowLint` (actionlint) proves only that the YAML
+  lints, not that the version tag is installable — the credentialed weekly run (or a local `dependencySecurityCheck`
+  with `SNYK_TOKEN`) is the first real execution.
 - **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
   first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
   output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change

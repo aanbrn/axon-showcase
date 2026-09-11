@@ -11,7 +11,9 @@ This repo's agents get extra reach from MCP servers. Playwright is already confi
 (`~/.config/opencode/opencode.jsonc`).
 
 - **GitHub — core.** Lets the agent read pull requests and CI checks.
-- **Steroid — optional, IntelliJ IDEA only.** JetBrains IDE tools; skip it unless the user uses IDEA.
+- **Steroid — optional, IntelliJ IDEA only.** JetBrains IDE tools the agent can use for IDE-accurate operations
+  (refactors, searches, the IDE's inspections). Nothing in the repo requires it — offer it only if the user wants the
+  agent working through their live IDE.
 
 Never commit these entries to the project config: they are auth- or IDE-bound, and would not work for anyone else
 without their own credentials or IDE.
@@ -36,7 +38,8 @@ user before reading or editing files outside this repo.
      path and preserves JSONC comments. An entry with no `enabled` key is enabled by default.
 
 3. **Steroid (optional — IntelliJ IDEA only).**
-   - Ask whether the user uses IntelliJ IDEA. If not, skip this step.
+   - Ask whether the user wants the agent to work through their live IDE. If not, skip this step — nothing in the repo
+     requires it.
    - If `devrig` is not on `PATH`, offer its one-command installer
      (`curl -fsSL https://devrig.dev/install.sh | sh`); run it only after the user confirms — it executes a downloaded
      script and installs into `~/.mcp-steroid` — then re-check.

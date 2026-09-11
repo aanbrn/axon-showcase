@@ -529,9 +529,14 @@ ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64
 `bootBuildImage`/`dockerBuildImage` task's `imagePlatform` `@Option`.
 
 The web UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
-`PackBuildImageTask`) that runs the `pack` CLI with the Paketo NGINX + Procfile buildpacks over `build/dist` (the `pack`
-CLI is a build prerequisite like Helm/Snyk). The image serves the bundle via nginx on `8080` and exposes nginx
-`stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a gated
+`PackBuildImageTask`) that runs the `pack` CLI with the **version-pinned** Paketo NGINX + Procfile buildpacks
+(`paketo-buildpacks/nginx@1.2.0`, `paketo-buildpacks/procfile@5.14.0`; the versions are catalog-owned as `paketo-nginx`
+and `paketo-procfile`) over `build/dist` (the `pack` CLI is a build prerequisite like Helm/Snyk). The pins are explicit
+because the builder is floating (`...builder-jammy-base:latest`) and an unversioned buildpack reference becomes
+ambiguous — `pack` fails with "multiple versions … must specify an explicit version" — once the builder bundles two
+versions of a buildpack (the intermittent `e2e`/`helmInstallToLocal` failure); neither `dependencyUpdates` nor
+`helmUpdates` tracks buildpack/builder versions, so keep the pins current. The image serves the bundle via nginx on
+`8080` and exposes nginx `stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a gated
 `nginx-prometheus-exporter` sidecar (`webUi.metricsExporter`, on by default when observability metrics export and the
 web UI ServiceMonitor are enabled) converts stub_status to Prometheus `/metrics` on port `9113`, which the Service
 `http-metrics` port and ServiceMonitor scrape. A `PackBuildImageTask` convention defaults the image name to

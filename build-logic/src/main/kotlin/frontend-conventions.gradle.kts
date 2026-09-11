@@ -97,8 +97,8 @@ val dockerBuildImage =
         builder.set("paketobuildpacks/builder-jammy-base")
         buildpacks.set(
             listOf(
-                "paketo-buildpacks/nginx",
-                "paketo-buildpacks/procfile",
+                "paketo-buildpacks/nginx@" + libs.versions.paketo.nginx.get(),
+                "paketo-buildpacks/procfile@" + libs.versions.paketo.procfile.get(),
             )
         )
         environment.putAll(

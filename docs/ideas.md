@@ -23,6 +23,16 @@ section for a new day rather than appending to the most recent one).
   verified anyway (actionlint only lints the YAML; the credentialed weekly run is the first real execution), so the
   check is worth automating rather than relying on manual audits.
 
+- OpenSpec CLI update check — parked; no change yet. The CLI is pinned in CI as
+  `npm install --global @fission-ai/openspec@1.11.0` (`.github/workflows/ci.yml`), so releases go stale silently (1.13.0
+  is already out) because the pin sits outside every update check (`dependencyUpdates` covers Gradle catalog
+  coordinates, `helmUpdates` the Helm CLI and charts, `buildpackUpdates` the Paketo builder and buildpacks, and
+  Dependabot only action refs). Add an `openspecUpdates` Gradle task mirroring `buildpackUpdates` — query the npm
+  registry for `@fission-ai/openspec`'s latest version, compare with the pinned one, report — plus a weekly
+  `openspec-updates.yml` workflow opening or updating an issue. It pairs with the existing `/opsx-tool-update` command,
+  which can act on a release but does not detect one; decide where the pin is single-sourced (it lives in the workflow
+  today — the `snyk-version` case above has the same shape).
+
 ## 2026-09-10
 
 - Rethink or rewrite the load tests — parked; no change yet. The current Gatling setup (`load-tests/src/gatling/java`,

@@ -446,7 +446,9 @@ Key modules (libraries, not services):
     Verify with `awk 'length > 120'` over edited files. Formatters cannot reflow string literals (e.g. an error message
     in Kotlin/Gradle), so wrap an over-long string with concatenation (`"part1 " + "part2"`) — the formatter preserves
     it. Write markdown as natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the
-    formatter owns the wrapping and reflows on every run.
+    formatter owns the wrapping and reflows on every run. A bare `$` in prose (outside inline code) is parsed as inline
+    math and blocks that reflow — the paragraph silently keeps its original ragged wrapping while `spotlessCheck` still
+    passes; escape it as `\$` (which renders as `$`).
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with

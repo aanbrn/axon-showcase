@@ -470,14 +470,16 @@ Key modules (libraries, not services):
   - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML, and so
     on); markdown is formatted by the root Spotless `markdown` format (Prettier at `printWidth: 120` — a preference, not
     a hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating markdown wrapping).
-    Verify with a character count (`perl -CSD -ne 'print if length > 120'`), not `awk 'length > 120'` — `awk` counts
-    bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow tripped this three times).
-    Formatters cannot reflow string literals (e.g. an error message in Kotlin/Gradle), so wrap an over-long string with
-    concatenation (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as natural prose and let
-    `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the wrapping and reflows on
-    every run. A bare `$` in prose (outside inline code) is parsed as inline math and blocks that reflow — the paragraph
-    silently keeps its original ragged wrapping while `spotlessCheck` still passes; escape it as `\$` (which renders as
-    `$`).
+    Verify with a character count (`perl -CSD -lne 'print if length > 120'`), not `awk 'length > 120'` — `awk` counts
+    bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow tripped this three times); the `-l`
+    chomps the trailing newline `-ne` would otherwise count, so an exactly-120-character line is not false-flagged.
+    Verify a verification command on a boundary case before recording it — the first recipe omitted `-l` and
+    false-flagged every exactly-120-character line. Formatters cannot reflow string literals (e.g. an error message in
+    Kotlin/Gradle), so wrap an over-long string with concatenation (`"part1 " + "part2"`) — the formatter preserves it.
+    Write markdown as natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the
+    formatter owns the wrapping and reflows on every run. A bare `$` in prose (outside inline code) is parsed as inline
+    math and blocks that reflow — the paragraph silently keeps its original ragged wrapping while `spotlessCheck` still
+    passes; escape it as `\$` (which renders as `$`).
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with
@@ -836,7 +838,14 @@ that override when bumping the Kafka image tag.
   integration's scope with a live reformat.** A Prettier scope narrower than the gate (the web module's `myFilesPattern`
   omitted CSS/HTML until extended, see above) makes `Reformat Code` fall back to IDEA's built-in formatter and break
   `prettier --check` — found only when the module was actually reformatted, and invisible in config review. Enumerate
-  every extension the gate covers and reformat one file of each type before believing the setup.
+  every extension the gate covers and reformat one file of each type before believing the setup. Verify a Gradle
+  formatting task the same way — tamper a file to a non-conforming state, run the task, and confirm the tree returns
+  clean (`--dry-run` only proves the task is scheduled, not that it formats).
+- **Run `spotlessApply` after the _final_ write to a Spotless-owned file — ticking a checklist task is an edit too.** A
+  `tasks.md` task was ticked ("`spotlessCheck` passes") _after_ the last `spotlessApply`; the re-wrapped prose broke
+  Prettier, so the claimed gate actually failed and only the quick review caught it. After any last edit to a
+  Spotless-owned file (a TODO tick, a status note, `AGENTS.md` itself) re-run `spotlessApply` and `spotlessCheck` before
+  reporting the gate green — do not trust a check that ran before the final edit.
 - **Verifying an IDE formatting integration needs the real `Reformat Code` action — `CodeStyleManager.reformat` does not
   invoke external formatters.** A script that called `CodeStyleManager.reformat` silently did nothing (it runs IDEA's
   own formatter); make a file deliberately non-conforming, invoke the `ReformatCode` action in the live IDE

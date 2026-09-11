@@ -39,7 +39,7 @@
 - [x] 5.4 Remove the implemented 2026-09-03 `docs/ideas.md` entry in this change's PR (bundled — commit it on the change
       branch rather than leaving it in the uncommitted review diff, so a rebase/stash cannot conflict with a `main` that
       also edited the file)
-- [ ] 5.5 Refresh the `ide-config` main spec's `## Purpose` at archive to mention the web module — a delta cannot carry
+- [x] 5.5 Refresh the `ide-config` main spec's `## Purpose` at archive to mention the web module — a delta cannot carry
       a `## Purpose`, so this is applied in the archive commit
 - [x] 5.6 Update the `/setup-idea` skill and command to mention the web module's Prettier (they still described the
       setup as JVM-only)

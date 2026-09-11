@@ -725,6 +725,10 @@ that override when bumping the Kafka image tag.
   (`scripts/experience-analysis.sh`), whose first version used `--since`; the proposal/tasks that described
   `--merged --since <window>` were corrected to the search form during implementation. Any future "what shipped since X"
   automation must use the `--search "merged:>=..."` form.
+- **`gh pr create --body` with Markdown can fail under zsh with `no matches found`** — an inline body containing
+  `**bold**` (or other shell metacharacters/newlines) is subject to zsh's `nomatch` glob error
+  (`zsh: no matches found: **...`). Write the body to a file and use `--body-file <file>` instead; it also sidesteps
+  quoting and embedded-newline problems. Prefer `--body-file` for any multi-line PR or issue body.
 - **Relative `date` arithmetic is not portable across macOS and Linux**: BSD `date` (macOS) uses `-v-7d`, GNU `date`
   (Linux, incl. CI) rejects it and needs `--date='7 days ago'`. A cross-platform script computing a relative date must
   probe first (`date -v-7d >/dev/null 2>&1 && … || date --date='…'`), as `scripts/experience-analysis.sh` does for its
@@ -841,6 +845,11 @@ that override when bumping the Kafka image tag.
   field's Javadoc and one call site before writing the `@param`/`@return`. The same change also had to add a field
   Javadoc the review never enumerated (`ShowcaseProjector.METER_NAME_PREFIX`, caught by the user): a consistency sweep
   must audit every class/method/field in the touched classes, not only the review's findings list.
+- **Doc claims must match their source and their strength — quote verbatim or paraphrase explicitly, and reserve
+  "enforced" for a real gate.** The self-learning README section described `AGENTS.md` rules in quotes;
+  `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an
+  overstated process claim. When a doc quotes a rule/spec/comment, copy the exact text (or drop the quote marks and
+  describe it), and check the mechanism before using words like "enforced", "always", "never", or "every".
 - **A change merged without its archive is incomplete — do not merge the implementation PR and defer the archive.** The
   "one PR per change" rule puts the archive commit in the _same_ PR before merge; a change whose PR merged but whose
   change dir was never archived is easy to forget (the `remove-redis-client-label` change was merged and sat unarchived

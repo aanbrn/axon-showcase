@@ -56,6 +56,15 @@ val npmFormatCheck =
         inputs.files(fileTree("src"))
     }
 
+val npmFormat =
+    tasks.register<NpmTask>("npmFormat") {
+        group = "verification"
+        description = "Formats the frontend sources with Prettier."
+        dependsOn(npmCi)
+        args.set(listOf("run", "format"))
+        inputs.files(fileTree("src"))
+    }
+
 val npmTest =
     tasks.register<NpmTask>("npmTest") {
         group = "verification"

@@ -457,8 +457,8 @@ Key modules (libraries, not services):
   `ShowcasesPage`, `contextualTime`, `waitForReadModel`); wrap at 120 characters
 - **Frontend (`showcase-web-ui`)**: organized per Feature-Sliced Design (`app`/`pages`/`widgets`/`features`/`entities`/
   `shared`, importing only downward, `@/` alias → `src/`). Server state via TanStack Query, client state via a Redux
-  Toolkit slice, forms via React Hook Form + Zod. Format with Prettier (`format:check` gated in `check`); lint with
-  ESLint 10 via the flat `showcase-web-ui/eslint.config.js`
+  Toolkit slice, forms via React Hook Form + Zod. Format with Prettier (`format:check` gated in `check`; apply with
+  `./gradlew :showcase-web-ui:npmFormat`); lint with ESLint 10 via the flat `showcase-web-ui/eslint.config.js`
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable

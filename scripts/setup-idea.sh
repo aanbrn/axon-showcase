@@ -1,19 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Installs the IntelliJ formatter plugins and ensures the project IDE config so
-# Reformat Code / Optimize Imports match the Spotless style enforced by
-# `spotlessApply`: palantir-java-format (Java), ktfmt (Gradle Kotlin DSL), and
-# the palantir import layout + test-tier naming inspection.
+# Ensures the project's IntelliJ configuration matches the build formatter (Spotless): merges the
+# committed settings — config/idea/*.xml and the test-tier naming inspection — into .idea/, and installs
+# the palantir-java-format + ktfmt plugins. Safe to re-run: it reconciles a configuration that has drifted
+# (never applied cleanly, or IntelliJ overwrote it). Applying the configuration needs neither the launcher nor a
+# closed IDE — only the plugin install does, so a running (or missing) IDE skips just that step.
 # Usage: ./scripts/setup-idea.sh [path/to/idea-launcher]
-# The IDE must be closed: installPlugins silently no-ops when the IDE is running
-# (the launcher can't start a second instance), so the script aborts if it detects
-# one. Works for any standard IntelliJ install. Requires Python 3 (for the
-# inspection-profile upsert) and a Gradle-compatible JDK on PATH.
+# Requires Python 3 (for the settings merge) and a Gradle-compatible JDK on PATH.
 
 PLUGIN_IDS=("palantir-java-format" "com.facebook.ktfmt_idea_plugin")
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 is_idea_running() {
     if pgrep -f "Contents/MacOS/idea" >/dev/null 2>&1 || pgrep -f "idea64.exe" >/dev/null 2>&1; then
@@ -55,37 +52,26 @@ find_idea() {
             return
         fi
     done
-    echo "IntelliJ IDEA launcher not found. Pass its path as the first argument, or set IDEA_HOME." >&2
     return 1
 }
 
-ensure_config_file() {
-    local template="$1" target="$2"
-    if [ -f "$target" ]; then
-        echo "exists: $target"
-    else
-        mkdir -p "$(dirname "$target")"
-        cp "$template" "$target"
-        echo "created: $target"
-    fi
-}
+echo "Applying the project IDE configuration (config/idea/ -> .idea/)..."
+python3 "$SCRIPT_DIR/ensure-idea-settings.py"
 
-ensure_project_config() {
-    local idea_dir="$REPO_ROOT/.idea"
-    ensure_config_file "$REPO_ROOT/config/idea/palantir-java-format.xml" "$idea_dir/palantir-java-format.xml"
-    ensure_config_file "$REPO_ROOT/config/idea/ktfmt.xml" "$idea_dir/ktfmt.xml"
-    ensure_config_file "$REPO_ROOT/config/idea/codeStyleConfig.xml" "$idea_dir/codeStyles/codeStyleConfig.xml"
-    python3 "$REPO_ROOT/scripts/ensure-idea-inspection.py"
-}
-
-idea_bin="$(find_idea "${1:-}")"
-if is_idea_running; then
-    echo "IntelliJ IDEA is running — close it (File → Exit) before installing, then re-run." >&2
-    exit 1
+idea_bin="$(find_idea "${1:-}" 2>/dev/null || true)"
+if [ -z "$idea_bin" ]; then
+    echo "IntelliJ IDEA launcher not found — skipped the plugin install; the configuration is applied."
+    echo "Pass its path as the first argument, set IDEA_HOME, or install the plugins from the IDE."
+elif is_idea_running; then
+    echo "IntelliJ IDEA is running — skipped the plugin install; the configuration is applied."
+    echo "Close it (File -> Exit) and re-run to install or refresh the palantir-java-format and ktfmt plugins."
+else
+    for plugin_id in "${PLUGIN_IDS[@]}"; do
+        echo "Installing $plugin_id via launcher $idea_bin"
+        "$idea_bin" installPlugins "$plugin_id"
+    done
+    echo "Plugins installed."
 fi
-for plugin_id in "${PLUGIN_IDS[@]}"; do
-    echo "Installing $plugin_id via launcher $idea_bin"
-    "$idea_bin" installPlugins "$plugin_id"
-done
-ensure_project_config
-echo "Done. Restart the IDE; the plugins are auto-enabled and the config is in place."
+
+echo "Done. In IntelliJ, apply the changes with File -> Reload All from Disk (or restart it) — IDEA does not"
+echo "hot-reload .idea/inspectionProfiles/, so the settings take effect only after a reload or restart."

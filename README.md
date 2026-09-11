@@ -309,23 +309,24 @@ MCP config is read at startup, so restart OpenCode after adding one.
 
 ### Slash Commands
 
-| Command                      | What it does                                                               |
-| ---------------------------- | -------------------------------------------------------------------------- |
-| `/opsx-propose`              | Scaffolds a new change: proposal, design, tasks, and spec delta            |
-| `/opsx-apply`                | Implements the change's tasks                                              |
-| `/opsx-archive`              | Archives a completed change and syncs the main spec                        |
-| `/opsx-sync`                 | Syncs a change's delta spec to the main spec without archiving             |
-| `/opsx-update`               | Revises a change's planning artifacts                                      |
-| `/opsx-explore`              | Explores an idea before proposing it                                       |
-| `/setup-agent-tools`         | Sets up the tooling MCP servers (GitHub core, plus optional extras)        |
-| `/review-thorough`           | Deep on-demand review of a change                                          |
-| `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer              |
-| `/retrospective`             | Weekly retrospective with improvement suggestions                          |
-| `/dependency-updates`        | Runs and summarizes the dependency update report                           |
-| `/gradle-update`             | Updates the Gradle wrapper to the latest stable                            |
-| `/dependency-security-check` | Runs the Snyk dependency security scan                                     |
-| `/opsx-tool-update`          | Regenerates the OpenSpec command/skill files after an openspec CLI release |
-| `/ideas`                     | Lists and manages `docs/ideas.md`                                          |
+| Command                      | What it does                                                                |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| `/opsx-propose`              | Scaffolds a new change: proposal, design, tasks, and spec delta             |
+| `/opsx-apply`                | Implements the change's tasks                                               |
+| `/opsx-archive`              | Archives a completed change and syncs the main spec                         |
+| `/opsx-sync`                 | Syncs a change's delta spec to the main spec without archiving              |
+| `/opsx-update`               | Revises a change's planning artifacts                                       |
+| `/opsx-explore`              | Explores an idea before proposing it                                        |
+| `/setup-agent-tools`         | Sets up the tooling MCP servers (GitHub core, plus optional extras)         |
+| `/setup-idea`                | Sets up the project's IntelliJ configuration (settings + formatter plugins) |
+| `/review-thorough`           | Deep on-demand review of a change                                           |
+| `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer               |
+| `/retrospective`             | Weekly retrospective with improvement suggestions                           |
+| `/dependency-updates`        | Runs and summarizes the dependency update report                            |
+| `/gradle-update`             | Updates the Gradle wrapper to the latest stable                             |
+| `/dependency-security-check` | Runs the Snyk dependency security scan                                      |
+| `/opsx-tool-update`          | Regenerates the OpenSpec command/skill files after an openspec CLI release  |
+| `/ideas`                     | Lists and manages `docs/ideas.md`                                           |
 
 ## Getting Started
 
@@ -486,13 +487,20 @@ build-logic Kotlin (`build-logic/src/**/*.kt`), Prettier for markdown (`docs/`, 
 IntelliJ's built-in formatter uses its own code style and would reformat files differently, so configure the IDE to stay
 in sync:
 
-- The repo's IntelliJ config is **not versioned** — `.idea/` is git-ignored. Run the setup script once (IDE closed, then
-  restart): it locates your IntelliJ, installs the **palantir-java-format** and **ktfmt** plugins, writes the project
-  config from the committed templates in `config/idea/`, and ensures the test-tier naming inspection:
+- The repo's IntelliJ config is **not versioned** — `.idea/` is git-ignored. Run the setup script any time the
+  configuration drifts: it merges the committed settings from `config/idea/` into `.idea/` (restoring the
+  palantir-java-format and ktfmt settings and the test-tier naming inspection, leaving IntelliJ-managed content
+  untouched) and installs the **palantir-java-format** and **ktfmt** plugins. The plugin install needs IntelliJ closed
+  (it warns and skips that step otherwise); the configuration merge does not, so a re-run repairs the config even with
+  the IDE open:
 
   ```bash
   ./scripts/setup-idea.sh
   ```
+
+  IntelliJ reads these settings at startup, so apply the merged config with **File → _Reload All from Disk_** (or
+  restart the IDE) — the test-tier naming inspection, in particular, only takes effect then. You can also ask the agent
+  to do it (`/setup-idea`), which additionally handles quitting a running IDE for the plugin install.
 
   The ktfmt template uses the plugin's **Custom** style to reproduce ktfmt's kotlinlang style at 120 columns with
   unused-import removal (the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the

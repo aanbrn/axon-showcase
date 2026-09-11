@@ -15,6 +15,6 @@
 
 - [x] 3.1 Run `./gradlew dependencySecurityCheck` and confirm the scan reports no vulnerable paths (policy-suppressed
       findings consume no quota); run `./gradlew spotlessApply spotlessCheck` and `openspec validate --changes` cleanly
-- [ ] 3.2 At archive, update the `showcase/quality/dependency-security` spec Purpose to name `zstd-jni` among the
+- [x] 3.2 At archive, update the `showcase/quality/dependency-security` spec Purpose to name `zstd-jni` among the
       constrained transitives (a Purpose cannot be carried by a delta, and the main spec must not be edited before
       archive)

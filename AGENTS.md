@@ -102,6 +102,15 @@ restructure git-mv'd most spec files but left their `#` headers at the old `show
 such leftover, and several still remain. On any spec move or capability rename, fix the first line in the same change —
 the title does not follow the file.
 
+**A delta cannot carry a `## Purpose` for an existing capability — refresh the main spec's Purpose in the archive commit
+and record it as a task.** `openspec archive` (and the `openspec-sync-specs` workflow) treats the main spec's Purpose as
+authoritative and leaves it alone; a delta `## Purpose` only seeds a capability whose spec does not exist yet and is
+otherwise ignored. A change that alters a capability's scope — e.g. adding `zstd-jni` to the constrained transitives in
+`showcase/quality/dependency-security` — therefore leaves the Purpose stale, and `openspec validate` still passes
+because the Purpose is not validated against the change. The repo rule forbids editing the main spec before archive, so
+record an explicit task (as `address-new-snyk-findings` did in task 3.2) and apply the Purpose edit in the archive
+commit; do not assume the sync workflow covers it.
+
 **Run CI before archiving; one PR per change.** Push the implementation branch and open a PR with the code and the
 active change dir. After the `build` check is green and the user approves, archive the change (move the change dir and
 sync the main spec) as an additional commit in the _same_ PR, then merge once. The archive — the declaration that a

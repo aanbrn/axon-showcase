@@ -15,7 +15,7 @@
 
 This repo uses **spec-driven development**: behavior is captured as OpenSpec specs in `openspec/specs/showcase/`
 (organized by architectural role: `gateway`, `write-side`, `read-side`, `clients`, `extensions`, `deployment`,
-`quality`). Code changes go through the `opsx-*` opencode commands / `openspec-*` skills (propose → apply → archive).
+`quality`). Code changes go through the `opsx-*` OpenCode commands / `openspec-*` skills (propose → apply → archive).
 Follow these workflows for new work, and treat the captured specs as the behavioral source of truth.
 
 ## OpenSpec Workflow Agreement
@@ -196,7 +196,7 @@ wait for approval before merging.
 ./gradlew :showcase-web-ui:check
 ```
 
-The `/dependency-updates` opencode command runs this task and summarizes the available updates; the `/gradle-update`
+The `/dependency-updates` OpenCode command runs this task and summarizes the available updates; the `/gradle-update`
 command updates the Gradle wrapper to the latest stable version when one is available, and the `/opsx-tool-update`
 command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI release.
 
@@ -398,6 +398,10 @@ Key modules (libraries, not services):
   explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open ideas remain
   (see the file's header). Docs that ARE the change (new agent/command/skill documentation, README rows describing a new
   capability) ship with the change's PR; docs that refresh facts about a completed change ship as a separate docs PR.
+- **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
+  `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
+  path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
+  README already follows this.
 - **README design intent**: the README is a human-facing showcase and onboarding guide, not a reference dump. Preserve
   its intended shape on every edit: section order (intro → Project Structure → Cool Story → Architecture → Technologies
   → Development Workflow → Getting Started → Development Practices → Deployment and Operations → License/Author);
@@ -472,7 +476,7 @@ Key modules (libraries, not services):
   rendering, aligns by character width, and preserves deliberate asymmetry. The main agent stays on the cheap model.
 - **Experience-analyzer subagent for retrospectives and improvements**: the `experience-analyzer` subagent
   (`.opencode/agent/experience-analyzer.md`) aggregates recent experience across many changes — above the per-change
-  `review-quick`/`lesson-capture` agents. Trigger it with the `/retrospective` opencode command (or run it manually):
+  `review-quick`/`lesson-capture` agents. Trigger it with the `/retrospective` OpenCode command (or run it manually):
   the command gathers the digest with `./scripts/experience-analysis.sh [since]` (merged PRs, git log, archived changes,
   AGENTS.md gotchas, docs/ideas.md), then the subagent returns a retrospective (shipped PRs by theme, lessons,
   went-well/went-wrong) and improvement suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process`
@@ -481,13 +485,13 @@ Key modules (libraries, not services):
 - **Thorough-review subagent for deep passes**: the `review-thorough` subagent (`.opencode/agent/review-thorough.md`)
   does a deep review of a change against its proposal, delta specs, design, tasks, and the implementation diff — drift,
   correctness, architecture, and conventions. It is intentionally not auto-scheduled (the expensive pass); invoke it
-  with the `/review-thorough` opencode command (or ask the main agent to run it manually). Findings come back grouped by
+  with the `/review-thorough` OpenCode command (or ask the main agent to run it manually). Findings come back grouped by
   severity with file/line references; the main agent applies fixes.
 - **A subagent is only invocable through a trigger, not its documentation**: documenting an `.opencode/agent/*.md`
   subagent in AGENTS.md does not make it reachable — ship a `.opencode/commands/*.md` command (e.g. the `/retrospective`
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
   documentation first and was only usable once the user pointed out it had no trigger and the command was added.
-- **An opencode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
+- **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model is pinned in six places: `.opencode/opencode.json` (`model` and `small_model` — two
   keys), the flash-pinned subagent frontmatter (`.opencode/agent/review-quick.md`, `lesson-capture.md`,
   `experience-analyzer.md`), the `.github/workflows/opencode.yml` `model` input, and the `AGENTS.md` agent gotchas that
@@ -495,7 +499,7 @@ Key modules (libraries, not services):
   across `.opencode/`, `.github/workflows/`, `AGENTS.md`, and `README.md`, and exclude the vision agent's `-vision-exp`
   pin: the vision model is a separate experimental line that may not have a counterpart in the new family (the v4.1 bump
   left it on `deepseek-v4-flash-vision-exp`). A naive sweep that flags the vision pin as stale would wrongly "fix" a
-  deliberate asymmetry. Note the config `model` key is a default for **new** sessions, not a live override: opencode
+  deliberate asymmetry. Note the config `model` key is a default for **new** sessions, not a live override: OpenCode
   persists the last-used model in `~/.local/state/opencode/model.json` (its `recent` list), so a restarted TUI that
   restores a session keeps that session's model and still shows the old one until you switch manually or start a new
   session — a correct config pin does not by itself make the running agent use the new model.
@@ -865,6 +869,13 @@ that override when bumping the Kafka image tag.
   note rather than the tool itself. A referencing entry summarizes; it does not specify. Read
   `.opencode/skills/*/SKILL.md`, `.opencode/agent/*.md`, and the server's exposed tool list before describing what each
   does, and treat an idea note's prose as a lead, not a spec.
+- **A CLI's `--help` is not a capability list — absence of a flag is not evidence the capability is missing.** The
+  `setup-agent-tools` design originally asserted `opencode mcp add` was interactive "with no `--command` flag for a
+  local server, so it cannot be driven by the agent"; in fact `opencode mcp add <name> -- <command…>` is
+  non-interactive, writes the global config, and preserves JSONC comments — the `-- <command>` form is simply not shown
+  in `opencode mcp add --help` (which shows only the MCP-server flags `--url`, `--env`, `--header`). A quick review
+  caught the false premise. Before designing around a limitation ("this can't be automated"), verify it by trying the
+  command or reading its source/docs — do not infer impossibility from a help screen.
 - **A change merged without its archive is incomplete — do not merge the implementation PR and defer the archive.** The
   "one PR per change" rule puts the archive commit in the _same_ PR before merge; a change whose PR merged but whose
   change dir was never archived is easy to forget (the `remove-redis-client-label` change was merged and sat unarchived

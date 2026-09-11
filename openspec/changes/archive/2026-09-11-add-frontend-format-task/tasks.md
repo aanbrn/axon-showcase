@@ -18,3 +18,8 @@
 
 - [x] 3.1 `./gradlew spotlessApply` and `./gradlew spotlessCheck` pass; `openspec validate --all` passes
 - [x] 3.2 `./gradlew :showcase-web-ui:npmFormat --dry-run` shows the task in the graph and `check`'s graph is unchanged
+
+## 4. Archive
+
+- [x] 4.1 Refresh the `code-quality` main spec's `## Purpose` in the archive commit to mention that the build also
+      applies formatting (the web module's `npmFormat`) — a delta cannot carry a `## Purpose`

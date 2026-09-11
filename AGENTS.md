@@ -526,7 +526,9 @@ Key modules (libraries, not services):
   `.opencode/commands/setup-agent-tools.md` (project-local, **not** one of the vendored `axon4to5-*` skills) let a
   contributor ask the agent to wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only,
   the Steroid MCP — into their global `~/.config/opencode/opencode.jsonc` via `opencode mcp add <name> -- <command…>`.
-  Playwright is project-configured.
+  Playwright is project-configured. The README deliberately documents only GitHub (and the project-configured
+  Playwright): Steroid is optional, IDEA-only, and nothing in the repo requires it (formatting is Spotless), so it is
+  surfaced on demand via `/setup-agent-tools` rather than advertised — do not re-add it to the README's server list.
 
 ## Docker Images
 

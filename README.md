@@ -290,26 +290,20 @@ A mistake made once becomes a rule the agent follows thereafter — the process 
 
 Part of the agent's reach comes from **MCP servers** — and the easiest way to set them up is to **ask the agent**: just
 tell it to set up the tooling (or run `/setup-agent-tools`). It detects what you already have, wires your global config,
-and installs the `gh-mcp` extension (it offers `devrig`'s installer too), handing back only what it can't do for you —
-like `gh auth login`, or installing `gh` itself. Prefer this over wiring them by hand, which is fiddly and easy to get
-wrong.
+and installs the `gh-mcp` extension, handing back only what it can't do for you — like `gh auth login`, or installing
+`gh` itself. Prefer this over wiring them by hand, which is fiddly and easy to get wrong.
 
-The one that matters is **GitHub** (the agent reads PRs and CI checks); **Steroid** is optional and only for IntelliJ
-IDEA; **Playwright** is already configured in the project, so there's nothing to set up.
+The one that matters is **GitHub** (the agent reads PRs and CI checks); **Playwright** is already configured in the
+project, so there's nothing to set up.
 
-By hand, the auth- or IDE-bound servers go under the top-level `mcp` object in your **global** config
-(`~/.config/opencode/opencode.jsonc`), not the project config — a project entry can't use your credentials or IDE:
+By hand, the auth-bound server (GitHub) goes under the top-level `mcp` object in your **global** config
+(`~/.config/opencode/opencode.jsonc`), not the project config — a project entry can't use your credentials:
 
 - **Playwright** (project) — the agent's browser: it drives the running web UI and captures screenshots for the `vision`
-  subagent. It needs only Node/`npx` (no credentials or IDE).
+  subagent. It needs only Node/`npx` (no credentials).
 - **GitHub** — read PRs and CI checks. Run `gh auth login` (the server reuses your `gh` credentials), install the
   `gh-mcp` extension (`gh extension install shuymn/gh-mcp`), then add
   `"github": { "type": "local", "command": ["gh", "mcp"], "enabled": true }`.
-- **Steroid** (optional — IntelliJ IDEA only) — JetBrains IDE tools via `steroid_execute_code`; the agent's `codefmt`
-  skill uses them to run the IDE's own formatter (Reformat Code + Optimize Imports) on edited files. Skip it unless you
-  use IDEA. With `devrig` installed, add `"steroid": { "type": "local", "command": ["devrig", "mcp"], "enabled": true }`
-  — use the absolute `devrig` path if the agent is launched from a GUI (a Finder/Dock-launched daemon has a minimal
-  `PATH`).
 
 MCP config is read at startup, so restart OpenCode after adding one.
 
@@ -323,7 +317,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/opsx-sync`                 | Syncs a change's delta spec to the main spec without archiving             |
 | `/opsx-update`               | Revises a change's planning artifacts                                      |
 | `/opsx-explore`              | Explores an idea before proposing it                                       |
-| `/setup-agent-tools`         | Sets up the tooling MCP servers (GitHub core; Steroid for IDEA)            |
+| `/setup-agent-tools`         | Sets up the tooling MCP servers (GitHub core, plus optional extras)        |
 | `/review-thorough`           | Deep on-demand review of a change                                          |
 | `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer              |
 | `/retrospective`             | Weekly retrospective with improvement suggestions                          |

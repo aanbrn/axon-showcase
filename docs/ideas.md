@@ -94,17 +94,6 @@ appending to the most recent one).
   coordinate; and whether Snyk can also scan `package-lock.json` (the existing `dependencySecurityCheck` uses the Snyk
   CLI with the root `.snyk` policy).
 
-- Document the IDE-tooling MCP setup in the README — parked; recommended resolution for the MCP-config question. The
-  repo uses several MCPs but only Playwright is in the project config (`.opencode/opencode.json`); the rest live in the
-  user's global `opencode.jsonc` and are mostly undocumented: `github` (PRs, CI check status, `gh`), `steroid`
-  (IntelliJ/IDEA tooling — `steroid_execute_code` / `runInspectionsDirectly`, used by the `codefmt` flow), and
-  `amplicode` (Spring/Amplicode plugin tools). Contributors can't discover these exist or how to enable them. The split
-  is correct (auth/IDE-bound tooling belongs in global config — copying it into the project would not enable it without
-  the contributor's own setup), so the fix is documentation, not config duplication: a README note covering (1) the
-  global GitHub MCP setup (`gh auth login` + the `gh mcp` entry), (2) Steroid/Amplicode for IDEA-based work and which of
-  them help with repo-specific problems (Steroid for the Spotless/`codefmt` inspection flow, Amplicode for Spring/Axon
-  work), and (3) that Playwright is project-configured for the web-UI e2e.
-
 - Enforce web UI conventions with tooling — parked; do as its own change after `add-web-ui` is merged. Prettier is a
   formatter, not a style linter: it gates formatting (width, quotes, semicolons) but not _conventions_. ESLint
   (correctness) and tsc (types) gate their slices, but two convention areas are currently human-review/AGENTS.md-only:

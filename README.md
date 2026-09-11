@@ -284,6 +284,25 @@ The process is designed to **learn from itself** — and that is the mechanic, n
 
 A mistake made once becomes a rule the agent follows thereafter — the process gets a little better with every change.
 
+#### Tooling MCP Servers
+
+Part of the agent's reach comes from **MCP servers**. Playwright is configured in the repo (`.opencode/opencode.json`);
+MCPs that need your own credentials or IDE go under the top-level `mcp` object in your **global** config
+(`~/.config/opencode/opencode.jsonc`), not the project config — a project entry can't use your credentials or IDE
+without your own setup:
+
+- **Playwright** (project) — the agent's browser: it drives the running web UI and captures screenshots for the `vision`
+  subagent. It needs only Node/`npx` (no credentials or IDE).
+- **GitHub** — read PRs and CI checks. Run `gh auth login` (the server reuses your `gh` credentials), install the
+  `gh-mcp` extension (`gh extension install shuymn/gh-mcp`), then add
+  `"github": { "type": "local", "command": ["gh", "mcp"], "enabled": true }`.
+- **Steroid** — JetBrains IDE tools via `steroid_execute_code`; the agent's `codefmt` skill uses them to run the IDE's
+  own formatter (Reformat Code + Optimize Imports) on edited files. With `devrig` installed, add
+  `"steroid": { "type": "local", "command": ["devrig", "mcp"], "enabled": true }` — use the absolute `devrig` path if
+  the agent is launched from a GUI (a Finder/Dock-launched daemon has a minimal `PATH`).
+
+All are optional, and the agent reads MCP config at startup, so restart it after adding one.
+
 ### Slash Commands
 
 | Command                      | What it does                                                               |

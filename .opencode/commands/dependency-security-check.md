@@ -8,10 +8,9 @@ Report any vulnerabilities found, grouped by project and severity, and note any 
 unless asked.
 
 The scan passes `--policy-path=.snyk` (the root Snyk policy), which version-pins the ignored findings
-(`* > pkg@version`) so only the exact assessed vulnerable versions are suppressed. The suppressed Spring Framework
-6.2.x / Spring Security 6.5.x cluster is fixed only by the deferred Spring Boot 4 migration (ADR-0004), and the
-remaining findings are transitive checkstyle/Maven tooling in the load-tests module. Ignore entries carry a
-short-term `expires` so they re-surface if not resolved in time — see the `.snyk` header comment.
+(`* > pkg@version`) so only the exact assessed vulnerable versions are suppressed, each with a short-term `expires` so
+it re-surfaces if not resolved in time. The currently-suppressed findings and their rationale live in the `.snyk`
+header comment and the `showcase/quality/dependency-security` spec — see those rather than restating them here.
 
 **Snyk rate limit:** the free org plan allows **200 Open Source tests per billing period** (monthly; confirmed by the
 plans-page FAQ and the CLI's own "monthly limit of 200 private tests" message — note the docs.snyk.io usage-settings

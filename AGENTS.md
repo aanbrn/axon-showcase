@@ -167,10 +167,12 @@ wait for approval before merging.
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
 # The scan passes --policy-path=.snyk (the root Snyk policy). Suppressed findings are tracked
-# there with a short-term expires (2026-11-28, quarterly) so they re-surface if not resolved in time:
-# the Spring Framework 6.2.x / Spring Security 6.5.x cluster is fixed only by the deferred
-# Spring Boot 4 migration (ADR-0004). The checkstyle tool (13.11.0) no longer carries any vulnerable
-# transitives, so no tooling findings remain to suppress. See the /dependency-security-check command
+# there with a short-term expires (2026-11-28 for the Spring cluster, 2026-12-11 for t-digest) so they
+# re-surface if not resolved in time: the Spring Framework 6.2.x / Spring Security 6.5.x cluster is
+# fixed only by the deferred Spring Boot 4 migration (ADR-0004), and com.tdunning:t-digest:3.3 (a
+# load-tests-only gatling-charts transitive) has no patched release. The checkstyle tool (13.11.0) no
+# longer carries any vulnerable transitives, so no tooling findings remain to suppress. See the
+# /dependency-security-check command
 # for the version-pinned ignore format and the Snyk rate-limit gotcha: the free org allows 200 Open
 # Source tests/billing period, counted only for manifests with identified vulnerabilities — so
 # the policy-suppressed task consumes no quota (a passing scan works even once the limit is

@@ -51,6 +51,7 @@ ksuid = "1.1.4"
 jakarta-validation-api = "3.1.1"
 jspecify = "1.0.1"
 lz4-java = "1.11.2"
+zstd-jni = "1.5.7-16"
 hamcrest = "3.0"
 assertj = "3.27.7"
 mockito = "5.23.0"
@@ -204,6 +205,7 @@ guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 jakarta-validation-api = { group = "jakarta.validation", name = "jakarta.validation-api", version.ref = "jakarta-validation-api" }
 jspecify = { group = "org.jspecify", name = "jspecify", version.ref = "jspecify" }
 lz4-java = { group = "at.yawk.lz4", name = "lz4-java", version.ref = "lz4-java" }
+zstd-jni = { group = "com.github.luben", name = "zstd-jni", version.ref = "zstd-jni" }
 ksuid = { group = "com.github.ksuid", name = "ksuid", version.ref = "ksuid" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 lombok-plugin = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok-plugin" }

@@ -225,6 +225,35 @@ tasks.register("helmUpdates", HelmUpdatesTask::class.java) {
     outputs.upToDateWhen { false }
 }
 
+tasks.register("buildpackUpdates", BuildpackUpdatesTask::class.java) {
+    group = "help"
+    description = "Displays the Paketo builder and buildpack updates for the project."
+
+    checks.set(
+        listOf(
+            BuildpackUpdateCheck(
+                name = "paketo-builder-jammy-base",
+                repository = "paketobuildpacks/builder-jammy-base",
+                pinnedVersion = libs.versions.paketo.builder.jammy.base.get(),
+            ),
+            BuildpackUpdateCheck(
+                name = "paketo-nginx",
+                repository = "paketobuildpacks/nginx",
+                pinnedVersion = libs.versions.paketo.nginx.get(),
+            ),
+            BuildpackUpdateCheck(
+                name = "paketo-procfile",
+                repository = "paketobuildpacks/procfile",
+                pinnedVersion = libs.versions.paketo.procfile.get(),
+            ),
+        )
+    )
+
+    reportFile.set(layout.buildDirectory.file("buildpack-updates/report.txt"))
+
+    outputs.upToDateWhen { false }
+}
+
 tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
     dependsOn("workflowLint")

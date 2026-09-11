@@ -94,7 +94,7 @@ val dockerBuildImage =
         description = "Builds a container image from the built frontend with Paketo buildpacks."
         dependsOn(stageImageFiles)
 
-        builder.set("paketobuildpacks/builder-jammy-base")
+        builder.set("paketobuildpacks/builder-jammy-base:" + libs.versions.paketo.builder.jammy.base.get())
         buildpacks.set(
             listOf(
                 "paketo-buildpacks/nginx@" + libs.versions.paketo.nginx.get(),

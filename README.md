@@ -582,12 +582,17 @@ updates update the issue silently — observational, never a merge gate.
 `workflow_dispatch`, opening or updating the "Helm updates" issue with the actionable coordinates (the Helm CLI and
 pinned chart versions that have a newer version) — observational, never a merge gate.
 
+`.github/workflows/buildpack-updates.yml` runs the Paketo buildpack update check (`buildpackUpdates`) on a weekly
+schedule and via `workflow_dispatch`, opening or updating the "Buildpack updates" issue with the pinned Paketo builder
+and buildpack coordinates that have a newer version — observational, never a merge gate.
+
 ### Dependency Updates and Security
 
 ```bash
 ./gradlew dependencyUpdates            # report available dependency updates
 ./gradlew dependencySecurityCheck      # Snyk dependency security scan (needs Snyk CLI, not part of check)
 ./gradlew helmUpdates                  # report available Helm chart updates
+./gradlew buildpackUpdates             # report available Paketo builder/buildpack updates
 ./gradlew verifyInfraImageVersions     # verify infra image tags match their pinned charts
 ./gradlew workflowLint                 # lint the GitHub Actions workflows with actionlint
 ```

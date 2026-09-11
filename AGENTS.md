@@ -504,6 +504,11 @@ Key modules (libraries, not services):
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired
   plugin version and update the recorded version here and in the `showcase/quality/agent-skills` spec — a deliberate,
   reviewed change, not silent drift.
+- **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
+  `.opencode/commands/setup-agent-tools.md` (project-local, **not** one of the vendored `axon4to5-*` skills) let a
+  contributor ask the agent to wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only,
+  the Steroid MCP — into their global `~/.config/opencode/opencode.jsonc` via `opencode mcp add <name> -- <command…>`.
+  Playwright is project-configured.
 
 ## Docker Images
 

@@ -550,21 +550,22 @@ because an unversioned buildpack reference becomes ambiguous — `pack` fails wi
 explicit version" — once the builder bundles two versions of a buildpack (the intermittent `e2e`/`helmInstallToLocal`
 failure). The builder itself is also pinned (`builder-jammy-base:0.4.639`, catalog-owned as `paketo-builder-jammy-base`)
 rather than floating, and the `buildpackUpdates` task / `buildpack-updates` workflow reports newer builder and buildpack
-versions — no other update check covers Paketo. The image serves the bundle via nginx on `8080` and exposes nginx
-`stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a gated
-`nginx-prometheus-exporter` sidecar (`webUi.metricsExporter`, on by default when observability metrics export and the
-web UI ServiceMonitor are enabled) converts stub_status to Prometheus `/metrics` on port `9113`, which the Service
-`http-metrics` port and ServiceMonitor scrape. A `PackBuildImageTask` convention defaults the image name to
-`${project.name}:${project.version}`, which the web UI module overrides with the deployable
-`aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. The UI's API base URL is
-configured at runtime via the `SHOWCASE_API_BASE_URL` env var — **no baked default** (the browser needs the
-externally-visible gateway URL, which only the deployment knows; compose sets `http://localhost:8080`, the Helm chart
-uses `webUi.apiBaseUrl` with an empty default) — which a `start.sh` renders into `/workspace/config.js` at container
-start (failing fast if the env var is unset/empty) — no ConfigMap or volume mount. The `dockerBuildImage` run prints two
-informational warnings from the toolchain, not defects: "Exporting to docker daemon (building without --publish) and
-daemon uses containerd storage" (pack exports to the local daemon's containerd store, losing the fast publish path) and
-"deprecated usage of stack" (an upstream Paketo buildpack still declares the deprecated `stacks` key instead of
-`targets`). Neither is actionable in the build — ignore them.
+versions — no other update check covers Paketo. Unlike the builder, the run image
+(`paketobuildpacks/run-jammy-base:latest`) is deliberately left floating so base-OS security patches keep flowing — do
+not "complete" the pin by freezing it. The image serves the bundle via nginx on `8080` and exposes nginx `stub_status`
+metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a gated `nginx-prometheus-exporter` sidecar
+(`webUi.metricsExporter`, on by default when observability metrics export and the web UI ServiceMonitor are enabled)
+converts stub_status to Prometheus `/metrics` on port `9113`, which the Service `http-metrics` port and ServiceMonitor
+scrape. A `PackBuildImageTask` convention defaults the image name to `${project.name}:${project.version}`, which the web
+UI module overrides with the deployable `aanbrn/axon-showcase-web-ui:${project.version}` in
+`showcase-web-ui/build.gradle.kts`. The UI's API base URL is configured at runtime via the `SHOWCASE_API_BASE_URL` env
+var — **no baked default** (the browser needs the externally-visible gateway URL, which only the deployment knows;
+compose sets `http://localhost:8080`, the Helm chart uses `webUi.apiBaseUrl` with an empty default) — which a `start.sh`
+renders into `/workspace/config.js` at container start (failing fast if the env var is unset/empty) — no ConfigMap or
+volume mount. The `dockerBuildImage` run prints two informational warnings from the toolchain, not defects: "Exporting
+to docker daemon (building without --publish) and daemon uses containerd storage" (pack exports to the local daemon's
+containerd store, losing the fast publish path) and "deprecated usage of stack" (an upstream Paketo buildpack still
+declares the deprecated `stacks` key instead of `targets`). Neither is actionable in the build — ignore them.
 
 ## Kubernetes Deployment
 
@@ -907,7 +908,21 @@ that override when bumping the Kafka image tag.
   and the stale claim survived until a later cleanup pass (PR #116). When a change adds a second instance of anything
   the docs call unique (a second e2e suite, image, or workflow), grep `AGENTS.md` for `only`/`sole`/`never` claims about
   the first and update them; when editing a section, re-verify such claims against the repo instead of trusting the
-  prose.
+  prose. The same applies in the negative: when a change makes a previously-true "nothing covers X" / "A and B ignore X"
+  statement false, grep `AGENTS.md`/`README.md` for the capability's absence claims and fix them in the same change —
+  including one added by a recent change (the `buildpackUpdates` check in #149 falsified the "`dependencyUpdates` and
+  `helmUpdates` ignore bare `[versions]` entries" sentence #148 had added one change earlier).
+- **A buildpack's CNB id is not its Docker Hub repository — a registry lookup must target the repository, not the id.**
+  The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are
+  `paketobuildpacks/nginx` (no hyphen); querying the tags API with the CNB id 404s, so `BuildpackUpdatesTask`'s check
+  model carries `repository` separately from the display `name`. When adding a buildpack to the check, use its Docker
+  Hub repository. The same repositories also publish alias tags (`1.2`, `5.14`) alongside the full semver (`1.2.0`); the
+  max comparison must prefer the longer tag, or a stale pin gets reported as the alias.
+- **An update check that reports "no updates" on a lookup failure is indistinguishable from "up to date" — prove the
+  lookup resolves before trusting a clean run.** `buildpackUpdates` (like `helmUpdates`) maps a failed lookup to "no
+  update", so a wrongly-built URL or renamed repository reads as current. Verify a new or changed check by temporarily
+  pinning a known-older version, confirming the report shows `<name>: <old> -> <latest>`, then reverting the pin (the
+  `buildpackUpdates` lookup was proved this way with `0.1.0`). A clean run alone is not evidence the check works.
 - **The Snyk CLI pin is outside every update-check workflow — check it manually.** `dependencyUpdates` /
   `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` / `helm-updates.yml` cover the Helm CLI and
   pinned charts, and `buildpackUpdates` / `buildpack-updates.yml` cover the Paketo builder and buildpacks, but the

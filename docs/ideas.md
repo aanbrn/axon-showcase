@@ -105,21 +105,6 @@ section for a new day rather than appending to the most recent one).
   `eslint-plugin-import` naming. Keep it out of the current change to keep the review focused; verify existing code
   conforms (it was built cleanly) and let CI gate it from then on.
 
-## 2026-09-03
-
-- Extend `scripts/setup-idea.sh` (and its settings-merge script) to the web module, and audit what's still stale there.
-  The setup now covers the Java/Gradle side — it merges `config/idea/*.xml` (Java code style, ktfmt, codeStyleConfig)
-  and the test-tier naming inspection into `.idea/`, and installs the `palantir-java-format` + `ktfmt` plugins — but it
-  is incomplete for `showcase-web-ui`: (1) explore whether there is a Prettier plugin for IDEA (or whether IDEA's
-  built-in Prettier support just needs enabling) so `Reformat Code` matches the web module's `prettier --check` gate,
-  and add it to the plugin installs plus a 2-space JS/TS code-style scheme — IntelliJ's default is 4 spaces, which
-  disagrees with the web module's `.prettierrc` (`tabWidth: 2`); (2) the JS/TS code style must not collapse to wildcard
-  imports (the Java palantir layout sets `ij_java_imports_layout`; the TS side needs the equivalent single-import +
-  on-demand-count preference so Prettier never has to expand a wildcard by hand); (3) the inspection-profile upsert is
-  Java-only — the web module's Vitest naming (`.test.ts(x)`) has no IDEA inspection yet; (4) audit the remaining stale
-  bits (e.g. Node plugin / `@/` alias awareness, or whether the `installPlugins` flow still holds on current IDEA
-  builds).
-
 ## 2026-09-02
 
 - Remove the gateway's blocking-execution routing — parked; keep for now. `ShowcaseBlockingExecutionConfigurer`

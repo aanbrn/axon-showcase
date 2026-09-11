@@ -17,6 +17,7 @@ COMPONENTS = [
     ("config/idea/palantir-java-format.xml", ".idea/palantir-java-format.xml", "PalantirJavaFormatSettings"),
     ("config/idea/ktfmt.xml", ".idea/ktfmt.xml", "KtfmtSettings"),
     ("config/idea/codeStyleConfig.xml", ".idea/codeStyles/codeStyleConfig.xml", "ProjectCodeStyleConfiguration"),
+    ("config/idea/prettier.xml", ".idea/prettier.xml", "PrettierConfiguration"),
 ]
 
 PROFILE_RELATIVE = ".idea/inspectionProfiles/Project_Default.xml"

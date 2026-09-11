@@ -309,24 +309,24 @@ MCP config is read at startup, so restart OpenCode after adding one.
 
 ### Slash Commands
 
-| Command                      | What it does                                                                |
-| ---------------------------- | --------------------------------------------------------------------------- |
-| `/opsx-propose`              | Scaffolds a new change: proposal, design, tasks, and spec delta             |
-| `/opsx-apply`                | Implements the change's tasks                                               |
-| `/opsx-archive`              | Archives a completed change and syncs the main spec                         |
-| `/opsx-sync`                 | Syncs a change's delta spec to the main spec without archiving              |
-| `/opsx-update`               | Revises a change's planning artifacts                                       |
-| `/opsx-explore`              | Explores an idea before proposing it                                        |
-| `/setup-agent-tools`         | Sets up the tooling MCP servers (GitHub core, plus optional extras)         |
-| `/setup-idea`                | Sets up the project's IntelliJ configuration (settings + formatter plugins) |
-| `/review-thorough`           | Deep on-demand review of a change                                           |
-| `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer               |
-| `/retrospective`             | Weekly retrospective with improvement suggestions                           |
-| `/dependency-updates`        | Runs and summarizes the dependency update report                            |
-| `/gradle-update`             | Updates the Gradle wrapper to the latest stable                             |
-| `/dependency-security-check` | Runs the Snyk dependency security scan                                      |
-| `/opsx-tool-update`          | Regenerates the OpenSpec command/skill files after an openspec CLI release  |
-| `/ideas`                     | Lists and manages `docs/ideas.md`                                           |
+| Command                      | What it does                                                                            |
+| ---------------------------- | --------------------------------------------------------------------------------------- |
+| `/opsx-propose`              | Scaffolds a new change: proposal, design, tasks, and spec delta                         |
+| `/opsx-apply`                | Implements the change's tasks                                                           |
+| `/opsx-archive`              | Archives a completed change and syncs the main spec                                     |
+| `/opsx-sync`                 | Syncs a change's delta spec to the main spec without archiving                          |
+| `/opsx-update`               | Revises a change's planning artifacts                                                   |
+| `/opsx-explore`              | Explores an idea before proposing it                                                    |
+| `/setup-agent-tools`         | Sets up the tooling MCP servers (GitHub core, plus optional extras)                     |
+| `/setup-idea`                | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier) |
+| `/review-thorough`           | Deep on-demand review of a change                                                       |
+| `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer                           |
+| `/retrospective`             | Weekly retrospective with improvement suggestions                                       |
+| `/dependency-updates`        | Runs and summarizes the dependency update report                                        |
+| `/gradle-update`             | Updates the Gradle wrapper to the latest stable                                         |
+| `/dependency-security-check` | Runs the Snyk dependency security scan                                                  |
+| `/opsx-tool-update`          | Regenerates the OpenSpec command/skill files after an openspec CLI release              |
+| `/ideas`                     | Lists and manages `docs/ideas.md`                                                       |
 
 ## Getting Started
 
@@ -520,6 +520,14 @@ in sync:
   **Actions on Save** → _Reformat code_ / _Optimize imports_, and **Auto Import** → _Optimize imports on the fly_. If
   the plugin is not active on a machine, disable those triggers instead to avoid drift; `spotlessCheck` in `check` is
   the backstop either way.
+- For the **web module** (`showcase-web-ui`), the same setup enables IntelliJ's built-in **Prettier** integration —
+  Automatic configuration, run on reformat and on save — so `Reformat Code` formats TS/TSX, CSS, and HTML with the
+  project's `prettier` and `.prettierrc`, matching the `prettier --check` gate; the Prettier scope is extended
+  (`myFilesPattern`) because IDEA's default covers neither CSS nor HTML, and the JS/TS indentation comes from
+  `.editorconfig`. IDEA's **Optimize Imports** is safe here too — it only removes unused/duplicate imports and reorders
+  them, and no gate enforces import order. No plugin install is needed — IntelliJ bundles JavaScript/TypeScript and its
+  Prettier integration is free from IntelliJ IDEA 2026.1 (on the earlier unified 2025.3–2026.0 it needs the Ultimate
+  subscription).
 - When in doubt, format with `./gradlew spotlessApply` — it is the single source of truth.
 
 ## Deployment and Operations

@@ -280,6 +280,15 @@ coverage gate. The `.github/workflows/ci.yml` and `.github/workflows/e2e.yml` wo
 build does not re-download the Node runtime or the dependency tree on every run. The `main-required-checks` branch
 ruleset requires the `build` check for every merge into `main`, with no bypass actors.
 
+**A build-file or dependency change costs a one-time full rebuild (~9 min vs ~1 min warm).** `setup-gradle` partitions
+its caches by a hash of the build/dependency configuration (log keys like `gradle-home-v2|Linux-X64|build[<hash>]` and
+`gradle-build-cache-v2-<hash>`), and Gradle build-cache entries are keyed on task inputs — so changing
+`libs.versions.toml` or a `build.gradle.kts` invalidates the compile/test/static-analysis entries for every module. PR
+runs are `cache-read-only: true` (they restore from `main` but never write), so a PR cannot re-warm the cache itself and
+waits for the next push-to-main run; a docs or tiny PR that branches off the updated `main` and builds before that
+re-warm lands pays the full rebuild once (the docs-only #138 raced #137's 10-minute re-warm and took ~9 min instead of
+~1). It self-heals as soon as `main` re-warms — nothing to fix.
+
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
 pipeline with Playwright) on a nightly schedule and via `workflow_dispatch`. It installs the `pack` CLI explicitly

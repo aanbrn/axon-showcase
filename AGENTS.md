@@ -294,8 +294,8 @@ notified); runs with no updates update the issue silently. It is observational �
 
 `.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so an action whose
 major bump targets a newer Node runtime (e.g. the Node 20 → Node 24 migration) surfaces as a reviewable PR instead of a
-silent CI deprecation warning. The `opencode` workflow's `anomalyco/opencode/github@latest` is a deliberate floating ref
-that Dependabot does not manage.
+silent CI deprecation warning. The `opencode` workflow's `anomalyco/opencode/github@latest` and the Snyk workflow's
+`snyk/actions/setup@master` are deliberate floating refs that Dependabot does not manage.
 
 ## Architecture
 
@@ -829,3 +829,11 @@ that override when bumping the Kafka image tag.
   the docs call unique (a second e2e suite, image, or workflow), grep `AGENTS.md` for `only`/`sole`/`never` claims about
   the first and update them; when editing a section, re-verify such claims against the repo instead of trusting the
   prose.
+- **The Snyk CLI pin is outside every update-check workflow — check it manually.** `dependencyUpdates` /
+  `dependency-updates.yml` cover Gradle catalog coordinates and `helmUpdates` / `helm-updates.yml` cover the Helm CLI
+  and pinned charts, but the `snyk-version` input in `.github/workflows/snyk.yml` has no check (Dependabot manages
+  action version refs, and `snyk/actions/setup@master` is a floating ref it does not bump), so it goes stale silently.
+  Confirm it against `gh api repos/snyk/cli/releases/latest` when bumping or auditing tooling currency. A bump also
+  cannot be verified locally: `workflowLint` (actionlint) proves only that the YAML lints, not that the version tag is
+  installable — the credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real
+  execution.

@@ -11,6 +11,16 @@ GitHub issue that links to the eventual OpenSpec change. Ideas are grouped into 
 newest-first; each idea goes under a section dated when it was added (start a new section for a new day rather than
 appending to the most recent one).
 
+## 2026-09-11
+
+- Snyk CLI update check — parked; no change yet. The `snyk-version` pin in `.github/workflows/snyk.yml` is outside every
+  update-check workflow (`dependencyUpdates` covers Gradle coordinates, `helmUpdates` covers the Helm CLI and charts,
+  and Dependabot manages action refs but not the `snyk-version` input), so it goes stale silently and can only be
+  confirmed by hand against `gh api repos/snyk/cli/releases/latest`. Mirror the `helmUpdates` pattern: a task/workflow
+  that queries `snyk/cli` releases and opens or updates an issue when the pin lags. A local bump cannot be fully
+  verified anyway (actionlint only lints the YAML; the credentialed weekly run is the first real execution), so the
+  check is worth automating rather than relying on manual audits.
+
 ## 2026-09-10
 
 - Rethink or rewrite the load tests — parked; no change yet. The current Gatling setup (`load-tests/src/gatling/java`,

@@ -6,6 +6,10 @@ out/
 ### Kotlin ###
 .kotlin/
 
+### Python ###
+__pycache__/
+*.pyc
+
 ### IntelliJ IDEA ###
 .idea/
 *.iws

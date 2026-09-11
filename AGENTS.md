@@ -138,7 +138,7 @@ wait for approval before merging.
 - `pack` CLI (for the web UI `dockerBuildImage` image build; see
   https://buildpacks.io/docs/for-platform-operators/how-to/integrate-ci/pack/, e.g. `brew install buildpacks/tap/pack`
   on macOS)
-- Python 3 (for `./scripts/setup-idea.sh`'s inspection-profile upsert; macOS ships it via Command Line Tools)
+- Python 3 (for `./scripts/setup-idea.sh`'s IDE-settings merge; macOS ships it via Command Line Tools)
 
 ## Build & Test
 
@@ -804,11 +804,16 @@ that override when bumping the Kafka image tag.
   for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**, **Auto
   Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins are not
   active. The repo's IntelliJ config is **not versioned** — `.idea/` is git-ignored entirely. Run
-  `./scripts/setup-idea.sh` (locates the IDE, runs `installPlugins` for both plugins, and writes the project config from
-  the committed templates in `config/idea/`) so a fresh clone gets a formatter-matched IDE after one run. The ktfmt
-  config uses the plugin's **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with
-  unused-import removal, because the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the
-  line-length option (see README → Local Development → IntelliJ IDEA Setup).
+  `./scripts/setup-idea.sh` any time to reconcile: it **merges** the committed settings (`config/idea/*.xml` and the
+  test-tier naming inspection) into `.idea/`, replacing only our components and preserving IntelliJ-managed content, so
+  a re-run repairs a configuration that has drifted (e.g. it was never applied cleanly, or IntelliJ overwrote it); it
+  then installs the palantir-java-format and ktfmt plugins when IntelliJ is closed. The configuration merge needs
+  neither the launcher nor a closed IDE — only the plugin install does. IntelliJ reads the merged files at startup (or
+  on **File → Reload All from Disk**), so the settings take effect only after a reload or restart. The `/setup-idea`
+  agent command wraps the script (and negotiates quitting a running IDE for the plugin install). The ktfmt config uses
+  the plugin's **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with unused-import
+  removal, because the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the line-length
+  option (see README → Local Development → IntelliJ IDEA Setup).
 - **palantir-java-format does not manage imports**: since 2.47.0 the plugin only takes over **Reformat Code**, and
   `Optimize Imports` is always run by IDEA's native optimizer, governed by `.editorconfig` (the import layout
   `ij_java_imports_layout = $*,|,*` and `ij_java_use_single_class_imports=true` with the two on-demand counts at `999`).

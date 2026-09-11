@@ -38,7 +38,9 @@ force-pushing, then verify the PR's changed-file set is the intended one.
 **Leave implementation uncommitted until the user has reviewed it.** After applying a change, do not commit the
 implementation before the user has done their review pass — keep the working-tree diff visible (`git status`/`git diff`)
 so they can see exactly which files changed. Commit only after the user approves the implementation (or explicitly asks
-to commit); the planning artifacts may be committed separately.
+to commit); the planning artifacts may be committed separately. Do not commit the implementation piecemeal either:
+committing early and then adding one "Address quick-review findings" commit per review round produced 11 commits for a
+single change (squashed before delivery) — keep it one coherent commit and squash fixups before the branch is shown.
 
 **Auto-review the change before asking for a manual review.** After finishing a change's **proposal** (planning
 artifacts) and again after finishing its **implementation**, run a quick review of the work (the `review-quick`
@@ -468,12 +470,14 @@ Key modules (libraries, not services):
   - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML, and so
     on); markdown is formatted by the root Spotless `markdown` format (Prettier at `printWidth: 120` — a preference, not
     a hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating markdown wrapping).
-    Verify with `awk 'length > 120'` over edited files. Formatters cannot reflow string literals (e.g. an error message
-    in Kotlin/Gradle), so wrap an over-long string with concatenation (`"part1 " + "part2"`) — the formatter preserves
-    it. Write markdown as natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the
-    formatter owns the wrapping and reflows on every run. A bare `$` in prose (outside inline code) is parsed as inline
-    math and blocks that reflow — the paragraph silently keeps its original ragged wrapping while `spotlessCheck` still
-    passes; escape it as `\$` (which renders as `$`).
+    Verify with a character count (`perl -CSD -ne 'print if length > 120'`), not `awk 'length > 120'` — `awk` counts
+    bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow tripped this three times).
+    Formatters cannot reflow string literals (e.g. an error message in Kotlin/Gradle), so wrap an over-long string with
+    concatenation (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as natural prose and let
+    `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the wrapping and reflows on
+    every run. A bare `$` in prose (outside inline code) is parsed as inline math and blocks that reflow — the paragraph
+    silently keeps its original ragged wrapping while `spotlessCheck` still passes; escape it as `\$` (which renders as
+    `$`).
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with
@@ -828,6 +832,17 @@ that override when bumping the Kafka image tag.
   ktfmt config uses the plugin's **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with
   unused-import removal, because the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the
   line-length option (see README → Local Development → IntelliJ IDEA Setup).
+- **Enabling an IDE formatter integration does not mean it covers every file type the gate covers — prove the
+  integration's scope with a live reformat.** A Prettier scope narrower than the gate (the web module's `myFilesPattern`
+  omitted CSS/HTML until extended, see above) makes `Reformat Code` fall back to IDEA's built-in formatter and break
+  `prettier --check` — found only when the module was actually reformatted, and invisible in config review. Enumerate
+  every extension the gate covers and reformat one file of each type before believing the setup.
+- **Verifying an IDE formatting integration needs the real `Reformat Code` action — `CodeStyleManager.reformat` does not
+  invoke external formatters.** A script that called `CodeStyleManager.reformat` silently did nothing (it runs IDEA's
+  own formatter); make a file deliberately non-conforming, invoke the `ReformatCode` action in the live IDE
+  (`ActionManager` + `AnActionEvent`), then check `prettier --check`/`git diff`. Also check `git status` after any IDE
+  action — Optimize Imports ran project-wide and touched unrelated files (noise, not a gate failure) when auditing only
+  the web module.
 - **palantir-java-format does not manage imports**: since 2.47.0 the plugin only takes over **Reformat Code**, and
   `Optimize Imports` is always run by IDEA's native optimizer, governed by `.editorconfig` (the import layout
   `ij_java_imports_layout = $*,|,*` and `ij_java_use_single_class_imports=true` with the two on-demand counts at `999`).
@@ -963,4 +978,7 @@ that override when bumping the Kafka image tag.
   `<component name="InspectionProjectProfileManager">`; the script it replaced had it transposed as
   `ProjectInspectionProfileManager`, which raises no error — IntelliJ simply ignores the profile, and only the
   fresh-clone path (no `.idea/inspectionProfiles/Project_Default.xml` yet) exposes it. When adding or editing a settings
-  skeleton, copy each `<component>`/inspection name from a real IntelliJ-written file.
+  skeleton, copy each `<component>`/inspection name from a real IntelliJ-written file. The same applies at field level:
+  a plugin's config field serializes under its `@OptionTag` name (Prettier's `filesPattern` is written as
+  `myFilesPattern`), so derive each `<option>`/attribute from an IDE-written file or the bundled plugin jar
+  (`…/plugins/<plugin>/lib/*.jar`), not from the field name or the UI label.

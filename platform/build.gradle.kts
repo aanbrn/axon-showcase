@@ -58,5 +58,6 @@ dependencies {
         api(libs.swagger.models.jakarta)
         api(libs.swagger.ui)
         api(libs.xstream)
+        api(libs.zstd.jni)
     }
 }

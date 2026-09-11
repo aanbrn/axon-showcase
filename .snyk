@@ -82,4 +82,9 @@ ignore:
         reason: Spring Boot 4 migration deferred; fix requires Spring Security 7.0.7 (ADR-0004)
         expires: 2026-11-28T00:00:00.000Z
         created: 2026-08-28T00:00:00.000Z
+  SNYK-JAVA-COMTDUNNING-19659413:
+    - '* > com.tdunning:t-digest@3.3':
+        reason: Gatling charts transitive (load-tests only); no patched t-digest release available
+        expires: 2026-12-11T00:00:00.000Z
+        created: 2026-09-11T00:00:00.000Z
 patch: {}

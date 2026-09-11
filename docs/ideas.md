@@ -33,6 +33,16 @@ section for a new day rather than appending to the most recent one).
   which can act on a release but does not detect one; decide where the pin is single-sourced (it lives in the workflow
   today — the `snyk-version` case above has the same shape).
 
+- Tooling-currency checks: unify the mechanism and cover the `pack` pin — parked; no change yet. The repo has three
+  update checks of near-identical shape (`dependencyUpdates` via the gradle-versions plugin; `helmUpdates` and
+  `buildpackUpdates` as `build-logic` tasks feeding a workflow that opens or updates an issue), two parked ideas for two
+  more (the Snyk and OpenSpec CLI pins above, each proposing the same task-plus-workflow shape), and one more uncovered
+  pin with no idea yet — `pack-version` in `.github/workflows/e2e.yml` (`buildpackUpdates` covers the Paketo builder and
+  buildpacks, not the `pack` CLI). Rather than adding a fourth and fifth near-duplicate task, consider one parameterized
+  mechanism: a declared list of pinned tools with their current-version source (Gradle catalog, Helm CLI/charts, Docker
+  Hub, npm, GitHub releases) driving a single report and update workflow — shrinking the AGENTS.md manual-pin audit list
+  to the tools it cannot reach.
+
 ## 2026-09-10
 
 - Rethink or rewrite the load tests — parked; no change yet. The current Gatling setup (`load-tests/src/gatling/java`,

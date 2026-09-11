@@ -710,7 +710,11 @@ that override when bumping the Kafka image tag.
   that had advanced. Never `reset --hard` a branch carrying uncommitted work: with no local commits,
   `git reset --soft`/`--mixed` to `origin/main` keeps the working tree; with local commits, `git rebase` (or stash →
   rebase → stash pop, per the stash-pop gotcha above) is the way. Verify `git status` after to confirm the diff
-  survived.
+  survived. The same class of mistake occurs outside a rebase: `git checkout -- <file>` (or `git restore <file>`)
+  reverts just that file to `HEAD`, discarding its uncommitted edits — a README change was lost this way to a
+  `git checkout -- README.md` run inside an unrelated verification step (recovered only from a backup). While a work
+  branch holds uncommitted edits, inspect committed content with `git diff`/`git show HEAD:<file>` rather than
+  `checkout --`/`restore`/`reset`.
 - **The actionlint download script takes positional arguments (`version dir`), not `--dir`, and the target dir must
   already exist.** When installing actionlint in CI with `bash <(curl .../scripts/download-actionlint.bash)`, pass
   `latest "$RUNNER_TEMP/actionlint"` and `mkdir -p` the dir first — a `--dir` flag is rejected as an invalid version

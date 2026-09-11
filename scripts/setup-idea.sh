@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Ensures the project's IntelliJ configuration matches the build formatter (Spotless): merges the
-# committed settings — config/idea/*.xml and the test-tier naming inspection — into .idea/, and installs
-# the palantir-java-format + ktfmt plugins. Safe to re-run: it reconciles a configuration that has drifted
-# (never applied cleanly, or IntelliJ overwrote it). Applying the configuration needs neither the launcher nor a
-# closed IDE — only the plugin install does, so a running (or missing) IDE skips just that step.
+# Ensures the project's IntelliJ configuration matches the build formatters: merges the committed
+# settings — config/idea/*.xml (incl. the web module's Prettier) and the test-tier naming inspection — into .idea/,
+# and installs the palantir-java-format + ktfmt plugins. Safe to re-run: it reconciles a configuration that has
+# drifted (never applied cleanly, or IntelliJ overwrote it). Applying the configuration needs neither the launcher
+# nor a closed IDE — only the plugin install does, so a running (or missing) IDE skips just that step.
 # Usage: ./scripts/setup-idea.sh [path/to/idea-launcher]
 # Requires Python 3 (for the settings merge) and a Gradle-compatible JDK on PATH.
 

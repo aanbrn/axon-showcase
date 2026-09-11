@@ -811,18 +811,23 @@ that override when bumping the Kafka image tag.
   stale minimal-PATH daemons in the first place.
 - IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java, ktfmt
   for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**, **Auto
-  Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins are not
-  active. The repo's IntelliJ config is **not versioned** — `.idea/` is git-ignored entirely. Run
-  `./scripts/setup-idea.sh` any time to reconcile: it **merges** the committed settings (`config/idea/*.xml` and the
-  test-tier naming inspection) into `.idea/`, replacing only our components and preserving IntelliJ-managed content, so
-  a re-run repairs a configuration that has drifted (e.g. it was never applied cleanly, or IntelliJ overwrote it); it
-  then installs the palantir-java-format and ktfmt plugins when IntelliJ is closed. The configuration merge needs
-  neither the launcher nor a closed IDE — only the plugin install does. IntelliJ reads the merged files at startup (or
-  on **File → Reload All from Disk**), so the settings take effect only after a reload or restart. The `/setup-idea`
-  agent command wraps the script (and negotiates quitting a running IDE for the plugin install). The ktfmt config uses
-  the plugin's **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with unused-import
-  removal, because the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the line-length
-  option (see README → Local Development → IntelliJ IDEA Setup).
+  Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins (JVM) or
+  the built-in **Prettier** (web module) are not active. The repo's IntelliJ config is **not versioned** — `.idea/` is
+  git-ignored entirely. Run `./scripts/setup-idea.sh` any time to reconcile: it **merges** the committed settings
+  (`config/idea/*.xml` and the test-tier naming inspection) into `.idea/`, replacing only our components and preserving
+  IntelliJ-managed content, so a re-run repairs a configuration that has drifted (e.g. it was never applied cleanly, or
+  IntelliJ overwrote it); it then installs the palantir-java-format and ktfmt plugins when IntelliJ is closed. The
+  configuration merge needs neither the launcher nor a closed IDE — only the plugin install does. IntelliJ reads the
+  merged files at startup (or on **File → Reload All from Disk**), so the settings take effect only after a reload or
+  restart. The `/setup-idea` agent command wraps the script (and negotiates quitting a running IDE for the plugin
+  install). For the web module it also enables IntelliJ's built-in **Prettier** (via `config/idea/prettier.xml`; free
+  from IntelliJ IDEA 2026.1, Ultimate on the earlier unified 2025.3–2026.0) and extends its file-type scope
+  (`myFilesPattern`) to CSS and HTML, which the Prettier default omits, so `Reformat Code` matches the
+  `prettier --check` gate, with the JS/TS indentation from `.editorconfig`. IDEA's Optimize Imports is gate-neutral for
+  the web module (it only removes unused/duplicate imports and reorders them, and no gate enforces import order). The
+  ktfmt config uses the plugin's **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with
+  unused-import removal, because the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the
+  line-length option (see README → Local Development → IntelliJ IDEA Setup).
 - **palantir-java-format does not manage imports**: since 2.47.0 the plugin only takes over **Reformat Code**, and
   `Optimize Imports` is always run by IDEA's native optimizer, governed by `.editorconfig` (the import layout
   `ij_java_imports_layout = $*,|,*` and `ij_java_use_single_class_imports=true` with the two on-demand counts at `999`).

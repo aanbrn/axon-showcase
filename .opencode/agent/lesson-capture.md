@@ -2,7 +2,7 @@
 description: Captures lessons learned from a change into AGENTS.md. Use after a change's implementation (and its quick
   review) finishes, so mistakes and conventions get recorded instead of relying on memory.
 mode: subagent
-model: opencode-go/deepseek-v4-flash
+model: opencode-go/deepseek-v4.1-flash
 temperature: 0
 ---
 

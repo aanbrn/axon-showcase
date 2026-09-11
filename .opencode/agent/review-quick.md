@@ -2,7 +2,7 @@
 description: Quick review of a change's implementation against its tasks and delta specs. Use when a fast pass over
   the build agent's work is wanted — catches obvious gaps and convention violations cheaply.
 mode: subagent
-model: opencode-go/deepseek-v4-flash
+model: opencode-go/deepseek-v4.1-flash
 temperature: 0
 ---
 

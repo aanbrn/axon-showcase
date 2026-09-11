@@ -3,7 +3,7 @@ description: Analyzes recent experience across many changes to produce a sprint 
   improvement suggestions. Use periodically (e.g. weekly or after several changes) to turn the accumulated gotchas,
   PR history, and parked ideas into concrete improvements for the system and the process.
 mode: subagent
-model: opencode-go/deepseek-v4-flash
+model: opencode-go/deepseek-v4.1-flash
 temperature: 0
 ---
 

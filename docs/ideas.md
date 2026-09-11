@@ -105,31 +105,18 @@ appending to the most recent one).
 
 ## 2026-09-03
 
-- Extend `scripts/setup-idea.sh` for the web module and audit what's stale there. Today the script only covers the
-  Java/Gradle side: it installs the `palantir-java-format` + `ktfmt` plugins, copies `config/idea/*.xml` (Java code
-  style, ktfmt, codeStyleConfig), and upserts the test-tier naming inspection. It is now incomplete for
-  `showcase-web-ui` and should be extended (and its assumptions re-checked): (1) explore whether there is a Prettier
-  plugin for IDEA (and if so, install it) so `Reformat Code` matches the web module's `prettier --check` gate — note
-  IDEA ships built-in Prettier support that may need enabling rather than a separate plugin; add it into the setup
-  script's plugin installs and add a 2-space JS/TS code-style scheme — IntelliJ's default is 4 spaces, which disagrees
-  with the web module's `prettier --check` gate (`.prettierrc` uses `tabWidth: 2`), the same "IDE vs build gate" drift
-  the script already fixes for Spotless; (2) the JS/TS code style must not collapse to wildcard imports (the Java
-  palantir layout sets `ij_java_imports_layout`; the TS side needs the equivalent single-import + on-demand-count
-  preference so Prettier never has to expand a wildcard by hand); (3) the inspection-profile upsert is Java-only — the
-  web module's Vitest naming (`.test.ts(x)`) has no IDEA inspection yet; (4) audit the script for other stale bits, e.g.
-  whether it should also configure the Node plugin / `@/` alias awareness (tsconfig paths are picked up automatically,
-  but the npm tasks and 2-space scheme are not), and whether the "IDE must be closed" abort + installPlugins flow still
-  holds on current IDEA builds. **Also investigate a durability problem: on reimport of the Gradle project, IDEA
-  regenerates the `.idea` directory completely and overwrites the files `setup-idea.sh` added (the committed
-  `config/idea/*.xml` copies and the inspection-profile upsert), so the setup is not idempotent across Gradle reimports.
-  Find a way to make it survive — e.g. store the config so IDEA's reimport preserves it (shared workspace XML / `*.idea`
-  git-tracked scheme files, a `.idea/codeStyles` scheme referenced by name rather than an inline copy, or a re-import
-  hook / Gradle task that re-applies the setup), and verify the flow after a fresh Gradle reimport. **Also fix the
-  running-IDE ordering: the script aborts before `ensure_project_config` when the IDE is running, so a running IDE
-  blocks the config-file install too — even though copying `config/idea/*.xml` and upserting the inspection profile do
-  not need the IDE closed (only `installPlugins` does). Split the flow so `ensure_project_config` runs regardless, and
-  only the plugin install requires the closed IDE (e.g. warn-and-skip plugin install when running, or re-order to apply
-  config first then install plugins).
+- Extend `scripts/setup-idea.sh` (and its settings-merge script) to the web module, and audit what's still stale there.
+  The setup now covers the Java/Gradle side — it merges `config/idea/*.xml` (Java code style, ktfmt, codeStyleConfig)
+  and the test-tier naming inspection into `.idea/`, and installs the `palantir-java-format` + `ktfmt` plugins — but it
+  is incomplete for `showcase-web-ui`: (1) explore whether there is a Prettier plugin for IDEA (or whether IDEA's
+  built-in Prettier support just needs enabling) so `Reformat Code` matches the web module's `prettier --check` gate,
+  and add it to the plugin installs plus a 2-space JS/TS code-style scheme — IntelliJ's default is 4 spaces, which
+  disagrees with the web module's `.prettierrc` (`tabWidth: 2`); (2) the JS/TS code style must not collapse to wildcard
+  imports (the Java palantir layout sets `ij_java_imports_layout`; the TS side needs the equivalent single-import +
+  on-demand-count preference so Prettier never has to expand a wildcard by hand); (3) the inspection-profile upsert is
+  Java-only — the web module's Vitest naming (`.test.ts(x)`) has no IDEA inspection yet; (4) audit the remaining stale
+  bits (e.g. Node plugin / `@/` alias awareness, or whether the `installPlugins` flow still holds on current IDEA
+  builds).
 
 ## 2026-09-02
 

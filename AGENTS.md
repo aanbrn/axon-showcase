@@ -938,3 +938,15 @@ that override when bumping the Kafka image tag.
   `gh api repos/snyk/cli/releases/latest` when bumping or auditing tooling currency. A bump also cannot be verified
   locally: `workflowLint` (actionlint) proves only that the YAML lints, not that the version tag is installable — the
   credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real execution.
+- **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
+  first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
+  output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change
+  never intended. Stage explicit paths, add a `.gitignore` entry for the artifact, and check
+  `git diff --cached --name-only` (or `git status`) before committing — the `rework-idea-setup` commit swept in a
+  `scripts/__pycache__/*.pyc` that had to be removed and ignored.
+- **IntelliJ settings-XML component names are exact and easy to transpose — take them verbatim from an IDE-written file,
+  not the intuitive name.** `scripts/ensure-idea-settings.py` writes the inspection-profile skeleton with
+  `<component name="InspectionProjectProfileManager">`; the script it replaced had it transposed as
+  `ProjectInspectionProfileManager`, which raises no error — IntelliJ simply ignores the profile, and only the
+  fresh-clone path (no `.idea/inspectionProfiles/Project_Default.xml` yet) exposes it. When adding or editing a settings
+  skeleton, copy each `<component>`/inspection name from a real IntelliJ-written file.

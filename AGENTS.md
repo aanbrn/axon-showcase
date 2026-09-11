@@ -356,6 +356,13 @@ Key modules (libraries, not services):
 - **SpotBugs**: finds bugs with findsecbugs and fbContrib plugins; uses `spotbugs-include.xml` and
   `spotbugs-exclude.xml` filters in `config/spotbugs/` if present (see `code-check-conventions.gradle.kts`)
 - **LZ4 relocation**: root build forces `org.lz4:lz4-java` substitution (see `build.gradle.kts`)
+- **Build-tool versions live in the version catalog**: a `build-logic` convention plugin never hard-codes a tool version
+  — it declares it in `gradle/libs.versions.toml` and reads it via `val libs = the<LibrariesForLibs>()` /
+  `libs.versions.<name>.get()` (runtime `node`/`java`, plugin `toolVersion` `checkstyle`/`spotbugs`/`jacoco`, generator
+  artifacts, buildpack ids, image tags). A version that is not a `group:name` dependency (a buildpack id, a
+  builder/run-image tag, `node`) is a `[versions]`-only entry with no `[libraries]` module. Catalog ownership is
+  single-sourcing, not update tracking: bare `[versions]` entries are not resolved as dependencies, so
+  `dependencyUpdates` and `helmUpdates` both ignore them — they go stale silently and must be audited by hand.
 - **All JavaCompile tasks** add `-parameters` flag
 - **Test display names**: every test class and every `@Test`/`@ParameterizedTest` method (plus `@Nested` groups) carries
   a static-sentence `@DisplayName` (e.g., `@DisplayName("Showcase aggregate component tests")`,

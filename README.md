@@ -484,8 +484,9 @@ change. An IDE (e.g. IntelliJ IDEA) is an optional convenience for interactive e
 Formatting is enforced by Spotless — palantir-java-format for Java, ktfmt for Gradle Kotlin DSL (`*.gradle.kts`) and
 build-logic Kotlin (`build-logic/src/**/*.kt`), Prettier for markdown (`docs/`, `AGENTS.md`, `README.md`,
 `openspec/specs/`): `./gradlew spotlessApply` formats, `spotlessCheck` verifies, and the build never depends on an IDE.
-IntelliJ's built-in formatter uses its own code style and would reformat files differently, so configure the IDE to stay
-in sync:
+For the **web module**, `./gradlew :showcase-web-ui:npmFormat` applies Prettier and `:showcase-web-ui:npmFormatCheck`
+(run by `check`) verifies it. IntelliJ's built-in formatter uses its own code style and would reformat files
+differently, so configure the IDE to stay in sync:
 
 - The repo's IntelliJ config is **not versioned** — `.idea/` is git-ignored. Run the setup script any time the
   configuration drifts: it merges the committed settings from `config/idea/` into `.idea/` (restoring the
@@ -528,7 +529,8 @@ in sync:
   them, and no gate enforces import order. No plugin install is needed — IntelliJ bundles JavaScript/TypeScript and its
   Prettier integration is free from IntelliJ IDEA 2026.1 (on the earlier unified 2025.3–2026.0 it needs the Ultimate
   subscription).
-- When in doubt, format with `./gradlew spotlessApply` — it is the single source of truth.
+- When in doubt, format with `./gradlew spotlessApply` (JVM and markdown) or `./gradlew :showcase-web-ui:npmFormat` (the
+  web module) — the build owns formatting either way.
 
 ## Deployment and Operations
 

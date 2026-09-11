@@ -412,10 +412,13 @@ Key modules (libraries, not services):
   _why_ behind structural choices. Capture a decision as an ADR when it is made, not after the fact
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md` and `README.md` need to be refreshed to
   reflect the new state (commands, config, conventions, gotchas) and update them before reporting the change done; also
-  remove the change's idea from `docs/ideas.md` — an idea is removed once implemented (captured by a change) or once
-  explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open ideas remain
-  (see the file's header). Docs that ARE the change (new agent/command/skill documentation, README rows describing a new
-  capability) ship with the change's PR; docs that refresh facts about a completed change ship as a separate docs PR.
+  remove the change's idea from `docs/ideas.md` **in the same PR** — committed on the change branch, not left in the
+  uncommitted review diff (a rebase that stashes an `ideas.md` edit can conflict with a `main` that also edited the
+  file; see the `git stash pop` gotcha). An idea is removed once implemented (captured by a change) or once explored and
+  decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open ideas remain (see the file's
+  header). Docs that ARE the change (new agent/command/skill documentation, README rows describing a new capability, the
+  change's idea removal) ship with the change's PR; docs that refresh facts about a completed change ship as a separate
+  docs PR — a newly parked idea that is not yet a change is such a docs PR.
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
@@ -739,8 +742,10 @@ that override when bumping the Kafka image tag.
   workflow stashes the change on every rebase; if a docs file (e.g. `docs/ideas.md`) advances on `main` between the
   stash and the rebase, popping the stash after the rebase can leave `<<<<<<<` conflict markers in the working tree (the
   stash carries the pre-rebase copy). This surfaced when the ideas-dates fix (PR #64) merged mid-rebase. Resolve by
-  restoring the docs file to `origin/main` (the change branch carries no docs changes) rather than resolving the markers
-  by hand.
+  reconciling the file — take `main`'s copy and re-apply the change's idea removal — rather than resolving the markers
+  by hand; since a change branch now carries its own `docs/ideas.md` removal (see the docs-refresh convention), it can
+  no longer simply be reset to `origin/main`. Committing the removal on the branch early (rather than leaving it in the
+  uncommitted review diff) avoids the stash path entirely.
 - **`git reset --hard` on a branch with uncommitted work discards tracked-file edits.** A change branch holds the
   implementation uncommitted (per the workflow); a `git reset --hard origin/main` to "rebase" the branch reverts every
   tracked-file modification (`build.gradle.kts`, workflows, docs) while leaving untracked files (the change dir, new

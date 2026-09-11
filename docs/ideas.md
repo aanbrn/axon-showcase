@@ -5,11 +5,13 @@ a scratchpad, not a backlog of planned work. An idea is removed from the list on
 once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open,
 not-yet-implemented ideas remain.
 
-Changes to this file are committed as their own docs PR (like `AGENTS.md`/`README.md` refresh PRs) — never bundled with
-an OpenSpec change or its branch. When an idea graduates into a concrete candidate for work, it may be promoted to a
-GitHub issue that links to the eventual OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered
-newest-first; each idea goes under a section dated when it was added (start a new section for a new day rather than
-appending to the most recent one).
+Changes to this file travel with the change that owns them: an idea's **removal** ships in the implementing change's PR
+— committed on its branch, and not left in the uncommitted review diff (a rebase that stashes an `ideas.md` edit can
+conflict with a `main` that also edited the file) — while a **newly parked** idea that is not yet a change is committed
+as its own docs PR (like `AGENTS.md`/`README.md` refresh PRs). When an idea graduates into a concrete candidate for
+work, it may be promoted to a GitHub issue that links to the eventual OpenSpec change. Ideas are grouped into
+`## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when it was added (start a new
+section for a new day rather than appending to the most recent one).
 
 ## 2026-09-11
 

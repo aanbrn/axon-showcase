@@ -312,6 +312,12 @@ sections of `build/dependencyUpdates/report.txt` (stable catalog updates + the G
 `GITHUB_TOKEN` (`issues: write`). When there are updates it posts a comment mentioning the repository owner (so they are
 notified); runs with no updates update the issue silently. It is observational — never a merge gate.
 
+`.github/workflows/buildpack-updates.yml` runs the Paketo buildpack update check (`./gradlew buildpackUpdates`) on a
+weekly schedule and via `workflow_dispatch`, opening or updating the "Buildpack updates" issue with the pinned builder
+and buildpack coordinates from `build/buildpack-updates/report.txt` that have a newer version, using the `GITHUB_TOKEN`
+(`issues: write`). When there are updates it posts a comment mentioning the repository owner (so they are notified);
+runs with no updates update the issue silently. It is observational — never a merge gate.
+
 `.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so an action whose
 major bump targets a newer Node runtime (e.g. the Node 20 → Node 24 migration) surfaces as a reviewable PR instead of a
 silent CI deprecation warning. The `opencode` workflow's `anomalyco/opencode/github@latest` and the Snyk workflow's
@@ -362,7 +368,8 @@ Key modules (libraries, not services):
   artifacts, buildpack ids, image tags). A version that is not a `group:name` dependency (a buildpack id, a
   builder/run-image tag, `node`) is a `[versions]`-only entry with no `[libraries]` module. Catalog ownership is
   single-sourcing, not update tracking: bare `[versions]` entries are not resolved as dependencies, so
-  `dependencyUpdates` and `helmUpdates` both ignore them — they go stale silently and must be audited by hand.
+  `dependencyUpdates` and `helmUpdates` ignore them — most go stale silently and must be audited by hand (the Paketo
+  builder and buildpack pins are the exception: `buildpackUpdates` reports them).
 - **All JavaCompile tasks** add `-parameters` flag
 - **Test display names**: every test class and every `@Test`/`@ParameterizedTest` method (plus `@Nested` groups) carries
   a static-sentence `@DisplayName` (e.g., `@DisplayName("Showcase aggregate component tests")`,
@@ -539,11 +546,12 @@ The web UI image is built differently: `frontend-conventions` registers a generi
 `PackBuildImageTask`) that runs the `pack` CLI with the **version-pinned** Paketo NGINX + Procfile buildpacks
 (`paketo-buildpacks/nginx@1.2.0`, `paketo-buildpacks/procfile@5.14.0`; the versions are catalog-owned as `paketo-nginx`
 and `paketo-procfile`) over `build/dist` (the `pack` CLI is a build prerequisite like Helm/Snyk). The pins are explicit
-because the builder is floating (`...builder-jammy-base:latest`) and an unversioned buildpack reference becomes
-ambiguous — `pack` fails with "multiple versions … must specify an explicit version" — once the builder bundles two
-versions of a buildpack (the intermittent `e2e`/`helmInstallToLocal` failure); neither `dependencyUpdates` nor
-`helmUpdates` tracks buildpack/builder versions, so keep the pins current. The image serves the bundle via nginx on
-`8080` and exposes nginx `stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a gated
+because an unversioned buildpack reference becomes ambiguous — `pack` fails with "multiple versions … must specify an
+explicit version" — once the builder bundles two versions of a buildpack (the intermittent `e2e`/`helmInstallToLocal`
+failure). The builder itself is also pinned (`builder-jammy-base:0.4.639`, catalog-owned as `paketo-builder-jammy-base`)
+rather than floating, and the `buildpackUpdates` task / `buildpack-updates` workflow reports newer builder and buildpack
+versions — no other update check covers Paketo. The image serves the bundle via nginx on `8080` and exposes nginx
+`stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a gated
 `nginx-prometheus-exporter` sidecar (`webUi.metricsExporter`, on by default when observability metrics export and the
 web UI ServiceMonitor are enabled) converts stub_status to Prometheus `/metrics` on port `9113`, which the Service
 `http-metrics` port and ServiceMonitor scrape. A `PackBuildImageTask` convention defaults the image name to
@@ -901,10 +909,10 @@ that override when bumping the Kafka image tag.
   the first and update them; when editing a section, re-verify such claims against the repo instead of trusting the
   prose.
 - **The Snyk CLI pin is outside every update-check workflow — check it manually.** `dependencyUpdates` /
-  `dependency-updates.yml` cover Gradle catalog coordinates and `helmUpdates` / `helm-updates.yml` cover the Helm CLI
-  and pinned charts, but the `snyk-version` input in `.github/workflows/snyk.yml` has no check (Dependabot manages
-  action version refs, and `snyk/actions/setup@master` is a floating ref it does not bump), so it goes stale silently.
-  Confirm it against `gh api repos/snyk/cli/releases/latest` when bumping or auditing tooling currency. A bump also
-  cannot be verified locally: `workflowLint` (actionlint) proves only that the YAML lints, not that the version tag is
-  installable — the credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real
-  execution.
+  `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` / `helm-updates.yml` cover the Helm CLI and
+  pinned charts, and `buildpackUpdates` / `buildpack-updates.yml` cover the Paketo builder and buildpacks, but the
+  `snyk-version` input in `.github/workflows/snyk.yml` has no check (Dependabot manages action version refs, and
+  `snyk/actions/setup@master` is a floating ref it does not bump), so it goes stale silently. Confirm it against
+  `gh api repos/snyk/cli/releases/latest` when bumping or auditing tooling currency. A bump also cannot be verified
+  locally: `workflowLint` (actionlint) proves only that the YAML lints, not that the version tag is installable — the
+  credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real execution.

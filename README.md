@@ -6,7 +6,9 @@ spec-driven way to build it.
 It is not a toy CRUD app. It is a complete event-sourced system: schedule a showcase and it drives itself through its
 lifecycle — starting at the right time, finishing after its duration, streaming every event live to a browser UI that
 updates as it happens. And the way the code is written and reviewed is itself a demonstration: behavior is captured in
-specs, changes are proposed, applied, reviewed, and archived by an automated agent pipeline.
+specs, changes are proposed, applied, reviewed, and archived by an automated agent pipeline. That pipeline also **learns
+from itself**: each change's lessons are written back into the agent's instructions, so the next change starts a little
+smarter (see [The Self-Learning Loop](#the-self-learning-loop)).
 
 ## Project Structure
 
@@ -126,7 +128,8 @@ subscribed browser — all from one `POST /showcases`.
 - **actionlint** — lints the GitHub Actions workflows
 - **Snyk** — dependency security scanning
 - **OpenSpec** — spec-driven behavior capture (`propose → apply → archive`)
-- **OpenCode** — the agentic coding tool driving the process (slash-commands, spec-aware subagents; see below)
+- **OpenCode** — the agentic coding tool driving the process: slash-commands, spec-aware subagents, and a self-learning
+  lesson-capture loop (see below)
 - **GitHub Actions** — CI, e2e, dependency updates, helm updates, security scans
 
 ## Development Workflow
@@ -262,6 +265,24 @@ That one prompt starts the whole loop. The agent:
 
 Throughout, the only manual work was the initial prompt and a few approvals. The agent wrote the plan, the code, the
 tests, and the PR; you steered.
+
+#### The Self-Learning Loop
+
+The process is designed to **learn from itself** — and that is the mechanic, not a metaphor:
+
+- **`AGENTS.md` is the agent's persistent memory.** It is loaded as instructions at the start of every session, so a
+  lesson written there does not merely document the past — it changes how the agent behaves on the next change.
+- **Every change closes the loop.** The `lesson-capture` subagent runs not only after a change's implementation but
+  again after every merge, so lessons that only surface once a change is live still get captured; the ones you accept
+  land in `AGENTS.md`.
+- **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
+  same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
+  uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.
+- **Periodic retrospectives zoom out.** `/retrospective` turns a week of merged PRs, archived changes, and accumulated
+  gotchas into a sprint retrospective whose suggestions are classified `process` (→ `AGENTS.md`) or `system` (→ an idea
+  or a proposal), so both the process and the system keep improving.
+
+A mistake made once becomes a rule the agent follows thereafter — the process gets a little better with every change.
 
 ### Slash Commands
 

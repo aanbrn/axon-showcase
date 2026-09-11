@@ -465,6 +465,15 @@ Key modules (libraries, not services):
   subagent in AGENTS.md does not make it reachable — ship a `.opencode/commands/*.md` command (e.g. the `/retrospective`
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
   documentation first and was only usable once the user pointed out it had no trigger and the command was added.
+- **An opencode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
+  scope.** The cheap flash model is pinned in six places: `.opencode/opencode.json` (`model` and `small_model` — two
+  keys), the flash-pinned subagent frontmatter (`.opencode/agent/review-quick.md`, `lesson-capture.md`,
+  `experience-analyzer.md`), the `.github/workflows/opencode.yml` `model` input, and the `AGENTS.md` agent gotchas that
+  name the model id (docs that ARE the change — update them in the same change). When bumping, grep for the old id
+  across `.opencode/`, `.github/workflows/`, `AGENTS.md`, and `README.md`, and exclude the vision agent's `-vision-exp`
+  pin: the vision model is a separate experimental line that may not have a counterpart in the new family (the v4.1 bump
+  left it on `deepseek-v4-flash-vision-exp`). A naive sweep that flags the vision pin as stale would wrongly "fix" a
+  deliberate asymmetry.
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired

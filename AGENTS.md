@@ -45,7 +45,11 @@ artifacts) and again after finishing its **implementation**, run a quick review 
 subagent) against the change's planning artifacts — for the proposal, the proposal/design/tasks/spec-delta coherence and
 repo fit; for the implementation, the tasks and delta spec — and repeat it until it reports no new observations. Fix
 everything the quick review finds, re-run it, and stop only when it comes back clean — only then ask the user for a
-manual review pass.
+manual review pass. A clean quick review is a precondition for asking for the manual review, **not** a substitute for it
+— it means _ask the user now_, not _the implementation is approved_. Never commit, push, open a PR, archive, or merge on
+the strength of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) in ~4 minutes
+without ever requesting the manual pass. The commit → push → PR → CI → archive sequence starts only after the user
+approves the implementation — the "Run CI before archiving" convention does not authorize committing earlier.
 
 **Interrogate the premise before designing a change that moves, copies, or removes existing configuration.** Establish
 _why the current state exists_ and whether it is deliberate before designing _how_ to change it — a change that

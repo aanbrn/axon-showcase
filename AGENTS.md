@@ -473,7 +473,10 @@ Key modules (libraries, not services):
   across `.opencode/`, `.github/workflows/`, `AGENTS.md`, and `README.md`, and exclude the vision agent's `-vision-exp`
   pin: the vision model is a separate experimental line that may not have a counterpart in the new family (the v4.1 bump
   left it on `deepseek-v4-flash-vision-exp`). A naive sweep that flags the vision pin as stale would wrongly "fix" a
-  deliberate asymmetry.
+  deliberate asymmetry. Note the config `model` key is a default for **new** sessions, not a live override: opencode
+  persists the last-used model in `~/.local/state/opencode/model.json` (its `recent` list), so a restarted TUI that
+  restores a session keeps that session's model and still shows the old one until you switch manually or start a new
+  session — a correct config pin does not by itself make the running agent use the new model.
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired

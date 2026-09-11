@@ -852,6 +852,14 @@ that override when bumping the Kafka image tag.
   `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an
   overstated process claim. When a doc quotes a rule/spec/comment, copy the exact text (or drop the quote marks and
   describe it), and check the mechanism before using words like "enforced", "always", "never", or "every".
+- **When documenting agent tooling (MCP servers, skills, subagents), read the artifact's own definition — not the config
+  entry or the `docs/ideas.md` note that mentions it.** The README "Tooling MCP Servers" section described `codefmt` as
+  running IDE _inspections_ (it runs the formatter), said the Playwright MCP "drives the web-UI e2e" (the test framework
+  runs the e2e; the MCP is only the agent's browser), and listed `runInspectionsDirectly` as an MCP tool (it is an
+  IntelliJ helper called inside `steroid_execute_code`) — every claim sourced from the config entry or the parked idea
+  note rather than the tool itself. A referencing entry summarizes; it does not specify. Read
+  `.opencode/skills/*/SKILL.md`, `.opencode/agent/*.md`, and the server's exposed tool list before describing what each
+  does, and treat an idea note's prose as a lead, not a spec.
 - **A change merged without its archive is incomplete — do not merge the implementation PR and defer the archive.** The
   "one PR per change" rule puts the archive commit in the _same_ PR before merge; a change whose PR merged but whose
   change dir was never archived is easy to forget (the `remove-redis-client-label` change was merged and sat unarchived

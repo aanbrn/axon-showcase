@@ -8,7 +8,9 @@ lifecycle — starting at the right time, finishing after its duration, streamin
 updates as it happens. And the way the code is written and reviewed is itself a demonstration: behavior is captured in
 specs, changes are proposed, applied, reviewed, and archived by an automated agent pipeline. That pipeline also **learns
 from itself**: each change's lessons are written back into the agent's instructions, so the next change starts a little
-smarter (see [The Self-Learning Loop](#the-self-learning-loop)).
+smarter (see [The Self-Learning Loop](#the-self-learning-loop)). It can even bootstrap its own tooling — ask it to set
+up the MCP servers and it detects, wires, and installs what it can for you (see
+[Tooling MCP Servers](#tooling-mcp-servers)).
 
 ## Project Structure
 
@@ -128,8 +130,8 @@ subscribed browser — all from one `POST /showcases`.
 - **actionlint** — lints the GitHub Actions workflows
 - **Snyk** — dependency security scanning
 - **OpenSpec** — spec-driven behavior capture (`propose → apply → archive`)
-- **OpenCode** — the agentic coding tool driving the process: slash-commands, spec-aware subagents, and a self-learning
-  lesson-capture loop (see below)
+- **OpenCode** — the agentic coding tool driving the process: slash-commands, spec-aware subagents, a self-learning
+  lesson-capture loop, and on-request setup of its own tooling ([Tooling MCP Servers](#tooling-mcp-servers))
 - **GitHub Actions** — CI, e2e, dependency updates, helm updates, security scans
 
 ## Development Workflow
@@ -286,22 +288,30 @@ A mistake made once becomes a rule the agent follows thereafter — the process 
 
 #### Tooling MCP Servers
 
-Part of the agent's reach comes from **MCP servers**. Playwright is configured in the repo (`.opencode/opencode.json`);
-MCPs that need your own credentials or IDE go under the top-level `mcp` object in your **global** config
-(`~/.config/opencode/opencode.jsonc`), not the project config — a project entry can't use your credentials or IDE
-without your own setup:
+Part of the agent's reach comes from **MCP servers** — and the easiest way to set them up is to **ask the agent**: just
+tell it to set up the tooling (or run `/setup-agent-tools`). It detects what you already have, wires your global config,
+and installs the `gh-mcp` extension (it offers `devrig`'s installer too), handing back only what it can't do for you —
+like `gh auth login`, or installing `gh` itself. Prefer this over wiring them by hand, which is fiddly and easy to get
+wrong.
+
+The one that matters is **GitHub** (the agent reads PRs and CI checks); **Steroid** is optional and only for IntelliJ
+IDEA; **Playwright** is already configured in the project, so there's nothing to set up.
+
+By hand, the auth- or IDE-bound servers go under the top-level `mcp` object in your **global** config
+(`~/.config/opencode/opencode.jsonc`), not the project config — a project entry can't use your credentials or IDE:
 
 - **Playwright** (project) — the agent's browser: it drives the running web UI and captures screenshots for the `vision`
   subagent. It needs only Node/`npx` (no credentials or IDE).
 - **GitHub** — read PRs and CI checks. Run `gh auth login` (the server reuses your `gh` credentials), install the
   `gh-mcp` extension (`gh extension install shuymn/gh-mcp`), then add
   `"github": { "type": "local", "command": ["gh", "mcp"], "enabled": true }`.
-- **Steroid** — JetBrains IDE tools via `steroid_execute_code`; the agent's `codefmt` skill uses them to run the IDE's
-  own formatter (Reformat Code + Optimize Imports) on edited files. With `devrig` installed, add
-  `"steroid": { "type": "local", "command": ["devrig", "mcp"], "enabled": true }` — use the absolute `devrig` path if
-  the agent is launched from a GUI (a Finder/Dock-launched daemon has a minimal `PATH`).
+- **Steroid** (optional — IntelliJ IDEA only) — JetBrains IDE tools via `steroid_execute_code`; the agent's `codefmt`
+  skill uses them to run the IDE's own formatter (Reformat Code + Optimize Imports) on edited files. Skip it unless you
+  use IDEA. With `devrig` installed, add `"steroid": { "type": "local", "command": ["devrig", "mcp"], "enabled": true }`
+  — use the absolute `devrig` path if the agent is launched from a GUI (a Finder/Dock-launched daemon has a minimal
+  `PATH`).
 
-All are optional, and the agent reads MCP config at startup, so restart it after adding one.
+MCP config is read at startup, so restart OpenCode after adding one.
 
 ### Slash Commands
 
@@ -313,6 +323,7 @@ All are optional, and the agent reads MCP config at startup, so restart it after
 | `/opsx-sync`                 | Syncs a change's delta spec to the main spec without archiving             |
 | `/opsx-update`               | Revises a change's planning artifacts                                      |
 | `/opsx-explore`              | Explores an idea before proposing it                                       |
+| `/setup-agent-tools`         | Sets up the tooling MCP servers (GitHub core; Steroid for IDEA)            |
 | `/review-thorough`           | Deep on-demand review of a change                                          |
 | `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer              |
 | `/retrospective`             | Weekly retrospective with improvement suggestions                          |

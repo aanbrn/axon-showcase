@@ -1,4 +1,4 @@
-# Ide Config Specification
+# showcase/quality/ide-config Specification
 
 ## Purpose
 

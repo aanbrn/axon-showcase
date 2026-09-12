@@ -1,4 +1,4 @@
-# Infra Image Versions Specification
+# showcase/quality/infra-image-versions Specification
 
 ## Purpose
 

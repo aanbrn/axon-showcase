@@ -115,10 +115,10 @@ the capability path.** The first line of `openspec/specs/.../spec.md` must be ed
 `openspec validate` never checks it, so a stale header is silent drift that passes CI. The 2026-08-14 role-group
 restructure git-mv'd most spec files but left their `#` headers at the old `showcase/<capability>` paths; #105 later
 fixed the eight leftover headers (helm-chart, the three extensions, load-tests, and the command/projection/query
-services). Two specs still carry non-path titles that predate the restructure — `# Ide Config Specification` under
-`showcase/quality/ide-config/` and `# Infra Image Versions Specification` under `showcase/quality/infra-image-versions/`
-— a different drift, same lesson. On any spec move or capability rename, fix the first line in the same change — the
-title does not follow the file.
+services). Two specs long carried non-path titles that predate the restructure (`# Ide Config Specification` under
+`showcase/quality/ide-config/` and `# Infra Image Versions Specification` under
+`showcase/quality/infra-image-versions/`) — a different drift, same lesson — until `apply-specs-audit-findings` fixed
+them. On any spec move or capability rename, fix the first line in the same change — the title does not follow the file.
 
 **A delta cannot carry a `## Purpose` for an existing capability — refresh the main spec's Purpose in the archive commit
 and record it as a task.** `openspec archive` (and the `openspec-sync-specs` workflow) treats the main spec's Purpose as

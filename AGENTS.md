@@ -537,6 +537,15 @@ Key modules (libraries, not services):
   grouped by severity (contradiction / stale / dead reference / redundant / structural), each with a location and a
   suggested rewrite, without editing anything. The main agent applies the approved findings under the review gate. The
   zero-touch scheduled variant is parked in `docs/ideas.md`; the audit itself is on demand.
+- **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
+  (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus, because `openspec validate` gates a spec's
+  well-formedness but not its cross-spec structural consistency — title ↔ capability-path match, Purpose ↔ requirements
+  fit, requirement conventions, cross-spec duplication, and dead cross-references. Trigger it with the `/audit-specs`
+  OpenCode command: it verifies each finding against the repository and returns findings grouped by severity (structural
+  / stale / duplicate / dead reference) without editing anything, flagging a reused requirement header for judgment
+  rather than as a defect. It deliberately does **not** check behavior against the code — the change workflow's review
+  loop and the archive-time sync own that. The main agent applies approved findings through the normal change workflow
+  (a spec edit is a change). The zero-touch scheduled variant is parked in `docs/ideas.md`.
 - **Thorough-review subagent for deep passes**: the `review-thorough` subagent (`.opencode/agent/review-thorough.md`)
   does a deep review of a change against its proposal, delta specs, design, tasks, and the implementation diff — drift,
   correctness, architecture, and conventions. It is intentionally not auto-scheduled (the expensive pass); invoke it

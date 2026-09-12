@@ -15,6 +15,12 @@ section for a new day rather than appending to the most recent one).
 
 ## 2026-09-12
 
+- Scheduled spec-corpus audit — parked; no change yet. The `specs-auditor` subagent audits `openspec/specs/` on demand;
+  a zero-touch periodic variant would run it unattended, the same way the scheduled AGENTS.md audit below is parked. The
+  mechanism is identical (a weekly `.github/workflows/` run of the OpenCode GitHub action with an `on: schedule`
+  `prompt`), so the two could share one workflow when either is built — audit both artifacts and open or update a single
+  findings issue. Same permissions and caveats as the AGENTS.md entry below.
+
 - Scheduled AGENTS.md audit — parked; no change yet. The `agents-auditor` subagent audits `AGENTS.md` on demand; a
   zero-touch periodic variant would run it unattended. The OpenCode GitHub action supports `on: schedule`, which —
   unlike a comment trigger — has no comment to read, so it requires a `prompt` input (see its docs' "Schedule Example").

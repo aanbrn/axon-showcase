@@ -29,7 +29,7 @@ The build SHALL run a code-style check as part of the standard `check` task acro
 
 ### Requirement: Line length limit matches the project convention
 
-Source lines MUST NOT exceed 120 characters, matching the project's documented wrapping convention.
+Source lines SHALL NOT exceed 120 characters, matching the project's documented wrapping convention.
 
 #### Scenario: Over-long line is rejected
 
@@ -43,7 +43,7 @@ Source lines MUST NOT exceed 120 characters, matching the project's documented w
 
 ### Requirement: Naming and import conventions are enforced
 
-Type, method, and constant naming and import hygiene MUST follow the project's conventions, including the test-tier
+Type, method, and constant naming and import hygiene SHALL follow the project's conventions, including the test-tier
 suffixes (`Tests`, `CT`, `IT`, `E2E`).
 
 #### Scenario: Non-conforming type name is rejected

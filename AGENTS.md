@@ -119,6 +119,11 @@ services). Two specs long carried non-path titles that predate the restructure (
 `showcase/quality/ide-config/` and `# Infra Image Versions Specification` under
 `showcase/quality/infra-image-versions/`) — a different drift, same lesson — until `apply-specs-audit-findings` fixed
 them. On any spec move or capability rename, fix the first line in the same change — the title does not follow the file.
+A `#` title is the one spec edit made directly _before_ archive, rather than through a delta (the Purpose refresh is the
+other non-delta edit, but it waits for the archive commit): it is not a requirement, so no delta block carries it, and
+it may be edited directly (as `fix-stale-spec-headers` did as a `skip_specs` change, and `apply-specs-audit-findings`
+alongside four real deltas) — an exception to "sync the main spec only at archive". Record it as its own task, so the
+mixed route is explicit rather than looking like an un-routed main-spec edit.
 
 **A delta cannot carry a `## Purpose` for an existing capability — refresh the main spec's Purpose in the archive commit
 and record it as a task.** `openspec archive` (and the `openspec-sync-specs` workflow) treats the main spec's Purpose as

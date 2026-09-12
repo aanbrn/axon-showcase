@@ -216,7 +216,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | Agent                 | Role                                                                                    |
 | --------------------- | --------------------------------------------------------------------------------------- |
 | `experience-analyzer` | Periodic retrospectives + improvement suggestions (system & process) — `/retrospective` |
-| `agents-auditor`      | Audits `AGENTS.md` for consistency and conciseness — `/audit-agents`                    |
+| `agents-auditor`      | Audits AGENTS.md + project-owned `.opencode/` files — `/audit-agents`                   |
 | `specs-auditor`       | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`        |
 | `lesson-capture`      | Captures gotchas/conventions into AGENTS.md after every change (automatic)              |
 | `review-quick`        | Fast review after proposal & implementation, repeated until clean (automatic)           |
@@ -292,10 +292,10 @@ The process is designed to **learn from itself** — and that is the mechanic, n
 - **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
   same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
   uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.
-- **The memory is audited, not just appended to.** `/audit-agents` runs an on-demand, pro-model audit of `AGENTS.md`: it
-  verifies each claim against the repository and reports contradictions, stale enumerations, dead cross-references, and
-  duplication — each with a concrete suggested rewrite — so the memory stays consistent and concise instead of only
-  growing.
+- **The guidance and tooling are audited, not just appended to.** `/audit-agents` runs an on-demand, pro-model audit of
+  `AGENTS.md` and the project-owned `.opencode/` files: it verifies each claim against the repository and reports
+  contradictions, stale enumerations, dead cross-references, and duplication — each with a concrete suggested rewrite —
+  so the guidance and tooling stay consistent and concise instead of only growing.
 - **Periodic retrospectives zoom out.** `/retrospective` turns a week of merged PRs, archived changes, and accumulated
   gotchas into a sprint retrospective whose suggestions are classified `process` (→ `AGENTS.md`) or `system` (→ an idea
   or a proposal), so both the process and the system keep improving.
@@ -336,7 +336,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/setup-agent-tools`         | Sets up the tooling MCP servers (GitHub core, plus optional extras)                     |
 | `/setup-idea`                | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier) |
 | `/review-thorough`           | Deep on-demand review of a change                                                       |
-| `/audit-agents`              | Audits AGENTS.md for consistency and conciseness (pro-model auditor)                    |
+| `/audit-agents`              | Audits AGENTS.md + project-owned .opencode/ files (pro-model auditor)                   |
 | `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                |
 | `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer                           |
 | `/retrospective`             | Weekly retrospective with improvement suggestions                                       |

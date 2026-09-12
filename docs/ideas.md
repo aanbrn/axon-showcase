@@ -13,6 +13,18 @@ work, it may be promoted to a GitHub issue that links to the eventual OpenSpec c
 `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when it was added (start a new
 section for a new day rather than appending to the most recent one).
 
+## 2026-09-12
+
+- Scheduled AGENTS.md audit — parked; no change yet. The `agents-auditor` subagent audits `AGENTS.md` on demand; a
+  zero-touch periodic variant would run it unattended. The OpenCode GitHub action supports `on: schedule`, which —
+  unlike a comment trigger — has no comment to read, so it requires a `prompt` input (see its docs' "Schedule Example").
+  A weekly `.github/workflows/agents-audit.yml` (`schedule:` + `workflow_dispatch:`) could run
+  `anomalyco/opencode/github@latest` with the existing `OPENCODE_API_KEY` secret and a prompt to audit `AGENTS.md` and
+  open or update an issue with the findings — mirroring `dependency-updates.yml`. It needs `id-token: write` (the action
+  authenticates to the OpenCode GitHub App via OIDC, as `opencode.yml` does), `contents: read` for the checkout, and
+  `issues: write` to post the findings; per the docs, a scheduled run has no user context to permission-check, so every
+  write it performs must be granted explicitly. Confirm the scheduled `prompt` path works before relying on it.
+
 ## 2026-09-11
 
 - Snyk CLI update check — parked; no change yet. The `snyk-version` pin in `.github/workflows/snyk.yml` is outside every

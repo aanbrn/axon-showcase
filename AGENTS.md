@@ -196,8 +196,8 @@ wait for approval before merging.
 
 # Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
 # plus workflowLint (actionlint) and verifyInfraImageVersions
-# (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — bare -PskipITs drops integration but still fails
-# jacocoTestCoverageVerification on the 0.80 baseline; e2e is never part of check)
+# (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
+# check)
 ./gradlew :showcase-command-service:check
 
 # Load tests (Gatling)
@@ -205,17 +205,9 @@ wait for approval before merging.
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
-# The scan passes --policy-path=.snyk (the root Snyk policy). Suppressed findings are tracked
-# there with a short-term expires (2026-11-28 for the Spring cluster, 2026-12-11 for t-digest) so they
-# re-surface if not resolved in time: the Spring Framework 6.2.x / Spring Security 6.5.x cluster is
-# fixed only by the deferred Spring Boot 4 migration (ADR-0004), and com.tdunning:t-digest:3.3 (a
-# load-tests-only gatling-charts transitive) has no patched release. The checkstyle tool (13.11.0) no
-# longer carries any vulnerable transitives, so no tooling findings remain to suppress. See the
-# /dependency-security-check command
-# for the version-pinned ignore format and the Snyk rate-limit gotcha: the free org allows 200 Open
-# Source tests/billing period, counted only for manifests with identified vulnerabilities — so
-# the policy-suppressed task consumes no quota (a passing scan works even once the limit is
-# exhausted by unfiltered runs), and only raw `snyk test` runs that find issues hit the cap.
+# The scan passes --policy-path=.snyk (the root Snyk policy). The currently-suppressed findings, their expiry
+# rationale, and the rate-limit nuance live in `.snyk` (its header comment and each ignore's `reason`) and the
+# /dependency-security-check command — see those rather than restating them here.
 
 # Dependency update report (only catalog-owned coordinates; majors suppressed for groups in
 # config/dependency-updates/major-disabled.properties)
@@ -572,8 +564,8 @@ Key modules (libraries, not services):
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
   documentation first and was only usable once the user pointed out it had no trigger and the command was added.
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
-  scope.** The cheap flash model is pinned in six places: `.opencode/opencode.json` (`model` and `small_model` — two
-  keys), the flash-pinned subagent frontmatter (`.opencode/agent/review-quick.md`, `lesson-capture.md`,
+  scope.** The cheap flash model is pinned across several places: `.opencode/opencode.json` (`model` and `small_model` —
+  two keys), the flash-pinned subagent frontmatter (`.opencode/agent/review-quick.md`, `lesson-capture.md`,
   `experience-analyzer.md`), the `.github/workflows/opencode.yml` `model` input, and the `AGENTS.md` agent gotchas that
   name the model id (docs that ARE the change — update them in the same change). When bumping, grep for the old id
   across `.opencode/`, `.github/workflows/`, and `AGENTS.md` (the `README.md` only names the generic `opencode-go/*`

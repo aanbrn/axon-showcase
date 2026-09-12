@@ -36,7 +36,8 @@ Scope — this is a **structure and consistency** audit, not a behavior audit:
   change workflow's review loop and the archive-time sync; re-checking every requirement against the codebase is
   unbounded and duplicates an existing gate. A dead *reference* (does this class still exist?) is in scope; whether the
   described *behavior* is correct is not.
-- Stay within `openspec/specs/`; `AGENTS.md` has its own auditor (`agents-auditor`).
+- Stay within `openspec/specs/`; `AGENTS.md` and the project-owned `.opencode/` files have their own auditor
+  (`agents-auditor`).
 
 Method:
 

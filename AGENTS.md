@@ -535,13 +535,17 @@ Key modules (libraries, not services):
   went-well/went-wrong) and improvement suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process`
   (→ AGENTS.md), which the main agent verifies and applies. Retrospectives land in `docs/retrospectives/<date>.md` as a
   docs change.
-- **Agents-auditor subagent for AGENTS.md maintenance**: the `agents-auditor` subagent
-  (`.opencode/agent/agents-auditor.md`) audits `AGENTS.md` as a whole artifact, because an accretion-only memory drifts
-  — entries contradicted elsewhere, stale enumerations, dead cross-references, near-duplicate gotchas. Trigger it with
-  the `/audit-agents` OpenCode command: the subagent verifies each claim against the repository and returns findings
-  grouped by severity (contradiction / stale / dead reference / redundant / structural), each with a location and a
-  suggested rewrite, without editing anything. The main agent applies the approved findings under the review gate. The
-  zero-touch scheduled variant is parked in `docs/ideas.md`; the audit itself is on demand.
+- **Agents-auditor subagent for agent-tooling maintenance**: the `agents-auditor` subagent
+  (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
+  `.opencode/` files (subagents, commands, skills) — because an accretion-only set of guidance and tooling drifts:
+  entries contradicted elsewhere, stale enumerations, dead cross-references, a command naming a subagent that no longer
+  exists, near-duplicate gotchas. Its scope is a provenance partition: it skips what the repo does not author (the
+  OpenSpec instruction files `openspec update` writes, and the vendored `axon4to5-*` skills) — a project-authored file
+  that shares a generated prefix, like `opsx-tool-update`, stays in scope. Trigger it with the `/audit-agents` OpenCode
+  command: the subagent verifies each claim against the repository and returns findings grouped by severity
+  (contradiction / stale / dead reference / redundant / structural), each with a location and a suggested rewrite,
+  without editing anything. The main agent applies the approved findings under the review gate. The zero-touch scheduled
+  variant is parked in `docs/ideas.md`; the audit itself is on demand.
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus, because `openspec validate` gates a spec's
   well-formedness but not its cross-spec structural consistency — title ↔ capability-path match, Purpose ↔ requirements

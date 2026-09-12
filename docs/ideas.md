@@ -21,15 +21,16 @@ section for a new day rather than appending to the most recent one).
   `prompt`), so the two could share one workflow when either is built — audit both artifacts and open or update a single
   findings issue. Same permissions and caveats as the AGENTS.md entry below.
 
-- Scheduled AGENTS.md audit — parked; no change yet. The `agents-auditor` subagent audits `AGENTS.md` on demand; a
-  zero-touch periodic variant would run it unattended. The OpenCode GitHub action supports `on: schedule`, which —
-  unlike a comment trigger — has no comment to read, so it requires a `prompt` input (see its docs' "Schedule Example").
-  A weekly `.github/workflows/agents-audit.yml` (`schedule:` + `workflow_dispatch:`) could run
-  `anomalyco/opencode/github@latest` with the existing `OPENCODE_API_KEY` secret and a prompt to audit `AGENTS.md` and
-  open or update an issue with the findings — mirroring `dependency-updates.yml`. It needs `id-token: write` (the action
-  authenticates to the OpenCode GitHub App via OIDC, as `opencode.yml` does), `contents: read` for the checkout, and
-  `issues: write` to post the findings; per the docs, a scheduled run has no user context to permission-check, so every
-  write it performs must be granted explicitly. Confirm the scheduled `prompt` path works before relying on it.
+- Scheduled AGENTS.md audit — parked; no change yet. The `agents-auditor` subagent audits `AGENTS.md` and the
+  project-owned `.opencode/` files on demand; a zero-touch periodic variant would run it unattended. The OpenCode GitHub
+  action supports `on: schedule`, which — unlike a comment trigger — has no comment to read, so it requires a `prompt`
+  input (see its docs' "Schedule Example"). A weekly `.github/workflows/agents-audit.yml` (`schedule:` +
+  `workflow_dispatch:`) could run `anomalyco/opencode/github@latest` with the existing `OPENCODE_API_KEY` secret and a
+  prompt to audit `AGENTS.md` and open or update an issue with the findings — mirroring `dependency-updates.yml`. It
+  needs `id-token: write` (the action authenticates to the OpenCode GitHub App via OIDC, as `opencode.yml` does),
+  `contents: read` for the checkout, and `issues: write` to post the findings; per the docs, a scheduled run has no user
+  context to permission-check, so every write it performs must be granted explicitly. Confirm the scheduled `prompt`
+  path works before relying on it.
 
 ## 2026-09-11
 

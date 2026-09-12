@@ -524,6 +524,13 @@ Key modules (libraries, not services):
   went-well/went-wrong) and improvement suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process`
   (→ AGENTS.md), which the main agent verifies and applies. Retrospectives land in `docs/retrospectives/<date>.md` as a
   docs change.
+- **Agents-auditor subagent for AGENTS.md maintenance**: the `agents-auditor` subagent
+  (`.opencode/agent/agents-auditor.md`) audits `AGENTS.md` as a whole artifact, because an accretion-only memory drifts
+  — entries contradicted elsewhere, stale enumerations, dead cross-references, near-duplicate gotchas. Trigger it with
+  the `/audit-agents` OpenCode command: the subagent verifies each claim against the repository and returns findings
+  grouped by severity (contradiction / stale / dead reference / redundant / structural), each with a location and a
+  suggested rewrite, without editing anything. The main agent applies the approved findings under the review gate. The
+  zero-touch scheduled variant is parked in `docs/ideas.md`; the audit itself is on demand.
 - **Thorough-review subagent for deep passes**: the `review-thorough` subagent (`.opencode/agent/review-thorough.md`)
   does a deep review of a change against its proposal, delta specs, design, tasks, and the implementation diff — drift,
   correctness, architecture, and conventions. It is intentionally not auto-scheduled (the expensive pass); invoke it

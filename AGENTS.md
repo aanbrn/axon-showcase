@@ -101,7 +101,13 @@ matched to the main spec by its `### Requirement:` header, so the header must be
 modifies — only the description/body can change. Retitling a requirement while rewording it (e.g. renaming "Vendored
 agent skills are available to agents" while narrowing it) fails `openspec validate --changes` with "Archive would refuse
 this delta: MODIFIED failed for header ... not found" and must be reverted. To genuinely retitle a requirement,
-delete-and-add it instead of renaming the MODIFIED header.
+delete-and-add it instead of renaming the MODIFIED header: a `## REMOVED Requirements` block naming the old
+`### Requirement:` header with a `**Reason**:` (what supersedes it) and a `**Migration**:` (how behavior carries over),
+plus a `## ADDED Requirements` block carrying the new header with its full description and every retained scenario
+(`widen-agents-auditor-to-tooling` was the first in-repo use of this route). The schema _instructs_ a `Reason` and a
+`Migration` on a REMOVED block but does not validate them, and the ADDED block is the only place the old scenarios now
+live — `openspec validate` checks scenario preservation for a MODIFIED block, not across a REMOVED/ADDED pair, so carry
+the full set by hand.
 
 **A `MODIFIED` requirement block replaces the whole requirement — the delta must carry every existing scenario the main
 spec still has, not just the new ones.** `openspec validate --changes` fails with "MODIFIED ... omits scenario(s) the
@@ -541,11 +547,12 @@ Key modules (libraries, not services):
   entries contradicted elsewhere, stale enumerations, dead cross-references, a command naming a subagent that no longer
   exists, near-duplicate gotchas. Its scope is a provenance partition: it skips what the repo does not author (the
   OpenSpec instruction files `openspec update` writes, and the vendored `axon4to5-*` skills) — a project-authored file
-  that shares a generated prefix, like `opsx-tool-update`, stays in scope. Trigger it with the `/audit-agents` OpenCode
-  command: the subagent verifies each claim against the repository and returns findings grouped by severity
-  (contradiction / stale / dead reference / redundant / structural), each with a location and a suggested rewrite,
-  without editing anything. The main agent applies the approved findings under the review gate. The zero-touch scheduled
-  variant is parked in `docs/ideas.md`; the audit itself is on demand.
+  that shares a generated prefix, like `opsx-tool-update`, stays in scope: a boundary drawn by provenance, not a
+  filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). Trigger it with the
+  `/audit-agents` OpenCode command: the subagent verifies each claim against the repository and returns findings grouped
+  by severity (contradiction / stale / dead reference / redundant / structural), each with a location and a suggested
+  rewrite, without editing anything. The main agent applies the approved findings under the review gate. The zero-touch
+  scheduled variant is parked in `docs/ideas.md`; the audit itself is on demand.
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus, because `openspec validate` gates a spec's
   well-formedness but not its cross-spec structural consistency — title ↔ capability-path match, Purpose ↔ requirements

@@ -185,7 +185,8 @@ wait for approval before merging.
 
 # Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
 # plus workflowLint (actionlint) and verifyInfraImageVersions
-# (add -PskipITs to drop integration for a Docker-free check; e2e is never part of check)
+# (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — bare -PskipITs drops integration but still fails
+# jacocoTestCoverageVerification on the 0.80 baseline; e2e is never part of check)
 ./gradlew :showcase-command-service:check
 
 # Load tests (Gatling)
@@ -243,9 +244,10 @@ only in the service-release (third) segment within the same train is a minor/pat
 leading-integer major comparison.
 
 **Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. `check` runs the first three by
-default (`-PskipITs` drops integration for Docker-free runs); `e2eTest` is a separate opt-in task. There are two e2e
-suites: the gateway's (`showcase-api-gateway`, builds all four service images) and the web UI's (Playwright against the
-compose stack, serving the built UI via `vite preview`).
+default (`-PskipITs` drops integration for Docker-free runs — add `-Pcoverage.gate.enabled=false` to keep the coverage
+gate green, see Gotchas); `e2eTest` is a separate opt-in task. There are two e2e suites: the gateway's
+(`showcase-api-gateway`, builds all four service images) and the web UI's (Playwright against the compose stack, serving
+the built UI via `vite preview`).
 
 **Test tiers** — a test's tier is decided by its collaborators (what is real vs. faked), not by how long it takes to
 run:
@@ -1021,3 +1023,15 @@ that override when bumping the Kafka image tag.
   a plugin's config field serializes under its `@OptionTag` name (Prettier's `filesPattern` is written as
   `myFilesPattern`), so derive each `<option>`/attribute from an IDE-written file or the bundled plugin jar
   (`…/plugins/<plugin>/lib/*.jar`), not from the field name or the UI label.
+- **`./gradlew check -PskipITs` alone fails the coverage gate — the Docker-free check also passes
+  `-Pcoverage.gate.enabled=false`.** `-PskipITs` excludes `integrationTest` from the jacoco exec data, so
+  `jacocoTestCoverageVerification` verifies against a figure below the 0.80 baseline and fails; the gate is added to
+  `check` only when `coverage.gate.enabled` is not `false` (`code-coverage-conventions.gradle.kts`). The PR CI gate is
+  exactly `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (see Continuous Integration) — run that for a local
+  Docker-free check, not the bare `-PskipITs` form.
+- **A subagent added mid-session is not registered until OpenCode reloads its agent list.** Creating
+  `.opencode/agent/<name>.md` (plus its command) does not make the agent reachable in the running session — invoking it
+  via the Task tool fails with `Unknown agent type: <name>`; the `add-agents-auditor-agent` smoke-run was blocked until
+  OpenCode was restarted. A presence check (file exists, `mode: subagent`, model pin set) passes while the session still
+  cannot see it. Restart OpenCode (or start a new session) before smoke-testing a newly added or renamed subagent; the
+  same config-read-at-startup rule makes a changed `model` pin apply only to new sessions.

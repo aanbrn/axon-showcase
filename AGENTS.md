@@ -964,14 +964,20 @@ that override when bumping the Kafka image tag.
   change's own delta made the main spec hold 158, and the README still stated a hard "22 capability specs". Describe the
   shape instead of freezing a tally — the `specs-auditor` definition now says "a corpus … that grows with every archived
   change", and the README's "120+ and counting" is the pattern to follow.
-- **Javadoc is a claim about the code — verify direction and subject against the member's own docs and a usage site, and
-  scope a Javadoc-consistency sweep by the convention, not just the review's findings list.** The
-  `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter` reading "OpenSearch results to entities"
-  for a converter that maps entities → OpenSearch (the field Javadoc and its `mapObject(ShowcaseEntity…)` call sites say
-  so); the implementation quick review caught it. For converters/mappers either direction reads plausibly, so read the
-  field's Javadoc and one call site before writing the `@param`/`@return`. The same change also had to add a field
-  Javadoc the review never enumerated (`ShowcaseProjector.METER_NAME_PREFIX`, caught by the user): a consistency sweep
-  must audit every class/method/field in the touched classes, not only the review's findings list.
+- **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
+  is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`
+  reading "OpenSearch results to entities" for a converter that maps entities → OpenSearch (the field Javadoc and its
+  `mapObject(ShowcaseEntity…)` call sites say so); the implementation quick review caught it. For converters/mappers
+  either direction reads plausibly, so read the field's Javadoc and one call site before writing the `@param`/`@return`.
+  The same change also had to add a field Javadoc the review never enumerated (`ShowcaseProjector.METER_NAME_PREFIX`,
+  caught by the user): a consistency sweep must audit every class/method/field in the touched classes, not only the
+  review's findings list. The same holds for a spec-corpus fix: an audit's finding list scopes the fix, not the pattern
+  the finding is an instance of — `apply-specs-audit-findings` normalized the stray-space coordinates in the
+  `spring-data-opensearch` requirement but left the identical `org.springdoc: springdoc-openapi-starter-webflux-ui`
+  spelling lower in the same file, deferred as "a future audit" when a grep would have caught it (it took a follow-up
+  change, `fix-springdoc-coordinate-spelling`, to sweep it). When a finding is an instance of a convention
+  (coordinate/identifier spelling, `MUST` vs `SHALL`, a stale enumeration), grep the artifact or corpus and fix every
+  instance in the same change.
 - **Doc claims must match their source and their strength — quote verbatim or paraphrase explicitly, and reserve
   "enforced" for a real gate.** The self-learning README section described `AGENTS.md` rules in quotes;
   `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an

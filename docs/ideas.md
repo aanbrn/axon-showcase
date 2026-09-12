@@ -15,6 +15,22 @@ section for a new day rather than appending to the most recent one).
 
 ## 2026-09-12
 
+- README auditor — parked; no change yet. The ~690-line README is human-facing, and its content — unlike its markdown
+  formatting, which Spotless gates — has no check, so several gotchas are README errors caught reactively (the "two
+  replicas" / "36 panels" / "four services and a gateway" miscounts, the diagram asymmetry, the "22 capability specs"
+  tally); two documented conventions — README design intent and Surface human-visible capabilities — have no
+  enforcement. A `readme-auditor` subagent (pro model, `/audit-readme`) would check three verifiable axes:
+  **accuracy/consistency** (every claim — commands, ports, versions, image and task names, links, the OpenSpec-flow
+  diagram's semantics — matches the repo, cross-checked against `AGENTS.md` and the spec corpus); **design-intent
+  fidelity** (the README convention: section order, the step-by-step Getting Started path, Gradle tasks over raw
+  commands, curl-only, the prompting-exercise narrative); and **coverage / experience surfacing** (the Cool Story and
+  every human-visible capability — the saga auto-start, the live SSE timeline, the `setup-hosts` hostnames, the Grafana
+  access path — cross-checked against what the system does). Deliberately **not** an "attractiveness" judge: subjective
+  quality — prose and structure beyond the documented shape (redundancy, jargon, flow) — belongs in an advisory section
+  for the user's judgment, never as a defect, since the README is hand-curated by design ("preserve its intended shape
+  on every edit"). Scope: `README.md` only (ADRs, retrospectives, and the other docs are out). Would be the third
+  auditor, justified by a distinct artifact and audience (humans, not agents).
+
 - Scheduled spec-corpus audit — parked; no change yet. The `specs-auditor` subagent audits `openspec/specs/` on demand;
   a zero-touch periodic variant would run it unattended, the same way the scheduled AGENTS.md audit below is parked. The
   mechanism is identical (a weekly `.github/workflows/` run of the OpenCode GitHub action with an `on: schedule`

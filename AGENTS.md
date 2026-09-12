@@ -436,7 +436,11 @@ Key modules (libraries, not services):
   docs PR — a newly parked idea that is not yet a change is such a docs PR. A parked-idea docs PR owes the refresh too:
   fold any durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced
   manual pin to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost
-  once the idea is implemented or dropped.
+  once the idea is implemented or dropped. `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the
+  same project facts (runtime/Spring/Gradle versions, module count, service list, Docker image names) that OpenSpec
+  shows the AI when creating artifacts — refresh it in the same change whenever one of those facts moves.
+  `openspec validate` never checks it, so it drifts silently (it had fallen to Gradle 8.14.5 / 18 modules before the
+  first audit synced it, #170).
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
@@ -981,7 +985,10 @@ that override when bumping the Kafka image tag.
   prose. The same applies in the negative: when a change makes a previously-true "nothing covers X" / "A and B ignore X"
   statement false, grep `AGENTS.md`/`README.md` for the capability's absence claims and fix them in the same change —
   including one added by a recent change (the `buildpackUpdates` check in #149 falsified the "`dependencyUpdates` and
-  `helmUpdates` ignore bare `[versions]` entries" sentence #148 had added one change earlier).
+  `helmUpdates` ignore bare `[versions]` entries" sentence #148 had added one change earlier). The same goes for a
+  **code-symbol rename/removal**: docs cite class, test, and config names as examples and nothing resolves them, so grep
+  `AGENTS.md`/`README.md` for the old name in the same change — the first audit found `ShowcaseApiController*`
+  references that a rename had left behind.
 - **A buildpack's CNB id is not its Docker Hub repository — a registry lookup must target the repository, not the id.**
   The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are
   `paketobuildpacks/nginx` (no hyphen); querying the tags API with the CNB id 404s, so `BuildpackUpdatesTask`'s check

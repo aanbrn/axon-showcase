@@ -10,7 +10,7 @@
 
 - [x] 2.1 Replace the `AGENTS.md is audited for consistency and conciseness` requirement with the widened one in the
       `showcase/quality/agent-skills` delta spec (REMOVED + ADDED, carrying every existing scenario)
-- [ ] 2.2 Refresh the `showcase/quality/agent-skills` `## Purpose` in the archive commit — its "on-demand auditors of
+- [x] 2.2 Refresh the `showcase/quality/agent-skills` `## Purpose` in the archive commit — its "on-demand auditors of
       `AGENTS.md` and the `openspec/specs/` corpus" line goes stale (a delta cannot carry a Purpose)
 
 ## 3. Docs

@@ -73,8 +73,9 @@ SHALL propose the retrospective and suggestions without editing files; the main 
 ### Requirement: Per-change quality-gate and analysis subagents are available
 
 The repository SHALL provide locally-defined agent subagents under `.opencode/agent/` for the per-change quality gates
-and analysis workflows: `review-quick`, `review-thorough`, `lesson-capture`, `vision`, and `diagrammer`. Each SHALL be
-invocable by the main agent, with its purpose described in its agent definition and (where relevant) in `AGENTS.md`.
+and analysis workflows — the per-change review and lesson-capture agents, and the visual and diagram agents — each
+described by the scenarios below or by its own requirement in this capability. Each SHALL be invocable by the main
+agent, with its purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 
 #### Scenario: Quick review runs after proposal and implementation
 

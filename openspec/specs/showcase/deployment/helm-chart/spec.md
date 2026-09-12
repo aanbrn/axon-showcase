@@ -2,8 +2,9 @@
 
 ## Purpose
 
-Documents the current behavior of the Helm chart that deploys the four showcase services, their database migration and
-index initialization jobs, RBAC, network policies, autoscaling, and observability wiring.
+Documents the current behavior of the Helm chart that deploys the showcase services — command-service, query-service,
+projection-service, api-gateway, and web-ui — their database migration and index initialization jobs, RBAC, network
+policies, autoscaling, and observability wiring.
 
 ## Requirements
 

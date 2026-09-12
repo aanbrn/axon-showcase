@@ -5,6 +5,6 @@
 
 ## 2. Verification
 
-- [ ] 2.1 Run `openspec validate --all` and `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (the PR gate)
-- [ ] 2.2 Confirm no stray `group: artifact` coordinate remains in `openspec/specs/` and the MODIFIED delta carries both
+- [x] 2.1 Run `openspec validate --all` and `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (the PR gate)
+- [x] 2.2 Confirm no stray `group: artifact` coordinate remains in `openspec/specs/` and the MODIFIED delta carries both
       scenarios

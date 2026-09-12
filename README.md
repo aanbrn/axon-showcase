@@ -182,6 +182,11 @@ identifier extension and the dependency-management policy. Every implemented cha
 is always in sync with behavior the code has been verified against, and a change's delta spec shows what a specific
 feature introduced.
 
+The corpus itself is kept well-structured and mutually consistent by the `specs-auditor` subagent (`/audit-specs`, on
+demand): it checks title ↔ capability-path match, Purpose ↔ requirements fit, requirement conventions, cross-spec
+duplication, and dead cross-references — the structural drift `openspec validate` does not catch, not behavior against
+the code. It reports findings with suggested rewrites and never edits the specs itself.
+
 Emerging ideas are parked in `docs/ideas.md` — a lightweight, date-grouped scratchpad (added to via `/ideas`, removed
 once implemented or decided against) rather than a backlog of planned work. A parked idea is the usual starting point
 for an explore session that decides whether it deserves a proposal.
@@ -212,6 +217,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | --------------------- | --------------------------------------------------------------------------------------- |
 | `experience-analyzer` | Periodic retrospectives + improvement suggestions (system & process) — `/retrospective` |
 | `agents-auditor`      | Audits `AGENTS.md` for consistency and conciseness — `/audit-agents`                    |
+| `specs-auditor`       | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`        |
 | `lesson-capture`      | Captures gotchas/conventions into AGENTS.md after every change (automatic)              |
 | `review-quick`        | Fast review after proposal & implementation, repeated until clean (automatic)           |
 | `review-thorough`     | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`           |
@@ -331,6 +337,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/setup-idea`                | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier) |
 | `/review-thorough`           | Deep on-demand review of a change                                                       |
 | `/audit-agents`              | Audits AGENTS.md for consistency and conciseness (pro-model auditor)                    |
+| `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                |
 | `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer                           |
 | `/retrospective`             | Weekly retrospective with improvement suggestions                                       |
 | `/dependency-updates`        | Runs and summarizes the dependency update report                                        |

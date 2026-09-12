@@ -41,6 +41,9 @@ so they can see exactly which files changed. Commit only after the user approves
 to commit); the planning artifacts may be committed separately. Do not commit the implementation piecemeal either:
 committing early and then adding one "Address quick-review findings" commit per review round produced 11 commits for a
 single change (squashed before delivery) — keep it one coherent commit and squash fixups before the branch is shown.
+"Implementation" is not OpenSpec-only: a docs refresh or standalone fix stays uncommitted too, so the quick and manual
+reviews run against the visible working-tree diff, and it is committed only after the user approves (bar a change's
+`docs/ideas.md` removal, which is committed on the change branch — see Docs refresh on change).
 
 **Auto-review the change before asking for a manual review.** After finishing a change's **proposal** (planning
 artifacts) and again after finishing its **implementation**, run a quick review of the work (the `review-quick`
@@ -52,6 +55,15 @@ manual review pass. A clean quick review is a precondition for asking for the ma
 the strength of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) in ~4 minutes
 without ever requesting the manual pass. The commit → push → PR → CI → archive sequence starts only after the user
 approves the implementation — the "Run CI before archiving" convention does not authorize committing earlier.
+
+**The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
+work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
+no proposal/implementation/archive vocabulary for those, so map the rule onto what exists: run `review-quick` over the
+diff against the repo (and the change dir when one exists), fix the findings, re-run until clean, then ask the user for
+the manual pass — all _before_ committing, pushing, or opening the PR. Docs refreshes shipped as their own PR and
+standalone fixes describe _where the work ships_, not a waiver (several docs-refresh PRs were pushed branch → commit →
+push → PR with neither review, until the user rejected the tool call and asked "Why again you commit and push without
+any quick or manual review?").
 
 **Interrogate the premise before designing a change that moves, copies, or removes existing configuration.** Establish
 _why the current state exists_ and whether it is deliberate before designing _how_ to change it — a change that

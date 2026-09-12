@@ -140,6 +140,16 @@ because the Purpose is not validated against the change. The repo rule forbids e
 record an explicit task (as `address-new-snyk-findings` did in task 3.2) and apply the Purpose edit in the archive
 commit; do not assume the sync workflow covers it.
 
+**`openspec validate` checks a change's delta specs, not its `proposal.md` — proposal-schema defects surface only at
+archive, and non-blockingly.** For a change, `openspec validate --all`/`--changes` runs only the delta-spec validator;
+the proposal-level schema check is invoked exclusively by `openspec archive` (on its human, validated path — not with
+`--json` or `--no-validate`), which prints its findings under "Proposal warnings in proposal.md (non-blocking)" and
+never blocks on them. A proposal whose `## Why` section exceeds the schema's 1,000-character cap — or falls under its
+50-character floor — therefore validates clean through CI and only warns at archive
+(`fix-agent-tooling-audit-findings`'s own proposal tripped the cap this way). Keep the Why section within 50–1,000
+characters and move a longer rationale into the design or the What Changes body; do not treat a green
+`openspec validate --all` as proof the proposal is well-formed.
+
 **Run CI before archiving; one PR per change.** Push the implementation branch and open a PR with the code and the
 active change dir. After the `build` check is green and the user approves, archive the change (move the change dir and
 sync the main spec) as an additional commit in the _same_ PR, then merge once. The archive — the declaration that a

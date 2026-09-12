@@ -951,7 +951,14 @@ that override when bumping the Kafka image tag.
   — 5 are empty row separators, 31 are real panels), and "four services and a gateway" (double-counting a table that
   lists four components). The quick review against repo files caught all three. Before writing a replica count,
   panel/section count, or diagram count into a doc, read the source (`helm/values/*/values-*.yaml`, the dashboard JSON,
-  the component table) and cite the real number.
+  the component table) and cite the real number. Distinguish a point-in-time count from a durable one: an exact count of
+  a growing corpus (capability specs, requirements, archived changes) belongs in a change's own artifacts, where a stale
+  snapshot does no harm, and never in a durable artifact (a subagent definition loaded on every invocation, `AGENTS.md`,
+  the README, a command file, a main spec) — where it drifts on every archive and becomes exactly the drift the
+  `specs-auditor` exists to catch. The `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the
+  change's own delta made the main spec hold 158, and the README still stated a hard "22 capability specs". Describe the
+  shape instead of freezing a tally — the `specs-auditor` definition now says "a corpus … that grows with every archived
+  change", and the README's "120+ and counting" is the pattern to follow.
 - **Javadoc is a claim about the code — verify direction and subject against the member's own docs and a usage site, and
   scope a Javadoc-consistency sweep by the convention, not just the review's findings list.** The
   `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter` reading "OpenSearch results to entities"

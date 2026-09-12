@@ -176,11 +176,11 @@ artifacts (`/opsx-update` reworks a change's planning artifacts) and re-verifies
 right — the archive is a snapshot of a settled state, not the end of a one-way flow.
 
 The specs are organized by architectural role (`gateway`, `write-side`, `read-side`, `clients`, `extensions`,
-`deployment`, `quality`) — 22 capability specs covering everything from the REST API and the event pipeline to the
-identifier extension and the dependency-management policy. Every implemented change is archived under
-`openspec/changes/archive/` (120+ and counting), so the spec structure itself tells the project's history: the main spec
-is always in sync with behavior the code has been verified against, and a change's delta spec shows what a specific
-feature introduced.
+`deployment`, `quality`) — a capability spec per capability, grouped into these role areas, covering everything from the
+REST API and the event pipeline to the identifier extension and the dependency-management policy. Every implemented
+change is archived under `openspec/changes/archive/` (120+ and counting), so the spec structure itself tells the
+project's history: the main spec is always in sync with behavior the code has been verified against, and a change's
+delta spec shows what a specific feature introduced.
 
 The corpus itself is kept well-structured and mutually consistent by the `specs-auditor` subagent (`/audit-specs`, on
 demand): it checks title ↔ capability-path match, Purpose ↔ requirements fit, requirement conventions, cross-spec

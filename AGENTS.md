@@ -564,6 +564,15 @@ Key modules (libraries, not services):
   rather than as a defect. It deliberately does **not** check behavior against the code — the change workflow's review
   loop and the archive-time sync own that. The main agent applies approved findings through the normal change workflow
   (a spec edit is a change). The zero-touch scheduled variant is parked in `docs/ideas.md`.
+- **Justify a new auditor by a distinct artifact/property, not by symmetry — widen an existing one when its artifacts
+  are coupled.** A new auditor earns its place only when its artifact or property has drift no existing auditor can see;
+  if the drift is visible only across artifacts an existing auditor already holds, widen that auditor instead.
+  `specs-auditor` is separate because `openspec/specs/` is a distinct corpus with its own gate (`openspec validate`) and
+  cross-spec structural consistency, while the project-authored `.opencode/` tooling was folded into `agents-auditor`
+  rather than spawning a `tooling-auditor` — a subagent is described across its own definition, an `AGENTS.md` bullet,
+  the README agent table, and the `agent-skills` spec, so one auditor holding all of those catches cross-artifact drift
+  two single-artifact auditors would each see half of. Before adding an auditor, name the artifact's drift and which
+  existing auditor cannot see it — if one can, widen rather than add.
 - **Thorough-review subagent for deep passes**: the `review-thorough` subagent (`.opencode/agent/review-thorough.md`)
   does a deep review of a change against its proposal, delta specs, design, tasks, and the implementation diff — drift,
   correctness, architecture, and conventions. It is intentionally not auto-scheduled (the expensive pass); invoke it

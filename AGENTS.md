@@ -3,10 +3,8 @@
 ## Line Length
 
 - Wrap code and text at 120 characters. Markdown (`docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, and active
-  `openspec/changes/*/`; archived changes are excluded) is formatted automatically by the root Spotless `markdown`
-  format (Prettier at `printWidth: 120` with `proseWrap: "always"`), gated in `check` via `spotlessCheck` — no manual
-  wrapping needed for those files; Java/Kotlin are gated by Spotless too. See the `Formatting` convention for the
-  per-file-type mechanics.
+  `openspec/changes/*/`; archived changes are excluded) needs no manual wrapping — it is formatter-wrapped and gated in
+  `check`; Java/Kotlin are gated by Spotless too. See the `Formatting` convention for the per-file-type mechanics.
 
 ## Project Overview
 
@@ -115,10 +113,12 @@ never hand-write a MODIFIED block from memory.
 **A spec rename/move (`git mv`) does not update the spec's internal `#` title, and nothing validates the title against
 the capability path.** The first line of `openspec/specs/.../spec.md` must be edited separately to match the new path —
 `openspec validate` never checks it, so a stale header is silent drift that passes CI. The 2026-08-14 role-group
-restructure git-mv'd most spec files but left their `#` headers at the old `showcase/<capability>` paths (e.g.
-`# showcase/helm-chart Specification` still under `showcase/deployment/helm-chart/`); the `rest-api` rename fixed one
-such leftover, and several still remain. On any spec move or capability rename, fix the first line in the same change —
-the title does not follow the file.
+restructure git-mv'd most spec files but left their `#` headers at the old `showcase/<capability>` paths; #105 later
+fixed the eight leftover headers (helm-chart, the three extensions, load-tests, and the command/projection/query
+services). Two specs still carry non-path titles that predate the restructure — `# Ide Config Specification` under
+`showcase/quality/ide-config/` and `# Infra Image Versions Specification` under `showcase/quality/infra-image-versions/`
+— a different drift, same lesson. On any spec move or capability rename, fix the first line in the same change — the
+title does not follow the file.
 
 **A delta cannot carry a `## Purpose` for an existing capability — refresh the main spec's Purpose in the archive commit
 and record it as a task.** `openspec archive` (and the `openspec-sync-specs` workflow) treats the main spec's Purpose as
@@ -245,9 +245,8 @@ leading-integer major comparison.
 
 **Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. `check` runs the first three by
 default (`-PskipITs` drops integration for Docker-free runs — add `-Pcoverage.gate.enabled=false` to keep the coverage
-gate green, see Gotchas); `e2eTest` is a separate opt-in task. There are two e2e suites: the gateway's
-(`showcase-api-gateway`, builds all four service images) and the web UI's (Playwright against the compose stack, serving
-the built UI via `vite preview`).
+gate green, see Gotchas); `e2eTest` is a separate opt-in task (two suites — the gateway's and the web UI's; see Test
+tiers).
 
 **Test tiers** — a test's tier is decided by its collaborators (what is real vs. faked), not by how long it takes to
 run:
@@ -410,7 +409,7 @@ Key modules (libraries, not services):
   and the gateway `e2eTest` suites); leave them off suites that don't (e.g. a `componentTest` with only an
   `ApplicationContextRunner` test)
 - **Asserting log output**: use `OutputCaptureExtension` (`CapturedOutput`) when the code under test runs **in the test
-  JVM** (e.g. `ShowcaseProjectorIT`'s projector logging, `ShowcaseApiControllerCT`'s gateway fallback logging). It
+  JVM** (e.g. `ShowcaseProjectorIT`'s projector logging, `ShowcaseRestControllerCT`'s gateway fallback logging). It
   cannot capture a separate process's output — to assert a **containerized** service's logs (the code-under-test runs in
   a different JVM), collect them via `withLogConsumer` into a `static StringBuilder` and poll it, as the command-client
   e2e did before the suite was consolidated (see `69f2811`)
@@ -469,9 +468,9 @@ Key modules (libraries, not services):
   the flat `showcase-web-ui/eslint.config.js`, since the original plugin is unmaintained and does not support ESLint
   9/10) on every `showcase-web-ui` source file (the project is MIT licensed; see the LICENSE file)
 - **Javadoc**: classes, methods, and fields carry a Javadoc comment describing their purpose (see
-  `ShowcaseApiErrorResolver`, `ShowcaseApiController`); wrap at 120 characters. The `showcase-web-ui` uses JSDoc the
+  `ShowcaseApiErrorResolver`, `ShowcaseRestController`); wrap at 120 characters. The `showcase-web-ui` uses JSDoc the
   same way: exported components, hooks, and helpers carry a `/** ... */` comment describing their purpose (e.g.
-  `ShowcasesPage`, `contextualTime`, `waitForReadModel`); wrap at 120 characters
+  `ShowcasesPage`, `contextualTime`, `waitForReadModel`); both wrap at 120 characters
 - **Frontend (`showcase-web-ui`)**: organized per Feature-Sliced Design (`app`/`pages`/`widgets`/`features`/`entities`/
   `shared`, importing only downward, `@/` alias → `src/`). Server state via TanStack Query, client state via a Redux
   Toolkit slice, forms via React Hook Form + Zod. Format with Prettier (`format:check` gated in `check`; apply with
@@ -485,18 +484,19 @@ Key modules (libraries, not services):
   in `check` with no IDE required. After each edit, run `spotlessApply` (via the `codefmt` skill's Spotless path) before
   reporting the change done; the IntelliJ formatter is no longer canonical, and import order is owned by the formatter.
   - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML, and so
-    on); markdown is formatted by the root Spotless `markdown` format (Prettier at `printWidth: 120` — a preference, not
-    a hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating markdown wrapping).
-    Verify with a character count (`perl -CSD -lne 'print if length > 120'`), not `awk 'length > 120'` — `awk` counts
-    bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow tripped this three times); the `-l`
-    chomps the trailing newline `-ne` would otherwise count, so an exactly-120-character line is not false-flagged.
-    Verify a verification command on a boundary case before recording it — the first recipe omitted `-l` and
-    false-flagged every exactly-120-character line. Formatters cannot reflow string literals (e.g. an error message in
-    Kotlin/Gradle), so wrap an over-long string with concatenation (`"part1 " + "part2"`) — the formatter preserves it.
-    Write markdown as natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the
-    formatter owns the wrapping and reflows on every run. A bare `$` in prose (outside inline code) is parsed as inline
-    math and blocks that reflow — the paragraph silently keeps its original ragged wrapping while `spotlessCheck` still
-    passes; escape it as `\$` (which renders as `$`).
+    on); markdown is formatted by the root Spotless `markdown` format (Prettier, `printWidth: 120` with
+    `proseWrap: "always"` — a preference, not a hard limit: backtick-dense lines can still exceed 120, the accepted
+    trade-off of automating markdown wrapping). Verify with a character count
+    (`perl -CSD -lne 'print if length > 120'`), not `awk 'length > 120'` — `awk` counts bytes and false-flags a
+    ≤120-character line containing non-ASCII (the `→` arrow tripped this three times); the `-l` chomps the trailing
+    newline `-ne` would otherwise count, so an exactly-120-character line is not false-flagged. Verify a verification
+    command on a boundary case before recording it — the first recipe omitted `-l` and false-flagged every
+    exactly-120-character line. Formatters cannot reflow string literals (e.g. an error message in Kotlin/Gradle), so
+    wrap an over-long string with concatenation (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as
+    natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the
+    wrapping and reflows on every run. A bare `$` in prose (outside inline code) is parsed as inline math and blocks
+    that reflow — the paragraph silently keeps its original ragged wrapping while `spotlessCheck` still passes; escape
+    it as `\$` (which renders as `$`).
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with
@@ -504,9 +504,9 @@ Key modules (libraries, not services):
 - **IDE inspections (optional)**: the build gates are the canonical verification — after each edit, run
   `./gradlew spotlessApply` and the touched module's quality gates (`compileJava`/`check`); no IDE is required. If the
   IDE is available, you may additionally run its inspections on the touched files (through the Steroid MCP
-  `steroid_execute_code` / `runInspectionsDirectly`) and fix warnings, but this is not required and never a gate. Prefer
-  assertions like `assertThat(x).isNotNull()` over `Objects.requireNonNull(x)` when guarding nullable values in tests,
-  since the IDE recognizes them for dataflow.
+  `steroid_execute_code`, via its `runInspectionsDirectly` helper) and fix warnings, but this is not required and never
+  a gate. Prefer assertions like `assertThat(x).isNotNull()` over `Objects.requireNonNull(x)` when guarding nullable
+  values in tests, since the IDE recognizes them for dataflow.
 - **Vision subagent for screenshot review**: the main agent runs on the cheap `opencode-go/deepseek-v4.1-flash`
   (text-only); a `vision` subagent (`.opencode/agent/vision.md`) is pinned to `opencode-go/deepseek-v4-flash-vision-exp`
   to read screenshots. When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent —
@@ -547,13 +547,14 @@ Key modules (libraries, not services):
   keys), the flash-pinned subagent frontmatter (`.opencode/agent/review-quick.md`, `lesson-capture.md`,
   `experience-analyzer.md`), the `.github/workflows/opencode.yml` `model` input, and the `AGENTS.md` agent gotchas that
   name the model id (docs that ARE the change — update them in the same change). When bumping, grep for the old id
-  across `.opencode/`, `.github/workflows/`, `AGENTS.md`, and `README.md`, and exclude the vision agent's `-vision-exp`
-  pin: the vision model is a separate experimental line that may not have a counterpart in the new family (the v4.1 bump
-  left it on `deepseek-v4-flash-vision-exp`). A naive sweep that flags the vision pin as stale would wrongly "fix" a
-  deliberate asymmetry. Note the config `model` key is a default for **new** sessions, not a live override: OpenCode
-  persists the last-used model in `~/.local/state/opencode/model.json` (its `recent` list), so a restarted TUI that
-  restores a session keeps that session's model and still shows the old one until you switch manually or start a new
-  session — a correct config pin does not by itself make the running agent use the new model.
+  across `.opencode/`, `.github/workflows/`, and `AGENTS.md` (the `README.md` only names the generic `opencode-go/*`
+  form, so it needs no edit), and exclude the vision agent's `-vision-exp` pin: the vision model is a separate
+  experimental line that may not have a counterpart in the new family (the v4.1 bump left it on
+  `deepseek-v4-flash-vision-exp`). A naive sweep that flags the vision pin as stale would wrongly "fix" a deliberate
+  asymmetry. Note the config `model` key is a default for **new** sessions, not a live override: OpenCode persists the
+  last-used model in `~/.local/state/opencode/model.json` (its `recent` list), so a restarted TUI that restores a
+  session keeps that session's model and still shows the old one until you switch manually or start a new session — a
+  correct config pin does not by itself make the running agent use the new model.
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired
@@ -910,7 +911,7 @@ that override when bumping the Kafka image tag.
   `val integrationTest = suites.register<JvmTestSuite>("integrationTest")`).
 - `@Nested` test classes are incompatible with Spring Boot slice tests (`@WebFluxTest`/`@WebMvcTest`): nested classes
   load the full application context instead of the slice and fail on infrastructure beans (e.g. the gateway's JGroups
-  `DistributedCommandBusProperties`). Keep slice-test classes flat (see `ShowcaseApiControllerCT`).
+  `DistributedCommandBusProperties`). Keep slice-test classes flat (see `ShowcaseRestControllerCT`).
 - Testcontainers 2.0.5 moved `PostgreSQLContainer` from `org.testcontainers.containers` (now a deprecated shim) to the
   non-generic `org.testcontainers.postgresql.PostgreSQLContainer` — use the new import without the `<?>`/`<>` type
   arguments.

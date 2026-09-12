@@ -186,6 +186,11 @@ Emerging ideas are parked in `docs/ideas.md` — a lightweight, date-grouped scr
 once implemented or decided against) rather than a backlog of planned work. A parked idea is the usual starting point
 for an explore session that decides whether it deserves a proposal.
 
+An idea isn't the only entry point, though: a session can start just as well from a reported issue, a failing CI job, or
+any other observation — you describe it in a prompt; the agent investigates (reading the issue or the failing check
+through the GitHub MCP) and proposes from there. The loop is identical whatever kicked it off; `docs/ideas.md` holds
+un-acted ideas — it is not a required gate.
+
 Cross-cutting architecture decisions and their rationale are recorded as Architecture Decision Records under
 `docs/adr/`. OpenSpec captures what the system does and how a change is planned; ADRs capture why the system is shaped
 the way it is.
@@ -293,16 +298,16 @@ tell it to set up the tooling (or run `/setup-agent-tools`). It detects what you
 and installs the `gh-mcp` extension, handing back only what it can't do for you — like `gh auth login`, or installing
 `gh` itself. Prefer this over wiring them by hand, which is fiddly and easy to get wrong.
 
-The one that matters is **GitHub** (the agent reads PRs and CI checks); **Playwright** is already configured in the
-project, so there's nothing to set up.
+The one that matters is **GitHub** (the agent reads PRs, issues, and CI checks); **Playwright** is already configured in
+the project, so there's nothing to set up.
 
 By hand, the auth-bound server (GitHub) goes under the top-level `mcp` object in your **global** config
 (`~/.config/opencode/opencode.jsonc`), not the project config — a project entry can't use your credentials:
 
 - **Playwright** (project) — the agent's browser: it drives the running web UI and captures screenshots for the `vision`
   subagent. It needs only Node/`npx` (no credentials).
-- **GitHub** — read PRs and CI checks. Run `gh auth login` (the server reuses your `gh` credentials), install the
-  `gh-mcp` extension (`gh extension install shuymn/gh-mcp`), then add
+- **GitHub** — read PRs, issues, and CI checks. Run `gh auth login` (the server reuses your `gh` credentials), install
+  the `gh-mcp` extension (`gh extension install shuymn/gh-mcp`), then add
   `"github": { "type": "local", "command": ["gh", "mcp"], "enabled": true }`.
 
 MCP config is read at startup, so restart OpenCode after adding one.

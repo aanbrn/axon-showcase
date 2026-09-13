@@ -585,7 +585,7 @@ Key modules (libraries, not services):
   rather than as a defect. It deliberately does **not** check behavior against the code — the change workflow's review
   loop and the archive-time sync own that. The main agent applies approved findings through the normal change workflow
   (a spec edit is a change). The zero-touch scheduled variant is parked in `docs/ideas.md`.
-- **Architecture-auditor subagent for design drift**: the `architecture-auditor` subagent
+- **Architecture-auditor subagent for design drift and unrecorded intent**: the `architecture-auditor` subagent
   (`.opencode/agent/architecture-auditor.md`) audits the project's architecture — `docs/adr/` plus the architectural
   surface (the service boundaries, the module dependency graph, and the spec corpus's capability decomposition) — for
   drift from its recorded decisions. It covers an ADR's Decision contradicted by the code, a stale `Status` or an
@@ -594,15 +594,20 @@ Key modules (libraries, not services):
   matches the module/service structure. Trigger it with the `/audit-architecture` OpenCode command: it verifies each
   finding against the repository and reports in two separated sections — **findings** (verified drift, each with a
   location and a suggested correction) and **advisory** design observations (no severity, not defects, never "fixed"
-  without the user's decision) — without editing anything. It deliberately does **not** check behavior against the code
-  (the review loop and archive-time sync own that), the spec corpus's internal structure (`specs-auditor` owns that), or
-  any property an existing gate enforces. The main agent applies the approved findings under the review gate: an
-  architecture audit's output is mostly docs, so a finding whose fix is an ADR correction, a new ADR, or an
-  `AGENTS.md`/`README.md`/agent-tooling clarification lands as a docs PR, while one whose correction is a code change
-  becomes its own change and is parked as an idea until then — do not force the suggested correction into the audit-fix
-  PR (the first audit's `query-api` boundary finding was verified drift, yet narrowing the dependency broke
-  `:showcase-query-client:compileJava`). An advisory item needs the user's decision before anything is done with it. The
-  zero-touch scheduled variant is parked in `docs/ideas.md`.
+  without the user's decision) — without editing anything. Within the advisory section it also reports **where
+  clarification of intent is missing** — a deliberate choice or absence whose rationale is not recorded. It sweeps the
+  surfaces a rationale must exist for (dependency `exclude(...)` declarations, the major-version-suppressed coordinates,
+  the suppression annotations and retained deprecated APIs, and the deferrals and band-aids recorded in ADRs or
+  `docs/ideas.md`), searches the repository for a recorded rationale before reporting each item, and states the question
+  the owner must answer; an item whose rationale is already recorded is not reported. It deliberately does **not** check
+  behavior against the code (the review loop and archive-time sync own that), the spec corpus's internal structure
+  (`specs-auditor` owns that), or any property an existing gate enforces. The main agent applies the approved findings
+  under the review gate: an architecture audit's output is mostly docs, so a finding whose fix is an ADR correction, a
+  new ADR, or an `AGENTS.md`/`README.md`/agent-tooling clarification lands as a docs PR, while one whose correction is a
+  code change becomes its own change and is parked as an idea until then — do not force the suggested correction into
+  the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet narrowing the dependency
+  broke `:showcase-query-client:compileJava`). An advisory item needs the user's decision before anything is done with
+  it. The zero-touch scheduled variant is parked in `docs/ideas.md`.
 - **Justify a new auditor by a distinct artifact/property, not by symmetry — widen an existing one when its artifacts
   are coupled.** A new auditor earns its place only when its artifact or property has drift no existing auditor can see;
   if the drift is visible only across artifacts an existing auditor already holds, widen that auditor instead.

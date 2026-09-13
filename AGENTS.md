@@ -569,6 +569,18 @@ Key modules (libraries, not services):
   rather than as a defect. It deliberately does **not** check behavior against the code — the change workflow's review
   loop and the archive-time sync own that. The main agent applies approved findings through the normal change workflow
   (a spec edit is a change). The zero-touch scheduled variant is parked in `docs/ideas.md`.
+- **Architecture-auditor subagent for design drift**: the `architecture-auditor` subagent
+  (`.opencode/agent/architecture-auditor.md`) audits the project's architecture — `docs/adr/` plus the architectural
+  surface (the service boundaries, the module dependency graph, and the spec corpus's capability decomposition) — for
+  drift from its recorded decisions. It covers an ADR's Decision contradicted by the code, a stale `Status` or an
+  unrecorded supersession, a missing `ADR-NNNN` cross-reference, a cross-cutting decision with no ADR, a
+  dependency/service-boundary direction the architecture does not sanction, and a spec decomposition that no longer
+  matches the module/service structure. Trigger it with the `/audit-architecture` OpenCode command: it verifies each
+  finding against the repository and reports in two separated sections — **findings** (verified drift, each with a
+  location and a suggested correction) and **advisory** design observations (no severity, not defects, never "fixed"
+  without the user's decision) — without editing anything. It deliberately does **not** check behavior against the code
+  (the review loop and archive-time sync own that), the spec corpus's internal structure (`specs-auditor` owns that), or
+  any property an existing gate enforces. The zero-touch scheduled variant is parked in `docs/ideas.md`.
 - **Justify a new auditor by a distinct artifact/property, not by symmetry — widen an existing one when its artifacts
   are coupled.** A new auditor earns its place only when its artifact or property has drift no existing auditor can see;
   if the drift is visible only across artifacts an existing auditor already holds, widen that auditor instead.

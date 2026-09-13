@@ -198,7 +198,9 @@ un-acted ideas — it is not a required gate.
 
 Cross-cutting architecture decisions and their rationale are recorded as Architecture Decision Records under
 `docs/adr/`. OpenSpec captures what the system does and how a change is planned; ADRs capture why the system is shaped
-the way it is.
+the way it is. An `architecture-auditor` subagent (`/audit-architecture`, on demand) checks that those decisions still
+describe the system — an ADR the code has outgrown, a boundary that drifted, or a decision made in code without an ADR —
+and surfaces design observations separately for your judgment.
 
 ### The Agentic Process
 
@@ -213,16 +215,17 @@ with the worked scenarios.
 
 The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 
-| Agent                 | Role                                                                                    |
-| --------------------- | --------------------------------------------------------------------------------------- |
-| `experience-analyzer` | Periodic retrospectives + improvement suggestions (system & process) — `/retrospective` |
-| `agents-auditor`      | Audits AGENTS.md + project-owned `.opencode/` files — `/audit-agents`                   |
-| `specs-auditor`       | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`        |
-| `lesson-capture`      | Captures gotchas/conventions into AGENTS.md after every change (automatic)              |
-| `review-quick`        | Fast review after proposal & implementation, repeated until clean (automatic)           |
-| `review-thorough`     | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`           |
-| `vision`              | Reads screenshots for the text-only main agent                                          |
-| `diagrammer`          | Draws/fixes ASCII diagrams with the pro model — `/diagram`                              |
+| Agent                  | Role                                                                                               |
+| ---------------------- | -------------------------------------------------------------------------------------------------- |
+| `experience-analyzer`  | Periodic retrospectives + improvement suggestions (system & process) — `/retrospective`            |
+| `agents-auditor`       | Audits AGENTS.md + project-owned `.opencode/` files — `/audit-agents`                              |
+| `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                   |
+| `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift — `/audit-architecture` |
+| `lesson-capture`       | Captures gotchas/conventions into AGENTS.md after every change (automatic)                         |
+| `review-quick`         | Fast review after proposal & implementation, repeated until clean (automatic)                      |
+| `review-thorough`      | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`                      |
+| `vision`               | Reads screenshots for the text-only main agent                                                     |
+| `diagrammer`           | Draws/fixes ASCII diagrams with the pro model — `/diagram`                                         |
 
 #### What the Agent Automates
 
@@ -338,6 +341,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/review-thorough`           | Deep on-demand review of a change                                                       |
 | `/audit-agents`              | Audits AGENTS.md + project-owned .opencode/ files (pro-model auditor)                   |
 | `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                |
+| `/audit-architecture`        | Audits the architecture for drift from its recorded decisions (pro-model auditor)       |
 | `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer                           |
 | `/retrospective`             | Weekly retrospective with improvement suggestions                                       |
 | `/dependency-updates`        | Runs and summarizes the dependency update report                                        |

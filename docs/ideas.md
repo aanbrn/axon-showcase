@@ -35,8 +35,8 @@ section for a new day rather than appending to the most recent one).
   (in `showcase-test` or its own module) asserting those rules would turn the intended topology into a build failure the
   way `spotlessCheck` and Checkstyle turn style into one — this is the "constrain" layer, the one genuinely absent from
   the project's architecture management (it has decide = ADRs, describe = README/AGENTS.md, review = the review agents
-  and the proposed `architecture-auditor`, but no enforcement). It complements the parked _Enforce web UI conventions
-  with tooling_ idea (the same intent on the web module via `eslint-plugin-boundaries`). Interaction with the proposed
+  and the `architecture-auditor`, but no enforcement). It complements the parked _Enforce web UI conventions with
+  tooling_ idea (the same intent on the web module via `eslint-plugin-boundaries`). Interaction with the
   `architecture-auditor`: a fitness function _prevents_ boundary drift, the auditor _detects_ it — once a rule is a
   fitness function the auditor should drop that boundary check rather than re-report a property a gate already enforces.
   Deliberately not a full C4/Structurizr description toolchain: enforcement is the missing layer, not more description
@@ -63,14 +63,14 @@ section for a new day rather than appending to the most recent one).
   it: the ADR template has no `Revisit when:` field, no check watches for the condition, and `Status` only records a
   replacement after the fact — so a deferral silently becomes permanent until someone remembers it. Add a
   `Revisit when:` line to the template (and to the two existing deferrals), and decide how a due trigger reaches a
-  human: the proposed `architecture-auditor` checks `Status` integrity and a Decision contradicted by the code, but not
-  whether a deferred decision's condition has since been met, so either extend it to flag a deferred ADR whose condition
-  looks met, or list such ADRs in a small report alongside the dependency-update checks. Distinct from status drift: the
+  human: the `architecture-auditor` checks `Status` integrity and a Decision contradicted by the code, but not whether a
+  deferred decision's condition has since been met, so either extend it to flag a deferred ADR whose condition looks
+  met, or list such ADRs in a small report alongside the dependency-update checks. Distinct from status drift: the
   decision still holds, its premise may not.
 
-- Scheduled architecture audit — parked; no change yet. The proposed `architecture-auditor` audits the architecture on
-  demand; a zero-touch periodic variant would run it unattended, the same way the scheduled AGENTS.md and spec-corpus
-  audits are parked. The mechanism is identical (a weekly `.github/workflows/` run of the OpenCode GitHub action with an
+- Scheduled architecture audit — parked; no change yet. The `architecture-auditor` audits the architecture on demand; a
+  zero-touch periodic variant would run it unattended, the same way the scheduled AGENTS.md and spec-corpus audits are
+  parked. The mechanism is identical (a weekly `.github/workflows/` run of the OpenCode GitHub action with an
   `on: schedule` `prompt`), so all the scheduled audits could share one workflow — audit every artifact and open or
   update a single findings issue. Same permissions and caveats as the AGENTS.md entry (`2026-09-12`): no user context to
   permission-check, so every write must be granted explicitly, and the scheduled `prompt` path needs confirming before

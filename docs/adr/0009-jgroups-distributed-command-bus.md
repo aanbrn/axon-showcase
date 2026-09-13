@@ -31,7 +31,10 @@ secure; the repository covers routing with JGroups and the event store with Post
 ## Consequences
 
 - No dedicated Axon component to deploy or operate — the deployed infrastructure stays Kafka, PostgreSQL, and
-  OpenSearch.
+  OpenSearch. The deadline/scheduler role Axon Server would otherwise fill is covered by Axon's **db-scheduler**
+  integration — the `DbSchedulerDeadlineManager` (the integration also provides an `EventScheduler`) backed by
+  kagkarlsson's `db-scheduler` over the same PostgreSQL — configured through the `db-scheduler.*` properties (the chart
+  exposes the scheduler settings as `commandService.dbScheduler` → `DB_SCHEDULER_*`).
 - Command routing depends on JGroups cluster membership, so discovery must be provided per environment: TCP-ping for
   local runs, KUBE_PING (the Kubernetes API, via the namespace and the `jgroups-cluster=axon-showcase` labels) in the
   chart — which is why the NetworkPolicy must allow the Kubernetes lookup and the JGroups port (7800) must be reachable

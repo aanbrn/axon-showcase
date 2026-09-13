@@ -15,7 +15,7 @@ the architecture artifact and report where recorded intent and the repository di
 
 Scope — audit the architecture artifact:
 
-- `docs/adr/` — the ADRs and their index.
+- `docs/adr/` — the ADRs and the directory's `README.md` (the ADR conventions and template).
 - The architectural surface: the service boundaries; the module dependency graph (the Gradle module layout, its
   `project(...)` dependencies, and the web UI's Feature-Sliced Design layers); and the spec corpus's capability
   decomposition (`openspec/specs/showcase/*`).

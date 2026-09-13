@@ -22,14 +22,16 @@ every build would slow and destabilize the normal workflow.
 
 The official `io.snyk.gradle.plugin.snykgradleplugin` was rejected: it registers per-module `snyk-test` tasks and
 requires a `SNYK_TOKEN`, whereas the CLI command the repository already runs works without authentication for
-open-source scans and is a single, well-understood root-level scan that honors the existing `load-tests/.snyk` policy.
+open-source scans and is a single, well-understood root-level scan that honors the existing `.snyk` policy.
 
 ## Consequences
 
 - One Gradle command, `./gradlew dependencySecurityCheck`, replaces the ad-hoc shell invocation as the entry point for
   the local dependency security check.
-- No Snyk token or account is needed for local scans; the existing Snyk CLI and `load-tests/.snyk` policy are reused.
+- No Snyk token or account is needed for _local_ scans; the existing Snyk CLI and `.snyk` policy are reused. The
+  scheduled `snyk.yml` run authenticates with `SNYK_TOKEN`.
 - The scan stays out of `check`, so a slow or flaky network scan never blocks normal builds; a developer runs it
   explicitly before merging.
-- CI enforcement and scheduled monitoring remain follow-on concerns. Because the task is a plain root-level task, wiring
-  it into a future pipeline is straightforward.
+- Scheduled monitoring has since landed: `.github/workflows/snyk.yml` runs `./gradlew dependencySecurityCheck` weekly
+  (and on `workflow_dispatch`). CI enforcement remains deliberately absent — the scan stays out of `check`, so it never
+  gates a merge. Because the task is a plain root-level task, wiring it into the pipeline needed no extra machinery.

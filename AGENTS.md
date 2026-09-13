@@ -453,9 +453,12 @@ Key modules (libraries, not services):
   change branch, not left in the uncommitted review diff (a rebase that stashes an `ideas.md` edit can conflict with a
   `main` that also edited the file; see the `git stash pop` gotcha). An idea is removed once implemented (captured by a
   change) or once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open
-  ideas remain (see the file's header). Docs that ARE the change (new agent/command/skill documentation, README rows
-  describing a new capability, the change's idea removal) ship with the change's PR; docs that refresh facts about a
-  completed change ship as a separate docs PR — a newly parked idea that is not yet a change is such a docs PR. A
+  ideas remain (see the file's header). Also sweep `docs/ideas.md` for references to the thing this change shipped — an
+  open idea that still calls it "the proposed X" is itself a stale claim, and no auditor covers that file (the three
+  auditors own `AGENTS.md`/`.opencode/`, the spec corpus, and `docs/adr/` plus the architectural surface respectively);
+  update the idea's prose in the same change. Docs that ARE the change (new agent/command/skill documentation, README
+  rows describing a new capability, the change's idea removal) ship with the change's PR; docs that refresh facts about
+  a completed change ship as a separate docs PR — a newly parked idea that is not yet a change is such a docs PR. A
   standalone `docs/ideas.md` edit that no change owns (a reword or a stale-fact correction) also ships as its own docs
   PR, forked from `main`; an edit the change itself causes rides that change's branch. Decide the owner before
   committing — a docs PR forked from `main` cannot carry an edit committed on a change branch, so committing it there
@@ -589,7 +592,13 @@ Key modules (libraries, not services):
   location and a suggested correction) and **advisory** design observations (no severity, not defects, never "fixed"
   without the user's decision) — without editing anything. It deliberately does **not** check behavior against the code
   (the review loop and archive-time sync own that), the spec corpus's internal structure (`specs-auditor` owns that), or
-  any property an existing gate enforces. The zero-touch scheduled variant is parked in `docs/ideas.md`.
+  any property an existing gate enforces. The main agent applies the approved findings under the review gate: an
+  architecture audit's output is mostly docs, so a finding whose fix is an ADR correction, a new ADR, or an
+  `AGENTS.md`/`README.md`/agent-tooling clarification lands as a docs PR, while one whose correction is a code change
+  becomes its own change and is parked as an idea until then — do not force the suggested correction into the audit-fix
+  PR (the first audit's `query-api` boundary finding was verified drift, yet narrowing the dependency broke
+  `:showcase-query-client:compileJava`). An advisory item needs the user's decision before anything is done with it. The
+  zero-touch scheduled variant is parked in `docs/ideas.md`.
 - **Justify a new auditor by a distinct artifact/property, not by symmetry — widen an existing one when its artifacts
   are coupled.** A new auditor earns its place only when its artifact or property has drift no existing auditor can see;
   if the drift is visible only across artifacts an existing auditor already holds, widen that auditor instead.

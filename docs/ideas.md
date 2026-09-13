@@ -58,6 +58,14 @@ section for a new day rather than appending to the most recent one).
   looks met, or list such ADRs in a small report alongside the dependency-update checks. Distinct from status drift: the
   decision still holds, its premise may not.
 
+- Scheduled architecture audit — parked; no change yet. The proposed `architecture-auditor` audits the architecture on
+  demand; a zero-touch periodic variant would run it unattended, the same way the scheduled AGENTS.md and spec-corpus
+  audits are parked. The mechanism is identical (a weekly `.github/workflows/` run of the OpenCode GitHub action with an
+  `on: schedule` `prompt`), so all the scheduled audits could share one workflow — audit every artifact and open or
+  update a single findings issue. Same permissions and caveats as the AGENTS.md entry (`2026-09-12`): no user context to
+  permission-check, so every write must be granted explicitly, and the scheduled `prompt` path needs confirming before
+  relying on it.
+
 ## 2026-09-12
 
 - README auditor — parked; no change yet. The ~690-line README is human-facing, and its content — unlike its markdown
@@ -79,8 +87,8 @@ section for a new day rather than appending to the most recent one).
 - Scheduled spec-corpus audit — parked; no change yet. The `specs-auditor` subagent audits `openspec/specs/` on demand;
   a zero-touch periodic variant would run it unattended, the same way the scheduled AGENTS.md audit below is parked. The
   mechanism is identical (a weekly `.github/workflows/` run of the OpenCode GitHub action with an `on: schedule`
-  `prompt`), so the two could share one workflow when either is built — audit both artifacts and open or update a single
-  findings issue. Same permissions and caveats as the AGENTS.md entry below.
+  `prompt`), so the scheduled audits could share one workflow when the first is built — audit every artifact and open or
+  update a single findings issue. Same permissions and caveats as the AGENTS.md entry below.
 
 - Scheduled AGENTS.md audit — parked; no change yet. The `agents-auditor` subagent audits `AGENTS.md` and the
   project-owned `.opencode/` files on demand; a zero-touch periodic variant would run it unattended. The OpenCode GitHub

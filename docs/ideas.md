@@ -15,6 +15,16 @@ section for a new day rather than appending to the most recent one).
 
 ## 2026-09-13
 
+- Query-api → command-api re-export (dependency hygiene) — parked; no change yet. Found by the first
+  `/audit-architecture` run (its boundary check): `showcase-query-api` declares `api(project(":showcase-command-api"))`
+  although its main source needs only `showcase.identifier.KSUID` and uses no `showcase.command.*` type, so it
+  re-exports the whole write-side API to every query-api consumer — a direction the architecture does not sanction. The
+  fix is **not** a one-line swap: replacing the dep with `api(project(":showcase-identifier-extension"))` fails
+  `showcase-query-client`'s main compile (`ShowcaseQueryClientProperties` imports `org.hibernate.validator.constraints`,
+  which it was receiving transitively through command-api), so the modules that leaned on the accidental chain must
+  first declare what they actually use. Worth its own change: narrow query-api, add the consumers' explicit deps, and
+  let the build prove the graph.
+
 - Architecture fitness functions (ArchUnit) — parked; no change yet. The architecture is _described_ (the README's
   component table and event-flow diagram, `AGENTS.md`'s service/module/port lists) and _reviewed_ per change, but
   nothing _enforces_ it: the version catalog has no ArchUnit and no module carries a dependency-direction or layering
@@ -46,7 +56,7 @@ section for a new day rather than appending to the most recent one).
   included, against `AGENTS.md`): the audit detects divergence, this idea decides which copy is canonical —
   complementary, not parallel.
 
-- ADR revisit triggers for time-bounded decisions — parked; no change yet. Two of the seven ADRs are explicit deferrals
+- ADR revisit triggers for time-bounded decisions — parked; no change yet. Two of the eight ADRs are explicit deferrals
   whose entire point is to be revisited when a stated condition is met: ADR-0003 (retain Jackson 2; adopt Jackson 3 only
   once Axon and the OpenSearch client support it — an external gate) and ADR-0004 (defer Spring Boot 4; reopen when
   there is capacity — an internal one). Both _state_ their condition in prose in their Decision, but nothing _surfaces_

@@ -846,6 +846,14 @@ that override when bumping the Kafka image tag.
   `git checkout -- README.md` run inside an unrelated verification step (recovered only from a backup). While a work
   branch holds uncommitted edits, inspect committed content with `git diff`/`git show HEAD:<file>` rather than
   `checkout --`/`restore`/`reset`.
+- **A change-dir `git mv` at archive leaves a file's unstaged edit behind as `RM` — and the archived tree is outside
+  Spotless, so re-running `spotlessApply` after the move will not normalize it.** The archive commit relocates the
+  change dir (`git mv openspec/changes/<change> openspec/changes/archive/<change>`), but `git mv` stages the rename
+  against the **already-committed** content: a file inside carrying an uncommitted edit from the review-diff era —
+  typically the `tasks.md` tick — keeps that edit in the worktree, so `git status` shows `RM` and a plain `git commit`
+  records the pre-edit content, silently dropping the edit. Format the change-dir markdown **before** the `git mv`
+  (`build.gradle.kts` excludes `openspec/changes/archive/**` from the markdown Spotless target, so a post-move
+  `spotlessApply` does nothing), `git add` the archived dir, and re-check `git status` before committing.
 - **The actionlint download script takes positional arguments (`version dir`), not `--dir`, and the target dir must
   already exist.** When installing actionlint in CI with `bash <(curl .../scripts/download-actionlint.bash)`, pass
   `latest "$RUNNER_TEMP/actionlint"` and `mkdir -p` the dir first — a `--dir` flag is rejected as an invalid version
@@ -1108,4 +1116,8 @@ that override when bumping the Kafka image tag.
   via the Task tool fails with `Unknown agent type: <name>`; the `add-agents-auditor-agent` smoke-run was blocked until
   OpenCode was restarted. A presence check (file exists, `mode: subagent`, model pin set) passes while the session still
   cannot see it. Restart OpenCode (or start a new session) before smoke-testing a newly added or renamed subagent; the
-  same config-read-at-startup rule makes a changed `model` pin apply only to new sessions.
+  same config-read-at-startup rule makes a changed `model` pin apply only to new sessions. Treat that smoke-run as a
+  precondition for **archiving**, not a task to defer across the merge: it is the only verification that exercises the
+  subagent (CI runs none), and an unchecked task inside `openspec/changes/archive/` is invisible — the archive tree is
+  outside Spotless and no gate surfaces it — so the check is silently lost (`add-architecture-auditor-agent` archived
+  with its `/audit-architecture` smoke-run unchecked for exactly this reason).

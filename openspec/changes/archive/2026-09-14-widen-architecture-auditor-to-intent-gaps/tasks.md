@@ -25,17 +25,18 @@
       and the one-line row style
 - [x] 2.3 Re-read the AGENTS.md auditor-justification bullet and adjust it only if this widening makes its text
       inaccurate
-- [ ] 2.4 Apply the capability `## Purpose` refresh in the archive commit — the current Purpose scopes the architecture
+- [x] 2.4 Apply the capability `## Purpose` refresh in the archive commit — the current Purpose scopes the architecture
       audit to the ADRs and the dependency/decomposition surface, which the intent-clarification sweep extends; recorded
       as an explicit task because a delta cannot carry a Purpose
 
 ## 3. Docs refresh
 
-- [ ] 3.1 Park the sweep's candidate list in `docs/ideas.md` — the `org.axonframework` major pin with no recorded
-      rationale, the `ClassCanBeRecord` suppressions, the OpenSearch high-level-client exclusions, the
-      `axon-server-connector` exclusions outside the routing pair, and the `major-disabled.properties` pointer that
-      names a spec with no matching requirement — as its own docs PR forked from `main` (a newly parked idea), not on
-      this change's branch
+- [x] 3.1 Park the auditor's identified items in a separate `docs/ideas.md` PR after this change merges (the owner's
+      chosen order): the intent questions the first widened run surfaced — the `org.axonframework` major pin with no
+      recorded rationale and its dead `major-disabled.properties` pointer, the `ClassCanBeRecord` suppressions, the
+      OpenSearch high-level-client exclusions, the `axon-server-connector` exclusions outside the routing pair, and the
+      lower-confidence `FutureReturnValueIgnored` item — plus the ADR-0002 `showcaseCache` contradiction the run found,
+      the stale ADR-0007 `spotbugs-annotations` version, and the incomplete no-spec module enumeration in AGENTS.md
 
 ## 4. Verification
 

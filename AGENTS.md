@@ -444,7 +444,11 @@ Key modules (libraries, not services):
   only surfaces after the fact (an auditor or review finds it unrecorded) is dated to the day the decision was made,
   with a Context line stating it was recorded retrospectively and when; if the decision predates the ADR practice and no
   date can be established, date the recording and say so (the first architecture audit produced two such ADRs, dated the
-  two ways).
+  two ways). A retrospective ADR that cannot state _why_ the decision was made should ask the project owner before
+  recording the rationale as unrecorded — the repository's silence is not evidence the rationale does not exist, and a
+  missing _why_ is a question for the human, not a permanent gap to write down (ADR-0009 declared its no-Axon-Server
+  rationale "not recorded anywhere in the repository" until asking the owner recovered it: avoiding Axon Server's
+  commercial licensing).
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md`, `README.md`, and `docs/adr/` need to be
   refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
   a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on

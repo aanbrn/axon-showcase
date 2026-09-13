@@ -81,8 +81,8 @@ section for a new day rather than appending to the most recent one).
   access path — cross-checked against what the system does). Deliberately **not** an "attractiveness" judge: subjective
   quality — prose and structure beyond the documented shape (redundancy, jargon, flow) — belongs in an advisory section
   for the user's judgment, never as a defect, since the README is hand-curated by design ("preserve its intended shape
-  on every edit"). Scope: `README.md` only (ADRs, retrospectives, and the other docs are out). Would be the third
-  auditor, justified by a distinct artifact and audience (humans, not agents).
+  on every edit"). Scope: `README.md` only (ADRs, retrospectives, and the other docs are out). Justified by a distinct
+  artifact and audience (humans, not agents), following the same auditor pattern.
 
 - Scheduled spec-corpus audit — parked; no change yet. The `specs-auditor` subagent audits `openspec/specs/` on demand;
   a zero-touch periodic variant would run it unattended, the same way the scheduled AGENTS.md audit below is parked. The

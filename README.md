@@ -110,7 +110,8 @@ subscribed browser — all from one `POST /showcases`.
 ### In the System
 
 - **Java 21** and **Spring Boot 3.5.16** (a Spring Boot 4 migration is deferred — see `docs/adr/0004`)
-- **Axon Framework** — aggregates, sagas and deadlines, command/query buses, distributed command bus via **JGroups**
+- **Axon Framework** — aggregates, sagas and deadlines, command/query buses, and a **JGroups** distributed command bus;
+  deliberately run **without Axon Server** (a project intention — see `docs/adr/0009`)
 - **PostgreSQL** — the Axon event store
 - **Apache Kafka** — event streaming between services
 - **OpenSearch** — the read-side projection store

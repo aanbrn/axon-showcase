@@ -12,7 +12,7 @@
 
 - [x] 2.1 Add the `architecture-auditor` requirement (with its scenarios) to the `showcase/quality/agent-skills` delta
       spec
-- [ ] 2.2 Refresh the capability's `## Purpose` in the archive commit to cover the third auditor — a delta cannot carry
+- [x] 2.2 Refresh the capability's `## Purpose` in the archive commit to cover the third auditor — a delta cannot carry
       a Purpose for an existing capability
 
 ## 3. Docs

@@ -446,14 +446,19 @@ Key modules (libraries, not services):
   decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open ideas remain (see the file's
   header). Docs that ARE the change (new agent/command/skill documentation, README rows describing a new capability, the
   change's idea removal) ship with the change's PR; docs that refresh facts about a completed change ship as a separate
-  docs PR — a newly parked idea that is not yet a change is such a docs PR. A parked-idea docs PR owes the refresh too:
-  fold any durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced
-  manual pin to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost
-  once the idea is implemented or dropped. `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the
-  same project facts (runtime/Spring/Gradle versions, module count, service list, Docker image names) that OpenSpec
-  shows the AI when creating artifacts — refresh it in the same change whenever one of those facts moves.
-  `openspec validate` never checks it, so it drifts silently (it had fallen to Gradle 8.14.5 / 18 modules before the
-  first audit synced it, #170).
+  docs PR — a newly parked idea that is not yet a change is such a docs PR. A standalone `docs/ideas.md` edit that no
+  change owns (a reword or a stale-fact correction) also ships as its own docs PR, forked from `main`; an edit the
+  change itself causes rides that change's branch. Decide the owner before committing — a docs PR forked from `main`
+  cannot carry an edit committed on a change branch, so committing it there first for a clean tree silently leaves it
+  out of the docs PR and `main` unchanged — and verify the fix against the merged PR's diff rather than the PR
+  description, which can claim a change the diff does not contain. A parked-idea docs PR owes the refresh too: fold any
+  durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin
+  to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the
+  idea is implemented or dropped. `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the same
+  project facts (runtime/Spring/Gradle versions, module count, service list, Docker image names) that OpenSpec shows the
+  AI when creating artifacts — refresh it in the same change whenever one of those facts moves. `openspec validate`
+  never checks it, so it drifts silently (it had fallen to Gradle 8.14.5 / 18 modules before the first audit synced it,
+  #170).
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the

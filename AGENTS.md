@@ -440,28 +440,34 @@ Key modules (libraries, not services):
   generated-class excludes via `coverage.generatedClassExcludes`
 - **Architecture Decision Records**: record cross-cutting architecture decisions as numbered ADRs under `docs/adr/`
   (Nygard format — Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture the
-  _why_ behind structural choices. Capture a decision as an ADR when it is made, not after the fact
-- **Docs refresh on change**: on every change, verify whether `AGENTS.md` and `README.md` need to be refreshed to
-  reflect the new state (commands, config, conventions, gotchas) and update them before reporting the change done; also
-  remove the change's idea from `docs/ideas.md` **in the same PR** — committed on the change branch, not left in the
-  uncommitted review diff (a rebase that stashes an `ideas.md` edit can conflict with a `main` that also edited the
-  file; see the `git stash pop` gotcha). An idea is removed once implemented (captured by a change) or once explored and
-  decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open ideas remain (see the file's
-  header). Docs that ARE the change (new agent/command/skill documentation, README rows describing a new capability, the
-  change's idea removal) ship with the change's PR; docs that refresh facts about a completed change ship as a separate
-  docs PR — a newly parked idea that is not yet a change is such a docs PR. A standalone `docs/ideas.md` edit that no
-  change owns (a reword or a stale-fact correction) also ships as its own docs PR, forked from `main`; an edit the
-  change itself causes rides that change's branch. Decide the owner before committing — a docs PR forked from `main`
-  cannot carry an edit committed on a change branch, so committing it there first for a clean tree silently leaves it
-  out of the docs PR and `main` unchanged — and verify the fix against the merged PR's diff rather than the PR
-  description, which can claim a change the diff does not contain. A parked-idea docs PR owes the refresh too: fold any
-  durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin
-  to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the
-  idea is implemented or dropped. `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the same
-  project facts (runtime/Spring/Gradle versions, module count, service list, Docker image names) that OpenSpec shows the
-  AI when creating artifacts — refresh it in the same change whenever one of those facts moves. `openspec validate`
-  never checks it, so it drifts silently (it had fallen to Gradle 8.14.5 / 18 modules before the first audit synced it,
-  #170).
+  _why_ behind structural choices. Capture a decision as an ADR when it is made, not after the fact. A decision that
+  only surfaces after the fact (an auditor or review finds it unrecorded) is dated to the day the decision was made,
+  with a Context line stating it was recorded retrospectively and when; if the decision predates the ADR practice and no
+  date can be established, date the recording and say so (the first architecture audit produced two such ADRs, dated the
+  two ways).
+- **Docs refresh on change**: on every change, verify whether `AGENTS.md`, `README.md`, and `docs/adr/` need to be
+  refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
+  a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on
+  concern for weeks after `snyk.yml` landed, until the first architecture audit caught it) — and update them before
+  reporting the change done; also remove the change's idea from `docs/ideas.md` **in the same PR** — committed on the
+  change branch, not left in the uncommitted review diff (a rebase that stashes an `ideas.md` edit can conflict with a
+  `main` that also edited the file; see the `git stash pop` gotcha). An idea is removed once implemented (captured by a
+  change) or once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open
+  ideas remain (see the file's header). Docs that ARE the change (new agent/command/skill documentation, README rows
+  describing a new capability, the change's idea removal) ship with the change's PR; docs that refresh facts about a
+  completed change ship as a separate docs PR — a newly parked idea that is not yet a change is such a docs PR. A
+  standalone `docs/ideas.md` edit that no change owns (a reword or a stale-fact correction) also ships as its own docs
+  PR, forked from `main`; an edit the change itself causes rides that change's branch. Decide the owner before
+  committing — a docs PR forked from `main` cannot carry an edit committed on a change branch, so committing it there
+  first for a clean tree silently leaves it out of the docs PR and `main` unchanged — and verify the fix against the
+  merged PR's diff rather than the PR description, which can claim a change the diff does not contain. A parked-idea
+  docs PR owes the refresh too: fold any durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section
+  (e.g. add a newly surfaced manual pin to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a
+  fact left only there is lost once the idea is implemented or dropped. `openspec/config.yaml`'s `context:` block is a
+  second, un-gated copy of the same project facts (runtime/Spring/Gradle versions, module count, service list, Docker
+  image names) that OpenSpec shows the AI when creating artifacts — refresh it in the same change whenever one of those
+  facts moves. `openspec validate` never checks it, so it drifts silently (it had fallen to Gradle 8.14.5 / 18 modules
+  before the first audit synced it, #170).
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
@@ -977,6 +983,15 @@ that override when bumping the Kafka image tag.
   axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be
   referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g.
   `val integrationTest = suites.register<JvmTestSuite>("integrationTest")`).
+- **A `project(...)` dependency a module does not use can still be load-bearing for a consumer — narrowing it can break
+  a downstream `compileJava`.** `showcase-query-api` declares `api(project(":showcase-command-api"))` only to reach
+  `showcase.identifier.KSUID` (its main source uses no `showcase.command.*` type), so the architecture auditor flagged
+  the re-export as an unsanctioned direction — but replacing it with `api(project(":showcase-identifier-extension"))`
+  breaks `:showcase-query-client:compileJava`: `ShowcaseQueryClientProperties` imports
+  `org.hibernate.validator.constraints.URL`, which it receives transitively through `command-api`'s
+  `api(libs.hibernate.validator)`. Before removing or narrowing a `project(...)` dependency, grep the consumers' sources
+  for what they actually import and compile the affected modules; an unused direct dependency may be carrying the
+  transitive one a consumer's main source needs.
 - `@Nested` test classes are incompatible with Spring Boot slice tests (`@WebFluxTest`/`@WebMvcTest`): nested classes
   load the full application context instead of the slice and fail on infrastructure beans (e.g. the gateway's JGroups
   `DistributedCommandBusProperties`). Keep slice-test classes flat (see `ShowcaseRestControllerCT`).
@@ -1013,7 +1028,11 @@ that override when bumping the Kafka image tag.
   `specs-auditor` exists to catch. The `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the
   change's own delta made the main spec hold 158, and the README still stated a hard "22 capability specs". Describe the
   shape instead of freezing a tally — the `specs-auditor` definition now says "a corpus … that grows with every archived
-  change", and the README's "120+ and counting" is the pattern to follow.
+  change", and the README's "120+ and counting" is the pattern to follow. A named example or mechanism inside a
+  convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep it on "the gateway e2e test, which
+  pulls in JGroups", but the e2e suite drives containers and never boots JGroups in the test JVM — a false example that
+  surfaced only when ADR-0009 had to restate the same rule. When a second artifact restates an existing fact, diff the
+  two against the code rather than copying the prose.
 - **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
   is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`
   reading "OpenSearch results to entities" for a converter that maps entities → OpenSearch (the field Javadoc and its

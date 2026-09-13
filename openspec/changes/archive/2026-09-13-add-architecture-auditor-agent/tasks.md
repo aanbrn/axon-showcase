@@ -33,5 +33,5 @@
       must be disabled for a Docker-free run)
 - [x] 4.2 Confirm the subagent is discoverable (`.opencode/agent/architecture-auditor.md` present with `mode: subagent`
       and the pro model) and the command is present (`.opencode/commands/audit-architecture.md`)
-- [ ] 4.3 Smoke-run `/audit-architecture` against the current repository and review the findings — run after a session
+- [x] 4.3 Smoke-run `/audit-architecture` against the current repository and review the findings — run after a session
       restart, since a subagent added mid-session is not registered until OpenCode reloads its agent list

@@ -13,6 +13,51 @@ work, it may be promoted to a GitHub issue that links to the eventual OpenSpec c
 `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when it was added (start a new
 section for a new day rather than appending to the most recent one).
 
+## 2026-09-13
+
+- Architecture fitness functions (ArchUnit) — parked; no change yet. The architecture is _described_ (the README's
+  component table and event-flow diagram, `AGENTS.md`'s service/module/port lists) and _reviewed_ per change, but
+  nothing _enforces_ it: the version catalog has no ArchUnit and no module carries a dependency-direction or layering
+  test, so the intended structure rests on convention and human review. Nothing fails the build if a service starts
+  depending on another service (they are meant to talk only via a `-client`, Kafka, or HTTP — services happen not to
+  depend on one another today, so the rule would lock in an already-true property), if a service reaches into another's
+  internals instead of its `-api`, or if `build-logic`'s convention plugins leak across layers. A small ArchUnit suite
+  (in `showcase-test` or its own module) asserting those rules would turn the intended topology into a build failure the
+  way `spotlessCheck` and Checkstyle turn style into one — this is the "constrain" layer, the one genuinely absent from
+  the project's architecture management (it has decide = ADRs, describe = README/AGENTS.md, review = the review agents
+  and the proposed `architecture-auditor`, but no enforcement). It complements the parked _Enforce web UI conventions
+  with tooling_ idea (the same intent on the web module via `eslint-plugin-boundaries`). Interaction with the proposed
+  `architecture-auditor`: a fitness function _prevents_ boundary drift, the auditor _detects_ it — once a rule is a
+  fitness function the auditor should drop that boundary check rather than re-report a property a gate already enforces.
+  Deliberately not a full C4/Structurizr description toolchain: enforcement is the missing layer, not more description
+  ceremony.
+
+- Reconcile the architecture description across README and AGENTS.md — parked; no change yet. The same architectural
+  facts are stated twice — the README's `## Architecture` section and `## Project Structure` tree (component table,
+  event-flow diagram, module tree, for humans) and `AGENTS.md` (the service list and key-module list in its Architecture
+  section, the HTTP ports in Local Development, for agents) — and they have already drifted (the review that caught
+  "four services and a gateway" as a double-count was reading exactly this pair). The human-facing narrative in the
+  README and the agent-facing reference in `AGENTS.md` will always differ in _purpose_, so some restatement is
+  intentional, but each _fact_ (the component count, the service roles, the module inventory) should have one canonical
+  home, with the other naming it rather than restating it. Explore whether the module inventory in particular is worth
+  generating from one source (the Gradle module list) vs. stating it once and cross-referencing, and whether the
+  README's component table should include the web UI (it lists four components; the tree lists five service/gateway
+  directories). This is the other half of the parked _README auditor_ (which cross-checks the README's claims, ports
+  included, against `AGENTS.md`): the audit detects divergence, this idea decides which copy is canonical —
+  complementary, not parallel.
+
+- ADR revisit triggers for time-bounded decisions — parked; no change yet. Two of the seven ADRs are explicit deferrals
+  whose entire point is to be revisited when a stated condition is met: ADR-0003 (retain Jackson 2; adopt Jackson 3 only
+  once Axon and the OpenSearch client support it — an external gate) and ADR-0004 (defer Spring Boot 4; reopen when
+  there is capacity — an internal one). Both _state_ their condition in prose in their Decision, but nothing _surfaces_
+  it: the ADR template has no `Revisit when:` field, no check watches for the condition, and `Status` only records a
+  replacement after the fact — so a deferral silently becomes permanent until someone remembers it. Add a
+  `Revisit when:` line to the template (and to the two existing deferrals), and decide how a due trigger reaches a
+  human: the proposed `architecture-auditor` checks `Status` integrity and a Decision contradicted by the code, but not
+  whether a deferred decision's condition has since been met, so either extend it to flag a deferred ADR whose condition
+  looks met, or list such ADRs in a small report alongside the dependency-update checks. Distinct from status drift: the
+  decision still holds, its premise may not.
+
 ## 2026-09-12
 
 - README auditor — parked; no change yet. The ~690-line README is human-facing, and its content — unlike its markdown

@@ -56,7 +56,7 @@ section for a new day rather than appending to the most recent one).
   included, against `AGENTS.md`): the audit detects divergence, this idea decides which copy is canonical —
   complementary, not parallel.
 
-- ADR revisit triggers for time-bounded decisions — parked; no change yet. Two of the eight ADRs are explicit deferrals
+- ADR revisit triggers for time-bounded decisions — parked; no change yet. ADR-0003 and ADR-0004 are explicit deferrals
   whose entire point is to be revisited when a stated condition is met: ADR-0003 (retain Jackson 2; adopt Jackson 3 only
   once Axon and the OpenSearch client support it — an external gate) and ADR-0004 (defer Spring Boot 4; reopen when
   there is capacity — an internal one). Both _state_ their condition in prose in their Decision, but nothing _surfaces_

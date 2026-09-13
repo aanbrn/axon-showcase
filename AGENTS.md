@@ -14,7 +14,10 @@
 This repo uses **spec-driven development**: behavior is captured as OpenSpec specs in `openspec/specs/showcase/`
 (organized by architectural role: `gateway`, `write-side`, `read-side`, `clients`, `extensions`, `deployment`,
 `quality`). Code changes go through the `opsx-*` OpenCode commands / `openspec-*` skills (propose → apply → archive).
-Follow these workflows for new work, and treat the captured specs as the behavioral source of truth.
+Follow these workflows for new work, and treat the captured specs as the behavioral source of truth. A spec describes a
+**capability**, not a module one-to-one: the infrastructure modules (`platform`, `build-logic`, `showcase-test`, and the
+`helm` parent module) carry none, and a module's name need not equal its spec path — the `showcase-api-gateway` module
+is specified as `gateway/rest-api` plus `gateway/live-events`.
 
 ## OpenSpec Workflow Agreement
 
@@ -429,7 +432,7 @@ Key modules (libraries, not services):
 - **`@DirtiesContext`**: add it only where a full-context boot leaks global JVM state — JGroups (ports and system
   properties) and JCache (a JVM-global cache manager). Contexts that are safely cacheable don't need it: service slices,
   and `@Nested` classes with distinct `@ActiveProfiles` (which already get separate cached contexts). Keep it on the
-  gateway/command-service full-context ITs (and the gateway e2e test, which pulls in JGroups); drop it elsewhere
+  gateway/command-service full-context ITs (each boots a JGroups-enabled service); drop it elsewhere
 - **Code coverage**: modules opt in via `code-coverage-conventions`. Coverage is measured per module with
   `jacocoTestReport` (unit + component + integration exec data) and aggregated with the root `jacocoRootReport`. The
   `jacocoTestCoverageVerification` gate is wired into `check` at the baseline in

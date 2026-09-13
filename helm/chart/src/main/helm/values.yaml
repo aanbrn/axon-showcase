@@ -132,7 +132,7 @@ commandService:
       idleTimeout: 600000
       leakDetectionThreshold: 0
 
-  # Axon Server scheduler settings for the embedded event scheduler.
+  # Embedded event-scheduler (db-scheduler) settings, used in place of Axon Server's.
   # @param commandService.dbScheduler.threads Scheduler worker threads
   # @param commandService.dbScheduler.heartbeatInterval Scheduler heartbeat interval
   # @param commandService.dbScheduler.immediateExecutionEnabled Allow immediate execution

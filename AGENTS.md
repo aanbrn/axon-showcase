@@ -1097,7 +1097,10 @@ that override when bumping the Kafka image tag.
   `helmUpdates` ignore bare `[versions]` entries" sentence #148 had added one change earlier). The same goes for a
   **code-symbol rename/removal**: docs cite class, test, and config names as examples and nothing resolves them, so grep
   `AGENTS.md`/`README.md` for the old name in the same change — the first audit found `ShowcaseApiController*`
-  references that a rename had left behind.
+  references that a rename had left behind. The sweep covers non-doc artifacts too: recording that a component is
+  deliberately _not_ used (ADR-0009's "without Axon Server") must grep the whole repo for its name, because config,
+  values, and template comments carry claims no auditor reads (`helm/chart/src/main/helm/values.yaml` still called the
+  `db-scheduler` settings "Axon Server scheduler settings").
 - **A buildpack's CNB id is not its Docker Hub repository — a registry lookup must target the repository, not the id.**
   The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are
   `paketobuildpacks/nginx` (no hyphen); querying the tags API with the CNB id 404s, so `BuildpackUpdatesTask`'s check

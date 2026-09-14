@@ -44,6 +44,6 @@
 - [x] 4.2 Run `./gradlew spotlessApply` after the final edit (tasks 3.3–3.6 edit files now inside the markdown target),
       then the PR gate `./gradlew check -PskipITs -Pcoverage.gate.enabled=false`, and confirm `spotlessCheck` and
       `openspec validate --all` are clean
-- [ ] 4.3 Record the `showcase/quality/code-quality` `## Purpose` check for the archive commit — its Purpose is
-      scope-agnostic, so confirm (and edit only if the widened scope makes it inaccurate) that it still fits; recorded
-      as an explicit task because a delta cannot carry a Purpose
+- [x] 4.3 Record the `showcase/quality/code-quality` `## Purpose` check for the archive commit — its Purpose is
+      scope-agnostic ("enforces the project's code style … through the build"), so it still fits the widened scope and
+      needs no edit; recorded as an explicit task because a delta cannot carry a Purpose

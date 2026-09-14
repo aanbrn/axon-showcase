@@ -33,6 +33,6 @@
       `openspec validate --all` are clean after the final edit
 - [x] 4.2 Confirm no deployed value moved: `git diff` touches neither `application.yml` nor the chart for the
       `showcaseCache` size, and the module's yml-defaults test still asserts the other caches unchanged
-- [ ] 4.3 Record the `showcase/write-side/command-service` `## Purpose` check for the archive commit — confirm it still
-      fits and edit it only if the reconciled requirement makes it inaccurate; recorded as an explicit task because a
-      delta cannot carry a Purpose
+- [x] 4.3 The `showcase/write-side/command-service` `## Purpose` check for the archive commit: it still fits — it
+      describes the write side's behavior without naming cache values — so it needs no edit. Recorded rather than
+      applied, since a delta cannot carry a Purpose

@@ -34,10 +34,10 @@ requests it (e.g., "push" or "commit and push").
 after the change). The change dir and all subsequent work live on that branch; rejecting a proposal is a branch delete,
 never a `main` cleanup.
 
-**Fork branches from `main` only.** Every new branch — a change branch or a standalone fix — is created from
-`origin/main` (fetch first), never from another work branch. Branching from a work branch silently carries its commits
-into the new PR (a fix PR ended up shipping a change's commit history); recover by rebasing `--onto origin/main` and
-force-pushing, then verify the PR's changed-file set is the intended one.
+**Fork branches from `main` only.** Every new branch — a change branch, a standalone fix, or a post-merge capture's docs
+change — is created from `origin/main` (fetch first), never from another work branch. Branching from a work branch
+silently carries its commits into the new PR (a fix PR ended up shipping a change's commit history); recover by rebasing
+`--onto origin/main` and force-pushing, then verify the PR's changed-file set is the intended one.
 
 **Leave implementation uncommitted until the user has reviewed it.** After applying a change, do not commit the
 implementation before the user has done their review pass — keep the working-tree diff visible (`git status`/`git diff`)
@@ -119,6 +119,13 @@ pass. An initial "nothing to capture" verdict is a hypothesis, not a conclusion:
 process mistakes that were themselves the lesson (e.g. the archive was forgotten and the premise-interrogation gap went
 uncaptured until the user pushed twice). A docs-fix merge has nothing further to capture only if the subagent actually
 reviewed it and said so.
+
+**A capture's output is itself a change-sized unit — start it on its own branch, not in `main`'s working tree.**
+Applying the subagent's proposals is the propose-like moment for the docs change they become: fork from the just-merged
+`main` as soon as you begin, so `main` never carries an in-progress diff and the work is isolated to its own branch. The
+capture after the upstream-report PR (#212) was applied directly on `main` and sat there as an uncommitted two-file diff
+until a review pass flagged it, and the branch was created only then; "leave implementation uncommitted until the user
+has reviewed it" presumes a branch — an uncommitted capture belongs on its branch, not on `main`.
 
 **Sync the main spec only at archive.** Apply edits to code and the change dir's _delta_ spec — never the main spec
 under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source
@@ -1190,10 +1197,12 @@ that override when bumping the Kafka image tag.
   references already closed — `ben-manes/gradle-versions-plugin#755` (2026-08-06, PR #1060) and
   `spring-projects/spring-data-elasticsearch#3334` (2026-08-30, PR #3337) — while both constraint notes still read as
   open. Resolve an `owner/repo#NNN` through the tracker before writing or editing such a reference, and when it has
-  closed, check that the fix covers _our_ configuration before retiring the note: `#755` closed through a change to
-  platform-sourced constraints (`satisfiesDeclaredBound`, "nothing changes by default") while our spurious row comes
-  from `checkBuildEnvironmentConstraints` and remains. This is the write-time check for the reference you are touching;
-  the periodic corpus sweep is parked in `docs/ideas.md`.
+  closed, read the fixing PR's own diff and the release it shipped in against our pin before treating the note as
+  retirable — the issue's premise and its closure are not enough. `#755` closed through a change to platform-sourced
+  constraints (`satisfiesDeclaredBound`, "nothing changes by default"), so our spurious row from
+  `checkBuildEnvironmentConstraints` remains even though the fix shipped in 0.60.0, so any pin since then already
+  contains it. This is the write-time check for the reference you are touching; the periodic corpus sweep is parked in
+  `docs/ideas.md`.
 - **Work a change surfaces is parked durably — a PR body is not a record.** When a docs change records an external state
   change that implies work, park that work in `docs/ideas.md` (or record it as a task) in the same change: a PR body is
   squashed and no tool reads it, so work named only there is lost.

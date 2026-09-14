@@ -1299,7 +1299,11 @@ that override when bumping the Kafka image tag.
   `application.yml` and never binds the Java field — reverting the field instead would have proved nothing, since that
   test would pass regardless. Match the control's injection point to the test's binding source (the yml placeholder for
   a yml-loading test, the Java field for a Java-defaults test), and confirm the assertion fails; a control that runs
-  without failing has not exercised the check.
+  without failing has not exercised the check. Verify the control's own setup actually perturbed its target — assert the
+  anchor occurs exactly once, or diff the surface before and after — before reading its outcome at all: the
+  `openspec`-config-rules control unquoted a `config.yaml` rule item that was already unquoted _and_ carried no `: `
+  (select one of the two items that does), so its edit no-opped and the silent run was misread as a defect in the guard
+  rather than a false negative in the control's own setup — silence is not evidence the guard is broken.
 - **Pinned workflow tool versions are outside every update-check workflow — audit the whole set, not one pin at a
   time.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` /
   `helm-updates.yml` cover the Helm CLI and pinned charts, `buildpackUpdates` / `buildpack-updates.yml` cover the Paketo

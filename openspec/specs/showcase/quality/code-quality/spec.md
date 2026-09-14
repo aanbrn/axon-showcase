@@ -61,9 +61,13 @@ suffixes (`Tests`, `CT`, `IT`, `E2E`).
 The build SHALL format Java and Kotlin DSL (`.gradle.kts`) sources to a canonical style — including removal of unused
 imports — and verify formatting as part of the standard `check` task, with no IDE required. The build SHALL also format
 build-logic Kotlin (`build-logic/src/**/*.kt`) with ktfmt matching the Gradle-DSL style, root markdown (`docs/`,
-`AGENTS.md`, `README.md`, `openspec/specs/`, and active `openspec/changes/*/`) with Prettier at `printWidth: 120` with
-`proseWrap: "always"`, and verify each in `check` — ending the manual 120-char wrapping convention. The
-`openspec/changes/archive/` historical record is not reformatted.
+`AGENTS.md`, `README.md`, `openspec/specs/`, active `openspec/changes/*/`, and the project-authored `.opencode/`
+markdown — the agent definitions, the project-authored commands, and the project skills) with Prettier at
+`printWidth: 120` with `proseWrap: "always"`, and the project-owned `.opencode/opencode.json` with Prettier at
+`printWidth: 120`, and verify each in `check` — ending the manual 120-char wrapping convention. The
+`openspec/changes/archive/` historical record is not reformatted, and neither are the generated OpenSpec instruction
+files (the six `opsx-*` commands — the project-authored `opsx-tool-update.md` is in scope — and the `openspec-*` skills)
+nor the vendored `axon4to5-*` skills, which are copied verbatim from upstream.
 
 #### Scenario: Formatting check runs in the standard check
 
@@ -92,14 +96,31 @@ build-logic Kotlin (`build-logic/src/**/*.kt`) with ktfmt matching the Gradle-DS
 
 #### Scenario: Unformatted markdown fails the build
 
-- **WHEN** a root markdown file (`docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, an active `openspec/changes/*/`)
-  is not Prettier-formatted
+- **WHEN** a file in the markdown scope (e.g. under `docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, an active
+  `openspec/changes/*/`, or the project-authored `.opencode/` markdown) is not Prettier-formatted
 - **THEN** the root markdown formatting check fails and reports the offending file
 
 #### Scenario: Archived change markdown is not reformatted
 
 - **WHEN** the root markdown formatting check runs
 - **THEN** it does not check `openspec/changes/archive/` (the historical record is left as recorded)
+
+#### Scenario: Project-authored .opencode markdown is format-gated
+
+- **WHEN** a project-authored `.opencode/` markdown file — an agent definition, a project-authored command, or a project
+  skill — is not Prettier-formatted
+- **THEN** the markdown formatting check fails and reports the offending file
+
+#### Scenario: Generated and vendored .opencode files are not reformatted
+
+- **WHEN** the markdown formatting check runs
+- **THEN** it does not check the generated `opsx-*` commands (except the project-authored `opsx-tool-update.md`), the
+  generated `openspec-*` skills, or the vendored `axon4to5-*` skills
+
+#### Scenario: The .opencode configuration JSON is format-gated
+
+- **WHEN** `.opencode/opencode.json` is not Prettier-formatted
+- **THEN** the JSON formatting check fails and reports the file
 
 ### Requirement: License headers are enforced
 

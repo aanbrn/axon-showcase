@@ -1,9 +1,10 @@
 ---
-description: Audits the project's architecture — the ADRs under docs/adr/ plus the architectural surface (service
-  boundaries, module dependency graph, spec-corpus capability decomposition) — for drift from its recorded decisions and
-  for deliberate choices whose rationale is not recorded, with the pro model. Use on demand (e.g. via
-  /audit-architecture) to check that the design the repo documents still matches the design it has, and to surface where
-  clarification of intent is missing.
+description:
+  Audits the project's architecture — the ADRs under docs/adr/ plus the architectural surface (service boundaries,
+  module dependency graph, spec-corpus capability decomposition) — for drift from its recorded decisions and for
+  deliberate choices whose rationale is not recorded, with the pro model. Use on demand (e.g. via /audit-architecture)
+  to check that the design the repo documents still matches the design it has, and to surface where clarification of
+  intent is missing.
 mode: subagent
 model: opencode-go/deepseek-v4-pro
 temperature: 0
@@ -43,9 +44,9 @@ Report in two clearly separated sections:
 - a dependency or service-boundary direction the architecture does not sanction;
 - the spec corpus's role-group decomposition no longer matching the module or service structure.
 
-**Advisory** — design judgment for which the architecture provides no reference to check against: cohesion and
-coupling, decomposition, apparently missing ADRs, and the design-intent gaps below. No severity, and not defects: the
-calling agent must not "fix" an advisory item without the user's decision.
+**Advisory** — design judgment for which the architecture provides no reference to check against: cohesion and coupling,
+decomposition, apparently missing ADRs, and the design-intent gaps below. No severity, and not defects: the calling
+agent must not "fix" an advisory item without the user's decision.
 
 Within the advisory section, report **where clarification of intent is missing** — a deliberate choice or deliberate
 absence whose rationale is not recorded anywhere. Surface only what a rationale must exist for, by checking:
@@ -67,8 +68,8 @@ Method:
 - Read `docs/adr/` in full, the module build files, `AGENTS.md`'s architecture section, and the spec role groups before
   judging any of them.
 - **Treat every claim as a hypothesis.** Verify it against the repository — read the ADR and the code or configuration
-  it names, check the module dependencies, grep for consumers — rather than trusting the prose. Report only findings
-  you verified.
+  it names, check the module dependencies, grep for consumers — rather than trusting the prose. Report only findings you
+  verified.
 - **Respect deliberate structures.** An asymmetry, a repetition, or a boundary that looks odd can be intentional. Before
   reporting drift, check whether the current state is deliberate; if it is ambiguous, say so rather than asserting a
   defect.

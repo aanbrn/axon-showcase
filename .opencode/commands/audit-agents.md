@@ -1,5 +1,6 @@
 ---
-description: Audit the project-owned agent tooling (AGENTS.md + project-authored .opencode/ files) with the pro-model
+description:
+  Audit the project-owned agent tooling (AGENTS.md + project-authored .opencode/ files) with the pro-model
   agents-auditor subagent
 ---
 
@@ -12,7 +13,5 @@ Run the agent-tooling audit to check the project's guidance and agent files for 
    its location and suggested rewrite.
 3. Ask the user which findings to apply — do not edit files without their go-ahead.
 4. Apply the approved findings, run `./gradlew spotlessApply` for the formatter-wrapped files (`AGENTS.md`, `README.md`,
-   the specs/change dirs) and a manual 120-character check on the `.opencode/` files the audit edited (`node_modules`,
-   the generator-written `opsx-*` commands and `openspec-*` skills, and the vendored skills are out of scope; the
-   project-authored `opsx-tool-update.md` stays in scope), then re-run the `review-quick` subagent over the resulting
-   diff before reporting the audit done.
+   the specs/change dirs, and the project-authored `.opencode/` markdown the audit edited), then re-run the
+   `review-quick` subagent over the resulting diff before reporting the audit done.

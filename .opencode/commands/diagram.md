@@ -2,8 +2,8 @@
 description: Draw or fix an ASCII diagram with the pro-model diagrammer subagent
 ---
 
-Draw a new ASCII diagram or fix a misaligned one using the `diagrammer` subagent (pinned to the pro model), so the
-cheap flash main agent does not spend effort on ASCII geometry.
+Draw a new ASCII diagram or fix a misaligned one using the `diagrammer` subagent (pinned to the pro model), so the cheap
+flash main agent does not spend effort on ASCII geometry.
 
 1. Determine the task: what to draw (a new diagram) or which existing diagram to fix (name the file and the issue).
 2. Establish the **semantic mapping** — which span/bracket/node starts and ends where, and what each annotation means —

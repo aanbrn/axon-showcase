@@ -16,8 +16,27 @@ plugins {
 
 spotless {
     format("markdown") {
-        target("docs/**/*.md", "AGENTS.md", "README.md", "openspec/specs/**/*.md", "openspec/changes/**/*.md")
-        targetExclude("openspec/changes/archive/**")
+        target(
+            "docs/**/*.md",
+            "AGENTS.md",
+            "README.md",
+            "openspec/specs/**/*.md",
+            "openspec/changes/**/*.md",
+            ".opencode/agent/**/*.md",
+            ".opencode/commands/**/*.md",
+            ".opencode/skills/**/*.md",
+        )
+        targetExclude(
+            "openspec/changes/archive/**",
+            ".opencode/commands/opsx-apply.md",
+            ".opencode/commands/opsx-archive.md",
+            ".opencode/commands/opsx-explore.md",
+            ".opencode/commands/opsx-propose.md",
+            ".opencode/commands/opsx-sync.md",
+            ".opencode/commands/opsx-update.md",
+            ".opencode/skills/axon4to5-*/**",
+            ".opencode/skills/openspec-*/**",
+        )
         prettier("3.9.6")
             .config(
                 mapOf(
@@ -28,6 +47,11 @@ spotless {
                     "semi" to true,
                 )
             )
+    }
+
+    format("json") {
+        target(".opencode/opencode.json")
+        prettier("3.9.6").config(mapOf("printWidth" to 120))
     }
 
     kotlinGradle {

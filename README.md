@@ -507,10 +507,12 @@ change. An IDE (e.g. IntelliJ IDEA) is an optional convenience for interactive e
 
 Formatting is enforced by Spotless — palantir-java-format for Java, ktfmt for Gradle Kotlin DSL (`*.gradle.kts`) and
 build-logic Kotlin (`build-logic/src/**/*.kt`), Prettier for markdown (`docs/`, `AGENTS.md`, `README.md`,
-`openspec/specs/`): `./gradlew spotlessApply` formats, `spotlessCheck` verifies, and the build never depends on an IDE.
-For the **web module**, `./gradlew :showcase-web-ui:npmFormat` applies Prettier and `:showcase-web-ui:npmFormatCheck`
-(run by `check`) verifies it. IntelliJ's built-in formatter uses its own code style and would reformat files
-differently, so configure the IDE to stay in sync:
+`openspec/specs/`, `openspec/changes/*/`, and the project-authored `.opencode/` markdown) and for the `.opencode/`
+config JSON: `./gradlew spotlessApply` formats, `spotlessCheck` verifies, and the build never depends on an IDE. The
+generated OpenSpec instruction files and the vendored agent skills are excluded — they are not the repository's to
+reformat. For the **web module**, `./gradlew :showcase-web-ui:npmFormat` applies Prettier and
+`:showcase-web-ui:npmFormatCheck` (run by `check`) verifies it. IntelliJ's built-in formatter uses its own code style
+and would reformat files differently, so configure the IDE to stay in sync:
 
 - The repo's IntelliJ config is **not versioned** — `.idea/` is git-ignored. Run the setup script any time the
   configuration drifts: it merges the committed settings from `config/idea/` into `.idea/` (restoring the

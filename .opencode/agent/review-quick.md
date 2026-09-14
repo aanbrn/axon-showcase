@@ -1,7 +1,7 @@
 ---
-description: Quick review of a change's proposal or implementation against its planning artifacts, tasks, and delta
-  specs. Use when a fast pass over the build agent's work is wanted — catches obvious gaps and convention violations
-  cheaply.
+description:
+  Quick review of a change's proposal or implementation against its planning artifacts, tasks, and delta specs. Use when
+  a fast pass over the build agent's work is wanted — catches obvious gaps and convention violations cheaply.
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash
 temperature: 0
@@ -17,9 +17,10 @@ repository with no change dir, do a fast verification pass:
 - Do the tasks.md items marked done actually correspond to the work?
 - Any obvious convention violations (formatting, naming, redundant code, missing Javadoc)?
 - Any obvious correctness problems visible at a glance?
-- Run `perl -CSD -lne 'print if length > 120' <changed-files>` over the change's files and report any lines over 120
-  (the project's wrapping convention; `awk` counts bytes and false-flags non-ASCII like `→`, and formatters cannot
-  reflow string literals, so long strings are a common manual-check gap).
+- Run `perl -CSD -lne 'print if length > 120' <changed-files>` over the changed files the formatter does not cover —
+  YAML, and so on; everything else is formatter-gated — and report any lines over 120 (the project's wrapping
+  convention; `awk` counts bytes and false-flags non-ASCII like `→`, and formatters cannot reflow string literals, so
+  long strings are a common manual-check gap).
 
 Be concise: report findings as a short bullet list, each with a file/line reference. Prioritize concrete, actionable
 gaps over style nitpicks. If everything looks consistent, say so in one line. Do not edit files — the calling agent

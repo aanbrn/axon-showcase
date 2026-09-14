@@ -105,6 +105,15 @@ questioned the premise. Verify the current state's rationale against the repo �
 their comments, check `git log` for the introducing change — and record it in the design's Context; treat "this looks
 redundant" as a hypothesis to verify, not a justification to remove.
 
+**An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's own
+prior reconciliation.** ADR-0002 makes the Java `@ConfigurationProperties` the surface that owns a property's default,
+not the value to prefer once the surfaces have drifted; a change that read it as "the Java value always wins" planned to
+lower the deployed `showcaseCache` bound to the field's lagging `1000`, until review showed
+`align-gateway-cache-defaults` had resolved the identical drift by picking the operationally-intended value, raising the
+Java default and lowering the yml and chart defaults. When reconciling a value stated on several surfaces, search the
+archives for the prior change that reconciled the same class of drift and follow its direction — and read the
+introducing commit's full diff before treating an edit as incidental (the `git log` check above).
+
 **Capture lessons after every change's implementation and after every merge into `main`.** Once a change's
 implementation quick review is clean — and again after the PR is merged (including docs changes, standalone fixes, and
 dependency bumps that never went through the OpenSpec workflow) — run the `lesson-capture` subagent (giving it the diff,
@@ -1163,7 +1172,15 @@ that override when bumping the Kafka image tag.
   spelling lower in the same file, deferred as "a future audit" when a grep would have caught it (it took a follow-up
   change, `fix-springdoc-coordinate-spelling`, to sweep it). When a finding is an instance of a convention
   (coordinate/identifier spelling, `MUST` vs `SHALL`, a stale enumeration), grep the artifact or corpus and fix every
-  instance in the same change.
+  instance in the same change. The same sweep applies to a corrected fact, not only a convention: after a review
+  corrects a direction, value, or magnitude, grep the artifact for that claim and fix every repetition — a
+  `reconcile-showcase-cache-default` review corrected the reversed direction in the design's Context, and the same
+  claim's residue in the Decisions section (plus a "tenfold" that was a hundredfold) was caught only in the next pass.
+- **A configuration-default change names every test assertion that pins the value, on each surface it is declared.** The
+  `reconcile-showcase-cache-default` plan initially missed that `allPropertiesHaveDocumentedDefaults` asserts the Java
+  field (so the change would fail it) and that the yml-wiring test's missing `showcaseCache` assertion was the gap which
+  let the drift pass. Grep the test sources for the field accessor when changing a default, and give each pinning
+  assertion its own task — the Java-defaults test and the yml-wiring test each bind a different surface.
 - **Doc claims must match their source and their strength — quote verbatim or paraphrase explicitly, and reserve
   "enforced" for a real gate.** The self-learning README section described `AGENTS.md` rules in quotes;
   `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an
@@ -1263,6 +1280,12 @@ that override when bumping the Kafka image tag.
   update", so a wrongly-built URL or renamed repository reads as current. Verify a new or changed check by temporarily
   pinning a known-older version, confirming the report shows `<name>: <old> -> <latest>`, then reverting the pin (the
   `buildpackUpdates` lookup was proved this way with `0.1.0`). A clean run alone is not evidence the check works.
+- **A positive control must perturb the surface the check actually reads.** The `reconcile-showcase-cache-default`
+  change's control perturbs the yml placeholder because `applicationYmlPlaceholdersBindDocumentedDefaults` boots
+  `application.yml` and never binds the Java field — reverting the field instead would have proved nothing, since that
+  test would pass regardless. Match the control's injection point to the test's binding source (the yml placeholder for
+  a yml-loading test, the Java field for a Java-defaults test), and confirm the assertion fails; a control that runs
+  without failing has not exercised the check.
 - **Pinned workflow tool versions are outside every update-check workflow — audit the whole set, not one pin at a
   time.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` /
   `helm-updates.yml` cover the Helm CLI and pinned charts, `buildpackUpdates` / `buildpack-updates.yml` cover the Paketo

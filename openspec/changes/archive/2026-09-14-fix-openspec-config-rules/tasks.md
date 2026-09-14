@@ -42,6 +42,6 @@
       and `./gradlew spotlessCheck` after the final edit, plus `openspec validate --all`; run the manual
       `perl -CSD -lne 'print if length > 120'` check over the edited `ci.yml` and `config.yaml`, which the formatter
       does not cover
-- [ ] 4.2 Record the `showcase/quality/merge-governance` `## Purpose` check for the archive commit — confirm it still
-      fits (it already describes the CI gates) and edit it only if the modified requirements make it inaccurate;
-      recorded as an explicit task because a delta cannot carry a Purpose
+- [x] 4.2 The `showcase/quality/merge-governance` `## Purpose` check for the archive commit: it still fits — it already
+      describes the CI gates, which the modified requirements only extend — so it needs no edit. Recorded rather than
+      applied, since a delta cannot carry a Purpose

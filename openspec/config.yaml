@@ -6,7 +6,7 @@ context: |
   axon-showcase — a CQRS/Event Sourcing reference app built on the Axon Framework.
   Java 21, Spring Boot 3.5.16, Gradle 9.7.1 (Kotlin DSL), monorepo with 19 modules.
 
-  Architecture (4 services + API gateway + web UI):
+  Architecture (4 services + an API gateway):
     - showcase-command-service — write side, Axon aggregate, publishes events to Kafka,
       PostgreSQL event store
     - showcase-projection-service — consumes Kafka events, writes projections to OpenSearch
@@ -29,13 +29,13 @@ context: |
     - All JavaCompile tasks add -parameters
 
   Build & test (./gradlew):
-    - test -> componentTest -> integrationTest (in that order)
+    - test -> componentTest -> integrationTest (in that order); e2eTest is a separate opt-in task
     - componentTest is faster, no containers
     - integrationTest requires Docker (Testcontainers)
     - disable-axoniq-console-message=true is set both in integration tests and in each service's main
       application source
-    - showcase-api-gateway integrationTest must run after the client integration tests
-      and depends on Docker images of all other services (bootBuildImage)
+    - showcase-api-gateway e2eTest depends on Docker images of all other services being built
+      (bootBuildImage) and runs after that module's own integrationTest
     - the io.github.build-extensions-oss.helm / io.github.build-extensions-oss.helm-releases gradle-helm-plugin tasks
       are not configuration-cache compatible; do not enable org.gradle.configuration-cache=true
     - ./db.sh init creates user `showcase` and database `showcase-events` before running
@@ -47,7 +47,7 @@ context: |
 # Per-artifact rules
 rules:
   proposal:
-    - Keep the "Why" section concrete: what breaks today without the change
+    - 'Keep the "Why" section concrete: what breaks today without the change'
     - List "What Changes" at the file level, not as a rephrasing of Why
     - Declare "New Capabilities" / "Modified Capabilities" using existing capability names
     - Note the "Impact" on build, tests, and deployment explicitly
@@ -62,7 +62,7 @@ rules:
   tasks:
     - Break tasks into chunks of max 2 hours
     - Reference exact file paths and commands so each task is verifiable
-    - Group into sections: implementation tasks, then a verification section
+    - 'Group into sections: implementation tasks, then a verification section'
 
 # Per-operation guidance
 operations:

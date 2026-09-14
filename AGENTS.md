@@ -339,10 +339,10 @@ initialized:
 `.github/workflows/ci.yml` runs a single `build` job on every pull request and every push to `main`:
 
 - **Pull requests** run the Docker-free fast gate: `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` plus
-  `openspec validate --all` — the coverage gate is disabled because the 0.80 baseline is calibrated on integration-test
-  coverage, which PRs skip by design.
-- **Pushes to `main`** run the full gate: `./gradlew check` (with integration tests and the coverage gate) plus
-  `openspec validate --all`.
+  `openspec validate --all` and a probe that the OpenSpec config's rule sets are readable by the CLI — the coverage gate
+  is disabled because the 0.80 baseline is calibrated on integration-test coverage, which PRs skip by design.
+- **Pushes to `main`** run the full gate: `./gradlew check` (with integration tests and the coverage gate) plus the same
+  OpenSpec validation and config probe as the pull-request path.
 
 The `check` task also runs `workflowLint`, which lints the GitHub Actions workflows with actionlint (installed on the
 runner via the official download script; see the Prerequisites).
@@ -1201,6 +1201,15 @@ that override when bumping the Kafka image tag.
   limitation survived the review gate and was only caught by reading the source, because a tool's behavior is not
   repo-evidenced and no in-repo gate can check it. Treat a doc's account of a feature as a floor, not a boundary, and
   verify a tool-behavior claim against the source/CLI before writing it into a durable artifact.
+- **A CLI warning dismissed as noise can report a live defect — and a YAML config's rule lists fail silently.**
+  `openspec/config.yaml` declared per-artifact rules for four artifacts, but two items contained an unquoted `: `, so
+  YAML parsed them as mappings, the lists stopped being arrays of strings, and the CLI ignored those two artifacts'
+  rules — warning on stderr ("Rules for 'proposal' must be an array of strings, ignoring this artifact's rules")
+  wherever the rules are read (`openspec new change`, `openspec instructions`), which read as noise for as long as the
+  config existed; `openspec validate --all` emits no warning at all, which is why CI missed it. The dropped `proposal`
+  rules included `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the rule the
+  review loop kept catching missing. Quote any YAML scalar containing `: `; the CI `build` job now probes for that
+  warning and fails, and `/opsx-tool-update` re-verifies it with a positive control.
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
   changes without the repository moving: when the upstream-reference report was parked, review found two of four

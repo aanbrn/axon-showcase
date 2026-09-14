@@ -543,16 +543,19 @@ Key modules (libraries, not services):
     `openspec/specs/`, active `openspec/changes/*/`, and the project-authored `.opencode/` markdown — the generated
     `opsx-*`/`openspec-*` files and the vendored `axon4to5-*` skills are excluded, while the project-authored
     `opsx-tool-update.md` stays in scope despite the shared prefix — and `.opencode/opencode.json` has its own `json`
-    format. Verify with a character count (`perl -CSD -lne 'print if length > 120'`), not `awk 'length > 120'` — `awk`
-    counts bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow tripped this three times);
-    the `-l` chomps the trailing newline `-ne` would otherwise count, so an exactly-120-character line is not
-    false-flagged. Verify a verification command on a boundary case before recording it — the first recipe omitted `-l`
-    and false-flagged every exactly-120-character line. Formatters cannot reflow string literals (e.g. an error message
-    in Kotlin/Gradle), so wrap an over-long string with concatenation (`"part1 " + "part2"`) — the formatter preserves
-    it. Write markdown as natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the
-    formatter owns the wrapping and reflows on every run. A bare `$` in prose (outside inline code) is parsed as inline
-    math and blocks that reflow — the paragraph silently keeps its original ragged wrapping while `spotlessCheck` still
-    passes; escape it as `\$` (which renders as `$`).
+    format. A target's generated-file exclusions must track what the generator writes — `/opsx-tool-update` checks the
+    list when the generated inventory changes, since a newly generated `opsx-*` command would otherwise be reformatted
+    by `spotlessApply` and then overwritten by the next `openspec update`. Verify with a character count
+    (`perl -CSD -lne 'print if length > 120'`), not `awk 'length > 120'` — `awk` counts bytes and false-flags a
+    ≤120-character line containing non-ASCII (the `→` arrow tripped this three times); the `-l` chomps the trailing
+    newline `-ne` would otherwise count, so an exactly-120-character line is not false-flagged. Verify a verification
+    command on a boundary case before recording it — the first recipe omitted `-l` and false-flagged every
+    exactly-120-character line. Formatters cannot reflow string literals (e.g. an error message in Kotlin/Gradle), so
+    wrap an over-long string with concatenation (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as
+    natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the
+    wrapping and reflows on every run. A bare `$` in prose (outside inline code) is parsed as inline math and blocks
+    that reflow — the paragraph silently keeps its original ragged wrapping while `spotlessCheck` still passes; escape
+    it as `\$` (which renders as `$`).
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with
@@ -986,6 +989,14 @@ that override when bumping the Kafka image tag.
   every extension the gate covers and reformat one file of each type before believing the setup. Verify a Gradle
   formatting task the same way — tamper a file to a non-conforming state, run the task, and confirm the tree returns
   clean (`--dry-run` only proves the task is scheduled, not that it formats).
+- **Adding a file type or path to a formatter target can rewrite content a consumer outside the build parses — verify
+  equivalence and exercise that consumer.** Bringing the `.opencode/` markdown under Spotless restyled every agent
+  definition's frontmatter (`description: <first line>` became `description:` plus an indented block), and Prettier also
+  normalized `*emphasis*` to `_emphasis_` and added missing trailing newlines; the consumer is the OpenCode agent
+  loader, not Gradle, so a passing `spotlessCheck` said nothing about the files still loading. After widening a
+  formatter target, diff the actual normalizations — do not describe the pass as "purely rewrapping" before you have —
+  and confirm the rewritten files parse to the same values and the consuming tool still works (for an agent or skill,
+  after an OpenCode reload).
 - **A glob written into an instruction file is unchecked — prove it matches the files you intend.** Both audit commands
   told the agent to run "a manual 120-character check for `.opencode/*.md`" — a glob matching **no file**, because the
   markdown lives in `.opencode/agent/` and `.opencode/commands/`; it had shipped that way in an earlier change and

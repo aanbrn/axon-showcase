@@ -604,7 +604,12 @@ Key modules (libraries, not services):
     natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the
     wrapping and reflows on every run. A bare `$` in prose (outside inline code) is parsed as inline math and blocks
     that reflow — the paragraph silently keeps its original ragged wrapping while `spotlessCheck` still passes; escape
-    it as `\$` (which renders as `$`).
+    it as `\$` (which renders as `$`). The formatter also leaves the interior of an inline code span untouched — it
+    wraps prose around the span but never rewrites the code text it contains — so a defect inside one (a whitespace run)
+    passes `spotlessCheck` and the manual 120-character check alike, neither of which has a rule that detects it:
+    proofread inline-code content as content, not as something the gate will fix. Fenced blocks are a different story —
+    Prettier applies embedded formatting inside a fence whose info string names a language it supports (`json`, `yaml`,
+    `markdown`), so that content is gated, while an unsupported one (`bash`, `java`, `mermaid`) is not.
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with

@@ -92,7 +92,14 @@ improving: when a gap is identified — a spurious update row, a deprecation wit
 workaround — report it upstream with a reproduction and the evidence, and keep the reference where the constraint bites,
 with the close-out clause for when it lands. The workaround is ours to keep; the fix belongs where the defect is, and an
 upstream project improves only if its users say what is wrong. Post it through the review gate like any outward-facing
-artifact.
+artifact. Resolve the tool's owning repository from its own metadata before searching or filing
+(`npm view <pkg> repository.url`, the `homepage` field, or the CLI's docs) — a tool is not necessarily hosted where it
+is configured: the `openspec` CLI is `@fission-ai/openspec` on npm, tracked at `Fission-AI/OpenSpec`, not the repo it
+configures. Confirm a candidate duplicate by reading its body, not its title — `Fission-AI/OpenSpec#1322` reads like the
+config-rules defect but concerns rules keys valid for another schema, a different bug; a matching title is a lead, not a
+verdict. Name the close-out's exact retiring mechanism, not the broader ask it is one option under: a clause keyed on a
+wider condition (the config-rules issue's own close-out is at the config-read-path gotcha) can retire a guard on a
+change that cannot replace it.
 
 **Interrogate the premise before designing a change that moves, copies, or removes existing configuration.** Establish
 _why the current state exists_ and whether it is deliberate before designing _how_ to change it — a change that
@@ -509,10 +516,11 @@ Key modules (libraries, not services):
   ideas remain (see the file's header). Also sweep `docs/ideas.md` for references to the thing this change shipped — an
   open idea that still calls it "the proposed X" is itself a stale claim, and no auditor covers that file (the three
   auditors own `AGENTS.md`/`.opencode/`, the spec corpus, and `docs/adr/` plus the architectural surface respectively);
-  update the idea's prose in the same change. Docs that ARE the change (new agent/command/skill documentation, README
-  rows describing a new capability, the change's idea removal) ship with the change's PR; docs that refresh facts about
-  a completed change ship as a separate docs PR — a newly parked idea that is not yet a change is such a docs PR. A
-  standalone `docs/ideas.md` edit that no change owns (a reword or a stale-fact correction) also ships as its own docs
+  update the idea's prose in the same change, including any enumeration or count it carries ("two others remain open: A,
+  B") that the change's new instance makes wrong. Docs that ARE the change (new agent/command/skill documentation,
+  README rows describing a new capability, the change's idea removal) ship with the change's PR; docs that refresh facts
+  about a completed change ship as a separate docs PR — a newly parked idea that is not yet a change is such a docs PR.
+  A standalone `docs/ideas.md` edit that no change owns (a reword or a stale-fact correction) also ships as its own docs
   PR, forked from `main`; an edit the change itself causes rides that change's branch. Do not read that last clause as
   covering a **newly parked idea**: an open question the change's own sweep happened to surface is a new, independent
   idea, not an artifact of the change, so it ships as its own docs PR forked from `main` (the

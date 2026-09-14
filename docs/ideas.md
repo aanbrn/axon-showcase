@@ -167,14 +167,14 @@ section for a new day rather than appending to the most recent one).
   check is worth automating rather than relying on manual audits.
 
 - OpenSpec CLI update check — parked; no change yet. The CLI is pinned in CI as
-  `npm install --global @fission-ai/openspec@1.11.0` (`.github/workflows/ci.yml`), so releases go stale silently (1.13.0
-  is already out) because the pin sits outside every update check (`dependencyUpdates` covers Gradle catalog
-  coordinates, `helmUpdates` the Helm CLI and charts, `buildpackUpdates` the Paketo builder and buildpacks, and
-  Dependabot only action refs). Add an `openspecUpdates` Gradle task mirroring `buildpackUpdates` — query the npm
-  registry for `@fission-ai/openspec`'s latest version, compare with the pinned one, report — plus a weekly
-  `openspec-updates.yml` workflow opening or updating an issue. It pairs with the existing `/opsx-tool-update` command,
-  which can act on a release but does not detect one; decide where the pin is single-sourced (it lives in the workflow
-  today — the `snyk-version` case above has the same shape).
+  `npm install --global @fission-ai/openspec@<version>` (`.github/workflows/ci.yml`), so releases go stale silently
+  because the pin sits outside every update check (`dependencyUpdates` covers Gradle catalog coordinates, `helmUpdates`
+  the Helm CLI and charts, `buildpackUpdates` the Paketo builder and buildpacks, and Dependabot only action refs). Add
+  an `openspecUpdates` Gradle task mirroring `buildpackUpdates` — query the npm registry for `@fission-ai/openspec`'s
+  latest version, compare with the pinned one, report — plus a weekly `openspec-updates.yml` workflow opening or
+  updating an issue. It pairs with the existing `/opsx-tool-update` command, which can act on a release but does not
+  detect one; decide where the pin is single-sourced (it lives in the workflow today — the `snyk-version` case above has
+  the same shape).
 
 - Tooling-currency checks: unify the mechanism and cover the `pack` pin — parked; no change yet. The repo has three
   update checks of near-identical shape (`dependencyUpdates` via the gradle-versions plugin; `helmUpdates` and

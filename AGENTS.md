@@ -1210,6 +1210,12 @@ that override when bumping the Kafka image tag.
   rules included `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the rule the
   review loop kept catching missing. Quote any YAML scalar containing `: `; the CI `build` job now probes for that
   warning and fails, and `/opsx-tool-update` re-verifies it with a positive control.
+- **A config a tool consumes is unverified until the tool's own read path is probed — and a warning no gate reads is not
+  a check.** A config can look well-formed and pass the tool's own validation while the tool silently ignores part of
+  it; from outside, a valid config and an ignored one are indistinguishable, and the only signal is a warning on stderr
+  that no gate reads (the `openspec/config.yaml` case above). Do not lint the shape with a second parser of your own —
+  that encodes an assumption about a contract the tool owns; probe the consumer's own read path, and fail a gate on the
+  tool's own warning.
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
   changes without the repository moving: when the upstream-reference report was parked, review found two of four
@@ -1272,7 +1278,9 @@ that override when bumping the Kafka image tag.
   deliberate pins, not tooling currency — the model pin has its own multi-file bump sweep, see the OpenCode model-pin
   gotcha.) A Snyk or pack bump cannot be verified locally: `workflowLint` (actionlint) proves only that the YAML lints,
   not that the version tag is installable — the credentialed weekly run (or a local `dependencySecurityCheck` with
-  `SNYK_TOKEN`) is the first real execution.
+  `SNYK_TOKEN`) is the first real execution. The same skew bites a guard keyed off a tool's output: it must be verified
+  against the version CI pins, not only the locally-installed one, since the pinned CLI is what the gate actually runs
+  and the output text it matches on may differ there.
 - **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
   first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
   output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change

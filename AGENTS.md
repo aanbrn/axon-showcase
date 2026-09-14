@@ -1121,11 +1121,14 @@ that override when bumping the Kafka image tag.
   shape instead of freezing a tally — the `specs-auditor` definition now says "a corpus … that grows with every archived
   change", and the README's "120+ and counting" is the pattern to follow. A process count — review rounds, elapsed time,
   effort — is not a durable fact either, though for a different reason: no reader can verify it from the repository at
-  all, so describe it qualitatively ("repeated review rounds"), not as a precise number. A named example or mechanism
-  inside a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep it on "the gateway e2e
-  test, which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in the test JVM — a false
-  example that surfaced only when ADR-0009 had to restate the same rule. When a second artifact restates an existing
-  fact, diff the two against the code rather than copying the prose.
+  all, so describe it qualitatively ("repeated review rounds"), not as a precise number. That targets _human_ process
+  narrative — effort, review rounds, how long a session ran — which no machine-measured evidence records; a
+  _machine-measured_ figure is a different class, since the CI run log is its evidence, so an order-of-magnitude build
+  cost (the one-time-full-rebuild vs warm CI timings above) is not a process count and need not be made qualitative. A
+  named example or mechanism inside a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep
+  it on "the gateway e2e test, which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in
+  the test JVM — a false example that surfaced only when ADR-0009 had to restate the same rule. When a second artifact
+  restates an existing fact, diff the two against the code rather than copying the prose.
 - **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
   is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`
   reading "OpenSearch results to entities" for a converter that maps entities → OpenSearch (the field Javadoc and its

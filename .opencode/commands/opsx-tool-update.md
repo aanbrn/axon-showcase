@@ -14,8 +14,9 @@ Then verify the CLI still reads every rule set `openspec/config.yaml` declares, 
 differently: create a probe change (`openspec new change openspec-config-rules-probe`), confirm its output carries no
 "ignoring this artifact's rules" warning, and check that `openspec instructions` for `proposal`, `specs`, `design`, and
 `tasks` (`--change openspec-config-rules-probe --json`) returns a populated `rules` field for each; remove the probe
-afterwards. Prove the check itself detects a defect by temporarily unquoting one rule item and confirming it fires — a
-renamed warning would otherwise pass silently — then restore the item.
+afterwards. Prove the check itself detects a defect by temporarily unquoting a rule item that contains `: ` and
+confirming it fires — a renamed warning would otherwise pass silently; an item without `: `, or one already unquoted,
+no-ops instead, so confirm the file actually changed before reading the check's silence — then restore the item.
 
 Then update the openspec pin in `.github/workflows/ci.yml` to the installed version (the
 `npm install --global @fission-ai/openspec@<version>` step), so CI validates with the same CLI version the local

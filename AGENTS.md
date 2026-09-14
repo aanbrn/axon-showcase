@@ -30,9 +30,15 @@ changes made and decide when (or whether) to archive.
 **Never push to the remote automatically.** Commit locally when asked, but only `git push` when the user explicitly
 requests it (e.g., "push" or "commit and push").
 
-**Create the change's branch at propose.** As soon as a change is proposed, put its artifacts on their own branch (named
-after the change). The change dir and all subsequent work live on that branch; rejecting a proposal is a branch delete,
-never a `main` cleanup.
+**Create the change's branch at propose — and commit the planning artifacts on it.** As soon as a change is proposed,
+put its artifacts on their own branch (named after the change) and commit the change dir there; the planning artifacts
+are exempt from the leave-uncommitted rule, so only the implementation stays in the working tree until the user reviews
+it. Committing them is what makes the branch carry the proposal: an uncommitted change dir lingers untracked, reappears
+in `git status` on every branch you switch to, and leaves the branch with no commits to show. The change dir and all
+subsequent work live on that branch; rejecting a proposal is a branch delete, never a `main` cleanup. A propose-time
+branch that has since fallen behind `main` is refreshed from `origin/main` — recreate it when it holds no work,
+otherwise rebase it — rather than continued on stale; once a PR is open, the mechanism is `gh pr update-branch` instead
+(see the BEHIND gotcha).
 
 **Fork branches from `main` only.** Every new branch — a change branch, a standalone fix, or a post-merge capture's docs
 change — is created from `origin/main` (fetch first), never from another work branch. Branching from a work branch
@@ -1161,7 +1167,10 @@ that override when bumping the Kafka image tag.
   "enforced" for a real gate.** The self-learning README section described `AGENTS.md` rules in quotes;
   `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an
   overstated process claim. When a doc quotes a rule/spec/comment, copy the exact text (or drop the quote marks and
-  describe it), and check the mechanism before using words like "enforced", "always", "never", or "every".
+  describe it), and check the mechanism before using words like "enforced", "always", "never", or "every". Check the
+  claim's grammatical subject too, not only its wording — a pronoun can bind a claim to the wrong actor: a README draft
+  closed with "… and a practice of reporting gaps in the libraries and tools _it_ depends on", which bound the project's
+  upstream-report practice to OpenCode (the bullet's subject) rather than to the project; naming the subject fixed it.
 - **A durable artifact may assert only what the repository can evidence — a history that lives only in the conversation
   is not repo history.** An earlier draft of this bullet cited a `/var/folders/**` config attempt — a pattern proposed
   in conversation but never written to a config file — and asserted an unobserved `setup-hosts.sh` outcome; a review

@@ -87,15 +87,18 @@ AGENTS.md additions — gotchas and conventions worth recording. Apply the propo
 ship them as a docs PR (per the docs-refresh convention) alongside or after the change. Process mistakes that leave no
 diff trace (e.g. a git command that discarded work) are the most valuable thing to capture — this is what makes the
 capture systematic instead of memory-dependent. For a docs-only merge that fixes stale facts or removes duplication, the
-fix is the lesson — do not re-capture it as a new gotcha; capture only what the merge left unaddressed. Do not skip the
-subagent on your own judgment that "there's nothing new" — the merge itself is the trigger, and the subagent is the
-arbiter (the archive merge after `remove-redis-client-label` was skipped on exactly such an assumption, and the user had
-to push back before the forgotten-archive and premise-interrogation lessons were captured). When the user asks "is there
-anything else to capture?", treat it as a prompt to run the subagent again over the events — not as a request to justify
-the previous pass. An initial "nothing to capture" verdict is a hypothesis, not a conclusion: the session that produced
-it had process mistakes that were themselves the lesson (e.g. the archive was forgotten and the premise-interrogation
-gap went uncaptured until the user pushed twice). A docs-fix merge has nothing further to capture only if the subagent
-actually reviewed it and said so.
+fix is the lesson — do not re-capture it as a new gotcha; capture only what the merge left unaddressed. Read that as
+barring a gotcha that _restates the fix_, not a general rule the fix exemplifies: a durable rule absent from `main` is
+one of the things the merge left unaddressed. Before rejecting a captured rule as a re-capture, check `main`'s own text
+(`git show origin/main:AGENTS.md`) and reject only a rule that restates the fix itself. Do not skip the subagent on your
+own judgment that "there's nothing new" — the merge itself is the trigger, and the subagent is the arbiter (the archive
+merge after `remove-redis-client-label` was skipped on exactly such an assumption, and the user had to push back before
+the forgotten-archive and premise-interrogation lessons were captured). When the user asks "is there anything else to
+capture?", treat it as a prompt to run the subagent again over the events — not as a request to justify the previous
+pass. An initial "nothing to capture" verdict is a hypothesis, not a conclusion: the session that produced it had
+process mistakes that were themselves the lesson (e.g. the archive was forgotten and the premise-interrogation gap went
+uncaptured until the user pushed twice). A docs-fix merge has nothing further to capture only if the subagent actually
+reviewed it and said so.
 
 **Sync the main spec only at archive.** Apply edits to code and the change dir's _delta_ spec — never the main spec
 under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source

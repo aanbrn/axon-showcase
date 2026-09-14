@@ -56,3 +56,11 @@ jobs:
             ./gradlew check
           fi
           openspec validate --all
+          probe=openspec-config-rules-probe
+          trap 'rm -rf "openspec/changes/$probe"' EXIT
+          output=$(openspec new change "$probe" 2>&1)
+          echo "$output"
+          if echo "$output" | grep -q "ignoring this artifact's rules"; then
+            echo "::error::config.yaml has a rule the CLI ignores — an unquoted ': ' parses as a mapping; quote it."
+            exit 1
+          fi

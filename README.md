@@ -599,9 +599,9 @@ clean up.
 
 `.github/workflows/ci.yml` gates every pull request and push to `main` with a single `build` check. Pull requests run
 the Docker-free fast gate (`check -PskipITs` with the coverage gate disabled), while pushes to `main` run the full gate
-(`check` with integration tests and coverage); both run `openspec validate --all`. The Gradle cache is restored across
-runs via `gradle/actions/setup-gradle`. The `main-required-checks` ruleset requires the `build` check for all merges
-into `main`, with no bypass actors.
+(`check` with integration tests and coverage); both validate the OpenSpec specs and check that the CLI reads the
+OpenSpec config's rule sets. The Gradle cache is restored across runs via `gradle/actions/setup-gradle`. The
+`main-required-checks` ruleset requires the `build` check for all merges into `main`, with no bypass actors.
 
 `.github/workflows/e2e.yml` runs the end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four service
 images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same pipeline

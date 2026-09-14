@@ -72,7 +72,7 @@ final class ShowcaseCommandProperties {
      */
     @NotNull
     @Valid
-    private Cache showcaseCache = new Cache(1000, Duration.ofMinutes(10), Duration.ofMinutes(5));
+    private Cache showcaseCache = new Cache(100000, Duration.ofMinutes(10), Duration.ofMinutes(5));
 
     /**
      * The saga cache configuration.

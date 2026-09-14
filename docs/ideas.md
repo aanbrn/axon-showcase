@@ -45,16 +45,26 @@ section for a new day rather than appending to the most recent one).
 
 - An upstream-reference report — parked; no change yet. Several durable-artifact notes point at upstream issues we are
   waiting on, and the first closures have already gone unnoticed: `ben-manes/gradle-versions-plugin#755` closed
-  2026-08-06 (PR #1060) and `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337), yet the
-  constraint notes — the versions-plugin row and ADR-0007, and the `NANOS_DATE_PATTERN` gotcha — still read as open, and
-  no gate reads them. Two others remain open: `build-extensions-oss/gradle-helm-plugin#145`, which carries an inline
-  close-out, and `anomalyco/opencode#48100`, which has none (`#3334` has none either). The repository already has the
-  shape for a watcher: `dependencyUpdates` / `helmUpdates` / `buildpackUpdates` are each a small task plus a weekly
-  observational workflow that opens or updates an issue and mentions the owner when something is actionable. A report
-  would collect the references from `AGENTS.md`, `README.md`, and `docs/adr/` — the corpus is all `owner/repo#NNN` plus
-  one non-GitHub id (`KAFKA-18281`) — resolve them through the relevant API, and report the ones that closed or went
-  quiet, turning the references into a checked corpus rather than claims. Worth building now: the trigger it describes
-  has already fired twice.
+  2026-08-06 (PR #1060) and `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337) — at park time
+  both constraint notes still read as open, and no gate reads them. Neither closure retires its note by itself — `#1060`
+  covers platform-sourced constraints and changes nothing for our `checkBuildEnvironmentConstraints` row, and the
+  `#3334` fix reaches us only through a future `spring-data-opensearch` (that retirement is parked separately below) —
+  which is the point: a closure is a trigger to check, not an answer. Two others remain open:
+  `build-extensions-oss/gradle-helm-plugin#145` and `anomalyco/opencode#48100`, each now carrying an inline close-out.
+  The repository already has the shape for a watcher: `dependencyUpdates` / `helmUpdates` / `buildpackUpdates` are each
+  a small task plus a weekly observational workflow that opens or updates an issue and mentions the owner when something
+  is actionable. A report would collect the references from `AGENTS.md`, `README.md`, and `docs/adr/` — the corpus is
+  all `owner/repo#NNN` plus one non-GitHub id (`KAFKA-18281`) — resolve them through the relevant API, and report the
+  ones that closed or went quiet, turning the references into a checked corpus rather than claims. Worth building now:
+  the trigger it describes has already fired twice.
+
+- Retire the `NANOS_DATE_PATTERN` workaround once its fix reaches us — parked; no change yet.
+  `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337, milestone 6.2.0-M2), but we resolve
+  spring-data-elasticsearch 5.5.13 on the `spring-data-opensearch` 2.0.7 line (2.0.7 declares 5.5.12; the Spring Boot
+  3.5.16 BOM raises it), so the truncation is still live: when a `spring-data-opensearch` release carries 6.2.0-M2, drop
+  the custom pattern and the gotcha that guards it. The other closure candidate does not apply — `#1060` leaves our
+  `checkBuildEnvironmentConstraints` row untouched (see the entry above). Recorded here rather than in the PR body that
+  surfaced it, which no tool reads.
 
 ## 2026-09-13
 

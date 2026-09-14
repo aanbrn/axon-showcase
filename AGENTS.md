@@ -713,7 +713,7 @@ Key modules (libraries, not services):
   `.opencode/plugin/` and `.opencode/plugins/`), and its `config(cfg)` hook runs once on init with the live merged
   config and may mutate it. Scope the grant to the named scratch subdirectory — never the whole OS temp root, which
   would grant every application's temporary files. Upstream, the portable default this needs is asked for in
-  `anomalyco/opencode#48100`.
+  `anomalyco/opencode#48100` — if it lands, drop the plugin's grant and use the built-in.
 
 ## Docker Images
 
@@ -1074,8 +1074,8 @@ that override when bumping the Kafka image tag.
 - Spring Data Elasticsearch's `DateFormat.strict_date_optional_time_nanos` maps to a **microsecond** Java pattern
   (`SSSSSS`, not 9 digits) despite its name — see upstream spring-data-elasticsearch#3334. `ShowcaseEntity` uses a
   custom `NANOS_DATE_PATTERN` (`yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]`) with `format = {}` instead; do not "simplify" it
-  back to the built-in enum. The truncation is invisible on macOS (microsecond clocks) and surfaces only on nanosecond
-  clocks (Linux CI).
+  back to the built-in enum until the fix (PR #3337, 6.2.0-M2) reaches us through `spring-data-opensearch`. The
+  truncation is invisible on macOS (microsecond clocks) and surfaces only on nanosecond clocks (Linux CI).
 - Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
   `implementation`-only dependencies — each suite re-declares what it needs (client component suites duplicate
   axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be
@@ -1184,6 +1184,19 @@ that override when bumping the Kafka image tag.
   limitation survived the review gate and was only caught by reading the source, because a tool's behavior is not
   repo-evidenced and no in-repo gate can check it. Treat a doc's account of a feature as a floor, not a boundary, and
   verify a tool-behavior claim against the source/CLI before writing it into a durable artifact.
+- **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
+  check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
+  changes without the repository moving: when the upstream-reference report was parked, review found two of four
+  references already closed — `ben-manes/gradle-versions-plugin#755` (2026-08-06, PR #1060) and
+  `spring-projects/spring-data-elasticsearch#3334` (2026-08-30, PR #3337) — while both constraint notes still read as
+  open. Resolve an `owner/repo#NNN` through the tracker before writing or editing such a reference, and when it has
+  closed, check that the fix covers _our_ configuration before retiring the note: `#755` closed through a change to
+  platform-sourced constraints (`satisfiesDeclaredBound`, "nothing changes by default") while our spurious row comes
+  from `checkBuildEnvironmentConstraints` and remains. This is the write-time check for the reference you are touching;
+  the periodic corpus sweep is parked in `docs/ideas.md`.
+- **Work a change surfaces is parked durably — a PR body is not a record.** When a docs change records an external state
+  change that implies work, park that work in `docs/ideas.md` (or record it as a task) in the same change: a PR body is
+  squashed and no tool reads it, so work named only there is lost.
 - **A change merged without its archive is incomplete — do not merge the implementation PR and defer the archive.** The
   "one PR per change" rule puts the archive commit in the _same_ PR before merge; a change whose PR merged but whose
   change dir was never archived is easy to forget (the `remove-redis-client-label` change was merged and sat unarchived

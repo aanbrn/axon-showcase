@@ -688,7 +688,11 @@ Key modules (libraries, not services):
   other platform. `.opencode/plugin/tmpdir-scratch.ts` resolves the temp dir at startup from the env var instead, and
   its `config` hook adds `$TMPDIR/opencode/**` to `external_directory` (falling back to `/tmp/opencode` where `TMPDIR`
   is unset, as on most Linux). Put PR-body files and similar there, and keep the allow-list in the plugin — that is the
-  one place that knows the OS's temp dir.
+  one place that knows the OS's temp dir. A plugin is the route for a rule static config cannot express:
+  `.opencode/plugin/*.ts` is auto-discovered (the docs name the plural `.opencode/plugins/`; the singular also loads),
+  and its `config(cfg)` hook runs once on init with the live merged config and may mutate it. Scope the grant to the
+  named scratch subdirectory (`$TMPDIR/opencode/**`) — never the whole OS temp root, which would grant every
+  application's temporary files rather than this scratch directory.
 
 ## Docker Images
 
@@ -1227,3 +1231,13 @@ that override when bumping the Kafka image tag.
   deferred, where it went, and the owner's chosen order, then **tick it** — an unchecked box inside `archive/` is
   invisible and no gate reads it. That is not the rule above: the smoke-run itself is never deferred, only a task the
   owner explicitly decouples.
+- **Prove a permission rule is applied by reading the OpenCode log, not by the absence of a prompt.** OpenCode records
+  every evaluation in `~/.local/share/opencode/log/opencode.log`, in a line carrying
+  `message=evaluated permission=<key>`, `action.pattern=<resolved rule>` and `action.action=<action>` (the field order
+  varies by entry) — `action.pattern` is the rule that actually matched. A plugin-supplied rule exists in no config
+  file, so that line is the only proof it was applied (the `$TMPDIR/opencode` grant was verified this way); a prompt
+  that does not appear does not say which pattern allowed the call.
+- **`external_directory` and `permission.bash` are separate permission keys.** `external_directory` governs the file
+  tools (`read`/`edit`/`write`/`glob`/`grep`) and path-taking commands, while a script's own out-of-tree writes run
+  under `permission.bash` — so removing the blanket `/tmp/**` allow from `external_directory` leaves a bash-script write
+  such as `setup-hosts.sh`'s unaffected, and a temp-root grant should not be re-added there for it.

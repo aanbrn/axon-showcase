@@ -56,9 +56,15 @@ repo fit; for the implementation, the tasks and delta spec — and repeat it unt
 everything the quick review finds, re-run it, and stop only when it comes back clean — only then ask the user for a
 manual review pass. A clean quick review is a precondition for asking for the manual review, **not** a substitute for it
 — it means _ask the user now_, not _the implementation is approved_. Never commit, push, open a PR, archive, or merge on
-the strength of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) in ~4 minutes
+the strength of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes,
 without ever requesting the manual pass. The commit → push → PR → CI → archive sequence starts only after the user
-approves the implementation — the "Run CI before archiving" convention does not authorize committing earlier.
+approves the implementation — the "Run CI before archiving" convention does not authorize committing earlier. An
+unanswered approval request is not an approval: a reply that does not address it — the user asks about something else,
+or the thread moves on — leaves the request outstanding, so re-ask explicitly before committing, pushing, opening the
+PR, archiving, or merging, and do not read a tangential reply as clearance. Work done while awaiting the pass must stay
+in the working tree until it is given; as the owner recounted afterwards, a clean quick review asked for the manual
+pass, the reply asked about lesson capture instead, and the capture was folded into the same branch and the work
+continued — nothing was committed before the repeated request was answered, but the request had been missed.
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -1161,7 +1167,13 @@ that override when bumping the Kafka image tag.
   non-interactive, writes the global config, and preserves JSONC comments — the `-- <command>` form is simply not shown
   in `opencode mcp add --help` (which shows only the MCP-server flags `--url`, `--env`, `--header`). A quick review
   caught the false premise. Before designing around a limitation ("this can't be automated"), verify it by trying the
-  command or reading its source/docs — do not infer impossibility from a help screen.
+  command or reading its source/docs — do not infer impossibility from a help screen. The same holds for a capability
+  the docs describe only _partially_: the permissions docs name `~`/`$HOME` pattern expansion, and an `AGENTS.md` bullet
+  concluded `{env:VAR}` was unsupported — it is not, because config substitution runs over the whole file (in fact
+  `{env:TMPDIR}` expands but carries a trailing separator through and substitutes to nothing when unset). That false
+  limitation survived the review gate and was only caught by reading the source, because a tool's behavior is not
+  repo-evidenced and no in-repo gate can check it. Treat a doc's account of a feature as a floor, not a boundary, and
+  verify a tool-behavior claim against the source/CLI before writing it into a durable artifact.
 - **A change merged without its archive is incomplete — do not merge the implementation PR and defer the archive.** The
   "one PR per change" rule puts the archive commit in the _same_ PR before merge; a change whose PR merged but whose
   change dir was never archived is easy to forget (the `remove-redis-client-label` change was merged and sat unarchived

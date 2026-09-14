@@ -682,6 +682,13 @@ Key modules (libraries, not services):
   Playwright is project-configured. The README deliberately documents only GitHub (and the project-configured
   Playwright): Steroid is optional, IDEA-only, and nothing in the repo requires it (formatting is Spotless), so it is
   surfaced on demand via `/setup-agent-tools` rather than advertised — do not re-add it to the README's server list.
+- **Agent scratch files go in `$TMPDIR/opencode`, and a plugin grants that directory rather than a path pattern.** An
+  OpenCode permission pattern expands only a leading `~`/`$HOME`, so a `$TMPDIR` written into `.opencode/opencode.json`
+  would be read as a literal path — and hard-coding an OS prefix (`/tmp/**`, macOS's `/var/folders/…`) is wrong on the
+  other platform. `.opencode/plugin/tmpdir-scratch.ts` resolves the temp dir at startup from the env var instead, and
+  its `config` hook adds `$TMPDIR/opencode/**` to `external_directory` (falling back to `/tmp/opencode` where `TMPDIR`
+  is unset, as on most Linux). Put PR-body files and similar there, and keep the allow-list in the plugin — that is the
+  one place that knows the OS's temp dir.
 
 ## Docker Images
 

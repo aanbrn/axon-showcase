@@ -132,7 +132,8 @@ subscribed browser — all from one `POST /showcases`.
 - **Snyk** — dependency security scanning
 - **OpenSpec** — spec-driven behavior capture (`propose → apply → archive`)
 - **OpenCode** — the agentic coding tool driving the process: slash-commands, spec-aware subagents, a self-learning
-  lesson-capture loop, and on-request setup of its own tooling ([Tooling MCP Servers](#tooling-mcp-servers))
+  lesson-capture loop, on-request setup of its own tooling ([Tooling MCP Servers](#tooling-mcp-servers)), and a project
+  practice of reporting a dependency's gap back upstream — with a reproduction — instead of only working around it
 - **GitHub Actions** — CI, e2e, dependency updates, helm updates, security scans
 
 ## Development Workflow

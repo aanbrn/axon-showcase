@@ -937,18 +937,19 @@ that override when bumping the Kafka image tag.
   by hand; since a change branch now carries its own `docs/ideas.md` removal (see the docs-refresh convention), it can
   no longer simply be reset to `origin/main`. Committing the removal on the branch early (rather than leaving it in the
   uncommitted review diff) avoids the stash path entirely.
-- **`git reset --hard` on a branch with uncommitted work discards tracked-file edits.** A change branch holds the
-  implementation uncommitted (per the workflow); a `git reset --hard origin/main` to "rebase" the branch reverts every
-  tracked-file modification (`build.gradle.kts`, workflows, docs) while leaving untracked files (the change dir, new
-  sources) intact — silently losing the implementation's edits. This bit the actionlint change when rebasing onto a main
-  that had advanced. Never `reset --hard` a branch carrying uncommitted work: with no local commits,
-  `git reset --soft`/`--mixed` to `origin/main` keeps the working tree; with local commits, `git rebase` (or stash →
-  rebase → stash pop, per the stash-pop gotcha above) is the way. Verify `git status` after to confirm the diff
-  survived. The same class of mistake occurs outside a rebase: `git checkout -- <file>` (or `git restore <file>`)
-  reverts just that file to `HEAD`, discarding its uncommitted edits — a README change was lost this way to a
-  `git checkout -- README.md` run inside an unrelated verification step (recovered only from a backup). While a work
-  branch holds uncommitted edits, inspect committed content with `git diff`/`git show HEAD:<file>` rather than
-  `checkout --`/`restore`/`reset`.
+- **`git reset --hard` on a branch with uncommitted work discards tracked-file edits and deletes branch-added files.** A
+  change branch holds the implementation uncommitted (per the workflow); a `git reset --hard origin/main` to "rebase"
+  the branch reverts every tracked-file modification (`build.gradle.kts`, workflows, docs) **and deletes the files the
+  branch added** — including the change dir, which the branch-at-propose rule commits there — leaving only genuinely
+  untracked files (never-added new sources) intact, silently losing the implementation's edits and the proposal with
+  them. This bit the actionlint change when rebasing onto a main that had advanced. Never `reset --hard` a branch
+  carrying uncommitted work: with no local commits, `git reset --soft`/`--mixed` to `origin/main` keeps the working
+  tree; with local commits, `git rebase` (or stash → rebase → stash pop, per the stash-pop gotcha above) is the way.
+  Verify `git status` after to confirm the diff survived. The same class of mistake occurs outside a rebase:
+  `git checkout -- <file>` (or `git restore <file>`) reverts just that file to `HEAD`, discarding its uncommitted edits
+  — a README change was lost this way to a `git checkout -- README.md` run inside an unrelated verification step
+  (recovered only from a backup). While a work branch holds uncommitted edits, inspect committed content with
+  `git diff`/`git show HEAD:<file>` rather than `checkout --`/`restore`/`reset`.
 - **A change-dir `git mv` at archive leaves a file's unstaged edit behind as `RM` — and the archived tree is outside
   Spotless, so re-running `spotlessApply` after the move will not normalize it.** The archive commit relocates the
   change dir (`git mv openspec/changes/<change> openspec/changes/archive/<change>`), but `git mv` stages the rename

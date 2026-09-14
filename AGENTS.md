@@ -1131,6 +1131,14 @@ that override when bumping the Kafka image tag.
   `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an
   overstated process claim. When a doc quotes a rule/spec/comment, copy the exact text (or drop the quote marks and
   describe it), and check the mechanism before using words like "enforced", "always", "never", or "every".
+- **A durable artifact may assert only what the repository can evidence — a history that lives only in the conversation
+  is not repo history.** An earlier draft of this bullet cited a `/var/folders/**` config attempt — a pattern proposed
+  in conversation but never written to a config file — and asserted an unobserved `setup-hosts.sh` outcome; a review
+  pass caught both. Before writing a historical or behavioral claim into `AGENTS.md`, `README.md`, a subagent
+  definition, or a main spec, find its evidence — a config file, a log line, a commit, or a run whose output you have.
+  If the only source is the conversation, omit it or label it as the owner's account; for an outcome you did not
+  observe, state the mechanism ("a bash-script write runs under `permission.bash`") rather than the observation ("it did
+  not prompt"). Point-in-time narrative belongs in a change's archived artifacts, not in a durable one.
 - **When documenting agent tooling (MCP servers, skills, subagents), read the artifact's own definition — not the config
   entry or the `docs/ideas.md` note that mentions it.** The README "Tooling MCP Servers" section described `codefmt` as
   running IDE _inspections_ (it runs the formatter), said the Playwright MCP "drives the web-UI e2e" (the test framework

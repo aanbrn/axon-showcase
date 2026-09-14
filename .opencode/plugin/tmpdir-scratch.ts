@@ -1,8 +1,10 @@
+import os from "os"
+
 const SCRATCH_DIR_NAME = "opencode"
 
 export default async () => ({
   config: (cfg: { permission?: Record<string, unknown> }) => {
-    const base = process.env.TMPDIR?.replace(/\/+$/, "") || "/tmp"
+    const base = os.tmpdir().replace(/\/+$/, "")
     const dir = `${base}/${SCRATCH_DIR_NAME}`
 
     cfg.permission ??= {}

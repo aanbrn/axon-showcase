@@ -1232,7 +1232,8 @@ that override when bumping the Kafka image tag.
   it; from outside, a valid config and an ignored one are indistinguishable, and the only signal is a warning on stderr
   that no gate reads (the `openspec/config.yaml` case above). Do not lint the shape with a second parser of your own —
   that encodes an assumption about a contract the tool owns; probe the consumer's own read path, and fail a gate on the
-  tool's own warning.
+  tool's own warning. Upstream, the report is `Fission-AI/OpenSpec#1891`; if `validate` gains a config check that fails
+  (one of its asks), the CI probe and the `/opsx-tool-update` re-verification become redundant and can go.
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
   changes without the repository moving: when the upstream-reference report was parked, review found two of four

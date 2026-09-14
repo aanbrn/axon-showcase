@@ -35,14 +35,6 @@ section for a new day rather than appending to the most recent one).
   - Is `@SuppressWarnings("FutureReturnValueIgnored")` on `ShowcaseRestController`'s list/by-id paths a deliberate
     fire-and-forget cache write or a latent bug? The sweep reported it at low confidence; the rationale is unrecorded.
 
-- Command-service `showcaseCache` breaks ADR-0002's single-source-of-truth default — parked; no change yet. The widened
-  audit found a verified contradiction: `ShowcaseCommandProperties` declares `new Cache(1000, …)`, while
-  `application.yml` (`${SHOWCASE_CACHE_MAX_SIZE:100000}`) and the Helm chart (`showcaseCache.maxSize: 100000`) both say
-  `100000`, so the Java default is dead in every environment — the "dead Java default" ADR-0002 exists to eliminate. The
-  Java default and the write-side spec requirement both say `1000` (the component test's yml-defaults check omits
-  `showcaseCache`, which is how the drift passes it); the sibling `sagaCache`/`sagaAssociationsCache` and the gateway's
-  query caches are aligned. Reconcile all the surfaces (Java, yml, chart, test) to one value in its own change.
-
 - An upstream-reference report — parked; no change yet. Several durable-artifact notes point at upstream issues we are
   waiting on, and the first closures have already gone unnoticed: `ben-manes/gradle-versions-plugin#755` closed
   2026-08-06 (PR #1060) and `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337) — at park time

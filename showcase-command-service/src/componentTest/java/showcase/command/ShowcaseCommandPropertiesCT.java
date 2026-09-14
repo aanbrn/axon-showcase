@@ -41,7 +41,7 @@ class ShowcaseCommandPropertiesCT {
             assertThat(properties.isExitAfterFlywayMigration()).isFalse();
             assertThat(properties.isValidationEnabled()).isTrue();
             assertThat(properties.getShowcaseCache()).satisfies(cache -> {
-                assertThat(cache.getMaximumSize()).isEqualTo(1000);
+                assertThat(cache.getMaximumSize()).isEqualTo(100000);
                 assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofMinutes(10));
                 assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofMinutes(5));
             });
@@ -65,6 +65,7 @@ class ShowcaseCommandPropertiesCT {
     void applicationYmlPlaceholdersBindDocumentedDefaults() {
         ymlContextRunner.run(context -> {
             val properties = context.getBean(ShowcaseCommandProperties.class);
+            assertThat(properties.getShowcaseCache().getMaximumSize()).isEqualTo(100000);
             assertThat(properties.getSagaCache().getMaximumSize()).isEqualTo(1000);
             assertThat(properties.getSagaCache().getExpiresAfterAccess()).isEqualTo(Duration.ofMinutes(10));
             assertThat(properties.getSagaCache().getExpiresAfterWrite()).isEqualTo(Duration.ofMinutes(5));

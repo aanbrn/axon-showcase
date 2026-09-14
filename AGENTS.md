@@ -81,6 +81,13 @@ fix the findings before publishing. A false claim written into the repository is
 post to a public tracker is not. A comment drafted for `anomalyco/opencode#48100` was reviewed this way, and the review
 caught a wrong premise about permission-pattern expansion before it went public.
 
+**Report an upstream gap we identify, not only the workaround around it.** A dependency or tool we rely on is worth
+improving: when a gap is identified — a spurious update row, a deprecation with no fix, a limitation that forces a
+workaround — report it upstream with a reproduction and the evidence, and keep the reference where the constraint bites,
+with the close-out clause for when it lands. The workaround is ours to keep; the fix belongs where the defect is, and an
+upstream project improves only if its users say what is wrong. Post it through the review gate like any outward-facing
+artifact.
+
 **Interrogate the premise before designing a change that moves, copies, or removes existing configuration.** Establish
 _why the current state exists_ and whether it is deliberate before designing _how_ to change it — a change that
 relocates configuration already in place can be the best-executed version of the wrong idea. The

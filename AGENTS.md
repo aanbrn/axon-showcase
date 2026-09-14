@@ -69,6 +69,12 @@ standalone fixes describe _where the work ships_, not a waiver (several docs-ref
 push → PR with neither review, until the user rejected the tool call and asked "Why again you commit and push without
 any quick or manual review?").
 
+**The review gate extends to an outward-facing artifact — most of all an upstream issue or comment.** Anything published
+outside the repository is reviewed before it is posted, the same as a diff: draft it, run it past `review-quick`, and
+fix the findings before publishing. A false claim written into the repository is correctable in a follow-up commit; a
+post to a public tracker is not. A comment drafted for `anomalyco/opencode#48100` was reviewed this way, and the review
+caught a wrong premise about permission-pattern expansion before it went public.
+
 **Interrogate the premise before designing a change that moves, copies, or removes existing configuration.** Establish
 _why the current state exists_ and whether it is deliberate before designing _how_ to change it — a change that
 relocates configuration already in place can be the best-executed version of the wrong idea. The
@@ -682,17 +688,19 @@ Key modules (libraries, not services):
   Playwright is project-configured. The README deliberately documents only GitHub (and the project-configured
   Playwright): Steroid is optional, IDEA-only, and nothing in the repo requires it (formatting is Spotless), so it is
   surfaced on demand via `/setup-agent-tools` rather than advertised — do not re-add it to the README's server list.
-- **Agent scratch files go in `$TMPDIR/opencode`, and a plugin grants that directory rather than a path pattern.** An
-  OpenCode permission pattern expands only a leading `~`/`$HOME`, so a `$TMPDIR` written into `.opencode/opencode.json`
-  would be read as a literal path — and hard-coding an OS prefix (`/tmp/**`, macOS's `/var/folders/…`) is wrong on the
-  other platform. `.opencode/plugin/tmpdir-scratch.ts` resolves the temp dir at startup from the env var instead, and
-  its `config` hook adds `$TMPDIR/opencode/**` to `external_directory` (falling back to `/tmp/opencode` where `TMPDIR`
-  is unset, as on most Linux). Put PR-body files and similar there, and keep the allow-list in the plugin — that is the
-  one place that knows the OS's temp dir. A plugin is the route for a rule static config cannot express:
-  `.opencode/plugin/*.ts` is auto-discovered (the docs name the plural `.opencode/plugins/`; the singular also loads),
-  and its `config(cfg)` hook runs once on init with the live merged config and may mutate it. Scope the grant to the
-  named scratch subdirectory (`$TMPDIR/opencode/**`) — never the whole OS temp root, which would grant every
-  application's temporary files rather than this scratch directory.
+- **Agent scratch files go in `$TMPDIR/opencode`, and a plugin — not a path pattern — grants that directory.**
+  `.opencode/opencode.json` can name it only where `TMPDIR` is already set without a trailing separator: a permission
+  pattern expands a leading `~`/`$HOME` and also `{env:VAR}` (config substitution runs over the whole file), but
+  `{env:TMPDIR}` carries macOS's trailing separator through (`…/T//opencode/**`, which does not match the real path),
+  and an unset `TMPDIR` substitutes to an empty string, so there is no fallback where the temp dir is `/tmp`.
+  `.opencode/plugin/tmpdir-scratch.ts` resolves the directory from `os.tmpdir()` instead — the same path without the
+  trailing separator, and the cross-platform temp dir — and its `config` hook adds `<tmpdir>/opencode/**` to
+  `external_directory`. Put PR-body files and similar there, and keep the allow-list in the plugin:
+  `.opencode/plugin/*.ts` is auto-discovered (OpenCode's built-in `customize-opencode` skill names both
+  `.opencode/plugin/` and `.opencode/plugins/`), and its `config(cfg)` hook runs once on init with the live merged
+  config and may mutate it. Scope the grant to the named scratch subdirectory — never the whole OS temp root, which
+  would grant every application's temporary files. Upstream, the portable default this needs is asked for in
+  `anomalyco/opencode#48100`.
 
 ## Docker Images
 
@@ -1243,8 +1251,12 @@ that override when bumping the Kafka image tag.
   every evaluation in `~/.local/share/opencode/log/opencode.log`, in a line carrying
   `message=evaluated permission=<key>`, `action.pattern=<resolved rule>` and `action.action=<action>` (the field order
   varies by entry) — `action.pattern` is the rule that actually matched. A plugin-supplied rule exists in no config
-  file, so that line is the only proof it was applied (the `$TMPDIR/opencode` grant was verified this way); a prompt
-  that does not appear does not say which pattern allowed the call.
+  file, so that line is the proof it _matched a call_ (the `$TMPDIR/opencode` grant was verified this way); a prompt
+  that does not appear does not say which pattern allowed the call. For the static half,
+  `OPENCODE_CONFIG_CONTENT='<json>' opencode debug config` prints the merged config without a restart — proving
+  `{env:VAR}` substitution (`{env:FOO}/**` with `FOO=/x` prints `/x/**`) and showing a plugin-injected rule (under
+  `permission.external_directory`, with `plugin_origins` naming the plugin). `debug config` proves a rule reached the
+  merged config; the log line proves it matched.
 - **`external_directory` and `permission.bash` are separate permission keys.** `external_directory` governs the file
   tools (`read`/`edit`/`write`/`glob`/`grep`) and path-taking commands, while a script's own out-of-tree writes run
   under `permission.bash` — so removing the blanket `/tmp/**` allow from `external_directory` leaves a bash-script write

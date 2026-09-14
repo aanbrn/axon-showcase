@@ -16,8 +16,10 @@ This repo uses **spec-driven development**: behavior is captured as OpenSpec spe
 `quality`). Code changes go through the `opsx-*` OpenCode commands / `openspec-*` skills (propose → apply → archive).
 Follow these workflows for new work, and treat the captured specs as the behavioral source of truth. A spec describes a
 **capability**, not a module one-to-one: the infrastructure modules (`platform`, `build-logic`, `showcase-test`, and the
-`helm` parent module) carry none, and a module's name need not equal its spec path — the `showcase-api-gateway` module
-is specified as `gateway/rest-api` plus `gateway/live-events`.
+`helm` parent module) and the shared library modules (`showcase-command-api`, `showcase-query-api`,
+`showcase-query-proto`) carry none — the shared APIs are specified through the service and client capabilities that use
+them — and a module's name need not equal its spec path — the `showcase-api-gateway` module is specified as
+`gateway/rest-api` plus `gateway/live-events`.
 
 ## OpenSpec Workflow Agreement
 
@@ -464,17 +466,21 @@ Key modules (libraries, not services):
   rows describing a new capability, the change's idea removal) ship with the change's PR; docs that refresh facts about
   a completed change ship as a separate docs PR — a newly parked idea that is not yet a change is such a docs PR. A
   standalone `docs/ideas.md` edit that no change owns (a reword or a stale-fact correction) also ships as its own docs
-  PR, forked from `main`; an edit the change itself causes rides that change's branch. Decide the owner before
-  committing — a docs PR forked from `main` cannot carry an edit committed on a change branch, so committing it there
-  first for a clean tree silently leaves it out of the docs PR and `main` unchanged — and verify the fix against the
-  merged PR's diff rather than the PR description, which can claim a change the diff does not contain. A parked-idea
-  docs PR owes the refresh too: fold any durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section
-  (e.g. add a newly surfaced manual pin to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a
-  fact left only there is lost once the idea is implemented or dropped. `openspec/config.yaml`'s `context:` block is a
-  second, un-gated copy of the same project facts (runtime/Spring/Gradle versions, module count, service list, Docker
-  image names) that OpenSpec shows the AI when creating artifacts — refresh it in the same change whenever one of those
-  facts moves. `openspec validate` never checks it, so it drifts silently (it had fallen to Gradle 8.14.5 / 18 modules
-  before the first audit synced it, #170).
+  PR, forked from `main`; an edit the change itself causes rides that change's branch. Do not read that last clause as
+  covering a **newly parked idea**: an open question the change's own sweep happened to surface is a new, independent
+  idea, not an artifact of the change, so it ships as its own docs PR forked from `main` (the
+  `widen-architecture-auditor-to-intent-gaps` design recorded this explicitly, and the separation also avoids the change
+  branch rebasing over a `docs/ideas.md` edit). Only the change's own idea removal, or prose about the thing it shipped,
+  rides the change branch. Decide the owner before committing — a docs PR forked from `main` cannot carry an edit
+  committed on a change branch, so committing it there first for a clean tree silently leaves it out of the docs PR and
+  `main` unchanged — and verify the fix against the merged PR's diff rather than the PR description, which can claim a
+  change the diff does not contain. A parked-idea docs PR owes the refresh too: fold any durable fact the idea reveals
+  into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin to an existing enumeration) —
+  `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the idea is implemented or dropped.
+  `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the same project facts (runtime/Spring/Gradle
+  versions, module count, service list, Docker image names) that OpenSpec shows the AI when creating artifacts — refresh
+  it in the same change whenever one of those facts moves. `openspec validate` never checks it, so it drifts silently
+  (it had fallen to Gradle 8.14.5 / 18 modules before the first audit synced it, #170).
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
@@ -626,6 +632,16 @@ Key modules (libraries, not services):
   subagent in AGENTS.md does not make it reachable — ship a `.opencode/commands/*.md` command (e.g. the `/retrospective`
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
   documentation first and was only usable once the user pointed out it had no trigger and the command was added.
+- **A subagent/command change is a multi-artifact sweep — diff against the last analogous change instead of re-deriving
+  the artifact set.** Beyond the descriptors the auditor-justification bullet names (the definition, an `AGENTS.md`
+  bullet, the README agent table, the `agent-skills` spec), a change also touches the definition's frontmatter
+  `description`; the trigger command (including its step-1 read-list); the README **slash-command table row**; a task
+  for the capability `## Purpose` refresh (a delta cannot carry a Purpose); and the proposal's `### New Capabilities`/
+  `### Modified Capabilities` subsections ("none" where empty). Keep any enumerated list (the swept surfaces, the
+  finding classes) verbatim-identical across proposal/design/tasks/ delta. The
+  `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round surfaced
+  one of these that a prior analogous change had covered — read the archived analogous change and grep for the
+  artifact's name before hand-writing the set.
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model is pinned across several places: `.opencode/opencode.json` (`model` and `small_model` —
   two keys), the flash-pinned subagent frontmatter (`.opencode/agent/review-quick.md`, `lesson-capture.md`,
@@ -958,6 +974,14 @@ that override when bumping the Kafka image tag.
   every extension the gate covers and reformat one file of each type before believing the setup. Verify a Gradle
   formatting task the same way — tamper a file to a non-conforming state, run the task, and confirm the tree returns
   clean (`--dry-run` only proves the task is scheduled, not that it formats).
+- **A glob written into an instruction file is unchecked — prove it matches the files you intend.** Both audit commands
+  told the agent to run "a manual 120-character check for `.opencode/*.md`" — a glob matching **no file**, because the
+  markdown lives in `.opencode/agent/` and `.opencode/commands/`; it had shipped that way in an earlier change and
+  nothing caught it (`.opencode/` is outside Spotless). The first fix over-corrected to `.opencode/**/*.md`, which also
+  matches `node_modules/`, the generator-written `opsx-*` commands and `openspec-*` skills, and the vendored
+  `axon4to5-*` skills — all carrying >120-character lines, so "clean" was unachievable. Scope the check to the exact
+  `.opencode/` files the audit edited (the project-authored `opsx-tool-update.md` stays in scope) and expand a glob once
+  (`ls <glob>`) before trusting it — a vacuous match fails silently.
 - **Run `spotlessApply` after the _final_ write to a Spotless-owned file — ticking a checklist task is an edit too.** A
   `tasks.md` task was ticked ("`spotlessCheck` passes") _after_ the last `spotlessApply`; the re-wrapped prose broke
   Prettier, so the claimed gate actually failed and only the quick review caught it. After any last edit to a
@@ -1163,4 +1187,10 @@ that override when bumping the Kafka image tag.
   precondition for **archiving**, not a task to defer across the merge: it is the only verification that exercises the
   subagent (CI runs none), and an unchecked task inside `openspec/changes/archive/` is invisible — the archive tree is
   outside Spotless and no gate surfaces it — so the check is silently lost (`add-architecture-auditor-agent` archived
-  with its `/audit-architecture` smoke-run unchecked for exactly this reason).
+  with its `/audit-architecture` smoke-run unchecked for exactly this reason). Seed the smoke-run with positive controls
+  — a known-missing rationale it **must** report and a known-explained surface (a spec requirement, an ADR, an
+  `AGENTS.md` convention) it must **not**: a run that reports everything or nothing has not exercised the suppression
+  rule. When the owner deliberately decouples a follow-up task from the merge, reword the task to record what is
+  deferred, where it went, and the owner's chosen order, then **tick it** — an unchecked box inside `archive/` is
+  invisible and no gate reads it. That is not the rule above: the smoke-run itself is never deferred, only a task the
+  owner explicitly decouples.

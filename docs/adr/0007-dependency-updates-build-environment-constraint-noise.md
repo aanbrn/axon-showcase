@@ -10,8 +10,8 @@ The `dependencyUpdates` report (ben-manes `io.github.ben-manes.versions` 0.61.0)
 `org.apache.logging.log4j:log4j-core [2.17.1 -> 2.26.1]` even though `log4j-core` is already resolved at `2.26.1`
 everywhere. The false positive comes from `checkBuildEnvironmentConstraints = true`, which makes the plugin read
 _external_ build-tooling constraints and report the constraint's range floor as the "current version". The culprit is
-`com.github.spotbugs:spotbugs-annotations:4.10.3`, which publishes a `{strictly [2.17.1, 3[}` constraint on `log4j-core`
-as a Log4Shell (CVE-2021-44228) guard.
+`com.github.spotbugs:spotbugs-annotations`, which publishes a `{strictly [2.17.1, 3[}` constraint on `log4j-core` as a
+Log4Shell (CVE-2021-44228) guard.
 
 Three experiments confirm the mechanism:
 

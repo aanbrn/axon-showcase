@@ -13,6 +13,36 @@ work, it may be promoted to a GitHub issue that links to the eventual OpenSpec c
 `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when it was added (start a new
 section for a new day rather than appending to the most recent one).
 
+## 2026-09-14
+
+- Intent questions the widened `/audit-architecture` sweep surfaced — parked; no change yet, awaiting the owner's
+  answers. The change that widened the auditor (`widen-architecture-auditor-to-intent-gaps`) ran it once, and the run
+  reported these deliberate choices whose rationale is not recorded anywhere as questions for the owner:
+  - Why is Axon Framework pinned to 4.x (`config/dependency-updates/major-disabled.properties`)? The entry's comment
+    points at `showcase/quality/dependency-management`, which carries no Axon requirement — a dead pointer, and the
+    rationale unrecorded, even though the repo vendors the `axon4to5-*` migration skills.
+  - Why are the command/event/query/DTO value types Lombok classes rather than records? Fourteen
+    `@SuppressWarnings("ClassCanBeRecord")` annotations across the API modules and the gateway encode the choice (on
+    value types and a mapper); `AGENTS.md` records the Lombok convention and the `CodeBlock2Expr` suppression
+    convention, but never why records are rejected.
+  - Why are the legacy OpenSearch high-level REST clients excluded (`showcase-projection-model`,
+    `showcase-projection-service`, `showcase-query-service`, `showcase-query-client`) in favour of `opensearch-java`? No
+    ADR, spec, or `AGENTS.md` sentence records it — distinct from the parked deprecated low-level
+    `RestClientBuilder`/`RestClient` idea.
+  - Should ADR-0009's Decision name the `axon-server-connector` exclusion repo-wide? It says "both the gateway and the
+    command service", but the exclusion also appears in `showcase-projection-service`, `showcase-query-service`, and the
+    two clients' test suites — covered only by implication. Deliberate enumeration, or was the rest incidental?
+  - Is `@SuppressWarnings("FutureReturnValueIgnored")` on `ShowcaseRestController`'s list/by-id paths a deliberate
+    fire-and-forget cache write or a latent bug? The sweep reported it at low confidence; the rationale is unrecorded.
+
+- Command-service `showcaseCache` breaks ADR-0002's single-source-of-truth default — parked; no change yet. The widened
+  audit found a verified contradiction: `ShowcaseCommandProperties` declares `new Cache(1000, …)`, while
+  `application.yml` (`${SHOWCASE_CACHE_MAX_SIZE:100000}`) and the Helm chart (`showcaseCache.maxSize: 100000`) both say
+  `100000`, so the Java default is dead in every environment — the "dead Java default" ADR-0002 exists to eliminate. The
+  Java default and the write-side spec requirement both say `1000` (the component test's yml-defaults check omits
+  `showcaseCache`, which is how the drift passes it); the sibling `sagaCache`/`sagaAssociationsCache` and the gateway's
+  query caches are aligned. Reconcile all the surfaces (Java, yml, chart, test) to one value in its own change.
+
 ## 2026-09-13
 
 - Query-api → command-api re-export (dependency hygiene) — parked; no change yet. Found by the first

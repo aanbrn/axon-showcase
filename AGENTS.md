@@ -242,7 +242,9 @@ SpotBugs publishes module constraints that `checkBuildEnvironmentConstraints` re
 For example, a `log4j-core [2.17.1 -> 2.26.1]` row appears even though `log4j-core` resolves to `2.26.1` everywhere —
 `2.17.1` is the floor of an external Log4Shell guard published by `spotbugs-annotations`. These rows are a known
 `gradle-versions-plugin` limitation, not real updates (see upstream ben-manes/gradle-versions-plugin#755); do not chase
-them (see ADR-0007).
+them (see ADR-0007). When documenting such an external constraint, name the coordinate and the mechanism, not its
+version: that coordinate is not catalog-owned and its resolved version is not verifiable from the repository, so a
+pinned version rots on the next SpotBugs bump.
 
 Major-blocking entries in `config/dependency-updates/major-disabled.properties` carry a pointer comment naming the
 coordinate and its rationale; the authoritative reasoning for each suppressed coordinate lives in the
@@ -521,7 +523,10 @@ Key modules (libraries, not services):
   `./gradlew :showcase-web-ui:npmFormat`); lint with ESLint 10 via the flat `showcase-web-ui/eslint.config.js`
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
-  simplest construct that compiles and stays readable
+  simplest construct that compiles and stays readable. The same applies to prose: when a bullet needs a set another
+  `AGENTS.md` bullet already enumerates, cross-reference that bullet instead of re-listing it — a copied enumeration is
+  a second copy that drifts. (Whether an already-restated fact is still accurate is a separate check: diff it against
+  the code — see the documented-numbers gotcha.)
 - **Formatting**: format Java sources, Gradle Kotlin DSL (`*.gradle.kts`), and build-logic Kotlin
   (`build-logic/src/**/*.kt`) files with `./gradlew spotlessApply` (Spotless: palantir-java-format for Java, ktfmt for
   `.gradle.kts` and build-logic `.kt`, both fixed 120 columns) — the canonical format step, enforced by `spotlessCheck`
@@ -1070,11 +1075,13 @@ that override when bumping the Kafka image tag.
   `specs-auditor` exists to catch. The `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the
   change's own delta made the main spec hold 158, and the README still stated a hard "22 capability specs". Describe the
   shape instead of freezing a tally — the `specs-auditor` definition now says "a corpus … that grows with every archived
-  change", and the README's "120+ and counting" is the pattern to follow. A named example or mechanism inside a
-  convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep it on "the gateway e2e test, which
-  pulls in JGroups", but the e2e suite drives containers and never boots JGroups in the test JVM — a false example that
-  surfaced only when ADR-0009 had to restate the same rule. When a second artifact restates an existing fact, diff the
-  two against the code rather than copying the prose.
+  change", and the README's "120+ and counting" is the pattern to follow. A process count — review rounds, elapsed time,
+  effort — is not a durable fact either, though for a different reason: no reader can verify it from the repository at
+  all, so describe it qualitatively ("repeated review rounds"), not as a precise number. A named example or mechanism
+  inside a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep it on "the gateway e2e
+  test, which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in the test JVM — a false
+  example that surfaced only when ADR-0009 had to restate the same rule. When a second artifact restates an existing
+  fact, diff the two against the code rather than copying the prose.
 - **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
   is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`
   reading "OpenSearch results to entities" for a converter that maps entities → OpenSearch (the field Javadoc and its

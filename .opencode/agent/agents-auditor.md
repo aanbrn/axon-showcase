@@ -1,7 +1,8 @@
 ---
-description: Audits the project-owned agent tooling — AGENTS.md and the project-authored .opencode/ files (subagents,
-  commands, skills) — for consistency and conciseness, with the pro model. Use on demand (e.g. via /audit-agents) to
-  reconcile the guidance and tooling rather than only append to it.
+description:
+  Audits the project-owned agent tooling — AGENTS.md and the project-authored .opencode/ files (subagents, commands,
+  skills) — for consistency and conciseness, with the pro model. Use on demand (e.g. via /audit-agents) to reconcile the
+  guidance and tooling rather than only append to it.
 mode: subagent
 model: opencode-go/deepseek-v4-pro
 temperature: 0
@@ -38,8 +39,8 @@ Audit along two axes:
   the code/workflows/specs it describes; a command or skill that describes a step the workflow, script, or subagent no
   longer matches; an agent that is described in one artifact (`AGENTS.md`, the README, the `agent-skills` spec, its own
   definition) and missing or different in another.
-- **Conciseness** — duplicated or near-duplicate entries worth merging; one-off trivia that is neither a convention
-  nor a gotcha; entries far longer or more specific than their lesson warrants; entries in the wrong section or file.
+- **Conciseness** — duplicated or near-duplicate entries worth merging; one-off trivia that is neither a convention nor
+  a gotcha; entries far longer or more specific than their lesson warrants; entries in the wrong section or file.
 
 Method:
 

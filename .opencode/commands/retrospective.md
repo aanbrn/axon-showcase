@@ -10,7 +10,7 @@ Run the experience-analyzer workflow to produce a retrospective and improvement 
    OpenSpec changes, AGENTS.md gotchas, and docs/ideas.md for the window.
 3. Invoke the `experience-analyzer` subagent (`.opencode/agent/experience-analyzer.md`) with that digest plus a short
    context note on the window (what went well/wrong that no diff captures).
-4. Present the retrospective (shipped PRs by theme, lessons, went-well/went-wrong) and the improvement suggestions,
-   each classified as `system` (→ docs/ideas.md or an OpenSpec proposal) or `process` (→ AGENTS.md).
-5. Ask the user which suggestions to apply, and whether to store the retrospective under
-   `docs/retrospectives/<date>.md` as a docs change. Do not edit any files without the user's go-ahead.
+4. Present the retrospective (shipped PRs by theme, lessons, went-well/went-wrong) and the improvement suggestions, each
+   classified as `system` (→ docs/ideas.md or an OpenSpec proposal) or `process` (→ AGENTS.md).
+5. Ask the user which suggestions to apply, and whether to store the retrospective under `docs/retrospectives/<date>.md`
+   as a docs change. Do not edit any files without the user's go-ahead.

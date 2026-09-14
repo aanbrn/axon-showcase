@@ -1,6 +1,7 @@
 ---
-description: Audit the project's architecture for recorded-decision drift and unrecorded intent (docs/adr/ + the
-  service/module topology + the spec decomposition) with the pro-model architecture-auditor subagent
+description:
+  Audit the project's architecture for recorded-decision drift and unrecorded intent (docs/adr/ + the service/module
+  topology + the spec decomposition) with the pro-model architecture-auditor subagent
 ---
 
 Run the architecture audit to check that the design the project records still matches the design it has.
@@ -16,7 +17,5 @@ Run the architecture audit to check that the design the project records still ma
    for the user to answer), is the user's call and is never "fixed" automatically. Do not edit files without their
    go-ahead.
 4. Apply the approved changes, run `./gradlew spotlessApply` for the formatter-wrapped files (`AGENTS.md`, `README.md`,
-   `docs/adr/`, the specs/change dirs) and a manual 120-character check on the `.opencode/` files the audit edited
-   (`node_modules`, the generator-written `opsx-*` commands and `openspec-*` skills, and the vendored skills are out of
-   scope; the project-authored `opsx-tool-update.md` stays in scope), then re-run the `review-quick` subagent over the
-   resulting diff before reporting the audit done.
+   `docs/adr/`, the specs/change dirs, and the project-authored `.opencode/` markdown the audit edited), then re-run the
+   `review-quick` subagent over the resulting diff before reporting the audit done.

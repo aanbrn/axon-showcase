@@ -1,6 +1,9 @@
 ---
 name: setup-agent-tools
-description: Set up this repo's tooling MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users, the Steroid MCP — by detecting what is already installed and wiring the rest into the user's global OpenCode config. Use when the user asks to set up, install, or configure the agent tooling, the GitHub/gh-mcp MCP, or the JetBrains/Steroid MCP.
+description:
+  Set up this repo's tooling MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users, the Steroid MCP — by
+  detecting what is already installed and wiring the rest into the user's global OpenCode config. Use when the user asks
+  to set up, install, or configure the agent tooling, the GitHub/gh-mcp MCP, or the JetBrains/Steroid MCP.
 license: MIT
 ---
 
@@ -40,9 +43,9 @@ user before reading or editing files outside this repo.
 3. **Steroid (optional — IntelliJ IDEA only).**
    - Ask whether the user wants the agent to work through their live IDE. If not, skip this step — nothing in the repo
      requires it.
-   - If `devrig` is not on `PATH`, offer its one-command installer
-     (`curl -fsSL https://devrig.dev/install.sh | sh`); run it only after the user confirms — it executes a downloaded
-     script and installs into `~/.mcp-steroid` — then re-check.
+   - If `devrig` is not on `PATH`, offer its one-command installer (`curl -fsSL https://devrig.dev/install.sh | sh`);
+     run it only after the user confirms — it executes a downloaded script and installs into `~/.mcp-steroid` — then
+     re-check.
    - Install the MCP Steroid plugin into the running IDE with `devrig install plugin`, or point the user at the
      JetBrains Marketplace; the IDE shows its own confirmation dialog.
    - If `opencode mcp list` shows no `steroid` server, run `opencode mcp add steroid -- devrig mcp` (or use the absolute

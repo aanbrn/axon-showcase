@@ -17,5 +17,5 @@ updates (a "dependencies with newer versions" section) matter.
 
 Also surface the `Gradle CURRENT updates` section at the end of the report: state the current/pinned wrapper version
 (from `gradle/wrapper/gradle-wrapper.properties`) and whether a newer Gradle release is available. If a newer stable
-Gradle exists, flag it for attention and suggest running `/gradle-update`. When the report shows `UP-TO-DATE`, note
-that Gradle is current.
+Gradle exists, flag it for attention and suggest running `/gradle-update`. When the report shows `UP-TO-DATE`, note that
+Gradle is current.

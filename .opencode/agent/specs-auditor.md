@@ -1,5 +1,6 @@
 ---
-description: Audits the openspec/specs corpus for structure and consistency — title/path match, Purpose fit, requirement
+description:
+  Audits the openspec/specs corpus for structure and consistency — title/path match, Purpose fit, requirement
   conventions, cross-spec duplication, and dead cross-references — with the pro model. Use on demand (e.g. via
   /audit-specs) to keep the specs well-structured and mutually consistent.
 mode: subagent
@@ -34,8 +35,8 @@ Scope — this is a **structure and consistency** audit, not a behavior audit:
 
 - **Do NOT verify requirements against the implementation.** Whether a scenario actually holds against the code is the
   change workflow's review loop and the archive-time sync; re-checking every requirement against the codebase is
-  unbounded and duplicates an existing gate. A dead *reference* (does this class still exist?) is in scope; whether the
-  described *behavior* is correct is not.
+  unbounded and duplicates an existing gate. A dead _reference_ (does this class still exist?) is in scope; whether the
+  described _behavior_ is correct is not.
 - Stay within `openspec/specs/`; `AGENTS.md` and the project-owned `.opencode/` files have their own auditor
   (`agents-auditor`).
 
@@ -48,8 +49,8 @@ Method:
 - **Respect deliberate choices.** A reused header, a terse Purpose, or an unusual requirement split can be intentional.
   Check before proposing a "fix"; if it is ambiguous, say so rather than asserting a defect.
 
-Report, do not edit. Return findings grouped by severity — **structural**, **stale**, **duplicate**, and
-**dead reference** — each with:
+Report, do not edit. Return findings grouped by severity — **structural**, **stale**, **duplicate**, and **dead
+reference** — each with:
 
 - the location (the spec path and a line number, or a short verbatim quote), and
 - a concrete suggested rewrite, merge, or split.

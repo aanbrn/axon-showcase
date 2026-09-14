@@ -1,6 +1,7 @@
 ---
-description: Draws and fixes ASCII diagrams in docs/README with the pro model, so the text-only flash main agent
-  doesn't fight ASCII geometry. Use when a diagram needs to be created, aligned, or corrected.
+description:
+  Draws and fixes ASCII diagrams in docs/README with the pro model, so the text-only flash main agent doesn't fight
+  ASCII geometry. Use when a diagram needs to be created, aligned, or corrected.
 mode: subagent
 model: opencode-go/deepseek-v4-pro
 temperature: 0

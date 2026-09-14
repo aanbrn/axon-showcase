@@ -9,18 +9,17 @@ unless asked.
 
 The scan passes `--policy-path=.snyk` (the root Snyk policy), which version-pins the ignored findings
 (`* > pkg@version`) so only the exact assessed vulnerable versions are suppressed, each with a short-term `expires` so
-it re-surfaces if not resolved in time. The currently-suppressed findings and their rationale live in the `.snyk`
-header comment and the `showcase/quality/dependency-security` spec — see those rather than restating them here.
+it re-surfaces if not resolved in time. The currently-suppressed findings and their rationale live in the `.snyk` header
+comment and the `showcase/quality/dependency-security` spec — see those rather than restating them here.
 
 **Snyk rate limit:** the free org plan allows **200 Open Source tests per billing period** (monthly; confirmed by the
 plans-page FAQ and the CLI's own "monthly limit of 200 private tests" message — note the docs.snyk.io usage-settings
 page's "400" is stale). A test is counted **only for a manifest file where vulnerabilities are identified**, so the
-quota is consumed by scans that *find* issues, not by clean ones. Because `--policy-path=.snyk` suppresses every
-finding, `dependencySecurityCheck` reports zero identified vulnerabilities and effectively does not consume quota —
-a policy-passing scan works even after the quota has been exhausted by unfiltered scans. The rate-limit failure
-("You have reached your monthly limit of 200 private tests") therefore only bites when a scan actually identifies
-findings, which is the case to expect on the raw `snyk test --all-sub-projects --json` verification runs. If the
-quota is exhausted, wait for the monthly reset (start of the next calendar month in practice; see
-`app.snyk.io → Settings → Usage`) rather than retrying repeatedly, and do not treat the rate-limit failure as a real
-vulnerability finding. A full unfiltered report is a large response; cache it to a temp file if it will be queried
-more than once.
+quota is consumed by scans that _find_ issues, not by clean ones. Because `--policy-path=.snyk` suppresses every
+finding, `dependencySecurityCheck` reports zero identified vulnerabilities and effectively does not consume quota — a
+policy-passing scan works even after the quota has been exhausted by unfiltered scans. The rate-limit failure ("You have
+reached your monthly limit of 200 private tests") therefore only bites when a scan actually identifies findings, which
+is the case to expect on the raw `snyk test --all-sub-projects --json` verification runs. If the quota is exhausted,
+wait for the monthly reset (start of the next calendar month in practice; see `app.snyk.io → Settings → Usage`) rather
+than retrying repeatedly, and do not treat the rate-limit failure as a real vulnerability finding. A full unfiltered
+report is a large response; cache it to a temp file if it will be queried more than once.

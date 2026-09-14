@@ -6,9 +6,6 @@
     "bash": {
       "*": "allow",
       "git push*": "ask"
-    },
-    "external_directory": {
-      "/tmp/**": "allow"
     }
   },
   "mcp": {

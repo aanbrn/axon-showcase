@@ -97,6 +97,11 @@ fix the findings before publishing. A false claim written into the repository is
 post to a public tracker is not. A comment drafted for `anomalyco/opencode#48100` was reviewed this way, and the review
 caught a wrong premise about permission-pattern expansion before it went public.
 
+**A review finding is a claim to verify, not an instruction to apply.** The review gate catches errors, but its
+corrections are themselves claims: reproduce each against the mechanism or artifact before adopting it, and when a
+correction cannot be substantiated, remove the claim rather than assert it either way — a refutation confirmed against
+the authoritative policy may be adopted; one that cannot be reproduced is dropped, not written in either direction.
+
 **Report an upstream gap we identify, not only the workaround around it.** A dependency or tool we rely on is worth
 improving: when a gap is identified — a spurious update row, a deprecation with no fix, a limitation that forces a
 workaround — report it upstream with a reproduction and the evidence, and keep the reference where the constraint bites,
@@ -1238,6 +1243,15 @@ that override when bumping the Kafka image tag.
   If the only source is the conversation, omit it or label it as the owner's account; for an outcome you did not
   observe, state the mechanism ("a bash-script write runs under `permission.bash`") rather than the observation ("it did
   not prompt"). Point-in-time narrative belongs in a change's archived artifacts, not in a durable one.
+- **A comparison between two runs or files that differ in more than one dimension cannot attribute the difference to
+  either — isolate the variable before naming a cause.** Comparing `ci.yml`'s `Cache mode: write` with the `opencode`
+  workflow's read-only run attributed the difference to the latter's `permissions:` block, but the two differ in two
+  ways — the trigger (`push`/`pull_request` vs the comment triggers) and the blocks' contents (`ci.yml`: a top-level
+  `contents: read`; `opencode.yml`: a job-level `id-token: write` plus reads) — and a grep anchored to an indented
+  `permissions:` had hidden `ci.yml`'s top-level one. GitHub's dependency-caching reference names the trigger, so a fix
+  built on the misattribution (granting `actions: write`) would have widened the token for nothing. Read the
+  authoritative policy for the mechanism you are hypothesising, or vary only that dimension; a fix that enlarges a
+  privilege to explain a behavior is a signal the cause is still undiagnosed.
 - **A reproduction in an outward-facing artifact is itself part of the claim — write it so a reader reruns it to the
   same output, and rerun the exact sequence before posting.** State the tool version and the starting state, and record
   the commands in the order they ran: an order-dependent transcript can self-contradict (a `Fission-AI/OpenSpec#1892`
@@ -1269,7 +1283,10 @@ that override when bumping the Kafka image tag.
   `{env:TMPDIR}` expands but carries a trailing separator through and substitutes to nothing when unset). That false
   limitation survived the review gate and was only caught by reading the source, because a tool's behavior is not
   repo-evidenced and no in-repo gate can check it. Treat a doc's account of a feature as a floor, not a boundary, and
-  verify a tool-behavior claim against the source/CLI before writing it into a durable artifact.
+  verify a tool-behavior claim against the source/CLI before writing it into a durable artifact. Confirm too that the
+  file you read is the code path that runs: a package can hold a mock or test harness whose name matches the entry point
+  (`github/index.ts` is a local dev/test entry; the shipped handler is `github.handler.ts`), and a matching filename or
+  path is not evidence you read the implementation.
 - **A CLI warning dismissed as noise can report a live defect — and a YAML config's rule lists fail silently.**
   `openspec/config.yaml` declared per-artifact rules for four artifacts, but two items contained an unquoted `: `, so
   YAML parsed them as mappings, the lists stopped being arrays of strings, and the CLI ignored those two artifacts'
@@ -1374,7 +1391,9 @@ that override when bumping the Kafka image tag.
   not that the version tag is installable — the credentialed weekly run (or a local `dependencySecurityCheck` with
   `SNYK_TOKEN`) is the first real execution. The same skew bites a guard keyed off a tool's output: it must be verified
   against the version CI pins, not only the locally-installed one, since the pinned CLI is what the gate actually runs
-  and the output text it matches on may differ there.
+  and the output text it matches on may differ there. The same caution applies to a proposed _fix_ attributed to a
+  dependency bump: verify it exists in a released version, not only on the project's default branch — a bump claimed to
+  make a failure skip cleanly held on `actions/cache`'s `main` but in no release (latest `v6.1.0`).
 - **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
   first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
   output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change

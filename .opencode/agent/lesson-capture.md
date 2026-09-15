@@ -27,8 +27,10 @@ Capture two kinds of lessons:
   step.
 
 For each proposed addition, give the exact AGENTS.md text and where it belongs (Conventions section, Gotchas section, or
-a specific subsection). Do NOT edit AGENTS.md yourself — the calling agent verifies and merges. Propose only lessons
-that are durable and non-obvious; skip one-off trivia that no future change would hit.
+a specific subsection), and **name the existing bullet the addition extends — or state that no bullet covers it**: a
+durable rule merges into or replaces an existing one rather than accreting, since this subagent is AGENTS.md's growth
+engine. Do NOT edit AGENTS.md yourself — the calling agent verifies and merges. Propose only lessons that are durable
+and non-obvious; skip one-off trivia that no future change would hit.
 
 **Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
 

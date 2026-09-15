@@ -228,7 +228,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | `agents-auditor`       | Audits AGENTS.md + project-owned `.opencode/` files, and flags third-party files our usage contradicts — `/audit-agents` |
 | `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                         |
 | `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift + unrecorded intent — `/audit-architecture`   |
-| `lesson-capture`       | Captures gotchas/conventions into AGENTS.md after every change (automatic)                                               |
+| `lesson-capture`       | Captures gotchas/conventions into AGENTS.md after every change, consolidating rather than accreting (automatic)          |
 | `review-quick`         | Fast review after proposal & implementation, repeated until clean (automatic)                                            |
 | `review-thorough`      | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`                                            |
 | `vision`               | Reads screenshots for the text-only main agent                                                                           |
@@ -240,8 +240,9 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
   implement it, and prepare it for review.
 - **Code review**: every change is auto-reviewed after its proposal and after its implementation; the quick-review loop
   repeats until it finds nothing new. A deep `/review-thorough` pass is available on demand.
-- **Lesson capture**: after each change, `lesson-capture` proposes AGENTS.md gotchas and conventions — so mistakes are
-  recorded systematically instead of relying on memory.
+- **Lesson capture**: after each change, `lesson-capture` proposes AGENTS.md gotchas and conventions, merging each into
+  an existing bullet or stating that none covers it — so mistakes are recorded systematically instead of relying on
+  memory.
 - **Retrospectives**: `/retrospective` gathers the last week of PRs and the git log, plus the archived changes and
   accumulated gotchas, and produces a sprint retrospective with improvement suggestions.
 - **Formatting, gates, CI, PRs**: formatting and quality gates run in the build; the agent opens PRs, watches CI, and
@@ -310,7 +311,8 @@ The process is designed to **learn from itself** — and that is the mechanic, n
   guidance and tooling stay consistent and concise instead of only growing.
 - **Periodic retrospectives zoom out.** `/retrospective` turns a window of merged PRs and the git log, together with the
   archived changes and accumulated gotchas, into a sprint retrospective whose suggestions are classified `process` (→
-  `AGENTS.md`) or `system` (→ an idea or a proposal), so both the process and the system keep improving.
+  `AGENTS.md` or a subagent definition) or `system` (→ an idea or a proposal), so both the process and the system keep
+  improving.
 
 A mistake made once becomes a rule the agent follows thereafter — the process gets a little better with every change.
 

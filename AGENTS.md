@@ -49,7 +49,12 @@ instead (see the BEHIND gotcha).
 **Fork branches from `main` only.** Every new branch — a change branch, a standalone fix, or a post-merge capture's docs
 change — is created from `origin/main` (fetch first), never from another work branch. Branching from a work branch
 silently carries its commits into the new PR (a fix PR ended up shipping a change's commit history); recover by rebasing
-`--onto origin/main` and force-pushing, then verify the PR's changed-file set is the intended one.
+`--onto origin/main` and force-pushing, then verify the PR's changed-file set is the intended one. Create the branch
+with `--no-track` (`git switch -c <name> --no-track origin/main`), or push its first time with
+`git push -u origin <branch>`: a plain `git checkout -b <name> origin/main` silently makes `origin/main` the new
+branch's upstream (`branch.autoSetupMerge`), so a later bare `git push` refuses with the confusing "The upstream branch
+of your current branch does not match the name of your current branch" (fix with `git push -u origin <branch>`, which
+repoints it, or `git branch --unset-upstream`).
 
 **Leave the work uncommitted until the user has reviewed it — commit only when a push or a branch switch forces it.**
 After applying a change, do not commit before the user has done their review pass — keep the working-tree diff visible
@@ -1201,7 +1206,11 @@ that override when bumping the Kafka image tag.
   instance in the same change. The same sweep applies to a corrected fact, not only a convention: after a review
   corrects a direction, value, or magnitude, grep the artifact for that claim and fix every repetition — a
   `reconcile-showcase-cache-default` review corrected the reversed direction in the design's Context, and the same
-  claim's residue in the Decisions section (plus a "tenfold" that was a hundredfold) was caught only in the next pass.
+  claim's residue in the Decisions section (plus a "tenfold" that was a hundredfold) was caught only in the next pass. A
+  **replaced** rule sweeps one degree harder still: its restatements are paraphrases rather than repetitions and live
+  beyond the artifact — in other gotchas and conventions, and in file headers — so grep every doc that describes the
+  workflow for the _concept_, not the old wording: replacing the commit discipline left four restatements (two gotchas,
+  the docs-refresh convention, and `docs/ideas.md`'s header).
 - **A configuration-default change names every test assertion that pins the value, on each surface it is declared.** The
   `reconcile-showcase-cache-default` plan initially missed that `allPropertiesHaveDocumentedDefaults` asserts the Java
   field (so the change would fail it) and that the yml-wiring test's missing `showcaseCache` assertion was the gap which
@@ -1211,10 +1220,12 @@ that override when bumping the Kafka image tag.
   "enforced" for a real gate.** The self-learning README section described `AGENTS.md` rules in quotes;
   `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an
   overstated process claim. When a doc quotes a rule/spec/comment, copy the exact text (or drop the quote marks and
-  describe it), and check the mechanism before using words like "enforced", "always", "never", or "every". Check the
-  claim's grammatical subject too, not only its wording — a pronoun can bind a claim to the wrong actor: a README draft
-  closed with "… and a practice of reporting gaps in the libraries and tools _it_ depends on", which bound the project's
-  upstream-report practice to OpenCode (the bullet's subject) rather than to the project; naming the subject fixed it.
+  describe it), and check the mechanism before using words like "enforced", "always", "never", or "every" — against the
+  variants other docs define, too, since an unconditional rule must hold on every documented path, not only the default
+  one (the README's proposal-stage draft PR is such a variant). Check the claim's grammatical subject too, not only its
+  wording — a pronoun can bind a claim to the wrong actor: a README draft closed with "… and a practice of reporting
+  gaps in the libraries and tools _it_ depends on", which bound the project's upstream-report practice to OpenCode (the
+  bullet's subject) rather than to the project; naming the subject fixed it.
 - **A durable artifact may assert only what the repository can evidence — a history that lives only in the conversation
   is not repo history.** An earlier draft of this bullet cited a `/var/folders/**` config attempt — a pattern proposed
   in conversation but never written to a config file — and asserted an unobserved `setup-hosts.sh` outcome; a review

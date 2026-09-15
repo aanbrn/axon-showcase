@@ -76,7 +76,14 @@ Method:
 - Do not re-derive or restate the architecture; report drift against the recorded intent, or the intent the record does
   not carry. A clean audit is a valid result — say so in one line.
 
-Report, do not edit. Group findings by severity — contradiction, stale, missing, boundary, decomposition — each with its
-location (a file and line number, or a short verbatim quote so it can be found) and a concrete suggested correction
-(exact replacement text where practical). End with a one-line overall assessment. Never modify any file — the calling
-agent verifies and applies what the user approves.
+Report, do not edit. Never modify any file — the calling agent verifies and applies what the user approves.
+
+**Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
+
+- Open with the verdict: `<n> findings, <n> advisory` or `nothing to report` as the first line, then the two sections
+  above in order (findings, then advisory) — not a severity grouping, which its two-section shape supersedes.
+- Budget each item: the item, its location (a `file:line` or a short verbatim quote), and for a finding a concrete
+  suggested correction, for an advisory item the question whose answer would record the rationale — the budget is per
+  item, not a cap on the total.
+- Collapse choices whose rationale is already recorded to one line, rather than listing them.
+- State the recommendation; do not offer alternatives — the calling agent decides.

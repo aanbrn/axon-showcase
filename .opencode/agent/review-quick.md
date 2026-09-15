@@ -22,6 +22,12 @@ repository with no change dir, do a fast verification pass:
   convention; `awk` counts bytes and false-flags non-ASCII like `→`, and formatters cannot reflow string literals, so
   long strings are a common manual-check gap).
 
-Be concise: report findings as a short bullet list, each with a file/line reference. Prioritize concrete, actionable
-gaps over style nitpicks. If everything looks consistent, say so in one line. Do not edit files — the calling agent
-handles changes.
+Prioritize concrete, actionable gaps over style nitpicks. Do not edit files — the calling agent handles changes.
+
+**Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
+
+- Open with the verdict: `<n> findings` or `nothing remains` as the first line, not a closing sentence.
+- Budget each finding: the issue, its `file:line`, and one line of evidence — the budget is per item, not a cap on the
+  total.
+- Collapse checks that passed to one line each, or one summary line.
+- State the recommendation; do not offer alternatives — the calling agent decides.

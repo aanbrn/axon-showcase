@@ -647,19 +647,20 @@ Key modules (libraries, not services):
   OpenSpec instruction files `openspec update` writes, and the vendored `axon4to5-*` skills) — a project-authored file
   that shares a generated prefix, like `opsx-tool-update`, stays in scope: a boundary drawn by provenance, not a
   filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). Trigger it with the
-  `/audit-agents` OpenCode command: the subagent verifies each claim against the repository and returns findings grouped
-  by severity (contradiction / stale / dead reference / redundant / structural), each with a location and a suggested
-  rewrite, without editing anything. The main agent applies the approved findings under the review gate. The zero-touch
-  scheduled variant is parked in `docs/ideas.md`; the audit itself is on demand.
+  `/audit-agents` OpenCode command: the subagent verifies each claim against the repository and returns its findings in
+  the subagent report contract — shared by every report-producing subagent and defined in the `agent-skills` spec: a
+  verdict line first, then each item budgeted (its anchor and one line of evidence), passing checks collapsed to one
+  line, and no alternatives — without editing anything. The main agent applies the approved findings under the review
+  gate. The zero-touch scheduled variant is parked in `docs/ideas.md`; the audit itself is on demand.
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus, because `openspec validate` gates a spec's
   well-formedness but not its cross-spec structural consistency — title ↔ capability-path match, Purpose ↔ requirements
   fit, requirement conventions, cross-spec duplication, and dead cross-references. Trigger it with the `/audit-specs`
-  OpenCode command: it verifies each finding against the repository and returns findings grouped by severity (structural
-  / stale / duplicate / dead reference) without editing anything, flagging a reused requirement header for judgment
-  rather than as a defect. It deliberately does **not** check behavior against the code — the change workflow's review
-  loop and the archive-time sync own that. The main agent applies approved findings through the normal change workflow
-  (a spec edit is a change). The zero-touch scheduled variant is parked in `docs/ideas.md`.
+  OpenCode command: it verifies each finding against the repository and returns its findings in the subagent report
+  contract (grouped by severity) without editing anything, flagging a reused requirement header for judgment rather than
+  as a defect. It deliberately does **not** check behavior against the code — the change workflow's review loop and the
+  archive-time sync own that. The main agent applies approved findings through the normal change workflow (a spec edit
+  is a change). The zero-touch scheduled variant is parked in `docs/ideas.md`.
 - **Architecture-auditor subagent for design drift and unrecorded intent**: the `architecture-auditor` subagent
   (`.opencode/agent/architecture-auditor.md`) audits the project's architecture — `docs/adr/` plus the architectural
   surface (the service boundaries, the module dependency graph, and the spec corpus's capability decomposition) — for
@@ -667,8 +668,8 @@ Key modules (libraries, not services):
   unrecorded supersession, a missing `ADR-NNNN` cross-reference, a cross-cutting decision with no ADR, a
   dependency/service-boundary direction the architecture does not sanction, and a spec decomposition that no longer
   matches the module/service structure. Trigger it with the `/audit-architecture` OpenCode command: it verifies each
-  finding against the repository and reports in two separated sections — **findings** (verified drift, each with a
-  location and a suggested correction) and **advisory** design observations (no severity, not defects, never "fixed"
+  finding against the repository and reports in the subagent report contract, in two separated sections — **findings**
+  (verified drift, budgeted per item) and **advisory** design observations (no severity, not defects, never "fixed"
   without the user's decision) — without editing anything. Within the advisory section it also reports **where
   clarification of intent is missing** — a deliberate choice or absence whose rationale is not recorded. It sweeps the
   surfaces a rationale must exist for (dependency `exclude(...)` declarations, the major-version-suppressed coordinates,
@@ -695,8 +696,8 @@ Key modules (libraries, not services):
 - **Thorough-review subagent for deep passes**: the `review-thorough` subagent (`.opencode/agent/review-thorough.md`)
   does a deep review of a change against its proposal, delta specs, design, tasks, and the implementation diff — drift,
   correctness, architecture, and conventions. It is intentionally not auto-scheduled (the expensive pass); invoke it
-  with the `/review-thorough` OpenCode command (or ask the main agent to run it manually). Findings come back grouped by
-  severity with file/line references; the main agent applies fixes.
+  with the `/review-thorough` OpenCode command (or ask the main agent to run it manually). Findings come back in the
+  subagent report contract (grouped by severity with file/line references); the main agent applies fixes.
 - **A subagent is only invocable through a trigger, not its documentation**: documenting an `.opencode/agent/*.md`
   subagent in AGENTS.md does not make it reachable — ship a `.opencode/commands/*.md` command (e.g. the `/retrospective`
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as

@@ -758,11 +758,11 @@ Key modules (libraries, not services):
   the artifact set.** Beyond the descriptors the auditor-justification bullet names (the definition, an `AGENTS.md`
   bullet, the README agent table, the `agent-skills` spec), a change also touches the definition's frontmatter
   `description`; its **own report-contract verdict line** (a report that gains or changes an output section must name it
-  there — the shared contract makes an auditor's first line state its section structure, so a pre-widening
-  `<n> findings` line is stale the moment an advisory section exists); the trigger command (including its step-1
-  read-list); the README **slash-command table row**; a task for the capability `## Purpose` refresh (a delta cannot
-  carry a Purpose); and the proposal's `### New Capabilities`/ `### Modified Capabilities` subsections ("none" where
-  empty). Keep any enumerated list (the swept surfaces, the finding classes) verbatim-identical across
+  there — the shared contract makes an auditor's first line state a count, so a pre-widening `<n> findings` line is
+  stale the moment an advisory section exists, becoming `<n> findings, <n> advisory`); the trigger command (including
+  its step-1 read-list); the README **slash-command table row**; a task for the capability `## Purpose` refresh (a delta
+  cannot carry a Purpose); and the proposal's `### New Capabilities`/ `### Modified Capabilities` subsections ("none"
+  where empty). Keep any enumerated list (the swept surfaces, the finding classes) verbatim-identical across
   proposal/design/tasks/ delta. The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick`
   rounds because each round surfaced one of these that a prior analogous change had covered — read the archived
   analogous change and grep for the artifact's name before hand-writing the set.

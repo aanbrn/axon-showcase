@@ -643,10 +643,13 @@ Key modules (libraries, not services):
   (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
   `.opencode/` files (subagents, commands, skills) — because an accretion-only set of guidance and tooling drifts:
   entries contradicted elsewhere, stale enumerations, dead cross-references, a command naming a subagent that no longer
-  exists, near-duplicate gotchas. Its scope is a provenance partition: it skips what the repo does not author (the
-  OpenSpec instruction files `openspec update` writes, and the vendored `axon4to5-*` skills) — a project-authored file
-  that shares a generated prefix, like `opsx-tool-update`, stays in scope: a boundary drawn by provenance, not a
-  filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). Trigger it with the
+  exists, near-duplicate gotchas. Its scope is a provenance partition: it never _fixes_ what the repo does not author
+  (the OpenSpec instruction files `openspec update` writes, and the vendored `axon4to5-*` skills) — a project-authored
+  file that shares a generated prefix, like `opsx-tool-update`, stays in scope: a boundary drawn by provenance, not a
+  filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). An excluded file is still
+  _read_, and reported as an advisory item where it contradicts how the repo uses it (a vendored skill prescribing a
+  pattern our code has moved past; a generated command naming an artifact we removed), bounded by a harm test and routed
+  to a decision — report it upstream, re-vendor, or change our usage — never a local edit. Trigger it with the
   `/audit-agents` OpenCode command: the subagent verifies each claim against the repository and returns its findings in
   the subagent report contract — shared by the per-change review and lesson-capture agents and the three auditors (not
   `experience-analyzer`, whose output is a document, not a findings report), and defined in the `agent-skills` spec: a

@@ -150,15 +150,16 @@ capture systematic instead of memory-dependent. For a docs-only merge that fixes
 fix is the lesson — do not re-capture it as a new gotcha; capture only what the merge left unaddressed. Read that as
 barring a gotcha that _restates the fix_, not a general rule the fix exemplifies: a durable rule absent from `main` is
 one of the things the merge left unaddressed. Before rejecting a captured rule as a re-capture, check `main`'s own text
-(`git show origin/main:AGENTS.md`) and reject only a rule that restates the fix itself. Do not skip the subagent on your
-own judgment that "there's nothing new" — the merge itself is the trigger, and the subagent is the arbiter (the archive
-merge after `remove-redis-client-label` was skipped on exactly such an assumption, and the user had to push back before
-the forgotten-archive and premise-interrogation lessons were captured). When the user asks "is there anything else to
-capture?", treat it as a prompt to run the subagent again over the events — not as a request to justify the previous
-pass. An initial "nothing to capture" verdict is a hypothesis, not a conclusion: the session that produced it had
-process mistakes that were themselves the lesson (e.g. the archive was forgotten and the premise-interrogation gap went
-uncaptured until the user pushed twice). A docs-fix merge has nothing further to capture only if the subagent actually
-reviewed it and said so.
+(`git show origin/main:AGENTS.md`) and reject only a rule that restates the fix itself. Every proposal names the
+existing bullet it extends, or states that no bullet covers the lesson — a new rule merges into or replaces one rather
+than accreting. Do not skip the subagent on your own judgment that "there's nothing new" — the merge itself is the
+trigger, and the subagent is the arbiter (the archive merge after `remove-redis-client-label` was skipped on exactly
+such an assumption, and the user had to push back before the forgotten-archive and premise-interrogation lessons were
+captured). When the user asks "is there anything else to capture?", treat it as a prompt to run the subagent again over
+the events — not as a request to justify the previous pass. An initial "nothing to capture" verdict is a hypothesis, not
+a conclusion: the session that produced it had process mistakes that were themselves the lesson (e.g. the archive was
+forgotten and the premise-interrogation gap went uncaptured until the user pushed twice). A docs-fix merge has nothing
+further to capture only if the subagent actually reviewed it and said so.
 
 **A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not merely
 records it.** The post-merge capture is the pass that can read the merge's non-diff effects: an agent PR's closing
@@ -692,8 +693,8 @@ Key modules (libraries, not services):
   the command gathers the digest with `./scripts/experience-analysis.sh [since]` (merged PRs, git log, archived changes,
   AGENTS.md gotchas, docs/ideas.md), then the subagent returns a retrospective (shipped PRs by theme, lessons,
   went-well/went-wrong) and improvement suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process`
-  (→ AGENTS.md), which the main agent verifies and applies. Retrospectives land in `docs/retrospectives/<date>.md` as a
-  docs change.
+  (→ AGENTS.md or a subagent definition), which the main agent verifies and applies. Retrospectives land in
+  `docs/retrospectives/<date>.md` as a docs change.
 - **Agents-auditor subagent for agent-tooling maintenance**: the `agents-auditor` subagent
   (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
   `.opencode/` files (subagents, commands, skills) — because an accretion-only set of guidance and tooling drifts:
@@ -741,11 +742,12 @@ Key modules (libraries, not services):
   behavior against the code (the review loop and archive-time sync own that), the spec corpus's internal structure
   (`specs-auditor` owns that), or any property an existing gate enforces. The main agent applies the approved findings
   under the review gate: an architecture audit's output is mostly docs, so a finding whose fix is an ADR correction, a
-  new ADR, or an `AGENTS.md`/`README.md`/agent-tooling clarification lands as a docs PR, while one whose correction is a
-  code change becomes its own change and is parked as an idea until then — do not force the suggested correction into
-  the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet narrowing the dependency
-  broke `:showcase-query-client:compileJava`). An advisory item needs the user's decision before anything is done with
-  it. The zero-touch scheduled variant is parked in `docs/ideas.md`.
+  new ADR, or an `AGENTS.md`/`README.md` clarification lands as a docs PR, while one whose correction is a code change —
+  or an edit to a subagent/command definition that changes its spec'd behavior (which owes that definition's spec delta,
+  per the multi-artifact-sweep bullet) — becomes its own change and is parked as an idea until then — do not force the
+  suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet
+  narrowing the dependency broke `:showcase-query-client:compileJava`). An advisory item needs the user's decision
+  before anything is done with it. The zero-touch scheduled variant is parked in `docs/ideas.md`.
 - **Justify a new auditor by a distinct artifact/property, not by symmetry — widen an existing one when its artifacts
   are coupled.** A new auditor earns its place only when its artifact or property has drift no existing auditor can see;
   if the drift is visible only across artifacts an existing auditor already holds, widen that auditor instead.
@@ -769,16 +771,19 @@ Key modules (libraries, not services):
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
   documentation first and was only usable once the user pointed out it had no trigger and the command was added.
 - **A subagent/command change is a multi-artifact sweep — diff against the last analogous change instead of re-deriving
-  the artifact set.** Beyond the descriptors the auditor-justification bullet names, a change also touches the
-  definition's frontmatter `description`; its **own report-contract verdict line** (a report that gains or changes an
-  output section must name it there — the shared contract makes an auditor's first line state a count, so a pre-widening
-  `<n> findings` line is stale the moment an advisory section exists, becoming `<n> findings, <n> advisory`); the
-  trigger command (including its step-1 read-list); the README **slash-command table row** and its **prose** description
-  of the auditor (the Spec-Driven Development, Agentic Process, and Self-Learning Loop sentences) whenever what it
-  reports changes — the tables are not the README's only copy, and no auditor covers `README.md`; a task for the
-  capability `## Purpose` refresh (a delta cannot carry a Purpose); and the proposal's `### New Capabilities`/
-  `### Modified Capabilities` subsections ("none" where empty). Keep any enumerated list (the swept surfaces, the
-  finding classes) verbatim-identical across proposal/design/tasks/ delta. The
+  the artifact set.** **A definition edit that changes spec'd behavior is a change, not a docs edit** — the
+  `agent-skills` spec describes that definition's behavior, so such an edit owes that spec's delta and never rides a
+  docs, audit-fix, or retrospective PR; a definition-only edit the spec does not describe (a model-pin bump,
+  `skip_specs: true`) still ships as a change, with no delta. Beyond the descriptors the auditor-justification bullet
+  names, a change also touches the definition's frontmatter `description`; its **own report-contract verdict line** (a
+  report that gains or changes an output section must name it there — the shared contract makes an auditor's first line
+  state a count, so a pre-widening `<n> findings` line is stale the moment an advisory section exists, becoming
+  `<n> findings, <n> advisory`); the trigger command (including its step-1 read-list); the README **slash-command table
+  row** and its **prose** description of the auditor (the Spec-Driven Development, Agentic Process, and Self-Learning
+  Loop sentences) whenever what it reports changes — the tables are not the README's only copy, and no auditor covers
+  `README.md`; a task for the capability `## Purpose` refresh (a delta cannot carry a Purpose); and the proposal's
+  `### New Capabilities`/ `### Modified Capabilities` subsections ("none" where empty). Keep any enumerated list (the
+  swept surfaces, the finding classes) verbatim-identical across proposal/design/tasks/ delta. The
   `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round surfaced
   one of these that a prior analogous change had covered — read the archived analogous change and grep for the
   artifact's name before hand-writing the set.

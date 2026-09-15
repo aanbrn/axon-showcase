@@ -32,8 +32,8 @@ Produce two sections:
 
 2. **Improvement suggestions** — each suggestion classified as:
    - `system` → address via `docs/ideas.md` or an OpenSpec proposal (code/tooling change)
-   - `process` → address via `AGENTS.md` (workflow/convention change) Give the reasoning for each and where it should
-     land.
+   - `process` → address via `AGENTS.md` or a subagent definition (workflow/convention change) Give the reasoning for
+     each and where it should land.
 
 Do NOT edit any files — return the retrospective text and the suggestion list for the calling agent to verify and apply.
 Only propose improvements that are durable and non-obvious; skip one-off trivia.

@@ -12,6 +12,29 @@ graduates into a concrete candidate for work, it may be promoted to a GitHub iss
 change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when
 it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-09-16
+
+- Cost: time-shift discretionary bulk agent work into the provider's off-peak window — parked; no change yet. Our model
+  pins sit on a flat-rate, dollar-metered plan, and the DeepSeek models on it are priced in peak/off-peak tiers, so the
+  **same pass consumes half the metered quota off-peak** — nothing changes on the invoice ($10/month flat); the lever
+  stretches the quota, which is the binding constraint. The shiftable passes mostly run on the `deepseek-v4-pro` pin
+  (the three `/audit-*` agents and `/review-thorough`; the pin's fifth agent, `diagrammer`, is interactive), so it is
+  the pro quota the saving lands on. At the time of writing the provider's page gives peak as 01:00–04:00 and
+  06:00–10:00 UTC, Mon–Fri, with all other hours including weekends off-peak (~79% of the week), and peak at exactly 2×
+  off-peak.
+  - Only the unattended work is shiftable: the three `/audit-*` sweeps, `/retrospective`, `/review-thorough`, and long
+    capture chains. The interactive loop is paced by the human and cannot be batched, so the saving is concentrated in
+    exactly our most token-heavy invocations.
+  - Open question for the owner: a `schedule:`-triggered agent run inside the off-peak window (idiomatic here — the
+    nightly `e2e` and the weekly update checks already run on schedules), or a mid-session discipline of choosing when
+    to fire a bulk pass? This overlaps the three parked zero-touch scheduled auditor variants, so one route likely
+    implements both.
+  - The window and the rates are provider-owned and mutable, and the window is defined in UTC (so any local restatement
+    rots with DST): resolve both at `opencode.ai/docs/go` rather than pinning them in the repo — the dated snapshot
+    above is context for this note, not a figure any artifact should carry.
+  - Not the biggest lever: model routing (already done) is deterministic and fires every turn, and review-round count
+    matters more than time-shifting a single round.
+
 ## 2026-09-14
 
 - Intent questions the widened `/audit-architecture` sweep surfaced — parked; no change yet, awaiting the owner's

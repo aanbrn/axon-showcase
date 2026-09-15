@@ -794,7 +794,11 @@ Key modules (libraries, not services):
   asymmetry. Note the config `model` key is a default for **new** sessions, not a live override: OpenCode persists the
   last-used model in `~/.local/state/opencode/model.json` (its `recent` list), so a restarted TUI that restores a
   session keeps that session's model and still shows the old one until you switch manually or start a new session — a
-  correct config pin does not by itself make the running agent use the new model.
+  correct config pin does not by itself make the running agent use the new model. The pins also sit behind a
+  **flat-rate, dollar-metered** plan (OpenCode Go), so a per-model quota is consumed at the model's own rate rather than
+  by request count, and the DeepSeek models carry peak/off-peak rate tiers, so the quota a pass consumes depends on when
+  it runs. That is a property of the plan, not of the pin: resolve the current tiers and window at the provider
+  (`opencode.ai/docs/go`) instead of pinning them here.
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired

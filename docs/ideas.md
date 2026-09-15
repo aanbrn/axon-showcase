@@ -13,6 +13,16 @@ work, it may be promoted to a GitHub issue that links to the eventual OpenSpec c
 `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when it was added (start a new
 section for a new day rather than appending to the most recent one).
 
+## 2026-09-15
+
+- The `agent-skills` capability's Purpose omits the `vision` and `diagrammer` subagents that one of its requirements
+  names — parked; no change yet. The `concise-agent-reports` change's smoke-run of `specs-auditor` reported it: the
+  Purpose enumerates "the per-change review and lesson-capture agents, the experience-analyzer, and the on-demand
+  auditors", while the requirement "Per-change quality-gate and analysis subagents are available" also covers the visual
+  and diagramming agents. A `## Purpose` cannot ride a delta, so the fix is a one-line Purpose refresh applied in an
+  archive commit — fold it into the next change that touches this capability, or open a small change of its own for the
+  refresh (a spec edit is a change, not a direct main-spec edit).
+
 ## 2026-09-14
 
 - Intent questions the widened `/audit-architecture` sweep surfaced — parked; no change yet, awaiting the owner's

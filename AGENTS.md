@@ -648,7 +648,8 @@ Key modules (libraries, not services):
   that shares a generated prefix, like `opsx-tool-update`, stays in scope: a boundary drawn by provenance, not a
   filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). Trigger it with the
   `/audit-agents` OpenCode command: the subagent verifies each claim against the repository and returns its findings in
-  the subagent report contract — shared by every report-producing subagent and defined in the `agent-skills` spec: a
+  the subagent report contract — shared by the per-change review and lesson-capture agents and the three auditors (not
+  `experience-analyzer`, whose output is a document, not a findings report), and defined in the `agent-skills` spec: a
   verdict line first, then each item budgeted (its anchor and one line of evidence), passing checks collapsed to one
   line, and no alternatives — without editing anything. The main agent applies the approved findings under the review
   gate. The zero-touch scheduled variant is parked in `docs/ideas.md`; the audit itself is on demand.

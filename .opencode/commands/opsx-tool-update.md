@@ -11,12 +11,15 @@ pass `--force` unless the user explicitly asks — the plain command already det
 date and skips the regeneration.
 
 Then verify the CLI still reads every rule set `openspec/config.yaml` declares, since a newer CLI may parse the YAML
-differently: create a probe change (`openspec new change openspec-config-rules-probe`), confirm its output carries no
-"ignoring this artifact's rules" warning, and check that `openspec instructions` for `proposal`, `specs`, `design`, and
-`tasks` (`--change openspec-config-rules-probe --json`) returns a populated `rules` field for each; remove the probe
-afterwards. Prove the check itself detects a defect by temporarily unquoting a rule item that contains `: ` and
-confirming it fires — a renamed warning would otherwise pass silently; an item without `: `, or one already unquoted,
-no-ops instead, so confirm the file actually changed before reading the check's silence — then restore the item.
+differently: create a probe change (`openspec new change openspec-config-rules-probe`), confirm its output carries
+neither an "ignoring this artifact's rules" nor a "could not parse" warning (the same two patterns the CI probe greps),
+and check that `openspec instructions` for `proposal`, `specs`, `design`, and `tasks`
+(`--change openspec-config-rules-probe --json`) returns a populated `rules` field for each; remove the probe afterwards.
+Prove the check itself detects a defect by exercising both patterns, since a renamed warning would otherwise pass
+silently: one at a time, temporarily unquote a rule item that contains `: ` (the per-artifact warning), then temporarily
+drop a closing quote from a quoted item (the whole-file `could not parse` warning), confirming each fires before
+restoring it. An item without `: `, or one already unquoted, no-ops instead, so confirm the file actually changed before
+reading the check's silence.
 
 Then update the openspec pin in `.github/workflows/ci.yml` to the installed version (the
 `npm install --global @fission-ai/openspec@<version>` step), so CI validates with the same CLI version the local

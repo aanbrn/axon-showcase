@@ -60,7 +60,9 @@ jobs:
           trap 'rm -rf "openspec/changes/$probe"' EXIT
           output=$(openspec new change "$probe" 2>&1)
           echo "$output"
-          if echo "$output" | grep -q "ignoring this artifact's rules"; then
-            echo "::error::config.yaml has a rule the CLI ignores — an unquoted ': ' parses as a mapping; quote it."
+          if echo "$output" | grep -qE "ignoring this artifact's rules|could not parse"; then
+            echo "::error::config.yaml is not fully readable — an unquoted ': ' parses a rule as a mapping, and a"
+            echo "::error::malformed scalar makes the whole file unparseable; the CLI only warns, so this gate must"
+            echo "::error::fail."
             exit 1
           fi

@@ -35,6 +35,25 @@ it was added (start a new section for a new day rather than appending to the mos
   - Not the biggest lever: model routing (already done) is deterministic and fires every turn, and review-round count
     matters more than time-shifting a single round.
 
+- Fold a lesson discovered while writing a capture into that capture's PR — parked; no change yet. The precise fix for
+  the #254 → #255 → #256 chain: the docs-only carve-out did not stop it, because a capture's own subject kept surfacing
+  _new_ general rules, so a capture whose subject is a capture should ship in the same PR.
+- Merge the parked scheduling/cost ideas into one scheduled unattended-run workflow — parked; no change yet. The three
+  zero-touch scheduled variants, the off-peak quota note above, and the upstream-reference watcher (2026-09-14) all want
+  the same mechanism: a `schedule:`-triggered OpenCode run that fires issues. One workflow implements all of them,
+  time-shifts the `deepseek-v4-pro` quota, and removes the on-demand review-round cost of the audits.
+- State once where agent-only tooling lives — parked; no change yet. `scripts/` holds repo tooling whatever the caller
+  (the human-documented `setup-idea.sh`, its script-only helper, and the agent-invoked `experience-analysis.sh`), while
+  `.opencode/` holds runtime config, agents, commands, and skills. This recurred when the owner asked whether
+  `experience-analysis.sh` belonged in `scripts/`; the answer currently lives only in that script's header.
+- Pre-commit guard over the staged set — parked; no change yet. Three recurring, review-caught git errors are
+  mechanically detectable before a commit: staged files `spotlessCheck` would modify, staged generated artifacts
+  (`scripts/__pycache__/*.pyc`), and paths staged and then edited.
+- Make the next phase a product phase — parked; no change yet. The first retrospective's recommended direction (see
+  `docs/retrospectives/2026-09-16.md`). The tooling is mature enough to be used rather than extended. The highest-value
+  parked candidates are the ArchUnit fitness functions (the architecture has decide/describe/review layers but no
+  _enforce_ one), narrowing the `query-api` re-export, and web-UI trace propagation.
+
 ## 2026-09-14
 
 - Intent questions the widened `/audit-architecture` sweep surfaced — parked; no change yet, awaiting the owner's

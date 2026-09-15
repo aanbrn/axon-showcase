@@ -1354,6 +1354,16 @@ that override when bumping the Kafka image tag.
   never intended. Stage explicit paths, add a `.gitignore` entry for the artifact, and check
   `git diff --cached --name-only` (or `git status`) before committing — the `rework-idea-setup` commit swept in a
   `scripts/__pycache__/*.pyc` that had to be removed and ignored.
+- **Never chain an edit to a commit without reading the edit's result — gate the commit on a content check, not on the
+  edit command's exit status.** While implementing the `concise-agent-reports` change, an anchor assertion in the edit
+  script failed (Spotless had re-wrapped the text), so the edit no-opped — and the next command in the shell sequence
+  committed anyway, an unfixed state caught only by reading `git show --stat`, not the commit message or the exit codes
+  (an assertion that fails does not by itself stop a following command unless the chain is gated). Read
+  `git diff --cached` before committing. The same change also showed why a multi-file change belongs in the apply
+  workflow, not an ad-hoc edit script: hand-editing the six agent definitions with `python` `replace` scripts left five
+  of six files edited while `architecture-auditor.md` was untouched and still reported edited, and duplicated a line in
+  `lesson-capture.md` — the script's "edited" line is no per-file evidence, while `openspec-apply-change`'s per-task
+  edits make a skipped file visible.
 - **IntelliJ settings-XML component names are exact and easy to transpose — take them verbatim from an IDE-written file,
   not the intuitive name.** `scripts/ensure-idea-settings.py` writes the inspection-profile skeleton with
   `<component name="InspectionProjectProfileManager">`; the script it replaced had it transposed as

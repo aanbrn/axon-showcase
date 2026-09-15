@@ -50,15 +50,16 @@ it was added (start a new section for a new day rather than appending to the mos
   both constraint notes still read as open, and no gate reads them. Neither closure retires its note by itself — `#1060`
   covers platform-sourced constraints and changes nothing for our `checkBuildEnvironmentConstraints` row, and the
   `#3334` fix reaches us only through a future `spring-data-opensearch` (that retirement is parked separately below) —
-  which is the point: a closure is a trigger to check, not an answer. Four others remain open —
-  `build-extensions-oss/gradle-helm-plugin#145`, `anomalyco/opencode#48100`, `Fission-AI/OpenSpec#1891` (the unquoted
-  `: ` class) and `Fission-AI/OpenSpec#1892` (the unparseable-config class) — each now carrying an inline close-out. The
-  repository already has the shape for a watcher: `dependencyUpdates` / `helmUpdates` / `buildpackUpdates` are each a
-  small task plus a weekly observational workflow that opens or updates an issue and mentions the owner when something
-  is actionable. A report would collect the references from `AGENTS.md`, `README.md`, and `docs/adr/` — the corpus is
-  all `owner/repo#NNN` plus one non-GitHub id (`KAFKA-18281`) — resolve them through the relevant API, and report the
-  ones that closed or went quiet, turning the references into a checked corpus rather than claims. Worth building now:
-  the trigger it describes has already fired twice.
+  which is the point: a closure is a trigger to check, not an answer. Five others remain open —
+  `build-extensions-oss/gradle-helm-plugin#145`, `anomalyco/opencode#48100`, `anomalyco/opencode#49127` (the action's
+  cache step), `Fission-AI/OpenSpec#1891` (the unquoted `: ` class) and `Fission-AI/OpenSpec#1892` (the
+  unparseable-config class) — each now carrying an inline close-out. The repository already has the shape for a watcher:
+  `dependencyUpdates` / `helmUpdates` / `buildpackUpdates` are each a small task plus a weekly observational workflow
+  that opens or updates an issue and mentions the owner when something is actionable. A report would collect the
+  references from `AGENTS.md`, `README.md`, and `docs/adr/` — the corpus is all `owner/repo#NNN` plus one non-GitHub id
+  (`KAFKA-18281`) — resolve them through the relevant API, and report the ones that closed or went quiet, turning the
+  references into a checked corpus rather than claims. Worth building now: the trigger it describes has already fired
+  twice.
 
 - Retire the `NANOS_DATE_PATTERN` workaround once its fix reaches us — parked; no change yet.
   `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337, milestone 6.2.0-M2), but we resolve

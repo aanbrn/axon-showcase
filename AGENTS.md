@@ -1252,6 +1252,13 @@ that override when bumping the Kafka image tag.
   built on the misattribution (granting `actions: write`) would have widened the token for nothing. Read the
   authoritative policy for the mechanism you are hypothesising, or vary only that dimension; a fix that enlarges a
   privilege to explain a behavior is a signal the cause is still undiagnosed.
+- **A content search anchored to a fixed indentation silently misses occurrences at other indent levels — match the key
+  at any indentation, and confirm the occurrence set rather than trusting a plausible hit.** The grep that produced the
+  false premise in the gotcha above matched one job-level `permissions:` block while the six top-level ones went
+  unreported, so the search returned a real result that looked complete. Match the key at any indentation
+  (`^[[:space:]]*<key>:`, or strip leading whitespace) and count the hits; unlike a glob that matches nothing or too
+  much (see the unchecked-glob gotcha), this failure returns plausible output, so nothing flags it without a
+  completeness check.
 - **A reproduction in an outward-facing artifact is itself part of the claim — write it so a reader reruns it to the
   same output, and rerun the exact sequence before posting.** State the tool version and the starting state, and record
   the commands in the order they ran: an order-dependent transcript can self-contradict (a `Fission-AI/OpenSpec#1892`

@@ -15,8 +15,8 @@ change-by-change; you aggregate across many changes and look forward.
 
 You are given:
 
-- Merged pull requests for the window (`gh pr list --state merged --search "merged:>=<since>"`: number, title, merged
-  date)
+- Merged pull requests for the window (`gh pr list --state merged --search "merged:>=<since>" --limit 1000`: number,
+  title, merged date)
 - The git log for the window
 - Archived changes (`ls openspec/changes/archive/`)
 - AGENTS.md gotchas/conventions (the accumulated lessons)

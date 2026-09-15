@@ -15,20 +15,21 @@ misplaced entries (conciseness). Each finding SHALL be verified against the repo
 prose alone, and SHALL be reported with its location and a concrete suggested rewrite. The subagent SHALL propose its
 findings without modifying files; the main agent verifies and applies those the user approves.
 
-The audit SHALL additionally report, as an **advisory** class kept separate from its fix findings, third-party
-inconsistency: a file the audit excludes (a generated `openspec-*` instruction file, or a vendored `axon4to5-*` skill)
-that contradicts how this repository uses it. The class SHALL be bounded by a harm test — reported only where the
-contradiction would mislead a workflow driven by the file, or instruct a pattern the repository's code or conventions
-contradict, never a mere textual difference from the repository's own prose. Each item SHALL name the harm and the
-decision it invites (report it upstream, re-vendor at a newer version, or change the repository's usage) and SHALL NOT
-propose a local edit to the excluded file, which the exclusion rule forbids.
+The audit SHALL additionally report, as an **advisory** class kept separate from its fix findings and reported without
+severity, third-party inconsistency: a file the audit excludes (a generated `openspec-*` instruction file, or a vendored
+`axon4to5-*` skill) that contradicts how this repository uses it. The class SHALL be bounded by a harm test — reported
+only where the contradiction would mislead a workflow driven by the file, or instruct a pattern the repository's code or
+conventions contradict, never a mere textual difference from the repository's own prose. Each item SHALL name the harm
+and the decision it invites (report it upstream, re-vendor at a newer version, or change the repository's usage) and
+SHALL NOT propose a local edit to the excluded file, which the exclusion rule forbids.
 
 #### Scenario: An agent-tooling audit is produced
 
 - **WHEN** the main agent invokes the `agents-auditor` subagent (e.g. via the `/audit-agents` command)
 - **THEN** it returns findings grouped by severity, covering consistency (contradictions, stale claims, dead
   cross-references, drift) and conciseness (duplication, trivia, length, placement) across `AGENTS.md` and the
-  project-authored `.opencode/` files, each with a location and a suggested rewrite
+  project-authored `.opencode/` files, each with a location and a suggested rewrite — plus, separately, any advisory
+  third-party inconsistency
 
 #### Scenario: Generated and vendored files are excluded
 

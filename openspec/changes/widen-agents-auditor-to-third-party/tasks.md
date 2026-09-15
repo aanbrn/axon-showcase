@@ -1,9 +1,11 @@
 ## 1. Widen the auditor definition
 
 - [ ] 1.1 Add the third-party-inconsistency advisory class to `.opencode/agent/agents-auditor.md`: a separate advisory
-      section (not among the fix findings), the harm test with an in-test and an out-of-test example, and the named
-      routes (report upstream / re-vendor / change our usage); state that the skipped files stay out of the fix scope
-      and that no local edit to one is ever proposed
+      section (not among the fix findings, without severity), the harm test with an in-test and an out-of-test example,
+      and the single invited decision per item (report upstream / re-vendor / change our usage); state that the skipped
+      files stay out of the fix scope and that no local edit to one is ever proposed. Update the definition's own
+      report-contract opening so its verdict line names both sections (findings plus advisory, like
+      `architecture-auditor`'s `<n> findings, <n> advisory`) rather than the severity groups alone
 - [ ] 1.2 Update the frontmatter `description` to note the advisory class
 - [ ] 1.3 Verify the provenance partition and the skip rule are textually unchanged (the files stay out of the fix
       scope), and that the new class reads as advisory-only

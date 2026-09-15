@@ -160,6 +160,13 @@ process mistakes that were themselves the lesson (e.g. the archive was forgotten
 uncaptured until the user pushed twice). A docs-fix merge has nothing further to capture only if the subagent actually
 reviewed it and said so.
 
+**A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not merely
+records it.** The post-merge capture is the pass that can read the merge's non-diff effects: an agent PR's closing
+reference had already closed the tracker it was triggered from (see the action-flow paragraph below), a defect no gate
+reads — and the earlier capture that recorded the stale-target rule had quoted that issue's body without noticing its
+closure. When the verification finds shipped work broken, fix the live instance (an out-of-band corrective action, such
+as reopening the issue) alongside the recorded rule; documenting the hazard alone leaves the defect live.
+
 **A capture's output is itself a change-sized unit — start it on its own branch, not in `main`'s working tree.**
 Applying the subagent's proposals is the propose-like moment for the docs change they become: fork from the just-merged
 `main` as soon as you begin, so `main` never carries an in-progress diff and the work is isolated to its own branch. The

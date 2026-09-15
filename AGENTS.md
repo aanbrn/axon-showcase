@@ -116,8 +116,8 @@ is configured: the `openspec` CLI is `@fission-ai/openspec` on npm, tracked at `
 configures. Confirm a candidate duplicate by reading its body, not its title — `Fission-AI/OpenSpec#1322` reads like the
 config-rules defect but concerns rules keys valid for another schema, a different bug; a matching title is a lead, not a
 verdict. Name the close-out's exact retiring mechanism, not the broader ask it is one option under: a clause keyed on a
-wider condition (the config-rules issue's own close-out is at the config-read-path gotcha) can retire a guard on a
-change that cannot replace it.
+wider condition (the config-rules issue's own close-out is at the read-path gotcha) can retire a guard on a change that
+cannot replace it.
 
 **Interrogate the premise before designing a change that moves, copies, or removes existing configuration.** Establish
 _why the current state exists_ and whether it is deliberate before designing _how_ to change it — a change that
@@ -626,8 +626,11 @@ Key modules (libraries, not services):
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable. The same applies to prose: when a bullet needs a set another
   `AGENTS.md` bullet already enumerates, cross-reference that bullet instead of re-listing it — a copied enumeration is
-  a second copy that drifts. (Whether an already-restated fact is still accurate is a separate check: diff it against
-  the code — see the documented-numbers gotcha.)
+  a second copy that drifts. Condensing near-duplicate guidance is the same trade in reverse — merge the repetition, not
+  the evidence: enumerate the concrete anchors each entry carries (an exact warning string, an exit code, a
+  parenthetical qualifier, an upstream issue link) and confirm the merged text still carries every one, and grep for the
+  shorthands that named a bullet a merge retitles so they can be repointed. (Whether an already-restated fact is still
+  accurate is a separate check: diff it against the code — see the documented-numbers gotcha.)
 - **Formatting**: format Java sources, Gradle Kotlin DSL (`*.gradle.kts`), and build-logic Kotlin
   (`build-logic/src/**/*.kt`) files with `./gradlew spotlessApply` (Spotless: palantir-java-format for Java, ktfmt for
   `.gradle.kts` and build-logic `.kt`, both fixed 120 columns) — the canonical format step, enforced by `spotlessCheck`
@@ -703,7 +706,10 @@ Key modules (libraries, not services):
   `experience-analyzer`, whose output is a document, not a findings report), and defined in the `agent-skills` spec: a
   verdict line first, then each item budgeted (its anchor and one line of evidence), passing checks collapsed to one
   line, and no alternatives — without editing anything. The main agent applies the approved findings under the review
-  gate. The zero-touch scheduled variant is parked in `docs/ideas.md`; the audit itself is on demand.
+  gate. One audit's findings can need different delivery routes — split the output by fix type and scope each unit's
+  artifacts and diff to its own fixes, rather than running the whole audit through one unit (the routing per fix type is
+  in the specs-auditor and architecture-auditor bullets). The zero-touch scheduled variant is parked in `docs/ideas.md`;
+  the audit itself is on demand.
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus, because `openspec validate` gates a spec's
   well-formedness but not its cross-spec structural consistency — title ↔ capability-path match, Purpose ↔ requirements
@@ -1434,13 +1440,19 @@ that override when bumping the Kafka image tag.
   output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change
   never intended. Stage explicit paths, add a `.gitignore` entry for the artifact, and check
   `git diff --cached --name-only` (or `git status`) before committing — the `rework-idea-setup` commit swept in a
-  `scripts/__pycache__/*.pyc` that had to be removed and ignored.
+  `scripts/__pycache__/*.pyc` that had to be removed and ignored. Staging is a snapshot, not a view of the working tree:
+  an edit made after the last `git add` sits unstaged, so `git diff --cached` can look complete while the commit ships
+  the older copy — check `git status` for a path listed under both staged and unstaged changes (or `git diff` for
+  unstaged edits) before committing, since a review caught the staged set missing corrections made after the last
+  `git add`, which would have shipped half the fix.
 - **Never chain an edit to a commit without reading the edit's result — gate the commit on a content check, not on the
   edit command's exit status.** While implementing the `concise-agent-reports` change, an anchor assertion in the edit
   script failed (Spotless had re-wrapped the text), so the edit no-opped — and the next command in the shell sequence
   committed anyway, an unfixed state caught only by reading `git show --stat`, not the commit message or the exit codes
   (an assertion that fails does not by itself stop a following command unless the chain is gated). Read
-  `git diff --cached` before committing. The same change also showed why a multi-file change belongs in the apply
+  `git diff --cached` before committing. An anchor read before a formatter run is stale the moment the formatter
+  rewrites the file (`*italic*` → `_italic_`, rewrapping) — take the anchor from a read that follows `spotlessApply`, or
+  re-read the file before reusing a saved one. The same change also showed why a multi-file change belongs in the apply
   workflow, not an ad-hoc edit script: hand-editing the six agent definitions with `python` `replace` scripts left five
   of six files edited while `architecture-auditor.md` was untouched and still reported edited, and duplicated a line in
   `lesson-capture.md` — the script's "edited" line is no per-file evidence, while `openspec-apply-change`'s per-task

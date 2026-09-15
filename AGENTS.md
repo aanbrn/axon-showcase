@@ -1238,15 +1238,17 @@ that override when bumping the Kafka image tag.
   wherever the rules are read (`openspec new change`, `openspec instructions`), which read as noise for as long as the
   config existed; `openspec validate --all` emits no warning at all, which is why CI missed it. The dropped `proposal`
   rules included `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the rule the
-  review loop kept catching missing. Quote any YAML scalar containing `: `; the CI `build` job now probes for those
-  warnings and fails, and `/opsx-tool-update` re-verifies it with a positive control.
+  review loop kept catching missing. Quote any YAML scalar containing `: `; the CI `build` job now probes for that
+  warning and the whole-file `could not parse` one (a malformed scalar) and fails on either, and `/opsx-tool-update`
+  re-verifies both with a positive control.
 - **A config a tool consumes is unverified until the tool's own read path is probed — and a warning no gate reads is not
   a check.** A config can look well-formed and pass the tool's own validation while the tool silently ignores part of
   it; from outside, a valid config and an ignored one are indistinguishable, and the only signal is a warning on stderr
   that no gate reads (the `openspec/config.yaml` case above). Do not lint the shape with a second parser of your own —
   that encodes an assumption about a contract the tool owns; probe the consumer's own read path, and fail a gate on the
-  tool's own warning. Upstream, the report is `Fission-AI/OpenSpec#1891`; if `validate` gains a config check that fails
-  (one of its asks), the CI probe and the `/opsx-tool-update` re-verification become redundant and can go.
+  tool's own warning. Upstream, the reports are `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item) and
+  `Fission-AI/OpenSpec#1892` (an unparseable config); if `validate` gains a config check that fails (an ask in each),
+  the CI probe and the `/opsx-tool-update` re-verification become redundant and can go.
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
   changes without the repository moving: when the upstream-reference report was parked, review found two of four

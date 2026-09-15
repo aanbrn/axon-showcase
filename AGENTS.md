@@ -422,7 +422,11 @@ runs with no updates update the issue silently. It is observational — never a 
 `.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so an action whose
 major bump targets a newer Node runtime (e.g. the Node 20 → Node 24 migration) surfaces as a reviewable PR instead of a
 silent CI deprecation warning. The `opencode` workflow's `anomalyco/opencode/github@latest` and the Snyk workflow's
-`snyk/actions/setup@master` are deliberate floating refs that Dependabot does not manage.
+`snyk/actions/setup@master` are deliberate floating refs that Dependabot does not manage. The `opencode` workflow's runs
+also log a benign `Cache reservation failed: cache write denied` warning — the action's own `actions/cache@v4` step
+cannot save on the comment triggers (`issue_comment`, `pull_request_review_comment`), low-trust events GitHub gives
+read-only cache access — while the run itself succeeds; do not chase it. Reported upstream as
+`anomalyco/opencode#49127`; retires when the action's cache step skips cleanly (or drops to restore-only).
 
 ## Architecture
 

@@ -59,14 +59,14 @@ update — completing an agent's `opencode/…` PR from a differently-named chec
 (`git push origin HEAD:<remote-branch>`); the `git push -u origin <branch>` remedy above would open a second branch and
 leave the PR without the commit.
 
-**Leave the work uncommitted until the user has reviewed it — commit only when a push or a branch switch forces it.**
-After applying a change, do not commit before the user has done their review pass — keep the working-tree diff visible
-(`git status`/`git diff`) so they can see exactly which files changed. Commit only after the user approves (or
-explicitly asks). This covers the whole unit, not just code: a docs refresh or a standalone fix stays uncommitted too,
-so the quick and manual reviews run against the visible working-tree diff, and the change's `docs/ideas.md` removal
-rides the branch like the rest. Committing early and then adding one "Address quick-review findings" commit per review
-round produced 11 commits for a single change (squashed before delivery) — the commit-only-at-push rule above removes
-that failure mode by construction, leaving nothing to squash.
+**Leave the work uncommitted until the user has reviewed it.** After applying a change, do not commit before the user
+has done their review pass — keep the working-tree diff visible (`git status`/`git diff`) so they can see exactly which
+files changed. Commit only after the user approves or explicitly asks; the only things that force one on their own are a
+push and a branch switch (see the branch bullet above). This covers the whole unit, not just code: a docs refresh or a
+standalone fix stays uncommitted too, so the quick and manual reviews run against the visible working-tree diff, and the
+change's `docs/ideas.md` removal rides the branch like the rest. Committing early and then adding one "Address
+quick-review findings" commit per review round produced 11 commits for a single change (squashed before delivery) — the
+discipline above removes that failure mode by construction, leaving nothing to squash.
 
 **Auto-review the change before asking for a manual review.** After finishing a change's **proposal** (planning
 artifacts) and again after finishing its **implementation**, run a quick review of the work (the `review-quick`
@@ -1325,22 +1325,21 @@ that override when bumping the Kafka image tag.
   file you read is the code path that runs: a package can hold a mock or test harness whose name matches the entry point
   (`github/index.ts` is a local dev/test entry; the shipped handler is `github.handler.ts`), and a matching filename or
   path is not evidence you read the implementation.
-- **A CLI warning dismissed as noise can report a live defect — and a YAML config's rule lists fail silently.**
-  `openspec/config.yaml` declared per-artifact rules for four artifacts, but two items contained an unquoted `: `, so
-  YAML parsed them as mappings, the lists stopped being arrays of strings, and the CLI ignored those two artifacts'
-  rules — warning on stderr ("Rules for 'proposal' must be an array of strings, ignoring this artifact's rules")
-  wherever the rules are read (`openspec new change`, `openspec instructions`), which read as noise for as long as the
-  config existed; `openspec validate --all` emits no warning at all, which is why CI missed it. The dropped `proposal`
-  rules included `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the rule the
-  review loop kept catching missing. Quote any YAML scalar containing `: `; the CI `build` job now probes for that
-  warning and the whole-file `could not parse` one (a malformed scalar) and fails on either, and `/opsx-tool-update`
-  re-verifies both with a positive control.
-- **A config a tool consumes is unverified until the tool's own read path is probed — and a warning no gate reads is not
-  a check.** A config can look well-formed and pass the tool's own validation while the tool silently ignores part of
-  it; from outside, a valid config and an ignored one are indistinguishable, and the only signal is a warning on stderr
-  that no gate reads (the `openspec/config.yaml` case above). Do not lint the shape with a second parser of your own —
-  that encodes an assumption about a contract the tool owns; probe the consumer's own read path, and fail a gate on the
-  tool's own warning. Upstream, the reports are `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item) and
+- **A CLI warning dismissed as noise can report a live defect — a config a tool consumes is unverified until its own
+  read path is probed, and a warning no gate reads is not a check.** `openspec/config.yaml` declared per-artifact rules
+  for four artifacts, but two items contained an unquoted `: `, so YAML parsed them as mappings, the lists stopped being
+  arrays of strings, and the CLI ignored those two artifacts' rules — warning on stderr ("Rules for 'proposal' must be
+  an array of strings, ignoring this artifact's rules") wherever the rules are read (`openspec new change`,
+  `openspec instructions`), which read as noise for as long as the config existed; `openspec validate --all` emits no
+  warning at all, which is why CI missed it. The dropped `proposal` rules included
+  `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the rule the review loop kept
+  catching missing. Quote any YAML scalar containing `: `; the CI `build` job now probes for that warning and the
+  whole-file `could not parse` one (a malformed scalar) and fails on either, and `/opsx-tool-update` re-verifies both
+  with a positive control. The general rule: a config can look well-formed and pass the tool's own validation while the
+  tool silently ignores part of it, and from outside a valid config and an ignored one are indistinguishable — the only
+  signal is a warning on stderr that no gate reads. Do not lint the shape with a second parser of your own (that encodes
+  an assumption about a contract the tool owns); probe the consumer's own read path, and fail a gate on the tool's own
+  warning. Upstream, the reports are `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item) and
   `Fission-AI/OpenSpec#1892` (an unparseable config); if `validate` gains a config check that fails (an ask in each),
   the CI probe and the `/opsx-tool-update` re-verification become redundant and can go.
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
@@ -1390,28 +1389,26 @@ that override when bumping the Kafka image tag.
   update", so a wrongly-built URL or renamed repository reads as current. Verify a new or changed check by temporarily
   pinning a known-older version, confirming the report shows `<name>: <old> -> <latest>`, then reverting the pin (the
   `buildpackUpdates` lookup was proved this way with `0.1.0`). A clean run alone is not evidence the check works.
-- **A positive control must perturb the surface the check actually reads.** The `reconcile-showcase-cache-default`
-  change's control perturbs the yml placeholder because `applicationYmlPlaceholdersBindDocumentedDefaults` boots
-  `application.yml` and never binds the Java field — reverting the field instead would have proved nothing, since that
-  test would pass regardless. Match the control's injection point to the test's binding source (the yml placeholder for
-  a yml-loading test, the Java field for a Java-defaults test), and confirm the assertion fails; a control that runs
-  without failing has not exercised the check. Verify the control's own setup actually perturbed its target — assert the
-  anchor occurs exactly once, or diff the surface before and after — before reading its outcome at all: the
+- **A positive control must perturb the surface the check actually reads — and a tool that constructs its own input can
+  manufacture the anomaly it appears to detect.** The `reconcile-showcase-cache-default` change's control perturbs the
+  yml placeholder because `applicationYmlPlaceholdersBindDocumentedDefaults` boots `application.yml` and never binds the
+  Java field — reverting the field instead would have proved nothing, since that test would pass regardless. Match the
+  control's injection point to the test's binding source (the yml placeholder for a yml-loading test, the Java field for
+  a Java-defaults test), confirm the assertion fails (a control that runs without failing has not exercised the check),
+  and verify the control's own setup actually perturbed its target — assert the anchor occurs exactly once, or diff the
+  surface before and after — before reading its outcome at all. Both failure modes were live: the
   `openspec`-config-rules control unquoted a `config.yaml` rule item that was already unquoted _and_ carried no `: `
   (select a rule item that carries `: ` — the shape whose unquoted parsing breaks; resolve it in `config.yaml`, not from
   recall), so its edit no-opped and the silent run was misread as a defect in the guard rather than a false negative in
-  the control's own setup — silence is not evidence the guard is broken.
-- **A scratch tool that constructs its own input can manufacture the anomaly it appears to detect — verify the tool's
-  output before concluding the system is broken.** While proving the `/opsx-tool-update` positive control, a throwaway
-  `python` `replace` left an unterminated quote in `openspec/config.yaml`; the CLI answered with a whole-file
-  `could not parse … Missing closing 'quote` warning, which was briefly read as a defect in the command's wording and a
-  gap in the CI probe — the wording defect did not exist: a faithful unquote (strip the surrounding quotes, change
-  nothing else) emits the per-artifact warning the probe greps, so the control does fire. The probe gap, however, was
-  real, just not the one suspected: a malformed edit yields a whole-file `could not parse … ignoring it.` warning that
-  the probe's grep did not match, so an unparseable config passed the job (exit 0) — the grep has since been widened to
-  catch both warnings. All the more reason to confirm the input a scratch script actually produced before reading its
-  output: when a scratch script's result surprises you, print or diff the input it actually produced before drawing a
-  conclusion from it — a before/after diff proves the edit _landed_, not that it was the _intended_ one.
+  the control's own setup — silence is not evidence the guard is broken; and a throwaway `python` `replace` proving the
+  same control left an unterminated quote, whose whole-file `could not parse … Missing closing 'quote` warning was
+  briefly read as a defect in the command's wording and a gap in the CI probe — the wording defect did not exist (a
+  faithful unquote (strip the surrounding quotes, change nothing else) emits the per-artifact warning the probe greps,
+  so the control does fire), though the probe gap did: a malformed edit yields a whole-file
+  `could not parse … ignoring it.` warning the grep did not match, so an unparseable config passed the job (exit 0) —
+  the grep has since been widened to catch both. When a scratch script's result surprises you, print or diff the input
+  it actually produced before drawing a conclusion from it — a before/after diff proves the edit _landed_, not that it
+  was the _intended_ one.
 - **Pinned workflow tool versions are outside every update-check workflow — audit the whole set, not one pin at a
   time.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` /
   `helm-updates.yml` cover the Helm CLI and pinned charts, `buildpackUpdates` / `buildpack-updates.yml` cover the Paketo

@@ -30,5 +30,10 @@ For each proposed addition, give the exact AGENTS.md text and where it belongs (
 a specific subsection). Do NOT edit AGENTS.md yourself — the calling agent verifies and merges. Propose only lessons
 that are durable and non-obvious; skip one-off trivia that no future change would hit.
 
-Be concise: report findings as a short bullet list, each with the proposed text and its target location. If nothing is
-worth capturing, say so in one line.
+**Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
+
+- Open with the verdict: `<n> durable proposals` or `nothing durable` as the first line, not a closing sentence.
+- Budget each proposal: the rule, its target location, and one line of evidence — the budget is per item, not a cap on
+  the total.
+- Collapse candidates verified as already covered or rejected to one line each, or one summary line.
+- State the recommendation; do not offer alternatives — the calling agent decides.

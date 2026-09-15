@@ -11,8 +11,8 @@ Run the architecture audit to check that the design the project records still ma
    corpus's capability decomposition), and sweeps the intent-clarification surfaces (dependency `exclude(...)`
    declarations, the major-version-suppressed coordinates, the suppression annotations and retained deprecated APIs, and
    the deferrals and band-aids recorded in ADRs or `docs/ideas.md`).
-2. Present its report in the two sections it returns: **findings** (verified drift, each with a location and a suggested
-   correction) and **advisory** observations (design judgment, not defects).
+2. Present its report in the contract it returns (the verdict line first, then the two sections — **findings** and
+   **advisory** observations, each budgeted per item).
 3. Ask the user which findings to apply — an advisory observation, including an intent-clarification item (a question
    for the user to answer), is the user's call and is never "fixed" automatically. Do not edit files without their
    go-ahead.

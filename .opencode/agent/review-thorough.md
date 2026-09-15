@@ -21,6 +21,13 @@ implementation diff), perform a deep review:
 - **Completeness**: do the tasks.md items match reality? Any half-done or marked-but-not-implemented work?
 - **Security/reliability** where relevant (e.g. Helm values, network policies, env config).
 
-Report findings as a structured list grouped by severity (blocking / should-fix / nitpick), each with a file/line
-reference and a concrete suggestion. Be specific and actionable; do not rubber-stamp. If the change is sound, say so and
-note what you verified. Do not edit files — the calling agent handles changes.
+Group findings by severity (blocking / should-fix / nitpick). Be specific and actionable; do not rubber-stamp. Do not
+edit files — the calling agent handles changes.
+
+**Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
+
+- Open with the verdict: `<n> findings` or `nothing remains` as the first line, then the severity groups.
+- Budget each finding: the issue, its `file:line`, and a concrete suggestion — the budget is per item, not a cap on the
+  total.
+- Collapse checks that passed to one line each, or one summary line.
+- State the recommendation; do not offer alternatives — the calling agent decides.

@@ -59,5 +59,13 @@ Report, do not edit. Return findings grouped by severity — **contradiction**, 
 - the location (the file and a line number, or a short verbatim quote so it can be found), and
 - a concrete suggested rewrite or merge (exact replacement text where practical).
 
-Lead with the highest-value fixes, and end with a one-line overall assessment. Never modify any file — the calling agent
-verifies and applies what the user approves.
+Never modify any file — the calling agent verifies and applies what the user approves.
+
+**Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
+
+- Open with the verdict: `<n> findings` or `nothing to report` as the first line, then the severity groups,
+  highest-value first.
+- Budget each finding: the item, its `file:line`, its severity, and a concrete suggested rewrite — the budget is per
+  item, not a cap on the total.
+- Collapse entries verified as still accurate to one line each, or one summary line.
+- State the recommendation; do not offer alternatives — the calling agent decides.

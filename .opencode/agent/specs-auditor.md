@@ -55,5 +55,14 @@ reference** — each with:
 - the location (the spec path and a line number, or a short verbatim quote), and
 - a concrete suggested rewrite, merge, or split.
 
-Lead with the highest-value fixes, and end with a one-line overall assessment. Never modify any file — the calling agent
-verifies and applies what the user approves (a spec edit is itself a change, synced at archive).
+Never modify any file — the calling agent verifies and applies what the user approves (a spec edit is itself a change,
+synced at archive).
+
+**Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
+
+- Open with the verdict: `<n> findings` or `nothing to report` as the first line, then the severity groups,
+  highest-value first.
+- Budget each finding: the item, its `file:line`, its severity, and a concrete suggested rewrite/merge/split — the
+  budget is per item, not a cap on the total.
+- Collapse a still-true title or a legitimately shared header to one line, rather than reporting it as a defect.
+- State the recommendation; do not offer alternatives — the calling agent decides.

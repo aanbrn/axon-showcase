@@ -212,6 +212,10 @@ This repository is developed through a **spec-first, agent-assisted workflow** p
 app. You describe what you want in plain language, and the agent does the work: it proposes a plan, writes the code,
 runs the gates, reviews itself, and opens the PR. You steer and approve; the agent implements.
 
+It also runs on GitHub: commenting `/oc …` on an issue or pull request runs the same agent in GitHub Actions, where it
+opens a PR (or commits to the current one) — the remote path to the same workflow, so a phone comment can start a
+change.
+
 The repo's `.opencode/` config pins its agents to `opencode-go/*` models, available through an **OpenCode Go**
 subscription — install OpenCode (see [Prerequisites](#prerequisites)), subscribe, and `/connect` to it to follow along
 with the worked scenarios.

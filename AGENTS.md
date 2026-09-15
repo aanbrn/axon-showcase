@@ -54,7 +54,10 @@ with `--no-track` (`git switch -c <name> --no-track origin/main`), or push its f
 `git push -u origin <branch>`: a plain `git checkout -b <name> origin/main` silently makes `origin/main` the new
 branch's upstream (`branch.autoSetupMerge`), so a later bare `git push` refuses with the confusing "The upstream branch
 of your current branch does not match the name of your current branch" (fix with `git push -u origin <branch>`, which
-repoints it, or `git branch --unset-upstream`).
+repoints it, or `git branch --unset-upstream`). When the local branch is not named after the remote branch it must
+update — completing an agent's `opencode/…` PR from a differently-named checkout — push with an explicit refspec
+(`git push origin HEAD:<remote-branch>`); the `git push -u origin <branch>` remedy above would open a second branch and
+leave the PR without the commit.
 
 **Leave the work uncommitted until the user has reviewed it — commit only when a push or a branch switch forces it.**
 After applying a change, do not commit before the user has done their review pass — keep the working-tree diff visible
@@ -237,7 +240,11 @@ dependency bump, and the change left unarchived, since archiving follows the own
 or merge. Treat its PR like any other: verify the self-report against the repository and the run log (a self-report is a
 claim to verify, like a review finding), then check out the agent's branch, run `openspec archive <change>`, commit and
 push it there, and merge once CI is green (the one-PR-per-change sequence above). GitHub never merges on an approval —
-an approval alone leaves the PR open.
+an approval alone leaves the PR open. A PR the action opened from an issue carries a closing reference to its trigger
+(`Closes #<issue>`), so merging it closes that issue — right for a one-shot work item, wrong for a long-lived tracker
+like the update-check issues, whose workflows look them up with `is:issue is:open` and open a fresh one when none is
+open, so the merge orphans its history and the next weekly run opens a duplicate. Strip the closing keyword from an
+agent PR triggered from a tracker before merging, or reopen the tracker.
 
 **Merging PRs: the `--admin` flag is for admin users only.** The `main-require-pr-on-merge` ruleset requires an
 approving review (`required_approving_review_count: 1`), but the repo owner (`aanbrn`) is a bypass actor on that ruleset
@@ -1015,14 +1022,15 @@ that override when bumping the Kafka image tag.
   discarding its uncommitted edits — a README change was lost this way to a `git checkout -- README.md` run inside an
   unrelated verification step (recovered only from a backup). While a work branch holds uncommitted edits, inspect
   committed content with `git diff`/`git show HEAD:<file>` rather than `checkout --`/`restore`/`reset`.
-- **A change-dir `git mv` at archive leaves a file's unstaged edit behind as `RM` — and the archived tree is outside
-  Spotless, so re-running `spotlessApply` after the move will not normalize it.** The archive commit relocates the
-  change dir (`git mv openspec/changes/<change> openspec/changes/archive/<change>`), but `git mv` stages the rename
-  against the **already-committed** content: a file inside carrying an uncommitted edit from the review-diff era —
-  typically the `tasks.md` tick — keeps that edit in the worktree, so `git status` shows `RM` and a plain `git commit`
-  records the pre-edit content, silently dropping the edit. Format the change-dir markdown **before** the `git mv`
-  (`build.gradle.kts` excludes `openspec/changes/archive/**` from the markdown Spotless target, so a post-move
-  `spotlessApply` does nothing), `git add` the archived dir, and re-check `git status` before committing.
+- **`openspec archive` relocates the change dir with a filesystem move, not `git mv` — nothing is staged, so stage both
+  sides — and the archived tree is outside Spotless, so a post-move `spotlessApply` will not normalize it.** The tool
+  moves the directory (`fs.rename`/`mv`), so git reports the old path deleted and the new path untracked:
+  `git add -A openspec/changes` stages the move (a commit records the unchanged files as renames, the edit-carrying one
+  as delete+add), whereas staging only the archive directory commits the addition while the original stays tracked — a
+  **duplicated** change dir. Format the change-dir markdown **before** the archive (`build.gradle.kts` excludes
+  `openspec/changes/archive/**` from the markdown target), and confirm the status before committing. A hand-run `git mv`
+  is a different trap: it stages the **already-committed** content, so a file carrying an uncommitted edit (typically
+  the `tasks.md` tick) shows `RM`, and a plain `git commit` records the pre-edit content.
 - **The actionlint download script takes positional arguments (`version dir`), not `--dir`, and the target dir must
   already exist.** When installing actionlint in CI with `bash <(curl .../scripts/download-actionlint.bash)`, pass
   `latest "$RUNNER_TEMP/actionlint"` and `mkdir -p` the dir first — a `--dir` flag is rejected as an invalid version

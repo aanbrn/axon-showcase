@@ -1062,12 +1062,16 @@ that override when bumping the Kafka image tag.
   already exist.** When installing actionlint in CI with `bash <(curl .../scripts/download-actionlint.bash)`, pass
   `latest "$RUNNER_TEMP/actionlint"` and `mkdir -p` the dir first — a `--dir` flag is rejected as an invalid version
   (the script exits 1 with its usage).
-- **`gh pr list` does not support a `--since` flag** — filter merged PRs by window with the search qualifier
+- **`gh pr list` does not support a `--since` flag, and a `gh <x> list` command silently truncates at its default
+  `--limit`.** Filter merged PRs by window with the search qualifier
   `gh pr list --state merged --search "merged:>=<YYYY-MM-DD>"` (an unknown flag like `--since` is rejected outright, and
   there is no date variant of `--merged`). This bit the `/retrospective` gather script
   (`scripts/experience-analysis.sh`), whose first version used `--since`; the proposal/tasks that described
-  `--merged --since <window>` were corrected to the search form during implementation. Any future "what shipped since X"
-  automation must use the `--search "merged:>=..."` form.
+  `--merged --since <window>` were corrected to the search form during implementation. A list command returns only its
+  default page with no warning when more exists (`--limit` defaults to 30 for `pr` and `issue`, 20 for `run`), so the
+  same script returned 30 rows for a window holding 249 merges until it gained an explicit `--limit 1000`. Any future
+  "what shipped since X" automation must use the `--search "merged:>=..."` form **and** an explicit `--limit` sized to
+  the corpus.
 - **`gh pr create --body` with Markdown can fail under zsh with `no matches found`** — an inline body containing
   `**bold**` (or other shell metacharacters/newlines) is subject to zsh's `nomatch` glob error
   (`zsh: no matches found: **...`). Write the body to a file and use `--body-file <file>` instead; it also sidesteps
@@ -1471,6 +1475,13 @@ that override when bumping the Kafka image tag.
   of six files edited while `architecture-auditor.md` was untouched and still reported edited, and duplicated a line in
   `lesson-capture.md` — the script's "edited" line is no per-file evidence, while `openspec-apply-change`'s per-task
   edits make a skipped file visible.
+- **A verification's success message is not a check — gate the reported conclusion on the command's output, not on the
+  command having run.** While fixing `scripts/experience-analysis.sh`, the 120-character recipe printed the offending
+  line and the next command echoed "(script 120 clean)" regardless: the log carried the defect, the summary contradicted
+  it, and only the quick review caught it. Same principle as the edit-to-commit bullet above, applied to a reported
+  verdict instead of a commit — let the exit status carry the verdict
+  (`test -z "$(perl -CSD -lne 'print if length > 120' <file>)"` is non-zero when a line is over the limit) or read the
+  output before writing the sentence; never emit a canned "clean" you did not derive from that run.
 - **IntelliJ settings-XML component names are exact and easy to transpose — take them verbatim from an IDE-written file,
   not the intuitive name.** `scripts/ensure-idea-settings.py` writes the inspection-profile skeleton with
   `<component name="InspectionProjectProfileManager">`; the script it replaced had it transposed as

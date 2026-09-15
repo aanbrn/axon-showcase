@@ -307,8 +307,8 @@ a subagent SHALL verify its claims as thoroughly as before and report them in th
 #### Scenario: A report opens with its verdict
 
 - **WHEN** a report-producing subagent returns its findings
-- **THEN** the first line states the outcome — for a capture or review, whether anything remains (and how many items);
-  for an auditor, the section structure it uses
+- **THEN** the first line states the outcome — whether anything remains and how many items; an audit with an advisory
+  section names both its findings and advisory counts
 - **AND** a report with nothing to report says so in that first line rather than in a closing sentence
 
 #### Scenario: Each item is budgeted

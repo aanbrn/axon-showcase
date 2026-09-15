@@ -6,12 +6,11 @@ once explored and decided against (the durable lesson is captured in `AGENTS.md`
 not-yet-implemented ideas remain.
 
 Changes to this file travel with the change that owns them: an idea's **removal** ships in the implementing change's PR
-— committed on its branch, and not left in the uncommitted review diff (a rebase that stashes an `ideas.md` edit can
-conflict with a `main` that also edited the file) — while a **newly parked** idea that is not yet a change is committed
-as its own docs PR (like `AGENTS.md`/`README.md` refresh PRs). When an idea graduates into a concrete candidate for
-work, it may be promoted to a GitHub issue that links to the eventual OpenSpec change. Ideas are grouped into
-`## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when it was added (start a new
-section for a new day rather than appending to the most recent one).
+— it rides that change's branch and commits with its push, like the rest of the work — while a **newly parked** idea
+that is not yet a change is committed as its own docs PR (like `AGENTS.md`/`README.md` refresh PRs). When an idea
+graduates into a concrete candidate for work, it may be promoted to a GitHub issue that links to the eventual OpenSpec
+change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when
+it was added (start a new section for a new day rather than appending to the most recent one).
 
 ## 2026-09-15
 

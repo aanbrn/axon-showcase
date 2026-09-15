@@ -30,30 +30,35 @@ changes made and decide when (or whether) to archive.
 **Never push to the remote automatically.** Commit locally when asked, but only `git push` when the user explicitly
 requests it (e.g., "push" or "commit and push").
 
-**Create the change's branch at propose — and commit the planning artifacts on it.** As soon as a change is proposed,
-put its artifacts on their own branch (named after the change) and commit the change dir there; the planning artifacts
-are exempt from the leave-uncommitted rule, so only the implementation stays in the working tree until the user reviews
-it. Committing them is what makes the branch carry the proposal: an uncommitted change dir lingers untracked, reappears
-in `git status` on every branch you switch to, and leaves the branch with no commits to show. The change dir and all
-subsequent work live on that branch; rejecting a proposal is a branch delete, never a `main` cleanup. A propose-time
-branch that has since fallen behind `main` is refreshed from `origin/main` — recreate it when it holds no work,
-otherwise rebase it — rather than continued on stale; once a PR is open, the mechanism is `gh pr update-branch` instead
-(see the BEHIND gotcha).
+**Create the change's branch at propose — and commit only when a push or a branch switch forces it.** As soon as a
+change is proposed, put its artifacts on their own branch (named after the change) and commit nothing yet: the proposal,
+the review findings, and the implementation all stay in the working tree until a commit is forced. Two things force one
+on their own — **a push** and **a branch switch that would carry unfinished tracked changes** onto the other branch
+(commit, or `git stash`) — besides a commit the user explicitly asks for. A push is the moment a change commits: the
+branch's first push carries whatever is ready then — proposal and implementation together on the default path, the
+proposal alone if a proposal-stage draft PR is opened (see the README) — and the archive adds a commit before the final
+push. Review findings are therefore edited in the working tree, never committed as an "Address review findings" commit,
+and nothing is committed while a review loop runs. Until the first commit the change dir is untracked, which is safe
+against the hazards the gotchas name — an untracked change dir survives `git reset --hard` and `git checkout --`
+(verified) — `git clean -fd` is the one loss vector, so never run it on a branch holding unfinished work. The change dir
+and all subsequent work live on that branch; rejecting a proposal is a branch delete, never a `main` cleanup. A branch
+that has been committed (so it can fall behind `main`) is refreshed from `origin/main` — recreate it when it holds no
+work, otherwise rebase it — rather than continued on stale; once a PR is open, the mechanism is `gh pr update-branch`
+instead (see the BEHIND gotcha).
 
 **Fork branches from `main` only.** Every new branch — a change branch, a standalone fix, or a post-merge capture's docs
 change — is created from `origin/main` (fetch first), never from another work branch. Branching from a work branch
 silently carries its commits into the new PR (a fix PR ended up shipping a change's commit history); recover by rebasing
 `--onto origin/main` and force-pushing, then verify the PR's changed-file set is the intended one.
 
-**Leave implementation uncommitted until the user has reviewed it.** After applying a change, do not commit the
-implementation before the user has done their review pass — keep the working-tree diff visible (`git status`/`git diff`)
-so they can see exactly which files changed. Commit only after the user approves the implementation (or explicitly asks
-to commit); the planning artifacts may be committed separately. Do not commit the implementation piecemeal either:
-committing early and then adding one "Address quick-review findings" commit per review round produced 11 commits for a
-single change (squashed before delivery) — keep it one coherent commit and squash fixups before the branch is shown.
-"Implementation" is not OpenSpec-only: a docs refresh or standalone fix stays uncommitted too, so the quick and manual
-reviews run against the visible working-tree diff, and it is committed only after the user approves (bar a change's
-`docs/ideas.md` removal, which is committed on the change branch — see Docs refresh on change).
+**Leave the work uncommitted until the user has reviewed it — commit only when a push or a branch switch forces it.**
+After applying a change, do not commit before the user has done their review pass — keep the working-tree diff visible
+(`git status`/`git diff`) so they can see exactly which files changed. Commit only after the user approves (or
+explicitly asks). This covers the whole unit, not just code: a docs refresh or a standalone fix stays uncommitted too,
+so the quick and manual reviews run against the visible working-tree diff, and the change's `docs/ideas.md` removal
+rides the branch like the rest. Committing early and then adding one "Address quick-review findings" commit per review
+round produced 11 commits for a single change (squashed before delivery) — the commit-only-at-push rule above removes
+that failure mode by construction, leaving nothing to squash.
 
 **Auto-review the change before asking for a manual review.** After finishing a change's **proposal** (planning
 artifacts) and again after finishing its **implementation**, run a quick review of the work (the `review-quick`
@@ -146,8 +151,8 @@ reviewed it and said so.
 Applying the subagent's proposals is the propose-like moment for the docs change they become: fork from the just-merged
 `main` as soon as you begin, so `main` never carries an in-progress diff and the work is isolated to its own branch. The
 capture after the upstream-report PR (#212) was applied directly on `main` and sat there as an uncommitted two-file diff
-until a review pass flagged it, and the branch was created only then; "leave implementation uncommitted until the user
-has reviewed it" presumes a branch — an uncommitted capture belongs on its branch, not on `main`.
+until a review pass flagged it, and the branch was created only then; the leave-work-uncommitted rule presumes a branch
+— an uncommitted capture belongs on its branch, not on `main`.
 
 **Sync the main spec only at archive.** Apply edits to code and the change dir's _delta_ spec — never the main spec
 under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source
@@ -509,21 +514,20 @@ Key modules (libraries, not services):
   refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
   a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on
   concern for weeks after `snyk.yml` landed, until the first architecture audit caught it) — and update them before
-  reporting the change done; also remove the change's idea from `docs/ideas.md` **in the same PR** — committed on the
-  change branch, not left in the uncommitted review diff (a rebase that stashes an `ideas.md` edit can conflict with a
-  `main` that also edited the file; see the `git stash pop` gotcha). An idea is removed once implemented (captured by a
-  change) or once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open
-  ideas remain (see the file's header). Also sweep `docs/ideas.md` for references to the thing this change shipped — an
-  open idea that still calls it "the proposed X" is itself a stale claim, and no auditor covers that file (the three
-  auditors own `AGENTS.md`/`.opencode/`, the spec corpus, and `docs/adr/` plus the architectural surface respectively);
-  update the idea's prose in the same change, including any enumeration or count it carries ("two others remain open: A,
-  B") that the change's new instance makes wrong. Docs that ARE the change (new agent/command/skill documentation,
-  README rows describing a new capability, the change's idea removal) ship with the change's PR; docs that refresh facts
-  about a completed change ship as a separate docs PR — a newly parked idea that is not yet a change is such a docs PR.
-  A standalone `docs/ideas.md` edit that no change owns (a reword or a stale-fact correction) also ships as its own docs
-  PR, forked from `main`; an edit the change itself causes rides that change's branch. Do not read that last clause as
-  covering a **newly parked idea**: an open question the change's own sweep happened to surface is a new, independent
-  idea, not an artifact of the change, so it ships as its own docs PR forked from `main` (the
+  reporting the change done; also remove the change's idea from `docs/ideas.md` **in the same PR**, so it rides the
+  change branch and commits with its push rather than landing as a separate docs PR. An idea is removed once implemented
+  (captured by a change) or once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR
+  instead); only open ideas remain (see the file's header). Also sweep `docs/ideas.md` for references to the thing this
+  change shipped — an open idea that still calls it "the proposed X" is itself a stale claim, and no auditor covers that
+  file (the three auditors own `AGENTS.md`/`.opencode/`, the spec corpus, and `docs/adr/` plus the architectural surface
+  respectively); update the idea's prose in the same change, including any enumeration or count it carries ("two others
+  remain open: A, B") that the change's new instance makes wrong. Docs that ARE the change (new agent/command/skill
+  documentation, README rows describing a new capability, the change's idea removal) ship with the change's PR; docs
+  that refresh facts about a completed change ship as a separate docs PR — a newly parked idea that is not yet a change
+  is such a docs PR. A standalone `docs/ideas.md` edit that no change owns (a reword or a stale-fact correction) also
+  ships as its own docs PR, forked from `main`; an edit the change itself causes rides that change's branch. Do not read
+  that last clause as covering a **newly parked idea**: an open question the change's own sweep happened to surface is a
+  new, independent idea, not an artifact of the change, so it ships as its own docs PR forked from `main` (the
   `widen-architecture-auditor-to-intent-gaps` design recorded this explicitly, and the separation also avoids the change
   branch rebasing over a `docs/ideas.md` edit). Only the change's own idea removal, or prose about the thing it shipped,
   rides the change branch. Decide the owner before committing — a docs PR forked from `main` cannot carry an edit
@@ -709,13 +713,15 @@ Key modules (libraries, not services):
 - **A subagent/command change is a multi-artifact sweep — diff against the last analogous change instead of re-deriving
   the artifact set.** Beyond the descriptors the auditor-justification bullet names (the definition, an `AGENTS.md`
   bullet, the README agent table, the `agent-skills` spec), a change also touches the definition's frontmatter
-  `description`; the trigger command (including its step-1 read-list); the README **slash-command table row**; a task
-  for the capability `## Purpose` refresh (a delta cannot carry a Purpose); and the proposal's `### New Capabilities`/
-  `### Modified Capabilities` subsections ("none" where empty). Keep any enumerated list (the swept surfaces, the
-  finding classes) verbatim-identical across proposal/design/tasks/ delta. The
-  `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round surfaced
-  one of these that a prior analogous change had covered — read the archived analogous change and grep for the
-  artifact's name before hand-writing the set.
+  `description`; its **own report-contract verdict line** (a report that gains or changes an output section must name it
+  there — the shared contract makes an auditor's first line state its section structure, so a pre-widening
+  `<n> findings` line is stale the moment an advisory section exists); the trigger command (including its step-1
+  read-list); the README **slash-command table row**; a task for the capability `## Purpose` refresh (a delta cannot
+  carry a Purpose); and the proposal's `### New Capabilities`/ `### Modified Capabilities` subsections ("none" where
+  empty). Keep any enumerated list (the swept surfaces, the finding classes) verbatim-identical across
+  proposal/design/tasks/ delta. The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick`
+  rounds because each round surfaced one of these that a prior analogous change had covered — read the archived
+  analogous change and grep for the artifact's name before hand-writing the set.
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model is pinned across several places: `.opencode/opencode.json` (`model` and `small_model` —
   two keys), the flash-pinned subagent frontmatter (`.opencode/agent/review-quick.md`, `lesson-capture.md`,
@@ -956,27 +962,29 @@ that override when bumping the Kafka image tag.
 
 ## Gotchas
 
-- **`git stash pop` can leave conflict markers after a rebase.** The "leave implementation uncommitted until reviewed"
-  workflow stashes the change on every rebase; if a docs file (e.g. `docs/ideas.md`) advances on `main` between the
-  stash and the rebase, popping the stash after the rebase can leave `<<<<<<<` conflict markers in the working tree (the
-  stash carries the pre-rebase copy). This surfaced when the ideas-dates fix (PR #64) merged mid-rebase. Resolve by
-  reconciling the file — take `main`'s copy and re-apply the change's idea removal — rather than resolving the markers
-  by hand; since a change branch now carries its own `docs/ideas.md` removal (see the docs-refresh convention), it can
-  no longer simply be reset to `origin/main`. Committing the removal on the branch early (rather than leaving it in the
-  uncommitted review diff) avoids the stash path entirely.
+- **`git stash pop` can leave conflict markers after a rebase.** The commit-only-at-push workflow leaves the change
+  uncommitted and stashes it when a rebase needs a clean tree; if a docs file (e.g. `docs/ideas.md`) advances on `main`
+  between the stash and the rebase, popping the stash after the rebase can leave `<<<<<<<` conflict markers in the
+  working tree (the stash carries the pre-rebase copy). This surfaced when the ideas-dates fix (PR #64) merged
+  mid-rebase. Resolve by reconciling the file — take `main`'s copy and re-apply the change's idea removal — rather than
+  resolving the markers by hand; a change branch carries its own `docs/ideas.md` removal (see the docs-refresh
+  convention), so it can no longer simply be reset to `origin/main`. Under the commit-only-at-push rule the branch has
+  no commits to rebase before its first push, so the stash path arises only after a commit; refresh a pushed branch with
+  `gh pr update-branch` rather than a local stash-rebase.
 - **`git reset --hard` on a branch with uncommitted work discards tracked-file edits and deletes branch-added files.** A
-  change branch holds the implementation uncommitted (per the workflow); a `git reset --hard origin/main` to "rebase"
-  the branch reverts every tracked-file modification (`build.gradle.kts`, workflows, docs) **and deletes the files the
-  branch added** — including the change dir, which the branch-at-propose rule commits there — leaving only genuinely
-  untracked files (never-added new sources) intact, silently losing the implementation's edits and the proposal with
-  them. This bit the actionlint change when rebasing onto a main that had advanced. Never `reset --hard` a branch
-  carrying uncommitted work: with no local commits, `git reset --soft`/`--mixed` to `origin/main` keeps the working
-  tree; with local commits, `git rebase` (or stash → rebase → stash pop, per the stash-pop gotcha above) is the way.
-  Verify `git status` after to confirm the diff survived. The same class of mistake occurs outside a rebase:
-  `git checkout -- <file>` (or `git restore <file>`) reverts just that file to `HEAD`, discarding its uncommitted edits
-  — a README change was lost this way to a `git checkout -- README.md` run inside an unrelated verification step
-  (recovered only from a backup). While a work branch holds uncommitted edits, inspect committed content with
-  `git diff`/`git show HEAD:<file>` rather than `checkout --`/`restore`/`reset`.
+  change branch holds the work uncommitted (per the workflow); a `git reset --hard origin/main` to "rebase" the branch
+  reverts every tracked-file modification (`build.gradle.kts`, workflows, docs) **and deletes the files a commit on that
+  branch added** — the change dir included, once it has been committed at a push or a branch-switch checkpoint —
+  silently losing the implementation's edits, and the proposal too if it was committed. A still-untracked change dir
+  survives (verified): under the commit-only-at-push rule the whole change is untracked until the first commit, so a
+  pre-push reset loses only tracked-file edits. This bit the actionlint change when rebasing onto a main that had
+  advanced. Never `reset --hard` a branch carrying uncommitted work: with no local commits, `git reset --soft`/`--mixed`
+  to `origin/main` keeps the working tree; with local commits, `git rebase` (or stash → rebase → stash pop, per the
+  stash-pop gotcha above) is the way. Verify `git status` after to confirm the diff survived. The same class of mistake
+  occurs outside a rebase: `git checkout -- <file>` (or `git restore <file>`) reverts just that file to `HEAD`,
+  discarding its uncommitted edits — a README change was lost this way to a `git checkout -- README.md` run inside an
+  unrelated verification step (recovered only from a backup). While a work branch holds uncommitted edits, inspect
+  committed content with `git diff`/`git show HEAD:<file>` rather than `checkout --`/`restore`/`reset`.
 - **A change-dir `git mv` at archive leaves a file's unstaged edit behind as `RM` — and the archived tree is outside
   Spotless, so re-running `spotlessApply` after the move will not normalize it.** The archive commit relocates the
   change dir (`git mv openspec/changes/<change> openspec/changes/archive/<change>`), but `git mv` stages the rename

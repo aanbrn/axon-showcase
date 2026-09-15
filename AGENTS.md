@@ -818,7 +818,7 @@ declares the deprecated `stacks` key instead of `targets`). Neither is actionabl
 
 ```bash
 # Deploy to local cluster (must be ordered)
-helm install kps prometheus-community/kube-prometheus-stack --version 90.0.0 \
+helm install kps prometheus-community/kube-prometheus-stack --version 91.4.0 \
   --namespace monitoring --create-namespace --wait
 helm install tempo grafana/tempo --version 1.24.4 --namespace monitoring --create-namespace --wait
 helm install axon-showcase-db-events bitnami/postgresql --version 16.7.27 \

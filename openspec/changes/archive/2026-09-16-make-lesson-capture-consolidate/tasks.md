@@ -34,7 +34,7 @@
 - [x] 3.2 `review-quick` is clean over the implementation, and a grep for the narrow destination (`process` →
       `AGENTS.md` alone) over the four swept artifacts returns nothing — scoped to them, since the main spec's own
       narrow copy is expected to survive until the archive commit and must never be edited to satisfy the grep
-- [ ] 3.3 Smoke-run the edited subagent as an archive precondition: reload OpenCode, then run `lesson-capture` over a
+- [x] 3.3 Smoke-run the edited subagent as an archive precondition: reload OpenCode, then run `lesson-capture` over a
       seeded diff with one case an existing bullet covers (it must name that bullet) and one genuinely new (it must say
       no bullet covers it) — the precedent both analogous definition edits set (`concise-agent-reports`,
       `widen-agents-auditor-to-third-party`), and the only check that exercises the contract rather than greps its text

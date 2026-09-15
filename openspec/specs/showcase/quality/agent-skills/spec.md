@@ -53,8 +53,9 @@ The repository SHALL provide an `experience-analyzer` agent subagent that, given
 (merged pull requests, archived changes, `AGENTS.md` gotchas, and `docs/ideas.md`), produces a retrospective and
 forward-looking improvement suggestions. The retrospective SHALL group shipped PRs by theme, summarize lessons learned,
 and record went-well/went-wrong observations. Each improvement suggestion SHALL be classified as a system suggestion
-(addressed via `docs/ideas.md` or an OpenSpec proposal) or a process suggestion (addressed via `AGENTS.md`). The agent
-SHALL propose the retrospective and suggestions without editing files; the main agent verifies and applies them.
+(addressed via `docs/ideas.md` or an OpenSpec proposal) or a process suggestion (addressed via `AGENTS.md` or a subagent
+definition). The agent SHALL propose the retrospective and suggestions without editing files; the main agent verifies
+and applies them.
 
 #### Scenario: A retrospective is produced from gathered experience
 
@@ -66,7 +67,7 @@ SHALL propose the retrospective and suggestions without editing files; the main 
 
 - **WHEN** the `experience-analyzer` subagent proposes improvements
 - **THEN** each suggestion is labeled as a system change (→ `docs/ideas.md` or a proposal) or a process change (→
-  `AGENTS.md`), so the main agent can route it
+  `AGENTS.md` or a subagent definition), so the main agent can route it
 
 #### Scenario: The agent does not edit files itself
 
@@ -96,6 +97,8 @@ agent, with its purpose described in its agent definition and (where relevant) i
 - **WHEN** a change's implementation quick review is clean
 - **THEN** the `lesson-capture` subagent proposes `AGENTS.md` gotchas/conventions from the change's lessons, which the
   main agent verifies and applies
+- **AND** each proposed addition names the existing bullet it extends, or states that no bullet covers it — a new rule
+  merges into or replaces one rather than accreting
 
 #### Scenario: Screenshots are reviewed visually
 

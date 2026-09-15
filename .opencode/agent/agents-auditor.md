@@ -42,8 +42,8 @@ Audit along two axes:
   enumeration missing a member, a "the only X" that is no longer the only one, a pinned version that has moved);
   cross-references that no longer resolve (a renamed file, command, agent, or convention); drift between the prose and
   the code/workflows/specs it describes; a command or skill that describes a step the workflow, script, or subagent no
-  longer matches; an agent that is described in one artifact (`AGENTS.md`, the README, the `agent-skills` spec, its own
-  definition) and missing or different in another.
+  longer matches; an agent that is described in one artifact (`AGENTS.md`, the `agent-skills` spec, its own definition)
+  and missing or different in another.
 - **Conciseness** — duplicated or near-duplicate entries worth merging; one-off trivia that is neither a convention nor
   a gotcha; entries far longer or more specific than their lesson warrants; entries in the wrong section or file.
 

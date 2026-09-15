@@ -748,9 +748,9 @@ Key modules (libraries, not services):
   `specs-auditor` is separate because `openspec/specs/` is a distinct corpus with its own gate (`openspec validate`) and
   cross-spec structural consistency, while the project-authored `.opencode/` tooling was folded into `agents-auditor`
   rather than spawning a `tooling-auditor` — a subagent is described across its own definition, an `AGENTS.md` bullet,
-  the README agent table, and the `agent-skills` spec, so one auditor holding all of those catches cross-artifact drift
-  two single-artifact auditors would each see half of. Before adding an auditor, name the artifact's drift and which
-  existing auditor cannot see it — if one can, widen rather than add.
+  the README agent table and its prose, and the `agent-skills` spec, so one auditor holding all of those catches
+  cross-artifact drift two single-artifact auditors would each see half of. Before adding an auditor, name the
+  artifact's drift and which existing auditor cannot see it — if one can, widen rather than add.
 - **Thorough-review subagent for deep passes**: the `review-thorough` subagent (`.opencode/agent/review-thorough.md`)
   does a deep review of a change against its proposal, delta specs, design, tasks, and the implementation diff — drift,
   correctness, architecture, and conventions. It is intentionally not auto-scheduled (the expensive pass); invoke it
@@ -766,12 +766,14 @@ Key modules (libraries, not services):
   `description`; its **own report-contract verdict line** (a report that gains or changes an output section must name it
   there — the shared contract makes an auditor's first line state a count, so a pre-widening `<n> findings` line is
   stale the moment an advisory section exists, becoming `<n> findings, <n> advisory`); the trigger command (including
-  its step-1 read-list); the README **slash-command table row**; a task for the capability `## Purpose` refresh (a delta
-  cannot carry a Purpose); and the proposal's `### New Capabilities`/ `### Modified Capabilities` subsections ("none"
-  where empty). Keep any enumerated list (the swept surfaces, the finding classes) verbatim-identical across
-  proposal/design/tasks/ delta. The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick`
-  rounds because each round surfaced one of these that a prior analogous change had covered — read the archived
-  analogous change and grep for the artifact's name before hand-writing the set.
+  its step-1 read-list); the README **slash-command table row** and its **prose** description of the auditor (the
+  Spec-Driven Development, Agentic Process, and Self-Learning Loop sentences) whenever what it reports changes — the
+  tables are not the README's only copy, and no auditor covers `README.md`; a task for the capability `## Purpose`
+  refresh (a delta cannot carry a Purpose); and the proposal's `### New Capabilities`/ `### Modified Capabilities`
+  subsections ("none" where empty). Keep any enumerated list (the swept surfaces, the finding classes)
+  verbatim-identical across proposal/design/tasks/ delta. The `widen-architecture-auditor-to-intent-gaps` proposal took
+  repeated `review-quick` rounds because each round surfaced one of these that a prior analogous change had covered —
+  read the archived analogous change and grep for the artifact's name before hand-writing the set.
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model is pinned across several places: `.opencode/opencode.json` (`model` and `small_model` —
   two keys), the flash-pinned subagent frontmatter (`.opencode/agent/review-quick.md`, `lesson-capture.md`,

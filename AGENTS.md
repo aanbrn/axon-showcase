@@ -1274,7 +1274,9 @@ that override when bumping the Kafka image tag.
   **replaced** rule sweeps one degree harder still: its restatements are paraphrases rather than repetitions and live
   beyond the artifact — in other gotchas and conventions, and in file headers — so grep every doc that describes the
   workflow for the _concept_, not the old wording: replacing the commit discipline left four restatements (two gotchas,
-  the docs-refresh convention, and `docs/ideas.md`'s header).
+  the docs-refresh convention, and `docs/ideas.md`'s header). The sweep spans live copies only:
+  `openspec/changes/archive/` is the historical record, left as recorded — the Spotless target already excludes it — so
+  a corrected command or a renamed symbol found there stays as recorded rather than being "fixed".
 - **A configuration-default change names every test assertion that pins the value, on each surface it is declared.** The
   `reconcile-showcase-cache-default` plan initially missed that `allPropertiesHaveDocumentedDefaults` asserts the Java
   field (so the change would fail it) and that the yml-wiring test's missing `showcaseCache` assertion was the gap which
@@ -1481,7 +1483,10 @@ that override when bumping the Kafka image tag.
   it, and only the quick review caught it. Same principle as the edit-to-commit bullet above, applied to a reported
   verdict instead of a commit — let the exit status carry the verdict
   (`test -z "$(perl -CSD -lne 'print if length > 120' <file>)"` is non-zero when a line is over the limit) or read the
-  output before writing the sentence; never emit a canned "clean" you did not derive from that run.
+  output before writing the sentence; never emit a canned "clean" you did not derive from that run. An empty result is
+  not by itself a pass: that same `test -z` form reports clean on a typo'd path or a filter that matches nothing (`perl`
+  exits 0 on a missing file, and a bogus `grep` filter matches nothing), so confirm the check hits a known positive
+  before trusting the clean run — the vacuity the unchecked-glob and positive-control bullets name.
 - **IntelliJ settings-XML component names are exact and easy to transpose — take them verbatim from an IDE-written file,
   not the intuitive name.** `scripts/ensure-idea-settings.py` writes the inspection-profile skeleton with
   `<component name="InspectionProjectProfileManager">`; the script it replaced had it transposed as

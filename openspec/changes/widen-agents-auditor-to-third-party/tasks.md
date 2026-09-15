@@ -20,12 +20,14 @@
 
 ## 3. Align the descriptions
 
-- [ ] 3.1 Update `.opencode/commands/audit-agents.md` so its report step names the new advisory class (it already defers
-      to the report contract)
+- [ ] 3.1 Update `.opencode/commands/audit-agents.md`: its report step names the new advisory class (it already defers
+      to the report contract), and its step-1 read-list notes that the excluded generated/vendored files are still
+      **read** for the contradiction check even though they are never edited — the current step 1 says the subagent
+      skips them, which the advisory class makes misleading
 - [ ] 3.2 Update the `AGENTS.md` `agents-auditor` bullet to note the class where it describes the audit's scope and
       output
-- [ ] 3.3 Confirm the `README.md` `agents-auditor` row and the `/audit-agents` slash-command row still read accurately
-      (an expected no-op — one-line rows)
+- [ ] 3.3 Check the `README.md` `agents-auditor` row and the `/audit-agents` slash-command row against the widened class
+      and update either if its one-line summary now understates the audit (do not assume a no-op)
 
 ## 4. Verify
 

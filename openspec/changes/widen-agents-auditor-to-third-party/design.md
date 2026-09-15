@@ -49,9 +49,11 @@ an audit that reports textual difference buries its real findings. The test is "
 the file, or instruct a pattern our code or conventions contradict" — a contradiction that would change what a reader
 does, not a difference in phrasing. The definition carries both sides of the test (an example in, an example out).
 
-**The routes are named.** A finding with no permissible remedy is noise. Each item names which decision it invites —
-**report upstream** (the repo has a convention for this, with a reproduction), **re-vendor** at a newer upstream
-version, or **change our usage** — and the owner chooses.
+**The routes are named, as one invited decision each.** A finding with no permissible remedy is noise, so each item
+names the decision it invites — **report upstream** (the repo has a convention for this, with a reproduction),
+**re-vendor** at a newer upstream version, or **change our usage**. It names the one the evidence points to, not a menu:
+the shared report contract forbids offering alternatives, and the auditors' advisories already carry an owner question
+under that contract, so an item states a recommendation the owner can accept, redirect, or reject.
 
 ## Risks / Trade-offs
 

@@ -1210,6 +1210,17 @@ that override when bumping the Kafka image tag.
   If the only source is the conversation, omit it or label it as the owner's account; for an outcome you did not
   observe, state the mechanism ("a bash-script write runs under `permission.bash`") rather than the observation ("it did
   not prompt"). Point-in-time narrative belongs in a change's archived artifacts, not in a durable one.
+- **A reproduction in an outward-facing artifact is itself part of the claim — write it so a reader reruns it to the
+  same output, and rerun the exact sequence before posting.** State the tool version and the starting state, and record
+  the commands in the order they ran: an order-dependent transcript can self-contradict (a `Fission-AI/OpenSpec#1892`
+  draft showed `openspec validate --all` exiting 0, but the delta-less change its own `new change` had created makes
+  `validate` exit 1), and a precondition left implicit is not reproducible elsewhere (in a directory with no planning
+  shape the same malformed config hard-errors with exit 1 instead of warning). Re-check every derived detail — line
+  numbers, exit codes — against the actual output, and capture an exit code directly, not through a pipe (`cmd | jq`
+  reports `jq`'s status, not the CLI's). The `#1892` draft took repeated review passes, each catching a different
+  mis-reproduction, because the review gate reads the artifact while no gate reruns its transcript. This is the drafting
+  counterpart to "report it upstream with a reproduction and the evidence"; the tool-behavior claim itself is verified
+  per the `--help`/read-path rules.
 - **When documenting agent tooling (MCP servers, skills, subagents), read the artifact's own definition — not the config
   entry or the `docs/ideas.md` note that mentions it.** The README "Tooling MCP Servers" section described `codefmt` as
   running IDE _inspections_ (it runs the formatter), said the Playwright MCP "drives the web-UI e2e" (the test framework

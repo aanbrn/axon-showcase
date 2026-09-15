@@ -40,5 +40,5 @@
 - [x] 4.2 Smoke-run `/audit-agents` seeded with a known third-party mismatch it must report and a known-explained
       surface it must not (a generated file that merely differs from our prose) — reload OpenCode first so the edited
       definition is loaded, and treat the smoke-run as a precondition for archiving
-- [ ] 4.3 Apply the `## Purpose` refresh in the archive commit if 2.2 found it necessary — recorded as an explicit task
+- [x] 4.3 Apply the `## Purpose` refresh in the archive commit if 2.2 found it necessary — recorded as an explicit task
       because a delta cannot carry a Purpose

@@ -1147,15 +1147,46 @@ that override when bumping the Kafka image tag.
   formatter target, diff the actual normalizations — do not describe the pass as "purely rewrapping" before you have —
   and confirm the rewritten files parse to the same values and the consuming tool still works (for an agent or skill,
   after an OpenCode reload).
-- **A glob written into an instruction file is unchecked — prove it matches the files you intend.** Both audit commands
-  told the agent to run "a manual 120-character check for `.opencode/*.md`" — a glob matching **no file**, because the
-  markdown lives in `.opencode/agent/` and `.opencode/commands/`; it had shipped that way in an earlier change and
-  nothing caught it (`.opencode/` was outside Spotless then, and no gate reads a glob written in prose). The first fix
-  over-corrected to `.opencode/**/*.md`, which also matches `node_modules/`, the generator-written `opsx-*` commands and
-  `openspec-*` skills, and the vendored `axon4to5-*` skills — all carrying >120-character lines, so "clean" was
-  unachievable. Expand a glob once (`ls <glob>`) before trusting it: a vacuous match fails silently and a recursive one
-  over-matches generated or vendored files. The lesson is about any glob in an instruction, not about `.opencode/` —
-  that corpus is formatter-gated now, so its manual check is gone.
+- **A check is evidence only once it has been shown to fail — a clean run, an empty result, or an unmoved control proves
+  nothing until the check hits a known positive.** Five recurring incidents share this root, each with its own mode to
+  guard against:
+  - **A glob or filter that matches nothing is vacuous, not clean.** An audit command told the agent to run "a manual
+    120-character check for `.opencode/*.md`" — a glob matching **no file**, since the markdown lives in
+    `.opencode/agent/` and `.opencode/commands/`; it shipped that way because no gate reads a glob written in prose. The
+    first fix over-corrected to `.opencode/**/*.md`, which also matches `node_modules/`, the generator-written `opsx-*`
+    commands and `openspec-*` skills, and the vendored `axon4to5-*` skills — so "clean" was unachievable. Expand a glob
+    once (`ls <glob>`) before trusting it: a vacuous match fails silently and a recursive one over-matches generated or
+    vendored files.
+  - **A search anchored to one indentation misses the rest.** A grep for `permissions:` matched one job-level block
+    while the six top-level ones went unreported — a real result that looked complete. Match the key at any indentation
+    (`^[[:space:]]*<key>:`, or strip leading whitespace) and count the hits: unlike a vacuous glob, this failure returns
+    plausible output, so nothing flags it without a completeness check.
+  - **A failed lookup mapped to "no updates" reads as current.** `buildpackUpdates` (like `helmUpdates`) maps a failed
+    lookup to "no update", so a wrongly-built URL or renamed repository reads as current. Verify a new or changed check
+    by temporarily pinning a known-older version, confirming the report shows `<name>: <old> -> <latest>`, then
+    reverting the pin (the `buildpackUpdates` lookup was proved this way with `0.1.0`).
+  - **A control must perturb the surface the check actually reads.** `reconcile-showcase-cache-default`'s control
+    perturbs the yml placeholder because `applicationYmlPlaceholdersBindDocumentedDefaults` boots `application.yml` and
+    never binds the Java field — reverting the field instead would have proved nothing, since that test passes
+    regardless. Match the control's injection point to the test's binding source, confirm the assertion fails (a control
+    that runs without failing has not exercised the check), and prove the control's own setup actually perturbed its
+    target — assert the anchor occurs exactly once, or diff the surface before and after — before reading its outcome at
+    all. A tool that constructs its own input can manufacture the anomaly it appears to detect: the config-rules control
+    unquoted a `config.yaml` rule item that was already unquoted _and_ carried no `: ` (select a rule item that carries
+    `: ` — the shape whose unquoted parsing breaks; resolve it in `config.yaml`, not from recall), so its edit no-opped
+    and the silence was misread as a defect in the guard; a throwaway `python` `replace` left an unterminated quote
+    whose whole-file `could not parse … Missing closing 'quote` warning was briefly read as a wording defect — the
+    wording was faithful, though it did expose a real gap (a malformed edit yields `could not parse … ignoring it.`,
+    which the CI probe's grep did not match, so an unparseable config passed the job (exit 0)), since widened to catch
+    both. When a scratch script's result surprises you, print or diff the input it actually produced before drawing a
+    conclusion from it — a before/after diff proves the edit _landed_, not that it was the _intended_ one.
+  - **A verdict echo is not a check.** While fixing `scripts/experience-analysis.sh`, the 120-character recipe printed
+    the offending line and the next command echoed "(script 120 clean)" regardless — the log carried the defect and the
+    summary contradicted it. Let the exit status carry the verdict
+    (`test -z "$(perl -CSD -lne 'print if length > 120' <file>)"` is non-zero when a line is over the limit) or read the
+    output before writing the sentence; never emit a canned "clean" you did not derive from that run. That idiom still
+    fails open — `perl` exits 0 on a missing file, so `test -z` reports clean on a typo'd path — which is why the check
+    must be seen to hit a known positive before its clean run means anything.
 - **Run `spotlessApply` after the _final_ write to a Spotless-owned file — ticking a checklist task is an edit too.** A
   `tasks.md` task was ticked ("`spotlessCheck` passes") _after_ the last `spotlessApply`; the re-wrapped prose broke
   Prettier, so the claimed gate actually failed and only the quick review caught it. After any last edit to a
@@ -1309,13 +1340,6 @@ that override when bumping the Kafka image tag.
   built on the misattribution (granting `actions: write`) would have widened the token for nothing. Read the
   authoritative policy for the mechanism you are hypothesising, or vary only that dimension; a fix that enlarges a
   privilege to explain a behavior is a signal the cause is still undiagnosed.
-- **A content search anchored to a fixed indentation silently misses occurrences at other indent levels — match the key
-  at any indentation, and confirm the occurrence set rather than trusting a plausible hit.** The grep that produced the
-  false premise in the gotcha above matched one job-level `permissions:` block while the six top-level ones went
-  unreported, so the search returned a real result that looked complete. Match the key at any indentation
-  (`^[[:space:]]*<key>:`, or strip leading whitespace) and count the hits; unlike a glob that matches nothing or too
-  much (see the unchecked-glob gotcha), this failure returns plausible output, so nothing flags it without a
-  completeness check.
 - **A reproduction in an outward-facing artifact is itself part of the claim — write it so a reader reruns it to the
   same output, and rerun the exact sequence before posting.** State the tool version and the starting state, and record
   the commands in the order they ran: an order-dependent transcript can self-contradict (a `Fission-AI/OpenSpec#1892`
@@ -1410,31 +1434,6 @@ that override when bumping the Kafka image tag.
   model carries `repository` separately from the display `name`. When adding a buildpack to the check, use its Docker
   Hub repository. The same repositories also publish alias tags (`1.2`, `5.14`) alongside the full semver (`1.2.0`); the
   max comparison must prefer the longer tag, or a stale pin gets reported as the alias.
-- **An update check that reports "no updates" on a lookup failure is indistinguishable from "up to date" — prove the
-  lookup resolves before trusting a clean run.** `buildpackUpdates` (like `helmUpdates`) maps a failed lookup to "no
-  update", so a wrongly-built URL or renamed repository reads as current. Verify a new or changed check by temporarily
-  pinning a known-older version, confirming the report shows `<name>: <old> -> <latest>`, then reverting the pin (the
-  `buildpackUpdates` lookup was proved this way with `0.1.0`). A clean run alone is not evidence the check works.
-- **A positive control must perturb the surface the check actually reads — and a tool that constructs its own input can
-  manufacture the anomaly it appears to detect.** The `reconcile-showcase-cache-default` change's control perturbs the
-  yml placeholder because `applicationYmlPlaceholdersBindDocumentedDefaults` boots `application.yml` and never binds the
-  Java field — reverting the field instead would have proved nothing, since that test would pass regardless. Match the
-  control's injection point to the test's binding source (the yml placeholder for a yml-loading test, the Java field for
-  a Java-defaults test), confirm the assertion fails (a control that runs without failing has not exercised the check),
-  and verify the control's own setup actually perturbed its target — assert the anchor occurs exactly once, or diff the
-  surface before and after — before reading its outcome at all. Both failure modes were live: the
-  `openspec`-config-rules control unquoted a `config.yaml` rule item that was already unquoted _and_ carried no `: `
-  (select a rule item that carries `: ` — the shape whose unquoted parsing breaks; resolve it in `config.yaml`, not from
-  recall), so its edit no-opped and the silent run was misread as a defect in the guard rather than a false negative in
-  the control's own setup — silence is not evidence the guard is broken; and a throwaway `python` `replace` proving the
-  same control left an unterminated quote, whose whole-file `could not parse … Missing closing 'quote` warning was
-  briefly read as a defect in the command's wording and a gap in the CI probe — the wording defect did not exist (a
-  faithful unquote (strip the surrounding quotes, change nothing else) emits the per-artifact warning the probe greps,
-  so the control does fire), though the probe gap did: a malformed edit yields a whole-file
-  `could not parse … ignoring it.` warning the grep did not match, so an unparseable config passed the job (exit 0) —
-  the grep has since been widened to catch both. When a scratch script's result surprises you, print or diff the input
-  it actually produced before drawing a conclusion from it — a before/after diff proves the edit _landed_, not that it
-  was the _intended_ one.
 - **Pinned workflow tool versions are outside every update-check workflow — audit the whole set, not one pin at a
   time.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` /
   `helm-updates.yml` cover the Helm CLI and pinned charts, `buildpackUpdates` / `buildpack-updates.yml` cover the Paketo
@@ -1477,16 +1476,6 @@ that override when bumping the Kafka image tag.
   of six files edited while `architecture-auditor.md` was untouched and still reported edited, and duplicated a line in
   `lesson-capture.md` — the script's "edited" line is no per-file evidence, while `openspec-apply-change`'s per-task
   edits make a skipped file visible.
-- **A verification's success message is not a check — gate the reported conclusion on the command's output, not on the
-  command having run.** While fixing `scripts/experience-analysis.sh`, the 120-character recipe printed the offending
-  line and the next command echoed "(script 120 clean)" regardless: the log carried the defect, the summary contradicted
-  it, and only the quick review caught it. Same principle as the edit-to-commit bullet above, applied to a reported
-  verdict instead of a commit — let the exit status carry the verdict
-  (`test -z "$(perl -CSD -lne 'print if length > 120' <file>)"` is non-zero when a line is over the limit) or read the
-  output before writing the sentence; never emit a canned "clean" you did not derive from that run. An empty result is
-  not by itself a pass: that same `test -z` form reports clean on a typo'd path or a filter that matches nothing (`perl`
-  exits 0 on a missing file, and a bogus `grep` filter matches nothing), so confirm the check hits a known positive
-  before trusting the clean run — the vacuity the unchecked-glob and positive-control bullets name.
 - **IntelliJ settings-XML component names are exact and easy to transpose — take them verbatim from an IDE-written file,
   not the intuitive name.** `scripts/ensure-idea-settings.py` writes the inspection-profile skeleton with
   `<component name="InspectionProjectProfileManager">`; the script it replaced had it transposed as

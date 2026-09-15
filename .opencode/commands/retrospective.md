@@ -6,8 +6,9 @@ Run the experience-analyzer workflow to produce a retrospective and improvement 
 
 1. Determine the window: use the argument after `/retrospective` as the `since` date if provided (e.g.
    `/retrospective 2026-09-02`), otherwise default to the last 7 days.
-2. Gather the digest with `./scripts/experience-analysis.sh [since]` — this prints merged PRs, the git log, archived
-   OpenSpec changes, AGENTS.md gotchas, and docs/ideas.md for the window.
+2. Gather the digest with `./scripts/experience-analysis.sh [since]` — this prints the merged PRs and the git log for
+   the window, plus the archived OpenSpec changes, `AGENTS.md` gotchas, and `docs/ideas.md` as current state (not
+   windowed).
 3. Invoke the `experience-analyzer` subagent (`.opencode/agent/experience-analyzer.md`) with that digest plus a short
    context note on the window (what went well/wrong that no diff captures).
 4. Present the retrospective (shipped PRs by theme, lessons, went-well/went-wrong) and the improvement suggestions, each

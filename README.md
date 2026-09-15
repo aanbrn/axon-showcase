@@ -242,8 +242,8 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
   repeats until it finds nothing new. A deep `/review-thorough` pass is available on demand.
 - **Lesson capture**: after each change, `lesson-capture` proposes AGENTS.md gotchas and conventions — so mistakes are
   recorded systematically instead of relying on memory.
-- **Retrospectives**: `/retrospective` gathers the last week of PRs and changes and produces a sprint retrospective with
-  improvement suggestions.
+- **Retrospectives**: `/retrospective` gathers the last week of PRs and the git log, plus the archived changes and
+  accumulated gotchas, and produces a sprint retrospective with improvement suggestions.
 - **Formatting, gates, CI, PRs**: formatting and quality gates run in the build; the agent opens PRs, watches CI, and
   merges them once green.
 
@@ -308,9 +308,9 @@ The process is designed to **learn from itself** — and that is the mechanic, n
   (duplication, trivia, length, placement) — each with a concrete suggested rewrite — and, separately and without
   severity, a third-party file our usage contradicts, as a decision for the owner rather than a defect to fix. So the
   guidance and tooling stay consistent and concise instead of only growing.
-- **Periodic retrospectives zoom out.** `/retrospective` turns a week of merged PRs, archived changes, and accumulated
-  gotchas into a sprint retrospective whose suggestions are classified `process` (→ `AGENTS.md`) or `system` (→ an idea
-  or a proposal), so both the process and the system keep improving.
+- **Periodic retrospectives zoom out.** `/retrospective` turns a window of merged PRs and the git log, together with the
+  archived changes and accumulated gotchas, into a sprint retrospective whose suggestions are classified `process` (→
+  `AGENTS.md`) or `system` (→ an idea or a proposal), so both the process and the system keep improving.
 
 A mistake made once becomes a rule the agent follows thereafter — the process gets a little better with every change.
 
@@ -352,7 +352,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                                                 |
 | `/audit-architecture`        | Audits the architecture for recorded-decision drift + unrecorded intent (pro-model auditor)                              |
 | `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer                                                            |
-| `/retrospective`             | Weekly retrospective with improvement suggestions                                                                        |
+| `/retrospective`             | Periodic retrospective with improvement suggestions                                                                      |
 | `/dependency-updates`        | Runs and summarizes the dependency update report                                                                         |
 | `/gradle-update`             | Updates the Gradle wrapper to the latest stable                                                                          |
 | `/dependency-security-check` | Runs the Snyk dependency security scan                                                                                   |

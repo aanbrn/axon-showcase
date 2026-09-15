@@ -229,6 +229,16 @@ change is done — always follows CI, never precedes it. (Docs refresh that refl
 `AGENTS.md`/`README.md`/`docs/ideas.md` updates and captured lessons — ships as its own separate docs PR; docs that ARE
 the change ship with the change's PR, per the docs-refresh convention.)
 
+**The `opencode` GitHub Action authors a PR from an `/oc` comment — a local agent or human completes it.** Commenting
+`/oc …` (or `/opencode …`) on an issue runs OpenCode on a GitHub-hosted runner; it implements the work on its own
+`opencode/…` branch, commits, and opens the PR (on an existing PR the same comment commits to that PR instead). It
+follows the same rules a local agent does — an OpenSpec change with a change dir, `skip_specs: true` for a pure
+dependency bump, and the change left unarchived, since archiving follows the owner's approval — but it does not archive
+or merge. Treat its PR like any other: verify the self-report against the repository and the run log (a self-report is a
+claim to verify, like a review finding), then check out the agent's branch, run `openspec archive <change>`, commit and
+push it there, and merge once CI is green (the one-PR-per-change sequence above). GitHub never merges on an approval —
+an approval alone leaves the PR open.
+
 **Merging PRs: the `--admin` flag is for admin users only.** The `main-require-pr-on-merge` ruleset requires an
 approving review (`required_approving_review_count: 1`), but the repo owner (`aanbrn`) is a bypass actor on that ruleset
 (`bypass_mode: always`). When the active GitHub user **is** the repo owner/admin, merge directly with
@@ -432,6 +442,12 @@ also log a benign `Cache reservation failed: cache write denied` warning — the
 cannot save on the comment triggers (`issue_comment`, `pull_request_review_comment`), low-trust events GitHub gives
 read-only cache access — while the run itself succeeds; do not chase it. Reported upstream as
 `anomalyco/opencode#49127`; retires when the action's cache step skips cleanly (or drops to restore-only).
+
+**An update-check issue's named target version can be stale by the time it is actioned — re-resolve the latest before
+bumping.** The update-check issues refresh weekly, so the upstream can publish again in between: the "Helm updates"
+issue named `prometheus-community-stack: 90.0.0 -> 91.2.3` while `91.4.0` was already current. Confirm the target with
+the tool's own lookup (`helm search repo <chart>`, `gh api repos/<org>/<repo>/releases/latest`,
+`npm view <pkg> version`) and bump to the resolved latest.
 
 ## Architecture
 

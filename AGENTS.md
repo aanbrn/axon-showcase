@@ -1238,8 +1238,8 @@ that override when bumping the Kafka image tag.
   wherever the rules are read (`openspec new change`, `openspec instructions`), which read as noise for as long as the
   config existed; `openspec validate --all` emits no warning at all, which is why CI missed it. The dropped `proposal`
   rules included `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the rule the
-  review loop kept catching missing. Quote any YAML scalar containing `: `; the CI `build` job now probes for that
-  warning and fails, and `/opsx-tool-update` re-verifies it with a positive control.
+  review loop kept catching missing. Quote any YAML scalar containing `: `; the CI `build` job now probes for those
+  warnings and fails, and `/opsx-tool-update` re-verifies it with a positive control.
 - **A config a tool consumes is unverified until the tool's own read path is probed — and a warning no gate reads is not
   a check.** A config can look well-formed and pass the tool's own validation while the tool silently ignores part of
   it; from outside, a valid config and an ignored one are indistinguishable, and the only signal is a warning on stderr
@@ -1305,6 +1305,17 @@ that override when bumping the Kafka image tag.
   (select a rule item that carries `: ` — the shape whose unquoted parsing breaks; resolve it in `config.yaml`, not from
   recall), so its edit no-opped and the silent run was misread as a defect in the guard rather than a false negative in
   the control's own setup — silence is not evidence the guard is broken.
+- **A scratch tool that constructs its own input can manufacture the anomaly it appears to detect — verify the tool's
+  output before concluding the system is broken.** While proving the `/opsx-tool-update` positive control, a throwaway
+  `python` `replace` left an unterminated quote in `openspec/config.yaml`; the CLI answered with a whole-file
+  `could not parse … Missing closing 'quote` warning, which was briefly read as a defect in the command's wording and a
+  gap in the CI probe — the wording defect did not exist: a faithful unquote (strip the surrounding quotes, change
+  nothing else) emits the per-artifact warning the probe greps, so the control does fire. The probe gap, however, was
+  real, just not the one suspected: a malformed edit yields a whole-file `could not parse … ignoring it.` warning that
+  the probe's grep did not match, so an unparseable config passed the job (exit 0) — the grep has since been widened to
+  catch both warnings. All the more reason to confirm the input a scratch script actually produced before reading its
+  output: when a scratch script's result surprises you, print or diff the input it actually produced before drawing a
+  conclusion from it — a before/after diff proves the edit _landed_, not that it was the _intended_ one.
 - **Pinned workflow tool versions are outside every update-check workflow — audit the whole set, not one pin at a
   time.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` /
   `helm-updates.yml` cover the Helm CLI and pinned charts, `buildpackUpdates` / `buildpack-updates.yml` cover the Paketo

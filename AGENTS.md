@@ -220,7 +220,11 @@ otherwise ignored. A change that alters a capability's scope — e.g. adding `zs
 `showcase/quality/dependency-security` — therefore leaves the Purpose stale, and `openspec validate` still passes
 because the Purpose is not validated against the change. The repo rule forbids editing the main spec before archive, so
 record an explicit task (as `address-new-snyk-findings` did in task 3.2) and apply the Purpose edit in the archive
-commit; do not assume the sync workflow covers it.
+commit; do not assume the sync workflow covers it. A standalone Purpose refresh is a legitimate `skip_specs` change of
+its own — not only a fold-in to the next change that touches the capability — and its implementation commit then carries
+**no** spec edit by design, the only real change being the archive commit's: **state the deferral in the report**, since
+the diff reads as empty of the change's substance (the owner asked "why do I see no touched files except ideas.md?"),
+rather than moving the edit earlier to give it some.
 
 **`openspec validate` checks a change's delta specs, not its `proposal.md` — proposal-schema defects surface only at
 archive, and non-blockingly.** For a change, `openspec validate --all`/`--changes` runs only the delta-spec validator;

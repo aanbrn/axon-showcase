@@ -4,11 +4,11 @@
 
 Provides the repository's agent capabilities: curated, vendored skill sets under `.opencode/skills/` (so agents can run
 the AxonIQ Axon 4→5 migration recipes against this codebase) and the locally-defined quality-gate and analysis subagents
-under `.opencode/agent/` — the per-change review and lesson-capture agents, the experience-analyzer, and the on-demand
-auditors of the project-owned agent tooling (the guidance and project-authored `.opencode/` files, plus any generated or
-vendored file that contradicts how the repository uses it), of the `openspec/specs/` corpus, and of the architecture
-(the ADRs, the service, module, and spec-decomposition surface, and where a deliberate decision's rationale is not
-recorded).
+under `.opencode/agent/` — the per-change review and lesson-capture agents, the experience-analyzer, the visual and
+diagram agents, and the on-demand auditors of the project-owned agent tooling (the guidance and project-authored
+`.opencode/` files, plus any generated or vendored file that contradicts how the repository uses it), of the
+`openspec/specs/` corpus, and of the architecture (the ADRs, the service, module, and spec-decomposition surface, and
+where a deliberate decision's rationale is not recorded).
 
 ## Requirements
 

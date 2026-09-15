@@ -5,7 +5,7 @@
       visual and diagram agents")
 - [x] 1.2 Confirm the edit is confined to the Purpose paragraph and that no requirement, scenario, or other spec text
       changes — a Purpose cannot ride a delta, and the main spec is never edited before the archive
-- [ ] 1.3 Apply the Purpose edit in the **archive commit** (not the implementation commit), as the archived
+- [x] 1.3 Apply the Purpose edit in the **archive commit** (not the implementation commit), as the archived
       `address-new-snyk-findings` and `apply-specs-audit-findings` changes did, and confirm `openspec validate --all`
       still passes after it lands
 

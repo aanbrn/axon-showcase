@@ -35,9 +35,6 @@ it was added (start a new section for a new day rather than appending to the mos
   - Not the biggest lever: model routing (already done) is deterministic and fires every turn, and review-round count
     matters more than time-shifting a single round.
 
-- Fold a lesson discovered while writing a capture into that capture's PR — parked; no change yet. The precise fix for
-  the #254 → #255 → #256 chain: the docs-only carve-out did not stop it, because a capture's own subject kept surfacing
-  _new_ general rules, so a capture whose subject is a capture should ship in the same PR.
 - Merge the parked scheduling/cost ideas into one scheduled unattended-run workflow — parked; no change yet. The three
   zero-touch scheduled variants, the off-peak quota note above, and the upstream-reference watcher (2026-09-14) all want
   the same mechanism: a `schedule:`-triggered OpenCode run that fires issues. One workflow implements all of them,

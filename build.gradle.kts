@@ -3,6 +3,7 @@ import io.github.build.extensions.oss.gradle.plugins.helm.release.dsl.HelmReleas
 import java.util.Properties
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.tasks.SourceSetContainer
 
 plugins {
     id("dependency-security-conventions")
@@ -278,9 +279,59 @@ tasks.register("buildpackUpdates", BuildpackUpdatesTask::class.java) {
     outputs.upToDateWhen { false }
 }
 
+tasks.register("verifyModuleDependencies", VerifyModuleDependenciesTask::class.java) {
+    group = "verification"
+    description = "Verifies the modules' declared dependencies against the sanctioned module graph"
+
+    resultFile.set(layout.buildDirectory.file("verification/module-dependencies.txt"))
+
+    // The production source sets of every module: `main`, which is what ships, and
+    // `testFixtures`, which other modules consume as an artifact. Both are declared directly in each build script, so
+    // their configurations always hold their dependencies — unlike a test suite's, which are populated only once that
+    // suite's test tasks are realized, making a walk over them report a different graph depending on which task graph
+    // ran. Test suites are deliberately out of scope: the graph this enforces is the one that ships, and a suite
+    // depending on a service application is a legitimate way to exercise that service.
+    edges.set(
+        provider {
+            allprojects
+                .filter { it != rootProject }
+                .flatMap { project ->
+                    val sourceSets =
+                        project.extensions.findByType(SourceSetContainer::class.java) ?: return@flatMap emptyList()
+                    listOf("main", "testFixtures")
+                        .mapNotNull { sourceSets.findByName(it) }
+                        .flatMap { sourceSet ->
+                            // Every declaration configuration the source set exposes, so a dependency cannot escape
+                            // by being declared runtimeOnly or compileOnlyApi.
+                            listOf(
+                                    sourceSet.apiConfigurationName,
+                                    sourceSet.implementationConfigurationName,
+                                    sourceSet.compileOnlyConfigurationName,
+                                    sourceSet.compileOnlyApiConfigurationName,
+                                    sourceSet.runtimeOnlyConfigurationName,
+                                    sourceSet.annotationProcessorConfigurationName,
+                                )
+                                .distinct()
+                        }
+                        .mapNotNull { project.configurations.findByName(it) }
+                        .flatMap { configuration ->
+                            configuration.dependencies.withType(ProjectDependency::class.java).mapNotNull { dependency
+                                ->
+                                val target = dependency.path.removePrefix(":").substringAfterLast(":")
+                                if (target == "platform") null else ModuleEdge(project.name, target)
+                            }
+                        }
+                }
+        }
+    )
+}
+
 tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
     dependsOn("workflowLint")
+    dependsOn("verifyModuleDependencies")
+    // build-logic is an included build, so its tests are not reached by this project's check.
+    dependsOn(gradle.includedBuild("build-logic").task(":test"))
 }
 
 helm {

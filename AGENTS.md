@@ -312,7 +312,7 @@ wait for approval before merging.
 ./gradlew :showcase-web-ui:e2eTest
 
 # Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
-# plus workflowLint (actionlint) and verifyInfraImageVersions
+# plus workflowLint (actionlint), verifyInfraImageVersions, and verifyModuleDependencies
 # (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
 # check)
 ./gradlew :showcase-command-service:check
@@ -414,7 +414,8 @@ initialized:
   three update-check workflows, and the out-of-repository surfaces the Docs-refresh bullet names), never `build`.
 
 The `check` task also runs `workflowLint`, which lints the GitHub Actions workflows with actionlint (installed on the
-runner via the official download script; see the Prerequisites).
+runner via the official download script; see the Prerequisites), and `verifyModuleDependencies`, which enforces the
+module dependency graph ADR-0010 records (`check` also runs `build-logic`'s tests, since that is an included build).
 
 The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (dependencies, wrapper, and local build
 cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the

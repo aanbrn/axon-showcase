@@ -24,10 +24,18 @@ dependencies {
 
     implementation(libs.commons.lang3)
 
+    testImplementation(kotlin("test"))
+    testImplementation(platform(libs.assertj.bom))
+    testImplementation(libs.assertj.core)
+
     constraints {
         api(libs.log4j.api)
         api(libs.log4j.core)
         api(libs.log4j.toSlf4j)
         api(libs.spotbugs)
     }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }

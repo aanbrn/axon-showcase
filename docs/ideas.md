@@ -48,8 +48,8 @@ it was added (start a new section for a new day rather than appending to the mos
   (`scripts/__pycache__/*.pyc`), and paths staged and then edited.
 - Make the next phase a product phase — parked; no change yet. The first retrospective's recommended direction (see
   `docs/retrospectives/2026-09-16.md`). The tooling is mature enough to be used rather than extended. The highest-value
-  parked candidates are the ArchUnit fitness functions (the architecture has decide/describe/review layers but no
-  _enforce_ one), narrowing the `query-api` re-export, and web-UI trace propagation.
+  parked candidates are narrowing the `query-api` re-export and web-UI trace propagation (the architecture's missing
+  _enforce_ layer now exists — ADR-0010).
 
 - The gateway's SSE stream has no idle heartbeat and no event `id` — parked; no change yet.
   `ShowcaseEventStreamConfiguration` buffers with `Sinks.many().replay().limit(100)` and `ShowcaseEventStreamController`
@@ -147,29 +147,13 @@ it was added (start a new section for a new day rather than appending to the mos
 - Query-api → command-api re-export (dependency hygiene) — parked; no change yet. Found by the first
   `/audit-architecture` run (its boundary check): `showcase-query-api` declares `api(project(":showcase-command-api"))`
   although its main source needs only `showcase.identifier.KSUID` and uses no `showcase.command.*` type, so it
-  re-exports the whole write-side API to every query-api consumer — a direction the architecture does not sanction. The
-  fix is **not** a one-line swap: replacing the dep with `api(project(":showcase-identifier-extension"))` fails
+  re-exports the whole write-side API to every query-api consumer. ADR-0010 sanctions that direction for now, since the
+  consumers lean on the transitive `hibernate-validator` it carries — which is what this idea removes. The fix is
+  **not** a one-line swap: replacing the dep with `api(project(":showcase-identifier-extension"))` fails
   `showcase-query-client`'s main compile (`ShowcaseQueryClientProperties` imports `org.hibernate.validator.constraints`,
   which it was receiving transitively through command-api), so the modules that leaned on the accidental chain must
   first declare what they actually use. Worth its own change: narrow query-api, add the consumers' explicit deps, and
   let the build prove the graph.
-
-- Architecture fitness functions (ArchUnit) — parked; no change yet; promoted to issue
-  [#262](https://github.com/aanbrn/axon-showcase/issues/262). The architecture is _described_ (the README's component
-  table and event-flow diagram, `AGENTS.md`'s service/module/port lists) and _reviewed_ per change, but nothing
-  _enforces_ it: the version catalog has no ArchUnit and no module carries a dependency-direction or layering test, so
-  the intended structure rests on convention and human review. Nothing fails the build if a service starts depending on
-  another service (they are meant to talk only via a `-client`, Kafka, or HTTP — services happen not to depend on one
-  another today, so the rule would lock in an already-true property), if a service reaches into another's internals
-  instead of its `-api`, or if `build-logic`'s convention plugins leak across layers. A small ArchUnit suite (in
-  `showcase-test` or its own module) asserting those rules would turn the intended topology into a build failure the way
-  `spotlessCheck` and Checkstyle turn style into one — this is the "constrain" layer, the one genuinely absent from the
-  project's architecture management (it has decide = ADRs, describe = README/AGENTS.md, review = the review agents and
-  the `architecture-auditor`, but no enforcement). It complements the parked _Enforce web UI conventions with tooling_
-  idea (the same intent on the web module via `eslint-plugin-boundaries`). Interaction with the `architecture-auditor`:
-  a fitness function _prevents_ boundary drift, the auditor _detects_ it — once a rule is a fitness function the auditor
-  should drop that boundary check rather than re-report a property a gate already enforces. Deliberately not a full
-  C4/Structurizr description toolchain: enforcement is the missing layer, not more description ceremony.
 
 - Reconcile the architecture description across README and AGENTS.md — parked; no change yet. The same architectural
   facts are stated twice — the README's `## Architecture` section and `## Project Structure` tree (component table,

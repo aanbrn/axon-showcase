@@ -30,7 +30,7 @@
       ("a direction the architecture does not sanction") the ADR decides the other way; sweep the retrospective's own
       enumeration, or state in the report why that dated record is left as recorded; refresh `AGENTS.md` where it
       describes the module graph and fix any "rests on convention / nothing enforces" claim this makes false
-- [ ] 3.3 Refresh the capability's `## Purpose` in the archive commit — the new requirement widens `code-quality`'s
+- [x] 3.3 Refresh the capability's `## Purpose` in the archive commit — the new requirement widens `code-quality`'s
       scope from style conventions to the module graph — and record the finding as the change's own task
 - [x] 3.4 Decide the README's gate list and the `architecture-auditor`'s boundary remit explicitly: the auditor already
       must not re-check what a gate enforces, and the README lists the build's gates — record the decision rather than

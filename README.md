@@ -1,5 +1,9 @@
 # axon-showcase
 
+[![ci](https://github.com/aanbrn/axon-showcase/actions/workflows/ci.yml/badge.svg)](https://github.com/aanbrn/axon-showcase/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Java 21](https://img.shields.io/badge/Java-21-orange.svg)
+
 A CQRS / event-sourced reference application you can _watch work_ — and a demonstration of an agent-assisted,
 spec-driven way to build it.
 

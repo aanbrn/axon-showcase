@@ -60,10 +60,31 @@ it was added (start a new section for a new day rather than appending to the mos
   to trigger reconciliation), so this concerns the gateway's idleness and `id:` semantics, not the buffer. Surfaced by
   the smoke-run of `make-lesson-capture-consolidate`, whose seeded incident was fictional — hence an idea, not a gotcha.
 
-- Publish a first GitHub release and keep tagging — parked; no change yet. The repo has 258 merged PRs, 151 archived
+- Publish a first GitHub release and keep tagging — parked; no change yet. The repo has 250+ merged PRs, 150+ archived
   changes, and versioned service images, but zero releases and zero git tags, so there is no "what shipped, when"
   surface for a visitor. Decide the version (the images already carry `${project.version}`), what a release notes, and
   whether it is cut per change, per milestone, or on a cadence.
+
+- GitHub Discussions are disabled — parked; no change yet. Enabling them would give the project a second support surface
+  beside issues, but it needs moderation, so it is a decision rather than a toggle.
+- Nothing is published to a container registry — parked; no change yet. The image tasks (`bootBuildImage` for the four
+  JVM services, `dockerBuildImage` for the web UI) build to the local daemon only, so the `aanbrn/axon-showcase-*` names
+  documented in `AGENTS.md` are a convention the images never leave: nothing pushes them, and the `aanbrn` Docker Hub
+  namespace is empty today (the owner deleted the repositories an earlier manual attempt had created). The decision is
+  whether to publish at all, and where — GHCR (discoverable from the repository) and/or Docker Hub — which makes this a
+  pipeline change plus a registry choice.
+- No project homepage — parked; no change yet. The README _is_ the documentation, so the `homepage` field stays empty
+  until there is a site (or a GitHub Pages rendering of the README) to point at.
+- No social preview image — parked; no change yet. It is the card shown when the repository is shared, it needs a
+  design, and it is a repository-settings upload rather than a file in the tree.
+- No Code of Conduct — parked; no change yet. Adopting one is a commitment with enforcement expectations, so it is the
+  owner's decision rather than a file to drop in; the MIT license and the README already state the project's posture.
+
+- The markdown formatter target omits the root community files — parked; no change yet. `SECURITY.md` and `.github/*.md`
+  are project-authored markdown outside the Spotless `markdown` target (which enumerates `docs/`, `AGENTS.md`,
+  `README.md`, `openspec/specs/`, active changes, and the project-authored `.opencode/` markdown), so nothing re-wraps
+  them and the 120-character rule applies to them by hand. Either add them to the target and to the convention's scope
+  list, or state the exclusion deliberately.
 
 ## 2026-09-14
 

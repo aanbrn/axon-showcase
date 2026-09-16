@@ -119,22 +119,22 @@ it was added (start a new section for a new day rather than appending to the mos
   first declare what they actually use. Worth its own change: narrow query-api, add the consumers' explicit deps, and
   let the build prove the graph.
 
-- Architecture fitness functions (ArchUnit) — parked; no change yet. The architecture is _described_ (the README's
-  component table and event-flow diagram, `AGENTS.md`'s service/module/port lists) and _reviewed_ per change, but
-  nothing _enforces_ it: the version catalog has no ArchUnit and no module carries a dependency-direction or layering
-  test, so the intended structure rests on convention and human review. Nothing fails the build if a service starts
-  depending on another service (they are meant to talk only via a `-client`, Kafka, or HTTP — services happen not to
-  depend on one another today, so the rule would lock in an already-true property), if a service reaches into another's
-  internals instead of its `-api`, or if `build-logic`'s convention plugins leak across layers. A small ArchUnit suite
-  (in `showcase-test` or its own module) asserting those rules would turn the intended topology into a build failure the
-  way `spotlessCheck` and Checkstyle turn style into one — this is the "constrain" layer, the one genuinely absent from
-  the project's architecture management (it has decide = ADRs, describe = README/AGENTS.md, review = the review agents
-  and the `architecture-auditor`, but no enforcement). It complements the parked _Enforce web UI conventions with
-  tooling_ idea (the same intent on the web module via `eslint-plugin-boundaries`). Interaction with the
-  `architecture-auditor`: a fitness function _prevents_ boundary drift, the auditor _detects_ it — once a rule is a
-  fitness function the auditor should drop that boundary check rather than re-report a property a gate already enforces.
-  Deliberately not a full C4/Structurizr description toolchain: enforcement is the missing layer, not more description
-  ceremony.
+- Architecture fitness functions (ArchUnit) — parked; no change yet; promoted to issue
+  [#262](https://github.com/aanbrn/axon-showcase/issues/262). The architecture is _described_ (the README's component
+  table and event-flow diagram, `AGENTS.md`'s service/module/port lists) and _reviewed_ per change, but nothing
+  _enforces_ it: the version catalog has no ArchUnit and no module carries a dependency-direction or layering test, so
+  the intended structure rests on convention and human review. Nothing fails the build if a service starts depending on
+  another service (they are meant to talk only via a `-client`, Kafka, or HTTP — services happen not to depend on one
+  another today, so the rule would lock in an already-true property), if a service reaches into another's internals
+  instead of its `-api`, or if `build-logic`'s convention plugins leak across layers. A small ArchUnit suite (in
+  `showcase-test` or its own module) asserting those rules would turn the intended topology into a build failure the way
+  `spotlessCheck` and Checkstyle turn style into one — this is the "constrain" layer, the one genuinely absent from the
+  project's architecture management (it has decide = ADRs, describe = README/AGENTS.md, review = the review agents and
+  the `architecture-auditor`, but no enforcement). It complements the parked _Enforce web UI conventions with tooling_
+  idea (the same intent on the web module via `eslint-plugin-boundaries`). Interaction with the `architecture-auditor`:
+  a fitness function _prevents_ boundary drift, the auditor _detects_ it — once a rule is a fitness function the auditor
+  should drop that boundary check rather than re-report a property a gate already enforces. Deliberately not a full
+  C4/Structurizr description toolchain: enforcement is the missing layer, not more description ceremony.
 
 - Reconcile the architecture description across README and AGENTS.md — parked; no change yet. The same architectural
   facts are stated twice — the README's `## Architecture` section and `## Project Structure` tree (component table,
@@ -280,12 +280,12 @@ it was added (start a new section for a new day rather than appending to the mos
   real usage, decide on CPU limits (the JVM services set them; the web UI does not), and align defaults across services
   for consistency.
 
-- Fix the per-service compose tasks' "no such service" failure — parked; no change yet. The `docker-conventions`
-  per-service `compose*` tasks pass `project.name` (e.g. `showcase-api-gateway`) as the compose service argument, but
-  the `docker-compose.yml` services are named differently (`api-gateway`, `command-service`, `query-service`,
-  `projection-service`, `web-ui`, `db-events`, ...), so `./gradlew :showcase-api-gateway:composeStop` fails with
-  `no such service`. Fix: map each module to its compose service name (or drop the service argument and rely on the
-  compose project scope).
+- Fix the per-service compose tasks' "no such service" failure — parked; no change yet; promoted to issue
+  [#263](https://github.com/aanbrn/axon-showcase/issues/263). The `docker-conventions` per-service `compose*` tasks pass
+  `project.name` (e.g. `showcase-api-gateway`) as the compose service argument, but the `docker-compose.yml` services
+  are named differently (`api-gateway`, `command-service`, `query-service`, `projection-service`, `web-ui`, `db-events`,
+  ...), so `./gradlew :showcase-api-gateway:composeStop` fails with `no such service`. Fix: map each module to its
+  compose service name (or drop the service argument and rely on the compose project scope).
 
 - Migrate off the deprecated OpenSearch low-level REST client — parked; no change yet.
   `org.opensearch.client.RestClientBuilder` (and the `RestClient` it builds) is `@Deprecated`, to be removed in future

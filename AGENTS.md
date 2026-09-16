@@ -409,6 +409,9 @@ initialized:
   is disabled because the 0.80 baseline is calibrated on integration-test coverage, which PRs skip by design.
 - **Pushes to `main`** run the full gate: `./gradlew check` (with integration tests and the coverage gate) plus the same
   OpenSpec validation and config probe as the pull-request path.
+- **A check belongs in the pull-request gate only when the change that trips it can remediate it.** Drift in state no
+  pull request causes would fail every unrelated PR, so it belongs in the observational scheduled pattern instead (the
+  three update-check workflows, and the out-of-repository surfaces the Docs-refresh bullet names), never `build`.
 
 The `check` task also runs `workflowLint`, which lints the GitHub Actions workflows with actionlint (installed on the
 runner via the official download script; see the Prerequisites).
@@ -598,9 +601,12 @@ Key modules (libraries, not services):
   versions, module count, service list, Docker image names) that OpenSpec shows the AI when creating artifacts — refresh
   it in the same change whenever one of those facts moves. `openspec validate` never checks it, so it drifts silently
   (it had fallen to Gradle 8.14.5 / 18 modules before the first audit synced it, #170). The repository's own GitHub
-  description and topics are a third un-gated copy of the same facts — they name the stack and went unset for the
-  project's whole history until the repository metadata was set — so refresh them in the change that moves one; no gate
-  reads them and no auditor owns a surface outside the repository.
+  description and topics are a third un-gated copy of the same facts — they name the stack and went unset until the
+  repository metadata was set — so refresh them in the change that moves one; no gate reads them and no auditor owns a
+  surface outside the repository. A file can also _depend_ on such a surface rather than describe one: `SECURITY.md`'s
+  private-reporting path is a dead end unless private vulnerability reporting is enabled. Enable the setting as part of
+  the change that ships the instruction — a repository setting leaves no diff, so a diff-only review cannot see it — and
+  name the enabling in the change's report.
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
@@ -1347,7 +1353,13 @@ that override when bumping the Kafka image tag.
   definition, or a main spec, find its evidence — a config file, a log line, a commit, or a run whose output you have.
   If the only source is the conversation, omit it or label it as the owner's account; for an outcome you did not
   observe, state the mechanism ("a bash-script write runs under `permission.bash`") rather than the observation ("it did
-  not prompt"). Point-in-time narrative belongs in a change's archived artifacts, not in a durable one.
+  not prompt"). Point-in-time narrative belongs in a change's archived artifacts, not in a durable one. A claim about a
+  surface **outside** the repository — a registry's contents, a repository setting, a live URL — has no config file or
+  commit behind it, so its evidence is a query whose output you have: run it before writing the claim, and re-run it at
+  review, because such a surface can change between the two and no gate reads it (`#266`'s repeated review rounds caught
+  several unverified external assertions — a GitHub docs URL written from memory, a false "Docker Hub carries nothing"
+  against five live repositories, wrong dates; the owner deleted those repositories mid-session, invalidating the entry
+  between its writing and its review). Verify a URL by requesting it, and treat the review, not a gate, as the check.
 - **A comparison between two runs or files that differ in more than one dimension cannot attribute the difference to
   either — isolate the variable before naming a cause.** Comparing `ci.yml`'s `Cache mode: write` with the `opencode`
   workflow's read-only run attributed the difference to the latter's `permissions:` block, but the two differ in two

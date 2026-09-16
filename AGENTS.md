@@ -529,7 +529,11 @@ Key modules (libraries, not services):
 - **Test display names**: every test class and every `@Test`/`@ParameterizedTest` method (plus `@Nested` groups) carries
   a static-sentence `@DisplayName` (e.g., `@DisplayName("Showcase aggregate component tests")`,
   `@DisplayName("Finishing a showcase with a valid command succeeds")`). Do not use `{0}`-style placeholders — named
-  `argumentSet("...", ...)` invocations already render their own detail
+  `argumentSet("...", ...)` invocations already render their own detail. A display name that enumerates several cases
+  must have the body assert every one of them — an enumerated name with one asserted case is an unverified claim. A
+  contract-module test named "may not depend on a client or a service application" asserted only the client case, so the
+  rule's second clause was dead and survived repeated review passes; IntelliJ's always-false warning caught it, not a
+  test or a review.
 - **Spring bean mocks in tests**: use `@MockitoBean` (from `org.springframework.test.context.bean.override.mockito`),
   not the deprecated-for-removal `@MockBean` (`org.springframework.boot.test.mock.mockito`), which has been deprecated
   since Spring Boot 3.4
@@ -1172,7 +1176,7 @@ that override when bumping the Kafka image tag.
   and confirm the rewritten files parse to the same values and the consuming tool still works (for an agent or skill,
   after an OpenCode reload).
 - **A check is evidence only once it has been shown to fail — a clean run, an empty result, or an unmoved control proves
-  nothing until the check hits a known positive.** Five recurring incidents share this root, each with its own mode to
+  nothing until the check hits a known positive.** Six recurring incidents share this root, each with its own mode to
   guard against:
   - **A glob or filter that matches nothing is vacuous, not clean.** An audit command told the agent to run "a manual
     120-character check for `.opencode/*.md`" — a glob matching **no file**, since the markdown lives in
@@ -1204,6 +1208,16 @@ that override when bumping the Kafka image tag.
     which the CI probe's grep did not match, so an unparseable config passed the job (exit 0)), since widened to catch
     both. When a scratch script's result surprises you, print or diff the input it actually produced before drawing a
     conclusion from it — a before/after diff proves the edit _landed_, not that it was the _intended_ one.
+  - **A check whose input set depends on which task graph ran is not a check.** `verifyModuleDependencies` inspected 36
+    edges standalone and 47 under `check`, the 11-edge difference being exactly the project dependencies declared inside
+    `testing { suites { … } }` blocks: a suite's configurations hold their dependencies only once its test tasks are
+    realized, which `check`'s own `dependsOn(testing.suites…)` caused incidentally. Four fixes failed (eager suite
+    realization, `evaluationDependsOn`, collecting suite edges where the `testing` accessor is in scope, reading every
+    configuration) before the scope was corrected: the invariant protects what ships and a suite's edges reach no
+    artifact, so the walk reads only the production source sets — `main` and `testFixtures`, declared directly in build
+    scripts and thus eager. Have the report enumerate every inspected item, not just its count — the "Inspected edges"
+    list is what made the two invocations diffable and named the missing 11 as a set; run a new verification standalone
+    and through `check` and diff its report.
   - **A verdict echo is not a check.** While fixing `scripts/experience-analysis.sh`, the 120-character recipe printed
     the offending line and the next command echoed "(script 120 clean)" regardless — the log carried the defect and the
     summary contradicted it. Let the exit status carry the verdict
@@ -1329,9 +1343,11 @@ that override when bumping the Kafka image tag.
   **replaced** rule sweeps one degree harder still: its restatements are paraphrases rather than repetitions and live
   beyond the artifact — in other gotchas and conventions, and in file headers — so grep every doc that describes the
   workflow for the _concept_, not the old wording: replacing the commit discipline left four restatements (two gotchas,
-  the docs-refresh convention, and `docs/ideas.md`'s header). The sweep spans live copies only:
-  `openspec/changes/archive/` is the historical record, left as recorded — the Spotless target already excludes it — so
-  a corrected command or a renamed symbol found there stays as recorded rather than being "fixed".
+  the docs-refresh convention, and `docs/ideas.md`'s header). An abandoned approach needs the same sweep: reverting an
+  experiment's code line does not remove the comment or the task/design prose that describes it, so grep the artifact
+  for the approach's name before calling the revert done. The sweep spans live copies only: `openspec/changes/archive/`
+  is the historical record, left as recorded — the Spotless target already excludes it — so a corrected command or a
+  renamed symbol found there stays as recorded rather than being "fixed".
 - **A configuration-default change names every test assertion that pins the value, on each surface it is declared.** The
   `reconcile-showcase-cache-default` plan initially missed that `allPropertiesHaveDocumentedDefaults` asserts the Java
   field (so the change would fail it) and that the yml-wiring test's missing `showcaseCache` assertion was the gap which

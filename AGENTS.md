@@ -192,6 +192,12 @@ plus a `## ADDED Requirements` block carrying the new header with its full descr
 live — `openspec validate` checks scenario preservation for a MODIFIED block, not across a REMOVED/ADDED pair, so carry
 the full set by hand.
 
+**Prefer a `MODIFIED` block over an `ADDED` one when the new behavior refines a requirement the spec already holds — add
+a new requirement only for behavior no existing requirement covers.** A clause folded into an existing requirement costs
+one delta; a new requirement costs a permanent corpus entry, and the corpus accretes the way `AGENTS.md` does
+(`make-lesson-capture-consolidate` put its obligation into the scenario that already described the subagent, while a
+genuinely new subject like `concise-agent-reports`' shared report contract is still `ADDED`).
+
 **A `MODIFIED` requirement block replaces the whole requirement — the delta must carry every existing scenario the main
 spec still has, not just the new ones.** `openspec validate --changes` fails with "MODIFIED ... omits scenario(s) the
 current spec still has" when a delta drops an existing scenario (the first `helm-install-builds-webui-image` delta wrote
@@ -1508,10 +1514,16 @@ that override when bumping the Kafka image tag.
   with its `/audit-architecture` smoke-run unchecked for exactly this reason). Seed the smoke-run with positive controls
   — a known-missing rationale it **must** report and a known-explained surface (a spec requirement, an ADR, an
   `AGENTS.md` convention) it must **not**: a run that reports everything or nothing has not exercised the suppression
-  rule. When the owner deliberately decouples a follow-up task from the merge, reword the task to record what is
-  deferred, where it went, and the owner's chosen order, then **tick it** — an unchecked box inside `archive/` is
-  invisible and no gate reads it. That is not the rule above: the smoke-run itself is never deferred, only a task the
-  owner explicitly decouples.
+  rule. **A smoke-run verifies the subagent's behavior, not the facts of its output — the seed is synthetic, so verify
+  both separately:** check the seed's premise against the repository before reading the run (a seeded incident the repo
+  does not exhibit leaves the targeted branch unexercised — the subject working, not a failed test — so re-seed and
+  record which branch the run exercised), and never promote a proposal resting on the seed's invented details (the
+  repo-evidence rule's "a run whose output you have" counts a smoke-run for the subject's behavior, not for a claim
+  about the code, so re-verify the proposal's factual basis first — `make-lesson-capture-consolidate`'s smoke-run
+  proposed a rule resting on a fabricated incident the repository never evidenced). When the owner deliberately
+  decouples a follow-up task from the merge, reword the task to record what is deferred, where it went, and the owner's
+  chosen order, then **tick it** — an unchecked box inside `archive/` is invisible and no gate reads it. That is not the
+  rule above: the smoke-run itself is never deferred, only a task the owner explicitly decouples.
 - **Prove a permission rule is applied by reading the OpenCode log, not by the absence of a prompt.** OpenCode records
   every evaluation in `~/.local/share/opencode/log/opencode.log`, in a line carrying
   `message=evaluated permission=<key>`, `action.pattern=<resolved rule>` and `action.action=<action>` (the field order

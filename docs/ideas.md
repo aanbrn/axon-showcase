@@ -87,13 +87,13 @@ it was added (start a new section for a new day rather than appending to the mos
   list, or state the exclusion deliberately.
 
 - The GitHub description and topics are un-gated — parked; no change yet. Nothing reads them, and the description sat
-  unset for the project's whole history until a human noticed. A pull-request check could read the live values and fail
-  on drift, but no pull request causes or can remediate that drift, so every unrelated PR would carry the failure.
-  Gating them means the repository's observational pattern instead — single-source the expected description and topics
-  in-repo (a small `config/github-metadata.*`, or the `openspec/config.yaml` context block that already carries a
-  near-copy of the same facts), then a scheduled workflow that compares the live values via the API and opens or updates
-  an issue on drift, like the three update-check workflows. Worth it only if the added workflow and the fourth copy of
-  the stack facts are judged cheaper than the silence.
+  unset until a human noticed. A pull-request check could read the live values and fail on drift, but no pull request
+  causes or can remediate that drift, so every unrelated PR would carry the failure. Gating them means the repository's
+  observational pattern instead — single-source the expected description and topics in-repo (a small
+  `config/github-metadata.*`, or the `openspec/config.yaml` context block that already carries a near-copy of the same
+  facts), then a scheduled workflow that compares the live values via the API and opens or updates an issue on drift,
+  like the three update-check workflows. Worth it only if the added workflow and the fourth copy of the stack facts are
+  judged cheaper than the silence.
 
 ## 2026-09-14
 

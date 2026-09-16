@@ -598,9 +598,9 @@ Key modules (libraries, not services):
   versions, module count, service list, Docker image names) that OpenSpec shows the AI when creating artifacts — refresh
   it in the same change whenever one of those facts moves. `openspec validate` never checks it, so it drifts silently
   (it had fallen to Gradle 8.14.5 / 18 modules before the first audit synced it, #170). The repository's own GitHub
-  description and topics are a third un-gated copy of the same facts — they name the stack and sat unset for the
-  project's first 258 merges — so refresh them in the change that moves one; no gate reads them and no auditor owns a
-  surface outside the repository.
+  description and topics are a third un-gated copy of the same facts — they name the stack and went unset for the
+  project's whole history until the repository metadata was set — so refresh them in the change that moves one; no gate
+  reads them and no auditor owns a surface outside the repository.
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the

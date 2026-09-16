@@ -645,6 +645,7 @@ and buildpack coordinates that have a newer version — observational, never a m
 ./gradlew helmUpdates                  # report available Helm chart updates
 ./gradlew buildpackUpdates             # report available Paketo builder/buildpack updates
 ./gradlew verifyInfraImageVersions     # verify infra image tags match their pinned charts
+./gradlew verifyModuleDependencies     # verify the module dependency graph (ADR-0010)
 ./gradlew workflowLint                 # lint the GitHub Actions workflows with actionlint
 ```
 

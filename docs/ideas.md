@@ -54,6 +54,15 @@ it was added (start a new section for a new day rather than appending to the mos
   parked candidates are the ArchUnit fitness functions (the architecture has decide/describe/review layers but no
   _enforce_ one), narrowing the `query-api` re-export, and web-UI trace propagation.
 
+- The gateway's SSE stream has no idle heartbeat and no event `id` — parked; no change yet.
+  `ShowcaseEventStreamConfiguration` buffers with `Sinks.many().replay().limit(100)` and `ShowcaseEventStreamController`
+  builds `ServerSentEvent` with `.event("showcase")` but no `.id()` and no periodic comment, while `gateway/live-events`
+  requires the stream to "stay connected and deliver events continuously" and nowhere in the chart is a proxy timeout
+  set. Open questions: does an idle stream survive the deployed proxy, and should a reconnect resume rather than
+  re-receive the buffer? The replay itself is deliberate and relied upon (the web-UI spec requires replayed events not
+  to trigger reconciliation), so this concerns the gateway's idleness and `id:` semantics, not the buffer. Surfaced by
+  the smoke-run of `make-lesson-capture-consolidate`, whose seeded incident was fictional — hence an idea, not a gotcha.
+
 ## 2026-09-14
 
 - Intent questions the widened `/audit-architecture` sweep surfaced — parked; no change yet, awaiting the owner's

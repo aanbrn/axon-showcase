@@ -572,9 +572,12 @@ Key modules (libraries, not services):
   reporting the change done; also remove the change's idea from `docs/ideas.md` **in the same PR**, so it rides the
   change branch and commits with its push rather than landing as a separate docs PR. An idea is removed once implemented
   (captured by a change) or once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR
-  instead); only open ideas remain (see the file's header). Also sweep `docs/ideas.md` for references to the thing this
-  change shipped — an open idea that still calls it "the proposed X" is itself a stale claim, and no auditor covers that
-  file (the three auditors own `AGENTS.md`/`.opencode/`, the spec corpus, and `docs/adr/` plus the architectural surface
+  instead); only open ideas remain (see the file's header). Promotion to a GitHub issue is a **link, not a removal** —
+  annotate the idea with the issue number (`; promoted to issue #NNN`) when you promote it, since the file's header
+  names only the issue's link to the change, not the scratchpad's back-link to the issue, so the two drift apart
+  (#262/#263 needed a follow-up PR to add theirs). Also sweep `docs/ideas.md` for references to the thing this change
+  shipped — an open idea that still calls it "the proposed X" is itself a stale claim, and no auditor covers that file
+  (the three auditors own `AGENTS.md`/`.opencode/`, the spec corpus, and `docs/adr/` plus the architectural surface
   respectively); update the idea's prose in the same change, including any enumeration or count it carries ("two others
   remain open: A, B") that the change's new instance makes wrong. Docs that ARE the change (new agent/command/skill
   documentation, README rows describing a new capability, the change's idea removal) ship with the change's PR; docs
@@ -594,7 +597,10 @@ Key modules (libraries, not services):
   `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the same project facts (runtime/Spring/Gradle
   versions, module count, service list, Docker image names) that OpenSpec shows the AI when creating artifacts — refresh
   it in the same change whenever one of those facts moves. `openspec validate` never checks it, so it drifts silently
-  (it had fallen to Gradle 8.14.5 / 18 modules before the first audit synced it, #170).
+  (it had fallen to Gradle 8.14.5 / 18 modules before the first audit synced it, #170). The repository's own GitHub
+  description and topics are a third un-gated copy of the same facts — they name the stack and sat unset for the
+  project's first 258 merges — so refresh them in the change that moves one; no gate reads them and no auditor owns a
+  surface outside the repository.
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the

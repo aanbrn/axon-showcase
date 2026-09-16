@@ -60,6 +60,11 @@ it was added (start a new section for a new day rather than appending to the mos
   to trigger reconciliation), so this concerns the gateway's idleness and `id:` semantics, not the buffer. Surfaced by
   the smoke-run of `make-lesson-capture-consolidate`, whose seeded incident was fictional — hence an idea, not a gotcha.
 
+- Publish a first GitHub release and keep tagging — parked; no change yet. The repo has 258 merged PRs, 151 archived
+  changes, and versioned service images, but zero releases and zero git tags, so there is no "what shipped, when"
+  surface for a visitor. Decide the version (the images already carry `${project.version}`), what a release notes, and
+  whether it is cut per change, per milestone, or on a cadence.
+
 ## 2026-09-14
 
 - Intent questions the widened `/audit-architecture` sweep surfaced — parked; no change yet, awaiting the owner's

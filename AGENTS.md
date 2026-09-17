@@ -164,8 +164,10 @@ existing bullet it extends, or states that no bullet covers the lesson — a new
 than accreting. Each captured rule also carries its origin — at the end of the rule it records — in a
 `captured: <change>` marker — the change at an implementation capture, the change and its PR at the post-merge one — so
 a rule's provenance is readable without git and survives a reflow: grep the `captured:` token, which no reflow splits
-even when the change name wraps to the next line. Do not skip the subagent on your own judgment that "there's nothing
-new" — the merge itself is the trigger, and the subagent is the arbiter (the archive merge after
+even when the change name wraps to the next line. On a bullet the capture merged into rather than authored, the
+end-of-bullet marker records only the latest captured contribution, not the bullet's total origin — the pre-existing
+text stays recoverable from `git blame` / `git log -S`. Do not skip the subagent on your own judgment that "there's
+nothing new" — the merge itself is the trigger, and the subagent is the arbiter (the archive merge after
 `remove-redis-client-label` was skipped on exactly such an assumption, and the user had to push back before the
 forgotten-archive and premise-interrogation lessons were captured). When the user asks "is there anything else to
 capture?", treat it as a prompt to run the subagent again over the events — not as a request to justify the previous
@@ -596,7 +598,10 @@ Key modules (libraries, not services):
   instead); only open ideas remain (see the file's header). Promotion to a GitHub issue is a **link, not a removal** —
   annotate the idea with the issue number (`; promoted to issue #NNN`) when you promote it, since the file's header
   names only the issue's link to the change, not the scratchpad's back-link to the issue, so the two drift apart
-  (#262/#263 needed a follow-up PR to add theirs). Also sweep `docs/ideas.md` for references to the thing this change
+  (#262/#263 needed a follow-up PR to add theirs). Give every parked entry a trailing status tag stating its disposition
+  (`— parked; no change yet.` is the common form; a promoted or explored-and-set-aside idea says so instead), since the
+  header fixes the sections' order and dating but not the tag, and the tag is what marks the entry as a still-unowned
+  idea rather than one already routed to work. Also sweep `docs/ideas.md` for references to the thing this change
   shipped — an open idea that still calls it "the proposed X" is itself a stale claim, and no auditor covers that file
   (the three auditors own `AGENTS.md`/`.opencode/`, the spec corpus, and `docs/adr/` plus the architectural surface
   respectively); update the idea's prose in the same change, including any enumeration or count it carries ("two others
@@ -624,7 +629,7 @@ Key modules (libraries, not services):
   surface outside the repository. A file can also _depend_ on such a surface rather than describe one: `SECURITY.md`'s
   private-reporting path is a dead end unless private vulnerability reporting is enabled. Enable the setting as part of
   the change that ships the instruction — a repository setting leaves no diff, so a diff-only review cannot see it — and
-  name the enabling in the change's report.
+  name the enabling in the change's report. captured: park-retro-marking-idea (#281)
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the

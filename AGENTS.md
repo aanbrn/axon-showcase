@@ -489,7 +489,7 @@ the tool's own lookup (`helm search repo <chart>`, `gh api repos/<org>/<repo>/re
 
 ## Architecture
 
-CQRS with 4 services + an API gateway:
+CQRS with four services and a web UI:
 
 - **showcase-command-service** — write side, publishes events to Kafka, uses PostgreSQL event store
 - **showcase-projection-service** — consumes Kafka events, writes projections to OpenSearch

@@ -1,9 +1,9 @@
 ---
 description:
   Audits the project-owned agent tooling — AGENTS.md and the project-authored .opencode/ files (subagents, commands,
-  skills) — for consistency and conciseness, and reports excluded third-party files (generated, vendored) that
-  contradict how the repository uses them, with the pro model. Use on demand (e.g. via /audit-agents) to reconcile the
-  guidance and tooling rather than only append to it.
+  skills) — for consistency and conciseness, reports the accreted meta rules with their origins and the excluded
+  third-party files (generated, vendored) that contradict how the repository uses them, with the pro model. Use on
+  demand (e.g. via /audit-agents) to reconcile the guidance and tooling rather than only append to it.
 mode: subagent
 model: opencode-go/deepseek-v4-pro
 temperature: 0
@@ -55,6 +55,8 @@ Method:
   Report only findings you verified.
 - **Respect deliberate choices.** An asymmetry, a repetition, or an "only X" can be intentional. Before proposing a
   "fix", check whether the current state is deliberate; if it is ambiguous, say so rather than asserting a defect.
+- Establish a rule's origin from the in-prose `captured:` marker first, and from `git blame` / `git log -S` otherwise: a
+  markdown reflow re-attributes lines, so blame is the fallback, not the authority.
 - Prefer merging or trimming an existing entry over adding a new one; do not invent conventions, and do not re-derive
   behavior the artifacts do not claim.
 
@@ -74,12 +76,20 @@ harm and the one decision it invites — **report it upstream** (this repo has a
 reproduction), **re-vendor** at a newer upstream version, or **change our usage** — and never propose a local edit to
 the excluded file. This is a candidate for the owner's decision, not a defect to fix.
 
+**Accretion — meta rules with their origin.** Separately from both classes above, and without severity, report the
+in-scope rules that are meta rather than product: a rule about the agent, its tooling, the per-change workflow, or the
+documentation, as opposed to a fact about the product. This is not a defect — an accreted rule may be correct and
+load-bearing — so never propose removing or merging it: the report is what makes the accumulation visible and
+attributable. For each item, name the rule, the origin that introduced it, and the source you used to establish it: the
+in-prose `captured:` marker where present, and `git blame` / `git log -S` otherwise, including for the rules written
+before the marker convention. A rule with neither is reported as unattributed rather than guessed.
+
 Never modify any file — the calling agent verifies and applies what the user approves.
 
 **Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
 
-- Open with the verdict: `<n> findings, <n> advisory` or `nothing to report` as the first line, then the severity groups
-  (highest-value first) and the advisory section.
+- Open with the verdict: `<n> findings, <n> advisory, <n> accreted` or `nothing to report` as the first line, then the
+  severity groups (highest-value first) and the advisory and accretion sections.
 - Budget each item: a finding gets its `file:line`, its severity, and a concrete suggested rewrite; an advisory item
   gets the excluded file, the harm, and the decision it invites — the budget is per item, not a cap on the total.
 - Collapse entries verified as still accurate to one line each, or one summary line.

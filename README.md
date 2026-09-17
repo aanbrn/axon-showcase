@@ -226,17 +226,17 @@ with the worked scenarios.
 
 The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 
-| Agent                  | Role                                                                                                                     |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `experience-analyzer`  | Periodic retrospectives + improvement suggestions (system & process) — `/retrospective`                                  |
-| `agents-auditor`       | Audits AGENTS.md + project-owned `.opencode/` files, and flags third-party files our usage contradicts — `/audit-agents` |
-| `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                         |
-| `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift + unrecorded intent — `/audit-architecture`   |
-| `lesson-capture`       | Captures gotchas/conventions into AGENTS.md after every change, consolidating rather than accreting (automatic)          |
-| `review-quick`         | Fast review after proposal & implementation, repeated until clean (automatic)                                            |
-| `review-thorough`      | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`                                            |
-| `vision`               | Reads screenshots for the text-only main agent                                                                           |
-| `diagrammer`           | Draws/fixes ASCII diagrams with the pro model — `/diagram`                                                               |
+| Agent                  | Role                                                                                                                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `experience-analyzer`  | Periodic retrospectives + improvement suggestions (system & process) — `/retrospective`                                                                                  |
+| `agents-auditor`       | Audits AGENTS.md + project-owned `.opencode/` files, flags third-party files our usage contradicts, and reports accreted meta rules with their origins — `/audit-agents` |
+| `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                                                                         |
+| `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift + unrecorded intent — `/audit-architecture`                                                   |
+| `lesson-capture`       | Captures gotchas/conventions into AGENTS.md after every change, consolidating rather than accreting and marking each rule with its origin (automatic)                    |
+| `review-quick`         | Fast review after proposal & implementation, repeated until clean (automatic)                                                                                            |
+| `review-thorough`      | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`                                                                                            |
+| `vision`               | Reads screenshots for the text-only main agent                                                                                                                           |
+| `diagrammer`           | Draws/fixes ASCII diagrams with the pro model — `/diagram`                                                                                                               |
 
 #### What the Agent Automates
 
@@ -311,8 +311,9 @@ The process is designed to **learn from itself** — and that is the mechanic, n
   `AGENTS.md` and the project-owned `.opencode/` files: it verifies each claim against the repository and reports
   consistency problems (contradictions, stale claims, dead cross-references, drift) and conciseness problems
   (duplication, trivia, length, placement) — each with a concrete suggested rewrite — and, separately and without
-  severity, a third-party file our usage contradicts, as a decision for the owner rather than a defect to fix. So the
-  guidance and tooling stay consistent and concise instead of only growing.
+  severity, a third-party file our usage contradicts and the meta rules that accreted with the origin that introduced
+  each — decisions for the owner rather than defects to fix. So the guidance and tooling stay consistent and concise
+  instead of only growing.
 - **Periodic retrospectives zoom out.** `/retrospective` turns a window of merged PRs and the git log, together with the
   archived changes and accumulated gotchas, into a sprint retrospective whose suggestions are classified `process` (→
   `AGENTS.md` or a subagent definition) or `system` (→ an idea or a proposal), so both the process and the system keep
@@ -343,27 +344,27 @@ MCP config is read at startup, so restart OpenCode after adding one.
 
 ### Slash Commands
 
-| Command                      | What it does                                                                                                             |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `/opsx-propose`              | Scaffolds a new change: proposal, design, tasks, and spec delta                                                          |
-| `/opsx-apply`                | Implements the change's tasks                                                                                            |
-| `/opsx-archive`              | Archives a completed change and syncs the main spec                                                                      |
-| `/opsx-sync`                 | Syncs a change's delta spec to the main spec without archiving                                                           |
-| `/opsx-update`               | Revises a change's planning artifacts                                                                                    |
-| `/opsx-explore`              | Explores an idea before proposing it                                                                                     |
-| `/setup-agent-tools`         | Sets up the tooling MCP servers (GitHub core, plus optional extras)                                                      |
-| `/setup-idea`                | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier)                                  |
-| `/review-thorough`           | Deep on-demand review of a change                                                                                        |
-| `/audit-agents`              | Audits AGENTS.md + project-owned .opencode/ files, and flags third-party files our usage contradicts (pro-model auditor) |
-| `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                                                 |
-| `/audit-architecture`        | Audits the architecture for recorded-decision drift + unrecorded intent (pro-model auditor)                              |
-| `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer                                                            |
-| `/retrospective`             | Periodic retrospective with improvement suggestions                                                                      |
-| `/dependency-updates`        | Runs and summarizes the dependency update report                                                                         |
-| `/gradle-update`             | Updates the Gradle wrapper to the latest stable                                                                          |
-| `/dependency-security-check` | Runs the Snyk dependency security scan                                                                                   |
-| `/opsx-tool-update`          | Regenerates the OpenSpec command/skill files after an openspec CLI release                                               |
-| `/ideas`                     | Lists and manages `docs/ideas.md`                                                                                        |
+| Command                      | What it does                                                                                                                                                             |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/opsx-propose`              | Scaffolds a new change: proposal, design, tasks, and spec delta                                                                                                          |
+| `/opsx-apply`                | Implements the change's tasks                                                                                                                                            |
+| `/opsx-archive`              | Archives a completed change and syncs the main spec                                                                                                                      |
+| `/opsx-sync`                 | Syncs a change's delta spec to the main spec without archiving                                                                                                           |
+| `/opsx-update`               | Revises a change's planning artifacts                                                                                                                                    |
+| `/opsx-explore`              | Explores an idea before proposing it                                                                                                                                     |
+| `/setup-agent-tools`         | Sets up the tooling MCP servers (GitHub core, plus optional extras)                                                                                                      |
+| `/setup-idea`                | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier)                                                                                  |
+| `/review-thorough`           | Deep on-demand review of a change                                                                                                                                        |
+| `/audit-agents`              | Audits AGENTS.md + project-owned .opencode/ files, flags third-party files our usage contradicts, and reports accreted meta rules with their origins (pro-model auditor) |
+| `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                 |
+| `/audit-architecture`        | Audits the architecture for recorded-decision drift + unrecorded intent (pro-model auditor)                                                                              |
+| `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer                                                                                                            |
+| `/retrospective`             | Periodic retrospective with improvement suggestions                                                                                                                      |
+| `/dependency-updates`        | Runs and summarizes the dependency update report                                                                                                                         |
+| `/gradle-update`             | Updates the Gradle wrapper to the latest stable                                                                                                                          |
+| `/dependency-security-check` | Runs the Snyk dependency security scan                                                                                                                                   |
+| `/opsx-tool-update`          | Regenerates the OpenSpec command/skill files after an openspec CLI release                                                                                               |
+| `/ideas`                     | Lists and manages `docs/ideas.md`                                                                                                                                        |
 
 ## Getting Started
 

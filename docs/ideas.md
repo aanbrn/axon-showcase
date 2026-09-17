@@ -299,13 +299,6 @@ it was added (start a new section for a new day rather than appending to the mos
   real usage, decide on CPU limits (the JVM services set them; the web UI does not), and align defaults across services
   for consistency.
 
-- Fix the per-service compose tasks' "no such service" failure — parked; no change yet; promoted to issue
-  [#263](https://github.com/aanbrn/axon-showcase/issues/263). The `docker-conventions` per-service `compose*` tasks pass
-  `project.name` (e.g. `showcase-api-gateway`) as the compose service argument, but the `docker-compose.yml` services
-  are named differently (`api-gateway`, `command-service`, `query-service`, `projection-service`, `web-ui`, `db-events`,
-  ...), so `./gradlew :showcase-api-gateway:composeStop` fails with `no such service`. Fix: map each module to its
-  compose service name (or drop the service argument and rely on the compose project scope).
-
 - Migrate off the deprecated OpenSearch low-level REST client — parked; no change yet.
   `org.opensearch.client.RestClientBuilder` (and the `RestClient` it builds) is `@Deprecated`, to be removed in future
   releases in favor of the official OpenSearch Java Client. The projection service's

@@ -5,7 +5,12 @@ import org.gradle.api.GradleException
 
 val libs = the<LibrariesForLibs>()
 
-val composeServices = if (project == rootProject) listOf() else listOf(project.name)
+// The compose service this module addresses: `docker-compose.yml` names its services without the `showcase-` module
+// prefix, so passing the module name addressed a service that exists in no compose file ("no such service"). A module
+// that ships no service gets null and no per-service tasks — only the service modules reach this plugin, via
+// `spring-boot-conventions`, so this is a guard rather than the common path.
+val composeService = if (project == rootProject) null else composeServiceFor(project.name)
+val composeServices = listOfNotNull(composeService)
 
 fun registerComposeTask(
     taskName: String,
@@ -33,7 +38,7 @@ fun registerComposeTask(
         environment["KAFKA_VERSION"] = libs.versions.kafka.image.tag.get()
 
         doFirst {
-            if (!dockerCli().isNotEmpty()) {
+            if (dockerCli().isEmpty()) {
                 throw GradleException(
                     "The Docker CLI is required to run the compose tasks. Install Docker and make 'docker' available on PATH."
                 )
@@ -69,49 +74,51 @@ fun registerComposeTask(
     }
 }
 
-registerComposeTask(
-    "composeUp",
-    listOf("up", "-d"),
-    "Starts the system",
-    "Starts the ${project.name} service",
-)
+if (project == rootProject || composeService != null) {
+    registerComposeTask(
+        "composeUp",
+        listOf("up", "-d"),
+        "Starts the system",
+        "Starts the $composeService service",
+    )
 
-registerComposeTask(
-    "composeRestart",
-    listOf("restart"),
-    "Restarts the system",
-    "Restarts the ${project.name} service",
-)
+    registerComposeTask(
+        "composeRestart",
+        listOf("restart"),
+        "Restarts the system",
+        "Restarts the $composeService service",
+    )
 
-registerComposeTask(
-    "composeStop",
-    listOf("stop"),
-    "Stops the system",
-    "Stops the ${project.name} service",
-)
+    registerComposeTask(
+        "composeStop",
+        listOf("stop"),
+        "Stops the system",
+        "Stops the $composeService service",
+    )
 
-registerComposeTask(
-    "composeDown",
-    listOf("down"),
-    "Stops and removes the system",
-    "Stops and removes the ${project.name} service",
-)
+    registerComposeTask(
+        "composeDown",
+        listOf("down"),
+        "Stops and removes the system",
+        "Stops and removes the $composeService service",
+    )
 
-registerComposeTask(
-    "composeBuildAndUp",
-    listOf("up", "-d"),
-    "Builds images and starts the system",
-    "Builds an image and starts the ${project.name} service",
-    buildFirst = true,
-)
+    registerComposeTask(
+        "composeBuildAndUp",
+        listOf("up", "-d"),
+        "Builds images and starts the system",
+        "Builds an image and starts the $composeService service",
+        buildFirst = true,
+    )
 
-registerComposeTask(
-    "composeBuildAndRestart",
-    listOf("restart"),
-    "Builds images and restarts the system",
-    "Builds an image and restarts the ${project.name} service",
-    buildFirst = true,
-)
+    registerComposeTask(
+        "composeBuildAndRestart",
+        listOf("restart"),
+        "Builds images and restarts the system",
+        "Builds an image and restarts the $composeService service",
+        buildFirst = true,
+    )
+}
 
 val defaultProject =
     allprojects.find {

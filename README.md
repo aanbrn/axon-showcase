@@ -424,7 +424,12 @@ Other stack tasks:
 ./gradlew composeStop              # stop the stack without removing it
 ./gradlew composeRestart           # restart the stack
 ./gradlew composeBuildAndRestart   # rebuild the images, then restart
+./gradlew :showcase-api-gateway:composeRestart  # restart just one service
 ```
+
+Each `<module>` compose task is scoped to that module's service: `:showcase-api-gateway:composeUp` brings up
+`api-gateway` with its Compose dependency graph, and `:showcase-api-gateway:composeDown` stops and removes just that
+container.
 
 ### Develop from Source
 

@@ -1012,15 +1012,17 @@ mappings are **JVM debug ports** (`BPL_DEBUG_PORT`), not the services' HTTP port
 HTTP port (`8080`); the other services' HTTP ports are reachable only via the Docker network or `bootRun`. The web UI is
 published on `8084` (its container nginx port is `8080`; `stub_status` metrics on `9090`).
 
-The `docker-conventions` plugin adds root-level `compose*` Gradle tasks that wrap Docker Compose and set
-`PROJECT_VERSION` + image versions automatically (also `composeBuildAndUp`, `composeBuildAndRestart`):
-`./gradlew composeUp`, `./gradlew composeDown`. A compose task runs only when it is explicitly requested on the command
-line (standalone `./gradlew composeUp` — a leading `:` from the IDE, e.g. `:composeUp`, is tolerated) or when a
-scheduled task needs it as a dependency or finalizer — the web UI `e2eTest` boots the stack via `composeBuildAndUp` and
-tears it down via `composeDown`. Broad builds that do not schedule a compose task never start/stop containers as a side
-effect. `composeBuildAndUp` starts the stack with `docker compose up -d` (no `--wait` — a one-shot `kafka-init`
-container would trip `--wait`'s health check), so the web UI e2e suite polls the gateway's health endpoint itself to
-avoid racing gateway startup.
+The `docker-conventions` plugin adds `compose*` Gradle tasks that wrap Docker Compose and set `PROJECT_VERSION` + image
+versions automatically (also `composeBuildAndUp`, `composeBuildAndRestart`): `./gradlew composeUp`,
+`./gradlew composeDown` address the whole project, and the four service modules carry the same tasks scoped to their own
+compose service — `./gradlew :showcase-api-gateway:composeUp` brings up `api-gateway` with its Compose dependency graph,
+and `./gradlew :showcase-api-gateway:composeDown` stops and removes just that container. A compose task runs only when
+it is explicitly requested on the command line (standalone `./gradlew composeUp` — a leading `:` from the IDE, e.g.
+`:composeUp`, is tolerated) or when a scheduled task needs it as a dependency or finalizer — the web UI `e2eTest` boots
+the stack via `composeBuildAndUp` and tears it down via `composeDown`. Broad builds that do not schedule a compose task
+never start/stop containers as a side effect. `composeBuildAndUp` starts the stack with `docker compose up -d` (no
+`--wait` — a one-shot `kafka-init` container would trip `--wait`'s health check), so the web UI e2e suite polls the
+gateway's health endpoint itself to avoid racing gateway startup.
 
 **Infra image versions are single-sourced** in `gradle/libs.versions.toml`: `*-image-tag` coordinates
 (`postgres-image-tag`, `kafka-image-tag`, `opensearch-image-tag`) for the official Docker Hub images used by

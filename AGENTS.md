@@ -869,11 +869,11 @@ ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64
 
 The web UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
 `PackBuildImageTask`) that runs the `pack` CLI with the **version-pinned** Paketo NGINX + Procfile buildpacks
-(`paketo-buildpacks/nginx@1.2.0`, `paketo-buildpacks/procfile@5.14.0`; the versions are catalog-owned as `paketo-nginx`
+(`paketo-buildpacks/nginx@1.2.1`, `paketo-buildpacks/procfile@5.15.0`; the versions are catalog-owned as `paketo-nginx`
 and `paketo-procfile`) over `build/dist` (the `pack` CLI is a build prerequisite like Helm/Snyk). The pins are explicit
 because an unversioned buildpack reference becomes ambiguous — `pack` fails with "multiple versions … must specify an
 explicit version" — once the builder bundles two versions of a buildpack (the intermittent `e2e`/`helmInstallToLocal`
-failure). The builder itself is also pinned (`builder-jammy-base:0.4.639`, catalog-owned as `paketo-builder-jammy-base`)
+failure). The builder itself is also pinned (`builder-jammy-base:0.4.642`, catalog-owned as `paketo-builder-jammy-base`)
 rather than floating, and the `buildpackUpdates` task / `buildpack-updates` workflow reports newer builder and buildpack
 versions — no other update check covers Paketo. Unlike the builder, the run image
 (`paketobuildpacks/run-jammy-base:latest`) is deliberately left floating so base-OS security patches keep flowing — do
@@ -1478,7 +1478,7 @@ that override when bumping the Kafka image tag.
   The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are
   `paketobuildpacks/nginx` (no hyphen); querying the tags API with the CNB id 404s, so `BuildpackUpdatesTask`'s check
   model carries `repository` separately from the display `name`. When adding a buildpack to the check, use its Docker
-  Hub repository. The same repositories also publish alias tags (`1.2`, `5.14`) alongside the full semver (`1.2.0`); the
+  Hub repository. The same repositories also publish alias tags (`1.2`, `5.15`) alongside the full semver (`1.2.1`); the
   max comparison must prefer the longer tag, or a stale pin gets reported as the alias.
 - **Pinned workflow tool versions are outside every update-check workflow — audit the whole set, not one pin at a
   time.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` /

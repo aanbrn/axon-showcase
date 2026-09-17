@@ -1176,9 +1176,21 @@ that override when bumping the Kafka image tag.
   baseline points at the host, not the change: colima's template enables Rosetta, a macOS upgrade removed the Rosetta
   runtime, colima silently fell back to QEMU for linux/amd64 containers, and the amd64 buildpack lifecycle crashes under
   QEMU. With Rosetta reinstalled the same pins build — the identical nginx digest that reported "could not find label"
-  is the digest the successful build used — so no pin was ever at fault. A pin decides which image `pack` pulls, so a
-  host failure mimics a pin defect exactly: confirm the runtime's configured emulation (Rosetta versus its QEMU
-  fallback) and whether the baseline fails too before changing a version.
+  is the digest the successful build used — but a host explanation exonerates no pin: a surface that fails one run and
+  passes the next supports no causal claim in either direction, so name the failures that are host state and leave a
+  pin's fault an open question. `hold-back-nginx-buildpack` held `paketo-nginx` back at `1.2.0` because that episode's
+  arm64 architecture symptom survived every host reset and is tracked as `paketo-buildpacks/nginx#1340`. A pin decides
+  which image `pack` pulls, so a host failure mimics a pin defect exactly: confirm the runtime's configured emulation
+  (Rosetta versus its QEMU fallback) and whether the baseline fails too before changing a version.
+- **A buildpack pin is verified by running the image, not by a green build or a metadata label — a release can install a
+  binary of the wrong architecture and still build cleanly.** `bump-paketo-builder-and-buildpacks` ticked its test plan
+  on `dockerBuildImage` succeeding and on reading the built image's `io.buildpacks.build.metadata` label back (which
+  named `paketo-buildpacks/nginx 1.2.1`), and the pin it shipped exits 127 on the development machine: the image is
+  amd64 but its `nginx` is AArch64, while the build log says `Installing Nginx Server 1.31.5` on both architectures. Run
+  the image after a buildpack or builder bump — `docker run`, `GET /`, check the binary's architecture — and be explicit
+  about the platform when reasoning about a multi-arch artifact: the buildpack images are multi-arch, so a bare
+  `docker pull` on an arm64 host resolves the host's own slice and cannot evidence a claim about the amd64 one (the
+  image this pipeline produces is amd64-only, so a bare run of it is not the risk).
 - IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java, ktfmt
   for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**, **Auto
   Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins (JVM) or
@@ -1486,8 +1498,13 @@ that override when bumping the Kafka image tag.
   retirable — the issue's premise and its closure are not enough. `#755` closed through a change to platform-sourced
   constraints (`satisfiesDeclaredBound`, "nothing changes by default"), so our spurious row from
   `checkBuildEnvironmentConstraints` remains even though the fix shipped in 0.60.0, so any pin since then already
-  contains it. This is the write-time check for the reference you are touching; the periodic corpus sweep is parked in
-  `docs/ideas.md`.
+  contains it. An upstream reference must also document the symptom it is cited for — read the body against the symptom,
+  not the title or the release. The first `hold-back-nginx-buildpack` draft blamed an arm64 build-extraction failure on
+  `paketo-buildpacks/nginx#1340`, whose body documents only the runtime symptom (an AArch64 `nginx` in an amd64 image)
+  and states that the `io.buildpacks.buildpackage.metadata` label is present on both slices; the draft also contradicted
+  the host-state gotcha's account of that same signature, and review caught both. When a passage already explains a
+  signature, reconcile with it rather than writing a second explanation beside it. This is the write-time check for the
+  reference you are touching; the periodic corpus sweep is parked in `docs/ideas.md`.
 - **Work a change surfaces is parked durably — a PR body is not a record.** When a docs change records an external state
   change that implies work, park that work in `docs/ideas.md` (or record it as a task) in the same change: a PR body is
   squashed and no tool reads it, so work named only there is lost.

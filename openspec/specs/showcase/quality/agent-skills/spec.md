@@ -6,9 +6,9 @@ Provides the repository's agent capabilities: curated, vendored skill sets under
 the AxonIQ Axon 4→5 migration recipes against this codebase) and the locally-defined quality-gate and analysis subagents
 under `.opencode/agent/` — the per-change review and lesson-capture agents, the experience-analyzer, the visual and
 diagram agents, and the on-demand auditors of the project-owned agent tooling (the guidance and project-authored
-`.opencode/` files, plus any generated or vendored file that contradicts how the repository uses it), of the
-`openspec/specs/` corpus, and of the architecture (the ADRs, the service, module, and spec-decomposition surface, and
-where a deliberate decision's rationale is not recorded).
+`.opencode/` files, plus any generated or vendored file that contradicts how the repository uses it, and the meta rules
+it reports with their origins), of the `openspec/specs/` corpus, and of the architecture (the ADRs, the service, module,
+and spec-decomposition surface, and where a deliberate decision's rationale is not recorded).
 
 ## Requirements
 
@@ -99,6 +99,9 @@ agent, with its purpose described in its agent definition and (where relevant) i
   main agent verifies and applies
 - **AND** each proposed addition names the existing bullet it extends, or states that no bullet covers it — a new rule
   merges into or replaces one rather than accreting
+- **AND** each proposed addition carries its origin in a greppable `captured: <change>` marker — the change for an
+  implementation capture, the change and its PR for the post-merge capture — so a reader can tell where the rule came
+  from without consulting git, and a markdown reflow cannot take it
 
 #### Scenario: Screenshots are reviewed visually
 
@@ -174,13 +177,21 @@ conventions contradict, never a mere textual difference from the repository's ow
 and the decision it invites (report it upstream, re-vendor at a newer version, or change the repository's usage) and
 SHALL NOT propose a local edit to the excluded file, which the exclusion rule forbids.
 
+The audit SHALL additionally report, as an **accretion** class kept separate from both its fix findings and its advisory
+class, the in-scope rules that are meta rather than product — a rule about the agent, its tooling, the per-change
+workflow, or the documentation, as opposed to a fact about the product. Each item SHALL name the rule, the origin that
+introduced it (established from the in-prose `captured:` marker where present, and from `git blame` / `git log -S`
+otherwise), and the source used to establish it. The class SHALL be reported without severity and is not a defect: an
+accreted rule may be correct and load-bearing, so the audit SHALL NOT propose removing or merging it — that is the
+user's decision on the report.
+
 #### Scenario: An agent-tooling audit is produced
 
 - **WHEN** the main agent invokes the `agents-auditor` subagent (e.g. via the `/audit-agents` command)
 - **THEN** it returns findings grouped by severity, covering consistency (contradictions, stale claims, dead
   cross-references, drift) and conciseness (duplication, trivia, length, placement) across `AGENTS.md` and the
   project-authored `.opencode/` files, each with a location and a suggested rewrite — plus, separately, any advisory
-  third-party inconsistency
+  third-party inconsistency and the accreted meta rules with their origins
 
 #### Scenario: Generated and vendored files are excluded
 
@@ -214,6 +225,13 @@ SHALL NOT propose a local edit to the excluded file, which the exclusion rule fo
   contradicted pattern
 - **THEN** the audit does not report it, so the advisory class stays limited to contradictions that would change what a
   reader does
+
+#### Scenario: Accreted meta rules are reported with their origin
+
+- **WHEN** the `agents-auditor` subagent audits `AGENTS.md`
+- **THEN** it reports the in-scope rules that are meta rather than product as a separate accretion class, each with the
+  origin that introduced it (the `captured:` marker where present, `git blame` / `git log -S` otherwise) and the source
+  used, without proposing that the rule be removed or merged
 
 ### Requirement: The architecture is audited for drift from its recorded decisions
 
@@ -310,8 +328,8 @@ a subagent SHALL verify its claims as thoroughly as before and report them in th
 #### Scenario: A report opens with its verdict
 
 - **WHEN** a report-producing subagent returns its findings
-- **THEN** the first line states the outcome — whether anything remains and how many items; an audit with an advisory
-  section names both its findings and advisory counts
+- **THEN** the first line states the outcome — whether anything remains and how many items — and names the count of
+  every class the report carries (findings, and any advisory or accretion class it reports)
 - **AND** a report with nothing to report says so in that first line rather than in a closing sentence
 
 #### Scenario: Each item is budgeted

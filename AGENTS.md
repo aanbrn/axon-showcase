@@ -905,6 +905,11 @@ to docker daemon (building without --publish) and daemon uses containerd storage
 containerd store, losing the fast publish path) and "deprecated usage of stack" (an upstream Paketo buildpack still
 declares the deprecated `stacks` key instead of `targets`). Neither is actionable in the build — ignore them.
 
+Similarly, a CNB-built image's timestamps are not host state: Cloud Native Buildpacks stamp buildpack layers with a
+fixed past date — they list as `Jan 1 1980` — so builds are reproducible and layer caching stays stable, and this build
+passes no `--creation-time`, so the image's creation date reads correspondingly old. Do not read those timestamps, or
+the image's age, as evidence about when it was built, which host built it, or whether an image store was re-imported.
+
 ## Kubernetes Deployment
 
 ```bash

@@ -100,6 +100,15 @@ fix the findings before publishing. A false claim written into the repository is
 post to a public tracker is not. A comment drafted for `anomalyco/opencode#48100` was reviewed this way, and the review
 caught a wrong premise about permission-pattern expansion before it went public.
 
+**An owner's shorthand that appears to skip or merge a process step is not a waiver — name the conflict and ask for
+confirmation before acting on it.** The documented routing stands until the owner explicitly changes it: "let's park and
+capture" was read as licence to bundle a newly parked idea and its lesson capture into one docs PR (the docs-refresh
+convention routes a newly parked idea to its own PR) — a reading the owner rejected, asking instead that a process
+violation be surfaced for confirmation ("if you detect my violation of the process, remind me and ask for
+confirmation"). Do not self-authorize an exception and do not write one into a PR body; when an instruction reads as
+combining units the workflow separates, state the routing it would break and wait for an explicit answer — as with an
+unanswered approval request, an ambiguous instruction is not clearance.
+
 **A review finding is a claim to verify, not an instruction to apply.** The review gate catches errors, but its
 corrections are themselves claims: reproduce each against the mechanism or artifact before adopting it, and when a
 correction cannot be substantiated, remove the claim rather than assert it either way — a refutation confirmed against
@@ -686,9 +695,13 @@ Key modules (libraries, not services):
     it as `\$` (which renders as `$`). The formatter also leaves the interior of an inline code span untouched — it
     wraps prose around the span but never rewrites the code text it contains — so a defect inside one (a whitespace run)
     passes `spotlessCheck` and the manual 120-character check alike, neither of which has a rule that detects it:
-    proofread inline-code content as content, not as something the gate will fix. Fenced blocks are a different story —
-    Prettier applies embedded formatting inside a fence whose info string names a language it supports (`json`, `yaml`,
-    `markdown`), so that content is gated, while an unsupported one (`bash`, `java`, `mermaid`) is not.
+    proofread inline-code content as content, not as something the gate will fix. Never author an inline code span
+    across a source line break — Prettier's reflow joins the lines and leaves the continuation line's indentation as
+    extra spaces inside the span (a `paketo-buildpacks/procfile` split from its `5.15.0` came out as
+    `paketo-buildpacks/procfile     5.15.0`): keep a span on one source line and let the reflow move the whole span.
+    Fenced blocks are a different story — Prettier applies embedded formatting inside a fence whose info string names a
+    language it supports (`json`, `yaml`, `markdown`), so that content is gated, while an unsupported one (`bash`,
+    `java`, `mermaid`) is not.
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with
@@ -1141,6 +1154,16 @@ that override when bumping the Kafka image tag.
   in `dependency-security-conventions`), bypassing the JVM's cached PATH entirely. Do not revert to bare command names;
   do not prepend tool dirs to PATH (the daemon JVM won't honor it). Launching IDEA from a terminal still helps avoid
   stale minimal-PATH daemons in the first place.
+- **A containerized image build that fails in varying ways — including on the unmodified baseline — is host state until
+  proven otherwise; check the container runtime's amd64 emulation before touching a pin.** A Paketo `dockerBuildImage`
+  failure whose signature shifts between runs (a missing `io.buildpacks.buildpackage.metadata` label, an analyzer
+  `panic: could not parse '0.12' as version`, `flate: closed writer`, a Go GC fault) and that reproduces on the pre-bump
+  baseline points at the host, not the change: colima's template enables Rosetta, a macOS upgrade removed the Rosetta
+  runtime, colima silently fell back to QEMU for linux/amd64 containers, and the amd64 buildpack lifecycle crashes under
+  QEMU. With Rosetta reinstalled the same pins build — the identical nginx digest that reported "could not find label"
+  is the digest the successful build used — so no pin was ever at fault. A pin decides which image `pack` pulls, so a
+  host failure mimics a pin defect exactly: confirm the runtime's configured emulation (Rosetta versus its QEMU
+  fallback) and whether the baseline fails too before changing a version.
 - IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java, ktfmt
   for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**, **Auto
   Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins (JVM) or

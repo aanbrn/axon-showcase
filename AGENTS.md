@@ -161,7 +161,9 @@ barring a gotcha that _restates the fix_, not a general rule the fix exemplifies
 one of the things the merge left unaddressed. Before rejecting a captured rule as a re-capture, check `main`'s own text
 (`git show origin/main:AGENTS.md`) and reject only a rule that restates the fix itself. Every proposal names the
 existing bullet it extends, or states that no bullet covers the lesson — a new rule merges into or replaces one rather
-than accreting. Do not skip the subagent on your own judgment that "there's nothing new" — the merge itself is the
+than accreting. Each addition also carries its origin in a greppable `captured: <change>` marker — the change at an
+implementation capture, the change and its PR at the post-merge one — so a rule's provenance is readable without git and
+survives a reflow. Do not skip the subagent on your own judgment that "there's nothing new" — the merge itself is the
 trigger, and the subagent is the arbiter (the archive merge after `remove-redis-client-label` was skipped on exactly
 such an assumption, and the user had to push back before the forgotten-archive and premise-interrogation lessons were
 captured). When the user asks "is there anything else to capture?", treat it as a prompt to run the subagent again over
@@ -741,16 +743,18 @@ Key modules (libraries, not services):
   filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). An excluded file is still
   _read_, and reported as an advisory item where it contradicts how the repo uses it (a vendored skill prescribing a
   pattern our code has moved past; a generated command naming an artifact we removed), bounded by a harm test and routed
-  to a decision — report it upstream, re-vendor, or change our usage — never a local edit. Trigger it with the
-  `/audit-agents` OpenCode command: the subagent verifies each claim against the repository and returns its findings in
-  the subagent report contract — shared by the per-change review and lesson-capture agents and the three auditors (not
-  `experience-analyzer`, whose output is a document, not a findings report), and defined in the `agent-skills` spec: a
-  verdict line first, then each item budgeted (its anchor and one line of evidence), passing checks collapsed to one
-  line, and no alternatives — without editing anything. The main agent applies the approved findings under the review
-  gate. One audit's findings can need different delivery routes — split the output by fix type and scope each unit's
-  artifacts and diff to its own fixes, rather than running the whole audit through one unit (the routing per fix type is
-  in the specs-auditor and architecture-auditor bullets). The zero-touch scheduled variant is parked in `docs/ideas.md`;
-  the audit itself is on demand.
+  to a decision — report it upstream, re-vendor, or change our usage — never a local edit. It also reports the accreted
+  meta rules — in-scope rules about the agent, its tooling, the per-change workflow, or the documentation rather than
+  the product — each with the origin that introduced it (the `captured:` marker, or `git blame` / `git log -S`), as a
+  class of its own rather than a defect. Trigger it with the `/audit-agents` OpenCode command: the subagent verifies
+  each claim against the repository and returns its findings in the subagent report contract — shared by the per-change
+  review and lesson-capture agents and the three auditors (not `experience-analyzer`, whose output is a document, not a
+  findings report), and defined in the `agent-skills` spec: a verdict line first, then each item budgeted (its anchor
+  and one line of evidence), passing checks collapsed to one line, and no alternatives — without editing anything. The
+  main agent applies the approved findings under the review gate. One audit's findings can need different delivery
+  routes — split the output by fix type and scope each unit's artifacts and diff to its own fixes, rather than running
+  the whole audit through one unit (the routing per fix type is in the specs-auditor and architecture-auditor bullets).
+  The zero-touch scheduled variant is parked in `docs/ideas.md`; the audit itself is on demand.
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus, because `openspec validate` gates a spec's
   well-formedness but not its cross-spec structural consistency — title ↔ capability-path match, Purpose ↔ requirements

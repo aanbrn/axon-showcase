@@ -6,7 +6,7 @@ context: |
   axon-showcase — a CQRS/Event Sourcing reference app built on the Axon Framework.
   Java 21, Spring Boot 3.5.16, Gradle 9.7.1 (Kotlin DSL), monorepo with 19 modules.
 
-  Architecture (4 services + an API gateway):
+  Architecture (four services and the web UI):
     - showcase-command-service — write side, Axon aggregate, publishes events to Kafka,
       PostgreSQL event store
     - showcase-projection-service — consumes Kafka events, writes projections to OpenSearch

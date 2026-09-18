@@ -1302,10 +1302,18 @@ that override when bumping the Kafka image tag.
     survived and only a token grep showed so). Grep a token the formatter cannot break (`accretion`, `captured:`) or
     flatten whitespace before matching, and confirm the search can hit a known positive before trusting an empty or
     partial result. captured: make-captured-rules-traceable (#279)
-  - **A failed lookup mapped to "no updates" reads as current.** `buildpackUpdates` (like `helmUpdates`) maps a failed
-    lookup to "no update", so a wrongly-built URL or renamed repository reads as current. Verify a new or changed check
-    by temporarily pinning a known-older version, confirming the report shows `<name>: <old> -> <latest>`, then
-    reverting the pin (the `buildpackUpdates` lookup was proved this way with `0.1.0`).
+  - **A lookup that yields no readable version reads as current.** `buildpackUpdates` (like `helmUpdates`) maps a failed
+    lookup to "no update", so a wrongly-built URL or renamed repository reads as current — and so does a parse pattern
+    that cannot match the provider's real body. Verify a new or changed check by temporarily pinning a known-older
+    version, confirming the report shows `<name>: <old> -> <latest>`, then reverting the pin (the `buildpackUpdates`
+    lookup was proved this way with `0.1.0`) — and unit-test the parse pattern against a **real provider response
+    body**, not a hand-written string: the GitHub releases API pretty-prints (its `tag_name` key has a space after the
+    colon) while npm compacts, so the no-space pattern never matched and left `HelmUpdatesTask`'s Helm CLI silently
+    uncompared (its pin happened to equal the live release, which is why nothing surfaced). A sibling task that predates
+    your change is not exempt from that positive control — grep the other update tasks for the same pattern. A
+    GitHub-backed lookup also sends `GH_TOKEN`/`GITHUB_TOKEN` when CI provides one (attached to GitHub requests only,
+    never to the npm one): an anonymous lookup is rate limited, and the throttled body lands exactly where "current"
+    does. captured: unify-tooling-currency-checks (#304)
   - **A control must perturb the surface the check actually reads.** `reconcile-showcase-cache-default`'s control
     perturbs the yml placeholder because `applicationYmlPlaceholdersBindDocumentedDefaults` boots `application.yml` and
     never binds the Java field — reverting the field instead would have proved nothing, since that test passes
@@ -1659,11 +1667,15 @@ that override when bumping the Kafka image tag.
   pins, not tooling currency — the model pin has its own multi-file bump sweep, see the OpenCode model-pin gotcha.) A
   Snyk or pack bump cannot be verified locally: `workflowLint` (actionlint) proves only that the YAML lints, not that
   the version tag is installable — the credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`)
-  is the first real execution. The same skew bites a guard keyed off a tool's output: it must be verified against the
-  version CI pins, not only the locally-installed one, since the pinned CLI is what the gate actually runs and the
-  output text it matches on may differ there. The same caution applies to a proposed _fix_ attributed to a dependency
-  bump: verify it exists in a released version, not only on the project's default branch — a bump claimed to make a
-  failure skip cleanly held on `actions/cache`'s `main` but in no release (latest `v6.1.0`).
+  is the first real execution. `workflowLint` also cannot see inside a quoted `gh api --jq` program — actionlint parses
+  the YAML and the shell, not the jq — so a malformed copied filter passes `check` and fails only on the scheduled run;
+  verify a new or edited update workflow by diffing it against the sibling it copies (a `tooling-updates.yml` jq filter
+  was missing a closing parenthesis, caught by that diff and by nothing in `check`). The same skew bites a guard keyed
+  off a tool's output: it must be verified against the version CI pins, not only the locally-installed one, since the
+  pinned CLI is what the gate actually runs and the output text it matches on may differ there. The same caution applies
+  to a proposed _fix_ attributed to a dependency bump: verify it exists in a released version, not only on the project's
+  default branch — a bump claimed to make a failure skip cleanly held on `actions/cache`'s `main` but in no release
+  (latest `v6.1.0`). captured: unify-tooling-currency-checks (#304)
 - **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
   first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
   output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change

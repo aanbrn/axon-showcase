@@ -154,23 +154,25 @@ Java default and lowering the yml and chart defaults. When reconciling a value s
 archives for the prior change that reconciled the same class of drift and follow its direction — and read the
 introducing commit's full diff before treating an edit as incidental (the `git log` check above).
 
-**Capture lessons after every change's implementation and after every merge into `main`.** Once a change's
-implementation quick review is clean — and again after the PR is merged (including docs changes, standalone fixes, and
-dependency bumps that never went through the OpenSpec workflow) — run the `lesson-capture` subagent (giving it the diff,
-review findings, the change dir when one exists, and a short note on what went wrong or was learned) to propose
-AGENTS.md additions — gotchas and conventions worth recording. Apply the proposals the main agent judges durable, then
-ship them as a docs PR (per the docs-refresh convention) alongside or after the change. Process mistakes that leave no
-diff trace (e.g. a git command that discarded work) are the most valuable thing to capture — this is what makes the
-capture systematic instead of memory-dependent. For a docs-only merge that fixes stale facts or removes duplication, the
-fix is the lesson — do not re-capture it as a new gotcha; capture only what the merge left unaddressed. Read that as
-barring a gotcha that _restates the fix_, not a general rule the fix exemplifies: a durable rule absent from `main` is
-one of the things the merge left unaddressed. Before rejecting a captured rule as a re-capture, check `main`'s own text
-(`git show origin/main:AGENTS.md`) and reject only a rule that restates the fix itself. Every proposal names the
-existing bullet it extends, or states that no bullet covers the lesson — a new rule merges into or replaces one rather
-than accreting. When the addition restates a remedy the target bullet already carries, read the duplication as the
-target rule's wording being the gap rather than a missing mode: re-read the rule the incident should have caught by and
-ask whether one word excludes it — a drafted third `git add <dir>` mode restated the staged-set inspection that bullet
-already states, while the real gap was the commit-discipline clause saying "tracked" where the change dir is
+**Capture lessons after a change's implementation, and once after a non-capture merge.** Once a change's implementation
+quick review is clean — and once again after the PR is merged, when that PR was **not itself a capture**, i.e. a change,
+a docs refresh, a standalone fix, or a dependency bump — run the `lesson-capture` subagent (giving it the diff, review
+findings, the change dir when one exists, and a short note on what went wrong or was learned) to propose AGENTS.md
+additions — gotchas and conventions worth recording. A capture PR's own merge triggers no further capture: one capture
+per merge, never a chain. Instead, read the capture's diff, report any candidate lesson it left with the bullet it would
+extend, and ask the user for explicit confirmation before running another. Apply the proposals the main agent judges
+durable, then ship them as a docs PR (per the docs-refresh convention) alongside or after the change. Process mistakes
+that leave no diff trace (e.g. a git command that discarded work) are the most valuable thing to capture — this is what
+makes the capture systematic instead of memory-dependent. For a docs-only merge that fixes stale facts or removes
+duplication, the fix is the lesson — do not re-capture it as a new gotcha; capture only what the merge left unaddressed.
+Read that as barring a gotcha that _restates the fix_, not a general rule the fix exemplifies: a durable rule absent
+from `main` is one of the things the merge left unaddressed. Before rejecting a captured rule as a re-capture, check
+`main`'s own text (`git show origin/main:AGENTS.md`) and reject only a rule that restates the fix itself. Every proposal
+names the existing bullet it extends, or states that no bullet covers the lesson — a new rule merges into or replaces
+one rather than accreting. When the addition restates a remedy the target bullet already carries, read the duplication
+as the target rule's wording being the gap rather than a missing mode: re-read the rule the incident should have caught
+by and ask whether one word excludes it — a drafted third `git add <dir>` mode restated the staged-set inspection that
+bullet already states, while the real gap was the commit-discipline clause saying "tracked" where the change dir is
 deliberately left untracked; the owner's "would following the existing discipline already have prevented this?" is the
 test, verified against the text before a bullet is added. Each captured rule also carries its origin — at the end of the
 rule it records — in a `captured: <change>` marker — the change at an implementation capture, the change and its PR at
@@ -178,12 +180,13 @@ the post-merge one — so a rule's provenance is readable without git and surviv
 which no reflow splits even when the change name wraps to the next line. On a bullet the capture merged into rather than
 authored, the end-of-bullet marker records only the latest captured contribution, not the bullet's total origin — the
 pre-existing text stays recoverable from `git blame` / `git log -S`. Do not skip the subagent or conclude "nothing to
-capture" on your own judgment — the merge itself is the trigger, the subagent is the arbiter, and an initial "nothing to
-capture" verdict is a hypothesis: the archive merge after `remove-redis-client-label` was skipped on exactly such an
-assumption and the forgotten-archive and premise-interrogation lessons went uncaptured until the user pushed back twice.
-When the user asks "is there anything else to capture?", treat it as a prompt to run the subagent again over the events
-— not as a request to justify the previous pass. A docs-fix merge has nothing further to capture only if the subagent
-actually reviewed it and said so. captured: capture-untracked-follows-switch (#284)
+capture" on your own judgment — a non-capture merge is the trigger, and the subagent is the arbiter, and an initial
+"nothing to capture" verdict is a hypothesis: the archive merge after `remove-redis-client-label` was skipped on exactly
+such an assumption and the forgotten-archive and premise-interrogation lessons went uncaptured until the user pushed
+back twice. When the user asks "is there anything else to capture?", treat it as a prompt to run the subagent again over
+the events — not as a request to justify the previous pass. A docs-fix merge has nothing further to capture only if the
+subagent actually reviewed it and said so — or, on a capture PR's own merge, the diff-read above found no candidate.
+captured: capture-untracked-follows-switch (#284)
 
 **A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not merely
 records it.** The post-merge capture is the pass that can read the merge's non-diff effects: an agent PR's closing

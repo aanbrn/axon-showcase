@@ -12,6 +12,16 @@ graduates into a concrete candidate for work, it may be promoted to a GitHub iss
 change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when
 it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-09-18
+
+- Run the accreted-rules audit on a cadence rather than on demand — parked; no change yet. The capture and the audit are
+  opposite forces: this session's capture rounds added rules while its consolidation passes removed or merged roughly as
+  much, and each audit ran only because someone asked for it — even though `agents-auditor` now surfaces merge and
+  removal candidates as standing findings. A standing trigger — after every Nth capture, say — would make the balance
+  self-correcting instead of reactive. Decide what N is, and whether the trigger belongs in the capture convention or in
+  a scheduled workflow (see the parked zero-touch scheduled auditor variants, and the three update-check workflows — the
+  repo's existing pattern for an observational check that is never a merge gate).
+
 ## 2026-09-16
 
 - Cost: time-shift discretionary bulk agent work into the provider's off-peak window — parked; no change yet. Our model

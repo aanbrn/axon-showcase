@@ -1016,6 +1016,12 @@ The local values expose the API gateway and web UI via ingress at the hostnames 
 the current kube context, so it works on colima + Traefik, kind/minikube + ingress-nginx, etc.) and manages the
 `/etc/hosts` entries (`./setup-hosts.sh remove` to clean up; re-run `setup` if the address changes on cluster restart).
 
+**The live event stream's continuity depends on the ingress read timeout.** The gateway emits an SSE keep-alive at
+`apiGateway.events.keepAliveInterval` (default `PT15S`), so a quiet period still carries bytes; keep that interval below
+the ingress controller's read timeout. The chart sets no read-timeout annotation, because the annotation name is
+controller-specific (Traefik on colima, ingress-nginx on kind/minikube) — a deployment that needs one sets it through
+the existing `apiGateway.annotations` value.
+
 ## Local Development
 
 ```bash
@@ -1191,6 +1197,18 @@ that override when bumping the Kafka image tag.
   in `dependency-security-conventions`), bypassing the JVM's cached PATH entirely. Do not revert to bare command names;
   do not prepend tool dirs to PATH (the daemon JVM won't honor it). Launching IDEA from a terminal still helps avoid
   stale minimal-PATH daemons in the first place.
+- **macOS local-network privacy can leave a Warp-spawned shell unable to reach the local cluster.** Reaching a
+  local-network address is a per-app privilege macOS tracks by code-signing identity (Apple `TN3179`), and a third-party
+  terminal's child processes can be denied it while the internet works: the LAN and colima's vmnet subnet
+  (`192.168.64.0/24`, the address the kubeconfig points at) fail with `EHOSTUNREACH`, which reads as a cluster outage,
+  and neither a `colima restart` nor a `colima delete` + recreate changes it, because the fault is the host's consent
+  layer rather than the VM or k3s. Check the terminal app first: Warp can be _listed_ under System Settings → Privacy &
+  Security → Local Network with its toggle **off**, and switching it on restores access immediately
+  (`warpdotdev/warp#6320`); quit and reopen the app if its existing children keep the denied state. Fallbacks: run the
+  command from **Terminal.app** or under `sudo` (macOS auto-allows command-line tools run from Terminal or over SSH, and
+  any program running as root), or point the kubeconfig at colima's loopback forward (`https://127.0.0.1:<port>`, the
+  port changing per start), which is not a local-network operation at all. A/B against Terminal.app to confirm the
+  class.
 - **A containerized image build that fails in varying ways — including on the unmodified baseline — is host state until
   proven otherwise; check the container runtime's amd64 emulation before touching a pin.** A Paketo `dockerBuildImage`
   failure whose signature shifts between runs (a missing `io.buildpacks.buildpackage.metadata` label, an analyzer
@@ -1454,7 +1472,10 @@ that override when bumping the Kafka image tag.
   `reconcile-showcase-cache-default` plan initially missed that `allPropertiesHaveDocumentedDefaults` asserts the Java
   field (so the change would fail it) and that the yml-wiring test's missing `showcaseCache` assertion was the gap which
   let the drift pass. Grep the test sources for the field accessor when changing a default, and give each pinning
-  assertion its own task — the Java-defaults test and the yml-wiring test each bind a different surface.
+  assertion its own task — the Java-defaults test and the yml-wiring test each bind a different surface. A variable
+  carried in a service's `bootBuildImage` `BPE_DEFAULT_*` map has one surface more: the image's launch-environment
+  default (`paketo-buildpacks/environment-variables`), which a deployment's env var overrides but which in turn
+  overrides the yml fallback.
 - **Doc claims must match their source and their strength — quote verbatim or paraphrase explicitly, and reserve
   "enforced" for a real gate.** The self-learning README section described `AGENTS.md` rules in quotes;
   `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an

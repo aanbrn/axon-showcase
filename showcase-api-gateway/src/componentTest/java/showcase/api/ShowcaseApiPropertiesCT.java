@@ -53,6 +53,7 @@ class ShowcaseApiPropertiesCT {
                         assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofMinutes(10));
                         assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofMinutes(5));
                     });
+            assertThat(properties.getEvents().getKeepAliveInterval()).isEqualTo(Duration.ofSeconds(15));
         });
     }
 
@@ -74,6 +75,7 @@ class ShowcaseApiPropertiesCT {
                         assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofMinutes(10));
                         assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofMinutes(5));
                     });
+            assertThat(properties.getEvents().getKeepAliveInterval()).isEqualTo(Duration.ofSeconds(15));
             assertThat(context.getEnvironment().getProperty("showcase.query.api-url"))
                     .isEqualTo("http://localhost:8084");
         });
@@ -144,6 +146,13 @@ class ShowcaseApiPropertiesCT {
                         (Consumer<ShowcaseApiProperties>) properties -> {
                             assertThat(cacheFor(properties, byIdCache).getExpiresAfterWrite())
                                     .isEqualTo(Duration.ofMinutes(15));
+                        }),
+                argumentSet(
+                        "SHOWCASE_EVENTS_KEEP_ALIVE_INTERVAL",
+                        Map.of("SHOWCASE_EVENTS_KEEP_ALIVE_INTERVAL", "PT30S"),
+                        (Consumer<ShowcaseApiProperties>) properties -> {
+                            assertThat(properties.getEvents().getKeepAliveInterval())
+                                    .isEqualTo(Duration.ofSeconds(30));
                         }));
     }
 
@@ -199,7 +208,15 @@ class ShowcaseApiPropertiesCT {
                 argumentSet(
                         "FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_ACCESS",
                         Map.of("FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_ACCESS", "PT-1S")),
-                argumentSet("SHOWCASE_CORS_ALLOWED_ORIGINS", Map.of("SHOWCASE_CORS_ALLOWED_ORIGINS", "not-a-url")));
+                argumentSet(
+                        "FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_WRITE",
+                        Map.of("FETCH_SHOWCASE_LIST_QUERY_CACHE_EXPIRES_AFTER_WRITE", "PT-1S")),
+                argumentSet(
+                        "FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_WRITE",
+                        Map.of("FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_WRITE", "PT-1S")),
+                argumentSet("SHOWCASE_CORS_ALLOWED_ORIGINS", Map.of("SHOWCASE_CORS_ALLOWED_ORIGINS", "not-a-url")),
+                argumentSet(
+                        "SHOWCASE_EVENTS_KEEP_ALIVE_INTERVAL", Map.of("SHOWCASE_EVENTS_KEEP_ALIVE_INTERVAL", "PT0S")));
     }
 
     private static ShowcaseApiProperties.Cache cacheFor(ShowcaseApiProperties properties, String name) {

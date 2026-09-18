@@ -12,7 +12,8 @@ Run the agent-tooling audit to check the project's guidance and agent files for 
    meta rules with their origins (the `captured:` marker, or `git blame` / `git log -S`); it never edits an excluded
    file.
 2. Present its report in the contract it returns (the verdict line first, then findings budgeted per item and grouped by
-   severity, plus separate advisory (third-party inconsistency) and accretion (meta rules with their origins) classes).
+   severity, plus separate advisory (third-party inconsistency) and accretion (meta rules with their origins) classes,
+   and the merge and removal candidates counted in the verdict line).
 3. Ask the user which findings to apply — do not edit files without their go-ahead.
 4. Apply the approved findings, run `./gradlew spotlessApply` for the formatter-wrapped files (`AGENTS.md`, `README.md`,
    the specs/change dirs, and the project-authored `.opencode/` markdown the audit edited), then re-run the

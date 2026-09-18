@@ -1,9 +1,10 @@
 ---
 description:
   Audits the project-owned agent tooling — AGENTS.md and the project-authored .opencode/ files (subagents, commands,
-  skills) — for consistency and conciseness, reports the accreted meta rules with their origins and the excluded
-  third-party files (generated, vendored) that contradict how the repository uses them, with the pro model. Use on
-  demand (e.g. via /audit-agents) to reconcile the guidance and tooling rather than only append to it.
+  skills) — for consistency and conciseness, reports the accreted meta rules with their origins, the merge and removal
+  candidates, and the excluded third-party files (generated, vendored) that contradict how the repository uses them,
+  with the pro model. Use on demand (e.g. via /audit-agents) to reconcile the guidance and tooling rather than only
+  append to it.
 mode: subagent
 model: opencode-go/deepseek-v4-pro
 temperature: 0
@@ -45,7 +46,11 @@ Audit along two axes:
   longer matches; an agent that is described in one artifact (`AGENTS.md`, the `agent-skills` spec, its own definition)
   and missing or different in another.
 - **Conciseness** — duplicated or near-duplicate entries worth merging; one-off trivia that is neither a convention nor
-  a gotcha; entries far longer or more specific than their lesson warrants; entries in the wrong section or file.
+  a gotcha; entries far longer or more specific than their lesson warrants; entries in the wrong section or file. Report
+  two of these as **standing analyses**, not only when a run is scoped to them: **merge candidates** (overlapping or
+  complementary entries, with the merged text that preserves every anchor and piece of evidence the originals carry, and
+  never blending two distinct lessons) and **removal candidates** (rules that govern no decision, with what would be
+  lost and whether git preserves it). Both are candidates for the owner, not actions.
 
 Method:
 
@@ -61,7 +66,8 @@ Method:
   behavior the artifacts do not claim.
 
 Report, do not edit. Return findings grouped by severity — **contradiction**, **stale**, **dead reference**,
-**redundant**, and **structural** — each with:
+**redundant**, and **structural** — labelling each merge candidate `merge` and each removal candidate `remove` so the
+verdict line can count them. Each with:
 
 - the location (the file and a line number, or a short verbatim quote so it can be found), and
 - a concrete suggested rewrite or merge (exact replacement text where practical).
@@ -79,17 +85,18 @@ the excluded file. This is a candidate for the owner's decision, not a defect to
 **Accretion — meta rules with their origin.** Separately from both classes above, and without severity, report the
 in-scope rules that are meta rather than product: a rule about the agent, its tooling, the per-change workflow, or the
 documentation, as opposed to a fact about the product. This is not a defect — an accreted rule may be correct and
-load-bearing — so never propose removing or merging it: the report is what makes the accumulation visible and
-attributable. For each item, name the rule, the origin that introduced it, and the source you used to establish it: the
-in-prose `captured:` marker where present, and `git blame` / `git log -S` otherwise, including for the rules written
-before the marker convention. A rule with neither is reported as unattributed rather than guessed.
+load-bearing — so never propose removing or merging it for being meta — a meta rule that governs no decision is a
+removal candidate under the conciseness analysis, not a victim of its class: the report is what makes the accumulation
+visible and attributable. For each item, name the rule, the origin that introduced it, and the source you used to
+establish it: the in-prose `captured:` marker where present, and `git blame` / `git log -S` otherwise, including for the
+rules written before the marker convention. A rule with neither is reported as unattributed rather than guessed.
 
 Never modify any file — the calling agent verifies and applies what the user approves.
 
 **Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
 
-- Open with the verdict: `<n> findings, <n> advisory, <n> accreted` or `nothing to report` as the first line, then the
-  severity groups (highest-value first) and the advisory and accretion sections.
+- Open with the verdict: `<n> findings (<n> merge, <n> removal), <n> advisory, <n> accreted` or `nothing to report` as
+  the first line, then the severity groups (highest-value first) and the advisory and accretion sections.
 - Budget each item: a finding gets its `file:line`, its severity, and a concrete suggested rewrite; an advisory item
   gets the excluded file, the harm, and the decision it invites — the budget is per item, not a cap on the total.
 - Collapse entries verified as still accurate to one line each, or one summary line.

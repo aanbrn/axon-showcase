@@ -1653,8 +1653,11 @@ that override when bumping the Kafka image tag.
   The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are
   `paketobuildpacks/nginx` (no hyphen); querying the tags API with the CNB id 404s, so `BuildpackUpdatesTask`'s check
   model carries `repository` separately from the display `name`. When adding a buildpack to the check, use its Docker
-  Hub repository. The same repositories also publish alias tags (`1.2`, `5.15`) alongside the full semver (`1.2.1`); the
-  max comparison must prefer the longer tag, or a stale pin gets reported as the alias.
+  Hub repository. The same repositories also publish alias tags (`1.2`, `5.15`) alongside the full semver (`1.2.1`),
+  which is why the buildpack check has two version operations rather than one: `Versions.isNewer` — the shared
+  comparator all three update checks use — compares numerically with zero padding, so the two spellings of one release
+  are equal and neither reports the other as an update, while `Versions.highest`, which only this check needs, keeps a
+  longer-spelling tiebreak so the _reported_ tag is the canonical form rather than the alias.
 - **A workflow tool pin belongs in the `toolingUpdates` check's declared list — it is the only thing that detects a
   release.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` /
   `helm-updates.yml` the Helm CLI and pinned charts, `buildpackUpdates` / `buildpack-updates.yml` the Paketo builder and

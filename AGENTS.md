@@ -33,9 +33,11 @@ requests it (e.g., "push" or "commit and push").
 **Create the change's branch at propose — and commit only when a push or a branch switch forces it.** As soon as a
 change is proposed, put its artifacts on their own branch (named after the change) and commit nothing yet: the proposal,
 the review findings, and the implementation all stay in the working tree until a commit is forced. Two things force one
-on their own — **a push** and **a branch switch that would carry unfinished tracked changes** onto the other branch
-(commit, or `git stash`) — besides a commit the user explicitly asks for. A push is the moment a change commits: the
-branch's first push carries whatever is ready then — proposal and implementation together on the default path, the
+on their own — **a push** and **a branch switch that would carry unfinished changes — tracked or untracked —** onto the
+other branch (commit, or `git stash`); an untracked unit survives a reset but rides a `git switch` onto whichever branch
+you land on, where a directory-scoped `git add` can stage it into the wrong unit's commit (commit each unit on its own
+branch before starting the next) — besides a commit the user explicitly asks for. A push is the moment a change commits:
+the branch's first push carries whatever is ready then — proposal and implementation together on the default path, the
 proposal alone if a proposal-stage draft PR is opened (see the README) — and the archive adds a commit before the final
 push. Review findings are therefore edited in the working tree, never committed as an "Address review findings" commit,
 and nothing is committed while a review loop runs. Until the first commit the change dir is untracked, which is safe
@@ -44,7 +46,7 @@ against the hazards the gotchas name — an untracked change dir survives `git r
 and all subsequent work live on that branch; rejecting a proposal is a branch delete, never a `main` cleanup. A branch
 that has been committed (so it can fall behind `main`) is refreshed from `origin/main` — recreate it when it holds no
 work, otherwise rebase it — rather than continued on stale; once a PR is open, the mechanism is `gh pr update-branch`
-instead (see the BEHIND gotcha).
+instead (see the BEHIND gotcha). captured: capture-reverted-sweep-lessons (#283)
 
 **Fork branches from `main` only.** Every new branch — a change branch, a standalone fix, or a post-merge capture's docs
 change — is created from `origin/main` (fetch first), never from another work branch. Branching from a work branch

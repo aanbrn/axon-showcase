@@ -12,17 +12,6 @@ graduates into a concrete candidate for work, it may be promoted to a GitHub iss
 change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when
 it was added (start a new section for a new day rather than appending to the most recent one).
 
-## 2026-09-18
-
-- Retro-mark the historical capture-introduced rules in `AGENTS.md` with their origins — parked; no change yet.
-  `make-captured-rules-traceable` (#279) made every new captured rule carry a `captured: <change>` marker at the end of
-  the rule it records, and the accretion audit recovers an older rule's origin from `git blame` / `git log -S` — but
-  that is exactly the trace a markdown reflow decays (one Spotless commit rewrote 123 lines of the file while reflowing
-  text it did not author), so the ~46 pre-convention rules stay traceable only until the next reflow moves their lines.
-  A one-time sweep would append the marker to the end of each rule, reading the origin from blame/pickaxe and stating
-  its approximation: a rule already moved by an earlier reflow carries its mover's commit rather than its author's, so
-  the sweep is worth doing only with that caveat recorded per item.
-
 ## 2026-09-16
 
 - Cost: time-shift discretionary bulk agent work into the provider's off-peak window — parked; no change yet. Our model

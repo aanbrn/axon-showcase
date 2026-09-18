@@ -3,11 +3,13 @@ package showcase.api.events;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import java.time.Instant;
 import lombok.val;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
+import showcase.api.ShowcaseApiProperties;
 
 @DisplayName("Showcase event stream controller unit tests")
 class ShowcaseEventStreamControllerTests {
@@ -20,9 +22,9 @@ class ShowcaseEventStreamControllerTests {
                 .showcaseId("1")
                 .timestamp(Instant.parse("2026-09-02T10:05:00Z"))
                 .build();
-        val controller = new ShowcaseEventStreamController(Flux.just(event));
+        val controller = controllerFor(Flux.just(event));
 
-        val frames = controller.stream().collectList().block();
+        val frames = controller.stream().take(1).collectList().block();
         assertThat(frames).hasSize(1);
         val sse = frames.getFirst();
         assertThat(sse.event()).isEqualTo("showcase");
@@ -39,9 +41,9 @@ class ShowcaseEventStreamControllerTests {
                 .showcaseId("1")
                 .timestamp(Instant.parse("2026-09-02T10:11:00Z"))
                 .build();
-        val controller = new ShowcaseEventStreamController(Flux.just(event));
+        val controller = controllerFor(Flux.just(event));
 
-        val frames = controller.stream().collectList().block();
+        val frames = controller.stream().take(1).collectList().block();
         assertThat(frames).hasSize(1);
         val sse = frames.getFirst();
         assertThat(sse.event()).isEqualTo("showcase");
@@ -49,5 +51,21 @@ class ShowcaseEventStreamControllerTests {
         assertThat(data).isNotNull();
         assertThat(data.type()).isEqualTo("REMOVED");
         assertThat(data.showcaseId()).isEqualTo("1");
+    }
+
+    @Test
+    @DisplayName("An idle stream emits a keep-alive comment that carries no event")
+    void stream_whenIdle_emitsKeepAliveComment() {
+        val frame = controllerFor(Flux.never()).stream().blockFirst(Duration.ofSeconds(5));
+
+        assertThat(frame).isNotNull();
+        assertThat(frame.comment()).isEqualTo("keep-alive");
+        assertThat(frame).matches(keepAlive -> keepAlive.data() == null);
+    }
+
+    private static ShowcaseEventStreamController controllerFor(Flux<ShowcaseEventDto> showcaseEventStream) {
+        val apiProperties = new ShowcaseApiProperties();
+        apiProperties.getEvents().setKeepAliveInterval(Duration.ofMillis(100));
+        return new ShowcaseEventStreamController(showcaseEventStream, apiProperties);
     }
 }

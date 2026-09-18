@@ -21,7 +21,7 @@ import org.springframework.validation.annotation.Validated;
 /**
  * Configuration properties bound to the {@code showcase.api} prefix.
  *
- * <p>Configures the in-memory caches and CORS settings used by the showcase API gateway.
+ * <p>Configures the in-memory caches, CORS, and live event stream settings used by the showcase API gateway.
  */
 @ConfigurationProperties("showcase.api")
 @Data
@@ -67,6 +67,19 @@ public final class ShowcaseApiProperties {
     }
 
     /**
+     * Live event stream settings.
+     */
+    @Data
+    public static final class Events {
+        /**
+         * The interval at which the SSE stream emits a keep-alive while no domain event occurs.
+         */
+        @NotNull
+        @DurationMin(seconds = 1)
+        private Duration keepAliveInterval = Duration.ofSeconds(15);
+    }
+
+    /**
      * The caches configured by key (see {@link ShowcaseApiConstants}), each holding its cache settings.
      */
     @NotNull
@@ -81,4 +94,11 @@ public final class ShowcaseApiProperties {
     @NotNull
     @Valid
     private Cors cors = new Cors();
+
+    /**
+     * The live event stream configuration.
+     */
+    @NotNull
+    @Valid
+    private Events events = new Events();
 }

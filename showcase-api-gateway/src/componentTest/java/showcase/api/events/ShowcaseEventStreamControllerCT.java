@@ -9,6 +9,7 @@ import lombok.val;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -20,12 +21,14 @@ import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpe
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
+import showcase.api.ShowcaseApiProperties;
 
 @WebFluxTest(ShowcaseEventStreamController.class)
 @DisplayName("Showcase event stream controller component tests")
 class ShowcaseEventStreamControllerCT {
 
     @Configuration
+    @EnableConfigurationProperties(ShowcaseApiProperties.class)
     @ComponentScan(
             useDefaultFilters = false,
             includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ShowcaseEventStreamController.class))

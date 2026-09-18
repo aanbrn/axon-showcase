@@ -559,7 +559,11 @@ Key modules (libraries, not services):
 - **Test tier placement**: a test's tier is decided by its collaborators (see Test tiers). Verify the application's bean
   wiring (`@SpringBootApplication` config) at the **integration** tier via a real context boot — do not write component
   tests that mock the app's own collaborators. Component tests compose real in-process collaborators (e.g. a real
-  mapper) with only external infrastructure faked
+  mapper) with only external infrastructure faked. A test that subscribes to a stream which never completes (an SSE
+  endpoint's `Flux`) is a **unit** test with a bounded subscription (`take(1)`, `blockFirst(timeout)`) — inside a
+  `@WebFluxTest`/slice test the open exchange leaks and breaks unrelated cases in the same run (the keep-alive slice
+  version failed 15 of 76 `ShowcaseRestControllerCT` cases; all 108 passed without it). captured: keep-sse-stream-alive
+  (#301)
 - **Nested test groups for resilience features**: a `@Nested` class that groups Resilience4j scenarios is named
   `<Feature>Behavior` (e.g., `TimeLimiterBehavior`, `RetryBehavior`, `CircuitBreakerBehavior`), both for uniformity and
   to avoid shadowing the library's `CircuitBreaker` type
@@ -724,7 +728,12 @@ Key modules (libraries, not services):
   IDE is available, you may additionally run its inspections on the touched files (through the Steroid MCP
   `steroid_execute_code`, via its `runInspectionsDirectly` helper) and fix warnings, but this is not required and never
   a gate. Prefer assertions like `assertThat(x).isNotNull()` over `Objects.requireNonNull(x)` when guarding nullable
-  values in tests, since the IDE recognizes them for dataflow.
+  values in tests, since the IDE recognizes them for dataflow. The null-check case is the mirror:
+  `assertThat(frame.data()).isNull()` trips `DataFlowIssue` twice — "The call to 'isNull' always fails with an
+  exception" and "Argument 'frame.data()' might be null" — and the intermediate
+  `assertThat(frame).extracting(ServerSentEvent::data).isNull()` still warns ("Function may return null, but it's not
+  allowed here"); assert through the holder instead — `assertThat(frame).matches(f -> f.data() == null)` — which is
+  clean. captured: keep-sse-stream-alive (#301)
 - **Vision subagent for screenshot review**: the main agent runs on the cheap flash model (text-only); a `vision`
   subagent (`.opencode/agent/vision.md`) is pinned to `opencode-go/deepseek-v4-flash-vision-exp` to read screenshots.
   When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent — it inherits the
@@ -1399,6 +1408,12 @@ that override when bumping the Kafka image tag.
   an item's end from the list's own structure (a wrapped continuation is indented; a `- ` at column zero starts a new
   item) and have any script that ranges over or appends to items assert that boundary itself — no marker on a plain
   bullet, every marker at the end of the rule it names — before trusting the result. captured: retro-mark-captured-rules
+- **A write to an already-occupied path replaces the file silently: check the path before creating a "new" file.**
+  `ShowcaseEventStreamControllerTests.java` was assumed new, but it dated from #43 and held two tests (event wrapping;
+  REMOVED-type preservation), and the whole-file write destroyed both. Before writing a file you believe is new, check
+  the path — `test -e <path>` (or a read) proves it exists, `git ls-files <path>` whether it is tracked — and when it
+  exists, merge the addition into it rather than re-creating the class from its new-test shape. The loss happens at
+  write time, so the `git add <dir>` staging gotcha does not cover it. captured: keep-sse-stream-alive (#301)
 - **Keep em-dashes paired when inserting a clause into a sentence that already uses them.** A rework that adds an aside
   to a dashed sentence can leave an odd number of dashes, so the reader cannot tell which dash opens the outer clause
   and which closes it — the trailing clause's pairing is ambiguous. Count the dashes after the edit (an odd count is the

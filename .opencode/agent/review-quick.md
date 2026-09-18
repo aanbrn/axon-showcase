@@ -16,6 +16,9 @@ repository with no change dir, do a fast verification pass:
   non-OpenSpec diff, do the edits match the repo's conventions and not contradict what the docs/artifacts claim?
 - Do the tasks.md items marked done actually correspond to the work?
 - Any obvious convention violations (formatting, naming, redundant code, missing Javadoc)?
+- For a change whose diff adds `AGENTS.md` rules (a capture): does each new rule **govern a decision** a future change
+  would act on, and does it extend an existing rule rather than restate one? Trivia and restatements are findings
+  against the capture, not accepted rules.
 - Any obvious correctness problems visible at a glance?
 - Run `perl -CSD -lne 'print if length > 120' <changed-files>` over the changed files the formatter does not cover —
   YAML, and so on; everything else is formatter-gated — and report any lines over 120 (the project's wrapping

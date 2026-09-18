@@ -180,15 +180,13 @@ rule it records — in a `captured: <change>` marker — the change at an implem
 the post-merge one — so a rule's provenance is readable without git and survives a reflow: grep the `captured:` token,
 which no reflow splits even when the change name wraps to the next line. On a bullet the capture merged into rather than
 authored, the end-of-bullet marker records only the latest captured contribution, not the bullet's total origin — the
-pre-existing text stays recoverable from `git blame` / `git log -S`. Do not skip the subagent on your own judgment that
-"there's nothing new" — the merge itself is the trigger, and the subagent is the arbiter (the archive merge after
-`remove-redis-client-label` was skipped on exactly such an assumption, and the user had to push back before the
-forgotten-archive and premise-interrogation lessons were captured). When the user asks "is there anything else to
-capture?", treat it as a prompt to run the subagent again over the events — not as a request to justify the previous
-pass. An initial "nothing to capture" verdict is a hypothesis, not a conclusion: the session that produced it had
-process mistakes that were themselves the lesson (e.g. the archive was forgotten and the premise-interrogation gap went
-uncaptured until the user pushed twice). A docs-fix merge has nothing further to capture only if the subagent actually
-reviewed it and said so. captured: capture-untracked-follows-switch (#284)
+pre-existing text stays recoverable from `git blame` / `git log -S`. Do not skip the subagent or conclude "nothing to
+capture" on your own judgment — the merge itself is the trigger, the subagent is the arbiter, and an initial "nothing to
+capture" verdict is a hypothesis: the archive merge after `remove-redis-client-label` was skipped on exactly such an
+assumption and the forgotten-archive and premise-interrogation lessons went uncaptured until the user pushed back twice.
+When the user asks "is there anything else to capture?", treat it as a prompt to run the subagent again over the events
+— not as a request to justify the previous pass. A docs-fix merge has nothing further to capture only if the subagent
+actually reviewed it and said so. captured: capture-untracked-follows-switch (#284)
 
 **A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not merely
 records it.** The post-merge capture is the pass that can read the merge's non-diff effects: an agent PR's closing
@@ -735,17 +733,17 @@ Key modules (libraries, not services):
   `steroid_execute_code`, via its `runInspectionsDirectly` helper) and fix warnings, but this is not required and never
   a gate. Prefer assertions like `assertThat(x).isNotNull()` over `Objects.requireNonNull(x)` when guarding nullable
   values in tests, since the IDE recognizes them for dataflow.
-- **Vision subagent for screenshot review**: the main agent runs on the cheap `opencode-go/deepseek-v4.1-flash`
-  (text-only); a `vision` subagent (`.opencode/agent/vision.md`) is pinned to `opencode-go/deepseek-v4-flash-vision-exp`
-  to read screenshots. When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent —
-  it inherits the Playwright MCP, captures the screenshot into its own context, reads it, and returns a description,
-  while the main session stays on the cheap model. This auto-routes vision work without manual model switching.
-- **Diagrammer subagent for ASCII diagrams**: the main agent (cheap `opencode-go/deepseek-v4.1-flash`) is weak at ASCII
-  diagram geometry — drawing or fixing a diagram (a README flow diagram, alignment, bracket spans) repeatedly cost extra
-  effort and review cycles. A `diagrammer` subagent (`.opencode/agent/diagrammer.md`) is pinned to
-  `opencode-go/deepseek-v4-pro` to draw and fix ASCII diagrams. When a diagram needs creating, aligning, or correcting,
-  delegate to it via the `/diagram` command: it establishes the semantic mapping (which span ends where) before
-  rendering, aligns by character width, and preserves deliberate asymmetry. The main agent stays on the cheap model.
+- **Vision subagent for screenshot review**: the main agent runs on the cheap flash model (text-only); a `vision`
+  subagent (`.opencode/agent/vision.md`) is pinned to `opencode-go/deepseek-v4-flash-vision-exp` to read screenshots.
+  When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent — it inherits the
+  Playwright MCP, captures the screenshot into its own context, reads it, and returns a description, while the main
+  session stays on the cheap model. This auto-routes vision work without manual model switching.
+- **Diagrammer subagent for ASCII diagrams**: the main agent (the cheap flash model) is weak at ASCII diagram geometry —
+  drawing or fixing a diagram (a README flow diagram, alignment, bracket spans) repeatedly cost extra effort and review
+  cycles. A `diagrammer` subagent (`.opencode/agent/diagrammer.md`) is pinned to `opencode-go/deepseek-v4-pro` to draw
+  and fix ASCII diagrams. When a diagram needs creating, aligning, or correcting, delegate to it via the `/diagram`
+  command: it establishes the semantic mapping (which span ends where) before rendering, aligns by character width, and
+  preserves deliberate asymmetry. The main agent stays on the cheap model.
 - **Experience-analyzer subagent for retrospectives and improvements**: the `experience-analyzer` subagent
   (`.opencode/agent/experience-analyzer.md`) aggregates recent experience across many changes — above the per-change
   `review-quick`/`lesson-capture` agents. Trigger it with the `/retrospective` OpenCode command (or run it manually):
@@ -849,22 +847,22 @@ Key modules (libraries, not services):
   one of these that a prior analogous change had covered — read the archived analogous change and grep for the
   artifact's name before hand-writing the set.
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
-  scope.** The cheap flash model is pinned across several places: `.opencode/opencode.json` (`model` and `small_model` —
-  two keys), the flash-pinned subagent frontmatter (`.opencode/agent/review-quick.md`, `lesson-capture.md`,
-  `experience-analyzer.md`), the `.github/workflows/opencode.yml` `model` input, and the `AGENTS.md` agent gotchas that
-  name the model id (docs that ARE the change — update them in the same change). When bumping, grep for the old id
-  across `.opencode/`, `.github/workflows/`, and `AGENTS.md` (the `README.md` only names the generic `opencode-go/*`
-  form, so it needs no edit), and exclude the vision agent's `-vision-exp` pin: the vision model is a separate
-  experimental line that may not have a counterpart in the new family (the v4.1 bump left it on
-  `deepseek-v4-flash-vision-exp`). A naive sweep that flags the vision pin as stale would wrongly "fix" a deliberate
-  asymmetry. Note the config `model` key is a default for **new** sessions, not a live override: OpenCode persists the
-  last-used model in `~/.local/state/opencode/model.json` (its `recent` list), so a restarted TUI that restores a
-  session keeps that session's model and still shows the old one until you switch manually or start a new session — a
-  correct config pin does not by itself make the running agent use the new model. The pins also sit behind a
-  **flat-rate, dollar-metered** plan (OpenCode Go), so a per-model quota is consumed at the model's own rate rather than
-  by request count, and the DeepSeek models carry peak/off-peak rate tiers, so the quota a pass consumes depends on when
-  it runs. That is a property of the plan, not of the pin: resolve the current tiers and window at the provider
-  (`opencode.ai/docs/go`) instead of pinning them here.
+  scope.** The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
+  `.opencode/opencode.json` (`model` and `small_model` — two keys), the flash-pinned subagent frontmatter
+  (`.opencode/agent/review-quick.md`, `lesson-capture.md`, `experience-analyzer.md`), the
+  `.github/workflows/opencode.yml` `model` input, and the `AGENTS.md` agent gotchas that name the model id (docs that
+  ARE the change — update them in the same change). When bumping, grep for the old id across `.opencode/`,
+  `.github/workflows/`, and `AGENTS.md` (the `README.md` only names the generic `opencode-go/*` form, so it needs no
+  edit), and exclude the vision agent's `-vision-exp` pin: the vision model is a separate experimental line that may not
+  have a counterpart in the new family (the v4.1 bump left it on `deepseek-v4-flash-vision-exp`). A naive sweep that
+  flags the vision pin as stale would wrongly "fix" a deliberate asymmetry. Note the config `model` key is a default for
+  **new** sessions, not a live override: OpenCode persists the last-used model in `~/.local/state/opencode/model.json`
+  (its `recent` list), so a restarted TUI that restores a session keeps that session's model and still shows the old one
+  until you switch manually or start a new session — a correct config pin does not by itself make the running agent use
+  the new model. The pins also sit behind a **flat-rate, dollar-metered** plan (OpenCode Go), so a per-model quota is
+  consumed at the model's own rate rather than by request count, and the DeepSeek models carry peak/off-peak rate tiers,
+  so the quota a pass consumes depends on when it runs. That is a property of the plan, not of the pin: resolve the
+  current tiers and window at the provider (`opencode.ai/docs/go`) instead of pinning them here.
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired
@@ -1235,13 +1233,17 @@ that override when bumping the Kafka image tag.
   ktfmt config uses the plugin's **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with
   unused-import removal, because the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the
   line-length option (see README → Local Development → IntelliJ IDEA Setup).
-- **Enabling an IDE formatter integration does not mean it covers every file type the gate covers — prove the
-  integration's scope with a live reformat.** A Prettier scope narrower than the gate (the web module's `myFilesPattern`
-  omitted CSS/HTML until extended, see above) makes `Reformat Code` fall back to IDEA's built-in formatter and break
-  `prettier --check` — found only when the module was actually reformatted, and invisible in config review. Enumerate
-  every extension the gate covers and reformat one file of each type before believing the setup. Verify a Gradle
-  formatting task the same way — tamper a file to a non-conforming state, run the task, and confirm the tree returns
-  clean (`--dry-run` only proves the task is scheduled, not that it formats).
+- **Verify an IDE formatting integration by actually reformatting — the right action and the full gate scope, neither of
+  which config review can see.** Two failure modes: a Prettier scope narrower than the gate (the web module's
+  `myFilesPattern` omitted CSS/HTML until extended) makes `Reformat Code` fall back to IDEA's built-in formatter and
+  break `prettier --check` — found only when the module was actually reformatted; and a script that called
+  `CodeStyleManager.reformat` silently did nothing (it runs IDEA's own formatter, not the external one). So enumerate
+  every extension the gate covers and reformat one file of each type before believing the setup; make a file
+  deliberately non-conforming, invoke the real `ReformatCode` action in the live IDE (`ActionManager` +
+  `AnActionEvent`), then check `prettier --check`/`git diff`. Verify a Gradle formatting task the same way — tamper a
+  file, run the task, and confirm the tree returns clean (`--dry-run` only proves the task is scheduled, not that it
+  formats). Also check `git status` after any IDE action — Optimize Imports ran project-wide and touched unrelated files
+  (noise, not a gate failure) when auditing only the web module.
 - **Adding a file type or path to a formatter target can rewrite content a consumer outside the build parses — verify
   equivalence and exercise that consumer.** Bringing the `.opencode/` markdown under Spotless restyled every agent
   definition's frontmatter (`description: <first line>` became `description:` plus an indented block), and Prettier also
@@ -1311,12 +1313,6 @@ that override when bumping the Kafka image tag.
   Prettier, so the claimed gate actually failed and only the quick review caught it. After any last edit to a
   Spotless-owned file (a TODO tick, a status note, `AGENTS.md` itself) re-run `spotlessApply` and `spotlessCheck` before
   reporting the gate green — do not trust a check that ran before the final edit.
-- **Verifying an IDE formatting integration needs the real `Reformat Code` action — `CodeStyleManager.reformat` does not
-  invoke external formatters.** A script that called `CodeStyleManager.reformat` silently did nothing (it runs IDEA's
-  own formatter); make a file deliberately non-conforming, invoke the `ReformatCode` action in the live IDE
-  (`ActionManager` + `AnActionEvent`), then check `prettier --check`/`git diff`. Also check `git status` after any IDE
-  action — Optimize Imports ran project-wide and touched unrelated files (noise, not a gate failure) when auditing only
-  the web module.
 - **palantir-java-format does not manage imports**: since 2.47.0 the plugin only takes over **Reformat Code**, and
   `Optimize Imports` is always run by IDEA's native optimizer, governed by `.editorconfig` (the import layout
   `ij_java_imports_layout = $*,|,*` and `ij_java_use_single_class_imports=true` with the two on-demand counts at `999`).
@@ -1531,14 +1527,13 @@ that override when bumping the Kafka image tag.
   caught the false premise. Before designing around a limitation ("this can't be automated"), verify it by trying the
   command or reading its source/docs — do not infer impossibility from a help screen. The same holds for a capability
   the docs describe only _partially_: the permissions docs name `~`/`$HOME` pattern expansion, and an `AGENTS.md` bullet
-  concluded `{env:VAR}` was unsupported — it is not, because config substitution runs over the whole file (in fact
-  `{env:TMPDIR}` expands but carries a trailing separator through and substitutes to nothing when unset). That false
-  limitation survived the review gate and was only caught by reading the source, because a tool's behavior is not
-  repo-evidenced and no in-repo gate can check it. Treat a doc's account of a feature as a floor, not a boundary, and
-  verify a tool-behavior claim against the source/CLI before writing it into a durable artifact. Confirm too that the
-  file you read is the code path that runs: a package can hold a mock or test harness whose name matches the entry point
-  (`github/index.ts` is a local dev/test entry; the shipped handler is `github.handler.ts`), and a matching filename or
-  path is not evidence you read the implementation.
+  concluded `{env:VAR}` was unsupported — it is not, and the scratch-files gotcha records the substitution plus the
+  `{env:TMPDIR}` trailing-separator caveat. That false limitation survived the review gate and was only caught by
+  reading the source, because a tool's behavior is not repo-evidenced and no in-repo gate can check it. Treat a doc's
+  account of a feature as a floor, not a boundary, and verify a tool-behavior claim against the source/CLI before
+  writing it into a durable artifact. Confirm too that the file you read is the code path that runs: a package can hold
+  a mock or test harness whose name matches the entry point (`github/index.ts` is a local dev/test entry; the shipped
+  handler is `github.handler.ts`), and a matching filename or path is not evidence you read the implementation.
 - **A CLI warning dismissed as noise can report a live defect — a config a tool consumes is unverified until its own
   read path is probed, and a warning no gate reads is not a check.** `openspec/config.yaml` declared per-artifact rules
   for four artifacts, but two items contained an unquoted `: `, so YAML parsed them as mappings, the lists stopped being

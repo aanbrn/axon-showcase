@@ -6,9 +6,10 @@ Provides the repository's agent capabilities: curated, vendored skill sets under
 the AxonIQ Axon 4→5 migration recipes against this codebase) and the locally-defined quality-gate and analysis subagents
 under `.opencode/agent/` — the per-change review and lesson-capture agents, the experience-analyzer, the visual and
 diagram agents, and the on-demand auditors of the project-owned agent tooling (the guidance and project-authored
-`.opencode/` files, plus any generated or vendored file that contradicts how the repository uses it, and the meta rules
-it reports with their origins), of the `openspec/specs/` corpus, and of the architecture (the ADRs, the service, module,
-and spec-decomposition surface, and where a deliberate decision's rationale is not recorded).
+`.opencode/` files, plus any generated or vendored file that contradicts how the repository uses it, the meta rules it
+reports with their origins, and the merge and removal candidates it reports), of the `openspec/specs/` corpus, and of
+the architecture (the ADRs, the service, module, and spec-decomposition surface, and where a deliberate decision's
+rationale is not recorded).
 
 ## Requirements
 
@@ -172,9 +173,14 @@ project-authored file that shares a generated file's name prefix (e.g. the `opsx
 scope. The audit SHALL cover, at least: contradictions between entries or files, stale claims and enumerations the
 repository has outgrown, dead cross-references, and drift from the code/workflows/specs the prose describes
 (consistency); and duplicated or near-duplicate entries, one-off trivia, over-long or over-specific entries, and
-misplaced entries (conciseness). Each finding SHALL be verified against the repository rather than inferred from the
-prose alone, and SHALL be reported with its location and a concrete suggested rewrite. The subagent SHALL propose its
-findings without modifying files; the main agent verifies and applies those the user approves.
+misplaced entries (conciseness). Within conciseness the audit SHALL report two analyses as standing findings rather than
+only under a scoped run: **merge candidates**, each naming the overlapping or complementary entries and the merged text
+that preserves every anchor and piece of evidence the originals carried — and never blending two distinct lessons into
+one; and **removal candidates**, each naming a rule that governs no decision (trivia, not a rule — the same test the
+capture's filter applies), what would be lost, and whether git preserves it. Both are candidates for the owner, not
+actions. Each finding SHALL be verified against the repository rather than inferred from the prose alone, and SHALL be
+reported with its location and a concrete suggested rewrite. The subagent SHALL propose its findings without modifying
+files; the main agent verifies and applies those the user approves.
 
 The audit SHALL additionally report, as an **advisory** class kept separate from its fix findings and reported without
 severity, third-party inconsistency: a file the audit excludes (a generated `openspec-*` instruction file, or a vendored
@@ -189,8 +195,9 @@ class, the in-scope rules that are meta rather than product — a rule about the
 workflow, or the documentation, as opposed to a fact about the product. Each item SHALL name the rule, the origin that
 introduced it (established from the in-prose `captured:` marker where present, and from `git blame` / `git log -S`
 otherwise), and the source used to establish it. The class SHALL be reported without severity and is not a defect: an
-accreted rule may be correct and load-bearing, so the audit SHALL NOT propose removing or merging it — that is the
-user's decision on the report.
+accreted rule may be correct and load-bearing, so the audit SHALL NOT propose removing or merging it for being meta — a
+meta rule that governs no decision is a removal candidate under the conciseness analysis, not a victim of its class —
+that is the user's decision on the report.
 
 #### Scenario: An agent-tooling audit is produced
 
@@ -198,7 +205,8 @@ user's decision on the report.
 - **THEN** it returns findings grouped by severity, covering consistency (contradictions, stale claims, dead
   cross-references, drift) and conciseness (duplication, trivia, length, placement) across `AGENTS.md` and the
   project-authored `.opencode/` files, each with a location and a suggested rewrite — plus, separately, any advisory
-  third-party inconsistency and the accreted meta rules with their origins
+  third-party inconsistency, the accreted meta rules with their origins, with the merge and removal candidate counts
+  named in the verdict line
 
 #### Scenario: Generated and vendored files are excluded
 
@@ -238,7 +246,14 @@ user's decision on the report.
 - **WHEN** the `agents-auditor` subagent audits `AGENTS.md`
 - **THEN** it reports the in-scope rules that are meta rather than product as a separate accretion class, each with the
   origin that introduced it (the `captured:` marker where present, `git blame` / `git log -S` otherwise) and the source
-  used, without proposing that the rule be removed or merged
+  used, without proposing that the rule be removed or merged for being meta
+
+#### Scenario: Merge and removal candidates are standing findings
+
+- **WHEN** the `agents-auditor` subagent audits `AGENTS.md`
+- **THEN** it reports merge candidates (with a merged text that preserves every anchor and piece of evidence the
+  originals carried, and never blending two distinct lessons) and removal candidates (rules that govern no decision —
+  trivia, not a rule — with what would be lost and whether git preserves it) — as findings for the owner, not actions
 
 ### Requirement: The architecture is audited for drift from its recorded decisions
 

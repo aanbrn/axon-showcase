@@ -556,7 +556,12 @@ Key modules (libraries, not services):
   must have the body assert every one of them — an enumerated name with one asserted case is an unverified claim. A
   contract-module test named "may not depend on a client or a service application" asserted only the client case, so the
   rule's second clause was dead and survived repeated review passes; IntelliJ's always-false warning caught it, not a
-  test or a review.
+  test or a review. A test must also assert a decision the production code encodes, not a language operator or a case
+  another test already covers: a helper that was only `name in set` (the real suppression policy lives at the call site)
+  and a `BuildpackUpdatesTaskTests` case that duplicated a `VersionsTests` case verbatim both passed while verifying
+  nothing — a reviewer caught both, and they were deleted rather than kept for the count. When a rule is a one-line
+  wrapper of a language construct, test the caller's decision; before adding a case, check no existing test asserts it.
+  captured: test-build-logic-rules-and-unify-version-comparison (#306)
 - **Spring bean mocks in tests**: use `@MockitoBean` (from `org.springframework.test.context.bean.override.mockito`),
   not the deprecated-for-removal `@MockBean` (`org.springframework.boot.test.mock.mockito`), which has been deprecated
   since Spring Boot 3.4
@@ -1168,7 +1173,10 @@ that override when bumping the Kafka image tag.
   default page with no warning when more exists (`--limit` defaults to 30 for `pr` and `issue`, 20 for `run`), so the
   same script returned 30 rows for a window holding 249 merges until it gained an explicit `--limit 1000`. Any future
   "what shipped since X" automation must use the `--search "merged:>=..."` form **and** an explicit `--limit` sized to
-  the corpus.
+  the corpus. The same truncation is self-inflicted by an explicit slice: `head -1` on the `buildpackUpdates` report hid
+  the second of its two lines, and the tasks file cited the first as though it were the whole report. Cite a command's
+  full captured output — read the generated report file rather than a piped `head`/`tail` — before recording it as
+  evidence. captured: test-build-logic-rules-and-unify-version-comparison (#306)
 - **`gh pr create --body` with Markdown can fail under zsh with `no matches found`** — an inline body containing
   `**bold**` (or other shell metacharacters/newlines) is subject to zsh's `nomatch` glob error
   (`zsh: no matches found: **...`). Write the body to a file and use `--body-file <file>` instead; it also sidesteps
@@ -1405,8 +1413,8 @@ that override when bumping the Kafka image tag.
 - Testcontainers 2.0.5 moved `PostgreSQLContainer` from `org.testcontainers.containers` (now a deprecated shim) to the
   non-generic `org.testcontainers.postgresql.PostgreSQLContainer` — use the new import without the `<?>`/`<>` type
   arguments.
-- **Programmatic markdown edits can silently drop a section or mis-assign an item — verify the structure at the
-  granularity you edited.** Reordering the README with a Python boundary script dropped the entire "Getting Started"
+- **Programmatic edits to a structured file — markdown or source — can silently drop or misplace structure; verify at
+  the granularity you edited.** Reordering the README with a Python boundary script dropped the entire "Getting Started"
   section: the move used `lines[ends['Development Workflow']:]`, which starts at the _next_ section and skips the block
   sitting between the two, and only a follow-up grep for `## Getting Started` caught the loss. After any script-driven
   move/rewrite of a markdown file, grep for each expected heading (or diff the heading list before/after) before
@@ -1420,6 +1428,12 @@ that override when bumping the Kafka image tag.
   an item's end from the list's own structure (a wrapped continuation is indented; a `- ` at column zero starts a new
   item) and have any script that ranges over or appends to items assert that boundary itself — no marker on a plain
   bullet, every marker at the end of the rule it names — before trusting the result. captured: retro-mark-captured-rules
+  The same range-boundary hazard bites source: removing three tasks' private comparators with a range running from the
+  first deleted member to the end of the file took each class's **closing brace** (the members were last in the body),
+  failing three compiles, and orphaned a KDoc above the deleted region — which compiled clean and only a reviewer saw.
+  Derive a deletion's end from the member boundaries, and after removing members confirm each surviving KDoc still
+  attaches to a declaration: a compile catches the lost brace, never the orphan. captured:
+  test-build-logic-rules-and-unify-version-comparison (#306)
 - **A write to an already-occupied path replaces the file silently: check the path before creating a "new" file.**
   `ShowcaseEventStreamControllerTests.java` was assumed new, but it dated from #43 and held two tests (event wrapping;
   REMOVED-type preservation), and the whole-file write destroyed both. Before writing a file you believe is new, check
@@ -1590,7 +1604,12 @@ that override when bumping the Kafka image tag.
   account of a feature as a floor, not a boundary, and verify a tool-behavior claim against the source/CLI before
   writing it into a durable artifact. Confirm too that the file you read is the code path that runs: a package can hold
   a mock or test harness whose name matches the entry point (`github/index.ts` is a local dev/test entry; the shipped
-  handler is `github.handler.ts`), and a matching filename or path is not evidence you read the implementation.
+  handler is `github.handler.ts`), and a matching filename or path is not evidence you read the implementation. The same
+  probe-first rule covers a compiler or build-tool semantics claim: a design drafted the premise that a precompiled
+  `.gradle.kts` cannot see an `internal` declaration, and a scratch `kotlin-dsl` build disproved it — the
+  `internal object` compiles from the script, and only `private` fails — so the shared helper stayed `internal` rather
+  than being widened to `public`. Verify a visibility or build-semantics claim with a minimal scratch build before it
+  constrains a design. captured: test-build-logic-rules-and-unify-version-comparison (#306)
 - **A CLI warning dismissed as noise can report a live defect — a config a tool consumes is unverified until its own
   read path is probed, and a warning no gate reads is not a check.** `openspec/config.yaml` declared per-artifact rules
   for four artifacts, but two items contained an unquoted `: `, so YAML parsed them as mappings, the lists stopped being

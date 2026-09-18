@@ -279,6 +279,47 @@ tasks.register("buildpackUpdates", BuildpackUpdatesTask::class.java) {
     outputs.upToDateWhen { false }
 }
 
+tasks.register("toolingUpdates", ToolingUpdatesTask::class.java) {
+    group = "help"
+    description = "Displays the tool versions pinned in workflow files that have a newer release."
+
+    checks.set(
+        listOf(
+            ToolingUpdateCheck(
+                name = "openspec-cli",
+                workflowFile = "ci.yml",
+                pinPattern = "@fission-ai/openspec@([0-9][^\\s]*)",
+                source = ToolingVersionSource.NPM_LATEST,
+                sourceRef = "@fission-ai/openspec",
+            ),
+            ToolingUpdateCheck(
+                name = "snyk-cli",
+                workflowFile = "snyk.yml",
+                pinPattern = "snyk-version:\\s*(v?[0-9][^\\s]*)",
+                source = ToolingVersionSource.GITHUB_RELEASE,
+                sourceRef = "snyk/cli",
+            ),
+            ToolingUpdateCheck(
+                name = "pack-cli",
+                workflowFile = "e2e.yml",
+                pinPattern = "pack-version:\\s*(v?[0-9][^\\s]*)",
+                source = ToolingVersionSource.GITHUB_RELEASE,
+                sourceRef = "buildpacks/pack",
+            ),
+        )
+    )
+
+    pinFiles.from(
+        layout.projectDirectory.file(".github/workflows/ci.yml"),
+        layout.projectDirectory.file(".github/workflows/snyk.yml"),
+        layout.projectDirectory.file(".github/workflows/e2e.yml"),
+    )
+
+    reportFile.set(layout.buildDirectory.file("tooling-updates/report.txt"))
+
+    outputs.upToDateWhen { false }
+}
+
 tasks.register("verifyModuleDependencies", VerifyModuleDependenciesTask::class.java) {
     group = "verification"
     description = "Verifies the modules' declared dependencies against the sanctioned module graph"

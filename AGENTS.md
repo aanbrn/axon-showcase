@@ -434,7 +434,7 @@ initialized:
   OpenSpec validation and config probe as the pull-request path.
 - **A check belongs in the pull-request gate only when the change that trips it can remediate it.** Drift in state no
   pull request causes would fail every unrelated PR, so it belongs in the observational scheduled pattern instead (the
-  three update-check workflows, and the out-of-repository surfaces the Docs-refresh bullet names), never `build`.
+  four update-check workflows, and the out-of-repository surfaces the Docs-refresh bullet names), never `build`.
 
 The `check` task also runs `workflowLint`, which lints the GitHub Actions workflows with actionlint (installed on the
 runner via the official download script; see the Prerequisites), and `verifyModuleDependencies`, which enforces the
@@ -468,11 +468,12 @@ and it shares the same `gradle/actions/setup-gradle` caching rules as `.github/w
 sub-projects with the root `.snyk` policy) on a weekly schedule and via `workflow_dispatch`, authenticated with the
 `SNYK_TOKEN` secret. It is observational — never a merge gate.
 
-The three update-check workflows — `.github/workflows/dependency-updates.yml`, `.github/workflows/helm-updates.yml`, and
-`.github/workflows/buildpack-updates.yml` — each run a Gradle report on a weekly schedule and via `workflow_dispatch`,
-open or update their tracker issue from that report's file with the `GITHUB_TOKEN` (`issues: write`), post a comment
-mentioning the repository owner when there are actionable updates (so they are notified), and update the issue silently
-when there are none. They are observational — never a merge gate. What each covers:
+The four update-check workflows — `.github/workflows/dependency-updates.yml`, `.github/workflows/helm-updates.yml`,
+`.github/workflows/buildpack-updates.yml`, and `.github/workflows/tooling-updates.yml` — each run a Gradle report on a
+weekly schedule and via `workflow_dispatch`, open or update their tracker issue from that report's file with the
+`GITHUB_TOKEN` (`issues: write`), post a comment mentioning the repository owner when there are actionable updates (so
+they are notified), and update the issue silently when there are none. They are observational — never a merge gate. What
+each covers:
 
 - `dependency-updates.yml` — `./gradlew dependencyUpdates`; the actionable sections of
   `build/dependencyUpdates/report.txt` (stable catalog updates + the Gradle wrapper status), in the "Dependency updates"
@@ -481,6 +482,8 @@ when there are none. They are observational — never a merge gate. What each co
   Helm CLI and pinned chart versions that have a newer version), in the "Helm updates" issue.
 - `buildpack-updates.yml` — `./gradlew buildpackUpdates`; the pinned builder and buildpack coordinates from
   `build/buildpack-updates/report.txt` that have a newer version, in the "Buildpack updates" issue.
+- `tooling-updates.yml` — `./gradlew toolingUpdates`; the actionable lines from `build/tooling-updates/report.txt` (the
+  tool versions pinned in workflow files — the OpenSpec, Snyk and `pack` CLIs), in the "Tooling updates" issue.
 
 `.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so an action whose
 major bump targets a newer Node runtime (e.g. the Node 20 → Node 24 migration) surfaces as a reviewable PR instead of a
@@ -541,9 +544,10 @@ Key modules (libraries, not services):
   `libs.versions.<name>.get()` (runtime `node`/`java`, plugin `toolVersion` `checkstyle`/`spotbugs`/`jacoco`, generator
   artifacts, buildpack ids, image tags). A version that is not a `group:name` dependency (a buildpack id, a
   builder/run-image tag, `node`) is a `[versions]`-only entry with no `[libraries]` module. Catalog ownership is
-  single-sourcing, not update tracking: bare `[versions]` entries are not resolved as dependencies, so
-  `dependencyUpdates` and `helmUpdates` ignore them — most go stale silently and must be audited by hand (the Paketo
-  builder and buildpack pins are the exception: `buildpackUpdates` reports them).
+  single-sourcing, not update tracking: a bare `[versions]` entry is not resolved as a dependency, so
+  `dependencyUpdates` ignores it — but `helmUpdates` reads the Helm CLI and chart pins, `buildpackUpdates` the Paketo
+  builder and buildpack pins, and `toolingUpdates` the CLI versions pinned in workflow files, so only the entries none
+  of them reads must be audited by hand.
 - **All JavaCompile tasks** add `-parameters` flag
 - **Test display names**: every test class and every `@Test`/`@ParameterizedTest` method (plus `@Nested` groups) carries
   a static-sentence `@DisplayName` (e.g., `@DisplayName("Showcase aggregate component tests")`,
@@ -1643,26 +1647,23 @@ that override when bumping the Kafka image tag.
   model carries `repository` separately from the display `name`. When adding a buildpack to the check, use its Docker
   Hub repository. The same repositories also publish alias tags (`1.2`, `5.15`) alongside the full semver (`1.2.1`); the
   max comparison must prefer the longer tag, or a stale pin gets reported as the alias.
-- **Pinned workflow tool versions are outside every update-check workflow — audit the whole set, not one pin at a
-  time.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` /
-  `helm-updates.yml` cover the Helm CLI and pinned charts, `buildpackUpdates` / `buildpack-updates.yml` cover the Paketo
-  builder and buildpacks, and Dependabot covers `uses:` action refs — but the pinned tool versions have no check (they
-  live in `with:` inputs or in `run:` steps — the OpenSpec pin is an `npm install` argument): `snyk-version`
-  (`.github/workflows/snyk.yml`; audit `gh api repos/snyk/cli/releases/latest`), the `@fission-ai/openspec@<version>`
-  pin (`.github/workflows/ci.yml`; `npm view @fission-ai/openspec version`), and `pack-version`
-  (`.github/workflows/e2e.yml`; `gh api repos/buildpacks/pack/releases/latest --jq .tag_name`). They go stale silently
-  (the `/opsx-tool-update` command regenerates the instruction files after a release but does not detect one). When a
-  change adds a workflow tool pin that no check covers, add it here in the same change; when touching this section,
-  re-derive the list from the workflows rather than appending — extending it one pin at a time is how the OpenSpec pin,
-  then the `pack` CLI, was each missed in turn. (`java-version: '21'` and the opencode workflow's `model` input are
-  deliberate pins, not tooling currency — the model pin has its own multi-file bump sweep, see the OpenCode model-pin
-  gotcha.) A Snyk or pack bump cannot be verified locally: `workflowLint` (actionlint) proves only that the YAML lints,
-  not that the version tag is installable — the credentialed weekly run (or a local `dependencySecurityCheck` with
-  `SNYK_TOKEN`) is the first real execution. The same skew bites a guard keyed off a tool's output: it must be verified
-  against the version CI pins, not only the locally-installed one, since the pinned CLI is what the gate actually runs
-  and the output text it matches on may differ there. The same caution applies to a proposed _fix_ attributed to a
-  dependency bump: verify it exists in a released version, not only on the project's default branch — a bump claimed to
-  make a failure skip cleanly held on `actions/cache`'s `main` but in no release (latest `v6.1.0`).
+- **A workflow tool pin belongs in the `toolingUpdates` check's declared list — it is the only thing that detects a
+  release.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` /
+  `helm-updates.yml` the Helm CLI and pinned charts, `buildpackUpdates` / `buildpack-updates.yml` the Paketo builder and
+  buildpacks, `toolingUpdates` / `tooling-updates.yml` the versions pinned in workflow files (the OpenSpec, Snyk and
+  `pack` CLIs), and Dependabot covers `uses:` action refs. Add a pin to that check's declared list when you add it to a
+  workflow — its patterns are asserted to match exactly once, so a renamed input fails the task rather than reading as
+  current — and note that extending the list one pin at a time is how the OpenSpec pin, then the `pack` CLI, was each
+  missed in turn while the check did not exist. The `/opsx-tool-update` command regenerates the instruction files after
+  a release but does not detect one. (`java-version: '21'` and the opencode workflow's `model` input are deliberate
+  pins, not tooling currency — the model pin has its own multi-file bump sweep, see the OpenCode model-pin gotcha.) A
+  Snyk or pack bump cannot be verified locally: `workflowLint` (actionlint) proves only that the YAML lints, not that
+  the version tag is installable — the credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`)
+  is the first real execution. The same skew bites a guard keyed off a tool's output: it must be verified against the
+  version CI pins, not only the locally-installed one, since the pinned CLI is what the gate actually runs and the
+  output text it matches on may differ there. The same caution applies to a proposed _fix_ attributed to a dependency
+  bump: verify it exists in a released version, not only on the project's default branch — a bump claimed to make a
+  failure skip cleanly held on `actions/cache`'s `main` but in no release (latest `v6.1.0`).
 - **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
   first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
   output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change

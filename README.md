@@ -138,7 +138,7 @@ subscribed browser — all from one `POST /showcases`.
 - **OpenCode** — the agentic coding tool driving the process: slash-commands, spec-aware subagents, a self-learning
   lesson-capture loop, on-request setup of its own tooling ([Tooling MCP Servers](#tooling-mcp-servers)), and a project
   practice of reporting a dependency's gap back upstream — with a reproduction — instead of only working around it
-- **GitHub Actions** — CI, e2e, dependency updates, helm updates, security scans
+- **GitHub Actions** — CI, e2e, dependency, helm, buildpack and tooling updates, security scans
 
 ## Development Workflow
 
@@ -639,6 +639,10 @@ updates update the issue silently — observational, never a merge gate.
 `workflow_dispatch`, opening or updating the "Helm updates" issue with the actionable coordinates (the Helm CLI and
 pinned chart versions that have a newer version) — observational, never a merge gate.
 
+`.github/workflows/tooling-updates.yml` runs the workflow-pinned tool update check (`toolingUpdates`) on a weekly
+schedule and via `workflow_dispatch`, opening or updating the "Tooling updates" issue with the OpenSpec, Snyk and `pack`
+CLI versions whose pin lags the latest release — observational, never a merge gate.
+
 `.github/workflows/buildpack-updates.yml` runs the Paketo buildpack update check (`buildpackUpdates`) on a weekly
 schedule and via `workflow_dispatch`, opening or updating the "Buildpack updates" issue with the pinned Paketo builder
 and buildpack coordinates that have a newer version — observational, never a merge gate.
@@ -648,8 +652,9 @@ and buildpack coordinates that have a newer version — observational, never a m
 ```bash
 ./gradlew dependencyUpdates            # report available dependency updates
 ./gradlew dependencySecurityCheck      # Snyk dependency security scan (needs Snyk CLI, not part of check)
-./gradlew helmUpdates                  # report available Helm chart updates
+./gradlew helmUpdates                  # report available Helm CLI/chart updates
 ./gradlew buildpackUpdates             # report available Paketo builder/buildpack updates
+./gradlew toolingUpdates               # report available updates for the CLIs pinned in workflow files
 ./gradlew verifyInfraImageVersions     # verify infra image tags match their pinned charts
 ./gradlew verifyModuleDependencies     # verify the module dependency graph (ADR-0010)
 ./gradlew workflowLint                 # lint the GitHub Actions workflows with actionlint

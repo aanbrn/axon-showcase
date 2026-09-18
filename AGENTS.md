@@ -875,14 +875,18 @@ Key modules (libraries, not services):
   pattern expands a leading `~`/`$HOME` and also `{env:VAR}` (config substitution runs over the whole file), but
   `{env:TMPDIR}` carries macOS's trailing separator through (`…/T//opencode/**`, which does not match the real path),
   and an unset `TMPDIR` substitutes to an empty string, so there is no fallback where the temp dir is `/tmp`.
-  `.opencode/plugin/tmpdir-scratch.ts` resolves the directory from `os.tmpdir()` instead — the same path without the
-  trailing separator, and the cross-platform temp dir — and its `config` hook adds `<tmpdir>/opencode/**` to
+  `.opencode/plugin/tmpdir-scratch.ts` resolves the directory with `tmpdir()` from `node:os` instead — the same path
+  without the trailing separator, and the cross-platform temp dir — and its `config` hook adds `<tmpdir>/opencode/**` to
   `external_directory`. Put PR-body files and similar there, and keep the allow-list in the plugin:
   `.opencode/plugin/*.ts` is auto-discovered (OpenCode's built-in `customize-opencode` skill names both
   `.opencode/plugin/` and `.opencode/plugins/`), and its `config(cfg)` hook runs once on init with the live merged
-  config and may mutate it. Scope the grant to the named scratch subdirectory — never the whole OS temp root, which
-  would grant every application's temporary files. Upstream, the portable default this needs is asked for in
-  `anomalyco/opencode#48100` — if it lands, drop the plugin's grant and use the built-in.
+  config and may mutate it. Its dependencies live in a **tracked** `.opencode/package.json` (OpenCode installs them at
+  startup and can also update its own plugin pin there) with a `.opencode/tsconfig.json` beside it declaring
+  `types: ["node"]`, so an editor resolves the plugin's `node:os` import — no build step type-checks that directory.
+  `.opencode/.gitignore` keeps only `node_modules` and the lockfiles out of the repo. Scope the grant to the named
+  scratch subdirectory — never the whole OS temp root, which would grant every application's temporary files. Upstream,
+  the portable default this needs is asked for in `anomalyco/opencode#48100` — if it lands, drop the plugin's grant and
+  use the built-in.
 
 ## Docker Images
 

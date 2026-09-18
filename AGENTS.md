@@ -746,25 +746,26 @@ Key modules (libraries, not services):
   `.opencode/` files (subagents, commands, skills) — because an accretion-only set of guidance and tooling drifts:
   entries contradicted elsewhere, stale enumerations, dead cross-references, a command naming a subagent that no longer
   exists, near-duplicate gotchas. It also reports **merge candidates** — overlapping entries with a merged text that
-  preserves every anchor and piece of evidence — and **removal candidates** — rules that govern no decision — with both
-  counts in the verdict line. Its scope is a provenance partition: it never _fixes_ what the repo does not author (the
-  OpenSpec instruction files `openspec update` writes, and the vendored `axon4to5-*` skills) — a project-authored file
-  that shares a generated prefix, like `opsx-tool-update`, stays in scope: a boundary drawn by provenance, not a
-  filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). An excluded file is still
-  _read_, and reported as an advisory item where it contradicts how the repo uses it (a vendored skill prescribing a
-  pattern our code has moved past; a generated command naming an artifact we removed), bounded by a harm test and routed
-  to a decision — report it upstream, re-vendor, or change our usage — never a local edit. It also reports the accreted
-  meta rules — in-scope rules about the agent, its tooling, the per-change workflow, or the documentation rather than
-  the product — each with the origin that introduced it (the `captured:` marker, or `git blame` / `git log -S`), as a
-  class of its own rather than a defect. Trigger it with the `/audit-agents` OpenCode command: the subagent verifies
-  each claim against the repository and returns its findings in the subagent report contract — shared by the per-change
-  review and lesson-capture agents and the three auditors (not `experience-analyzer`, whose output is a document, not a
-  findings report), and defined in the `agent-skills` spec: a verdict line first, then each item budgeted (its anchor
-  and one line of evidence), passing checks collapsed to one line, and no alternatives — without editing anything. The
-  main agent applies the approved findings under the review gate. One audit's findings can need different delivery
-  routes — split the output by fix type and scope each unit's artifacts and diff to its own fixes, rather than running
-  the whole audit through one unit (the routing per fix type is in the specs-auditor and architecture-auditor bullets).
-  The zero-touch scheduled variant is parked in `docs/ideas.md`; the audit itself is on demand.
+  preserves every anchor and piece of evidence, or a deletion of the duplicate where that text would only restate an
+  existing rule — and **removal candidates** — rules that govern no decision — with both counts in the verdict line. Its
+  scope is a provenance partition: it never _fixes_ what the repo does not author (the OpenSpec instruction files
+  `openspec update` writes, and the vendored `axon4to5-*` skills) — a project-authored file that shares a generated
+  prefix, like `opsx-tool-update`, stays in scope: a boundary drawn by provenance, not a filename pattern, which
+  over-captures (the same holds for any audit, ignore, or lint scope). An excluded file is still _read_, and reported as
+  an advisory item where it contradicts how the repo uses it (a vendored skill prescribing a pattern our code has moved
+  past; a generated command naming an artifact we removed), bounded by a harm test and routed to a decision — report it
+  upstream, re-vendor, or change our usage — never a local edit. It also reports the accreted meta rules — in-scope
+  rules about the agent, its tooling, the per-change workflow, or the documentation rather than the product — each with
+  the origin that introduced it (the `captured:` marker, or `git blame` / `git log -S`), as a class of its own rather
+  than a defect. Trigger it with the `/audit-agents` OpenCode command: the subagent verifies each claim against the
+  repository and returns its findings in the subagent report contract — shared by the per-change review and
+  lesson-capture agents and the three auditors (not `experience-analyzer`, whose output is a document, not a findings
+  report), and defined in the `agent-skills` spec: a verdict line first, then each item budgeted (its anchor and one
+  line of evidence), passing checks collapsed to one line, and no alternatives — without editing anything. The main
+  agent applies the approved findings under the review gate. One audit's findings can need different delivery routes —
+  split the output by fix type and scope each unit's artifacts and diff to its own fixes, rather than running the whole
+  audit through one unit (the routing per fix type is in the specs-auditor and architecture-auditor bullets). The
+  zero-touch scheduled variant is parked in `docs/ideas.md`; the audit itself is on demand.
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus, because `openspec validate` gates a spec's
   well-formedness but not its cross-spec structural consistency — title ↔ capability-path match, Purpose ↔ requirements

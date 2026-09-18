@@ -19,7 +19,7 @@ it was added (start a new section for a new day rather than appending to the mos
   much, and each audit ran only because someone asked for it — even though `agents-auditor` now surfaces merge and
   removal candidates as standing findings. A standing trigger — after every Nth capture, say — would make the balance
   self-correcting instead of reactive. Decide what N is, and whether the trigger belongs in the capture convention or in
-  a scheduled workflow (see the parked zero-touch scheduled auditor variants, and the three update-check workflows — the
+  a scheduled workflow (see the parked zero-touch scheduled auditor variants, and the four update-check workflows — the
   repo's existing pattern for an observational check that is never a merge gate).
 
 ## 2026-09-16
@@ -93,7 +93,7 @@ it was added (start a new section for a new day rather than appending to the mos
   observational pattern instead — single-source the expected description and topics in-repo (a small
   `config/github-metadata.*`, or the `openspec/config.yaml` context block that already carries a near-copy of the same
   facts), then a scheduled workflow that compares the live values via the API and opens or updates an issue on drift,
-  like the three update-check workflows. Worth it only if the added workflow and the fourth copy of the stack facts are
+  like the four update-check workflows. Worth it only if the added workflow and the fourth copy of the stack facts are
   judged cheaper than the silence.
 
 ## 2026-09-14
@@ -128,12 +128,12 @@ it was added (start a new section for a new day rather than appending to the mos
   `build-extensions-oss/gradle-helm-plugin#145`, `anomalyco/opencode#48100`, `anomalyco/opencode#49127` (the action's
   cache step), `Fission-AI/OpenSpec#1891` (the unquoted `: ` class) and `Fission-AI/OpenSpec#1892` (the
   unparseable-config class) — each now carrying an inline close-out. The repository already has the shape for a watcher:
-  `dependencyUpdates` / `helmUpdates` / `buildpackUpdates` are each a small task plus a weekly observational workflow
-  that opens or updates an issue and mentions the owner when something is actionable. A report would collect the
-  references from `AGENTS.md`, `README.md`, and `docs/adr/` — the corpus is all `owner/repo#NNN` plus one non-GitHub id
-  (`KAFKA-18281`) — resolve them through the relevant API, and report the ones that closed or went quiet, turning the
-  references into a checked corpus rather than claims. Worth building now: the trigger it describes has already fired
-  twice.
+  `dependencyUpdates` / `helmUpdates` / `buildpackUpdates` / `toolingUpdates` are each a small task plus a weekly
+  observational workflow that opens or updates an issue and mentions the owner when something is actionable. A report
+  would collect the references from `AGENTS.md`, `README.md`, and `docs/adr/` — the corpus is all `owner/repo#NNN` plus
+  one non-GitHub id (`KAFKA-18281`) — resolve them through the relevant API, and report the ones that closed or went
+  quiet, turning the references into a checked corpus rather than claims. Worth building now: the trigger it describes
+  has already fired twice.
 
 - Retire the `NANOS_DATE_PATTERN` workaround once its fix reaches us — parked; no change yet.
   `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337, milestone 6.2.0-M2), but we resolve
@@ -224,36 +224,6 @@ it was added (start a new section for a new day rather than appending to the mos
   `contents: read` for the checkout, and `issues: write` to post the findings; per the docs, a scheduled run has no user
   context to permission-check, so every write it performs must be granted explicitly. Confirm the scheduled `prompt`
   path works before relying on it.
-
-## 2026-09-11
-
-- Snyk CLI update check — parked; no change yet. The `snyk-version` pin in `.github/workflows/snyk.yml` is outside every
-  update-check workflow (`dependencyUpdates` covers Gradle coordinates, `helmUpdates` covers the Helm CLI and charts,
-  and Dependabot manages action refs but not the `snyk-version` input), so it goes stale silently and can only be
-  confirmed by hand against `gh api repos/snyk/cli/releases/latest`. Mirror the `helmUpdates` pattern: a task/workflow
-  that queries `snyk/cli` releases and opens or updates an issue when the pin lags. A local bump cannot be fully
-  verified anyway (actionlint only lints the YAML; the credentialed weekly run is the first real execution), so the
-  check is worth automating rather than relying on manual audits.
-
-- OpenSpec CLI update check — parked; no change yet. The CLI is pinned in CI as
-  `npm install --global @fission-ai/openspec@<version>` (`.github/workflows/ci.yml`), so releases go stale silently
-  because the pin sits outside every update check (`dependencyUpdates` covers Gradle catalog coordinates, `helmUpdates`
-  the Helm CLI and charts, `buildpackUpdates` the Paketo builder and buildpacks, and Dependabot only action refs). Add
-  an `openspecUpdates` Gradle task mirroring `buildpackUpdates` — query the npm registry for `@fission-ai/openspec`'s
-  latest version, compare with the pinned one, report — plus a weekly `openspec-updates.yml` workflow opening or
-  updating an issue. It pairs with the existing `/opsx-tool-update` command, which can act on a release but does not
-  detect one; decide where the pin is single-sourced (it lives in the workflow today — the `snyk-version` case above has
-  the same shape).
-
-- Tooling-currency checks: unify the mechanism and cover the `pack` pin — parked; no change yet. The repo has three
-  update checks of near-identical shape (`dependencyUpdates` via the gradle-versions plugin; `helmUpdates` and
-  `buildpackUpdates` as `build-logic` tasks feeding a workflow that opens or updates an issue), two parked ideas for two
-  more (the Snyk and OpenSpec CLI pins above, each proposing the same task-plus-workflow shape), and one more uncovered
-  pin with no idea yet — `pack-version` in `.github/workflows/e2e.yml` (`buildpackUpdates` covers the Paketo builder and
-  buildpacks, not the `pack` CLI). Rather than adding a fourth and fifth near-duplicate task, consider one parameterized
-  mechanism: a declared list of pinned tools with their current-version source (Gradle catalog, Helm CLI/charts, Docker
-  Hub, npm, GitHub releases) driving a single report and update workflow — shrinking the AGENTS.md manual-pin audit list
-  to the tools it cannot reach.
 
 ## 2026-09-10
 

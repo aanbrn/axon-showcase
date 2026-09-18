@@ -27,6 +27,8 @@ jobs:
 
       - name: Run Helm update check
         run: ./gradlew helmUpdates
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Open or update the Helm updates issue
         shell: bash
@@ -63,7 +65,8 @@ jobs:
 
           if [ -n "$updates" ] && [ -n "$issue_number" ]; then
             previous="$(gh api "repos/${{ github.repository }}/issues/$issue_number/comments" \
-              --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | contains("cc @")))][0].id // empty')"
+              --jq '[.[] | select(.user.login == "github-actions[bot]"
+              and (.body | contains("cc @")))][0].id // empty')"
             if [ -n "$previous" ]; then
               gh api "repos/${{ github.repository }}/issues/comments/$previous" --method DELETE --silent
             fi

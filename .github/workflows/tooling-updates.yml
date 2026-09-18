@@ -1,8 +1,8 @@
-name: dependency-updates
+name: tooling-updates
 
 on:
   schedule:
-    - cron: '0 2 * * 1'
+    - cron: '0 4 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -10,7 +10,7 @@ permissions:
   issues: write
 
 jobs:
-  dependency-updates:
+  tooling-updates:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -25,45 +25,26 @@ jobs:
       - name: Set up Gradle cache
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Run dependency update report
-        run: ./gradlew dependencyUpdates
+      - name: Run tooling update check
+        run: ./gradlew toolingUpdates
+        env:
+          GH_TOKEN: ${{ github.token }}
 
-      - name: Open or update the dependency updates issue
+      - name: Open or update the Tooling updates issue
         shell: bash
         run: |
           set -euo pipefail
 
-          report=build/dependencyUpdates/report.txt
-          issue_title="Dependency updates"
+          report=build/tooling-updates/report.txt
+          issue_title="Tooling updates"
           owner="${{ github.repository_owner }}"
 
-          updates="$(awk '
-            /^The following dependencies have newer versions:/ { in_updates = 1; print; next }
-            /^The following dependencies have later milestone versions:/ { in_updates = 0 }
-            /^Gradle CURRENT updates:/ { in_updates = 0 }
-            in_updates { print }
-          ' "$report" 2>/dev/null)"
-          gradle="$(awk '
-            /^Gradle CURRENT updates:/ { in_gradle = 1; print; next }
-            in_gradle { print }
-          ' "$report" 2>/dev/null)"
-          gradle_version_line="$(awk '
-            /^Gradle CURRENT updates:/ { in_gradle = 1; next }
-            in_gradle && /Gradle:/ { print; exit }
-          ' "$report" 2>/dev/null)"
+          updates="$(grep -v '^No tooling updates available' "$report" 2>/dev/null || true)"
 
-          has_updates=false
           if [ -n "$updates" ]; then
-            has_updates=true
-          fi
-          if [ -n "$gradle_version_line" ] && ! printf '%s' "$gradle_version_line" | grep -q "UP-TO-DATE"; then
-            has_updates=true
-          fi
-
-          if [ "$has_updates" = true ]; then
-            body="cc @$owner"$'\n\n'"\`\`\`text"$'\n'"$updates"$'\n'"$gradle"$'\n'"\`\`\`"
+            body="cc @$owner"$'\n\n'"\`\`\`text"$'\n'"$updates"$'\n'"\`\`\`"
           else
-            body="No stable catalog updates available."
+            body="No tooling updates available."
           fi
 
           existing="$(gh issue list --repo "${{ github.repository }}" \
@@ -82,10 +63,10 @@ jobs:
               --json number --jq '.[0].number // empty')"
           fi
 
-          if [ "$has_updates" = true ] && [ -n "$issue_number" ]; then
+          if [ -n "$updates" ] && [ -n "$issue_number" ]; then
             previous="$(gh api "repos/${{ github.repository }}/issues/$issue_number/comments" \
               --jq '[.[] | select(.user.login == "github-actions[bot]"
-                and (.body | contains("cc @")))][0].id // empty')"
+              and (.body | contains("cc @")))][0].id // empty')"
             if [ -n "$previous" ]; then
               gh api "repos/${{ github.repository }}/issues/comments/$previous" --method DELETE --silent
             fi

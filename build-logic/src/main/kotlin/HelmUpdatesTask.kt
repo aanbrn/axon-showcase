@@ -94,14 +94,14 @@ abstract class HelmUpdatesTask : AbstractHelmRepositoriesTask() {
 
     private fun helmCliLatest(): String? =
         try {
-            val request =
+            val builder =
                 HttpRequest.newBuilder(URI.create("https://api.github.com/repos/helm/helm/releases/latest"))
                     .timeout(Duration.ofSeconds(10))
                     .header("Accept", "application/vnd.github+json")
-                    .GET()
-                    .build()
+            ToolingJson.githubToken()?.let { builder.header("Authorization", "Bearer $it") }
+            val request = builder.GET().build()
             val response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString())
-            Regex("\"tag_name\":\"([^\"]+)\"").find(response.body())?.groupValues?.get(1)?.removePrefix("v")
+            ToolingJson.RELEASE_TAG.find(response.body())?.groupValues?.get(1)?.removePrefix("v")
         } catch (_: Exception) {
             null
         }

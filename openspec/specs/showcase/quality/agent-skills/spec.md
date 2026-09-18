@@ -176,7 +176,9 @@ repository has outgrown, dead cross-references, and drift from the code/workflow
 misplaced entries (conciseness). Within conciseness the audit SHALL report two analyses as standing findings rather than
 only under a scoped run: **merge candidates**, each naming the overlapping or complementary entries and the merged text
 that preserves every anchor and piece of evidence the originals carried — and never blending two distinct lessons into
-one; and **removal candidates**, each naming a rule that governs no decision (trivia, not a rule — the same test the
+one — and where the merged text would only restate a rule the file already carries, the candidate is a deletion of the
+duplicate rather than a merge, reported as a `remove` so the verdict's count includes it, and the audit SHALL say which
+it is; and **removal candidates**, each naming a rule that governs no decision (trivia, not a rule — the same test the
 capture's filter applies), what would be lost, and whether git preserves it. Both are candidates for the owner, not
 actions. Each finding SHALL be verified against the repository rather than inferred from the prose alone, and SHALL be
 reported with its location and a concrete suggested rewrite. The subagent SHALL propose its findings without modifying
@@ -252,8 +254,10 @@ that is the user's decision on the report.
 
 - **WHEN** the `agents-auditor` subagent audits `AGENTS.md`
 - **THEN** it reports merge candidates (with a merged text that preserves every anchor and piece of evidence the
-  originals carried, and never blending two distinct lessons) and removal candidates (rules that govern no decision —
-  trivia, not a rule — with what would be lost and whether git preserves it) — as findings for the owner, not actions
+  originals carried, and never blending two distinct lessons — or, where that text would only restate a rule the file
+  already carries, a deletion of the duplicate, still counted as a `remove`, saying which) and removal candidates (rules
+  that govern no decision — trivia, not a rule — with what would be lost and whether git preserves it) — as findings for
+  the owner, not actions
 
 ### Requirement: The architecture is audited for drift from its recorded decisions
 

@@ -49,8 +49,9 @@ Audit along two axes:
   a gotcha; entries far longer or more specific than their lesson warrants; entries in the wrong section or file. Report
   two of these as **standing analyses**, not only when a run is scoped to them: **merge candidates** (overlapping or
   complementary entries, with the merged text that preserves every anchor and piece of evidence the originals carry, and
-  never blending two distinct lessons) and **removal candidates** (rules that govern no decision, with what would be
-  lost and whether git preserves it). Both are candidates for the owner, not actions.
+  never blending two distinct lessons — or, where that text would only restate a rule the file already carries, a
+  deletion of the duplicate (reported as a `remove`), saying which) and **removal candidates** (rules that govern no
+  decision, with what would be lost and whether git preserves it). Both are candidates for the owner, not actions.
 
 Method:
 
@@ -66,8 +67,8 @@ Method:
   behavior the artifacts do not claim.
 
 Report, do not edit. Return findings grouped by severity — **contradiction**, **stale**, **dead reference**,
-**redundant**, and **structural** — labelling each merge candidate `merge` and each removal candidate `remove` so the
-verdict line can count them. Each with:
+**redundant**, and **structural** — labelling a merge disposition `merge`, and a deletion-of-a-duplicate or a removal
+candidate `remove` so the verdict line can count them. Each with:
 
 - the location (the file and a line number, or a short verbatim quote so it can be found), and
 - a concrete suggested rewrite or merge (exact replacement text where practical).

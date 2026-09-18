@@ -1252,7 +1252,7 @@ that override when bumping the Kafka image tag.
   and confirm the rewritten files parse to the same values and the consuming tool still works (for an agent or skill,
   after an OpenCode reload).
 - **A check is evidence only once it has been shown to fail — a clean run, an empty result, or an unmoved control proves
-  nothing until the check hits a known positive.** Six recurring incidents share this root, each with its own mode to
+  nothing until the check hits a known positive.** Seven recurring incidents share this root, each with its own mode to
   guard against:
   - **A glob or filter that matches nothing is vacuous, not clean.** An audit command told the agent to run "a manual
     120-character check for `.opencode/*.md`" — a glob matching **no file**, since the markdown lives in
@@ -1307,6 +1307,13 @@ that override when bumping the Kafka image tag.
     output before writing the sentence; never emit a canned "clean" you did not derive from that run. That idiom still
     fails open — `perl` exits 0 on a missing file, so `test -z` reports clean on a typo'd path — which is why the check
     must be seen to hit a known positive before its clean run means anything.
+  - **A clean run from the wrong resolution root is not a reproduction.** TypeScript's automatic inclusion of `@types`
+    packages walks up from the tsconfig's directory — or the current working directory when no tsconfig is used — not
+    from the directory of the file being checked, so a check can pass from inside the package while failing from the
+    root its consumer resolves from (here, the editor's project root). A `review-quick` round proposed the simpler fix
+    ("add `@types/node`; a tsconfig isn't needed"), which held only in the passing directory. Run a reproduction from
+    the context that fails — the directory whose config the failing tool reads, not the artifact's own directory — and
+    treat a different error as its own signal. captured: fix-tmpdir-plugin-types (#299)
 - **Run `spotlessApply` after the _final_ write to a Spotless-owned file — ticking a checklist task is an edit too.** A
   `tasks.md` task was ticked ("`spotlessCheck` passes") _after_ the last `spotlessApply`; the re-wrapped prose broke
   Prettier, so the claimed gate actually failed and only the quick review caught it. After any last edit to a

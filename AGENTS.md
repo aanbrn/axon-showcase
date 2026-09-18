@@ -1458,8 +1458,11 @@ that override when bumping the Kafka image tag.
   paired dashes; read per-sentence, it would flag its own lone-aside sentences). Check the claim's grammatical subject
   too, not only its wording — a pronoun can bind a claim to the wrong actor: a README draft closed with "… and a
   practice of reporting gaps in the libraries and tools _it_ depends on", which bound the project's upstream-report
-  practice to OpenCode (the bullet's subject) rather than to the project; naming the subject fixed it. captured:
-  capture-gap-not-new-bullet (#285)
+  practice to OpenCode (the bullet's subject) rather than to the project; naming the subject fixed it. Check a
+  qualifier's scope too: a condition or exception introduced for one variant must not swallow the rule's primary mandate
+  — strip the qualifiers and confirm the imperative verb still governs the default case (the `reshape-the-capture-loop`
+  rewrite of the capture trigger lost its lead's main verb and folded the implementation capture under the merge
+  condition; the PR's test plan records the review catching it). captured: reshape-the-capture-loop (#289)
 - **A durable artifact may assert only what the repository can evidence — a history that lives only in the conversation
   is not repo history.** An earlier draft of this bullet cited a `/var/folders/**` config attempt — a pattern proposed
   in conversation but never written to a config file — and asserted an unobserved `setup-hosts.sh` outcome; a review

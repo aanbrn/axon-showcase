@@ -301,9 +301,9 @@ The process is designed to **learn from itself** — and that is the mechanic, n
 
 - **`AGENTS.md` is the agent's persistent memory.** It is loaded as instructions at the start of every session, so a
   lesson written there does not merely document the past — it changes how the agent behaves on the next change.
-- **Every change closes the loop.** The `lesson-capture` subagent runs not only after a change's implementation but once
-  after a non-capture merge, so lessons that only surface once a change is live still get captured (a capture's own
-  merge does not chain — the agent reports any candidate and asks first); the ones you accept land in `AGENTS.md`.
+- **Every change closes the loop.** The `lesson-capture` subagent runs after a change's implementation, and at a merge
+  the agent detects — reading the merge's non-diff effects and reporting any candidate — so lessons that only surface
+  once a change is live still get captured (it asks before running one); the ones you accept land in `AGENTS.md`.
 - **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
   same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
   uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.

@@ -86,6 +86,9 @@ agent, with its purpose described in its agent definition and (where relevant) i
 - **WHEN** a change's proposal (planning artifacts) or its implementation is finished
 - **THEN** the `review-quick` subagent reviews it against the change's planning artifacts, and the loop repeats until it
   reports no new observations before a manual review is requested
+- **AND** for a change whose diff adds `AGENTS.md` rules (a capture), it also challenges each new rule's durability —
+  the decision the rule governs, and whether a future change would plausibly hit it — so trivia and restatements are
+  caught at review time rather than by a later consolidation audit
 
 #### Scenario: Thorough review is available on demand
 
@@ -99,9 +102,13 @@ agent, with its purpose described in its agent definition and (where relevant) i
   main agent verifies and applies
 - **AND** each proposed addition names the existing bullet it extends, or states that no bullet covers it — a new rule
   merges into or replaces one rather than accreting
-- **AND** each proposed addition carries its origin in a greppable `captured: <change>` marker — the change for an
-  implementation capture, the change and its PR for the post-merge capture — so a reader can tell where the rule came
-  from without consulting git, and a markdown reflow cannot take it
+- **AND** each proposed addition names the decision its rule governs, and answers whether a future change would
+  plausibly hit it and whether the cost of not knowing it is material — a proposal that governs no decision is trivia,
+  not a rule, and is not proposed
+- **AND** each proposed addition carries its origin in a greppable `captured: <change>` marker — the change, and its PR
+  when a merge-time detection found the lesson rather than the implementation capture, since a capture runs once at
+  implementation and a merge only detects and asks — so a reader can tell where the rule came from without consulting
+  git, and a markdown reflow cannot take it
 
 #### Scenario: Screenshots are reviewed visually
 

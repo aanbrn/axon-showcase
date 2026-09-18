@@ -54,9 +54,9 @@ adding one "Address quick-review findings" commit per review round produced 11 c
 before delivery) — the discipline above removes that failure mode by construction, leaving nothing to squash. captured:
 capture-reverted-sweep-lessons (#283)
 
-**Fork branches from `main` only.** Every new branch — a change branch, a standalone fix, or a post-merge capture's docs
-change — is created from `origin/main` (fetch first), never from another work branch. Branching from a work branch
-silently carries its commits into the new PR (a fix PR ended up shipping a change's commit history); recover by rebasing
+**Fork branches from `main` only.** Every new branch — a change branch, a standalone fix, or a capture's docs change —
+is created from `origin/main` (fetch first), never from another work branch. Branching from a work branch silently
+carries its commits into the new PR (a fix PR ended up shipping a change's commit history); recover by rebasing
 `--onto origin/main` and force-pushing, then verify the PR's changed-file set is the intended one. Create the branch
 with `--no-track` (`git switch -c <name> --no-track origin/main`), or push its first time with
 `git push -u origin <branch>`: a plain `git checkout -b <name> origin/main` silently makes `origin/main` the new
@@ -151,42 +151,44 @@ the Java default instead. When reconciling a value stated on several surfaces, s
 that reconciled the same class of drift and follow its direction — and read the introducing commit's full diff before
 treating an edit as incidental (the `git log` check above).
 
-**Capture lessons after a change's implementation, and once after a non-capture merge.** Once a change's implementation
-quick review is clean — and once again after the PR is merged, when that PR was **not itself a capture**, i.e. a change,
-a docs refresh, a standalone fix, or a dependency bump — run the `lesson-capture` subagent (giving it the diff, review
-findings, the change dir when one exists, and a short note on what went wrong or was learned) to propose AGENTS.md
-additions — gotchas and conventions worth recording. A capture PR's own merge triggers no further capture: one capture
-per merge, never a chain. Instead, read the capture's diff, report any candidate lesson it left with the bullet it would
-extend, and ask the user for explicit confirmation before running another. Apply the proposals the main agent judges
-durable, then ship them as a docs PR (per the docs-refresh convention) alongside or after the change. Process mistakes
-that leave no diff trace (e.g. a git command that discarded work) are the most valuable thing to capture — this is what
-makes the capture systematic instead of memory-dependent. For a docs-only merge that fixes stale facts or removes
-duplication, the fix is the lesson — do not re-capture it as a new gotcha; capture only what the merge left unaddressed.
-Read that as barring a gotcha that _restates the fix_, not a general rule the fix exemplifies: a durable rule absent
-from `main` is one of the things the merge left unaddressed. Before rejecting a captured rule as a re-capture, check
-`main`'s own text (`git show origin/main:AGENTS.md`) and reject only a rule that restates the fix itself. Every proposal
-names the existing bullet it extends, or states that no bullet covers the lesson — a new rule merges into or replaces
-one rather than accreting. When the addition restates a remedy the target bullet already carries, read the duplication
-as the target rule's wording being the gap rather than a missing mode: re-read the rule the incident should have caught
-by and ask whether one word excludes it — a drafted third `git add <dir>` mode restated the staged-set inspection that
-bullet already states, while the real gap was the commit-discipline clause saying "tracked" where the change dir is
-deliberately left untracked; the owner's "would following the existing discipline already have prevented this?" is the
-test, verified against the text before a bullet is added. Each captured rule also carries its origin — at the end of the
-rule it records — in a `captured: <change>` marker — the change at an implementation capture, the change and its PR at
-the post-merge one — so a rule's provenance is readable without git and survives a reflow: grep the `captured:` token,
-which no reflow splits even when the change name wraps to the next line. On a bullet the capture merged into rather than
-authored, the end-of-bullet marker records only the latest captured contribution, not the bullet's total origin — the
-pre-existing text stays recoverable from `git blame` / `git log -S`. Do not skip the subagent or conclude "nothing to
-capture" on your own judgment — a non-capture merge is the trigger, and the subagent is the arbiter, and an initial
-"nothing to capture" verdict is a hypothesis: the archive merge after `remove-redis-client-label` was skipped on exactly
-such an assumption and the forgotten-archive and premise-interrogation lessons went uncaptured until the user pushed
-back twice. When the user asks "is there anything else to capture?", treat it as a prompt to run the subagent again over
-the events — not as a request to justify the previous pass. A docs-fix merge has nothing further to capture only if the
-subagent actually reviewed it and said so — or, on a capture PR's own merge, the diff-read above found no candidate.
-captured: capture-untracked-follows-switch (#284)
+**Capture lessons once, after a change's implementation, and detect at the merge.** Once a change's implementation quick
+review is clean, run the `lesson-capture` subagent (giving it the diff, review findings, the change dir when one exists,
+and a short note on what went wrong or was learned) to propose AGENTS.md additions — gotchas and conventions worth
+recording. A merge runs no capture: at the merge, read what the merge alone affected — its non-diff effects, such as an
+agent PR closing its own tracker — and report any candidate lesson it leaves with the bullet it would extend, then ask
+the user for explicit confirmation before running one. One capture per unit, never a chain. Apply the proposals the main
+agent judges durable, then ship them as a docs PR (per the docs-refresh convention) alongside or after the change.
+Process mistakes that leave no diff trace (e.g. a git command that discarded work) are the most valuable thing to
+capture — this is what makes the capture systematic instead of memory-dependent. For a docs-only merge that fixes stale
+facts or removes duplication, the fix is the lesson — do not re-capture it as a new gotcha; capture only what the merge
+left unaddressed. Read that as barring a gotcha that _restates the fix_, not a general rule the fix exemplifies: a
+durable rule absent from `main` is one of the things the merge left unaddressed. Before rejecting a captured rule as a
+re-capture, check `main`'s own text (`git show origin/main:AGENTS.md`) and reject only a rule that restates the fix
+itself. Every proposal names the existing bullet it extends, or states that no bullet covers the lesson — a new rule
+merges into or replaces one rather than accreting. Every proposal also names **the decision its rule governs**, and
+states whether a future change would plausibly hit it and whether the cost of not knowing it is material — **a proposal
+that governs no decision is trivia, not a rule, and is not proposed** (the `disable-axoniq-console-message` sentence
+this repo deleted stated a fact governing no decision). When the addition restates a remedy the target bullet already
+carries, read the duplication as the target rule's wording being the gap rather than a missing mode: re-read the rule
+the incident should have caught by and ask whether one word excludes it — a drafted third `git add <dir>` mode restated
+the staged-set inspection that bullet already states, while the real gap was the commit-discipline clause saying
+"tracked" where the change dir is deliberately left untracked; the owner's "would following the existing discipline
+already have prevented this?" is the test, verified against the text before a bullet is added. Each captured rule also
+carries its origin — at the end of the rule it records — in a `captured: <change>` marker — the change at an
+implementation capture, the change and its PR when a merge-time detection found the lesson — so a rule's provenance is
+readable without git and survives a reflow: grep the `captured:` token, which no reflow splits even when the change name
+wraps to the next line. On a bullet the capture merged into rather than authored, the end-of-bullet marker records only
+the latest captured contribution, not the bullet's total origin — the pre-existing text stays recoverable from
+`git blame` / `git log -S`. Do not skip the subagent or conclude "nothing to capture" on your own judgment — the
+subagent is the arbiter, and an initial "nothing to capture" verdict is a hypothesis: a merge that closed a change was
+once skipped on exactly such an assumption and the forgotten-archive and premise-interrogation lessons went uncaptured
+until the user pushed back twice. When the user asks "is there anything else to capture?", treat it as a prompt to run
+the subagent again over the events — not as a request to justify the previous pass. A docs-fix merge has nothing further
+to capture only if the subagent actually reviewed it and said so — or if the merge-time detection above found no
+candidate. captured: capture-untracked-follows-switch (#284)
 
 **A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not merely
-records it.** The post-merge capture is the pass that can read the merge's non-diff effects: an agent PR's closing
+records it.** The merge-time detection is the pass that can read the merge's non-diff effects: an agent PR's closing
 reference had already closed the tracker it was triggered from (see the action-flow paragraph below), a defect no gate
 reads — and the earlier capture that recorded the stale-target rule had quoted that issue's body without noticing its
 closure. When the verification finds shipped work broken, fix the live instance (an out-of-band corrective action, such

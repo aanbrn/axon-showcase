@@ -60,7 +60,7 @@ abstract class ToolingUpdatesTask : DefaultTask() {
         checks.get().forEach { check ->
             val pinned = pinnedVersion(check)
             latestVersion(check)?.let { latest ->
-                if (ToolingVersions.isNewer(latest, pinned)) {
+                if (Versions.isNewer(latest, pinned)) {
                     report += "${check.name}: $pinned -> $latest"
                 }
             }
@@ -124,31 +124,4 @@ internal object ToolingJson {
 
     /** A GitHub release's `tag_name` (the API returns pretty-printed JSON). */
     val RELEASE_TAG: Regex = Regex("\"tag_name\":\\s*\"([^\"]+)\"")
-}
-
-/** Version ordering for the tooling update check. */
-internal object ToolingVersions {
-    /** Whether [candidate] is a newer version than [current], comparing numeric segments and preferring the longer. */
-    fun isNewer(candidate: String, current: String): Boolean {
-        val candidateParts = numericParts(candidate)
-        val currentParts = numericParts(current)
-        val max = maxOf(candidateParts.size, currentParts.size)
-        for (i in 0 until max) {
-            val candidatePart = candidateParts.getOrElse(i) { 0 }
-            val currentPart = currentParts.getOrElse(i) { 0 }
-            if (candidatePart != currentPart) {
-                return candidatePart > currentPart
-            }
-        }
-        return candidateParts.size > currentParts.size
-    }
-
-    /** The numeric segments of a version, ignoring a leading `v` (a non-numeric prefix yields an empty list). */
-    fun numericParts(version: String): List<Int> =
-        version
-            .removePrefix("v")
-            .takeWhile { it.isDigit() || it == '.' }
-            .split('.')
-            .filter { it.isNotEmpty() }
-            .map { it.toIntOrNull() ?: 0 }
 }

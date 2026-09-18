@@ -42,32 +42,13 @@ abstract class VerifyInfraImageVersionsTask : AbstractHelmRepositoriesTask() {
                     option("--version", check.chartVersion)
                 }
             val chartImageTag =
-                topLevelImageTag(values.lines())
+                InfraImageVersionRules.topLevelImageTag(values.lines())
                     ?: throw GradleException("Chart '${check.chartRef}' values contain no top-level 'image.tag'.")
-            val imageAppVersion = check.imageTag.takeWhile { it.isDigit() || it == '.' }
-            val chartAppVersion = chartImageTag.takeWhile { it.isDigit() || it == '.' }
-            val imageSegments = imageAppVersion.split('.').size
-            // The official tag must declare at least the minor version: a bare major (e.g. '17') is a floating
-            // reference that Docker Hub re-points to the latest 17.x, so it cannot be a single source of truth.
-            if (imageSegments < 2) {
-                throw GradleException(
-                    "${check.component} image tag '${check.imageTag}' is a floating reference; " +
-                        "the official tag must declare at least the minor version (e.g. '17.6', not '17')."
-                )
-            }
-            // The official tag is never mutated: the chart app version is truncated to the official tag's segment
-            // count and compared exactly, so a two-segment official tag (17.6) matches a chart app version 17.6.0 at
-            // minor granularity, while a full-patch official tag (3.9.0) requires an exact chart app version match.
-            if (truncateToSegments(chartAppVersion, imageSegments) != imageAppVersion) {
-                throw GradleException(
-                    "Infra image version mismatch: ${check.component} image tag '${check.imageTag}' is inconsistent with " +
-                        "chart '${check.chartRef}@${check.chartVersion}' preconfigured image tag '$chartImageTag' " +
-                        "(app version '$chartAppVersion')."
-                )
-            }
+            InfraImageVersionRules.floatingReferenceReason(check)?.let { throw GradleException(it) }
+            InfraImageVersionRules.mismatchReason(check, chartImageTag)?.let { throw GradleException(it) }
             println(
-                "${check.component}: image tag '${check.imageTag}' and chart '${check.chartRef}@${check.chartVersion}' " +
-                    "preconfigured image tag '$chartImageTag' are consistent"
+                "${check.component}: image tag '${check.imageTag}' and chart " +
+                    "'${check.chartRef}@${check.chartVersion}' preconfigured image tag '$chartImageTag' are consistent"
             )
         }
 
@@ -78,7 +59,7 @@ abstract class VerifyInfraImageVersionsTask : AbstractHelmRepositoriesTask() {
 
     private fun verifyValuesFiles() {
         valuesFiles.forEach { file ->
-            val pinnedTag = topLevelImageTag(file.readLines())
+            val pinnedTag = InfraImageVersionRules.topLevelImageTag(file.readLines())
             if (pinnedTag != null) {
                 throw GradleException(
                     "values file '${file.path}' overrides 'image.tag' to '$pinnedTag'; " +
@@ -87,20 +68,4 @@ abstract class VerifyInfraImageVersionsTask : AbstractHelmRepositoriesTask() {
             }
         }
     }
-
-    private fun topLevelImageTag(lines: List<String>): String? {
-        val imageIndex = lines.indexOfFirst { it == "image:" }
-        if (imageIndex < 0) {
-            return null
-        }
-        return lines
-            .drop(imageIndex + 1)
-            .takeWhile { it.startsWith("  ") }
-            .firstOrNull { it.trimStart().startsWith("tag:") }
-            ?.substringAfter("tag:")
-            ?.trim()
-    }
-
-    private fun truncateToSegments(version: String, segments: Int): String =
-        version.split('.').take(segments).joinToString(".")
 }

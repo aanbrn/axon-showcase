@@ -18,6 +18,13 @@ data class BuildpackUpdateCheck(
     val pinnedVersion: String,
 ) : Serializable
 
+/** The Docker Hub response patterns, named so a test pins them against a real body rather than a hand-written one. */
+internal object BuildpackJson {
+
+    /** A tag name from the tags API; the leading digit excludes a floating tag such as `latest`. */
+    val TAG_NAME = Regex("\"name\":\\s*\"([0-9][^\"]*)\"")
+}
+
 /**
  * A task that reports newer versions of the Paketo builder and buildpacks pinned in the version catalog, by querying
  * the Docker Hub tags API for each configured repository.
@@ -39,7 +46,7 @@ abstract class BuildpackUpdatesTask : DefaultTask() {
         val report = mutableListOf<String>()
         checks.get().forEach { check ->
             latestVersion(check.repository)?.let { latest ->
-                if (isNewer(latest, check.pinnedVersion)) {
+                if (Versions.isNewer(latest, check.pinnedVersion)) {
                     report += "${check.name}: ${check.pinnedVersion} -> $latest"
                 }
             }
@@ -63,36 +70,8 @@ abstract class BuildpackUpdatesTask : DefaultTask() {
                     .GET()
                     .build()
             val response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString())
-            Regex("\"name\":\"([0-9][^\"]*)\"")
-                .findAll(response.body())
-                .map { it.groupValues[1] }
-                .maxWithOrNull { a, b -> compareVersions(a, b) }
+            Versions.highest(BuildpackJson.TAG_NAME.findAll(response.body()).map { it.groupValues[1] }.toList())
         } catch (_: Exception) {
             null
         }
-
-    /** Whether [candidate] is a newer version than [current], comparing numeric segments. */
-    private fun isNewer(candidate: String, current: String): Boolean = compareVersions(candidate, current) > 0
-
-    /** Compares two version strings by numeric segment, padding the shorter with zeros. */
-    private fun compareVersions(a: String, b: String): Int {
-        val aParts = numericParts(a)
-        val bParts = numericParts(b)
-        val max = maxOf(aParts.size, bParts.size)
-        for (i in 0 until max) {
-            val diff = aParts.getOrElse(i) { 0 } - bParts.getOrElse(i) { 0 }
-            if (diff != 0) {
-                return diff
-            }
-        }
-        return aParts.size - bParts.size
-    }
-
-    /** The numeric segments of a version string (a non-numeric prefix yields an empty list). */
-    private fun numericParts(version: String): List<Int> =
-        version
-            .takeWhile { it.isDigit() || it == '.' }
-            .split('.')
-            .filter { it.isNotEmpty() }
-            .map { it.toIntOrNull() ?: 0 }
 }

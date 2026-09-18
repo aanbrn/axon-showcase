@@ -39,7 +39,7 @@ abstract class HelmUpdatesTask : AbstractHelmRepositoriesTask() {
         val report = mutableListOf<String>()
 
         helmCliLatest()?.let { latest ->
-            if (isNewer(latest, helmCliVersion.get())) {
+            if (Versions.isNewer(latest, helmCliVersion.get())) {
                 report += "helm: ${helmCliVersion.get()} -> $latest"
             }
         }
@@ -52,7 +52,7 @@ abstract class HelmUpdatesTask : AbstractHelmRepositoriesTask() {
                     latestChartVersion(check)
                 }
             latest?.let { l ->
-                if (isNewer(l, check.pinnedVersion)) {
+                if (Versions.isNewer(l, check.pinnedVersion)) {
                     report += "${check.name}: ${check.pinnedVersion} -> $l"
                 }
             }
@@ -80,14 +80,8 @@ abstract class HelmUpdatesTask : AbstractHelmRepositoriesTask() {
                 execHelmCaptureOutput("search", "repo") {
                     args(check.chartRef, "--versions")
                 }
-            val pinnedMajor = leadingInteger(check.pinnedVersion)
-            output
-                .lines()
-                .drop(1)
-                .mapNotNull { line ->
-                    line.trim().split(Regex("\\s+")).getOrNull(1)
-                }
-                .firstOrNull { candidate -> leadingInteger(candidate) == pinnedMajor }
+            val versions = output.lines().drop(1).mapNotNull { line -> line.trim().split(Regex("\\s+")).getOrNull(1) }
+            HelmUpdateRules.sameMajor(versions, check.pinnedVersion)
         } catch (_: Exception) {
             null
         }
@@ -105,27 +99,4 @@ abstract class HelmUpdatesTask : AbstractHelmRepositoriesTask() {
         } catch (_: Exception) {
             null
         }
-
-    private fun isNewer(candidate: String, current: String): Boolean {
-        val candidateParts = numericParts(candidate)
-        val currentParts = numericParts(current)
-        val max = maxOf(candidateParts.size, currentParts.size)
-        for (i in 0 until max) {
-            val c = candidateParts.getOrElse(i) { 0 }
-            val k = currentParts.getOrElse(i) { 0 }
-            if (c != k) {
-                return c > k
-            }
-        }
-        return false
-    }
-
-    private fun numericParts(version: String): List<Int> =
-        version
-            .takeWhile { it.isDigit() || it == '.' }
-            .split('.')
-            .filter { it.isNotEmpty() }
-            .map { it.toIntOrNull() ?: 0 }
-
-    private fun leadingInteger(version: String): Int? = numericParts(version).firstOrNull()
 }

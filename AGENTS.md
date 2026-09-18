@@ -30,23 +30,29 @@ changes made and decide when (or whether) to archive.
 **Never push to the remote automatically.** Commit locally when asked, but only `git push` when the user explicitly
 requests it (e.g., "push" or "commit and push").
 
-**Create the change's branch at propose — and commit only when a push or a branch switch forces it.** As soon as a
-change is proposed, put its artifacts on their own branch (named after the change) and commit nothing yet: the proposal,
-the review findings, and the implementation all stay in the working tree until a commit is forced. Two things force one
-on their own — **a push** and **a branch switch that would carry unfinished changes — tracked or untracked —** onto the
-other branch (commit, or `git stash`); an untracked unit survives a reset but rides a `git switch` onto whichever branch
-you land on, where a directory-scoped `git add` can stage it into the wrong unit's commit (commit each unit on its own
-branch before starting the next) — besides a commit the user explicitly asks for. A push is the moment a change commits:
-the branch's first push carries whatever is ready then — proposal and implementation together on the default path, the
-proposal alone if a proposal-stage draft PR is opened (see the README) — and the archive adds a commit before the final
-push. Review findings are therefore edited in the working tree, never committed as an "Address review findings" commit,
-and nothing is committed while a review loop runs. Until the first commit the change dir is untracked, which is safe
-against the hazards the gotchas name — an untracked change dir survives `git reset --hard` and `git checkout --`
-(verified) — `git clean -fd` is the one loss vector, so never run it on a branch holding unfinished work. The change dir
-and all subsequent work live on that branch; rejecting a proposal is a branch delete, never a `main` cleanup. A branch
-that has been committed (so it can fall behind `main`) is refreshed from `origin/main` — recreate it when it holds no
-work, otherwise rebase it — rather than continued on stale; once a PR is open, the mechanism is `gh pr update-branch`
-instead (see the BEHIND gotcha). captured: capture-reverted-sweep-lessons (#283)
+**Create the change's branch at propose — and leave the work uncommitted until a commit is forced or the user has
+approved it.** As soon as a change is proposed, put its artifacts on their own branch (named after the change) and
+commit nothing: the proposal, the review findings, and the implementation all stay in the working tree, so the user's
+review pass runs against the visible `git status`/`git diff`. Exactly two things force a commit on their own — **a
+push** and **a branch switch that would carry unfinished changes — tracked or untracked —** onto the other branch
+(commit, or `git stash`); an untracked unit survives a reset but rides a `git switch` onto whichever branch you land on,
+where a directory-scoped `git add` can stage it into the wrong unit's commit (commit each unit on its own branch before
+starting the next) — besides a commit the user explicitly asks for, and no local commit before the user's approval pass.
+A push is the moment a change commits: the branch's first push carries whatever is ready then — proposal and
+implementation together on the default path, the proposal alone if a proposal-stage draft PR is opened (see the README)
+— and the archive adds a commit before the final push. Review findings are therefore edited in the working tree, never
+committed as an "Address review findings" commit, and nothing is committed while a review loop runs. Until the first
+commit the change dir is untracked, which is safe against the hazards the gotchas name — an untracked change dir
+survives `git reset --hard` and `git checkout --` (verified) — `git clean -fd` is the one loss vector, so never run it
+on a branch holding unfinished work. The change dir and all subsequent work live on that branch; rejecting a proposal is
+a branch delete, never a `main` cleanup. A branch that has been committed (so it can fall behind `main`) is refreshed
+from `origin/main` — recreate it when it holds no work, otherwise rebase it — rather than continued on stale; once a PR
+is open, the mechanism is `gh pr update-branch` instead (see the BEHIND gotcha). This covers the whole unit, not just
+code: a docs refresh or a standalone fix stays uncommitted too, so the quick and manual reviews run against the visible
+working-tree diff, and the change's `docs/ideas.md` removal rides the branch like the rest. Committing early and then
+adding one "Address quick-review findings" commit per review round produced 11 commits for a single change (squashed
+before delivery) — the discipline above removes that failure mode by construction, leaving nothing to squash. captured:
+capture-reverted-sweep-lessons (#283)
 
 **Fork branches from `main` only.** Every new branch — a change branch, a standalone fix, or a post-merge capture's docs
 change — is created from `origin/main` (fetch first), never from another work branch. Branching from a work branch
@@ -60,15 +66,6 @@ repoints it, or `git branch --unset-upstream`). When the local branch is not nam
 update — completing an agent's `opencode/…` PR from a differently-named checkout — push with an explicit refspec
 (`git push origin HEAD:<remote-branch>`); the `git push -u origin <branch>` remedy above would open a second branch and
 leave the PR without the commit.
-
-**Leave the work uncommitted until the user has reviewed it.** After applying a change, do not commit before the user
-has done their review pass — keep the working-tree diff visible (`git status`/`git diff`) so they can see exactly which
-files changed. Commit only after the user approves or explicitly asks; the only things that force one on their own are a
-push and a branch switch (see the branch bullet above). This covers the whole unit, not just code: a docs refresh or a
-standalone fix stays uncommitted too, so the quick and manual reviews run against the visible working-tree diff, and the
-change's `docs/ideas.md` removal rides the branch like the rest. Committing early and then adding one "Address
-quick-review findings" commit per review round produced 11 commits for a single change (squashed before delivery) — the
-discipline above removes that failure mode by construction, leaving nothing to squash.
 
 **Auto-review the change before asking for a manual review.** After finishing a change's **proposal** (planning
 artifacts) and again after finishing its **implementation**, run a quick review of the work (the `review-quick`
@@ -472,23 +469,19 @@ and it shares the same `gradle/actions/setup-gradle` caching rules as `.github/w
 sub-projects with the root `.snyk` policy) on a weekly schedule and via `workflow_dispatch`, authenticated with the
 `SNYK_TOKEN` secret. It is observational — never a merge gate.
 
-`.github/workflows/dependency-updates.yml` runs the Gradle dependency update report (`./gradlew dependencyUpdates`) on a
-weekly schedule and via `workflow_dispatch`, opening or updating the "Dependency updates" issue with only the actionable
-sections of `build/dependencyUpdates/report.txt` (stable catalog updates + the Gradle wrapper status) using the
-`GITHUB_TOKEN` (`issues: write`). When there are actionable updates it posts a comment mentioning the repository owner
-(so they are notified); runs with no updates update the issue silently. It is observational — never a merge gate.
+The three update-check workflows — `.github/workflows/dependency-updates.yml`, `.github/workflows/helm-updates.yml`, and
+`.github/workflows/buildpack-updates.yml` — each run a Gradle report on a weekly schedule and via `workflow_dispatch`,
+open or update their tracker issue from that report's file with the `GITHUB_TOKEN` (`issues: write`), post a comment
+mentioning the repository owner when there are actionable updates (so they are notified), and update the issue silently
+when there are none. They are observational — never a merge gate. What each covers:
 
-`.github/workflows/helm-updates.yml` runs the Helm update check (`./gradlew helmUpdates`) on a weekly schedule and via
-`workflow_dispatch`, opening or updating the "Helm updates" issue with the actionable coordinates from
-`build/helm-updates/report.txt` (the Helm CLI and pinned chart versions that have a newer version), using the
-`GITHUB_TOKEN` (`issues: write`). When there are updates it posts a comment mentioning the repository owner (so they are
-notified); runs with no updates update the issue silently. It is observational — never a merge gate.
-
-`.github/workflows/buildpack-updates.yml` runs the Paketo buildpack update check (`./gradlew buildpackUpdates`) on a
-weekly schedule and via `workflow_dispatch`, opening or updating the "Buildpack updates" issue with the pinned builder
-and buildpack coordinates from `build/buildpack-updates/report.txt` that have a newer version, using the `GITHUB_TOKEN`
-(`issues: write`). When there are updates it posts a comment mentioning the repository owner (so they are notified);
-runs with no updates update the issue silently. It is observational — never a merge gate.
+- `dependency-updates.yml` — `./gradlew dependencyUpdates`; the actionable sections of
+  `build/dependencyUpdates/report.txt` (stable catalog updates + the Gradle wrapper status), in the "Dependency updates"
+  issue.
+- `helm-updates.yml` — `./gradlew helmUpdates`; the actionable coordinates from `build/helm-updates/report.txt` (the
+  Helm CLI and pinned chart versions that have a newer version), in the "Helm updates" issue.
+- `buildpack-updates.yml` — `./gradlew buildpackUpdates`; the pinned builder and buildpack coordinates from
+  `build/buildpack-updates/report.txt` that have a newer version, in the "Buildpack updates" issue.
 
 `.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so an action whose
 major bump targets a newer Node runtime (e.g. the Node 20 → Node 24 migration) surfaces as a reviewable PR instead of a

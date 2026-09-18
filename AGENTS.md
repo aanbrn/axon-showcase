@@ -170,20 +170,25 @@ barring a gotcha that _restates the fix_, not a general rule the fix exemplifies
 one of the things the merge left unaddressed. Before rejecting a captured rule as a re-capture, check `main`'s own text
 (`git show origin/main:AGENTS.md`) and reject only a rule that restates the fix itself. Every proposal names the
 existing bullet it extends, or states that no bullet covers the lesson — a new rule merges into or replaces one rather
-than accreting. Each captured rule also carries its origin — at the end of the rule it records — in a
-`captured: <change>` marker — the change at an implementation capture, the change and its PR at the post-merge one — so
-a rule's provenance is readable without git and survives a reflow: grep the `captured:` token, which no reflow splits
-even when the change name wraps to the next line. On a bullet the capture merged into rather than authored, the
-end-of-bullet marker records only the latest captured contribution, not the bullet's total origin — the pre-existing
-text stays recoverable from `git blame` / `git log -S`. Do not skip the subagent on your own judgment that "there's
-nothing new" — the merge itself is the trigger, and the subagent is the arbiter (the archive merge after
+than accreting. When the addition restates a remedy the target bullet already carries, read the duplication as the
+target rule's wording being the gap rather than a missing mode: re-read the rule the incident should have caught by and
+ask whether one word excludes it — a drafted third `git add <dir>` mode restated the staged-set inspection that bullet
+already states, while the real gap was the commit-discipline clause saying "tracked" where the change dir is
+deliberately left untracked; the owner's "would following the existing discipline already have prevented this?" is the
+test, verified against the text before a bullet is added. Each captured rule also carries its origin — at the end of the
+rule it records — in a `captured: <change>` marker — the change at an implementation capture, the change and its PR at
+the post-merge one — so a rule's provenance is readable without git and survives a reflow: grep the `captured:` token,
+which no reflow splits even when the change name wraps to the next line. On a bullet the capture merged into rather than
+authored, the end-of-bullet marker records only the latest captured contribution, not the bullet's total origin — the
+pre-existing text stays recoverable from `git blame` / `git log -S`. Do not skip the subagent on your own judgment that
+"there's nothing new" — the merge itself is the trigger, and the subagent is the arbiter (the archive merge after
 `remove-redis-client-label` was skipped on exactly such an assumption, and the user had to push back before the
 forgotten-archive and premise-interrogation lessons were captured). When the user asks "is there anything else to
 capture?", treat it as a prompt to run the subagent again over the events — not as a request to justify the previous
 pass. An initial "nothing to capture" verdict is a hypothesis, not a conclusion: the session that produced it had
 process mistakes that were themselves the lesson (e.g. the archive was forgotten and the premise-interrogation gap went
 uncaptured until the user pushed twice). A docs-fix merge has nothing further to capture only if the subagent actually
-reviewed it and said so.
+reviewed it and said so. captured: capture-untracked-follows-switch (#284)
 
 **A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not merely
 records it.** The post-merge capture is the pass that can read the merge's non-diff effects: an agent PR's closing
@@ -1374,6 +1379,11 @@ that override when bumping the Kafka image tag.
   an item's end from the list's own structure (a wrapped continuation is indented; a `- ` at column zero starts a new
   item) and have any script that ranges over or appends to items assert that boundary itself — no marker on a plain
   bullet, every marker at the end of the rule it names — before trusting the result. captured: retro-mark-captured-rules
+- **Keep em-dashes paired when inserting a clause into a sentence that already uses them.** A rework that adds an aside
+  to a dashed sentence can leave an odd number of dashes, so the reader cannot tell which dash opens the outer clause
+  and which closes it — the trailing clause's pairing is ambiguous. Count the dashes after the edit (an odd count is the
+  defect) and prefer parentheses for the inserted aside; Prettier reflows prose but never balances delimiters, so no
+  gate catches an unpaired dash — proofread it as content. captured: capture-untracked-follows-switch (#284)
 - **Align ASCII/Unicode diagram comments by character width, not byte length.** In the README's project-structure tree,
   `awk`/`length()` counts UTF-8 box-drawing characters (`│`, `├`, `─`) as multiple bytes, so byte columns ≠ visual
   columns and the `#` comments end up misaligned. Measure with a decoded string (`len(line[:idx]) + 1` in Python) and

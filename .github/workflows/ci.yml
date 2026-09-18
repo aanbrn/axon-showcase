@@ -37,7 +37,7 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('showcase-web-ui/package-lock.json') }}
 
       - name: Install openspec CLI
-        run: npm install --global @fission-ai/openspec@1.13.0
+        run: npm install --global @fission-ai/openspec@1.13.1
 
       - name: Install actionlint
         shell: bash

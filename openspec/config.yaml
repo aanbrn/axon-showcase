@@ -32,8 +32,6 @@ context: |
     - test -> componentTest -> integrationTest (in that order); e2eTest is a separate opt-in task
     - componentTest is faster, no containers
     - integrationTest requires Docker (Testcontainers)
-    - disable-axoniq-console-message=true is set both in integration tests and in each service's main
-      application source
     - showcase-api-gateway e2eTest depends on Docker images of all other services being built
       (bootBuildImage) and runs after that module's own integrationTest
     - the io.github.build-extensions-oss.helm / io.github.build-extensions-oss.helm-releases gradle-helm-plugin tasks

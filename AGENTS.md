@@ -1522,7 +1522,7 @@ that override when bumping the Kafka image tag.
   caught the false premise. Before designing around a limitation ("this can't be automated"), verify it by trying the
   command or reading its source/docs — do not infer impossibility from a help screen. The same holds for a capability
   the docs describe only _partially_: the permissions docs name `~`/`$HOME` pattern expansion, and an `AGENTS.md` bullet
-  concluded `{env:VAR}` was unsupported — it is not, and the scratch-files gotcha records the substitution plus the
+  concluded `{env:VAR}` was unsupported — it is not, and the scratch-files convention records the substitution plus the
   `{env:TMPDIR}` trailing-separator caveat. That false limitation survived the review gate and was only caught by
   reading the source, because a tool's behavior is not repo-evidenced and no in-repo gate can check it. Treat a doc's
   account of a feature as a floor, not a boundary, and verify a tool-behavior claim against the source/CLI before

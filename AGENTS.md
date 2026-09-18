@@ -83,7 +83,14 @@ or the thread moves on — leaves the request outstanding, so re-ask explicitly 
 PR, archiving, or merging, and do not read a tangential reply as clearance. Work done while awaiting the pass must stay
 in the working tree until it is given; as the owner recounted afterwards, a clean quick review asked for the manual
 pass, the reply asked about lesson capture instead, and the capture was folded into the same branch and the work
-continued — nothing was committed before the repeated request was answered, but the request had been missed.
+continued — nothing was committed before the repeated request was answered, but the request had been missed. A review
+loop that keeps finding the **same class** of observation round after round is not converging — each fix is treating a
+symptom of a root cause that is still there, and the next round will find another instance. Stop and re-derive the root
+cause, or abandon the unit; do not layer another special case. The `retro-mark-captured-rules` provenance backfill took
+three rounds, each trading one systematic fault for another (a class filter dropped capture-shaped rules, an
+`approximate` tag named a reword, markers still landed on the wrong item), because the item-boundary logic was wrong
+from the start; it was reverted rather than shipped. A revert after a non-converging loop is a legitimate outcome —
+record why in the change dir so the decision is not re-litigated. captured: retro-mark-captured-rules
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -1350,12 +1357,21 @@ that override when bumping the Kafka image tag.
 - Testcontainers 2.0.5 moved `PostgreSQLContainer` from `org.testcontainers.containers` (now a deprecated shim) to the
   non-generic `org.testcontainers.postgresql.PostgreSQLContainer` — use the new import without the `<?>`/`<>` type
   arguments.
-- **Programmatic file restructuring can silently drop a whole section — verify every expected heading survives.**
-  Reordering the README with a Python boundary script dropped the entire "Getting Started" section: the move used
-  `lines[ends['Development Workflow']:]`, which starts at the _next_ section and skips the block sitting between the
-  two, and only a follow-up grep for `## Getting Started` caught the loss. After any script-driven move/rewrite of a
-  markdown file, grep for each expected heading (or diff the heading list before/after) before reporting done; for a
-  docs reorder, prefer the edit tool over a hand-rolled reordering script.
+- **Programmatic markdown edits can silently drop a section or mis-assign an item — verify the structure at the
+  granularity you edited.** Reordering the README with a Python boundary script dropped the entire "Getting Started"
+  section: the move used `lines[ends['Development Workflow']:]`, which starts at the _next_ section and skips the block
+  sitting between the two, and only a follow-up grep for `## Getting Started` caught the loss. After any script-driven
+  move/rewrite of a markdown file, grep for each expected heading (or diff the heading list before/after) before
+  reporting done; for a docs reorder, prefer the edit tool over a hand-rolled reordering script. The same class bites at
+  item granularity: the `retro-mark-captured-rules` provenance sweep derived each rule's line range with a boundary
+  heuristic that treated a top-level plain `- Text` bullet directly after a bold-lead rule as the rule's continuation.
+  Three such adjacencies exist in `AGENTS.md` (`A buildpack pin is verified…`,
+  `palantir-java-format does not manage imports`, `A project(...) dependency…`), and the second rule's range ran through
+  the eight plain bullets behind it — so both the `git log -L` range an origin was read from and the line the
+  `captured:` marker was appended to belonged to the wrong item, and the marker landed on the following bullet. Derive
+  an item's end from the list's own structure (a wrapped continuation is indented; a `- ` at column zero starts a new
+  item) and have any script that ranges over or appends to items assert that boundary itself — no marker on a plain
+  bullet, every marker at the end of the rule it names — before trusting the result. captured: retro-mark-captured-rules
 - **Align ASCII/Unicode diagram comments by character width, not byte length.** In the README's project-structure tree,
   `awk`/`length()` counts UTF-8 box-drawing characters (`│`, `├`, `─`) as multiple bytes, so byte columns ≠ visual
   columns and the `#` comments end up misaligned. Measure with a decoded string (`len(line[:idx]) + 1` in Python) and
@@ -1452,8 +1468,15 @@ that override when bumping the Kafka image tag.
   change between the two and no gate reads it (`#266`'s repeated review rounds caught several unverified external
   assertions — a GitHub docs URL written from memory, a false "Docker Hub carries nothing" against five live
   repositories, wrong dates; the owner deleted those repositories mid-session, invalidating the entry between its
-  writing and its review). Verify a URL by requesting it, and treat the review, not a gate, as the check. captured:
-  make-captured-rules-traceable (#279)
+  writing and its review). Verify a URL by requesting it, and treat the review, not a gate, as the check. When a script
+  generates many claims at once, the method that derived them is not their evidence: each generated item needs its own
+  control, applied per item rather than as a spot check, because a heuristic that is right on nine of ten items writes
+  its one error silently into the durable file and a hedge tag (`approximate`, "uncertain") does not repair it. The
+  `retro-mark-captured-rules` backfill's first attempt named 8 origins whose commit contained no text of the rule at all
+  — including `ddaa51e`, claimed for the log-assertion rule whose text it never mentions — because the range and the
+  phrase were never required to be about the same rule; adding the per-item control (the candidate origin's added lines
+  must contain the rule's own opening phrase) substantiated 30+ origins independently. captured:
+  retro-mark-captured-rules
 
 - **A comparison between two runs or files that differ in more than one dimension cannot attribute the difference to
   either — isolate the variable before naming a cause.** Comparing `ci.yml`'s `Cache mode: write` with the `opencode`

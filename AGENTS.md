@@ -1459,10 +1459,15 @@ that override when bumping the Kafka image tag.
   overstated process claim. When a doc quotes a rule/spec/comment, copy the exact text (or drop the quote marks and
   describe it), and check the mechanism before using words like "enforced", "always", "never", or "every" — against the
   variants other docs define, too, since an unconditional rule must hold on every documented path, not only the default
-  one (the README's proposal-stage draft PR is such a variant). Check the claim's grammatical subject too, not only its
-  wording — a pronoun can bind a claim to the wrong actor: a README draft closed with "… and a practice of reporting
-  gaps in the libraries and tools _it_ depends on", which bound the project's upstream-report practice to OpenCode (the
-  bullet's subject) rather than to the project; naming the subject fixed it.
+  one (the README's proposal-stage draft PR is such a variant). One of those paths is the rule's own text: state a
+  formal criterion — a count, a delimiter balance, a uniqueness test — with its scope where the criterion is stated, not
+  only in the rule's opening sentence, so a literal reading cannot apply it to the rule itself (the
+  `Keep em-dashes paired…` gotcha's odd-count check is scoped by its first sentence to a sentence that already uses
+  paired dashes; read per-sentence, it would flag its own lone-aside sentences). Check the claim's grammatical subject
+  too, not only its wording — a pronoun can bind a claim to the wrong actor: a README draft closed with "… and a
+  practice of reporting gaps in the libraries and tools _it_ depends on", which bound the project's upstream-report
+  practice to OpenCode (the bullet's subject) rather than to the project; naming the subject fixed it. captured:
+  capture-gap-not-new-bullet (#285)
 - **A durable artifact may assert only what the repository can evidence — a history that lives only in the conversation
   is not repo history.** An earlier draft of this bullet cited a `/var/folders/**` config attempt — a pattern proposed
   in conversation but never written to a config file — and asserted an unobserved `setup-hosts.sh` outcome; a review

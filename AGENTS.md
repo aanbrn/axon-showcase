@@ -85,11 +85,8 @@ pass, the reply asked about lesson capture instead, and the capture was folded i
 continued — nothing was committed before the repeated request was answered, but the request had been missed. A review
 loop that keeps finding the **same class** of observation round after round is not converging — each fix is treating a
 symptom of a root cause that is still there, and the next round will find another instance. Stop and re-derive the root
-cause, or abandon the unit; do not layer another special case. The `retro-mark-captured-rules` provenance backfill took
-three rounds, each trading one systematic fault for another (a class filter dropped capture-shaped rules, an
-`approximate` tag named a reword, markers still landed on the wrong item), because the item-boundary logic was wrong
-from the start; it was reverted rather than shipped. A revert after a non-converging loop is a legitimate outcome —
-record why in the change dir so the decision is not re-litigated. captured: retro-mark-captured-rules
+cause, or abandon the unit; do not layer another special case. A revert after a non-converging loop is a legitimate
+outcome — record why in the change dir so the decision is not re-litigated. captured: retro-mark-captured-rules
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -148,11 +145,11 @@ redundant" as a hypothesis to verify, not a justification to remove.
 **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's own
 prior reconciliation.** ADR-0002 makes the Java `@ConfigurationProperties` the surface that owns a property's default,
 not the value to prefer once the surfaces have drifted; a change that read it as "the Java value always wins" planned to
-lower the deployed `showcaseCache` bound to the field's lagging `1000`, until review showed
-`align-gateway-cache-defaults` had resolved the identical drift by picking the operationally-intended value, raising the
-Java default and lowering the yml and chart defaults. When reconciling a value stated on several surfaces, search the
-archives for the prior change that reconciled the same class of drift and follow its direction — and read the
-introducing commit's full diff before treating an edit as incidental (the `git log` check above).
+lower the deployed `showcaseCache` bound to the field's lagging value, until review showed
+`align-gateway-cache-defaults` had resolved the identical drift by picking the operationally-intended value and raising
+the Java default instead. When reconciling a value stated on several surfaces, search the archives for the prior change
+that reconciled the same class of drift and follow its direction — and read the introducing commit's full diff before
+treating an edit as incidental (the `git log` check above).
 
 **Capture lessons after a change's implementation, and once after a non-capture merge.** Once a change's implementation
 quick review is clean — and once again after the PR is merged, when that PR was **not itself a capture**, i.e. a change,
@@ -416,9 +413,6 @@ run:
   create → appears, start → STARTED, saga auto-start reflected over SSE, live events appended to the timeline, and a
   duplicate title surfacing the gateway validation error.
 
-`disable-axoniq-console-message=true` is set both in integration tests and in each service's main application source
-(e.g., `ShowcaseApiApplication.java`).
-
 **DB scripts** — before running the command-service standalone (outside Docker), ensure the PostgreSQL event store is
 initialized:
 
@@ -497,8 +491,8 @@ read-only cache access — while the run itself succeeds; do not chase it. Repor
 
 **An update-check issue's named target version can be stale by the time it is actioned — re-resolve the latest before
 bumping.** The update-check issues refresh weekly, so the upstream can publish again in between: the "Helm updates"
-issue named `prometheus-community-stack: 90.0.0 -> 91.2.3` while `91.4.0` was already current. Confirm the target with
-the tool's own lookup (`helm search repo <chart>`, `gh api repos/<org>/<repo>/releases/latest`,
+issue named a chart version the upstream had already superseded by the time the bump was actioned. Confirm the target
+with the tool's own lookup (`helm search repo <chart>`, `gh api repos/<org>/<repo>/releases/latest`,
 `npm view <pkg> version`) and bump to the resolved latest.
 
 ## Architecture
@@ -605,39 +599,36 @@ Key modules (libraries, not services):
   (captured by a change) or once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR
   instead); only open ideas remain (see the file's header). Promotion to a GitHub issue is a **link, not a removal** —
   annotate the idea with the issue number (`; promoted to issue #NNN`) when you promote it, since the file's header
-  names only the issue's link to the change, not the scratchpad's back-link to the issue, so the two drift apart
-  (#262/#263 needed a follow-up PR to add theirs). Give every parked entry a trailing status tag stating its disposition
-  (`— parked; no change yet.` is the common form; a promoted or explored-and-set-aside idea says so instead), since the
-  header fixes the sections' order and dating but not the tag, and the tag is what marks the entry as a still-unowned
-  idea rather than one already routed to work. Also sweep `docs/ideas.md` for references to the thing this change
-  shipped — an open idea that still calls it "the proposed X" is itself a stale claim, and no auditor covers that file
-  (the three auditors own `AGENTS.md`/`.opencode/`, the spec corpus, and `docs/adr/` plus the architectural surface
-  respectively); update the idea's prose in the same change, including any enumeration or count it carries ("two others
-  remain open: A, B") that the change's new instance makes wrong. Docs that ARE the change (new agent/command/skill
-  documentation, README rows describing a new capability, the change's idea removal) ship with the change's PR; docs
-  that refresh facts about a completed change ship as a separate docs PR — a newly parked idea that is not yet a change
-  is such a docs PR. A standalone `docs/ideas.md` edit that no change owns (a reword or a stale-fact correction) also
-  ships as its own docs PR, forked from `main`; an edit the change itself causes rides that change's branch. Do not read
-  that last clause as covering a **newly parked idea**: an open question the change's own sweep happened to surface is a
-  new, independent idea, not an artifact of the change, so it ships as its own docs PR forked from `main` (the
-  `widen-architecture-auditor-to-intent-gaps` design recorded this explicitly, and the separation also avoids the change
-  branch rebasing over a `docs/ideas.md` edit). Only the change's own idea removal, or prose about the thing it shipped,
-  rides the change branch. Decide the owner before committing — a docs PR forked from `main` cannot carry an edit
-  committed on a change branch, so committing it there first for a clean tree silently leaves it out of the docs PR and
-  `main` unchanged — and verify the fix against the merged PR's diff rather than the PR description, which can claim a
-  change the diff does not contain. A parked-idea docs PR owes the refresh too: fold any durable fact the idea reveals
+  names only the issue's link to the change, not the scratchpad's back-link to the issue, so the two drift apart. Give
+  every parked entry a trailing status tag stating its disposition (`— parked; no change yet.` is the common form; a
+  promoted or explored-and-set-aside idea says so instead), since the header fixes the sections' order and dating but
+  not the tag, and the tag is what marks the entry as a still-unowned idea rather than one already routed to work. Also
+  sweep `docs/ideas.md` for references to the thing this change shipped — an open idea that still calls it "the proposed
+  X" is itself a stale claim, and no auditor covers that file (the three auditors own `AGENTS.md`/`.opencode/`, the spec
+  corpus, and `docs/adr/` plus the architectural surface respectively); update the idea's prose in the same change,
+  including any enumeration or count it carries ("two others remain open: A, B") that the change's new instance makes
+  wrong. Docs that ARE the change (new agent/command/skill documentation, README rows describing a new capability, the
+  change's idea removal) ship with the change's PR; docs that refresh facts about a completed change ship as a separate
+  docs PR — a newly parked idea that is not yet a change is such a docs PR. A standalone `docs/ideas.md` edit that no
+  change owns (a reword or a stale-fact correction) also ships as its own docs PR, forked from `main`; an edit the
+  change itself causes rides that change's branch. Do not read that last clause as covering a **newly parked idea**: an
+  open question the change's own sweep happened to surface is a new, independent idea, not an artifact of the change, so
+  it ships as its own docs PR forked from `main`. Only the change's own idea removal, or prose about the thing it
+  shipped, rides the change branch. Decide the owner before committing — a docs PR forked from `main` cannot carry an
+  edit committed on a change branch, so committing it there first for a clean tree silently leaves it out of the docs PR
+  and `main` unchanged — and verify the fix against the merged PR's diff rather than the PR description, which can claim
+  a change the diff does not contain. A parked-idea docs PR owes the refresh too: fold any durable fact the idea reveals
   into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin to an existing enumeration) —
   `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the idea is implemented or dropped.
   `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the same project facts (runtime/Spring/Gradle
   versions, module count, service list, Docker image names) that OpenSpec shows the AI when creating artifacts — refresh
-  it in the same change whenever one of those facts moves. `openspec validate` never checks it, so it drifts silently
-  (it had fallen to Gradle 8.14.5 / 18 modules before the first audit synced it, #170). The repository's own GitHub
-  description and topics are a third un-gated copy of the same facts — they name the stack and went unset until the
-  repository metadata was set — so refresh them in the change that moves one; no gate reads them and no auditor owns a
-  surface outside the repository. A file can also _depend_ on such a surface rather than describe one: `SECURITY.md`'s
-  private-reporting path is a dead end unless private vulnerability reporting is enabled. Enable the setting as part of
-  the change that ships the instruction — a repository setting leaves no diff, so a diff-only review cannot see it — and
-  name the enabling in the change's report. captured: park-retro-marking-idea (#281)
+  it in the same change whenever one of those facts moves. `openspec validate` never checks it, so it drifts silently.
+  The repository's own GitHub description and topics are a third un-gated copy of the same facts — so refresh them in
+  the change that moves one; no gate reads them and no auditor owns a surface outside the repository. A file can also
+  _depend_ on such a surface rather than describe one: `SECURITY.md`'s private-reporting path is a dead end unless
+  private vulnerability reporting is enabled. Enable the setting as part of the change that ships the instruction — a
+  repository setting leaves no diff, so a diff-only review cannot see it — and name the enabling in the change's report.
+  captured: park-retro-marking-idea (#281)
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the

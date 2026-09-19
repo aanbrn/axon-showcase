@@ -55,7 +55,8 @@ Audit along two axes:
 
 Method:
 
-- Read `AGENTS.md` in full, and the in-scope `.opencode/` files, before judging any of them.
+- Read `AGENTS.md` in full, and the in-scope `.opencode/` files, before judging any of them. Report findings; never edit
+  a file — the calling agent verifies and applies what the user approves.
 - **Treat every factual claim as a hypothesis.** Verify it against the repository — grep for consumers, read the
   referenced config/workflow/spec/source file, check `git log` where intent matters — rather than trusting the prose.
   Report only findings you verified.
@@ -66,9 +67,9 @@ Method:
 - Prefer merging or trimming an existing entry over adding a new one; do not invent conventions, and do not re-derive
   behavior the artifacts do not claim.
 
-Report, do not edit. Return findings grouped by severity — **contradiction**, **stale**, **dead reference**,
-**redundant**, and **structural** — labelling a merge disposition `merge`, and a deletion-of-a-duplicate or a removal
-candidate `remove` so the verdict line can count them. Each with:
+Return findings grouped by severity — **contradiction**, **stale**, **dead reference**, **redundant**, and
+**structural** — labelling a merge disposition `merge`, and a deletion-of-a-duplicate or a removal candidate `remove` so
+the verdict line can count them. Each with:
 
 - the location (the file and a line number, or a short verbatim quote so it can be found), and
 - a concrete suggested rewrite or merge (exact replacement text where practical).
@@ -91,8 +92,6 @@ removal candidate under the conciseness analysis, not a victim of its class: the
 visible and attributable. For each item, name the rule, the origin that introduced it, and the source you used to
 establish it: the in-prose `captured:` marker where present, and `git blame` / `git log -S` otherwise, including for the
 rules written before the marker convention. A rule with neither is reported as unattributed rather than guessed.
-
-Never modify any file — the calling agent verifies and applies what the user approves.
 
 **Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
 

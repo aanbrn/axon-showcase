@@ -12,15 +12,31 @@ graduates into a concrete candidate for work, it may be promoted to a GitHub iss
 change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when
 it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-09-19
+
+- Inject a positive-control task into every check-adding change via `openspec/config.yaml` — parked; no change yet. The
+  2026-09-19 retrospective found the same false-signal class recur in the agent's own scratch checks during
+  implementation (one traceable, two as the session's account): a rule in `AGENTS.md` is read only when the agent
+  happens to recall it, whereas a `config.yaml` rule is injected at `openspec new change` / `openspec instructions` time
+  and is hard to miss. The rule would require a change that adds or changes a check to prove it fails on a known-bad
+  input and passes on a known-good one, and to read the output of any scratch command used as evidence. Follow the
+  config read-path gotcha when adding it: quote any scalar containing `: `, and confirm the CLI consumes the rule before
+  relying on it.
+
 ## 2026-09-18
 
 - Run the accreted-rules audit on a cadence rather than on demand — parked; no change yet. The capture and the audit are
   opposite forces: this session's capture rounds added rules while its consolidation passes removed or merged roughly as
   much, and each audit ran only because someone asked for it — even though `agents-auditor` now surfaces merge and
   removal candidates as standing findings. A standing trigger — after every Nth capture, say — would make the balance
-  self-correcting instead of reactive. Decide what N is, and whether the trigger belongs in the capture convention or in
-  a scheduled workflow (see the parked zero-touch scheduled auditor variants, and the four update-check workflows — the
-  repo's existing pattern for an observational check that is never a merge gate).
+  self-correcting instead of reactive. The 2026-09-19 retrospective measured the imbalance: `AGENTS.md` grew 1,559 →
+  1,835 lines in one window, roughly **+220 net across seventeen captures against −16 net across six consolidations**,
+  so a human-triggered prune is too infrequent. Keying the trigger to the `agents-auditor`'s own accreted count (its
+  verdict line already reports `<n> accreted`) is the principled choice — accretion is caused by captures, so the prune
+  should key to the growth signal, not a bare Nth capture or a wall-clock cadence. Batched into one off-peak
+  `schedule:`-triggered run, this also implements the parked off-peak cost idea and the three zero-touch
+  scheduled-auditor variants, all of which want the same mechanism (see the "Merge the parked scheduling/cost ideas"
+  entry).
 
 ## 2026-09-16
 
@@ -52,9 +68,11 @@ it was added (start a new section for a new day rather than appending to the mos
   (the human-documented `setup-idea.sh`, its script-only helper, and the agent-invoked `experience-analysis.sh`), while
   `.opencode/` holds runtime config, agents, commands, and skills. This recurred when the owner asked whether
   `experience-analysis.sh` belonged in `scripts/`; the answer currently lives only in that script's header.
-- Pre-commit guard over the staged set — parked; no change yet. Three recurring, review-caught git errors are
-  mechanically detectable before a commit: staged files `spotlessCheck` would modify, staged generated artifacts
-  (`scripts/__pycache__/*.pyc`), and paths staged and then edited.
+- Pre-commit guard over the staged set — parked; no change yet. Four recurring, review-caught errors are mechanically
+  detectable before a commit: staged files `spotlessCheck` would modify, staged generated artifacts
+  (`scripts/__pycache__/*.pyc`), paths staged and then edited, and `captured:` marker placement (a marker on a plain
+  bullet, or one not at the end of its rule — the 2026-09-19 retrospective found the slip recurring, each time from a
+  script deriving item boundaries wrongly rather than from any ambiguity in the rule).
 - Make the next phase a product phase — parked; no change yet. The first retrospective's recommended direction (see
   `docs/retrospectives/2026-09-16.md`). The tooling is mature enough to be used rather than extended. The highest-value
   parked candidates are narrowing the `query-api` re-export and web-UI trace propagation (the architecture's missing

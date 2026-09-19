@@ -87,7 +87,7 @@ Scheduled ──(saga deadline: startTime)──► STARTED ──(saga deadline
 
 ## Architecture
 
-The application follows **CQRS (Command Query Responsibility Segregation)** with four components:
+The application follows **CQRS (Command Query Responsibility Segregation)** with four services and the web UI:
 
 | Component              | Role                                                                                        |
 | ---------------------- | ------------------------------------------------------------------------------------------- |

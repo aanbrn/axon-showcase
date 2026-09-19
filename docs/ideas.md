@@ -151,20 +151,6 @@ it was added (start a new section for a new day rather than appending to the mos
   first declare what they actually use. Worth its own change: narrow query-api, add the consumers' explicit deps, and
   let the build prove the graph.
 
-- Reconcile the architecture description across README and AGENTS.md — parked; no change yet. The same architectural
-  facts are stated twice — the README's `## Architecture` section and `## Project Structure` tree (component table,
-  event-flow diagram, module tree, for humans) and `AGENTS.md` (the service list and key-module list in its Architecture
-  section, the HTTP ports in Local Development, for agents) — and they have already drifted (the review that caught
-  "four services and a gateway" as a double-count was reading exactly this pair). The human-facing narrative in the
-  README and the agent-facing reference in `AGENTS.md` will always differ in _purpose_, so some restatement is
-  intentional, but each _fact_ (the component count, the service roles, the module inventory) should have one canonical
-  home, with the other naming it rather than restating it. Explore whether the module inventory in particular is worth
-  generating from one source (the Gradle module list) vs. stating it once and cross-referencing, and whether the
-  README's component table should include the web UI (it lists four components; the tree lists five service/gateway
-  directories). This is the other half of the `readme-auditor` now shipped (which cross-checks the README's claims,
-  ports included, against `AGENTS.md`): the audit detects divergence, this idea decides which copy is canonical —
-  complementary, not parallel.
-
 - ADR revisit triggers for time-bounded decisions — parked; no change yet. ADR-0003 and ADR-0004 are explicit deferrals
   whose entire point is to be revisited when a stated condition is met: ADR-0003 (retain Jackson 2; adopt Jackson 3 only
   once Axon and the OpenSearch client support it — an external gate) and ADR-0004 (defer Spring Boot 4; reopen when

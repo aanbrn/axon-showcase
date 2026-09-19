@@ -124,18 +124,20 @@ it was added (start a new section for a new day rather than appending to the mos
   unparseable-config class) — each now carrying an inline close-out. The repository already has the shape for a watcher:
   `dependencyUpdates` / `helmUpdates` / `buildpackUpdates` / `toolingUpdates` are each a small task plus a weekly
   observational workflow that opens or updates an issue and mentions the owner when something is actionable. A report
-  would collect the references from `AGENTS.md`, `README.md`, and `docs/adr/` — the corpus is all `owner/repo#NNN` plus
-  one non-GitHub id (`KAFKA-18281`) — resolve them through the relevant API, and report the ones that closed or went
-  quiet, turning the references into a checked corpus rather than claims. Worth building now: the trigger it describes
-  has already fired twice.
+  would collect the references from `AGENTS.md`, `README.md`, `docs/adr/`, and **`docs/ideas.md`** — the corpus is all
+  `owner/repo#NNN` plus one non-GitHub id (`KAFKA-18281`) — resolve them through the relevant API, and report the ones
+  that closed or went quiet, turning the references into a checked corpus rather than claims. `docs/ideas.md` belongs in
+  the scope though it reads as a scratchpad: it carries more `owner/repo#NNN` references than `README.md` and
+  `docs/adr/` combined, including the two closures this entry records, so a report that skipped it would leave those
+  references untracked. Worth building now: the trigger it describes has already fired twice.
 
 - Retire the `NANOS_DATE_PATTERN` workaround once its fix reaches us — parked; no change yet.
   `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337, milestone 6.2.0-M2), but we resolve
   spring-data-elasticsearch 5.5.13 on the `spring-data-opensearch` 2.0.7 line (2.0.7 declares 5.5.12; the Spring Boot
-  3.5.16 BOM raises it), so the truncation is still live: when a `spring-data-opensearch` release carries 6.2.0-M2, drop
-  the custom pattern and the gotcha that guards it. The other closure candidate does not apply — `#1060` leaves our
-  `checkBuildEnvironmentConstraints` row untouched (see the entry above). Recorded here rather than in the PR body that
-  surfaced it, which no tool reads.
+  3.5.16 BOM raises it), so the truncation is still live: when a `spring-data-opensearch` release carries 6.2.0-M2 — the
+  retirement the upstream-reference report's `#3334` finding points at — drop the custom pattern and the gotcha that
+  guards it. The other closure candidate does not apply — `#1060` leaves our `checkBuildEnvironmentConstraints` row
+  untouched (see the entry above). Recorded here rather than in the PR body that surfaced it, which no tool reads.
 
 ## 2026-09-13
 

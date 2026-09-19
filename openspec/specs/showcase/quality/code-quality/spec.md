@@ -62,10 +62,10 @@ suffixes (`Tests`, `CT`, `IT`, `E2E`).
 The build SHALL format Java and Kotlin DSL (`.gradle.kts`) sources to a canonical style — including removal of unused
 imports — and verify formatting as part of the standard `check` task, with no IDE required. The build SHALL also format
 build-logic Kotlin (`build-logic/src/**/*.kt`) with ktfmt matching the Gradle-DSL style, root markdown (`docs/`,
-`AGENTS.md`, `README.md`, `openspec/specs/`, active `openspec/changes/*/`, and the project-authored `.opencode/`
-markdown — the agent definitions, the project-authored commands, and the project skills) with Prettier at
-`printWidth: 120` with `proseWrap: "always"`, and the project-owned `.opencode/opencode.json` with Prettier at
-`printWidth: 120`, and verify each in `check` — ending the manual 120-char wrapping convention. The
+`AGENTS.md`, `README.md`, `SECURITY.md`, `openspec/specs/`, active `openspec/changes/*/`, the `.github/` markdown, and
+the project-authored `.opencode/` markdown — the agent definitions, the project-authored commands, and the project
+skills) with Prettier at `printWidth: 120` with `proseWrap: "always"`, and the project-owned `.opencode/opencode.json`
+with Prettier at `printWidth: 120`, and verify each in `check` — ending the manual 120-char wrapping convention. The
 `openspec/changes/archive/` historical record is not reformatted, and neither are the generated OpenSpec instruction
 files (the six `opsx-*` commands — the project-authored `opsx-tool-update.md` is in scope — and the `openspec-*` skills)
 nor the vendored `axon4to5-*` skills, which are copied verbatim from upstream.
@@ -97,8 +97,9 @@ nor the vendored `axon4to5-*` skills, which are copied verbatim from upstream.
 
 #### Scenario: Unformatted markdown fails the build
 
-- **WHEN** a file in the markdown scope (e.g. under `docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, an active
-  `openspec/changes/*/`, or the project-authored `.opencode/` markdown) is not Prettier-formatted
+- **WHEN** a file in the markdown scope (e.g. under `docs/`, `AGENTS.md`, `README.md`, `SECURITY.md`, `openspec/specs/`,
+  an active `openspec/changes/*/`, the `.github/` markdown, or the project-authored `.opencode/` markdown) is not
+  Prettier-formatted
 - **THEN** the root markdown formatting check fails and reports the offending file
 
 #### Scenario: Archived change markdown is not reformatted

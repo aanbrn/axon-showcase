@@ -81,12 +81,6 @@ it was added (start a new section for a new day rather than appending to the mos
 - No Code of Conduct — parked; no change yet. Adopting one is a commitment with enforcement expectations, so it is the
   owner's decision rather than a file to drop in; the MIT license and the README already state the project's posture.
 
-- The markdown formatter target omits the root community files — parked; no change yet. `SECURITY.md` and `.github/*.md`
-  are project-authored markdown outside the Spotless `markdown` target (which enumerates `docs/`, `AGENTS.md`,
-  `README.md`, `openspec/specs/`, active changes, and the project-authored `.opencode/` markdown), so nothing re-wraps
-  them and the 120-character rule applies to them by hand. Either add them to the target and to the convention's scope
-  list, or state the exclusion deliberately.
-
 - The GitHub description and topics are un-gated — parked; no change yet. Nothing reads them, and the description sat
   unset until a human noticed. A pull-request check could read the live values and fail on drift, but no pull request
   causes or can remediate that drift, so every unrelated PR would carry the failure. Gating them means the repository's

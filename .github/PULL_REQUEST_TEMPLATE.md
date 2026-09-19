@@ -12,5 +12,5 @@
 
 - [ ] `./gradlew check` (or the Docker-free variant) is green
 - [ ] `spotlessApply` run after the final edit to a Spotless-owned file
-- [ ] Behavior changes went through an OpenSpec change (with its archive commit on this PR) — or this is a docs
-      refresh, a standalone fix, or a dependency bump, which need no change dir
+- [ ] Behavior changes went through an OpenSpec change (with its archive commit on this PR) — or this is a docs refresh,
+      a standalone fix, or a dependency bump, which need no change dir

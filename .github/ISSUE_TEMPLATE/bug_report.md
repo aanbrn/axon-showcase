@@ -1,9 +1,9 @@
 ---
 name: Bug report
 about: Something in the running system or the build does not behave as documented
-title: ""
+title: ''
 labels: bug
-assignees: ""
+assignees: ''
 ---
 
 <!-- Bug reports only. Ideas and feature requests are not tracked here: this project keeps its open ideas in

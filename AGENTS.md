@@ -472,8 +472,15 @@ The four update-check workflows — `.github/workflows/dependency-updates.yml`, 
 `.github/workflows/buildpack-updates.yml`, and `.github/workflows/tooling-updates.yml` — each run a Gradle report on a
 weekly schedule and via `workflow_dispatch`, open or update their tracker issue from that report's file with the
 `GITHUB_TOKEN` (`issues: write`), post a comment mentioning the repository owner when there are actionable updates (so
-they are notified), and update the issue silently when there are none. They are observational — never a merge gate. What
-each covers:
+they are notified), and update the issue silently when there are none. They are observational — never a merge gate.
+
+An added or edited workflow among these — or any other `workflow_dispatch`-enabled scheduled workflow — gets its first
+real run by dispatch, not by waiting for its schedule: GitHub only exposes `workflow_dispatch` once the file exists on
+the default branch, so after it lands on `main` run `gh workflow run <file>` (no CI job exercises it, and `workflowLint`
+checks only the YAML) to exercise the workflow end to end — for an update check that is its report path, jq filter and
+tracker-issue lookup. captured: bump-snyk-cli-pin
+
+**What each covers:**
 
 - `dependency-updates.yml` — `./gradlew dependencyUpdates`; the actionable sections of
   `build/dependencyUpdates/report.txt` (stable catalog updates + the Gradle wrapper status), in the "Dependency updates"
@@ -1624,9 +1631,14 @@ that override when bumping the Kafka image tag.
   tool silently ignores part of it, and from outside a valid config and an ignored one are indistinguishable — the only
   signal is a warning on stderr that no gate reads. Do not lint the shape with a second parser of your own (that encodes
   an assumption about a contract the tool owns); probe the consumer's own read path, and fail a gate on the tool's own
-  warning. Upstream, the reports are `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item) and
-  `Fission-AI/OpenSpec#1892` (an unparseable config); if `validate` gains a config check that fails (an ask in each),
-  the CI probe and the `/opsx-tool-update` re-verification become redundant and can go.
+  warning. The same class covers the change's own `.openspec.yaml`, quieter still: OpenSpec's change-metadata schema is
+  not strict, so an unrecognized key is silently stripped with no warning at all — a `skip_design: true` marker (an
+  inherited agent habit; a dozen archived changes carry it) does nothing, and `openspec status` still reports `design`
+  incomplete and points at `openspec instructions design`. There is no artifact-skip key beyond `skip_specs`: skip
+  `design.md` by simply not writing it, never by adding a key. captured: bump-snyk-cli-pin Upstream, the reports are
+  `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item) and `Fission-AI/OpenSpec#1892` (an unparseable config);
+  if `validate` gains a config check that fails (an ask in each), the CI probe and the `/opsx-tool-update`
+  re-verification become redundant and can go.
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
   changes without the repository moving: when the upstream-reference report was parked, review found two of four

@@ -1329,11 +1329,15 @@ that override when bumping the Kafka image tag.
     first fix over-corrected to `.opencode/**/*.md`, which also matches `node_modules/`, the generator-written `opsx-*`
     commands and `openspec-*` skills, and the vendored `axon4to5-*` skills — so "clean" was unachievable. Expand a glob
     once (`ls <glob>`) before trusting it: a vacuous match fails silently and a recursive one over-matches generated or
-    vendored files. A glob can also under-match across tools: the build's `**` matches zero or more directory levels,
-    while a plain `git ls-files '<dir>/**/*.md'` requires at least one and silently omits a file directly under `<dir>`
+    vendored files. The same failure comes from a name pattern that truncates: a module-inventory diff written
+    `showcase-[a-z-]+` dropped the digit in `showcase-resilience4j-extension`, so the module read as _absent_ and the
+    audit nearly opened a change to "restore" an entry that was present all along — a pattern that silently
+    under-matches reports a false absence, which is worse than a false positive because it manufactures a defect. A glob
+    can also under-match across tools: the build's `**` matches zero or more directory levels, while a plain
+    `git ls-files '<dir>/**/*.md'` requires at least one and silently omits a file directly under `<dir>`
     (`.github/PULL_REQUEST_TEMPLATE.md`) — reproduced, 1 file vs 2 — because git treats `**` specially only under
     `:(glob)`. Reproduce a target's file set with `:(glob)` magic or a Gradle-native listing, and prove the scan returns
-    a known file from each directory level before trusting its total. captured: gate-github-markdown-with-prettier
+    a known file from each directory level before trusting its total. captured: reconcile-readme-agents-architecture
   - **A search that under-matches returns a plausible empty or partial result.** A grep for `permissions:` matched one
     job-level block while the six top-level ones went unreported — a real result that looked complete, so nothing flags
     it without a completeness check (unlike a vacuous glob, which fails silently); match the key at any indentation

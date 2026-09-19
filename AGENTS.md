@@ -941,18 +941,16 @@ explicit version" — once the builder bundles two versions of a buildpack (the 
 failure). The builder itself is also pinned (`builder-jammy-base:0.4.642`, catalog-owned as `paketo-builder-jammy-base`)
 rather than floating, and the `buildpackUpdates` task / `buildpack-updates` workflow reports newer builder and buildpack
 versions — no other update check covers Paketo. The NGINX buildpack is **held back at 1.2.0** because `1.2.1` does not
-work on the primary development machine (arm64): the build there fails with
-`could not find label 'io.buildpacks.buildpackage.metadata'` — the signature the host-state gotcha below documents — or,
-when it did build, produced an AArch64 `nginx` inside an amd64 image, which is tracked upstream as
-[paketo-buildpacks/nginx#1340](https://github.com/paketo-buildpacks/nginx/issues/1340). The identical build with `1.2.0`
-succeeds and serves, and x86 CI builds `1.2.1` fine, so the cause is unsettled: this holds a machine working, it does
-not report a repo-wide defect. Close-out: re-test the arm64 build after a container-runtime change (colima, Rosetta or
-`pack`) or when #1340 is resolved, and re-take the bump if it passes — until then `buildpackUpdates` keeps naming it.
-Unlike the builder, the run image (`paketobuildpacks/run-jammy-base:latest`) is deliberately left floating so base-OS
-security patches keep flowing — do not "complete" the pin by freezing it. The image serves the bundle via nginx on
-`8080` and exposes nginx `stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a gated
-`nginx-prometheus-exporter` sidecar (`webUi.metricsExporter`, on by default when observability metrics export and the
-web UI ServiceMonitor are enabled) converts stub_status to Prometheus `/metrics` on port `9113`, which the Service
+work on the primary development machine (arm64) — the failure signatures are the ones the host-state and buildpack-pin
+gotchas below document, tracked upstream as `paketo-buildpacks/nginx#1340`. The identical build with `1.2.0` succeeds
+and serves, and x86 CI builds `1.2.1` fine, so the cause is unsettled: this holds a machine working, it does not report
+a repo-wide defect. Close-out: re-test the arm64 build after a container-runtime change (colima, Rosetta or `pack`) or
+when the tracked upstream issue is resolved, and re-take the bump if it passes — until then `buildpackUpdates` keeps
+naming it. Unlike the builder, the run image (`paketobuildpacks/run-jammy-base:latest`) is deliberately left floating so
+base-OS security patches keep flowing — do not "complete" the pin by freezing it. The image serves the bundle via nginx
+on `8080` and exposes nginx `stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a
+gated `nginx-prometheus-exporter` sidecar (`webUi.metricsExporter`, on by default when observability metrics export and
+the web UI ServiceMonitor are enabled) converts stub_status to Prometheus `/metrics` on port `9113`, which the Service
 `http-metrics` port and ServiceMonitor scrape. A `PackBuildImageTask` convention defaults the image name to
 `${project.name}:${project.version}`, which the web UI module overrides with the deployable
 `aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. The UI's API base URL is
@@ -1002,7 +1000,8 @@ never built. Note the web UI image is built by `:showcase-web-ui:dockerBuildImag
 `bootBuildImage`); verify the graph with `./gradlew helmInstallToLocal --dry-run` and confirm every chart Deployment's
 image has a build task in it.
 
-**Helm release order**: kps → tempo → db-events/kafka/os-views → axon-showcase. Uninstall in reverse.
+**Helm release order**: kps → tempo → db-events/kafka/os-views → axon-showcase, declared by `mustInstallAfter`/
+`mustUninstallAfter` in `build.gradle.kts`. Uninstall in reverse.
 
 **Helm release namespaces**: declared in `build.gradle.kts` — the observability releases (kps, tempo) deploy into the
 `monitoring` namespace, and the application and infrastructure releases (db-events, kafka, os-views, axon-showcase)
@@ -1302,9 +1301,11 @@ that override when bumping the Kafka image tag.
   formatter target, diff the actual normalizations — do not describe the pass as "purely rewrapping" before you have —
   and confirm the rewritten files parse to the same values and the consuming tool still works (for an agent or skill,
   after an OpenCode reload).
+
 - **A check is evidence only once it has been shown to fail — a clean run, an empty result, or an unmoved control proves
   nothing until the check hits a known positive.** Seven recurring incidents share this root, each with its own mode to
   guard against:
+
   - **A glob or filter that matches nothing is vacuous, not clean.** An audit command told the agent to run "a manual
     120-character check for `.opencode/*.md`" — a glob matching **no file**, since the markdown lives in
     `.opencode/agent/` and `.opencode/commands/`; it shipped that way because no gate reads a glob written in prose. The
@@ -1377,6 +1378,7 @@ that override when bumping the Kafka image tag.
     ("add `@types/node`; a tsconfig isn't needed"), which held only in the passing directory. Run a reproduction from
     the context that fails — the directory whose config the failing tool reads, not the artifact's own directory — and
     treat a different error as its own signal. captured: fix-tmpdir-plugin-types (#299)
+
 - **Run `spotlessApply` after the _final_ write to a Spotless-owned file — ticking a checklist task is an edit too.** A
   `tasks.md` task was ticked ("`spotlessCheck` passes") _after_ the last `spotlessApply`; the re-wrapped prose broke
   Prettier, so the claimed gate actually failed and only the quick review caught it. After any last edit to a
@@ -1397,8 +1399,7 @@ that override when bumping the Kafka image tag.
 - The gradle-helm-plugin 3.1.2 calls the deprecated `Project.getProperties()` (a `--warning-mode all` deprecation that
   becomes a hard error in Gradle 10). Tracked upstream as build-extensions-oss/gradle-helm-plugin#145; bump the plugin
   when a fix is released.
-- `helmInstallToLocal` tags `"*"` select all releases; deployment order defined by `mustInstallAfter`/
-  `mustUninstallAfter` in `build.gradle.kts`.
+
 - NullAway is strict on `showcase.*` packages — ensure proper `@Nullable`/`@NonNull` annotations from `jspecify`.
 - Jackson 3 artifacts (`tools.jackson.core:*`) are present on the query-service and projection-service runtime
   classpaths transitively via `co.elastic.clients:elasticsearch-java`, constrained by the platform's `jackson3-bom`
@@ -1741,20 +1742,21 @@ that override when bumping the Kafka image tag.
   edit command's exit status.** While implementing the `concise-agent-reports` change, an anchor assertion in the edit
   script failed (Spotless had re-wrapped the text), so the edit no-opped — and the next command in the shell sequence
   committed anyway, an unfixed state caught only by reading `git show --stat`, not the commit message or the exit codes
-  (an assertion that fails does not by itself stop a following command unless the chain is gated). Read
-  `git diff --cached` before committing. An anchor read before a formatter run is stale the moment the formatter
-  rewrites the file (`*italic*` → `_italic_`, rewrapping) — take the anchor from a read that follows `spotlessApply`, or
-  re-read the file before reusing a saved one. The same change also showed why a multi-file change belongs in the apply
-  workflow, not an ad-hoc edit script: hand-editing the six agent definitions with `python` `replace` scripts left five
-  of six files edited while `architecture-auditor.md` was untouched and still reported edited, and duplicated a line in
-  `lesson-capture.md` — the script's "edited" line is no per-file evidence, while `openspec-apply-change`'s per-task
-  edits make a skipped file visible. A script that batches its edits and writes once is a third mode: an assert that
-  aborts on a later edit discards every earlier edit in the same script, because none reached the single write — a
-  `tasks.md` script applied 11 checkbox ticks and two rewording replacements, hit a stale anchor on the last and
-  `sys.exit(1)`'d before its one `write_text`, and all 11 ticks were lost (only a later review caught the file still
-  unticked). Write each edit as it succeeds (or split the batch into per-edit scripts) and verify the batch's full
-  result afterward, rather than trusting a script that writes once at the end. captured: make-captured-rules-traceable
-  (#279)
+  (an assertion that fails does not by itself stop a following command unless the chain is gated). Inspect the staged
+  set before committing — the `git add <dir>` gotcha above owns that files check — and read the diff's _content_, not
+  just its file list, since a names-only check cannot see an edit that no-opped. An anchor read before a formatter run
+  is stale the moment the formatter rewrites the file (`*italic*` → `_italic_`, rewrapping) — take the anchor from a
+  read that follows `spotlessApply`, or re-read the file before reusing a saved one. The same change also showed why a
+  multi-file change belongs in the apply workflow, not an ad-hoc edit script: hand-editing the six agent definitions
+  with `python` `replace` scripts left five of six files edited while `architecture-auditor.md` was untouched and still
+  reported edited, and duplicated a line in `lesson-capture.md` — the script's "edited" line is no per-file evidence,
+  while `openspec-apply-change`'s per-task edits make a skipped file visible. A script that batches its edits and writes
+  once is a third mode: an assert that aborts on a later edit discards every earlier edit in the same script, because
+  none reached the single write — a `tasks.md` script applied 11 checkbox ticks and two rewording replacements, hit a
+  stale anchor on the last and `sys.exit(1)`'d before its one `write_text`, and all 11 ticks were lost (only a later
+  review caught the file still unticked). Write each edit as it succeeds (or split the batch into per-edit scripts) and
+  verify the batch's full result afterward, rather than trusting a script that writes once at the end. captured:
+  make-captured-rules-traceable (#279)
 - **IntelliJ settings-XML component names are exact and easy to transpose — take them verbatim from an IDE-written file,
   not the intuitive name.** `scripts/ensure-idea-settings.py` writes the inspection-profile skeleton with
   `<component name="InspectionProjectProfileManager">`; the script it replaced had it transposed as

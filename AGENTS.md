@@ -203,7 +203,12 @@ until a review pass flagged it, and the branch was created only then; the leave-
 
 **Sync the main spec only at archive.** Apply edits to code and the change dir's _delta_ spec — never the main spec
 under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source
-of truth never describes behavior the code hasn't yet been verified against.
+of truth never describes behavior the code hasn't yet been verified against. `skip_specs` is only for a change no
+capability spec covers — grep `openspec/specs/` for the file, config key, or behavior you are changing before declaring
+it. `gate-github-markdown-with-prettier` first declared `skip_specs` for adding `.github/**/*.md` and `SECURITY.md` to
+the Spotless target, but `showcase/quality/code-quality` already specified the markdown scope, so it owed (and shipped)
+a `MODIFIED` delta like the analogous `bring-opencode-under-spotless`; `openspec validate` cannot flag a missing delta,
+so the misclassification would have left the spec silently stale. captured: gate-github-markdown-with-prettier
 
 **A delta spec cannot rename a main-spec requirement header.** A `MODIFIED` requirement in a change's delta spec is
 matched to the main spec by its `### Requirement:` header, so the header must be verbatim-identical to the one it
@@ -1306,7 +1311,11 @@ that override when bumping the Kafka image tag.
     first fix over-corrected to `.opencode/**/*.md`, which also matches `node_modules/`, the generator-written `opsx-*`
     commands and `openspec-*` skills, and the vendored `axon4to5-*` skills — so "clean" was unachievable. Expand a glob
     once (`ls <glob>`) before trusting it: a vacuous match fails silently and a recursive one over-matches generated or
-    vendored files.
+    vendored files. A glob can also under-match across tools: the build's `**` matches zero or more directory levels,
+    while a plain `git ls-files '<dir>/**/*.md'` requires at least one and silently omits a file directly under `<dir>`
+    (`.github/PULL_REQUEST_TEMPLATE.md`) — reproduced, 1 file vs 2 — because git treats `**` specially only under
+    `:(glob)`. Reproduce a target's file set with `:(glob)` magic or a Gradle-native listing, and prove the scan returns
+    a known file from each directory level before trusting its total. captured: gate-github-markdown-with-prettier
   - **A search that under-matches returns a plausible empty or partial result.** A grep for `permissions:` matched one
     job-level block while the six top-level ones went unreported — a real result that looked complete, so nothing flags
     it without a completeness check (unlike a vacuous glob, which fails silently); match the key at any indentation
@@ -1469,27 +1478,35 @@ that override when bumping the Kafka image tag.
   — 5 are empty row separators, 31 are real panels), and "four services and a gateway" (double-counting a table that
   lists four components). The quick review against repo files caught all three. Before writing a replica count,
   panel/section count, or diagram count into a doc, read the source (`helm/values/*/values-*.yaml`, the dashboard JSON,
-  the component table) and cite the real number. Name a count's referent and check its arithmetic against the total it
-  belongs to: an early draft of the `make-captured-rules-traceable` design wrote "46 of them capture-class, and those 65
-  are concentrated in Gotchas (41) and Conventions (21)" — 41 + 21 = 62, so the split could not belong to the 46; it was
-  the 65-bullet set the same sentence also named, and the mismatch was invisible until the review did the addition.
-  Distinguish a point-in-time count from a durable one: an exact count of a growing corpus (capability specs,
-  requirements, archived changes) belongs in a change's own artifacts, where a stale snapshot does no harm, and never in
-  a durable artifact (a subagent definition loaded on every invocation, `AGENTS.md`, the README, a command file, a main
-  spec) — where it drifts on every archive and becomes exactly the drift the `specs-auditor` exists to catch. The
-  `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the change's own delta made the main spec
-  hold 158, and the README still stated a hard "22 capability specs". Describe the shape instead of freezing a tally —
-  the `specs-auditor` definition now says "a corpus … that grows with every archived change", and the README's "120+ and
-  counting" is the pattern to follow. A process count — review rounds, elapsed time, effort — is not a durable fact
-  either, though for a different reason: no reader can verify it from the repository at all, so describe it
-  qualitatively ("repeated review rounds"), not as a precise number. That targets _human_ process narrative — effort,
-  review rounds, how long a session ran — which no machine-measured evidence records; a _machine-measured_ figure is a
-  different class, since the CI run log is its evidence, so an order-of-magnitude build cost (the one-time-full-rebuild
-  vs warm CI timings above) is not a process count and need not be made qualitative. A named example or mechanism inside
-  a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep it on "the gateway e2e test,
-  which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in the test JVM — a false example
-  that surfaced only when ADR-0009 had to restate the same rule. When a second artifact restates an existing fact, diff
-  the two against the code rather than copying the prose. captured: make-captured-rules-traceable (#279)
+  the component table) and cite the real number. A two-way split of an enumerated set can also sum to its total and
+  still be wrong when its boundary is hand-drawn: a scan of the markdown target's completeness re-listed exclusions from
+  memory and counted the vendored `axon4to5-*` and generated `openspec-*` skill files as gated, while the target's own
+  `target(...)` / `targetExclude(...)` entries put them on the excluded side (the project-authored skills stay gated) —
+  and _both_ splits summed to the same total, so the arithmetic check cannot catch it. For a gated-vs-excluded split, or
+  any partition of an enumerated set, derive each side from the config the tool itself reads (`build.gradle.kts`'s
+  `target`/`targetExclude`), not a hand-written complement, and never write the resulting totals into a durable artifact
+  — they move with every change the corpus gains. captured: gate-github-markdown-with-prettier Name a count's referent
+  and check its arithmetic against the total it belongs to: an early draft of the `make-captured-rules-traceable` design
+  wrote "46 of them capture-class, and those 65 are concentrated in Gotchas (41) and Conventions (21)" — 41 + 21 = 62,
+  so the split could not belong to the 46; it was the 65-bullet set the same sentence also named, and the mismatch was
+  invisible until the review did the addition. Distinguish a point-in-time count from a durable one: an exact count of a
+  growing corpus (capability specs, requirements, archived changes) belongs in a change's own artifacts, where a stale
+  snapshot does no harm, and never in a durable artifact (a subagent definition loaded on every invocation, `AGENTS.md`,
+  the README, a command file, a main spec) — where it drifts on every archive and becomes exactly the drift the
+  `specs-auditor` exists to catch. The `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the
+  change's own delta made the main spec hold 158, and the README still stated a hard "22 capability specs". Describe the
+  shape instead of freezing a tally — the `specs-auditor` definition now says "a corpus … that grows with every archived
+  change", and the README's "120+ and counting" is the pattern to follow. A process count — review rounds, elapsed time,
+  effort — is not a durable fact either, though for a different reason: no reader can verify it from the repository at
+  all, so describe it qualitatively ("repeated review rounds"), not as a precise number. That targets _human_ process
+  narrative — effort, review rounds, how long a session ran — which no machine-measured evidence records; a
+  _machine-measured_ figure is a different class, since the CI run log is its evidence, so an order-of-magnitude build
+  cost (the one-time-full-rebuild vs warm CI timings above) is not a process count and need not be made qualitative. A
+  named example or mechanism inside a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep
+  it on "the gateway e2e test, which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in
+  the test JVM — a false example that surfaced only when ADR-0009 had to restate the same rule. When a second artifact
+  restates an existing fact, diff the two against the code rather than copying the prose. captured:
+  make-captured-rules-traceable (#279)
 
 - **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
   is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`

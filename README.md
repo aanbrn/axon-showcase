@@ -232,6 +232,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | `agents-auditor`       | Audits AGENTS.md + project-owned `.opencode/` files, flags third-party files our usage contradicts, and reports accreted meta rules with their origins plus merge and removal candidates — `/audit-agents` |
 | `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                                                                                                           |
 | `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift + unrecorded intent — `/audit-architecture`                                                                                     |
+| `readme-auditor`       | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage — `/audit-readme`                                                                               |
 | `lesson-capture`       | Captures gotchas/conventions into AGENTS.md after every change, consolidating rather than accreting and marking each rule with its origin (automatic)                                                      |
 | `review-quick`         | Fast review after proposal & implementation, repeated until clean (automatic)                                                                                                                              |
 | `review-thorough`      | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`                                                                                                                              |
@@ -250,7 +251,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 - **Retrospectives**: `/retrospective` gathers the last week of PRs and the git log, plus the archived changes and
   accumulated gotchas, and produces a sprint retrospective with improvement suggestions.
 - **Formatting, gates, CI, PRs**: formatting and quality gates run in the build; the agent opens PRs, watches CI, and
-  merges them once green.
+  merges once green with your approval.
 
 #### What the Human Decides
 
@@ -307,6 +308,9 @@ The process is designed to **learn from itself** — and that is the mechanic, n
 - **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
   same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
   uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.
+- **The human-facing README is audited too.** `/audit-readme` runs an on-demand, pro-model audit of `README.md` — its
+  claims against the repository, its shape against the README convention, and its coverage of what a person can actually
+  experience — because no gate checks the showcase's content.
 - **The guidance and tooling are audited, not just appended to.** `/audit-agents` runs an on-demand, pro-model audit of
   `AGENTS.md` and the project-owned `.opencode/` files: it verifies each claim against the repository and reports
   consistency problems (contradictions, stale claims, dead cross-references, drift) and conciseness problems
@@ -358,6 +362,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/audit-agents`              | Audits AGENTS.md + project-owned .opencode/ files, flags third-party files our usage contradicts, and reports accreted meta rules with their origins plus merge and removal candidates (pro-model auditor) |
 | `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                                   |
 | `/audit-architecture`        | Audits the architecture for recorded-decision drift + unrecorded intent (pro-model auditor)                                                                                                                |
+| `/audit-readme`              | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage (pro-model auditor)                                                                             |
 | `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer                                                                                                                                              |
 | `/retrospective`             | Periodic retrospective with improvement suggestions                                                                                                                                                        |
 | `/dependency-updates`        | Runs and summarizes the dependency update report                                                                                                                                                           |
@@ -403,7 +408,8 @@ cd axon-showcase
 ```
 
 `build` compiles everything, runs the quality gates, and runs the test suite. Without Docker, use the fast gate —
-`./gradlew check -PskipITs` skips the Testcontainers integration tests.
+`./gradlew check -PskipITs -Pcoverage.gate.enabled=false` skips the Testcontainers integration tests and disables the
+coverage gate they calibrate.
 
 ### Run the Stack with Docker
 
@@ -518,9 +524,10 @@ SSE, live events appending to the timeline, and a duplicate title surfacing the 
 ### Quality Gates
 
 Run the full check for a module — compile, spotless, checkstyle, spotbugs, errorprone, test, componentTest,
-integrationTest — with `./gradlew :<module>:check` (add `-PskipITs` to drop integration for a Docker-free check;
-`e2eTest` is a separate opt-in task). All quality gates run in the Gradle build, so no IDE is required to verify a
-change. An IDE (e.g. IntelliJ IDEA) is an optional convenience for interactive editing, debugging, and inspection.
+integrationTest — with `./gradlew :<module>:check` (add `-PskipITs -Pcoverage.gate.enabled=false` to drop integration
+for a Docker-free check and disable the coverage gate it would otherwise fail; `e2eTest` is a separate opt-in task). All
+quality gates run in the Gradle build, so no IDE is required to verify a change. An IDE (e.g. IntelliJ IDEA) is an
+optional convenience for interactive editing, debugging, and inspection.
 
 ### Formatting and IDE Setup
 

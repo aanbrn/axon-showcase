@@ -631,16 +631,16 @@ Key modules (libraries, not services):
   promoted or explored-and-set-aside idea says so instead), since the header fixes the sections' order and dating but
   not the tag, and the tag is what marks the entry as a still-unowned idea rather than one already routed to work. Also
   sweep `docs/ideas.md` for references to the thing this change shipped — an open idea that still calls it "the proposed
-  X" is itself a stale claim, and no auditor covers that file (the three auditors own `AGENTS.md`/`.opencode/`, the spec
-  corpus, and `docs/adr/` plus the architectural surface respectively); update the idea's prose in the same change,
-  including any enumeration or count it carries ("two others remain open: A, B") that the change's new instance makes
-  wrong. Docs that ARE the change (new agent/command/skill documentation, README rows describing a new capability, the
-  change's idea removal) ship with the change's PR; docs that refresh facts about a completed change ship as a separate
-  docs PR — a newly parked idea that is not yet a change is such a docs PR. A standalone `docs/ideas.md` edit that no
-  change owns (a reword or a stale-fact correction) also ships as its own docs PR, forked from `main`; an edit the
-  change itself causes rides that change's branch. Do not read that last clause as covering a **newly parked idea**: an
-  open question the change's own sweep happened to surface is a new, independent idea, not an artifact of the change, so
-  it ships as its own docs PR forked from `main`. Only the change's own idea removal, or prose about the thing it
+  X" is itself a stale claim, and no auditor covers that file (the four auditors own `AGENTS.md`/`.opencode/`, the spec
+  corpus, `docs/adr/` plus the architectural surface, and `README.md` respectively); update the idea's prose in the same
+  change, including any enumeration or count it carries ("two others remain open: A, B") that the change's new instance
+  makes wrong. Docs that ARE the change (new agent/command/skill documentation, README rows describing a new capability,
+  the change's idea removal) ship with the change's PR; docs that refresh facts about a completed change ship as a
+  separate docs PR — a newly parked idea that is not yet a change is such a docs PR. A standalone `docs/ideas.md` edit
+  that no change owns (a reword or a stale-fact correction) also ships as its own docs PR, forked from `main`; an edit
+  the change itself causes rides that change's branch. Do not read that last clause as covering a **newly parked idea**:
+  an open question the change's own sweep happened to surface is a new, independent idea, not an artifact of the change,
+  so it ships as its own docs PR forked from `main`. Only the change's own idea removal, or prose about the thing it
   shipped, rides the change branch. Decide the owner before committing — a docs PR forked from `main` cannot carry an
   edit committed on a change branch, so committing it there first for a clean tree silently leaves it out of the docs PR
   and `main` unchanged — and verify the fix against the merged PR's diff rather than the PR description, which can claim
@@ -792,7 +792,7 @@ Key modules (libraries, not services):
   the origin that introduced it (the `captured:` marker, or `git blame` / `git log -S`), as a class of its own rather
   than a defect. Trigger it with the `/audit-agents` OpenCode command: the subagent verifies each claim against the
   repository and returns its findings in the subagent report contract — shared by the per-change review and
-  lesson-capture agents and the three auditors (not `experience-analyzer`, whose output is a document, not a findings
+  lesson-capture agents and the four auditors (not `experience-analyzer`, whose output is a document, not a findings
   report), and defined in the `agent-skills` spec: a verdict line first, then each item budgeted (its anchor and one
   line of evidence), passing checks collapsed to one line, and no alternatives — without editing anything. The main
   agent applies the approved findings under the review gate. One audit's findings can need different delivery routes —
@@ -832,6 +832,17 @@ Key modules (libraries, not services):
   suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet
   narrowing the dependency broke `:showcase-query-client:compileJava`). An advisory item needs the user's decision
   before anything is done with it. The zero-touch scheduled variant is parked in `docs/ideas.md`.
+- **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
+  (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
+  guide, whose content no gate checks — on three axes: accuracy/consistency (every claim matches the repository,
+  cross-checked against `AGENTS.md` and the spec corpus), design-intent fidelity (the README convention: section order,
+  the step-by-step Getting Started path, Gradle tasks over raw commands, curl-only, the prompting narrative), and
+  coverage/experience surfacing (the Cool Story and every human-visible capability, cross-checked against what the
+  system does). Trigger it with the `/audit-readme` OpenCode command: it verifies each claim against the repository and
+  reports in the subagent report contract, with subjective quality in an advisory section (the README is hand-curated by
+  design) and a clean audit a valid one-line result. Its scope is `README.md` only — the other documents have their own
+  owners — and it is justified as a distinct artifact and audience (humans, not agents), which is why it is separate
+  rather than a widening of `agents-auditor`.
 - **Justify a new auditor by a distinct artifact/property, not by symmetry — widen an existing one when its artifacts
   are coupled.** A new auditor earns its place only when its artifact or property has drift no existing auditor can see;
   if the drift is visible only across artifacts an existing auditor already holds, widen that auditor instead.
@@ -864,10 +875,10 @@ Key modules (libraries, not services):
   state a count, so a pre-widening `<n> findings` line is stale the moment an advisory section exists, becoming
   `<n> findings, <n> advisory`); the trigger command (including its step-1 read-list); the README **slash-command table
   row** and its **prose** description of the auditor (the Spec-Driven Development, Agentic Process, and Self-Learning
-  Loop sentences) whenever what it reports changes — the tables are not the README's only copy, and no auditor covers
-  `README.md`; a task for the capability `## Purpose` refresh (a delta cannot carry a Purpose); and the proposal's
-  `### New Capabilities`/ `### Modified Capabilities` subsections ("none" where empty). Keep any enumerated list (the
-  swept surfaces, the finding classes) verbatim-identical across proposal/design/tasks/ delta. The
+  Loop sentences) whenever what it reports changes — the tables are not the README's only copy; a task for the
+  capability `## Purpose` refresh (a delta cannot carry a Purpose); and the proposal's `### New Capabilities`/
+  `### Modified Capabilities` subsections ("none" where empty). Keep any enumerated list (the swept surfaces, the
+  finding classes) verbatim-identical across proposal/design/tasks/ delta. The
   `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round surfaced
   one of these that a prior analogous change had covered — read the archived analogous change and grep for the
   artifact's name before hand-writing the set.

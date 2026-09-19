@@ -28,11 +28,10 @@ it was added (start a new section for a new day rather than appending to the mos
   pins sit on a flat-rate, dollar-metered plan, and the DeepSeek models on it are priced in peak/off-peak tiers, so the
   **same pass consumes half the metered quota off-peak** — nothing changes on the invoice ($10/month flat); the lever
   stretches the quota, which is the binding constraint. The shiftable passes mostly run on the `deepseek-v4-pro` pin
-  (the three `/audit-*` agents and `/review-thorough`; the pin's fifth agent, `diagrammer`, is interactive), so it is
-  the pro quota the saving lands on. At the time of writing the provider's page gives peak as 01:00–04:00 and
-  06:00–10:00 UTC, Mon–Fri, with all other hours including weekends off-peak (~79% of the week), and peak at exactly 2×
-  off-peak.
-  - Only the unattended work is shiftable: the three `/audit-*` sweeps, `/retrospective`, `/review-thorough`, and long
+  (the four `/audit-*` agents and `/review-thorough`; the pin's sixth agent, `diagrammer`, is interactive), so it is the
+  pro quota the saving lands on. At the time of writing the provider's page gives peak as 01:00–04:00 and 06:00–10:00
+  UTC, Mon–Fri, with all other hours including weekends off-peak (~79% of the week), and peak at exactly 2× off-peak.
+  - Only the unattended work is shiftable: the four `/audit-*` sweeps, `/retrospective`, `/review-thorough`, and long
     capture chains. The interactive loop is paced by the human and cannot be batched, so the saving is concentrated in
     exactly our most token-heavy invocations.
   - Open question for the owner: a `schedule:`-triggered agent run inside the off-peak window (idiomatic here — the
@@ -162,8 +161,8 @@ it was added (start a new section for a new day rather than appending to the mos
   home, with the other naming it rather than restating it. Explore whether the module inventory in particular is worth
   generating from one source (the Gradle module list) vs. stating it once and cross-referencing, and whether the
   README's component table should include the web UI (it lists four components; the tree lists five service/gateway
-  directories). This is the other half of the parked _README auditor_ (which cross-checks the README's claims, ports
-  included, against `AGENTS.md`): the audit detects divergence, this idea decides which copy is canonical —
+  directories). This is the other half of the `readme-auditor` now shipped (which cross-checks the README's claims,
+  ports included, against `AGENTS.md`): the audit detects divergence, this idea decides which copy is canonical —
   complementary, not parallel.
 
 - ADR revisit triggers for time-bounded decisions — parked; no change yet. ADR-0003 and ADR-0004 are explicit deferrals
@@ -187,22 +186,6 @@ it was added (start a new section for a new day rather than appending to the mos
   relying on it.
 
 ## 2026-09-12
-
-- README auditor — parked; no change yet. The ~690-line README is human-facing, and its content — unlike its markdown
-  formatting, which Spotless gates — has no check, so several gotchas are README errors caught reactively (the "two
-  replicas" / "36 panels" / "four services and a gateway" miscounts, the diagram asymmetry, the "22 capability specs"
-  tally); two documented conventions — README design intent and Surface human-visible capabilities — have no
-  enforcement. A `readme-auditor` subagent (pro model, `/audit-readme`) would check three verifiable axes:
-  **accuracy/consistency** (every claim — commands, ports, versions, image and task names, links, the OpenSpec-flow
-  diagram's semantics — matches the repo, cross-checked against `AGENTS.md` and the spec corpus); **design-intent
-  fidelity** (the README convention: section order, the step-by-step Getting Started path, Gradle tasks over raw
-  commands, curl-only, the prompting-exercise narrative); and **coverage / experience surfacing** (the Cool Story and
-  every human-visible capability — the saga auto-start, the live SSE timeline, the `setup-hosts` hostnames, the Grafana
-  access path — cross-checked against what the system does). Deliberately **not** an "attractiveness" judge: subjective
-  quality — prose and structure beyond the documented shape (redundancy, jargon, flow) — belongs in an advisory section
-  for the user's judgment, never as a defect, since the README is hand-curated by design ("preserve its intended shape
-  on every edit"). Scope: `README.md` only (ADRs, retrospectives, and the other docs are out). Justified by a distinct
-  artifact and audience (humans, not agents), following the same auditor pattern.
 
 - Scheduled spec-corpus audit — parked; no change yet. The `specs-auditor` subagent audits `openspec/specs/` on demand;
   a zero-touch periodic variant would run it unattended, the same way the scheduled AGENTS.md audit below is parked. The

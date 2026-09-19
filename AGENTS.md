@@ -131,16 +131,21 @@ verdict. Name the close-out's exact retiring mechanism, not the broader ask it i
 wider condition (the config-rules issue's own close-out is at the read-path gotcha) can retire a guard on a change that
 cannot replace it.
 
-**Interrogate the premise before designing a change that moves, copies, or removes existing configuration.** Establish
-_why the current state exists_ and whether it is deliberate before designing _how_ to change it — a change that
-relocates configuration already in place can be the best-executed version of the wrong idea. The
+**Interrogate the premise before designing a change — moving, copying, or removing existing state, or proposing a
+mechanism the repo may already have.** Establish _why the current state exists_, whether it is deliberate, and whether
+the mechanism already exists before designing _how_ to add or change it — a change that relocates configuration already
+in place, or re-derives a parked design, can be the best-executed version of the wrong idea. The
 `remove-redis-client-label` detour designed a chart-default for the `*-client` pod labels (hardcode them in the
 templates) and ran a full propose→apply→verify cycle, including a live `helmInstallToLocal`, before the user's question
 ("the label name depends on the release name — does this still make sense?") revealed the labels are intentionally
 local-target values that belong in `values-local.yaml`. The design weighed implementation alternatives but never
 questioned the premise. Verify the current state's rationale against the repo — grep for consumers, read the values and
 their comments, check `git log` for the introducing change — and record it in the design's Context; treat "this looks
-redundant" as a hypothesis to verify, not a justification to remove.
+redundant" as a hypothesis to verify, not a justification to remove. Before proposing a mechanism (an auditor, a check,
+a workflow, a scan), grep `docs/ideas.md` for a parked design and the spec corpus and archived changes for an existing
+requirement — a parked idea or a spec'd capability is the design to adopt, not re-derive; `add-readme-auditor`'s
+planning proposed widening `agents-auditor` past the parked `readme-auditor` idea the repo already had, caught by the
+owner rather than a gate. captured: add-readme-auditor (#315)
 
 **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's own
 prior reconciliation.** ADR-0002 makes the Java `@ConfigurationProperties` the surface that owns a property's default,
@@ -873,15 +878,16 @@ Key modules (libraries, not services):
   names, a change also touches the definition's frontmatter `description`; its **own report-contract verdict line** (a
   report that gains or changes an output section must name it there — the shared contract makes an auditor's first line
   state a count, so a pre-widening `<n> findings` line is stale the moment an advisory section exists, becoming
-  `<n> findings, <n> advisory`); the trigger command (including its step-1 read-list); the README **slash-command table
-  row** and its **prose** description of the auditor (the Spec-Driven Development, Agentic Process, and Self-Learning
-  Loop sentences) whenever what it reports changes — the tables are not the README's only copy; a task for the
-  capability `## Purpose` refresh (a delta cannot carry a Purpose); and the proposal's `### New Capabilities`/
-  `### Modified Capabilities` subsections ("none" where empty). Keep any enumerated list (the swept surfaces, the
-  finding classes) verbatim-identical across proposal/design/tasks/ delta. The
-  `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round surfaced
-  one of these that a prior analogous change had covered — read the archived analogous change and grep for the
-  artifact's name before hand-writing the set.
+  `<n> findings, <n> advisory`); the shared report-contract requirement's own bearer list, which enumerates the
+  report-producing subagents and goes stale when one is added, so it needs a `MODIFIED` delta; the trigger command
+  (including its step-1 read-list); the README **slash-command table row** and its **prose** description of the auditor
+  (the Spec-Driven Development, Agentic Process, and Self-Learning Loop sentences) whenever what it reports changes —
+  the tables are not the README's only copy; a task for the capability `## Purpose` refresh (a delta cannot carry a
+  Purpose); and the proposal's `### New Capabilities`/ `### Modified Capabilities` subsections ("none" where empty).
+  Keep any enumerated list (the swept surfaces, the finding classes) verbatim-identical across proposal/design/tasks/
+  delta. The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round
+  surfaced one of these that a prior analogous change had covered — read the archived analogous change and grep for the
+  artifact's name before hand-writing the set. captured: add-readme-auditor (#315)
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
   `.opencode/opencode.json` (`model` and `small_model` — two keys), the flash-pinned subagent frontmatter
@@ -1801,10 +1807,14 @@ that override when bumping the Kafka image tag.
   record which branch the run exercised), and never promote a proposal resting on the seed's invented details (the
   repo-evidence rule's "a run whose output you have" counts a smoke-run for the subject's behavior, not for a claim
   about the code, so re-verify the proposal's factual basis first — `make-lesson-capture-consolidate`'s smoke-run
-  proposed a rule resting on a fabricated incident the repository never evidenced). When the owner deliberately
-  decouples a follow-up task from the merge, reword the task to record what is deferred, where it went, and the owner's
-  chosen order, then **tick it** — an unchecked box inside `archive/` is invisible and no gate reads it. That is not the
-  rule above: the smoke-run itself is never deferred, only a task the owner explicitly decouples.
+  proposed a rule resting on a fabricated incident the repository never evidenced). A run against a real artifact also
+  surfaces genuine defects beyond the seed: verify each against the repository and fix those the user approves in the
+  introducing change, since the archived run's note is never swept again — the `add-readme-auditor` smoke-run reported
+  three real README defects beyond its seed (a missing `-Pcoverage.gate.enabled=false` at two sites, a merge-narrative
+  contradiction, and a stray table cell), all fixed in that change. captured: add-readme-auditor (#315) When the owner
+  deliberately decouples a follow-up task from the merge, reword the task to record what is deferred, where it went, and
+  the owner's chosen order, then **tick it** — an unchecked box inside `archive/` is invisible and no gate reads it.
+  That is not the rule above: the smoke-run itself is never deferred, only a task the owner explicitly decouples.
 - **Prove a permission rule is applied by reading the OpenCode log, not by the absence of a prompt.** OpenCode records
   every evaluation in `~/.local/share/opencode/log/opencode.log`, in a line carrying
   `message=evaluated permission=<key>`, `action.pattern=<resolved rule>` and `action.action=<action>` (the field order

@@ -18,7 +18,7 @@
 - [x] 2.2 Add a `MODIFIED` block for "Report-producing subagents follow a shared report contract", whose bearer list
       names the three auditors and so goes stale with a fourth; copy the whole requirement (4 scenarios) and add the
       README auditor to the list. Done — copied in full, 4 scenarios preserved.
-- [ ] 2.3 Refresh the capability's `## Purpose` in the archive commit to name the README as a fourth audited artifact (a
+- [x] 2.3 Refresh the capability's `## Purpose` in the archive commit to name the README as a fourth audited artifact (a
       delta cannot carry a Purpose, so the edit is deferred to that commit and recorded here).
 
 ## 3. Docs

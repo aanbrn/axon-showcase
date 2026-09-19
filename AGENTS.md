@@ -1320,8 +1320,8 @@ that override when bumping the Kafka image tag.
   after an OpenCode reload).
 
 - **A check is evidence only once it has been shown to fail — a clean run, an empty result, or an unmoved control proves
-  nothing until the check hits a known positive.** Seven recurring incidents share this root, each with its own mode to
-  guard against:
+  nothing until the check hits a known positive.** Recurring incidents share this root, each with its own mode to guard
+  against:
 
   - **A glob or filter that matches nothing is vacuous, not clean.** An audit command told the agent to run "a manual
     120-character check for `.opencode/*.md`" — a glob matching **no file**, since the markdown lives in

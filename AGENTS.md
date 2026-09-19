@@ -2,10 +2,10 @@
 
 ## Line Length
 
-- Wrap code and text at 120 characters. Markdown (`docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, active
-  `openspec/changes/*/`, and the project-authored `.opencode/` markdown) needs no manual wrapping — it is
-  formatter-wrapped and gated in `check`, as is the `.opencode/opencode.json` config; Java/Kotlin are gated by Spotless
-  too. See the `Formatting` convention for the per-file-type mechanics and the exact scope.
+- Wrap code and text at 120 characters. Markdown (`docs/`, `AGENTS.md`, `README.md`, `SECURITY.md`, `openspec/specs/`,
+  active `openspec/changes/*/`, the `.github/` markdown, and the project-authored `.opencode/` markdown) needs no manual
+  wrapping — it is formatter-wrapped and gated in `check`, as is the `.opencode/opencode.json` config; Java/Kotlin are
+  gated by Spotless too. See the `Formatting` convention for the per-file-type mechanics and the exact scope.
 
 ## Project Overview
 
@@ -710,31 +710,31 @@ Key modules (libraries, not services):
     on); markdown is formatted by the root Spotless `markdown` format (Prettier, `printWidth: 120` with
     `proseWrap: "always"` — a preference, not a hard limit: backtick-dense lines can still exceed 120, the accepted
     trade-off of automating markdown wrapping). The markdown scope is `docs/`, `AGENTS.md`, `README.md`,
-    `openspec/specs/`, active `openspec/changes/*/`, and the project-authored `.opencode/` markdown — the generated
-    `opsx-*`/`openspec-*` files and the vendored `axon4to5-*` skills are excluded, while the project-authored
-    `opsx-tool-update.md` stays in scope despite the shared prefix — and `.opencode/opencode.json` has its own `json`
-    format. A target's generated-file exclusions must track what the generator writes — `/opsx-tool-update` checks the
-    list when the generated inventory changes, since a newly generated `opsx-*` command would otherwise be reformatted
-    by `spotlessApply` and then overwritten by the next `openspec update`. Verify with a character count
-    (`perl -CSD -lne 'print if length > 120'`), not `awk 'length > 120'` — `awk` counts bytes and false-flags a
-    ≤120-character line containing non-ASCII (the `→` arrow tripped this three times); the `-l` chomps the trailing
-    newline `-ne` would otherwise count, so an exactly-120-character line is not false-flagged. Verify a verification
-    command on a boundary case before recording it — the first recipe omitted `-l` and false-flagged every
-    exactly-120-character line. Formatters cannot reflow string literals (e.g. an error message in Kotlin/Gradle), so
-    wrap an over-long string with concatenation (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as
-    natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the
-    wrapping and reflows on every run. A bare `$` in prose (outside inline code) is parsed as inline math and blocks
-    that reflow — the paragraph silently keeps its original ragged wrapping while `spotlessCheck` still passes; escape
-    it as `\$` (which renders as `$`). The formatter also leaves the interior of an inline code span untouched — it
-    wraps prose around the span but never rewrites the code text it contains — so a defect inside one (a whitespace run)
-    passes `spotlessCheck` and the manual 120-character check alike, neither of which has a rule that detects it:
-    proofread inline-code content as content, not as something the gate will fix. Never author an inline code span
-    across a source line break — Prettier's reflow joins the lines and leaves the continuation line's indentation as
-    extra spaces inside the span (a `paketo-buildpacks/procfile` split from its `5.15.0` came out as
-    `paketo-buildpacks/procfile     5.15.0`): keep a span on one source line and let the reflow move the whole span.
-    Fenced blocks are a different story — Prettier applies embedded formatting inside a fence whose info string names a
-    language it supports (`json`, `yaml`, `markdown`), so that content is gated, while an unsupported one (`bash`,
-    `java`, `mermaid`) is not.
+    `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`, the `.github/` markdown, and the project-authored
+    `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files and the vendored `axon4to5-*` skills are excluded,
+    while the project-authored `opsx-tool-update.md` stays in scope despite the shared prefix — and
+    `.opencode/opencode.json` has its own `json` format. A target's generated-file exclusions must track what the
+    generator writes — `/opsx-tool-update` checks the list when the generated inventory changes, since a newly generated
+    `opsx-*` command would otherwise be reformatted by `spotlessApply` and then overwritten by the next
+    `openspec update`. Verify with a character count (`perl -CSD -lne 'print if length > 120'`), not
+    `awk 'length > 120'` — `awk` counts bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow
+    tripped this three times); the `-l` chomps the trailing newline `-ne` would otherwise count, so an
+    exactly-120-character line is not false-flagged. Verify a verification command on a boundary case before recording
+    it — the first recipe omitted `-l` and false-flagged every exactly-120-character line. Formatters cannot reflow
+    string literals (e.g. an error message in Kotlin/Gradle), so wrap an over-long string with concatenation
+    (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as natural prose and let `spotlessApply`
+    (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the wrapping and reflows on every run. A bare
+    `$` in prose (outside inline code) is parsed as inline math and blocks that reflow — the paragraph silently keeps
+    its original ragged wrapping while `spotlessCheck` still passes; escape it as `\$` (which renders as `$`). The
+    formatter also leaves the interior of an inline code span untouched — it wraps prose around the span but never
+    rewrites the code text it contains — so a defect inside one (a whitespace run) passes `spotlessCheck` and the manual
+    120-character check alike, neither of which has a rule that detects it: proofread inline-code content as content,
+    not as something the gate will fix. Never author an inline code span across a source line break — Prettier's reflow
+    joins the lines and leaves the continuation line's indentation as extra spaces inside the span (a
+    `paketo-buildpacks/procfile` split from its `5.15.0` came out as `paketo-buildpacks/procfile     5.15.0`): keep a
+    span on one source line and let the reflow move the whole span. Fenced blocks are a different story — Prettier
+    applies embedded formatting inside a fence whose info string names a language it supports (`json`, `yaml`,
+    `markdown`), so that content is gated, while an unsupported one (`bash`, `java`, `mermaid`) is not.
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with

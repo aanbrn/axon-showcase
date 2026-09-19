@@ -23,6 +23,8 @@ spotless {
             "README.md",
             "openspec/specs/**/*.md",
             "openspec/changes/**/*.md",
+            ".github/**/*.md",
+            "SECURITY.md",
             ".opencode/agent/**/*.md",
             ".opencode/commands/**/*.md",
             ".opencode/skills/**/*.md",

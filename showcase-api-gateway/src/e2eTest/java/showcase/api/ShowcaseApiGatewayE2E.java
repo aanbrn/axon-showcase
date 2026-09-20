@@ -146,6 +146,7 @@ class ShowcaseApiGatewayE2E {
             .withCreateContainerCmdModifier(cmd -> cmd.withHostName("axon-showcase-api-gateway"))
             .withNetwork(network)
             .withEnv("LOGGING_LEVEL_SHOWCASE_API", "DEBUG")
+            .withEnv("TIMELIMITER_DEFAULT_TIMEOUT", "PT30S")
             .withExposedPorts(8080)
             .waitingFor(Wait.forHttp("/actuator/health").forPort(8080).forStatusCode(200))
             .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
@@ -185,6 +186,7 @@ class ShowcaseApiGatewayE2E {
                         .exchange()
                         .expectStatus()
                         .isOk();
+                awaitShowcaseAbsentFromList(showcaseId);
             } catch (RuntimeException ignored) {
             }
         }
@@ -196,9 +198,13 @@ class ShowcaseApiGatewayE2E {
     }
 
     String scheduleShowcase(String title, Instant startTime, Duration duration) {
+        val showcaseId = aShowcaseId();
+        createdShowcaseIds.add(showcaseId);
+
         val response = webClient
                 .post()
                 .uri("/showcases")
+                .header("Idempotency-Key", showcaseId)
                 .bodyValue(Map.of(
                         "title", title,
                         "startTime", startTime,
@@ -217,10 +223,9 @@ class ShowcaseApiGatewayE2E {
                 .getResponseBody();
 
         assertThat(response).isNotNull();
+        assertThat(response.showcaseId()).isEqualTo(showcaseId);
 
-        createdShowcaseIds.add(response.showcaseId());
-
-        return response.showcaseId();
+        return showcaseId;
     }
 
     Showcase fetchShowcase(String showcaseId) {
@@ -288,6 +293,24 @@ class ShowcaseApiGatewayE2E {
                 .isNotFound());
     }
 
+    /**
+     * Awaits the deleted showcase disappearing from the search-backed list, not only from the realtime by-ID path.
+     * {@link #awaitShowcaseRemoved(String)} checks the latter, which the write side makes consistent as soon as it
+     * deletes the aggregate; the list path drops a document only after an OpenSearch refresh. A later test's empty-list
+     * precondition would otherwise race that refresh.
+     */
+    void awaitShowcaseAbsentFromList(String showcaseId) {
+        await().untilAsserted(() -> webClient
+                .get()
+                .uri("/showcases")
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBodyList(Showcase.class)
+                .value(showcases -> assertThat(showcases)
+                        .noneMatch(showcase -> showcase.showcaseId().equals(showcaseId))));
+    }
+
     void startShowcase(String showcaseId) {
         webClient
                 .put()
@@ -323,6 +346,7 @@ class ShowcaseApiGatewayE2E {
                 .isEmpty();
 
         awaitShowcaseRemoved(showcaseId);
+        awaitShowcaseAbsentFromList(showcaseId);
 
         createdShowcaseIds.remove(showcaseId);
     }

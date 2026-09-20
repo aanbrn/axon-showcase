@@ -23,21 +23,6 @@ it was added (start a new section for a new day rather than appending to the mos
   config read-path gotcha when adding it: quote any scalar containing `: `, and confirm the CLI consumes the rule before
   relying on it.
 
-## 2026-09-18
-
-- Run the accreted-rules audit on a cadence rather than on demand — parked; no change yet. The capture and the audit are
-  opposite forces: this session's capture rounds added rules while its consolidation passes removed or merged roughly as
-  much, and each audit ran only because someone asked for it — even though `agents-auditor` now surfaces merge and
-  removal candidates as standing findings. A standing trigger — after every Nth capture, say — would make the balance
-  self-correcting instead of reactive. The 2026-09-19 retrospective measured the imbalance: `AGENTS.md` grew 1,559 →
-  1,835 lines in one window, roughly **+220 net across seventeen captures against −16 net across six consolidations**,
-  so a human-triggered prune is too infrequent. Keying the trigger to the `agents-auditor`'s own accreted count (its
-  verdict line already reports `<n> accreted`) is the principled choice — accretion is caused by captures, so the prune
-  should key to the growth signal, not a bare Nth capture or a wall-clock cadence. Batched into one off-peak
-  `schedule:`-triggered run, this also implements the parked off-peak cost idea and the three zero-touch
-  scheduled-auditor variants, all of which want the same mechanism (see the "Merge the parked scheduling/cost ideas"
-  entry).
-
 ## 2026-09-16
 
 - Cost: time-shift discretionary bulk agent work into the provider's off-peak window — parked; no change yet. Our model
@@ -52,18 +37,14 @@ it was added (start a new section for a new day rather than appending to the mos
     exactly our most token-heavy invocations.
   - Open question for the owner: a `schedule:`-triggered agent run inside the off-peak window (idiomatic here — the
     nightly `e2e` and the weekly update checks already run on schedules), or a mid-session discipline of choosing when
-    to fire a bulk pass? This overlaps the three parked zero-touch scheduled auditor variants, so one route likely
-    implements both.
+    to fire a bulk pass? This overlapped the three parked zero-touch scheduled auditor variants, which are now
+    implemented as one scheduled audit workflow (the off-peak benefit applies to that run as much as to any bulk pass).
   - The window and the rates are provider-owned and mutable, and the window is defined in UTC (so any local restatement
     rots with DST): resolve both at `opencode.ai/docs/go` rather than pinning them in the repo — the dated snapshot
     above is context for this note, not a figure any artifact should carry.
   - Not the biggest lever: model routing (already done) is deterministic and fires every turn, and review-round count
     matters more than time-shifting a single round.
 
-- Merge the parked scheduling/cost ideas into one scheduled unattended-run workflow — parked; no change yet. The three
-  zero-touch scheduled variants, the off-peak quota note above, and the upstream-reference watcher (2026-09-14) all want
-  the same mechanism: a `schedule:`-triggered OpenCode run that fires issues. One workflow implements all of them,
-  time-shifts the `deepseek-v4-pro` quota, and removes the on-demand review-round cost of the audits.
 - State once where agent-only tooling lives — parked; no change yet. `scripts/` holds repo tooling whatever the caller
   (the human-documented `setup-idea.sh`, its script-only helper, and the agent-invoked `experience-analysis.sh`), while
   `.opencode/` holds runtime config, agents, commands, and skills. This recurred when the owner asked whether
@@ -146,7 +127,11 @@ it was added (start a new section for a new day rather than appending to the mos
   that closed or went quiet, turning the references into a checked corpus rather than claims. `docs/ideas.md` belongs in
   the scope though it reads as a scratchpad: it carries more `owner/repo#NNN` references than `README.md` and
   `docs/adr/` combined, including the two closures this entry records, so a report that skipped it would leave those
-  references untracked. Worth building now: the trigger it describes has already fired twice.
+  references untracked. Worth building now: the trigger it describes has already fired twice. Its mechanism is settled
+  and is **not** the OpenCode scheduled-run path: the schedule trigger outputs to logs and a pull request, with no issue
+  to comment on (its own docs say so), whereas this watcher monitors external state and has no repository change to open
+  a PR from — so it is a `gh`-driven issue workflow like the four update checks above, not a rider on the scheduled
+  audit workflow.
 
 - Retire the `NANOS_DATE_PATTERN` workaround once its fix reaches us — parked; no change yet.
   `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337, milestone 6.2.0-M2), but we resolve
@@ -180,33 +165,6 @@ it was added (start a new section for a new day rather than appending to the mos
   deferred decision's condition has since been met, so either extend it to flag a deferred ADR whose condition looks
   met, or list such ADRs in a small report alongside the dependency-update checks. Distinct from status drift: the
   decision still holds, its premise may not.
-
-- Scheduled architecture audit — parked; no change yet. The `architecture-auditor` audits the architecture on demand; a
-  zero-touch periodic variant would run it unattended, the same way the scheduled AGENTS.md and spec-corpus audits are
-  parked. The mechanism is identical (a weekly `.github/workflows/` run of the OpenCode GitHub action with an
-  `on: schedule` `prompt`), so all the scheduled audits could share one workflow — audit every artifact and open or
-  update a single findings issue. Same permissions and caveats as the AGENTS.md entry (`2026-09-12`): no user context to
-  permission-check, so every write must be granted explicitly, and the scheduled `prompt` path needs confirming before
-  relying on it.
-
-## 2026-09-12
-
-- Scheduled spec-corpus audit — parked; no change yet. The `specs-auditor` subagent audits `openspec/specs/` on demand;
-  a zero-touch periodic variant would run it unattended, the same way the scheduled AGENTS.md audit below is parked. The
-  mechanism is identical (a weekly `.github/workflows/` run of the OpenCode GitHub action with an `on: schedule`
-  `prompt`), so the scheduled audits could share one workflow when the first is built — audit every artifact and open or
-  update a single findings issue. Same permissions and caveats as the AGENTS.md entry below.
-
-- Scheduled AGENTS.md audit — parked; no change yet. The `agents-auditor` subagent audits `AGENTS.md` and the
-  project-owned `.opencode/` files on demand; a zero-touch periodic variant would run it unattended. The OpenCode GitHub
-  action supports `on: schedule`, which — unlike a comment trigger — has no comment to read, so it requires a `prompt`
-  input (see its docs' "Schedule Example"). A weekly `.github/workflows/agents-audit.yml` (`schedule:` +
-  `workflow_dispatch:`) could run `anomalyco/opencode/github@latest` with the existing `OPENCODE_API_KEY` secret and a
-  prompt to audit `AGENTS.md` and open or update an issue with the findings — mirroring `dependency-updates.yml`. It
-  needs `id-token: write` (the action authenticates to the OpenCode GitHub App via OIDC, as `opencode.yml` does),
-  `contents: read` for the checkout, and `issues: write` to post the findings; per the docs, a scheduled run has no user
-  context to permission-check, so every write it performs must be granted explicitly. Confirm the scheduled `prompt`
-  path works before relying on it.
 
 ## 2026-09-10
 

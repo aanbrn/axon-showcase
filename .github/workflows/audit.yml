@@ -1,0 +1,43 @@
+name: audit
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Run the audits
+        uses: anomalyco/opencode/github@latest
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        with:
+          model: opencode-go/deepseek-v4-pro
+          prompt: |
+            Run the repository's three audits in sequence — the agents-auditor, the specs-auditor, and the
+            architecture-auditor — and write their combined findings to a new file under `docs/audits/`, named for
+            today's date (e.g. `docs/audits/2026-09-19.md`).
+
+            Each audit has a definition under `.opencode/agent/` and an on-demand command; follow the same scope and
+            the shared report contract they use (a verdict line first, then each item budgeted to its anchor and one
+            line of evidence, passing checks collapsed).
+
+            Commit the file on the current branch — the action opens the pull request from the branch's commits, so a
+            report that is only printed produces no pull request. The report is the deliverable: do not apply any
+            finding, and do not edit any file the audits discuss; the owner reviews the report and decides what to
+            apply through the normal change workflow. The PR is reviewed rather than merged, so its build's formatting
+            check is not a gate.
+
+            If all three audits report nothing, print that and commit nothing.

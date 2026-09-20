@@ -490,6 +490,11 @@ the default branch, so after it lands on `main` run `gh workflow run <file>` (no
 checks only the YAML) to exercise the workflow end to end — for an update check that is its report path, jq filter and
 tracker-issue lookup. captured: bump-snyk-cli-pin
 
+`.github/workflows/audit.yml` runs the three repository audits (agent tooling, spec corpus, architecture) on a weekly
+schedule and via `workflow_dispatch`, through the OpenCode GitHub action's scheduled path (a `prompt` input, OIDC auth,
+`contents: write` + `pull-requests: write`), and opens a pull request with their findings — or commits nothing when they
+report nothing. It is observational — never a merge gate.
+
 **What each covers:**
 
 - `dependency-updates.yml` — `./gradlew dependencyUpdates`; the actionable sections of
@@ -803,7 +808,7 @@ Key modules (libraries, not services):
   agent applies the approved findings under the review gate. One audit's findings can need different delivery routes —
   split the output by fix type and scope each unit's artifacts and diff to its own fixes, rather than running the whole
   audit through one unit (the routing per fix type is in the specs-auditor and architecture-auditor bullets). The
-  zero-touch scheduled variant is parked in `docs/ideas.md`; the audit itself is on demand.
+  scheduled variant runs unattended in the `audit` workflow (see Continuous Integration); the audit itself is on demand.
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus, because `openspec validate` gates a spec's
   well-formedness but not its cross-spec structural consistency — title ↔ capability-path match, Purpose ↔ requirements
@@ -812,7 +817,7 @@ Key modules (libraries, not services):
   contract (grouped by severity) without editing anything, flagging a reused requirement header for judgment rather than
   as a defect. It deliberately does **not** check behavior against the code — the change workflow's review loop and the
   archive-time sync own that. The main agent applies approved findings through the normal change workflow (a spec edit
-  is a change). The zero-touch scheduled variant is parked in `docs/ideas.md`.
+  is a change). The scheduled variant runs unattended in the `audit` workflow (see Continuous Integration).
 - **Architecture-auditor subagent for design drift and unrecorded intent**: the `architecture-auditor` subagent
   (`.opencode/agent/architecture-auditor.md`) audits the project's architecture — `docs/adr/` plus the architectural
   surface (the service boundaries, the module dependency graph, and the spec corpus's capability decomposition) — for
@@ -836,7 +841,8 @@ Key modules (libraries, not services):
   per the multi-artifact-sweep bullet) — becomes its own change and is parked as an idea until then — do not force the
   suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet
   narrowing the dependency broke `:showcase-query-client:compileJava`). An advisory item needs the user's decision
-  before anything is done with it. The zero-touch scheduled variant is parked in `docs/ideas.md`.
+  before anything is done with it. The scheduled variant runs unattended in the `audit` workflow (see Continuous
+  Integration).
 - **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
   (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
   guide, whose content no gate checks — on three axes: accuracy/consistency (every claim matches the repository,

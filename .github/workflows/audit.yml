@@ -19,6 +19,15 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v6
+
       - name: Run the audits
         uses: anomalyco/opencode/github@latest
         env:
@@ -34,10 +43,10 @@ jobs:
             the shared report contract they use (a verdict line first, then each item budgeted to its anchor and one
             line of evidence, passing checks collapsed).
 
-            Commit the file on the current branch — the action opens the pull request from the branch's commits, so a
-            report that is only printed produces no pull request. The report is the deliverable: do not apply any
-            finding, and do not edit any file the audits discuss; the owner reviews the report and decides what to
-            apply through the normal change workflow. The PR is reviewed rather than merged, so its build's formatting
-            check is not a gate.
+            Run `./gradlew spotlessApply` so the committed file passes the build's markdown gate — CI runs `build` on
+            the pull request, and an unformatted report fails it. Then commit the file on the current branch: the
+            action opens the pull request from the branch's commits, so a report that is only printed produces no pull
+            request. The report is the deliverable: do not apply any finding, and do not edit any file the audits
+            discuss; the owner reviews the report and decides what to apply through the normal change workflow.
 
             If all three audits report nothing, print that and commit nothing.

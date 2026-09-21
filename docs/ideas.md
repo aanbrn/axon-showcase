@@ -116,10 +116,11 @@ it was added (start a new section for a new day rather than appending to the mos
   both constraint notes still read as open, and no gate reads them. Neither closure retires its note by itself — `#1060`
   covers platform-sourced constraints and changes nothing for our `checkBuildEnvironmentConstraints` row, and the
   `#3334` fix reaches us only through a future `spring-data-opensearch` (that retirement is parked separately below) —
-  which is the point: a closure is a trigger to check, not an answer. Five others remain open —
+  which is the point: a closure is a trigger to check, not an answer. Six others remain open —
   `build-extensions-oss/gradle-helm-plugin#145`, `anomalyco/opencode#48100`, `anomalyco/opencode#49127` (the action's
-  cache step), `Fission-AI/OpenSpec#1891` (the unquoted `: ` class) and `Fission-AI/OpenSpec#1892` (the
-  unparseable-config class) — each now carrying an inline close-out. The repository already has the shape for a watcher:
+  cache step), `anomalyco/opencode#50247` (the unsupported `pull_request_review` trigger cited in AGENTS.md's `/oc`
+  bullet), `Fission-AI/OpenSpec#1891` (the unquoted `: ` class) and `Fission-AI/OpenSpec#1892` (the unparseable-config
+  class) — each now carrying an inline close-out. The repository already has the shape for a watcher:
   `dependencyUpdates` / `helmUpdates` / `buildpackUpdates` / `toolingUpdates` are each a small task plus a weekly
   observational workflow that opens or updates an issue and mentions the owner when something is actionable. A report
   would collect the references from `AGENTS.md`, `README.md`, `docs/adr/`, and **`docs/ideas.md`** — the corpus is all

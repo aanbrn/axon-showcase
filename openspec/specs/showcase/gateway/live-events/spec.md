@@ -8,24 +8,6 @@ store is never read by the gateway).
 
 ## Requirements
 
-### Requirement: Stream domain events over SSE
-
-The gateway SHALL expose a Server-Sent-Events endpoint that streams showcase domain events as they occur. Events are
-consumed from the Kafka topic the command service publishes to, using a consumer group distinct from the projection
-service's, and are decoded with the Axon event serializer. The event stream is the sole event source — the gateway SHALL
-NOT read the Axon event store and no projected events index SHALL be introduced.
-
-#### Scenario: A domain event is streamed
-
-- **WHEN** a showcase domain event is published to the Kafka topic
-- **THEN** the SSE stream delivers the event, carrying at least the event type, the showcase ID, and the event timestamp
-
-#### Scenario: Events carry their type and identity
-
-- **WHEN** the gateway delivers an event
-- **THEN** the event identifies its type (e.g. scheduled, started, finished, removed) and the showcase it concerns, so
-  the UI can route it to the correct timeline
-
 ### Requirement: The stream coexists with the projection consumer
 
 The gateway consumer SHALL use a consumer group separate from the projection service's, so each event is delivered to
@@ -65,3 +47,21 @@ handled so the stream reconnects without losing the UI's already-rendered timeli
 
 - **WHEN** a client connects to the SSE endpoint
 - **THEN** the connection is accepted without credentials, consistent with the rest of the gateway
+
+### Requirement: Domain event streaming over SSE
+
+The gateway SHALL expose a Server-Sent-Events endpoint that streams showcase domain events as they occur. Events are
+consumed from the Kafka topic the command service publishes to, using a consumer group distinct from the projection
+service's, and are decoded with the Axon event serializer. The event stream is the sole event source — the gateway SHALL
+NOT read the Axon event store and no projected events index SHALL be introduced.
+
+#### Scenario: A domain event is streamed
+
+- **WHEN** a showcase domain event is published to the Kafka topic
+- **THEN** the SSE stream delivers the event, carrying at least the event type, the showcase ID, and the event timestamp
+
+#### Scenario: Events carry their type and identity
+
+- **WHEN** the gateway delivers an event
+- **THEN** the event identifies its type (e.g. scheduled, started, finished, removed) and the showcase it concerns, so
+  the UI can route it to the correct timeline

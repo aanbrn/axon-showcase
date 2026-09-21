@@ -1,12 +1,43 @@
-# showcase/clients/web-ui Specification
+## REMOVED Requirements
 
-## Purpose
+### Requirement: Browse showcases
 
-Documents the behavior of the standalone web UI: a browser application that browses and drives showcase lifecycle
-actions through the gateway REST API and renders a live event timeline fed by the gateway's SSE stream, so the
-CQRS/Event-Sourcing pipeline can be demonstrated visually.
+**Reason**: retitled to a declarative noun phrase, the corpus convention.
 
-## Requirements
+**Migration**: the requirement is unchanged in substance; the new header is `Showcase browsing`.
+
+### Requirement: Reconcile the list with the eventually-consistent read model
+
+**Reason**: retitled to a declarative noun phrase, the corpus convention.
+
+**Migration**: the requirement is unchanged in substance; the new header is
+`Read-model reconciliation of the showcase list`.
+
+### Requirement: Drive lifecycle actions
+
+**Reason**: retitled to a declarative noun phrase, the corpus convention.
+
+**Migration**: the requirement is unchanged in substance; the new header is `Lifecycle action dispatch`.
+
+### Requirement: Validate the form before submission
+
+**Reason**: retitled to a declarative noun phrase, the corpus convention.
+
+**Migration**: the requirement is unchanged in substance; the new header is `Create-form validation`.
+
+### Requirement: Render a per-showcase history timeline
+
+**Reason**: retitled to a declarative noun phrase, the corpus convention.
+
+**Migration**: the requirement is unchanged in substance; the new header is `Per-showcase history timeline`.
+
+### Requirement: Display live events over SSE
+
+**Reason**: retitled to a declarative noun phrase, the corpus convention.
+
+**Migration**: the requirement is unchanged in substance; the new header is `Live event display over SSE`.
+
+## ADDED Requirements
 
 ### Requirement: Showcase browsing
 

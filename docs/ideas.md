@@ -14,6 +14,18 @@ it was added (start a new section for a new day rather than appending to the mos
 
 ## 2026-09-21
 
+- Retry the actionlint download in the `build` job — parked; no change yet. `ci.yml`'s "Install actionlint" step fetches
+  the tool with `bash <(curl …download-actionlint.bash)` and no retry, so a transient failure of GitHub's release-asset
+  download fails the whole merge-gate `build` job. It happened on `main` at `2011915`: the download returned HTTP
+  **504** with a 92-byte `text/html` body for actionlint `v1.7.12`, so `gzip: stdin: not in gzip format` and `tar`
+  exited 2 — the step passed minutes earlier on `7b4fcef` and the asset itself was intact (`gh api`, 2,353,908 bytes,
+  `state: uploaded`), and five consecutive `curl -I` probes reproduced the `504` until it cleared, after which
+  re-running the same commit succeeded. The `504` hit the script's **inner** asset download
+  (`curl -L "${url}" | tar xvz`, line 125 of `download-actionlint.bash`, which honours no retry flag or env var) — the
+  script fetch itself succeeded — so an outer `--retry` on `ci.yml`'s `curl …download-actionlint.bash` would absorb
+  nothing; retry the whole step, or download the release asset directly with `curl --retry`. Worth doing because the
+  failure is invisible to `workflowLint` and costs a red `main` plus a manual re-run.
+
 - Verify the audit workflow's generated PR title end to end — parked; no change yet. `fix-audit-pr-title` reworded the
   `audit` workflow's prompt so the agent no longer leads its response with the owner mention, because the OpenCode
   GitHub action derives the PR title by summarising the response in under 40 characters. The prompt change's effect on

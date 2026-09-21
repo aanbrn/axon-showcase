@@ -294,15 +294,18 @@ Comment/Request changes/Approve) does nothing, because the action does not suppo
 as `anomalyco/opencode#50247` (retires when the action gains that trigger)) — so a reviewer who wants to instruct the
 agent leaves the review and then posts the comment. It follows the same rules a local agent does — an OpenSpec change
 with a change dir, `skip_specs: true` for a pure dependency bump, and the change left unarchived, since archiving
-follows the owner's approval — but it does not archive or merge. Treat its PR like any other: verify the self-report
-against the repository and the run log (a self-report is a claim to verify, like a review finding), then check out the
-agent's branch, run `openspec archive <change>`, commit and push it there, and merge once CI is green (the
-one-PR-per-change sequence above). GitHub never merges on an approval — an approval alone leaves the PR open. A PR the
-action opened from an issue carries a closing reference to its trigger (`Closes #<issue>`), so merging it closes that
-issue — right for a one-shot work item, wrong for a long-lived tracker like the update-check issues, whose workflows
-look them up with `is:issue is:open` and open a fresh one when none is open, so the merge orphans its history and the
-next weekly run opens a duplicate. Strip the closing keyword from an agent PR triggered from a tracker before merging,
-or reopen the tracker.
+follows the owner's approval — but it does not archive or merge. An approval comment (`/oc looks good. let's proceed.`)
+therefore maps to _its_ implementation: on a **change** PR that is the commit → push → archive sequence, while on a
+**report** PR (the `audit` workflow's findings) there is no change to archive, so the instruction means the report is
+accepted and the PR is closed — say so explicitly rather than leaving the agent to infer a change it cannot find. Treat
+its PR like any other: verify the self-report against the repository and the run log (a self-report is a claim to
+verify, like a review finding), then check out the agent's branch, run `openspec archive <change>`, commit and push it
+there, and merge once CI is green (the one-PR-per-change sequence above). GitHub never merges on an approval — an
+approval alone leaves the PR open. A PR the action opened from an issue carries a closing reference to its trigger
+(`Closes #<issue>`), so merging it closes that issue — right for a one-shot work item, wrong for a long-lived tracker
+like the update-check issues, whose workflows look them up with `is:issue is:open` and open a fresh one when none is
+open, so the merge orphans its history and the next weekly run opens a duplicate. Strip the closing keyword from an
+agent PR triggered from a tracker before merging, or reopen the tracker.
 
 **Merging PRs: the `--admin` flag is for admin users only.** The `main-require-pr-on-merge` ruleset requires an
 approving review (`required_approving_review_count: 1`), but the repo owner (`aanbrn`) is a bypass actor on that ruleset
@@ -934,16 +937,25 @@ Key modules (libraries, not services):
   and an unset `TMPDIR` substitutes to an empty string, so there is no fallback where the temp dir is `/tmp`.
   `.opencode/plugin/tmpdir-scratch.ts` resolves the directory with `tmpdir()` from `node:os` instead — the same path
   without the trailing separator, and the cross-platform temp dir — and its `config` hook adds `<tmpdir>/opencode/**` to
-  `external_directory`. Put PR-body files and similar there, and keep the allow-list in the plugin:
-  `.opencode/plugin/*.ts` is auto-discovered (OpenCode's built-in `customize-opencode` skill names both
-  `.opencode/plugin/` and `.opencode/plugins/`), and its `config(cfg)` hook runs once on init with the live merged
-  config and may mutate it. Its dependencies live in a **tracked** `.opencode/package.json` (OpenCode installs them at
-  startup and can also update its own plugin pin there) with a `.opencode/tsconfig.json` beside it declaring
-  `types: ["node"]`, so an editor resolves the plugin's `node:os` import — no build step type-checks that directory.
-  `.opencode/.gitignore` keeps only `node_modules` and the lockfiles out of the repo. Scope the grant to the named
-  scratch subdirectory — never the whole OS temp root, which would grant every application's temporary files. Upstream,
-  the portable default this needs is asked for in `anomalyco/opencode#48100` — if it lands, drop the plugin's grant and
-  use the built-in.
+  `external_directory`. The plugin also grants the **globally-installed `openspec` package**
+  (`<resolved package root>/**`), resolved from the `openspec` binary's realpath so a per-machine prefix is not
+  hard-coded: the CLI reads its own schema templates from there, which is outside the workspace, and an unattended cloud
+  run cannot answer the `external_directory` prompt it otherwise raises (the run hangs — a `/oc` run was found stuck on
+  exactly `/usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/*`). The resolution runs at
+  OpenCode init, so the CLI must already be on `PATH` by then: the agent workflows therefore **install it as a step
+  before the action** (pinned, as `ci.yml` does) rather than letting the agent install it mid-run, which is too late for
+  the grant. Its absence drops only that entry, so the scratch grant survives. Only a real cloud run exercises this path
+  — no local session (where `openspec` is already on `PATH`) and no CI job does, since the `build` gate runs no action
+  and `workflowLint` checks only the YAML — so a green `check` does not validate the grant. Put PR-body files and
+  similar there, and keep the allow-list in the plugin: `.opencode/plugin/*.ts` is auto-discovered (OpenCode's built-in
+  `customize-opencode` skill names both `.opencode/plugin/` and `.opencode/plugins/`), and its `config(cfg)` hook runs
+  once on init with the live merged config and may mutate it. Its dependencies live in a **tracked**
+  `.opencode/package.json` (OpenCode installs them at startup and can also update its own plugin pin there) with a
+  `.opencode/tsconfig.json` beside it declaring `types: ["node"]`, so an editor resolves the plugin's `node:os` import —
+  no build step type-checks that directory. `.opencode/.gitignore` keeps only `node_modules` and the lockfiles out of
+  the repo. Scope the _temp_ grant to the named scratch subdirectory — never the whole OS temp root, which would grant
+  every application's temporary files. Upstream, the portable default this needs is asked for in
+  `anomalyco/opencode#48100` — if it lands, drop the plugin's grant and use the built-in.
 
 ## Docker Images
 

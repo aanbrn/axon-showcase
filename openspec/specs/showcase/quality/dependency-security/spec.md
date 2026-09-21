@@ -3,8 +3,8 @@
 ## Purpose
 
 Ensures the build does not ship known-vulnerable transitive dependencies: the platform constrains vulnerable transitives
-— Jackson 3 (`tools.jackson.core`), Apache HttpClient 5, and `zstd-jni` — to patched versions so dependency scans report
-clean.
+— Jackson 3 (`tools.jackson.core`), Apache HttpClient 5, `zstd-jni`, and `io.netty` — to patched versions so dependency
+scans report clean.
 
 ## Requirements
 
@@ -13,8 +13,9 @@ clean.
 The platform SHALL constrain the transitive dependencies that dependency scans flag as vulnerable to their patched
 versions: `tools.jackson.core` modules SHALL resolve through the `tools.jackson:jackson-bom` at a version that fixes the
 reported issues (`jackson-core` at least `3.1.4`, `jackson-databind` at least `3.1.5`),
-`org.apache.httpcomponents.client5:httpclient5` SHALL resolve to at least `5.6.4`, and `com.github.luben:zstd-jni` SHALL
-resolve to at least `1.5.7-14`.
+`org.apache.httpcomponents.client5:httpclient5` SHALL resolve to at least `5.6.4`, `com.github.luben:zstd-jni` SHALL
+resolve to at least `1.5.7-14`, and `io.netty` modules SHALL resolve through the `io.netty:netty-bom` at a version that
+fixes the reported issue (at least `4.2.18.Final`).
 
 #### Scenario: Jackson 3 modules resolve to the aligned BOM version
 
@@ -32,12 +33,17 @@ resolve to at least `1.5.7-14`.
 - **WHEN** a module that depends on `kafka-clients` resolves its runtime classpath
 - **THEN** `com.github.luben:zstd-jni` resolves to version `1.5.7-14` or newer
 
+#### Scenario: Netty modules resolve to a patched version wherever reactor-netty is present
+
+- **WHEN** a module that depends on `reactor-netty-http` resolves its runtime classpath
+- **THEN** `io.netty:netty-codec-http` resolves to version `4.2.18.Final` or newer
+
 #### Scenario: Dependency scan reports no vulnerable paths
 
 - **WHEN** `snyk test --all-sub-projects` runs against the build
 - **THEN** none of `showcase-projection-model`, `showcase-projection-service`, `showcase-query-client`, and
-  `showcase-query-service` report a vulnerable path for Jackson 3 or `httpclient5`, and no sub-project reports one for
-  `zstd-jni`
+  `showcase-query-service` report a vulnerable path for Jackson 3 or `httpclient5`, no sub-project reports one for
+  `zstd-jni` or `io.netty`, and the only suppressed findings are those pinned in `.snyk` with a stated reason and expiry
 
 ### Requirement: Local dependency security scan task
 

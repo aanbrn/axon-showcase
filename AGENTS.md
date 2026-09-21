@@ -631,6 +631,22 @@ Key modules (libraries, not services):
   `-XX:+AllowRedefinitionToAddDeleteMethods` and `-XX:+EnableDynamicAgentLoading` (e.g. the query-client `componentTest`
   and the gateway `e2eTest` suites); leave them off suites that don't (e.g. a `componentTest` with only an
   `ApplicationContextRunner` test)
+- **The WebFlux blocking-execution configurers are load-bearing — they are not a BlockHound band-aid, and removing them
+  breaks the error and validation paths.** Both `showcase-api-gateway`'s `ShowcaseBlockingExecutionConfigurer` and
+  `showcase-query-service`'s `ShowcaseQueryConfigurer` set `configureBlockingExecution(__ -> true)`, routing every
+  controller method to the bounded-elastic scheduler. The gateway's was introduced in `fadc7bc` ("fixed blocking issues
+  using reactor blockhound") and the query-service's appeared two days later, so both read as a coarse workaround — the
+  earlier parked idea to remove the gateway's routing assumed exactly that. Measured, it is false in both services:
+  remove the configurer and the failing tests are status mismatches on _error_ paths, with **zero** BlockHound hits —
+  the gateway's CT drops 9 of 76 (`400 Bad Request` becomes `500 Internal Server Error` for invalid payloads, `afterId`,
+  `size` bounds, and showcase IDs — all request-validation cases) and the query-service's BlockHound-guarded IT drops 3
+  of 10 (`400`/`404` become `503 Service Unavailable`, covering both invalid-query and not-found application errors).
+  The routing is what lets bean validation resolve and fail the request as a `400`, and what carries a real query-bus
+  error back to its `@ExceptionHandler`; BlockHound never fires either way, so there is no blocking call to offload
+  surgically. Two evidence points bound the mechanism: the gateway's not-found test **passes** without the configurer
+  because its `fetchById` is stubbed to return `Mono.error(...)`, so the handler maps that directly, while the
+  query-service's not-found test **fails** (`404` → `503`) because its error comes off the dispatched query bus. Do not
+  "simplify" a configurer away, and do not read the `@WebFluxTest` component-scan it forces as removable complexity.
 - **Asserting log output**: use `OutputCaptureExtension` (`CapturedOutput`) when the code under test runs **in the test
   JVM** (e.g. `ShowcaseProjectorIT`'s projector logging, `ShowcaseRestControllerCT`'s gateway fallback logging). It
   cannot capture a separate process's output — to assert a **containerized** service's logs (the code-under-test runs in

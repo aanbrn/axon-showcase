@@ -1,4 +1,4 @@
-name: upstream-references
+name: Upstream References
 
 on:
   schedule:

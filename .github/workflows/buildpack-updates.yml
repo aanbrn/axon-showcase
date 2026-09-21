@@ -1,4 +1,4 @@
-name: buildpack-updates
+name: Buildpack Updates
 
 on:
   schedule:

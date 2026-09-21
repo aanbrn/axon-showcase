@@ -296,16 +296,18 @@ agent leaves the review and then posts the comment. It follows the same rules a 
 with a change dir, `skip_specs: true` for a pure dependency bump, and the change left unarchived, since archiving
 follows the owner's approval — but it does not archive or merge. An approval comment (`/oc looks good. let's proceed.`)
 therefore maps to _its_ implementation: on a **change** PR that is the commit → push → archive sequence, while on a
-**report** PR (the `audit` workflow's findings) there is no change to archive, so the instruction means the report is
-accepted and the PR is closed — say so explicitly rather than leaving the agent to infer a change it cannot find. Treat
-its PR like any other: verify the self-report against the repository and the run log (a self-report is a claim to
-verify, like a review finding), then check out the agent's branch, run `openspec archive <change>`, commit and push it
-there, and merge once CI is green (the one-PR-per-change sequence above). GitHub never merges on an approval — an
-approval alone leaves the PR open. A PR the action opened from an issue carries a closing reference to its trigger
-(`Closes #<issue>`), so merging it closes that issue — right for a one-shot work item, wrong for a long-lived tracker
-like the update-check issues, whose workflows look them up with `is:issue is:open` and open a fresh one when none is
-open, so the merge orphans its history and the next weekly run opens a duplicate. Strip the closing keyword from an
-agent PR triggered from a tracker before merging, or reopen the tracker.
+**report** PR (the `audit` workflow's findings) there is no change to archive and no finding to apply — the report is
+the artifact, so the instruction means **merge the report** (it lands under `docs/audits/` as the run's record) and
+apply nothing from it. Say so explicitly, rather than leaving the agent to infer a change it cannot find, or to close a
+PR whose file the workflow exists to keep. Treat its PR like any other: verify the self-report against the repository
+and the run log (a self-report is a claim to verify, like a review finding), then check out the agent's branch, run
+`openspec archive <change>`, commit and push it there, and merge once CI is green (the one-PR-per-change sequence
+above). GitHub never merges on an approval — an approval alone leaves the PR open. A PR the action opened from an issue
+carries a closing reference to its trigger (`Closes #<issue>`), so merging it closes that issue — right for a one-shot
+work item, wrong for a long-lived tracker like the update-check issues, whose workflows look them up with
+`is:issue is:open` and open a fresh one when none is open, so the merge orphans its history and the next weekly run
+opens a duplicate. Strip the closing keyword from an agent PR triggered from a tracker before merging, or reopen the
+tracker.
 
 **Merging PRs: the `--admin` flag is for admin users only.** The `main-require-pr-on-merge` ruleset requires an
 approving review (`required_approving_review_count: 1`), but the repo owner (`aanbrn`) is a bypass actor on that ruleset

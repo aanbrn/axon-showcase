@@ -304,12 +304,13 @@ therefore maps to _its_ implementation: on a **change** PR that is the commit �
 **report** PR (the `audit` workflow's findings) there is no change to archive and no finding to apply — the report is
 the artifact, so the instruction means **merge the report** (it lands under `docs/audits/` as the run's record) and
 apply nothing from it. Say so explicitly, rather than leaving the agent to infer a change it cannot find, or to close a
-PR whose file the workflow exists to keep. Treat its PR like any other: verify the self-report against the repository
-and the run log (a self-report is a claim to verify, like a review finding), then check out the agent's branch, run
-`openspec archive <change>`, commit and push it there, and merge once CI is green (the one-PR-per-change sequence
-above). GitHub never merges on an approval — an approval alone leaves the PR open. A PR the action opened from an issue
-carries a closing reference to its trigger (`Closes #<issue>`), so merging it closes that issue — right for a one-shot
-work item, wrong for a long-lived tracker like the update-check issues, whose workflows look them up with
+PR whose file the workflow exists to keep. The cloud agent **cannot merge** — the action has no merge step — so on a
+report PR it must not attempt one; the merge is the human's. Treat its PR like any other: verify the self-report against
+the repository and the run log (a self-report is a claim to verify, like a review finding), then check out the agent's
+branch, run `openspec archive <change>`, commit and push it there, and merge once CI is green (the one-PR-per-change
+sequence above). GitHub never merges on an approval — an approval alone leaves the PR open. A PR the action opened from
+an issue carries a closing reference to its trigger (`Closes #<issue>`), so merging it closes that issue — right for a
+one-shot work item, wrong for a long-lived tracker like the update-check issues, whose workflows look them up with
 `is:issue is:open` and open a fresh one when none is open, so the merge orphans its history and the next weekly run
 opens a duplicate. Strip the closing keyword from an agent PR triggered from a tracker before merging, or reopen the
 tracker.
@@ -949,9 +950,9 @@ Key modules (libraries, not services):
   pattern expands a leading `~`/`$HOME` and also `{env:VAR}` (config substitution runs over the whole file), but
   `{env:TMPDIR}` carries macOS's trailing separator through (`…/T//opencode/**`, which does not match the real path),
   and an unset `TMPDIR` substitutes to an empty string, so there is no fallback where the temp dir is `/tmp`.
-  `.opencode/plugin/tmpdir-scratch.ts` resolves the directory with `tmpdir()` from `node:os` instead — the same path
-  without the trailing separator, and the cross-platform temp dir — and its `config` hook adds `<tmpdir>/opencode/**` to
-  `external_directory`. The plugin also grants the **globally-installed `openspec` package**
+  `.opencode/plugin/grant-cli-config-dirs.ts` resolves the directory with `tmpdir()` from `node:os` instead — the same
+  path without the trailing separator, and the cross-platform temp dir — and its `config` hook adds
+  `<tmpdir>/opencode/**` to `external_directory`. The plugin also grants the **globally-installed `openspec` package**
   (`<resolved package root>/**`), resolved from the `openspec` binary's realpath so a per-machine prefix is not
   hard-coded: the CLI reads its own schema templates from there, which is outside the workspace, and an unattended cloud
   run cannot answer the `external_directory` prompt it otherwise raises (the run hangs — a `/oc` run was found stuck on
@@ -970,6 +971,11 @@ Key modules (libraries, not services):
   the repo. Scope the _temp_ grant to the named scratch subdirectory — never the whole OS temp root, which would grant
   every application's temporary files. Upstream, the portable default this needs is asked for in
   `anomalyco/opencode#48100` — if it lands, drop the plugin's grant and use the built-in.
+
+The same plugin, `.opencode/plugin/grant-cli-config-dirs.ts`, also grants the **`gh` CLI's config directory**
+(`$GH_CONFIG_DIR`, else `$XDG_CONFIG_HOME/gh`, else `~/.config/gh` — resolved the way `gh` resolves it, so
+`/home/runner/.config/gh` on a runner and a home path locally both match): the agent invokes `gh`, which consults that
+directory, and a missing grant hangs the run the same way (an `/oc` run was found stuck on `/home/runner/.config/gh/*`).
 
 ## Docker Images
 
@@ -1437,10 +1443,10 @@ that override when bumping the Kafka image tag.
     failing tool reads, not the artifact's own directory — and treat a different error as its own signal. captured:
     fix-tmpdir-plugin-types (#299) The context is temporal as well as spatial: a plugin hook or a config read runs at
     process init, so a standalone execution proves what the artifact emits but never that its inputs exist by then. The
-    `.opencode/plugin/tmpdir-scratch.ts` grant was proved with a `bun` run (both grants emitted), yet in the cloud run
-    the agent installed `openspec` mid-run, after init, so the resolved-path grant could not exist and the run hung.
-    Exercise the artifact at the lifecycle point it runs in (check the workflow's step order against the artifact's run
-    point), not only its own invocation. captured: grant-openspec-global-access-in-cloud (#325)
+    `.opencode/plugin/grant-cli-config-dirs.ts` grant was proved with a `bun` run (every grant emitted), yet in the
+    cloud run the agent installed `openspec` mid-run, after init, so the resolved-path grant could not exist and the run
+    hung. Exercise the artifact at the lifecycle point it runs in (check the workflow's step order against the
+    artifact's run point), not only its own invocation. captured: grant-openspec-global-access-in-cloud (#325)
 
 - **Run `spotlessApply` after the _final_ write to a Spotless-owned file — ticking a checklist task is an edit too.** A
   `tasks.md` task was ticked ("`spotlessCheck` passes") _after_ the last `spotlessApply`; the re-wrapped prose broke

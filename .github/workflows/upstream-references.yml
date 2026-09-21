@@ -1,0 +1,91 @@
+name: upstream-references
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  upstream-references:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Run the upstream-reference check
+        run: ./gradlew upstreamReferences
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Open or update the Upstream references issue
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          report=build/upstream-references/report.txt
+          issue_title="Upstream references"
+          owner="${{ github.repository_owner }}"
+
+          if [ ! -s "$report" ]; then
+            echo "No report produced; leaving the issue untouched."
+            exit 0
+          fi
+
+          unresolved="$(awk -F'\t' '$2 == "unresolved" { print }' "$report" || true)"
+          closed="$(awk -F'\t' '$2 ~ /^closed/ { print }' "$report" || true)"
+
+          if [ -n "$closed" ] || [ -n "$unresolved" ]; then
+            lines=""
+            if [ -n "$closed" ]; then
+              lines+="Closed upstream references (a closure is a trigger to check, not an answer):"$'\n\n'
+              lines+="$closed"$'\n\n'
+            fi
+            if [ -n "$unresolved" ]; then
+              lines+="References that did not resolve:"$'\n\n'"$unresolved"$'\n'
+            fi
+            body="cc @$owner"$'\n\n'"$lines"
+          else
+            body="No closed or unresolved upstream references."
+          fi
+
+          existing="$(gh issue list --repo "${{ github.repository }}" \
+            --search "in:title \"$issue_title\" is:issue is:open" \
+            --json number --jq '.[0].number // empty')"
+
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --repo "${{ github.repository }}" --body "$body"
+            echo "Updated issue #$existing"
+            issue_number="$existing"
+          else
+            gh issue create --repo "${{ github.repository }}" --title "$issue_title" --body "$body"
+            echo "Created new issue"
+            issue_number="$(gh issue list --repo "${{ github.repository }}" \
+              --search "in:title \"$issue_title\" is:issue is:open" \
+              --json number --jq '.[0].number // empty')"
+          fi
+
+          if { [ -n "$closed" ] || [ -n "$unresolved" ]; } && [ -n "$issue_number" ]; then
+            previous="$(gh api "repos/${{ github.repository }}/issues/$issue_number/comments" \
+              --jq '[.[] | select(.user.login == "github-actions[bot]"
+              and (.body | contains("cc @")))][0].id // empty')"
+            if [ -n "$previous" ]; then
+              gh api "repos/${{ github.repository }}/issues/comments/$previous" --method DELETE --silent
+            fi
+            gh issue comment "$issue_number" --repo "${{ github.repository }}" --body "$body"
+            echo "Commented on issue #$issue_number"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}

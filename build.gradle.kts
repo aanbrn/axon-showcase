@@ -322,6 +322,24 @@ tasks.register("toolingUpdates", ToolingUpdatesTask::class.java) {
     outputs.upToDateWhen { false }
 }
 
+tasks.register("upstreamReferences", UpstreamReferencesTask::class.java) {
+    group = "help"
+    description = "Displays the state of the upstream references cited in the repository's durable artifacts."
+
+    sourceFiles.from(
+        fileTree(rootDir) {
+            include("AGENTS.md")
+            include("README.md")
+            include("docs/ideas.md")
+            include("docs/adr/**/*.md")
+        }
+    )
+
+    reportFile.set(layout.buildDirectory.file("upstream-references/report.txt"))
+
+    outputs.upToDateWhen { false }
+}
+
 tasks.register("verifyModuleDependencies", VerifyModuleDependenciesTask::class.java) {
     group = "verification"
     description = "Verifies the modules' declared dependencies against the sanctioned module graph"

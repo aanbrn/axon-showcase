@@ -364,10 +364,12 @@ scheduled-run mechanism (a `prompt` input, which that trigger requires, and a si
 workflow per audit), SHALL report the findings into a reviewable artifact — a pull request opened from the branch the
 run commits the report to, since the scheduled path has no issue to comment on and produces a pull request only when the
 run leaves commits — and SHALL commit nothing when the audits report nothing. It SHALL notify the repository owner of a
-report pull request by mentioning them in that pull request's body, so the report is not left unread. It SHALL run on
-`ubuntu-latest` with `id-token: write` (the action authenticates by OIDC by default), `contents: write`, and
-`pull-requests: write` (the scopes the no-actor scheduled path needs to open a branch and a pull request), and SHALL NOT
-be part of the merge-gate `build` check or a required check for merging into `main`.
+report pull request by mentioning them in that pull request's body, so the report is not left unread. That mention SHALL
+be placed in the body rather than leading the agent's response, because the action derives the pull request title by
+summarising the response (a response dominated by the mention tends to summarise into a title about it rather than the
+report). It SHALL run on `ubuntu-latest` with `id-token: write` (the action authenticates by OIDC by default),
+`contents: write`, and `pull-requests: write` (the scopes the no-actor scheduled path needs to open a branch and a pull
+request), and SHALL NOT be part of the merge-gate `build` check or a required check for merging into `main`.
 
 #### Scenario: Scheduled trigger runs the audits
 
@@ -378,7 +380,9 @@ be part of the merge-gate `build` check or a required check for merging into `ma
 #### Scenario: The owner is notified of a report pull request
 
 - **WHEN** an audit run opens a pull request carrying its report
-- **THEN** the pull request body mentions the repository owner, so they are notified the report is available for review
+- **THEN** the pull request body mentions the repository owner, so they are notified the report is available for review,
+  and the agent's response does not lead with the mention, so its substance — and therefore the generated title — tends
+  to concern the report rather than the mention
 
 #### Scenario: A clean audit run makes no artifact
 

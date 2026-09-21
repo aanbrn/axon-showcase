@@ -180,7 +180,6 @@ final class ShowcaseRestController implements ShowcaseRestApi {
      */
     @GetMapping
     @Override
-    @SuppressWarnings("FutureReturnValueIgnored")
     public Flux<Showcase> fetchList(
             @RequestParam(required = false) String title,
             @RequestParam(name = "status", required = false) List<ShowcaseStatus> statuses,
@@ -201,27 +200,19 @@ final class ShowcaseRestController implements ShowcaseRestApi {
                         completedFuture(
                                 showcases.stream().map(Showcase::showcaseId).toList())))
                 .flatMapIterable(Function.identity())
-                .onErrorResume(
-                        Predicate.not(ShowcaseQueryException.class::isInstance), t -> Flux.<String>create(sink -> {
-                                    val future = fetchShowcaseListCache.getIfPresent(query);
-                                    if (future != null) {
-                                        future.thenAccept(showcaseIds -> {
-                                            showcaseIds.forEach(sink::next);
-                                            sink.complete();
-                                        });
-                                    } else {
-                                        sink.error(t);
-                                    }
-                                })
-                                .<Showcase>handle((showcaseId, sink) -> {
-                                    val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
-                                    if (future != null) {
-                                        future.thenAccept(sink::next);
-                                    } else {
-                                        sink.error(t);
-                                    }
-                                })
-                                .doOnComplete(() -> log.warn("Fallback on {}", query, t)));
+                .onErrorResume(Predicate.not(ShowcaseQueryException.class::isInstance), t -> {
+                    val cachedShowcaseIds = fetchShowcaseListCache.getIfPresent(query);
+                    if (cachedShowcaseIds == null) {
+                        return Flux.error(t);
+                    }
+                    return Mono.fromFuture(cachedShowcaseIds)
+                            .flatMapMany(Flux::fromIterable)
+                            .concatMap(showcaseId -> {
+                                val cachedShowcase = fetchShowcaseByIdCache.getIfPresent(showcaseId);
+                                return cachedShowcase == null ? Mono.error(t) : Mono.fromFuture(cachedShowcase);
+                            })
+                            .doOnComplete(() -> log.warn("Fallback on {}", query, t));
+                });
     }
 
     /**
@@ -232,22 +223,17 @@ final class ShowcaseRestController implements ShowcaseRestApi {
      */
     @GetMapping("/{showcaseId}")
     @Override
-    @SuppressWarnings("FutureReturnValueIgnored")
     public Mono<Showcase> fetchById(@PathVariable String showcaseId) {
         val query = FetchShowcaseByIdQuery.builder().showcaseId(showcaseId).build();
         return queryOperations
                 .fetchById(query)
                 .doOnNext(showcase -> fetchShowcaseByIdCache.put(showcaseId, completedFuture(showcase)))
-                .onErrorResume(
-                        Predicate.not(ShowcaseQueryException.class::isInstance), t -> Mono.<Showcase>create(sink -> {
-                                    val future = fetchShowcaseByIdCache.getIfPresent(showcaseId);
-                                    if (future != null) {
-                                        future.thenAccept(sink::success);
-                                    } else {
-                                        sink.error(t);
-                                    }
-                                })
-                                .doOnSuccess(__ -> log.warn("Fallback on {}", query, t)));
+                .onErrorResume(Predicate.not(ShowcaseQueryException.class::isInstance), t -> {
+                    val cachedShowcase = fetchShowcaseByIdCache.getIfPresent(showcaseId);
+                    return cachedShowcase == null
+                            ? Mono.error(t)
+                            : Mono.fromFuture(cachedShowcase).doOnSuccess(__ -> log.warn("Fallback on {}", query, t));
+                });
     }
 
     /**

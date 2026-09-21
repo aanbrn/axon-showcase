@@ -90,20 +90,6 @@ it was added (start a new section for a new day rather than appending to the mos
 
 ## 2026-09-14
 
-- Intent questions the widened `/audit-architecture` sweep surfaced — parked; no change yet, awaiting the owner's
-  answers. The change that widened the auditor (`widen-architecture-auditor-to-intent-gaps`) ran it once, and the run
-  reported these deliberate choices whose rationale is not recorded anywhere as questions for the owner:
-  - Why are the command/event/query/DTO value types Lombok classes rather than records? Fourteen
-    `@SuppressWarnings("ClassCanBeRecord")` annotations across the API modules and the gateway encode the choice (on
-    value types and a mapper); `AGENTS.md` records the Lombok convention and the `CodeBlock2Expr` suppression
-    convention, but never why records are rejected.
-  - Why are the legacy OpenSearch high-level REST clients excluded (`showcase-projection-model`,
-    `showcase-projection-service`, `showcase-query-service`, `showcase-query-client`) in favour of `opensearch-java`? No
-    ADR, spec, or `AGENTS.md` sentence records it — distinct from the parked deprecated low-level
-    `RestClientBuilder`/`RestClient` idea.
-  - Is `@SuppressWarnings("FutureReturnValueIgnored")` on `ShowcaseRestController`'s list/by-id paths a deliberate
-    fire-and-forget cache write or a latent bug? The sweep reported it at low confidence; the rationale is unrecorded.
-
 - An upstream-reference report — parked; no change yet. Several durable-artifact notes point at upstream issues we are
   waiting on, and the first closures have already gone unnoticed: `ben-manes/gradle-versions-plugin#755` closed
   2026-08-06 (PR #1060) and `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337) — at park time

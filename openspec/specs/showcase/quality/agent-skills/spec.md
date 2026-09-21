@@ -457,7 +457,10 @@ requires a `prompt` input, authenticates by OIDC (`id-token: write`), and produc
 an issue — and SHALL batch them into one run whose findings land in a single committed report the action carries into a
 pull request, so the pro-model cost is one run per period rather than one per audit. Its cadence SHALL serve the
 reconciliation the audits exist for (the consolidation that counters the accretion the capture loop produces) rather
-than being a bare reminder: a run with nothing to report SHALL commit nothing and so produce no artifact.
+than being a bare reminder: a run with nothing to report SHALL commit nothing and so produce no artifact. The
+`readme-auditor` SHALL remain on-demand only rather than joining the scheduled set: it verifies the human-facing
+`README.md` against the repository, an accuracy-and-coverage check distinct from the reconciliation of the agent's own
+machinery the schedule exists for.
 
 #### Scenario: The audits run unattended on their schedule
 

@@ -93,9 +93,6 @@ it was added (start a new section for a new day rather than appending to the mos
 - Intent questions the widened `/audit-architecture` sweep surfaced — parked; no change yet, awaiting the owner's
   answers. The change that widened the auditor (`widen-architecture-auditor-to-intent-gaps`) ran it once, and the run
   reported these deliberate choices whose rationale is not recorded anywhere as questions for the owner:
-  - Why is Axon Framework pinned to 4.x (`config/dependency-updates/major-disabled.properties`)? The entry's comment
-    points at `showcase/quality/dependency-management`, which carries no Axon requirement — a dead pointer, and the
-    rationale unrecorded, even though the repo vendors the `axon4to5-*` migration skills.
   - Why are the command/event/query/DTO value types Lombok classes rather than records? Fourteen
     `@SuppressWarnings("ClassCanBeRecord")` annotations across the API modules and the gateway encode the choice (on
     value types and a mapper); `AGENTS.md` records the Lombok convention and the `CodeBlock2Expr` suppression
@@ -104,9 +101,6 @@ it was added (start a new section for a new day rather than appending to the mos
     `showcase-projection-service`, `showcase-query-service`, `showcase-query-client`) in favour of `opensearch-java`? No
     ADR, spec, or `AGENTS.md` sentence records it — distinct from the parked deprecated low-level
     `RestClientBuilder`/`RestClient` idea.
-  - Should ADR-0009's Decision name the `axon-server-connector` exclusion repo-wide? It says "both the gateway and the
-    command service", but the exclusion also appears in `showcase-projection-service`, `showcase-query-service`, and the
-    two clients' test suites — covered only by implication. Deliberate enumeration, or was the rest incidental?
   - Is `@SuppressWarnings("FutureReturnValueIgnored")` on `ShowcaseRestController`'s list/by-id paths a deliberate
     fire-and-forget cache write or a latent bug? The sweep reported it at low confidence; the rationale is unrecorded.
 
@@ -155,17 +149,18 @@ it was added (start a new section for a new day rather than appending to the mos
   first declare what they actually use. Worth its own change: narrow query-api, add the consumers' explicit deps, and
   let the build prove the graph.
 
-- ADR revisit triggers for time-bounded decisions — parked; no change yet. ADR-0003 and ADR-0004 are explicit deferrals
-  whose entire point is to be revisited when a stated condition is met: ADR-0003 (retain Jackson 2; adopt Jackson 3 only
-  once Axon and the OpenSearch client support it — an external gate) and ADR-0004 (defer Spring Boot 4; reopen when
-  there is capacity — an internal one). Both _state_ their condition in prose in their Decision, but nothing _surfaces_
-  it: the ADR template has no `Revisit when:` field, no check watches for the condition, and `Status` only records a
-  replacement after the fact — so a deferral silently becomes permanent until someone remembers it. Add a
-  `Revisit when:` line to the template (and to the two existing deferrals), and decide how a due trigger reaches a
-  human: the `architecture-auditor` checks `Status` integrity and a Decision contradicted by the code, but not whether a
-  deferred decision's condition has since been met, so either extend it to flag a deferred ADR whose condition looks
-  met, or list such ADRs in a small report alongside the dependency-update checks. Distinct from status drift: the
-  decision still holds, its premise may not.
+- ADR revisit triggers for time-bounded decisions — parked; no change yet. ADR-0003, ADR-0004, and ADR-0011 are explicit
+  deferrals whose entire point is to be revisited when a stated condition is met: ADR-0003 (retain Jackson 2; adopt
+  Jackson 3 only once Axon and the OpenSearch client support it — an external gate) ADR-0004 (defer Spring Boot 4;
+  reopen when there is capacity — an internal one), and ADR-0011 (defer Axon Framework 5 until its dependency surface
+  ships 5.x — an external gate). Both _state_ their condition in prose in their Decision, but nothing _surfaces_ it: the
+  ADR template has no `Revisit when:` field, no check watches for the condition, and `Status` only records a replacement
+  after the fact — so a deferral silently becomes permanent until someone remembers it. Add a `Revisit when:` line to
+  the template (and to the existing deferrals), and decide how a due trigger reaches a human: the `architecture-auditor`
+  checks `Status` integrity and a Decision contradicted by the code, but not whether a deferred decision's condition has
+  since been met, so either extend it to flag a deferred ADR whose condition looks met, or list such ADRs in a small
+  report alongside the dependency-update checks. Distinct from status drift: the decision still holds, its premise may
+  not.
 
 ## 2026-09-10
 

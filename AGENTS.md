@@ -741,8 +741,8 @@ Key modules (libraries, not services):
 - **Formatting**: format Java sources, Gradle Kotlin DSL (`*.gradle.kts`), and build-logic Kotlin
   (`build-logic/src/**/*.kt`) files with `./gradlew spotlessApply` (Spotless: palantir-java-format for Java, ktfmt for
   `.gradle.kts` and build-logic `.kt`, both fixed 120 columns) — the canonical format step, enforced by `spotlessCheck`
-  in `check` with no IDE required. After each edit, run `spotlessApply` (via the `codefmt` skill's Spotless path) before
-  reporting the change done; the IntelliJ formatter is no longer canonical, and import order is owned by the formatter.
+  in `check` with no IDE required. After each edit, run `spotlessApply` before reporting the change done; the IntelliJ
+  formatter is no longer canonical, and import order is owned by the formatter.
   - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML, and so
     on); markdown is formatted by the root Spotless `markdown` format (Prettier, `printWidth: 120` with
     `proseWrap: "always"` — a preference, not a hard limit: backtick-dense lines can still exceed 120, the accepted
@@ -1690,13 +1690,13 @@ that override when bumping the Kafka image tag.
   counterpart to "report it upstream with a reproduction and the evidence"; the tool-behavior claim itself is verified
   per the `--help`/read-path rules.
 - **When documenting agent tooling (MCP servers, skills, subagents), read the artifact's own definition — not the config
-  entry or the `docs/ideas.md` note that mentions it.** The README "Tooling MCP Servers" section described `codefmt` as
-  running IDE _inspections_ (it runs the formatter), said the Playwright MCP "drives the web-UI e2e" (the test framework
-  runs the e2e; the MCP is only the agent's browser), and listed `runInspectionsDirectly` as an MCP tool (it is an
-  IntelliJ helper called inside `steroid_execute_code`) — every claim sourced from the config entry or the parked idea
-  note rather than the tool itself. A referencing entry summarizes; it does not specify. Read
-  `.opencode/skills/*/SKILL.md`, `.opencode/agent/*.md`, and the server's exposed tool list before describing what each
-  does, and treat an idea note's prose as a lead, not a spec.
+  entry or the `docs/ideas.md` note that mentions it.** The README "Tooling MCP Servers" section described a
+  since-removed `codefmt` skill as running IDE _inspections_ (it runs the formatter), said the Playwright MCP "drives
+  the web-UI e2e" (the test framework runs the e2e; the MCP is only the agent's browser), and listed
+  `runInspectionsDirectly` as an MCP tool (it is an IntelliJ helper called inside `steroid_execute_code`) — every claim
+  sourced from the config entry or the parked idea note rather than the tool itself. A referencing entry summarizes; it
+  does not specify. Read `.opencode/skills/*/SKILL.md`, `.opencode/agent/*.md`, and the server's exposed tool list
+  before describing what each does, and treat an idea note's prose as a lead, not a spec.
 - **A CLI's `--help` is not a capability list — absence of a flag is not evidence the capability is missing.** The
   `setup-agent-tools` design originally asserted `opencode mcp add` was interactive "with no `--command` flag for a
   local server, so it cannot be driven by the agent"; in fact `opencode mcp add <name> -- <command…>` is

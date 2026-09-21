@@ -35,4 +35,6 @@ ApplicationExitHandler applicationExitHandler() {
 
 - The exit-on-startup path is integration-testable without terminating the test JVM.
 - The seam is a thin addition to the application class; the default behavior is unchanged.
-- The command service's `exitAfterFlywayMigration` path can adopt the same pattern when tested.
+- The command service's `exitAfterFlywayMigration` path **has adopted** the seam (`ShowcaseCommandApplication`'s
+  `ApplicationExitHandler`, exercised by `ShowcaseCommandApplicationExitAfterFlywayMigrationIT`), so the pattern is
+  proven in both applications.

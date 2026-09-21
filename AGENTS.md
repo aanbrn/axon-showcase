@@ -288,17 +288,21 @@ the change ship with the change's PR, per the docs-refresh convention.)
 
 **The `opencode` GitHub Action authors a PR from an `/oc` comment — a local agent or human completes it.** Commenting
 `/oc …` (or `/opencode …`) on an issue runs OpenCode on a GitHub-hosted runner; it implements the work on its own
-`opencode/…` branch, commits, and opens the PR (on an existing PR the same comment commits to that PR instead). It
-follows the same rules a local agent does — an OpenSpec change with a change dir, `skip_specs: true` for a pure
-dependency bump, and the change left unarchived, since archiving follows the owner's approval — but it does not archive
-or merge. Treat its PR like any other: verify the self-report against the repository and the run log (a self-report is a
-claim to verify, like a review finding), then check out the agent's branch, run `openspec archive <change>`, commit and
-push it there, and merge once CI is green (the one-PR-per-change sequence above). GitHub never merges on an approval —
-an approval alone leaves the PR open. A PR the action opened from an issue carries a closing reference to its trigger
-(`Closes #<issue>`), so merging it closes that issue — right for a one-shot work item, wrong for a long-lived tracker
-like the update-check issues, whose workflows look them up with `is:issue is:open` and open a fresh one when none is
-open, so the merge orphans its history and the next weekly run opens a duplicate. Strip the closing keyword from an
-agent PR triggered from a tracker before merging, or reopen the tracker.
+`opencode/…` branch, commits, and opens the PR (on an existing PR the same comment commits to that PR instead). The
+trigger must be a **timeline comment** or an **inline diff comment**: a `/oc` in a _review body_ (Submit review →
+Comment/Request changes/Approve) does nothing, because the action does not support `pull_request_review` (filed upstream
+as `anomalyco/opencode#50247` (retires when the action gains that trigger)) — so a reviewer who wants to instruct the
+agent leaves the review and then posts the comment. It follows the same rules a local agent does — an OpenSpec change
+with a change dir, `skip_specs: true` for a pure dependency bump, and the change left unarchived, since archiving
+follows the owner's approval — but it does not archive or merge. Treat its PR like any other: verify the self-report
+against the repository and the run log (a self-report is a claim to verify, like a review finding), then check out the
+agent's branch, run `openspec archive <change>`, commit and push it there, and merge once CI is green (the
+one-PR-per-change sequence above). GitHub never merges on an approval — an approval alone leaves the PR open. A PR the
+action opened from an issue carries a closing reference to its trigger (`Closes #<issue>`), so merging it closes that
+issue — right for a one-shot work item, wrong for a long-lived tracker like the update-check issues, whose workflows
+look them up with `is:issue is:open` and open a fresh one when none is open, so the merge orphans its history and the
+next weekly run opens a duplicate. Strip the closing keyword from an agent PR triggered from a tracker before merging,
+or reopen the tracker.
 
 **Merging PRs: the `--admin` flag is for admin users only.** The `main-require-pr-on-merge` ruleset requires an
 approving review (`required_approving_review_count: 1`), but the repo owner (`aanbrn`) is a bypass actor on that ruleset

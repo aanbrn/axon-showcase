@@ -8,7 +8,7 @@ CQRS/Event-Sourcing pipeline can be demonstrated visually.
 
 ## Requirements
 
-### Requirement: Browse showcases
+### Requirement: Showcase browsing
 
 The UI SHALL render the list of showcases returned by the gateway's showcase listing endpoint, displaying for each
 showcase its title, status (`SCHEDULED`, `STARTED`, `FINISHED`), duration, and a status-aware timestamp: the scheduled
@@ -24,7 +24,7 @@ start time, the expected finish time once started, or the actual finish time onc
 - **WHEN** a showcase's status changes
 - **THEN** the UI reflects the new status on the next list refresh, without a full page reload
 
-### Requirement: Reconcile the list with the eventually-consistent read model
+### Requirement: Read-model reconciliation of the showcase list
 
 The UI SHALL reconcile the showcase list with the read model after a write, because the command and query sides are
 eventually consistent: the gateway confirms a command before the projection has updated the read model. Reconciliation
@@ -60,7 +60,7 @@ the only supported entry point; the UI SHALL NOT expose reconciliation helpers t
 - **WHEN** a producer of the showcase list wants to wait for the read model to reflect a state change
 - **THEN** the only supported way is the event-stream reconciliation, and event-free helpers are not used
 
-### Requirement: Drive lifecycle actions
+### Requirement: Lifecycle action dispatch
 
 The UI SHALL let a user create a showcase (title, start time, duration) and start, finish, or remove an existing
 showcase, by invoking the corresponding gateway REST endpoints. Validation errors returned by the gateway SHALL be
@@ -81,7 +81,7 @@ surfaced to the user.
 - **WHEN** the gateway rejects an action with a validation error
 - **THEN** the UI displays the error so the user can correct the input
 
-### Requirement: Validate the form before submission
+### Requirement: Create-form validation
 
 The UI SHALL validate the create-showcase form client-side before invoking the gateway: a non-empty title of at most 255
 characters, a start time in the future, and a duration from the supported set. The start-time picker SHALL pre-fill with
@@ -98,7 +98,7 @@ a future time and roll forward to the next minute until the user edits it, so th
 - **WHEN** the user leaves the start-time picker untouched
 - **THEN** the picker shows a future time, advancing to the next minute at each minute boundary
 
-### Requirement: Render a per-showcase history timeline
+### Requirement: Per-showcase history timeline
 
 The UI SHALL render a timeline for a selected showcase built from the read model's timestamps: scheduling, start, and
 finish. This history is derived from the read model only — the UI SHALL NOT read events from the event store or a
@@ -109,7 +109,7 @@ projected events index.
 - **WHEN** the user selects a showcase
 - **THEN** the timeline shows the showcase's scheduling, start, and finish markers from its read-model timestamps
 
-### Requirement: Display live events over SSE
+### Requirement: Live event display over SSE
 
 The UI SHALL subscribe to the gateway's live event stream (Server-Sent Events) and append each received domain event to
 the relevant showcase's timeline as it arrives. The live stream is the only event source; history and live events are

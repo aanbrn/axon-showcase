@@ -280,51 +280,6 @@ SHALL NOT be part of the merge-gate `build` check or a required check for mergin
 - **THEN** it posts a new comment mentioning the repository owner (so the owner is notified) and removes the previous
   bot-authored comment, keeping at most one bot comment on the issue
 
-### Requirement: Helm release namespaces are declared in the build
-
-The Helm releases for the local deployment target SHALL declare their namespaces explicitly in `build.gradle.kts`: the
-observability releases (kps, tempo) SHALL use the `monitoring` namespace, and the application and infrastructure
-releases (db-events, kafka, os-views, axon-showcase) SHALL use a dedicated `axon-showcase` namespace created on install.
-The local deployment SHALL NOT depend on the user's kube-context current namespace or a `helm.namespace` gradle property
-for the release namespaces.
-
-#### Scenario: All releases declare their namespaces explicitly
-
-- **WHEN** a maintainer reads the Helm release configuration in `build.gradle.kts`
-- **THEN** every release sets its `namespace` (kps and tempo in `monitoring`; db-events, kafka, os-views, and
-  axon-showcase in `axon-showcase`), and the four app/infra releases set `createNamespace = true`
-
-#### Scenario: The app and infrastructure releases share one namespace
-
-- **WHEN** the four app/infra releases are installed
-- **THEN** they are created in the `axon-showcase` namespace, so their short service DNS names resolve within it, and
-  the namespace is created if absent
-
-### Requirement: Each Helm release target declares its kube context
-
-Every Helm release target SHALL declare the kube context it deploys to in the build's `releaseTargets` configuration.
-The `local` target SHALL resolve its kube context per-machine, from a `helm.local.kubeContext` Gradle property, falling
-back to the developer's current kube context when unset. Any remote target (e.g. staging) SHALL declare a shared, fixed
-kube context in the build, since the same remote cluster serves every contributor. The repo SHALL NOT hard-code a
-machine-specific local context name (such as a macOS-only colima context) in the versioned build.
-
-#### Scenario: The local target resolves the developer's local cluster
-
-- **WHEN** a developer runs a Helm install with the `local` release target active
-- **THEN** the target uses the `helm.local.kubeContext` property if set, or the developer's current kube context
-  otherwise, so macOS (colima) and Linux (kind/minikube) contributors each deploy to their own local cluster
-
-#### Scenario: A remote target uses a shared fixed context
-
-- **WHEN** a release target other than `local` (e.g. staging) is active
-- **THEN** the target deploys to the kube context declared for it in the build, which is the same for every contributor
-
-#### Scenario: No machine-specific context name in the repo
-
-- **WHEN** a maintainer reads the `releaseTargets` configuration in `build.gradle.kts`
-- **THEN** the `local` target does not hard-code a context name that only exists on one OS (such as `colima`), and any
-  per-machine context value is supplied via the `helm.local.kubeContext` property
-
 ### Requirement: Buildpack update report runs on a schedule and on demand
 
 The Paketo buildpack update report SHALL run automatically on a schedule and be manually triggerable, as the same

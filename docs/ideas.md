@@ -14,12 +14,6 @@ it was added (start a new section for a new day rather than appending to the mos
 
 ## 2026-09-21
 
-- Verify the upstream-references workflow end to end — parked; no change yet. `add-upstream-reference-report` added
-  `.github/workflows/upstream-references.yml`, but GitHub exposes `workflow_dispatch` only once the file exists on the
-  default branch (an attempt to dispatch it on the branch returned HTTP 404), so it cannot be exercised before the
-  merge. After the merge, run `gh workflow run upstream-references.yml` and confirm the resulting run opens or updates
-  the "Upstream references" issue with the report's closed/unresolved references, mentioning the owner.
-
 - Verify the audit workflow's generated PR title end to end — parked; no change yet. `fix-audit-pr-title` reworded the
   `audit` workflow's prompt so the agent no longer leads its response with the owner mention, because the OpenCode
   GitHub action derives the PR title by summarising the response in under 40 characters. The prompt change's effect on

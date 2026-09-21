@@ -1253,6 +1253,19 @@ that override when bumping the Kafka image tag.
   convention), so it can no longer simply be reset to `origin/main`. Under the commit-only-at-push rule the branch has
   no commits to rebase before its first push, so the stash path arises only after a commit; refresh a pushed branch with
   `gh pr update-branch` rather than a local stash-rebase.
+
+The same stale-stash hazard has a second, quieter failure mode: a stash taken while the working tree holds a **stale
+copy** — a pre-pull version of a file whose `HEAD` already carries the pull — records a diff that _deletes_ the pull's
+lines, and popping it back onto that same `HEAD` re-applies the deletion **cleanly, with no conflict**, silently
+reverting the pull. (Pop the other way — stash first, then `HEAD` advances — and git runs a 3-way merge, so the pull's
+lines survive or raise a conflict instead; the silent case needs the staleness to exist _at stash time_. Reproduced both
+ways.) Moving a capture started in `main`'s working tree onto its own branch this way left `AGENTS.md` ~380 lines short,
+and only the staged diff's size (`+31/-409`, PR #336, closed unmerged) revealed it — a content scan missed it entirely.
+So check a staged diff's insertions/deletions ratio (`git diff --cached --numstat`) before committing, and treat a large
+deletion count on a file the change only appends to as a truncation, not a tidy-up. The workspace's own capture-branch
+rule exists to keep this from arising at all: start the capture on its branch, not in `main`'s working tree. captured:
+capture-stash-stale-copy
+
 - **`git reset --hard` on a branch with uncommitted work discards tracked-file edits and deletes branch-added files.** A
   change branch holds the work uncommitted (per the workflow); a `git reset --hard origin/main` to "rebase" the branch
   reverts every tracked-file modification (`build.gradle.kts`, workflows, docs) **and deletes the files a commit on that

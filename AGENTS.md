@@ -575,7 +575,14 @@ Key modules (libraries, not services):
 ## Conventions
 
 - **Lombok**: use Lombok where possible (e.g., `@RequiredArgsConstructor`, `@Data`, `@Builder`, `@Value`) instead of
-  writing boilerplate manually; `addNullAnnotations = jspecify`; copyable annotations include `@Qualifier` and `@Value`
+  writing boilerplate manually; `addNullAnnotations = jspecify`; copyable annotations include `@Qualifier` and `@Value`.
+  The command/event/query/DTO value types are Lombok `@Value` classes carrying `@Builder` (`toBuilder = true` on the
+  three types whose variants tests derive — `ScheduleShowcaseCommand`, `Showcase`, `ShowcaseEntity`) rather than Java
+  records, and the builder is the reason: the aggregate and saga construct events and commands through `builder()`
+  (`ShowcaseScheduledEvent.builder()`, `StartShowcaseCommand.builder()`), and tests derive variants via `toBuilder()` —
+  a record's canonical constructor cannot express that. Fourteen `@SuppressWarnings("ClassCanBeRecord")` annotations
+  encode the choice; delete one only if the type genuinely needs no builder. Whether records would be faster is
+  **untested** — the suppression records intent, not a measured result, so do not read it as a performance claim.
 - **MapStruct**: default component model is `spring` (`-Amapstruct.defaultComponentModel=spring`)
 - **ErrorProne**: NullAway on `showcase.*` packages in production code; disabled in `TestJava` tasks
 - **Checkstyle**: style gate wired into `check` via `code-check-conventions.gradle.kts`; ruleset at
@@ -1894,3 +1901,14 @@ that override when bumping the Kafka image tag.
   tools (`read`/`edit`/`write`/`glob`/`grep`) and path-taking commands, while a script's own out-of-tree writes run
   under `permission.bash` — so removing the blanket `/tmp/**` allow from `external_directory` leaves a bash-script write
   such as `setup-hosts.sh`'s unaffected, and a temp-root grant should not be re-added there for it.
+
+- **Caffeine's `AsyncCache.getIfPresent` returns `null` for a future that completed exceptionally — a failed cached
+  future is indistinguishable from a cache miss.** A cached `CompletableFuture` that failed is not surfaced:
+  `getIfPresent` yields `null`, so the `if (present) … else …` shape takes the miss branch and no callback runs. Two
+  consequences for a future-callback style (`future.thenAccept(…)`): the callback only ever executes on success, and the
+  returned future ErrorProne's `FutureReturnValueIgnored` flags can never leave a sink hanging here. So a
+  `@SuppressWarnings( "FutureReturnValueIgnored")` on such a method is **redundant**, not a documented decision or a
+  hidden bug — verified against Caffeine 3.2.4 (`getIfPresent` of an exceptionally-completed future returns `null`).
+  Prefer `Mono.fromFuture(…)` over a raw sink-plus-`thenAccept`: Reactor observes the future (no dangling return, no
+  suppression needed) and the empty-vs-failed distinction stays with the cache's own contract.
+  `ShowcaseRestController`'s fallback paths were refactored this way and the two method-level suppressions deleted.

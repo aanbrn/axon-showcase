@@ -223,16 +223,6 @@ it was added (start a new section for a new day rather than appending to the mos
   `eslint-plugin-import` naming. Keep it out of the current change to keep the review focused; verify existing code
   conforms (it was built cleanly) and let CI gate it from then on.
 
-## 2026-09-02
-
-- Remove the gateway's blocking-execution routing — parked; keep for now. `ShowcaseBlockingExecutionConfigurer`
-  (`configureBlockingExecution(__ -> true)`) routes every controller method to a blocking scheduler. It was added in
-  `fadc7bc` ("fixed blocking issues using reactor blockhound") as a global workaround, but the controller is fully
-  reactive (the only blocking call, `IdentifierFactory.generateIdentifier()`, is already offloaded via
-  `subscribeOn(boundedElastic)`). It's a coarse band-aid, not the right fix — the real work is rooting out whatever
-  still trips BlockHound in the error/validation path and offloading it surgically, then dropping the global routing
-  (and the `@WebFluxTest` configurer-discovery complexity it forces). Split off CORS into `ShowcaseApiConfigurer`.
-
 ## 2026-09-01
 
 - Managed-k8s staging for free or cheaply — explored, parked (no change yet). Goal: a managed Kubernetes staging env for

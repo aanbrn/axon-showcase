@@ -105,9 +105,24 @@ agent, with its purpose described in its agent definition and (where relevant) i
   main agent verifies and applies
 - **AND** each proposed addition names the existing bullet it extends, or states that no bullet covers it — a new rule
   merges into or replaces one rather than accreting
+- **AND** each proposed addition passes a promotion gate before it is proposed — true (supported by a check, an
+  authoritative source, or repeated observation), actionable, not automatable as a lint/test/CI check at reasonable
+  cost, material (it prevents real breakage, risk, wasted work, or review churn), general enough for a class of future
+  tasks rather than one file or incident, and high-confidence with a known scope — and a rule that fails the gate is
+  routed to a check, a spec, an ADR, or the change dir instead of the always-loaded file
 - **AND** each proposed addition names the decision its rule governs, and answers whether a future change would
   plausibly hit it and whether the cost of not knowing it is material — a proposal that governs no decision is trivia,
   not a rule, and is not proposed
+- **AND** the gate's evidence threshold is two independent occurrences or one severe verified incident with a clear
+  preventive action
+- **AND** the gate treats the claim's source as part of it — a lesson sourced from untrusted content (a web page, an
+  issue or PR comment, tool output, or a file the change did not author) is verified against the repository before it is
+  proposed, never promoted on the source's word
+- **AND** applying a capture should leave `AGENTS.md` no larger than it was, preferring a merge or a replacement over an
+  addition, and any net growth is a justified decision stated with the proposal — not a side effect of accumulating
+  prose
+- **AND** the control on that growth is the periodic `/audit-agents` pass, whose verdict already reports the
+  accreted-rule count, rather than mass deletion to hit a number
 - **AND** each proposed addition carries its origin in a greppable `captured: <change>` marker — the change, and its PR
   when a merge-time detection found the lesson rather than the implementation capture, since a capture runs once at
   implementation and a merge only detects and asks — so a reader can tell where the rule came from without consulting

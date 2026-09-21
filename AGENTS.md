@@ -220,6 +220,13 @@ The grep needs the behavior's name as well as its file: a requirement may name n
 report-body behavior, so a prompt edit there owes a `MODIFIED` delta that `openspec validate` cannot flag as missing.
 captured: notify-owner-from-the-audit-report (#327)
 
+A change's delta spec path mirrors the main spec's: the delta for `showcase/clients/web-ui` is
+`openspec/changes/<change>/specs/showcase/clients/web-ui/spec.md`. Omitting the `showcase/` segment does not collapse to
+the same capability — OpenSpec reads `clients/web-ui` and `showcase/clients/web-ui` as two capability ids — so the delta
+targets a different spec, and `openspec validate` does not tie it back. `restructure-spec-corpus-findings` first wrote
+two deltas at `specs/clients/…` and `specs/gateway/…` and had to move them under `specs/showcase/…`. captured:
+restructure-spec-corpus-findings (#332)
+
 **A delta spec cannot rename a main-spec requirement header.** A `MODIFIED` requirement in a change's delta spec is
 matched to the main spec by its `### Requirement:` header, so the header must be verbatim-identical to the one it
 modifies — only the description/body can change. Retitling a requirement while rewording it (e.g. renaming "Vendored
@@ -245,6 +252,12 @@ current spec still has" when a delta drops an existing scenario (the first `helm
 only the new web UI scenario, omitting "The deployed UI can call the gateway" and "The UI origin is configurable"). The
 safe recipe: copy the current spec's full requirement block (description + all scenarios) into the delta, then edit it —
 never hand-write a MODIFIED block from memory.
+
+A `MODIFIED` block names one `### Requirement:` header, so folding a second requirement into the first does not retire
+that second requirement: the delta also needs a `REMOVED` block for it, or the main spec keeps both the merged
+requirement and the orphaned details requirement. `restructure-spec-corpus-findings` folded three `… details`
+requirements into their cores as `MODIFIED` + `REMOVED` pairs, each `MODIFIED` carrying the core's scenarios plus the
+details' so none was lost. captured: restructure-spec-corpus-findings (#332)
 
 **A spec rename/move (`git mv`) does not update the spec's internal `#` title, and nothing validates the title against
 the capability path.** The first line of `openspec/specs/.../spec.md` must be edited separately to match the new path —
@@ -273,6 +286,13 @@ its own — not only a fold-in to the next change that touches the capability �
 **no** spec edit by design, the only real change being the archive commit's: **state the deferral in the report**, since
 the diff reads as empty of the change's substance (the owner asked "why do I see no touched files except ideas.md?"),
 rather than moving the edit earlier to give it some.
+
+A capability owning a delta is not the trigger for a Purpose refresh — read the Purpose and refresh it only where the
+change falsifies its own text. Requirements moving _out_ of a capability can leave its Purpose untouched when the
+Purpose never described them: `restructure-spec-corpus-findings` moved the two Helm requirements out of
+`merge-governance` and refreshed only `helm-chart`'s Purpose, because `merge-governance`'s — which describes branch
+protection and CI gates — is unchanged by requirements it never described. captured: restructure-spec-corpus-findings
+(#332)
 
 **`openspec validate` checks a change's delta specs, not its `proposal.md` — proposal-schema defects surface only at
 archive, and non-blockingly.** For a change, `openspec validate --all`/`--changes` runs only the delta-spec validator;
@@ -612,388 +632,10 @@ Key modules (libraries, not services):
   and a `BuildpackUpdatesTaskTests` case that duplicated a `VersionsTests` case verbatim both passed while verifying
   nothing — a reviewer caught both, and they were deleted rather than kept for the count. When a rule is a one-line
   wrapper of a language construct, test the caller's decision; before adding a case, check no existing test asserts it.
-  captured: test-build-logic-rules-and-unify-version-comparison (#306)
-- **Spring bean mocks in tests**: use `@MockitoBean` (from `org.springframework.test.context.bean.override.mockito`),
-  not the deprecated-for-removal `@MockBean` (`org.springframework.boot.test.mock.mockito`), which has been deprecated
-  since Spring Boot 3.4
-- **Test tier placement**: a test's tier is decided by its collaborators (see Test tiers). Verify the application's bean
-  wiring (`@SpringBootApplication` config) at the **integration** tier via a real context boot — do not write component
-  tests that mock the app's own collaborators. Component tests compose real in-process collaborators (e.g. a real
-  mapper) with only external infrastructure faked. A test that subscribes to a stream which never completes (an SSE
-  endpoint's `Flux`) is a **unit** test with a bounded subscription (`take(1)`, `blockFirst(timeout)`) — inside a
-  `@WebFluxTest`/slice test the open exchange leaks and breaks unrelated cases in the same run (the keep-alive slice
-  version failed 15 of 76 `ShowcaseRestControllerCT` cases; all 108 passed without it). captured: keep-sse-stream-alive
-  (#301)
-- **Nested test groups for resilience features**: a `@Nested` class that groups Resilience4j scenarios is named
-  `<Feature>Behavior` (e.g., `TimeLimiterBehavior`, `RetryBehavior`, `CircuitBreakerBehavior`), both for uniformity and
-  to avoid shadowing the library's `CircuitBreaker` type
-- **BlockHound jvmArgs**: only suites whose tests call `BlockHound.install()` need
-  `-XX:+AllowRedefinitionToAddDeleteMethods` and `-XX:+EnableDynamicAgentLoading` (e.g. the query-client `componentTest`
-  and the gateway `e2eTest` suites); leave them off suites that don't (e.g. a `componentTest` with only an
-  `ApplicationContextRunner` test)
-- **The WebFlux blocking-execution configurers are load-bearing — they are not a BlockHound band-aid, and removing them
-  breaks the error and validation paths.** Both `showcase-api-gateway`'s `ShowcaseBlockingExecutionConfigurer` and
-  `showcase-query-service`'s `ShowcaseQueryConfigurer` set `configureBlockingExecution(__ -> true)`, routing every
-  controller method to the bounded-elastic scheduler. The gateway's was introduced in `fadc7bc` ("fixed blocking issues
-  using reactor blockhound") and the query-service's appeared two days later, so both read as a coarse workaround — the
-  earlier parked idea to remove the gateway's routing assumed exactly that. Measured, it is false in both services:
-  remove the configurer and the failing tests are status mismatches on _error_ paths, with **zero** BlockHound hits —
-  the gateway's CT drops 9 of 76 (`400 Bad Request` becomes `500 Internal Server Error` for invalid payloads, `afterId`,
-  `size` bounds, and showcase IDs — all request-validation cases) and the query-service's BlockHound-guarded IT drops 3
-  of 10 (`400`/`404` become `503 Service Unavailable`, covering both invalid-query and not-found application errors).
-  The routing is what lets bean validation resolve and fail the request as a `400`, and what carries a real query-bus
-  error back to its `@ExceptionHandler`; BlockHound never fires either way, so there is no blocking call to offload
-  surgically. Two evidence points bound the mechanism: the gateway's not-found test **passes** without the configurer
-  because its `fetchById` is stubbed to return `Mono.error(...)`, so the handler maps that directly, while the
-  query-service's not-found test **fails** (`404` → `503`) because its error comes off the dispatched query bus. Do not
-  "simplify" a configurer away, and do not read the `@WebFluxTest` component-scan it forces as removable complexity.
-- **Asserting log output**: use `OutputCaptureExtension` (`CapturedOutput`) when the code under test runs **in the test
-  JVM** (e.g. `ShowcaseProjectorIT`'s projector logging, `ShowcaseRestControllerCT`'s gateway fallback logging). It
-  cannot capture a separate process's output — to assert a **containerized** service's logs (the code-under-test runs in
-  a different JVM), collect them via `withLogConsumer` into a `static StringBuilder` and poll it, as the command-client
-  e2e did before the suite was consolidated (see `69f2811`)
-- **`@DirtiesContext`**: add it only where a full-context boot leaks global JVM state — JGroups (ports and system
-  properties) and JCache (a JVM-global cache manager). Contexts that are safely cacheable don't need it: service slices,
-  and `@Nested` classes with distinct `@ActiveProfiles` (which already get separate cached contexts). Keep it on the
-  gateway/command-service full-context ITs (each boots a JGroups-enabled service); drop it elsewhere
-- **Code coverage**: modules opt in via `code-coverage-conventions`. Coverage is measured per module with
-  `jacocoTestReport` (unit + component + integration exec data) and aggregated with the root `jacocoRootReport`. The
-  `jacocoTestCoverageVerification` gate is wired into `check` at the baseline in
-  `config/jacoco/coverage-baseline.properties` and requires Docker (integration tests). A module can extend the
-  generated-class excludes via `coverage.generatedClassExcludes`
-- **Architecture Decision Records**: record cross-cutting architecture decisions as numbered ADRs under `docs/adr/`
-  (Nygard format — Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture the
-  _why_ behind structural choices. Capture a decision as an ADR when it is made, not after the fact. A decision that
-  only surfaces after the fact (an auditor or review finds it unrecorded) is dated to the day the decision was made,
-  with a Context line stating it was recorded retrospectively and when; if the decision predates the ADR practice and no
-  date can be established, date the recording and say so (the first architecture audit produced two such ADRs, dated the
-  two ways). A retrospective ADR that cannot state _why_ the decision was made should ask the project owner before
-  recording the rationale as unrecorded — the repository's silence is not evidence the rationale does not exist, and a
-  missing _why_ is a question for the human, not a permanent gap to write down (ADR-0009 declared its no-Axon-Server
-  rationale "not recorded anywhere in the repository" until asking the owner recovered it: avoiding Axon Server's
-  commercial licensing).
-- **Docs refresh on change**: on every change, verify whether `AGENTS.md`, `README.md`, and `docs/adr/` need to be
-  refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
-  a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on
-  concern for weeks after `snyk.yml` landed, until the first architecture audit caught it) — and update them before
-  reporting the change done; also remove the change's idea from `docs/ideas.md` **in the same PR**, so it rides the
-  change branch and commits with its push rather than landing as a separate docs PR. An idea is removed once implemented
-  (captured by a change) or once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR
-  instead); only open ideas remain (see the file's header). Promotion to a GitHub issue is a **link, not a removal** —
-  annotate the idea with the issue number (`; promoted to issue #NNN`) when you promote it, since the file's header
-  names only the issue's link to the change, not the scratchpad's back-link to the issue, so the two drift apart. Give
-  every parked entry a trailing status tag stating its disposition (`— parked; no change yet.` is the common form; a
-  promoted or explored-and-set-aside idea says so instead), since the header fixes the sections' order and dating but
-  not the tag, and the tag is what marks the entry as a still-unowned idea rather than one already routed to work. Also
-  sweep `docs/ideas.md` for references to the thing this change shipped — an open idea that still calls it "the proposed
-  X" is itself a stale claim, and no auditor covers that file (the four auditors own `AGENTS.md`/`.opencode/`, the spec
-  corpus, `docs/adr/` plus the architectural surface, and `README.md` respectively); update the idea's prose in the same
-  change, including any enumeration or count it carries ("two others remain open: A, B") that the change's new instance
-  makes wrong. Docs that ARE the change (new agent/command/skill documentation, README rows describing a new capability,
-  the change's idea removal) ship with the change's PR; docs that refresh facts about a completed change ship as a
-  separate docs PR — a newly parked idea that is not yet a change is such a docs PR. A standalone `docs/ideas.md` edit
-  that no change owns (a reword or a stale-fact correction) also ships as its own docs PR, forked from `main`; an edit
-  the change itself causes rides that change's branch. Do not read that last clause as covering a **newly parked idea**:
-  an open question the change's own sweep happened to surface is a new, independent idea, not an artifact of the change,
-  so it ships as its own docs PR forked from `main`. Only the change's own idea removal, or prose about the thing it
-  shipped, rides the change branch. Decide the owner before committing — a docs PR forked from `main` cannot carry an
-  edit committed on a change branch, so committing it there first for a clean tree silently leaves it out of the docs PR
-  and `main` unchanged — and verify the fix against the merged PR's diff rather than the PR description, which can claim
-  a change the diff does not contain. A parked-idea docs PR owes the refresh too: fold any durable fact the idea reveals
-  into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin to an existing enumeration) —
-  `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the idea is implemented or dropped.
-  `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the same project facts (runtime/Spring/Gradle
-  versions, module count, service list, Docker image names) that OpenSpec shows the AI when creating artifacts — refresh
-  it in the same change whenever one of those facts moves. A **removal** counts too: when a sweep deletes an entry as
-  non-durable, check these copies for the same sentence — the fact has not moved, so the move rule does not fire
-  (`disable-axoniq-console-message`'s sentence outlived #292's removal from `AGENTS.md` by four PRs in `config.yaml`,
-  until the audit noticed). `openspec validate` never checks it, so it drifts silently. The repository's own GitHub
-  description and topics are a third un-gated copy of the same facts — so refresh them in the change that moves one; no
-  gate reads them and no auditor owns a surface outside the repository. A file can also _depend_ on such a surface
-  rather than describe one: `SECURITY.md`'s private-reporting path is a dead end unless private vulnerability reporting
-  is enabled. Enable the setting as part of the change that ships the instruction — a repository setting leaves no diff,
-  so a diff-only review cannot see it — and name the enabling in the change's report. captured: park-retro-marking-idea
-  (#281)
-- **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
-  `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
-  path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
-  README already follows this.
-- **README design intent**: the README is a human-facing showcase and onboarding guide, not a reference dump. Preserve
-  its intended shape on every edit: section order (intro → Project Structure → Cool Story → Architecture → Technologies
-  → Development Workflow → Getting Started → Development Practices → Deployment and Operations → License/Author);
-  "Getting Started" is a step-by-step path (tools → sources → build → run → play); prefer Gradle tasks over raw
-  `docker compose`/`helm install` commands (they need env vars the Gradle tasks set automatically); use one CLI for API
-  examples (curl) — do not add parallel httpie examples; the development narrative is a prompting exercise (the agent
-  implements, the human approves); observability is Kubernetes-deployment-only via Helm (custom Axon Showcase Grafana
-  dashboard, not in the local compose stack); slash commands render as a table; a worked scenario shows the interactive
-  loop
-- **Surface human-visible capabilities in the README on every change**: while working on a change, actively look for
-  behavior a person can _see or experience_ — a cool story moment, a watcher's flow, a demo-able feature, an access
-  path, a dashboard — and make sure it is mentioned in the README before the change is reported done (the docs-refresh
-  and README-design-intent conventions cover _how_ it is presented; this is the _what_ to look for). Prefer
-  experience-oriented framing ("watch the saga auto-start it") over plumbing descriptions. If a feature is deliberately
-  not surfaced, note the omission rather than leaving it silent. Examples that were nearly missed: how to reach the
-  deployed system (the `setup-hosts.sh` hostnames) and the observability access path (the Grafana port-forward).
-- **Confirm a diagram's semantic mapping with the user before iterating its geometry.** A diagram is a rendering of a
-  fixed mapping — which span starts where and ends where; once the mapping is agreed, alignment is mechanical. The
-  README OpenSpec-flow diagram consumed many revision cycles (quick + thorough reviews, multiple layouts) because the
-  mapping was adjusted through the review loop instead of confirmed up front. State the intended mapping (each span →
-  its end node) in the change's report and get it confirmed before re-rendering; keep review effort proportional to a
-  presentational artifact instead of iterating its geometry through the review agents.
-- **No comments** in source code (per project convention). The sole exception is the `// SPDX-License-Identifier: MIT`
-  header, enforced by Spotless on every Java file and by `eslint-plugin-header` (`@tony.ganchev/eslint-plugin-header` in
-  the flat `showcase-web-ui/eslint.config.js`, since the original plugin is unmaintained and does not support ESLint
-  9/10) on every `showcase-web-ui` source file (the project is MIT licensed; see the LICENSE file)
-- **Javadoc**: classes, methods, and fields carry a Javadoc comment describing their purpose (see
-  `ShowcaseApiErrorResolver`, `ShowcaseRestController`); wrap at 120 characters. The `showcase-web-ui` uses JSDoc the
-  same way: exported components, hooks, and helpers carry a `/** ... */` comment describing their purpose (e.g.
-  `ShowcasesPage`, `contextualTime`, `waitForReadModel`); both wrap at 120 characters
-- **Frontend (`showcase-web-ui`)**: organized per Feature-Sliced Design (`app`/`pages`/`widgets`/`features`/`entities`/
-  `shared`, importing only downward, `@/` alias → `src/`). Server state via TanStack Query, client state via a Redux
-  Toolkit slice, forms via React Hook Form + Zod. Format with Prettier (`format:check` gated in `check`; apply with
-  `./gradlew :showcase-web-ui:npmFormat`); lint with ESLint 10 via the flat `showcase-web-ui/eslint.config.js`
-- **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
-  arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
-  simplest construct that compiles and stays readable. The same applies to prose: when a bullet needs a set another
-  `AGENTS.md` bullet already enumerates, cross-reference that bullet instead of re-listing it — a copied enumeration is
-  a second copy that drifts. Condensing near-duplicate guidance is the same trade in reverse — merge the repetition, not
-  the evidence: enumerate the concrete anchors each entry carries (an exact warning string, an exit code, a
-  parenthetical qualifier, an upstream issue link) and confirm the merged text still carries every one, and grep for the
-  shorthands that named a bullet a merge retitles so they can be repointed. (Whether an already-restated fact is still
-  accurate is a separate check: diff it against the code — see the documented-numbers gotcha.)
-- **Formatting**: format Java sources, Gradle Kotlin DSL (`*.gradle.kts`), and build-logic Kotlin
-  (`build-logic/src/**/*.kt`) files with `./gradlew spotlessApply` (Spotless: palantir-java-format for Java, ktfmt for
-  `.gradle.kts` and build-logic `.kt`, both fixed 120 columns) — the canonical format step, enforced by `spotlessCheck`
-  in `check` with no IDE required. After each edit, run `spotlessApply` before reporting the change done; the IntelliJ
-  formatter is no longer canonical, and import order is owned by the formatter.
-  - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML, and so
-    on); markdown is formatted by the root Spotless `markdown` format (Prettier, `printWidth: 120` with
-    `proseWrap: "always"` — a preference, not a hard limit: backtick-dense lines can still exceed 120, the accepted
-    trade-off of automating markdown wrapping). The markdown scope is `docs/`, `AGENTS.md`, `README.md`,
-    `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`, the `.github/` markdown, and the project-authored
-    `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files and the vendored `axon4to5-*` skills are excluded,
-    while the project-authored `opsx-tool-update.md` stays in scope despite the shared prefix — and
-    `.opencode/opencode.json` has its own `json` format. A target's generated-file exclusions must track what the
-    generator writes — `/opsx-tool-update` checks the list when the generated inventory changes, since a newly generated
-    `opsx-*` command would otherwise be reformatted by `spotlessApply` and then overwritten by the next
-    `openspec update`. Verify with a character count (`perl -CSD -lne 'print if length > 120'`), not
-    `awk 'length > 120'` — `awk` counts bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow
-    tripped this three times); the `-l` chomps the trailing newline `-ne` would otherwise count, so an
-    exactly-120-character line is not false-flagged. Verify a verification command on a boundary case before recording
-    it — the first recipe omitted `-l` and false-flagged every exactly-120-character line. Formatters cannot reflow
-    string literals (e.g. an error message in Kotlin/Gradle), so wrap an over-long string with concatenation
-    (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as natural prose and let `spotlessApply`
-    (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the wrapping and reflows on every run. A bare
-    `$` in prose (outside inline code) is parsed as inline math and blocks that reflow — the paragraph silently keeps
-    its original ragged wrapping while `spotlessCheck` still passes; escape it as `\$` (which renders as `$`). The
-    formatter also leaves the interior of an inline code span untouched — it wraps prose around the span but never
-    rewrites the code text it contains — so a defect inside one (a whitespace run) passes `spotlessCheck` and the manual
-    120-character check alike, neither of which has a rule that detects it: proofread inline-code content as content,
-    not as something the gate will fix. Never author an inline code span across a source line break — Prettier's reflow
-    joins the lines and leaves the continuation line's indentation as extra spaces inside the span (a
-    `paketo-buildpacks/procfile` split from its `5.15.0` came out as `paketo-buildpacks/procfile     5.15.0`): keep a
-    span on one source line and let the reflow move the whole span. Fenced blocks are a different story — Prettier
-    applies embedded formatting inside a fence whose info string names a language it supports (`json`, `yaml`,
-    `markdown`), so that content is gated, while an unsupported one (`bash`, `java`, `mermaid`) is not.
-  - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
-    so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
-    "Statement lambda can be replaced with expression lambda" inspection is suppressed with
-    `@SuppressWarnings("CodeBlock2Expr")` on the source method (the correct token — not `StatementLambdaInspection`).
-- **IDE inspections (optional)**: the build gates are the canonical verification — after each edit, run
-  `./gradlew spotlessApply` and the touched module's quality gates (`compileJava`/`check`); no IDE is required. If the
-  IDE is available, you may additionally run its inspections on the touched files (through the Steroid MCP
-  `steroid_execute_code`, via its `runInspectionsDirectly` helper) and fix warnings, but this is not required and never
-  a gate. Prefer assertions like `assertThat(x).isNotNull()` over `Objects.requireNonNull(x)` when guarding nullable
-  values in tests, since the IDE recognizes them for dataflow. The null-check case is the mirror:
-  `assertThat(frame.data()).isNull()` trips `DataFlowIssue` twice — "The call to 'isNull' always fails with an
-  exception" and "Argument 'frame.data()' might be null" — and the intermediate
-  `assertThat(frame).extracting(ServerSentEvent::data).isNull()` still warns ("Function may return null, but it's not
-  allowed here"); assert through the holder instead — `assertThat(frame).matches(f -> f.data() == null)` — which is
-  clean. captured: keep-sse-stream-alive (#301)
-- **Vision subagent for screenshot review**: the main agent runs on the cheap flash model (text-only); a `vision`
-  subagent (`.opencode/agent/vision.md`) is pinned to `opencode-go/deepseek-v4-flash-vision-exp` to read screenshots.
-  When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent — it inherits the
-  Playwright MCP, captures the screenshot into its own context, reads it, and returns a description, while the main
-  session stays on the cheap model. This auto-routes vision work without manual model switching.
-- **Diagrammer subagent for ASCII diagrams**: the main agent (the cheap flash model) is weak at ASCII diagram geometry —
-  drawing or fixing a diagram (a README flow diagram, alignment, bracket spans) repeatedly cost extra effort and review
-  cycles. A `diagrammer` subagent (`.opencode/agent/diagrammer.md`) is pinned to `opencode-go/deepseek-v4-pro` to draw
-  and fix ASCII diagrams. When a diagram needs creating, aligning, or correcting, delegate to it via the `/diagram`
-  command: it establishes the semantic mapping (which span ends where) before rendering, aligns by character width, and
-  preserves deliberate asymmetry. The main agent stays on the cheap model.
-- **Experience-analyzer subagent for retrospectives and improvements**: the `experience-analyzer` subagent
-  (`.opencode/agent/experience-analyzer.md`) aggregates recent experience across many changes — above the per-change
-  `review-quick`/`lesson-capture` agents. Trigger it with the `/retrospective` OpenCode command (or run it manually):
-  the command gathers the digest with `./scripts/experience-analysis.sh [since]` (merged PRs, git log, archived changes,
-  AGENTS.md gotchas, docs/ideas.md), then the subagent returns a retrospective (shipped PRs by theme, lessons,
-  went-well/went-wrong) and improvement suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process`
-  (→ AGENTS.md or a subagent definition), which the main agent verifies and applies. Retrospectives land in
-  `docs/retrospectives/<date>.md` as a docs change.
-- **Agents-auditor subagent for agent-tooling maintenance**: the `agents-auditor` subagent
-  (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
-  `.opencode/` files (subagents, commands, skills) — because an accretion-only set of guidance and tooling drifts:
-  entries contradicted elsewhere, stale enumerations, dead cross-references, a command naming a subagent that no longer
-  exists, near-duplicate gotchas. It also reports **merge candidates** — overlapping entries with a merged text that
-  preserves every anchor and piece of evidence, or a deletion of the duplicate where that text would only restate an
-  existing rule — and **removal candidates** — rules that govern no decision — with both counts in the verdict line. Its
-  scope is a provenance partition: it never _fixes_ what the repo does not author (the OpenSpec instruction files
-  `openspec update` writes, and the vendored `axon4to5-*` skills) — a project-authored file that shares a generated
-  prefix, like `opsx-tool-update`, stays in scope: a boundary drawn by provenance, not a filename pattern, which
-  over-captures (the same holds for any audit, ignore, or lint scope). An excluded file is still _read_, and reported as
-  an advisory item where it contradicts how the repo uses it (a vendored skill prescribing a pattern our code has moved
-  past; a generated command naming an artifact we removed), bounded by a harm test and routed to a decision — report it
-  upstream, re-vendor, or change our usage — never a local edit. It also reports the accreted meta rules — in-scope
-  rules about the agent, its tooling, the per-change workflow, or the documentation rather than the product — each with
-  the origin that introduced it (the `captured:` marker, or `git blame` / `git log -S`), as a class of its own rather
-  than a defect. Trigger it with the `/audit-agents` OpenCode command: the subagent verifies each claim against the
-  repository and returns its findings in the subagent report contract — shared by the per-change review and
-  lesson-capture agents and the four auditors (not `experience-analyzer`, whose output is a document, not a findings
-  report), and defined in the `agent-skills` spec: a verdict line first, then each item budgeted (its anchor and one
-  line of evidence), passing checks collapsed to one line, and no alternatives — without editing anything. The main
-  agent applies the approved findings under the review gate. One audit's findings can need different delivery routes —
-  split the output by fix type and scope each unit's artifacts and diff to its own fixes, rather than running the whole
-  audit through one unit (the routing per fix type is in the specs-auditor and architecture-auditor bullets). The
-  scheduled variant runs unattended in the `audit` workflow (see Continuous Integration); the audit itself is on demand.
-- **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
-  (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus, because `openspec validate` gates a spec's
-  well-formedness but not its cross-spec structural consistency — title ↔ capability-path match, Purpose ↔ requirements
-  fit, requirement conventions, cross-spec duplication, and dead cross-references. Trigger it with the `/audit-specs`
-  OpenCode command: it verifies each finding against the repository and returns its findings in the subagent report
-  contract (grouped by severity) without editing anything, flagging a reused requirement header for judgment rather than
-  as a defect. It deliberately does **not** check behavior against the code — the change workflow's review loop and the
-  archive-time sync own that. The main agent applies approved findings through the normal change workflow (a spec edit
-  is a change). The scheduled variant runs unattended in the `audit` workflow (see Continuous Integration).
-- **Architecture-auditor subagent for design drift and unrecorded intent**: the `architecture-auditor` subagent
-  (`.opencode/agent/architecture-auditor.md`) audits the project's architecture — `docs/adr/` plus the architectural
-  surface (the service boundaries, the module dependency graph, and the spec corpus's capability decomposition) — for
-  drift from its recorded decisions. It covers an ADR's Decision contradicted by the code, a stale `Status` or an
-  unrecorded supersession, a missing `ADR-NNNN` cross-reference, a cross-cutting decision with no ADR, a
-  dependency/service-boundary direction the architecture does not sanction, and a spec decomposition that no longer
-  matches the module/service structure. Trigger it with the `/audit-architecture` OpenCode command: it verifies each
-  finding against the repository and reports in the subagent report contract, in two separated sections — **findings**
-  (verified drift, budgeted per item) and **advisory** design observations (no severity, not defects, never "fixed"
-  without the user's decision) — without editing anything. Within the advisory section it also reports **where
-  clarification of intent is missing** — a deliberate choice or absence whose rationale is not recorded. It sweeps the
-  surfaces a rationale must exist for (dependency `exclude(...)` declarations, the major-version-suppressed coordinates,
-  the suppression annotations and retained deprecated APIs, and the deferrals and band-aids recorded in ADRs or
-  `docs/ideas.md`), searches the repository for a recorded rationale before reporting each item, and states the question
-  the owner must answer; an item whose rationale is already recorded is not reported. It deliberately does **not** check
-  behavior against the code (the review loop and archive-time sync own that), the spec corpus's internal structure
-  (`specs-auditor` owns that), or any property an existing gate enforces. The main agent applies the approved findings
-  under the review gate: an architecture audit's output is mostly docs, so a finding whose fix is an ADR correction, a
-  new ADR, or an `AGENTS.md`/`README.md` clarification lands as a docs PR, while one whose correction is a code change —
-  or an edit to a subagent/command definition that changes its spec'd behavior (which owes that definition's spec delta,
-  per the multi-artifact-sweep bullet) — becomes its own change and is parked as an idea until then — do not force the
-  suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet
-  narrowing the dependency broke `:showcase-query-client:compileJava`). An advisory item needs the user's decision
-  before anything is done with it. The scheduled variant runs unattended in the `audit` workflow (see Continuous
-  Integration).
-- **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
-  (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
-  guide, whose content no gate checks — on three axes: accuracy/consistency (every claim matches the repository,
-  cross-checked against `AGENTS.md` and the spec corpus), design-intent fidelity (the README convention: section order,
-  the step-by-step Getting Started path, Gradle tasks over raw commands, curl-only, the prompting narrative), and
-  coverage/experience surfacing (the Cool Story and every human-visible capability, cross-checked against what the
-  system does). Trigger it with the `/audit-readme` OpenCode command: it verifies each claim against the repository and
-  reports in the subagent report contract, with subjective quality in an advisory section (the README is hand-curated by
-  design) and a clean audit a valid one-line result. Its scope is `README.md` only — the other documents have their own
-  owners — and it is justified as a distinct artifact and audience (humans, not agents), which is why it is separate
-  rather than a widening of `agents-auditor`.
-- **Justify a new auditor by a distinct artifact/property, not by symmetry — widen an existing one when its artifacts
-  are coupled.** A new auditor earns its place only when its artifact or property has drift no existing auditor can see;
-  if the drift is visible only across artifacts an existing auditor already holds, widen that auditor instead.
-  `specs-auditor` is separate because `openspec/specs/` is a distinct corpus with its own gate (`openspec validate`) and
-  cross-spec structural consistency, while the project-authored `.opencode/` tooling was folded into `agents-auditor`
-  rather than spawning a `tooling-auditor` — a subagent is described across its own definition, an `AGENTS.md` bullet,
-  the README's agent-table row and prose, and the `agent-skills` spec, so the drift is cross-artifact: widening
-  `agents-auditor` catches the half a single-artifact auditor would miss by comparing the copies it holds — its own
-  definition, the `AGENTS.md` bullet, and the `agent-skills` spec (outside its fix scope, so the spec-side fix routes to
-  the corpus owner) — while the README copy is fixed by the change's docs sweep. Keep an auditor's **fix scope** and its
-  **comparison span** distinct — a compared copy outside the scope is expected, with its fix routed to its owner. Before
-  adding an auditor, name the artifact's drift and which existing auditor cannot see it — if one can, widen rather than
-  add.
-- **Thorough-review subagent for deep passes**: the `review-thorough` subagent (`.opencode/agent/review-thorough.md`)
-  does a deep review of a change against its proposal, delta specs, design, tasks, and the implementation diff — drift,
-  correctness, architecture, and conventions. It is intentionally not auto-scheduled (the expensive pass); invoke it
-  with the `/review-thorough` OpenCode command (or ask the main agent to run it manually). Findings come back in the
-  subagent report contract (grouped by severity with file/line references); the main agent applies fixes.
-- **A subagent is only invocable through a trigger, not its documentation**: documenting an `.opencode/agent/*.md`
-  subagent in AGENTS.md does not make it reachable — ship a `.opencode/commands/*.md` command (e.g. the `/retrospective`
-  trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
-  documentation first and was only usable once the user pointed out it had no trigger and the command was added.
-- **A subagent/command change is a multi-artifact sweep — diff against the last analogous change instead of re-deriving
-  the artifact set.** **A definition edit that changes spec'd behavior is a change, not a docs edit** — the
-  `agent-skills` spec describes that definition's behavior, so such an edit owes that spec's delta and never rides a
-  docs, audit-fix, or retrospective PR; a definition-only edit the spec does not describe (a model-pin bump,
-  `skip_specs: true`) still ships as a change, with no delta. Beyond the descriptors the auditor-justification bullet
-  names, a change also touches the definition's frontmatter `description`; its **own report-contract verdict line** (a
-  report that gains or changes an output section must name it there — the shared contract makes an auditor's first line
-  state a count, so a pre-widening `<n> findings` line is stale the moment an advisory section exists, becoming
-  `<n> findings, <n> advisory`); the shared report-contract requirement's own bearer list, which enumerates the
-  report-producing subagents and goes stale when one is added, so it needs a `MODIFIED` delta; the trigger command
-  (including its step-1 read-list); the README **slash-command table row** and its **prose** description of the auditor
-  (the Spec-Driven Development, Agentic Process, and Self-Learning Loop sentences) whenever what it reports changes —
-  the tables are not the README's only copy; a task for the capability `## Purpose` refresh (a delta cannot carry a
-  Purpose); and the proposal's `### New Capabilities`/ `### Modified Capabilities` subsections ("none" where empty).
-  Keep any enumerated list (the swept surfaces, the finding classes) verbatim-identical across proposal/design/tasks/
-  delta. The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round
-  surfaced one of these that a prior analogous change had covered — read the archived analogous change and grep for the
-  artifact's name before hand-writing the set. captured: add-readme-auditor (#315)
-- **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
-  scope.** The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
-  `.opencode/opencode.json` (`model` and `small_model` — two keys), the flash-pinned subagent frontmatter
-  (`.opencode/agent/review-quick.md`, `lesson-capture.md`, `experience-analyzer.md`), the
-  `.github/workflows/opencode.yml` `model` input, and the `AGENTS.md` agent gotchas that name the model id (docs that
-  ARE the change — update them in the same change). When bumping, grep for the old id across `.opencode/`,
-  `.github/workflows/`, and `AGENTS.md` (the `README.md` only names the generic `opencode-go/*` form, so it needs no
-  edit), and exclude the vision agent's `-vision-exp` pin: the vision model is a separate experimental line that may not
-  have a counterpart in the new family (the v4.1 bump left it on `deepseek-v4-flash-vision-exp`). A naive sweep that
-  flags the vision pin as stale would wrongly "fix" a deliberate asymmetry. Note the config `model` key is a default for
-  **new** sessions, not a live override: OpenCode persists the last-used model in `~/.local/state/opencode/model.json`
-  (its `recent` list), so a restarted TUI that restores a session keeps that session's model and still shows the old one
-  until you switch manually or start a new session — a correct config pin does not by itself make the running agent use
-  the new model. The pins also sit behind a **flat-rate, dollar-metered** plan (OpenCode Go), so a per-model quota is
-  consumed at the model's own rate rather than by request count, and the DeepSeek models carry peak/off-peak rate tiers,
-  so the quota a pass consumes depends on when it runs. That is a property of the plan, not of the pin: resolve the
-  current tiers and window at the provider (`opencode.ai/docs/go`) instead of pinning them here.
-- **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
-  `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
-  `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired
-  plugin version and update the recorded version here and in the `showcase/quality/agent-skills` spec — a deliberate,
-  reviewed change, not silent drift.
-- **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
-  `.opencode/commands/setup-agent-tools.md` (project-local, **not** one of the vendored `axon4to5-*` skills) let a
-  contributor ask the agent to wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only,
-  the Steroid MCP — into their global `~/.config/opencode/opencode.jsonc` via `opencode mcp add <name> -- <command…>`.
-  Playwright is project-configured. The README deliberately documents only GitHub (and the project-configured
-  Playwright): Steroid is optional, IDEA-only, and nothing in the repo requires it (formatting is Spotless), so it is
-  surfaced on demand via `/setup-agent-tools` rather than advertised — do not re-add it to the README's server list.
-- **Agent scratch files go in `$TMPDIR/opencode`, and a plugin — not a path pattern — grants that directory.**
-  `.opencode/opencode.json` can name it only where `TMPDIR` is already set without a trailing separator: a permission
-  pattern expands a leading `~`/`$HOME` and also `{env:VAR}` (config substitution runs over the whole file), but
-  `{env:TMPDIR}` carries macOS's trailing separator through (`…/T//opencode/**`, which does not match the real path),
-  and an unset `TMPDIR` substitutes to an empty string, so there is no fallback where the temp dir is `/tmp`.
-  `.opencode/plugin/grant-cli-config-dirs.ts` resolves the directory with `tmpdir()` from `node:os` instead — the same
-  path without the trailing separator, and the cross-platform temp dir — and its `config` hook adds
-  `<tmpdir>/opencode/**` to `external_directory`. The plugin also grants the **globally-installed `openspec` package**
-  (`<resolved package root>/**`), resolved from the `openspec` binary's realpath so a per-machine prefix is not
-  hard-coded: the CLI reads its own schema templates from there, which is outside the workspace, and an unattended cloud
-  run cannot answer the `external_directory` prompt it otherwise raises (the run hangs — a `/oc` run was found stuck on
-  exactly `/usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/*`). The resolution runs at
-  OpenCode init, so the CLI must already be on `PATH` by then: the agent workflows therefore **install it as a step
-  before the action** (pinned, as `ci.yml` does) rather than letting the agent install it mid-run, which is too late for
-  the grant. Its absence drops only that entry, so the scratch grant survives. Only a real cloud run exercises this path
-  — no local session (where `openspec` is already on `PATH`) and no CI job does, since the `build` gate runs no action
-  and `workflowLint` checks only the YAML — so a green `check` does not validate the grant. Put PR-body files and
-  similar there, and keep the allow-list in the plugin: `.opencode/plugin/*.ts` is auto-discovered (OpenCode's built-in
-  `customize-opencode` skill names both `.opencode/plugin/` and `.opencode/plugins/`), and its `config(cfg)` hook runs
-  once on init with the live merged config and may mutate it. Its dependencies live in a **tracked**
-  `.opencode/package.json` (OpenCode installs them at startup and can also update its own plugin pin there) with a
-  `.opencode/tsconfig.json` beside it declaring `types: ["node"]`, so an editor resolves the plugin's `node:os` import —
-  no build step type-checks that directory. `.opencode/.gitignore` keeps only `node_modules` and the lockfiles out of
-  the repo. Scope the _temp_ grant to the named scratch subdirectory — never the whole OS temp root, which would grant
-  every application's temporary files. Upstream, the portable default this needs is asked for in
-  `anomalyco/opencode#48100` — if it lands, drop the plugin's grant and use the built-in.
+  A test written to guard a refactor must fail against the pre-refactor code — run it before the change (or with the old
+  path temporarily restored) and confirm it goes red, since a test green on both sides verifies nothing and is deleted
+  rather than kept for the count. The `ShowcaseRestController` cache-fallback refactor shipped under the existing 76
+  scenario tests for this reason. captured: resolve-recorded-intent-questions (#334)
 
 The same plugin, `.opencode/plugin/grant-cli-config-dirs.ts`, also grants the **`gh` CLI's config directory**
 (`$GH_CONFIG_DIR`, else `$XDG_CONFIG_HOME/gh`, else `~/.config/gh` — resolved the way `gh` resolves it, so
@@ -1664,33 +1306,13 @@ that override when bumping the Kafka image tag.
   qualifier's scope too: a condition or exception introduced for one variant must not swallow the rule's primary mandate
   — strip the qualifiers and confirm the imperative verb still governs the default case (the `reshape-the-capture-loop`
   rewrite of the capture trigger lost its lead's main verb and folded the implementation capture under the merge
-  condition; the PR's test plan records the review catching it). captured: reshape-the-capture-loop (#289)
-- **A durable artifact may assert only what the repository can evidence — a history that lives only in the conversation
-  is not repo history.** An earlier draft of this bullet cited a `/var/folders/**` config attempt — a pattern proposed
-  in conversation but never written to a config file — and asserted an unobserved `setup-hosts.sh` outcome; a review
-  pass caught both. Before writing a historical or behavioral claim into `AGENTS.md`, `README.md`, a subagent
-  definition, or a main spec, find its evidence — a config file, a log line, a commit, or a run whose output you have. A
-  commit cited as evidence is itself a claim: read what it did (`git show --stat`) and whether the path existed at
-  `<commit>^` before attributing lines or a reflow to it — an early draft of the `make-captured-rules-traceable`
-  artifacts called `c62feda` one of "two Spotless commits" that reflowed `AGENTS.md`, but `c62feda` created the file
-  (164 insertions, and `AGENTS.md` is absent at its parent); a review caught it. If the only source is the conversation,
-  omit it or label it as the owner's account; for an outcome you did not observe, state the mechanism ("a bash-script
-  write runs under `permission.bash`") rather than the observation ("it did not prompt"). Point-in-time narrative
-  belongs in a change's archived artifacts, not in a durable one. A claim about a surface **outside** the repository — a
-  registry's contents, a repository setting, a live URL — has no config file or commit behind it, so its evidence is a
-  query whose output you have: run it before writing the claim, and re-run it at review, because such a surface can
-  change between the two and no gate reads it (`#266`'s repeated review rounds caught several unverified external
-  assertions — a GitHub docs URL written from memory, a false "Docker Hub carries nothing" against five live
-  repositories, wrong dates; the owner deleted those repositories mid-session, invalidating the entry between its
-  writing and its review). Verify a URL by requesting it, and treat the review, not a gate, as the check. When a script
-  generates many claims at once, the method that derived them is not their evidence: each generated item needs its own
-  control, applied per item rather than as a spot check, because a heuristic that is right on nine of ten items writes
-  its one error silently into the durable file and a hedge tag (`approximate`, "uncertain") does not repair it. The
-  `retro-mark-captured-rules` backfill's first attempt named 8 origins whose commit contained no text of the rule at all
-  — including `ddaa51e`, claimed for the log-assertion rule whose text it never mentions — because the range and the
-  phrase were never required to be about the same rule; adding the per-item control (the candidate origin's added lines
-  must contain the rule's own opening phrase) substantiated 30+ origins independently. captured:
-  retro-mark-captured-rules
+  condition; the PR's test plan records the review catching it). Check a recorded _mechanism_ against every measurement
+  the change made, not only against other docs: name the evidence points the explanation must cover and confirm the
+  wording holds for each, because a generalization one of your own runs contradicts is wrong however well it reads. The
+  blocking-execution bullet must cover both of its evidence points — the gateway's not-found test passing (its
+  `fetchById` is stubbed, so the handler maps the error directly) and the query-service's failing (`404` → `503`,
+  because its error comes off the dispatched query bus) — since a wording covering only one contradicts the other.
+  captured: record-blocking-execution-rationale (#335)
 
 - **A comparison between two runs or files that differ in more than one dimension cannot attribute the difference to
   either — isolate the variable before naming a cause.** Comparing `ci.yml`'s `Cache mode: write` with the `opencode`

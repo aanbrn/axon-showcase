@@ -87,4 +87,27 @@ ignore:
         reason: Gatling charts transitive (load-tests only); no patched t-digest release available
         expires: 2026-12-11T00:00:00.000Z
         created: 2026-09-11T00:00:00.000Z
+  SNYK-JAVA-COMTDUNNING-19778375:
+    - '* > com.tdunning:t-digest@3.3':
+        reason: Gatling charts transitive (load-tests only); no patched t-digest release available
+        expires: 2026-12-21T00:00:00.000Z
+        created: 2026-09-22T00:00:00.000Z
+  # org.xerial.snappy:snappy-java is a hard, non-optional kafka-clients dependency, reached on the production runtime
+  # classpath via axon-kafka -> cloudevents-kafka -> kafka-clients. all three advisories are "through 1.1.10.8" (the
+  # newest release is itself affected), so no bump clears them; no compression codec is configured in our services.
+  SNYK-JAVA-ORGXERIALSNAPPY-19778376:
+    - '* > org.xerial.snappy:snappy-java@1.1.10.5':
+        reason: kafka-clients transitive on the production classpath; no patched release (vulnerable through 1.1.10.8)
+        expires: 2026-12-21T00:00:00.000Z
+        created: 2026-09-22T00:00:00.000Z
+  SNYK-JAVA-ORGXERIALSNAPPY-19964086:
+    - '* > org.xerial.snappy:snappy-java@1.1.10.5':
+        reason: kafka-clients transitive on the production classpath; no patched release (vulnerable through 1.1.10.8)
+        expires: 2026-12-21T00:00:00.000Z
+        created: 2026-09-22T00:00:00.000Z
+  SNYK-JAVA-ORGXERIALSNAPPY-19964087:
+    - '* > org.xerial.snappy:snappy-java@1.1.10.5':
+        reason: kafka-clients transitive on the production classpath; no patched release (vulnerable through 1.1.10.8)
+        expires: 2026-12-21T00:00:00.000Z
+        created: 2026-09-22T00:00:00.000Z
 patch: {}

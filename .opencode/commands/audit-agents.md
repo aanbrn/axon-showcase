@@ -15,6 +15,7 @@ Run the agent-tooling audit to check the project's guidance and agent files for 
    severity, plus separate advisory (third-party inconsistency) and accretion (meta rules with their origins) classes,
    and the merge and removal candidates counted in the verdict line).
 3. Ask the user which findings to apply — do not edit files without their go-ahead.
-4. Apply the approved findings, run `./gradlew spotlessApply` for the formatter-wrapped files (`AGENTS.md`, `README.md`,
-   the specs/change dirs, and the project-authored `.opencode/` markdown the audit edited), then re-run the
-   `review-quick` subagent over the resulting diff before reporting the audit done.
+4. Apply the approved findings, run `./gradlew spotlessApply` for the formatter-wrapped files the audit edited
+   (`AGENTS.md` and the project-authored `.opencode/` markdown — the audit's `README.md` copy is fixed by the change's
+   docs sweep, and its spec-side copy routes to the corpus owner), then re-run the `review-quick` subagent over the
+   resulting diff before reporting the audit done.

@@ -10,7 +10,7 @@ unless asked.
 The scan passes `--policy-path=.snyk` (the root Snyk policy), which version-pins the ignored findings
 (`* > pkg@version`) so only the exact assessed vulnerable versions are suppressed, each with a short-term `expires` so
 it re-surfaces if not resolved in time. The currently-suppressed findings and their rationale live in the `.snyk` header
-comment and the `showcase/quality/dependency-security` spec — see those rather than restating them here.
+comment and each ignore's `reason` field — see those rather than restating them here.
 
 **Snyk rate limit:** the free org plan allows **200 Open Source tests per billing period** (monthly; confirmed by the
 plans-page FAQ and the CLI's own "monthly limit of 200 private tests" message — note the docs.snyk.io usage-settings

@@ -12,17 +12,19 @@ to the aggregate in the command service, the only writer. Axon Framework 4 offer
 whose members discover each other.
 
 The repository takes the second route deliberately: an intention of the project is to exercise Axon Framework **without
-Axon Server**, avoiding its commercial licensing — a cost the project does not take on. Both the gateway and the command
-service therefore **exclude** `axon-server-connector` and depend on `axon-extensions-jgroups-spring-boot-starter` and
-`jgroups-kubernetes`, joining a JGroups cluster (`axon-showcase`) that discovers members by TCP-ping locally and
-KUBE_PING in Kubernetes. The decision predates ADR-0001; this ADR records it and its consequences retrospectively
-(2026-09-13).
+Axon Server**, avoiding its commercial licensing — a cost the project does not take on. Every module that depends on
+`axon-spring-boot-starter` — the four services and the two clients' componentTest suites — **excludes**
+`axon-server-connector`, because the project runs no Axon Server anywhere; the gateway and the command service
+additionally depend on `axon-extensions-jgroups-spring-boot-starter` and `jgroups-kubernetes`, joining a JGroups cluster
+(`axon-showcase`) that discovers members by TCP-ping locally and KUBE_PING in Kubernetes. The decision predates
+ADR-0001; this ADR records it and its consequences retrospectively (2026-09-13).
 
 ## Decision
 
 Route commands over Axon's JGroups-based distributed command bus, and run no Axon Server: `axon-server-connector` is
-excluded from both the gateway and the command service, and events are stored in PostgreSQL rather than in Axon Server's
-event store.
+excluded from **every module that depends on `axon-spring-boot-starter`** (the four services and the two clients'
+componentTest suites), because the project runs no Axon Server anywhere, and events are stored in PostgreSQL rather than
+in Axon Server's event store.
 
 _Alternatives considered:_ Axon Server — not used. Its commercial licensing is a cost the project deliberately avoids,
 and it would add a dedicated routing and event-store server to the stack — a further component to deploy, operate, and

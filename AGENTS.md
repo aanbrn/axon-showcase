@@ -500,7 +500,8 @@ initialized:
   OpenSpec validation and config probe as the pull-request path.
 - **A check belongs in the pull-request gate only when the change that trips it can remediate it.** Drift in state no
   pull request causes would fail every unrelated PR, so it belongs in the observational scheduled pattern instead (the
-  four update-check workflows, and the out-of-repository surfaces the Docs-refresh bullet names), never `build`.
+  observational workflows listed below, and the out-of-repository surfaces the Docs-refresh bullet names), never
+  `build`.
 
 The `check` task also runs `workflowLint`, which lints the GitHub Actions workflows with actionlint (installed on the
 runner via the official download script; see the Prerequisites), and `verifyModuleDependencies`, which enforces the
@@ -539,6 +540,9 @@ The four update-check workflows — `.github/workflows/dependency-updates.yml`, 
 weekly schedule and via `workflow_dispatch`, open or update their tracker issue from that report's file with the
 `GITHUB_TOKEN` (`issues: write`), post a comment mentioning the repository owner when there are actionable updates (so
 they are notified), and update the issue silently when there are none. They are observational — never a merge gate.
+`upstream-references.yml` follows the same shape for a different question — the state of the upstream references the
+durable artifacts cite, rather than a version comparison — so it is a fifth observational check, not a fifth _update_
+check, and it is listed below.
 
 An added or edited workflow among these — or any other `workflow_dispatch`-enabled scheduled workflow — gets its first
 real run by dispatch, not by waiting for its schedule: GitHub only exposes `workflow_dispatch` once the file exists on
@@ -569,6 +573,9 @@ merge gate.
   `build/buildpack-updates/report.txt` that have a newer version, in the "Buildpack updates" issue.
 - `tooling-updates.yml` — `./gradlew toolingUpdates`; the actionable lines from `build/tooling-updates/report.txt` (the
   tool versions pinned in workflow files — the OpenSpec, Snyk and `pack` CLIs), in the "Tooling updates" issue.
+- `upstream-references.yml` — `./gradlew upstreamReferences`; the `owner/repo#NNN` references the durable artifacts
+  cite, each with its state (open / closed / unresolved) and citation sites, in the "Upstream references" issue. A
+  closure is surfaced as a trigger to check, not declared actionable.
 
 `.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so an action whose
 major bump targets a newer Node runtime (e.g. the Node 20 → Node 24 migration) surfaces as a reviewable PR instead of a

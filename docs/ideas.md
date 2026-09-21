@@ -99,30 +99,6 @@ it was added (start a new section for a new day rather than appending to the mos
 
 ## 2026-09-14
 
-- An upstream-reference report — parked; no change yet. Several durable-artifact notes point at upstream issues we are
-  waiting on, and the first closures have already gone unnoticed: `ben-manes/gradle-versions-plugin#755` closed
-  2026-08-06 (PR #1060) and `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337) — at park time
-  both constraint notes still read as open, and no gate reads them. Neither closure retires its note by itself — `#1060`
-  covers platform-sourced constraints and changes nothing for our `checkBuildEnvironmentConstraints` row, and the
-  `#3334` fix reaches us only through a future `spring-data-opensearch` (that retirement is parked separately below) —
-  which is the point: a closure is a trigger to check, not an answer. Six others remain open —
-  `build-extensions-oss/gradle-helm-plugin#145`, `anomalyco/opencode#48100`, `anomalyco/opencode#49127` (the action's
-  cache step), `anomalyco/opencode#50247` (the unsupported `pull_request_review` trigger cited in AGENTS.md's `/oc`
-  bullet), `Fission-AI/OpenSpec#1891` (the unquoted `: ` class) and `Fission-AI/OpenSpec#1892` (the unparseable-config
-  class) — each now carrying an inline close-out. The repository already has the shape for a watcher:
-  `dependencyUpdates` / `helmUpdates` / `buildpackUpdates` / `toolingUpdates` are each a small task plus a weekly
-  observational workflow that opens or updates an issue and mentions the owner when something is actionable. A report
-  would collect the references from `AGENTS.md`, `README.md`, `docs/adr/`, and **`docs/ideas.md`** — the corpus is all
-  `owner/repo#NNN` plus one non-GitHub id (`KAFKA-18281`) — resolve them through the relevant API, and report the ones
-  that closed or went quiet, turning the references into a checked corpus rather than claims. `docs/ideas.md` belongs in
-  the scope though it reads as a scratchpad: it carries more `owner/repo#NNN` references than `README.md` and
-  `docs/adr/` combined, including the two closures this entry records, so a report that skipped it would leave those
-  references untracked. Worth building now: the trigger it describes has already fired twice. Its mechanism is settled
-  and is **not** the OpenCode scheduled-run path: the schedule trigger outputs to logs and a pull request, with no issue
-  to comment on (its own docs say so), whereas this watcher monitors external state and has no repository change to open
-  a PR from — so it is a `gh`-driven issue workflow like the four update checks above, not a rider on the scheduled
-  audit workflow.
-
 - Retire the `NANOS_DATE_PATTERN` workaround once its fix reaches us — parked; no change yet.
   `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337, milestone 6.2.0-M2), but we resolve
   spring-data-elasticsearch 5.5.13 on the `spring-data-opensearch` 2.0.7 line (2.0.7 declares 5.5.12; the Spring Boot

@@ -661,6 +661,11 @@ owner — or committing nothing when they report nothing.
 schedule and via `workflow_dispatch`, opening or updating the "Buildpack updates" issue with the pinned Paketo builder
 and buildpack coordinates that have a newer version — observational, never a merge gate.
 
+`.github/workflows/upstream-references.yml` runs the upstream-reference check (`upstreamReferences`) on a weekly
+schedule and via `workflow_dispatch`, opening or updating the "Upstream references" issue with each `owner/repo#NNN`
+reference the durable artifacts cite, its state (open / closed / unresolved), and where it is cited — so a closure is
+surfaced as a trigger to check rather than declared actionable — observational, never a merge gate.
+
 ### Dependency Updates and Security
 
 ```bash
@@ -669,6 +674,7 @@ and buildpack coordinates that have a newer version — observational, never a m
 ./gradlew helmUpdates                  # report available Helm CLI/chart updates
 ./gradlew buildpackUpdates             # report available Paketo builder/buildpack updates
 ./gradlew toolingUpdates               # report available updates for the CLIs pinned in workflow files
+./gradlew upstreamReferences           # report the state of cited upstream references
 ./gradlew verifyInfraImageVersions     # verify infra image tags match their pinned charts
 ./gradlew verifyModuleDependencies     # verify the module dependency graph (ADR-0010)
 ./gradlew workflowLint                 # lint the GitHub Actions workflows with actionlint

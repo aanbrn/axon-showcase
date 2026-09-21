@@ -1,4 +1,4 @@
-name: helm-updates
+name: Helm Updates
 
 on:
   schedule:

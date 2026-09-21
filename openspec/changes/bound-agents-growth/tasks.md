@@ -26,5 +26,6 @@
 ## 4. Verification
 
 - [x] 4.1 `spotlessCheck` green; no line over 120; `openspec validate --all` passes with the delta.
-- [ ] 4.2 The agent definition still loads (OpenCode parses its frontmatter) — the smoke-run convention for a changed
-      subagent definition; if a reload is needed, note it rather than assuming.
+- [x] 4.2 The agent definition loads: a smoke-run invocation of the changed `lesson-capture` definition returned all
+      four sections (the gate and its criteria, the source clause, the growth discipline, the report contract) — it was
+      reachable without a reload, and no reload is needed for this change.

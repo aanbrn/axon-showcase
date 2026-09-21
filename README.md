@@ -312,8 +312,8 @@ The process is designed to **learn from itself** — and that is the mechanic, n
   claims against the repository, its shape against the README convention, and its coverage of what a person can actually
   experience — because no gate checks the showcase's content.
 - **The audits also run unattended.** A weekly `audit` workflow runs the three audits (guidance/tooling, spec corpus,
-  architecture) and opens a pull request with their findings for review — so the reconciliation does not wait for
-  someone to ask. The `/audit-*` commands remain the on-demand path.
+  architecture) and opens a pull request with their findings, mentioning the owner so the report is not missed — so the
+  reconciliation does not wait for someone to ask. The `/audit-*` commands remain the on-demand path.
 - **The guidance and tooling are audited, not just appended to.** `/audit-agents` runs an on-demand, pro-model audit of
   `AGENTS.md` and the project-owned `.opencode/` files: it verifies each claim against the repository and reports
   consistency problems (contradictions, stale claims, dead cross-references, drift) and conciseness problems
@@ -654,10 +654,12 @@ schedule and via `workflow_dispatch`, opening or updating the "Tooling updates" 
 CLI versions whose pin lags the latest release — observational, never a merge gate.
 
 `.github/workflows/audit.yml` runs the three repository audits (agent tooling, spec corpus, architecture) on a weekly
-schedule and via manual dispatch, opening a pull request with their combined findings — or committing nothing when they
-report nothing. `.github/workflows/buildpack-updates.yml` runs the Paketo buildpack update check (`buildpackUpdates`) on
-a weekly schedule and via `workflow_dispatch`, opening or updating the "Buildpack updates" issue with the pinned Paketo
-builder and buildpack coordinates that have a newer version — observational, never a merge gate.
+schedule and via manual dispatch, opening a pull request with their combined findings and mentioning the repository
+owner — or committing nothing when they report nothing.
+
+`.github/workflows/buildpack-updates.yml` runs the Paketo buildpack update check (`buildpackUpdates`) on a weekly
+schedule and via `workflow_dispatch`, opening or updating the "Buildpack updates" issue with the pinned Paketo builder
+and buildpack coordinates that have a newer version — observational, never a merge gate.
 
 ### Dependency Updates and Security
 

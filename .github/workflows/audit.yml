@@ -52,4 +52,8 @@ jobs:
             request. The report is the deliverable: do not apply any finding, and do not edit any file the audits
             discuss; the owner reviews the report and decides what to apply through the normal change workflow.
 
+            Begin your final response with a mention of the repository owner — the action uses this response as
+            the pull request body, so `cc @${{ github.repository_owner }}` is what notifies them that the report is
+            ready for review.
+
             If all three audits report nothing, print that and commit nothing.

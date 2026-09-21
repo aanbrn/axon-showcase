@@ -501,8 +501,9 @@ tracker-issue lookup. captured: bump-snyk-cli-pin
 
 `.github/workflows/audit.yml` runs the three repository audits (agent tooling, spec corpus, architecture) on a weekly
 schedule and via `workflow_dispatch`, through the OpenCode GitHub action's scheduled path (a `prompt` input, OIDC auth,
-`contents: write` + `pull-requests: write`), and opens a pull request with their findings — or commits nothing when they
-report nothing. It is observational — never a merge gate.
+`contents: write` + `pull-requests: write`), and opens a pull request with their findings, mentioning the repository
+owner so the report is not left unread — or commits nothing when they report nothing. It is observational — never a
+merge gate.
 
 **What each covers:**
 

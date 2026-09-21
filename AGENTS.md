@@ -220,6 +220,13 @@ The grep needs the behavior's name as well as its file: a requirement may name n
 report-body behavior, so a prompt edit there owes a `MODIFIED` delta that `openspec validate` cannot flag as missing.
 captured: notify-owner-from-the-audit-report (#327)
 
+A change's delta spec path mirrors the main spec's: the delta for `showcase/clients/web-ui` is
+`openspec/changes/<change>/specs/showcase/clients/web-ui/spec.md`. Omitting the `showcase/` segment does not collapse to
+the same capability — OpenSpec reads `clients/web-ui` and `showcase/clients/web-ui` as two capability ids — so the delta
+targets a different spec, and `openspec validate` does not tie it back. `restructure-spec-corpus-findings` first wrote
+two deltas at `specs/clients/…` and `specs/gateway/…` and had to move them under `specs/showcase/…`. captured:
+restructure-spec-corpus-findings (#332)
+
 **A delta spec cannot rename a main-spec requirement header.** A `MODIFIED` requirement in a change's delta spec is
 matched to the main spec by its `### Requirement:` header, so the header must be verbatim-identical to the one it
 modifies — only the description/body can change. Retitling a requirement while rewording it (e.g. renaming "Vendored
@@ -245,6 +252,12 @@ current spec still has" when a delta drops an existing scenario (the first `helm
 only the new web UI scenario, omitting "The deployed UI can call the gateway" and "The UI origin is configurable"). The
 safe recipe: copy the current spec's full requirement block (description + all scenarios) into the delta, then edit it —
 never hand-write a MODIFIED block from memory.
+
+A `MODIFIED` block names one `### Requirement:` header, so folding a second requirement into the first does not retire
+that second requirement: the delta also needs a `REMOVED` block for it, or the main spec keeps both the merged
+requirement and the orphaned details requirement. `restructure-spec-corpus-findings` folded three `… details`
+requirements into their cores as `MODIFIED` + `REMOVED` pairs, each `MODIFIED` carrying the core's scenarios plus the
+details' so none was lost. captured: restructure-spec-corpus-findings (#332)
 
 **A spec rename/move (`git mv`) does not update the spec's internal `#` title, and nothing validates the title against
 the capability path.** The first line of `openspec/specs/.../spec.md` must be edited separately to match the new path —
@@ -273,6 +286,13 @@ its own — not only a fold-in to the next change that touches the capability �
 **no** spec edit by design, the only real change being the archive commit's: **state the deferral in the report**, since
 the diff reads as empty of the change's substance (the owner asked "why do I see no touched files except ideas.md?"),
 rather than moving the edit earlier to give it some.
+
+A capability owning a delta is not the trigger for a Purpose refresh — read the Purpose and refresh it only where the
+change falsifies its own text. Requirements moving _out_ of a capability can leave its Purpose untouched when the
+Purpose never described them: `restructure-spec-corpus-findings` moved the two Helm requirements out of
+`merge-governance` and refreshed only `helm-chart`'s Purpose, because `merge-governance`'s — which describes branch
+protection and CI gates — is unchanged by requirements it never described. captured: restructure-spec-corpus-findings
+(#332)
 
 **`openspec validate` checks a change's delta specs, not its `proposal.md` — proposal-schema defects surface only at
 archive, and non-blockingly.** For a change, `openspec validate --all`/`--changes` runs only the delta-spec validator;
@@ -612,7 +632,10 @@ Key modules (libraries, not services):
   and a `BuildpackUpdatesTaskTests` case that duplicated a `VersionsTests` case verbatim both passed while verifying
   nothing — a reviewer caught both, and they were deleted rather than kept for the count. When a rule is a one-line
   wrapper of a language construct, test the caller's decision; before adding a case, check no existing test asserts it.
-  captured: test-build-logic-rules-and-unify-version-comparison (#306)
+  A test written to guard a refactor must fail against the pre-refactor code — run it before the change (or with the old
+  path temporarily restored) and confirm it goes red, since a test green on both sides verifies nothing and is deleted
+  rather than kept for the count. The `ShowcaseRestController` cache-fallback refactor shipped under the existing 76
+  scenario tests for this reason. captured: resolve-recorded-intent-questions (#334)
 - **Spring bean mocks in tests**: use `@MockitoBean` (from `org.springframework.test.context.bean.override.mockito`),
   not the deprecated-for-removal `@MockBean` (`org.springframework.boot.test.mock.mockito`), which has been deprecated
   since Spring Boot 3.4
@@ -1664,7 +1687,13 @@ that override when bumping the Kafka image tag.
   qualifier's scope too: a condition or exception introduced for one variant must not swallow the rule's primary mandate
   — strip the qualifiers and confirm the imperative verb still governs the default case (the `reshape-the-capture-loop`
   rewrite of the capture trigger lost its lead's main verb and folded the implementation capture under the merge
-  condition; the PR's test plan records the review catching it). captured: reshape-the-capture-loop (#289)
+  condition; the PR's test plan records the review catching it). Check a recorded _mechanism_ against every measurement
+  the change made, not only against other docs: name the evidence points the explanation must cover and confirm the
+  wording holds for each, because a generalization one of your own runs contradicts is wrong however well it reads. The
+  blocking-execution bullet must cover both of its evidence points — the gateway's not-found test passing (its
+  `fetchById` is stubbed, so the handler maps the error directly) and the query-service's failing (`404` → `503`,
+  because its error comes off the dispatched query bus) — since a wording covering only one contradicts the other.
+  captured: record-blocking-execution-rationale (#335)
 - **A durable artifact may assert only what the repository can evidence — a history that lives only in the conversation
   is not repo history.** An earlier draft of this bullet cited a `/var/folders/**` config attempt — a pattern proposed
   in conversation but never written to a config file — and asserted an unobserved `setup-hosts.sh` outcome; a review

@@ -335,6 +335,15 @@ one-shot work item, wrong for a long-lived tracker like the update-check issues,
 opens a duplicate. Strip the closing keyword from an agent PR triggered from a tracker before merging, or reopen the
 tracker.
 
+The action uses the agent's final response as the PR **body** and derives the PR **title** by asking a model to
+summarise that response in under 40 characters (`summarize` → `createPR(base, branch, title, body)` in the action's
+`github.handler.ts`), so the title is a _summary of the whole response_, not a line copied from it. Two consequences: a
+prompt cannot pin the title by dictating the response's first line, and a response that opens with a mention tends to
+summarise into a title about the mention — the `audit` workflow's prompt asked for the owner mention at the start of the
+response, and report PR #333 carried it in the title. Put the mention on a body line and keep the response's substance
+about the report, so the generated title names it. When a workflow prompt relies on the action's PR-building behaviour,
+state the title's derivation rather than assuming a copied line.
+
 **Merging PRs: the `--admin` flag is for admin users only.** The `main-require-pr-on-merge` ruleset requires an
 approving review (`required_approving_review_count: 1`), but the repo owner (`aanbrn`) is a bypass actor on that ruleset
 (`bypass_mode: always`). When the active GitHub user **is** the repo owner/admin, merge directly with

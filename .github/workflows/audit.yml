@@ -52,8 +52,11 @@ jobs:
             request. The report is the deliverable: do not apply any finding, and do not edit any file the audits
             discuss; the owner reviews the report and decides what to apply through the normal change workflow.
 
-            Begin your final response with a mention of the repository owner — the action uses this response as
-            the pull request body, so `cc @${{ github.repository_owner }}` is what notifies them that the report is
-            ready for review.
+            The action uses your final response as the pull request body and derives the pull request **title** by
+            asking a model to summarise that response in under 40 characters — the title is a summary of the whole
+            response, not a line copied from it. Put `cc @${{ github.repository_owner }}` on a line in the body: that is
+            what notifies the owner. Do not lead with the mention, since a response dominated by it tends to summarise
+            into a title about the mention rather than the report; keep the body's substance about the report, and the
+            generated title tends to name it (e.g. "2026-09-21 audit report").
 
             If all three audits report nothing, print that and commit nothing.

@@ -942,7 +942,10 @@ Key modules (libraries, not services):
   reports in the subagent report contract, with subjective quality in an advisory section (the README is hand-curated by
   design) and a clean audit a valid one-line result. Its scope is `README.md` only — the other documents have their own
   owners — and it is justified as a distinct artifact and audience (humans, not agents), which is why it is separate
-  rather than a widening of `agents-auditor`.
+  rather than a widening of `agents-auditor`. It is the one audit **not** in the scheduled `audit` workflow, and that is
+  deliberate: the schedule exists to counter the accretion the capture loop produces (the agent's own tooling, spec
+  corpus, and architecture), while the README audit verifies a human-facing document against the repository — a
+  different subject, so it stays on demand.
 - **Justify a new auditor by a distinct artifact/property, not by symmetry — widen an existing one when its artifacts
   are coupled.** A new auditor earns its place only when its artifact or property has drift no existing auditor can see;
   if the drift is visible only across artifacts an existing auditor already holds, widen that auditor instead.

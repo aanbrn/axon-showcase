@@ -30,6 +30,15 @@ it was added (start a new section for a new day rather than appending to the mos
   `lesson-capture` definition rather than `AGENTS.md`. Parked rather than proposed: one incident so far and the fix is
   subtle, so a second occurrence or the next `/retrospective` should confirm the class first.
 
+- Refresh the `gateway/rest-api` Purpose to name the CORS capability — parked; no change yet. The 2026-09-21 specs-audit
+  (`docs/audits/2026-09-21.md`) reported that the Purpose (`openspec/specs/showcase/gateway/rest-api/spec.md`) covers
+  the request/response contract but never mentions cross-origin access, which the spec holds as its own fail-closed
+  requirement, and suggested extending the closing clause with "…and configurable cross-origin access (CORS) for the
+  standalone web UI." It called it Purpose-fit drift rather than a hard defect, and the finding was neither applied nor
+  parked when the audit-fix change landed. A standalone `skip_specs` Purpose refresh: a delta cannot carry a Purpose, so
+  the edit lands in the archive commit and the implementing PR's diff would show no spec change — state the deferral in
+  the report.
+
 ## 2026-09-21
 
 - Retry the actionlint download in the `build` job — parked; no change yet. `ci.yml`'s "Install actionlint" step fetches

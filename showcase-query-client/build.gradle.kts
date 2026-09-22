@@ -17,6 +17,8 @@ dependencies {
 
     implementation(libs.spring.boot.starter.webflux)
 
+    implementation(libs.hibernate.validator)
+
     implementation(libs.resilience4j.springBoot3)
     implementation(libs.resilience4j.reactor)
 

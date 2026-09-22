@@ -942,9 +942,9 @@ Key modules (libraries, not services):
   or an edit to a subagent/command definition that changes its spec'd behavior (which owes that definition's spec delta,
   per the multi-artifact-sweep bullet) — becomes its own change and is parked as an idea until then — do not force the
   suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet
-  narrowing the dependency broke `:showcase-query-client:compileJava`). An advisory item needs the user's decision
-  before anything is done with it. The scheduled variant runs unattended in the `audit` workflow (see Continuous
-  Integration).
+  narrowing the dependency broke `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`).
+  An advisory item needs the user's decision before anything is done with it. The scheduled variant runs unattended in
+  the `audit` workflow (see Continuous Integration).
 - **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
   (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
   guide, whose content no gate checks — on three axes: accuracy/consistency (every claim matches the repository,
@@ -1590,14 +1590,13 @@ capture-stash-stale-copy
   referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g.
   `val integrationTest = suites.register<JvmTestSuite>("integrationTest")`).
 - **A `project(...)` dependency a module does not use can still be load-bearing for a consumer — narrowing it can break
-  a downstream `compileJava`.** `showcase-query-api` declares `api(project(":showcase-command-api"))` only to reach
-  `showcase.identifier.KSUID` (its main source uses no `showcase.command.*` type), so the architecture auditor flagged
-  the re-export as an unsanctioned direction — but replacing it with `api(project(":showcase-identifier-extension"))`
-  breaks `:showcase-query-client:compileJava`: `ShowcaseQueryClientProperties` imports
-  `org.hibernate.validator.constraints.URL`, which it receives transitively through `command-api`'s
-  `api(libs.hibernate.validator)`. Before removing or narrowing a `project(...)` dependency, grep the consumers' sources
+  a downstream `compileJava`.** Before removing or narrowing a `project(...)` dependency, grep the consumers' sources
   for what they actually import and compile the affected modules; an unused direct dependency may be carrying the
-  transitive one a consumer's main source needs.
+  transitive one a consumer's main source needs. Worked case: `showcase-query-api` held
+  `api(project(":showcase-command-api"))` only for `showcase.identifier.KSUID`; narrowing it to
+  `api(project(":showcase-identifier-extension"))` (`narrow-query-api-dependency`) broke `:showcase-query-client`'s main
+  compile, because `ShowcaseQueryClientProperties` imports `org.hibernate.validator.constraints.URL` and had been
+  receiving it through `command-api`'s `api(libs.hibernate.validator)` — that consumer now declares it.
 - `@Nested` test classes are incompatible with Spring Boot slice tests (`@WebFluxTest`/`@WebMvcTest`): nested classes
   load the full application context instead of the slice and fail on infrastructure beans (e.g. the gateway's JGroups
   `DistributedCommandBusProperties`). Keep slice-test classes flat (see `ShowcaseRestControllerCT`).

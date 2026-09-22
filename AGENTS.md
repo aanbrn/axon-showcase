@@ -138,20 +138,19 @@ cannot replace it.
 mechanism the repo may already have.** Establish _why the current state exists_, whether it is deliberate, and whether
 the mechanism already exists before designing _how_ to add or change it — a change that relocates configuration already
 in place, or re-derives a parked design, can be the best-executed version of the wrong idea. The
-`remove-redis-client-label` detour designed a chart-default for the `*-client` pod labels (hardcode them in the
-templates) and ran a full propose→apply→verify cycle, including a live `helmInstallToLocal`, before the user's question
-("the label name depends on the release name — does this still make sense?") revealed the labels are intentionally
-local-target values that belong in `values-local.yaml`. The design weighed implementation alternatives but never
-questioned the premise. Verify the current state's rationale against the repo — grep for consumers, read the values and
-their comments, check `git log` for the introducing change — and record it in the design's Context; treat "this looks
-redundant" as a hypothesis to verify, not a justification to remove. Before proposing a mechanism (an auditor, a check,
-a workflow, a scan) **or asserting in the premise that the repo lacks a rule**, grep `docs/ideas.md` for a parked design
-and the spec corpus and archived changes for an existing requirement **or a recorded decision about it — including a
-`skip_specs` decision not to spec it** — and the artifact you are editing at `HEAD`, `AGENTS.md` included, since a
-sibling change merged earlier the same session may already have added it. A parked idea or a spec'd capability is the
-design to adopt, not re-derive; a false absence claim runs a whole propose cycle on the wrong premise and duplicates
-what exists. `add-readme-auditor`'s planning proposed widening `agents-auditor` past the parked `readme-auditor` idea
-the repo already had, caught by the owner rather than a gate. captured: spec-cache-fallback-failed-fetch-contract
+`remove-redis-client-label` detour ran a full propose→apply→verify cycle for a chart-default the labels must not have —
+the worked case, and why the premise collapses, are in the `*-client` pod-labels bullet below. The design weighed
+implementation alternatives but never questioned the premise. Verify the current state's rationale against the repo —
+grep for consumers, read the values and their comments, check `git log` for the introducing change — and record it in
+the design's Context; treat "this looks redundant" as a hypothesis to verify, not a justification to remove. Before
+proposing a mechanism (an auditor, a check, a workflow, a scan) **or asserting in the premise that the repo lacks a
+rule**, grep `docs/ideas.md` for a parked design and the spec corpus and archived changes for an existing requirement
+**or a recorded decision about it — including a `skip_specs` decision not to spec it** — and the artifact you are
+editing at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier the same session may already have added
+it. A parked idea or a spec'd capability is the design to adopt, not re-derive; a false absence claim runs a whole
+propose cycle on the wrong premise and duplicates what exists. `add-readme-auditor`'s planning proposed widening
+`agents-auditor` past the parked `readme-auditor` idea the repo already had, caught by the owner rather than a gate.
+captured: spec-cache-fallback-failed-fetch-contract
 
 **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's own
 prior reconciliation.** ADR-0002 makes the Java `@ConfigurationProperties` the surface that owns a property's default,
@@ -898,90 +897,63 @@ Key modules (libraries, not services):
   stays on demand (the `agent-skills` spec records why).
 - **Agents-auditor subagent for agent-tooling maintenance**: the `agents-auditor` subagent
   (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
-  `.opencode/` files (subagents, commands, skills) — because an accretion-only set of guidance and tooling drifts:
-  entries contradicted elsewhere, stale enumerations, dead cross-references, a command naming a subagent that no longer
-  exists, near-duplicate gotchas. It also reports **merge candidates** — overlapping entries with a merged text that
-  preserves every anchor and piece of evidence, or a deletion of the duplicate where that text would only restate an
-  existing rule — and **removal candidates** — rules that govern no decision — with both counts in the verdict line. Its
-  scope is a provenance partition: it never _fixes_ what the repo does not author (the OpenSpec instruction files
-  `openspec update` writes, and the vendored `axon4to5-*` skills) — a project-authored file that shares a generated
-  prefix, like `opsx-tool-update`, stays in scope: a boundary drawn by provenance, not a filename pattern, which
-  over-captures (the same holds for any audit, ignore, or lint scope). An excluded file is still _read_, and reported as
-  an advisory item where it contradicts how the repo uses it (a vendored skill prescribing a pattern our code has moved
-  past; a generated command naming an artifact we removed), bounded by a harm test and routed to a decision — report it
-  upstream, re-vendor, or change our usage — never a local edit. It also reports the accreted meta rules — in-scope
-  rules about the agent, its tooling, the per-change workflow, or the documentation rather than the product — each with
-  the origin that introduced it (the `captured:` marker, or `git blame` / `git log -S`), as a class of its own rather
-  than a defect. Trigger it with the `/audit-agents` OpenCode command: the subagent verifies each claim against the
-  repository and returns its findings in the subagent report contract — shared by the per-change review and
-  lesson-capture agents and the four auditors (not `experience-analyzer`, whose output is a document, not a findings
-  report), and defined in the `agent-skills` spec: a verdict line first, then each item budgeted (its anchor and one
-  line of evidence), passing checks collapsed to one line, and no alternatives — without editing anything. The main
-  agent applies the approved findings under the review gate. One audit's findings can need different delivery routes —
-  split the output by fix type and scope each unit's artifacts and diff to its own fixes, rather than running the whole
-  audit through one unit (the routing per fix type is in the specs-auditor and architecture-auditor bullets). The
-  scheduled variant runs unattended in the `audit` workflow (see Continuous Integration); the audit itself is on demand.
+  `.opencode/` files — for the drift an accretion-only set produces: entries contradicted elsewhere, stale enumerations,
+  dead cross-references, near-duplicate gotchas. Its finding classes (merge and removal candidates, the advisory class
+  for excluded files, the accreted meta rules with their origins) and the shared report contract are specified in
+  `showcase/quality/agent-skills` — see there rather than here. The boundary is a **provenance partition**: it never
+  _fixes_ what the repo does not author (the generated OpenSpec instruction files and the vendored `axon4to5-*` skills),
+  though it still _reads_ them and reports an advisory item where one contradicts how the repo uses it — a
+  project-authored file that shares a generated prefix, like `opsx-tool-update`, stays in scope — a boundary drawn by
+  provenance, not a filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). Trigger
+  it with the `/audit-agents` command; the main agent applies the approved findings under the review gate, and one
+  audit's findings can need different delivery routes — split the output by fix type and scope each unit's artifacts and
+  diff to its own fixes, rather than running the whole audit through one unit. The scheduled variant runs unattended in
+  the `audit` workflow; the audit itself is on demand.
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
-  (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus, because `openspec validate` gates a spec's
-  well-formedness but not its cross-spec structural consistency — title ↔ capability-path match, Purpose ↔ requirements
-  fit, requirement conventions, cross-spec duplication, and dead cross-references. Trigger it with the `/audit-specs`
-  OpenCode command: it verifies each finding against the repository and returns its findings in the subagent report
-  contract (grouped by severity) without editing anything, flagging a reused requirement header for judgment rather than
-  as a defect. It deliberately does **not** check behavior against the code — the change workflow's review loop and the
-  archive-time sync own that. The main agent applies approved findings through the normal change workflow (a spec edit
-  is a change). The scheduled variant runs unattended in the `audit` workflow (see Continuous Integration).
+  (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus for the cross-spec structural consistency
+  `openspec validate` does not gate — title ↔ capability-path match, Purpose ↔ requirements fit, requirement
+  conventions, cross-spec duplication, and dead cross-references (its classes and report contract are in the
+  `agent-skills` spec; it flags a reused requirement header for judgment rather than as a defect). Trigger it with the
+  `/audit-specs` command. It deliberately does **not** check behavior against the code — the change workflow's review
+  loop and the archive-time sync own that. The main agent applies approved findings through the normal change workflow
+  (a spec edit is a change). The scheduled variant runs unattended in the `audit` workflow.
 - **Architecture-auditor subagent for design drift and unrecorded intent**: the `architecture-auditor` subagent
-  (`.opencode/agent/architecture-auditor.md`) audits the project's architecture — `docs/adr/` plus the architectural
-  surface (the service boundaries, the module dependency graph, and the spec corpus's capability decomposition) — for
-  drift from its recorded decisions. It covers an ADR's Decision contradicted by the code, a stale `Status` or an
-  unrecorded supersession, a missing `ADR-NNNN` cross-reference, a cross-cutting decision with no ADR, a
-  dependency/service-boundary direction the architecture does not sanction, and a spec decomposition that no longer
-  matches the module/service structure. Trigger it with the `/audit-architecture` OpenCode command: it verifies each
-  finding against the repository and reports in the subagent report contract, in two separated sections — **findings**
-  (verified drift, budgeted per item) and **advisory** design observations (no severity, not defects, never "fixed"
-  without the user's decision) — without editing anything. Within the advisory section it also reports **where
-  clarification of intent is missing** — a deliberate choice or absence whose rationale is not recorded. It sweeps the
-  surfaces a rationale must exist for (dependency `exclude(...)` declarations, the major-version-suppressed coordinates,
-  the suppression annotations and retained deprecated APIs, and the deferrals and band-aids recorded in ADRs or
-  `docs/ideas.md`), searches the repository for a recorded rationale before reporting each item, and states the question
-  the owner must answer; an item whose rationale is already recorded is not reported. It deliberately does **not** check
-  behavior against the code (the review loop and archive-time sync own that), the spec corpus's internal structure
-  (`specs-auditor` owns that), or any property an existing gate enforces. The main agent applies the approved findings
-  under the review gate: an architecture audit's output is mostly docs, so a finding whose fix is an ADR correction, a
-  new ADR, or an `AGENTS.md`/`README.md` clarification lands as a docs PR, while one whose correction is a code change —
-  or an edit to a subagent/command definition that changes its spec'd behavior (which owes that definition's spec delta,
-  per the multi-artifact-sweep bullet) — becomes its own change and is parked as an idea until then — do not force the
-  suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet
-  narrowing the dependency broke `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`).
-  An advisory item needs the user's decision before anything is done with it. The scheduled variant runs unattended in
-  the `audit` workflow (see Continuous Integration).
+  (`.opencode/agent/architecture-auditor.md`) audits `docs/adr/` plus the architectural surface (the service boundaries,
+  the module dependency graph, and the spec corpus's capability decomposition) for drift from its recorded decisions,
+  and reports **where clarification of intent is missing** — a deliberate choice or absence whose rationale is not
+  recorded (its finding classes, its advisory section, and the report contract are in the `agent-skills` spec). It
+  sweeps the surfaces a rationale must exist for (dependency `exclude(...)` declarations, the major-version-suppressed
+  coordinates, the suppression annotations and retained deprecated APIs, and the deferrals and band-aids recorded in
+  ADRs or `docs/ideas.md`) and searches the repository for a rationale before reporting each item — an item whose
+  rationale is already recorded is not reported. It deliberately does **not** check behavior against the code (the
+  review loop and archive-time sync own that), the corpus's internal structure (`specs-auditor` owns that), or any
+  property an existing gate enforces. Trigger it with the `/audit-architecture` command. The main agent applies the
+  approved findings under the review gate: a finding whose fix is an ADR correction, a new ADR, or an
+  `AGENTS.md`/`README.md` clarification lands as a docs PR, while one whose correction is a code change — or an edit to
+  a subagent/command definition that changes its spec'd behavior (which owes that definition's spec delta, per the
+  multi-artifact-sweep bullet) — becomes its own change, parked as an idea until then; do not force the suggested
+  correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet narrowing the
+  dependency broke `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`). An advisory
+  item needs the user's decision first. The scheduled variant runs unattended in the `audit` workflow.
 - **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
   (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
-  guide, whose content no gate checks — on three axes: accuracy/consistency (every claim matches the repository,
-  cross-checked against `AGENTS.md` and the spec corpus), design-intent fidelity (the README convention: section order,
-  the step-by-step Getting Started path, Gradle tasks over raw commands, curl-only, the prompting narrative), and
-  coverage/experience surfacing (the Cool Story and every human-visible capability, cross-checked against what the
-  system does). Trigger it with the `/audit-readme` OpenCode command: it verifies each claim against the repository and
-  reports in the subagent report contract, with subjective quality in an advisory section (the README is hand-curated by
-  design) and a clean audit a valid one-line result. Its scope is `README.md` only — the other documents have their own
-  owners — and it is justified as a distinct artifact and audience (humans, not agents), which is why it is separate
-  rather than a widening of `agents-auditor`. It is the one audit **not** in the scheduled `audit` workflow, and that is
-  deliberate: the schedule exists to counter the accretion the capture loop produces (the agent's own tooling, spec
-  corpus, and architecture), while the README audit verifies a human-facing document against the repository — a
-  different subject, so it stays on demand.
+  guide, whose content no gate checks — on three axes: accuracy against the repository, design-intent fidelity (the
+  README convention), and coverage of every human-visible capability (the axes and the report contract are in the
+  `agent-skills` spec; a clean audit is a valid one-line result). Its scope is `README.md` only — the other documents
+  have their own owners — and it is justified as a distinct artifact and audience (humans, not agents). Trigger it with
+  the `/audit-readme` command. It is the one audit **not** in the scheduled `audit` workflow — deliberately, since the
+  schedule counters the accretion the capture loop produces while the README audit verifies a human-facing document
+  against the repository.
 - **Justify a new auditor by a distinct artifact/property, not by symmetry — widen an existing one when its artifacts
   are coupled.** A new auditor earns its place only when its artifact or property has drift no existing auditor can see;
-  if the drift is visible only across artifacts an existing auditor already holds, widen that auditor instead.
-  `specs-auditor` is separate because `openspec/specs/` is a distinct corpus with its own gate (`openspec validate`) and
-  cross-spec structural consistency, while the project-authored `.opencode/` tooling was folded into `agents-auditor`
-  rather than spawning a `tooling-auditor` — a subagent is described across its own definition, an `AGENTS.md` bullet,
-  the README's agent-table row and prose, and the `agent-skills` spec, so the drift is cross-artifact: widening
-  `agents-auditor` catches the half a single-artifact auditor would miss by comparing the copies it holds — its own
-  definition, the `AGENTS.md` bullet, and the `agent-skills` spec (outside its fix scope, so the spec-side fix routes to
-  the corpus owner) — while the README copy is fixed by the change's docs sweep. Keep an auditor's **fix scope** and its
-  **comparison span** distinct — a compared copy outside the scope is expected, with its fix routed to its owner. Before
-  adding an auditor, name the artifact's drift and which existing auditor cannot see it — if one can, widen rather than
-  add.
+  if the drift is visible only across artifacts an existing auditor already holds, widen that auditor instead:
+  `specs-auditor` is separate because `openspec/specs/` is a distinct corpus with its own gate (`openspec validate`),
+  while a subagent is described across its definition, an `AGENTS.md` bullet, the README, and the `agent-skills` spec,
+  so widening `agents-auditor` catches the cross-artifact half a single-artifact auditor would miss. Keep an auditor's
+  **fix scope** and its **comparison span** distinct — a compared copy outside the scope is expected, with its fix
+  routed to its owner (a subagent is also described in the README's table and prose, fixed by the change's docs sweep).
+  Before adding an auditor, name the artifact's drift and which existing auditor cannot see it — if one can, widen
+  rather than add.
 - **Thorough-review subagent for deep passes**: the `review-thorough` subagent (`.opencode/agent/review-thorough.md`)
   does a deep review of a change against its proposal, delta specs, design, tasks, and the implementation diff — drift,
   correctness, architecture, and conventions. It is intentionally not auto-scheduled (the expensive pass); invoke it
@@ -1105,19 +1077,19 @@ platform's slice is open upstream. Close-out: re-take a mismatched pairing only 
 (bump the builder and its bundled buildpacks together) stays the default either way. Unlike the builder, the run image
 (`paketobuildpacks/run-jammy-base:latest`) is deliberately left floating so base-OS security — do not "complete" the pin
 by freezing it. The image serves the bundle via nginx on `8080` and exposes nginx `stub_status` metrics on `9090`
-(`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a gated `nginx-prometheus-exporter` sidecar
-(`webUi.metricsExporter`, on by default when observability metrics export and the web UI ServiceMonitor are enabled)
-converts stub_status to Prometheus `/metrics` on port `9113`, which the Service `http-metrics` port and ServiceMonitor
-scrape. A `PackBuildImageTask` convention defaults the image name to `${project.name}:${project.version}`, which the web
-UI module overrides with the deployable `aanbrn/axon-showcase-web-ui:${project.version}` in
-`showcase-web-ui/build.gradle.kts`. The UI's API base URL is configured at runtime via the `SHOWCASE_API_BASE_URL` env
-var — **no baked default** (the browser needs the externally-visible gateway URL, which only the deployment knows;
-compose sets `http://localhost:8080`, the Helm chart uses `webUi.apiBaseUrl` with an empty default) — which a `start.sh`
-renders into `/workspace/config.js` at container start (failing fast if the env var is unset/empty) — no ConfigMap or
-volume mount. The `dockerBuildImage` run prints two informational warnings from the toolchain, not defects: "Exporting
-to docker daemon (building without --publish) and daemon uses containerd storage" (pack exports to the local daemon's
-containerd store, losing the fast publish path) and "deprecated usage of stack" (an upstream Paketo buildpack still
-declares the deprecated `stacks` key instead of `targets`). Neither is actionable in the build — ignore them.
+(`BP_NGINX_STUB_STATUS_PORT`); the Helm deployment's gated `nginx-prometheus-exporter` sidecar (`webUi.metricsExporter`,
+on by default when observability metrics export and the web UI ServiceMonitor are enabled) converts stub_status to
+Prometheus `/metrics` on port `9113`, which the Service's `http-metrics` port and the ServiceMonitor scrape — the chain
+is specified in the `deployment/web-ui` spec. A `PackBuildImageTask` convention defaults the image name to
+`${project.name}:${project.version}`, which the web UI module overrides with the deployable
+`aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. `SHOWCASE_API_BASE_URL` — **no
+baked default** (compose sets `http://localhost:8080`; the chart's `webUi.apiBaseUrl` defaults to empty) — has no
+ConfigMap or volume mount. The runtime contract (the `start.sh` render into `/workspace/config.js` and the fail-fast on
+an unset value) is specified in the `deployment/web-ui` spec. The `dockerBuildImage` run prints two informational
+warnings from the toolchain, not defects: "Exporting to docker daemon (building without --publish) and daemon uses
+containerd storage" (pack exports to the local daemon's containerd store, losing the fast publish path) and "deprecated
+usage of stack" (an upstream Paketo buildpack still declares the deprecated `stacks` key instead of `targets`). Neither
+is actionable in the build — ignore them.
 
 Similarly, a CNB-built image's timestamps are not host state: Cloud Native Buildpacks stamp buildpack layers with a
 fixed past date — they list as `Jan 1 1980` — so builds are reproducible and layer caching stays stable, and this build
@@ -1597,15 +1569,14 @@ capture-stash-stale-copy
   when a fix is released.
 
 - NullAway is strict on `showcase.*` packages — ensure proper `@Nullable`/`@NonNull` annotations from `jspecify`.
-- Jackson 3 artifacts (`tools.jackson.core:*`) are present on the query-service and projection-service runtime
-  classpaths transitively via `co.elastic.clients:elasticsearch-java`, constrained by the platform's `jackson3-bom`
-  (kept current on minor versions). This is dependency hygiene, not the deferred Jackson 3 backend migration — Jackson 2
-  remains the serialization backend in application code (see ADR-0003).
-- Spring Data Elasticsearch's `DateFormat.strict_date_optional_time_nanos` maps to a **microsecond** Java pattern
-  (`SSSSSS`, not 9 digits) despite its name — see upstream spring-data-elasticsearch#3334. `ShowcaseEntity` uses a
-  custom `NANOS_DATE_PATTERN` (`yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]`) with `format = {}` instead; do not "simplify" it
-  back to the built-in enum until the fix (PR #3337, 6.2.0-M2) reaches us through `spring-data-opensearch`. The
-  truncation is invisible on macOS (microsecond clocks) and surfaces only on nanosecond clocks (Linux CI).
+- Jackson 3 artifacts (`tools.jackson.core:*`) on the query-service and projection-service runtime classpaths are
+  dependency hygiene, not the deferred Jackson 3 backend migration — Jackson 2 remains the serialization backend in
+  application code; the why (including the `jackson3-bom` constraint) lives in ADR-0003.
+- Spring Data Elasticsearch's `DateFormat.strict_date_optional_time_nanos` truncates to microseconds despite its name —
+  the nanosecond pattern (`yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]`, with `format = {}`) and the reason live in the
+  `read-side/projection-model` spec. Do not "simplify" `ShowcaseEntity`'s `NANOS_DATE_PATTERN` back to the built-in enum
+  until the fix (PR #3337, 6.2.0-M2) reaches us through `spring-data-opensearch`; the truncation is invisible on macOS
+  (microsecond clocks) and surfaces only on nanosecond clocks (Linux CI).
 - Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
   `implementation`-only dependencies — each suite re-declares what it needs (client component suites duplicate
   axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be

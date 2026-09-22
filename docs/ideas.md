@@ -12,6 +12,17 @@ graduates into a concrete candidate for work, it may be promoted to a GitHub iss
 change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when
 it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-09-22
+
+- Make a capture confirm the rule excludes the incident that produced it — parked; no change yet. The gate requires "one
+  severe verified incident with a clear preventive action" but never tests that the rule would have _caught_ that
+  incident: the `extract-specd-rationale-from-agents-md` outcome-only clause passed the gate and, about an hour later
+  (`sharpen-spec-worthiness-precondition`), licensed an over-move because it did not exclude the internal-control-flow
+  case — that change had to add the precondition. The fix is a capture-procedure step: state the incident and confirm
+  the rule excludes it, re-reading the incident to ask "would this rule have caught it?" It routes to the
+  `lesson-capture` definition rather than `AGENTS.md`. Parked rather than proposed: one incident so far and the fix is
+  subtle, so a second occurrence or the next `/retrospective` should confirm the class first.
+
 ## 2026-09-21
 
 - Retry the actionlint download in the `build` job — parked; no change yet. `ci.yml`'s "Install actionlint" step fetches

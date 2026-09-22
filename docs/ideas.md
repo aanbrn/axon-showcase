@@ -187,7 +187,8 @@ it was added (start a new section for a new day rather than appending to the mos
   change would add: (1) web-vitals + JS-error reporting (e.g. Grafana Faro or a push-to-gateway metrics endpoint), and
   (2) W3C Trace Context propagation (`traceparent` header) on API calls so the browser's requests join the existing
   Tempo traces from the gateway onward — the highest-leverage piece, since the pipeline already traces gateway →
-  command/query. Consider whether the gateway CORS needs to allow the trace header.
+  command/query. The gateway CORS now carries a configurable `allowedHeaders` list (`SHOWCASE_CORS_ALLOWED_HEADERS`), so
+  that change adds `traceparent` to it.
 
 - Rethink reconciliation in the web UI — parked; no change yet. `ShowcasesPage` reconciles local writes and
   saga-triggered events against the eventually-consistent read model by waiting on the projected state per event

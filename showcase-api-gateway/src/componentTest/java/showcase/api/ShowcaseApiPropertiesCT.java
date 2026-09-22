@@ -167,6 +167,29 @@ class ShowcaseApiPropertiesCT {
     }
 
     @Test
+    @DisplayName("The CORS allowed headers default to the headers the UI sends")
+    void corsAllowedHeaders_defaultToUiHeaders() {
+        contextRunner.run(context -> {
+            val properties = context.getBean(ShowcaseApiProperties.class);
+            assertThat(properties.getCors().getAllowedHeaders()).containsExactly("Content-Type", "Idempotency-Key");
+        });
+    }
+
+    @Test
+    @DisplayName("An env var overrides the CORS allowed headers through the placeholder")
+    void corsAllowedHeaders_envVar_overridesDefault() {
+        ymlContextRunner
+                .withInitializer(context -> context.getEnvironment()
+                        .getPropertySources()
+                        .addFirst(new SystemEnvironmentPropertySource(
+                                "test-env-vars", Map.of("SHOWCASE_CORS_ALLOWED_HEADERS", "X-Custom"))))
+                .run(context -> assertThat(context.getBean(ShowcaseApiProperties.class)
+                                .getCors()
+                                .getAllowedHeaders())
+                        .containsExactly("X-Custom"));
+    }
+
+    @Test
     @DisplayName("An env var overrides the CORS allowed origins through the placeholder")
     void corsAllowedOrigins_envVar_overridesDefault() {
         ymlContextRunner
@@ -215,6 +238,7 @@ class ShowcaseApiPropertiesCT {
                         "FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_WRITE",
                         Map.of("FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_WRITE", "PT-1S")),
                 argumentSet("SHOWCASE_CORS_ALLOWED_ORIGINS", Map.of("SHOWCASE_CORS_ALLOWED_ORIGINS", "not-a-url")),
+                argumentSet("SHOWCASE_CORS_ALLOWED_HEADERS", Map.of("SHOWCASE_CORS_ALLOWED_HEADERS", " ")),
                 argumentSet(
                         "SHOWCASE_EVENTS_KEEP_ALIVE_INTERVAL", Map.of("SHOWCASE_EVENTS_KEEP_ALIVE_INTERVAL", "PT0S")));
     }

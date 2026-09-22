@@ -202,19 +202,20 @@ accumulating prose. The cheapest way to keep it flat: **when a bullet's rational
 a reader needs to act and point at the spec — a pointer, not a condensed copy** (this file is loaded on every
 invocation, a spec only when its capability is worked on, so a summary of spec'd rationale is a second copy that
 drifts). The same routing covers the case where the specs describe a rule's subject **only as an outcome**: the
-mechanism belongs in the capability spec, and the bullet keeps that same shape — the rule, and a pointer. A pointer must
-also carry every **imperative** the old text held: a warning the reader must still act on is a rule, not rationale, and
-is lost rather than condensed when the pointer drops it — `extract-specd-rationale-from-agents-md`'s pointer had to keep
-the `@WebFluxTest` component-scan warning, which has no spec home. Durability governs where the _rule_ lives, not
-whether every sentence about it does. Because the corpus is evidence-anchored incident memory, the control is the
-periodic `/audit-agents` pass — whose verdict already reports the accreted-rule count — not mass deletion to hit a
-number. Do not skip the subagent or conclude "nothing to capture" on your own judgment — the subagent is the arbiter,
-and an initial "nothing to capture" verdict is a hypothesis: a merge that closed a change was once skipped on exactly
-such an assumption and the forgotten-archive and premise-interrogation lessons went uncaptured until the user pushed
-back twice. When the user asks "is there anything else to capture?", treat it as a prompt to run the subagent again over
-the events — not as a request to justify the previous pass. A docs-fix merge has nothing further to capture only if the
-subagent actually reviewed it and said so — or if the merge-time detection above found no candidate. captured:
-extract-specd-rationale-from-agents-md
+mechanism belongs in the capability spec **only when changing it would change a scenario's outcome — verify that against
+the code before moving it**, and a mechanism whose alternatives yield the same result stays in `AGENTS.md` as internal
+control flow. A pointer must also carry every **imperative** the old text held: a warning the reader must still act on
+is a rule, not rationale, and is lost rather than condensed when the pointer drops it —
+`extract-specd-rationale-from-agents-md`'s pointer had to keep the `@WebFluxTest` component-scan warning, which has no
+spec home. Durability governs where the _rule_ lives, not whether every sentence about it does. Because the corpus is
+evidence-anchored incident memory, the control is the periodic `/audit-agents` pass — whose verdict already reports the
+accreted-rule count — not mass deletion to hit a number. Do not skip the subagent or conclude "nothing to capture" on
+your own judgment — the subagent is the arbiter, and an initial "nothing to capture" verdict is a hypothesis: a merge
+that closed a change was once skipped on exactly such an assumption and the forgotten-archive and premise-interrogation
+lessons went uncaptured until the user pushed back twice. When the user asks "is there anything else to capture?", treat
+it as a prompt to run the subagent again over the events — not as a request to justify the previous pass. A docs-fix
+merge has nothing further to capture only if the subagent actually reviewed it and said so — or if the merge-time
+detection above found no candidate. captured: extract-specd-rationale-from-agents-md
 
 **A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not merely
 records it.** The merge-time detection is the pass that can read the merge's non-diff effects: an agent PR's closing

@@ -16,9 +16,15 @@ describe('showcase actions', () => {
     await expect(removeShowcase('1')).resolves.toEqual({ status: 'done' });
 
     expect(fetchMock).toHaveBeenCalledTimes(3);
-    expect(fetchMock).toHaveBeenNthCalledWith(1, '/showcases/1/start', { method: 'PUT' });
-    expect(fetchMock).toHaveBeenNthCalledWith(2, '/showcases/1/finish', { method: 'PUT' });
-    expect(fetchMock).toHaveBeenNthCalledWith(3, '/showcases/1', { method: 'DELETE' });
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      '/showcases/1/start',
+      '/showcases/1/finish',
+      '/showcases/1',
+    ]);
+    expect(fetchMock.mock.calls.map(([, init]) => (init as RequestInit).method)).toEqual(['PUT', 'PUT', 'DELETE']);
+    for (const [, init] of fetchMock.mock.calls) {
+      expect(new Headers((init as RequestInit).headers).get('traceparent')).toMatch(/^00-/);
+    }
   });
 
   it('reports pending when start/finish/remove return 202', async () => {

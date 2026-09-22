@@ -105,8 +105,9 @@ it was added (start a new section for a new day rather than appending to the mos
   bullet, or one not at the end of its rule — the 2026-09-19 retrospective found the slip recurring, each time from a
   script deriving item boundaries wrongly rather than from any ambiguity in the rule).
 - Make the next phase a product phase — parked; no change yet. The first retrospective's recommended direction (see
-  `docs/retrospectives/2026-09-16.md`). The tooling is mature enough to be used rather than extended. The highest-value
-  parked candidate is web-UI trace propagation (the architecture's missing _enforce_ layer now exists — ADR-0010).
+  `docs/retrospectives/2026-09-16.md`). The tooling is mature enough to be used rather than extended: the architecture's
+  missing _enforce_ layer now exists (ADR-0010), and the highest-value candidate it named — web-UI trace propagation —
+  has since shipped.
 
 - Publish a first GitHub release and keep tagging — parked; no change yet. The repo has 250+ merged PRs, 150+ archived
   changes, and versioned service images, but zero releases and zero git tags, so there is no "what shipped, when"
@@ -192,12 +193,8 @@ it was added (start a new section for a new day rather than appending to the mos
   the frontend `check`, and whether a coverage gate (threshold) makes sense for the UI or just a reporting step.
 
 - Client-side (RUM) observability for the web UI — parked; no change yet. The deployable-UI change adds only server-side
-  nginx metrics (stub_status + ServiceMonitor); the UI's user-facing experience is still unobserved. A separate UI
-  change would add: (1) web-vitals + JS-error reporting (e.g. Grafana Faro or a push-to-gateway metrics endpoint), and
-  (2) W3C Trace Context propagation (`traceparent` header) on API calls so the browser's requests join the existing
-  Tempo traces from the gateway onward — the highest-leverage piece, since the pipeline already traces gateway →
-  command/query. The gateway CORS now carries a configurable `allowedHeaders` list (`SHOWCASE_CORS_ALLOWED_HEADERS`), so
-  that change adds `traceparent` to it.
+  nginx metrics (stub_status + ServiceMonitor); the UI's user-facing experience is still unobserved, so a separate UI
+  change would add web-vitals + JS-error reporting (e.g. Grafana Faro or a push-to-gateway metrics endpoint).
 
 - Rethink reconciliation in the web UI — parked; no change yet. `ShowcasesPage` reconciles local writes and
   saga-triggered events against the eventually-consistent read model by waiting on the projected state per event

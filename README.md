@@ -723,7 +723,8 @@ and Tempo into the `monitoring` namespace alongside the application. The local d
   every service and the Axon internals), and Grafana is preconfigured with a Tempo data source. The default login is
   `admin` with the password from the chart's generated secret.
 - **Tracing**: services export **OpenTelemetry** traces to **Grafana Tempo** (`tempo.monitoring`), viewable in Grafana's
-  Explore.
+  Explore. The web UI propagates W3C trace context on its API calls, so a page load's requests join one trace that
+  continues through the gateway into the command and query services.
 
 Grafana is reached by port-forwarding to its service:
 

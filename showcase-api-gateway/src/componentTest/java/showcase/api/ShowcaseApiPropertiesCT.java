@@ -171,7 +171,8 @@ class ShowcaseApiPropertiesCT {
     void corsAllowedHeaders_defaultToUiHeaders() {
         contextRunner.run(context -> {
             val properties = context.getBean(ShowcaseApiProperties.class);
-            assertThat(properties.getCors().getAllowedHeaders()).containsExactly("Content-Type", "Idempotency-Key");
+            assertThat(properties.getCors().getAllowedHeaders())
+                    .containsExactly("Content-Type", "Idempotency-Key", "traceparent");
         });
     }
 

@@ -58,7 +58,7 @@ showcase:
   api:
     cors:
       allowed-origins: ${SHOWCASE_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:4173}
-      allowed-headers: ${SHOWCASE_CORS_ALLOWED_HEADERS:Content-Type,Idempotency-Key}
+      allowed-headers: ${SHOWCASE_CORS_ALLOWED_HEADERS:Content-Type,Idempotency-Key,traceparent}
     events:
       keep-alive-interval: ${SHOWCASE_EVENTS_KEEP_ALIVE_INTERVAL:PT15S}
     caches:

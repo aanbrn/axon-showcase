@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MIT
+import { traceparent } from './tracing';
+
 declare global {
   interface Window {
     __API_BASE_URL__?: string;
@@ -27,14 +29,17 @@ export type MutationResult = { status: 'done' } | { status: 'pending' };
  * Sends an HTTP request to the given path, prefixed with the configured base URL.
  *
  * <p>Returns the raw response so callers can branch on the status (e.g. 202 Accepted) before unwrapping the body
- * through {@link handle}.
+ * through {@link handle}. Every call carries a W3C Trace Context `traceparent`, so a page load's requests join one
+ * trace the gateway continues.
  *
  * @param path the request path, e.g. "/showcases"
  * @param init optional fetch options (method, headers, body, etc.)
  * @returns the raw fetch response
  */
 export async function request(path: string, init?: RequestInit): Promise<Response> {
-  return fetch(`${BASE}${path}`, init);
+  const headers = new Headers(init?.headers);
+  headers.set('traceparent', traceparent());
+  return fetch(`${BASE}${path}`, { ...init, headers });
 }
 
 /**

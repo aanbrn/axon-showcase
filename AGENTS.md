@@ -195,14 +195,18 @@ end-of-bullet marker records only the latest captured contribution, not the bull
 text stays recoverable from `git blame` / `git log -S`. AGENTS.md's growth is bounded, but the bound is a discipline
 rather than a hard cap: applying a capture should leave the file no larger than it was, preferring a merge or a
 replacement over an addition, and any net growth is a justified decision stated with the proposal — not a side effect of
-accumulating prose. Because the corpus is evidence-anchored incident memory, the control is the periodic `/audit-agents`
-pass — whose verdict already reports the accreted-rule count — not mass deletion to hit a number. Do not skip the
-subagent or conclude "nothing to capture" on your own judgment — the subagent is the arbiter, and an initial "nothing to
-capture" verdict is a hypothesis: a merge that closed a change was once skipped on exactly such an assumption and the
-forgotten-archive and premise-interrogation lessons went uncaptured until the user pushed back twice. When the user asks
-"is there anything else to capture?", treat it as a prompt to run the subagent again over the events — not as a request
-to justify the previous pass. A docs-fix merge has nothing further to capture only if the subagent actually reviewed it
-and said so — or if the merge-time detection above found no candidate. captured: capture-untracked-follows-switch (#284)
+accumulating prose. The cheapest way to keep it flat: **when a bullet's rationale is normative in a spec, keep only what
+a reader needs to act and point at the spec — a pointer, not a condensed copy** (this file is loaded on every
+invocation, a spec only when its capability is worked on, so a summary of spec'd rationale is a second copy that
+drifts). Durability governs where the _rule_ lives, not whether every sentence about it does. Because the corpus is
+evidence-anchored incident memory, the control is the periodic `/audit-agents` pass — whose verdict already reports the
+accreted-rule count — not mass deletion to hit a number. Do not skip the subagent or conclude "nothing to capture" on
+your own judgment — the subagent is the arbiter, and an initial "nothing to capture" verdict is a hypothesis: a merge
+that closed a change was once skipped on exactly such an assumption and the forgotten-archive and premise-interrogation
+lessons went uncaptured until the user pushed back twice. When the user asks "is there anything else to capture?", treat
+it as a prompt to run the subagent again over the events — not as a request to justify the previous pass. A docs-fix
+merge has nothing further to capture only if the subagent actually reviewed it and said so — or if the merge-time
+detection above found no candidate. captured: capture-untracked-follows-switch (#284)
 
 **A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not merely
 records it.** The merge-time detection is the pass that can read the merge's non-diff effects: an agent PR's closing
@@ -879,7 +883,9 @@ Key modules (libraries, not services):
   AGENTS.md gotchas, docs/ideas.md), then the subagent returns a retrospective (shipped PRs by theme, lessons,
   went-well/went-wrong) and improvement suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process`
   (→ AGENTS.md or a subagent definition), which the main agent verifies and applies. Retrospectives land in
-  `docs/retrospectives/<date>.md` as a docs change.
+  `docs/retrospectives/<date>.md` as a docs change. It is deliberately **not** in the scheduled `audit` workflow —
+  unlike the three audits, a retrospective is a judgment about a _period_ whose richest input is session-only, so it
+  stays on demand (the `agent-skills` spec records why).
 - **Agents-auditor subagent for agent-tooling maintenance**: the `agents-auditor` subagent
   (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
   `.opencode/` files (subagents, commands, skills) — because an accretion-only set of guidance and tooling drifts:

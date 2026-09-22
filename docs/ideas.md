@@ -53,9 +53,11 @@ it was added (start a new section for a new day rather than appending to the mos
   (the four `/audit-*` agents and `/review-thorough`; the pin's sixth agent, `diagrammer`, is interactive), so it is the
   pro quota the saving lands on. At the time of writing the provider's page gives peak as 01:00–04:00 and 06:00–10:00
   UTC, Mon–Fri, with all other hours including weekends off-peak (~79% of the week), and peak at exactly 2× off-peak.
-  - Only the unattended work is shiftable: the four `/audit-*` sweeps, `/retrospective`, `/review-thorough`, and long
-    capture chains. The interactive loop is paced by the human and cannot be batched, so the saving is concentrated in
-    exactly our most token-heavy invocations.
+  - Only the work that runs without the human pacing each step is shiftable — whether scheduled (the three `/audit-*`
+    sweeps in the `audit` workflow) or human-triggered but then unattended (`/audit-readme`, `/retrospective`,
+    `/review-thorough`) — plus long capture chains. The interactive loop is paced by the human and cannot be batched, so
+    the saving is concentrated in exactly our most token-heavy invocations. (Being shiftable is not being scheduled:
+    `/audit-readme` and `/retrospective` stay on-demand by design — see the `agent-skills` spec.)
   - Open question for the owner: a `schedule:`-triggered agent run inside the off-peak window (idiomatic here — the
     nightly `e2e` and the weekly update checks already run on schedules), or a mid-session discipline of choosing when
     to fire a bulk pass? This overlapped the three parked zero-touch scheduled auditor variants, which are now

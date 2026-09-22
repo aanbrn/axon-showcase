@@ -978,8 +978,13 @@ apiGateway:
 
   # Browser origins allowed to call the gateway cross-origin.
   # @param apiGateway.cors.allowedOrigins List of allowed origins (empty denies all browser origins)
+  # @param apiGateway.cors.allowedHeaders Request headers the UI may send cross-origin (the UI sends Content-Type and
+  # Idempotency-Key)
   cors:
     allowedOrigins: []
+    allowedHeaders:
+      - Content-Type
+      - Idempotency-Key
 
   # Live event stream settings.
   # @param apiGateway.events.keepAliveInterval Interval at which the SSE stream emits a keep-alive while idle (keep it

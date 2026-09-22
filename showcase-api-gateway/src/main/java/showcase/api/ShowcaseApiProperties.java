@@ -64,6 +64,14 @@ public final class ShowcaseApiProperties {
          */
         @NotNull
         private List<@NotBlank @URL String> allowedOrigins = List.of("http://localhost:5173", "http://localhost:4173");
+
+        /**
+         * The request headers the UI may send, or empty to allow none. The UI sends {@code Content-Type} and
+         * {@code Idempotency-Key}; a cross-origin request naming a header not listed here is rejected at the browser's
+         * preflight.
+         */
+        @NotNull
+        private List<@NotBlank String> allowedHeaders = List.of("Content-Type", "Idempotency-Key");
     }
 
     /**

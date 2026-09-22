@@ -7,7 +7,7 @@ import org.springframework.web.reactive.config.WebFluxConfigurer;
 
 /**
  * WebFlux configuration for the showcase API gateway, allowing the configured web UI origins to call the gateway
- * cross-origin.
+ * cross-origin with the configured request headers.
  */
 @Component
 class ShowcaseApiConfigurer implements WebFluxConfigurer {
@@ -29,6 +29,7 @@ class ShowcaseApiConfigurer implements WebFluxConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(apiProperties.getCors().getAllowedOrigins().toArray(String[]::new))
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders(apiProperties.getCors().getAllowedHeaders().toArray(String[]::new));
     }
 }

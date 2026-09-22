@@ -113,6 +113,9 @@ spec:
             # Browser origins allowed to call the gateway cross-origin.
             - name: "SHOWCASE_CORS_ALLOWED_ORIGINS"
               value: {{ join "," .Values.apiGateway.cors.allowedOrigins | quote }}
+            # Request headers the UI may send cross-origin.
+            - name: "SHOWCASE_CORS_ALLOWED_HEADERS"
+              value: {{ join "," .Values.apiGateway.cors.allowedHeaders | quote }}
             # Interval at which the live event stream emits a keep-alive while no domain event occurs.
             - name: "SHOWCASE_EVENTS_KEEP_ALIVE_INTERVAL"
               value: {{ .Values.apiGateway.events.keepAliveInterval | quote }}

@@ -121,6 +121,9 @@ agent, with its purpose described in its agent definition and (where relevant) i
 - **AND** applying a capture should leave `AGENTS.md` no larger than it was, preferring a merge or a replacement over an
   addition, and any net growth is a justified decision stated with the proposal — not a side effect of accumulating
   prose
+- **AND** when a rule's rationale is normative in a spec, the bullet keeps only what a reader needs to act and points at
+  the spec — a pointer, not a condensed copy, since `AGENTS.md` is loaded on every invocation while a spec is loaded
+  only when its capability is worked on
 - **AND** the control on that growth is the periodic `/audit-agents` pass, whose verdict already reports the
   accreted-rule count, rather than mass deletion to hit a number
 - **AND** each proposed addition carries its origin in a greppable `captured: <change>` marker — the change, and its PR
@@ -460,7 +463,13 @@ reconciliation the audits exist for (the consolidation that counters the accreti
 than being a bare reminder: a run with nothing to report SHALL commit nothing and so produce no artifact. The
 `readme-auditor` SHALL remain on-demand only rather than joining the scheduled set: it verifies the human-facing
 `README.md` against the repository, an accuracy-and-coverage check distinct from the reconciliation of the agent's own
-machinery the schedule exists for.
+machinery the schedule exists for. The `experience-analyzer` SHALL likewise remain on-demand only: its retrospective is
+a narrative judgment about a period rather than a reconciliation verifiable against the repository, and its richest
+input — what went wrong that no diff captures — is available only in the session that lived it, so a scheduled run could
+not supply it. A scheduled run that _produces_ the retrospective SHALL NOT be used in its place, because it automates
+the decision rather than the trigger and still lacks the session-only context; a scheduled check that only _reports_
+what has accumulated since the newest retrospective, and otherwise stays silent, is not such a run — it surfaces the
+trigger while leaving the decision and the analysis to the on-demand invocation.
 
 #### Scenario: The audits run unattended on their schedule
 

@@ -65,7 +65,7 @@
 - [x] 6.1 Update `docs/ideas.md`: trim the parked RUM idea — remove the trace-propagation piece (implemented here),
       including its trailing sentence about the CORS `allowedHeaders` list, leaving the web-vitals/JS-error piece — and
       fix the product-phase entry, which still names web-UI trace propagation as the highest-value parked candidate
-- [ ] 6.2 Refresh the `showcase/clients/web-ui` Purpose **in the archive commit** to name the trace propagation (a delta
+- [x] 6.2 Refresh the `showcase/clients/web-ui` Purpose **in the archive commit** to name the trace propagation (a delta
       cannot carry a Purpose, so that commit is the only one that can hold it; the PR body states the deferral). The
       `showcase/gateway/rest-api` Purpose is unchanged — it never mentions CORS
 - [x] 6.3 Check `README.md` for a human-visible capability this adds or changes (the observability section) and update

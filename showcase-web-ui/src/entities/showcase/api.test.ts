@@ -13,6 +13,7 @@ describe('fetchShowcases', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(fetchShowcases()).resolves.toEqual([showcase]);
-    expect(fetchMock).toHaveBeenCalledWith('/showcases', undefined);
+    expect(fetchMock.mock.calls[0][0]).toBe('/showcases');
+    expect(new Headers((fetchMock.mock.calls[0][1] as RequestInit).headers).get('traceparent')).toMatch(/^00-/);
   });
 });

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { handle, mutate } from './api';
+import { handle, mutate, request } from './api';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -33,13 +33,55 @@ describe('handle', () => {
   });
 });
 
+describe('request', () => {
+  it('carries a W3C traceparent on every call', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await request('/showcases');
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/showcases');
+    expect(new Headers((fetchMock.mock.calls[0][1] as RequestInit).headers).get('traceparent')).toMatch(
+      /^00-[0-9a-f]{32}-[0-9a-f]{16}-01$/,
+    );
+  });
+
+  it('keeps the caller headers alongside the traceparent', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await request('/showcases', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/showcases');
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    const headers = new Headers(init.headers);
+    expect(init.method).toBe('POST');
+    expect(headers.get('Content-Type')).toBe('application/json');
+    expect(headers.get('traceparent')).toMatch(/^00-[0-9a-f]{32}-[0-9a-f]{16}-01$/);
+  });
+
+  it('preserves a caller-provided Headers instance', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await request('/showcases', { headers: new Headers({ 'X-Custom': 'yes' }) });
+
+    const headers = new Headers((fetchMock.mock.calls[0][1] as RequestInit).headers);
+    expect(headers.get('X-Custom')).toBe('yes');
+    expect(headers.get('traceparent')).toMatch(/^00-/);
+  });
+});
+
 describe('mutate', () => {
   it('reports done for a successful response', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(mutate('/showcases/1/start', 'PUT')).resolves.toEqual({ status: 'done' });
-    expect(fetchMock).toHaveBeenCalledWith('/showcases/1/start', { method: 'PUT' });
+    expect(fetchMock.mock.calls[0][0]).toBe('/showcases/1/start');
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('PUT');
+    expect(new Headers(init.headers).get('traceparent')).toMatch(/^00-[0-9a-f]{32}-[0-9a-f]{16}-01$/);
   });
 
   it('reports pending for a 202 Accepted response', async () => {

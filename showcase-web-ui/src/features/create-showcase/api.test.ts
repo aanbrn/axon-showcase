@@ -20,14 +20,13 @@ describe('scheduleShowcase', () => {
 
     await expect(scheduleShowcase(scheduleRequest)).resolves.toEqual({ status: 'scheduled', showcaseId: '1' });
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/showcases',
-      expect.objectContaining({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(scheduleRequest),
-      }),
-    );
+    expect(fetchMock.mock.calls[0][0]).toBe('/showcases');
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    const headers = new Headers(init.headers);
+    expect(init.method).toBe('POST');
+    expect(init.body).toBe(JSON.stringify(scheduleRequest));
+    expect(headers.get('Content-Type')).toBe('application/json');
+    expect(headers.get('traceparent')).toMatch(/^00-/);
   });
 
   it('returns pending with the idempotency key on a 202 Accepted response', async () => {
@@ -48,12 +47,8 @@ describe('scheduleShowcase', () => {
 
     await scheduleShowcase(scheduleRequest, 'key-1');
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/showcases',
-      expect.objectContaining({
-        headers: expect.objectContaining({ 'Idempotency-Key': 'key-1' }),
-      }),
-    );
+    expect(fetchMock.mock.calls[0][0]).toBe('/showcases');
+    expect(new Headers((fetchMock.mock.calls[0][1] as RequestInit).headers).get('Idempotency-Key')).toBe('key-1');
   });
 
   it('surfaces the problem-detail message on an error response', async () => {

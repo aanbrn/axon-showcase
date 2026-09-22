@@ -1280,9 +1280,9 @@ that override when bumping the Kafka image tag.
   container image defaults to empty (fail-closed — deployments must allow their UI origin explicitly); docker-compose
   sets it to the local dev + preview origins, and the Helm chart exposes it as `apiGateway.cors.allowedOrigins`.
 - `SHOWCASE_CORS_ALLOWED_HEADERS` — comma-separated request headers the UI may send cross-origin. Defaults to the
-  headers the UI sends (`Content-Type`, `Idempotency-Key`) on every surface — the Java field, the yml placeholder, the
-  image's `BPE_DEFAULT_*` map, and the chart value (`apiGateway.cors.allowedHeaders`) — so it behaves the same in a
-  deployment and under `bootRun`.
+  headers the UI sends (`Content-Type`, `Idempotency-Key`, `traceparent`) on every surface — the Java field, the yml
+  placeholder, the image's `BPE_DEFAULT_*` map, and the chart value (`apiGateway.cors.allowedHeaders`) — so it behaves
+  the same in a deployment and under `bootRun`.
 - `DB_PASSWORD=showcase` — PostgreSQL password for command-service
 - `BPL_DEBUG_ENABLED=true` / `BPL_DEBUG_PORT=8000-8003` — JVM debug (JDWP) agent ports (`8000`–`8003` are the published
   debug ports in `docker-compose.yml`; see Local Development)

@@ -96,13 +96,14 @@ class ShowcaseApiApplicationIT {
                 .uri("/showcases")
                 .header(HttpHeaders.ORIGIN, "http://localhost:5173")
                 .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
-                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "content-type,idempotency-key")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "content-type,idempotency-key,traceparent")
                 .exchange()
                 .expectStatus()
                 .isOk()
                 .expectHeader()
                 .value(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, value -> assertThat(value)
                         .containsIgnoringCase("content-type")
-                        .containsIgnoringCase("idempotency-key"));
+                        .containsIgnoringCase("idempotency-key")
+                        .containsIgnoringCase("traceparent"));
     }
 }

@@ -215,7 +215,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
         mapOf(
             "BPE_DEFAULT_SERVER_PORT" to "8080",
             "BPE_DEFAULT_SHOWCASE_CORS_ALLOWED_ORIGINS" to "",
-            "BPE_DEFAULT_SHOWCASE_CORS_ALLOWED_HEADERS" to "Content-Type,Idempotency-Key",
+            "BPE_DEFAULT_SHOWCASE_CORS_ALLOWED_HEADERS" to "Content-Type,Idempotency-Key,traceparent",
             "BPE_DEFAULT_SHOWCASE_EVENTS_KEEP_ALIVE_INTERVAL" to "PT15S",
             "BPE_DEFAULT_SHOWCASE_QUERY_SERVICE_URL" to "http://axon-showcase-query-service:8080",
             "BPE_DEFAULT_KAFKA_BOOTSTRAP_SERVERS" to "axon-showcase-kafka:9092",

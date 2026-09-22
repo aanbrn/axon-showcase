@@ -85,8 +85,11 @@ pass, the reply asked about lesson capture instead, and the capture was folded i
 continued — nothing was committed before the repeated request was answered, but the request had been missed. A review
 loop that keeps finding the **same class** of observation round after round is not converging — each fix is treating a
 symptom of a root cause that is still there, and the next round will find another instance. Stop and re-derive the root
-cause, or abandon the unit; do not layer another special case. A revert after a non-converging loop is a legitimate
-outcome — record why in the change dir so the decision is not re-litigated. captured: retro-mark-captured-rules
+cause — when the recurring class is an enumeration that under-describes the change (a surface list, an artifact set, a
+list of touched files or test sites), the root cause is a list written from memory rather than derived from the surface;
+re-derive it by grepping the corpus, the archive, and the diff — or abandon the unit; do not layer another special case.
+A revert after a non-converging loop is a legitimate outcome — record why in the change dir so the decision is not
+re-litigated. captured: propagate-ui-trace-context (#362)
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -674,7 +677,12 @@ Key modules (libraries, not services):
   A test written to guard a refactor must fail against the pre-refactor code — run it before the change (or with the old
   path temporarily restored) and confirm it goes red, since a test green on both sides verifies nothing and is deleted
   rather than kept for the count. The `ShowcaseRestController` cache-fallback refactor shipped under the existing 76
-  scenario tests for this reason. captured: resolve-recorded-intent-questions (#334)
+  scenario tests for this reason. An assertion whose shape must change — a matcher can no longer match exactly because
+  the value it compares gained a member — must keep every subject the old matcher pinned: rewriting
+  `expect(fetchMock).toHaveBeenCalledWith('<url>', { method: 'PUT' })` into field reads because the added `traceparent`
+  header broke the exact match dropped the call's URL check at every rewritten site, and only the quick review caught
+  it; assert the URL alongside the new field (`fetchMock.mock.calls[0][0]`), since a silently dropped subject leaves a
+  test that still passes. captured: propagate-ui-trace-context (#362)
 - **Spring bean mocks in tests**: use `@MockitoBean` (from `org.springframework.test.context.bean.override.mockito`),
   not the deprecated-for-removal `@MockBean` (`org.springframework.boot.test.mock.mockito`), which has been deprecated
   since Spring Boot 3.4
@@ -1372,8 +1380,13 @@ capture-stash-stale-copy
   release-namespace declarations (`declare-axon-showcase-namespace`). Prefer rendering the chart locally with
   `helm template` to inspect what the source produces before (or alongside) inspecting live resources — target the
   packaged chart at `helm/chart/build/helm/charts/axon-showcase`, since the `helm/chart` module dir has no `Chart.yaml`
-  and the source at `helm/chart/src/main/helm` carries Gradle-filtered placeholders that `helm template` rejects.
-  captured: fix-gateway-cors-allowed-headers (#359)
+  and the source at `helm/chart/src/main/helm` carries Gradle-filtered placeholders that `helm template` rejects. **A
+  deployment-only behavior is verified against the deployed signal, not the config.** Observability is Kubernetes-only
+  here, so a trace is proven by reading what the deployed system actually emitted: the `traceparent` the browser really
+  sent (`browser_network_request` with `part: request-headers`) and the exported trace from Tempo's API
+  (`kubectl port-forward -n monitoring svc/tempo 3200`, `GET /api/traces/<trace-id>`, with the root server span parented
+  at the browser's id). A green `check` and a correct chart value prove the configuration, not the behavior. captured:
+  propagate-ui-trace-context (#362)
 - **Checking CI status**: don't poll a PR build with an idle `sleep` loop — use `gh run watch <run-id> --exit-status`
   (or `gh pr checks <pr> --watch`), which blocks until the check finishes and exits non-zero on failure. When the run id
   isn't known, fetch it once via the GitHub MCP `pull_request_read` / `get_check_runs` (or `gh run list`), then

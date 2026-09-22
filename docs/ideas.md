@@ -112,12 +112,17 @@ it was added (start a new section for a new day rather than appending to the mos
 ## 2026-09-14
 
 - Retire the `NANOS_DATE_PATTERN` workaround once its fix reaches us — parked; no change yet.
-  `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337, milestone 6.2.0-M2), but we resolve
+  `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337, milestone 6.2.0-M2), but the fix is in
+  **no published release**: the newest artifacts are `6.2.0-M1`, `6.1.1` and `6.0.7`, all published 2026-08-20, ten days
+  _before_ the fix merged — so `M1` predates it and only the unreleased `6.2.0-M2` carries it. We resolve
   spring-data-elasticsearch 5.5.13 on the `spring-data-opensearch` 2.0.7 line (2.0.7 declares 5.5.12; the Spring Boot
-  3.5.16 BOM raises it), so the truncation is still live: when a `spring-data-opensearch` release carries 6.2.0-M2 — the
-  retirement the upstream-reference report's `#3334` finding points at — drop the custom pattern and the gotcha that
-  guards it. The other closure candidate does not apply — `#1060` leaves our `checkBuildEnvironmentConstraints` row
-  untouched (see the entry above). Recorded here rather than in the PR body that surfaced it, which no tool reads.
+  3.5.16 BOM raises it), so the truncation is still live. The condition to watch is therefore a release _containing the
+  fix_, not a line or a milestone: `spring-data-opensearch` 3.x is the line that would carry it (the latest, 3.1.4,
+  still ships 6.1.1), but 3.x targets Spring Boot 4 and `spring-data-elasticsearch` 6.x, so retiring the workaround
+  rides the deferred Spring Boot 4 migration (ADR-0004) — re-check when that migration lands, not on a chart or patch
+  bump. The other closure candidate does not apply — `#1060` leaves our `checkBuildEnvironmentConstraints` row untouched
+  (the `#755` verdict is recorded in the upstream-reference bullet in `AGENTS.md` and ADR-0007). Recorded here rather
+  than in the PR body that surfaced it, which no tool reads.
 
 ## 2026-09-13
 

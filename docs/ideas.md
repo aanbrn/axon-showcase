@@ -90,8 +90,7 @@ it was added (start a new section for a new day rather than appending to the mos
   script deriving item boundaries wrongly rather than from any ambiguity in the rule).
 - Make the next phase a product phase — parked; no change yet. The first retrospective's recommended direction (see
   `docs/retrospectives/2026-09-16.md`). The tooling is mature enough to be used rather than extended. The highest-value
-  parked candidates are narrowing the `query-api` re-export and web-UI trace propagation (the architecture's missing
-  _enforce_ layer now exists — ADR-0010).
+  parked candidate is web-UI trace propagation (the architecture's missing _enforce_ layer now exists — ADR-0010).
 
 - Publish a first GitHub release and keep tagging — parked; no change yet. The repo has 250+ merged PRs, 150+ archived
   changes, and versioned service images, but zero releases and zero git tags, so there is no "what shipped, when"
@@ -138,17 +137,6 @@ it was added (start a new section for a new day rather than appending to the mos
   than in the PR body that surfaced it, which no tool reads.
 
 ## 2026-09-13
-
-- Query-api → command-api re-export (dependency hygiene) — parked; no change yet. Found by the first
-  `/audit-architecture` run (its boundary check): `showcase-query-api` declares `api(project(":showcase-command-api"))`
-  although its main source needs only `showcase.identifier.KSUID` and uses no `showcase.command.*` type, so it
-  re-exports the whole write-side API to every query-api consumer. ADR-0010 sanctions that direction for now, since the
-  consumers lean on the transitive `hibernate-validator` it carries — which is what this idea removes. The fix is
-  **not** a one-line swap: replacing the dep with `api(project(":showcase-identifier-extension"))` fails
-  `showcase-query-client`'s main compile (`ShowcaseQueryClientProperties` imports `org.hibernate.validator.constraints`,
-  which it was receiving transitively through command-api), so the modules that leaned on the accidental chain must
-  first declare what they actually use. Worth its own change: narrow query-api, add the consumers' explicit deps, and
-  let the build prove the graph.
 
 - ADR revisit triggers for time-bounded decisions — parked; no change yet. ADR-0003, ADR-0004, and ADR-0011 are explicit
   deferrals whose entire point is to be revisited when a stated condition is met: ADR-0003 (retain Jackson 2; adopt

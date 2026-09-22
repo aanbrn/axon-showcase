@@ -9,7 +9,7 @@ project.description = "Showcase Query API"
 dependencies {
     implementation(platform(project(":platform")))
 
-    api(project(":showcase-command-api"))
+    api(project(":showcase-identifier-extension"))
 
     api(libs.axon.messaging)
     api(libs.spring.data.commons)

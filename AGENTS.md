@@ -198,15 +198,17 @@ replacement over an addition, and any net growth is a justified decision stated 
 accumulating prose. The cheapest way to keep it flat: **when a bullet's rationale is normative in a spec, keep only what
 a reader needs to act and point at the spec — a pointer, not a condensed copy** (this file is loaded on every
 invocation, a spec only when its capability is worked on, so a summary of spec'd rationale is a second copy that
-drifts). Durability governs where the _rule_ lives, not whether every sentence about it does. Because the corpus is
-evidence-anchored incident memory, the control is the periodic `/audit-agents` pass — whose verdict already reports the
-accreted-rule count — not mass deletion to hit a number. Do not skip the subagent or conclude "nothing to capture" on
-your own judgment — the subagent is the arbiter, and an initial "nothing to capture" verdict is a hypothesis: a merge
-that closed a change was once skipped on exactly such an assumption and the forgotten-archive and premise-interrogation
-lessons went uncaptured until the user pushed back twice. When the user asks "is there anything else to capture?", treat
-it as a prompt to run the subagent again over the events — not as a request to justify the previous pass. A docs-fix
-merge has nothing further to capture only if the subagent actually reviewed it and said so — or if the merge-time
-detection above found no candidate. captured: capture-untracked-follows-switch (#284)
+drifts). The same routing covers the case where the specs describe a rule's subject **only as an outcome**: the
+mechanism belongs in the capability spec, and the bullet keeps that same shape — the rule, and a pointer. Durability
+governs where the _rule_ lives, not whether every sentence about it does. Because the corpus is evidence-anchored
+incident memory, the control is the periodic `/audit-agents` pass — whose verdict already reports the accreted-rule
+count — not mass deletion to hit a number. Do not skip the subagent or conclude "nothing to capture" on your own
+judgment — the subagent is the arbiter, and an initial "nothing to capture" verdict is a hypothesis: a merge that closed
+a change was once skipped on exactly such an assumption and the forgotten-archive and premise-interrogation lessons went
+uncaptured until the user pushed back twice. When the user asks "is there anything else to capture?", treat it as a
+prompt to run the subagent again over the events — not as a request to justify the previous pass. A docs-fix merge has
+nothing further to capture only if the subagent actually reviewed it and said so — or if the merge-time detection above
+found no candidate. captured: capture-untracked-follows-switch (#284)
 
 **A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not merely
 records it.** The merge-time detection is the pass that can read the merge's non-diff effects: an agent PR's closing
@@ -686,22 +688,15 @@ Key modules (libraries, not services):
   `-XX:+AllowRedefinitionToAddDeleteMethods` and `-XX:+EnableDynamicAgentLoading` (e.g. the query-client `componentTest`
   and the gateway `e2eTest` suites); leave them off suites that don't (e.g. a `componentTest` with only an
   `ApplicationContextRunner` test)
-- **The WebFlux blocking-execution configurers are load-bearing — they are not a BlockHound band-aid, and removing them
-  breaks the error and validation paths.** Both `showcase-api-gateway`'s `ShowcaseBlockingExecutionConfigurer` and
-  `showcase-query-service`'s `ShowcaseQueryConfigurer` set `configureBlockingExecution(__ -> true)`, routing every
-  controller method to the bounded-elastic scheduler. The gateway's was introduced in `fadc7bc` ("fixed blocking issues
-  using reactor blockhound") and the query-service's appeared two days later, so both read as a coarse workaround — the
-  earlier parked idea to remove the gateway's routing assumed exactly that. Measured, it is false in both services:
-  remove the configurer and the failing tests are status mismatches on _error_ paths, with **zero** BlockHound hits —
-  the gateway's CT drops 9 of 76 (`400 Bad Request` becomes `500 Internal Server Error` for invalid payloads, `afterId`,
-  `size` bounds, and showcase IDs — all request-validation cases) and the query-service's BlockHound-guarded IT drops 3
-  of 10 (`400`/`404` become `503 Service Unavailable`, covering both invalid-query and not-found application errors).
-  The routing is what lets bean validation resolve and fail the request as a `400`, and what carries a real query-bus
-  error back to its `@ExceptionHandler`; BlockHound never fires either way, so there is no blocking call to offload
-  surgically. Two evidence points bound the mechanism: the gateway's not-found test **passes** without the configurer
-  because its `fetchById` is stubbed to return `Mono.error(...)`, so the handler maps that directly, while the
-  query-service's not-found test **fails** (`404` → `503`) because its error comes off the dispatched query bus. Do not
-  "simplify" a configurer away, and do not read the `@WebFluxTest` component-scan it forces as removable complexity.
+- **The WebFlux blocking-execution routing in the gateway and query-service is load-bearing — do not remove it as a
+  BlockHound band-aid.** Both services route every controller method to the bounded-elastic scheduler; removing it
+  reddens the error and validation paths (the gateway's invalid payloads become `500` instead of `400`; the
+  query-service's invalid/missing queries become `503` instead of `400`/`404`) with zero BlockHound hits either way. The
+  rules and the measured evidence live in the specs that own the outcomes — `gateway/rest-api`
+  (`Command error translation`, `Query error translation`) and `read-side/query-service` (`Query validation`,
+  `Fetch showcase by ID query`) — and in `design.md` of the change that moved them there
+  (`extract-specd-rationale-from-agents-md`). Do not read the `@WebFluxTest` component-scan the routing forces as
+  removable complexity.
 - **Asserting log output**: use `OutputCaptureExtension` (`CapturedOutput`) when the code under test runs **in the test
   JVM** (e.g. `ShowcaseProjectorIT`'s projector logging, `ShowcaseRestControllerCT`'s gateway fallback logging). It
   cannot capture a separate process's output — to assert a **containerized** service's logs (the code-under-test runs in
@@ -1750,10 +1745,11 @@ capture-stash-stale-copy
   condition; the PR's test plan records the review catching it). Check a recorded _mechanism_ against every measurement
   the change made, not only against other docs: name the evidence points the explanation must cover and confirm the
   wording holds for each, because a generalization one of your own runs contradicts is wrong however well it reads. The
-  blocking-execution bullet must cover both of its evidence points — the gateway's not-found test passing (its
-  `fetchById` is stubbed, so the handler maps the error directly) and the query-service's failing (`404` → `503`,
-  because its error comes off the dispatched query bus) — since a wording covering only one contradicts the other.
-  captured: record-blocking-execution-rationale (#335)
+  blocking-execution mechanism has two evidence points — the gateway's not-found test passing (its `fetchById` is
+  stubbed, so the handler maps the error directly) and the query-service's failing (`404` → `503`, because its error
+  comes off the dispatched query bus) — so a wording covering only one contradicts the other; both are recorded in
+  `design.md` of `extract-specd-rationale-from-agents-md`, which moved the rule into the specs it belongs to. captured:
+  record-blocking-execution-rationale (#335)
 - **A durable artifact may assert only what the repository can evidence — a history that lives only in the conversation
   is not repo history.** An earlier draft of this bullet cited a `/var/folders/**` config attempt — a pattern proposed
   in conversation but never written to a config file — and asserted an unobserved `setup-hosts.sh` outcome; a review

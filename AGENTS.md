@@ -821,13 +821,14 @@ Key modules (libraries, not services):
   `.gradle.kts` and build-logic `.kt`, both fixed 120 columns) — the canonical format step, enforced by `spotlessCheck`
   in `check` with no IDE required. After each edit, run `spotlessApply` before reporting the change done; the IntelliJ
   formatter is no longer canonical, and import order is owned by the formatter.
-  - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML, and so
-    on); markdown is formatted by the root Spotless `markdown` format (Prettier, `printWidth: 120` with
-    `proseWrap: "always"` — a preference, not a hard limit: backtick-dense lines can still exceed 120, the accepted
-    trade-off of automating markdown wrapping). The markdown scope is `docs/`, `AGENTS.md`, `README.md`,
-    `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`, the `.github/` markdown, and the project-authored
-    `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files and the vendored `axon4to5-*` skills are excluded,
-    while the project-authored `opsx-tool-update.md` stays in scope despite the shared prefix — and
+  - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML; Javadoc
+    and JSDoc prose, which the formatters do not reflow — a >120-character comment line passes the formatter gate and
+    only the manual check catches it); markdown is formatted by the root Spotless `markdown` format (Prettier,
+    `printWidth: 120` with `proseWrap: "always"` — a preference, not a hard limit: backtick-dense lines can still exceed
+    120, the accepted trade-off of automating markdown wrapping). The markdown scope is `docs/`, `AGENTS.md`,
+    `README.md`, `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`, the `.github/` markdown, and the
+    project-authored `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files and the vendored `axon4to5-*`
+    skills are excluded, while the project-authored `opsx-tool-update.md` stays in scope despite the shared prefix — and
     `.opencode/opencode.json` has its own `json` format. A target's generated-file exclusions must track what the
     generator writes — `/opsx-tool-update` checks the list when the generated inventory changes, since a newly generated
     `opsx-*` command would otherwise be reformatted by `spotlessApply` and then overwritten by the next
@@ -849,7 +850,8 @@ Key modules (libraries, not services):
     `paketo-buildpacks/procfile` split from its `5.15.0` came out as `paketo-buildpacks/procfile     5.15.0`): keep a
     span on one source line and let the reflow move the whole span. Fenced blocks are a different story — Prettier
     applies embedded formatting inside a fence whose info string names a language it supports (`json`, `yaml`,
-    `markdown`), so that content is gated, while an unsupported one (`bash`, `java`, `mermaid`) is not.
+    `markdown`), so that content is gated, while an unsupported one (`bash`, `java`, `mermaid`) is not. captured:
+    fix-gateway-cors-allowed-headers (#359)
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with
@@ -1368,7 +1370,10 @@ capture-stash-stale-copy
   invisible locally and only surface once deployed. Recent deployment bugs were both chart bugs, not code bugs: the
   `kubernetes` EndpointSlice `lookup` namespace in the network policies (`fix-kube-ping-api-egress`) and the missing
   release-namespace declarations (`declare-axon-showcase-namespace`). Prefer rendering the chart locally with
-  `helm template` to inspect what the source produces before (or alongside) inspecting live resources.
+  `helm template` to inspect what the source produces before (or alongside) inspecting live resources — target the
+  packaged chart at `helm/chart/build/helm/charts/axon-showcase`, since the `helm/chart` module dir has no `Chart.yaml`
+  and the source at `helm/chart/src/main/helm` carries Gradle-filtered placeholders that `helm template` rejects.
+  captured: fix-gateway-cors-allowed-headers (#359)
 - **Checking CI status**: don't poll a PR build with an idle `sleep` loop — use `gh run watch <run-id> --exit-status`
   (or `gh pr checks <pr> --watch`), which blocks until the check finishes and exits non-zero on failure. When the run id
   isn't known, fetch it once via the GitHub MCP `pull_request_read` / `get_check_runs` (or `gh run list`), then
@@ -1731,7 +1736,10 @@ capture-stash-stale-copy
   assertion its own task — the Java-defaults test and the yml-wiring test each bind a different surface. A variable
   carried in a service's `bootBuildImage` `BPE_DEFAULT_*` map has one surface more: the image's launch-environment
   default (`paketo-buildpacks/environment-variables`), which a deployment's env var overrides but which in turn
-  overrides the yml fallback.
+  overrides the yml fallback. A new property the image carries joins that map too, its value decided from the map's
+  closest sibling there — the keep-alive mirrors its default, the origins bake the empty fail-closed override of a
+  local-development default — because the map is the image's declared deployment environment, not a diff against the
+  Java default. captured: fix-gateway-cors-allowed-headers (#359)
 - **Doc claims must match their source and their strength — quote verbatim or paraphrase explicitly, and reserve
   "enforced" for a real gate.** The self-learning README section described `AGENTS.md` rules in quotes;
   `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an

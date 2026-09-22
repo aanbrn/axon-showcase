@@ -1070,34 +1070,39 @@ ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64
 
 The web UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
 `PackBuildImageTask`) that runs the `pack` CLI with the **version-pinned** Paketo NGINX + Procfile buildpacks
-(`paketo-buildpacks/nginx@1.2.0`, `paketo-buildpacks/procfile@5.15.0`; the versions are catalog-owned as `paketo-nginx`
+(`paketo-buildpacks/nginx@1.2.1`, `paketo-buildpacks/procfile@5.15.0`; the versions are catalog-owned as `paketo-nginx`
 and `paketo-procfile`) over `build/dist` (the `pack` CLI is a build prerequisite like Helm/Snyk). The pins are explicit
 because an unversioned buildpack reference becomes ambiguous — `pack` fails with "multiple versions … must specify an
 explicit version" — once the builder bundles two versions of a buildpack (the intermittent `e2e`/`helmInstallToLocal`
-failure). The builder itself is also pinned (`builder-jammy-base:0.4.642`, catalog-owned as `paketo-builder-jammy-base`)
+failure). The builder itself is also pinned (`builder-jammy-base:0.4.644`, catalog-owned as `paketo-builder-jammy-base`)
 rather than floating, and the `buildpackUpdates` task / `buildpack-updates` workflow reports newer builder and buildpack
-versions — no other update check covers Paketo. The NGINX buildpack is **held back at 1.2.0** because `1.2.1` does not
-work on the primary development machine (arm64) — the failure signatures are the ones the host-state and buildpack-pin
-gotchas below document, tracked upstream as `paketo-buildpacks/nginx#1340`. The identical build with `1.2.0` succeeds
-and serves, and x86 CI builds `1.2.1` fine, so the cause is unsettled: this holds a machine working, it does not report
-a repo-wide defect. Close-out: re-test the arm64 build after a container-runtime change (colima, Rosetta or `pack`) or
-when the tracked upstream issue is resolved, and re-take the bump if it passes — until then `buildpackUpdates` keeps
-naming it. Unlike the builder, the run image (`paketobuildpacks/run-jammy-base:latest`) is deliberately left floating so
-base-OS security patches keep flowing — do not "complete" the pin by freezing it. The image serves the bundle via nginx
-on `8080` and exposes nginx `stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a
-gated `nginx-prometheus-exporter` sidecar (`webUi.metricsExporter`, on by default when observability metrics export and
-the web UI ServiceMonitor are enabled) converts stub_status to Prometheus `/metrics` on port `9113`, which the Service
-`http-metrics` port and ServiceMonitor scrape. A `PackBuildImageTask` convention defaults the image name to
-`${project.name}:${project.version}`, which the web UI module overrides with the deployable
-`aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. The UI's API base URL is
-configured at runtime via the `SHOWCASE_API_BASE_URL` env var — **no baked default** (the browser needs the
-externally-visible gateway URL, which only the deployment knows; compose sets `http://localhost:8080`, the Helm chart
-uses `webUi.apiBaseUrl` with an empty default) — which a `start.sh` renders into `/workspace/config.js` at container
-start (failing fast if the env var is unset/empty) — no ConfigMap or volume mount. The `dockerBuildImage` run prints two
-informational warnings from the toolchain, not defects: "Exporting to docker daemon (building without --publish) and
-daemon uses containerd storage" (pack exports to the local daemon's containerd store, losing the fast publish path) and
-"deprecated usage of stack" (an upstream Paketo buildpack still declares the deprecated `stacks` key instead of
-`targets`). Neither is actionable in the build — ignore them.
+versions — no other update check covers Paketo. **The builder and the buildpacks it bundles must be bumped together:** a
+`paketo-nginx` pin that is _absent_ from the builder (e.g. `1.2.0` against a builder bundling `1.2.1`) makes `pack` add
+it from the registry, and the added buildpackage resolves to an **arm64** slice (verified: `sha256:0d6fedc4…` is
+`arch=arm64`) even though the builder is published `linux/amd64` only — yielding an AArch64 `nginx` inside an amd64
+image (`exit 127`, `exec: nginx: not found`). The matched pair (`builder-jammy-base:0.4.644` + `paketo-nginx@1.2.1`,
+both on the builder) runs and serves a proper x86-64 nginx; the mismatched pair exits 127 — the registry-add slice is
+the trigger, as the buildpack-pin gotcha below spells out. An earlier record held `paketo-nginx` back at `1.2.0` because
+`1.2.1` "does not work" — `address-2026-09-21-update-checks` showed that reading was imprecise and took both bumps
+together. Reported upstream as a comment on `paketo-buildpacks/nginx#1340` (2026-09-22): whether the added buildpackage
+should resolve to the target platform's slice is open upstream. Close-out: re-take a mismatched pairing only once that
+upstream resolution lands (then re-test the built image), or if `pack` changes how it resolves an added buildpackage's
+slice — the rule above (bump the builder and its bundled buildpacks together) stays the default either way. Unlike the
+builder, the run image (`paketobuildpacks/run-jammy-base:latest`) is deliberately left floating so base-OS security — do
+not "complete" the pin by freezing it. The image serves the bundle via nginx on `8080` and exposes nginx `stub_status`
+metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); in the Helm deployment, a gated `nginx-prometheus-exporter` sidecar
+(`webUi.metricsExporter`, on by default when observability metrics export and the web UI ServiceMonitor are enabled)
+converts stub_status to Prometheus `/metrics` on port `9113`, which the Service `http-metrics` port and ServiceMonitor
+scrape. A `PackBuildImageTask` convention defaults the image name to `${project.name}:${project.version}`, which the web
+UI module overrides with the deployable `aanbrn/axon-showcase-web-ui:${project.version}` in
+`showcase-web-ui/build.gradle.kts`. The UI's API base URL is configured at runtime via the `SHOWCASE_API_BASE_URL` env
+var — **no baked default** (the browser needs the externally-visible gateway URL, which only the deployment knows;
+compose sets `http://localhost:8080`, the Helm chart uses `webUi.apiBaseUrl` with an empty default) — which a `start.sh`
+renders into `/workspace/config.js` at container start (failing fast if the env var is unset/empty) — no ConfigMap or
+volume mount. The `dockerBuildImage` run prints two informational warnings from the toolchain, not defects: "Exporting
+to docker daemon (building without --publish) and daemon uses containerd storage" (pack exports to the local daemon's
+containerd store, losing the fast publish path) and "deprecated usage of stack" (an upstream Paketo buildpack still
+declares the deprecated `stacks` key instead of `targets`). Neither is actionable in the build — ignore them.
 
 Similarly, a CNB-built image's timestamps are not host state: Cloud Native Buildpacks stamp buildpack layers with a
 fixed past date — they list as `Jan 1 1980` — so builds are reproducible and layer caching stays stable, and this build
@@ -1108,7 +1113,7 @@ the image's age, as evidence about when it was built, which host built it, or wh
 
 ```bash
 # Deploy to local cluster (must be ordered)
-helm install kps prometheus-community/kube-prometheus-stack --version 91.4.0 \
+helm install kps prometheus-community/kube-prometheus-stack --version 91.4.1 \
   --namespace monitoring --create-namespace --wait
 helm install tempo grafana/tempo --version 1.24.4 --namespace monitoring --create-namespace --wait
 helm install axon-showcase-db-events bitnami/postgresql --version 16.7.27 \
@@ -1411,7 +1416,12 @@ capture-stash-stale-copy
   the image after a buildpack or builder bump — `docker run`, `GET /`, check the binary's architecture — and be explicit
   about the platform when reasoning about a multi-arch artifact: the buildpack images are multi-arch, so a bare
   `docker pull` on an arm64 host resolves the host's own slice and cannot evidence a claim about the amd64 one (the
-  image this pipeline produces is amd64-only, so a bare run of it is not the risk).
+  image this pipeline produces is amd64-only, so a bare run of it is not the risk). The metadata label is doubly
+  misleading: it names the _buildpack version_ the build used (correctly the pinned version) while the
+  wrong-architecture binary comes from the resolved **buildpackage slice**, so a label reading `1.2.0` does not clear a
+  `1.2.0` pin — the `address-2026-09-21-update-checks` A/B found the pin build cleanly and exit 127 when `pack` added it
+  from the registry as an arm64 slice (`sha256:0d6fedc4…`), because the builder bundled a _different_ nginx version,
+  while the matched pair (pin = the builder's bundled version) ran.
 - IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java, ktfmt
   for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**, **Auto
   Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins (JVM) or

@@ -14,6 +14,13 @@ it was added (start a new section for a new day rather than appending to the mos
 
 ## 2026-09-22
 
+- Check the ADR `Status:` vocabulary mechanically — parked; no change yet. `docs/adr/README.md` enumerates the
+  vocabulary as `Proposed | Accepted | Superseded by ADR-NNNN`, and `narrow-query-api-dependency` invented
+  `Status: Accepted (amended …)` — caught by review and reverted. The `architecture-auditor` already reports "an ADR
+  `Status` that is stale", so widening it to the vocabulary (or a cheap grep in a docs check) would catch the deviation
+  where the prose rule cannot be relied on. Parked: one non-severe occurrence, and it is tooling — which the
+  retrospectives' own "use the tooling rather than extend it" direction argues against until it recurs.
+
 - Make a capture confirm the rule excludes the incident that produced it — parked; no change yet. The gate requires "one
   severe verified incident with a clear preventive action" but never tests that the rule would have _caught_ that
   incident: the `extract-specd-rationale-from-agents-md` outcome-only clause passed the gate and, about an hour later

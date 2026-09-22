@@ -143,12 +143,12 @@ questioned the premise. Verify the current state's rationale against the repo �
 their comments, check `git log` for the introducing change — and record it in the design's Context; treat "this looks
 redundant" as a hypothesis to verify, not a justification to remove. Before proposing a mechanism (an auditor, a check,
 a workflow, a scan) **or asserting in the premise that the repo lacks a rule**, grep `docs/ideas.md` for a parked design
-and the spec corpus and archived changes for an existing requirement — and the artifact you are editing at `HEAD`,
-`AGENTS.md` included, since a sibling change merged earlier the same session may already have added it. A parked idea or
-a spec'd capability is the design to adopt, not re-derive; a false absence claim runs a whole propose cycle on the wrong
-premise and duplicates what exists. `add-readme-auditor`'s planning proposed widening `agents-auditor` past the parked
-`readme-auditor` idea the repo already had, caught by the owner rather than a gate. captured:
-extract-specd-rationale-from-agents-md
+and the spec corpus and archived changes for an existing requirement **or a recorded decision about it — including a
+`skip_specs` decision not to spec it** — and the artifact you are editing at `HEAD`, `AGENTS.md` included, since a
+sibling change merged earlier the same session may already have added it. A parked idea or a spec'd capability is the
+design to adopt, not re-derive; a false absence claim runs a whole propose cycle on the wrong premise and duplicates
+what exists. `add-readme-auditor`'s planning proposed widening `agents-auditor` past the parked `readme-auditor` idea
+the repo already had, caught by the owner rather than a gate. captured: spec-cache-fallback-failed-fetch-contract
 
 **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's own
 prior reconciliation.** ADR-0002 makes the Java `@ConfigurationProperties` the surface that owns a property's default,

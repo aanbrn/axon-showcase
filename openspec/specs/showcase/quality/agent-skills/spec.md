@@ -123,7 +123,8 @@ agent, with its purpose described in its agent definition and (where relevant) i
   prose
 - **AND** when a rule's rationale is normative in a spec, the bullet keeps only what a reader needs to act and points at
   the spec — a pointer, not a condensed copy, since `AGENTS.md` is loaded on every invocation while a spec is loaded
-  only when its capability is worked on
+  only when its capability is worked on — and when the specs describe a rule's subject only as an outcome, that
+  mechanism belongs in the capability spec and the bullet keeps the same shape: the rule, and a pointer
 - **AND** the control on that growth is the periodic `/audit-agents` pass, whose verdict already reports the
   accreted-rule count, rather than mass deletion to hit a number
 - **AND** each proposed addition carries its origin in a greppable `captured: <change>` marker — the change, and its PR

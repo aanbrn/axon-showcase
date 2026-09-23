@@ -1867,14 +1867,18 @@ capture-stash-stale-copy
   tool silently ignores part of it, and from outside a valid config and an ignored one are indistinguishable — the only
   signal is a warning on stderr that no gate reads. Do not lint the shape with a second parser of your own (that encodes
   an assumption about a contract the tool owns); probe the consumer's own read path, and fail a gate on the tool's own
-  warning. The same class covers the change's own `.openspec.yaml`, quieter still: OpenSpec's change-metadata schema is
-  not strict, so an unrecognized key is silently stripped with no warning at all — a `skip_design: true` marker (an
-  inherited agent habit; a dozen archived changes carry it) does nothing, and `openspec status` still reports `design`
-  incomplete and points at `openspec instructions design`. There is no artifact-skip key beyond `skip_specs`: skip
-  `design.md` by simply not writing it, never by adding a key. captured: bump-snyk-cli-pin Upstream, the reports are
-  `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item) and `Fission-AI/OpenSpec#1892` (an unparseable config);
-  if `validate` gains a config check that fails (an ask in each), the CI probe and the `/opsx-tool-update`
-  re-verification become redundant and can go.
+  warning. The gate's per-artifact warning covers only the `rules:` surface — a rule on another declared surface
+  (`operations.apply.guidance`) is dropped with a different warning that neither the probe nor `/opsx-tool-update`'s
+  re-verification matches — so put a rule on `rules:` unless the guard is widened in the same change (a
+  `merge-governance` delta). The same class covers the change's own `.openspec.yaml`, quieter still: OpenSpec's
+  change-metadata schema is not strict, so an unrecognized key is silently stripped with no warning at all — a
+  `skip_design: true` marker (an inherited agent habit; a dozen archived changes carry it) does nothing, and
+  `openspec status` still reports `design` incomplete and points at `openspec instructions design`. There is no
+  artifact-skip key beyond `skip_specs`: skip `design.md` by simply not writing it, never by adding a key. captured:
+  bump-snyk-cli-pin Upstream, the reports are `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item) and
+  `Fission-AI/OpenSpec#1892` (an unparseable config); if `validate` gains a config check that fails (an ask in each),
+  the CI probe and the `/opsx-tool-update` re-verification become redundant and can go. captured:
+  inject-positive-control-task-rule (#375)
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
   changes without the repository moving: when the upstream-reference report was parked, review found two of four

@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # Pre-commit guard: refuse a commit whose staged set carries a mechanically defective state — a failing formatter check,
-# a force-staged generated artifact, a path staged and then edited (leaving the index stale), or a misplaced captured:
-# marker in AGENTS.md. Bypass a deliberate exception with `git commit --no-verify`. Activated by
-# `scripts/install-git-hooks.sh`, which points core.hooksPath at this directory.
+# a force-staged generated artifact, a path staged and then edited (leaving the index stale), a merge conflict marker,
+# or a misplaced captured: marker in AGENTS.md. Bypass a deliberate exception with `git commit --no-verify`.
+# Activated by `scripts/install-git-hooks.sh`, which points core.hooksPath at this directory.
 
 root="$(git rev-parse --show-toplevel)"
 exec python3 "$root/scripts/commit-hygiene.py" --staged

@@ -1,10 +1,6 @@
 import io.github.build.extensions.oss.gradle.plugins.helm.dsl.HelmRepository
 import io.github.build.extensions.oss.gradle.plugins.helm.release.dsl.HelmRelease
-import java.io.File
-import java.util.Properties
-import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.tasks.SourceSetContainer
+import java.util.*
 
 plugins {
     id("dependency-security-conventions")
@@ -422,6 +418,22 @@ tasks.register<Exec>("verifyTrackedIgnoredFiles") {
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--tracked-ignored")
 }
 
+tasks.register<Exec>("verifyConflictMarkers") {
+    group = "verification"
+    description = "Verifies no tracked file carries a merge conflict marker"
+    inputs.file("scripts/commit-hygiene.py")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--conflict-markers")
+}
+
+tasks.register<Exec>("verifyExecutableBits") {
+    group = "verification"
+    description = "Verifies the tracked hook, shell scripts, and Gradle wrapper are executable"
+    inputs.file("scripts/commit-hygiene.py")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--executable-bits")
+}
+
 tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
     dependsOn("workflowLint")
@@ -429,6 +441,8 @@ tasks.named("check") {
     dependsOn("verifyCapturedMarkers")
     dependsOn("testCommitHygiene")
     dependsOn("verifyTrackedIgnoredFiles")
+    dependsOn("verifyConflictMarkers")
+    dependsOn("verifyExecutableBits")
     // build-logic is an included build, so its tests are not reached by this project's check.
     dependsOn(gradle.includedBuild("build-logic").task(":test"))
 }

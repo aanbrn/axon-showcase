@@ -12,6 +12,26 @@ graduates into a concrete candidate for work, it may be promoted to a GitHub iss
 change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when
 it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-09-24
+
+- Scan the source tree for secrets — parked; no change yet. `dependencySecurityCheck` (Snyk) scans dependencies, not
+  source, so a committed token passes every gate; a scanner (gitleaks/trufflehog) needs a workflow and a
+  maintainer-owned policy for false positives.
+- Bound the size of committed files — parked; no change yet. Nothing stops a large blob from being committed; a check
+  would bound it, at the cost of a threshold to tune.
+- Enforce line endings via `.gitattributes` — parked; no change yet. The repository has no `.gitattributes`, so Spotless
+  normalizes only the files it owns; a `* text=auto eol=lf` (or per-type) policy would make it uniform.
+- Pass `-z` to the checker's remaining git path-parsing sites — parked; no change yet. The `git ls-files -s` parse in
+  `find_non_executable_scripts` was fixed with `-z`, but `staged_paths` (`git diff --cached --name-only`),
+  `find_tracked_ignored` (`git ls-files --cached --ignored`), and `find_staged_then_edited` (`git status --porcelain`)
+  still C-quote a non-ASCII path — so `formatter_owned`'s `.endswith(FORMATTER_OWNED)`, which decides whether the guard
+  runs the formatter, silently skips it. The AGENTS.md git-path-quoting lesson names the fix.
+- Widen the `commit-hygiene` test-coverage requirement to every check — parked; no change yet. The spec's "The guard's
+  checks are covered by tests run in the build" is scoped to the guard's classes, while the build checks
+  (`verifyCapturedMarkers`, `verifyTrackedIgnoredFiles`, `verifyConflictMarkers`, `verifyExecutableBits`) carry no
+  test-coverage clause; widening it needs a REMOVED+ADDED retitle, since a `MODIFIED` block cannot rename a requirement
+  header.
+
 ## 2026-09-22
 
 - Check the ADR `Status:` vocabulary mechanically — parked; no change yet. `docs/adr/README.md` enumerates the

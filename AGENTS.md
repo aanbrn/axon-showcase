@@ -1538,14 +1538,17 @@ capture-stash-stale-copy
     that runs without failing has not exercised the check), and prove the control's own setup actually perturbed its
     target — assert the anchor occurs exactly once, or diff the surface before and after — before reading its outcome at
     all. A tool that constructs its own input can manufacture the anomaly it appears to detect: the config-rules control
-    unquoted a `config.yaml` rule item that was already unquoted _and_ carried no `: ` (select a rule item that carries
-    `: ` — the shape whose unquoted parsing breaks; resolve it in `config.yaml`, not from recall), so its edit no-opped
-    and the silence was misread as a defect in the guard; a throwaway `python` `replace` left an unterminated quote
-    whose whole-file `could not parse … Missing closing 'quote` warning was briefly read as a wording defect — the
-    wording was faithful, though it did expose a real gap (a malformed edit yields `could not parse … ignoring it.`,
-    which the CI probe's grep did not match, so an unparseable config passed the job (exit 0)), since widened to catch
-    both. When a scratch script's result surprises you, print or diff the input it actually produced before drawing a
-    conclusion from it — a before/after diff proves the edit _landed_, not that it was the _intended_ one.
+    unquoted a `config.yaml` rule item that was already unquoted _and_ carried no `: `, and a later control said to
+    unquote an `operations.*.guidance` item when every one is unquoted and colon-free (select the item on the surface
+    you are exercising that carries `: ` — the shape whose unquoted parsing breaks; resolve it in `config.yaml`, not
+    from recall — and edit one to carry it where the surface has none), so each edit no-opped and the silence was
+    misread as a defect in the guard; a throwaway `python` `replace` left an unterminated quote whose whole-file
+    `could not parse … Missing closing 'quote` warning was briefly read as a wording defect — the wording was faithful,
+    though it did expose a real gap (a malformed edit yields `could not parse … ignoring it.`, which the CI probe's grep
+    did not match, so an unparseable config passed the job (exit 0)), since widened to catch both. When a scratch
+    script's result surprises you, print or diff the input it actually produced before drawing a conclusion from it — a
+    before/after diff proves the edit _landed_, not that it was the _intended_ one. captured:
+    widen-config-probe-to-guidance
   - **A check whose input set depends on which task graph ran is not a check.** `verifyModuleDependencies` inspected 36
     edges standalone and 47 under `check`, the 11-edge difference being exactly the project dependencies declared inside
     `testing { suites { … } }` blocks: a suite's configurations hold their dependencies only once its test tasks are
@@ -1868,17 +1871,18 @@ capture-stash-stale-copy
   the tool's own validation while the tool silently ignores part of it, and from outside a valid config and an ignored
   one are indistinguishable — the only signal is a warning on stderr that no gate reads. Do not lint the shape with a
   second parser of your own (that encodes an assumption about a contract the tool owns); probe the consumer's own read
-  path, and fail a gate on the tool's own warning. The guard covers every declared list surface — a malformed `rules`
-  item and a malformed `operations.*.guidance` item each warn with the list-shape phrase the probe greps — so no config
-  list is silently dropped. The same class covers the change's own `.openspec.yaml`, quieter still: OpenSpec's
-  change-metadata schema is not strict, so an unrecognized key is silently stripped with no warning at all — a
-  `skip_design: true` marker (an inherited agent habit; a dozen archived changes carry it) does nothing, and
-  `openspec status` still reports `design` incomplete and points at `openspec instructions design`. There is no
-  artifact-skip key beyond `skip_specs`: skip `design.md` by simply not writing it, never by adding a key. captured:
-  bump-snyk-cli-pin Upstream, the reports are `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item) and
-  `Fission-AI/OpenSpec#1892` (an unparseable config); if `validate` gains a config check that fails (an ask in each),
-  the CI probe and the `/opsx-tool-update` re-verification become redundant and can go. captured:
-  inject-positive-control-task-rule (#375)
+  path, and fail a gate on the tool's own warning. Keep the guard's list-shape pattern generic
+  (`must be an array of strings`), not one surface's enumerated wording — it grew from `ignoring this artifact's rules`
+  to `ignoring this artifact's rules|could not parse`, then to the generic phrase, which is what covered every surface —
+  so a malformed `rules` or `operations.*.guidance` item drops no config list silently. The same class covers the
+  change's own `.openspec.yaml`, quieter still: OpenSpec's change-metadata schema is not strict, so an unrecognized key
+  is silently stripped with no warning at all — a `skip_design: true` marker (an inherited agent habit; a dozen archived
+  changes carry it) does nothing, and `openspec status` still reports `design` incomplete and points at
+  `openspec instructions design`. There is no artifact-skip key beyond `skip_specs`: skip `design.md` by simply not
+  writing it, never by adding a key. captured: bump-snyk-cli-pin Upstream, the reports are `Fission-AI/OpenSpec#1891`
+  (an unquoted `: ` in a rules item) and `Fission-AI/OpenSpec#1892` (an unparseable config); if `validate` gains a
+  config check that fails (an ask in each), the CI probe and the `/opsx-tool-update` re-verification become redundant
+  and can go. captured: inject-positive-control-task-rule (#375) captured: widen-config-probe-to-guidance
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
   changes without the repository moving: when the upstream-reference report was parked, review found two of four

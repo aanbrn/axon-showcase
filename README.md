@@ -404,6 +404,16 @@ git clone https://github.com/aanbrn/axon-showcase.git
 cd axon-showcase
 ```
 
+Then activate the repository's git hooks once per clone:
+
+```bash
+./scripts/install-git-hooks.sh
+```
+
+This points `core.hooksPath` at `scripts/git-hooks` so the pre-commit guard runs on your commits; bypass a deliberate
+exception with `git commit --no-verify`. It is recommended rather than required — the guard's `captured:` marker check
+also runs in `./gradlew check`.
+
 ### Build the Project
 
 ```bash
@@ -534,10 +544,10 @@ optional convenience for interactive editing, debugging, and inspection.
 
 A pre-commit guard (`scripts/git-hooks/pre-commit`) catches four commit-hygiene slips before they reach CI: a staged
 file `spotlessCheck` would rewrite, a force-staged generated artifact, a path staged and then edited (leaving the index
-stale), and a misplaced `captured:` marker in `AGENTS.md`. Activate it once per clone with
-`./scripts/install-git-hooks.sh` (sets `core.hooksPath`); bypass a deliberate exception with `git commit --no-verify`.
-The marker-placement check also runs in `./gradlew check` (as `verifyCapturedMarkers`), so it holds even without the
-hook; the web module's own Prettier check (`npmFormatCheck`) remains part of `check`.
+stale), and a misplaced `captured:` marker in `AGENTS.md`. It is activated once per clone (see
+[Get the Sources](#get-the-sources)); bypass a deliberate exception with `git commit --no-verify`. The marker-placement
+check also runs in `./gradlew check` (as `verifyCapturedMarkers`), so it holds even without the hook; the web module's
+own Prettier check (`npmFormatCheck`) remains part of `check`.
 
 ### Formatting and IDE Setup
 

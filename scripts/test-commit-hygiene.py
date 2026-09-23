@@ -46,6 +46,53 @@ class StagedThenEditedTests(unittest.TestCase):
         self.assertEqual([], commit_hygiene.find_staged_then_edited(repo))
 
 
+class TrackedIgnoredTests(unittest.TestCase):
+    def _repo_with_committed_artifact(self) -> Path:
+        repo = make_repo(self)
+        (repo / ".gitignore").write_text("*.pyc\n", encoding="utf-8")
+        (repo / "a.pyc").write_text("x", encoding="utf-8")
+        subprocess.run(("git", "add", ".gitignore"), cwd=repo, check=True)
+        subprocess.run(("git", "add", "-f", "a.pyc"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
+        return repo
+
+    def test_a_force_committed_ignored_file_is_reported(self):
+        repo = self._repo_with_committed_artifact()
+
+        self.assertEqual(["a.pyc"], commit_hygiene.find_tracked_ignored(repo))
+
+    def test_a_clean_repository_is_not_reported(self):
+        repo = make_repo(self)
+        (repo / "a.txt").write_text("x", encoding="utf-8")
+        subprocess.run(("git", "add", "a.txt"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
+
+        self.assertEqual([], commit_hygiene.find_tracked_ignored(repo))
+
+    def test_tracked_ignored_mode_reports_the_offender(self):
+        repo = self._repo_with_committed_artifact()
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--tracked-ignored", "--repo", str(repo)])
+
+        self.assertEqual(1, code)
+        self.assertIn("a.pyc", stderr.getvalue())
+
+    def test_tracked_ignored_mode_passes_a_clean_repository(self):
+        repo = make_repo(self)
+        (repo / "a.txt").write_text("x", encoding="utf-8")
+        subprocess.run(("git", "add", "a.txt"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--tracked-ignored", "--repo", str(repo)])
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr.getvalue())
+
+
 class ForceStagedArtifactTests(unittest.TestCase):
     def test_a_force_staged_ignored_artifact_is_reported(self):
         repo = make_repo(self)

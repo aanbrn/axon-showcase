@@ -204,8 +204,12 @@ duplicate rather than a merge, reported as a `remove` so the verdict's count inc
 it is; and **removal candidates**, each naming a rule that governs no decision (trivia, not a rule — the same test the
 capture's filter applies), what would be lost, and whether git preserves it. Both are candidates for the owner, not
 actions. Each finding SHALL be verified against the repository rather than inferred from the prose alone, and SHALL be
-reported with its location and a concrete suggested rewrite. The subagent SHALL propose its findings without modifying
-files; the main agent verifies and applies those the user approves.
+reported with its location and a concrete suggested rewrite. A merge candidate whose merged text delegates content to a
+target — a spec or an ADR it points the reader to — SHALL have that delegation verified against the target: its behavior
+**and** the identifiers, declarations, and gate conditions the delegated content names, not the behavior alone. A
+delegated item the target does not carry SHALL stay in the merged text, and the candidate SHALL say which items it kept
+for that reason. The subagent SHALL propose its findings without modifying files; the main agent verifies and applies
+those the user approves.
 
 The audit SHALL additionally report, as an **advisory** class kept separate from its fix findings and reported without
 severity, third-party inconsistency: a file the audit excludes (a generated `openspec-*` instruction file, or a vendored
@@ -281,6 +285,13 @@ that is the user's decision on the report.
   already carries, a deletion of the duplicate, still counted as a `remove`, saying which) and removal candidates (rules
   that govern no decision — trivia, not a rule — with what would be lost and whether git preserves it) — as findings for
   the owner, not actions
+
+#### Scenario: A merge candidate's pointer target is verified
+
+- **WHEN** a merge candidate's merged text points at a spec or an ADR for content it removes
+- **THEN** the audit verifies the target carries the delegated content — its behavior and the identifiers, declarations,
+  and gate conditions the delegated text names — and keeps in the merged text any delegated item the target does not
+  carry, saying which it kept for that reason
 
 ### Requirement: The architecture is audited for drift from its recorded decisions
 

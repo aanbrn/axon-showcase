@@ -50,8 +50,11 @@ Audit along two axes:
   two of these as **standing analyses**, not only when a run is scoped to them: **merge candidates** (overlapping or
   complementary entries, with the merged text that preserves every anchor and piece of evidence the originals carry, and
   never blending two distinct lessons — or, where that text would only restate a rule the file already carries, a
-  deletion of the duplicate (reported as a `remove`), saying which) and **removal candidates** (rules that govern no
-  decision, with what would be lost and whether git preserves it). Both are candidates for the owner, not actions.
+  deletion of the duplicate (reported as a `remove`), saying which. When that merged text points at a spec or an ADR for
+  content it removes, verify the target carries the delegated content — its behavior **and** the identifiers,
+  declarations, and gate conditions the delegated text names — and keep in the merged text any delegated item the target
+  does not carry, saying which you kept for that reason) and **removal candidates** (rules that govern no decision, with
+  what would be lost and whether git preserves it). Both are candidates for the owner, not actions.
 
 Method:
 
@@ -60,6 +63,10 @@ Method:
 - **Treat every factual claim as a hypothesis.** Verify it against the repository — grep for consumers, read the
   referenced config/workflow/spec/source file, check `git log` where intent matters — rather than trusting the prose.
   Report only findings you verified.
+- A merge candidate that points the reader at a spec or an ADR is a claim about that target: verify the target carries
+  the delegated content — its behavior and the identifiers, declarations, and gate conditions the delegated text names —
+  before proposing the trim, and keep any delegated item it does not carry in the merged text, saying which you kept for
+  that reason.
 - **Respect deliberate choices.** An asymmetry, a repetition, or an "only X" can be intentional. Before proposing a
   "fix", check whether the current state is deliberate; if it is ambiguous, say so rather than asserting a defect.
 - Establish a rule's origin from the in-prose `captured:` marker first, and from `git blame` / `git log -S` otherwise: a

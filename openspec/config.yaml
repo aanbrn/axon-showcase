@@ -61,6 +61,8 @@ rules:
     - Break tasks into chunks of max 2 hours
     - Reference exact file paths and commands so each task is verifiable
     - 'Group into sections: implementation tasks, then a verification section'
+    - A change that adds or changes a check must include a task proving the check fails on a known-bad input and passes
+      on a known-good one, and a task to read the output of any scratch command used as evidence
 
 # Per-operation guidance
 operations:

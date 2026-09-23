@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Check commit hygiene: the staged set and `captured:` marker placement.
+"""Check commit hygiene: the staged set, `captured:` marker placement, and the tracked set.
 
 The `--staged` mode is the pre-commit guard. It refuses a commit whose staged set the project's formatter would
 rewrite, that force-stages a generated artifact, that stages a path and then edits it again (leaving the index stale),
-or that misplaces a `captured:` marker in `AGENTS.md`. The `--markers` mode runs only the marker check, for the build.
-Stdlib only.
+or that misplaces a `captured:` marker in `AGENTS.md`. The `--markers` mode runs only the marker check, and the
+`--tracked-ignored` mode verifies the tracked set excludes every ignored path — both for the build. Stdlib only.
 """
 
 import argparse
@@ -50,8 +50,13 @@ def find_staged_then_edited(repo: Path) -> list[str]:
     return offenders
 
 
+def find_tracked_ignored(repo: Path) -> list[str]:
+    result = git(repo, "ls-files", "--cached", "--ignored", "--exclude-standard")
+    return [line for line in result.stdout.splitlines() if line]
+
+
 def find_force_staged_artifacts(repo: Path) -> list[str]:
-    ignored = set(git(repo, "ls-files", "--cached", "--ignored", "--exclude-standard").stdout.splitlines())
+    ignored = set(find_tracked_ignored(repo))
     return [path for path in staged_paths(repo) if path in ignored]
 
 
@@ -128,11 +133,23 @@ def check_markers(repo: Path) -> int:
     return len(offenders)
 
 
+def check_tracked_ignored(repo: Path) -> int:
+    offenders = find_tracked_ignored(repo)
+    for path in offenders:
+        print(f"A tracked file is excluded by the repository's ignore rules: {path}", file=sys.stderr)
+    return len(offenders)
+
+
 def main(argv: Sequence[str] = ()) -> int:
-    parser = argparse.ArgumentParser(description="Check commit hygiene over the staged set or AGENTS.md markers.")
+    parser = argparse.ArgumentParser(
+        description="Check commit hygiene over the staged set, AGENTS.md markers, or the tracked set."
+    )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--staged", action="store_true", help="check the staged set (the pre-commit guard)")
     mode.add_argument("--markers", action="store_true", help="check captured: marker placement in AGENTS.md")
+    mode.add_argument(
+        "--tracked-ignored", action="store_true", help="check the tracked set excludes every ignored path"
+    )
     parser.add_argument("--repo", default=str(REPO_ROOT), help="repository root (default: the script's parent)")
     parser.add_argument(
         "--formatter",
@@ -145,6 +162,8 @@ def main(argv: Sequence[str] = ()) -> int:
     repo = Path(args.repo)
     if args.markers:
         return 1 if check_markers(repo) else 0
+    if args.tracked_ignored:
+        return 1 if check_tracked_ignored(repo) else 0
     return 1 if check_staged(repo, args.formatter) else 0
 
 

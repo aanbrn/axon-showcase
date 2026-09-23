@@ -414,12 +414,21 @@ tasks.register<Exec>("testCommitHygiene") {
     commandLine(pythonExecutable, "scripts/test-commit-hygiene.py")
 }
 
+tasks.register<Exec>("verifyTrackedIgnoredFiles") {
+    group = "verification"
+    description = "Verifies no tracked file is excluded by the repository's ignore rules"
+    inputs.file("scripts/commit-hygiene.py")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--tracked-ignored")
+}
+
 tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
     dependsOn("workflowLint")
     dependsOn("verifyModuleDependencies")
     dependsOn("verifyCapturedMarkers")
     dependsOn("testCommitHygiene")
+    dependsOn("verifyTrackedIgnoredFiles")
     // build-logic is an included build, so its tests are not reached by this project's check.
     dependsOn(gradle.includedBuild("build-logic").task(":test"))
 }

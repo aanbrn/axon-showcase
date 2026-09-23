@@ -545,9 +545,11 @@ optional convenience for interactive editing, debugging, and inspection.
 A pre-commit guard (`scripts/git-hooks/pre-commit`) catches four commit-hygiene slips before they reach CI: a staged
 file `spotlessCheck` would rewrite, a force-staged generated artifact, a path staged and then edited (leaving the index
 stale), and a misplaced `captured:` marker in `AGENTS.md`. It is activated once per clone (see
-[Get the Sources](#get-the-sources)); bypass a deliberate exception with `git commit --no-verify`. The marker-placement
-check also runs in `./gradlew check` (as `verifyCapturedMarkers`), so it holds even without the hook; the web module's
-own Prettier check (`npmFormatCheck`) remains part of `check`.
+[Get the Sources](#get-the-sources)); bypass a deliberate exception with `git commit --no-verify`. Its checks also have
+build-side counterparts in `./gradlew check`: the formatter as `spotlessCheck`, marker placement as
+`verifyCapturedMarkers`, and tracked-file hygiene (the tracked-set counterpart of the force-staged-artifact check) as
+`verifyTrackedIgnoredFiles` — so they hold even without the hook; the web module's own Prettier check (`npmFormatCheck`)
+remains part of `check`.
 
 ### Formatting and IDE Setup
 

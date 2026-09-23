@@ -3,8 +3,9 @@
 
 The `--staged` mode is the pre-commit guard. It refuses a commit whose staged set the project's formatter would
 rewrite, that force-stages a generated artifact, that stages a path and then edits it again (leaving the index stale),
-or that misplaces a `captured:` marker in `AGENTS.md`. The `--markers` mode runs only the marker check, and the
-`--tracked-ignored` mode verifies the tracked set excludes every ignored path — both for the build. Stdlib only.
+that carries a merge conflict marker, or that misplaces a `captured:` marker in `AGENTS.md`. The `--markers` mode checks
+marker placement in the working-tree `AGENTS.md`; the `--tracked-ignored`, `--conflict-markers`, and `--executable-bits`
+modes each verify the tracked set, for the build. Stdlib only.
 """
 
 import argparse
@@ -20,6 +21,8 @@ FORMATTER_OWNED = (".java", ".kt", ".kts", ".md", ".json")
 DEFAULT_FORMATTER = ("./gradlew", "spotlessCheck")
 MARKER = "captured:"
 LEAD_RE = re.compile(r"^(- |\*\*)")
+CONFLICT_MARKER_RE = r"^(<<<<<<< |>>>>>>> )"
+VENDORED_SKILL_PREFIXES = (".opencode/skills/axon4to5-", ".opencode/skills/openspec-")
 
 
 def git(repo: Path, *args: str) -> subprocess.CompletedProcess:
@@ -58,6 +61,32 @@ def find_tracked_ignored(repo: Path) -> list[str]:
 def find_force_staged_artifacts(repo: Path) -> list[str]:
     ignored = set(find_tracked_ignored(repo))
     return [path for path in staged_paths(repo) if path in ignored]
+
+
+def find_conflict_markers(repo: Path, staged: bool = False) -> list[str]:
+    args = ["grep", "-I", "-n", "-E"]
+    if staged:
+        args.append("--cached")
+    args.append(CONFLICT_MARKER_RE)
+    return [line for line in git(repo, *args).stdout.splitlines() if line]
+
+
+def _should_be_executable(path: str) -> bool:
+    if path.startswith(VENDORED_SKILL_PREFIXES):
+        return False
+    return path == "gradlew" or path.startswith("scripts/git-hooks/") or path.endswith(".sh")
+
+
+def find_non_executable_scripts(repo: Path) -> list[str]:
+    offenders = []
+    for line in git(repo, "ls-files", "-s", "-z").stdout.split("\0"):
+        parts = line.split(None, 3)
+        if len(parts) < 4:
+            continue
+        mode, path = parts[0], parts[3]
+        if mode != "100755" and _should_be_executable(path):
+            offenders.append(path)
+    return offenders
 
 
 def find_misplaced_markers(text: str) -> list[tuple[int, str]]:
@@ -112,6 +141,10 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
         failures += 1
         print(f"Staged and then edited again, so the index is stale: {path}", file=sys.stderr)
 
+    for entry in find_conflict_markers(repo, staged=True):
+        failures += 1
+        print(f"A merge conflict marker is staged: {entry}", file=sys.stderr)
+
     if AGENTS in paths:
         text = staged_file_text(repo, AGENTS)
         if text is not None:
@@ -140,6 +173,20 @@ def check_tracked_ignored(repo: Path) -> int:
     return len(offenders)
 
 
+def check_conflict_markers(repo: Path) -> int:
+    offenders = find_conflict_markers(repo)
+    for entry in offenders:
+        print(f"A merge conflict marker is tracked: {entry}", file=sys.stderr)
+    return len(offenders)
+
+
+def check_executable_bits(repo: Path) -> int:
+    offenders = find_non_executable_scripts(repo)
+    for path in offenders:
+        print(f"A tracked file git runs directly is not executable: {path}", file=sys.stderr)
+    return len(offenders)
+
+
 def main(argv: Sequence[str] = ()) -> int:
     parser = argparse.ArgumentParser(
         description="Check commit hygiene over the staged set, AGENTS.md markers, or the tracked set."
@@ -149,6 +196,12 @@ def main(argv: Sequence[str] = ()) -> int:
     mode.add_argument("--markers", action="store_true", help="check captured: marker placement in AGENTS.md")
     mode.add_argument(
         "--tracked-ignored", action="store_true", help="check the tracked set excludes every ignored path"
+    )
+    mode.add_argument(
+        "--conflict-markers", action="store_true", help="check the tracked set carries no merge conflict marker"
+    )
+    mode.add_argument(
+        "--executable-bits", action="store_true", help="check tracked scripts carry the executable bit"
     )
     parser.add_argument("--repo", default=str(REPO_ROOT), help="repository root (default: the script's parent)")
     parser.add_argument(
@@ -164,6 +217,10 @@ def main(argv: Sequence[str] = ()) -> int:
         return 1 if check_markers(repo) else 0
     if args.tracked_ignored:
         return 1 if check_tracked_ignored(repo) else 0
+    if args.conflict_markers:
+        return 1 if check_conflict_markers(repo) else 0
+    if args.executable_bits:
+        return 1 if check_executable_bits(repo) else 0
     return 1 if check_staged(repo, args.formatter) else 0
 
 

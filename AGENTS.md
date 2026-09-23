@@ -399,8 +399,8 @@ wait for approval before merging.
 - Python 3 (for `./scripts/setup-idea.sh`'s IDE-settings merge and the commit-hygiene guard/check; macOS ships it via
   Command Line Tools)
 - Git hooks: run `./scripts/install-git-hooks.sh` once per clone to activate the pre-commit guard (the formatter,
-  generated-artifact, staged-then-edited, and `captured:` marker checks); bypass a deliberate exception with
-  `git commit --no-verify`
+  generated-artifact, staged-then-edited, conflict-marker, and `captured:` marker checks); bypass a deliberate exception
+  with `git commit --no-verify`
 
 ## Build & Test
 
@@ -429,7 +429,7 @@ wait for approval before merging.
 
 # Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
 # plus workflowLint (actionlint), verifyInfraImageVersions, verifyModuleDependencies, and the commit-hygiene tasks
-# (verifyCapturedMarkers, testCommitHygiene, verifyTrackedIgnoredFiles)
+# (verifyCapturedMarkers, testCommitHygiene, verifyTrackedIgnoredFiles, verifyConflictMarkers, verifyExecutableBits)
 # (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
 # check)
 ./gradlew :showcase-command-service:check
@@ -532,7 +532,8 @@ initialized:
 The `check` task also runs `workflowLint`, which lints the GitHub Actions workflows with actionlint (installed on the
 runner via the official download script; see the Prerequisites), `verifyModuleDependencies`, which enforces the module
 dependency graph ADR-0010 records, and the commit-hygiene tasks (`verifyCapturedMarkers`, `testCommitHygiene`,
-`verifyTrackedIgnoredFiles`) (`check` also runs `build-logic`'s tests, since that is an included build).
+`verifyTrackedIgnoredFiles`, `verifyConflictMarkers`, `verifyExecutableBits`) (`check` also runs `build-logic`'s tests,
+since that is an included build).
 
 The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (dependencies, wrapper, and local build
 cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the
@@ -1969,8 +1970,8 @@ capture-stash-stale-copy
   unstaged edits) before committing, since a review caught the staged set missing corrections made after the last
   `git add`, which would have shipped half the fix. A pre-commit guard (`scripts/git-hooks/pre-commit`, activated by
   `scripts/install-git-hooks.sh`) enforces this inspection mechanically: it refuses a commit whose staged set fails the
-  formatter check, force-stages a generated artifact, stages a path and then edits it, or misplaces a `captured:`
-  marker.
+  formatter check, force-stages a generated artifact, stages a path and then edits it, carries a merge conflict marker,
+  or misplaces a `captured:` marker.
 - **Never chain an edit to a commit without reading the edit's result — gate the commit on a content check, not on the
   edit command's exit status.** While implementing the `concise-agent-reports` change, an anchor assertion in the edit
   script failed (Spotless had re-wrapped the text), so the edit no-opped — and the next command in the shell sequence

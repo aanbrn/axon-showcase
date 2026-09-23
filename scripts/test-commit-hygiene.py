@@ -232,6 +232,139 @@ class StagedMarkerTests(unittest.TestCase):
         self.assertEqual(0, commit_hygiene.check_staged(repo, ["true"]))
 
 
+class ConflictMarkerTests(unittest.TestCase):
+    def _repo_with_marker(self) -> Path:
+        repo = make_repo(self)
+        (repo / "a.md").write_text("text\n<<<<<<< HEAD\nours\n=======\ntheirs\n>>>>>>> branch\n", encoding="utf-8")
+        subprocess.run(("git", "add", "a.md"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
+        return repo
+
+    def test_a_tracked_conflict_marker_is_reported(self):
+        repo = self._repo_with_marker()
+
+        offenders = commit_hygiene.find_conflict_markers(repo)
+
+        self.assertTrue(any(entry.startswith("a.md:2:") for entry in offenders))
+        self.assertTrue(any(entry.startswith("a.md:6:") for entry in offenders))
+
+    def test_a_clean_repository_is_not_reported(self):
+        repo = make_repo(self)
+        (repo / "a.md").write_text("text\n", encoding="utf-8")
+        subprocess.run(("git", "add", "a.md"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
+
+        self.assertEqual([], commit_hygiene.find_conflict_markers(repo))
+
+    def test_staged_mode_reports_a_conflict_marker(self):
+        repo = make_repo(self)
+        (repo / "a.md").write_text("text\n<<<<<<< HEAD\nours\n>>>>>>> branch\n", encoding="utf-8")
+        subprocess.run(("git", "add", "a.md"), cwd=repo, check=True)
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.check_staged(repo, ["true"])
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("a.md:2:", stderr.getvalue())
+        self.assertIn("a.md:4:", stderr.getvalue())
+
+    def test_conflict_markers_mode_reports_the_offender(self):
+        repo = self._repo_with_marker()
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--conflict-markers", "--repo", str(repo)])
+
+        self.assertEqual(1, code)
+        self.assertIn("a.md:2:", stderr.getvalue())
+
+
+class ExecutableBitTests(unittest.TestCase):
+    def _repo_with_script(self, mode: int) -> Path:
+        repo = make_repo(self)
+        script = repo / "scripts" / "foo.sh"
+        script.parent.mkdir(parents=True, exist_ok=True)
+        script.write_text("#!/bin/sh\n", encoding="utf-8")
+        script.chmod(mode)
+        subprocess.run(("git", "add", "scripts/foo.sh"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
+        return repo
+
+    def test_a_non_executable_shell_script_is_reported(self):
+        repo = self._repo_with_script(0o644)
+
+        self.assertEqual(["scripts/foo.sh"], commit_hygiene.find_non_executable_scripts(repo))
+
+    def test_an_executable_shell_script_is_not_reported(self):
+        repo = self._repo_with_script(0o755)
+
+        self.assertEqual([], commit_hygiene.find_non_executable_scripts(repo))
+
+    def test_a_non_ascii_shell_script_is_reported(self):
+        repo = make_repo(self)
+        script = repo / "café.sh"
+        script.write_text("#!/bin/sh\n", encoding="utf-8")
+        script.chmod(0o644)
+        subprocess.run(("git", "add", "café.sh"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
+
+        self.assertEqual(["café.sh"], commit_hygiene.find_non_executable_scripts(repo))
+
+    def test_a_vendored_skill_script_is_not_reported(self):
+        repo = make_repo(self)
+        script = repo / ".opencode" / "skills" / "axon4to5-x" / "scripts" / "foo.sh"
+        script.parent.mkdir(parents=True, exist_ok=True)
+        script.write_text("#!/bin/sh\n", encoding="utf-8")
+        script.chmod(0o644)
+        subprocess.run(("git", "add", ".opencode/skills/axon4to5-x/scripts/foo.sh"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
+
+        self.assertEqual([], commit_hygiene.find_non_executable_scripts(repo))
+
+    def test_a_non_executable_hook_is_reported(self):
+        repo = make_repo(self)
+        hook = repo / "scripts" / "git-hooks" / "pre-commit"
+        hook.parent.mkdir(parents=True, exist_ok=True)
+        hook.write_text("#!/bin/sh\n", encoding="utf-8")
+        hook.chmod(0o644)
+        subprocess.run(("git", "add", "scripts/git-hooks/pre-commit"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
+
+        self.assertEqual(["scripts/git-hooks/pre-commit"], commit_hygiene.find_non_executable_scripts(repo))
+
+    def test_a_non_executable_gradle_wrapper_is_reported(self):
+        repo = make_repo(self)
+        wrapper = repo / "gradlew"
+        wrapper.write_text("#!/bin/sh\n", encoding="utf-8")
+        wrapper.chmod(0o644)
+        subprocess.run(("git", "add", "gradlew"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
+
+        self.assertEqual(["gradlew"], commit_hygiene.find_non_executable_scripts(repo))
+
+    def test_a_generated_skill_script_is_not_reported(self):
+        repo = make_repo(self)
+        script = repo / ".opencode" / "skills" / "openspec-x" / "scripts" / "foo.sh"
+        script.parent.mkdir(parents=True, exist_ok=True)
+        script.write_text("#!/bin/sh\n", encoding="utf-8")
+        script.chmod(0o644)
+        subprocess.run(("git", "add", ".opencode/skills/openspec-x/scripts/foo.sh"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
+
+        self.assertEqual([], commit_hygiene.find_non_executable_scripts(repo))
+
+    def test_executable_bits_mode_reports_the_offender(self):
+        repo = self._repo_with_script(0o644)
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--executable-bits", "--repo", str(repo)])
+
+        self.assertEqual(1, code)
+        self.assertIn("scripts/foo.sh", stderr.getvalue())
+
+
 class CliTests(unittest.TestCase):
     @staticmethod
     def _run(argv):

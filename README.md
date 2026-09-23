@@ -542,14 +542,15 @@ for a Docker-free check and disable the coverage gate it would otherwise fail; `
 quality gates run in the Gradle build, so no IDE is required to verify a change. An IDE (e.g. IntelliJ IDEA) is an
 optional convenience for interactive editing, debugging, and inspection.
 
-A pre-commit guard (`scripts/git-hooks/pre-commit`) catches four commit-hygiene slips before they reach CI: a staged
+A pre-commit guard (`scripts/git-hooks/pre-commit`) catches five commit-hygiene slips before they reach CI: a staged
 file `spotlessCheck` would rewrite, a force-staged generated artifact, a path staged and then edited (leaving the index
-stale), and a misplaced `captured:` marker in `AGENTS.md`. It is activated once per clone (see
+stale), a merge conflict marker, and a misplaced `captured:` marker in `AGENTS.md`. It is activated once per clone (see
 [Get the Sources](#get-the-sources)); bypass a deliberate exception with `git commit --no-verify`. Its checks also have
 build-side counterparts in `./gradlew check`: the formatter as `spotlessCheck`, marker placement as
-`verifyCapturedMarkers`, and tracked-file hygiene (the tracked-set counterpart of the force-staged-artifact check) as
-`verifyTrackedIgnoredFiles` — so they hold even without the hook; the web module's own Prettier check (`npmFormatCheck`)
-remains part of `check`.
+`verifyCapturedMarkers`, tracked-file hygiene (the tracked-set counterpart of the force-staged-artifact check) as
+`verifyTrackedIgnoredFiles`, and conflict markers as `verifyConflictMarkers` — so they hold even without the hook.
+`verifyExecutableBits` additionally verifies the tracked scripts' executable bits, and the web module's own Prettier
+check (`npmFormatCheck`) remains part of `check`.
 
 ### Formatting and IDE Setup
 

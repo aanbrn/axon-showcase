@@ -794,7 +794,12 @@ Key modules (libraries, not services):
   examples (curl) — do not add parallel httpie examples; the development narrative is a prompting exercise (the agent
   implements, the human approves); observability is Kubernetes-deployment-only via Helm (custom Axon Showcase Grafana
   dashboard, not in the local compose stack); slash commands render as a table; a worked scenario shows the interactive
-  loop
+  loop. Keep the two files' division of labour as it stands rather than extracting one into the other or into a task
+  runner: `AGENTS.md` carries the agent's full command surface and its environment/port reference, while the README
+  carries the human onboarding path. The shared commands are too short and too thinly repeated to alias, and copying the
+  environment or port reference into the README would give it a second un-gated copy of facts the Java
+  `@ConfigurationProperties`, the yml placeholders, the chart values, and the `BPE_DEFAULT_*` map (ADR-0002's four
+  surfaces) already own.
 - **Surface human-visible capabilities in the README on every change**: while working on a change, actively look for
   behavior a person can _see or experience_ — a cool story moment, a watcher's flow, a demo-able feature, an access
   path, a dashboard — and make sure it is mentioned in the README before the change is reported done (the docs-refresh

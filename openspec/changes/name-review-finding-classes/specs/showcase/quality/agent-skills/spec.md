@@ -22,19 +22,6 @@ agent, with its purpose described in its agent definition and (where relevant) i
 - **AND** with no prior-round list supplied, the review still classifies each finding and states that a repetition is
   unknown rather than inferring one, since the classification cannot be compared against what it has not seen
 
-#### Scenario: Screenshots are reviewed visually
-
-- **WHEN** the main agent needs to inspect a screenshot, image, or visual UI state (e.g. web-UI styling)
-- **THEN** the `vision` subagent reads the image and returns a description, so the text-only main agent can delegate
-  visual review
-
-#### Scenario: ASCII diagrams are drawn by the pro-model diagrammer
-
-- **WHEN** a diagram needs to be created, aligned, or fixed (e.g. a README flow diagram)
-- **THEN** the `diagrammer` subagent renders it with the pro model: it establishes the semantic mapping (which span
-  starts and ends where), aligns by character width, and preserves deliberate asymmetry — so the cheap flash main agent
-  does not spend effort on ASCII geometry
-
 #### Scenario: Thorough review is available on demand
 
 - **WHEN** a deep review pass is wanted (drift, correctness, architecture, conventions)
@@ -75,6 +62,19 @@ agent, with its purpose described in its agent definition and (where relevant) i
   when a merge-time detection found the lesson rather than the implementation capture, since a capture runs once at
   implementation and a merge only detects and asks — so a reader can tell where the rule came from without consulting
   git, and a markdown reflow cannot take it
+
+#### Scenario: Screenshots are reviewed visually
+
+- **WHEN** the main agent needs to inspect a screenshot, image, or visual UI state (e.g. web-UI styling)
+- **THEN** the `vision` subagent reads the image and returns a description, so the text-only main agent can delegate
+  visual review
+
+#### Scenario: ASCII diagrams are drawn by the pro-model diagrammer
+
+- **WHEN** a diagram needs to be created, aligned, or fixed (e.g. a README flow diagram)
+- **THEN** the `diagrammer` subagent renders it with the pro model: it establishes the semantic mapping (which span
+  starts and ends where), aligns by character width, and preserves deliberate asymmetry — so the cheap flash main agent
+  does not spend effort on ASCII geometry
 
 ### Requirement: Report-producing subagents follow a shared report contract
 

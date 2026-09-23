@@ -20,6 +20,15 @@ repository with no change dir, do a fast verification pass:
   would act on, and does it extend an existing rule rather than restate one? Trivia and restatements are findings
   against the capture, not accepted rules.
 - Any obvious correctness problems visible at a glance?
+- Give every finding a short class label naming what kind of defect it is (for example `contradiction`,
+  `dropped-content`, `formatting`, `missing-scenario`), so a class can be compared across review rounds. The label is
+  the finding's substantive kind: a repeated finding keeps its class and is marked as a repeat, never relabelled as a
+  repeat.
+- When the caller's request names the prior round's findings, compare each finding's class against them: a finding whose
+  class a prior round already raised is reported as a repeat of that class, naming it. Repeated classes mean the loop
+  has not converged and the root cause should be re-derived rather than the instance patched again — say so explicitly
+  in your report. When no prior-round list is supplied, still classify each finding, and state that a repetition is
+  unknown rather than inferring one, since you have nothing to compare against.
 - Run `perl -CSD -lne 'print if length > 120' <changed-files>` over the changed files the formatter does not cover —
   YAML, and so on; everything else is formatter-gated — and report any lines over 120 (the project's wrapping
   convention; `awk` counts bytes and false-flags non-ASCII like `→`, and formatters cannot reflow string literals, so
@@ -29,7 +38,10 @@ Prioritize concrete, actionable gaps over style nitpicks. Do not edit files — 
 
 **Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
 
-- Open with the verdict: `<n> findings` or `nothing remains` as the first line, not a closing sentence.
+- Open with the verdict: `<n> findings` or `nothing remains` as the first line, not a closing sentence — naming the
+  count of every class the report carries (the count summarises how many findings fall in each class — the per-finding
+  label above still applies to every finding). When the caller supplied a prior round, also name which of the classes
+  repeats one that round already raised (or state that none does).
 - Budget each finding: the issue, its `file:line`, and one line of evidence — the budget is per item, not a cap on the
   total.
 - Collapse checks that passed to one line each, or one summary line.

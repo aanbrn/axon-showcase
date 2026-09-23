@@ -200,22 +200,24 @@ growth is bounded, but the bound is a discipline rather than a hard cap: applyin
 larger than it was, preferring a merge or a replacement over an addition, and any net growth is a justified decision
 stated with the proposal — not a side effect of accumulating prose. The cheapest way to keep it flat: **when a bullet's
 rationale is normative in a spec, keep only what a reader needs to act and point at the spec — a pointer, not a
-condensed copy** (this file is loaded on every invocation, a spec only when its capability is worked on, so a summary of
-spec'd rationale is a second copy that drifts). The same routing covers the case where the specs describe a rule's
-subject **only as an outcome**: the mechanism belongs in the capability spec **only when changing it would change a
-scenario's outcome — verify that against the code before moving it**, and a mechanism whose alternatives yield the same
-result stays in `AGENTS.md` as internal control flow. A pointer must also carry every **imperative** the old text held:
-a warning the reader must still act on is a rule, not rationale, and is lost rather than condensed when the pointer
-drops it — `extract-specd-rationale-from-agents-md`'s pointer had to keep the `@WebFluxTest` component-scan warning,
-which has no spec home. Durability governs where the _rule_ lives, not whether every sentence about it does. Because the
-corpus is evidence-anchored incident memory, the control is the periodic `/audit-agents` pass — whose verdict already
-reports the accreted-rule count — not mass deletion to hit a number. Do not skip the subagent or conclude "nothing to
-capture" on your own judgment — the subagent is the arbiter, and an initial "nothing to capture" verdict is a
-hypothesis: a merge that closed a change was once skipped on exactly such an assumption and the forgotten-archive and
-premise-interrogation lessons went uncaptured until the user pushed back twice. When the user asks "is there anything
-else to capture?", treat it as a prompt to run the subagent again over the events — not as a request to justify the
-previous pass. A docs-fix merge has nothing further to capture only if the subagent actually reviewed it and said so —
-or if the merge-time detection above found no candidate. captured: extract-specd-rationale-from-agents-md
+condensed copy** (the spec records why). The same routing covers the case where the specs describe a rule's subject
+**only as an outcome**: the mechanism belongs in the capability spec **only when changing it would change a scenario's
+outcome — verify that against the code before moving it**, and a mechanism whose alternatives yield the same result
+stays in `AGENTS.md` as internal control flow. A pointer must also carry every **imperative or target-less fact** the
+old text held — a warning the reader must still act on is a rule, not rationale, and is lost rather than condensed when
+the pointer drops it — and **must not claim more than its target holds**: a spec holds an outcome, not the identifiers,
+declarations, or gate conditions implementing it, nor a rationale it never states. Verify a trim by sweeping every
+removed line's distinctive tokens against both the trimmed bullet's text and the pointer's target —
+`trim-agents-md-rule-restatements`' five trims dropped six such facts, restored only by review. Durability governs where
+the _rule_ lives, not whether every sentence about it does. Because the corpus is evidence-anchored incident memory, the
+control is the periodic `/audit-agents` pass — whose verdict already reports the accreted-rule count — not mass deletion
+to hit a number. Do not skip the subagent or conclude "nothing to capture" on your own judgment — the subagent is the
+arbiter, and an initial "nothing to capture" verdict is a hypothesis: a merge that closed a change was once skipped on
+exactly such an assumption and the forgotten-archive and premise-interrogation lessons went uncaptured until the user
+pushed back twice. When the user asks "is there anything else to capture?", treat it as a prompt to run the subagent
+again over the events — not as a request to justify the previous pass. A docs-fix merge has nothing further to capture
+only if the subagent actually reviewed it and said so — or if the merge-time detection above found no candidate.
+captured: trim-agents-md-rule-restatements (#364)
 
 **A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not merely
 records it.** The merge-time detection is the pass that can read the merge's non-diff effects: an agent PR's closing
@@ -1573,10 +1575,10 @@ capture-stash-stale-copy
   dependency hygiene, not the deferred Jackson 3 backend migration — Jackson 2 remains the serialization backend in
   application code; the why (including the `jackson3-bom` constraint) lives in ADR-0003.
 - Spring Data Elasticsearch's `DateFormat.strict_date_optional_time_nanos` truncates to microseconds despite its name —
-  the nanosecond pattern (`yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]`, with `format = {}`) and the reason live in the
-  `read-side/projection-model` spec. Do not "simplify" `ShowcaseEntity`'s `NANOS_DATE_PATTERN` back to the built-in enum
-  until the fix (PR #3337, 6.2.0-M2) reaches us through `spring-data-opensearch`; the truncation is invisible on macOS
-  (microsecond clocks) and surfaces only on nanosecond clocks (Linux CI).
+  the nanosecond pattern and the reason live in the `read-side/projection-model` spec. `ShowcaseEntity` declares the
+  custom `NANOS_DATE_PATTERN` (`yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]`) with `format = {}`; do not "simplify" it back to
+  the built-in enum until the fix (PR #3337, 6.2.0-M2) reaches us through `spring-data-opensearch`; the truncation is
+  invisible on macOS (microsecond clocks) and surfaces only on nanosecond clocks (Linux CI).
 - Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
   `implementation`-only dependencies — each suite re-declares what it needs (client component suites duplicate
   axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be

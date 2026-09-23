@@ -60,17 +60,6 @@ it was added (start a new section for a new day rather than appending to the mos
   — so a `gh workflow run audit.yml` dispatch (or the next scheduled run) is the check: confirm the resulting report
   PR's title names the report rather than the mention.
 
-## 2026-09-19
-
-- Inject a positive-control task into every check-adding change via `openspec/config.yaml` — parked; no change yet. The
-  2026-09-19 retrospective found the same false-signal class recur in the agent's own scratch checks during
-  implementation (one traceable, two as the session's account): a rule in `AGENTS.md` is read only when the agent
-  happens to recall it, whereas a `config.yaml` rule is injected at `openspec new change` / `openspec instructions` time
-  and is hard to miss. The rule would require a change that adds or changes a check to prove it fails on a known-bad
-  input and passes on a known-good one, and to read the output of any scratch command used as evidence. Follow the
-  config read-path gotcha when adding it: quote any scalar containing `: `, and confirm the CLI consumes the rule before
-  relying on it.
-
 ## 2026-09-16
 
 - State once where agent-only tooling lives — parked; no change yet. `scripts/` holds repo tooling whatever the caller

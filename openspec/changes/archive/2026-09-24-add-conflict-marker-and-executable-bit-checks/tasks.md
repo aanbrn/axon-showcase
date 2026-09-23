@@ -38,5 +38,5 @@
 - [x] 5.2 Run `openspec validate add-conflict-marker-and-executable-bit-checks --strict` and
       `openspec validate --specs`, and confirm both pass.
 - [x] 5.3 Run `./gradlew spotlessApply` then `spotlessCheck` and confirm the tree is clean.
-- [ ] 5.4 Refresh the `showcase/quality/commit-hygiene` `## Purpose` in the archive commit, since it enumerates the
+- [x] 5.4 Refresh the `showcase/quality/commit-hygiene` `## Purpose` in the archive commit, since it enumerates the
       capability's checks and this change adds two.

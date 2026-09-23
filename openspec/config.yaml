@@ -53,6 +53,7 @@ rules:
     - Requirements are declarative SHALL statements, testable via WHEN/THEN scenarios
     - Delta specs use ADDED/MODIFIED/DEPRECATED/REMOVED requirement blocks
     - Keep scenario wording consistent with existing captured specs
+    - A requirement whose body enumerates its subjects needs a scenario exercising each
   design:
     - Start with "Context" referencing the proposal, then "Goals / Non-Goals"
     - Capture "Decisions" with the alternatives considered and why they were rejected

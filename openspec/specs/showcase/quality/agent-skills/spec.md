@@ -92,6 +92,12 @@ agent, with its purpose described in its agent definition and (where relevant) i
 - **AND** for a change whose diff adds `AGENTS.md` rules (a capture), it also challenges each new rule's durability —
   the decision the rule governs, and whether a future change would plausibly hit it — so trivia and restatements are
   caught at review time rather than by a later consolidation audit
+- **AND** each finding is classified, and when the caller's request names a prior round's findings, a finding whose
+  class a prior round already raised is reported as a repeat of that class, naming it — so the loop's convergence signal
+  comes from the review's output rather than the caller's recollection, and the caller re-derives the root cause on that
+  signal rather than patching the instance
+- **AND** with no prior-round list supplied, the review still classifies each finding and states that a repetition is
+  unknown rather than inferring one, since the classification cannot be compared against what it has not seen
 
 #### Scenario: Thorough review is available on demand
 
@@ -390,6 +396,8 @@ analysis: a subagent SHALL verify its claims as thoroughly as before and report 
 - **WHEN** a report-producing subagent returns its findings
 - **THEN** the first line states the outcome — whether anything remains and how many items — and names the count of
   every class the report carries (findings, and any advisory or accretion class it reports)
+- **AND** when the caller's request named a prior round's findings, that first line also names which of the report's
+  classes repeat a class the prior round already raised
 - **AND** a report with nothing to report says so in that first line rather than in a closing sentence
 
 #### Scenario: Each item is budgeted

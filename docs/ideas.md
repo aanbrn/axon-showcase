@@ -77,11 +77,6 @@ it was added (start a new section for a new day rather than appending to the mos
   (the human-documented `setup-idea.sh`, its script-only helper, and the agent-invoked `experience-analysis.sh`), while
   `.opencode/` holds runtime config, agents, commands, and skills. This recurred when the owner asked whether
   `experience-analysis.sh` belonged in `scripts/`; the answer currently lives only in that script's header.
-- Pre-commit guard over the staged set — parked; no change yet. Four recurring, review-caught errors are mechanically
-  detectable before a commit: staged files `spotlessCheck` would modify, staged generated artifacts
-  (`scripts/__pycache__/*.pyc`), paths staged and then edited, and `captured:` marker placement (a marker on a plain
-  bullet, or one not at the end of its rule — the 2026-09-19 retrospective found the slip recurring, each time from a
-  script deriving item boundaries wrongly rather than from any ambiguity in the rule).
 - Make the next phase a product phase — parked; no change yet. The first retrospective's recommended direction (see
   `docs/retrospectives/2026-09-16.md`). The tooling is mature enough to be used rather than extended: the architecture's
   missing _enforce_ layer now exists (ADR-0010), and the highest-value candidate it named — web-UI trace propagation —

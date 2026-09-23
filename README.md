@@ -391,7 +391,7 @@ pins Gradle 9.7.1 and downloads it on first use.
 | **Kubernetes cluster** | The `helmInstallToLocal` target                              | kind, minikube, or colima with k3s                                                |
 | **OpenCode**           | The agentic development workflow (TUI or Desktop)            | `brew install opencode` / `brew install opencode-desktop`, or https://opencode.ai |
 | **Snyk CLI**           | `dependencySecurityCheck`                                    | `brew install snyk/tap/snyk`                                                      |
-| **Python 3**           | `scripts/setup-idea.sh`                                      | Ships with macOS Command Line Tools                                               |
+| **Python 3**           | `scripts/setup-idea.sh` and the commit-hygiene guard/check   | Ships with macOS Command Line Tools                                               |
 
 Only **Java and Docker** are required to run the application. actionlint is needed for the full `check`; `pack` only
 when building the web-UI image; Helm, a cluster, and Snyk are only for deployment and security scanning; OpenCode is
@@ -531,6 +531,13 @@ integrationTest — with `./gradlew :<module>:check` (add `-PskipITs -Pcoverage.
 for a Docker-free check and disable the coverage gate it would otherwise fail; `e2eTest` is a separate opt-in task). All
 quality gates run in the Gradle build, so no IDE is required to verify a change. An IDE (e.g. IntelliJ IDEA) is an
 optional convenience for interactive editing, debugging, and inspection.
+
+A pre-commit guard (`scripts/git-hooks/pre-commit`) catches four commit-hygiene slips before they reach CI: a staged
+file `spotlessCheck` would rewrite, a force-staged generated artifact, a path staged and then edited (leaving the index
+stale), and a misplaced `captured:` marker in `AGENTS.md`. Activate it once per clone with
+`./scripts/install-git-hooks.sh` (sets `core.hooksPath`); bypass a deliberate exception with `git commit --no-verify`.
+The marker-placement check also runs in `./gradlew check` (as `verifyCapturedMarkers`), so it holds even without the
+hook; the web module's own Prettier check (`npmFormatCheck`) remains part of `check`.
 
 ### Formatting and IDE Setup
 

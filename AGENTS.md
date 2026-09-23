@@ -192,24 +192,25 @@ duplication as the target rule's wording being the gap rather than a missing mod
 have caught by and ask whether one word excludes it — a drafted third `git add <dir>` mode restated the staged-set
 inspection that bullet already states, while the real gap was the commit-discipline clause saying "tracked" where the
 change dir is deliberately left untracked; the owner's "would following the existing discipline already have prevented
-this?" is the test, verified against the text before a bullet is added. Each captured rule also carries its origin — at
-the end of the rule it records — in a `captured: <change>` marker — the change at an implementation capture, the change
-and its PR when a merge-time detection found the lesson — so a rule's provenance is readable without git and survives a
-reflow: grep the `captured:` token, which no reflow splits even when the change name wraps to the next line. On a bullet
-the capture merged into rather than authored, the end-of-bullet marker records only the latest captured contribution,
-not the bullet's total origin — the pre-existing text stays recoverable from `git blame` / `git log -S`. AGENTS.md's
-growth is bounded, but the bound is a discipline rather than a hard cap: applying a capture should leave the file no
-larger than it was, preferring a merge or a replacement over an addition, and any net growth is a justified decision
-stated with the proposal — not a side effect of accumulating prose. The cheapest way to keep it flat: **when a bullet's
-rationale is normative in a spec, keep only what a reader needs to act and point at the spec — a pointer, not a
-condensed copy** (the spec records why). The same routing covers the case where the specs describe a rule's subject
-**only as an outcome**: the mechanism belongs in the capability spec **only when changing it would change a scenario's
-outcome — verify that against the code before moving it**, and a mechanism whose alternatives yield the same result
-stays in `AGENTS.md` as internal control flow. A pointer must also carry every **imperative or target-less fact** the
-old text held — a warning the reader must still act on is a rule, not rationale, and is lost rather than condensed when
-the pointer drops it — and **must not claim more than its target holds**: a spec holds an outcome, not the identifiers,
-declarations, or gate conditions implementing it, nor a rationale it never states. Verify a trim by sweeping every
-removed line's distinctive tokens against both the trimmed bullet's text and the pointer's target —
+this?" is the test, verified against the text before a bullet is added. Each captured rule also carries its origin in a
+`captured: <change>` marker — the change at an implementation capture, the change and its PR when a merge-time detection
+found the lesson — so a rule's provenance is readable without git and survives a reflow: grep the `captured:` token,
+which no reflow splits even when the change name wraps to the next line. Place the marker at the end of the rule it
+records; a pre-commit guard enforces the mechanically checkable part — a marker lies inside a rule block, never on a
+plain bullet. On a bullet the capture merged into rather than authored, the end-of-bullet marker records only the latest
+captured contribution, not the bullet's total origin — the pre-existing text stays recoverable from `git blame` /
+`git log -S`. AGENTS.md's growth is bounded, but the bound is a discipline rather than a hard cap: applying a capture
+should leave the file no larger than it was, preferring a merge or a replacement over an addition, and any net growth is
+a justified decision stated with the proposal — not a side effect of accumulating prose. The cheapest way to keep it
+flat: **when a bullet's rationale is normative in a spec, keep only what a reader needs to act and point at the spec — a
+pointer, not a condensed copy** (the spec records why). The same routing covers the case where the specs describe a
+rule's subject **only as an outcome**: the mechanism belongs in the capability spec **only when changing it would change
+a scenario's outcome — verify that against the code before moving it**, and a mechanism whose alternatives yield the
+same result stays in `AGENTS.md` as internal control flow. A pointer must also carry every **imperative or target-less
+fact** the old text held — a warning the reader must still act on is a rule, not rationale, and is lost rather than
+condensed when the pointer drops it — and **must not claim more than its target holds**: a spec holds an outcome, not
+the identifiers, declarations, or gate conditions implementing it, nor a rationale it never states. Verify a trim by
+sweeping every removed line's distinctive tokens against both the trimmed bullet's text and the pointer's target —
 `trim-agents-md-rule-restatements`' five trims dropped six such facts, restored only by review. Durability governs where
 the _rule_ lives, not whether every sentence about it does. Because the corpus is evidence-anchored incident memory, the
 control is the periodic `/audit-agents` pass — whose verdict already reports the accreted-rule count — not mass deletion
@@ -395,7 +396,11 @@ wait for approval before merging.
 - `pack` CLI (for the web UI `dockerBuildImage` image build; see
   https://buildpacks.io/docs/for-platform-operators/how-to/integrate-ci/pack/, e.g. `brew install buildpacks/tap/pack`
   on macOS)
-- Python 3 (for `./scripts/setup-idea.sh`'s IDE-settings merge; macOS ships it via Command Line Tools)
+- Python 3 (for `./scripts/setup-idea.sh`'s IDE-settings merge and the commit-hygiene guard/check; macOS ships it via
+  Command Line Tools)
+- Git hooks: run `./scripts/install-git-hooks.sh` once per clone to activate the pre-commit guard (the formatter,
+  generated-artifact, staged-then-edited, and `captured:` marker checks); bypass a deliberate exception with
+  `git commit --no-verify`
 
 ## Build & Test
 
@@ -1628,14 +1633,14 @@ capture-stash-stale-copy
   `captured:` marker was appended to belonged to the wrong item, and the marker landed on the following bullet. Derive
   an item's end from the list's own structure (a wrapped continuation is indented; a `- ` at column zero starts a new
   item) and have any script that ranges over or appends to items assert that boundary itself — no marker on a plain
-  bullet, every marker at the end of the rule it names — before trusting the result. captured: retro-mark-captured-rules
-  The same range-boundary hazard bites source: removing three tasks' private comparators with a range running from the
-  first deleted member to the end of the file took each class's **closing brace** (the members were last in the body),
-  failing three compiles, and orphaned a KDoc above the deleted region — which compiled clean and only a reviewer saw.
-  Derive a deletion's end from the member boundaries, and after removing members confirm each surviving KDoc still
-  attaches to a declaration: a compile catches the lost brace, never the orphan. captured:
-  test-build-logic-rules-and-unify-version-comparison (#306) A formatter-owned file is re-wrapped, so a
-  whitespace-tolerant substitution — a normalization or `\s*`-style pattern — silently matches the wrong span or
+  bullet (the pre-commit guard enforces this), and place every marker at the end of the rule it names — before trusting
+  the result. captured: retro-mark-captured-rules The same range-boundary hazard bites source: removing three tasks'
+  private comparators with a range running from the first deleted member to the end of the file took each class's
+  **closing brace** (the members were last in the body), failing three compiles, and orphaned a KDoc above the deleted
+  region — which compiled clean and only a reviewer saw. Derive a deletion's end from the member boundaries, and after
+  removing members confirm each surviving KDoc still attaches to a declaration: a compile catches the lost brace, never
+  the orphan. captured: test-build-logic-rules-and-unify-version-comparison (#306) A formatter-owned file is re-wrapped,
+  so a whitespace-tolerant substitution — a normalization or `\s*`-style pattern — silently matches the wrong span or
   rebuilds it unformatted. The edit no-opped or mangled several times across one arc: a workflow step inserted at the
   wrong YAML indentation (a parse error), a README bullet reported as exactly one match that never landed, a `body=`
   line left 198 characters long, and a prompt line replaced at the wrong indentation. Locate the target by line index in
@@ -1944,7 +1949,10 @@ capture-stash-stale-copy
   an edit made after the last `git add` sits unstaged, so `git diff --cached` can look complete while the commit ships
   the older copy — check `git status` for a path listed under both staged and unstaged changes (or `git diff` for
   unstaged edits) before committing, since a review caught the staged set missing corrections made after the last
-  `git add`, which would have shipped half the fix.
+  `git add`, which would have shipped half the fix. A pre-commit guard (`scripts/git-hooks/pre-commit`, activated by
+  `scripts/install-git-hooks.sh`) enforces this inspection mechanically: it refuses a commit whose staged set fails the
+  formatter check, force-stages a generated artifact, stages a path and then edits it, or misplaces a `captured:`
+  marker.
 - **Never chain an edit to a commit without reading the edit's result — gate the commit on a content check, not on the
   edit command's exit status.** While implementing the `concise-agent-reports` change, an anchor assertion in the edit
   script failed (Spotless had re-wrapped the text), so the edit no-opped — and the next command in the shell sequence

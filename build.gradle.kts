@@ -1,5 +1,6 @@
 import io.github.build.extensions.oss.gradle.plugins.helm.dsl.HelmRepository
 import io.github.build.extensions.oss.gradle.plugins.helm.release.dsl.HelmRelease
+import java.io.File
 import java.util.Properties
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.plugins.ExtensionAware
@@ -387,10 +388,38 @@ tasks.register("verifyModuleDependencies", VerifyModuleDependenciesTask::class.j
     )
 }
 
+val pythonExecutable: String =
+    System.getenv("PATH")
+        .orEmpty()
+        .split(File.pathSeparator)
+        .map { File(it, "python3") }
+        .firstOrNull { it.canExecute() }
+        ?.absolutePath ?: "python3"
+
+tasks.register<Exec>("verifyCapturedMarkers") {
+    group = "verification"
+    description = "Verifies captured: marker placement in AGENTS.md"
+    inputs.file("AGENTS.md")
+    inputs.file("scripts/commit-hygiene.py")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--markers")
+}
+
+tasks.register<Exec>("testCommitHygiene") {
+    group = "verification"
+    description = "Runs the commit-hygiene checker's tests"
+    inputs.file("scripts/commit-hygiene.py")
+    inputs.file("scripts/test-commit-hygiene.py")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/test-commit-hygiene.py")
+}
+
 tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
     dependsOn("workflowLint")
     dependsOn("verifyModuleDependencies")
+    dependsOn("verifyCapturedMarkers")
+    dependsOn("testCommitHygiene")
     // build-logic is an included build, so its tests are not reached by this project's check.
     dependsOn(gradle.includedBuild("build-logic").task(":test"))
 }

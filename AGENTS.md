@@ -276,11 +276,13 @@ one delta; a new requirement costs a permanent corpus entry, and the corpus accr
 genuinely new subject like `concise-agent-reports`' shared report contract is still `ADDED`).
 
 **A `MODIFIED` requirement block replaces the whole requirement — the delta must carry every existing scenario the main
-spec still has, not just the new ones.** `openspec validate --changes` fails with "MODIFIED ... omits scenario(s) the
+spec still has, in the main spec's order.** `openspec validate --changes` fails with "MODIFIED ... omits scenario(s) the
 current spec still has" when a delta drops an existing scenario (the first `helm-install-builds-webui-image` delta wrote
-only the new web UI scenario, omitting "The deployed UI can call the gateway" and "The UI origin is configurable"). The
-safe recipe: copy the current spec's full requirement block (description + all scenarios) into the delta, then edit it —
-never hand-write a MODIFIED block from memory.
+only the new web UI scenario, omitting "The deployed UI can call the gateway" and "The UI origin is configurable") but
+not when one is reordered — `openspec archive` writes the delta's order into the main spec, so a reorder is silent
+drift. The safe recipe: copy the current spec's full requirement block (description + all scenarios) into the delta,
+then edit it, preserving the existing scenarios' relative order — never hand-write a MODIFIED block from memory.
+captured: name-review-finding-classes (#367)
 
 A `MODIFIED` block names one `### Requirement:` header, so folding a second requirement into the first does not retire
 that second requirement: the delta also needs a `REMOVED` block for it, or the main spec keeps both the merged
@@ -1965,32 +1967,35 @@ capture-stash-stale-copy
   `check` only when `coverage.gate.enabled` is not `false` (`code-coverage-conventions.gradle.kts`). The PR CI gate is
   exactly `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (see Continuous Integration) — run that for a local
   Docker-free check, not the bare `-PskipITs` form.
-- **A subagent added mid-session is not registered until OpenCode reloads its agent list.** Creating
+- **A subagent added or edited mid-session is not registered until OpenCode reloads its agent list.** Creating
   `.opencode/agent/<name>.md` (plus its command) does not make the agent reachable in the running session — invoking it
   via the Task tool fails with `Unknown agent type: <name>`; the `add-agents-auditor-agent` smoke-run was blocked until
   OpenCode was restarted. A presence check (file exists, `mode: subagent`, model pin set) passes while the session still
-  cannot see it. Restart OpenCode (or start a new session) before smoke-testing a newly added or renamed subagent; the
-  same config-read-at-startup rule makes a changed `model` pin apply only to new sessions. Treat that smoke-run as a
-  precondition for **archiving**, not a task to defer across the merge: it is the only verification that exercises the
-  subagent (CI runs none), and an unchecked task inside `openspec/changes/archive/` is invisible — the archive tree is
-  outside Spotless and no gate surfaces it — so the check is silently lost (`add-architecture-auditor-agent` archived
-  with its `/audit-architecture` smoke-run unchecked for exactly this reason). Seed the smoke-run with positive controls
-  — a known-missing rationale it **must** report and a known-explained surface (a spec requirement, an ADR, an
-  `AGENTS.md` convention) it must **not**: a run that reports everything or nothing has not exercised the suppression
-  rule. **A smoke-run verifies the subagent's behavior, not the facts of its output — the seed is synthetic, so verify
-  both separately:** check the seed's premise against the repository before reading the run (a seeded incident the repo
-  does not exhibit leaves the targeted branch unexercised — the subject working, not a failed test — so re-seed and
-  record which branch the run exercised), and never promote a proposal resting on the seed's invented details (the
-  repo-evidence rule's "a run whose output you have" counts a smoke-run for the subject's behavior, not for a claim
-  about the code, so re-verify the proposal's factual basis first — `make-lesson-capture-consolidate`'s smoke-run
-  proposed a rule resting on a fabricated incident the repository never evidenced). A run against a real artifact also
-  surfaces genuine defects beyond the seed: verify each against the repository and fix those the user approves in the
-  introducing change, since the archived run's note is never swept again — the `add-readme-auditor` smoke-run reported
-  three real README defects beyond its seed (a missing `-Pcoverage.gate.enabled=false` at two sites, a merge-narrative
-  contradiction, and a stray table cell), all fixed in that change. captured: add-readme-auditor (#315) When the owner
-  deliberately decouples a follow-up task from the merge, reword the task to record what is deferred, where it went, and
-  the owner's chosen order, then **tick it** — an unchecked box inside `archive/` is invisible and no gate reads it.
-  That is not the rule above: the smoke-run itself is never deferred, only a task the owner explicitly decouples.
+  cannot see it. Restart OpenCode (or start a new session) before smoke-testing a newly added, renamed, or **edited**
+  subagent — a changed definition body, like a changed `model` pin, is served from the pre-change copy until then, so an
+  in-session smoke-run exercises the old instructions, and a run echoing the new text is no proof of pickup (the
+  subagent can read its own definition from disk, so the registered body is the evidence). captured:
+  name-review-finding-classes (#367) Treat that smoke-run as a precondition for **archiving**, not a task to defer
+  across the merge: it is the only verification that exercises the subagent (CI runs none), and an unchecked task inside
+  `openspec/changes/archive/` is invisible — the archive tree is outside Spotless and no gate surfaces it — so the check
+  is silently lost (`add-architecture-auditor-agent` archived with its `/audit-architecture` smoke-run unchecked for
+  exactly this reason). Seed the smoke-run with positive controls — a known-missing rationale it **must** report and a
+  known-explained surface (a spec requirement, an ADR, an `AGENTS.md` convention) it must **not**: a run that reports
+  everything or nothing has not exercised the suppression rule. **A smoke-run verifies the subagent's behavior, not the
+  facts of its output — the seed is synthetic, so verify both separately:** check the seed's premise against the
+  repository before reading the run (a seeded incident the repo does not exhibit leaves the targeted branch unexercised
+  — the subject working, not a failed test — so re-seed and record which branch the run exercised), and never promote a
+  proposal resting on the seed's invented details (the repo-evidence rule's "a run whose output you have" counts a
+  smoke-run for the subject's behavior, not for a claim about the code, so re-verify the proposal's factual basis first
+  — `make-lesson-capture-consolidate`'s smoke-run proposed a rule resting on a fabricated incident the repository never
+  evidenced). A run against a real artifact also surfaces genuine defects beyond the seed: verify each against the
+  repository and fix those the user approves in the introducing change, since the archived run's note is never swept
+  again — the `add-readme-auditor` smoke-run reported three real README defects beyond its seed (a missing
+  `-Pcoverage.gate.enabled=false` at two sites, a merge-narrative contradiction, and a stray table cell), all fixed in
+  that change. captured: add-readme-auditor (#315) When the owner deliberately decouples a follow-up task from the
+  merge, reword the task to record what is deferred, where it went, and the owner's chosen order, then **tick it** — an
+  unchecked box inside `archive/` is invisible and no gate reads it. That is not the rule above: the smoke-run itself is
+  never deferred, only a task the owner explicitly decouples.
 - **Prove a permission rule is applied by reading the OpenCode log, not by the absence of a prompt.** OpenCode records
   every evaluation in `~/.local/share/opencode/log/opencode.log`, in a line carrying
   `message=evaluated permission=<key>`, `action.pattern=<resolved rule>` and `action.action=<action>` (the field order

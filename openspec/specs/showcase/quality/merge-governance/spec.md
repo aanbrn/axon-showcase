@@ -80,9 +80,10 @@ actors.
 A pull request to the repository SHALL run the Docker-free quality tiers as a single CI check named `build`: the
 standard `check` task with `-PskipITs` (unit tests, component tests, and all static gates — formatting, checkstyle,
 SpotBugs, ErrorProne), an OpenSpec validation of changes and specs, and a verification that the OpenSpec configuration's
-declared artifact rules are readable by the CLI, so a rule set the CLI would silently ignore fails the check. The
-coverage gate SHALL NOT run on the pull-request path, because it is calibrated on integration-test coverage that only
-the `main` gate provides. The check SHALL run on `ubuntu-latest` with a Temurin JDK 21 and SHALL NOT require Docker.
+declared list surfaces — its per-artifact rules and its operation guidance — are readable by the CLI, so a list the CLI
+would silently ignore fails the check. The coverage gate SHALL NOT run on the pull-request path, because it is
+calibrated on integration-test coverage that only the `main` gate provides. The check SHALL run on `ubuntu-latest` with
+a Temurin JDK 21 and SHALL NOT require Docker.
 
 #### Scenario: Pull request triggers the fast gate
 
@@ -102,12 +103,19 @@ the `main` gate provides. The check SHALL run on `ubuntu-latest` with a Temurin 
 - **THEN** the OpenSpec configuration check fails and reports the defect, instead of the CLI silently ignoring that
   artifact's rules
 
+#### Scenario: An operation guidance set the CLI cannot read fails the fast gate
+
+- **WHEN** `openspec/config.yaml` declares an operation guidance item in a shape the CLI cannot read (for example an
+  unquoted scalar containing `: `)
+- **THEN** the OpenSpec configuration check fails and reports the defect, instead of the CLI silently ignoring that
+  operation's guidance
+
 ### Requirement: Pushes to main run the full quality gate
 
 A push to `main` SHALL run the full quality gate as the same `build` check: the complete `check` task including the
 integration tier (Testcontainers — PostgreSQL, Kafka, OpenSearch) and the JaCoCo coverage gate, plus an OpenSpec
-validation and the same verification that the OpenSpec configuration's declared artifact rules are readable by the CLI.
-The full gate SHALL require Docker.
+validation and the same verification that the OpenSpec configuration's declared list surfaces — its per-artifact rules
+and its operation guidance — are readable by the CLI. The full gate SHALL require Docker.
 
 #### Scenario: Push to main triggers the full gate
 

@@ -518,8 +518,9 @@ initialized:
 `.github/workflows/ci.yml` runs a single `build` job on every pull request and every push to `main`:
 
 - **Pull requests** run the Docker-free fast gate: `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` plus
-  `openspec validate --all` and a probe that the OpenSpec config's rule sets are readable by the CLI — the coverage gate
-  is disabled because the 0.80 baseline is calibrated on integration-test coverage, which PRs skip by design.
+  `openspec validate --all` and a probe that the OpenSpec config's declared list surfaces (its artifact rules and its
+  operation guidance) are readable by the CLI — the coverage gate is disabled because the 0.80 baseline is calibrated on
+  integration-test coverage, which PRs skip by design.
 - **Pushes to `main`** run the full gate: `./gradlew check` (with integration tests and the coverage gate) plus the same
   OpenSpec validation and config probe as the pull-request path.
 - **A check belongs in the pull-request gate only when the change that trips it can remediate it.** Drift in state no
@@ -1861,16 +1862,15 @@ capture-stash-stale-copy
   `openspec instructions`), which read as noise for as long as the config existed; `openspec validate --all` emits no
   warning at all, which is why CI missed it. The dropped `proposal` rules included
   `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the rule the review loop kept
-  catching missing. Quote any YAML scalar containing `: `; the CI `build` job now probes for that warning and the
-  whole-file `could not parse` one (a malformed scalar) and fails on either, and `/opsx-tool-update` re-verifies both
-  with a positive control. The general rule: a config can look well-formed and pass the tool's own validation while the
-  tool silently ignores part of it, and from outside a valid config and an ignored one are indistinguishable — the only
-  signal is a warning on stderr that no gate reads. Do not lint the shape with a second parser of your own (that encodes
-  an assumption about a contract the tool owns); probe the consumer's own read path, and fail a gate on the tool's own
-  warning. The gate's per-artifact warning covers only the `rules:` surface — a rule on another declared surface
-  (`operations.apply.guidance`) is dropped with a different warning that neither the probe nor `/opsx-tool-update`'s
-  re-verification matches — so put a rule on `rules:` unless the guard is widened in the same change (a
-  `merge-governance` delta). The same class covers the change's own `.openspec.yaml`, quieter still: OpenSpec's
+  catching missing. Quote any YAML scalar containing `: `; the CI `build` job now probes for the list-shape warning on
+  any declared list surface and the whole-file `could not parse` one (a malformed scalar) and fails on either, and
+  `/opsx-tool-update` re-verifies both with a positive control. The general rule: a config can look well-formed and pass
+  the tool's own validation while the tool silently ignores part of it, and from outside a valid config and an ignored
+  one are indistinguishable — the only signal is a warning on stderr that no gate reads. Do not lint the shape with a
+  second parser of your own (that encodes an assumption about a contract the tool owns); probe the consumer's own read
+  path, and fail a gate on the tool's own warning. The guard covers every declared list surface — a malformed `rules`
+  item and a malformed `operations.*.guidance` item each warn with the list-shape phrase the probe greps — so no config
+  list is silently dropped. The same class covers the change's own `.openspec.yaml`, quieter still: OpenSpec's
   change-metadata schema is not strict, so an unrecognized key is silently stripped with no warning at all — a
   `skip_design: true` marker (an inherited agent habit; a dozen archived changes carry it) does nothing, and
   `openspec status` still reports `design` incomplete and points at `openspec instructions design`. There is no

@@ -56,13 +56,13 @@ jobs:
             ./gradlew check
           fi
           openspec validate --all
-          probe=openspec-config-rules-probe
+          probe=openspec-config-probe
           trap 'rm -rf "openspec/changes/$probe"' EXIT
           output=$(openspec new change "$probe" 2>&1)
           echo "$output"
-          if echo "$output" | grep -qE "ignoring this artifact's rules|could not parse"; then
-            echo "::error::config.yaml is not fully readable — an unquoted ': ' parses a rule as a mapping, and a"
-            echo "::error::malformed scalar makes the whole file unparseable; the CLI only warns, so this gate must"
-            echo "::error::fail."
+          if echo "$output" | grep -qE "must be an array of strings|could not parse"; then
+            echo "::error::config.yaml is not fully readable — an unquoted ': ' parses a declared list item as a"
+            echo "::error::mapping, and a malformed scalar makes the whole file unparseable; the CLI only warns, so"
+            echo "::error::this gate must fail."
             exit 1
           fi

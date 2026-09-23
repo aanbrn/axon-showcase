@@ -12,16 +12,17 @@ Run `openspec --version` and record the installed version, then run `openspec up
 pass `--force` unless the user explicitly asks — the plain command already detects when the instruction files are up to
 date and skips the regeneration.
 
-Then verify the CLI still reads every rule set `openspec/config.yaml` declares, since a newer CLI may parse the YAML
-differently: create a probe change (`openspec new change openspec-config-rules-probe`), confirm its output carries
-neither an "ignoring this artifact's rules" nor a "could not parse" warning (the same two patterns the CI probe greps),
-and check that `openspec instructions` for `proposal`, `specs`, `design`, and `tasks`
-(`--change openspec-config-rules-probe --json`) returns a populated `rules` field for each; remove the probe afterwards.
-Prove the check itself detects a defect by exercising both patterns, since a renamed warning would otherwise pass
-silently: one at a time, temporarily unquote a rule item that contains `: ` (the per-artifact warning), then temporarily
-drop a closing quote from a quoted item (the whole-file `could not parse` warning), confirming each fires before
-restoring it. An item without `: `, or one already unquoted, no-ops instead, so confirm the file actually changed before
-reading the check's silence.
+Then verify the CLI still reads every declared list surface `openspec/config.yaml` declares, since a newer CLI may parse
+the YAML differently: create a probe change (`openspec new change openspec-config-probe`), confirm its output carries
+neither a "must be an array of strings" nor a "could not parse" warning (the same two patterns the CI probe greps), and
+check that `openspec instructions` returns populated lists — `rules` for `proposal`, `specs`, `design`, and `tasks`
+(`--change openspec-config-probe --json`) and `operationGuidance` for `apply`
+(`openspec instructions apply --change openspec-config-probe --json`); remove the probe afterwards. Prove the check
+itself detects a defect by exercising the patterns, since a renamed warning would otherwise pass silently: one at a
+time, temporarily unquote a `rules` item that contains `: `, then temporarily edit an `operations.*.guidance` item to
+carry an unquoted `: `, then drop a closing quote from a quoted item (the whole-file `could not parse` warning),
+confirming each fires before restoring it. An item without `: `, or one already unquoted, no-ops instead, so confirm the
+file actually changed before reading the check's silence.
 
 Then update the openspec pin to the installed version in **every workflow that declares it** —
 `.github/workflows/ci.yml` (the `build` gate) and the two agent workflows that install it so an unattended run can

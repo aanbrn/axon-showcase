@@ -82,7 +82,9 @@ or the thread moves on — leaves the request outstanding, so re-ask explicitly 
 PR, archiving, or merging, and do not read a tangential reply as clearance. Work done while awaiting the pass must stay
 in the working tree until it is given; as the owner recounted afterwards, a clean quick review asked for the manual
 pass, the reply asked about lesson capture instead, and the capture was folded into the same branch and the work
-continued — nothing was committed before the repeated request was answered, but the request had been missed. A review
+continued — nothing was committed before the repeated request was answered, but the request had been missed. The
+`review-quick` subagent's finding classes and its repeated-class flag are specified in `showcase/quality/agent-skills` —
+see there rather than here — so act on its verdict line rather than on your own recollection of the thread. A review
 loop that keeps finding the **same class** of observation round after round is not converging — each fix is treating a
 symptom of a root cause that is still there, and the next round will find another instance. Stop and re-derive the root
 cause — when the recurring class is an enumeration that under-describes the change (a surface list, an artifact set, a

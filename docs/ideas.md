@@ -32,6 +32,38 @@ it was added (start a new section for a new day rather than appending to the mos
   test-coverage clause; widening it needs a REMOVED+ADDED retitle, since a `MODIFIED` block cannot rename a requirement
   header.
 
+- Carry findings forward across audit reports — parked; no change yet. The reports under `docs/audits/` are write-only:
+  a finding recurs run after run with nothing to say it is the same unapplied item, and the recorded smoke-run lesson is
+  that "the archived run's note is never swept again". Have the verdict name which items also appear in the newest prior
+  report and remain unapplied, so the report ages into a backlog. Routes to the `agents-auditor` definition, its report
+  contract, and the `/audit-agents` command's read-list.
+
+- Sharpen route-candidate verification the way merge candidates were sharpened — parked; no change yet. Merge candidates
+  got the target-verification rule (#366) only after a false delegation dropped identifiers; route candidates (added
+  2026-09-24) carry the lighter "confirm the mechanism exists and covers the rule's subject". A mechanism can enforce a
+  _sibling_ case rather than the rule's subject (Spotless enforces the SPDX header but not "no comments"; the pre-commit
+  hook enforces formatting, not the timing a rule advises), so the candidate should verify full coverage and keep
+  whatever the mechanism does not cover. Parked: no incident yet — a false route is the trigger to add the clause, as a
+  false delegation was for merge candidates.
+
+- Trend the audit counts across reports — parked; no change yet. The capture rule leans on the verdict's accreted-rule
+  count as the growth control, but nothing reads it back, so the only quantitative signal that consolidation is winning
+  goes uncollected. A small report — or a `/retrospective` input — extracting the verdict lines from `docs/audits/*.md`
+  would show findings, merge, removal, and accreted counts over time. Thin today (two reports); revisit once several
+  accumulate.
+
+- Record the lesson-capture's rejected proposals — parked; no change yet. A "nothing durable" verdict is a judgment that
+  vanishes (the `widen-auditor-to-route-candidates` capture's, for instance); recording each rejected proposal with the
+  gate criterion it failed would let the retrospective surface a recurring blind spot or a recurring false positive.
+  Routes to the `lesson-capture` definition plus the retrospective's digest, and needs a durable home, since the
+  capture's output is currently not persisted.
+
+- Name a durable home for a smoke-run's beyond-seed findings — parked; no change yet. The smoke-run convention says to
+  fix the findings the user approves in the introducing change, but not where an unapproved one goes: in
+  `widen-auditor-to-route-candidates` the second surfaced item landed only in the archive-bound `tasks.md`, which no
+  sweep reads. One line in the convention — fix it, or park it in `docs/ideas.md` — closes it. Parked: one occurrence so
+  far, below the capture gate.
+
 ## 2026-09-22
 
 - Check the ADR `Status:` vocabulary mechanically — parked; no change yet. `docs/adr/README.md` enumerates the

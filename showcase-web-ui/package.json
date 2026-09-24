@@ -11,6 +11,7 @@
     "test": "vitest run",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "outdated:report": "bash scripts/outdated-report.sh",
     "e2e": "playwright install chromium && playwright test"
   },
   "dependencies": {

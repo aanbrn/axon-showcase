@@ -1,8 +1,12 @@
 ---
-description: Run the Gradle dependency update report
+description: Run the Gradle and web UI dependency update reports
 ---
 
-Run `./gradlew dependencyUpdates` from the repository root and report the results.
+Run `./gradlew dependencyUpdates` (Gradle) and `./gradlew :showcase-web-ui:npmOutdated` (web UI) from the repository
+root and report the results.
+
+The web UI's npm dependencies are reported separately by `:showcase-web-ui:npmOutdated`, which lists the outdated npm
+packages and writes them to `showcase-web-ui/build/npm-outdated.txt`; they do not appear in the Gradle report.
 
 The report covers only catalog-owned coordinates (exact `version.ref` in `gradle/libs.versions.toml`); BOM-inherited
 modules are not listed. Major-version updates for groups listed in `config/dependency-updates/major-disabled.properties`

@@ -444,17 +444,21 @@ wait for approval before merging.
 # The scan passes --policy-path=.snyk (the root Snyk policy). The currently-suppressed findings, their expiry
 # rationale, and the rate-limit nuance live in `.snyk` (its header comment and each ignore's `reason`) and the
 # /dependency-security-check command — see those rather than restating them here.
+# Web UI npm vulnerability audit (fails on high-severity findings; not part of check)
+./gradlew :showcase-web-ui:npmAudit
 
 # Dependency update report (only catalog-owned coordinates; majors suppressed for groups in
 # config/dependency-updates/major-disabled.properties)
 ./gradlew dependencyUpdates
+# Web UI npm update report (not part of check)
+./gradlew :showcase-web-ui:npmOutdated
 
 # Frontend (showcase-web-ui): install, lint, format-check, tests (verification; the production bundle
 # is built by `build`/`assemble`, like the JVM modules' bootJar)
 ./gradlew :showcase-web-ui:check
 ```
 
-The `/dependency-updates` OpenCode command runs this task and summarizes the available updates; the `/gradle-update`
+The `/dependency-updates` OpenCode command runs these reports and summarizes the available updates; the `/gradle-update`
 command updates the Gradle wrapper to the latest stable version when one is available, and the `/opsx-tool-update`
 command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI release.
 
@@ -561,18 +565,20 @@ pipeline with Playwright) on a nightly schedule and via `workflow_dispatch`. It 
 not guarantee it), and uses `actions/cache@v6` for the npm cache. It is observational — never a merge gate, no secrets,
 and it shares the same `gradle/actions/setup-gradle` caching rules as `.github/workflows/ci.yml`.
 
-`.github/workflows/snyk.yml` runs the credentialed dependency security scan (`./gradlew dependencySecurityCheck`, all
-sub-projects with the root `.snyk` policy) on a weekly schedule and via `workflow_dispatch`, authenticated with the
-`SNYK_TOKEN` secret. It is observational — never a merge gate.
+`.github/workflows/dependency-security.yml` runs the credentialed dependency security scans — the Snyk scan
+(`./gradlew dependencySecurityCheck`, all sub-projects with the root `.snyk` policy, authenticated with the `SNYK_TOKEN`
+secret) and the web-UI npm audit (`./gradlew :showcase-web-ui:npmAudit`) — on a weekly schedule and via
+`workflow_dispatch`. It is observational — never a merge gate.
 
 The four update-check workflows — `.github/workflows/dependency-updates.yml`, `.github/workflows/helm-updates.yml`,
 `.github/workflows/buildpack-updates.yml`, and `.github/workflows/tooling-updates.yml` — each run a Gradle report on a
 weekly schedule and via `workflow_dispatch`, open or update their tracker issue from that report's file with the
 `GITHUB_TOKEN` (`issues: write`), post a comment mentioning the repository owner when there are actionable updates (so
 they are notified), and update the issue silently when there are none. They are observational — never a merge gate.
-`upstream-references.yml` follows the same shape for a different question — the state of the upstream references the
-durable artifacts cite, rather than a version comparison — so it is a fifth observational check, not a fifth _update_
-check, and it is listed below.
+`dependency-updates.yml` additionally runs the web UI npm update report (`./gradlew :showcase-web-ui:npmOutdated`) and
+includes its section in the same issue. `upstream-references.yml` follows the same shape for a different question — the
+state of the upstream references the durable artifacts cite, rather than a version comparison — so it is a fifth
+observational check, not a fifth _update_ check, and it is listed below.
 
 An added or edited workflow among these — or any other `workflow_dispatch`-enabled scheduled workflow — gets its first
 real run by dispatch, not by waiting for its schedule: GitHub only exposes `workflow_dispatch` once the file exists on
@@ -595,9 +601,9 @@ merge gate.
 
 **What each covers:**
 
-- `dependency-updates.yml` — `./gradlew dependencyUpdates`; the actionable sections of
-  `build/dependencyUpdates/report.txt` (stable catalog updates + the Gradle wrapper status), in the "Dependency updates"
-  issue.
+- `dependency-updates.yml` — `./gradlew dependencyUpdates` and `./gradlew :showcase-web-ui:npmOutdated`; the actionable
+  sections of `build/dependencyUpdates/report.txt` (stable catalog updates + the Gradle wrapper status) and the web UI
+  npm report, in the "Dependency updates" issue.
 - `helm-updates.yml` — `./gradlew helmUpdates`; the actionable coordinates from `build/helm-updates/report.txt` (the
   Helm CLI and pinned chart versions that have a newer version), in the "Helm updates" issue.
 - `buildpack-updates.yml` — `./gradlew buildpackUpdates`; the pinned builder and buildpack coordinates from
@@ -755,45 +761,45 @@ Key modules (libraries, not services):
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md`, `README.md`, and `docs/adr/` need to be
   refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
   a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on
-  concern for weeks after `snyk.yml` landed, until the first architecture audit caught it) — and update them before
-  reporting the change done; also remove the change's idea from `docs/ideas.md` **in the same PR**, so it rides the
-  change branch and commits with its push rather than landing as a separate docs PR. An idea is removed once implemented
-  (captured by a change) or once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR
-  instead); only open ideas remain (see the file's header). Promotion to a GitHub issue is a **link, not a removal** —
-  annotate the idea with the issue number (`; promoted to issue #NNN`) when you promote it, since the file's header
-  names only the issue's link to the change, not the scratchpad's back-link to the issue, so the two drift apart. Give
-  every parked entry a trailing status tag stating its disposition (`— parked; no change yet.` is the common form; a
-  promoted or explored-and-set-aside idea says so instead), since the header fixes the sections' order and dating but
-  not the tag, and the tag is what marks the entry as a still-unowned idea rather than one already routed to work. Also
-  sweep `docs/ideas.md` for references to the thing this change shipped — an open idea that still calls it "the proposed
-  X" is itself a stale claim, and no auditor covers that file (the four auditors own `AGENTS.md`/`.opencode/`, the spec
-  corpus, `docs/adr/` plus the architectural surface, and `README.md` respectively); update the idea's prose in the same
-  change, including any enumeration or count it carries ("two others remain open: A, B") that the change's new instance
-  makes wrong. Docs that ARE the change (new agent/command/skill documentation, README rows describing a new capability,
-  the change's idea removal) ship with the change's PR; docs that refresh facts about a completed change ship as a
-  separate docs PR — a newly parked idea that is not yet a change is such a docs PR. A standalone `docs/ideas.md` edit
-  that no change owns (a reword or a stale-fact correction) also ships as its own docs PR, forked from `main`; an edit
-  the change itself causes rides that change's branch. Do not read that last clause as covering a **newly parked idea**:
-  an open question the change's own sweep happened to surface is a new, independent idea, not an artifact of the change,
-  so it ships as its own docs PR forked from `main`. Only the change's own idea removal, or prose about the thing it
-  shipped, rides the change branch. Decide the owner before committing — a docs PR forked from `main` cannot carry an
-  edit committed on a change branch, so committing it there first for a clean tree silently leaves it out of the docs PR
-  and `main` unchanged — and verify the fix against the merged PR's diff rather than the PR description, which can claim
-  a change the diff does not contain. A parked-idea docs PR owes the refresh too: fold any durable fact the idea reveals
-  into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin to an existing enumeration) —
-  `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the idea is implemented or dropped.
-  `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the same project facts (runtime/Spring/Gradle
-  versions, module count, service list, Docker image names) that OpenSpec shows the AI when creating artifacts — refresh
-  it in the same change whenever one of those facts moves. A **removal** counts too: when a sweep deletes an entry as
-  non-durable, check these copies for the same sentence — the fact has not moved, so the move rule does not fire
-  (`disable-axoniq-console-message`'s sentence outlived #292's removal from `AGENTS.md` by four PRs in `config.yaml`,
-  until the audit noticed). `openspec validate` never checks it, so it drifts silently. The repository's own GitHub
-  description and topics are a third un-gated copy of the same facts — so refresh them in the change that moves one; no
-  gate reads them and no auditor owns a surface outside the repository. A file can also _depend_ on such a surface
-  rather than describe one: `SECURITY.md`'s private-reporting path is a dead end unless private vulnerability reporting
-  is enabled. Enable the setting as part of the change that ships the instruction — a repository setting leaves no diff,
-  so a diff-only review cannot see it — and name the enabling in the change's report. captured: park-retro-marking-idea
-  (#281)
+  concern for weeks after the Snyk workflow landed, until the first architecture audit caught it) — and update them
+  before reporting the change done; also remove the change's idea from `docs/ideas.md` **in the same PR**, so it rides
+  the change branch and commits with its push rather than landing as a separate docs PR. An idea is removed once
+  implemented (captured by a change) or once explored and decided against (the durable lesson is captured in
+  `AGENTS.md`/an ADR instead); only open ideas remain (see the file's header). Promotion to a GitHub issue is a **link,
+  not a removal** — annotate the idea with the issue number (`; promoted to issue #NNN`) when you promote it, since the
+  file's header names only the issue's link to the change, not the scratchpad's back-link to the issue, so the two drift
+  apart. Give every parked entry a trailing status tag stating its disposition (`— parked; no change yet.` is the common
+  form; a promoted or explored-and-set-aside idea says so instead), since the header fixes the sections' order and
+  dating but not the tag, and the tag is what marks the entry as a still-unowned idea rather than one already routed to
+  work. Also sweep `docs/ideas.md` for references to the thing this change shipped — an open idea that still calls it
+  "the proposed X" is itself a stale claim, and no auditor covers that file (the four auditors own
+  `AGENTS.md`/`.opencode/`, the spec corpus, `docs/adr/` plus the architectural surface, and `README.md` respectively);
+  update the idea's prose in the same change, including any enumeration or count it carries ("two others remain open: A,
+  B") that the change's new instance makes wrong. Docs that ARE the change (new agent/command/skill documentation,
+  README rows describing a new capability, the change's idea removal) ship with the change's PR; docs that refresh facts
+  about a completed change ship as a separate docs PR — a newly parked idea that is not yet a change is such a docs PR.
+  A standalone `docs/ideas.md` edit that no change owns (a reword or a stale-fact correction) also ships as its own docs
+  PR, forked from `main`; an edit the change itself causes rides that change's branch. Do not read that last clause as
+  covering a **newly parked idea**: an open question the change's own sweep happened to surface is a new, independent
+  idea, not an artifact of the change, so it ships as its own docs PR forked from `main`. Only the change's own idea
+  removal, or prose about the thing it shipped, rides the change branch. Decide the owner before committing — a docs PR
+  forked from `main` cannot carry an edit committed on a change branch, so committing it there first for a clean tree
+  silently leaves it out of the docs PR and `main` unchanged — and verify the fix against the merged PR's diff rather
+  than the PR description, which can claim a change the diff does not contain. A parked-idea docs PR owes the refresh
+  too: fold any durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly
+  surfaced manual pin to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a fact left only there
+  is lost once the idea is implemented or dropped. `openspec/config.yaml`'s `context:` block is a second, un-gated copy
+  of the same project facts (runtime/Spring/Gradle versions, module count, service list, Docker image names) that
+  OpenSpec shows the AI when creating artifacts — refresh it in the same change whenever one of those facts moves. A
+  **removal** counts too: when a sweep deletes an entry as non-durable, check these copies for the same sentence — the
+  fact has not moved, so the move rule does not fire (`disable-axoniq-console-message`'s sentence outlived #292's
+  removal from `AGENTS.md` by four PRs in `config.yaml`, until the audit noticed). `openspec validate` never checks it,
+  so it drifts silently. The repository's own GitHub description and topics are a third un-gated copy of the same facts
+  — so refresh them in the change that moves one; no gate reads them and no auditor owns a surface outside the
+  repository. A file can also _depend_ on such a surface rather than describe one: `SECURITY.md`'s private-reporting
+  path is a dead end unless private vulnerability reporting is enabled. Enable the setting as part of the change that
+  ships the instruction — a repository setting leaves no diff, so a diff-only review cannot see it — and name the
+  enabling in the change's report. captured: park-retro-marking-idea (#281)
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
@@ -1950,26 +1956,27 @@ capture-stash-stale-copy
   are equal and neither reports the other as an update, while `Versions.highest`, which only this check needs, keeps a
   longer-spelling tiebreak so the _reported_ tag is the canonical form rather than the alias.
 - **A workflow tool pin belongs in the `toolingUpdates` check's declared list — it is the only thing that detects a
-  release.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates, `helmUpdates` /
-  `helm-updates.yml` the Helm CLI and pinned charts, `buildpackUpdates` / `buildpack-updates.yml` the Paketo builder and
-  buildpacks, `toolingUpdates` / `tooling-updates.yml` the versions pinned in workflow files (the OpenSpec, Snyk and
-  `pack` CLIs), and Dependabot covers `uses:` action refs. Add a pin to that check's declared list when you add it to a
-  workflow — its patterns are asserted to match exactly once, so a renamed input fails the task rather than reading as
-  current — and note that extending the list one pin at a time is how the OpenSpec pin, then the `pack` CLI, was each
-  missed in turn while the check did not exist. The `/opsx-tool-update` command regenerates the instruction files after
-  a release but does not detect one. (`java-version: '21'` and the opencode workflow's `model` input are deliberate
-  pins, not tooling currency — the model pin has its own multi-file bump sweep, see the OpenCode model-pin gotcha.) A
-  Snyk or pack bump cannot be verified locally: `workflowLint` (actionlint) proves only that the YAML lints, not that
-  the version tag is installable — the credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`)
-  is the first real execution. `workflowLint` also cannot see inside a quoted `gh api --jq` program — actionlint parses
-  the YAML and the shell, not the jq — so a malformed copied filter passes `check` and fails only on the scheduled run;
-  verify a new or edited update workflow by diffing it against the sibling it copies (a `tooling-updates.yml` jq filter
-  was missing a closing parenthesis, caught by that diff and by nothing in `check`). The same skew bites a guard keyed
-  off a tool's output: it must be verified against the version CI pins, not only the locally-installed one, since the
-  pinned CLI is what the gate actually runs and the output text it matches on may differ there. The same caution applies
-  to a proposed _fix_ attributed to a dependency bump: verify it exists in a released version, not only on the project's
-  default branch — a bump claimed to make a failure skip cleanly held on `actions/cache`'s `main` but in no release
-  (latest `v6.1.0`). captured: unify-tooling-currency-checks (#304)
+  release.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates (and, through the same
+  workflow, the web UI's npm dependencies), `helmUpdates` / `helm-updates.yml` the Helm CLI and pinned charts,
+  `buildpackUpdates` / `buildpack-updates.yml` the Paketo builder and buildpacks, `toolingUpdates` /
+  `tooling-updates.yml` the versions pinned in workflow files (the OpenSpec, Snyk and `pack` CLIs), and Dependabot
+  covers `uses:` action refs. Add a pin to that check's declared list when you add it to a workflow — its patterns are
+  asserted to match exactly once, so a renamed input fails the task rather than reading as current — and note that
+  extending the list one pin at a time is how the OpenSpec pin, then the `pack` CLI, was each missed in turn while the
+  check did not exist. The `/opsx-tool-update` command regenerates the instruction files after a release but does not
+  detect one. (`java-version: '21'` and the opencode workflow's `model` input are deliberate pins, not tooling currency
+  — the model pin has its own multi-file bump sweep, see the OpenCode model-pin gotcha.) A Snyk or pack bump cannot be
+  verified locally: `workflowLint` (actionlint) proves only that the YAML lints, not that the version tag is installable
+  — the credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real execution.
+  `workflowLint` also cannot see inside a quoted `gh api --jq` program — actionlint parses the YAML and the shell, not
+  the jq — so a malformed copied filter passes `check` and fails only on the scheduled run; verify a new or edited
+  update workflow by diffing it against the sibling it copies (a `tooling-updates.yml` jq filter was missing a closing
+  parenthesis, caught by that diff and by nothing in `check`). The same skew bites a guard keyed off a tool's output: it
+  must be verified against the version CI pins, not only the locally-installed one, since the pinned CLI is what the
+  gate actually runs and the output text it matches on may differ there. The same caution applies to a proposed _fix_
+  attributed to a dependency bump: verify it exists in a released version, not only on the project's default branch — a
+  bump claimed to make a failure skip cleanly held on `actions/cache`'s `main` but in no release (latest `v6.1.0`).
+  captured: unify-tooling-currency-checks (#304)
 - **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
   first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
   output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change

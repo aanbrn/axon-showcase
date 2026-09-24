@@ -24,9 +24,23 @@ jobs:
 
       - name: Set up Gradle cache
         uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-home-cache-includes: |
+            caches
+            notifications
+            nodejs
+
+      - name: Cache npm packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('showcase-web-ui/package-lock.json') }}
 
       - name: Run dependency update report
         run: ./gradlew dependencyUpdates
+
+      - name: Run web UI dependency update report
+        run: ./gradlew :showcase-web-ui:npmOutdated
 
       - name: Open or update the dependency updates issue
         shell: bash
@@ -52,6 +66,18 @@ jobs:
             in_gradle && /Gradle:/ { print; exit }
           ' "$report" 2>/dev/null)"
 
+          npm_report_file=showcase-web-ui/build/npm-outdated.txt
+          npm_exit_file=showcase-web-ui/build/npm-outdated.exit
+          npm_err_file=showcase-web-ui/build/npm-outdated.err.txt
+          npm_updates="$(cat "$npm_report_file" 2>/dev/null || true)"
+          npm_exit="$(cat "$npm_exit_file" 2>/dev/null || true)"
+
+          if [ -z "$npm_updates" ] && [ -n "$npm_exit" ] && [ "$npm_exit" != "0" ]; then
+            echo "The web UI dependency update report failed:" >&2
+            cat "$npm_err_file" || true
+            exit 1
+          fi
+
           has_updates=false
           if [ -n "$updates" ]; then
             has_updates=true
@@ -59,9 +85,15 @@ jobs:
           if [ -n "$gradle_version_line" ] && ! printf '%s' "$gradle_version_line" | grep -q "UP-TO-DATE"; then
             has_updates=true
           fi
+          if [ -n "$npm_updates" ]; then
+            has_updates=true
+          fi
 
           if [ "$has_updates" = true ]; then
             body="cc @$owner"$'\n\n'"\`\`\`text"$'\n'"$updates"$'\n'"$gradle"$'\n'"\`\`\`"
+            if [ -n "$npm_updates" ]; then
+              body="$body"$'\n\n'"**Web UI (npm)**"$'\n\n'"\`\`\`text"$'\n'"$npm_updates"$'\n'"\`\`\`"
+            fi
           else
             body="No stable catalog updates available."
           fi

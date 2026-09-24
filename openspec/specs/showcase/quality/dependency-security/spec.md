@@ -2,9 +2,9 @@
 
 ## Purpose
 
-Ensures the build does not ship known-vulnerable transitive dependencies: the platform constrains vulnerable transitives
-— Jackson 3 (`tools.jackson.core`), Apache HttpClient 5, `zstd-jni`, and `io.netty` — to patched versions so dependency
-scans report clean.
+Ensures the build does not ship known-vulnerable dependencies: the platform constrains vulnerable transitive
+dependencies — Jackson 3 (`tools.jackson.core`), Apache HttpClient 5, `zstd-jni`, and `io.netty` — to patched versions
+so the Snyk scan reports clean, and the web UI's npm dependencies are audited by `npmAudit`.
 
 ## Requirements
 
@@ -66,3 +66,29 @@ part of the `check` lifecycle.
 
 - **WHEN** a developer runs `./gradlew dependencySecurityCheck` without the Snyk CLI on `PATH`
 - **THEN** the task fails with a clear message that the Snyk CLI is required
+
+### Requirement: Web UI dependency vulnerability scan
+
+The build SHALL provide an `npmAudit` task that scans the web UI's npm dependencies with `npm audit`, covering both
+production and development dependencies, and failing when a high-severity (or greater) vulnerability is present. The
+task SHALL use the project's pinned Node and SHALL NOT be part of the `check` lifecycle.
+
+#### Scenario: Developer runs the web UI vulnerability scan
+
+- **WHEN** a developer runs `./gradlew :showcase-web-ui:npmAudit` and a high-severity vulnerability is present
+- **THEN** the task fails and reports the vulnerable npm package and its advisory
+
+#### Scenario: A development-dependency advisory is reported
+
+- **WHEN** a high-severity vulnerability is present in a development dependency
+- **THEN** the task fails, because the scan covers development as well as production dependencies
+
+#### Scenario: A clean web UI audit passes
+
+- **WHEN** a developer runs `./gradlew :showcase-web-ui:npmAudit` and no high-severity vulnerability is present
+- **THEN** the task completes successfully
+
+#### Scenario: Normal build does not run the web UI vulnerability scan
+
+- **WHEN** a developer runs `./gradlew check` or any build task other than `npmAudit`
+- **THEN** the web UI vulnerability scan does not run

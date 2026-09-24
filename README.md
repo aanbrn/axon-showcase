@@ -135,7 +135,7 @@ subscribed browser — all from one `POST /showcases`.
 - **Spotless** — palantir-java-format for Java, ktfmt for Kotlin/Gradle DSL, Prettier for markdown
 - **Checkstyle, SpotBugs, ErrorProne (NullAway + JSpecify), JaCoCo coverage gate** — all in `check`, no IDE required
 - **actionlint** — lints the GitHub Actions workflows
-- **Snyk** — dependency security scanning
+- **Snyk and `npm audit`** — dependency security scanning (JVM classpaths and web-UI npm packages)
 - **OpenSpec** — spec-driven behavior capture (`propose → apply → archive`)
 - **OpenCode** — the agentic coding tool driving the process: slash-commands, spec-aware subagents, a self-learning
   lesson-capture loop, on-request setup of its own tooling ([Tooling MCP Servers](#tooling-mcp-servers)), and a project
@@ -371,9 +371,9 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/audit-readme`              | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage (pro-model auditor)                                                                                     |
 | `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer                                                                                                                                                      |
 | `/retrospective`             | Periodic retrospective with improvement suggestions                                                                                                                                                                |
-| `/dependency-updates`        | Runs and summarizes the dependency update report                                                                                                                                                                   |
+| `/dependency-updates`        | Runs and summarizes the Gradle and web-UI dependency update reports                                                                                                                                                |
 | `/gradle-update`             | Updates the Gradle wrapper to the latest stable                                                                                                                                                                    |
-| `/dependency-security-check` | Runs the Snyk dependency security scan                                                                                                                                                                             |
+| `/dependency-security-check` | Runs the Snyk and web-UI npm dependency security scans                                                                                                                                                             |
 | `/opsx-tool-update`          | Regenerates the OpenSpec command/skill files after an openspec CLI release                                                                                                                                         |
 | `/ideas`                     | Lists and manages `docs/ideas.md`                                                                                                                                                                                  |
 
@@ -659,15 +659,17 @@ merges into `main`, with no bypass actors.
 images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same pipeline
 with Playwright) on a nightly schedule and via `workflow_dispatch` — observational, never a merge gate, no secrets.
 
-`.github/workflows/snyk.yml` runs the dependency security scan (`dependencySecurityCheck`, all sub-projects with the
-root `.snyk` policy) on a weekly schedule and via `workflow_dispatch`, authenticated with the `SNYK_TOKEN` secret —
+`.github/workflows/dependency-security.yml` runs the dependency security scans — the Snyk scan
+(`dependencySecurityCheck`, all sub-projects with the root `.snyk` policy, authenticated with the `SNYK_TOKEN` secret)
+and the web-UI npm audit (`:showcase-web-ui:npmAudit`) — on a weekly schedule and via `workflow_dispatch` —
 observational, never a merge gate.
 
-`.github/workflows/dependency-updates.yml` runs the Gradle dependency update report (`dependencyUpdates`) on a weekly
-schedule and via `workflow_dispatch`, opening or updating the "Dependency updates" issue with only the actionable
-sections of the report (stable catalog updates + Gradle wrapper status) using the `GITHUB_TOKEN` (`issues: write`). When
-there are actionable updates it posts a comment mentioning the repository owner (so they are notified); runs with no
-updates update the issue silently — observational, never a merge gate.
+`.github/workflows/dependency-updates.yml` runs the Gradle and web-UI dependency update reports (`dependencyUpdates` and
+`:showcase-web-ui:npmOutdated`) on a weekly schedule and via `workflow_dispatch`, opening or updating the "Dependency
+updates" issue with only the actionable sections (stable catalog updates + Gradle wrapper status + web UI npm updates)
+using the `GITHUB_TOKEN` (`issues: write`). When there are actionable updates it posts a comment mentioning the
+repository owner (so they are notified); runs with no updates update the issue silently — observational, never a merge
+gate.
 
 `.github/workflows/helm-updates.yml` runs the Helm update check (`helmUpdates`) on a weekly schedule and via
 `workflow_dispatch`, opening or updating the "Helm updates" issue with the actionable coordinates (the Helm CLI and
@@ -694,7 +696,9 @@ surfaced as a trigger to check rather than declared actionable — observational
 
 ```bash
 ./gradlew dependencyUpdates            # report available dependency updates
+./gradlew :showcase-web-ui:npmOutdated # report the web UI's outdated npm dependencies
 ./gradlew dependencySecurityCheck      # Snyk dependency security scan (needs Snyk CLI, not part of check)
+./gradlew :showcase-web-ui:npmAudit    # web UI npm vulnerability audit (not part of check)
 ./gradlew helmUpdates                  # report available Helm CLI/chart updates
 ./gradlew buildpackUpdates             # report available Paketo builder/buildpack updates
 ./gradlew toolingUpdates               # report available updates for the CLIs pinned in workflow files
@@ -710,7 +714,11 @@ per coordinate or group prefix in `config/dependency-updates/major-disabled.prop
 those coordinates are still reported. The suppression rationale for each coordinate is recorded in the
 `showcase/quality/dependency-management` spec. See ADR-0004 for the deferred Spring Boot 4 migration context.
 
-The `/dependency-updates` OpenCode command runs this report and summarizes the available updates; the `/gradle-update`
+The web UI's npm dependencies are covered separately: `:showcase-web-ui:npmOutdated` reports their available updates and
+`:showcase-web-ui:npmAudit` audits them for high-severity vulnerabilities. See ADR-0014 for why the web UI uses npm's
+own tooling rather than Snyk.
+
+The `/dependency-updates` OpenCode command runs these reports and summarizes the available updates; the `/gradle-update`
 command updates the Gradle wrapper to the latest stable version when one is available, and the `/opsx-tool-update`
 command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI release.
 

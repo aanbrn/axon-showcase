@@ -1,11 +1,15 @@
 ---
-description: Run Snyk security test across all Gradle sub-projects
+description: Run the JVM Snyk scan and the web UI npm audit
 ---
 
-Run `./gradlew dependencySecurityCheck` from the repository root and report the results.
+Run `./gradlew dependencySecurityCheck` (JVM, Snyk) and `./gradlew :showcase-web-ui:npmAudit` (web UI, `npm audit`) from
+the repository root and report the results.
 
 Report any vulnerabilities found, grouped by project and severity, and note any errors. Do not attempt to fix findings
 unless asked.
+
+The web UI's npm dependencies are audited separately by `:showcase-web-ui:npmAudit`, which fails on high-severity
+findings and needs no Snyk token or policy file (see ADR-0014).
 
 The scan passes `--policy-path=.snyk` (the root Snyk policy), which version-pins the ignored findings
 (`* > pkg@version`) so only the exact assessed vulnerable versions are suppressed, each with a short-term `expires` so

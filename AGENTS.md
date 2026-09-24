@@ -580,11 +580,12 @@ the default branch, so after it lands on `main` run `gh workflow run <file>` (no
 checks only the YAML) to exercise the workflow end to end — for an update check that is its report path, jq filter and
 tracker-issue lookup. captured: bump-snyk-cli-pin
 
-A dispatch verification cannot live as a task in the change dir: `openspec/changes/archive/` is invisible and no gate
-reads it, so an unchecked dispatch task is silently lost — both `fix-audit-workflow-report-formatting` and
-`notify-owner-from-the-audit-report` deferred their dispatch and archived it unchecked. Run `gh workflow run <file>` as
-part of the merge, or park the follow-up in `docs/ideas.md` and name it in the change's report. captured:
-notify-owner-from-the-audit-report (#327)
+A verification the local environment cannot run cannot live as a task in the change dir: `openspec/changes/archive/` is
+invisible and no gate reads it, so an unchecked task is silently lost — a dispatch
+(`fix-audit-workflow-report-formatting` and `notify-owner-from-the-audit-report` deferred theirs and archived them
+unchecked) and a cluster-gated live check alike. Run the check as part of the merge (for a dispatch,
+`gh workflow run <file>`), or park the follow-up in `docs/ideas.md` and name it in the change's report. captured:
+notify-owner-from-the-audit-report (#327) captured: expose-grafana-by-hostname
 
 `.github/workflows/audit.yml` runs the three repository audits (agent tooling, spec corpus, architecture) on a weekly
 schedule and via `workflow_dispatch`, through the OpenCode GitHub action's scheduled path (a `prompt` input, OIDC auth,
@@ -1386,8 +1387,12 @@ capture-stash-stale-copy
   here, so a trace is proven by reading what the deployed system actually emitted: the `traceparent` the browser really
   sent (`browser_network_request` with `part: request-headers`) and the exported trace from Tempo's API
   (`kubectl port-forward -n monitoring svc/tempo 3200`, `GET /api/traces/<trace-id>`, with the root server span parented
-  at the browser's id). A green `check` and a correct chart value prove the configuration, not the behavior. captured:
-  propagate-ui-trace-context (#362)
+  at the browser's id). A green `check` and a correct chart value prove the configuration, not the behavior. An agent
+  shell has no TTY to answer `sudo`, so `./setup-hosts.sh setup` stops at the `/etc/hosts` write — it prints the ingress
+  LoadBalancer address before that, so verify a hostname with a `Host:`-header curl against that address
+  (`curl -H "Host: axon-showcase-grafana" http://<address>/api/health`) and hand the write to the owner; record which
+  half ran rather than ticking a task on the script's assumed completion. captured: propagate-ui-trace-context (#362)
+  captured: expose-grafana-by-hostname
 - **Checking CI status**: don't poll a PR build with an idle `sleep` loop — use `gh run watch <run-id> --exit-status`
   (or `gh pr checks <pr> --watch`), which blocks until the check finishes and exits non-zero on failure. When the run id
   isn't known, fetch it once via the GitHub MCP `pull_request_read` / `get_check_runs` (or `gh run list`), then

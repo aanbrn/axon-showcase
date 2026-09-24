@@ -75,6 +75,38 @@ val npmTest =
         outputs.dir(layout.buildDirectory.dir("reports"))
     }
 
+val npmOutdated =
+    tasks.register<NpmTask>("npmOutdated") {
+        group = "help"
+        description = "Reports the web UI's outdated npm dependencies (writes build/npm-outdated.txt)."
+        dependsOn(npmCi)
+        args.set(listOf("run", "outdated:report"))
+
+        doLast {
+            val report = layout.buildDirectory.file("npm-outdated.txt").get().asFile
+            val error = layout.buildDirectory.file("npm-outdated.err.txt").get().asFile
+            val exit = layout.buildDirectory.file("npm-outdated.exit").get().asFile
+            val updates = report.takeIf { it.exists() }?.readText().orEmpty()
+            if (updates.isNotBlank()) {
+                logger.lifecycle("\nWeb UI dependency updates:\n$updates")
+            } else if (exit.takeIf { it.exists() }?.readText()?.trim() != "0") {
+                logger.error(
+                    "Web UI dependency update report failed:\n" + error.takeIf { it.exists() }?.readText().orEmpty()
+                )
+            } else {
+                logger.lifecycle("\nNo web UI dependency updates available.")
+            }
+        }
+    }
+
+val npmAudit =
+    tasks.register<NpmTask>("npmAudit") {
+        group = "verification"
+        description = "Audits the web UI's npm dependencies, failing on high-severity vulnerabilities."
+        dependsOn(npmCi)
+        args.set(listOf("audit", "--audit-level=high"))
+    }
+
 val npmDev =
     tasks.register<NpmTask>("viteDev") {
         group = "application"

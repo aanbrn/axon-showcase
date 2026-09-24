@@ -236,16 +236,6 @@ it was added (start a new section for a new day rather than appending to the mos
 
 ## 2026-09-04
 
-- Dependency updates for the web UI — parked; explore whether it's possible to check frontend dependency updates the way
-  the JVM modules do (`dependencyUpdates`), and whether we can also scan the web UI for dependency vulnerabilities. The
-  `dependency-updates` machinery currently only covers catalog-owned Gradle coordinates; the web UI's npm dependencies
-  (`package.json` / `package-lock.json`) are outside it. To explore: `npm outdated` / `npm audit` (and
-  `npm audit --omit=dev`) as analogues of `dependencyUpdates` / `dependencySecurityCheck`, wired as Gradle tasks or npm
-  scripts and reported like the existing update/security issues; whether the observability chart has no `*-image-tag`
-  for the UI (it is now a dedicated nginx image serving the built frontend), so a UI image-tag bump would be a manual
-  coordinate; and whether Snyk can also scan `package-lock.json` (the existing `dependencySecurityCheck` uses the Snyk
-  CLI with the root `.snyk` policy).
-
 - Enforce web UI conventions with tooling — parked; do as its own change after `add-web-ui` is merged. Prettier is a
   formatter, not a style linter: it gates formatting (width, quotes, semicolons) but not _conventions_. ESLint
   (correctness) and tsc (types) gate their slices, but two convention areas are currently human-review/AGENTS.md-only:

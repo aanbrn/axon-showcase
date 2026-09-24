@@ -29,9 +29,11 @@ open-source scans and is a single, well-understood root-level scan that honors t
 - One Gradle command, `./gradlew dependencySecurityCheck`, replaces the ad-hoc shell invocation as the entry point for
   the local dependency security check.
 - No Snyk token or account is needed for _local_ scans; the existing Snyk CLI and `.snyk` policy are reused. The
-  scheduled `snyk.yml` run authenticates with `SNYK_TOKEN`.
+  scheduled `dependency-security.yml` run authenticates the Snyk scan with `SNYK_TOKEN`.
 - The scan stays out of `check`, so a slow or flaky network scan never blocks normal builds; a developer runs it
   explicitly before merging.
-- Scheduled monitoring has since landed: `.github/workflows/snyk.yml` runs `./gradlew dependencySecurityCheck` weekly
-  (and on `workflow_dispatch`). CI enforcement remains deliberately absent — the scan stays out of `check`, so it never
-  gates a merge. Because the task is a plain root-level task, wiring it into the pipeline needed no extra machinery.
+- Scheduled monitoring has since landed: `.github/workflows/dependency-security.yml` runs
+  `./gradlew dependencySecurityCheck` weekly (and on `workflow_dispatch`), and its `web-ui-audit` job runs the web UI's
+  npm audit (`./gradlew :showcase-web-ui:npmAudit`) — a second, Snyk-free check for the frontend, recorded in ADR-0014.
+  CI enforcement remains deliberately absent — the scans stay out of `check`, so they never gate a merge. Because the
+  task is a plain root-level task, wiring it into the pipeline needed no extra machinery.

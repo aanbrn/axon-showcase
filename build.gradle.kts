@@ -293,7 +293,7 @@ tasks.register("toolingUpdates", ToolingUpdatesTask::class.java) {
             ),
             ToolingUpdateCheck(
                 name = "snyk-cli",
-                workflowFile = "snyk.yml",
+                workflowFile = "dependency-security.yml",
                 pinPattern = "snyk-version:\\s*(v?[0-9][^\\s]*)",
                 source = ToolingVersionSource.GITHUB_RELEASE,
                 sourceRef = "snyk/cli",
@@ -310,7 +310,7 @@ tasks.register("toolingUpdates", ToolingUpdatesTask::class.java) {
 
     pinFiles.from(
         layout.projectDirectory.file(".github/workflows/ci.yml"),
-        layout.projectDirectory.file(".github/workflows/snyk.yml"),
+        layout.projectDirectory.file(".github/workflows/dependency-security.yml"),
         layout.projectDirectory.file(".github/workflows/e2e.yml"),
     )
 

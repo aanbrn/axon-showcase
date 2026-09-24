@@ -38,7 +38,7 @@ user before reading or editing files outside this repo.
    - If `shuymn/gh-mcp` is absent from `gh extension list`, run `gh extension install shuymn/gh-mcp`.
    - If `opencode mcp list` shows no `github` server, run `opencode mcp add github -- gh mcp`. This writes the user's
      global config; the `-- <command>` form is not shown in `opencode mcp add --help`, but it is the non-interactive
-     path and preserves JSONC comments. An entry with no `enabled` key is enabled by default.
+     path and preserves JSONC comments. An entry with no `disabled` key is enabled by default.
 
 3. **Steroid (optional — IntelliJ IDEA only).**
    - Ask whether the user wants the agent to work through their live IDE. If not, skip this step — nothing in the repo
@@ -57,6 +57,6 @@ user before reading or editing files outside this repo.
 
 ## Notes
 
-- If `opencode mcp add` is unavailable, fall back to adding the entry under the `mcp` object in the user's
+- If `opencode mcp add` is unavailable, fall back to adding the entry under `mcp.servers` in the user's
   `~/.config/opencode/opencode.jsonc` directly (with their confirmation).
 - If a `github` or `steroid` server already exists, leave it and say so; do not duplicate it.

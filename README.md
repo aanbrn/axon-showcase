@@ -339,14 +339,14 @@ and installs the `gh-mcp` extension, handing back only what it can't do for you 
 The one that matters is **GitHub** (the agent reads PRs, issues, and CI checks); **Playwright** is already configured in
 the project, so there's nothing to set up.
 
-By hand, the auth-bound server (GitHub) goes under the top-level `mcp` object in your **global** config
+By hand, the auth-bound server (GitHub) goes under `mcp.servers` in your **global** config
 (`~/.config/opencode/opencode.jsonc`), not the project config — a project entry can't use your credentials:
 
 - **Playwright** (project) — the agent's browser: it drives the running web UI and captures screenshots for the `vision`
   subagent. It needs only Node/`npx` (no credentials).
 - **GitHub** — read PRs, issues, and CI checks. Run `gh auth login` (the server reuses your `gh` credentials), install
-  the `gh-mcp` extension (`gh extension install shuymn/gh-mcp`), then add
-  `"github": { "type": "local", "command": ["gh", "mcp"], "enabled": true }`.
+  the `gh-mcp` extension (`gh extension install shuymn/gh-mcp`), then add it under `mcp.servers`:
+  `"github": { "type": "local", "command": ["gh", "mcp"] }`.
 
 MCP config is read at startup, so restart OpenCode after adding one.
 
@@ -382,17 +382,17 @@ MCP config is read at startup, so restart OpenCode after adding one.
 Most verification runs entirely in the Gradle build, so the tool list is small. Gradle itself is not on it — the wrapper
 pins Gradle 9.7.1 and downloads it on first use.
 
-| Tool                   | Needed for                                                   | Install (macOS)                                                                   |
-| ---------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| **Java 21+**           | Building and running everything                              | `brew install --cask temurin@21`, or SDKMAN                                       |
-| **Docker & Compose**   | Infrastructure (PostgreSQL, Kafka, OpenSearch) and the stack | Docker Desktop, or `brew install colima docker`                                   |
-| **actionlint**         | The workflow-lint gate in `check`                            | `brew install actionlint`                                                         |
-| **`pack` CLI**         | Building the web-UI image                                    | `brew install buildpacks/tap/pack`                                                |
-| **Helm 4.x**           | Kubernetes deployment                                        | `brew install helm`                                                               |
-| **Kubernetes cluster** | The `helmInstallToLocal` target                              | kind, minikube, or colima with k3s                                                |
-| **OpenCode**           | The agentic development workflow (TUI or Desktop)            | `brew install opencode` / `brew install opencode-desktop`, or https://opencode.ai |
-| **Snyk CLI**           | `dependencySecurityCheck`                                    | `brew install snyk/tap/snyk`                                                      |
-| **Python 3**           | `scripts/setup-idea.sh` and the commit-hygiene guard/check   | Ships with macOS Command Line Tools                                               |
+| Tool                       | Needed for                                                   | Install (macOS)                                                     |
+| -------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
+| **Java 21+**               | Building and running everything                              | `brew install --cask temurin@21`, or SDKMAN                         |
+| **Docker & Compose**       | Infrastructure (PostgreSQL, Kafka, OpenSearch) and the stack | Docker Desktop, or `brew install colima docker`                     |
+| **actionlint**             | The workflow-lint gate in `check`                            | `brew install actionlint`                                           |
+| **`pack` CLI**             | Building the web-UI image                                    | `brew install buildpacks/tap/pack`                                  |
+| **Helm 4.x**               | Kubernetes deployment                                        | `brew install helm`                                                 |
+| **Kubernetes cluster**     | The `helmInstallToLocal` target                              | kind, minikube, or colima with k3s                                  |
+| **OpenCode v2** (or later) | The agentic development workflow (TUI or Desktop)            | `brew install anomalyco/tap/opencode-v2`, or https://opencode.ai/v2 |
+| **Snyk CLI**               | `dependencySecurityCheck`                                    | `brew install snyk/tap/snyk`                                        |
+| **Python 3**               | `scripts/setup-idea.sh` and the commit-hygiene guard/check   | Ships with macOS Command Line Tools                                 |
 
 Only **Java and Docker** are required to run the application. actionlint is needed for the full `check`; `pack` only
 when building the web-UI image; Helm, a cluster, and Snyk are only for deployment and security scanning; OpenCode is

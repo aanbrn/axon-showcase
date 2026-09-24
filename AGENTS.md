@@ -1038,37 +1038,33 @@ Key modules (libraries, not services):
   Playwright is project-configured. The README deliberately documents only GitHub (and the project-configured
   Playwright): Steroid is optional, IDEA-only, and nothing in the repo requires it (formatting is Spotless), so it is
   surfaced on demand via `/setup-agent-tools` rather than advertised — do not re-add it to the README's server list.
-- **Agent scratch files go in `$TMPDIR/opencode`, and a plugin — not a path pattern — grants that directory.**
-  `.opencode/opencode.json` can name it only where `TMPDIR` is already set without a trailing separator: a permission
-  pattern expands a leading `~`/`$HOME` and also `{env:VAR}` (config substitution runs over the whole file), but
-  `{env:TMPDIR}` carries macOS's trailing separator through (`…/T//opencode/**`, which does not match the real path),
-  and an unset `TMPDIR` substitutes to an empty string, so there is no fallback where the temp dir is `/tmp`.
-  `.opencode/plugin/grant-cli-config-dirs.ts` resolves the directory with `tmpdir()` from `node:os` instead — the same
-  path without the trailing separator, and the cross-platform temp dir — and its `config` hook adds
-  `<tmpdir>/opencode/**` to `external_directory`. The plugin also grants the **globally-installed `openspec` package**
-  (`<resolved package root>/**`), resolved from the `openspec` binary's realpath so a per-machine prefix is not
-  hard-coded: the CLI reads its own schema templates from there, which is outside the workspace, and an unattended cloud
-  run cannot answer the `external_directory` prompt it otherwise raises (the run hangs — a `/oc` run was found stuck on
-  exactly `/usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/*`). The resolution runs at
-  OpenCode init, so the CLI must already be on `PATH` by then: the agent workflows therefore **install it as a step
-  before the action** (pinned, as `ci.yml` does) rather than letting the agent install it mid-run, which is too late for
-  the grant. Its absence drops only that entry, so the scratch grant survives. Only a real cloud run exercises this path
-  — no local session (where `openspec` is already on `PATH`) and no CI job does, since the `build` gate runs no action
-  and `workflowLint` checks only the YAML — so a green `check` does not validate the grant. Put PR-body files and
-  similar there, and keep the allow-list in the plugin: `.opencode/plugin/*.ts` is auto-discovered (OpenCode's built-in
-  `customize-opencode` skill names both `.opencode/plugin/` and `.opencode/plugins/`), and its `config(cfg)` hook runs
-  once on init with the live merged config and may mutate it. Its dependencies live in a **tracked**
-  `.opencode/package.json` (OpenCode installs them at startup and can also update its own plugin pin there) with a
-  `.opencode/tsconfig.json` beside it declaring `types: ["node"]`, so an editor resolves the plugin's `node:os` import —
-  no build step type-checks that directory. `.opencode/.gitignore` keeps only `node_modules` and the lockfiles out of
-  the repo. Scope the _temp_ grant to the named scratch subdirectory — never the whole OS temp root, which would grant
-  every application's temporary files. Upstream, the portable default this needs is asked for in
-  `anomalyco/opencode#48100` — if it lands, drop the plugin's grant and use the built-in.
+- **Agent scratch files go in `$TMPDIR/opencode`, which OpenCode v2 allows by default.** v2's managed temporary
+  directory _is_ `<tmpdir>/opencode` (`opencode debug paths`), and its permissions docs say v2 allows
+  `external_directory` access to that directory, so no rule is needed; put PR-body files and similar there — including a
+  subagent's own probe scratch, which should be created under `$TMPDIR/opencode` rather than `/tmp`, so it needs no
+  grant. Scope any temp grant to a named scratch subdirectory — never the whole OS temp root (`/tmp`, i.e. macOS's
+  `/private/tmp`), which would grant every application's temporary files; that is why `/private/tmp` is not in the
+  config. The other external paths an unattended run needs are granted declaratively in `.opencode/opencode.json`'s
+  `permissions` array: the **`gh` CLI's config directory** as `$HOME/.config/gh/*`, and the **globally-installed
+  `openspec` package** as `*/@fission-ai/openspec/*` — the CLI reads its own schema templates from an
+  outside-the-workspace package directory, and an unattended cloud run cannot answer the prompt it would otherwise raise
+  (a `/oc` run was found stuck on exactly
+  `/usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/*`); the wildcard covers the
+  per-machine prefix, so nothing is resolved at init. Only reading that package tree outside the workspace exercises the
+  `openspec` grant, and no CI job does — the `build` gate runs no action and `workflowLint` checks only the YAML — so a
+  green `check` does not validate it. This replaced a v1 plugin (`.opencode/plugin/grant-cli-config-dirs.ts`) whose
+  `config` hook injected the grants: OpenCode v2 changed the plugin contract and its typed plugin API has no permission
+  hook, so the plugin no longer loaded and was retired. v2 pre-approves the machine-specific `<tmpdir>/opencode`, which
+  is enough for this repo; `anomalyco/opencode#48100` asks for a portable default and remains open upstream.
+  `.opencode/package.json` (tracked) holds the dependencies OpenCode installs at startup — the `@opencode-ai/plugin`
+  package stays because the v2 binary installs it into each `.opencode/` at startup. `.opencode/.gitignore` keeps only
+  `node_modules` and the lockfiles out of the repo.
 
-The same plugin, `.opencode/plugin/grant-cli-config-dirs.ts`, also grants the **`gh` CLI's config directory**
-(`$GH_CONFIG_DIR`, else `$XDG_CONFIG_HOME/gh`, else `~/.config/gh` — resolved the way `gh` resolves it, so
-`/home/runner/.config/gh` on a runner and a home path locally both match): the agent invokes `gh`, which consults that
-directory, and a missing grant hangs the run the same way (an `/oc` run was found stuck on `/home/runner/.config/gh/*`).
+The `.opencode/opencode.json` `permissions` grant for the **`gh` CLI's config directory** is `$HOME/.config/gh/*`: the
+agent invokes `gh`, which consults that directory (outside the workspace), and a missing grant hangs an unattended run
+(an `/oc` run was found stuck on `/home/runner/.config/gh/*`). v2 expands `~`/`$HOME` and substitutes `{env:VAR}` in a
+pattern, but an unset `{env:VAR}` substitutes to an empty string (a pattern matching every path), so the config grants
+the `$HOME` default and a run that sets `$GH_CONFIG_DIR` or `$XDG_CONFIG_HOME` elsewhere still prompts.
 
 ## Docker Images
 
@@ -1583,10 +1579,11 @@ capture-stash-stale-copy
     failing tool reads, not the artifact's own directory — and treat a different error as its own signal. captured:
     fix-tmpdir-plugin-types (#299) The context is temporal as well as spatial: a plugin hook or a config read runs at
     process init, so a standalone execution proves what the artifact emits but never that its inputs exist by then. The
-    `.opencode/plugin/grant-cli-config-dirs.ts` grant was proved with a `bun` run (every grant emitted), yet in the
-    cloud run the agent installed `openspec` mid-run, after init, so the resolved-path grant could not exist and the run
-    hung. Exercise the artifact at the lifecycle point it runs in (check the workflow's step order against the
-    artifact's run point), not only its own invocation. captured: grant-openspec-global-access-in-cloud (#325)
+    now-retired `.opencode/plugin/grant-cli-config-dirs.ts` grant was proved with a `bun` run (every grant emitted), yet
+    in the cloud run the agent installed `openspec` mid-run, after init, so the resolved-path grant could not exist and
+    the run hung — the config wildcard that replaced it removes the init-time dependency. Exercise the artifact at the
+    lifecycle point it runs in (check the workflow's step order against the artifact's run point), not only its own
+    invocation. captured: grant-openspec-global-access-in-cloud (#325)
 
 - **Run `spotlessApply` after the _final_ write to a Spotless-owned file — ticking a checklist task is an edit too.** A
   `tasks.md` task was ticked ("`spotlessCheck` passes") _after_ the last `spotlessApply`; the re-wrapped prose broke
@@ -1802,7 +1799,7 @@ capture-stash-stale-copy
   artifacts called `c62feda` one of "two Spotless commits" that reflowed `AGENTS.md`, but `c62feda` created the file
   (164 insertions, and `AGENTS.md` is absent at its parent); a review caught it. If the only source is the conversation,
   omit it or label it as the owner's account; for an outcome you did not observe, state the mechanism ("a bash-script
-  write runs under `permission.bash`") rather than the observation ("it did not prompt"). Point-in-time narrative
+  write runs under the `shell` permission") rather than the observation ("it did not prompt"). Point-in-time narrative
   belongs in a change's archived artifacts, not in a durable one. A claim about a surface **outside** the repository — a
   registry's contents, a repository setting, a live URL — has no config file or commit behind it, so its evidence is a
   query whose output you have: run it before writing the claim, and re-run it at review, because such a surface can
@@ -1855,8 +1852,7 @@ capture-stash-stale-copy
   caught the false premise. Before designing around a limitation ("this can't be automated"), verify it by trying the
   command or reading its source/docs — do not infer impossibility from a help screen. The same holds for a capability
   the docs describe only _partially_: the permissions docs name `~`/`$HOME` pattern expansion, and an `AGENTS.md` bullet
-  concluded `{env:VAR}` was unsupported — it is not, and the scratch-files convention records the substitution plus the
-  `{env:TMPDIR}` trailing-separator caveat. That false limitation survived the review gate and was only caught by
+  wrongly concluded `{env:VAR}` was unsupported. That false limitation survived the review gate and was only caught by
   reading the source, because a tool's behavior is not repo-evidenced and no in-repo gate can check it. Treat a doc's
   account of a feature as a floor, not a boundary, and verify a tool-behavior claim against the source/CLI before
   writing it into a durable artifact. Confirm too that the file you read is the code path that runs: a package can hold
@@ -2040,20 +2036,20 @@ capture-stash-stale-copy
   merge, reword the task to record what is deferred, where it went, and the owner's chosen order, then **tick it** — an
   unchecked box inside `archive/` is invisible and no gate reads it. That is not the rule above: the smoke-run itself is
   never deferred, only a task the owner explicitly decouples.
-- **Prove a permission rule is applied by reading the OpenCode log, not by the absence of a prompt.** OpenCode records
-  every evaluation in `~/.local/share/opencode/log/opencode.log`, in a line carrying
+- **Prove a permission rule reached the configuration with `opencode debug config`; the v1 log line that proved it
+  _matched_ a call is gone under v2.** v1 recorded every evaluation in `~/.local/share/opencode/log/opencode.log` as
   `message=evaluated permission=<key>`, `action.pattern=<resolved rule>` and `action.action=<action>` (the field order
-  varies by entry) — `action.pattern` is the rule that actually matched. A plugin-supplied rule exists in no config
-  file, so that line is the proof it _matched a call_ (the `$TMPDIR/opencode` grant was verified this way); a prompt
-  that does not appear does not say which pattern allowed the call. For the static half,
-  `OPENCODE_CONFIG_CONTENT='<json>' opencode debug config` prints the merged config without a restart — proving
-  `{env:VAR}` substitution (`{env:FOO}/**` with `FOO=/x` prints `/x/**`) and showing a plugin-injected rule (under
-  `permission.external_directory`, with `plugin_origins` naming the plugin). `debug config` proves a rule reached the
-  merged config; the log line proves it matched.
-- **`external_directory` and `permission.bash` are separate permission keys.** `external_directory` governs the file
-  tools (`read`/`edit`/`write`/`glob`/`grep`) and path-taking commands, while a script's own out-of-tree writes run
-  under `permission.bash` — so removing the blanket `/tmp/**` allow from `external_directory` leaves a bash-script write
-  such as `setup-hosts.sh`'s unaffected, and a temp-root grant should not be re-added there for it.
+  varies by entry), and `action.pattern` was the rule that actually matched; a prompt that does not appear does not say
+  which pattern allowed the call. v2 emits no such line — none appears after the 2026-09-23 migration — so matching is
+  no longer directly observable, and the static half is the reachable proof: `opencode debug config` lists the
+  configuration sources and each one's normalized document. The log also records your own commands, as
+  `message="spawning process"` lines, so a search for a token matches its own invocation — a
+  `grep 'evaluated permission'` over the log returns its own command lines as hits; exclude them
+  (`grep -v 'spawning process'`) before reading a count as evidence. captured: retire-opencode-permission-plugin
+- **`external_directory` and the `shell` permission are separate actions.** `external_directory` governs the file tools
+  (`read`/`edit`/`write`/`glob`/`grep`) and path-taking commands, while a script's own out-of-tree writes run under the
+  `shell` action (`permission.bash` in v1) — so removing the blanket `/tmp/**` allow from `external_directory` leaves a
+  bash-script write such as `setup-hosts.sh`'s unaffected, and a temp-root grant should not be re-added there for it.
 
 - **Caffeine's `AsyncCache.getIfPresent` returns `null` for a future that completed exceptionally — a failed cached
   future is indistinguishable from a cache miss.** A cached `CompletableFuture` that failed is not surfaced:

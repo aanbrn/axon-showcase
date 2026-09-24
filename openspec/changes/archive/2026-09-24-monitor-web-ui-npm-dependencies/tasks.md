@@ -82,10 +82,10 @@
 - [x] 3.4 Remove the "Dependency updates for the web UI" idea from `docs/ideas.md`. Verify
       `grep -rn "Dependency updates for the web UI" docs/ideas.md` returns nothing. — Done: removed; the `2026-09-04`
       section keeps its other entry.
-- [ ] 3.5 Record the capability `## Purpose` refreshes owed at archive (a delta cannot carry a Purpose):
+- [x] 3.5 Record the capability `## Purpose` refreshes owed at archive (a delta cannot carry a Purpose):
       `showcase/quality/dependency-management` (its Purpose scopes the capability to the `dependencyUpdates` report) and
       `showcase/quality/dependency-security` (scopes it to platform-constrained transitives). Apply both in the archive
-      commit and name the deferral in the report. — Recorded; applied in the archive commit.
+      commit and name the deferral in the report. — Done: both Purposes refreshed in the archive commit.
 - [x] 3.6 Add `docs/adr/0014-web-ui-npm-dependency-checks.md` (Nygard format, `Status: Accepted`) recording the choices
       this change makes — npm `outdated`/`audit` for the web UI rather than Snyk-on-npm, the checks surfaced through the
       existing workflows, and the absent npm suppression mechanism — with the rejected alternatives; index it in

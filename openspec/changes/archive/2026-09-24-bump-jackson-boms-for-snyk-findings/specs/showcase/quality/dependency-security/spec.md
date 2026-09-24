@@ -1,13 +1,6 @@
-# showcase/quality/dependency-security Specification
+# dependency-security — Delta
 
-## Purpose
-
-Ensures the build does not ship known-vulnerable dependencies: the platform constrains vulnerable transitive
-dependencies — Jackson 3 (`tools.jackson.core`), Jackson 2 (`com.fasterxml.jackson.core`), Apache HttpClient 5,
-`zstd-jni`, and `io.netty` — to patched versions so the Snyk scan reports clean, and the web UI's npm dependencies are
-audited by `npmAudit`.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Vulnerable transitive dependencies are constrained to patched versions
 
@@ -53,51 +46,3 @@ fixes the reported issue (at least `4.2.18.Final`).
   `showcase-query-service` report a vulnerable path for Jackson 3 or `httpclient5`, no sub-project reports one for
   Jackson 2, `zstd-jni`, or `io.netty`, and the only suppressed findings are those pinned in `.snyk` with a stated
   reason and expiry
-
-### Requirement: Local dependency security scan task
-
-The build SHALL provide a `dependencySecurityCheck` Gradle task that runs the Snyk dependency scan
-(`snyk test --all-sub-projects`) across all sub-projects and reports the result to the developer. The task SHALL NOT be
-part of the `check` lifecycle.
-
-#### Scenario: Developer runs the dependency security scan
-
-- **WHEN** a developer runs `./gradlew dependencySecurityCheck` with the Snyk CLI installed
-- **THEN** the task invokes `snyk test --all-sub-projects` against the build and reports the scan result, failing when
-  vulnerable paths are found
-
-#### Scenario: Normal build does not run the dependency scan
-
-- **WHEN** a developer runs `./gradlew check` or any build task other than `dependencySecurityCheck`
-- **THEN** the dependency scan does not run
-
-#### Scenario: Snyk CLI is not installed
-
-- **WHEN** a developer runs `./gradlew dependencySecurityCheck` without the Snyk CLI on `PATH`
-- **THEN** the task fails with a clear message that the Snyk CLI is required
-
-### Requirement: Web UI dependency vulnerability scan
-
-The build SHALL provide an `npmAudit` task that scans the web UI's npm dependencies with `npm audit`, covering both
-production and development dependencies, and failing when a high-severity (or greater) vulnerability is present. The
-task SHALL use the project's pinned Node and SHALL NOT be part of the `check` lifecycle.
-
-#### Scenario: Developer runs the web UI vulnerability scan
-
-- **WHEN** a developer runs `./gradlew :showcase-web-ui:npmAudit` and a high-severity vulnerability is present
-- **THEN** the task fails and reports the vulnerable npm package and its advisory
-
-#### Scenario: A development-dependency advisory is reported
-
-- **WHEN** a high-severity vulnerability is present in a development dependency
-- **THEN** the task fails, because the scan covers development as well as production dependencies
-
-#### Scenario: A clean web UI audit passes
-
-- **WHEN** a developer runs `./gradlew :showcase-web-ui:npmAudit` and no high-severity vulnerability is present
-- **THEN** the task completes successfully
-
-#### Scenario: Normal build does not run the web UI vulnerability scan
-
-- **WHEN** a developer runs `./gradlew check` or any build task other than `npmAudit`
-- **THEN** the web UI vulnerability scan does not run

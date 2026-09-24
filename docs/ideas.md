@@ -12,6 +12,22 @@ graduates into a concrete candidate for work, it may be promoted to a GitHub iss
 change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section dated when
 it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-09-25
+
+- Record the `dependency-updates` tracker's catalog-extraction gap — parked; no change yet. The workflow's extraction
+  (`dependency-updates.yml`) keys on a `The following dependencies have newer versions:` section, but the pinned
+  `gradle-versions-plugin` 0.61.0 emits only `The following dependencies have later <revision> versions:` (its
+  `revision` defaults to `milestone`), so the tracker's catalog section is always empty and a stable catalog update
+  (e.g. `caffeine [3.2.4 -> 3.3.0]`) never reaches the issue. The `merge-governance` "no stable catalog updates"
+  scenario and `.opencode/commands/dependency-updates.md` share the same "milestone section is non-actionable" premise,
+  so a fix (set the plugin's `revision`, or match the emitted header) is a change with a `merge-governance` delta.
+
+- Suppress or schedule the web UI's npm major updates — parked; no change yet. The web UI's npm report (`npmOutdated`)
+  lists its major updates every run (`react`/`react-dom` 18 → 19, `vite` 6 → 8, `typescript` 5 → 7, `vitest` 3 → 5,
+  `jsdom` 25 → 30, `@vitejs/plugin-react` 4 → 6, `@types/react(-dom)` 18 → 19) with no suppression mechanism, unlike the
+  JVM's `config/dependency-updates/major-disabled.properties`, so the weekly tracker keeps re-listing them until a
+  suppression list (or the migration) lands.
+
 ## 2026-09-24
 
 - Scan the source tree for secrets — parked; no change yet. `dependencySecurityCheck` (Snyk) scans dependencies, not

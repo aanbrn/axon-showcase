@@ -632,9 +632,9 @@ verifying a single chart without building images.
 
 #### Access the Deployed System
 
-The deployment exposes the API gateway and the web UI through the cluster's ingress controller at the hostnames
-`axon-showcase-api` and `axon-showcase-ui`. To reach them by hostname instead of a `Host:`-header curl workaround,
-manage the `/etc/hosts` entries once per cluster (requires sudo):
+The deployment exposes the API gateway, the web UI, and Grafana through the cluster's ingress controller at the
+hostnames `axon-showcase-api`, `axon-showcase-ui`, and `axon-showcase-grafana`. To reach them by hostname instead of a
+`Host:`-header curl workaround, manage the `/etc/hosts` entries once per cluster (requires sudo):
 
 ```bash
 ./setup-hosts.sh setup
@@ -642,9 +642,9 @@ manage the `/etc/hosts` entries once per cluster (requires sudo):
 
 The script detects the ingress controller's LoadBalancer address generically against your current kube context (colima
 with Traefik, kind/minikube with ingress-nginx, and similar). After it runs, open http://axon-showcase-ui in the browser
-for the web UI and use http://axon-showcase-api for the API (e.g. `curl http://axon-showcase-api/showcases`). The
-address can change on cluster restart — re-run `./setup-hosts.sh setup` to refresh, or `./setup-hosts.sh remove` to
-clean up.
+for the web UI, use http://axon-showcase-api for the API (e.g. `curl http://axon-showcase-api/showcases`), and open
+http://axon-showcase-grafana for Grafana. The address can change on cluster restart — re-run `./setup-hosts.sh setup` to
+refresh, or `./setup-hosts.sh remove` to clean up.
 
 ### Continuous Integration
 
@@ -750,13 +750,9 @@ and Tempo into the `monitoring` namespace alongside the application. The local d
   Explore. The web UI propagates W3C trace context on its API calls, so a page load's requests join one trace that
   continues through the gateway into the command and query services.
 
-Grafana is reached by port-forwarding to its service:
-
-```bash
-kubectl port-forward -n monitoring svc/kps-grafana 3000:80
-```
-
-Then open http://localhost:3000. Traces are available in the Tempo data source under Grafana → Explore.
+Grafana is reachable through the same ingress at http://axon-showcase-grafana (see
+[Access the Deployed System](#access-the-deployed-system)). Traces are available in the Tempo data source under Grafana
+→ Explore.
 
 ## License
 

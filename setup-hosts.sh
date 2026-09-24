@@ -3,11 +3,12 @@ set -euo pipefail
 
 # Resolves the local cluster's ingress-controller LoadBalancer address (IP or hostname, detected generically
 # against the current kube context: colima + Traefik, kind/minikube + ingress-nginx, ...) and manages the
-# /etc/hosts entries for the deployed ingress hostnames (axon-showcase-api, axon-showcase-ui), so the API gateway
-# and web UI are reachable by hostname instead of a Host-header curl workaround.
+# /etc/hosts entries for the deployed ingress hostnames (axon-showcase-api, axon-showcase-ui,
+# axon-showcase-grafana), so the API gateway, the web UI, and Grafana are reachable by hostname instead of a
+# Host-header curl workaround.
 # Usage: ./setup-hosts.sh [setup|remove]  (requires a running local cluster and sudo for /etc/hosts).
 
-HOSTNAMES="axon-showcase-api axon-showcase-ui"
+HOSTNAMES="axon-showcase-api axon-showcase-ui axon-showcase-grafana"
 MARKER="axon-showcase ingress (managed by setup-hosts.sh)"
 
 usage() {

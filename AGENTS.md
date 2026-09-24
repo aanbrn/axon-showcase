@@ -817,7 +817,7 @@ Key modules (libraries, not services):
   and README-design-intent conventions cover _how_ it is presented; this is the _what_ to look for). Prefer
   experience-oriented framing ("watch the saga auto-start it") over plumbing descriptions. If a feature is deliberately
   not surfaced, note the omission rather than leaving it silent. Examples that were nearly missed: how to reach the
-  deployed system (the `setup-hosts.sh` hostnames) and the observability access path (the Grafana port-forward).
+  deployed system (the `setup-hosts.sh` hostnames) and the observability access path (the Grafana hostname).
 - **Confirm a diagram's semantic mapping with the user before iterating its geometry.** A diagram is a rendering of a
   fixed mapping — which span starts where and ends where; once the mapping is agreed, alignment is mechanical. The
   README OpenSpec-flow diagram consumed many revision cycles (quick + thorough reviews, multiple layouts) because the
@@ -1195,11 +1195,12 @@ labels nothing consumes. A `*-client` label with no matching infra release is de
 This was explored as a chart-default change and reverted; the labels belong co-located with the netpol restrictions that
 require them.
 
-The local values expose the API gateway and web UI via ingress at the hostnames `axon-showcase-api` and
-`axon-showcase-ui` respectively. To reach them by hostname (instead of a `Host:`-header curl workaround), run
-`./setup-hosts.sh setup`, which detects the local cluster's ingress-controller LoadBalancer address generically (against
-the current kube context, so it works on colima + Traefik, kind/minikube + ingress-nginx, etc.) and manages the
-`/etc/hosts` entries (`./setup-hosts.sh remove` to clean up; re-run `setup` if the address changes on cluster restart).
+The local values expose the API gateway, the web UI, and Grafana via ingress at the hostnames `axon-showcase-api`,
+`axon-showcase-ui`, and `axon-showcase-grafana`. To reach them by hostname (instead of a `Host:`-header curl
+workaround), run `./setup-hosts.sh setup`, which detects the local cluster's ingress-controller LoadBalancer address
+generically (against the current kube context, so it works on colima + Traefik, kind/minikube + ingress-nginx, etc.) and
+manages the `/etc/hosts` entries (`./setup-hosts.sh remove` to clean up; re-run `setup` if the address changes on
+cluster restart).
 
 **The live event stream's continuity depends on the ingress read timeout.** The gateway emits an SSE keep-alive at
 `apiGateway.events.keepAliveInterval` (default `PT15S`), so a quiet period still carries bytes; keep that interval below

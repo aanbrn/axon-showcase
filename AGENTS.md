@@ -918,8 +918,8 @@ Key modules (libraries, not services):
 - **Agents-auditor subagent for agent-tooling maintenance**: the `agents-auditor` subagent
   (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
   `.opencode/` files — for the drift an accretion-only set produces: entries contradicted elsewhere, stale enumerations,
-  dead cross-references, near-duplicate gotchas. Its finding classes (merge and removal candidates, the advisory class
-  for excluded files, the accreted meta rules with their origins) and the shared report contract are specified in
+  dead cross-references, near-duplicate gotchas. Its finding classes (merge, removal, and route candidates, the advisory
+  class for excluded files, the accreted meta rules with their origins) and the shared report contract are specified in
   `showcase/quality/agent-skills` — see there rather than here. The boundary is a **provenance partition**: it never
   _fixes_ what the repo does not author (the generated OpenSpec instruction files and the vendored `axon4to5-*` skills),
   though it still _reads_ them and reports an advisory item where one contradicts how the repo uses it — a

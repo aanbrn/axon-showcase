@@ -23,6 +23,9 @@
       candidates alongside merge and removal.
 - [x] 2.2 Update `README.md`: the agent-table `agents-auditor` row, the `/audit-agents` slash-command row, and the
       "guidance and tooling are audited" prose to name route candidates.
+- [x] 2.3 (Smoke-run follow-up) Trim the `AGENTS.md` `Line Length` bullet's inline markdown-scope enumeration to its
+      existing pointer at the `Formatting` convention, which already carries the scope and its generated/vendored
+      exclusions — the redundancy the 5.3 smoke-run surfaced as a merge candidate, against the `Avoid redundancy` rule.
 
 ## 3. Spec capture
 
@@ -50,9 +53,15 @@
       requirement has, plus the two new ones.
 - [x] 5.2 Run `./gradlew spotlessApply` after the final edit to any Spotless-owned file, then confirm `spotlessCheck`
       and the PR gate (`./gradlew check -PskipITs -Pcoverage.gate.enabled=false`) are green.
-- [ ] 5.3 Smoke-test the widened subagent after an OpenCode reload (a changed definition is read at session start), with
-      both controls: a rule whose subject a deterministic mechanism enforces (it must report a route candidate naming
-      the mechanism) and a rule detectable only by review (it must not report it). Verify each seed's premise against
-      the repository before reading the run, and record which branch the run exercised.
-- [ ] 5.4 Run `review-quick` over the implementation diff, fix its findings, re-run until clean, then request the user's
-      manual review pass before committing.
+- [x] 5.3 Smoke-test the widened subagent after an OpenCode reload, with both controls: a rule whose subject a
+      deterministic mechanism enforces (it must report a route candidate naming the mechanism) and a rule detectable
+      only by review (it must not report it). Run 2026-09-24: `WIDENED: yes` (the definition carried the route
+      analysis); the positive control was reported as a `route` candidate naming the Spotless `licenseHeader` gate
+      (`code-check-conventions.gradle.kts:28`, wired into `check`); the negative control (constructor-over-field
+      injection) was reported with no disposition, citing "review is not a gate". Seeds reverted. Beyond the seeds the
+      run surfaced a merge candidate (the Line Length bullet re-lists the markdown scope the Formatting convention
+      already enumerates; trimmed under 2.3) and one low item verified as not a defect ("the four audits" and "the three
+      repository audits" are different groupings — all four auditor subagents vs. the three scheduled ones — both
+      correct; the "no human paces" phrase is loose for the on-demand passes, an owner's wording call).
+- [x] 5.4 Ran `review-quick` over the implementation diff to clean and the user gave the manual review pass; committed
+      as `f5472b0` and opened PR #384 (the smoke-run follow-up diff got a further quick-review round).

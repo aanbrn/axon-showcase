@@ -21,6 +21,9 @@ excluded: the rule is often what makes the reviewer look, and review is not a ga
 - **Review-detectability is stated as _not_ a criterion.** A rule whose only detector is a review — a human's or a
   review subagent's — is not a removal or route candidate: review is not a gate, and the rule may itself be what makes
   the violation visible to the reviewer.
+- **A smoke-run follow-up trim.** The implementation smoke-run surfaced a pre-existing redundancy the widened audit's
+  merge analysis owns: the `Line Length` bullet re-lists the markdown scope the `Formatting` convention already
+  enumerates, against the `Avoid redundancy` rule, so the bullet is trimmed to its pointer.
 
 ## Capabilities
 
@@ -38,7 +41,8 @@ excluded: the rule is often what makes the reviewer look, and review is not a ga
 - `.opencode/agent/agents-auditor.md` — the conciseness axis gains the route analysis and the review bound; the finding
   labels and the report-contract verdict line name `route`.
 - `.opencode/commands/audit-agents.md` — the output description names the third count.
-- `AGENTS.md` — the agents-auditor bullet's finding-class parenthetical names route candidates.
+- `AGENTS.md` — the agents-auditor bullet's finding-class parenthetical names route candidates; the `Line Length`
+  bullet's duplicated markdown-scope enumeration is trimmed to the `Formatting` convention's pointer.
 - `README.md` — the agent-table row, the `/audit-agents` row, and the auditor prose name route candidates.
 - `openspec/specs/showcase/quality/agent-skills/spec.md` — the tooling-audit requirement is extended (a delta); the
   `## Purpose` is refreshed in the archive commit.

@@ -2,10 +2,10 @@
 
 ## Line Length
 
-- Wrap code and text at 120 characters. Markdown (`docs/`, `AGENTS.md`, `README.md`, `SECURITY.md`, `openspec/specs/`,
-  active `openspec/changes/*/`, the `.github/` markdown, and the project-authored `.opencode/` markdown) needs no manual
-  wrapping — it is formatter-wrapped and gated in `check`, as is the `.opencode/opencode.json` config; Java/Kotlin are
-  gated by Spotless too. See the `Formatting` convention for the per-file-type mechanics and the exact scope.
+- Wrap code and text at 120 characters. Markdown needs no manual wrapping — it is formatter-wrapped and gated in
+  `check`, as is the `.opencode/opencode.json` config; Java/Kotlin are gated by Spotless too. See the `Formatting`
+  convention for the per-file-type mechanics and the exact markdown scope — which paths are gated, and which generated
+  or vendored ones are excluded.
 
 ## Project Overview
 

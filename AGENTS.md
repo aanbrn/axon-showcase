@@ -543,7 +543,8 @@ since that is an included build).
 
 The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (dependencies, wrapper, and local build
 cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the
-coverage gate. The `.github/workflows/ci.yml` and `.github/workflows/e2e.yml` workflows additionally extend
+coverage gate. The workflows that build or use the web UI — `.github/workflows/ci.yml`, `.github/workflows/e2e.yml`,
+`.github/workflows/dependency-updates.yml`, and `.github/workflows/dependency-security.yml` — additionally extend
 `gradle-home-cache-includes` with `nodejs` (the node-gradle plugin's Node download in `~/.gradle/nodejs`) and add an
 `actions/cache` step for the npm package cache (`~/.npm`, keyed on `showcase-web-ui/package-lock.json`), so the web UI
 build does not re-download the Node runtime or the dependency tree on every run. The `main-required-checks` branch
@@ -1860,25 +1861,29 @@ capture-stash-stale-copy
   sourced from the config entry or the parked idea note rather than the tool itself. A referencing entry summarizes; it
   does not specify. Read `.opencode/skills/*/SKILL.md`, `.opencode/agent/*.md`, and the server's exposed tool list
   before describing what each does, and treat an idea note's prose as a lead, not a spec.
-- **A CLI's `--help` is not a capability list — absence of a flag is not evidence the capability is missing.** The
-  `setup-agent-tools` design originally asserted `opencode mcp add` was interactive "with no `--command` flag for a
-  local server, so it cannot be driven by the agent"; in fact `opencode mcp add <name> -- <command…>` is
-  non-interactive, writes the global config, and preserves JSONC comments — the `-- <command>` form is simply not shown
-  in `opencode mcp add --help` (which shows only the MCP-server flags `--url`, `--env`, `--header`). A quick review
-  caught the false premise. Before designing around a limitation ("this can't be automated"), verify it by trying the
-  command or reading its source/docs — do not infer impossibility from a help screen. The same holds for a capability
-  the docs describe only _partially_: the permissions docs name `~`/`$HOME` pattern expansion, and an `AGENTS.md` bullet
-  wrongly concluded `{env:VAR}` was unsupported. That false limitation survived the review gate and was only caught by
-  reading the source, because a tool's behavior is not repo-evidenced and no in-repo gate can check it. Treat a doc's
-  account of a feature as a floor, not a boundary, and verify a tool-behavior claim against the source/CLI before
-  writing it into a durable artifact. Confirm too that the file you read is the code path that runs: a package can hold
-  a mock or test harness whose name matches the entry point (`github/index.ts` is a local dev/test entry; the shipped
-  handler is `github.handler.ts`), and a matching filename or path is not evidence you read the implementation. The same
-  probe-first rule covers a compiler or build-tool semantics claim: a design drafted the premise that a precompiled
-  `.gradle.kts` cannot see an `internal` declaration, and a scratch `kotlin-dsl` build disproved it — the
-  `internal object` compiles from the script, and only `private` fails — so the shared helper stayed `internal` rather
-  than being widened to `public`. Verify a visibility or build-semantics claim with a minimal scratch build before it
-  constrains a design. captured: test-build-logic-rules-and-unify-version-comparison (#306)
+- **A CLI's `--help` and its docs are not its contract — a missing flag, an asserted exit code, an assumed output
+  stream, and a flag's default each have to be probed before a design keys on them.** The `setup-agent-tools` design
+  originally asserted `opencode mcp add` was interactive "with no `--command` flag for a local server, so it cannot be
+  driven by the agent"; in fact `opencode mcp add <name> -- <command…>` is non-interactive, writes the global config,
+  and preserves JSONC comments — the `-- <command>` form is simply not shown in `opencode mcp add --help` (which shows
+  only the MCP-server flags `--url`, `--env`, `--header`). A quick review caught the false premise. Before designing
+  around a limitation ("this can't be automated"), verify it by trying the command or reading its source/docs — do not
+  infer impossibility from a help screen. The same holds for a capability the docs describe only _partially_: the
+  permissions docs name `~`/`$HOME` pattern expansion, and an `AGENTS.md` bullet wrongly concluded `{env:VAR}` was
+  unsupported. That false limitation survived the review gate and was only caught by reading the source, because a
+  tool's behavior is not repo-evidenced and no in-repo gate can check it. Treat a doc's account of a feature as a floor,
+  not a boundary, and verify a tool-behavior claim against the source/CLI before writing it into a durable artifact.
+  Confirm too that the file you read is the code path that runs: a package can hold a mock or test harness whose name
+  matches the entry point (`github/index.ts` is a local dev/test entry; the shipped handler is `github.handler.ts`), and
+  a matching filename or path is not evidence you read the implementation. The same probe-first rule covers a compiler
+  or build-tool semantics claim: a design drafted the premise that a precompiled `.gradle.kts` cannot see an `internal`
+  declaration, and a scratch `kotlin-dsl` build disproved it — the `internal object` compiles from the script, and only
+  `private` fails — so the shared helper stayed `internal` rather than being widened to `public`. Verify a visibility or
+  build-semantics claim with a minimal scratch build before it constrains a design. The web UI's npm checks asserted
+  npm's contract and took repeated review rounds to correct: `npm outdated` exits `1` both when updates exist and on
+  error (the report's content, not the exit code alone, is the discriminator), npm warns to stderr on clean runs (so
+  stderr is not the error signal), and `npm audit`'s default `--audit-level` resolves to `low`, not "moderate".
+  captured: test-build-logic-rules-and-unify-version-comparison (#306) captured: monitor-web-ui-npm-dependencies (#395)
 - **A CLI warning dismissed as noise can report a live defect — a config a tool consumes is unverified until its own
   read path is probed, and a warning no gate reads is not a check.** `openspec/config.yaml` declared per-artifact rules
   for four artifacts, but two items contained an unquoted `: `, so YAML parsed them as mappings, the lists stopped being
@@ -1940,12 +1945,17 @@ capture-stash-stale-copy
   statement false, grep `AGENTS.md`/`README.md` for the capability's absence claims and fix them in the same change —
   including one added by a recent change (the `buildpackUpdates` check in #149 falsified the "`dependencyUpdates` and
   `helmUpdates` ignore bare `[versions]` entries" sentence #148 had added one change earlier). The same goes for a
-  **code-symbol rename/removal**: docs cite class, test, and config names as examples and nothing resolves them, so grep
-  `AGENTS.md`/`README.md` for the old name in the same change — the first audit found `ShowcaseApiController*`
-  references that a rename had left behind. The sweep covers non-doc artifacts too: recording that a component is
-  deliberately _not_ used (ADR-0009's "without Axon Server") must grep the whole repo for its name, because config,
-  values, and template comments carry claims no auditor reads (`helm/chart/src/main/helm/values.yaml` still called the
-  `db-scheduler` settings "Axon Server scheduler settings").
+  **code-symbol or file rename/removal**: docs cite class, test, config, and workflow-file names as examples and nothing
+  resolves them, so grep the whole repository for the old name in the same change — the first audit found
+  `ShowcaseApiController*` references that a rename had left behind, and the workflow-file rename `snyk.yml` →
+  `dependency-security.yml` also lived in `SECURITY.md`, ADR-0006, and `build.gradle.kts`'s `toolingUpdates` pin. A
+  plain **enumeration of a set** is the case the name-grep cannot see: neither it nor the `only`/`sole`/`never` grep
+  finds a stale sentence that names the set's _other_ members — `AGENTS.md` said the `ci.yml` and `e2e.yml` workflows
+  "additionally extend `gradle-home-cache-includes` with `nodejs`" while the npm-monitoring change added that include to
+  `dependency-updates.yml` and `dependency-security.yml` too. The sweep covers non-doc artifacts too: recording that a
+  component is deliberately _not_ used (ADR-0009's "without Axon Server") must grep the whole repo for its name, because
+  config, values, and template comments carry claims no auditor reads (`helm/chart/src/main/helm/values.yaml` still
+  called the `db-scheduler` settings "Axon Server scheduler settings"). captured: monitor-web-ui-npm-dependencies (#395)
 - **A buildpack's CNB id is not its Docker Hub repository — a registry lookup must target the repository, not the id.**
   The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are
   `paketobuildpacks/nginx` (no hyphen); querying the tags API with the CNB id 404s, so `BuildpackUpdatesTask`'s check

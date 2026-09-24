@@ -200,13 +200,6 @@ it was added (start a new section for a new day rather than appending to the mos
   whether load tests should run against the compose stack or the Helm deployment, and how results feed the
   requests/limits baselines (see the resource-sizing idea below).
 
-- Grafana ingress + hostname instead of port-forward — parked; no change yet. The README documents observability access
-  via `kubectl port-forward -n monitoring svc/kps-grafana 3000:80`, which is inconvenient. Add an ingress for the
-  Grafana service (e.g. hostname `axon-showcase-grafana`) plus a `setup-hosts.sh` entry, mirroring the app's
-  `axon-showcase-api`/`axon-showcase-ui` hostnames, so Grafana — and the Tempo data source inside it — is reachable by
-  hostname with no port-forward. Check whether the kube-prometheus-stack chart exposes `grafana.ingress` to enable, and
-  whether `setup-hosts.sh`'s LoadBalancer-address detection needs a monitoring-namespace case.
-
 ## 2026-09-07
 
 - Measure code coverage for the web UI — parked; no change yet. The JVM modules have a JaCoCo coverage gate

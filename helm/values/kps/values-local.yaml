@@ -27,6 +27,10 @@ grafana:
       access: proxy
       type: tempo
       url: http://tempo:3200
+  ingress:
+    enabled: true
+    hosts:
+      - axon-showcase-grafana
   resources:
     requests:
       cpu: 250m

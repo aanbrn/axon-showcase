@@ -16,6 +16,8 @@ smarter (see [The Self-Learning Loop](#the-self-learning-loop)). It can even boo
 up the MCP servers and it detects, wires, and installs what it can for you (see
 [Tooling MCP Servers](#tooling-mcp-servers)).
 
+It is also a personal vehicle for learning agentic development: the process is as much the point as the product.
+
 ## Project Structure
 
 ```

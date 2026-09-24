@@ -111,6 +111,11 @@ agent, with its purpose described in its agent definition and (where relevant) i
   main agent verifies and applies
 - **AND** each proposed addition names the existing bullet it extends, or states that no bullet covers it — a new rule
   merges into or replaces one rather than accreting
+- **AND** alongside its additions, it reports the rules this change makes obsolete or redundant — a rule whose mechanism
+  the change removed, or one the change's new enforcement subsumes — as retirement or replacement candidates, each
+  naming the rule, why the change makes it so, and the retirement or replacement it proposes, as candidates for the main
+  agent rather than actions, reported separately from the additions since an addition grows the file and a retirement
+  shrinks it
 - **AND** each proposed addition passes a promotion gate before it is proposed — true (supported by a check, an
   authoritative source, or repeated observation), actionable, not automatable as a lint/test/CI check at reasonable
   cost, material (it prevents real breakage, risk, wasted work, or review churn), general enough for a class of future
@@ -139,6 +144,14 @@ agent, with its purpose described in its agent definition and (where relevant) i
   when a merge-time detection found the lesson rather than the implementation capture, since a capture runs once at
   implementation and a merge only detects and asks — so a reader can tell where the rule came from without consulting
   git, and a markdown reflow cannot take it
+
+#### Scenario: A change that obsoletes a rule yields a retirement candidate
+
+- **WHEN** a change's implementation makes an existing `AGENTS.md` rule obsolete (the mechanism it describes is removed)
+  or redundant (the change's new enforcement subsumes it)
+- **THEN** the `lesson-capture` subagent reports a retirement or replacement candidate naming the rule, why the change
+  makes it so, and the retirement or replacement it proposes — a candidate for the main agent, not an action
+- **AND** the capture's verdict names the retirement count alongside its durable-proposal count
 
 #### Scenario: Screenshots are reviewed visually
 

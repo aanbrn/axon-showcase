@@ -26,9 +26,8 @@
       `openspec/changes/widen-lesson-capture-to-retirements/specs/showcase/quality/agent-skills/spec.md`: one `MODIFIED`
       requirement carrying all five existing scenarios in order, the retirement AND clause in the capture scenario, and
       the new "A change that obsoletes a rule yields a retirement candidate" scenario.
-- [ ] 3.2 Read the `showcase/quality/agent-skills` `## Purpose` and record whether this change falsifies it (it names
-      the lesson-capture agent but enumerates no outputs, so no refresh is expected); apply it in the archive commit if
-      owed, since a delta cannot carry a `## Purpose`.
+- [x] 3.2 The `showcase/quality/agent-skills` `## Purpose` names the lesson-capture agent but enumerates no outputs, so
+      this change does not falsify it; no refresh is owed and the archive commit carries none.
 
 ## 4. Verify the surrounding artifacts (no edit expected — confirm, do not assume)
 
@@ -43,8 +42,12 @@
       requirement has, plus the new one.
 - [x] 5.2 Run `./gradlew spotlessApply` after the final edit to any Spotless-owned file, then confirm `spotlessCheck`
       and the PR gate (`./gradlew check -PskipITs -Pcoverage.gate.enabled=false`) are green.
-- [ ] 5.3 Smoke-test the widened subagent after an OpenCode reload, with both controls: a change that obsoletes a rule
-      (it must yield a retirement candidate naming the rule and why) and one that does not (it must not). Verify each
-      seed's premise against the repository before reading the run, and record which branch the run exercised.
-- [ ] 5.4 Run `review-quick` over the implementation diff, fix its findings, re-run until clean, then request the user's
-      manual review pass before committing.
+- [x] 5.3 Smoke-test the widened subagent after an OpenCode reload, with both controls: a change that obsoletes a rule
+      (it must yield a retirement candidate naming the rule and why) and one that does not (it must not). Run
+      2026-09-24: `WIDENED: yes` (verdict `1 durable proposal (0 additions, 1 retirement)`); the positive control — a
+      seeded rule naming `./scripts/seed-widgets.sh`, removed by the synthetic change — was reported as a retirement
+      candidate naming the rule and the removed script; the negative control — a seeded rule naming
+      `./gradlew :load-tests:test`, untouched by the change — was explicitly rejected as a retirement. Seeds reverted.
+      Premises verified first: the script absent, the `load-tests` module present.
+- [x] 5.4 Ran `review-quick` over the implementation diff to clean (round 1 fixed four findings), ran `lesson-capture`
+      (nothing durable), and the user gave the manual review pass before committing.

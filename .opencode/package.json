@@ -4,8 +4,5 @@
   },
   "allowScripts": {
     "msgpackr-extract@3.0.4": true
-  },
-  "devDependencies": {
-    "@types/node": "26.6.1"
   }
 }

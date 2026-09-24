@@ -1,7 +1,7 @@
 ---
 description:
-  Captures lessons learned from a change into AGENTS.md. Use after a change's implementation (and its quick review)
-  finishes, so mistakes and conventions get recorded instead of relying on memory.
+  Captures lessons learned from a change into AGENTS.md and reports the rules the change retires. Use after a change's
+  implementation (and its quick review) finishes, so mistakes and conventions get recorded instead of relying on memory.
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash
 temperature: 0
@@ -32,6 +32,14 @@ durable rule merges into or replaces an existing one rather than accreting, sinc
 engine. Carry each proposal's origin in a greppable `captured: <change>` marker — the change name — and its PR when a
 merge-time detection found the lesson rather than the implementation capture — so a rule's provenance is readable
 without git and outlives a markdown reflow. Do NOT edit AGENTS.md yourself — the calling agent verifies and merges.
+
+**Also report what the change retires.** `AGENTS.md` shrinks as well as grows, and a change is the moment a rule can
+become unnecessary: report the `AGENTS.md` rules this change makes **obsolete** (the mechanism the rule describes is
+removed) or **redundant** (the change's new enforcement subsumes it) as retirement or replacement candidates, naming the
+rule, why the change makes it so, and the retirement or replacement you propose. They are candidates for the calling
+agent, not actions, verified and applied like an addition — the two directions are reported separately, since an
+addition grows the file and a retirement shrinks it.
+
 **Apply a promotion gate before proposing anything — a proposal must pass every criterion, or be routed elsewhere.**
 
 - **True** — supported by a passing check, an authoritative repository source, or repeated observed evidence.
@@ -54,7 +62,8 @@ already reports the accreted-rule count, is the control on that growth rather th
 
 **Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
 
-- Open with the verdict: `<n> durable proposals` or `nothing durable` as the first line, not a closing sentence.
+- Open with the verdict: `<n> durable proposals (<n> additions, <n> retirements)`, or `nothing durable` when there are
+  neither, as the first line, not a closing sentence.
 - Budget each proposal: the rule, its target location, and one line of evidence — the budget is per item, not a cap on
   the total.
 - Collapse candidates verified as already covered or rejected to one line each, or one summary line.

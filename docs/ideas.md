@@ -64,6 +64,14 @@ it was added (start a new section for a new day rather than appending to the mos
   sweep reads. One line in the convention — fix it, or park it in `docs/ideas.md` — closes it. Parked: one occurrence so
   far, below the capture gate.
 
+- Explain an unexplained `.opencode/opencode.json` truncation — parked; no change yet. In
+  `retire-opencode-permission-plugin` (#388) the file was truncated in the working tree between the edit and the commit,
+  so only `{ "$schema": … }` shipped — losing the config the change added plus `model`, `small_model`, and the
+  Playwright MCP (restored in #389). The cause is unknown: running `opencode debug config` leaves the file unchanged and
+  it has held on `main` since the restore, so something in the session (a subagent probe, or a config write) rewrote it.
+  Watch for a recurrence — a silent truncation strips any config-based grant, and the staged-diff-size rule in
+  `AGENTS.md` names the tell. If it recurs, find the writer before trusting the file as a durable surface.
+
 ## 2026-09-22
 
 - Check the ADR `Status:` vocabulary mechanically — parked; no change yet. `docs/adr/README.md` enumerates the

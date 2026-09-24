@@ -34,9 +34,9 @@
       requirement carrying all nine existing scenarios in order, the three standing analyses, the review bound, the
       third verdict count in the audit-produced scenario, and the two new scenarios (a mechanism-enforced rule is a
       route candidate; a review-only rule is not a candidate).
-- [ ] 3.2 The `showcase/quality/agent-skills` `## Purpose` enumerates the auditor's output ("the merge and removal
-      candidates it reports"), which this change falsifies. Apply the refresh — "the merge, removal, and route
-      candidates it reports" — in the archive commit, since a delta cannot carry a `## Purpose`.
+- [x] 3.2 The `showcase/quality/agent-skills` `## Purpose` enumerated the auditor's output ("the merge and removal
+      candidates it reports"), which this change falsifies. Applied the refresh — "the merge, removal, and route
+      candidates it reports" — in the archive commit.
 
 ## 4. Verify the surrounding artifacts (no edit expected — confirm, do not assume)
 

@@ -233,7 +233,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                                                                                                                   |
 | `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift + unrecorded intent — `/audit-architecture`                                                                                             |
 | `readme-auditor`       | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage — `/audit-readme`                                                                                       |
-| `lesson-capture`       | Captures gotchas/conventions into AGENTS.md after every change, consolidating rather than accreting and marking each rule with its origin (automatic)                                                              |
+| `lesson-capture`       | Captures gotchas/conventions into AGENTS.md after every change, consolidating rather than accreting, retiring the rules a change obsoletes, and marking each rule with its origin (automatic)                      |
 | `review-quick`         | Fast review after proposal & implementation, repeated until clean (automatic)                                                                                                                                      |
 | `review-thorough`      | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`                                                                                                                                      |
 | `vision`               | Reads screenshots for the text-only main agent                                                                                                                                                                     |
@@ -246,8 +246,9 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 - **Code review**: every change is auto-reviewed after its proposal and after its implementation; the quick-review loop
   repeats until it finds nothing new. A deep `/review-thorough` pass is available on demand.
 - **Lesson capture**: after each change, `lesson-capture` proposes AGENTS.md gotchas and conventions, merging each into
-  an existing bullet or stating that none covers it — so mistakes are recorded systematically instead of relying on
-  memory.
+  an existing bullet or stating that none covers it, and reports the rules the change makes obsolete or redundant as
+  retirement candidates — so the file shrinks as well as grows, and mistakes are recorded systematically instead of
+  relying on memory.
 - **Retrospectives**: `/retrospective` gathers the last week of PRs and the git log, plus the archived changes and
   accumulated gotchas, and produces a sprint retrospective with improvement suggestions.
 - **Formatting, gates, CI, PRs**: formatting and quality gates run in the build; the agent opens PRs, watches CI, and

@@ -1,1 +1,18 @@
-{ "$schema": "https://opencode.ai/config.json" }
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "small_model": "opencode-go/deepseek-v4.1-flash",
+  "permissions": [
+    { "action": "shell", "resource": "*", "effect": "allow" },
+    { "action": "shell", "resource": "*git push*", "effect": "ask" },
+    { "action": "external_directory", "resource": "$HOME/.config/gh/*", "effect": "allow" },
+    { "action": "external_directory", "resource": "*/@fission-ai/openspec/*", "effect": "allow" }
+  ],
+  "mcp": {
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@playwright/mcp@latest", "--browser", "chromium"],
+      "enabled": true
+    }
+  }
+}

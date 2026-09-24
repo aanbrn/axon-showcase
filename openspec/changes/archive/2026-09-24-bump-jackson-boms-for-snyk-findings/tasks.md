@@ -22,6 +22,6 @@
       classpath-bump regression check; it passes. — Done: BUILD SUCCESSFUL (352 tasks).
 - [x] 2.3 Run `openspec validate --changes` (the delta validates and preserves every existing scenario) and
       `./gradlew spotlessApply` followed by `./gradlew spotlessCheck`; both pass. — Done: both pass.
-- [ ] 2.4 Record the `showcase/quality/dependency-security` `## Purpose` refresh owed at archive (a delta cannot carry a
+- [x] 2.4 Record the `showcase/quality/dependency-security` `## Purpose` refresh owed at archive (a delta cannot carry a
       Purpose): its Purpose enumerates the constrained transitives and now omits Jackson 2. Apply it in the archive
-      commit and name the deferral in the report. — Recorded; applied in the archive commit.
+      commit and name the deferral in the report. — Done: the Purpose now names Jackson 2.

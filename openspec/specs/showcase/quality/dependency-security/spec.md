@@ -3,8 +3,9 @@
 ## Purpose
 
 Ensures the build does not ship known-vulnerable dependencies: the platform constrains vulnerable transitive
-dependencies — Jackson 3 (`tools.jackson.core`), Apache HttpClient 5, `zstd-jni`, and `io.netty` — to patched versions
-so the Snyk scan reports clean, and the web UI's npm dependencies are audited by `npmAudit`.
+dependencies — Jackson 3 (`tools.jackson.core`), Jackson 2 (`com.fasterxml.jackson.core`), Apache HttpClient 5,
+`zstd-jni`, and `io.netty` — to patched versions so the Snyk scan reports clean, and the web UI's npm dependencies are
+audited by `npmAudit`.
 
 ## Requirements
 
@@ -12,7 +13,8 @@ so the Snyk scan reports clean, and the web UI's npm dependencies are audited by
 
 The platform SHALL constrain the transitive dependencies that dependency scans flag as vulnerable to their patched
 versions: `tools.jackson.core` modules SHALL resolve through the `tools.jackson:jackson-bom` at a version that fixes the
-reported issues (`jackson-core` at least `3.1.4`, `jackson-databind` at least `3.1.5`),
+reported issues (at least `3.2.3`), `com.fasterxml.jackson.core` modules (Jackson 2) SHALL resolve through the
+`com.fasterxml.jackson:jackson-bom` at a version that fixes the reported issues (at least `2.22.3`),
 `org.apache.httpcomponents.client5:httpclient5` SHALL resolve to at least `5.6.4`, `com.github.luben:zstd-jni` SHALL
 resolve to at least `1.5.7-14`, and `io.netty` modules SHALL resolve through the `io.netty:netty-bom` at a version that
 fixes the reported issue (at least `4.2.18.Final`).
@@ -21,7 +23,13 @@ fixes the reported issue (at least `4.2.18.Final`).
 
 - **WHEN** a module that depends on `elasticsearch-java` resolves its runtime classpath
 - **THEN** `tools.jackson.core:jackson-core` and `tools.jackson.core:jackson-databind` resolve to the
-  `tools.jackson:jackson-bom` version, which is at least `3.1.4` for core and at least `3.1.5` for databind
+  `tools.jackson:jackson-bom` version, which is at least `3.2.3`
+
+#### Scenario: Jackson 2 modules resolve to the patched BOM version
+
+- **WHEN** a module that depends on `jackson-databind` resolves its runtime classpath
+- **THEN** `com.fasterxml.jackson.core:jackson-core` and `com.fasterxml.jackson.core:jackson-databind` resolve to the
+  `com.fasterxml.jackson:jackson-bom` version, which is at least `2.22.3`
 
 #### Scenario: httpclient5 resolves to a patched version in every consuming module
 
@@ -43,7 +51,8 @@ fixes the reported issue (at least `4.2.18.Final`).
 - **WHEN** `snyk test --all-sub-projects` runs against the build
 - **THEN** none of `showcase-projection-model`, `showcase-projection-service`, `showcase-query-client`, and
   `showcase-query-service` report a vulnerable path for Jackson 3 or `httpclient5`, no sub-project reports one for
-  `zstd-jni` or `io.netty`, and the only suppressed findings are those pinned in `.snyk` with a stated reason and expiry
+  Jackson 2, `zstd-jni`, or `io.netty`, and the only suppressed findings are those pinned in `.snyk` with a stated
+  reason and expiry
 
 ### Requirement: Local dependency security scan task
 

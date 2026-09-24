@@ -1018,13 +1018,12 @@ Key modules (libraries, not services):
   consumed at the model's own rate rather than by request count, and the DeepSeek models carry peak/off-peak rate tiers,
   so the quota a pass consumes depends on when it runs. That is a property of the plan, not of the pin: resolve the
   current tiers and window at the provider (`opencode.ai/docs/go`) instead of pinning them here. It is also a **lever on
-  the quota**: the passes no human paces — the four audits, `/review-thorough`, `/retrospective`, and long capture
-  chains — can be time-shifted into the off-peak window for the same metered spend, and a scheduled workflow's `cron` is
-  where that timing is encoded, so check a schedule's slot against the current window (rather than asserting a UTC
-  figure, which rots) when adding or moving one. A schedule alone does not make a workflow shiftable — most scheduled
-  workflows here invoke no model at all, so check that the workflow itself spends metered quota before reasoning about
-  its slot. The interactive loop is paced by the human and cannot be shifted. captured: capture-offpeak-cost-lever
-  (#369)
+  the quota**: the non-interactive passes — the four audits, `/review-thorough`, `/retrospective`, and long capture
+  chains — can be time-shifted into the off-peak window for the same metered spend; a scheduled pass's timing is encoded
+  in its workflow's `cron`, so check a schedule's slot against the current window (rather than asserting a UTC figure,
+  which rots) when adding or moving one. A schedule alone does not make a workflow shiftable — most scheduled workflows
+  here invoke no model at all, so check that the workflow itself spends metered quota before reasoning about its slot.
+  The interactive loop is paced by the human and cannot be shifted. captured: capture-offpeak-cost-lever (#369)
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired

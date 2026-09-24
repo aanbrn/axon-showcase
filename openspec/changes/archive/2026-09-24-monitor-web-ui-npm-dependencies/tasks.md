@@ -107,7 +107,9 @@
       `grep -rn "snyk\.yml" .opencode openspec/config.yaml`, and
       `grep -rn "Dependency updates for the web UI" docs/ideas.md`. — Done: all three return nothing (ADR-0014's
       historical mention was reworded).
-- [ ] 4.3 Live check after merge (owner/user): `gh workflow run dependency-security.yml` and
+- [x] 4.3 Live check after merge (owner/user): `gh workflow run dependency-security.yml` and
       `gh workflow run dependency-updates.yml`, then confirm the reruns succeed and the "Dependency updates" issue
       carries the web UI section. If no dispatch is possible, park the follow-up in `docs/ideas.md` and name it in the
-      change's report.
+      change's report. — Done: `dependency-updates` succeeded and issue #13 carries the **Web UI (npm)** section;
+      `dependency-security`'s `web-ui-audit` job passed (its `snyk` job failed on pre-existing vulnerable paths, not
+      this change).

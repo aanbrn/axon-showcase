@@ -1005,7 +1005,7 @@ Key modules (libraries, not services):
   artifact's name before hand-writing the set. captured: add-readme-auditor (#315)
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
-  `.opencode/opencode.json` (`model` and `small_model` — two keys), the flash-pinned subagent frontmatter
+  `.opencode/opencode.json` (`model` and `agents.title.model` — two keys), the flash-pinned subagent frontmatter
   (`.opencode/agent/review-quick.md`, `lesson-capture.md`, `experience-analyzer.md`), the
   `.github/workflows/opencode.yml` `model` input, and the `AGENTS.md` agent gotchas that name the model id (docs that
   ARE the change — update them in the same change). When bumping, grep for the old id across `.opencode/`,
@@ -1058,7 +1058,11 @@ Key modules (libraries, not services):
   is enough for this repo; `anomalyco/opencode#48100` asks for a portable default and remains open upstream.
   `.opencode/package.json` (tracked) holds the dependencies OpenCode installs at startup — the `@opencode-ai/plugin`
   package stays because the v2 binary installs it into each `.opencode/` at startup. `.opencode/.gitignore` keeps only
-  `node_modules` and the lockfiles out of the repo.
+  `node_modules` and the lockfiles out of the repo. The `permissions` array is **v2-only** — v1 does not ignore the
+  file, it exits at startup (`V2 permissions are not supported by OpenCode V1`) — so a v2-only key makes the tool's
+  major version a repo prerequisite, stated on the README's OpenCode row; verify both the row's version and the version
+  its install formula resolves to, since the majors are different brew formulae (`opencode` vs
+  `anomalyco/tap/opencode-v2`). captured: migrate-opencode-config-to-v2
 
 The `.opencode/opencode.json` `permissions` grant for the **`gh` CLI's config directory** is `$HOME/.config/gh/*`: the
 agent invokes `gh`, which consults that directory (outside the workspace), and a missing grant hangs an unattended run
@@ -2045,7 +2049,14 @@ capture-stash-stale-copy
   configuration sources and each one's normalized document. The log also records your own commands, as
   `message="spawning process"` lines, so a search for a token matches its own invocation — a
   `grep 'evaluated permission'` over the log returns its own command lines as hits; exclude them
-  (`grep -v 'spawning process'`) before reading a count as evidence. captured: retire-opencode-permission-plugin
+  (`grep -v 'spawning process'`) before reading a count as evidence. Its `info` is the **normalized** document, not a
+  literal input: the normalizer materializes defaults, so the legacy flat `mcp.<name>` entry normalizes to a
+  `disabled: false` the native `mcp.servers.<name>` form omits (v2.0.15) — a migration verified against `debug config`
+  is behaviourally equivalent, never literally identical, so name the delta it accepts. A source's `info` can also carry
+  credentials — the pinned v2.0.15 renders the global config's MCP `environment` value (a `GH_TOKEN`) verbatim — so
+  scope a capture to the project document or redact before quoting its output into a report, a PR body, a change dir, or
+  any other artifact; upstream's `debug config` redacts those values, so re-check the claim on a v2 bump. captured:
+  migrate-opencode-config-to-v2
 - **`external_directory` and the `shell` permission are separate actions.** `external_directory` governs the file tools
   (`read`/`edit`/`write`/`glob`/`grep`) and path-taking commands, while a script's own out-of-tree writes run under the
   `shell` action (`permission.bash` in v1) — so removing the blanket `/tmp/**` allow from `external_directory` leaves a

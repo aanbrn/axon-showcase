@@ -1,10 +1,10 @@
 ---
 description:
   Audits the project-owned agent tooling — AGENTS.md and the project-authored .opencode/ files (subagents, commands,
-  skills) — for consistency and conciseness, reports the accreted meta rules with their origins, the merge and removal
-  candidates, and the excluded third-party files (generated, vendored) that contradict how the repository uses them,
-  with the pro model. Use on demand (e.g. via /audit-agents) to reconcile the guidance and tooling rather than only
-  append to it.
+  skills) — for consistency and conciseness, reports the accreted meta rules with their origins, the merge, removal, and
+  route candidates, and the excluded third-party files (generated, vendored) that contradict how the repository uses
+  them, with the pro model. Use on demand (e.g. via /audit-agents) to reconcile the guidance and tooling rather than
+  only append to it.
 mode: subagent
 model: opencode-go/deepseek-v4-pro
 temperature: 0
@@ -47,14 +47,20 @@ Audit along two axes:
   and missing or different in another.
 - **Conciseness** — duplicated or near-duplicate entries worth merging; one-off trivia that is neither a convention nor
   a gotcha; entries far longer or more specific than their lesson warrants; entries in the wrong section or file. Report
-  two of these as **standing analyses**, not only when a run is scoped to them: **merge candidates** (overlapping or
+  three of these as **standing analyses**, not only when a run is scoped to them: **merge candidates** (overlapping or
   complementary entries, with the merged text that preserves every anchor and piece of evidence the originals carry, and
   never blending two distinct lessons — or, where that text would only restate a rule the file already carries, a
   deletion of the duplicate (reported as a `remove`), saying which. When that merged text points at a spec or an ADR for
   content it removes, verify the target carries the delegated content — its behavior **and** the identifiers,
   declarations, and gate conditions the delegated text names — and keep in the merged text any delegated item the target
-  does not carry, saying which you kept for that reason) and **removal candidates** (rules that govern no decision, with
-  what would be lost and whether git preserves it). Both are candidates for the owner, not actions.
+  does not carry, saying which you kept for that reason), **removal candidates** (rules that govern no decision, with
+  what would be lost and whether git preserves it), and **route candidates** (rules whose subject a named, in-place
+  deterministic mechanism already enforces — a build or CI gate, a lint or test, a CLI validation, or a deterministic
+  workflow step such as the archive-time spec sync, never a review — naming the mechanism, what would be lost, and
+  confirming the mechanism exists and covers the rule's subject; the candidate is to reduce the rule to a pointer at
+  that mechanism, or move its content to the spec or ADR that owns it). All are candidates for the owner, not actions. A
+  rule is not a removal or route candidate merely because a review would catch it: review is not a gate, and the rule
+  may itself be what makes the violation visible to the reviewer.
 
 Method:
 
@@ -75,8 +81,8 @@ Method:
   behavior the artifacts do not claim.
 
 Return findings grouped by severity — **contradiction**, **stale**, **dead reference**, **redundant**, and
-**structural** — labelling a merge disposition `merge`, and a deletion-of-a-duplicate or a removal candidate `remove` so
-the verdict line can count them. Each with:
+**structural** — labelling a merge disposition `merge`, a deletion-of-a-duplicate or a removal candidate `remove`, and a
+route candidate `route` so the verdict line can count them. Each with:
 
 - the location (the file and a line number, or a short verbatim quote so it can be found), and
 - a concrete suggested rewrite or merge (exact replacement text where practical).
@@ -102,8 +108,9 @@ rules written before the marker convention. A rule with neither is reported as u
 
 **Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
 
-- Open with the verdict: `<n> findings (<n> merge, <n> removal), <n> advisory, <n> accreted` or `nothing to report` as
-  the first line, then the severity groups (highest-value first) and the advisory and accretion sections.
+- Open with the verdict: `<n> findings (<n> merge, <n> removal, <n> route), <n> advisory, <n> accreted` or
+  `nothing to report` as the first line, then the severity groups (highest-value first) and the advisory and accretion
+  sections.
 - Budget each item: a finding gets its `file:line`, its severity, and a concrete suggested rewrite; an advisory item
   gets the excluded file, the harm, and the decision it invites — the budget is per item, not a cap on the total.
 - Collapse entries verified as still accurate to one line each, or one summary line.

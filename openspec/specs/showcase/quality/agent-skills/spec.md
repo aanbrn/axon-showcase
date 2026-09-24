@@ -7,11 +7,11 @@ the AxonIQ Axon 4→5 migration recipes against this codebase) and the locally-d
 under `.opencode/agent/` — the per-change review and lesson-capture agents, the experience-analyzer, the visual and
 diagram agents, and the on-demand auditors of the project-owned agent tooling (the guidance and project-authored
 `.opencode/` files, plus any generated or vendored file that contradicts how the repository uses it, the meta rules it
-reports with their origins, and the merge and removal candidates it reports), of the `openspec/specs/` corpus, of the
-architecture (the ADRs, the service, module, and spec-decomposition surface, and where a deliberate decision's rationale
-is not recorded), of the human-facing `README.md` (its claims against the repository, its shape against the README
-convention, and its coverage of the human-visible capabilities), and the scheduled unattended run that performs the
-audits without a human asking.
+reports with their origins, and the merge, removal, and route candidates it reports), of the `openspec/specs/` corpus,
+of the architecture (the ADRs, the service, module, and spec-decomposition surface, and where a deliberate decision's
+rationale is not recorded), of the human-facing `README.md` (its claims against the repository, its shape against the
+README convention, and its coverage of the human-visible capabilities), and the scheduled unattended run that performs
+the audits without a human asking.
 
 ## Requirements
 
@@ -202,20 +202,24 @@ project-authored file that shares a generated file's name prefix (e.g. the `opsx
 scope. The audit SHALL cover, at least: contradictions between entries or files, stale claims and enumerations the
 repository has outgrown, dead cross-references, and drift from the code/workflows/specs the prose describes
 (consistency); and duplicated or near-duplicate entries, one-off trivia, over-long or over-specific entries, and
-misplaced entries (conciseness). Within conciseness the audit SHALL report two analyses as standing findings rather than
-only under a scoped run: **merge candidates**, each naming the overlapping or complementary entries and the merged text
-that preserves every anchor and piece of evidence the originals carried — and never blending two distinct lessons into
-one — and where the merged text would only restate a rule the file already carries, the candidate is a deletion of the
-duplicate rather than a merge, reported as a `remove` so the verdict's count includes it, and the audit SHALL say which
-it is; and **removal candidates**, each naming a rule that governs no decision (trivia, not a rule — the same test the
-capture's filter applies), what would be lost, and whether git preserves it. Both are candidates for the owner, not
-actions. Each finding SHALL be verified against the repository rather than inferred from the prose alone, and SHALL be
-reported with its location and a concrete suggested rewrite. A merge candidate whose merged text delegates content to a
-target — a spec or an ADR it points the reader to — SHALL have that delegation verified against the target: its behavior
-**and** the identifiers, declarations, and gate conditions the delegated content names, not the behavior alone. A
-delegated item the target does not carry SHALL stay in the merged text, and the candidate SHALL say which items it kept
-for that reason. The subagent SHALL propose its findings without modifying files; the main agent verifies and applies
-those the user approves.
+misplaced entries (conciseness). Within conciseness the audit SHALL report three analyses as standing findings rather
+than only under a scoped run: **merge candidates**, each naming the overlapping or complementary entries and the merged
+text that preserves every anchor and piece of evidence the originals carried — and never blending two distinct lessons
+into one — and where the merged text would only restate a rule the file already carries, the candidate is a deletion of
+the duplicate rather than a merge, reported as a `remove` so the verdict's count includes it, and the audit SHALL say
+which it is; **removal candidates**, each naming a rule that governs no decision (trivia, not a rule — the same test the
+capture's filter applies), what would be lost, and whether git preserves it; and **route candidates**, each naming a
+rule whose subject a deterministic mechanism already enforces — a build or CI gate, a lint or test, a CLI validation, or
+a deterministic workflow step such as the archive-time spec sync, but never a review, whether a human's or a review
+subagent's — and proposing to reduce the rule to a pointer at that mechanism, or move its content to the spec or ADR
+that owns it, naming the mechanism, what would be lost, and confirming the mechanism exists and covers the rule's
+subject. All are candidates for the owner, not actions. Each finding SHALL be verified against the repository rather
+than inferred from the prose alone, and SHALL be reported with its location and a concrete suggested rewrite. A merge
+candidate whose merged text delegates content to a target — a spec or an ADR it points the reader to — SHALL have that
+delegation verified against the target: its behavior **and** the identifiers, declarations, and gate conditions the
+delegated content names, not the behavior alone. A delegated item the target does not carry SHALL stay in the merged
+text, and the candidate SHALL say which items it kept for that reason. The subagent SHALL propose its findings without
+modifying files; the main agent verifies and applies those the user approves.
 
 The audit SHALL additionally report, as an **advisory** class kept separate from its fix findings and reported without
 severity, third-party inconsistency: a file the audit excludes (a generated `openspec-*` instruction file, or a vendored
@@ -240,8 +244,8 @@ that is the user's decision on the report.
 - **THEN** it returns findings grouped by severity, covering consistency (contradictions, stale claims, dead
   cross-references, drift) and conciseness (duplication, trivia, length, placement) across `AGENTS.md` and the
   project-authored `.opencode/` files, each with a location and a suggested rewrite — plus, separately, any advisory
-  third-party inconsistency, the accreted meta rules with their origins, with the merge and removal candidate counts
-  named in the verdict line
+  third-party inconsistency, the accreted meta rules with their origins, with the merge, removal, and route candidate
+  counts named in the verdict line
 
 #### Scenario: Generated and vendored files are excluded
 
@@ -298,6 +302,22 @@ that is the user's decision on the report.
 - **THEN** the audit verifies the target carries the delegated content — its behavior and the identifiers, declarations,
   and gate conditions the delegated text names — and keeps in the merged text any delegated item the target does not
   carry, saying which it kept for that reason
+
+#### Scenario: A rule enforced by a deterministic mechanism is a route candidate
+
+- **WHEN** the `agents-auditor` subagent finds a rule whose subject an in-place deterministic mechanism already enforces
+  (a build or CI gate, a lint or test, a CLI validation, or a deterministic workflow step such as the archive-time spec
+  sync)
+- **THEN** it reports a route candidate naming the mechanism and proposing to reduce the rule to a pointer at it, or to
+  move the rule's content to the spec or ADR that owns it, with what would be lost — as a candidate for the owner, not
+  an action
+
+#### Scenario: A rule detectable only by review is not a candidate
+
+- **WHEN** the only detector of a rule's violation is a review — a human's or a review subagent's — and no deterministic
+  mechanism enforces it
+- **THEN** the audit does not report the rule as a removal or route candidate, because review is not a gate and the rule
+  may itself be what makes the violation visible to the reviewer
 
 ### Requirement: The architecture is audited for drift from its recorded decisions
 

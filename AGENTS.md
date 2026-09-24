@@ -1368,8 +1368,12 @@ capture-stash-stale-copy
   "what shipped since X" automation must use the `--search "merged:>=..."` form **and** an explicit `--limit` sized to
   the corpus. The same truncation is self-inflicted by an explicit slice: `head -1` on the `buildpackUpdates` report hid
   the second of its two lines, and the tasks file cited the first as though it were the whole report. Cite a command's
-  full captured output — read the generated report file rather than a piped `head`/`tail` — before recording it as
-  evidence. captured: test-build-logic-rules-and-unify-version-comparison (#306)
+  full captured output before recording it as evidence or scoping a change from it — read the whole report file or CI
+  run log, and take the flagged set from the tool's own findings list, not a `head`/`tail` slice, a `grep` filter, or a
+  derived/narrative section of the output. A filtered read of the 2026-09-24 Snyk run's `--log-failed` output showed
+  only four of the seven Jackson advisories, so the change was scoped Jackson 2-only and would have left the three
+  Jackson 3 ones (fix `3.2.3`) unaddressed; the full log named both lines. captured:
+  test-build-logic-rules-and-unify-version-comparison (#306) captured: bump-jackson-boms-for-snyk-findings
 - **`gh pr create --body` with Markdown can fail under zsh with `no matches found`** — an inline body containing
   `**bold**` (or other shell metacharacters/newlines) is subject to zsh's `nomatch` glob error
   (`zsh: no matches found: **...`). Write the body to a file and use `--body-file <file>` instead; it also sidesteps

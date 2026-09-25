@@ -26,7 +26,9 @@ function stubEventSource() {
   const fake = new FakeEventSource();
   vi.stubGlobal(
     'EventSource',
-    vi.fn(() => fake),
+    vi.fn(function () {
+      return fake;
+    }),
   );
   return fake;
 }

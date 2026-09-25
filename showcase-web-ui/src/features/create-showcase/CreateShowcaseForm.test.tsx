@@ -69,7 +69,7 @@ describe('CreateShowcaseForm', () => {
 
     await vi.advanceTimersByTimeAsync(0);
     expect(onSubmit).toHaveBeenCalled();
-    vi.advanceTimersByTime(2 * 60_000);
+    await vi.advanceTimersByTimeAsync(2 * 60_000);
     expect((screen.getByLabelText('Start time') as HTMLInputElement).value).toBe('2026-09-02T09:08');
   });
 

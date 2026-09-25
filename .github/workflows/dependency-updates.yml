@@ -52,8 +52,8 @@ jobs:
           owner="${{ github.repository_owner }}"
 
           updates="$(awk '
-            /^The following dependencies have newer versions:/ { in_updates = 1; print; next }
-            /^The following dependencies have later milestone versions:/ { in_updates = 0 }
+            /^The following dependencies have later release versions:/ { in_updates = 1; print; next }
+            /^Failed to / { in_updates = 0 }
             /^Gradle CURRENT updates:/ { in_updates = 0 }
             in_updates { print }
           ' "$report" 2>/dev/null)"

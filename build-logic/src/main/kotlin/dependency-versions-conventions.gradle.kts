@@ -59,6 +59,7 @@ val majorDisabled =
 
 tasks.withType<DependencyUpdatesTask> {
     gradleReleaseChannel = "CURRENT"
+    revision = "release"
 
     checkConstraints = true
     checkBuildEnvironmentConstraints = true

@@ -29,13 +29,6 @@ it was added (start a new section for a new day rather than appending to the mos
   (unlike the JVM's `config/dependency-updates/major-disabled.properties`), so the weekly tracker re-lists the deferred
   major — and any future one — until a suppression list lands.
 
-- Type-check the web UI in the merge gate — parked; no change yet. The frontend `check`
-  (`frontend-conventions.gradle.kts`) composes `npmLint`, `npmFormatCheck`, and `npmTest` only; `tsc` runs inside
-  `npmBuild` (`tsc && vite build`), which hangs off `assemble`, so the PR gate's `check` never type-checks the web UI
-  and a `tsconfig`/source type error merges green. `migrate-web-ui-frontend-majors` hit exactly this: TypeScript 6's
-  `baseUrl` deprecation failed only `:showcase-web-ui:build`. Add `tsc --noEmit` (or `npmBuild`) to the frontend
-  `check`.
-
 ## 2026-09-24
 
 - Scan the source tree for secrets — parked; no change yet. `dependencySecurityCheck` (Snyk) scans dependencies, not

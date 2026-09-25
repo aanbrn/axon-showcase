@@ -75,6 +75,16 @@ val npmTest =
         outputs.dir(layout.buildDirectory.dir("reports"))
     }
 
+val npmTypeCheck =
+    tasks.register<NpmTask>("npmTypeCheck") {
+        group = "verification"
+        description = "Type-checks the frontend sources with tsc."
+        dependsOn(npmCi)
+        args.set(listOf("run", "typecheck"))
+        inputs.files(fileTree("src"))
+        inputs.file("tsconfig.json")
+    }
+
 val npmOutdated =
     tasks.register<NpmTask>("npmOutdated") {
         group = "help"
@@ -200,7 +210,7 @@ val npmE2e =
     }
 
 tasks.named("check") {
-    dependsOn(npmLint, npmFormatCheck, npmTest)
+    dependsOn(npmLint, npmFormatCheck, npmTypeCheck, npmTest)
 }
 
 tasks.named("assemble") {

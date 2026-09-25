@@ -453,7 +453,7 @@ wait for approval before merging.
 # Web UI npm update report (not part of check)
 ./gradlew :showcase-web-ui:npmOutdated
 
-# Frontend (showcase-web-ui): install, lint, format-check, tests (verification; the production bundle
+# Frontend (showcase-web-ui): install, lint, format-check, type-check, tests (verification; the production bundle
 # is built by `build`/`assemble`, like the JVM modules' bootJar)
 ./gradlew :showcase-web-ui:check
 ```
@@ -565,9 +565,10 @@ pipeline with Playwright) on a nightly schedule and via `workflow_dispatch`. It 
 (`buildpacks/github-actions/setup-pack`, pinned to the same version as local development — the GitHub runner image does
 not guarantee it), and uses `actions/cache@v6` for the npm cache. It is observational — never a merge gate, no secrets,
 and it shares the same `gradle/actions/setup-gradle` caching rules as `.github/workflows/ci.yml`. The PR gate's `check`
-never builds the web UI bundle (the frontend `check` composes lint, format-check, and Vitest; `tsc` and `vite build`
-live in `build`/`assemble`), so a change that alters the built bundle or its runtime — a React/Vite major — must run
-`./gradlew :showcase-web-ui:e2eTest` deliberately before it is reported done. captured: migrate-web-ui-frontend-majors
+never builds the web UI bundle (the frontend `check` composes lint, format-check, the TypeScript type-check, and Vitest;
+only `vite build` — the bundle — lives in `build`/`assemble`), so a change that alters the built bundle or its runtime —
+a React/Vite major — must run `./gradlew :showcase-web-ui:e2eTest` deliberately before it is reported done. captured:
+migrate-web-ui-frontend-majors
 
 `.github/workflows/dependency-security.yml` runs the credentialed dependency security scans — the Snyk scan
 (`./gradlew dependencySecurityCheck`, all sub-projects with the root `.snyk` policy, authenticated with the `SNYK_TOKEN`

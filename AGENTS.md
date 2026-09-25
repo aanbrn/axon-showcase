@@ -503,7 +503,11 @@ run:
   infrastructure is never started. Verifies a component behaves correctly against its real neighbors (e.g.
   `QueryMessageRequestMapperCT`, `ShowcaseAggregateCT`, `ShowcaseQueryClientCT`).
 - **Integration** (`src/integrationTest/java`, suffix `IT`): real external infrastructure via Testcontainers
-  (PostgreSQL, Kafka, OpenSearch). Verifies services against the real things they talk to.
+  (PostgreSQL, Kafka, OpenSearch). Verifies services against the real things they talk to. A dependency bump of a
+  runtime-path library is verified **here**: a same-major release can be binary-incompatible with another pinned library
+  while compilation, the unit/component tests, and the Docker-free check all pass — `opensearch-java` `3.9.0`→`3.10.0`
+  changed `Hit.matchedQueries()`'s return type, which `spring-data-opensearch` 2.x's `DocumentAdapters.from` calls — so
+  run the full `check` with integration tests before reporting such a bump done. captured: bump-dependencies-2026-09-25
 - **End-to-end** (`src/e2eTest/java`, suffix `E2E`): a real deployed system is booted and exercised against all-real
   collaborators, transport-independent — HTTP for the gateway/query-service, the distributed command bus (JGroups) for
   the command-service. The gateway e2e boots the full four-service pipeline and verifies cross-service propagation over
@@ -742,7 +746,10 @@ Key modules (libraries, not services):
   JVM** (e.g. `ShowcaseProjectorIT`'s projector logging, `ShowcaseRestControllerCT`'s gateway fallback logging). It
   cannot capture a separate process's output — to assert a **containerized** service's logs (the code-under-test runs in
   a different JVM), collect them via `withLogConsumer` into a `static StringBuilder` and poll it, as the command-client
-  e2e did before the suite was consolidated (see `69f2811`)
+  e2e did before the suite was consolidated (see `69f2811`). When an integration test fails with an opaque timeout, read
+  the service-side log the runner captured into the test report's XML (`system-out`) before diagnosing the assertion — a
+  5s `TimeoutException` on a `WebTestClient` exchange hid the real `NoSuchMethodError`. captured:
+  bump-dependencies-2026-09-25
 - **`@DirtiesContext`**: add it only where a full-context boot leaks global JVM state — JGroups (ports and system
   properties) and JCache (a JVM-global cache manager). Contexts that are safely cacheable don't need it: service slices,
   and `@Nested` classes with distinct `@ActiveProfiles` (which already get separate cached contexts). Keep it on the
@@ -2121,7 +2128,7 @@ capture-stash-stale-copy
   consequences for a future-callback style (`future.thenAccept(…)`): the callback only ever executes on success, and the
   returned future ErrorProne's `FutureReturnValueIgnored` flags can never leave a sink hanging here. So a
   `@SuppressWarnings( "FutureReturnValueIgnored")` on such a method is **redundant**, not a documented decision or a
-  hidden bug — verified against Caffeine 3.2.4 (`getIfPresent` of an exceptionally-completed future returns `null`).
+  hidden bug — verified against Caffeine 3.3.0 (`getIfPresent` of an exceptionally-completed future returns `null`).
   Prefer `Mono.fromFuture(…)` over a raw sink-plus-`thenAccept`: Reactor observes the future (no dangling return, no
   suppression needed) and the empty-vs-failed distinction stays with the cache's own contract.
   `ShowcaseRestController`'s fallback paths were refactored this way and the two method-level suppressions deleted.

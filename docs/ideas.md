@@ -20,6 +20,13 @@ it was added (start a new section for a new day rather than appending to the mos
   deferred because typescript-eslint caps TypeScript at `<6.1.0`. There is still no web UI major-suppression mechanism
   (unlike the JVM's `config/dependency-updates/major-disabled.properties`), so the weekly tracker re-lists the deferred
   major — and any future one — until a suppression list lands.
+- Hold back a same-major JVM coordinate in the dependency-update report — parked; no change yet.
+  `config/dependency-updates/major-disabled.properties` suppresses only **major** updates, so a coordinate that must be
+  held at an older **minor** is re-listed by the weekly tracker every week. The `bump-dependencies-2026-09-25` change
+  hit this: `opensearch-java` `3.9.0`→`3.10.0` is binary-incompatible with `spring-data-opensearch` 2.x
+  (`Hit.matchedQueries()`'s return type changed from `List` to the new `MatchedQueries`, breaking
+  `DocumentAdapters.from`), so the bump holds `3.9.0` and the tracker keeps listing `3.10.0` until
+  `spring-data-opensearch` 3.x (SB4, ADR-0004) or a hold-back mechanism lands.
 
 ## 2026-09-24
 
@@ -175,14 +182,14 @@ it was added (start a new section for a new day rather than appending to the mos
   `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337, milestone 6.2.0-M2), but the fix is in
   **no published release**: the newest artifacts are `6.2.0-M1`, `6.1.1` and `6.0.7`, all published 2026-08-20, ten days
   _before_ the fix merged — so `M1` predates it and only the unreleased `6.2.0-M2` carries it. We resolve
-  spring-data-elasticsearch 5.5.13 on the `spring-data-opensearch` 2.0.7 line (2.0.7 declares 5.5.12; the Spring Boot
-  3.5.16 BOM raises it), so the truncation is still live. The condition to watch is therefore a release _containing the
-  fix_, not a line or a milestone: `spring-data-opensearch` 3.x is the line that would carry it (the latest, 3.1.4,
-  still ships 6.1.1), but 3.x targets Spring Boot 4 and `spring-data-elasticsearch` 6.x, so retiring the workaround
-  rides the deferred Spring Boot 4 migration (ADR-0004) — re-check when that migration lands, not on a chart or patch
-  bump. The other closure candidate does not apply — `#1060` leaves our `checkBuildEnvironmentConstraints` row untouched
-  (the `#755` verdict is recorded in the upstream-reference bullet in `AGENTS.md` and ADR-0007). Recorded here rather
-  than in the PR body that surfaced it, which no tool reads.
+  spring-data-elasticsearch 5.5.13 on the `spring-data-opensearch` 2.0.8 line (which declares 5.5.13 directly), so the
+  truncation is still live. The condition to watch is therefore a release _containing the fix_, not a line or a
+  milestone: `spring-data-opensearch` 3.x is the line that would carry it (the latest, 3.1.4, still ships 6.1.1), but
+  3.x targets Spring Boot 4 and `spring-data-elasticsearch` 6.x, so retiring the workaround rides the deferred Spring
+  Boot 4 migration (ADR-0004) — re-check when that migration lands, not on a chart or patch bump. The other closure
+  candidate does not apply — `#1060` leaves our `checkBuildEnvironmentConstraints` row untouched (the `#755` verdict is
+  recorded in the upstream-reference bullet in `AGENTS.md` and ADR-0007). Recorded here rather than in the PR body that
+  surfaced it, which no tool reads.
 
 ## 2026-09-13
 

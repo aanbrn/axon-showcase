@@ -4,7 +4,7 @@ schema: spec-driven
 # This is shown to AI when creating artifacts.
 context: |
   axon-showcase — a CQRS/Event Sourcing reference app built on the Axon Framework.
-  Java 21, Spring Boot 3.5.16, Gradle 9.7.1 (Kotlin DSL), monorepo with 19 modules.
+  Java 21, Spring Boot 3.5.16, Gradle 9.8.0 (Kotlin DSL), monorepo with 19 modules.
 
   Architecture (four services and the web UI):
     - showcase-command-service — write side, Axon aggregate, publishes events to Kafka,

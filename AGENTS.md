@@ -10,7 +10,7 @@
 ## Project Overview
 
 **axon-showcase** — a CQRS/Event Sourcing reference app using the Axon Framework. Java 21, Spring Boot 3.5.16, Gradle
-9.7.1 (Kotlin DSL), monorepo with 19 modules (18 JVM + `showcase-web-ui`).
+9.8.0 (Kotlin DSL), monorepo with 19 modules (18 JVM + `showcase-web-ui`).
 
 This repo uses **spec-driven development**: behavior is captured as OpenSpec specs in `openspec/specs/showcase/`
 (organized by architectural role: `gateway`, `write-side`, `read-side`, `clients`, `extensions`, `deployment`,
@@ -1625,7 +1625,9 @@ capture-stash-stale-copy
   `--configuration-cache` before adding it).
 - The gradle-helm-plugin 3.1.2 calls the deprecated `Project.getProperties()` (a `--warning-mode all` deprecation that
   becomes a hard error in Gradle 10). Tracked upstream as build-extensions-oss/gradle-helm-plugin#145; bump the plugin
-  when a fix is released.
+  when a fix is released. Separately, the Gradle `Configuration.visible` deprecation (`setVisible(boolean)`, removed in
+  Gradle 11) is emitted across the build by several third-party plugins — the helm, errorprone, SpotBugs, Spring Boot,
+  and protobuf plugins among them — and is likewise plugin-side, with no action of ours.
 
 - NullAway is strict on `showcase.*` packages — ensure proper `@Nullable`/`@NonNull` annotations from `jspecify`.
 - Jackson 3 artifacts (`tools.jackson.core:*`) on the query-service and projection-service runtime classpaths are

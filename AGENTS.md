@@ -54,16 +54,16 @@ adding one "Address quick-review findings" commit per review round produced 11 c
 before delivery) — the discipline above removes that failure mode by construction, leaving nothing to squash. captured:
 capture-reverted-sweep-lessons (#283)
 
-**Fork branches from `main` only.** Every new branch — a change branch, a standalone fix, or a capture's docs change —
-is created from `origin/main` (fetch first), never from another work branch. Branching from a work branch silently
-carries its commits into the new PR (a fix PR ended up shipping a change's commit history); recover by rebasing
-`--onto origin/main` and force-pushing, then verify the PR's changed-file set is the intended one. Create the branch
-with `--no-track` (`git switch -c <name> --no-track origin/main`), or push its first time with
-`git push -u origin <branch>`: a plain `git checkout -b <name> origin/main` silently makes `origin/main` the new
-branch's upstream (`branch.autoSetupMerge`), so a later bare `git push` refuses with the confusing "The upstream branch
-of your current branch does not match the name of your current branch" (fix with `git push -u origin <branch>`, which
-repoints it, or `git branch --unset-upstream`). When the local branch is not named after the remote branch it must
-update — completing an agent's `opencode/…` PR from a differently-named checkout — push with an explicit refspec
+**Fork branches from `main` only.** Every new branch — a change branch, a standalone fix, or a docs PR — is created from
+`origin/main` (fetch first), never from another work branch. Branching from a work branch silently carries its commits
+into the new PR (a fix PR ended up shipping a change's commit history); recover by rebasing `--onto origin/main` and
+force-pushing, then verify the PR's changed-file set is the intended one. Create the branch with `--no-track`
+(`git switch -c <name> --no-track origin/main`), or push its first time with `git push -u origin <branch>`: a plain
+`git checkout -b <name> origin/main` silently makes `origin/main` the new branch's upstream (`branch.autoSetupMerge`),
+so a later bare `git push` refuses with the confusing "The upstream branch of your current branch does not match the
+name of your current branch" (fix with `git push -u origin <branch>`, which repoints it, or
+`git branch --unset-upstream`). When the local branch is not named after the remote branch it must update — completing
+an agent's `opencode/…` PR from a differently-named checkout — push with an explicit refspec
 (`git push origin HEAD:<remote-branch>`); the `git push -u origin <branch>` remedy above would open a second branch and
 leave the PR without the commit.
 
@@ -109,13 +109,13 @@ post to a public tracker is not. A comment drafted for `anomalyco/opencode#48100
 caught a wrong premise about permission-pattern expansion before it went public.
 
 **An owner's shorthand that appears to skip or merge a process step is not a waiver — name the conflict and ask for
-confirmation before acting on it.** The documented routing stands until the owner explicitly changes it: "let's park and
-capture" was read as licence to bundle a newly parked idea and its lesson capture into one docs PR (the docs-refresh
-convention routes a newly parked idea to its own PR) — a reading the owner rejected, asking instead that a process
-violation be surfaced for confirmation ("if you detect my violation of the process, remind me and ask for
-confirmation"). Do not self-authorize an exception and do not write one into a PR body; when an instruction reads as
-combining units the workflow separates, state the routing it would break and wait for an explicit answer — as with an
-unanswered approval request, an ambiguous instruction is not clearance.
+confirmation before acting on it.** The documented routing stands until the owner explicitly changes it: the shorthand
+"let's park and capture" was once read as clearance to bundle a parked idea and its capture into one PR without asking,
+and the owner rejected the unilateral reading — the correction is to surface the suspected conflict and wait, not to
+decide it ("if you detect my violation of the process, remind me and ask for confirmation"). Do not self-authorize an
+exception and do not write one into a PR body; when an instruction reads as merging units the routing keeps apart —
+bundling a docs edit the change did _not_ cause, or skipping a gate — state the routing it would break and wait for an
+explicit answer — as with an unanswered approval request, an ambiguous instruction is not clearance.
 
 **A review finding is a claim to verify, not an instruction to apply.** The review gate catches errors, but its
 corrections are themselves claims: reproduce each against the mechanism or artifact before adopting it, and when a
@@ -170,11 +170,12 @@ AGENTS.md additions — gotchas and conventions worth recording — and the rule
 retirement or replacement candidates. A merge runs no capture: at the merge, read what the merge alone affected — its
 non-diff effects, such as an agent PR closing its own tracker — and report any candidate lesson it leaves with the
 bullet it would extend, then ask the user for explicit confirmation before running one. One capture per unit, never a
-chain. Apply the proposals the main agent judges durable, then ship them as a docs PR (per the docs-refresh convention)
-alongside or after the change. Process mistakes that leave no diff trace (e.g. a git command that discarded work) are
-the most valuable thing to capture — this is what makes the capture systematic instead of memory-dependent. For a
-docs-only merge that fixes stale facts or removes duplication, the fix is the lesson — do not re-capture it as a new
-gotcha; capture only what the merge left unaddressed. Read that as barring a gotcha that _restates the fix_, not a
+chain. Apply the proposals the main agent judges durable: an implementation capture is caused by the change, so it rides
+the change's branch and ships in its PR (a merge-time capture, discovered after the change is done, ships as its own
+docs PR per the docs-refresh convention). Process mistakes that leave no diff trace (e.g. a git command that discarded
+work) are the most valuable thing to capture — this is what makes the capture systematic instead of memory-dependent.
+For a docs-only merge that fixes stale facts or removes duplication, the fix is the lesson — do not re-capture it as a
+new gotcha; capture only what the merge left unaddressed. Read that as barring a gotcha that _restates the fix_, not a
 general rule the fix exemplifies: a durable rule absent from `main` is one of the things the merge left unaddressed.
 Before rejecting a captured rule as a re-capture, check `main`'s own text (`git show origin/main:AGENTS.md`) and reject
 only a rule that restates the fix itself. Every proposal names the existing bullet it extends, or states that no bullet
@@ -231,12 +232,13 @@ reads — and the earlier capture that recorded the stale-target rule had quoted
 closure. When the verification finds shipped work broken, fix the live instance (an out-of-band corrective action, such
 as reopening the issue) alongside the recorded rule; documenting the hazard alone leaves the defect live.
 
-**A capture's output is itself a change-sized unit — start it on its own branch, not in `main`'s working tree.**
-Applying the subagent's proposals is the propose-like moment for the docs change they become: fork from the just-merged
-`main` as soon as you begin, so `main` never carries an in-progress diff and the work is isolated to its own branch. The
-capture after the upstream-report PR (#212) was applied directly on `main` and sat there as an uncommitted two-file diff
-until a review pass flagged it, and the branch was created only then; the leave-work-uncommitted rule presumes a branch
-— an uncommitted capture belongs on its branch, not on `main`.
+**A merge-time capture's output is itself a change-sized unit — start it on its own branch, not in `main`'s working
+tree.** An _implementation_ capture rides the change's branch (see the capture rule); a capture detected _at the merge_
+has no in-flight change to ride, so applying the subagent's proposals is the propose-like moment for the docs change it
+becomes: fork from the just-merged `main` as soon as you begin, so `main` never carries an in-progress diff and the work
+is isolated to its own branch. The capture after the upstream-report PR (#212) was applied directly on `main` and sat
+there as an uncommitted two-file diff until a review pass flagged it, and the branch was created only then; the
+leave-work-uncommitted rule presumes a branch — an uncommitted capture belongs on its branch, not on `main`.
 
 **Sync the main spec only at archive.** Apply edits to code and the change dir's _delta_ spec — never the main spec
 under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source
@@ -341,9 +343,10 @@ characters and move a longer rationale into the design or the What Changes body;
 **Run CI before archiving; one PR per change.** Push the implementation branch and open a PR with the code and the
 active change dir. After the `build` check is green and the user approves, archive the change (move the change dir and
 sync the main spec) as an additional commit in the _same_ PR, then merge once. The archive — the declaration that a
-change is done — always follows CI, never precedes it. (Docs refresh that reflects a completed change —
-`AGENTS.md`/`README.md`/`docs/ideas.md` updates and captured lessons — ships as its own separate docs PR; docs that ARE
-the change ship with the change's PR, per the docs-refresh convention.)
+change is done — always follows CI, never precedes it. (Docs the change causes **while it is in flight** — a capture
+from its implementation, an idea its own work surfaced, a fact it falsified — ship with the change's PR; a docs refresh
+it did not cause, or one surfaced only after it is done (a merge-time capture), ships as its own docs PR, per the
+docs-refresh convention.)
 
 **The `opencode` GitHub Action authors a PR from an `/oc` comment — a local agent or human completes it.** Commenting
 `/oc …` (or `/opencode …`) on an issue runs OpenCode on a GitHub-hosted runner; it implements the work on its own
@@ -788,30 +791,30 @@ Key modules (libraries, not services):
   `AGENTS.md`/`.opencode/`, the spec corpus, `docs/adr/` plus the architectural surface, and `README.md` respectively);
   update the idea's prose in the same change, including any enumeration or count it carries ("two others remain open: A,
   B") that the change's new instance makes wrong. Docs that ARE the change (new agent/command/skill documentation,
-  README rows describing a new capability, the change's idea removal) ship with the change's PR; docs that refresh facts
-  about a completed change ship as a separate docs PR — a newly parked idea that is not yet a change is such a docs PR.
-  A standalone `docs/ideas.md` edit that no change owns (a reword or a stale-fact correction) also ships as its own docs
-  PR, forked from `main`; an edit the change itself causes rides that change's branch. Do not read that last clause as
-  covering a **newly parked idea**: an open question the change's own sweep happened to surface is a new, independent
-  idea, not an artifact of the change, so it ships as its own docs PR forked from `main`. Only the change's own idea
-  removal, or prose about the thing it shipped, rides the change branch. Decide the owner before committing — a docs PR
-  forked from `main` cannot carry an edit committed on a change branch, so committing it there first for a clean tree
-  silently leaves it out of the docs PR and `main` unchanged — and verify the fix against the merged PR's diff rather
-  than the PR description, which can claim a change the diff does not contain. A parked-idea docs PR owes the refresh
-  too: fold any durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly
-  surfaced manual pin to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a fact left only there
-  is lost once the idea is implemented or dropped. `openspec/config.yaml`'s `context:` block is a second, un-gated copy
-  of the same project facts (runtime/Spring/Gradle versions, module count, service list, Docker image names) that
-  OpenSpec shows the AI when creating artifacts — refresh it in the same change whenever one of those facts moves. A
-  **removal** counts too: when a sweep deletes an entry as non-durable, check these copies for the same sentence — the
-  fact has not moved, so the move rule does not fire (`disable-axoniq-console-message`'s sentence outlived #292's
-  removal from `AGENTS.md` by four PRs in `config.yaml`, until the audit noticed). `openspec validate` never checks it,
-  so it drifts silently. The repository's own GitHub description and topics are a third un-gated copy of the same facts
-  — so refresh them in the change that moves one; no gate reads them and no auditor owns a surface outside the
-  repository. A file can also _depend_ on such a surface rather than describe one: `SECURITY.md`'s private-reporting
-  path is a dead end unless private vulnerability reporting is enabled. Enable the setting as part of the change that
-  ships the instruction — a repository setting leaves no diff, so a diff-only review cannot see it — and name the
-  enabling in the change's report. captured: park-retro-marking-idea (#281)
+  README rows describing a new capability, the change's idea removal) ship with the change's PR. For every other docs
+  edit the boundary is **causation _while the change is in flight_**: an edit the change causes and that exists while it
+  can still ride a branch — a lesson from its implementation (the capture), an idea its own sweep surfaced, a fact it
+  falsified — ships in that change's PR, while an edit the change did not cause (a stale fact it merely passed by, a
+  standalone reword, a refresh of an already-completed change) and one surfaced only after the change is done (a
+  merge-time capture, caused by the change but with no branch left to ride) ships as its own docs PR, forked from
+  `main`, batched into one docs PR rather than one per item. Decide the owner before committing — a docs PR forked from
+  `main` cannot carry an edit committed on a change branch, so committing it there first for a clean tree silently
+  leaves it out of the docs PR and `main` unchanged — and verify the fix against the merged PR's diff rather than the PR
+  description, which can claim a change the diff does not contain. A parked-idea docs PR owes the refresh too: fold any
+  durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin
+  to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the
+  idea is implemented or dropped. `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the same
+  project facts (runtime/Spring/Gradle versions, module count, service list, Docker image names) that OpenSpec shows the
+  AI when creating artifacts — refresh it in the same change whenever one of those facts moves. A **removal** counts
+  too: when a sweep deletes an entry as non-durable, check these copies for the same sentence — the fact has not moved,
+  so the move rule does not fire (`disable-axoniq-console-message`'s sentence outlived #292's removal from `AGENTS.md`
+  by four PRs in `config.yaml`, until the audit noticed). `openspec validate` never checks it, so it drifts silently.
+  The repository's own GitHub description and topics are a third un-gated copy of the same facts — so refresh them in
+  the change that moves one; no gate reads them and no auditor owns a surface outside the repository. A file can also
+  _depend_ on such a surface rather than describe one: `SECURITY.md`'s private-reporting path is a dead end unless
+  private vulnerability reporting is enabled. Enable the setting as part of the change that ships the instruction — a
+  repository setting leaves no diff, so a diff-only review cannot see it — and name the enabling in the change's report.
+  captured: park-retro-marking-idea (#281)
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
@@ -1424,11 +1427,11 @@ capture-stash-stale-copy
   about a minute; check once shortly after pushing, then confirm green before archiving/merging. Idle sleep loops only
   waste time and add no information.
 - **A PR whose base advanced after its CI ran fails to merge with "Required status check 'build' is expected" and
-  `mergeStateStatus` BEHIND.** When two PRs merge close together (the norm here: a code PR followed by its docs PR), the
-  second PR's branch is behind the new `main`; the `main-required-checks` ruleset demands the `build` check on the
-  latest base, so the merge is blocked even though the branch's own CI is green. The error message does not say "update
-  your branch" — BEHIND is the tell. Fix: `gh pr update-branch` (or `gh pr merge --update-branch`), which re-runs CI
-  against the updated base; merge only once that check is green.
+  `mergeStateStatus` BEHIND.** When two PRs merge close together (a code PR followed by a docs PR), the second PR's
+  branch is behind the new `main`; the `main-required-checks` ruleset demands the `build` check on the latest base, so
+  the merge is blocked even though the branch's own CI is green. The error message does not say "update your branch" —
+  BEHIND is the tell. Fix: `gh pr update-branch` (or `gh pr merge --update-branch`), which re-runs CI against the
+  updated base; merge only once that check is green.
 - **Exec tasks (`docker`, `pack`, `snyk`) fail in IDEA on macOS**: an IDEA launched from Finder/Dock (or a stale Gradle
   daemon) gives the Gradle daemon a minimal PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) without `/opt/homebrew/bin`, so
   bare-name execs ("command 'docker' not found") fail even though the tools are installed. Root cause: Gradle applies

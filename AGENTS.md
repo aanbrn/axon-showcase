@@ -1889,7 +1889,11 @@ capture-stash-stale-copy
   npm's contract and took repeated review rounds to correct: `npm outdated` exits `1` both when updates exist and on
   error (the report's content, not the exit code alone, is the discriminator), npm warns to stderr on clean runs (so
   stderr is not the error signal), and `npm audit`'s default `--audit-level` resolves to `low`, not "moderate".
-  captured: test-build-logic-rules-and-unify-version-comparison (#306) captured: monitor-web-ui-npm-dependencies (#395)
+  `npm update` reconciles the whole dependency graph rather than the packages you asked for: an in-range direct bump
+  moved its eslint cache stack (`file-entry-cache`, `flat-cache`, `keyv`) across majors, and npm 11 filled `license`
+  fields throughout the lockfile — so describe the lockfile diff by what moved (not as "patches/minors") and run the
+  frontend `check`. captured: test-build-logic-rules-and-unify-version-comparison (#306) captured:
+  monitor-web-ui-npm-dependencies (#395) captured: bump-gradle-and-web-ui-dependencies
 - **A CLI warning dismissed as noise can report a live defect — a config a tool consumes is unverified until its own
   read path is probed, and a warning no gate reads is not a check.** `openspec/config.yaml` declared per-artifact rules
   for four artifacts, but two items contained an unquoted `: `, so YAML parsed them as mappings, the lists stopped being
@@ -2040,6 +2044,12 @@ capture-stash-stale-copy
   `check` only when `coverage.gate.enabled` is not `false` (`code-coverage-conventions.gradle.kts`). The PR CI gate is
   exactly `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (see Continuous Integration) — run that for a local
   Docker-free check, not the bare `-PskipITs` form.
+- **Bumping the Gradle wrapper needs two `wrapper` runs with `--distribution-type all`: the first run only rewrites
+  `distributionUrl`, and the second, executing under the new version, regenerates `gradle-wrapper.jar`/`gradlew`/
+  `gradlew.bat`.** A single run leaves the jar and scripts at the old version, and a run without the flag flips the
+  repo's `-all` distribution to `-bin` — both silently. `./gradlew --version` cannot see either (it reports the version
+  from `distributionUrl`), so verify by diffing all four wrapper files and keep `/gradle-update`'s two-step invocation.
+  captured: bump-gradle-and-web-ui-dependencies
 - **A subagent added or edited mid-session is not registered until OpenCode reloads its agent list.** Creating
   `.opencode/agent/<name>.md` (plus its command) does not make the agent reachable in the running session — invoking it
   via the Task tool fails with `Unknown agent type: <name>`; the `add-agents-auditor-agent` smoke-run was blocked until

@@ -564,7 +564,10 @@ service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, whic
 pipeline with Playwright) on a nightly schedule and via `workflow_dispatch`. It installs the `pack` CLI explicitly
 (`buildpacks/github-actions/setup-pack`, pinned to the same version as local development — the GitHub runner image does
 not guarantee it), and uses `actions/cache@v6` for the npm cache. It is observational — never a merge gate, no secrets,
-and it shares the same `gradle/actions/setup-gradle` caching rules as `.github/workflows/ci.yml`.
+and it shares the same `gradle/actions/setup-gradle` caching rules as `.github/workflows/ci.yml`. The PR gate's `check`
+never builds the web UI bundle (the frontend `check` composes lint, format-check, and Vitest; `tsc` and `vite build`
+live in `build`/`assemble`), so a change that alters the built bundle or its runtime — a React/Vite major — must run
+`./gradlew :showcase-web-ui:e2eTest` deliberately before it is reported done. captured: migrate-web-ui-frontend-majors
 
 `.github/workflows/dependency-security.yml` runs the credentialed dependency security scans — the Snyk scan
 (`./gradlew dependencySecurityCheck`, all sub-projects with the root `.snyk` policy, authenticated with the `SNYK_TOKEN`
@@ -843,7 +846,9 @@ Key modules (libraries, not services):
 - **Frontend (`showcase-web-ui`)**: organized per Feature-Sliced Design (`app`/`pages`/`widgets`/`features`/`entities`/
   `shared`, importing only downward, `@/` alias → `src/`). Server state via TanStack Query, client state via a Redux
   Toolkit slice, forms via React Hook Form + Zod. Format with Prettier (`format:check` gated in `check`; apply with
-  `./gradlew :showcase-web-ui:npmFormat`); lint with ESLint 10 via the flat `showcase-web-ui/eslint.config.js`
+  `./gradlew :showcase-web-ui:npmFormat`); lint with ESLint 10 via the flat `showcase-web-ui/eslint.config.js`. Stub a
+  browser global constructor with a `function` implementation (`vi.fn(function () { return fake; })`) — under Vitest 5
+  the arrow form `vi.fn(() => fake)` is not constructable and throws. captured: migrate-web-ui-frontend-majors
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable. The same applies to prose: when a bullet needs a set another

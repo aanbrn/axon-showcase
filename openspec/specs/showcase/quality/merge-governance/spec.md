@@ -242,10 +242,10 @@ check for merging into `main`.
 
 #### Scenario: No stable updates are available
 
-- **WHEN** the reports contain no stable catalog updates (no "dependencies have newer versions" section) and the web UI
-  report is empty with a clean exit (`0`)
-- **THEN** the issue states that no stable catalog updates are available, without listing the non-actionable milestone
-  sections, and no notification comment is posted
+- **WHEN** the reports contain no stable catalog updates (the report has no "dependencies have later release versions"
+  section) and the web UI report is empty with a clean exit (`0`)
+- **THEN** the issue states that no stable catalog updates are available, without listing the report's up-to-date
+  section, and no notification comment is posted
 
 #### Scenario: Repeated runs notify the owner without accumulating comments
 

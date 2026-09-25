@@ -382,7 +382,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 ### Prerequisites
 
 Most verification runs entirely in the Gradle build, so the tool list is small. Gradle itself is not on it — the wrapper
-pins Gradle 9.7.1 and downloads it on first use.
+pins Gradle 9.8.0 and downloads it on first use.
 
 | Tool                       | Needed for                                                   | Install (macOS)                                                     |
 | -------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |

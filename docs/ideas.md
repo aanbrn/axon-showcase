@@ -14,14 +14,6 @@ it was added (start a new section for a new day rather than appending to the mos
 
 ## 2026-09-25
 
-- Record the `dependency-updates` tracker's catalog-extraction gap — parked; no change yet. The workflow's extraction
-  (`dependency-updates.yml`) keys on a `The following dependencies have newer versions:` section, but the pinned
-  `gradle-versions-plugin` 0.61.0 emits only `The following dependencies have later <revision> versions:` (its
-  `revision` defaults to `milestone`), so the tracker's catalog section is always empty and a stable catalog update
-  (e.g. `caffeine [3.2.4 -> 3.3.0]`) never reaches the issue. The `merge-governance` "no stable catalog updates"
-  scenario and `.opencode/commands/dependency-updates.md` share the same "milestone section is non-actionable" premise,
-  so a fix (set the plugin's `revision`, or match the emitted header) is a change with a `merge-governance` delta.
-
 - Suppress or schedule the web UI's npm major updates — parked; no change yet. The `migrate-web-ui-frontend-majors`
   change took the eight frontend majors (React, Vite, Vitest, jsdom, `@vitejs/plugin-react`, and the
   `@types/react(-dom)` pair) and bumped `typescript` to `6.0.3`; the single remaining major is `typescript` 6 → 7,

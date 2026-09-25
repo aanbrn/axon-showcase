@@ -22,11 +22,12 @@ it was added (start a new section for a new day rather than appending to the mos
   scenario and `.opencode/commands/dependency-updates.md` share the same "milestone section is non-actionable" premise,
   so a fix (set the plugin's `revision`, or match the emitted header) is a change with a `merge-governance` delta.
 
-- Suppress or schedule the web UI's npm major updates — parked; no change yet. The web UI's npm report (`npmOutdated`)
-  lists its major updates every run (`react`/`react-dom` 18 → 19, `vite` 6 → 8, `typescript` 5 → 7, `vitest` 3 → 5,
-  `jsdom` 25 → 30, `@vitejs/plugin-react` 4 → 6, `@types/react(-dom)` 18 → 19) with no suppression mechanism, unlike the
-  JVM's `config/dependency-updates/major-disabled.properties`, so the weekly tracker keeps re-listing them until a
-  suppression list (or the migration) lands.
+- Suppress or schedule the web UI's npm major updates — parked; no change yet. The `migrate-web-ui-frontend-majors`
+  change took the eight frontend majors (React, Vite, Vitest, jsdom, `@vitejs/plugin-react`, and the
+  `@types/react(-dom)` pair) and bumped `typescript` to `6.0.3`; the single remaining major is `typescript` 6 → 7,
+  deferred because typescript-eslint caps TypeScript at `<6.1.0`. There is still no web UI major-suppression mechanism
+  (unlike the JVM's `config/dependency-updates/major-disabled.properties`), so the weekly tracker re-lists the deferred
+  major — and any future one — until a suppression list lands.
 
 ## 2026-09-24
 

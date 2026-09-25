@@ -33,6 +33,7 @@
 - [x] 2.2 Run `openspec validate --changes` (the delta validates and preserves every existing scenario),
       `./gradlew spotlessApply` followed by `./gradlew spotlessCheck`, and `./gradlew workflowLint`; all pass. — Done:
       all pass.
-- [ ] 2.3 Live check after merge (owner/user): dispatch `dependency-updates.yml` and confirm the "Dependency updates"
+- [x] 2.3 Live check after merge (owner/user): dispatch `dependency-updates.yml` and confirm the "Dependency updates"
       issue now carries the stable catalog-updates section (previously always empty). If no dispatch is possible, park
-      the follow-up in `docs/ideas.md` and name it in the change's report.
+      the follow-up in `docs/ideas.md` and name it in the change's report. — Done: dispatched run 36132798579 succeeded
+      and issue #13 now carries the `have later release versions:` section (28 rows).

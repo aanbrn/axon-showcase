@@ -1557,11 +1557,19 @@ capture-stash-stale-copy
     lookup was proved this way with `0.1.0`) — and unit-test the parse pattern against a **real provider response
     body**, not a hand-written string: the GitHub releases API pretty-prints (its `tag_name` key has a space after the
     colon) while npm compacts, so the no-space pattern never matched and left `HelmUpdatesTask`'s Helm CLI silently
-    uncompared (its pin happened to equal the live release, which is why nothing surfaced). A sibling task that predates
-    your change is not exempt from that positive control — grep the other update tasks for the same pattern. A
-    GitHub-backed lookup also sends `GH_TOKEN`/`GITHUB_TOKEN` when CI provides one (attached to GitHub requests only,
-    never to the npm one): an anonymous lookup is rate limited, and the throttled body lands exactly where "current"
-    does. captured: unify-tooling-currency-checks (#304)
+    uncompared (its pin happened to equal the live release, which is why nothing surfaced). The same silence hides in a
+    workflow's report **extraction**: `dependency-updates.yml`'s `awk` opened on
+    `The following dependencies have newer versions:` — a header the pinned `gradle-versions-plugin` never emits (its
+    reporter labels the section from the task's `revision` strategy, which the convention had left at the `milestone`
+    default) — so the issue's catalog section was always empty and 28 stable updates went unreported, reading exactly
+    like "no updates". Ground the extraction pattern in the pinned tool's emitted output (its reporter, or a real
+    report) and re-ground it whenever the tool or its report configuration (the task's `revision`, say) changes; the
+    sibling-diff catches a diverged copy (see the `toolingUpdates` bullet), while the positive control above proves the
+    pattern matches the tool's output. A sibling task that predates your change is not exempt from that positive control
+    — grep the other update tasks for the same pattern. A GitHub-backed lookup also sends `GH_TOKEN`/`GITHUB_TOKEN` when
+    CI provides one (attached to GitHub requests only, never to the npm one): an anonymous lookup is rate limited, and
+    the throttled body lands exactly where "current" does. captured: unify-tooling-currency-checks (#304) captured:
+    fix-dependency-updates-catalog-extraction
   - **A control must perturb the surface the check actually reads.** `reconcile-showcase-cache-default`'s control
     perturbs the yml placeholder because `applicationYmlPlaceholdersBindDocumentedDefaults` boots `application.yml` and
     never binds the Java field — reverting the field instead would have proved nothing, since that test passes

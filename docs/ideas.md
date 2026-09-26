@@ -13,6 +13,29 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-09-27
+
+- Close the loop between the measured knee and the performance profiles — parked; no change yet.
+  `scripts/load-test-baseline.sh` derives the knee (`knee.properties`) but runs only `calibrate` and `baseline`, so a
+  performance profile must be given `-PkneeRate=<knee>` by hand; wire the wrapper (or a run-profile subcommand) to pass
+  it. Relatedly, the calibration's `CALIBRATE_RATE` default (`200`) has never produced a sustained departure — every run
+  reports `measured=false` — so the "knee" is a ceiling; raise or iterate the ceiling until a real knee is found.
+
+- Derive the load-test profile assertions from a baseline — parked; no change yet. The below-knee profiles
+  (`average`/`stress`/`soak`) assert fixed thresholds (mean ≤100 ms, p95 ≤500 ms, p99 ≤1000 ms, ≥99.99 % success) that
+  do not reflect the host; measuring an idle/steady baseline and deriving the thresholds from it would make them
+  meaningful anywhere.
+
+- Run the load tests observationally and record the baseline automatically — parked; no change yet. Nothing runs the
+  load tests on a schedule (they are opt-in), so latency/memory regressions are untracked, and the committed
+  `docs/load-tests/<date>.md` record is hand-transcribed from `build/load-tests/report.md`; a scheduled short run (the
+  repo's observational pattern) that also emits a ready-to-commit record would close both.
+
+- Minor load-test refinements — parked; no change yet. The `spike` profile's `stressPeakUsers(1.5×kneeRate×share)`
+  treats a units-per-second rate as a user count; the SSE stream asserts one event and then only holds, rather than
+  verifying delivery across the run; and the read stream's detail fetch is skipped while the showcase list is empty (a
+  cold start). Each is small and independent.
+
 ## 2026-09-25
 
 - Suppress or schedule the web UI's npm major updates — parked; no change yet. The `migrate-web-ui-frontend-majors`

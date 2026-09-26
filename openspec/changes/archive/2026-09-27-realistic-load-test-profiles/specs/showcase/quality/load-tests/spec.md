@@ -1,62 +1,17 @@
-# showcase/quality/load-tests Specification
+# Spec Delta
 
-## Purpose
+## REMOVED Requirements
 
-Documents the Gatling-based load-testing setup: the showcase simulation's three concurrent streams — a read stream, a
-write-lifecycle stream, and an SSE stream — driving the deployed API gateway, the configurable injection profiles and
-their pass assertions, and the calibration/baseline measurement with the report it produces.
+### Requirement: Injection profiles
 
-## Requirements
+**Reason**: the six performance profiles hard-code absolute template peaks and holds (`200`/`400`/`4000`/`40000` users
+per second; `5m`/`30m`/`8h`/`2h`) unrelated to the target, so `average` sits at the stack's `200`-unit/s calibration
+ceiling (the knee was never measured) and `stress`, `spike`, and `breakpoint` are far beyond it.
 
-### Requirement: Pass assertions
+**Migration**: see "Knee-relative injection profiles" — each performance profile becomes a multiple of a configured
+knee-rate, and the `smoke`, `calibrate`, and `baseline` scenarios carry over unchanged.
 
-The simulation SHALL assert on the read and write request results per profile — the performance profiles that sit at or
-below the knee-rate (`average`, `stress`, `soak`) assert response-time and success percentiles, the smoke profile
-asserts zero failed requests, and the baseline profile asserts the configured response-time percentiles and success rate
-over its plateau. The `calibrate` profile SHALL carry no pass assertions, because its purpose is to measure rather than
-to gate, and the above-knee profiles (`spike`, `breakpoint`) SHALL carry none, because their purpose is to probe the
-ceiling. The assertions SHALL NOT include the SSE streams' long-lived connection times.
-
-#### Scenario: Performance profiles assert response times and success rate
-
-- **WHEN** the `profile` is `average`, `stress`, or `soak`
-- **THEN** the simulation asserts a mean response time at most 100 milliseconds, a 95th percentile at most 500
-  milliseconds, a 99th percentile at most 1000 milliseconds, and at least 99.99 percent successful requests
-
-#### Scenario: Smoke profile asserts zero failures
-
-- **WHEN** the `profile` is `smoke` or an unknown value
-- **THEN** the simulation asserts zero failed requests
-
-#### Scenario: Baseline profile asserts the configured thresholds hold
-
-- **WHEN** the `profile` is `baseline`
-- **THEN** the simulation asserts zero failed requests and the configured response-time percentiles over the plateau
-
-#### Scenario: Calibrate profile asserts nothing
-
-- **WHEN** the `profile` is `calibrate`
-- **THEN** the simulation reports the run's results without a pass assertion
-
-#### Scenario: Above-knee profiles assert nothing
-
-- **WHEN** the `profile` is `spike` or `breakpoint`
-- **THEN** the simulation reports the run's results without a pass assertion
-
-### Requirement: Protocol configuration
-
-The simulation SHALL send requests over HTTP with a `Host` header derived from the configured target and shared
-connections.
-
-#### Scenario: Requests carry the configured host header
-
-- **WHEN** the simulation sends requests
-- **THEN** each request carries the host of the configured `baseUrl`
-
-#### Scenario: Connections are shared
-
-- **WHEN** the simulation sends requests
-- **THEN** it shares connections across users
+## MODIFIED Requirements
 
 ### Requirement: Simulation exercises the gateway's read and write streams
 
@@ -121,32 +76,6 @@ pause for a configured think time between its actions.
 - **WHEN** a step in a stream fails its status or payload checks
 - **THEN** that stream exits the block on failure
 
-### Requirement: Simulation exercises the SSE event stream
-
-The simulation SHALL hold `/events` connections open against the API gateway like browser tabs, assert that showcase
-events arrive for the write lifecycle, and keep the connection open across a quiet period.
-
-#### Scenario: SSE stream connects to the event stream
-
-- **WHEN** the SSE stream runs
-- **THEN** it opens an SSE connection to `/events` and expects it to be established
-
-#### Scenario: SSE stream observes events for a write lifecycle
-
-- **WHEN** the SSE stream is connected while a write-lifecycle stream schedules, starts, finishes, or removes a showcase
-- **THEN** the SSE stream receives the corresponding showcase events (the gateway replays its buffered events on connect
-  and streams live ones)
-
-#### Scenario: SSE stream stays open across a quiet period
-
-- **WHEN** no showcase event occurs for longer than the keep-alive interval
-- **THEN** the SSE connection remains open and receives the keep-alive
-
-#### Scenario: SSE stream closes cleanly
-
-- **WHEN** the SSE stream finishes
-- **THEN** it closes the connection
-
 ### Requirement: Configurable target, profile, rate, ratio, and duration
 
 The simulation SHALL be configurable via system properties: `baseUrl` for the target host, `profile` for the injection
@@ -207,30 +136,42 @@ default `detailShare` SHALL be `0.15`, the default `startShare` SHALL be `0.6`, 
 - **WHEN** the `hold` system property is provided
 - **THEN** the soak profile sustains its plateau for that duration
 
-### Requirement: A baseline run reports its measurements
+### Requirement: Pass assertions
 
-A `baseline` run SHALL produce a report of its measurement: the target's shape, the calibration knee, the operating
-point and duration, the plateau's response times, and the per-service resource usage during the plateau. The report
-SHALL take the calibration knee from the `calibrate` run's written output rather than re-deriving it at run time. When
-the calibration finds no sustained departure, the report SHALL state that the knee was not measured and give the
-operating point as a fraction of the calibration ceiling.
+The simulation SHALL assert on the read and write request results per profile — the performance profiles that sit at or
+below the knee-rate (`average`, `stress`, `soak`) assert response-time and success percentiles, the smoke profile
+asserts zero failed requests, and the baseline profile asserts the configured response-time percentiles and success rate
+over its plateau. The `calibrate` profile SHALL carry no pass assertions, because its purpose is to measure rather than
+to gate, and the above-knee profiles (`spike`, `breakpoint`) SHALL carry none, because their purpose is to probe the
+ceiling. The assertions SHALL NOT include the SSE streams' long-lived connection times.
 
-#### Scenario: The run writes a report
+#### Scenario: Performance profiles assert response times and success rate
 
-- **WHEN** a `baseline` run completes
-- **THEN** it writes a report describing the run under the module's build output
+- **WHEN** the `profile` is `average`, `stress`, or `soak`
+- **THEN** the simulation asserts a mean response time at most 100 milliseconds, a 95th percentile at most 500
+  milliseconds, a 99th percentile at most 1000 milliseconds, and at least 99.99 percent successful requests
 
-#### Scenario: The report names the run's method and numbers
+#### Scenario: Smoke profile asserts zero failures
 
-- **WHEN** the report is written
-- **THEN** it states the target shape, the calibration knee, the operating point, the plateau duration, the plateau's
-  response times, and the per-service resource usage
+- **WHEN** the `profile` is `smoke` or an unknown value
+- **THEN** the simulation asserts zero failed requests
 
-#### Scenario: An unmeasured knee is labeled as the ceiling
+#### Scenario: Baseline profile asserts the configured thresholds hold
 
-- **WHEN** the calibration finds no sustained departure
-- **THEN** the report states that the knee was not measured and gives the operating point as a fraction of the
-  calibration ceiling
+- **WHEN** the `profile` is `baseline`
+- **THEN** the simulation asserts zero failed requests and the configured response-time percentiles over the plateau
+
+#### Scenario: Calibrate profile asserts nothing
+
+- **WHEN** the `profile` is `calibrate`
+- **THEN** the simulation reports the run's results without a pass assertion
+
+#### Scenario: Above-knee profiles assert nothing
+
+- **WHEN** the `profile` is `spike` or `breakpoint`
+- **THEN** the simulation reports the run's results without a pass assertion
+
+## ADDED Requirements
 
 ### Requirement: Knee-relative injection profiles
 

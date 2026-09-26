@@ -5,6 +5,8 @@ import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
 import static io.gatling.javaapi.core.CoreDsl.constantUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.details;
+import static io.gatling.javaapi.core.CoreDsl.doIf;
+import static io.gatling.javaapi.core.CoreDsl.doWhileDuring;
 import static io.gatling.javaapi.core.CoreDsl.exec;
 import static io.gatling.javaapi.core.CoreDsl.global;
 import static io.gatling.javaapi.core.CoreDsl.jsonPath;
@@ -70,6 +72,66 @@ public class ShowcaseSimulation extends Simulation {
     private static final int SSE_CONNECTIONS = Integer.parseInt(property("sseConnections", "10"));
 
     /**
+     * The reference rate the performance profiles scale from.
+     */
+    private static final int KNEE_RATE = Integer.parseInt(property("kneeRate", "200"));
+
+    /**
+     * The pause between a stream's actions.
+     */
+    private static final Duration THINK_TIME = Duration.parse(property("thinkTime", "PT1S"));
+
+    /**
+     * The share of read iterations that fetch a showcase detail.
+     */
+    private static final double DETAIL_SHARE = Double.parseDouble(property("detailShare", "0.15"));
+
+    /**
+     * The share of write iterations that start their scheduled showcase.
+     */
+    private static final double START_SHARE = Double.parseDouble(property("startShare", "0.6"));
+
+    /**
+     * The share of started showcases that are finished before removal.
+     */
+    private static final double FINISH_SHARE = Double.parseDouble(property("finishShare", "0.5"));
+
+    /**
+     * The soak profile's plateau length.
+     */
+    private static final Duration HOLD = Duration.parse(property("hold", "PT2H"));
+
+    /**
+     * The 5-minute ramp and ramp-down shared by the average, soak, and stress profiles.
+     */
+    private static final Duration RAMP_5M = Duration.ofMinutes(5);
+
+    /**
+     * The stress profile's 10-minute ramp.
+     */
+    private static final Duration RAMP_10M = Duration.ofMinutes(10);
+
+    /**
+     * The 30-minute plateau shared by the average and stress profiles.
+     */
+    private static final Duration HOLD_30M = Duration.ofMinutes(30);
+
+    /**
+     * The spike profile's 2-minute burst.
+     */
+    private static final Duration SPIKE_UP = Duration.ofMinutes(2);
+
+    /**
+     * The spike profile's ramp-down after the burst.
+     */
+    private static final Duration SPIKE_DOWN = Duration.ofMinutes(1);
+
+    /**
+     * The breakpoint profile's 20-minute ramp.
+     */
+    private static final Duration BREAKPOINT_RAMP = Duration.ofMinutes(20);
+
+    /**
      * The interval between write-lifecycle polls.
      */
     private static final Duration POLL_INTERVAL = Duration.ofMillis(500);
@@ -80,16 +142,21 @@ public class ShowcaseSimulation extends Simulation {
     private static final Duration POLL_TIMEOUT = Duration.ofMinutes(5);
 
     /**
-     * The quiet period an SSE connection holds for outside the measurement profiles.
+     * The quiet period an SSE connection holds for the smoke profile.
      */
     private static final Duration SSE_QUIET_PERIOD = Duration.ofSeconds(20);
 
     /**
-     * The period an SSE connection holds open, matching the run for the long profiles.
+     * The period an SSE connection holds open, matching the profile's run length (ramps plus hold).
      */
     private static final Duration SSE_HOLD =
             switch (PROFILE) {
-                case "calibrate", "baseline", "average", "soak", "stress", "spike", "breakpoint" -> DURATION;
+                case "calibrate", "baseline" -> DURATION;
+                case "average" -> RAMP_5M.plus(HOLD_30M).plus(RAMP_5M);
+                case "soak" -> RAMP_5M.plus(HOLD).plus(RAMP_5M);
+                case "stress" -> RAMP_10M.plus(HOLD_30M).plus(RAMP_5M);
+                case "spike" -> SPIKE_UP.plus(SPIKE_DOWN);
+                case "breakpoint" -> BREAKPOINT_RAMP;
                 default -> SSE_QUIET_PERIOD;
             };
 
@@ -111,14 +178,15 @@ public class ShowcaseSimulation extends Simulation {
     private static final HttpProtocolBuilder PROTOCOL = http.baseUrl(BASE_URL).shareConnections();
 
     /**
-     * The read stream: the showcase list, then a showcase's detail when one was returned.
+     * The read stream: the showcase list, then a showcase's detail for the configured share of iterations.
      */
     private static final ChainBuilder READ = exec(http("FetchShowcases")
                     .get("/showcases")
                     .check(
                             status().is(200),
                             jsonPath("$[0].showcaseId").optional().saveAs("showcaseId")))
-            .doIf(session -> session.contains("showcaseId"))
+            .pause(THINK_TIME)
+            .doIf(session -> session.contains("showcaseId") && Math.random() < DETAIL_SHARE)
             .then(exec(http("FetchShowcase")
                     .get(session -> "/showcases/" + session.getString("showcaseId"))
                     .check(status().in(200, 404))));
@@ -130,7 +198,7 @@ public class ShowcaseSimulation extends Simulation {
             scenario("Read").exitBlockOnFail().on(READ);
 
     /**
-     * The write-lifecycle chain: schedule, then poll-start-finish-remove each until the read model catches up.
+     * The write-lifecycle chain: schedule, then start and finish for the configured shares, always removing.
      */
     private static final ChainBuilder WRITE = exec(session -> session.set("title", aShowcaseTitle())
                     .set("startTime", aShowcaseStartTime(Instant.now()))
@@ -141,30 +209,44 @@ public class ShowcaseSimulation extends Simulation {
                     .body(StringBody("""
                             {"title":"#{title}","startTime":"#{startTime}","duration":"#{duration}"}"""))
                     .check(status().is(201), jsonPath("$.showcaseId").saveAs("showcaseId")))
-            .doWhileDuring("#{queryStatus} != 200", POLL_TIMEOUT)
-            .on(
-                    pause(POLL_INTERVAL),
-                    exec(http("PollShowcase")
-                            .get(session -> "/showcases/" + session.getString("showcaseId"))
-                            .check(status().in(200, 404).saveAs("queryStatus"))))
-            .exec(http("StartShowcase")
-                    .put(session -> "/showcases/" + session.getString("showcaseId") + "/start")
-                    .check(status().is(200)))
-            .doWhileDuring("#{showcaseStatus} != \"STARTED\"", POLL_TIMEOUT)
-            .on(
-                    pause(POLL_INTERVAL),
-                    exec(http("PollShowcase")
-                            .get(session -> "/showcases/" + session.getString("showcaseId"))
-                            .check(status().in(200, 404), jsonPath("$.status").saveAs("showcaseStatus"))))
-            .exec(http("FinishShowcase")
-                    .put(session -> "/showcases/" + session.getString("showcaseId") + "/finish")
-                    .check(status().is(200)))
-            .doWhileDuring("#{showcaseStatus} != \"FINISHED\"", POLL_TIMEOUT)
-            .on(
-                    pause(POLL_INTERVAL),
-                    exec(http("PollShowcase")
-                            .get(session -> "/showcases/" + session.getString("showcaseId"))
-                            .check(status().in(200, 404), jsonPath("$.status").saveAs("showcaseStatus"))))
+            .pause(THINK_TIME)
+            .doIf(session -> Math.random() < START_SHARE)
+            .then(
+                    doWhileDuring("#{queryStatus} != 200", POLL_TIMEOUT)
+                            .on(
+                                    pause(POLL_INTERVAL),
+                                    exec(http("PollShowcase")
+                                            .get(session -> "/showcases/" + session.getString("showcaseId"))
+                                            .check(status().in(200, 404).saveAs("queryStatus")))),
+                    exec(http("StartShowcase")
+                            .put(session -> "/showcases/" + session.getString("showcaseId") + "/start")
+                            .check(status().is(200))),
+                    pause(THINK_TIME),
+                    doIf(session -> Math.random() < FINISH_SHARE)
+                            .then(
+                                    doWhileDuring("#{showcaseStatus} != \"STARTED\"", POLL_TIMEOUT)
+                                            .on(
+                                                    pause(POLL_INTERVAL),
+                                                    exec(http("PollShowcase")
+                                                            .get(session ->
+                                                                    "/showcases/" + session.getString("showcaseId"))
+                                                            .check(
+                                                                    status().in(200, 404),
+                                                                    jsonPath("$.status")
+                                                                            .saveAs("showcaseStatus")))),
+                                    exec(http("FinishShowcase")
+                                            .put(session -> "/showcases/" + session.getString("showcaseId") + "/finish")
+                                            .check(status().is(200))),
+                                    doWhileDuring("#{showcaseStatus} != \"FINISHED\"", POLL_TIMEOUT)
+                                            .on(
+                                                    pause(POLL_INTERVAL),
+                                                    exec(http("PollShowcase")
+                                                            .get(session ->
+                                                                    "/showcases/" + session.getString("showcaseId"))
+                                                            .check(
+                                                                    status().in(200, 404),
+                                                                    jsonPath("$.status")
+                                                                            .saveAs("showcaseStatus"))))))
             .exec(http("RemoveShowcase")
                     .delete(session -> "/showcases/" + session.getString("showcaseId"))
                     .check(status().is(200)));
@@ -218,29 +300,31 @@ public class ShowcaseSimulation extends Simulation {
         return switch (PROFILE) {
             case "average" ->
                 new OpenInjectionStep[] {
-                    rampUsersPerSec(0).to(200 * share).during(Duration.ofMinutes(5)),
-                    constantUsersPerSec(200 * share).during(Duration.ofMinutes(30)),
-                    rampUsersPerSec(200 * share).to(0).during(Duration.ofMinutes(5))
+                    rampUsersPerSec(0).to(0.6 * KNEE_RATE * share).during(RAMP_5M),
+                    constantUsersPerSec(0.6 * KNEE_RATE * share).during(HOLD_30M),
+                    rampUsersPerSec(0.6 * KNEE_RATE * share).to(0).during(RAMP_5M)
                 };
             case "soak" ->
                 new OpenInjectionStep[] {
-                    rampUsersPerSec(0).to(200 * share).during(Duration.ofMinutes(5)),
-                    constantUsersPerSec(200 * share).during(Duration.ofHours(8)),
-                    rampUsersPerSec(200 * share).to(0).during(Duration.ofMinutes(5))
+                    rampUsersPerSec(0).to(0.6 * KNEE_RATE * share).during(RAMP_5M),
+                    constantUsersPerSec(0.6 * KNEE_RATE * share).during(HOLD),
+                    rampUsersPerSec(0.6 * KNEE_RATE * share).to(0).during(RAMP_5M)
                 };
             case "stress" ->
                 new OpenInjectionStep[] {
-                    rampUsersPerSec(0).to(400 * share).during(Duration.ofMinutes(10)),
-                    constantUsersPerSec(400 * share).during(Duration.ofMinutes(30)),
-                    rampUsersPerSec(400 * share).to(0).during(Duration.ofMinutes(5))
+                    rampUsersPerSec(0).to(0.9 * KNEE_RATE * share).during(RAMP_10M),
+                    constantUsersPerSec(0.9 * KNEE_RATE * share).during(HOLD_30M),
+                    rampUsersPerSec(0.9 * KNEE_RATE * share).to(0).during(RAMP_5M)
                 };
             case "spike" ->
                 new OpenInjectionStep[] {
-                    stressPeakUsers((int) Math.round(4000 * share)).during(Duration.ofMinutes(2)),
-                    rampUsersPerSec(4000 * share).to(0).during(Duration.ofMinutes(1))
+                    stressPeakUsers((int) Math.round(1.5 * KNEE_RATE * share)).during(SPIKE_UP),
+                    rampUsersPerSec(1.5 * KNEE_RATE * share).to(0).during(SPIKE_DOWN)
                 };
             case "breakpoint" ->
-                new OpenInjectionStep[] {rampUsersPerSec(0).to(40000 * share).during(Duration.ofHours(2))};
+                new OpenInjectionStep[] {
+                    rampUsersPerSec(0).to(1.5 * KNEE_RATE * share).during(BREAKPOINT_RAMP)
+                };
             case "calibrate" ->
                 new OpenInjectionStep[] {rampUsersPerSec(0).to(RATE * share).during(DURATION)};
             case "baseline" ->
@@ -255,12 +339,12 @@ public class ShowcaseSimulation extends Simulation {
      * @return the assertions for the profile
      */
     private static List<Assertion> assertions() {
-        if ("calibrate".equals(PROFILE)) {
+        if ("calibrate".equals(PROFILE) || "spike".equals(PROFILE) || "breakpoint".equals(PROFILE)) {
             return List.of();
         }
         List<Assertion> result = new ArrayList<>();
         switch (PROFILE) {
-            case "average", "stress", "spike", "breakpoint", "soak" -> {
+            case "average", "stress", "soak" -> {
                 for (val name : REQUEST_NAMES) {
                     result.add(details(name).responseTime().mean().lte(100));
                     result.add(details(name).responseTime().percentile(95.0).lte(500));

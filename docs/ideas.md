@@ -224,15 +224,6 @@ dated when it was added (start a new section for a new day rather than appending
   redesign could subscribe the read model itself to the event stream (server-side projection push) or refetch on event
   with a single debounced invalidation instead of one wait per event.
 
-- Rethink resource requests/limits in the Helm chart and the local target — parked; no change yet. The chart's default
-  resources are uneven and largely unvalidated: the JVM services default to `requests: 1.0 CPU / 0.5Gi` with
-  `limits: 3.0 CPU / 1Gi` (generous, speculative), while the web UI uses `requests: 100m / 64Mi` with
-  `limits: memory 128Mi` (no CPU limit), and the local target (`values-local.yaml`) overrides no resources at all.
-  Revisit with the measured baseline the reworked load tests now produce (`scripts/load-test-baseline.sh` writes
-  `load-tests/build/load-tests/report.md`, recorded under `docs/load-tests/`) and kube-state-metrics, so requests/limits
-  reflect real usage, decide on CPU limits (the JVM services set them; the web UI does not), and align defaults across
-  services for consistency.
-
 - Migrate off the deprecated OpenSearch low-level REST client — parked; no change yet.
   `org.opensearch.client.RestClientBuilder` (and the `RestClient` it builds) is `@Deprecated`, to be removed in future
   releases in favor of the official OpenSearch Java Client. The projection service's

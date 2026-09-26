@@ -9,7 +9,6 @@ set -uo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 BASE_URL=${BASE_URL:-http://axon-showcase-api}
-NAMESPACE=${NAMESPACE:-axon-showcase}
 RATIO=${RATIO:-0.75}
 CALIBRATE_RATE=${CALIBRATE_RATE:-200}
 CALIBRATE_DURATION=${CALIBRATE_DURATION:-PT5M}
@@ -56,7 +55,7 @@ echo "==> knee=$KNEE units/s (measured=$MEASURED), operating point=$OPERATING un
 (
     while true; do
         printf -- '--- %s\n' "$(date -u +%H:%M:%S)"
-        kubectl top pods -n "$NAMESPACE" 2>/dev/null || true
+        kubectl top pods -A 2>/dev/null || true
         sleep "$SAMPLE_INTERVAL"
     done
 ) >"$SAMPLES" 2>&1 &
@@ -96,7 +95,7 @@ cat >"$OUT_DIR/report.md" <<EOF
 $SUMMARY
 \`\`\`
 
-## Per-service resource usage (\`kubectl top -n $NAMESPACE\`)
+## Per-service resource usage (\`kubectl top pods -A\`)
 
 \`\`\`
 $(cat "$SAMPLES")

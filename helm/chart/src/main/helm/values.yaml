@@ -243,10 +243,9 @@ commandService:
   # @param commandService.resources.limits CPU/memory limits
   resources:
     requests:
-      cpu: 1.0
+      cpu: 500m
       memory: 0.5Gi
     limits:
-      cpu: 3.0
       memory: 1Gi
 
   # @param commandService.lifecycleHooks Container lifecycle hooks
@@ -497,10 +496,9 @@ queryService:
   # @param queryService.resources.limits CPU/memory limits
   resources:
     requests:
-      cpu: 1.0
+      cpu: 500m
       memory: 0.5Gi
     limits:
-      cpu: 3.0
       memory: 1Gi
 
   # @param queryService.lifecycleHooks Container lifecycle hooks
@@ -773,11 +771,10 @@ projectionService:
   # @param projectionService.resources.limits CPU/memory limits
   resources:
     requests:
-      cpu: 1.0
+      cpu: 100m
       memory: 0.5Gi
     limits:
-      cpu: 3.0
-      memory: 0.75Gi
+      memory: 1Gi
 
   # @param projectionService.lifecycleHooks Container lifecycle hooks
   # @param projectionService.affinity Pod affinity
@@ -1045,10 +1042,9 @@ apiGateway:
   # @param apiGateway.resources.limits CPU/memory limits
   resources:
     requests:
-      cpu: 1.0
+      cpu: 1
       memory: 0.5Gi
     limits:
-      cpu: 3.0
       memory: 1Gi
 
   # @param apiGateway.lifecycleHooks Container lifecycle hooks
@@ -1389,7 +1385,7 @@ webUi:
   # @param webUi.resources Resource requests and limits for the Web UI container
   resources:
     requests:
-      cpu: 100m
+      cpu: 50m
       memory: 64Mi
     limits:
       memory: 128Mi

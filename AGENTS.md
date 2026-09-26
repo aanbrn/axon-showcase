@@ -1847,17 +1847,23 @@ capture-stash-stale-copy
   for the approach's name before calling the revert done. The sweep spans live copies only: `openspec/changes/archive/`
   is the historical record, left as recorded — the Spotless target already excludes it — so a corrected command or a
   renamed symbol found there stays as recorded rather than being "fixed".
-- **A configuration-default change names every test assertion that pins the value, on each surface it is declared.** The
-  `reconcile-showcase-cache-default` plan initially missed that `allPropertiesHaveDocumentedDefaults` asserts the Java
-  field (so the change would fail it) and that the yml-wiring test's missing `showcaseCache` assertion was the gap which
-  let the drift pass. Grep the test sources for the field accessor when changing a default, and give each pinning
-  assertion its own task — the Java-defaults test and the yml-wiring test each bind a different surface. A variable
-  carried in a service's `bootBuildImage` `BPE_DEFAULT_*` map has one surface more: the image's launch-environment
-  default (`paketo-buildpacks/environment-variables`), which a deployment's env var overrides but which in turn
-  overrides the yml fallback. A new property the image carries joins that map too, its value decided from the map's
-  closest sibling there — the keep-alive mirrors its default, the origins bake the empty fail-closed override of a
-  local-development default — because the map is the image's declared deployment environment, not a diff against the
-  Java default. captured: fix-gateway-cors-allowed-headers (#359)
+- **A configuration-default change names every test assertion that pins the value and every doc that describes it, on
+  each surface it is declared.** The `reconcile-showcase-cache-default` plan initially missed that
+  `allPropertiesHaveDocumentedDefaults` asserts the Java field (so the change would fail it) and that the yml-wiring
+  test's missing `showcaseCache` assertion was the gap which let the drift pass. Grep the test sources for the field
+  accessor when changing a default, and give each pinning assertion its own task — the Java-defaults test and the
+  yml-wiring test each bind a different surface. A variable carried in a service's `bootBuildImage` `BPE_DEFAULT_*` map
+  has one surface more: the image's launch-environment default (`paketo-buildpacks/environment-variables`), which a
+  deployment's env var overrides but which in turn overrides the yml fallback. A new property the image carries joins
+  that map too, its value decided from the map's closest sibling there — the keep-alive mirrors its default, the origins
+  bake the empty fail-closed override of a local-development default — because the map is the image's declared
+  deployment environment, not a diff against the Java default. Documents that describe the value are surfaces too: grep
+  the docs for it and correct every description — but a **historical record** (a baseline, a retro, an audit) is
+  corrected by stating the values it ran under in the past tense, never by rewriting it to the new ones, since its
+  measured data is what it records. `right-size-chart-resources` changed the chart defaults; the Target bullet and the
+  Result paragraph of `docs/load-tests/2026-09-26.md` both described the old ones in the present tense, the plan
+  enumerated only the Target bullet, and review caught the Result paragraph — derive a doc's sites from a grep, not the
+  plan's list. captured: fix-gateway-cors-allowed-headers (#359) captured: right-size-chart-resources
 - **Doc claims must match their source and their strength — quote verbatim or paraphrase explicitly, and reserve
   "enforced" for a real gate.** The self-learning README section described `AGENTS.md` rules in quotes;
   `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an

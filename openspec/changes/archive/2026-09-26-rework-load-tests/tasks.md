@@ -52,7 +52,7 @@
       command runs as written.
 - [x] 4.2 Remove the implemented "Rethink or rewrite the load tests" entry from `docs/ideas.md` and refresh the
       resource-sizing entry's wording now that a baseline exists. Verify no entry still calls the load tests stale.
-- [ ] 4.3 Refresh the `showcase/quality/load-tests` `## Purpose` in the archive commit (a delta cannot carry a Purpose)
+- [x] 4.3 Refresh the `showcase/quality/load-tests` `## Purpose` in the archive commit (a delta cannot carry a Purpose)
       so it names the three concurrent streams and the baseline report rather than the old scenario flow; verify the
       refreshed Purpose against the spec's requirements.
 

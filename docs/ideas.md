@@ -251,14 +251,6 @@ dated when it was added (start a new section for a new day rather than appending
   (or we migrate the projection/query services to the OpenSearch Java Client transport directly), the warning resolves;
   track so it does not become a hard break when the low-level client is removed.
 
-## 2026-09-04
-
-- Enforce the web UI's naming conventions with tooling — parked; no change yet. The `enforce-web-ui-import-boundaries`
-  change added the FSD import-direction and per-slice public-API rules (`eslint-plugin-boundaries`), so the remaining
-  human-review-only area is **naming** (e.g. `use*` hooks, `*.test.ts(x)`/`*.spec.ts` suffixes) — enforceable via ESLint
-  rules for the per-file parts, though a test-file suffix is a file-set property rather than a per-file one. Verify
-  existing code conforms (it was built cleanly) and let CI gate it from then on.
-
 ## 2026-09-01
 
 - Managed-k8s staging for free or cheaply — explored, parked (no change yet). Goal: a managed Kubernetes staging env for

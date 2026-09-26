@@ -27,6 +27,59 @@ export default tseslint.config(
   },
   {
     files: ['**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/naming-convention': [
+        'error',
+        {
+          selector: 'function',
+          filter: { regex: '^[A-Z]', match: true },
+          format: ['StrictPascalCase'],
+        },
+        {
+          selector: 'function',
+          format: ['strictCamelCase'],
+        },
+        {
+          selector: 'variable',
+          filter: { regex: '^[A-Z]', match: true },
+          format: ['UPPER_CASE', 'StrictPascalCase'],
+        },
+        {
+          selector: 'variable',
+          format: ['strictCamelCase'],
+        },
+        {
+          selector: 'parameter',
+          format: ['strictCamelCase'],
+        },
+        {
+          selector: 'parameter',
+          modifiers: ['unused'],
+          format: ['strictCamelCase'],
+          leadingUnderscore: 'allow',
+        },
+        { selector: 'typeAlias', format: ['StrictPascalCase'] },
+        { selector: 'interface', format: ['StrictPascalCase'] },
+        { selector: 'typeParameter', format: ['StrictPascalCase'] },
+      ],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+  {
+    files: ['src/**/*.spec.{ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Program',
+          message:
+            'A unit test under src must be named *.test.ts(x): a *.spec.ts file is not collected by the Vitest runner.',
+        },
+      ],
+    },
+  },
+  {
+    files: ['**/*.{ts,tsx}'],
     plugins: { boundaries },
     settings: {
       'import/resolver': { typescript: { alwaysTryTypes: true } },

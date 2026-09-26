@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-import { BASE } from '@/shared/api';
+import { BASE } from '@/shared';
 import type { ShowcaseEvent } from '../types';
 
 /**

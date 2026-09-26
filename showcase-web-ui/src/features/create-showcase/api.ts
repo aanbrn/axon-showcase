@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
-import { handle, isPending, request } from '@/shared/api';
-import type { ScheduleShowcaseRequest } from '@/entities/showcase/types';
+import { handle, isPending, request } from '@/shared';
+import type { ScheduleShowcaseRequest } from '@/entities/showcase';
 
 const IDEMPOTENCY_KEY_HEADER = 'Idempotency-Key';
 

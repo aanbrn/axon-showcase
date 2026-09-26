@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: MIT
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useShowcases } from '@/entities/showcase/useShowcases';
-import { mergeTimeline } from '@/entities/showcase/lib/timelineEntries';
-import { waitForEvent } from '@/entities/showcase/query-hooks';
-import { connectEventStream } from '@/entities/showcase-event/api/eventStream';
-import { CreateShowcaseForm } from '@/features/create-showcase/CreateShowcaseForm';
-import { useCreateShowcase } from '@/features/create-showcase/useCreateShowcase';
-import { useFinishShowcase, useRemoveShowcase, useStartShowcase } from '@/features/showcase-actions/useShowcaseActions';
-import { ShowcaseList } from '@/widgets/showcase-list/ShowcaseList';
-import { ShowcaseDetail } from '@/widgets/showcase-detail/ShowcaseDetail';
-import { eventReceived, showcaseSelected, useAppDispatch, useAppSelector } from '@/app/store';
+import { connectEventStream, useEventReceived, useLiveEvents } from '@/entities/showcase-event';
+import {
+  mergeTimeline,
+  useSelectedShowcaseId,
+  useSelectShowcase,
+  useShowcases,
+  waitForEvent,
+} from '@/entities/showcase';
+import { CreateShowcaseForm, useCreateShowcase } from '@/features/create-showcase';
+import { useFinishShowcase, useRemoveShowcase, useStartShowcase } from '@/features/showcase-actions';
+import { ShowcaseList } from '@/widgets/showcase-list';
+import { ShowcaseDetail } from '@/widgets/showcase-detail';
 
 /**
  * The showcases page.
@@ -20,11 +22,12 @@ import { eventReceived, showcaseSelected, useAppDispatch, useAppSelector } from 
  * consistent with the eventually-consistent projection.
  */
 export function ShowcasesPage() {
-  const dispatch = useAppDispatch();
+  const onEventReceived = useEventReceived();
   const queryClient = useQueryClient();
   const { data: showcases = [], isPending } = useShowcases();
-  const liveEvents = useAppSelector((state) => state.ui.liveEvents);
-  const selectedId = useAppSelector((state) => state.ui.selectedId);
+  const liveEvents = useLiveEvents();
+  const selectedId = useSelectedShowcaseId();
+  const selectShowcase = useSelectShowcase();
 
   const create = useCreateShowcase();
   const start = useStartShowcase();
@@ -34,14 +37,14 @@ export function ShowcasesPage() {
   useEffect(() => {
     const connectedAt = new Date();
     return connectEventStream((event) => {
-      dispatch(eventReceived(event));
+      onEventReceived(event);
       // The gateway replays recent history on connect; only reconcile events that arrive after the
       // connection was established, so an initial connect does not poll for already-projected history.
       if (new Date(event.timestamp) > connectedAt) {
         void waitForEvent(queryClient, event);
       }
     });
-  }, [dispatch, queryClient]);
+  }, [onEventReceived, queryClient]);
 
   const selected = showcases.find((showcase) => showcase.showcaseId === selectedId) ?? null;
   const selectedTimeline = selected ? mergeTimeline(selected, liveEvents) : [];
@@ -72,7 +75,7 @@ export function ShowcasesPage() {
       ) : null}
 
       <div className="layout">
-        <ShowcaseList showcases={showcases} selectedId={selectedId} onSelect={(id) => dispatch(showcaseSelected(id))} />
+        <ShowcaseList showcases={showcases} selectedId={selectedId} onSelect={selectShowcase} />
         <section className="detail">
           {isPending && <p>Loading showcases...</p>}
           {selected ? (

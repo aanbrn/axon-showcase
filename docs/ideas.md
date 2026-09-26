@@ -253,14 +253,11 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-09-04
 
-- Enforce web UI conventions with tooling — parked; do as its own change after `add-web-ui` is merged. Prettier is a
-  formatter, not a style linter: it gates formatting (width, quotes, semicolons) but not _conventions_. ESLint
-  (correctness) and tsc (types) gate their slices, but two convention areas are currently human-review/AGENTS.md-only:
-  (1) **FSD import-direction rules** (slices import only downward; `app/` → `pages/` → `widgets/` → `features/` →
-  `entities/` → `shared/`) — enforce with `eslint-plugin-boundaries`, with public-API boundaries per slice; and (2)
-  **naming conventions** (e.g. `use*` hooks, `*.test.ts(x)`/`*.spec.ts` suffixes) — via ESLint rules or
-  `eslint-plugin-import` naming. Keep it out of the current change to keep the review focused; verify existing code
-  conforms (it was built cleanly) and let CI gate it from then on.
+- Enforce the web UI's naming conventions with tooling — parked; no change yet. The `enforce-web-ui-import-boundaries`
+  change added the FSD import-direction and per-slice public-API rules (`eslint-plugin-boundaries`), so the remaining
+  human-review-only area is **naming** (e.g. `use*` hooks, `*.test.ts(x)`/`*.spec.ts` suffixes) — enforceable via ESLint
+  rules for the per-file parts, though a test-file suffix is a file-set property rather than a per-file one. Verify
+  existing code conforms (it was built cleanly) and let CI gate it from then on.
 
 ## 2026-09-01
 

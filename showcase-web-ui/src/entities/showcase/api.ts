@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-import { handle, request } from '@/shared/api';
+import { handle, request } from '@/shared';
 import type { Showcase } from './types';
 
 /**

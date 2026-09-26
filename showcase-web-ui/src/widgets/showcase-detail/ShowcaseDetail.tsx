@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-import type { Showcase } from '@/entities/showcase/types';
-import type { TimelineEntry } from '@/entities/showcase/lib/timelineEntries';
+import type { Showcase, TimelineEntry } from '@/entities/showcase';
 import { Timeline } from './Timeline';
 
 /**

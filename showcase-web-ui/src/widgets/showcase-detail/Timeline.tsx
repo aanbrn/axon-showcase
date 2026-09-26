@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
-import type { TimelineEntry } from '@/entities/showcase/lib/timelineEntries';
-import { formatTime } from '@/shared/format';
+import type { TimelineEntry } from '@/entities/showcase';
+import { formatTime } from '@/shared';
 
 /**
  * Renders a showcase's history timeline.

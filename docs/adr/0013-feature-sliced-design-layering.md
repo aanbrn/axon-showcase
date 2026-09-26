@@ -57,8 +57,11 @@ repairing by recording the rule at all).
 - The rule is **enforced by the build**: the `check` lint gate (`eslint-plugin-boundaries`) rejects an upward, an
   undeclared-sibling, or a public-API-bypassing import, and a source file that matches no layer or slice — landing the
   parked `docs/ideas.md` entry's mechanism (`enforce-web-ui-import-boundaries`, 2026-09-26, which also added the `@x`
-  clause and the public-API and file-classification defect classes to the Decision; the entry's naming half remains
-  parked). An upward import is now a build failure, not a review finding.
+  clause and the public-API and file-classification defect classes to the Decision). An upward import is now a build
+  failure, not a review finding.
+- The naming conventions the layers' code follows are enforced in the same lint gate
+  (`@typescript-eslint/naming-convention`), landing the same entry's naming half (`enforce-web-ui-naming-conventions`,
+  2026-09-26).
 - Layers with a single slice today (`pages/showcases`) leave room for more pages without restructuring, and the layering
   is what makes the eventual route/feature split mechanical rather than a refactor.
 - The `@/` alias is load-bearing for the convention: a relative `../../shared/...` import would cross the same boundary

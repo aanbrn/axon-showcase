@@ -861,12 +861,15 @@ Key modules (libraries, not services):
 - **Frontend (`showcase-web-ui`)**: organized per Feature-Sliced Design (`app`/`pages`/`widgets`/`features`/`entities`/
   `shared`, importing only downward and only through a slice's public API — a sibling-slice import needs a declared `@x`
   cross-import API; `eslint-plugin-boundaries` enforces the direction and the public-API rule in the lint gate; `@/`
-  alias → `src/`). Server state via TanStack Query; client state via Redux Toolkit slices owned by the entity slices and
-  composed into the store in `app`; forms via React Hook Form + Zod. Format with Prettier (`format:check` gated in
-  `check`; apply with `./gradlew :showcase-web-ui:npmFormat`); lint with ESLint 10 via the flat
-  `showcase-web-ui/eslint.config.js`. Stub a browser global constructor with a `function` implementation
-  (`vi.fn(function () { return fake; })`) — under Vitest 5 the arrow form `vi.fn(() => fake)` is not constructable and
-  throws. captured: migrate-web-ui-frontend-majors
+  alias → `src/`). The module's naming conventions are enforced by the same lint gate: components and types
+  `StrictPascalCase`, hooks `use*` (via the React-hooks check), helpers and parameters `strictCamelCase` (an unused
+  parameter may be `_`), module constants `UPPER_CASE`, and unit tests `*.test.ts(x)` — a `src` `*.spec.ts` is not
+  collected by Vitest (the Playwright `e2e/` suite keeps its own suffix). Server state via TanStack Query; client state
+  via Redux Toolkit slices owned by the entity slices and composed into the store in `app`; forms via React Hook Form +
+  Zod. Format with Prettier (`format:check` gated in `check`; apply with `./gradlew :showcase-web-ui:npmFormat`); lint
+  with ESLint 10 via the flat `showcase-web-ui/eslint.config.js`. Stub a browser global constructor with a `function`
+  implementation (`vi.fn(function () { return fake; })`) — under Vitest 5 the arrow form `vi.fn(() => fake)` is not
+  constructable and throws. captured: migrate-web-ui-frontend-majors
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable. The same applies to prose: when a bullet needs a set another
@@ -1593,18 +1596,21 @@ capture-stash-stale-copy
     regardless. Match the control's injection point to the test's binding source, confirm the assertion fails (a control
     that runs without failing has not exercised the check), and prove the control's own setup actually perturbed its
     target — assert the anchor occurs exactly once, or diff the surface before and after — before reading its outcome at
-    all. A tool that constructs its own input can manufacture the anomaly it appears to detect: the config-rules control
-    unquoted a `config.yaml` rule item that was already unquoted _and_ carried no `: `, and a later control said to
-    unquote an `operations.*.guidance` item when every one is unquoted and colon-free (select the item on the surface
-    you are exercising that carries `: ` — the shape whose unquoted parsing breaks; resolve it in `config.yaml`, not
-    from recall — and edit one to carry it where the surface has none), so each edit no-opped and the silence was
-    misread as a defect in the guard; a throwaway `python` `replace` left an unterminated quote whose whole-file
-    `could not parse … Missing closing 'quote` warning was briefly read as a wording defect — the wording was faithful,
-    though it did expose a real gap (a malformed edit yields `could not parse … ignoring it.`, which the CI probe's grep
-    did not match, so an unparseable config passed the job (exit 0)), since widened to catch both. When a scratch
-    script's result surprises you, print or diff the input it actually produced before drawing a conclusion from it — a
-    before/after diff proves the edit _landed_, not that it was the _intended_ one. captured:
-    widen-config-probe-to-guidance
+    all. And when the surface the check reads enumerates alternatives — a brace pattern (`*.spec.{ts,tsx}`), an
+    alternation, or one rule entry per selector — exercise each with its own case, since one arm proves only that arm:
+    `enforce-web-ui-naming-conventions`'s control proved the `*.spec.ts` arm of the file rule but not `*.spec.tsx` until
+    the quick review added it. A tool that constructs its own input can manufacture the anomaly it appears to detect:
+    the config-rules control unquoted a `config.yaml` rule item that was already unquoted _and_ carried no `: `, and a
+    later control said to unquote an `operations.*.guidance` item when every one is unquoted and colon-free (select the
+    item on the surface you are exercising that carries `: ` — the shape whose unquoted parsing breaks; resolve it in
+    `config.yaml`, not from recall — and edit one to carry it where the surface has none), so each edit no-opped and the
+    silence was misread as a defect in the guard; a throwaway `python` `replace` left an unterminated quote whose
+    whole-file `could not parse … Missing closing 'quote` warning was briefly read as a wording defect — the wording was
+    faithful, though it did expose a real gap (a malformed edit yields `could not parse … ignoring it.`, which the CI
+    probe's grep did not match, so an unparseable config passed the job (exit 0)), since widened to catch both. When a
+    scratch script's result surprises you, print or diff the input it actually produced before drawing a conclusion from
+    it — a before/after diff proves the edit _landed_, not that it was the _intended_ one. captured:
+    widen-config-probe-to-guidance captured: enforce-web-ui-naming-conventions
   - **A check whose input set is narrower than what it reads is not a check — whether the set varies by task graph or
     omits a file the tool reads.** `verifyModuleDependencies` inspected 36 edges standalone and 47 under `check`, the
     11-edge difference being exactly the project dependencies declared inside `testing { suites { … } }` blocks: a

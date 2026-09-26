@@ -4,6 +4,7 @@ package showcase.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+import lombok.val;
 import org.axonframework.commandhandling.CommandBus;
 import org.axonframework.commandhandling.distributed.DistributedCommandBus;
 import org.axonframework.extensions.jgroups.commandhandling.JGroupsConnector;
@@ -89,7 +90,7 @@ class ShowcaseApiApplicationIT {
     @Test
     @DisplayName("A preflight from the standalone UI origin is granted the headers the UI sends")
     void corsPreflight_fromUiOrigin_isGrantedUiHeaders() {
-        WebTestClient client =
+        val client =
                 WebTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
 
         client.options()

@@ -28,7 +28,7 @@ class KsuidIdentifierFactoryTests {
     @DisplayName("Generated identifiers are unique")
     void generateIdentifier_returnsUniqueIdentifiers() {
         val identifiers = new HashSet<String>();
-        for (int i = 0; i < 1000; i++) {
+        for (var i = 0; i < 1000; i++) {
             identifiers.add(factory.generateIdentifier());
         }
 
@@ -45,7 +45,7 @@ class KsuidIdentifierFactoryTests {
     @DisplayName("Generated identifiers expose monotonically non-decreasing timestamps")
     void generateIdentifier_exposesNonDecreasingTimestamps() {
         var previousTimestamp = Integer.MIN_VALUE;
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
             val timestamp = Ksuid.fromString(factory.generateIdentifier()).getTimestamp();
             assertThat(timestamp).isGreaterThanOrEqualTo(previousTimestamp);
             previousTimestamp = timestamp;
@@ -60,7 +60,7 @@ class KsuidIdentifierFactoryTests {
         // generation order, so a strict string-sortability assertion would be flaky. The deterministic invariant —
         // monotonically non-decreasing timestamps — is covered above.
         val identifiers = new HashSet<String>();
-        int sameSecondGenerated = 0;
+        var sameSecondGenerated = 0;
         val firstTimestamp = Ksuid.fromString(factory.generateIdentifier()).getTimestamp();
         while (true) {
             identifiers.add(factory.generateIdentifier());

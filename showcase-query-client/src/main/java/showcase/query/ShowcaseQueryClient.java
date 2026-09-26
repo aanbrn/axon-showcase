@@ -135,7 +135,7 @@ class ShowcaseQueryClient implements ShowcaseQueryOperations {
                                 && problemDetail.getProperties() != null
                                 && problemDetail.getProperties().containsKey("fieldErrors")) {
                             @SuppressWarnings("unchecked")
-                            Map<String, ?> fieldErrors = (Map<String, ?>)
+                            val fieldErrors = (Map<String, ?>)
                                     problemDetail.getProperties().get("fieldErrors");
                             return Mono.error(new ShowcaseQueryException(ShowcaseQueryErrorDetails.builder()
                                     .errorCode(ShowcaseQueryErrorCode.INVALID_QUERY)

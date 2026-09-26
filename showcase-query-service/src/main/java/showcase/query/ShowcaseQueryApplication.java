@@ -193,7 +193,7 @@ class ShowcaseQueryApplication {
             protected Mono<Health> doHealthCheck(Health.Builder builder) {
                 return openSearchClient.cluster().health((b) -> b).map(response -> {
                     if (!response.timedOut()) {
-                        HealthStatus status = response.status();
+                        val status = response.status();
                         builder.status((HealthStatus.Red == status) ? Status.OUT_OF_SERVICE : Status.UP);
                         builder.withDetail("cluster_name", response.clusterName());
                         builder.withDetail("status", response.status().jsonValue());

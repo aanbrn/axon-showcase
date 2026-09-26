@@ -425,7 +425,7 @@ class ShowcaseQueryClientCT {
             val circuitBreaker = circuitBreakerRegistry.circuitBreaker(SHOWCASE_QUERY_SERVICE);
             val minimumNumberOfCalls = circuitBreaker.getCircuitBreakerConfig().getMinimumNumberOfCalls();
 
-            for (int i = 0; i < minimumNumberOfCalls; i++) {
+            for (var i = 0; i < minimumNumberOfCalls; i++) {
                 showcaseQueryOperations
                         .fetchList(query)
                         .as(StepVerifier::create)

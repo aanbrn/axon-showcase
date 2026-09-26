@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
 package showcase.loadtests;
 
-import io.gatling.charts.stats.CountsVsTimePlot;
-import io.gatling.charts.stats.LogFileData;
 import io.gatling.charts.stats.LogFileReader;
-import io.gatling.charts.stats.PercentilesVsTimePlot;
 import io.gatling.commons.stats.Status;
 import io.gatling.core.config.GatlingConfiguration;
 import java.io.File;
@@ -14,6 +11,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import lombok.val;
 import scala.Option;
 import scala.jdk.javaapi.CollectionConverters;
 
@@ -71,37 +69,37 @@ public final class KneeFinder {
      * @throws IOException if the log cannot be read or the properties cannot be written
      */
     public static void main(String[] args) throws IOException {
-        LogFileData data = new LogFileReader(new File(args[0]), GatlingConfiguration.load()).read();
+        val data = new LogFileReader(new File(args[0]), GatlingConfiguration.load()).read();
 
         Map<Integer, Integer> unitsPerSecond = new TreeMap<>();
-        for (String request : UNIT_REQUESTS) {
-            for (CountsVsTimePlot counts : CollectionConverters.asJava(
+        for (val request : UNIT_REQUESTS) {
+            for (val counts : CollectionConverters.asJava(
                     data.numberOfRequestsPerSecond(Option.apply(request), Option.empty()))) {
                 unitsPerSecond.merge(counts.time(), counts.oks() + counts.kos(), Integer::sum);
             }
         }
         Map<Integer, Integer> p95PerSecond = new TreeMap<>();
-        for (PercentilesVsTimePlot plot : CollectionConverters.asJava(
+        for (val plot : CollectionConverters.asJava(
                 data.responseTimePercentilesOverTime(Status.apply(OK), Option.empty(), Option.empty()))) {
             if (plot.percentiles().isDefined()) {
                 p95PerSecond.put(plot.time(), plot.percentiles().get().percentile95());
             }
         }
 
-        List<Integer> times = List.copyOf(unitsPerSecond.keySet());
-        int baselineP95 = times.stream()
+        val times = List.copyOf(unitsPerSecond.keySet());
+        val baselineP95 = times.stream()
                 .limit(WARM_UP_BUCKETS)
                 .mapToInt(time -> p95PerSecond.getOrDefault(time, Integer.MAX_VALUE))
                 .min()
                 .orElse(0);
-        int threshold = Math.max(MIN_ABSOLUTE_DEPARTURE_MS, (int) Math.round(baselineP95 * DEPARTURE_FACTOR));
+        val threshold = Math.max(MIN_ABSOLUTE_DEPARTURE_MS, (int) Math.round(baselineP95 * DEPARTURE_FACTOR));
 
-        int knee = 0;
-        int consecutive = 0;
-        int candidateRate = 0;
-        for (int i = WARM_UP_BUCKETS; i < times.size(); i++) {
-            int time = times.get(i);
-            int units = unitsPerSecond.getOrDefault(time, 0);
+        var knee = 0;
+        var consecutive = 0;
+        var candidateRate = 0;
+        for (var i = WARM_UP_BUCKETS; i < times.size(); i++) {
+            val time = times.get(i);
+            val units = unitsPerSecond.getOrDefault(time, 0);
             if (units > 0 && p95PerSecond.getOrDefault(time, 0) >= threshold) {
                 if (consecutive == 0) {
                     candidateRate = units;
@@ -115,16 +113,16 @@ public final class KneeFinder {
                 consecutive = 0;
             }
         }
-        boolean measured = knee != 0;
+        val measured = knee != 0;
         if (!measured) {
             knee = unitsPerSecond.values().stream()
                     .mapToInt(Integer::intValue)
                     .max()
                     .orElse(0);
         }
-        int operatingPoint = Math.max(1, (int) Math.round(knee * OPERATING_POINT_FRACTION));
+        val operatingPoint = Math.max(1, (int) Math.round(knee * OPERATING_POINT_FRACTION));
 
-        Path output = Path.of(args[1]);
+        val output = Path.of(args[1]);
         Files.createDirectories(output.getParent());
         Files.writeString(
                 output,

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import { type QueryClient } from '@tanstack/react-query';
-import { retryUntilCompleted } from '@/shared/retry';
-import type { ShowcaseEvent } from '@/entities/showcase-event/types';
+import { retryUntilCompleted } from '@/shared';
+import type { ShowcaseEvent } from '@/entities/showcase-event/@x/showcase';
 import { fetchShowcases } from './api';
 import type { Showcase } from './types';
 import { SHOWCASES_QUERY_KEY } from './query-keys';

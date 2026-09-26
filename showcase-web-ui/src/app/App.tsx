@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-import { ShowcasesPage } from '@/pages/showcases/ShowcasesPage';
+import { ShowcasesPage } from '@/pages/showcases';
 
 /**
  * The application root.

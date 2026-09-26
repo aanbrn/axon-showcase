@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
-import type { Showcase } from '@/entities/showcase/types';
-import { contextualTime } from '@/entities/showcase/lib/showcaseTime';
-import { formatDateTime, formatDuration } from '@/shared/format';
+import { contextualTime, type Showcase } from '@/entities/showcase';
+import { formatDateTime, formatDuration } from '@/shared';
 
 /**
  * Renders the showcase list.

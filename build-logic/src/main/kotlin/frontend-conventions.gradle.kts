@@ -33,8 +33,11 @@ val npmBuild =
         dependsOn(npmCi)
         args.set(listOf("run", "build"))
         inputs.files(fileTree("src"))
+        inputs.file("index.html")
         inputs.file("vite.config.ts")
         inputs.file("tsconfig.json")
+        inputs.file("package.json")
+        inputs.file("package-lock.json")
         outputs.dir(layout.buildDirectory.dir("dist"))
     }
 
@@ -72,6 +75,11 @@ val npmTest =
         dependsOn(npmCi)
         args.set(listOf("run", "test"))
         inputs.files(fileTree("src"))
+        inputs.file("eslint.config.js")
+        inputs.file("vite.config.ts")
+        inputs.file("tsconfig.json")
+        inputs.file("package.json")
+        inputs.file("package-lock.json")
         outputs.dir(layout.buildDirectory.dir("reports"))
     }
 

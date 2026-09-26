@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-import { mutate, type MutationResult } from '@/shared/api';
+import { mutate, type MutationResult } from '@/shared';
 
 /** The raw result of a lifecycle action, either completed or accepted for processing. */
 export type ShowcaseActionResult = MutationResult;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 import type { Showcase } from '../types';
-import type { ShowcaseEvent } from '@/entities/showcase-event/types';
+import type { ShowcaseEvent } from '@/entities/showcase-event/@x/showcase';
 
 /** A single marker in a showcase's history timeline. */
 export interface TimelineEntry {

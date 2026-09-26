@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 import { useMutation } from '@tanstack/react-query';
-import { retryUntilCompleted } from '@/shared/retry';
+import { retryUntilCompleted } from '@/shared';
 import {
   finishShowcase,
   removeShowcase,

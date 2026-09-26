@@ -146,13 +146,17 @@ implementation alternatives but never questioned the premise. Verify the current
 grep for consumers, read the values and their comments, check `git log` for the introducing change — and record it in
 the design's Context; treat "this looks redundant" as a hypothesis to verify, not a justification to remove. Before
 proposing a mechanism (an auditor, a check, a workflow, a scan) **or asserting in the premise that the repo lacks a
-rule**, grep `docs/ideas.md` for a parked design and the spec corpus and archived changes for an existing requirement
-**or a recorded decision about it — including a `skip_specs` decision not to spec it** — and the artifact you are
-editing at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier the same session may already have added
-it. A parked idea or a spec'd capability is the design to adopt, not re-derive; a false absence claim runs a whole
-propose cycle on the wrong premise and duplicates what exists. `add-readme-auditor`'s planning proposed widening
-`agents-auditor` past the parked `readme-auditor` idea the repo already had, caught by the owner rather than a gate.
-captured: spec-cache-fallback-failed-fetch-contract
+rule**, grep `docs/ideas.md` for a parked design, the spec corpus and archived changes for an existing requirement **or
+a recorded decision about it — including a `skip_specs` decision not to spec it**, and `docs/adr/` for an Accepted
+decision the design would implement or contradict — an ADR's Decision is normative, so designing a relaxation past it is
+a premise error, not a design choice — and the artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling
+change merged earlier the same session may already have added it. A parked idea, a spec'd capability, or an Accepted ADR
+is the design to adopt, not re-derive; a false absence claim runs a whole propose cycle on the wrong premise and
+duplicates what exists. `add-readme-auditor`'s planning proposed widening `agents-auditor` past the parked
+`readme-auditor` idea the repo already had, caught by the owner rather than a gate; an
+`enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import rule that ADR-0013's Accepted
+Decision already forbade, caught by a reviewer. captured: spec-cache-fallback-failed-fetch-contract captured:
+enforce-web-ui-import-boundaries
 
 **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's own
 prior reconciliation.** ADR-0002 makes the Java `@ConfigurationProperties` the surface that owns a property's default,
@@ -855,11 +859,14 @@ Key modules (libraries, not services):
   same way: exported components, hooks, and helpers carry a `/** ... */` comment describing their purpose (e.g.
   `ShowcasesPage`, `contextualTime`, `waitForReadModel`); both wrap at 120 characters
 - **Frontend (`showcase-web-ui`)**: organized per Feature-Sliced Design (`app`/`pages`/`widgets`/`features`/`entities`/
-  `shared`, importing only downward, `@/` alias → `src/`). Server state via TanStack Query, client state via a Redux
-  Toolkit slice, forms via React Hook Form + Zod. Format with Prettier (`format:check` gated in `check`; apply with
-  `./gradlew :showcase-web-ui:npmFormat`); lint with ESLint 10 via the flat `showcase-web-ui/eslint.config.js`. Stub a
-  browser global constructor with a `function` implementation (`vi.fn(function () { return fake; })`) — under Vitest 5
-  the arrow form `vi.fn(() => fake)` is not constructable and throws. captured: migrate-web-ui-frontend-majors
+  `shared`, importing only downward and only through a slice's public API — a sibling-slice import needs a declared `@x`
+  cross-import API; `eslint-plugin-boundaries` enforces the direction and the public-API rule in the lint gate; `@/`
+  alias → `src/`). Server state via TanStack Query; client state via Redux Toolkit slices owned by the entity slices and
+  composed into the store in `app`; forms via React Hook Form + Zod. Format with Prettier (`format:check` gated in
+  `check`; apply with `./gradlew :showcase-web-ui:npmFormat`); lint with ESLint 10 via the flat
+  `showcase-web-ui/eslint.config.js`. Stub a browser global constructor with a `function` implementation
+  (`vi.fn(function () { return fake; })`) — under Vitest 5 the arrow form `vi.fn(() => fake)` is not constructable and
+  throws. captured: migrate-web-ui-frontend-majors
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable. The same applies to prose: when a bullet needs a set another
@@ -1598,16 +1605,22 @@ capture-stash-stale-copy
     script's result surprises you, print or diff the input it actually produced before drawing a conclusion from it — a
     before/after diff proves the edit _landed_, not that it was the _intended_ one. captured:
     widen-config-probe-to-guidance
-  - **A check whose input set depends on which task graph ran is not a check.** `verifyModuleDependencies` inspected 36
-    edges standalone and 47 under `check`, the 11-edge difference being exactly the project dependencies declared inside
-    `testing { suites { … } }` blocks: a suite's configurations hold their dependencies only once its test tasks are
-    realized, which `check`'s own `dependsOn(testing.suites…)` caused incidentally. Four fixes failed (eager suite
-    realization, `evaluationDependsOn`, collecting suite edges where the `testing` accessor is in scope, reading every
-    configuration) before the scope was corrected: the invariant protects what ships and a suite's edges reach no
-    artifact, so the walk reads only the production source sets — `main` and `testFixtures`, declared directly in build
-    scripts and thus eager. Have the report enumerate every inspected item, not just its count — the "Inspected edges"
-    list is what made the two invocations diffable and named the missing 11 as a set; run a new verification standalone
-    and through `check` and diff its report.
+  - **A check whose input set is narrower than what it reads is not a check — whether the set varies by task graph or
+    omits a file the tool reads.** `verifyModuleDependencies` inspected 36 edges standalone and 47 under `check`, the
+    11-edge difference being exactly the project dependencies declared inside `testing { suites { … } }` blocks: a
+    suite's configurations hold their dependencies only once its test tasks are realized, which `check`'s own
+    `dependsOn(testing.suites…)` caused incidentally. Four fixes failed (eager suite realization, `evaluationDependsOn`,
+    collecting suite edges where the `testing` accessor is in scope, reading every configuration) before the scope was
+    corrected: the invariant protects what ships and a suite's edges reach no artifact, so the walk reads only the
+    production source sets — `main` and `testFixtures`, declared directly in build scripts and thus eager. Have the
+    report enumerate every inspected item, not just its count — the "Inspected edges" list is what made the two
+    invocations diffable and named the missing 11 as a set; run a new verification standalone and through `check` and
+    diff its report. The same rule covers a _declared_ set: the web module's `npmTest` loaded `eslint.config.js` at
+    runtime while declaring only `src`, so a config-only regression restored the cached test result and ran nothing —
+    and `npmBuild` already omitted `index.html` and the lockfile that owns the installed `node_modules`. Derive the
+    whole set in one pass (configs, entry html, `package.json`, `package-lock.json`) rather than one round per surfaced
+    file, and prove it by editing an input and confirming the task re-executes rather than reading its cached status as
+    green. captured: enforce-web-ui-import-boundaries
   - **A verdict echo is not a check.** While fixing `scripts/experience-analysis.sh`, the 120-character recipe printed
     the offending line and the next command echoed "(script 120 clean)" regardless — the log carried the defect and the
     summary contradicted it. Let the exit status carry the verdict

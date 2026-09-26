@@ -92,7 +92,7 @@ public class Resilience4jAutoConfigurationImportFilter implements AutoConfigurat
         val retryEnabled = environment.getProperty("resilience4j.retry.enabled", Boolean.TYPE, Boolean.TRUE);
         val result = new boolean[autoConfigurationClasses.length];
 
-        for (int i = 0; i < autoConfigurationClasses.length; i++) {
+        for (var i = 0; i < autoConfigurationClasses.length; i++) {
             val clazz = autoConfigurationClasses[i];
             if (clazz == null || clazz.isEmpty()) {
                 continue;

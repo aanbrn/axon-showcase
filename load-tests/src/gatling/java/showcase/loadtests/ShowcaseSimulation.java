@@ -30,6 +30,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import lombok.val;
 
 /**
  * The Gatling simulation exercising the deployed showcase pipeline: a read stream, a write-lifecycle stream, and an SSE
@@ -260,7 +261,7 @@ public class ShowcaseSimulation extends Simulation {
         List<Assertion> result = new ArrayList<>();
         switch (PROFILE) {
             case "average", "stress", "spike", "breakpoint", "soak" -> {
-                for (String name : REQUEST_NAMES) {
+                for (val name : REQUEST_NAMES) {
                     result.add(details(name).responseTime().mean().lte(100));
                     result.add(details(name).responseTime().percentile(95.0).lte(500));
                     result.add(details(name).responseTime().percentile(99.0).lte(1000));
@@ -268,7 +269,7 @@ public class ShowcaseSimulation extends Simulation {
                 }
             }
             case "baseline" -> {
-                for (String name : REQUEST_NAMES) {
+                for (val name : REQUEST_NAMES) {
                     result.add(details(name).responseTime().percentile(95.0).lte(500));
                     result.add(details(name).responseTime().percentile(99.0).lte(1000));
                     result.add(details(name).failedRequests().count().is(0L));

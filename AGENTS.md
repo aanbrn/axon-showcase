@@ -689,6 +689,12 @@ Key modules (libraries, not services):
   a record's canonical constructor cannot express that. Fourteen `@SuppressWarnings("ClassCanBeRecord")` annotations
   encode the choice; delete one only if the type genuinely needs no builder. Whether records would be faster is
   **untested** — the suppression records intent, not a measured result, so do not read it as a performance claim.
+  Declare local variables with Lombok's `val` when the initializer infers the type and the local is not reassigned, and
+  with the language's `var` when it is reassigned (Lombok's `var` cannot be imported on Java 10+ — the compiler rejects
+  `import lombok.var;` as a restricted type); keep an explicit type where inference is impossible or would change the
+  type — fields, method parameters and returns, a diamond initializer with no target type (`new TreeMap<>()`), a
+  declaration with no initializer or more than one declarator, a `null`/lambda/method-reference/array initializer, a
+  declared boxed type the initializer would unbox, or a declared primitive wider than the initializer.
 - **MapStruct**: default component model is `spring` (`-Amapstruct.defaultComponentModel=spring`)
 - **ErrorProne**: NullAway on `showcase.*` packages in production code; disabled in `TestJava` tasks
 - **Checkstyle**: style gate wired into `check` via `code-check-conventions.gradle.kts`; ruleset at
@@ -1740,7 +1746,15 @@ capture-stash-stale-copy
   wrong YAML indentation (a parse error), a README bullet reported as exactly one match that never landed, a `body=`
   line left 198 characters long, and a prompt line replaced at the wrong indentation. Locate the target by line index in
   the content you just read — or match one full line verbatim including its indentation — and re-read the result.
-  captured: notify-owner-from-the-audit-report (#327)
+  captured: notify-owner-from-the-audit-report (#327) An AST codemod is a further mode: re-printing the parsed tree
+  (`unit.toString()`) re-serializes the whole file — stripping blank lines and reflowing untouched code — so edit the
+  original text at the AST-located range (or use `LexicalPreservingPrinter`), and bound the replacement by the next
+  token's start, since JavaParser's `Range.end` is inclusive (a range ending on the type's last character leaves it,
+  `LogFileData` → `vala`). Derive a skip from the transformation's actual constraint, not a blanket proxy: only
+  `++`/`--` and assignment reassign a variable (`!x` is a `UnaryExpr` but does not), and a declaration annotation
+  (`@SuppressWarnings("unchecked")`) need not force a skip when a text edit preserves it. Verify the codemod's decisions
+  rather than trusting the compile — a `var` emitted where `val` was intended compiles, so a green build does not show
+  the sweep conformed. captured: adopt-lombok-val-convention
 - **A write to an already-occupied path replaces the file silently: check the path before creating a "new" file.**
   `ShowcaseEventStreamControllerTests.java` was assumed new, but it dated from #43 and held two tests (event wrapping;
   REMOVED-type preservation), and the whole-file write destroyed both. Before writing a file you believe is new, check

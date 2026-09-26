@@ -514,7 +514,7 @@ class ShowcaseCommandClientCT {
             val circuitBreaker = circuitBreakerRegistry.circuitBreaker(SHOWCASE_COMMAND_SERVICE);
             val minimumNumberOfCalls = circuitBreaker.getCircuitBreakerConfig().getMinimumNumberOfCalls();
 
-            for (int i = 0; i < minimumNumberOfCalls; i++) {
+            for (var i = 0; i < minimumNumberOfCalls; i++) {
                 showcaseCommandClient.schedule(command).as(StepVerifier::create).verifyError();
             }
 
@@ -540,7 +540,7 @@ class ShowcaseCommandClientCT {
             val circuitBreaker = circuitBreakerRegistry.circuitBreaker(SHOWCASE_COMMAND_SERVICE);
             val minimumNumberOfCalls = circuitBreaker.getCircuitBreakerConfig().getMinimumNumberOfCalls();
 
-            for (int i = 0; i < minimumNumberOfCalls; i++) {
+            for (var i = 0; i < minimumNumberOfCalls; i++) {
                 showcaseCommandClient.schedule(command).as(StepVerifier::create).verifyError();
             }
 

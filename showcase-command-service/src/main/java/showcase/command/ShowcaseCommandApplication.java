@@ -180,7 +180,7 @@ class ShowcaseCommandApplication {
         System.setProperty("KUBERNETES_NAMESPACE", kubePingNamespace);
         System.setProperty("KUBERNETES_LABELS", kubePingLabels);
 
-        JGroupsConnectorFactoryBean jGroupsConnectorFactoryBean = new JGroupsConnectorFactoryBean();
+        val jGroupsConnectorFactoryBean = new JGroupsConnectorFactoryBean();
         jGroupsConnectorFactoryBean.setClusterName(properties.getJgroups().getClusterName());
         jGroupsConnectorFactoryBean.setLocalSegment(localSegment);
         jGroupsConnectorFactoryBean.setSerializer(messageSerializer);

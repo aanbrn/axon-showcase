@@ -11,7 +11,6 @@ kube-state-metrics:
       cpu: 10m
       memory: 64Mi
     limits:
-      cpu: 100m
       memory: 128Mi
 
 nodeExporter:
@@ -33,11 +32,10 @@ grafana:
       - axon-showcase-grafana
   resources:
     requests:
-      cpu: 250m
-      memory: 0.5Gi
-    limits:
-      cpu: 1000m
+      cpu: 50m
       memory: 0.75Gi
+    limits:
+      memory: 1Gi
   serviceMonitor:
     enabled: false
   sidecar:
@@ -49,36 +47,32 @@ grafana:
         cpu: 50m
         memory: 128Mi
       limits:
-        cpu: 100m
         memory: 160Mi
 
 prometheus:
   prometheusSpec:
     resources:
       requests:
-        cpu: 250m
-        memory: 1.0Gi
-      limits:
-        cpu: 1000m
+        cpu: 100m
         memory: 1.5Gi
+      limits:
+        memory: 2Gi
   serviceMonitor:
     selfMonitor: false
 
 prometheusOperator:
   resources:
     requests:
-      cpu: 100m
+      cpu: 50m
       memory: 64Mi
     limits:
-      cpu: 200m
       memory: 128Mi
   prometheusConfigReloader:
     resources:
       requests:
-        cpu: 100m
+        cpu: 50m
         memory: 64Mi
       limits:
-        cpu: 200m
-        memory: 64Mi
+        memory: 128Mi
   serviceMonitor:
     selfMonitor: false

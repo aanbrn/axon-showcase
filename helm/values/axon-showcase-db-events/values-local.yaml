@@ -20,11 +20,10 @@ primary:
     enabled: false
   resources:
     requests:
-      cpu: 0.5
-      memory: 2.0Gi
+      cpu: 250m
+      memory: 1.0Gi
     limits:
-      cpu: 3.0
-      memory: 3.0Gi
+      memory: 1.5Gi
   networkPolicy:
     allowExternal: false
     allowExternalEgress: false
@@ -46,8 +45,7 @@ metrics:
       release: kps
   resources:
     requests:
-      cpu: 0.1
+      cpu: 50m
       memory: 16Mi
     limits:
-      cpu: 0.2
       memory: 32Mi

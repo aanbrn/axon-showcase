@@ -745,9 +745,12 @@ Gatling-based load tests that drive the deployed system through **three concurre
 and a live `/events` SSE connection — with a configurable read/write ratio and branch mix, so the load looks like real
 use. Beyond the quick `smoke` run and the **knee-relative** performance profiles (`average`, `soak`, `stress`, `spike`,
 `breakpoint`, scaled from a `kneeRate`), the `calibrate` profile ramps to find the load knee and `baseline` holds a
-plateau below it; `./scripts/load-test-baseline.sh` runs both against the local Helm cluster (installed by
-`./gradlew helmInstallToLocal`) and writes a baseline report — response times plus per-service CPU/memory — to
-`load-tests/build/load-tests/report.md`.
+plateau below it; `./scripts/load-test-baseline.sh` raises the calibration ceiling until a real knee is measured (or the
+`CALIBRATE_MAX_RATE` cap is reached), runs the baseline, and (with `PROFILE=<name>`) a performance profile at the
+derived knee — the measured knee, or the ceiling when none was measured — against the local Helm cluster (installed by
+`./gradlew helmInstallToLocal`), and writes a baseline report — response times plus per-service CPU/memory — to
+`load-tests/build/load-tests/report.md`. An unsupported `profile` name fails the run rather than silently falling back
+to `smoke`, and a `PROFILE` run's own Gatling report lands under `load-tests/build/reports/gatling/`.
 
 ### Observability
 

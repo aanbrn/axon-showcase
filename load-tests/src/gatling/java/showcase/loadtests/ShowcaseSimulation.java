@@ -36,7 +36,8 @@ import lombok.val;
 
 /**
  * The Gatling simulation exercising the deployed showcase pipeline: a read stream, a write-lifecycle stream, and an SSE
- * stream injected concurrently, with the profile selecting the injection curve and pass assertions.
+ * stream injected concurrently, with the profile selecting the injection curve and pass assertions. An unsupported
+ * profile fails the run rather than falling back to another profile.
  */
 @SuppressWarnings("unused")
 public class ShowcaseSimulation extends Simulation {
@@ -329,7 +330,8 @@ public class ShowcaseSimulation extends Simulation {
                 new OpenInjectionStep[] {rampUsersPerSec(0).to(RATE * share).during(DURATION)};
             case "baseline" ->
                 new OpenInjectionStep[] {constantUsersPerSec(RATE * share).during(DURATION)};
-            default -> new OpenInjectionStep[] {atOnceUsers((int) Math.round(3 * share))};
+            case "smoke" -> new OpenInjectionStep[] {atOnceUsers((int) Math.round(3 * share))};
+            default -> throw unknownProfile();
         };
     }
 
@@ -359,8 +361,18 @@ public class ShowcaseSimulation extends Simulation {
                     result.add(details(name).failedRequests().count().is(0L));
                 }
             }
-            default -> result.add(global().failedRequests().count().is(0L));
+            case "smoke" -> result.add(global().failedRequests().count().is(0L));
+            default -> throw unknownProfile();
         }
         return result;
+    }
+
+    /**
+     * Builds the failure for an unsupported profile name.
+     *
+     * @return the exception naming the unsupported profile
+     */
+    private static IllegalArgumentException unknownProfile() {
+        return new IllegalArgumentException("Unsupported load-test profile: " + PROFILE);
     }
 }

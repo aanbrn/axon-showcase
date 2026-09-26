@@ -450,9 +450,10 @@ wait for approval before merging.
 # Gradle properties forwarded to the simulation: -PbaseUrl (default http://axon-showcase-api), -Pprofile, -Prate,
 # -Pratio, -Pduration, -PsseConnections, and -PkneeRate, -PthinkTime, -PdetailShare, -PstartShare, -PfinishShare,
 # -Phold for the performance profiles' reference rate, pacing, and mix. Profiles: smoke, average, soak, stress, spike,
-# breakpoint, calibrate, baseline — the performance profiles scale from kneeRate, and spike/breakpoint carry no
-# assertions. The measurement run is ./scripts/load-test-baseline.sh (calibrate -> knee -> baseline plateau), which
-# writes load-tests/build/load-tests/report.md.
+# breakpoint, calibrate, baseline — the performance profiles scale from kneeRate, spike/breakpoint carry no assertions,
+# and an unsupported profile name fails the run. The measurement run is ./scripts/load-test-baseline.sh, which raises the
+# calibration ceiling (up to CALIBRATE_MAX_RATE) until a knee is measured, runs a baseline plateau, and — with
+# PROFILE=<name> — runs that performance profile at the derived knee; it writes load-tests/build/load-tests/report.md.
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
@@ -1671,14 +1672,22 @@ capture-stash-stale-copy
     lifecycle point it runs in (check the workflow's step order against the artifact's run point), not only its own
     invocation. captured: grant-openspec-global-access-in-cloud (#325)
 
-- **A derived measurement may report only what it measured — pin its unit to a countable event, and label a fallback as
-  unmeasured.** A configured rate's unit is a countable event, and the derivation must count exactly that event: a
-  `rate` the delta spec first defined in requests/s was injected as users/s while each read user issued two requests, so
-  the knee and the operating point were computed and fed back in the wrong unit — fixed by defining one unit as a read
-  iteration or a write-lifecycle completion and counting `FetchShowcases` + `RemoveShowcase` in `KneeFinder`. A fallback
-  must be distinguishable from a measured value: `KneeFinder` falls back to the calibration ceiling when no sustained
-  departure is found, and the report once named that "below the knee" — carry an explicit `measured` flag and its own
-  label, so a report never presents a default as a measurement. captured: rework-load-tests
+- **A derived measurement may report only what it measured — pin its unit to a countable event, and never let a fallback
+  be indistinguishable from the real thing: label a reporting fallback as unmeasured, and fail an unrecognized input
+  rather than substituting a valid default.** A configured rate's unit is a countable event, and the derivation must
+  count exactly that event: a `rate` the delta spec first defined in requests/s was injected as users/s while each read
+  user issued two requests, so the knee and the operating point were computed and fed back in the wrong unit — fixed by
+  defining one unit as a read iteration or a write-lifecycle completion and counting `FetchShowcases` + `RemoveShowcase`
+  in `KneeFinder`. A fallback must be distinguishable from a measured value: `KneeFinder` falls back to the calibration
+  ceiling when no sustained departure is found, and the report once named that "below the knee" — carry an explicit
+  `measured` flag and its own label, so a report never presents a default as a measurement. The input side is the same
+  rule reversed: a `default` that maps an unrecognized value onto a valid one makes a mistyped input pass as a real run
+  (`ShowcaseSimulation`'s profile switch fell back to `smoke`, so a mistyped `-Pprofile` read as a pass), so fail on the
+  unknown value, naming it — except a dispatch in a static initializer, where a throw surfaces as
+  `ExceptionInInitializerError` rather than the named exception. A deterministic fail-fast is also the cheap negative
+  control an error-path verification needs: `PROFILE=bogus` fails in seconds and attributes the exit to the profile
+  alone, where a failing supported profile needed a 30–40-minute asserting run. captured: rework-load-tests captured:
+  close-load-test-knee-loop
 
 - **A build property's name is shared across the module's tasks — grep the plugin's existing `gradleProperty(...)`
   consumers before forwarding a new `-P<name>`.** `load-testing-conventions` forwards its whitelisted properties into

@@ -4,17 +4,19 @@
 # Runs the load-test measurement against the local Helm cluster: a calibration ramp that finds the load knee, then a
 # baseline plateau at an operating point below it, sampling per-service resource usage throughout. Writes the knee to
 # knee.properties and the assembled measurement to report.md under load-tests/build/load-tests/. Exits non-zero when the
-# calibration or the baseline run fails.
+# calibration, the baseline, or a requested profile run fails.
 set -uo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 BASE_URL=${BASE_URL:-http://axon-showcase-api}
 RATIO=${RATIO:-0.75}
 CALIBRATE_RATE=${CALIBRATE_RATE:-200}
+CALIBRATE_MAX_RATE=${CALIBRATE_MAX_RATE:-1600}
 CALIBRATE_DURATION=${CALIBRATE_DURATION:-PT5M}
 BASELINE_DURATION=${BASELINE_DURATION:-PT10M}
 SSE_CONNECTIONS=${SSE_CONNECTIONS:-10}
 SAMPLE_INTERVAL=${SAMPLE_INTERVAL:-10}
+PROFILE=${PROFILE:-}
 
 OUT_DIR="$ROOT/load-tests/build/load-tests"
 KNEE_FILE="$OUT_DIR/knee.properties"
@@ -26,27 +28,41 @@ run() {
     (cd "$ROOT" && "$@")
 }
 
-if ! run ./gradlew :load-tests:gatlingRun -Pprofile=calibrate -PbaseUrl="$BASE_URL" -Prate="$CALIBRATE_RATE" \
-    -Pratio="$RATIO" -Pduration="$CALIBRATE_DURATION" -PsseConnections="$SSE_CONNECTIONS"; then
-    echo "calibration failed" >&2
-    exit 1
-fi
+ceiling=$CALIBRATE_RATE
+calibration_steps=0
+while :; do
+    calibration_steps=$((calibration_steps + 1))
+    if ! run ./gradlew :load-tests:gatlingRun -Pprofile=calibrate -PbaseUrl="$BASE_URL" -Prate="$ceiling" \
+        -Pratio="$RATIO" -Pduration="$CALIBRATE_DURATION" -PsseConnections="$SSE_CONNECTIONS"; then
+        echo "calibration failed" >&2
+        exit 1
+    fi
 
-CAL_LOG=$(ls -dt "$ROOT"/load-tests/build/reports/gatling/showcasesimulation-*/simulation.log | head -1)
-if ! run ./gradlew :load-tests:kneeFinder -Plog="$CAL_LOG" -Pknee="$KNEE_FILE" -q; then
-    echo "knee derivation failed" >&2
-    exit 1
-fi
+    CAL_LOG=$(ls -dt "$ROOT"/load-tests/build/reports/gatling/showcasesimulation-*/simulation.log | head -1)
+    if ! run ./gradlew :load-tests:kneeFinder -Plog="$CAL_LOG" -Pknee="$KNEE_FILE" -q; then
+        echo "knee derivation failed" >&2
+        exit 1
+    fi
+
+    MEASURED=$(sed -n 's/^measured=//p' "$KNEE_FILE")
+    echo "==> calibration step $calibration_steps: ceiling=$ceiling units/s, measured=$MEASURED"
+    if [ "$MEASURED" = "true" ] || [ "$ceiling" -ge "$CALIBRATE_MAX_RATE" ]; then
+        break
+    fi
+    ceiling=$((ceiling * 2))
+    if [ "$ceiling" -gt "$CALIBRATE_MAX_RATE" ]; then
+        ceiling=$CALIBRATE_MAX_RATE
+    fi
+done
 
 KNEE=$(sed -n 's/^knee=//p' "$KNEE_FILE")
 OPERATING=$(sed -n 's/^operatingPoint=//p' "$KNEE_FILE")
-MEASURED=$(sed -n 's/^measured=//p' "$KNEE_FILE")
 if [ "$MEASURED" = "true" ]; then
     KNEE_LABEL="Knee: $KNEE workload units/s"
     OPERATING_LABEL="Operating point: $OPERATING workload units/s (below the knee)"
 else
-    KNEE_LABEL="Knee: not measured (no sustained departure at the $KNEE-unit/s calibration ceiling)"
-    OPERATING_LABEL="Operating point: $OPERATING workload units/s (60% of the ceiling; raise CALIBRATE_RATE for a"
+    KNEE_LABEL="Knee: not measured (no sustained departure up to the $ceiling-unit/s calibration ceiling)"
+    OPERATING_LABEL="Operating point: $OPERATING workload units/s (60% of the ceiling; raise CALIBRATE_MAX_RATE for a"
     OPERATING_LABEL+=" measured knee)"
 fi
 echo "==> knee=$KNEE units/s (measured=$MEASURED), operating point=$OPERATING units/s"
@@ -83,7 +99,7 @@ cat >"$OUT_DIR/report.md" <<EOF
 
 - Target: $BASE_URL (local Helm cluster)
 - Target node allocatable: $HOST_SHAPE
-- Calibration: ramp to $CALIBRATE_RATE workload units/s over $CALIBRATE_DURATION
+- Calibration: ramp to $ceiling workload units/s over $CALIBRATE_DURATION ($calibration_steps step(s))
 - $KNEE_LABEL
 - $OPERATING_LABEL
 - Read share: $RATIO, SSE connections: $SSE_CONNECTIONS
@@ -103,4 +119,15 @@ $(cat "$SAMPLES")
 EOF
 
 echo "==> wrote $OUT_DIR/report.md"
-exit "$BASELINE_STATUS"
+
+STATUS=$BASELINE_STATUS
+if [ -n "$PROFILE" ]; then
+    echo "==> running profile $PROFILE at kneeRate=$KNEE units/s"
+    if ! run ./gradlew :load-tests:gatlingRun -Pprofile="$PROFILE" -PbaseUrl="$BASE_URL" -PkneeRate="$KNEE" \
+        -Pratio="$RATIO" -PsseConnections="$SSE_CONNECTIONS" >"$OUT_DIR/profile-run.log" 2>&1; then
+        STATUS=1
+        echo "profile $PROFILE failed its assertions" >&2
+    fi
+fi
+
+exit "$STATUS"

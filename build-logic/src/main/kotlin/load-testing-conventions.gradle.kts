@@ -5,7 +5,21 @@ plugins {
     id("io.gatling.gradle")
 }
 
-val loadTestProperties = listOf("baseUrl", "profile", "rate", "ratio", "duration", "sseConnections")
+val loadTestProperties =
+    listOf(
+        "baseUrl",
+        "profile",
+        "rate",
+        "ratio",
+        "duration",
+        "sseConnections",
+        "kneeRate",
+        "thinkTime",
+        "detailShare",
+        "startShare",
+        "finishShare",
+        "hold",
+    )
 
 gatling {
     includes = emptyList()

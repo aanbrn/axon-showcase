@@ -742,11 +742,12 @@ leading-integer major comparison.
 ```
 
 Gatling-based load tests that drive the deployed system through **three concurrent streams** — reads, a write lifecycle,
-and a live `/events` SSE connection — with the read/write ratio configurable, so the load looks like real use. Beyond
-the quick `smoke` run and the users/sec performance profiles (`average`, `soak`, `stress`, `spike`, `breakpoint`), the
-`calibrate` profile ramps to find the load knee and `baseline` holds a plateau below it;
-`./scripts/load-test-baseline.sh` runs both against the local Helm cluster (installed by `./gradlew helmInstallToLocal`)
-and writes a baseline report — response times plus per-service CPU/memory — to `load-tests/build/load-tests/report.md`.
+and a live `/events` SSE connection — with a configurable read/write ratio and branch mix, so the load looks like real
+use. Beyond the quick `smoke` run and the **knee-relative** performance profiles (`average`, `soak`, `stress`, `spike`,
+`breakpoint`, scaled from a `kneeRate`), the `calibrate` profile ramps to find the load knee and `baseline` holds a
+plateau below it; `./scripts/load-test-baseline.sh` runs both against the local Helm cluster (installed by
+`./gradlew helmInstallToLocal`) and writes a baseline report — response times plus per-service CPU/memory — to
+`load-tests/build/load-tests/report.md`.
 
 ### Observability
 

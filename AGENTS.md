@@ -87,11 +87,12 @@ continued — nothing was committed before the repeated request was answered, bu
 see there rather than here — so act on its verdict line rather than on your own recollection of the thread. A review
 loop that keeps finding the **same class** of observation round after round is not converging — each fix is treating a
 symptom of a root cause that is still there, and the next round will find another instance. Stop and re-derive the root
-cause — when the recurring class is an enumeration that under-describes the change (a surface list, an artifact set, a
-list of touched files or test sites), the root cause is a list written from memory rather than derived from the surface;
-re-derive it by grepping the corpus, the archive, and the diff — or abandon the unit; do not layer another special case.
-A revert after a non-converging loop is a legitimate outcome — record why in the change dir so the decision is not
-re-litigated. captured: propagate-ui-trace-context (#362)
+cause — when the recurring class is a claim about another artifact that under-describes or contradicts it (a surface
+list, an artifact set, a list of touched files or test sites, a count, a unit, a decision's numbers), the root cause is
+that claim written from memory rather than derived from the surface it summarizes; re-derive it by grepping the corpus,
+the archive, the change's sibling artifacts, and the diff — or abandon the unit; do not layer another special case. A
+revert after a non-converging loop is a legitimate outcome — record why in the change dir so the decision is not
+re-litigated. captured: propagate-ui-trace-context (#362) captured: realistic-load-test-profiles
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -447,8 +448,10 @@ wait for approval before merging.
 ./gradlew :load-tests:gatlingRun -Pprofile=smoke
 # `gatlingRun` is the task that runs the simulation; `:load-tests:test` starts nothing. Configuration is passed as
 # Gradle properties forwarded to the simulation: -PbaseUrl (default http://axon-showcase-api), -Pprofile, -Prate,
-# -Pratio, -Pduration, -PsseConnections. Profiles: smoke, average, soak, stress, spike, breakpoint, calibrate,
-# baseline. The measurement run is ./scripts/load-test-baseline.sh (calibrate -> knee -> baseline plateau), which
+# -Pratio, -Pduration, -PsseConnections, and -PkneeRate, -PthinkTime, -PdetailShare, -PstartShare, -PfinishShare,
+# -Phold for the performance profiles' reference rate, pacing, and mix. Profiles: smoke, average, soak, stress, spike,
+# breakpoint, calibrate, baseline — the performance profiles scale from kneeRate, and spike/breakpoint carry no
+# assertions. The measurement run is ./scripts/load-test-baseline.sh (calibrate -> knee -> baseline plateau), which
 # writes load-tests/build/load-tests/report.md.
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
@@ -1676,6 +1679,12 @@ capture-stash-stale-copy
   must be distinguishable from a measured value: `KneeFinder` falls back to the calibration ceiling when no sustained
   departure is found, and the report once named that "below the knee" — carry an explicit `measured` flag and its own
   label, so a report never presents a default as a measurement. captured: rework-load-tests
+
+- **A build property's name is shared across the module's tasks — grep the plugin's existing `gradleProperty(...)`
+  consumers before forwarding a new `-P<name>`.** `load-testing-conventions` forwards its whitelisted properties into
+  the Gatling task's `systemProperties`, but the same plugin's `kneeFinder` task reads `-Pknee` as its **output-file
+  path** — so the knee-rate property had to be `kneeRate`, since a reused `knee` would forward a path where the
+  simulation parses an integer. captured: realistic-load-test-profiles
 
 - **Run `spotlessApply` after the _final_ write to a Spotless-owned file — ticking a checklist task is an edit too.** A
   `tasks.md` task was ticked ("`spotlessCheck` passes") _after_ the last `spotlessApply`; the re-wrapped prose broke

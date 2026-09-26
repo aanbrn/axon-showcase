@@ -1,12 +1,27 @@
-# showcase/quality/load-tests Specification
+# Spec Delta
 
-## Purpose
+## REMOVED Requirements
 
-Documents the Gatling-based load-testing setup: the showcase simulation's three concurrent streams — a read stream, a
-write-lifecycle stream, and an SSE stream — driving the deployed API gateway, the configurable injection profiles and
-their pass assertions, and the calibration/baseline measurement with the report it produces.
+### Requirement: Simulation exercises the showcase REST API
 
-## Requirements
+**Reason**: The single probabilistic scenario — one list fetch, then a per-iteration probability of scheduling a
+showcase — is replaced by a read stream and a write-lifecycle stream injected at derived rates whose split is a
+configured ratio, rather than a per-iteration probability.
+
+**Migration**: The read and write surfaces are specified by "Simulation exercises the gateway's read and write streams".
+Every scenario check carries over — `201` on schedule, the 500 ms poll-until-queryable / `STARTED` / `FINISHED` retry
+with its 5-minute window, `200` on start, finish, and remove, and exit-on-failure.
+
+### Requirement: Configurable base URL and test type
+
+**Reason**: The default target (`http://localhost`) reaches no deployed shape — neither the compose stack's `:8080`
+gateway nor the local cluster's ingress — and the configuration now needs the workload rate, the read/write ratio, and
+the run duration alongside the profile.
+
+**Migration**: See "Configurable target, profile, rate, ratio, and duration"; the `baseUrl` property is retained but
+defaults to the local cluster's gateway ingress hostname, and the profile selector replaces `testType`.
+
+## MODIFIED Requirements
 
 ### Requirement: Injection profiles
 
@@ -103,6 +118,8 @@ connections.
 
 - **WHEN** the simulation sends requests
 - **THEN** it shares connections across users
+
+## ADDED Requirements
 
 ### Requirement: Simulation exercises the gateway's read and write streams
 

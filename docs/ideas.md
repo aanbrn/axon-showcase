@@ -207,16 +207,6 @@ dated when it was added (start a new section for a new day rather than appending
   report alongside the dependency-update checks. Distinct from status drift: the decision still holds, its premise may
   not.
 
-## 2026-09-10
-
-- Rethink or rewrite the load tests — parked; no change yet. The current Gatling setup (`load-tests/src/gatling/java`,
-  `ShowcaseSimulation`) is a single probabilistic scenario exercising the API gateway (list, then schedule/start/
-  finish/remove with decreasing probability) with per-profile pass assertions — it predates the distributed command bus,
-  the web UI, and the current architecture and has not kept pace with the system it tests. Revisit the scenario mix
-  (include the query service / Protobuf paths, the SSE stream, the web UI), the injection profiles and pass assertions,
-  whether load tests should run against the compose stack or the Helm deployment, and how results feed the
-  requests/limits baselines (see the resource-sizing idea below).
-
 ## 2026-09-07
 
 - Measure code coverage for the web UI — parked; no change yet. The JVM modules have a JaCoCo coverage gate
@@ -238,9 +228,10 @@ dated when it was added (start a new section for a new day rather than appending
   resources are uneven and largely unvalidated: the JVM services default to `requests: 1.0 CPU / 0.5Gi` with
   `limits: 3.0 CPU / 1Gi` (generous, speculative), while the web UI uses `requests: 100m / 64Mi` with
   `limits: memory 128Mi` (no CPU limit), and the local target (`values-local.yaml`) overrides no resources at all.
-  Revisit with measured baselines (e.g. from the Gatling load tests / kube-state-metrics) so requests/limits reflect
-  real usage, decide on CPU limits (the JVM services set them; the web UI does not), and align defaults across services
-  for consistency.
+  Revisit with the measured baseline the reworked load tests now produce (`scripts/load-test-baseline.sh` writes
+  `load-tests/build/load-tests/report.md`, recorded under `docs/load-tests/`) and kube-state-metrics, so requests/limits
+  reflect real usage, decide on CPU limits (the JVM services set them; the web UI does not), and align defaults across
+  services for consistency.
 
 - Migrate off the deprecated OpenSearch low-level REST client — parked; no change yet.
   `org.opensearch.client.RestClientBuilder` (and the `RestClient` it builds) is `@Deprecated`, to be removed in future

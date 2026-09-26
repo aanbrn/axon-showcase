@@ -443,8 +443,13 @@ wait for approval before merging.
 # check)
 ./gradlew :showcase-command-service:check
 
-# Load tests (Gatling)
-./gradlew :load-tests:test
+# Load tests (Gatling; opt-in, targets the local Helm cluster via its gateway ingress hostname)
+./gradlew :load-tests:gatlingRun -Pprofile=smoke
+# `gatlingRun` is the task that runs the simulation; `:load-tests:test` starts nothing. Configuration is passed as
+# Gradle properties forwarded to the simulation: -PbaseUrl (default http://axon-showcase-api), -Pprofile, -Prate,
+# -Pratio, -Pduration, -PsseConnections. Profiles: smoke, average, soak, stress, spike, breakpoint, calibrate,
+# baseline. The measurement run is ./scripts/load-test-baseline.sh (calibrate -> knee -> baseline plateau), which
+# writes load-tests/build/load-tests/report.md.
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
@@ -1648,6 +1653,15 @@ capture-stash-stale-copy
     the run hung — the config wildcard that replaced it removes the init-time dependency. Exercise the artifact at the
     lifecycle point it runs in (check the workflow's step order against the artifact's run point), not only its own
     invocation. captured: grant-openspec-global-access-in-cloud (#325)
+
+- **A derived measurement may report only what it measured — pin its unit to a countable event, and label a fallback as
+  unmeasured.** A configured rate's unit is a countable event, and the derivation must count exactly that event: a
+  `rate` the delta spec first defined in requests/s was injected as users/s while each read user issued two requests, so
+  the knee and the operating point were computed and fed back in the wrong unit — fixed by defining one unit as a read
+  iteration or a write-lifecycle completion and counting `FetchShowcases` + `RemoveShowcase` in `KneeFinder`. A fallback
+  must be distinguishable from a measured value: `KneeFinder` falls back to the calibration ceiling when no sustained
+  departure is found, and the report once named that "below the knee" — carry an explicit `measured` flag and its own
+  label, so a report never presents a default as a measurement. captured: rework-load-tests
 
 - **Run `spotlessApply` after the _final_ write to a Spotless-owned file — ticking a checklist task is an edit too.** A
   `tasks.md` task was ticked ("`spotlessCheck` passes") _after_ the last `spotlessApply`; the re-wrapped prose broke

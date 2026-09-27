@@ -17,10 +17,11 @@ dated when it was added (start a new section for a new day rather than appending
 
 - Run the load tests observationally as an availability smoke — parked; no change yet. The record half of the original
   idea is implemented (a baseline run writes a ready-to-annotate record), but nothing still runs the load tests on a
-  schedule, so latency and memory regressions are untracked. A scheduled run cannot measure a _baseline_ where CI would
-  run it — no cluster, and a shared runner's numbers are noise — so the shape is an availability smoke: boot the stack
-  as the e2e workflow does and assert that a short concurrent burst completes with zero failures, recording no
-  performance numbers.
+  schedule, so latency and memory regressions are untracked. A scheduled run cannot measure _your_ baseline: a shared
+  runner's contended, ephemeral timings are their own, not your host's. Its runner can host a cluster, though — a
+  throwaway `kind` cluster, as the chart-bump verification did (`bump-kps-chart-91`) — so the shape is a deployment
+  smoke: boot a `kind` cluster, `helmInstallToLocal` the chart, drive a short concurrent burst, and assert zero
+  failures, recording no performance numbers while exercising the chart's values, probes, and ServiceMonitors.
 
 ## 2026-09-25
 

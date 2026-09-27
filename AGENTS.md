@@ -1340,7 +1340,10 @@ release pipeline) are outside this in-repo gate.
 dependency as well as the `bitnami-*` infra charts, so the Helm deployment is reproducible at a reviewable version. Bump
 a chart by updating its concrete coordinate (e.g. `77.14.0` → `77.15.0`), and verify the bump with a live install +
 smoke test (`helmInstall<Release>ToLocal`: pods ready, Prometheus targets up, Grafana datasources wired) —
-`verifyInfraImageVersions` gates only the bitnami image-tag drift, not that the bumped chart deploys correctly.
+`verifyInfraImageVersions` gates only the bitnami image-tag drift, not that the bumped chart deploys correctly. The
+smoke can run on a throwaway `kind` cluster in a GitHub runner — `bump-kps-chart-91` did exactly that
+(`helmInstallKpsToLocal` against a runner-hosted `kind`, cluster deleted after) — so a bump is verifiable end to end in
+CI without a local cluster.
 
 **Kafka 3.9.0 Testcontainers note**: Kafka 3.9.0 has a validation bug (KAFKA-18281) that rejects Testcontainers' default
 listener config (`0.0.0.0` binds). The `KafkaContainer` usages in the IT/e2e suites override `KAFKA_LISTENERS` to

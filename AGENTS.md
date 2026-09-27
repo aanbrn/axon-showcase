@@ -591,11 +591,12 @@ re-warm lands pays the full rebuild once (the docs-only #138 raced #137's 10-min
 
 `.github/workflows/deployment-smoke.yml` runs a **deployment smoke** on a nightly schedule and via `workflow_dispatch`:
 it creates a throwaway `kind` cluster in the runner, builds the five images and loads them into it (kind's nodes cannot
-see the host daemon's images), installs all six releases through the documented local path (`helmInstallToLocal` against
-the cluster's kube context), port-forwards the gateway, and drives the load profiles at it — a failed request fails the
-run, no performance numbers are recorded, and the cluster is deleted even when a step fails. It exercises the chart's
-values, probes, and resource wiring, which neither e2e suite does (one boots the pipeline through Testcontainers, the
-other from compose, and neither installs the chart). It is observational — never a merge gate.
+see the host daemon's images), installs the application and infrastructure releases — not the observability — through
+the `ci` release target (`./gradlew helmInstallToCi`), whose values fit the runner's 4 vCPU, port-forwards the gateway,
+and drives the load profiles at it — a failed request fails the run, no performance numbers are recorded, and the
+cluster is deleted even when a step fails. It exercises the chart's values, probes, and resource wiring, which neither
+e2e suite does (one boots the pipeline through Testcontainers, the other from compose, and neither installs the chart).
+It is observational — never a merge gate.
 
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
@@ -1231,14 +1232,18 @@ never built. Note the web UI image is built by `:showcase-web-ui:dockerBuildImag
 `bootBuildImage`); verify the graph with `./gradlew helmInstallToLocal --dry-run` and confirm every chart Deployment's
 image has a build task in it. The chart's images are published to no registry, and a `kind` cluster's nodes cannot see
 the host daemon's images, so a runner or bare-kind install must build them and `kind load` each before
-`helmInstallToLocal` — load by repository rather than pinning the image version, as the deployment smoke does. captured:
-add-deployment-smoke
+`helmInstallToLocal` — load by repository rather than pinning the image version, and pass `--name <cluster>` to
+`kind load`, since kind's CLI defaults to a cluster named `kind`: a bare `kind load docker-image` against the smoke's
+`axon-showcase-smoke` failed its first dispatch with `ERROR: no nodes found for cluster "kind"`. captured:
+add-deployment-smoke captured: trim-deployment-smoke-install
 
 **Helm release order**: kps → tempo → db-events/kafka/os-views → axon-showcase, declared by `mustInstallAfter`/
 `mustUninstallAfter` in `build.gradle.kts`. Uninstall in reverse. Because the app release also depends on the five image
-builds, `helmInstallToLocal` is whole-stack — it builds all five images and installs all six releases; prefer it in CI
-or automation over a leaner install, which needs build-config changes and could diverge from the path the docs give a
-person. captured: add-deployment-smoke
+builds, `helmInstallToLocal` is whole-stack — it builds all five images and installs all six releases. The `ci` target
+is the deliberate exception for the deployment smoke: it selects the application and infrastructure releases (no
+observability), points at the runner's fixed kube context, and the releases it installs carry the trimmed
+`values-ci.yaml` files the smoke needs to fit its runner (see the deployment-smoke note above); the local path stays the
+one the docs give a person. captured: add-deployment-smoke
 
 **Helm release namespaces**: declared in `build.gradle.kts` — the observability releases (kps, tempo) deploy into the
 `monitoring` namespace, and the application and infrastructure releases (db-events, kafka, os-views, axon-showcase)
@@ -1249,8 +1254,9 @@ context's current namespace or a `helm.namespace` gradle property.
 `build.gradle.kts`. The `local` target resolves its context per-machine from the `helm.local.kubeContext` Gradle
 property (set in `~/.gradle/gradle.properties` or via `-P`), falling back to the developer's current kube context when
 unset — so macOS (colima) and Linux (kind/minikube) contributors each deploy to their own local cluster without a
-hard-coded context name in the repo. A remote target (e.g. a future staging) would declare a shared, fixed context in
-the build. Do not hard-code a machine-specific local context name (like `colima`) in the versioned build.
+hard-coded context name in the repo. The `ci` target declares the fixed `kind-axon-showcase-smoke` context that the
+deployment smoke's throwaway cluster is created under — a comment on each side names the other as the coupling's other
+half. Do not hard-code a machine-specific local context name (like `colima`) in the versioned build.
 
 **Chart validation**: the chart is linted as part of packaging (`helmPackageMainChart` → `helmLintMainChart`). Lint runs
 strict (warnings are errors) and lints the Bitnami `common` subchart, rendering two extra value sets:
@@ -1262,19 +1268,24 @@ strict (warnings are errors) and lints the Bitnami `common` subchart, rendering 
 Value files live in `helm/chart/src/test/helm/` (`helm/chart/src/test/helm/helm-lint-full.yaml` enables all optional
 features, `helm/chart/src/test/helm/helm-lint-minimal.yaml` disables the default-on ones).
 
-Custom values can be placed in `helm/values/<release-name>/values-local.yaml`.
+Custom values can be placed in `helm/values/<release-name>/values-<target>.yaml` — the plugin applies a release's file
+only to the target it names, so `values-local.yaml` is the local target's and `values-ci.yaml` the deployment smoke's. A
+target that installs the app release must set `webUi.apiBaseUrl` in its own file: the chart defaults it to empty and the
+web UI image fails fast on that (see the Docker Images note), so the UI pod crash-loops and the release's `wait = true`
+turns it into an install timeout — a target inherits nothing from another target's values. captured:
+trim-deployment-smoke-install
 
-**The `*-client` pod labels in `helm/values/axon-showcase/values-local.yaml` are a bitnami-netpol × local-target
-artifact — keep them in the local values, never in the chart.** The labels (`axon-showcase-kafka-client`,
-`axon-showcase-db-events-client`, `axon-showcase-os-views-client`) exist only because the local target sets
+**The `*-client` pod labels belong to the targets that set `allowExternal: false` — keep them in those targets' values,
+never in the chart.** They sit in `helm/values/axon-showcase/values-local.yaml` for the local target and
+`helm/values/axon-showcase/values-ci.yaml` for the deployment smoke's. The labels (`axon-showcase-kafka-client`,
+`axon-showcase-db-events-client`, `axon-showcase-os-views-client`) exist only because those targets set
 `allowExternal: false` on the bitnami infra charts (their netpols admit pods carrying the `<release>-client` label), and
-their values derive from the local target's release names (declared in `build.gradle.kts`). Moving them into the
-reusable app chart would couple it to (a) the bitnami netpol convention, (b) the local release names, and (c) a
-netpol-strictness decision the chart cannot observe — a deployment that leaves the bitnami netpols open would carry
-labels nothing consumes. A `*-client` label with no matching infra release is dead weight (the removed
-`axon-showcase-redis-client` was a leftover from an earlier design — nothing in the stack or code referenced redis).
-This was explored as a chart-default change and reverted; the labels belong co-located with the netpol restrictions that
-require them.
+their values derive from the release names (declared in `build.gradle.kts`). Moving them into the reusable app chart
+would couple it to (a) the bitnami netpol convention, (b) the release names, and (c) a netpol-strictness decision the
+chart cannot observe — a deployment that leaves the bitnami netpols open would carry labels nothing consumes. A
+`*-client` label with no matching infra release is dead weight (the removed `axon-showcase-redis-client` was a leftover
+from an earlier design — nothing in the stack or code referenced redis). This was explored as a chart-default change and
+reverted; the labels belong co-located with the netpol restrictions that require them.
 
 The local values expose the API gateway, the web UI, and Grafana via ingress at the hostnames `axon-showcase-api`,
 `axon-showcase-ui`, and `axon-showcase-grafana`. To reach them by hostname (instead of a `Host:`-header curl

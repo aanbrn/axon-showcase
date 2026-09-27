@@ -659,9 +659,10 @@ merges into `main`, with no bypass actors.
 images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same pipeline
 with Playwright) on a nightly schedule and via `workflow_dispatch` — observational, never a merge gate, no secrets.
 
-`.github/workflows/deployment-smoke.yml` goes a step further nightly: it installs the whole chart on a throwaway `kind`
-cluster and drives load at the port-forwarded gateway, so a deployment that installs but does not serve is noticed
-without anyone running it by hand.
+`.github/workflows/deployment-smoke.yml` goes a step further nightly: it installs the application and its infrastructure
+on a throwaway `kind` cluster through the `ci` release target — a trimmed install that fits the runner, leaving
+observability out — and drives load at the port-forwarded gateway, so a deployment that installs but does not serve is
+noticed without anyone running it by hand.
 
 `.github/workflows/dependency-security.yml` runs the dependency security scans — the Snyk scan
 (`dependencySecurityCheck`, all sub-projects with the root `.snyk` policy, authenticated with the `SNYK_TOKEN` secret)

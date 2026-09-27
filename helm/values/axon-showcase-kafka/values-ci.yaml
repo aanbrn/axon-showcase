@@ -1,0 +1,56 @@
+global:
+  security:
+    allowInsecureImages: true
+
+fullnameOverride: axon-showcase-kafka
+
+image:
+  repository: bitnamilegacy/kafka
+
+extraConfigYaml:
+  num.recovery.threads.per.data.dir: 1
+  default.replication.factor: 1
+  offsets.topic.replication.factor: 1
+  transaction.state.log.replication.factor: 1
+  transaction.state.log.min.isr: 1
+
+listeners:
+  client:
+    name: PLAINTEXT
+    protocol: PLAINTEXT
+
+controller:
+  replicaCount: 1
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1.5Gi
+    limits:
+      memory: 2.0Gi
+
+networkPolicy:
+  allowExternal: false
+  allowExternalEgress: false
+  ingressNSMatchLabels:
+    name: monitoring
+  ingressNSPodMatchLabels:
+    prometheus: kps
+
+metrics:
+  jmx:
+    enabled: false
+
+provisioning:
+  enabled: true
+  topics:
+    - name: axon-showcase-events
+      partitions: 3
+      replicationFactor: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      memory: 768Mi

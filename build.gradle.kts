@@ -571,5 +571,11 @@ helm {
                 kubeContext.set(localKubeContext)
             }
         }
+
+        create("ci") {
+            selectTags = "database,kafka,application"
+            // Keep in sync with CLUSTER_NAME in .github/workflows/deployment-smoke.yml.
+            kubeContext.set("kind-axon-showcase-smoke")
+        }
     }
 }

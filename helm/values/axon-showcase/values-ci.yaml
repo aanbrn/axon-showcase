@@ -8,7 +8,7 @@ commandService:
       cpu: 250m
       memory: 0.5Gi
     limits:
-      memory: 1Gi
+      memory: 2Gi
   serviceMonitor:
     enabled: false
 
@@ -20,7 +20,7 @@ queryService:
       cpu: 250m
       memory: 0.5Gi
     limits:
-      memory: 1Gi
+      memory: 2Gi
   serviceMonitor:
     enabled: false
 
@@ -39,7 +39,7 @@ apiGateway:
       cpu: 250m
       memory: 0.5Gi
     limits:
-      memory: 1Gi
+      memory: 2Gi
   serviceMonitor:
     enabled: false
 

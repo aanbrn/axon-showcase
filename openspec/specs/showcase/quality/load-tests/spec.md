@@ -25,7 +25,7 @@ ceiling. The assertions SHALL NOT include the SSE streams' long-lived connection
 
 #### Scenario: Smoke profile asserts zero failures
 
-- **WHEN** the `profile` is `smoke` or an unknown value
+- **WHEN** the `profile` is `smoke`
 - **THEN** the simulation asserts zero failed requests
 
 #### Scenario: Baseline profile asserts the configured thresholds hold
@@ -235,15 +235,20 @@ operating point as a fraction of the calibration ceiling.
 ### Requirement: Knee-relative injection profiles
 
 The simulation SHALL support the profiles `average`, `soak`, `stress`, `spike`, and `breakpoint`, each with an injection
-curve expressed as a multiple of the configured knee-rate, and a `smoke` profile that injects a fixed number of users;
-any other value SHALL fall back to the smoke profile. It SHALL also support a `calibrate` profile that ramps the mixed
-workload to find the load knee, and a `baseline` profile that holds a constant plateau at a configured operating point
-for a configured duration.
+curve expressed as a multiple of the configured knee-rate, and a `smoke` profile that injects a fixed number of users.
+An unsupported profile value SHALL fail the run before any load is injected, rather than fall back to another profile.
+It SHALL also support a `calibrate` profile that ramps the mixed workload to find the load knee, and a `baseline`
+profile that holds a constant plateau at a configured operating point for a configured duration.
 
 #### Scenario: Smoke profile sends a fixed number of users
 
-- **WHEN** the `profile` is `smoke` or an unknown value
+- **WHEN** the `profile` is `smoke`
 - **THEN** the simulation injects three users at once
+
+#### Scenario: An unsupported profile fails the run
+
+- **WHEN** the `profile` is not one of the supported values
+- **THEN** the simulation fails the run before injecting load, naming the unsupported profile
 
 #### Scenario: Average profile ramps to a fraction of the knee-rate
 

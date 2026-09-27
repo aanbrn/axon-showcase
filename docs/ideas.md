@@ -15,12 +15,6 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-09-27
 
-- Close the loop between the measured knee and the performance profiles — parked; no change yet.
-  `scripts/load-test-baseline.sh` derives the knee (`knee.properties`) but runs only `calibrate` and `baseline`, so a
-  performance profile must be given `-PkneeRate=<knee>` by hand; wire the wrapper (or a run-profile subcommand) to pass
-  it. Relatedly, the calibration's `CALIBRATE_RATE` default (`200`) has never produced a sustained departure — every run
-  reports `measured=false` — so the "knee" is a ceiling; raise or iterate the ceiling until a real knee is found.
-
 - Derive the load-test profile assertions from a baseline — parked; no change yet. The below-knee profiles
   (`average`/`stress`/`soak`) assert fixed thresholds (mean ≤100 ms, p95 ≤500 ms, p99 ≤1000 ms, ≥99.99 % success) that
   do not reflect the host; measuring an idle/steady baseline and deriving the thresholds from it would make them

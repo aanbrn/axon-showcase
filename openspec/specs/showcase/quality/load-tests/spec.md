@@ -15,13 +15,21 @@ below the knee-rate (`average`, `stress`, `soak`) assert response-time and succe
 asserts zero failed requests, and the baseline profile asserts the configured response-time percentiles and success rate
 over its plateau. The `calibrate` profile SHALL carry no pass assertions, because its purpose is to measure rather than
 to gate, and the above-knee profiles (`spike`, `breakpoint`) SHALL carry none, because their purpose is to probe the
-ceiling. The assertions SHALL NOT include the SSE streams' long-lived connection times.
+ceiling. The assertions SHALL NOT include the SSE streams' long-lived connection times, but every profile that carries
+assertions SHALL also assert that the SSE event check has no failed events, so a stalled event stream fails the run
+rather than passing silently.
 
 #### Scenario: Performance profiles assert response times and success rate
 
 - **WHEN** the `profile` is `average`, `stress`, or `soak`
 - **THEN** the simulation asserts a mean response time at most 100 milliseconds, a 95th percentile at most 500
   milliseconds, a 99th percentile at most 1000 milliseconds, and at least 99.99 percent successful requests
+
+#### Scenario: The SSE event check's failures are asserted
+
+- **WHEN** the `profile` is `average`, `stress`, `soak`, `baseline`, or `smoke`
+- **THEN** the simulation asserts that the SSE event check has no failed events, while the connection's long-lived time
+  remains excluded
 
 #### Scenario: Smoke profile asserts zero failures
 
@@ -63,7 +71,9 @@ connections.
 The simulation SHALL run a read stream and a write-lifecycle stream against the API gateway. The read stream SHALL fetch
 the showcase list on every iteration and an individual showcase for a configured share of iterations; the
 write-lifecycle stream SHALL always schedule a showcase and always remove it, but start it only for a configured share
-of iterations and finish it, when started, for a further configured share, polling between steps. The two streams SHALL
+of iterations and finish it, when started, for a further configured share, polling between steps. When the list is empty
+— a cold target — the read stream SHALL create one showcase, once per run, so the detail path is exercised rather than
+skipped; that showcase is not removed, since it is the run's precondition rather than a lifecycle. The two streams SHALL
 be injected at rates derived from the rate the profile supplies and the read share — the read stream at the read share
 of that rate and the write-lifecycle stream at the remainder — so their split is the configured ratio. Each stream SHALL
 pause for a configured think time between its actions.
@@ -73,6 +83,12 @@ pause for a configured think time between its actions.
 - **WHEN** the read stream runs
 - **THEN** it issues `GET /showcases` every iteration and issues `GET /showcases/{showcaseId}` for the configured share
   of iterations, checking their status
+
+#### Scenario: A cold target still exercises the detail path
+
+- **WHEN** the showcase list is empty
+- **THEN** the read stream creates one showcase, once per run, and fetches its detail for the configured share of
+  iterations, so the detail endpoint is exercised
 
 #### Scenario: Write stream schedules a showcase
 
@@ -124,7 +140,10 @@ pause for a configured think time between its actions.
 ### Requirement: Simulation exercises the SSE event stream
 
 The simulation SHALL hold `/events` connections open against the API gateway like browser tabs, assert that showcase
-events arrive for the write lifecycle, and keep the connection open across a quiet period.
+events arrive for the write lifecycle, and keep the connection open across a quiet period. For a profile whose
+write-lifecycle stream runs for the connection's hold, it SHALL also check for a further showcase event during the hold,
+and assert that failure for every profile that carries pass assertions, so a stream that stalls after its first event
+fails rather than passing silently.
 
 #### Scenario: SSE stream connects to the event stream
 
@@ -136,6 +155,12 @@ events arrive for the write lifecycle, and keep the connection open across a qui
 - **WHEN** the SSE stream is connected while a write-lifecycle stream schedules, starts, finishes, or removes a showcase
 - **THEN** the SSE stream receives the corresponding showcase events (the gateway replays its buffered events on connect
   and streams live ones)
+
+#### Scenario: SSE stream receives a further event during the hold
+
+- **WHEN** a profile's write-lifecycle stream runs for the connection's hold
+- **THEN** the SSE stream receives at least one further showcase event after its first, so delivery across the hold is
+  verified, and the failure is asserted where the profile carries assertions
 
 #### Scenario: SSE stream stays open across a quiet period
 
@@ -271,7 +296,8 @@ profile that holds a constant plateau at a configured operating point for a conf
 #### Scenario: Spike profile bursts above the knee-rate
 
 - **WHEN** the `profile` is `spike`
-- **THEN** the simulation bursts to `1.5×` the knee-rate users over 2 minutes and ramps back to 0 over 1 minute
+- **THEN** the simulation bursts to and holds `1.5×` the knee-rate workload units per second for 2 minutes, and ramps
+  back to 0 over 1 minute
 
 #### Scenario: Breakpoint profile ramps past the knee-rate
 

@@ -750,7 +750,13 @@ plateau below it; `./scripts/load-test-baseline.sh` raises the calibration ceili
 derived knee — the measured knee, or the ceiling when none was measured — against the local Helm cluster (installed by
 `./gradlew helmInstallToLocal`), and writes a baseline report — response times plus per-service CPU/memory — to
 `load-tests/build/load-tests/report.md`. An unsupported `profile` name fails the run rather than silently falling back
-to `smoke`, and a `PROFILE` run's own Gatling report lands under `load-tests/build/reports/gatling/`.
+to `smoke`, and a `PROFILE` run's own Gatling report lands under `load-tests/build/reports/gatling/`. The below-knee
+profiles assert thresholds **derived from the last recorded baseline** — `max(floor, factor × baseline)` per request —
+so a fast host's regression is caught instead of hiding under fixed absolutes, and a reference recorded for another
+target is ignored in favour of them. A run writes its own reference (`baseline.properties`, or
+`baseline-<slug>.properties` for another target — `-PbaselineFile` selects it) and a ready-to-annotate record under
+`docs/load-tests/`, for the operator to annotate and commit. The calibration deliberately ramps past the knee and the
+resource sampling follows the current kube context, so point it at an environment you own.
 
 ### Observability
 

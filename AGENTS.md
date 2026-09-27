@@ -448,12 +448,19 @@ wait for approval before merging.
 ./gradlew :load-tests:gatlingRun -Pprofile=smoke
 # `gatlingRun` is the task that runs the simulation; `:load-tests:test` starts nothing. Configuration is passed as
 # Gradle properties forwarded to the simulation: -PbaseUrl (default http://axon-showcase-api), -Pprofile, -Prate,
-# -Pratio, -Pduration, -PsseConnections, and -PkneeRate, -PthinkTime, -PdetailShare, -PstartShare, -PfinishShare,
-# -Phold for the performance profiles' reference rate, pacing, and mix. Profiles: smoke, average, soak, stress, spike,
-# breakpoint, calibrate, baseline — the performance profiles scale from kneeRate, spike/breakpoint carry no assertions,
-# and an unsupported profile name fails the run. The measurement run is ./scripts/load-test-baseline.sh, which raises the
-# calibration ceiling (up to CALIBRATE_MAX_RATE) until a knee is measured, runs a baseline plateau, and — with
-# PROFILE=<name> — runs that performance profile at the derived knee; it writes load-tests/build/load-tests/report.md.
+# -Pratio, -Pduration, -PsseConnections, -PkneeRate, -PthinkTime, -PdetailShare, -PstartShare, -PfinishShare, -Phold,
+# and -PbaselineFile for the baseline reference. The below-knee profiles (average/soak/stress) derive their thresholds
+# from it and fall back to absolute ones where it is missing, does not cover a request, or records another target — so a
+# reference is never another environment's numbers (the derivation and the fallback values are the load-tests spec's).
+# Profiles: smoke, average, soak, stress, spike, breakpoint,
+# calibrate, baseline — the performance profiles scale from kneeRate, spike/breakpoint carry no assertions, and an
+# unsupported profile name fails the run. The measurement run is ./scripts/load-test-baseline.sh: it raises the ceiling
+# (up to CALIBRATE_MAX_RATE) until a knee is measured, runs a baseline plateau, records the plateau's per-request
+# response times as the committed reference (load-tests/src/gatling/resources/baseline.properties, or
+# baseline-<slug>.properties for a target other than the default) and a ready-to-annotate record under docs/load-tests/,
+# and — with PROFILE=<name> — runs that performance profile at the derived knee. It writes
+# load-tests/build/load-tests/report.md. The calibration deliberately ramps past the knee and the resource sampling
+# follows the current kube context (kubectl top pods -A), so point a run at an environment you own.
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
@@ -1697,9 +1704,17 @@ capture-stash-stale-copy
   (`calibrate`). Perturb the metric the assertion reads, not the check's condition. captured: rework-load-tests
   captured: close-load-test-knee-loop captured: tighten-load-test-streams
 
+- **Do not write a Gatling stream's loop or retry condition as an EL string — use the typed session predicate; an EL
+  condition can crash on the substituted value and KO the whole stream.** The write stream's
+  `doWhileDuring("#{queryStatus} != 200", …)` crashed under a sustained run —
+  `Condition evaluation crashed: Can't parse '200 != 200' into boolean … For input string: "200 != 200"` — KO-ing 194 of
+  22,463 polls and tripping the failure assertions, while a committed record proved it timing-dependent (232,080 polls,
+  0 failed, at 385 rps). Use `doWhileDuring(Function<Session, Boolean>, …)` (the shared `differs(attribute, expected)`);
+  the source reads correct either way, so only a sustained run exposes it. captured: anchor-the-load-test-baseline
+
 - **A build property's name is shared across the module's tasks — grep the plugin's existing `gradleProperty(...)`
-  consumers before forwarding a new `-P<name>`.** `load-testing-conventions` forwards its whitelisted properties into
-  the Gatling task's `systemProperties`, but the same plugin's `kneeFinder` task reads `-Pknee` as its **output-file
+  consumers before forwarding a new `-P<name>`.** `load-tests/build.gradle.kts` forwards its whitelisted properties into
+  the Gatling task's `systemProperties`, but the same module's `kneeFinder` task reads `-Pknee` as its **output-file
   path** — so the knee-rate property had to be `kneeRate`, since a reused `knee` would forward a path where the
   simulation parses an integer. captured: realistic-load-test-profiles
 
@@ -2214,6 +2229,15 @@ capture-stash-stale-copy
   (`read`/`edit`/`write`/`glob`/`grep`) and path-taking commands, while a script's own out-of-tree writes run under the
   `shell` action (`permission.bash` in v1) — so removing the blanket `/tmp/**` allow from `external_directory` leaves a
   bash-script write such as `setup-hosts.sh`'s unaffected, and a temp-root grant should not be re-added there for it.
+
+- **A generic getter's inferred type can bind an overloaded call to the wrong overload — cast to the erased type, and
+  verify the binding, not the source.** `Session.get` is generic (`<T> T get(String)`), so
+  `String.valueOf(session.get(attr))` inferred `T = char[]` (the most specific applicable overload) and called
+  `String.valueOf(char[])`; the source reads correct and only the run failed
+  (`ClassCastException: class java.lang.Integer cannot be cast to class [C`). Write
+  `String.valueOf((Object) session.get(attr))` — `javap` then shows `String.valueOf:(Ljava/lang/Object;)` — or bind the
+  value to an `Object` local. A compile-valid call proves only that some overload matched; confirm the binding with
+  `javap -c` or a run. captured: anchor-the-load-test-baseline
 
 - **Caffeine's `AsyncCache.getIfPresent` returns `null` for a future that completed exceptionally — a failed cached
   future is indistinguishable from a cache miss.** A cached `CompletableFuture` that failed is not surfaced:

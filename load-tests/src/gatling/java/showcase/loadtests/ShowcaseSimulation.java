@@ -24,14 +24,19 @@ import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.ChainBuilder;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.ScenarioBuilder;
+import io.gatling.javaapi.core.Session;
 import io.gatling.javaapi.core.Simulation;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import lombok.val;
 
 /**
@@ -187,16 +192,108 @@ public class ShowcaseSimulation extends Simulation {
     private static final boolean SSE_SUSTAINED_WRITES = !"smoke".equals(PROFILE) && RATIO < 1.0;
 
     /**
-     * The request names the pass assertions cover, excluding the SSE stream's long-lived connection.
+     * The baseline reference's resource name.
      */
-    private static final List<String> REQUEST_NAMES = List.of(
-            "FetchShowcases",
-            "FetchShowcase",
-            "ScheduleShowcase",
-            "PollShowcase",
-            "StartShowcase",
-            "FinishShowcase",
-            "RemoveShowcase");
+    private static final String DEFAULT_BASELINE_FILE = "baseline.properties";
+
+    /**
+     * The baseline reference's properties, empty when none is readable.
+     */
+    private static final Properties BASELINE = loadBaseline();
+
+    /**
+     * Loads the baseline reference from the classpath.
+     *
+     * @return the reference's properties, empty when it is absent or unreadable
+     */
+    private static Properties loadBaseline() {
+        val resource = property("baselineFile", DEFAULT_BASELINE_FILE);
+        val properties = new Properties();
+        try (InputStream stream = ShowcaseSimulation.class.getClassLoader().getResourceAsStream(resource)) {
+            if (stream != null) {
+                properties.load(stream);
+            }
+        } catch (IOException e) {
+            System.out.printf("baseline: %s is unreadable (%s); asserting the absolute thresholds%n", resource, e);
+        }
+        return properties;
+    }
+
+    /**
+     * Whether the reference records the target under test, rather than another environment's.
+     *
+     * @return true when the reference applies
+     */
+    private static boolean baselineApplies() {
+        return BASE_URL.equals(BASELINE.getProperty("target"));
+    }
+
+    /**
+     * The threshold a performance profile asserts for a request and percentile: the recorded baseline times the
+     * configured factor, floored, or the absolute fallback when the reference does not apply or cover the request.
+     *
+     * @param request the request name
+     * @param percentile the reference key's percentile suffix
+     * @param floorKey the reference key's floor
+     * @param absolute the absolute fallback in milliseconds
+     * @return the threshold in milliseconds
+     */
+    private static int derivedThreshold(String request, String percentile, String floorKey, int absolute) {
+        if (!baselineApplies()) {
+            return absolute;
+        }
+        val baseline = BASELINE.getProperty(request + "." + percentile);
+        val floor = BASELINE.getProperty(floorKey);
+        val factor = BASELINE.getProperty("factor");
+        if (baseline == null || floor == null || factor == null) {
+            return absolute;
+        }
+        return Math.max(Integer.parseInt(floor), Integer.parseInt(factor) * Integer.parseInt(baseline));
+    }
+
+    /**
+     * Builds the condition that a session attribute still differs from an expected value, comparing their textual forms
+     * so a saved status code and a status name behave alike.
+     *
+     * @param attribute the session attribute's name
+     * @param expected the value the attribute must reach
+     * @return the retry condition
+     */
+    private static Function<Session, Boolean> differs(String attribute, String expected) {
+        return session -> !expected.equals(String.valueOf((Object) session.get(attribute)));
+    }
+
+    /**
+     * Reports which threshold set a run asserts, and why.
+     */
+    private static void logBaseline() {
+        val target = BASELINE.getProperty("target");
+        if (target == null) {
+            System.out.println("baseline: no readable reference; asserting the absolute thresholds");
+            return;
+        }
+        if (!baselineApplies()) {
+            System.out.printf(
+                    "baseline: recorded for %s, not %s; asserting the absolute thresholds%n", target, BASE_URL);
+            return;
+        }
+        if (!"average".equals(PROFILE) && !"stress".equals(PROFILE) && !"soak".equals(PROFILE)) {
+            System.out.printf("baseline: %s; profile %s asserts its own thresholds%n", target, PROFILE);
+            return;
+        }
+        for (val name : LoadTestRequests.READ_WRITE) {
+            val covered = BASELINE.getProperty(name + ".meanMs") != null
+                    && BASELINE.getProperty(name + ".p95Ms") != null
+                    && BASELINE.getProperty(name + ".p99Ms") != null;
+            System.out.printf(
+                    "baseline: %s mean<=%dms p95<=%dms p99<=%dms%s%n",
+                    name,
+                    derivedThreshold(name, "meanMs", "floorMeanMs", 100),
+                    derivedThreshold(name, "p95Ms", "floorP95Ms", 500),
+                    derivedThreshold(name, "p99Ms", "floorP99Ms", 1000),
+                    covered ? "" : " (incomplete: absolute where missing)");
+        }
+    }
 
     /**
      * The HTTP protocol, deriving the host from the base URL and sharing connections.
@@ -259,7 +356,7 @@ public class ShowcaseSimulation extends Simulation {
             .pause(THINK_TIME)
             .doIf(session -> Math.random() < START_SHARE)
             .then(
-                    doWhileDuring("#{queryStatus} != 200", POLL_TIMEOUT)
+                    doWhileDuring(differs("queryStatus", "200"), POLL_TIMEOUT)
                             .on(
                                     pause(POLL_INTERVAL),
                                     exec(http("PollShowcase")
@@ -271,7 +368,7 @@ public class ShowcaseSimulation extends Simulation {
                     pause(THINK_TIME),
                     doIf(session -> Math.random() < FINISH_SHARE)
                             .then(
-                                    doWhileDuring("#{showcaseStatus} != \"STARTED\"", POLL_TIMEOUT)
+                                    doWhileDuring(differs("showcaseStatus", "STARTED"), POLL_TIMEOUT)
                                             .on(
                                                     pause(POLL_INTERVAL),
                                                     exec(http("PollShowcase")
@@ -284,7 +381,7 @@ public class ShowcaseSimulation extends Simulation {
                                     exec(http("FinishShowcase")
                                             .put(session -> "/showcases/" + session.getString("showcaseId") + "/finish")
                                             .check(status().is(200))),
-                                    doWhileDuring("#{showcaseStatus} != \"FINISHED\"", POLL_TIMEOUT)
+                                    doWhileDuring(differs("showcaseStatus", "FINISHED"), POLL_TIMEOUT)
                                             .on(
                                                     pause(POLL_INTERVAL),
                                                     exec(http("PollShowcase")
@@ -412,19 +509,29 @@ public class ShowcaseSimulation extends Simulation {
         if ("calibrate".equals(PROFILE) || "spike".equals(PROFILE) || "breakpoint".equals(PROFILE)) {
             return List.of();
         }
+        logBaseline();
         List<Assertion> result = new ArrayList<>();
         switch (PROFILE) {
             case "average", "stress", "soak" -> {
-                for (val name : REQUEST_NAMES) {
-                    result.add(details(name).responseTime().mean().lte(100));
-                    result.add(details(name).responseTime().percentile(95.0).lte(500));
-                    result.add(details(name).responseTime().percentile(99.0).lte(1000));
+                for (val name : LoadTestRequests.READ_WRITE) {
+                    result.add(details(name)
+                            .responseTime()
+                            .mean()
+                            .lte(derivedThreshold(name, "meanMs", "floorMeanMs", 100)));
+                    result.add(details(name)
+                            .responseTime()
+                            .percentile(95.0)
+                            .lte(derivedThreshold(name, "p95Ms", "floorP95Ms", 500)));
+                    result.add(details(name)
+                            .responseTime()
+                            .percentile(99.0)
+                            .lte(derivedThreshold(name, "p99Ms", "floorP99Ms", 1000)));
                     result.add(details(name).successfulRequests().percent().gte(99.99));
                 }
                 result.add(details(SSE_CHECK).failedRequests().count().is(0L));
             }
             case "baseline" -> {
-                for (val name : REQUEST_NAMES) {
+                for (val name : LoadTestRequests.READ_WRITE) {
                     result.add(details(name).responseTime().percentile(95.0).lte(500));
                     result.add(details(name).responseTime().percentile(99.0).lte(1000));
                     result.add(details(name).failedRequests().count().is(0L));

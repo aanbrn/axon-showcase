@@ -123,7 +123,9 @@ public final class KneeFinder {
         val operatingPoint = Math.max(1, (int) Math.round(knee * OPERATING_POINT_FRACTION));
 
         val output = Path.of(args[1]);
-        Files.createDirectories(output.getParent());
+        if (output.getParent() != null) {
+            Files.createDirectories(output.getParent());
+        }
         Files.writeString(
                 output,
                 "knee=%d%noperatingPoint=%d%nmeasured=%s%nbaselineP95Ms=%d%n"

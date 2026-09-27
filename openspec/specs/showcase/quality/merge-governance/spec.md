@@ -478,17 +478,18 @@ every reference is open. It SHALL run on `ubuntu-latest` with the `GITHUB_TOKEN`
 
 The repository SHALL run a deployment smoke automatically on a nightly schedule and be manually triggerable, as its own
 job in a dedicated workflow separate from the merge gate. The smoke SHALL create a Kubernetes cluster in the runner,
-build the five images — the four service images and the web UI image — and load them into that cluster, install all six
-Helm releases through the documented local install path, wait for them to become ready, drive the load profiles against
-the deployed gateway over a port-forward, assert that no request fails, record no performance numbers, delete the
-cluster even when a step fails, and SHALL NOT be part of the merge-gate `build` check or a required check for merging
-into `main`.
+build the five images — the four service images and the web UI image — and load them into that cluster, install the
+application and its infrastructure releases — not the observability — with values whose requests fit the runner, since
+larger runners are not available to this repository, and wait for them to become ready, then drive the load profiles
+against the deployed gateway over a port-forward, assert that no request fails, record no performance numbers, delete
+the cluster even when a step fails, and SHALL NOT be part of the merge-gate `build` check or a required check for
+merging into `main`.
 
 #### Scenario: Nightly schedule triggers the deployment smoke
 
 - **WHEN** the scheduled nightly trigger fires
-- **THEN** the smoke job creates a Kubernetes cluster in the runner, installs the six releases through the local install
-  path, and drives the load profiles against the deployed gateway
+- **THEN** the smoke job creates a Kubernetes cluster in the runner, installs the application and infrastructure
+  releases with values that fit it, and drives the load profiles against the deployed gateway
 
 #### Scenario: Manual trigger runs the deployment smoke
 

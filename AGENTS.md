@@ -460,7 +460,9 @@ wait for approval before merging.
 # baseline-<slug>.properties for a target other than the default) and a ready-to-annotate record under docs/load-tests/,
 # and — with PROFILE=<name> — runs that performance profile at the derived knee. It writes
 # load-tests/build/load-tests/report.md. The calibration deliberately ramps past the knee and the resource sampling
-# follows the current kube context (kubectl top pods -A), so point a run at an environment you own.
+# follows the current kube context (kubectl top pods -A), so point a run at an environment you own. The CI deployment
+# smoke (.github/workflows/deployment-smoke.yml) installs the chart on a throwaway kind cluster and drives the smoke and
+# a short baseline profile at the port-forwarded gateway.
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
@@ -571,11 +573,12 @@ since that is an included build).
 The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (dependencies, wrapper, and local build
 cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the
 coverage gate. The workflows that build or use the web UI — `.github/workflows/ci.yml`, `.github/workflows/e2e.yml`,
-`.github/workflows/dependency-updates.yml`, and `.github/workflows/dependency-security.yml` — additionally extend
-`gradle-home-cache-includes` with `nodejs` (the node-gradle plugin's Node download in `~/.gradle/nodejs`) and add an
-`actions/cache` step for the npm package cache (`~/.npm`, keyed on `showcase-web-ui/package-lock.json`), so the web UI
-build does not re-download the Node runtime or the dependency tree on every run. The `main-required-checks` branch
-ruleset requires the `build` check for every merge into `main`, with no bypass actors.
+`.github/workflows/deployment-smoke.yml`, `.github/workflows/dependency-updates.yml`, and
+`.github/workflows/dependency-security.yml` — additionally extend `gradle-home-cache-includes` with `nodejs` (the
+node-gradle plugin's Node download in `~/.gradle/nodejs`) and add an `actions/cache` step for the npm package cache
+(`~/.npm`, keyed on `showcase-web-ui/package-lock.json`), so the web UI build does not re-download the Node runtime or
+the dependency tree on every run. The `main-required-checks` branch ruleset requires the `build` check for every merge
+into `main`, with no bypass actors.
 
 **A build-file or dependency change costs a one-time full rebuild (~9 min vs ~1 min warm).** `setup-gradle` partitions
 its caches by a hash of the build/dependency configuration (log keys like `gradle-home-v2|Linux-X64|build[<hash>]` and
@@ -585,6 +588,14 @@ runs are `cache-read-only: true` (they restore from `main` but never write), so 
 waits for the next push-to-main run; a docs or tiny PR that branches off the updated `main` and builds before that
 re-warm lands pays the full rebuild once (the docs-only #138 raced #137's 10-minute re-warm and took ~9 min instead of
 ~1). It self-heals as soon as `main` re-warms — nothing to fix.
+
+`.github/workflows/deployment-smoke.yml` runs a **deployment smoke** on a nightly schedule and via `workflow_dispatch`:
+it creates a throwaway `kind` cluster in the runner, builds the five images and loads them into it (kind's nodes cannot
+see the host daemon's images), installs all six releases through the documented local path (`helmInstallToLocal` against
+the cluster's kube context), port-forwards the gateway, and drives the load profiles at it — a failed request fails the
+run, no performance numbers are recorded, and the cluster is deleted even when a step fails. It exercises the chart's
+values, probes, and resource wiring, which neither e2e suite does (one boots the pipeline through Testcontainers, the
+other from compose, and neither installs the chart). It is observational — never a merge gate.
 
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
@@ -1218,10 +1229,16 @@ enumerate an image-build task for every image the chart's Deployments reference 
 web UI Deployment without adding its image build, so `helmInstallToLocal` deployed a web UI pod with an image that was
 never built. Note the web UI image is built by `:showcase-web-ui:dockerBuildImage` (a pack-based task, not a
 `bootBuildImage`); verify the graph with `./gradlew helmInstallToLocal --dry-run` and confirm every chart Deployment's
-image has a build task in it.
+image has a build task in it. The chart's images are published to no registry, and a `kind` cluster's nodes cannot see
+the host daemon's images, so a runner or bare-kind install must build them and `kind load` each before
+`helmInstallToLocal` — load by repository rather than pinning the image version, as the deployment smoke does. captured:
+add-deployment-smoke
 
 **Helm release order**: kps → tempo → db-events/kafka/os-views → axon-showcase, declared by `mustInstallAfter`/
-`mustUninstallAfter` in `build.gradle.kts`. Uninstall in reverse.
+`mustUninstallAfter` in `build.gradle.kts`. Uninstall in reverse. Because the app release also depends on the five image
+builds, `helmInstallToLocal` is whole-stack — it builds all five images and installs all six releases; prefer it in CI
+or automation over a leaner install, which needs build-config changes and could diverge from the path the docs give a
+person. captured: add-deployment-smoke
 
 **Helm release namespaces**: declared in `build.gradle.kts` — the observability releases (kps, tempo) deploy into the
 `monitoring` namespace, and the application and infrastructure releases (db-events, kafka, os-views, axon-showcase)

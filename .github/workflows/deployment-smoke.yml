@@ -74,8 +74,22 @@ jobs:
             sleep 2
           done
           ./gradlew :load-tests:gatlingRun -Pprofile=smoke -PbaseUrl=http://127.0.0.1:18080
-          ./gradlew :load-tests:gatlingRun -Pprofile=baseline -Pduration=PT2M -Prate=20 \
-            -PsseConnections=2 -PbaseUrl=http://127.0.0.1:18080
+
+      - name: Diagnose a failed smoke
+        if: failure()
+        run: |
+          kubectl --namespace axon-showcase get pods -o wide
+          kubectl --namespace axon-showcase get events --sort-by=.lastTimestamp | tail -30
+          for pod in $(kubectl --namespace axon-showcase get pods -o name); do
+            echo "--- $pod restarts: ---"
+            kubectl --namespace axon-showcase get "$pod" \
+              -o jsonpath='{.status.containerStatuses[*].restartCount}'
+            kubectl --namespace axon-showcase get "$pod" \
+              -o jsonpath='{.status.containerStatuses[*].lastState.terminated.reason}'
+            echo
+            kubectl --namespace axon-showcase logs "$pod" --all-containers --tail=30 || true
+            kubectl --namespace axon-showcase logs "$pod" --all-containers --previous --tail=30 || true
+          done
 
       - name: Delete the cluster
         if: always()

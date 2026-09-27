@@ -461,8 +461,8 @@ wait for approval before merging.
 # and — with PROFILE=<name> — runs that performance profile at the derived knee. It writes
 # load-tests/build/load-tests/report.md. The calibration deliberately ramps past the knee and the resource sampling
 # follows the current kube context (kubectl top pods -A), so point a run at an environment you own. The CI deployment
-# smoke (.github/workflows/deployment-smoke.yml) installs the chart on a throwaway kind cluster and drives the smoke and
-# a short baseline profile at the port-forwarded gateway.
+# smoke (.github/workflows/deployment-smoke.yml) installs the chart on a throwaway kind cluster and drives the smoke
+# profile at the port-forwarded gateway.
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
@@ -593,8 +593,9 @@ re-warm lands pays the full rebuild once (the docs-only #138 raced #137's 10-min
 it creates a throwaway `kind` cluster in the runner, builds the five images and loads them into it (kind's nodes cannot
 see the host daemon's images), installs the application and infrastructure releases — not the observability — through
 the `ci` release target (`./gradlew helmInstallToCi`), whose values fit the runner's 4 vCPU, port-forwards the gateway,
-and drives the load profiles at it — a failed request fails the run, no performance numbers are recorded, and the
-cluster is deleted even when a step fails. It exercises the chart's values, probes, and resource wiring, which neither
+and drives the smoke profile at it — a failed request fails the run, no performance numbers are recorded, and the
+cluster is deleted even when a step fails — after a failed run has printed the pods, their restart counts, and the
+service logs, so a failure names its cause. It exercises the chart's values, probes, and resource wiring, which neither
 e2e suite does (one boots the pipeline through Testcontainers, the other from compose, and neither installs the chart).
 It is observational — never a merge gate.
 
@@ -634,7 +635,11 @@ A verification the local environment cannot run cannot live as a task in the cha
 invisible and no gate reads it, so an unchecked task is silently lost — a dispatch
 (`fix-audit-workflow-report-formatting` and `notify-owner-from-the-audit-report` deferred theirs and archived them
 unchecked) and a cluster-gated live check alike. Run the check as part of the merge (for a dispatch,
-`gh workflow run <file>`), or park the follow-up in `docs/ideas.md` and name it in the change's report. captured:
+`gh workflow run <file>`), or park the follow-up in `docs/ideas.md` and name it in the change's report. A workflow whose
+run is the only verification must also leave the evidence a failure needs: it deletes its own environment — the
+deployment smoke's throwaway cluster goes even when a step fails — so a failed run must print the deployed signal (the
+pods with their restart counts, the recent events, each pod's log tail, and the previous log for a restarted container)
+in a step that runs before teardown, or the failure names no cause. captured: fix-the-deployment-smoke-503s captured:
 notify-owner-from-the-audit-report (#327) captured: expose-grafana-by-hostname
 
 `.github/workflows/audit.yml` runs the three repository audits (agent tooling, spec corpus, architecture) on a weekly
@@ -1243,7 +1248,10 @@ builds, `helmInstallToLocal` is whole-stack — it builds all five images and in
 is the deliberate exception for the deployment smoke: it selects the application and infrastructure releases (no
 observability), points at the runner's fixed kube context, and the releases it installs carry the trimmed
 `values-ci.yaml` files the smoke needs to fit its runner (see the deployment-smoke note above); the local path stays the
-one the docs give a person. captured: add-deployment-smoke
+one the docs give a person. Fitting a runner is a **requests** concern — the scheduler places on requests — so a trim
+lowers the requests and leaves the memory **limits** alone: a JVM's heap is a fraction of its limit, and cutting the
+limit toward the runner starves the heap under load. captured: add-deployment-smoke captured:
+fix-the-deployment-smoke-503s
 
 **Helm release namespaces**: declared in `build.gradle.kts` — the observability releases (kps, tempo) deploy into the
 `monitoring` namespace, and the application and infrastructure releases (db-events, kafka, os-views, axon-showcase)

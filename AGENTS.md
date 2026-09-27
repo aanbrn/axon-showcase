@@ -1672,22 +1672,30 @@ capture-stash-stale-copy
     lifecycle point it runs in (check the workflow's step order against the artifact's run point), not only its own
     invocation. captured: grant-openspec-global-access-in-cloud (#325)
 
-- **A derived measurement may report only what it measured — pin its unit to a countable event, and never let a fallback
-  be indistinguishable from the real thing: label a reporting fallback as unmeasured, and fail an unrecognized input
-  rather than substituting a valid default.** A configured rate's unit is a countable event, and the derivation must
-  count exactly that event: a `rate` the delta spec first defined in requests/s was injected as users/s while each read
-  user issued two requests, so the knee and the operating point were computed and fed back in the wrong unit — fixed by
-  defining one unit as a read iteration or a write-lifecycle completion and counting `FetchShowcases` + `RemoveShowcase`
-  in `KneeFinder`. A fallback must be distinguishable from a measured value: `KneeFinder` falls back to the calibration
-  ceiling when no sustained departure is found, and the report once named that "below the knee" — carry an explicit
-  `measured` flag and its own label, so a report never presents a default as a measurement. The input side is the same
-  rule reversed: a `default` that maps an unrecognized value onto a valid one makes a mistyped input pass as a real run
-  (`ShowcaseSimulation`'s profile switch fell back to `smoke`, so a mistyped `-Pprofile` read as a pass), so fail on the
-  unknown value, naming it — except a dispatch in a static initializer, where a throw surfaces as
-  `ExceptionInInitializerError` rather than the named exception. A deterministic fail-fast is also the cheap negative
-  control an error-path verification needs: `PROFILE=bogus` fails in seconds and attributes the exit to the profile
-  alone, where a failing supported profile needed a 30–40-minute asserting run. captured: rework-load-tests captured:
-  close-load-test-knee-loop
+- **A derived measurement may report only what it measured — pin its unit to a countable event, never let a fallback be
+  indistinguishable from the real thing, and never let a check's failure gate nothing: label a reporting fallback as
+  unmeasured, fail an unrecognized input rather than substituting a valid default, and assert the name a check's failure
+  is logged under.** A configured rate's unit is a countable event, and the derivation must count exactly that event: a
+  `rate` the delta spec first defined in requests/s was injected as users/s while each read user issued two requests, so
+  the knee and the operating point were computed and fed back in the wrong unit — fixed by defining one unit as a read
+  iteration or a write-lifecycle completion and counting `FetchShowcases` + `RemoveShowcase` in `KneeFinder`. A fallback
+  must be distinguishable from a measured value: `KneeFinder` falls back to the calibration ceiling when no sustained
+  departure is found, and the report once named that "below the knee" — carry an explicit `measured` flag and its own
+  label, so a report never presents a default as a measurement. The input side is the same rule reversed: a `default`
+  that maps an unrecognized value onto a valid one makes a mistyped input pass as a real run (`ShowcaseSimulation`'s
+  profile switch fell back to `smoke`, so a mistyped `-Pprofile` read as a pass), so fail on the unknown value, naming
+  it — except a dispatch in a static initializer, where a throw surfaces as `ExceptionInInitializerError` rather than
+  the named exception. A deterministic fail-fast is also the cheap negative control an error-path verification needs:
+  `PROFILE=bogus` fails in seconds and attributes the exit to the profile alone, where a failing supported profile
+  needed a 30–40-minute asserting run. A Gatling check's outcome is a stats row named after the **check**, not its
+  request (`logResponse(session, currentCheck.name, …)` records `showcaseEvent`, not `ShowcaseEvents`), so a
+  per-request-name assertion never sees a check's `KO`: a stream that dies after its first event passes silently until
+  the check's own name is asserted (`details("<checkName>").failedRequests().count().is(0L)`). `global()` does aggregate
+  the check's row (a stalled `smoke` run failed `Global: count of failed events … actual : 1.0`); a name with no stats
+  cannot be asserted at all — `ratio: 1` drops the write names and the per-name assertions fail with
+  `Could not find stats matching assertion path`, so a read-only verification runs under an assertion-free profile
+  (`calibrate`). Perturb the metric the assertion reads, not the check's condition. captured: rework-load-tests
+  captured: close-load-test-knee-loop captured: tighten-load-test-streams
 
 - **A build property's name is shared across the module's tasks — grep the plugin's existing `gradleProperty(...)`
   consumers before forwarding a new `-P<name>`.** `load-testing-conventions` forwards its whitelisted properties into

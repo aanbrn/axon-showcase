@@ -13,7 +13,6 @@ import static io.gatling.javaapi.core.CoreDsl.jsonPath;
 import static io.gatling.javaapi.core.CoreDsl.pause;
 import static io.gatling.javaapi.core.CoreDsl.rampUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
-import static io.gatling.javaapi.core.CoreDsl.stressPeakUsers;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.sse;
 import static io.gatling.javaapi.http.HttpDsl.status;
@@ -32,6 +31,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.val;
 
 /**
@@ -162,6 +162,31 @@ public class ShowcaseSimulation extends Simulation {
             };
 
     /**
+     * The SSE request's name.
+     */
+    private static final String SSE_REQUEST = "ShowcaseEvents";
+
+    /**
+     * The SSE check's name, under which its failures are logged.
+     */
+    private static final String SSE_CHECK = "showcaseEvent";
+
+    /**
+     * The window an SSE await waits for a message.
+     */
+    private static final Duration SSE_AWAIT = Duration.ofSeconds(30);
+
+    /**
+     * Half an SSE hold, so a further event is checked between the connection's two halves.
+     */
+    private static final Duration SSE_HALF_HOLD = SSE_HOLD.dividedBy(2);
+
+    /**
+     * Whether the profile's write-lifecycle stream runs for the SSE connection's hold.
+     */
+    private static final boolean SSE_SUSTAINED_WRITES = !"smoke".equals(PROFILE) && RATIO < 1.0;
+
+    /**
      * The request names the pass assertions cover, excluding the SSE stream's long-lived connection.
      */
     private static final List<String> REQUEST_NAMES = List.of(
@@ -179,7 +204,20 @@ public class ShowcaseSimulation extends Simulation {
     private static final HttpProtocolBuilder PROTOCOL = http.baseUrl(BASE_URL).shareConnections();
 
     /**
-     * The read stream: the showcase list, then a showcase's detail for the configured share of iterations.
+     * The showcase fields a create request carries, generated per iteration.
+     */
+    private static final ChainBuilder SHOWCASE_VARS = exec(session -> session.set("title", aShowcaseTitle())
+            .set("startTime", aShowcaseStartTime(Instant.now()))
+            .set("duration", aShowcaseDuration()));
+
+    /**
+     * Guards the cold-target seed, so at most one showcase is created per run.
+     */
+    private static final AtomicBoolean SEEDED = new AtomicBoolean();
+
+    /**
+     * The read stream: the showcase list, a seed on a cold target, then a showcase's detail for the configured share
+     * of iterations.
      */
     private static final ChainBuilder READ = exec(http("FetchShowcases")
                     .get("/showcases")
@@ -187,6 +225,16 @@ public class ShowcaseSimulation extends Simulation {
                             status().is(200),
                             jsonPath("$[0].showcaseId").optional().saveAs("showcaseId")))
             .pause(THINK_TIME)
+            .doIf(session -> !session.contains("showcaseId") && SEEDED.compareAndSet(false, true))
+            .then(
+                    SHOWCASE_VARS,
+                    exec(http("SeedShowcase")
+                            .post("/showcases")
+                            .asJson()
+                            .body(StringBody("""
+                                    {"title":"#{title}","startTime":"#{startTime}","duration":"#{duration}"}"""))
+                            .check(status().is(201), jsonPath("$.showcaseId").saveAs("showcaseId"))),
+                    pause(THINK_TIME))
             .doIf(session -> session.contains("showcaseId") && Math.random() < DETAIL_SHARE)
             .then(exec(http("FetchShowcase")
                     .get(session -> "/showcases/" + session.getString("showcaseId"))
@@ -201,9 +249,7 @@ public class ShowcaseSimulation extends Simulation {
     /**
      * The write-lifecycle chain: schedule, then start and finish for the configured shares, always removing.
      */
-    private static final ChainBuilder WRITE = exec(session -> session.set("title", aShowcaseTitle())
-                    .set("startTime", aShowcaseStartTime(Instant.now()))
-                    .set("duration", aShowcaseDuration()))
+    private static final ChainBuilder WRITE = SHOWCASE_VARS
             .exec(http("ScheduleShowcase")
                     .post("/showcases")
                     .asJson()
@@ -261,15 +307,36 @@ public class ShowcaseSimulation extends Simulation {
     /**
      * The SSE stream: connect, await a showcase event, hold the connection, then close.
      */
-    private static final ScenarioBuilder SSE_SCENARIO = scenario("Sse")
-            .exec(sse("ShowcaseEvents")
-                    .get("/events")
-                    .await(Duration.ofSeconds(30))
-                    .on(sse.checkMessage("showcaseEvent")
-                            .matching(jsonPath("$.data.showcaseId").exists())
-                            .check(jsonPath("$.data.type").exists())))
-            .pause(SSE_HOLD)
-            .exec(sse("ShowcaseEvents").close());
+    private static final ScenarioBuilder SSE_SCENARIO = sseScenario();
+
+    /**
+     * Builds the SSE scenario, checking for a further event mid-hold when the profile's write stream runs for the
+     * hold, so a stream that stalls after its first event is caught.
+     *
+     * @return the SSE scenario
+     */
+    private static ScenarioBuilder sseScenario() {
+        val stream = scenario("Sse")
+                .exec(sse(SSE_REQUEST)
+                        .get("/events")
+                        .await(SSE_AWAIT)
+                        .on(sse.checkMessage(SSE_CHECK)
+                                .matching(jsonPath("$.data.showcaseId").exists())
+                                .check(jsonPath("$.data.type").exists())));
+        ScenarioBuilder held;
+        if (SSE_SUSTAINED_WRITES) {
+            held = stream.pause(SSE_HALF_HOLD)
+                    .exec(sse(SSE_REQUEST)
+                            .setCheck()
+                            .await(SSE_AWAIT)
+                            .on(sse.checkMessage(SSE_CHECK)
+                                    .matching(jsonPath("$.data.showcaseId").exists())))
+                    .pause(SSE_HALF_HOLD);
+        } else {
+            held = stream.pause(SSE_HOLD);
+        }
+        return held.exec(sse(SSE_REQUEST).close());
+    }
 
     {
         setUp(
@@ -319,7 +386,7 @@ public class ShowcaseSimulation extends Simulation {
                 };
             case "spike" ->
                 new OpenInjectionStep[] {
-                    stressPeakUsers((int) Math.round(1.5 * KNEE_RATE * share)).during(SPIKE_UP),
+                    constantUsersPerSec(1.5 * KNEE_RATE * share).during(SPIKE_UP),
                     rampUsersPerSec(1.5 * KNEE_RATE * share).to(0).during(SPIKE_DOWN)
                 };
             case "breakpoint" ->
@@ -336,7 +403,8 @@ public class ShowcaseSimulation extends Simulation {
     }
 
     /**
-     * The pass assertions for the profile, scoped to the read and write requests rather than the SSE stream.
+     * The pass assertions for the profile: the read and write requests, plus the SSE connection's failures (its
+     * long-lived connection time is excluded).
      *
      * @return the assertions for the profile
      */
@@ -353,6 +421,7 @@ public class ShowcaseSimulation extends Simulation {
                     result.add(details(name).responseTime().percentile(99.0).lte(1000));
                     result.add(details(name).successfulRequests().percent().gte(99.99));
                 }
+                result.add(details(SSE_CHECK).failedRequests().count().is(0L));
             }
             case "baseline" -> {
                 for (val name : REQUEST_NAMES) {
@@ -360,8 +429,12 @@ public class ShowcaseSimulation extends Simulation {
                     result.add(details(name).responseTime().percentile(99.0).lte(1000));
                     result.add(details(name).failedRequests().count().is(0L));
                 }
+                result.add(details(SSE_CHECK).failedRequests().count().is(0L));
             }
-            case "smoke" -> result.add(global().failedRequests().count().is(0L));
+            case "smoke" -> {
+                result.add(global().failedRequests().count().is(0L));
+                result.add(details(SSE_CHECK).failedRequests().count().is(0L));
+            }
             default -> throw unknownProfile();
         }
         return result;

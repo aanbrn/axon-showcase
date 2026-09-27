@@ -25,11 +25,6 @@ dated when it was added (start a new section for a new day rather than appending
   `docs/load-tests/<date>.md` record is hand-transcribed from `build/load-tests/report.md`; a scheduled short run (the
   repo's observational pattern) that also emits a ready-to-commit record would close both.
 
-- Minor load-test refinements — parked; no change yet. The `spike` profile's `stressPeakUsers(1.5×kneeRate×share)`
-  treats a units-per-second rate as a user count; the SSE stream asserts one event and then only holds, rather than
-  verifying delivery across the run; and the read stream's detail fetch is skipped while the showcase list is empty (a
-  cold start). Each is small and independent.
-
 ## 2026-09-25
 
 - Suppress or schedule the web UI's npm major updates — parked; no change yet. The `migrate-web-ui-frontend-majors`

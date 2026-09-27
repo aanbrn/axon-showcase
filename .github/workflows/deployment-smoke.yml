@@ -48,6 +48,7 @@ jobs:
         uses: helm/kind-action@v1
         with:
           cluster_name: ${{ env.CLUSTER_NAME }}
+          config: config/kind/kind-config.yaml
 
       - name: Build the images
         run: ./gradlew bootBuildImage :showcase-web-ui:dockerBuildImage
@@ -64,16 +65,23 @@ jobs:
       - name: Install the releases
         run: ./gradlew helmInstallToCi
 
+      - name: Resolve the ingress hostname
+        run: echo '127.0.0.1 axon-showcase-api' | sudo tee -a /etc/hosts
+
       - name: Smoke the deployed pipeline
         run: |
-          kubectl --namespace axon-showcase port-forward service/axon-showcase-api-gateway 18080:8080 &
           for _ in $(seq 1 60); do
-            if curl -fsS -o /dev/null http://127.0.0.1:18080/showcases; then
+            if curl -fsS -o /dev/null http://axon-showcase-api/showcases; then
+              ready=true
               break
             fi
             sleep 2
           done
-          ./gradlew :load-tests:gatlingRun -Pprofile=smoke -PbaseUrl=http://127.0.0.1:18080
+          if [ "${ready:-}" != true ]; then
+            echo "The gateway is not reachable through the ingress hostname axon-showcase-api" >&2
+            exit 1
+          fi
+          ./gradlew :load-tests:gatlingRun -Pprofile=smoke -PbaseUrl=http://axon-showcase-api
 
       - name: Diagnose a failed smoke
         if: failure()

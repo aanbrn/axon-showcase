@@ -218,6 +218,12 @@ val helmChartChecks =
             pinnedVersion = libs.versions.grafana.tempo.get(),
             repo = "grafana",
         ),
+        HelmChartUpdateCheck(
+            name = "ingress-nginx",
+            chartRef = "ingress-nginx/ingress-nginx",
+            pinnedVersion = libs.versions.ingress.nginx.get(),
+            repo = "ingress-nginx",
+        ),
     )
 
 tasks.register("helmUpdates", HelmUpdatesTask::class.java) {
@@ -492,6 +498,17 @@ helm {
             mustUninstallAfter("axon-showcase")
         }
 
+        create("ingress-nginx") {
+            from("ingress-nginx/ingress-nginx")
+
+            version = libs.versions.ingress.nginx
+
+            namespace = "ingress-nginx"
+            createNamespace = true
+
+            tags.add("ci-ingress")
+        }
+
         create("axon-showcase-db-events") {
             from("bitnami/postgresql")
 
@@ -565,7 +582,7 @@ helm {
 
     releaseTargets {
         create("local") {
-            selectTags = "*"
+            selectTags = "* & !ci-ingress"
             val localKubeContext = providers.gradleProperty("helm.local.kubeContext")
             if (localKubeContext.isPresent) {
                 kubeContext.set(localKubeContext)
@@ -573,7 +590,7 @@ helm {
         }
 
         create("ci") {
-            selectTags = "database,kafka,application"
+            selectTags = "database,kafka,application,ci-ingress"
             // Keep in sync with CLUSTER_NAME in .github/workflows/deployment-smoke.yml.
             kubeContext.set("kind-axon-showcase-smoke")
         }

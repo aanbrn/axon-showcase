@@ -34,6 +34,9 @@ projectionService:
 apiGateway:
   podLabels:
     axon-showcase-kafka-client: "true"
+  ingress:
+    enabled: true
+    hostname: axon-showcase-api
   resources:
     requests:
       cpu: 250m

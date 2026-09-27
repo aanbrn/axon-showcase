@@ -461,8 +461,8 @@ wait for approval before merging.
 # and — with PROFILE=<name> — runs that performance profile at the derived knee. It writes
 # load-tests/build/load-tests/report.md. The calibration deliberately ramps past the knee and the resource sampling
 # follows the current kube context (kubectl top pods -A), so point a run at an environment you own. The CI deployment
-# smoke (.github/workflows/deployment-smoke.yml) installs the chart on a throwaway kind cluster and drives the smoke
-# profile at the port-forwarded gateway.
+# smoke (.github/workflows/deployment-smoke.yml) installs the chart and an ingress controller on a throwaway kind
+# cluster and drives the smoke profile at the deployed gateway through its ingress.
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
@@ -591,13 +591,13 @@ re-warm lands pays the full rebuild once (the docs-only #138 raced #137's 10-min
 
 `.github/workflows/deployment-smoke.yml` runs a **deployment smoke** on a nightly schedule and via `workflow_dispatch`:
 it creates a throwaway `kind` cluster in the runner, builds the five images and loads them into it (kind's nodes cannot
-see the host daemon's images), installs the application and infrastructure releases — not the observability — through
-the `ci` release target (`./gradlew helmInstallToCi`), whose values fit the runner's 4 vCPU, port-forwards the gateway,
-and drives the smoke profile at it — a failed request fails the run, no performance numbers are recorded, and the
-cluster is deleted even when a step fails — after a failed run has printed the pods, their restart counts, and the
-service logs, so a failure names its cause. It exercises the chart's values, probes, and resource wiring, which neither
-e2e suite does (one boots the pipeline through Testcontainers, the other from compose, and neither installs the chart).
-It is observational — never a merge gate.
+see the host daemon's images), installs the application, infrastructure, and ingress releases — not the observability —
+through the `ci` release target (`./gradlew helmInstallToCi`), whose values fit the runner's 4 vCPU, and drives the smoke
+profile at the deployed gateway through that ingress — a failed request fails the run, no performance numbers are
+recorded, and the cluster is deleted even when a step fails — after a failed run has printed the pods, their restart
+counts, and the service logs, so a failure names its cause. It exercises the chart's values, probes, and resource
+wiring, which neither e2e suite does (one boots the pipeline through Testcontainers, the other from compose, and neither
+installs the chart). It is observational — never a merge gate.
 
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
@@ -1245,8 +1245,8 @@ add-deployment-smoke captured: trim-deployment-smoke-install
 **Helm release order**: kps → tempo → db-events/kafka/os-views → axon-showcase, declared by `mustInstallAfter`/
 `mustUninstallAfter` in `build.gradle.kts`. Uninstall in reverse. Because the app release also depends on the five image
 builds, `helmInstallToLocal` is whole-stack — it builds all five images and installs all six releases. The `ci` target
-is the deliberate exception for the deployment smoke: it selects the application and infrastructure releases (no
-observability), points at the runner's fixed kube context, and the releases it installs carry the trimmed
+is the deliberate exception for the deployment smoke: it selects the application, infrastructure, and ingress releases
+(no observability), points at the runner's fixed kube context, and the releases it installs carry the trimmed
 `values-ci.yaml` files the smoke needs to fit its runner (see the deployment-smoke note above); the local path stays the
 one the docs give a person. Fitting a runner is a **requests** concern — the scheduler places on requests — so a trim
 lowers the requests and leaves the memory **limits** alone: a JVM's heap is a fraction of its limit, and cutting the
@@ -1254,9 +1254,10 @@ limit toward the runner starves the heap under load. captured: add-deployment-sm
 fix-the-deployment-smoke-503s
 
 **Helm release namespaces**: declared in `build.gradle.kts` — the observability releases (kps, tempo) deploy into the
-`monitoring` namespace, and the application and infrastructure releases (db-events, kafka, os-views, axon-showcase)
-deploy into a dedicated `axon-showcase` namespace (created on install). The local deployment does not depend on the kube
-context's current namespace or a `helm.namespace` gradle property.
+`monitoring` namespace, the ingress controller (`ingress-nginx`, selected only by `ci`) into its own `ingress-nginx`
+namespace, and the application and infrastructure releases (db-events, kafka, os-views, axon-showcase) deploy into a
+dedicated `axon-showcase` namespace (created on install). The local deployment does not depend on the kube context's
+current namespace or a `helm.namespace` gradle property.
 
 **Helm release target kube contexts**: each release target declares the kube context it deploys to in
 `build.gradle.kts`. The `local` target resolves its context per-machine from the `helm.local.kubeContext` Gradle

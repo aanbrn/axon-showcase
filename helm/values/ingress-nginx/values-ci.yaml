@@ -1,0 +1,12 @@
+controller:
+  hostPort:
+    enabled: true
+  nodeSelector:
+    ingress-ready: "true"
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Equal
+      effect: NoSchedule
+  watchIngressWithoutClass: true
+  admissionWebhooks:
+    enabled: false

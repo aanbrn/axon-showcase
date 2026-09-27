@@ -15,13 +15,13 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-09-27
 
-- Run the load tests observationally as an availability smoke — parked; no change yet. The record half of the original
-  idea is implemented (a baseline run writes a ready-to-annotate record), but nothing still runs the load tests on a
-  schedule, so latency and memory regressions are untracked. A scheduled run cannot measure _your_ baseline: a shared
-  runner's contended, ephemeral timings are their own, not your host's. Its runner can host a cluster, though — a
-  throwaway `kind` cluster, as the chart-bump verification did (`bump-kps-chart-91`) — so the shape is a deployment
-  smoke: boot a `kind` cluster, `helmInstallToLocal` the chart, drive a short concurrent burst, and assert zero
-  failures, recording no performance numbers while exercising the chart's values, probes, and ServiceMonitors.
+- Check the load tests for degradation over time — parked; no change yet. Nothing compares one run to another: the
+  profiles gate only a catastrophic change (`max(floor, factor x baseline)`), the dated `docs/load-tests/` records are
+  written but never read, and a run overwrites the reference, so a slower-but-passing plateau becomes the new normal.
+  The shape: a baseline run reports the per-name mean/p95/p99 deltas against the reference it is about to replace, flags
+  a regression beyond a tolerance, and refreshes the reference only when the change is intended; plus a trend view over
+  the dated records. Surfaced by the deployment smoke's reshape (it records no performance numbers) and the drift seen
+  in today's runs (p95 ~17-23 ms against the committed record's 8 ms at a comparable load).
 
 ## 2026-09-25
 

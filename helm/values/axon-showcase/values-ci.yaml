@@ -1,0 +1,49 @@
+commandService:
+  replicaCount: 1
+  podLabels:
+    axon-showcase-db-events-client: "true"
+    axon-showcase-kafka-client: "true"
+  resources:
+    requests:
+      cpu: 250m
+      memory: 0.5Gi
+    limits:
+      memory: 1Gi
+  serviceMonitor:
+    enabled: false
+
+queryService:
+  podLabels:
+    axon-showcase-os-views-client: "true"
+  resources:
+    requests:
+      cpu: 250m
+      memory: 0.5Gi
+    limits:
+      memory: 1Gi
+  serviceMonitor:
+    enabled: false
+
+projectionService:
+  podLabels:
+    axon-showcase-kafka-client: "true"
+    axon-showcase-os-views-client: "true"
+  serviceMonitor:
+    enabled: false
+
+apiGateway:
+  podLabels:
+    axon-showcase-kafka-client: "true"
+  resources:
+    requests:
+      cpu: 250m
+      memory: 0.5Gi
+    limits:
+      memory: 1Gi
+  serviceMonitor:
+    enabled: false
+
+webUi:
+  apiBaseUrl: http://axon-showcase-api
+  serviceMonitor:
+    enabled: false

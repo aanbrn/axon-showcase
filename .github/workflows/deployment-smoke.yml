@@ -1,4 +1,4 @@
-name: Deployment smoke
+name: Deployment Smoke
 
 on:
   schedule:
@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
+      # Keep in sync with the ci release target's kubeContext in build.gradle.kts.
       CLUSTER_NAME: axon-showcase-smoke
     steps:
       - name: Checkout repository
@@ -57,11 +58,11 @@ jobs:
             | grep '^aanbrn/axon-showcase' \
             | sort -u \
             | while read -r image; do
-                kind load docker-image "$image"
+                kind load docker-image --name "$CLUSTER_NAME" "$image"
               done
 
       - name: Install the releases
-        run: ./gradlew helmInstallToLocal -Phelm.local.kubeContext=kind-${{ env.CLUSTER_NAME }}
+        run: ./gradlew helmInstallToCi
 
       - name: Smoke the deployed pipeline
         run: |

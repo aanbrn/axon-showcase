@@ -1,0 +1,36 @@
+global:
+  security:
+    allowInsecureImages: true
+
+fullnameOverride: axon-showcase-db-events
+
+image:
+  repository: bitnamilegacy/postgresql
+
+auth:
+  enablePostgresUser: false
+  database: showcase-events
+  username: showcase
+
+primary:
+  extraEnvVars:
+    - name: "POSTGRESQL_MAX_CONNECTIONS"
+      value: "400"
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1.0Gi
+    limits:
+      memory: 1.5Gi
+  networkPolicy:
+    allowExternal: false
+    allowExternalEgress: false
+    ingressNSMatchLabels:
+      name: monitoring
+    ingressNSPodMatchLabels:
+      prometheus: kps
+
+metrics:
+  enabled: false

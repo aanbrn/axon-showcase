@@ -15,15 +15,12 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-09-27
 
-- Derive the load-test profile assertions from a baseline — parked; no change yet. The below-knee profiles
-  (`average`/`stress`/`soak`) assert fixed thresholds (mean ≤100 ms, p95 ≤500 ms, p99 ≤1000 ms, ≥99.99 % success) that
-  do not reflect the host; measuring an idle/steady baseline and deriving the thresholds from it would make them
-  meaningful anywhere.
-
-- Run the load tests observationally and record the baseline automatically — parked; no change yet. Nothing runs the
-  load tests on a schedule (they are opt-in), so latency/memory regressions are untracked, and the committed
-  `docs/load-tests/<date>.md` record is hand-transcribed from `build/load-tests/report.md`; a scheduled short run (the
-  repo's observational pattern) that also emits a ready-to-commit record would close both.
+- Run the load tests observationally as an availability smoke — parked; no change yet. The record half of the original
+  idea is implemented (a baseline run writes a ready-to-annotate record), but nothing still runs the load tests on a
+  schedule, so latency and memory regressions are untracked. A scheduled run cannot measure a _baseline_ where CI would
+  run it — no cluster, and a shared runner's numbers are noise — so the shape is an availability smoke: boot the stack
+  as the e2e workflow does and assert that a short concurrent burst completes with zero failures, recording no
+  performance numbers.
 
 ## 2026-09-25
 

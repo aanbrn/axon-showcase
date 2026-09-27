@@ -69,5 +69,5 @@
 - [x] 6.1 `./gradlew spotlessApply` then `spotlessCheck` pass; `openspec validate --changes` passes.
 - [x] 6.2 Run the verification runs above and record their outcomes in the change's report to the owner (the session
       summary the manual review reads), since they are live-cluster checks and none may be left unticked at archive.
-- [ ] 6.3 In the archive commit, refresh the capability's `## Purpose` to name the recorded baseline reference, the
+- [x] 6.3 In the archive commit, refresh the capability's `## Purpose` to name the recorded baseline reference, the
       thresholds derived from it, and the record a baseline run produces — a delta cannot carry a Purpose.

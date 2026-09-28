@@ -45,14 +45,22 @@ committed as an "Address review findings" commit, and nothing is committed while
 commit the change dir is untracked, which is safe against the hazards the gotchas name — an untracked change dir
 survives `git reset --hard` and `git checkout --` (verified) — `git clean -fd` is the one loss vector, so never run it
 on a branch holding unfinished work. The change dir and all subsequent work live on that branch; rejecting a proposal is
-a branch delete, never a `main` cleanup. A branch that has been committed (so it can fall behind `main`) is refreshed
-from `origin/main` — recreate it when it holds no work, otherwise rebase it — rather than continued on stale; once a PR
-is open, the mechanism is `gh pr update-branch` instead (see the BEHIND gotcha). This covers the whole unit, not just
-code: a docs refresh or a standalone fix stays uncommitted too, so the quick and manual reviews run against the visible
-working-tree diff, and the change's `docs/ideas.md` removal rides the branch like the rest. Committing early and then
-adding one "Address quick-review findings" commit per review round produced 11 commits for a single change (squashed
-before delivery) — the discipline above removes that failure mode by construction, leaving nothing to squash. captured:
-capture-reverted-sweep-lessons (#283)
+a branch delete, never a `main` cleanup. A branch parked because its premise collapsed is neither a rejection nor a
+merge: deleting it loses work the premise did not touch, and merging it ships a fix for a failure that is not there.
+Record what survives beside why the premise died — the code can outlive the rationale — and answer a later \"does this
+still make sense?\" by re-deriving the artifacts to that surviving capability rather than re-litigating the dead
+premise. captured: route-the-smoke-through-the-ingress A branch that has been committed (so it can fall behind `main`)
+is refreshed from `origin/main` — recreate it when it holds no work, otherwise rebase it — rather than continued on
+stale; once a PR is open, the mechanism is `gh pr update-branch` instead (see the BEHIND gotcha). Resolve that rebase
+for both sides rather than picking one: a conflict marks where the two sides overlap textually, so a wholesale side-pick
+drops the other's fact, and a file both sides changed in separate hunks merges silently and needs the same check —
+verify every file both sides touched still carries both facts after the rebase. captured:
+route-the-smoke-through-the-ingress This covers the whole unit, not just code: a docs refresh or a standalone fix stays
+uncommitted too, so the quick and manual reviews run against the visible working-tree diff, and the change's
+`docs/ideas.md` removal rides the branch like the rest. Committing early and then adding one "Address quick-review
+findings" commit per review round produced 11 commits for a single change (squashed before delivery) — the discipline
+above removes that failure mode by construction, leaving nothing to squash. captured: capture-reverted-sweep-lessons
+(#283)
 
 **Fork branches from `main` only.** Every new branch — a change branch, a standalone fix, or a docs PR — is created from
 `origin/main` (fetch first), never from another work branch. Branching from a work branch silently carries its commits
@@ -461,8 +469,8 @@ wait for approval before merging.
 # and — with PROFILE=<name> — runs that performance profile at the derived knee. It writes
 # load-tests/build/load-tests/report.md. The calibration deliberately ramps past the knee and the resource sampling
 # follows the current kube context (kubectl top pods -A), so point a run at an environment you own. The CI deployment
-# smoke (.github/workflows/deployment-smoke.yml) installs the chart on a throwaway kind cluster and drives the smoke
-# profile at the port-forwarded gateway.
+# smoke (.github/workflows/deployment-smoke.yml) installs the chart and an ingress controller on a throwaway kind
+# cluster and drives the smoke profile at the deployed gateway through its ingress.
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
@@ -591,13 +599,13 @@ re-warm lands pays the full rebuild once (the docs-only #138 raced #137's 10-min
 
 `.github/workflows/deployment-smoke.yml` runs a **deployment smoke** on a nightly schedule and via `workflow_dispatch`:
 it creates a throwaway `kind` cluster in the runner, builds the five images and loads them into it (kind's nodes cannot
-see the host daemon's images), installs the application and infrastructure releases — not the observability — through
-the `ci` release target (`./gradlew helmInstallToCi`), whose values fit the runner's 4 vCPU, port-forwards the gateway,
-and drives the smoke profile at it — a failed request fails the run, no performance numbers are recorded, and the
-cluster is deleted even when a step fails — after a failed run has printed the pods, their restart counts, and the
-service logs, so a failure names its cause. It exercises the chart's values, probes, and resource wiring, which neither
-e2e suite does (one boots the pipeline through Testcontainers, the other from compose, and neither installs the chart).
-It is observational — never a merge gate.
+see the host daemon's images), installs the application, infrastructure, and ingress releases — not the observability —
+through the `ci` release target (`./gradlew helmInstallToCi`), whose values fit the runner's 4 vCPU, and drives the
+smoke profile at the deployed gateway through that ingress — a failed request fails the run, no performance numbers are
+recorded, and the cluster is deleted even when a step fails — after a failed run has printed the pods, their restart
+counts, and the service logs, so a failure names its cause. It exercises the chart's values, probes, and resource
+wiring, which neither e2e suite does (one boots the pipeline through Testcontainers, the other from compose, and neither
+installs the chart). It is observational — never a merge gate.
 
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
@@ -639,8 +647,12 @@ unchecked) and a cluster-gated live check alike. Run the check as part of the me
 run is the only verification must also leave the evidence a failure needs: it deletes its own environment — the
 deployment smoke's throwaway cluster goes even when a step fails — so a failed run must print the deployed signal (the
 pods with their restart counts, the recent events, each pod's log tail, and the previous log for a restarted container)
-in a step that runs before teardown, or the failure names no cause. captured: fix-the-deployment-smoke-503s captured:
-notify-owner-from-the-audit-report (#327) captured: expose-grafana-by-hostname
+in a step that runs before teardown, or the failure names no cause. Scope that evidence to every namespace a
+load-bearing component occupies, not just the application's: the smoke's load travels through the `ingress-nginx`
+controller, so a diagnostics step reading only `axon-showcase` leaves the hop that carries it unexamined — the step
+prints the `ingress-nginx` pods, events, and controller logs alongside the application's. A component that changes
+namespace takes the failure diagnostics with it. captured: route-the-smoke-through-the-ingress captured:
+fix-the-deployment-smoke-503s captured: notify-owner-from-the-audit-report (#327) captured: expose-grafana-by-hostname
 
 `.github/workflows/audit.yml` runs the three repository audits (agent tooling, spec corpus, architecture) on a weekly
 schedule and via `workflow_dispatch`, through the OpenCode GitHub action's scheduled path (a `prompt` input, OIDC auth,
@@ -1244,19 +1256,20 @@ add-deployment-smoke captured: trim-deployment-smoke-install
 
 **Helm release order**: kps → tempo → db-events/kafka/os-views → axon-showcase, declared by `mustInstallAfter`/
 `mustUninstallAfter` in `build.gradle.kts`. Uninstall in reverse. Because the app release also depends on the five image
-builds, `helmInstallToLocal` is whole-stack — it builds all five images and installs all six releases. The `ci` target
-is the deliberate exception for the deployment smoke: it selects the application and infrastructure releases (no
-observability), points at the runner's fixed kube context, and the releases it installs carry the trimmed
-`values-ci.yaml` files the smoke needs to fit its runner (see the deployment-smoke note above); the local path stays the
-one the docs give a person. Fitting a runner is a **requests** concern — the scheduler places on requests — so a trim
-lowers the requests and leaves the memory **limits** alone: a JVM's heap is a fraction of its limit, and cutting the
-limit toward the runner starves the heap under load. captured: add-deployment-smoke captured:
-fix-the-deployment-smoke-503s
+builds, `helmInstallToLocal` is whole-stack — it builds all five images and installs all six of the releases a person
+runs locally (the ingress controller is `ci`-only). The `ci` target is the deliberate exception for the deployment
+smoke: it selects the application, infrastructure, and ingress releases (no observability), points at the runner's fixed
+kube context, and the releases it installs carry the trimmed `values-ci.yaml` files the smoke needs to fit its runner
+(see the deployment-smoke note above); the local path stays the one the docs give a person. Fitting a runner is a
+**requests** concern — the scheduler places on requests — so a trim lowers the requests and leaves the memory **limits**
+alone: a JVM's heap is a fraction of its limit, and cutting the limit toward the runner starves the heap under load.
+captured: add-deployment-smoke captured: fix-the-deployment-smoke-503s
 
 **Helm release namespaces**: declared in `build.gradle.kts` — the observability releases (kps, tempo) deploy into the
-`monitoring` namespace, and the application and infrastructure releases (db-events, kafka, os-views, axon-showcase)
-deploy into a dedicated `axon-showcase` namespace (created on install). The local deployment does not depend on the kube
-context's current namespace or a `helm.namespace` gradle property.
+`monitoring` namespace, the ingress controller (`ingress-nginx`, selected only by `ci`) into its own `ingress-nginx`
+namespace, and the application and infrastructure releases (db-events, kafka, os-views, axon-showcase) deploy into a
+dedicated `axon-showcase` namespace (created on install). The local deployment does not depend on the kube context's
+current namespace or a `helm.namespace` gradle property.
 
 **Helm release target kube contexts**: each release target declares the kube context it deploys to in
 `build.gradle.kts`. The `local` target resolves its context per-machine from the `helm.local.kubeContext` Gradle

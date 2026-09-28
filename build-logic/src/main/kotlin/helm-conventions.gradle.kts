@@ -22,6 +22,10 @@ helm {
         register("prometheus-community") {
             url("https://prometheus-community.github.io/helm-charts")
         }
+
+        register("ingress-nginx") {
+            url("https://kubernetes.github.io/ingress-nginx")
+        }
     }
 
     filtering {

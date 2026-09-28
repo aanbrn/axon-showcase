@@ -24,12 +24,13 @@ dated when it was added (start a new section for a new day rather than appending
   smoke runs only the `smoke` profile and records no performance numbers. Observational only if ever done, never a merge
   gate.
 
-- Re-measure the load-test baseline reference, or investigate the list endpoint's tail — parked; no change yet. The
-  `check-load-test-drift` change's first runs flagged `FetchShowcases.p99Ms` at 27-34 ms against the committed 15 ms and
-  a 23 ms threshold, consistently across three independent shortened plateaus — a signal the profiles' 5x factor (a 75
-  ms threshold) never surfaced. Either the cluster drifted since the 2026-09-27 measurement, or that reference no longer
-  represents it: the response is a deliberate `REFRESH_BASELINE=1` re-measure at the documented plateau length if the
-  drift is expected, or an investigation of the list endpoint's tail latency if it is not.
+- Explain the load tests' accepted tail degradation — promoted to issue #430; no change yet. The 2026-09-28 re-measure
+  accepted a **p99** regression into the committed reference (`FetchShowcases` 15 → 24 ms, `ScheduleShowcase` 15 → 27,
+  `PollShowcase` 12 → 24, `RemoveShowcase` 13 → 24) while mean and p95 moved by ~1 ms. The profiles' own thresholds do
+  not move with the tail (5x these values still lands under their 200 ms p99 floor), so only the drift check tracks it:
+  a further p99 rise of up to ~1.5x them (the tolerance, floored) passes it. Whether that tail is a real degradation of
+  the pipeline (gateway or OpenSearch tail latency under this cluster's state) or an artifact of the environment the
+  measurement ran in is unestablished: the reference was refreshed to match reality, not to resolve it.
 
 ## 2026-09-25
 

@@ -88,6 +88,9 @@ jobs:
         run: |
           kubectl --namespace axon-showcase get pods -o wide
           kubectl --namespace axon-showcase get events --sort-by=.lastTimestamp | tail -30
+          kubectl --namespace ingress-nginx get pods -o wide
+          kubectl --namespace ingress-nginx get events --sort-by=.lastTimestamp | tail -20
+          kubectl --namespace ingress-nginx logs deployment/ingress-nginx-controller --tail=50 || true
           for pod in $(kubectl --namespace axon-showcase get pods -o name); do
             echo "--- $pod restarts: ---"
             kubectl --namespace axon-showcase get "$pod" \

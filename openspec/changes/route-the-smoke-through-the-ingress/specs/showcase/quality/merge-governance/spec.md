@@ -7,7 +7,7 @@ job in a dedicated workflow separate from the merge gate. The smoke SHALL create
 build the five images — the four service images and the web UI image — and load them into that cluster, install the
 application and its infrastructure releases — not the observability — with values whose requests fit the runner, since
 larger runners are not available to this repository, install an ingress controller and enable the deployment's ingress,
-and wait for them to become ready, then drive the load profiles against the deployed gateway through that ingress,
+and wait for them to become ready, then drive the smoke profile against the deployed gateway through that ingress,
 assert that no request fails, record no performance numbers, delete the cluster even when a step fails, and SHALL NOT be
 part of the merge-gate `build` check or a required check for merging into `main`.
 
@@ -15,11 +15,11 @@ part of the merge-gate `build` check or a required check for merging into `main`
 
 - **WHEN** the scheduled nightly trigger fires
 - **THEN** the smoke job creates a Kubernetes cluster in the runner, installs the application, infrastructure, and
-  ingress releases with values that fit it, and drives the load profiles against the deployed gateway
+  ingress releases with values that fit it, and drives the smoke profile against the deployed gateway
 
 #### Scenario: The smoke reaches the gateway through the deployment's ingress
 
-- **WHEN** the smoke drives the load profiles
+- **WHEN** the smoke drives its load
 - **THEN** it targets the deployment's ingress hostname with an ingress controller serving in the cluster, rather than a
   port-forward
 

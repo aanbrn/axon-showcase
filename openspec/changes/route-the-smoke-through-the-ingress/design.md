@@ -1,30 +1,24 @@
 # Design
 
-> **Parked, 2026-09-28 — the premise below was wrong.** The smoke's failing assertion was not the port-forward: the
-> review of this change reproduced run 36354957471 and every one of its 37 `PollShowcase` KOs is a gateway
-> `503 Service Unavailable` in a nine-second window at the `baseline` plateau's start, while the port-forward's only
-> errors came two minutes later at teardown and caused no failures. I misdiagnosed the failing hop (a log slice hid the
-> 503s); the route below is still the faithful way for the smoke to reach the deployment, but it would not have fixed
-> the failure. The 503s are diagnosed and fixed in a separate change; this branch stays unmerged until the ingress route
-> is reconsidered on its own merits.
-
 ## Context
 
-See `proposal.md` — Why. The smoke's second dispatch (run 36354957471): the cluster, the images (loaded with `--name`),
-the trimmed `ci` install, and the `smoke` profile all succeeded; the `baseline` plateau failed on 37 `PollShowcase` KOs,
-with
-`portforward.go:404 "Unhandled Error" err="error copying from local connection to remote stream: … read: connection reset by peer"`
-at 22:30:27 — the port-forward giving way under the sustained load and ten long-lived SSE connections. The chart ships
-the app's ingress (the local values set the hostnames `axon-showcase-api`, `-ui`, `-grafana`), and `kind` documents
-mapping the host's ports into the node for an ingress controller. A release's tags and a target's `selectTags` decide
-which releases it installs; the `local` target currently selects `*`.
+See `proposal.md` — Why. The smoke's second dispatch (run 36354957471) failed on 37 `PollShowcase` KOs — gateway
+`503 Service Unavailable` responses in a nine-second window at the `baseline` plateau's start — not on the port-forward,
+whose only errors came two minutes later at teardown and caused no failures. That diagnosis belongs to the plateau,
+which this workflow no longer runs (CI drives the `smoke` profile; the performance profiles are local), and its fix
+ships separately. The ingress route is therefore a coverage improvement: the chart ships the app's ingress (the local
+values set the hostnames `axon-showcase-api`, `-ui`, `-grafana`), the `ci` values leave it off, and the smoke has never
+exercised it — so a wrong `ingressClassName`, host, path, or backend would ship unnoticed. `kind` documents mapping the
+host's ports into the node for an ingress controller. A release's tags and a target's `selectTags` decide which releases
+it installs; the `local` target currently selects `*`.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
 - The smoke's load path is the deployment's own access path — the ingress the chart ships.
-- Remove the port-forward, the fragile hop that failed the last dispatch.
+- The smoke covers the chart's ingress route (class, host, path, backend), which a port-forward bypasses.
+- Remove the port-forward, a hop whose only observed error came at teardown and caused no failures.
 - Leave the local target, the chart, the profiles, and the trimmed install untouched.
 
 **Non-Goals:**
@@ -62,5 +56,5 @@ which releases it installs; the `local` target currently selects `*`.
 ## Verification
 
 - `spotlessCheck`, `openspec validate --changes`, `workflowLint`, and the Docker-free `check`.
-- The dispatch after it lands: the profiles pass through the ingress — no port-forward in the log — and the cluster is
+- The dispatch after it lands: the smoke passes through the ingress — no port-forward in the log — and the cluster is
   deleted.

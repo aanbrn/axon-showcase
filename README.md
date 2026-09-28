@@ -384,17 +384,17 @@ MCP config is read at startup, so restart OpenCode after adding one.
 Most verification runs entirely in the Gradle build, so the tool list is small. Gradle itself is not on it — the wrapper
 pins Gradle 9.8.0 and downloads it on first use.
 
-| Tool                       | Needed for                                                   | Install (macOS)                                                     |
-| -------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
-| **Java 21+**               | Building and running everything                              | `brew install --cask temurin@21`, or SDKMAN                         |
-| **Docker & Compose**       | Infrastructure (PostgreSQL, Kafka, OpenSearch) and the stack | Docker Desktop, or `brew install colima docker`                     |
-| **actionlint**             | The workflow-lint gate in `check`                            | `brew install actionlint`                                           |
-| **`pack` CLI**             | Building the web-UI image                                    | `brew install buildpacks/tap/pack`                                  |
-| **Helm 4.x**               | Kubernetes deployment                                        | `brew install helm`                                                 |
-| **Kubernetes cluster**     | The `helmInstallToLocal` target                              | kind, minikube, or colima with k3s                                  |
-| **OpenCode v2** (or later) | The agentic development workflow (TUI or Desktop)            | `brew install anomalyco/tap/opencode-v2`, or https://opencode.ai/v2 |
-| **Snyk CLI**               | `dependencySecurityCheck`                                    | `brew install snyk/tap/snyk`                                        |
-| **Python 3**               | `scripts/setup-idea.sh` and the commit-hygiene guard/check   | Ships with macOS Command Line Tools                                 |
+| Tool                          | Needed for                                                   | Install (macOS)                                                     |
+| ----------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
+| **Java 21+**                  | Building and running everything                              | `brew install --cask temurin@21`, or SDKMAN                         |
+| **Docker & Compose**          | Infrastructure (PostgreSQL, Kafka, OpenSearch) and the stack | Docker Desktop, or `brew install colima docker`                     |
+| **actionlint**                | The workflow-lint gate in `check`                            | `brew install actionlint`                                           |
+| **`pack` CLI**                | Building the web-UI image                                    | `brew install buildpacks/tap/pack`                                  |
+| **Helm 4.x**                  | Kubernetes deployment                                        | `brew install helm`                                                 |
+| **Kubernetes cluster**        | The `helmInstallToLocal` target                              | kind, minikube, or colima with k3s                                  |
+| **OpenCode** (v2 recommended) | The agentic development workflow (TUI or Desktop)            | `brew install anomalyco/tap/opencode-v2`, or https://opencode.ai/v2 |
+| **Snyk CLI**                  | `dependencySecurityCheck`                                    | `brew install snyk/tap/snyk`                                        |
+| **Python 3**                  | `scripts/setup-idea.sh` and the commit-hygiene guard/check   | Ships with macOS Command Line Tools                                 |
 
 Only **Java and Docker** are required to run the application. actionlint is needed for the full `check`; `pack` only
 when building the web-UI image; Helm, a cluster, and Snyk are only for deployment and security scanning; OpenCode is

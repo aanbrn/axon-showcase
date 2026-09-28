@@ -1118,7 +1118,7 @@ Key modules (libraries, not services):
   artifact's name before hand-writing the set. captured: add-readme-auditor (#315)
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
-  `.opencode/opencode.json` (`model` and `agents.title.model` — two keys), the flash-pinned subagent frontmatter
+  `.opencode/opencode.json` (`model` and `small_model` — two keys), the flash-pinned subagent frontmatter
   (`.opencode/agent/review-quick.md`, `lesson-capture.md`, `experience-analyzer.md`), the
   `.github/workflows/opencode.yml` `model` input, and the `AGENTS.md` agent gotchas that name the model id (docs that
   ARE the change — update them in the same change). When bumping, grep for the old id across `.opencode/`,
@@ -1161,7 +1161,7 @@ Key modules (libraries, not services):
   grant. Scope any temp grant to a named scratch subdirectory — never the whole OS temp root (`/tmp`, i.e. macOS's
   `/private/tmp`), which would grant every application's temporary files; that is why `/private/tmp` is not in the
   config. The other external paths an unattended run needs are granted declaratively in `.opencode/opencode.json`'s
-  `permissions` array: the **`gh` CLI's config directory** as `$HOME/.config/gh/*`, and the **globally-installed
+  `permission` rules: the **`gh` CLI's config directory** as `$HOME/.config/gh/*`, and the **globally-installed
   `openspec` package** as `*/@fission-ai/openspec/*` — the CLI reads its own schema templates from an
   outside-the-workspace package directory, and an unattended cloud run cannot answer the prompt it would otherwise raise
   (a `/oc` run was found stuck on exactly
@@ -1177,18 +1177,19 @@ Key modules (libraries, not services):
   machine-specific `<tmpdir>/opencode`, which is enough for this repo; `anomalyco/opencode#48100` asks for a portable
   default and remains open upstream. `.opencode/package.json` (tracked) holds the dependencies OpenCode installs at
   startup — the `@opencode-ai/plugin` package stays because the v2 binary installs it into each `.opencode/` at startup.
-  `.opencode/.gitignore` keeps only `node_modules` and the lockfiles out of the repo. The `permissions` array is
-  **v2-only** — v1 does not ignore the file, it exits at startup (`V2 permissions are not supported by OpenCode V1`) —
-  so a v2-only key makes the tool's major version a repo prerequisite, stated on the README's OpenCode row; verify both
-  the row's version and the version its install formula resolves to, since the majors are different brew formulae
-  (`opencode` vs `anomalyco/tap/opencode-v2`). captured: migrate-opencode-config-to-v2 captured:
-  retire-opencode-permission-plugin (#388)
+  `.opencode/.gitignore` keeps only `node_modules` and the lockfiles out of the repo. The config is written in the **V1
+  shape** — the `permission` block, the flat `mcp` map, and `small_model` — which v2 lowers into its own `permissions`
+  array and `mcp.servers` envelope rather than the v2 spellings: the GitHub action the cloud workflows run installs
+  `releases/latest` — the v1 line — and a v2-only `permissions` array makes v1 exit at startup
+  (`V2 permissions are not supported by OpenCode V1`), which silently broke both cloud workflows until a dispatch
+  exposed it. Keep this file loadable by both majors; the local workflow still runs v2, per the README's row. captured:
+  migrate-opencode-config-to-v2 captured: retire-opencode-permission-plugin (#388)
 
-The `.opencode/opencode.json` `permissions` grant for the **`gh` CLI's config directory** is `$HOME/.config/gh/*`: the
-agent invokes `gh`, which consults that directory (outside the workspace), and a missing grant hangs an unattended run
-(an `/oc` run was found stuck on `/home/runner/.config/gh/*`). v2 expands `~`/`$HOME` and substitutes `{env:VAR}` in a
-pattern, but an unset `{env:VAR}` substitutes to an empty string (a pattern matching every path), so the config grants
-the `$HOME` default and a run that sets `$GH_CONFIG_DIR` or `$XDG_CONFIG_HOME` elsewhere still prompts.
+The `.opencode/opencode.json` grant for the **`gh` CLI's config directory** is `$HOME/.config/gh/*`: the agent invokes
+`gh`, which consults that directory (outside the workspace), and a missing grant hangs an unattended run (an `/oc` run
+was found stuck on `/home/runner/.config/gh/*`). v2 expands `~`/`$HOME` and substitutes `{env:VAR}` in a pattern, but an
+unset `{env:VAR}` substitutes to an empty string (a pattern matching every path), so the config grants the `$HOME`
+default and a run that sets `$GH_CONFIG_DIR` or `$XDG_CONFIG_HOME` elsewhere still prompts.
 
 ## Docker Images
 

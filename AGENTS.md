@@ -1739,19 +1739,20 @@ capture-stash-stale-copy
     fails open — `perl` exits 0 on a missing file, so `test -z` reports clean on a typo'd path — which is why the check
     must be seen to hit a known positive before its clean run means anything.
   - **A clean run from the wrong resolution context — a directory, or a point in the lifecycle — is not a
-    reproduction.** TypeScript's automatic inclusion of `@types` packages walks up from the tsconfig's directory — or
-    the current working directory when no tsconfig is used — not from the directory of the file being checked, so a
-    check can pass from inside the package while failing from the root its consumer resolves from (here, the editor's
-    project root). A `review-quick` round proposed the simpler fix ("add `@types/node`; a tsconfig isn't needed"), which
-    held only in the passing directory. Run a reproduction from the context that fails — the directory whose config the
-    failing tool reads, not the artifact's own directory — and treat a different error as its own signal. captured:
-    fix-tmpdir-plugin-types (#299) The context is temporal as well as spatial: a plugin hook or a config read runs at
-    process init, so a standalone execution proves what the artifact emits but never that its inputs exist by then. The
-    now-retired `.opencode/plugin/grant-cli-config-dirs.ts` grant was proved with a `bun` run (every grant emitted), yet
-    in the cloud run the agent installed `openspec` mid-run, after init, so the resolved-path grant could not exist and
-    the run hung — the config wildcard that replaced it removes the init-time dependency. Exercise the artifact at the
-    lifecycle point it runs in (check the workflow's step order against the artifact's run point), not only its own
-    invocation. captured: grant-openspec-global-access-in-cloud (#325)
+    reproduction.** TypeScript's automatic inclusion of `@types` packages walks up from the tsconfig's directory (the
+    then-`.opencode/tsconfig.json`, retired with the plugin below) — or the current working directory when no tsconfig
+    is used — not from the directory of the file being checked, so a check can pass from inside the package while
+    failing from the root its consumer resolves from (here, the editor's project root). A `review-quick` round proposed
+    the simpler fix ("add `@types/node`; a tsconfig isn't needed"), which held only in the passing directory. Run a
+    reproduction from the context that fails — the directory whose config the failing tool reads, not the artifact's own
+    directory — and treat a different error as its own signal. captured: fix-tmpdir-plugin-types (#299) The context is
+    temporal as well as spatial: a plugin hook or a config read runs at process init, so a standalone execution proves
+    what the artifact emits but never that its inputs exist by then. The now-retired
+    `.opencode/plugin/grant-cli-config-dirs.ts` grant was proved with a `bun` run (every grant emitted), yet in the
+    cloud run the agent installed `openspec` mid-run, after init, so the resolved-path grant could not exist and the run
+    hung — the config wildcard that replaced it removes the init-time dependency. Exercise the artifact at the lifecycle
+    point it runs in (check the workflow's step order against the artifact's run point), not only its own invocation.
+    captured: grant-openspec-global-access-in-cloud (#325)
 
 - **A derived measurement may report only what it measured — pin its unit to a countable event, never let a fallback be
   indistinguishable from the real thing, and never let a check's failure gate nothing: label a reporting fallback as

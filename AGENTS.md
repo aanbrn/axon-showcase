@@ -80,11 +80,14 @@ artifacts) and again after finishing its **implementation**, run a quick review 
 subagent) against the change's planning artifacts — for the proposal, the proposal/design/tasks/spec-delta coherence and
 repo fit; for the implementation, the tasks and delta spec — and repeat it until it reports no new observations. Fix
 everything the quick review finds, re-run it, and stop only when it comes back clean — only then ask the user for a
-manual review pass. A clean quick review is a precondition for asking for the manual review, **not** a substitute for it
-— it means _ask the user now_, not _the implementation is approved_. Never commit, push, open a PR, archive, or merge on
-the strength of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes,
-without ever requesting the manual pass. The commit → push → PR → CI → archive sequence starts only after the user
-approves the implementation — the "Run CI before archiving" convention does not authorize committing earlier. An
+manual review pass. A finding that adds behavior is a scope change, not a code fix: applying it to the code and a test
+alone leaves the change's delta spec, design, and tasks describing the old behavior, and the next round reports the
+residue as spec-/task-drift: sweep those planning artifacts (and the docs, per the docs-refresh convention) as part of
+applying the finding. A clean quick review is a precondition for asking for the manual review, **not** a substitute for
+it — it means _ask the user now_, not _the implementation is approved_. Never commit, push, open a PR, archive, or merge
+on the strength of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) within
+minutes, without ever requesting the manual pass. The commit → push → PR → CI → archive sequence starts only after the
+user approves the implementation — the "Run CI before archiving" convention does not authorize committing earlier. An
 unanswered approval request is not an approval: a reply that does not address it — the user asks about something else,
 or the thread moves on — leaves the request outstanding, so re-ask explicitly before committing, pushing, opening the
 PR, archiving, or merging, and do not read a tangential reply as clearance. Work done while awaiting the pass must stay
@@ -100,7 +103,8 @@ list, an artifact set, a list of touched files or test sites, a count, a unit, a
 that claim written from memory rather than derived from the surface it summarizes; re-derive it by grepping the corpus,
 the archive, the change's sibling artifacts, and the diff — or abandon the unit; do not layer another special case. A
 revert after a non-converging loop is a legitimate outcome — record why in the change dir so the decision is not
-re-litigated. captured: propagate-ui-trace-context (#362) captured: realistic-load-test-profiles
+re-litigated. captured: propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured:
+check-load-test-drift
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -463,14 +467,25 @@ wait for approval before merging.
 # Profiles: smoke, average, soak, stress, spike, breakpoint,
 # calibrate, baseline — the performance profiles scale from kneeRate, spike/breakpoint carry no assertions, and an
 # unsupported profile name fails the run. The measurement run is ./scripts/load-test-baseline.sh: it raises the ceiling
-# (up to CALIBRATE_MAX_RATE) until a knee is measured, runs a baseline plateau, records the plateau's per-request
-# response times as the committed reference (load-tests/src/gatling/resources/baseline.properties, or
-# baseline-<slug>.properties for a target other than the default) and a ready-to-annotate record under docs/load-tests/,
-# and — with PROFILE=<name> — runs that performance profile at the derived knee. It writes
-# load-tests/build/load-tests/report.md. The calibration deliberately ramps past the knee and the resource sampling
-# follows the current kube context (kubectl top pods -A), so point a run at an environment you own. The CI deployment
-# smoke (.github/workflows/deployment-smoke.yml) installs the chart and an ingress controller on a throwaway kind
-# cluster and drives the smoke profile at the deployed gateway through its ingress.
+# (up to CALIBRATE_MAX_RATE) until a knee is measured, runs a baseline plateau, compares the plateau's per read/write
+# request mean, 95th, and 99th percentile response times against the reference recorded for the target it measured —
+# reporting each figure's delta — and records the plateau's response times as the committed reference
+# (load-tests/src/gatling/resources/baseline.properties, or baseline-<slug>.properties for a target other than the
+# default). A figure beyond max(floor, round(recorded x (1 + TOLERANCE/100))) — floors 5/10/20 ms — regresses: the run
+# fails, naming the regressed figures, and leaves the reference unchanged unless REFRESH_BASELINE=1 accepts it; with
+# nothing recorded for the target it records the measurement; a measurement that recorded no figures is withheld,
+# refreshed or not. TOLERANCE defaults to 50 (percent). The run writes a
+# ready-to-annotate record under docs/load-tests/ and load-tests/build/load-tests/report.md either way, and — with
+# PROFILE=<name> — runs that performance profile at the derived knee. The calibration deliberately ramps past the knee
+# and the resource sampling follows the current kube context (kubectl top pods -A), so point a run at an environment you
+# own. The CI deployment smoke (.github/workflows/deployment-smoke.yml) installs the chart and an ingress controller on
+# a throwaway kind cluster and drives the smoke profile at the deployed gateway through its ingress.
+
+# Trend the dated records as a chronological series (each record's date, target, knee, operating point, plateau
+# duration, and plateau mean/95th/99th percentile response time and throughput)
+./gradlew :load-tests:baselineTrend
+# reads docs/load-tests/*.md by default (-Precords=<dir> overrides it); a record whose figures cannot be read is
+# reported as unreadable rather than failing the view.
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
@@ -1768,7 +1783,9 @@ capture-stash-stale-copy
   consumers before forwarding a new `-P<name>`.** `load-tests/build.gradle.kts` forwards its whitelisted properties into
   the Gatling task's `systemProperties`, but the same module's `kneeFinder` task reads `-Pknee` as its **output-file
   path** — so the knee-rate property had to be `kneeRate`, since a reused `knee` would forward a path where the
-  simulation parses an integer. captured: realistic-load-test-profiles
+  simulation parses an integer. A JavaExec task runs with the module's project directory as its working directory, so a
+  relative `-Plog`/`-Precords` resolves under `load-tests/`, not the repository root — hand-run one with the absolute
+  path the wrapper passes (`$ROOT/...`). captured: check-load-test-drift
 
 - **Run `spotlessApply` after the _final_ write to a Spotless-owned file — ticking a checklist task is an edit too.** A
   `tasks.md` task was ticked ("`spotlessCheck` passes") _after_ the last `spotlessApply`; the re-wrapped prose broke
@@ -1802,11 +1819,13 @@ capture-stash-stale-copy
   custom `NANOS_DATE_PATTERN` (`yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]`) with `format = {}`; do not "simplify" it back to
   the built-in enum until the fix (PR #3337, 6.2.0-M2) reaches us through `spring-data-opensearch`; the truncation is
   invisible on macOS (microsecond clocks) and surfaces only on nanosecond clocks (Linux CI).
-- Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
-  `implementation`-only dependencies — each suite re-declares what it needs (client component suites duplicate
+- **Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
+  `implementation`-only dependencies** — each suite re-declares what it needs (client component suites duplicate
   axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be
   referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g.
-  `val integrationTest = suites.register<JvmTestSuite>("integrationTest")`).
+  `val integrationTest = suites.register<JvmTestSuite>("integrationTest")`). Source sets are siblings — `src/test/java`
+  cannot see a type declared in `src/gatling/java`, while both see `main` — so a pure-logic type a unit test and a
+  custom source set both need belongs in the module's `main` source set. captured: check-load-test-drift
 - **A `project(...)` dependency a module does not use can still be load-bearing for a consumer — narrowing it can break
   a downstream `compileJava`.** Before removing or narrowing a `project(...)` dependency, grep the consumers' sources
   for what they actually import and compile the affected modules; an unused direct dependency may be carrying the

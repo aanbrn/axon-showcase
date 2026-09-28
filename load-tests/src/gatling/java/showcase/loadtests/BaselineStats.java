@@ -2,6 +2,7 @@
 package showcase.loadtests;
 
 import io.gatling.charts.stats.GeneralStats;
+import io.gatling.charts.stats.LogFileData;
 import io.gatling.charts.stats.LogFileReader;
 import io.gatling.commons.stats.Status;
 import io.gatling.core.config.GatlingConfiguration;
@@ -10,12 +11,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import lombok.val;
 import scala.Option;
 
 /**
  * Records the baseline reference from a Gatling simulation log: the plateau's mean, 95th, and 99th percentile response
- * time per read and write request, with the derivation policy the below-knee profiles apply.
+ * time per read and write request, with the derivation policy the below-knee profiles apply. Compares the measurement
+ * against the reference recorded for the target it measured, reports the deltas, and writes the reference unless a
+ * figure regresses beyond the tolerance with no refresh intended.
  */
 public final class BaselineStats {
 
@@ -50,47 +54,87 @@ public final class BaselineStats {
     private BaselineStats() {}
 
     /**
-     * Writes the baseline reference derived from the given simulation log.
+     * Compares the baseline reference derived from the given simulation log against the one recorded for the target,
+     * reports the deltas, and writes the reference per the tolerance-gated policy.
      *
-     * @param args the simulation log path, the reference output path, and the target the log was recorded against
+     * @param args the simulation log path, the reference path, the target the log was recorded against, whether a
+     *     refresh is intended, and the tolerance as a percentage
      * @throws IOException if the log cannot be read or the reference cannot be written
      */
     public static void main(String[] args) throws IOException {
-        val data = new LogFileReader(new File(args[0]), GatlingConfiguration.load()).read();
-        val reference = new StringBuilder();
-        reference.append(
-                "# The load-test baseline reference: the plateau's response times per read and write request.\n");
-        reference.append("# A baseline run writes it; the below-knee profiles derive their thresholds from it as\n");
-        reference.append("# max(floor, factor x baseline), and ignore it when its target is not theirs.\n");
-        reference.append("target=").append(args[2]).append('\n');
-        reference.append("recordedAt=").append(Instant.now()).append('\n');
-        reference.append("factor=").append(DEFAULT_FACTOR).append('\n');
-        reference.append("floorMeanMs=").append(DEFAULT_FLOOR_MEAN_MS).append('\n');
-        reference.append("floorP95Ms=").append(DEFAULT_FLOOR_P95_MS).append('\n');
-        reference.append("floorP99Ms=").append(DEFAULT_FLOOR_P99_MS).append('\n');
+        val logPath = args[0];
+        val output = Path.of(args[1]);
+        val target = args[2];
+        val refreshIntended = args.length > 3 && isTruthy(args[3]);
+        val tolerance = args.length > 4 ? Double.parseDouble(args[4]) / 100.0 : BaselineDrift.DEFAULT_TOLERANCE;
+
+        val data = new LogFileReader(new File(logPath), GatlingConfiguration.load()).read();
+        val measured = measure(data, target);
+        val recorded = Files.exists(output) ? BaselineReference.parse(Files.readString(output)) : null;
+        val drift = BaselineDrift.compare(recorded, measured, tolerance, refreshIntended);
+        System.out.print(drift.report());
+
+        if (drift.writeReference()) {
+            if (output.getParent() != null) {
+                Files.createDirectories(output.getParent());
+            }
+            Files.writeString(output, measured.render());
+            System.out.printf("wrote %s for %s%n", output, target);
+        } else if (drift.measuredEmpty()) {
+            System.err.printf("withheld %s: the run measured no request figures%n", output);
+            System.exit(1);
+        } else {
+            System.err.printf(
+                    "withheld %s: regressed %s%n",
+                    output,
+                    drift.regressedFigures().stream()
+                            .map(BaselineDrift.Figure::label)
+                            .toList());
+            System.exit(1);
+        }
+    }
+
+    /**
+     * Reads whether a refresh is intended from a truthy argument value.
+     *
+     * @param value the argument value
+     * @return true when the value is {@code true} or {@code 1}
+     */
+    private static boolean isTruthy(String value) {
+        return "1".equals(value) || Boolean.parseBoolean(value);
+    }
+
+    /**
+     * Builds the reference measured by this run from the simulation log.
+     *
+     * @param data the simulation log's data
+     * @param target the target the log was recorded against
+     * @return the measured reference
+     */
+    private static BaselineReference measure(LogFileData data, String target) {
+        val requests = new LinkedHashMap<String, BaselineReference.Figures>();
         for (val name : LoadTestRequests.READ_WRITE) {
             val stats = data.requestGeneralStats(Option.apply(name), Option.empty(), Option.apply(Status.apply(OK)));
             if (stats.isDefined()) {
                 val general = stats.get();
-                reference.append(name).append(".meanMs=").append(general.mean()).append('\n');
-                reference
-                        .append(name)
-                        .append(".p95Ms=")
-                        .append(percentile(general, 95.0))
-                        .append('\n');
-                reference
-                        .append(name)
-                        .append(".p99Ms=")
-                        .append(percentile(general, 99.0))
-                        .append('\n');
+                requests.put(
+                        name,
+                        BaselineReference.Figures.builder()
+                                .meanMs(general.mean())
+                                .p95Ms(percentile(general, 95.0))
+                                .p99Ms(percentile(general, 99.0))
+                                .build());
             }
         }
-        val output = Path.of(args[1]);
-        if (output.getParent() != null) {
-            Files.createDirectories(output.getParent());
-        }
-        Files.writeString(output, reference.toString());
-        System.out.printf("wrote %s for %s%n", output, args[2]);
+        return BaselineReference.builder()
+                .target(target)
+                .recordedAt(Instant.now())
+                .factor(DEFAULT_FACTOR)
+                .floorMeanMs(DEFAULT_FLOOR_MEAN_MS)
+                .floorP95Ms(DEFAULT_FLOOR_P95_MS)
+                .floorP99Ms(DEFAULT_FLOOR_P99_MS)
+                .requests(requests)
+                .build();
     }
 
     /**

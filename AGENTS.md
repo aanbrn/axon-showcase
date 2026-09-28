@@ -81,30 +81,31 @@ subagent) against the change's planning artifacts — for the proposal, the prop
 repo fit; for the implementation, the tasks and delta spec — and repeat it until it reports no new observations. Fix
 everything the quick review finds, re-run it, and stop only when it comes back clean — only then ask the user for a
 manual review pass. A finding that adds behavior is a scope change, not a code fix: applying it to the code and a test
-alone leaves the change's delta spec, design, and tasks describing the old behavior, and the next round reports the
-residue as spec-/task-drift: sweep those planning artifacts (and the docs, per the docs-refresh convention) as part of
-applying the finding. A clean quick review is a precondition for asking for the manual review, **not** a substitute for
-it — it means _ask the user now_, not _the implementation is approved_. Never commit, push, open a PR, archive, or merge
-on the strength of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) within
-minutes, without ever requesting the manual pass. The commit → push → PR → CI → archive sequence starts only after the
-user approves the implementation — the "Run CI before archiving" convention does not authorize committing earlier. An
-unanswered approval request is not an approval: a reply that does not address it — the user asks about something else,
-or the thread moves on — leaves the request outstanding, so re-ask explicitly before committing, pushing, opening the
-PR, archiving, or merging, and do not read a tangential reply as clearance. Work done while awaiting the pass must stay
-in the working tree until it is given; as the owner recounted afterwards, a clean quick review asked for the manual
-pass, the reply asked about lesson capture instead, and the capture was folded into the same branch and the work
-continued — nothing was committed before the repeated request was answered, but the request had been missed. The
-`review-quick` subagent's finding classes and its repeated-class flag are specified in `showcase/quality/agent-skills` —
-see there rather than here — so act on its verdict line rather than on your own recollection of the thread. A review
-loop that keeps finding the **same class** of observation round after round is not converging — each fix is treating a
-symptom of a root cause that is still there, and the next round will find another instance. Stop and re-derive the root
-cause — when the recurring class is a claim about another artifact that under-describes or contradicts it (a surface
-list, an artifact set, a list of touched files or test sites, a count, a unit, a decision's numbers), the root cause is
-that claim written from memory rather than derived from the surface it summarizes; re-derive it by grepping the corpus,
-the archive, the change's sibling artifacts, and the diff — or abandon the unit; do not layer another special case. A
-revert after a non-converging loop is a legitimate outcome — record why in the change dir so the decision is not
-re-litigated. captured: propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured:
-check-load-test-drift
+alone leaves the change's planning artifacts — proposal, design, tasks, and delta spec — describing the old behavior,
+and the next round reports the residue as spec-/task-drift: sweep every one of them, not only the file the finding
+names, as part of applying the finding (and the docs, per the docs-refresh convention). A clean quick review is a
+precondition for asking for the manual review, **not** a substitute for it — it means _ask the user now_, not _the
+implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength of a clean `review-quick`
+alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes, without ever requesting the manual
+pass. The commit → push → PR → CI → archive sequence starts only after the user approves the implementation — the "Run
+CI before archiving" convention does not authorize committing earlier. An unanswered approval request is not an
+approval: a reply that does not address it — the user asks about something else, or the thread moves on — leaves the
+request outstanding, so re-ask explicitly before committing, pushing, opening the PR, archiving, or merging, and do not
+read a tangential reply as clearance. Work done while awaiting the pass must stay in the working tree until it is given;
+as the owner recounted afterwards, a clean quick review asked for the manual pass, the reply asked about lesson capture
+instead, and the capture was folded into the same branch and the work continued — nothing was committed before the
+repeated request was answered, but the request had been missed. The `review-quick` subagent's finding classes and its
+repeated-class flag are specified in `showcase/quality/agent-skills` — see there rather than here — so act on its
+verdict line rather than on your own recollection of the thread. A review loop that keeps finding the **same class** of
+observation round after round is not converging — each fix is treating a symptom of a root cause that is still there,
+and the next round will find another instance. Stop and re-derive the root cause — when the recurring class is a claim
+about another artifact that under-describes or contradicts it (a surface list, an artifact set, a list of touched files
+or test sites, a count, a unit, a decision's numbers), the root cause is that claim written from memory rather than
+derived from the surface it summarizes; re-derive it by grepping the corpus, the archive, the change's sibling
+artifacts, and the diff — or abandon the unit; do not layer another special case. A revert after a non-converging loop
+is a legitimate outcome — record why in the change dir so the decision is not re-litigated. captured:
+propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured: check-load-test-drift captured:
+check-unique-cron-schedules (#436)
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -1743,6 +1744,12 @@ capture-stash-stale-copy
     whole set in one pass (configs, entry html, `package.json`, `package-lock.json`) rather than one round per surfaced
     file, and prove it by editing an input and confirming the task re-executes rather than reading its cached status as
     green. captured: enforce-web-ui-import-boundaries
+  - **A deliberately conservative check owes the false-negative surface it accepts — and a gap cheap to close is closed,
+    not recorded.** A check narrowed to avoid false positives under-reports by design, so what it does not catch must be
+    stated where its outcome is recorded (the design, and the spec where the outcome is spec'd), and a clean run is
+    never full coverage. Recording is for what cannot be closed: the cron check closes its day-of-week `7`-as-`0` miss
+    (the `commit-hygiene` spec records the normalization) while recording its stdlib-only scan's unparseable YAML forms,
+    and the conflict-marker check records its lone-`=======` exclusion. captured: check-unique-cron-schedules (#436)
   - **A verdict echo is not a check.** While fixing `scripts/experience-analysis.sh`, the 120-character recipe printed
     the offending line and the next command echoed "(script 120 clean)" regardless — the log carried the defect and the
     summary contradicted it. Let the exit status carry the verdict

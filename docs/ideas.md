@@ -24,8 +24,8 @@ dated when it was added (start a new section for a new day rather than appending
   smoke runs only the `smoke` profile and records no performance numbers. Observational only if ever done, never a merge
   gate.
 
-- Explain the load tests' accepted tail degradation — parked; no change yet. The 2026-09-28 re-measure accepted a
-  **p99** regression into the committed reference (`FetchShowcases` 15 → 24 ms, `ScheduleShowcase` 15 → 27,
+- Explain the load tests' accepted tail degradation — promoted to issue #430; no change yet. The 2026-09-28 re-measure
+  accepted a **p99** regression into the committed reference (`FetchShowcases` 15 → 24 ms, `ScheduleShowcase` 15 → 27,
   `PollShowcase` 12 → 24, `RemoveShowcase` 13 → 24) while mean and p95 moved by ~1 ms. The profiles' own thresholds do
   not move with the tail (5x these values still lands under their 200 ms p99 floor), so only the drift check tracks it:
   a further p99 rise of up to ~1.5x them (the tolerance, floored) passes it. Whether that tail is a real degradation of

@@ -144,6 +144,8 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
   a merge-time detection found the lesson rather than the implementation capture, since a capture runs once at
   implementation and a merge only detects and asks — so a reader can tell where the rule came from without consulting
   git, and a markdown reflow cannot take it
+- **AND** the unit leaves a record the merge-time read can check, so an unrun capture is a missing box rather than a
+  recollection
 
 #### Scenario: A change that obsoletes a rule yields a retirement candidate
 
@@ -152,6 +154,12 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 - **THEN** the `lesson-capture` subagent reports a retirement or replacement candidate naming the rule, why the unit
   makes it so, and the retirement or replacement it proposes — a candidate for the main agent, not an action
 - **AND** the capture's verdict names the retirement count alongside its durable-proposal count
+
+#### Scenario: A skipped capture is a missing record at the merge
+
+- **WHEN** a unit is prepared for its merge and its implementation capture has not run
+- **THEN** the merge-time read reports the capture as unrun — the unit's record missing or unticked — rather than
+  reconstructing the skip from recollection
 
 #### Scenario: Screenshots are reviewed visually
 

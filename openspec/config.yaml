@@ -64,6 +64,8 @@ rules:
     - 'Group into sections: implementation tasks, then a verification section'
     - A change that adds or changes a check must include a task proving the check fails on a known-bad input and passes
       on a known-good one, and a task to read the output of any scratch command used as evidence
+    - Include the per-unit `lesson-capture` step as a task in every change — run the `lesson-capture` subagent and
+      apply its durable proposals — so an unrun capture is a missing box rather than a recollection
 
 # Per-operation guidance
 operations:

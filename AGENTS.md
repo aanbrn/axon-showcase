@@ -654,7 +654,11 @@ An added or edited workflow among these — or any other `workflow_dispatch`-ena
 real run by dispatch, not by waiting for its schedule: GitHub only exposes `workflow_dispatch` once the file exists on
 the default branch, so after it lands on `main` run `gh workflow run <file>` (no CI job exercises it, and `workflowLint`
 checks only the YAML) to exercise the workflow end to end — for an update check that is its report path, jq filter and
-tracker-issue lookup. captured: bump-snyk-cli-pin
+tracker-issue lookup. A **schedule-only** edit is the exception: a dispatch runs the workflow body, not the scheduler,
+so the new `cron`'s first fire is its verification — never tick a schedule change off on a dispatch. Schedule each
+workflow's runtime into the repo owner's night (UTC+7), so its result is waiting at the start of their day; the metered
+pass's placement is the model-pin bullet's off-peak call. captured: bump-snyk-cli-pin captured:
+schedule-jobs-into-the-owners-night
 
 A verification the local environment cannot run cannot live as a task in the change dir: `openspec/changes/archive/` is
 invisible and no gate reads it, so an unchecked task is silently lost — a dispatch
@@ -1130,9 +1134,12 @@ Key modules (libraries, not services):
   the quota**: the non-interactive passes — the four audits, `/review-thorough`, `/retrospective`, and long capture
   chains — can be time-shifted into the off-peak window for the same metered spend; a scheduled pass's timing is encoded
   in its workflow's `cron`, so check a schedule's slot against the current window (rather than asserting a UTC figure,
-  which rots) when adding or moving one. A schedule alone does not make a workflow shiftable — most scheduled workflows
-  here invoke no model at all, so check that the workflow itself spends metered quota before reasoning about its slot.
-  The interactive loop is paced by the human and cannot be shifted. captured: capture-offpeak-cost-lever (#369)
+  which rots) when adding or moving one. Check the slot's margin to the next peak block against the pass's worst-case
+  run: the window can be split into blocks, so a gap slot is off-peak only until an overrun reaches one, and the metered
+  pass belongs in the widest contiguous stretch rather than a gap. A schedule alone does not make a workflow shiftable —
+  most scheduled workflows here invoke no model at all, so check that the workflow itself spends metered quota before
+  reasoning about its slot. The interactive loop is paced by the human and cannot be shifted. captured:
+  capture-offpeak-cost-lever (#369) captured: schedule-jobs-into-the-owners-night
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired

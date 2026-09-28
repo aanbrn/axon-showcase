@@ -32,6 +32,13 @@ dated when it was added (start a new section for a new day rather than appending
   the pipeline (gateway or OpenSearch tail latency under this cluster's state) or an artifact of the environment the
   measurement ran in is unestablished: the reference was refreshed to match reality, not to resolve it.
 
+- Add a mechanical unique-cron check — parked; no change yet. The `schedule-jobs-into-the-owners-night` unit hit
+  duplicate `cron:` strings three times over: `dependency-updates` and `helm-updates` already shared `0 2 * * 1` at
+  HEAD, and the first re-stagger produced two fresh pairs. A new mode in `scripts/commit-hygiene.py` (stdlib) exposed as
+  a `verifyUniqueCronSchedules` Exec task beside `verifyConflictMarkers`/`verifyExecutableBits` and wired into `check`,
+  asserting no two `.github/workflows/*.yml` share a `cron:` string, with a case in `scripts/test-commit-hygiene.py`,
+  would catch it — cheap, general, and mechanical rather than a prose rule.
+
 ## 2026-09-25
 
 - Suppress or schedule the web UI's npm major updates — parked; no change yet. The `migrate-web-ui-frontend-majors`

@@ -1182,8 +1182,11 @@ Key modules (libraries, not services):
   array and `mcp.servers` envelope rather than the v2 spellings: the GitHub action the cloud workflows run installs
   `releases/latest` — the v1 line — and a v2-only `permissions` array makes v1 exit at startup
   (`V2 permissions are not supported by OpenCode V1`), which silently broke both cloud workflows until a dispatch
-  exposed it. Keep this file loadable by both majors; the local workflow still runs v2, per the README's row. captured:
-  migrate-opencode-config-to-v2 captured: retire-opencode-permission-plugin (#388)
+  exposed it. Keep this file loadable by both majors; the local workflow still runs v2, per the README's row — and
+  verify a change to it by dispatching the cloud workflow that loads it (`gh workflow run audit.yml`): no in-repo gate
+  loads the config with the action's v1 binary, so a dispatch (or the next scheduled run) proves it starts. captured:
+  migrate-opencode-config-to-v2 captured: retire-opencode-permission-plugin (#388) captured:
+  fix-cloud-agent-config-for-v1 (#438)
 
 The `.opencode/opencode.json` grant for the **`gh` CLI's config directory** is `$HOME/.config/gh/*`: the agent invokes
 `gh`, which consults that directory (outside the workspace), and a missing grant hangs an unattended run (an `/oc` run

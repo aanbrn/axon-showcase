@@ -1015,7 +1015,7 @@ Key modules (libraries, not services):
   command: it establishes the semantic mapping (which span ends where) before rendering, aligns by character width, and
   preserves deliberate asymmetry. The main agent stays on the cheap model.
 - **Experience-analyzer subagent for retrospectives and improvements**: the `experience-analyzer` subagent
-  (`.opencode/agent/experience-analyzer.md`) aggregates recent experience across many changes — above the per-change
+  (`.opencode/agent/experience-analyzer.md`) aggregates recent experience across many changes — above the per-unit
   `review-quick`/`lesson-capture` agents. Trigger it with the `/retrospective` OpenCode command (or run it manually):
   the command gathers the digest with `./scripts/experience-analysis.sh [since]` (merged PRs, git log, archived changes,
   AGENTS.md gotchas, docs/ideas.md), then the subagent returns a retrospective (shipped PRs by theme, lessons,

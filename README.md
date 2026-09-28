@@ -11,7 +11,7 @@ It is not a toy CRUD app. It is a complete event-sourced system: schedule a show
 lifecycle — starting at the right time, finishing after its duration, streaming every event live to a browser UI that
 updates as it happens. And the way the code is written and reviewed is itself a demonstration: behavior is captured in
 specs, changes are proposed, applied, reviewed, and archived by an automated agent pipeline. That pipeline also **learns
-from itself**: each change's lessons are written back into the agent's instructions, so the next change starts a little
+from itself**: each unit's lessons are written back into the agent's instructions, so the next change starts a little
 smarter (see [The Self-Learning Loop](#the-self-learning-loop)). It can even bootstrap its own tooling — ask it to set
 up the MCP servers and it detects, wires, and installs what it can for you (see
 [Tooling MCP Servers](#tooling-mcp-servers)).
@@ -235,7 +235,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                                                                                                                   |
 | `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift + unrecorded intent — `/audit-architecture`                                                                                             |
 | `readme-auditor`       | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage — `/audit-readme`                                                                                       |
-| `lesson-capture`       | Captures gotchas/conventions into AGENTS.md after every change, consolidating rather than accreting, retiring the rules a change obsoletes, and marking each rule with its origin (automatic)                      |
+| `lesson-capture`       | Captures gotchas/conventions into AGENTS.md after every unit, consolidating rather than accreting, retiring the rules a unit obsoletes, and marking each rule with its origin (automatic)                          |
 | `review-quick`         | Fast review after proposal & implementation, repeated until clean (automatic)                                                                                                                                      |
 | `review-thorough`      | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`                                                                                                                                      |
 | `vision`               | Reads screenshots for the text-only main agent                                                                                                                                                                     |
@@ -245,10 +245,10 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 
 - **Proposing and applying changes**: the `opsx-*` commands scaffold a change (proposal, design, tasks, spec delta),
   implement it, and prepare it for review.
-- **Code review**: every change is auto-reviewed after its proposal and after its implementation; the quick-review loop
+- **Code review**: every unit is auto-reviewed after its proposal and after its implementation; the quick-review loop
   repeats until it finds nothing new. A deep `/review-thorough` pass is available on demand.
-- **Lesson capture**: after each change, `lesson-capture` proposes AGENTS.md gotchas and conventions, merging each into
-  an existing bullet or stating that none covers it, and reports the rules the change makes obsolete or redundant as
+- **Lesson capture**: after each unit, `lesson-capture` proposes AGENTS.md gotchas and conventions, merging each into an
+  existing bullet or stating that none covers it, and reports the rules the unit makes obsolete or redundant as
   retirement candidates — so the file shrinks as well as grows, and mistakes are recorded systematically instead of
   relying on memory.
 - **Retrospectives**: `/retrospective` gathers the last week of PRs and the git log, plus the archived changes and
@@ -305,9 +305,9 @@ The process is designed to **learn from itself** — and that is the mechanic, n
 
 - **`AGENTS.md` is the agent's persistent memory.** It is loaded as instructions at the start of every session, so a
   lesson written there does not merely document the past — it changes how the agent behaves on the next change.
-- **Every change closes the loop.** The `lesson-capture` subagent runs after a change's implementation, and at a merge
-  the agent detects — reading the merge's non-diff effects and reporting any candidate — so lessons that only surface
-  once a change is live still get captured (it asks before running one); the ones you accept land in `AGENTS.md`.
+- **Every unit closes the loop.** The `lesson-capture` subagent runs after a unit's implementation, and at a merge the
+  agent detects — reading the merge's non-diff effects and reporting any candidate — so lessons that only surface once a
+  unit is live still get captured (it asks before running one); the ones you accept land in `AGENTS.md`.
 - **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
   same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
   uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.
@@ -329,7 +329,7 @@ The process is designed to **learn from itself** — and that is the mechanic, n
   `AGENTS.md` or a subagent definition) or `system` (→ an idea or a proposal), so both the process and the system keep
   improving.
 
-A mistake made once becomes a rule the agent follows thereafter — the process gets a little better with every change.
+A mistake made once becomes a rule the agent follows thereafter — the process gets a little better with every unit.
 
 #### Tooling MCP Servers
 

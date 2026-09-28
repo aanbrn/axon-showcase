@@ -76,7 +76,7 @@ The standard `check` task SHALL verify that each `captured:` provenance marker i
 a bold-lead bullet or a bold-lead paragraph — and never on a plain `- Text` bullet, so a misplaced marker fails the CI
 `build` gate even when no local hook is installed or the hook was bypassed. A backticked mention of the token in prose
 (`` `captured:` ``) is not a marker and SHALL NOT be treated as one. The marker's existence rule (each captured rule
-carries a greppable `captured: <change>` origin) is specified in `showcase/quality/agent-skills`.
+carries a greppable `captured: <unit>` origin) is specified in `showcase/quality/agent-skills`.
 
 #### Scenario: The standard check verifies marker placement
 

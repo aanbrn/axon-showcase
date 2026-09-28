@@ -553,7 +553,8 @@ build-side counterparts in `./gradlew check`: the formatter as `spotlessCheck`, 
 `verifyCapturedMarkers`, tracked-file hygiene (the tracked-set counterpart of the force-staged-artifact check) as
 `verifyTrackedIgnoredFiles`, and conflict markers as `verifyConflictMarkers` — so they hold even without the hook.
 `verifyExecutableBits` additionally verifies the tracked scripts' executable bits, and the web module's own Prettier
-check (`npmFormatCheck`) remains part of `check`.
+check (`npmFormatCheck`) remains part of `check`. `verifyUniqueCronSchedules` verifies no two workflow `cron` schedules
+collide.
 
 ### Formatting and IDE Setup
 

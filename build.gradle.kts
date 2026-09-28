@@ -440,6 +440,15 @@ tasks.register<Exec>("verifyExecutableBits") {
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--executable-bits")
 }
 
+tasks.register<Exec>("verifyUniqueCronSchedules") {
+    group = "verification"
+    description = "Verifies no two workflow files carry colliding cron schedules"
+    inputs.file("scripts/commit-hygiene.py")
+    inputs.dir(".github/workflows")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--unique-crons")
+}
+
 tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
     dependsOn("workflowLint")
@@ -449,6 +458,7 @@ tasks.named("check") {
     dependsOn("verifyTrackedIgnoredFiles")
     dependsOn("verifyConflictMarkers")
     dependsOn("verifyExecutableBits")
+    dependsOn("verifyUniqueCronSchedules")
     // build-logic is an included build, so its tests are not reached by this project's check.
     dependsOn(gradle.includedBuild("build-logic").task(":test"))
 }

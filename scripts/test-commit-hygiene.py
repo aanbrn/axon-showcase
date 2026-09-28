@@ -365,6 +365,141 @@ class ExecutableBitTests(unittest.TestCase):
         self.assertIn("scripts/foo.sh", stderr.getvalue())
 
 
+class UniqueCronTests(unittest.TestCase):
+    def _repo_with_workflows(self, workflows: dict[str, str]) -> Path:
+        repo = make_repo(self)
+        directory = repo / ".github" / "workflows"
+        directory.mkdir(parents=True)
+        for name, cron_line in workflows.items():
+            (directory / name).write_text(
+                "name: {0}\non:\n  schedule:\n    {1}\n".format(name, cron_line), encoding="utf-8"
+            )
+        return repo
+
+    def _repo_with_workflow_text(self, name: str, text: str) -> Path:
+        repo = make_repo(self)
+        directory = repo / ".github" / "workflows"
+        directory.mkdir(parents=True)
+        (directory / name).write_text(text, encoding="utf-8")
+        return repo
+
+    def test_an_exact_duplicate_cron_collides(self):
+        repo = self._repo_with_workflows(
+            {"a.yml": "- cron: '0 2 * * 1'", "b.yml": "- cron: '0 2 * * 1'"}
+        )
+
+        collisions = commit_hygiene.find_cron_collisions(repo)
+
+        self.assertEqual(1, len(collisions))
+        self.assertEqual(".github/workflows/a.yml", collisions[0][0])
+        self.assertEqual("0 2 * * 1", collisions[0][1])
+        self.assertEqual(".github/workflows/b.yml", collisions[0][2])
+        self.assertEqual("0 2 * * 1", collisions[0][3])
+
+    def test_two_schedules_in_one_workflow_file_collide(self):
+        repo = self._repo_with_workflow_text(
+            "a.yml", "name: a\non:\n  schedule:\n    - cron: '0 2 * * 1'\n    - cron: '0 2 * * 1'\n"
+        )
+
+        collisions = commit_hygiene.find_cron_collisions(repo)
+
+        self.assertEqual(1, len(collisions))
+        self.assertEqual(".github/workflows/a.yml", collisions[0][0])
+        self.assertEqual(".github/workflows/a.yml", collisions[0][2])
+
+    def test_a_daily_and_a_weekly_schedule_sharing_a_minute_collide(self):
+        repo = self._repo_with_workflows(
+            {"daily.yml": "- cron: '15 20 * * *'", "weekly.yml": "- cron: '15 20 * * 0'"}
+        )
+
+        self.assertEqual(1, len(commit_hygiene.find_cron_collisions(repo)))
+
+    def test_two_weekly_schedules_on_different_days_do_not_collide(self):
+        repo = self._repo_with_workflows(
+            {"mon.yml": "- cron: '0 2 * * 1'", "wed.yml": "- cron: '0 2 * * 3'"}
+        )
+
+        self.assertEqual([], commit_hygiene.find_cron_collisions(repo))
+
+    def test_a_sunday_written_seven_collides_with_zero(self):
+        repo = self._repo_with_workflows(
+            {"a.yml": "- cron: '0 2 * * 7'", "b.yml": "- cron: '0 2 * * 0'"}
+        )
+
+        self.assertEqual(1, len(commit_hygiene.find_cron_collisions(repo)))
+
+    def test_two_different_restricted_day_schedules_do_not_collide(self):
+        repo = self._repo_with_workflows(
+            {"first.yml": "- cron: '0 2 1 * *'", "fifteenth.yml": "- cron: '0 2 15 * *'"}
+        )
+
+        self.assertEqual([], commit_hygiene.find_cron_collisions(repo))
+
+    def test_identical_restricted_day_schedules_collide(self):
+        repo = self._repo_with_workflows(
+            {"a.yml": "- cron: '0 2 1 * *'", "b.yml": "- cron: '0 2 1 * *'"}
+        )
+
+        self.assertEqual(1, len(commit_hygiene.find_cron_collisions(repo)))
+
+    def test_a_malformed_cron_is_not_a_collision(self):
+        repo = self._repo_with_workflows(
+            {"a.yml": "- cron: '0 2 * *'", "b.yml": "- cron: '0 2 * * 1'"}
+        )
+
+        self.assertEqual([], commit_hygiene.find_cron_collisions(repo))
+
+    def test_a_commented_out_cron_is_not_a_schedule(self):
+        repo = self._repo_with_workflows(
+            {"a.yml": "# - cron: '0 2 * * 1'", "b.yml": "- cron: '0 2 * * 1'"}
+        )
+
+        self.assertEqual([], commit_hygiene.find_cron_collisions(repo))
+
+    def test_an_inline_comment_is_stripped_from_an_unquoted_cron(self):
+        repo = self._repo_with_workflows(
+            {"a.yml": "- cron: 0 2 * * 1 # primary", "b.yml": "- cron: '0 2 * * 1'"}
+        )
+
+        self.assertEqual(1, len(commit_hygiene.find_cron_collisions(repo)))
+
+    def test_a_clean_set_of_schedules_passes(self):
+        repo = self._repo_with_workflows(
+            {"a.yml": "- cron: '0 2 * * 1'", "b.yml": "- cron: '0 3 * * 1'"}
+        )
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--unique-crons", "--repo", str(repo)])
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr.getvalue())
+
+    def test_a_yaml_workflow_is_scanned(self):
+        repo = self._repo_with_workflows(
+            {"a.yml": "- cron: '0 2 * * 1'", "b.yaml": "- cron: '0 2 * * 1'"}
+        )
+
+        collisions = commit_hygiene.find_cron_collisions(repo)
+
+        self.assertEqual(1, len(collisions))
+        self.assertEqual(".github/workflows/b.yaml", collisions[0][2])
+
+    def test_unique_crons_mode_names_both_files_and_the_shared_cron(self):
+        repo = self._repo_with_workflows(
+            {"a.yml": "- cron: '0 2 * * 1'", "b.yml": "- cron: '0 2 * * 1'"}
+        )
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--unique-crons", "--repo", str(repo)])
+
+        self.assertEqual(1, code)
+        self.assertIn(".github/workflows/a.yml", stderr.getvalue())
+        self.assertIn(".github/workflows/b.yml", stderr.getvalue())
+        self.assertIn("0 2 * * 1", stderr.getvalue())
+
+
 class CliTests(unittest.TestCase):
     @staticmethod
     def _run(argv):

@@ -451,7 +451,8 @@ wait for approval before merging.
 
 # Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
 # plus workflowLint (actionlint), verifyInfraImageVersions, verifyModuleDependencies, and the commit-hygiene tasks
-# (verifyCapturedMarkers, testCommitHygiene, verifyTrackedIgnoredFiles, verifyConflictMarkers, verifyExecutableBits)
+# (verifyCapturedMarkers, testCommitHygiene, verifyTrackedIgnoredFiles, verifyConflictMarkers, verifyExecutableBits,
+# verifyUniqueCronSchedules)
 # (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
 # check)
 ./gradlew :showcase-command-service:check
@@ -590,8 +591,8 @@ initialized:
 The `check` task also runs `workflowLint`, which lints the GitHub Actions workflows with actionlint (installed on the
 runner via the official download script; see the Prerequisites), `verifyModuleDependencies`, which enforces the module
 dependency graph ADR-0010 records, and the commit-hygiene tasks (`verifyCapturedMarkers`, `testCommitHygiene`,
-`verifyTrackedIgnoredFiles`, `verifyConflictMarkers`, `verifyExecutableBits`) (`check` also runs `build-logic`'s tests,
-since that is an included build).
+`verifyTrackedIgnoredFiles`, `verifyConflictMarkers`, `verifyExecutableBits`, `verifyUniqueCronSchedules`) (`check` also
+runs `build-logic`'s tests, since that is an included build).
 
 The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (dependencies, wrapper, and local build
 cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the

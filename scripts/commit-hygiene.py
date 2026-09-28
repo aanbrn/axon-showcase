@@ -5,7 +5,8 @@ The `--staged` mode is the pre-commit guard. It refuses a commit whose staged se
 rewrite, that force-stages a generated artifact, that stages a path and then edits it again (leaving the index stale),
 that carries a merge conflict marker, or that misplaces a `captured:` marker in `AGENTS.md`. The `--markers` mode checks
 marker placement in the working-tree `AGENTS.md`; the `--tracked-ignored`, `--conflict-markers`, and `--executable-bits`
-modes each verify the tracked set, for the build. Stdlib only.
+modes each verify the tracked set for the build, and `--unique-crons` verifies the workflow `cron` schedules do not
+collide. Stdlib only.
 """
 
 import argparse
@@ -23,6 +24,8 @@ MARKER = "captured:"
 LEAD_RE = re.compile(r"^(- |\*\*)")
 CONFLICT_MARKER_RE = r"^(<<<<<<< |>>>>>>> )"
 VENDORED_SKILL_PREFIXES = (".opencode/skills/axon4to5-", ".opencode/skills/openspec-")
+CRON_LINE_RE = re.compile(r"^\s*-\s*cron:\s*(?P<value>.+?)\s*$")
+WORKFLOW_SUFFIXES = (".yml", ".yaml")
 
 
 def git(repo: Path, *args: str) -> subprocess.CompletedProcess:
@@ -87,6 +90,83 @@ def find_non_executable_scripts(repo: Path) -> list[str]:
         if mode != "100755" and _should_be_executable(path):
             offenders.append(path)
     return offenders
+
+
+def workflow_files(repo: Path) -> list[Path]:
+    directory = repo / ".github" / "workflows"
+    if not directory.is_dir():
+        return []
+    return sorted(path for path in directory.iterdir() if path.suffix in WORKFLOW_SUFFIXES)
+
+
+def _cron_expression(raw: str) -> Optional[str]:
+    value = raw.strip()
+    if value[:1] in ("'", '"'):
+        end = value.find(value[0], 1)
+        if end < 0:
+            return None
+        return value[1:end].strip() or None
+    if " #" in value:
+        value = value.split(" #", 1)[0]
+    return value.strip() or None
+
+
+def find_workflow_crons(repo: Path) -> dict[str, list[str]]:
+    crons = {}
+    for path in workflow_files(repo):
+        expressions = []
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.lstrip().startswith("#"):
+                continue
+            match = CRON_LINE_RE.match(line)
+            if match is None:
+                continue
+            expression = _cron_expression(match.group("value"))
+            if expression is not None:
+                expressions.append(expression)
+        if expressions:
+            crons[str(path.relative_to(repo))] = expressions
+    return crons
+
+
+def _cron_fields(expression: str) -> Optional[tuple[str, str, str, str, str]]:
+    fields = expression.split()
+    if len(fields) != 5:
+        return None
+    weekday = "0" if fields[4] == "7" else fields[4]
+    return fields[0], fields[1], fields[2], fields[3], weekday
+
+
+def _crons_collide(left: str, right: str) -> bool:
+    if left == right:
+        return True
+    left_fields = _cron_fields(left)
+    right_fields = _cron_fields(right)
+    if left_fields is None or right_fields is None:
+        return False
+    left_minute, left_hour, left_day, left_month, left_weekday = left_fields
+    right_minute, right_hour, right_day, right_month, right_weekday = right_fields
+    if left_day != "*" or left_month != "*" or right_day != "*" or right_month != "*":
+        return False
+    return (
+        left_minute == right_minute
+        and left_hour == right_hour
+        and (left_weekday == right_weekday or left_weekday == "*" or right_weekday == "*")
+    )
+
+
+def find_cron_collisions(repo: Path) -> list[tuple[str, str, str, str]]:
+    entries = [
+        (path, expression)
+        for path, expressions in find_workflow_crons(repo).items()
+        for expression in expressions
+    ]
+    collisions = []
+    for index, (left_path, left_cron) in enumerate(entries):
+        for right_path, right_cron in entries[index + 1 :]:
+            if _crons_collide(left_cron, right_cron):
+                collisions.append((left_path, left_cron, right_path, right_cron))
+    return collisions
 
 
 def find_misplaced_markers(text: str) -> list[tuple[int, str]]:
@@ -187,9 +267,24 @@ def check_executable_bits(repo: Path) -> int:
     return len(offenders)
 
 
+def check_unique_crons(repo: Path) -> int:
+    collisions = find_cron_collisions(repo)
+    for left_path, left_cron, right_path, right_cron in collisions:
+        print(
+            "Two workflow schedules collide: {0} ('{1}') and {2} ('{3}')".format(
+                left_path, left_cron, right_path, right_cron
+            ),
+            file=sys.stderr,
+        )
+    return len(collisions)
+
+
 def main(argv: Sequence[str] = ()) -> int:
     parser = argparse.ArgumentParser(
-        description="Check commit hygiene over the staged set, AGENTS.md markers, or the tracked set."
+        description=(
+            "Check commit hygiene over the staged set, AGENTS.md markers, the tracked set, or the workflow cron "
+            "schedules (--unique-crons)."
+        )
     )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--staged", action="store_true", help="check the staged set (the pre-commit guard)")
@@ -202,6 +297,9 @@ def main(argv: Sequence[str] = ()) -> int:
     )
     mode.add_argument(
         "--executable-bits", action="store_true", help="check tracked scripts carry the executable bit"
+    )
+    mode.add_argument(
+        "--unique-crons", action="store_true", help="check no two workflow cron schedules collide"
     )
     parser.add_argument("--repo", default=str(REPO_ROOT), help="repository root (default: the script's parent)")
     parser.add_argument(
@@ -221,6 +319,8 @@ def main(argv: Sequence[str] = ()) -> int:
         return 1 if check_conflict_markers(repo) else 0
     if args.executable_bits:
         return 1 if check_executable_bits(repo) else 0
+    if args.unique_crons:
+        return 1 if check_unique_crons(repo) else 0
     return 1 if check_staged(repo, args.formatter) else 0
 
 

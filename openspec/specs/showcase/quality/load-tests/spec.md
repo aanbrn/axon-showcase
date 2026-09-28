@@ -5,7 +5,8 @@
 Documents the Gatling-based load-testing setup: the showcase simulation's three concurrent streams — a read stream, a
 write-lifecycle stream, and an SSE stream — driving the deployed API gateway, the configurable injection profiles and
 their pass assertions (the below-knee profiles' thresholds derived from a recorded baseline reference), and the
-calibration and baseline measurement with the report, the committed reference, and the record it produces.
+calibration and baseline measurement — the report, the committed reference, the dated record, the drift comparison a
+baseline run makes against that reference before replacing it, and the trend over the accumulated records.
 
 ## Requirements
 

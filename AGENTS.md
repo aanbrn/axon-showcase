@@ -2319,7 +2319,7 @@ capture-stash-stale-copy
   _matched_ a call is gone under v2.** v1 recorded every evaluation in `~/.local/share/opencode/log/opencode.log` as
   `message=evaluated permission=<key>`, `action.pattern=<resolved rule>` and `action.action=<action>` (the field order
   varies by entry), and `action.pattern` was the rule that actually matched; a prompt that does not appear does not say
-  which pattern allowed the call. v2 emits no such line — none appears after the 2026-09-23 migration — so matching is
+  which pattern allowed the call. v2 emits no such line — none appears after the 2026-09-24 migration — so matching is
   no longer directly observable, and the static half is the reachable proof: `opencode debug config` lists the
   configuration sources and each one's normalized document. The log also records your own commands, as
   `message="spawning process"` lines, so a search for a token matches its own invocation — a

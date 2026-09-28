@@ -32,14 +32,6 @@ dated when it was added (start a new section for a new day rather than appending
   the pipeline (gateway or OpenSearch tail latency under this cluster's state) or an artifact of the environment the
   measurement ran in is unestablished: the reference was refreshed to match reality, not to resolve it.
 
-- Reconsider the v1-surface migration rule a definition smoke-run proposed — parked; no change yet. The
-  `scope-capture-trigger-to-the-unit` unit's smoke-run (task 6.3) proposed an `AGENTS.md` addition: a tool's
-  major-version migration treats each v1 surface separately, since a surface the new version auto-maps does not vouch
-  for a sibling v1 artifact still loading (v2 normalized `permission.bash` while the `.opencode/plugin/` TypeScript
-  plugin hard-failed). The runner itself flagged it **borderline re-capture** — the scratch/`openspec`-path rules that
-  migration retired are already recorded under `captured: migrate-opencode-config-to-v2` — so it is parked rather than
-  added: revisit on a second mixed-v1-surface incident, or leave it to the `agents-auditor`.
-
 ## 2026-09-25
 
 - Suppress or schedule the web UI's npm major updates — parked; no change yet. The `migrate-web-ui-frontend-majors`

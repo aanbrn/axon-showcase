@@ -1161,15 +1161,19 @@ Key modules (libraries, not services):
   `openspec` grant, and no CI job does — the `build` gate runs no action and `workflowLint` checks only the YAML — so a
   green `check` does not validate it. This replaced a v1 plugin (`.opencode/plugin/grant-cli-config-dirs.ts`) whose
   `config` hook injected the grants: OpenCode v2 changed the plugin contract and its typed plugin API has no permission
-  hook, so the plugin no longer loaded and was retired. v2 pre-approves the machine-specific `<tmpdir>/opencode`, which
-  is enough for this repo; `anomalyco/opencode#48100` asks for a portable default and remains open upstream.
-  `.opencode/package.json` (tracked) holds the dependencies OpenCode installs at startup — the `@opencode-ai/plugin`
-  package stays because the v2 binary installs it into each `.opencode/` at startup. `.opencode/.gitignore` keeps only
-  `node_modules` and the lockfiles out of the repo. The `permissions` array is **v2-only** — v1 does not ignore the
-  file, it exits at startup (`V2 permissions are not supported by OpenCode V1`) — so a v2-only key makes the tool's
-  major version a repo prerequisite, stated on the README's OpenCode row; verify both the row's version and the version
-  its install formula resolves to, since the majors are different brew formulae (`opencode` vs
-  `anomalyco/tap/opencode-v2`). captured: migrate-opencode-config-to-v2
+  hook, so the plugin no longer loaded and was retired. A tool's major-version migration has to treat each v1 surface
+  separately: v2's normalizer auto-mapped the config's `permission.bash` onto v2's `shell`, which did not vouch for that
+  sibling plugin, whose load failed with
+  `Plugin must export a default definition with an id and an effect or setup function`. v2 pre-approves the
+  machine-specific `<tmpdir>/opencode`, which is enough for this repo; `anomalyco/opencode#48100` asks for a portable
+  default and remains open upstream. `.opencode/package.json` (tracked) holds the dependencies OpenCode installs at
+  startup — the `@opencode-ai/plugin` package stays because the v2 binary installs it into each `.opencode/` at startup.
+  `.opencode/.gitignore` keeps only `node_modules` and the lockfiles out of the repo. The `permissions` array is
+  **v2-only** — v1 does not ignore the file, it exits at startup (`V2 permissions are not supported by OpenCode V1`) —
+  so a v2-only key makes the tool's major version a repo prerequisite, stated on the README's OpenCode row; verify both
+  the row's version and the version its install formula resolves to, since the majors are different brew formulae
+  (`opencode` vs `anomalyco/tap/opencode-v2`). captured: migrate-opencode-config-to-v2 captured:
+  retire-opencode-permission-plugin (#388)
 
 The `.opencode/opencode.json` `permissions` grant for the **`gh` CLI's config directory** is `$HOME/.config/gh/*`: the
 agent invokes `gh`, which consults that directory (outside the workspace), and a missing grant hangs an unattended run

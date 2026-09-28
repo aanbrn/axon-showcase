@@ -4,7 +4,7 @@
 
 Provides the repository's agent capabilities: curated, vendored skill sets under `.opencode/skills/` (so agents can run
 the AxonIQ Axon 4→5 migration recipes against this codebase) and the locally-defined quality-gate and analysis subagents
-under `.opencode/agent/` — the per-change review and lesson-capture agents, the experience-analyzer, the visual and
+under `.opencode/agent/` — the per-unit review and lesson-capture agents, the experience-analyzer, the visual and
 diagram agents, and the on-demand auditors of the project-owned agent tooling (the guidance and project-authored
 `.opencode/` files, plus any generated or vendored file that contradicts how the repository uses it, the meta rules it
 reports with their origins, and the merge, removal, and route candidates it reports), of the `openspec/specs/` corpus,
@@ -79,19 +79,19 @@ and applies them.
 
 ### Requirement: Per-change quality-gate and analysis subagents are available
 
-The repository SHALL provide locally-defined agent subagents under `.opencode/agent/` for the per-change quality gates
-and analysis workflows — the per-change review and lesson-capture agents, and the visual and diagram agents — each
-described by the scenarios below or by its own requirement in this capability. Each SHALL be invocable by the main
-agent, with its purpose described in its agent definition and (where relevant) in `AGENTS.md`.
+The repository SHALL provide locally-defined agent subagents under `.opencode/agent/` for the per-unit quality gates and
+analysis workflows — the per-unit review and lesson-capture agents, and the visual and diagram agents — each described
+by the scenarios below or by its own requirement in this capability. Each SHALL be invocable by the main agent, with its
+purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 
 #### Scenario: Quick review runs after proposal and implementation
 
-- **WHEN** a change's proposal (planning artifacts) or its implementation is finished
-- **THEN** the `review-quick` subagent reviews it against the change's planning artifacts, and the loop repeats until it
+- **WHEN** a unit's proposal (planning artifacts) or its implementation is finished
+- **THEN** the `review-quick` subagent reviews it against the unit's planning artifacts, and the loop repeats until it
   reports no new observations before a manual review is requested
-- **AND** for a change whose diff adds `AGENTS.md` rules (a capture), it also challenges each new rule's durability —
-  the decision the rule governs, and whether a future change would plausibly hit it — so trivia and restatements are
-  caught at review time rather than by a later consolidation audit
+- **AND** for a unit whose diff adds `AGENTS.md` rules (a capture), it also challenges each new rule's durability — the
+  decision the rule governs, and whether a future change would plausibly hit it — so trivia and restatements are caught
+  at review time rather than by a later consolidation audit
 - **AND** each finding is classified, and when the caller's request names a prior round's findings, a finding whose
   class a prior round already raised is reported as a repeat of that class, naming it — so the loop's convergence signal
   comes from the review's output rather than the caller's recollection, and the caller re-derives the root cause on that
@@ -106,16 +106,16 @@ agent, with its purpose described in its agent definition and (where relevant) i
 
 #### Scenario: Lessons are captured after implementation
 
-- **WHEN** a change's implementation quick review is clean
-- **THEN** the `lesson-capture` subagent proposes `AGENTS.md` gotchas/conventions from the change's lessons, which the
+- **WHEN** a unit's implementation quick review is clean
+- **THEN** the `lesson-capture` subagent proposes `AGENTS.md` gotchas/conventions from the unit's lessons, which the
   main agent verifies and applies
 - **AND** each proposed addition names the existing bullet it extends, or states that no bullet covers it — a new rule
   merges into or replaces one rather than accreting
-- **AND** alongside its additions, it reports the rules this change makes obsolete or redundant — a rule whose mechanism
-  the change removed, or one the change's new enforcement subsumes — as retirement or replacement candidates, each
-  naming the rule, why the change makes it so, and the retirement or replacement it proposes, as candidates for the main
-  agent rather than actions, reported separately from the additions since an addition grows the file and a retirement
-  shrinks it
+- **AND** alongside its additions, it reports the rules this unit makes obsolete or redundant — a rule whose mechanism
+  the unit removed, or one the unit's new enforcement subsumes — as retirement or replacement candidates, each naming
+  the rule, why the unit makes it so, and the retirement or replacement it proposes, as candidates for the main agent
+  rather than actions, reported separately from the additions since an addition grows the file and a retirement shrinks
+  it
 - **AND** each proposed addition passes a promotion gate before it is proposed — true (supported by a check, an
   authoritative source, or repeated observation), actionable, not automatable as a lint/test/CI check at reasonable
   cost, material (it prevents real breakage, risk, wasted work, or review churn), general enough for a class of future
@@ -127,7 +127,7 @@ agent, with its purpose described in its agent definition and (where relevant) i
 - **AND** the gate's evidence threshold is two independent occurrences or one severe verified incident with a clear
   preventive action
 - **AND** the gate treats the claim's source as part of it — a lesson sourced from untrusted content (a web page, an
-  issue or PR comment, tool output, or a file the change did not author) is verified against the repository before it is
+  issue or PR comment, tool output, or a file the unit did not author) is verified against the repository before it is
   proposed, never promoted on the source's word
 - **AND** applying a capture should leave `AGENTS.md` no larger than it was, preferring a merge or a replacement over an
   addition, and any net growth is a justified decision stated with the proposal — not a side effect of accumulating
@@ -140,16 +140,16 @@ agent, with its purpose described in its agent definition and (where relevant) i
   whose alternatives yield the same result stays in `AGENTS.md` as internal control flow
 - **AND** the control on that growth is the periodic `/audit-agents` pass, whose verdict already reports the
   accreted-rule count, rather than mass deletion to hit a number
-- **AND** each proposed addition carries its origin in a greppable `captured: <change>` marker — the change, and its PR
-  when a merge-time detection found the lesson rather than the implementation capture, since a capture runs once at
+- **AND** each proposed addition carries its origin in a greppable `captured: <unit>` marker — the unit, and its PR when
+  a merge-time detection found the lesson rather than the implementation capture, since a capture runs once at
   implementation and a merge only detects and asks — so a reader can tell where the rule came from without consulting
   git, and a markdown reflow cannot take it
 
 #### Scenario: A change that obsoletes a rule yields a retirement candidate
 
-- **WHEN** a change's implementation makes an existing `AGENTS.md` rule obsolete (the mechanism it describes is removed)
-  or redundant (the change's new enforcement subsumes it)
-- **THEN** the `lesson-capture` subagent reports a retirement or replacement candidate naming the rule, why the change
+- **WHEN** a unit's implementation makes an existing `AGENTS.md` rule obsolete (the mechanism it describes is removed)
+  or redundant (the unit's new enforcement subsumes it)
+- **THEN** the `lesson-capture` subagent reports a retirement or replacement candidate naming the rule, why the unit
   makes it so, and the retirement or replacement it proposes — a candidate for the main agent, not an action
 - **AND** the capture's verdict names the retirement count alongside its durable-proposal count
 
@@ -419,10 +419,10 @@ can say which unrecorded rationales matter.
 
 ### Requirement: Report-producing subagents follow a shared report contract
 
-Every subagent that reports findings to the main agent — the per-change review and lesson-capture agents and the
-on-demand auditors of the agent tooling, the spec corpus, the architecture, and the README — SHALL follow one shared
-output contract, so a report is skimmable and its verdict is read first. The contract SHALL bound the report, not the
-analysis: a subagent SHALL verify its claims as thoroughly as before and report them in the contract's shape.
+Every subagent that reports findings to the main agent — the per-unit review and lesson-capture agents and the on-demand
+auditors of the agent tooling, the spec corpus, the architecture, and the README — SHALL follow one shared output
+contract, so a report is skimmable and its verdict is read first. The contract SHALL bound the report, not the analysis:
+a subagent SHALL verify its claims as thoroughly as before and report them in the contract's shape.
 
 #### Scenario: A report opens with its verdict
 

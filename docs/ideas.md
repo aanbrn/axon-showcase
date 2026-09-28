@@ -13,15 +13,23 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
-## 2026-09-27
+## 2026-09-28
 
-- Check the load tests for degradation over time — parked; no change yet. Nothing compares one run to another: the
-  profiles gate only a catastrophic change (`max(floor, factor x baseline)`), the dated `docs/load-tests/` records are
-  written but never read, and a run overwrites the reference, so a slower-but-passing plateau becomes the new normal.
-  The shape: a baseline run reports the per-name mean/p95/p99 deltas against the reference it is about to replace, flags
-  a regression beyond a tolerance, and refreshes the reference only when the change is intended; plus a trend view over
-  the dated records. Surfaced by the deployment smoke's reshape (it records no performance numbers) and the drift seen
-  in today's runs (p95 ~17-23 ms against the committed record's 8 ms at a comparable load).
+- Schedule the load-test drift check in CI — parked; no change yet. The `check-load-test-drift` change adds the
+  comparison but keeps it where the reference lives (a developer's cluster). A scheduled run needs three things it does
+  not have: an environment identity that is not the base URL (the reference's name and its `target` guard key on the URL
+  host, so a CI run at `http://axon-showcase-api` — what the deployment smoke already uses — would compare against, or
+  refresh, the committed local reference), a runner-specific reference with a tolerance calibrated there, and a stable
+  environment to attribute a delta to the code at all — a shared runner's timings are host state, the same reason the
+  smoke runs only the `smoke` profile and records no performance numbers. Observational only if ever done, never a merge
+  gate.
+
+- Re-measure the load-test baseline reference, or investigate the list endpoint's tail — parked; no change yet. The
+  `check-load-test-drift` change's first runs flagged `FetchShowcases.p99Ms` at 27-34 ms against the committed 15 ms and
+  a 23 ms threshold, consistently across three independent shortened plateaus — a signal the profiles' 5x factor (a 75
+  ms threshold) never surfaced. Either the cluster drifted since the 2026-09-27 measurement, or that reference no longer
+  represents it: the response is a deliberate `REFRESH_BASELINE=1` re-measure at the documented plateau length if the
+  drift is expected, or an investigation of the list endpoint's tail latency if it is not.
 
 ## 2026-09-25
 

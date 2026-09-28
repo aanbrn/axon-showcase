@@ -42,7 +42,7 @@ tasks.register<JavaExec>("kneeFinder") {
 
 tasks.register<JavaExec>("baselineStats") {
     group = "Gatling"
-    description = "Records the baseline reference from a Gatling simulation log"
+    description = "Compares a Gatling log against the recorded baseline reference, then writes or withholds it"
     classpath = gatlingSourceSet.runtimeClasspath
     mainClass.set("showcase.loadtests.BaselineStats")
     jvmArgs(gatlingExtension.jvmArgs)
@@ -51,6 +51,23 @@ tasks.register<JavaExec>("baselineStats") {
             providers.gradleProperty("log").get(),
             providers.gradleProperty("baselineOut").get(),
             providers.gradleProperty("target").get(),
+            providers.gradleProperty("refreshBaseline").getOrElse("false"),
+            providers.gradleProperty("tolerancePercent").getOrElse("50"),
+        )
+    }
+}
+
+tasks.register<JavaExec>("baselineTrend") {
+    group = "Gatling"
+    description = "Reports the dated load-test records as a chronological series"
+    classpath = gatlingSourceSet.runtimeClasspath
+    mainClass.set("showcase.loadtests.BaselineTrend")
+    jvmArgs(gatlingExtension.jvmArgs)
+    argumentProviders.add {
+        listOf(
+            providers
+                .gradleProperty("records")
+                .getOrElse(rootProject.layout.projectDirectory.dir("docs/load-tests").asFile.absolutePath)
         )
     }
 }

@@ -744,6 +744,9 @@ leading-integer major comparison.
 
 ```bash
 ./gradlew :load-tests:gatlingRun -Pprofile=smoke
+
+# Read the committed baselines as a chronological series
+./gradlew :load-tests:baselineTrend
 ```
 
 Gatling-based load tests that drive the deployed system through **three concurrent streams** — reads, a write lifecycle,
@@ -760,8 +763,15 @@ profiles assert thresholds **derived from the last recorded baseline** — `max(
 so a fast host's regression is caught instead of hiding under fixed absolutes, and a reference recorded for another
 target is ignored in favour of them. A run writes its own reference (`baseline.properties`, or
 `baseline-<slug>.properties` for another target — `-PbaselineFile` selects it) and a ready-to-annotate record under
-`docs/load-tests/`, for the operator to annotate and commit. The calibration deliberately ramps past the knee and the
-resource sampling follows the current kube context, so point it at an environment you own.
+`docs/load-tests/`, for the operator to annotate and commit. So that a slow-but-passing plateau cannot quietly become
+the new normal, a baseline run first compares its plateau's per-request mean and 95th/99th percentiles against the
+recorded reference and reports every delta; a figure beyond `TOLERANCE` (a percent, default 50) fails the run and leaves
+the reference unchanged — set `REFRESH_BASELINE=1` to accept a regression deliberately — while a measurement that
+recorded no figures is withheld even when refreshed, and the dated record is written either way, so the movement stays
+visible. `./gradlew :load-tests:baselineTrend` reads those records back (`-Precords=<dir>` overrides the default
+`docs/load-tests/`) and prints them as a chronological series: each record's date, target, operating point, and plateau
+figures, reporting a record it cannot read as unreadable rather than failing. The calibration deliberately ramps past
+the knee and the resource sampling follows the current kube context, so point it at an environment you own.
 
 ### Observability
 

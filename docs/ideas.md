@@ -32,6 +32,16 @@ dated when it was added (start a new section for a new day rather than appending
   the pipeline (gateway or OpenSearch tail latency under this cluster's state) or an artifact of the environment the
   measurement ran in is unestablished: the reference was refreshed to match reality, not to resolve it.
 
+- Widen the capture trigger's scope across its other artifacts — parked; no change yet. The `capture-re-measure-lessons`
+  unit changed `AGENTS.md`'s capture rule from "after a change's implementation" to "after a unit's implementation",
+  because the trigger excluded a non-change unit (a data/docs refresh) while the same bullet already said "One capture
+  per unit". Outside `AGENTS.md` the wording also stands in `.opencode/agent/lesson-capture.md`, in
+  `showcase/quality/agent-skills` (its capture and retirement scenarios), in the README, and in a `commit-hygiene` spec
+  pointer that restates the marker token — derive the set by grepping the corpus for the token and the change-scoped
+  vocabulary (`grep -rn 'captured: <change>'` over `openspec/`, `.opencode/` and `README.md`) rather than from this
+  list, which has missed a site in each pass. A definition edit that changes spec'd behavior is a change, so completing
+  that sweep owes the spec's delta — parked rather than folded into a docs capture.
+
 ## 2026-09-25
 
 - Suppress or schedule the web UI's npm major updates — parked; no change yet. The `migrate-web-ui-frontend-majors`

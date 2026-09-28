@@ -2,7 +2,7 @@ name: E2E
 
 on:
   schedule:
-    - cron: '30 0 * * *'
+    - cron: '15 20 * * *'
   workflow_dispatch:
 
 permissions:

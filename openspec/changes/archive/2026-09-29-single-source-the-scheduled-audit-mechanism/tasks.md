@@ -18,7 +18,7 @@
 
 ## 2. Docs the change owns
 
-- [ ] 2.1 Refresh `merge-governance`'s `## Purpose` **in the archive commit** (a delta cannot carry a Purpose): drop the
+- [x] 2.1 Refresh `merge-governance`'s `## Purpose` **in the archive commit** (a delta cannot carry a Purpose): drop the
       "that report" qualifier and name every scheduled workflow — the update checks, the upstream-reference report, the
       repository audits, and the scheduled end-to-end, dependency-security, and deployment-smoke runs. Record the
       deferral in the change's report, since the diff shows no spec edit for it.

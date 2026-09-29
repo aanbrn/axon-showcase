@@ -599,11 +599,10 @@ initialized:
   observational workflows listed below, and the out-of-repository surfaces the Docs-refresh bullet names), never
   `build`.
 
-The `check` task also runs `workflowLint`, which lints the GitHub Actions workflows with actionlint (installed on the
-runner via the official download script; see the Prerequisites), `verifyModuleDependencies`, which enforces the module
-dependency graph ADR-0010 records, and the commit-hygiene tasks (`verifyCapturedMarkers`, `testCommitHygiene`,
-`verifyTrackedIgnoredFiles`, `verifyConflictMarkers`, `verifyExecutableBits`, `verifyUniqueCronSchedules`) (`check` also
-runs `build-logic`'s tests, since that is an included build).
+The `check` task's members are listed in the Build & Test `check` note; `workflowLint` lints the GitHub Actions
+workflows with actionlint (installed on the runner via the official download script; see the Prerequisites),
+`verifyModuleDependencies` enforces the module dependency graph ADR-0010 records, and `check` additionally runs
+`build-logic`'s tests, since that is an included build.
 
 The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (dependencies, wrapper, and local build
 cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the
@@ -1174,8 +1173,12 @@ Key modules (libraries, not services):
   grant. Scope any temp grant to a named scratch subdirectory — never the whole OS temp root (`/tmp`, i.e. macOS's
   `/private/tmp`), which would grant every application's temporary files; that is why `/private/tmp` is not in the
   config. The other external paths an unattended run needs are granted declaratively in `.opencode/opencode.json`'s
-  `permission` rules: the **`gh` CLI's config directory** as `$HOME/.config/gh/*`, and the **globally-installed
-  `openspec` package** as `*/@fission-ai/openspec/*` — the CLI reads its own schema templates from an
+  `permission` rules. The **`gh` CLI's config directory** is granted as `$HOME/.config/gh/*`: the agent invokes `gh`,
+  which consults that directory outside the workspace, and a missing grant hangs an unattended run (a `/oc` run was
+  found stuck on `/home/runner/.config/gh/*`); v2 expands `~`/`$HOME` and substitutes `{env:VAR}` in a pattern, but an
+  unset variable substitutes to an empty string (a pattern matching every path), so the config grants the `$HOME`
+  default and a run that sets `$GH_CONFIG_DIR` or `$XDG_CONFIG_HOME` elsewhere still prompts. The **globally-installed
+  `openspec` package** is granted as `*/@fission-ai/openspec/*` — the CLI reads its own schema templates from an
   outside-the-workspace package directory, and an unattended cloud run cannot answer the prompt it would otherwise raise
   (a `/oc` run was found stuck on exactly
   `/usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/*`); the wildcard covers the
@@ -1201,12 +1204,6 @@ Key modules (libraries, not services):
   request changes it, but only a dispatch (or the next scheduled run) proves the workflow starts. captured:
   migrate-opencode-config-to-v2 captured: retire-opencode-permission-plugin (#388) captured:
   fix-cloud-agent-config-for-v1 (#438)
-
-The `.opencode/opencode.json` grant for the **`gh` CLI's config directory** is `$HOME/.config/gh/*`: the agent invokes
-`gh`, which consults that directory (outside the workspace), and a missing grant hangs an unattended run (an `/oc` run
-was found stuck on `/home/runner/.config/gh/*`). v2 expands `~`/`$HOME` and substitutes `{env:VAR}` in a pattern, but an
-unset `{env:VAR}` substitutes to an empty string (a pattern matching every path), so the config grants the `$HOME`
-default and a run that sets `$GH_CONFIG_DIR` or `$XDG_CONFIG_HOME` elsewhere still prompts.
 
 ## Docker Images
 

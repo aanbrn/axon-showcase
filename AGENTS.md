@@ -438,6 +438,12 @@ wait for approval before merging.
 - Git hooks: run `./scripts/install-git-hooks.sh` once per clone to activate the pre-commit guard (the formatter,
   generated-artifact, staged-then-edited, conflict-marker, and `captured:` marker checks); bypass a deliberate exception
   with `git commit --no-verify`
+- Toolchain doctor: `./scripts/doctor.sh` (or `/check-tooling`) probes this list — presence, version floors, and repo
+  state — and prints the platform-appropriate install command for anything missing. Strictly POSIX `sh` and needs
+  nothing else, so it reports the build's own prerequisites (Java included) on a machine where nothing else runs. It is
+  deliberately **not** a `check` member or CI job: the host is not a build input, so a check reading it would fail PRs
+  for causes they cannot remediate. `scripts/test-doctor.sh` keeps its tool list in step with the README's Prerequisites
+  table (the README owns the documented list and the install columns; the doctor owns the probe).
 
 ## Build & Test
 
@@ -1774,8 +1780,13 @@ capture-stash-stale-copy
     faithful, though it did expose a real gap (a malformed edit yields `could not parse … ignoring it.`, which the CI
     probe's grep did not match, so an unparseable config passed the job (exit 0)), since widened to catch both. When a
     scratch script's result surprises you, print or diff the input it actually produced before drawing a conclusion from
-    it — a before/after diff proves the edit _landed_, not that it was the _intended_ one. captured:
-    widen-config-probe-to-guidance captured: enforce-web-ui-naming-conventions
+    it — a before/after diff proves the edit _landed_, not that it was the _intended_ one. Two further modes defeat the
+    "confirm the assertion fails" check: the check may **read an intermediary the edit does not touch** —
+    `verifyExecutableBits` reads the git index (`git ls-files -s`), so `chmod 644 scripts/doctor.sh` left the gate green
+    until the mode change was `git add`-ed, so perturb the surface the check reads, not the one a tool writes; and a
+    control in a pipeline reads the **sink's** status, not the subject's (`cmd | tail; echo $?` reports `tail`), so a
+    control whose exit code you did not take from the command under test proves nothing. captured:
+    widen-config-probe-to-guidance captured: enforce-web-ui-naming-conventions captured: check-toolchain-prerequisites
   - **A check whose input set is narrower than what it reads is not a check — whether the set varies by task graph or
     omits a file the tool reads.** `verifyModuleDependencies` inspected 36 edges standalone and 47 under `check`, the
     11-edge difference being exactly the project dependencies declared inside `testing { suites { … } }` blocks: a

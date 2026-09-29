@@ -366,6 +366,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/opsx-explore`              | Explores an idea before proposing it                                                                                                                                                                               |
 | `/setup-agent-tools`         | Sets up the tooling MCP servers (GitHub core, plus optional extras)                                                                                                                                                |
 | `/setup-idea`                | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier)                                                                                                                            |
+| `/check-tooling`             | Checks whether this machine has the prerequisites (Java, Docker, and the optional tools) and prints what to install                                                                                                |
 | `/review-thorough`           | Deep on-demand review of a change                                                                                                                                                                                  |
 | `/audit-agents`              | Audits AGENTS.md + project-owned .opencode/ files, flags third-party files our usage contradicts, and reports accreted meta rules with their origins plus merge, removal, and route candidates (pro-model auditor) |
 | `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                                           |
@@ -386,17 +387,21 @@ MCP config is read at startup, so restart OpenCode after adding one.
 Most verification runs entirely in the Gradle build, so the tool list is small. Gradle itself is not on it — the wrapper
 pins Gradle 9.8.0 and downloads it on first use.
 
-| Tool                          | Needed for                                                   | Install (macOS)                                                     |
-| ----------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
-| **Java 21+**                  | Building and running everything                              | `brew install --cask temurin@21`, or SDKMAN                         |
-| **Docker & Compose**          | Infrastructure (PostgreSQL, Kafka, OpenSearch) and the stack | Docker Desktop, or `brew install colima docker`                     |
-| **actionlint**                | The workflow-lint gate in `check`                            | `brew install actionlint`                                           |
-| **`pack` CLI**                | Building the web-UI image                                    | `brew install buildpacks/tap/pack`                                  |
-| **Helm 4.x**                  | Kubernetes deployment                                        | `brew install helm`                                                 |
-| **Kubernetes cluster**        | The `helmInstallToLocal` target                              | kind, minikube, or colima with k3s                                  |
-| **OpenCode** (v2 recommended) | The agentic development workflow (TUI or Desktop)            | `brew install anomalyco/tap/opencode-v2`, or https://opencode.ai/v2 |
-| **Snyk CLI**                  | `dependencySecurityCheck`                                    | `brew install snyk/tap/snyk`                                        |
-| **Python 3**                  | `scripts/setup-idea.sh` and the commit-hygiene guard/check   | Ships with macOS Command Line Tools                                 |
+Run `./scripts/doctor.sh` (or the agent's `/check-tooling` command) to check your machine: it probes each tool below,
+the version floors, and the repo state, and prints the install command for anything missing on your platform. The table
+is the documented list; the doctor is the mechanical check of it (`scripts/test-doctor.sh` keeps the two in step).
+
+| Tool                          | Needed for                                                   | Install (macOS)                                                     | Install (Debian/Ubuntu)                                                               |
+| ----------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **Java 21+**                  | Building and running everything                              | `brew install --cask temurin@21`, or SDKMAN                         | `sudo apt install openjdk-21-jdk`, or SDKMAN                                          |
+| **Docker & Compose**          | Infrastructure (PostgreSQL, Kafka, OpenSearch) and the stack | Docker Desktop, or `brew install colima docker`                     | `sudo apt install docker.io docker-compose-v2`                                        |
+| **actionlint**                | The workflow-lint gate in `check`                            | `brew install actionlint`                                           | `go install github.com/rhysd/actionlint/cmd/actionlint@latest`, or a release binary   |
+| **`pack` CLI**                | Building the web-UI image                                    | `brew install buildpacks/tap/pack`                                  | a release binary from buildpacks/pack                                                 |
+| **Helm 4.x**                  | Kubernetes deployment                                        | `brew install helm`                                                 | `sudo snap install helm --classic`, or a release binary                               |
+| **Kubernetes cluster**        | The `helmInstallToLocal` target                              | kind, minikube, or colima with k3s                                  | kind or minikube                                                                      |
+| **OpenCode** (v2 recommended) | The agentic development workflow (TUI or Desktop)            | `brew install anomalyco/tap/opencode-v2`, or https://opencode.ai/v2 | `curl -fsSL https://opencode.ai/install \| bash`, or https://opencode.ai/v2           |
+| **Snyk CLI**                  | `dependencySecurityCheck`                                    | `brew install snyk/tap/snyk`                                        | `npm install -g snyk`, or `curl https://static.snyk.io/cli/latest/snyk-linux -o snyk` |
+| **Python 3**                  | `scripts/setup-idea.sh` and the commit-hygiene guard/check   | Ships with macOS Command Line Tools                                 | `sudo apt install python3`                                                            |
 
 Only **Java and Docker** are required to run the application. actionlint is needed for the full `check`; `pack` only
 when building the web-UI image; Helm, a cluster, and Snyk are only for deployment and security scanning; OpenCode is

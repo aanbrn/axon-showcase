@@ -171,7 +171,10 @@ dated when it was added (start a new section for a new day rather than appending
 - State once where agent-only tooling lives — parked; no change yet. `scripts/` holds repo tooling whatever the caller
   (the human-documented `setup-idea.sh`, its script-only helper, and the agent-invoked `experience-analysis.sh`), while
   `.opencode/` holds runtime config, agents, commands, and skills. This recurred when the owner asked whether
-  `experience-analysis.sh` belonged in `scripts/`; the answer currently lives only in that script's header.
+  `experience-analysis.sh` belonged in `scripts/`; the answer currently lives only in that script's header. The
+  toolchain doctor is a further instance of the same split — `scripts/doctor.sh` is the tool, the `check-tooling`
+  command under `.opencode/` the agent trigger — and its placement is stated in `AGENTS.md`'s Prerequisites bullet
+  rather than only in the script's header, which the general idea would otherwise still lack.
 - Make the next phase a product phase — parked; no change yet. The first retrospective's recommended direction (see
   `docs/retrospectives/2026-09-16.md`). The tooling is mature enough to be used rather than extended: the architecture's
   missing _enforce_ layer now exists (ADR-0010), and the highest-value candidate it named — web-UI trace propagation —

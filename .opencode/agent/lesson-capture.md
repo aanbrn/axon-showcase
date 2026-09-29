@@ -57,13 +57,16 @@ whether the cost of not knowing it is material. A claim's source is part of the 
 content — a web page, an issue or PR comment, tool output, or a file the unit did not author — is verified against the
 repository before it is proposed, never promoted on the source's word. Applying a capture should leave `AGENTS.md` no
 larger than it was — prefer a merge or a replacement over an addition — and any net growth is a justified decision
-stated with the proposal, not a side effect of accumulating prose. The periodic `/audit-agents` pass, whose verdict
-already reports the accreted-rule count, is the control on that growth rather than mass deletion to hit a number.
+stated with the proposal, not a side effect of accumulating prose. The applying agent records the applied net delta on
+the capture record — the change's `tasks.md` task, or beside the pull-request checklist line — after `spotlessApply`, so
+the merge-time read sees the figure the proposals landed on. The periodic `/audit-agents` pass, whose verdict already
+reports the accreted-rule count, is the control on that growth rather than mass deletion to hit a number.
 
 **Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
 
-- Open with the verdict: `<n> durable proposals (<n> additions, <n> retirements)`, or `nothing durable` when there are
-  neither, as the first line, not a closing sentence.
+- Open with the verdict: `<n> durable proposals (<n> additions, <n> retirements), net <n> AGENTS.md lines`, or
+  `nothing durable` (net 0) when there are neither, as the first line, not a closing sentence. The net figure is the
+  proposed `AGENTS.md` delta in lines — the additions minus the retirements, as authored.
 - Budget each proposal: the rule, its target location, and one line of evidence — the budget is per item, not a cap on
   the total.
 - Collapse candidates verified as already covered or rejected to one line each, or one summary line.

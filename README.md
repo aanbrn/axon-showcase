@@ -713,6 +713,7 @@ surfaced as a trigger to check rather than declared actionable — observational
 ./gradlew toolingUpdates               # report available updates for the CLIs pinned in workflow files
 ./gradlew upstreamReferences           # report the state of cited upstream references
 ./gradlew verifyInfraImageVersions     # verify infra image tags match their pinned charts
+./gradlew verifyInstallCommands        # verify the AGENTS.md manual install commands match the catalog
 ./gradlew verifyModuleDependencies     # verify the module dependency graph (ADR-0010)
 ./gradlew workflowLint                 # lint the GitHub Actions workflows with actionlint
 ```

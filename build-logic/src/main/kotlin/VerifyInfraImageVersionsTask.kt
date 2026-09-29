@@ -12,6 +12,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
+/** One infra component's check: its official image tag against its pinned chart's preconfigured tag. */
 data class InfraImageVersionCheck(
     val component: String,
     val chartRef: String,
@@ -20,17 +21,29 @@ data class InfraImageVersionCheck(
     val valuesDirs: List<String>,
 ) : Serializable
 
+/**
+ * Fails `check` when a pinned Bitnami chart's preconfigured `image.tag` disagrees with its official `*-image-tag`, or
+ * when an infra values file pins `image.tag`.
+ *
+ * The chart is resolved over the network ([AbstractHelmRepositoriesTask]), so the task is cacheable on the pinned
+ * coordinates and values files; [InfraImageVersionRules] holds the comparison.
+ */
 @CacheableTask
 abstract class VerifyInfraImageVersionsTask : AbstractHelmRepositoriesTask() {
 
+    /** The infra checks derived from the configured Helm releases. */
     @get:Input abstract val checks: ListProperty<InfraImageVersionCheck>
 
+    /** The chart repositories the Helm resolution reads. */
     @get:Input abstract val repos: MapProperty<String, String>
 
+    /** The infra values files, checked for a disallowed `image.tag` override. */
     @get:InputFiles @get:PathSensitive(PathSensitivity.RELATIVE) abstract val valuesFiles: ConfigurableFileCollection
 
+    /** The verification's result file, so the task is cacheable. */
     @get:OutputFile abstract val resultFile: RegularFileProperty
 
+    /** Verifies each chart's preconfigured tag and each values file, failing on a drift or an override. */
     @TaskAction
     fun verify() {
         addHelmRepositories(repos.get())
@@ -57,6 +70,7 @@ abstract class VerifyInfraImageVersionsTask : AbstractHelmRepositoriesTask() {
         resultFile.get().asFile.writeText("ok")
     }
 
+    /** Fails when an infra values file pins `image.tag`, which the deployment must not override. */
     private fun verifyValuesFiles() {
         valuesFiles.forEach { file ->
             val pinnedTag = InfraImageVersionRules.topLevelImageTag(file.readLines())

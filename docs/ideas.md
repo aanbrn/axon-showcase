@@ -5,15 +5,6 @@ a scratchpad, not a backlog of planned work. An idea is removed from the list on
 once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open,
 not-yet-implemented ideas remain.
 
-## 2026-09-29
-
-- Check the `AGENTS.md` manual install commands against the catalog — parked; no change yet. A chart-pin bump leaves the
-  `--version` flags in `AGENTS.md`'s Kubernetes Deployment `helm install …` block stale (the `bump-kps-chart-91-8` bump
-  had to fix `kps … --version 91.4.1` by hand). `build.gradle.kts`'s `helmChartChecks` already pairs each chart
-  coordinate with its catalog `pinnedVersion`, so a check could parse the block's
-  `helm install <name> <chartRef> --version <v>` lines against those pairs — a sibling of `verifyInfraImageVersions` —
-  rather than leaving it to the docs-refresh sweep.
-
 Changes to this file travel with the change that owns them: an idea's **removal** ships in the implementing change's PR
 — it rides that change's branch and commits with its push, like the rest of the work — and a **newly parked** idea the
 in-flight change's own work surfaced rides that branch too; only a docs edit the change did _not_ cause, or one surfaced

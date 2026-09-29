@@ -1,6 +1,9 @@
 import io.github.build.extensions.oss.gradle.plugins.helm.command.tasks.AbstractHelmCommandTask
 
+/** Adds each Helm chart repository, so a task resolving a chart can read it. */
 abstract class AbstractHelmRepositoriesTask : AbstractHelmCommandTask() {
+
+    /** Adds and updates each repository in [repos], optionally tolerating an unreachable one. */
     protected fun addHelmRepositories(repos: Map<String, String>, tolerateFailures: Boolean = false) {
         repos.forEach { (name, url) ->
             try {

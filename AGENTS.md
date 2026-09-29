@@ -2205,9 +2205,12 @@ capture-stash-stale-copy
   changes carry it) does nothing, and `openspec status` still reports `design` incomplete and points at
   `openspec instructions design`. There is no artifact-skip key beyond `skip_specs`: skip `design.md` by simply not
   writing it, never by adding a key. captured: bump-snyk-cli-pin Upstream, the reports are `Fission-AI/OpenSpec#1891`
-  (an unquoted `: ` in a rules item) and `Fission-AI/OpenSpec#1892` (an unparseable config); if `validate` gains a
-  config check that fails (an ask in each), the CI probe and the `/opsx-tool-update` re-verification become redundant
-  and can go. captured: inject-positive-control-task-rule (#375) captured: widen-config-probe-to-guidance
+  (an unquoted `: ` in a rules item; closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still unmerged and in
+  no release — the latest CLI, our pinned `1.13.2`, has no `inspectProjectConfig`, so the defect is live here) and
+  `Fission-AI/OpenSpec#1892` (an unparseable config; still open); if `validate` gains a config check that fails (an ask
+  in each), the CI probe and the `/opsx-tool-update` re-verification become redundant and can go. captured:
+  inject-positive-control-task-rule (#375) captured: widen-config-probe-to-guidance captured:
+  record-openspec-1891-closure
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
   changes without the repository moving: when the upstream-reference report was parked, review found two of four

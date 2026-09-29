@@ -132,6 +132,9 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 - **AND** applying a capture should leave `AGENTS.md` no larger than it was, preferring a merge or a replacement over an
   addition, and any net growth is a justified decision stated with the proposal — not a side effect of accumulating
   prose
+- **AND** the capture's verdict states the proposed net `AGENTS.md` delta in lines (additions minus retirements), and
+  the applying agent records the applied delta, so net growth is stated when it is decided, alongside the periodic
+  audit's accreted-rule count
 - **AND** when a rule's rationale is normative in a spec, the bullet keeps only what a reader needs to act and points at
   the spec — a pointer, not a condensed copy, since `AGENTS.md` is loaded on every invocation while a spec is loaded
   only when its capability is worked on

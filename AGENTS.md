@@ -229,16 +229,17 @@ into rather than authored, the end-of-bullet marker records only the latest capt
 total origin — the pre-existing text stays recoverable from `git blame` / `git log -S`. AGENTS.md's growth is bounded,
 but the bound is a discipline rather than a hard cap: applying a capture should leave the file no larger than it was,
 preferring a merge or a replacement over an addition and retiring a rule the unit makes unnecessary, and any net growth
-is a justified decision stated with the proposal — not a side effect of accumulating prose. The cheapest way to keep it
-flat: **when a bullet's rationale is normative in a spec, keep only what a reader needs to act and point at the spec — a
-pointer, not a condensed copy** (the spec records why). The same routing covers the case where the specs describe a
-rule's subject **only as an outcome**: the mechanism belongs in the capability spec **only when changing it would change
-a scenario's outcome — verify that against the code before moving it**, and a mechanism whose alternatives yield the
-same result stays in `AGENTS.md` as internal control flow. A pointer must also carry every **imperative or target-less
-fact** the old text held — a warning the reader must still act on is a rule, not rationale, and is lost rather than
-condensed when the pointer drops it — and **must not claim more than its target holds**: a spec holds an outcome, not
-the identifiers, declarations, or gate conditions implementing it, nor a rationale it never states. Verify a trim by
-sweeping every removed line's distinctive tokens against both the trimmed bullet's text and the pointer's target —
+is a justified decision stated with the proposal — not a side effect of accumulating prose. The applying agent records
+the applied net delta on the capture record described above. The cheapest way to keep it flat: **when a bullet's
+rationale is normative in a spec, keep only what a reader needs to act and point at the spec — a pointer, not a
+condensed copy** (the spec records why). The same routing covers the case where the specs describe a rule's subject
+**only as an outcome**: the mechanism belongs in the capability spec **only when changing it would change a scenario's
+outcome — verify that against the code before moving it**, and a mechanism whose alternatives yield the same result
+stays in `AGENTS.md` as internal control flow. A pointer must also carry every **imperative or target-less fact** the
+old text held — a warning the reader must still act on is a rule, not rationale, and is lost rather than condensed when
+the pointer drops it — and **must not claim more than its target holds**: a spec holds an outcome, not the identifiers,
+declarations, or gate conditions implementing it, nor a rationale it never states. Verify a trim by sweeping every
+removed line's distinctive tokens against both the trimmed bullet's text and the pointer's target —
 `trim-agents-md-rule-restatements`' five trims dropped six such facts, restored only by review. Durability governs where
 the _rule_ lives, not whether every sentence about it does. Because the corpus is evidence-anchored incident memory, the
 control is the periodic `/audit-agents` pass — whose verdict already reports the accreted-rule count — not mass deletion

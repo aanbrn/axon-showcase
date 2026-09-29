@@ -258,13 +258,16 @@ reads — and the earlier capture that recorded the stale-target rule had quoted
 closure. When the verification finds shipped work broken, fix the live instance (an out-of-band corrective action, such
 as reopening the issue) alongside the recorded rule; documenting the hazard alone leaves the defect live.
 
-**A merge-time capture's output is itself a change-sized unit — start it on its own branch, not in `main`'s working
-tree.** An _implementation_ capture rides the change's branch (see the capture rule); a capture detected _at the merge_
-has no in-flight change to ride, so applying the subagent's proposals is the propose-like moment for the docs change it
+**A unit whose work begins with no in-flight branch — a merge-time capture, a docs unit applying audit findings, a
+standalone fix — is itself a change-sized unit: start it on its own branch, not in `main`'s working tree.** An
+_implementation_ capture rides the change's branch (see the capture rule); a capture detected _at the merge_ has no
+in-flight change to ride, so applying the subagent's proposals is the propose-like moment for the docs change it
 becomes: fork from the just-merged `main` as soon as you begin, so `main` never carries an in-progress diff and the work
 is isolated to its own branch. The capture after the upstream-report PR (#212) was applied directly on `main` and sat
-there as an uncommitted two-file diff until a review pass flagged it, and the branch was created only then; the
-leave-work-uncommitted rule presumes a branch — an uncommitted capture belongs on its branch, not on `main`.
+there as an uncommitted two-file diff until a review pass flagged it, and the branch was created only then; a docs unit
+applying audit findings repeated the sequence, branching only when the review flagged it. The leave-work-uncommitted
+rule presumes a branch — an uncommitted unit belongs on its branch, not on `main`. captured:
+apply-2026-09-28-audit-docs-findings
 
 **Sync the main spec only at archive.** Apply edits to code and the change dir's _delta_ spec — never the main spec
 under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source
@@ -852,14 +855,16 @@ Key modules (libraries, not services):
 - **Architecture Decision Records**: record cross-cutting architecture decisions as numbered ADRs under `docs/adr/`
   (Nygard format — Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture the
   _why_ behind structural choices. Capture a decision as an ADR when it is made, not after the fact. A decision that
-  only surfaces after the fact (an auditor or review finds it unrecorded) is dated to the day the decision was made,
-  with a Context line stating it was recorded retrospectively and when; if the decision predates the ADR practice and no
-  date can be established, date the recording and say so (the first architecture audit produced two such ADRs, dated the
-  two ways). A retrospective ADR that cannot state _why_ the decision was made should ask the project owner before
-  recording the rationale as unrecorded — the repository's silence is not evidence the rationale does not exist, and a
-  missing _why_ is a question for the human, not a permanent gap to write down (ADR-0009 declared its no-Axon-Server
-  rationale "not recorded anywhere in the repository" until asking the owner recovered it: avoiding Axon Server's
-  commercial licensing).
+  only surfaces after the fact (an auditor or review finds it unrecorded) is dated to the day the decision was made —
+  derived from git history (the shipping commit), never from the record's own `Date:` field or a reviewing audit's
+  suggested date, which transpose a retrospective record's shipped, recorded, and amended dates — with a Context line
+  stating it was recorded retrospectively and when; if the decision predates the ADR practice and no date can be
+  established, date the recording and say so (the first architecture audit produced two such ADRs, dated the two ways).
+  A retrospective ADR that cannot state _why_ the decision was made should ask the project owner before recording the
+  rationale as unrecorded — the repository's silence is not evidence the rationale does not exist, and a missing _why_
+  is a question for the human, not a permanent gap to write down (ADR-0009 declared its no-Axon-Server rationale "not
+  recorded anywhere in the repository" until asking the owner recovered it: avoiding Axon Server's commercial
+  licensing). captured: apply-2026-09-28-audit-docs-findings
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md`, `README.md`, and `docs/adr/` need to be
   refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
   a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on

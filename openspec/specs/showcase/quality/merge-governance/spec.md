@@ -4,8 +4,9 @@
 
 Defines how changes land on `main`: the branch-protection rulesets that constrain pushes and merges (force-push, linear
 history, PR approval, deletion), and the continuous-integration gates that run on pull requests and pushes, together
-with the observational scheduled workflows (the update checks, the upstream-reference report, and the repository audits)
-that report without gating. The workflows run existing Gradle gates without introducing new application behavior.
+with the observational scheduled workflows — the update checks, the upstream-reference report, the repository audits,
+and the scheduled end-to-end, dependency-security, and deployment-smoke runs — that run without gating. The workflows
+run existing Gradle gates without introducing new application behavior.
 
 ## Requirements
 

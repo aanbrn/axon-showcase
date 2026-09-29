@@ -107,10 +107,13 @@ and the next round will find another instance. Stop and re-derive the root cause
 about another artifact that under-describes or contradicts it (a surface list, an artifact set, a list of touched files
 or test sites, a count, a unit, a decision's numbers), the root cause is that claim written from memory rather than
 derived from the surface it summarizes; re-derive it by grepping the corpus, the archive, the change's sibling
-artifacts, and the diff — or abandon the unit; do not layer another special case. A revert after a non-converging loop
-is a legitimate outcome — record why in the change dir so the decision is not re-litigated. captured:
-propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured: check-load-test-drift captured:
-check-unique-cron-schedules (#436)
+artifacts, and the diff — or abandon the unit; do not layer another special case. A second root-cause shape is a passage
+the change was single-sourcing: each round finds another residue of the duplicate the pointer should have removed
+because the edit trimmed the sub-clause that round named; replace the whole duplicated unit in one edit and derive what
+stays at the pointing site from that site's own subject, not from the finding. captured:
+single-source-the-scheduled-audit-mechanism A revert after a non-converging loop is a legitimate outcome — record why in
+the change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362) captured:
+realistic-load-test-profiles captured: check-load-test-drift captured: check-unique-cron-schedules (#436)
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -239,7 +242,7 @@ stays in `AGENTS.md` as internal control flow. A pointer must also carry every *
 old text held — a warning the reader must still act on is a rule, not rationale, and is lost rather than condensed when
 the pointer drops it — and **must not claim more than its target holds**: a spec holds an outcome, not the identifiers,
 declarations, or gate conditions implementing it, nor a rationale it never states. Verify a trim by sweeping every
-removed line's distinctive tokens against both the trimmed bullet's text and the pointer's target —
+removed line's distinctive tokens against both the trimmed text and the pointer's target —
 `trim-agents-md-rule-restatements`' five trims dropped six such facts, restored only by review. Durability governs where
 the _rule_ lives, not whether every sentence about it does. Because the corpus is evidence-anchored incident memory, the
 control is the periodic `/audit-agents` pass — whose verdict already reports the accreted-rule count — not mass deletion

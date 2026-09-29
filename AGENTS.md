@@ -465,7 +465,8 @@ wait for approval before merging.
 ./gradlew :showcase-web-ui:e2eTest
 
 # Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
-# plus workflowLint (actionlint), verifyInfraImageVersions, verifyModuleDependencies, and the commit-hygiene tasks
+# plus workflowLint (actionlint), verifyInfraImageVersions, verifyInstallCommands, verifyModuleDependencies, and the
+# commit-hygiene tasks
 # (verifyCapturedMarkers, testCommitHygiene, verifyTrackedIgnoredFiles, verifyConflictMarkers, verifyExecutableBits,
 # verifyUniqueCronSchedules)
 # (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
@@ -962,7 +963,10 @@ Key modules (libraries, not services):
 - **Javadoc**: classes, methods, and fields carry a Javadoc comment describing their purpose (see
   `ShowcaseApiErrorResolver`, `ShowcaseRestController`); wrap at 120 characters. The `showcase-web-ui` uses JSDoc the
   same way: exported components, hooks, and helpers carry a `/** ... */` comment describing their purpose (e.g.
-  `ShowcasesPage`, `contextualTime`, `waitForReadModel`); both wrap at 120 characters
+  `ShowcasesPage`, `contextualTime`, `waitForReadModel`); both wrap at 120 characters. The rule covers every declaration
+  in a file you touch, not only the one a review named: adding a class to an existing `build-logic` or Java file puts
+  the enclosing type and its private helpers in scope too, so sweep each touched file's declarations in the same pass.
+  captured: check-agents-install-commands
 - **Frontend (`showcase-web-ui`)**: organized per Feature-Sliced Design (`app`/`pages`/`widgets`/`features`/`entities`/
   `shared`, importing only downward and only through a slice's public API — a sibling-slice import needs a declared `@x`
   cross-import API; `eslint-plugin-boundaries` enforces the direction and the public-API rule in the lint gate; `@/`
@@ -1437,19 +1441,21 @@ docker-compose and the Testcontainers IT/e2e suites (`postgres`, `apache/kafka`,
 postgres omits a trailing `.0`), and pinned `bitnami-*` chart versions (`bitnami-postgresql`, `bitnami-kafka`,
 `bitnami-opensearch`) for the Helm deployment. Each chart ships its own preconfigured `image.tag`, which the Helm charts
 deploy as-is — no `image.tag` override in build logic or values files. To bump an infra component, update its
-`*-image-tag` and/or its `bitnami-*` chart version together. The `verifyInfraImageVersions` task (part of `check`)
-derives its checks from the actual `helm.releases` container, resolves each pinned chart's preconfigured `image.tag` via
-the Helm CLI (`helm show values bitnami/<chart> --version <pinned>`, using the plugin-managed client; the task adds and
-updates the bitnami chart repository itself), fails the build if its app version drifts from the `*-image-tag` after
-truncating the chart app version to the official tag's numeric segment count (so `17.6` matches a chart app version
-`17.6.0` at minor granularity, while `3.9.0` requires an exact chart app version match), rejects any official tag with
-fewer than two numeric segments as a floating reference (e.g. `17`, which Docker Hub re-points to the latest 17.x), and
-fails if any infra values file (`helm/values/*/values*.yaml`) pins `image.tag` — so the repo cannot reintroduce a
-separate override. The task is build-cacheable on its inputs (the pinned coordinates and values files): since a pinned
-chart version's preconfigured `image.tag` is immutable, unchanged inputs restore the verification from the Gradle build
-cache and skip the Helm resolution entirely. Deriving the checks from the configured releases means renaming an infra
-release retargets its check and removing one drops it. External `image.tag` overrides at deploy time (e.g. `--set` in a
-release pipeline) are outside this in-repo gate.
+`*-image-tag` and/or its `bitnami-*` chart version together. The `verifyInstallCommands` task (also part of `check`)
+verifies the manual `helm install … --version` commands in this file's Kubernetes Deployment section against the catalog
+chart pins, so a chart bump cannot leave the documented command stale. The `verifyInfraImageVersions` task (part of
+`check`) derives its checks from the actual `helm.releases` container, resolves each pinned chart's preconfigured
+`image.tag` via the Helm CLI (`helm show values bitnami/<chart> --version <pinned>`, using the plugin-managed client;
+the task adds and updates the bitnami chart repository itself), fails the build if its app version drifts from the
+`*-image-tag` after truncating the chart app version to the official tag's numeric segment count (so `17.6` matches a
+chart app version `17.6.0` at minor granularity, while `3.9.0` requires an exact chart app version match), rejects any
+official tag with fewer than two numeric segments as a floating reference (e.g. `17`, which Docker Hub re-points to the
+latest 17.x), and fails if any infra values file (`helm/values/*/values*.yaml`) pins `image.tag` — so the repo cannot
+reintroduce a separate override. The task is build-cacheable on its inputs (the pinned coordinates and values files):
+since a pinned chart version's preconfigured `image.tag` is immutable, unchanged inputs restore the verification from
+the Gradle build cache and skip the Helm resolution entirely. Deriving the checks from the configured releases means
+renaming an infra release retargets its check and removing one drops it. External `image.tag` overrides at deploy time
+(e.g. `--set` in a release pipeline) are outside this in-repo gate.
 
 **Every Helm chart coordinate in the version catalog is a concrete version** — never a floating major-line pin such as
 `77.x.x`. This covers the observability charts (`prometheus-community-stack`, `grafana-tempo`) and the `common` subchart

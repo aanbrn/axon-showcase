@@ -449,8 +449,20 @@ tasks.register<Exec>("verifyUniqueCronSchedules") {
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--unique-crons")
 }
 
+tasks.register("verifyInstallCommands", VerifyInstallCommandsTask::class.java) {
+    group = "verification"
+    description = "Verifies the AGENTS.md manual helm install commands quote the catalog chart versions"
+
+    agentsFile.set(layout.projectDirectory.file("AGENTS.md"))
+
+    chartPins.set(helmChartChecks.associate { it.chartRef to it.pinnedVersion })
+
+    resultFile.set(layout.buildDirectory.file("verification/install-commands.txt"))
+}
+
 tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
+    dependsOn("verifyInstallCommands")
     dependsOn("workflowLint")
     dependsOn("verifyModuleDependencies")
     dependsOn("verifyCapturedMarkers")

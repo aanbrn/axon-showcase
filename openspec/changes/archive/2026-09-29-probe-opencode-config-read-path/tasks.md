@@ -47,9 +47,11 @@
 - [x] 4.4 Run `./gradlew spotlessApply` after the last edit to a Spotless-owned file and confirm `spotlessCheck` passes;
       run the manual 120-character check over every changed file a formatter does not own — `.github/workflows/ci.yml`
       and the change dir's `.openspec.yaml`.
-- [ ] 4.5 Request the user's manual review pass — the step before committing.
-- [ ] 4.6 At the merge stage, after the approval commits and pushes the branch, prove the CI gate end-to-end and record
+- [x] 4.5 Request the user's manual review pass — the step before committing.
+- [x] 4.6 At the merge stage, after the approval commits and pushes the branch, prove the CI gate end-to-end and record
       each run's step output: on the pushed head the step runs and passes — this change edits
       `.github/workflows/ci.yml`, so the gate includes it; after pushing a temporary V2 `permissions` key to
       `.opencode/opencode.json` the step runs and fails; after reverting it the step runs and passes again. This
-      exercises the run-and-pass and run-and-fail paths end-to-end, beyond the local controls in 4.1.
+      exercises the run-and-pass and run-and-fail paths end-to-end, beyond the local controls in 4.1. Done: run
+      36518332085 the step ran and passed; run 36518497562 with the temporary key failed
+      (`V2 permissions are not supported by OpenCode V1`); run 36518633126 passed after the revert.

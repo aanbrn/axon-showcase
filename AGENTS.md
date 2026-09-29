@@ -779,13 +779,13 @@ Key modules (libraries, not services):
 - **LZ4 relocation**: root build forces `org.lz4:lz4-java` substitution (see `build.gradle.kts`)
 - **Build-tool versions live in the version catalog**: a `build-logic` convention plugin never hard-codes a tool version
   — it declares it in `gradle/libs.versions.toml` and reads it via `val libs = the<LibrariesForLibs>()` /
-  `libs.versions.<name>.get()` (runtime `node`/`java`, plugin `toolVersion` `checkstyle`/`spotbugs`/`jacoco`, generator
-  artifacts, buildpack ids, image tags). A version that is not a `group:name` dependency (a buildpack id, a
-  builder/run-image tag, `node`) is a `[versions]`-only entry with no `[libraries]` module. Catalog ownership is
-  single-sourcing, not update tracking: a bare `[versions]` entry is not resolved as a dependency, so
-  `dependencyUpdates` ignores it — but `helmUpdates` reads the Helm CLI and chart pins, `buildpackUpdates` the Paketo
-  builder and buildpack pins, and `toolingUpdates` the CLI versions pinned in workflow files, so only the entries none
-  of them reads must be audited by hand.
+  `libs.versions.<name>.get()` (runtime `node`/`java`, plugin `toolVersion` `checkstyle`/`spotbugs`/`jacoco`, the
+  ErrorProne/NullAway and protobuf artifacts, buildpack ids, image tags); see ADR-0015 for the rationale and the
+  rejected alternatives. A version that is not a `group:name` dependency (a buildpack id, a builder tag, `node`) is a
+  `[versions]`-only entry with no `[libraries]` module. Catalog ownership is single-sourcing, not update tracking: a
+  bare `[versions]` entry is not resolved as a dependency, so `dependencyUpdates` ignores it — but `helmUpdates` reads
+  the Helm CLI and chart pins, `buildpackUpdates` the Paketo builder and buildpack pins, and `toolingUpdates` the CLI
+  versions pinned in workflow files, so only the entries none of them reads must be audited by hand.
 - **All JavaCompile tasks** add `-parameters` flag
 - **Test display names**: every test class and every `@Test`/`@ParameterizedTest` method (plus `@Nested` groups) carries
   a static-sentence `@DisplayName` (e.g., `@DisplayName("Showcase aggregate component tests")`,

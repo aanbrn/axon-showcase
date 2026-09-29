@@ -49,41 +49,45 @@ class ScheduleShowcaseCommandTests {
     @Test
     @DisplayName("A command without a showcase ID throws a null pointer exception")
     void construction_missingShowcaseId_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ScheduleShowcaseCommand.builder()
-                .title(aShowcaseTitle())
-                .startTime(aShowcaseStartTime(Instant.now()))
-                .duration(aShowcaseDuration())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ScheduleShowcaseCommand.builder()
+                        .title(aShowcaseTitle())
+                        .startTime(aShowcaseStartTime(Instant.now()))
+                        .duration(aShowcaseDuration())
+                        .build());
     }
 
     @Test
     @DisplayName("A command without a title throws a null pointer exception")
     void construction_missingTitle_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ScheduleShowcaseCommand.builder()
-                .showcaseId(aShowcaseId())
-                .startTime(aShowcaseStartTime(Instant.now()))
-                .duration(aShowcaseDuration())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ScheduleShowcaseCommand.builder()
+                        .showcaseId(aShowcaseId())
+                        .startTime(aShowcaseStartTime(Instant.now()))
+                        .duration(aShowcaseDuration())
+                        .build());
     }
 
     @Test
     @DisplayName("A command without a start time throws a null pointer exception")
     void construction_missingStartTime_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ScheduleShowcaseCommand.builder()
-                .showcaseId(aShowcaseId())
-                .title(aShowcaseTitle())
-                .duration(aShowcaseDuration())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ScheduleShowcaseCommand.builder()
+                        .showcaseId(aShowcaseId())
+                        .title(aShowcaseTitle())
+                        .duration(aShowcaseDuration())
+                        .build());
     }
 
     @Test
     @DisplayName("A command without a duration throws a null pointer exception")
     void construction_missingDuration_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ScheduleShowcaseCommand.builder()
-                .showcaseId(aShowcaseId())
-                .title(aShowcaseTitle())
-                .startTime(aShowcaseStartTime(Instant.now()))
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ScheduleShowcaseCommand.builder()
+                        .showcaseId(aShowcaseId())
+                        .title(aShowcaseTitle())
+                        .startTime(aShowcaseStartTime(Instant.now()))
+                        .build());
     }
 
     @Test

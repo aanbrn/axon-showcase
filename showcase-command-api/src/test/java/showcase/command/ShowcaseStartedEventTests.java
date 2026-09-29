@@ -35,27 +35,30 @@ class ShowcaseStartedEventTests {
     @Test
     @DisplayName("An event without a showcase ID throws a null pointer exception")
     void construction_missingShowcaseId_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ShowcaseStartedEvent.builder()
-                .duration(aShowcaseDuration())
-                .startedAt(Instant.now())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ShowcaseStartedEvent.builder()
+                        .duration(aShowcaseDuration())
+                        .startedAt(Instant.now())
+                        .build());
     }
 
     @Test
     @DisplayName("An event without a duration throws a null pointer exception")
     void construction_missingDuration_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ShowcaseStartedEvent.builder()
-                .showcaseId(aShowcaseId())
-                .startedAt(Instant.now())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ShowcaseStartedEvent.builder()
+                        .showcaseId(aShowcaseId())
+                        .startedAt(Instant.now())
+                        .build());
     }
 
     @Test
     @DisplayName("An event without a started-at time throws a null pointer exception")
     void construction_missingStartedAt_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ShowcaseStartedEvent.builder()
-                .showcaseId(aShowcaseId())
-                .duration(aShowcaseDuration())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ShowcaseStartedEvent.builder()
+                        .showcaseId(aShowcaseId())
+                        .duration(aShowcaseDuration())
+                        .build());
     }
 }

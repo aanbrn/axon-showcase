@@ -471,8 +471,9 @@ class ShowcaseRestControllerCT {
                 .expectStatus()
                 .isAccepted()
                 .expectHeader()
-                .value(IDEMPOTENCY_KEY_HEADER, idempotencyKey -> assertThat(idempotencyKey)
-                        .isNotBlank());
+                .value(
+                        IDEMPOTENCY_KEY_HEADER,
+                        idempotencyKey -> assertThat(idempotencyKey).isNotBlank());
 
         verify(showcaseCommandOperations).schedule(any());
         verifyNoMoreInteractions(showcaseCommandOperations);

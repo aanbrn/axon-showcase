@@ -426,9 +426,10 @@ class ShowcaseApiGatewayE2E {
             val title = aShowcaseTitle();
             val showcaseId = scheduleShowcase(title, aShowcaseStartTime(Instant.now()), aShowcaseDuration());
 
-            await().atMost(Duration.ofSeconds(30)).until(() -> received.stream()
-                    .anyMatch(event -> event.showcaseId().equals(showcaseId)
-                            && event.type().equals("SCHEDULED")));
+            await().atMost(Duration.ofSeconds(30))
+                    .until(() -> received.stream()
+                            .anyMatch(event -> event.showcaseId().equals(showcaseId)
+                                    && event.type().equals("SCHEDULED")));
         }
 
         @Test

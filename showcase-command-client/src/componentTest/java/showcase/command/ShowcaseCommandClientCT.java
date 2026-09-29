@@ -110,11 +110,14 @@ class ShowcaseCommandClientCT {
             return true;
         }));
 
-        showcaseCommandClient.schedule(command).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
-                .isExactlyInstanceOf(ShowcaseCommandException.class)
-                .asInstanceOf(type(ShowcaseCommandException.class))
-                .extracting(ShowcaseCommandException::getErrorDetails)
-                .isEqualTo(errorDetails));
+        showcaseCommandClient
+                .schedule(command)
+                .as(StepVerifier::create)
+                .verifyErrorSatisfies(t -> assertThat(t)
+                        .isExactlyInstanceOf(ShowcaseCommandException.class)
+                        .asInstanceOf(type(ShowcaseCommandException.class))
+                        .extracting(ShowcaseCommandException::getErrorDetails)
+                        .isEqualTo(errorDetails));
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -131,8 +134,10 @@ class ShowcaseCommandClientCT {
             return true;
         }));
 
-        showcaseCommandClient.schedule(command).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
-                .isEqualTo(commandExecutionException));
+        showcaseCommandClient
+                .schedule(command)
+                .as(StepVerifier::create)
+                .verifyErrorSatisfies(t -> assertThat(t).isEqualTo(commandExecutionException));
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -165,11 +170,14 @@ class ShowcaseCommandClientCT {
             return true;
         }));
 
-        showcaseCommandClient.start(command).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
-                .isExactlyInstanceOf(ShowcaseCommandException.class)
-                .asInstanceOf(type(ShowcaseCommandException.class))
-                .extracting(ShowcaseCommandException::getErrorDetails)
-                .isEqualTo(errorDetails));
+        showcaseCommandClient
+                .start(command)
+                .as(StepVerifier::create)
+                .verifyErrorSatisfies(t -> assertThat(t)
+                        .isExactlyInstanceOf(ShowcaseCommandException.class)
+                        .asInstanceOf(type(ShowcaseCommandException.class))
+                        .extracting(ShowcaseCommandException::getErrorDetails)
+                        .isEqualTo(errorDetails));
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -202,11 +210,14 @@ class ShowcaseCommandClientCT {
             return true;
         }));
 
-        showcaseCommandClient.finish(command).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
-                .isExactlyInstanceOf(ShowcaseCommandException.class)
-                .asInstanceOf(type(ShowcaseCommandException.class))
-                .extracting(ShowcaseCommandException::getErrorDetails)
-                .isEqualTo(errorDetails));
+        showcaseCommandClient
+                .finish(command)
+                .as(StepVerifier::create)
+                .verifyErrorSatisfies(t -> assertThat(t)
+                        .isExactlyInstanceOf(ShowcaseCommandException.class)
+                        .asInstanceOf(type(ShowcaseCommandException.class))
+                        .extracting(ShowcaseCommandException::getErrorDetails)
+                        .isEqualTo(errorDetails));
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -239,11 +250,14 @@ class ShowcaseCommandClientCT {
             return true;
         }));
 
-        showcaseCommandClient.remove(command).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
-                .isExactlyInstanceOf(ShowcaseCommandException.class)
-                .asInstanceOf(type(ShowcaseCommandException.class))
-                .extracting(ShowcaseCommandException::getErrorDetails)
-                .isEqualTo(errorDetails));
+        showcaseCommandClient
+                .remove(command)
+                .as(StepVerifier::create)
+                .verifyErrorSatisfies(t -> assertThat(t)
+                        .isExactlyInstanceOf(ShowcaseCommandException.class)
+                        .asInstanceOf(type(ShowcaseCommandException.class))
+                        .extracting(ShowcaseCommandException::getErrorDetails)
+                        .isEqualTo(errorDetails));
 
         verify(commandBus).dispatch(any(), any());
     }
@@ -386,11 +400,14 @@ class ShowcaseCommandClientCT {
                 return true;
             }));
 
-            showcaseCommandClient.schedule(command).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
-                    .isExactlyInstanceOf(ShowcaseCommandException.class)
-                    .asInstanceOf(type(ShowcaseCommandException.class))
-                    .extracting(ShowcaseCommandException::getErrorDetails)
-                    .isEqualTo(errorDetails));
+            showcaseCommandClient
+                    .schedule(command)
+                    .as(StepVerifier::create)
+                    .verifyErrorSatisfies(t -> assertThat(t)
+                            .isExactlyInstanceOf(ShowcaseCommandException.class)
+                            .asInstanceOf(type(ShowcaseCommandException.class))
+                            .extracting(ShowcaseCommandException::getErrorDetails)
+                            .isEqualTo(errorDetails));
 
             verify(commandBus, times(1)).dispatch(any(), any());
         }
@@ -520,8 +537,10 @@ class ShowcaseCommandClientCT {
 
             assertThat(circuitBreaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 
-            showcaseCommandClient.schedule(command).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
-                    .isInstanceOf(CallNotPermittedException.class));
+            showcaseCommandClient
+                    .schedule(command)
+                    .as(StepVerifier::create)
+                    .verifyErrorSatisfies(t -> assertThat(t).isInstanceOf(CallNotPermittedException.class));
         }
 
         @Test

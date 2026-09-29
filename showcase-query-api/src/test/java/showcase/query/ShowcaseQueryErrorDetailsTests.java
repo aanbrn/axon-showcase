@@ -31,16 +31,18 @@ class ShowcaseQueryErrorDetailsTests {
     @Test
     @DisplayName("Error details without an error code throw a null pointer exception")
     void construction_missingErrorCode_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ShowcaseQueryErrorDetails.builder()
-                .errorMessage(aShowcaseQueryErrorMessage())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ShowcaseQueryErrorDetails.builder()
+                        .errorMessage(aShowcaseQueryErrorMessage())
+                        .build());
     }
 
     @Test
     @DisplayName("Error details without an error message throw a null pointer exception")
     void construction_missingErrorMessage_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ShowcaseQueryErrorDetails.builder()
-                .errorCode(aShowcaseQueryErrorCode())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ShowcaseQueryErrorDetails.builder()
+                        .errorCode(aShowcaseQueryErrorCode())
+                        .build());
     }
 }

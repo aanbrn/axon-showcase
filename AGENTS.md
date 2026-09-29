@@ -982,7 +982,10 @@ Key modules (libraries, not services):
   (`build-logic/src/**/*.kt`) files with `./gradlew spotlessApply` (Spotless: palantir-java-format for Java, ktfmt for
   `.gradle.kts` and build-logic `.kt`, both fixed 120 columns) — the canonical format step, enforced by `spotlessCheck`
   in `check` with no IDE required. After each edit, run `spotlessApply` before reporting the change done; the IntelliJ
-  formatter is no longer canonical, and import order is owned by the formatter.
+  formatter is no longer canonical, and import order is owned by the formatter. `palantirJavaFormat()` and `ktfmt()`
+  take no version — they ship with the `spotless-plugin` pin — so a plugin bump can reflow sources tree-wide with no
+  config change (`8.10.2`→`8.10.3` reflowed 13 Java test sources); after bumping it, run `spotlessApply` and account for
+  the reflowed files in the change rather than declaring "no source change". captured: bump-dependencies-2026-09-29
   - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML; Javadoc
     and JSDoc prose, which the formatters do not reflow — a >120-character comment line passes the formatter gate and
     only the manual check catches it); markdown is formatted by the root Spotless `markdown` format (Prettier,

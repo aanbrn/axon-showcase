@@ -667,30 +667,33 @@ includes its section in the same issue. `upstream-references.yml` follows the sa
 state of the upstream references the durable artifacts cite, rather than a version comparison — so it is a fifth
 observational check, not a fifth _update_ check, and it is listed below.
 
-An added or edited workflow among these — or any other `workflow_dispatch`-enabled scheduled workflow — gets its first
-real run by dispatch, not by waiting for its schedule: GitHub only exposes `workflow_dispatch` once the file exists on
-the default branch, so after it lands on `main` run `gh workflow run <file>` (no CI job exercises it, and `workflowLint`
-checks only the YAML) to exercise the workflow end to end — for an update check that is its report path, jq filter and
-tracker-issue lookup. A **schedule-only** edit is the exception: a dispatch runs the workflow body, not the scheduler,
-so the new `cron`'s first fire is its verification — never tick a schedule change off on a dispatch. Schedule each
-workflow's runtime into the repo owner's night (UTC+7), so its result is waiting at the start of their day; the metered
-pass's placement is the model-pin bullet's off-peak call. captured: bump-snyk-cli-pin captured:
+An added workflow among these — or any other `workflow_dispatch`-enabled scheduled workflow — gets its first real run by
+dispatch, not by waiting for its schedule: GitHub only exposes `workflow_dispatch` once the file exists on the default
+branch, so an added workflow is dispatched from `main` (`gh workflow run <file>`), while an edit to one already on the
+default branch runs from the change's own pushed branch (`gh workflow run <file> --ref <branch>`) (no CI job exercises
+it, and `workflowLint` checks only the YAML) to exercise the workflow end to end — for an update check that is its
+report path, jq filter and tracker-issue lookup. A **schedule-only** edit is the exception: a dispatch runs the workflow
+body, not the scheduler, so the new `cron`'s first fire is its verification — never tick a schedule change off on a
+dispatch. Schedule each workflow's runtime into the repo owner's night (UTC+7), so its result is waiting at the start of
+their day; the metered pass's placement is the model-pin bullet's off-peak call. captured: bump-snyk-cli-pin captured:
 schedule-jobs-into-the-owners-night
 
 A verification the local environment cannot run cannot live as a task in the change dir: `openspec/changes/archive/` is
 invisible and no gate reads it, so an unchecked task is silently lost — a dispatch
 (`fix-audit-workflow-report-formatting` and `notify-owner-from-the-audit-report` deferred theirs and archived them
 unchecked) and a cluster-gated live check alike. Run the check as part of the merge (for a dispatch,
-`gh workflow run <file>`), or park the follow-up in `docs/ideas.md` and name it in the change's report. A workflow whose
-run is the only verification must also leave the evidence a failure needs: it deletes its own environment — the
-deployment smoke's throwaway cluster goes even when a step fails — so a failed run must print the deployed signal (the
-pods with their restart counts, the recent events, each pod's log tail, and the previous log for a restarted container)
-in a step that runs before teardown, or the failure names no cause. Scope that evidence to every namespace a
-load-bearing component occupies, not just the application's: the smoke's load travels through the `ingress-nginx`
-controller, so a diagnostics step reading only `axon-showcase` leaves the hop that carries it unexamined — the step
-prints the `ingress-nginx` pods, events, and controller logs alongside the application's. A component that changes
-namespace takes the failure diagnostics with it. captured: route-the-smoke-through-the-ingress captured:
-fix-the-deployment-smoke-503s captured: notify-owner-from-the-audit-report (#327) captured: expose-grafana-by-hostname
+`gh workflow run <file> --ref <branch>` against the pushed branch, so it completes inside the change's PR before the
+archive commit — only a workflow not yet on the default branch must land on `main` first), or park the follow-up in
+`docs/ideas.md` and name it in the change's report. captured: bump-snyk-cli-2026-09-29 A workflow whose run is the only
+verification must also leave the evidence a failure needs: it deletes its own environment — the deployment smoke's
+throwaway cluster goes even when a step fails — so a failed run must print the deployed signal (the pods with their
+restart counts, the recent events, each pod's log tail, and the previous log for a restarted container) in a step that
+runs before teardown, or the failure names no cause. Scope that evidence to every namespace a load-bearing component
+occupies, not just the application's: the smoke's load travels through the `ingress-nginx` controller, so a diagnostics
+step reading only `axon-showcase` leaves the hop that carries it unexamined — the step prints the `ingress-nginx` pods,
+events, and controller logs alongside the application's. A component that changes namespace takes the failure
+diagnostics with it. captured: route-the-smoke-through-the-ingress captured: fix-the-deployment-smoke-503s captured:
+notify-owner-from-the-audit-report (#327) captured: expose-grafana-by-hostname
 
 `.github/workflows/audit.yml` runs the three repository audits (agent tooling, spec corpus, architecture) on a weekly
 schedule and via `workflow_dispatch`, through the OpenCode GitHub action's scheduled path (a `prompt` input, OIDC auth,

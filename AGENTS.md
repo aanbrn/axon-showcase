@@ -62,6 +62,11 @@ findings" commit per review round produced 11 commits for a single change (squas
 above removes that failure mode by construction, leaving nothing to squash. captured: capture-reverted-sweep-lessons
 (#283)
 
+**Keep the planning stage read-only — its delegations too.** A delegation made while a change is explored or planned
+(before implementation) is read-only against the project's source and configuration: the delegate may write only the
+change's own artifacts under `openspec/changes/<change>/`, its prompt names the paths it may touch, and the calling
+agent verifies the delegate stayed inside them before using its output.
+
 **Fork branches from `main` only.** Every new branch — a change branch, a standalone fix, or a docs PR — is created from
 `origin/main` (fetch first), never from another work branch. Branching from a work branch silently carries its commits
 into the new PR (a fix PR ended up shipping a change's commit history); recover by rebasing `--onto origin/main` and

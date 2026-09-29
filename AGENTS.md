@@ -723,10 +723,13 @@ read-only cache access — while the run itself succeeds; do not chase it. Repor
 `anomalyco/opencode#49127`; retires when the action's cache step skips cleanly (or drops to restore-only).
 
 **An update-check issue's named target version can be stale by the time it is actioned — re-resolve the latest before
-bumping.** The update-check issues refresh weekly, so the upstream can publish again in between: the "Helm updates"
-issue named a chart version the upstream had already superseded by the time the bump was actioned. Confirm the target
-with the tool's own lookup (`helm search repo <chart>`, `gh api repos/<org>/<repo>/releases/latest`,
-`npm view <pkg> version`) and bump to the resolved latest.
+bumping, and re-run the check after.** The update-check issues refresh weekly, so the upstream can publish again in
+between: the "Helm updates" issue named a chart version the upstream had already superseded by the time the bump was
+actioned. Confirm the target with the tool's own lookup (`helm search repo <chart>`,
+`gh api repos/<org>/<repo>/releases/latest`, `npm view <pkg> version`) and bump to the resolved latest; once bumped,
+re-run the check that produced the finding (`./gradlew dependencyUpdates` / `helmUpdates` / `buildpackUpdates` /
+`toolingUpdates`) and confirm the bumped coordinates no longer appear in its report — otherwise the finding's clearance
+is a claim with no run behind it. captured: bump-buildpacks-2026-09-29
 
 ## Architecture
 
@@ -1232,11 +1235,11 @@ ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64
 
 The web UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
 `PackBuildImageTask`) that runs the `pack` CLI with the **version-pinned** Paketo NGINX + Procfile buildpacks
-(`paketo-buildpacks/nginx@1.2.1`, `paketo-buildpacks/procfile@5.15.0`; the versions are catalog-owned as `paketo-nginx`
+(`paketo-buildpacks/nginx@1.2.2`, `paketo-buildpacks/procfile@5.15.1`; the versions are catalog-owned as `paketo-nginx`
 and `paketo-procfile`) over `build/dist` (the `pack` CLI is a build prerequisite like Helm/Snyk). The pins are explicit
 because an unversioned buildpack reference becomes ambiguous — `pack` fails with "multiple versions … must specify an
 explicit version" — once the builder bundles two versions of a buildpack (the intermittent `e2e`/`helmInstallToLocal`
-failure). The builder itself is also pinned (`builder-jammy-base:0.4.644`, catalog-owned as `paketo-builder-jammy-base`)
+failure). The builder itself is also pinned (`builder-jammy-base:0.4.649`, catalog-owned as `paketo-builder-jammy-base`)
 rather than floating, and the `buildpackUpdates` task / `buildpack-updates` workflow reports newer builder and buildpack
 versions — no other update check covers Paketo. **The builder and the buildpacks it bundles must be bumped together:** a
 `paketo-nginx` pin that is _absent_ from the builder (e.g. `1.2.0` against a builder bundling `1.2.1`) makes `pack` add
@@ -2246,7 +2249,7 @@ capture-stash-stale-copy
   The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are
   `paketobuildpacks/nginx` (no hyphen); querying the tags API with the CNB id 404s, so `BuildpackUpdatesTask`'s check
   model carries `repository` separately from the display `name`. When adding a buildpack to the check, use its Docker
-  Hub repository. The same repositories also publish alias tags (`1.2`, `5.15`) alongside the full semver (`1.2.1`),
+  Hub repository. The same repositories also publish alias tags (`1.2`, `5.15`) alongside the full semver (`1.2.2`),
   which is why the buildpack check has two version operations rather than one: `Versions.isNewer` — the shared
   comparator all three update checks use — compares numerically with zero padding, so the two spellings of one release
   are equal and neither reports the other as an update, while `Versions.highest`, which only this check needs, keeps a

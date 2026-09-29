@@ -1,6 +1,6 @@
 # ADR-0013: Organize the web UI by Feature-Sliced Design with a one-way import rule
 
-Date: 2026-09-21
+Date: 2026-09-04
 
 Status: Accepted
 
@@ -16,6 +16,8 @@ import which.
 The first architecture audit surfaced the layering as a deliberate structural choice whose rationale was recorded
 nowhere: `AGENTS.md` states the convention (organize per Feature-Sliced Design, importing only downward) but not why the
 direction is enforced, nor what it buys.
+
+Recorded retrospectively on 2026-09-21; the arrangement shipped with the web UI on 2026-09-04.
 
 ## Decision
 

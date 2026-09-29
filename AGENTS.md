@@ -258,13 +258,16 @@ reads — and the earlier capture that recorded the stale-target rule had quoted
 closure. When the verification finds shipped work broken, fix the live instance (an out-of-band corrective action, such
 as reopening the issue) alongside the recorded rule; documenting the hazard alone leaves the defect live.
 
-**A merge-time capture's output is itself a change-sized unit — start it on its own branch, not in `main`'s working
-tree.** An _implementation_ capture rides the change's branch (see the capture rule); a capture detected _at the merge_
-has no in-flight change to ride, so applying the subagent's proposals is the propose-like moment for the docs change it
+**A unit whose work begins with no in-flight branch — a merge-time capture, a docs unit applying audit findings, a
+standalone fix — is itself a change-sized unit: start it on its own branch, not in `main`'s working tree.** An
+_implementation_ capture rides the change's branch (see the capture rule); a capture detected _at the merge_ has no
+in-flight change to ride, so applying the subagent's proposals is the propose-like moment for the docs change it
 becomes: fork from the just-merged `main` as soon as you begin, so `main` never carries an in-progress diff and the work
 is isolated to its own branch. The capture after the upstream-report PR (#212) was applied directly on `main` and sat
-there as an uncommitted two-file diff until a review pass flagged it, and the branch was created only then; the
-leave-work-uncommitted rule presumes a branch — an uncommitted capture belongs on its branch, not on `main`.
+there as an uncommitted two-file diff until a review pass flagged it, and the branch was created only then; a docs unit
+applying audit findings repeated the sequence, branching only when the review flagged it. The leave-work-uncommitted
+rule presumes a branch — an uncommitted unit belongs on its branch, not on `main`. captured:
+apply-2026-09-28-audit-docs-findings
 
 **Sync the main spec only at archive.** Apply edits to code and the change dir's _delta_ spec — never the main spec
 under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source
@@ -599,11 +602,10 @@ initialized:
   observational workflows listed below, and the out-of-repository surfaces the Docs-refresh bullet names), never
   `build`.
 
-The `check` task also runs `workflowLint`, which lints the GitHub Actions workflows with actionlint (installed on the
-runner via the official download script; see the Prerequisites), `verifyModuleDependencies`, which enforces the module
-dependency graph ADR-0010 records, and the commit-hygiene tasks (`verifyCapturedMarkers`, `testCommitHygiene`,
-`verifyTrackedIgnoredFiles`, `verifyConflictMarkers`, `verifyExecutableBits`, `verifyUniqueCronSchedules`) (`check` also
-runs `build-logic`'s tests, since that is an included build).
+The `check` task's members are listed in the Build & Test `check` note; `workflowLint` lints the GitHub Actions
+workflows with actionlint (installed on the runner via the official download script; see the Prerequisites),
+`verifyModuleDependencies` enforces the module dependency graph ADR-0010 records, and `check` additionally runs
+`build-logic`'s tests, since that is an included build.
 
 The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (dependencies, wrapper, and local build
 cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the
@@ -853,14 +855,16 @@ Key modules (libraries, not services):
 - **Architecture Decision Records**: record cross-cutting architecture decisions as numbered ADRs under `docs/adr/`
   (Nygard format — Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture the
   _why_ behind structural choices. Capture a decision as an ADR when it is made, not after the fact. A decision that
-  only surfaces after the fact (an auditor or review finds it unrecorded) is dated to the day the decision was made,
-  with a Context line stating it was recorded retrospectively and when; if the decision predates the ADR practice and no
-  date can be established, date the recording and say so (the first architecture audit produced two such ADRs, dated the
-  two ways). A retrospective ADR that cannot state _why_ the decision was made should ask the project owner before
-  recording the rationale as unrecorded — the repository's silence is not evidence the rationale does not exist, and a
-  missing _why_ is a question for the human, not a permanent gap to write down (ADR-0009 declared its no-Axon-Server
-  rationale "not recorded anywhere in the repository" until asking the owner recovered it: avoiding Axon Server's
-  commercial licensing).
+  only surfaces after the fact (an auditor or review finds it unrecorded) is dated to the day the decision was made —
+  derived from git history (the shipping commit), never from the record's own `Date:` field or a reviewing audit's
+  suggested date, which transpose a retrospective record's shipped, recorded, and amended dates — with a Context line
+  stating it was recorded retrospectively and when; if the decision predates the ADR practice and no date can be
+  established, date the recording and say so (the first architecture audit produced two such ADRs, dated the two ways).
+  A retrospective ADR that cannot state _why_ the decision was made should ask the project owner before recording the
+  rationale as unrecorded — the repository's silence is not evidence the rationale does not exist, and a missing _why_
+  is a question for the human, not a permanent gap to write down (ADR-0009 declared its no-Axon-Server rationale "not
+  recorded anywhere in the repository" until asking the owner recovered it: avoiding Axon Server's commercial
+  licensing). captured: apply-2026-09-28-audit-docs-findings
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md`, `README.md`, and `docs/adr/` need to be
   refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
   a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on
@@ -1174,8 +1178,12 @@ Key modules (libraries, not services):
   grant. Scope any temp grant to a named scratch subdirectory — never the whole OS temp root (`/tmp`, i.e. macOS's
   `/private/tmp`), which would grant every application's temporary files; that is why `/private/tmp` is not in the
   config. The other external paths an unattended run needs are granted declaratively in `.opencode/opencode.json`'s
-  `permission` rules: the **`gh` CLI's config directory** as `$HOME/.config/gh/*`, and the **globally-installed
-  `openspec` package** as `*/@fission-ai/openspec/*` — the CLI reads its own schema templates from an
+  `permission` rules. The **`gh` CLI's config directory** is granted as `$HOME/.config/gh/*`: the agent invokes `gh`,
+  which consults that directory outside the workspace, and a missing grant hangs an unattended run (a `/oc` run was
+  found stuck on `/home/runner/.config/gh/*`); v2 expands `~`/`$HOME` and substitutes `{env:VAR}` in a pattern, but an
+  unset variable substitutes to an empty string (a pattern matching every path), so the config grants the `$HOME`
+  default and a run that sets `$GH_CONFIG_DIR` or `$XDG_CONFIG_HOME` elsewhere still prompts. The **globally-installed
+  `openspec` package** is granted as `*/@fission-ai/openspec/*` — the CLI reads its own schema templates from an
   outside-the-workspace package directory, and an unattended cloud run cannot answer the prompt it would otherwise raise
   (a `/oc` run was found stuck on exactly
   `/usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/*`); the wildcard covers the
@@ -1201,12 +1209,6 @@ Key modules (libraries, not services):
   request changes it, but only a dispatch (or the next scheduled run) proves the workflow starts. captured:
   migrate-opencode-config-to-v2 captured: retire-opencode-permission-plugin (#388) captured:
   fix-cloud-agent-config-for-v1 (#438)
-
-The `.opencode/opencode.json` grant for the **`gh` CLI's config directory** is `$HOME/.config/gh/*`: the agent invokes
-`gh`, which consults that directory (outside the workspace), and a missing grant hangs an unattended run (an `/oc` run
-was found stuck on `/home/runner/.config/gh/*`). v2 expands `~`/`$HOME` and substitutes `{env:VAR}` in a pattern, but an
-unset `{env:VAR}` substitutes to an empty string (a pattern matching every path), so the config grants the `$HOME`
-default and a run that sets `$GH_CONFIG_DIR` or `$XDG_CONFIG_HOME` elsewhere still prompts.
 
 ## Docker Images
 

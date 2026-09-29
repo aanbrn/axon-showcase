@@ -102,9 +102,11 @@ class ShowcaseApiApplicationIT {
                 .expectStatus()
                 .isOk()
                 .expectHeader()
-                .value(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, value -> assertThat(value)
-                        .containsIgnoringCase("content-type")
-                        .containsIgnoringCase("idempotency-key")
-                        .containsIgnoringCase("traceparent"));
+                .value(
+                        HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
+                        value -> assertThat(value)
+                                .containsIgnoringCase("content-type")
+                                .containsIgnoringCase("idempotency-key")
+                                .containsIgnoringCase("traceparent"));
     }
 }

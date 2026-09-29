@@ -31,16 +31,18 @@ class ShowcaseCommandErrorDetailsTests {
     @Test
     @DisplayName("Error details without an error code throw a null pointer exception")
     void construction_missingErrorCode_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ShowcaseCommandErrorDetails.builder()
-                .errorMessage(aShowcaseCommandErrorMessage())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ShowcaseCommandErrorDetails.builder()
+                        .errorMessage(aShowcaseCommandErrorMessage())
+                        .build());
     }
 
     @Test
     @DisplayName("Error details without an error message throw a null pointer exception")
     void construction_missingErrorMessage_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ShowcaseCommandErrorDetails.builder()
-                .errorCode(aShowcaseCommandErrorCode())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ShowcaseCommandErrorDetails.builder()
+                        .errorCode(aShowcaseCommandErrorCode())
+                        .build());
     }
 }

@@ -168,16 +168,19 @@ class ShowcaseQueryClientCT {
                         .withBody(objectMapper.writeValueAsString(
                                 ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "No showcase with given ID")))));
 
-        showcaseQueryOperations.fetchById(query).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
-                .isExactlyInstanceOf(ShowcaseQueryException.class)
-                .asInstanceOf(type(ShowcaseQueryException.class))
-                .extracting(ShowcaseQueryException::getErrorDetails)
-                .asInstanceOf(type(ShowcaseQueryErrorDetails.class))
-                .satisfies(errorDetails -> {
-                    assertThat(errorDetails.errorCode()).isEqualTo(ShowcaseQueryErrorCode.NOT_FOUND);
-                    assertThat(errorDetails.errorMessage()).isEqualTo("No showcase with given ID");
-                    assertThat(errorDetails.metaData()).isEmpty();
-                }));
+        showcaseQueryOperations
+                .fetchById(query)
+                .as(StepVerifier::create)
+                .verifyErrorSatisfies(t -> assertThat(t)
+                        .isExactlyInstanceOf(ShowcaseQueryException.class)
+                        .asInstanceOf(type(ShowcaseQueryException.class))
+                        .extracting(ShowcaseQueryException::getErrorDetails)
+                        .asInstanceOf(type(ShowcaseQueryErrorDetails.class))
+                        .satisfies(errorDetails -> {
+                            assertThat(errorDetails.errorCode()).isEqualTo(ShowcaseQueryErrorCode.NOT_FOUND);
+                            assertThat(errorDetails.errorMessage()).isEqualTo("No showcase with given ID");
+                            assertThat(errorDetails.metaData()).isEmpty();
+                        }));
 
         wireMockServer.verify(1, postRequestedFor(urlEqualTo("/query")));
     }
@@ -196,16 +199,19 @@ class ShowcaseQueryClientCT {
                         .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
                         .withBody(objectMapper.writeValueAsString(problem))));
 
-        showcaseQueryOperations.fetchById(query).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
-                .isExactlyInstanceOf(ShowcaseQueryException.class)
-                .asInstanceOf(type(ShowcaseQueryException.class))
-                .extracting(ShowcaseQueryException::getErrorDetails)
-                .asInstanceOf(type(ShowcaseQueryErrorDetails.class))
-                .satisfies(errorDetails -> {
-                    assertThat(errorDetails.errorCode()).isEqualTo(ShowcaseQueryErrorCode.INVALID_QUERY);
-                    assertThat(errorDetails.errorMessage()).isEqualTo("Given query is not valid");
-                    assertThat(errorDetails.metaData()).containsKey("showcaseId");
-                }));
+        showcaseQueryOperations
+                .fetchById(query)
+                .as(StepVerifier::create)
+                .verifyErrorSatisfies(t -> assertThat(t)
+                        .isExactlyInstanceOf(ShowcaseQueryException.class)
+                        .asInstanceOf(type(ShowcaseQueryException.class))
+                        .extracting(ShowcaseQueryException::getErrorDetails)
+                        .asInstanceOf(type(ShowcaseQueryErrorDetails.class))
+                        .satisfies(errorDetails -> {
+                            assertThat(errorDetails.errorCode()).isEqualTo(ShowcaseQueryErrorCode.INVALID_QUERY);
+                            assertThat(errorDetails.errorMessage()).isEqualTo("Given query is not valid");
+                            assertThat(errorDetails.metaData()).containsKey("showcaseId");
+                        }));
     }
 
     @Test
@@ -221,8 +227,10 @@ class ShowcaseQueryClientCT {
                         .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
                         .withBody(objectMapper.writeValueAsString(problem))));
 
-        showcaseQueryOperations.fetchById(query).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
-                .isInstanceOf(WebClientResponseException.class));
+        showcaseQueryOperations
+                .fetchById(query)
+                .as(StepVerifier::create)
+                .verifyErrorSatisfies(t -> assertThat(t).isInstanceOf(WebClientResponseException.class));
     }
 
     @Test
@@ -238,8 +246,10 @@ class ShowcaseQueryClientCT {
                         .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
                         .withBody(objectMapper.writeValueAsString(problem))));
 
-        showcaseQueryOperations.fetchById(query).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
-                .isInstanceOf(WebClientResponseException.class));
+        showcaseQueryOperations
+                .fetchById(query)
+                .as(StepVerifier::create)
+                .verifyErrorSatisfies(t -> assertThat(t).isInstanceOf(WebClientResponseException.class));
     }
 
     @Test
@@ -255,8 +265,10 @@ class ShowcaseQueryClientCT {
                         .withHeader(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
                         .withBody(objectMapper.writeValueAsString(problem))));
 
-        showcaseQueryOperations.fetchById(query).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
-                .isInstanceOf(WebClientResponseException.class));
+        showcaseQueryOperations
+                .fetchById(query)
+                .as(StepVerifier::create)
+                .verifyErrorSatisfies(t -> assertThat(t).isInstanceOf(WebClientResponseException.class));
     }
 
     @Nested
@@ -434,8 +446,10 @@ class ShowcaseQueryClientCT {
 
             assertThat(circuitBreaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 
-            showcaseQueryOperations.fetchList(query).as(StepVerifier::create).verifyErrorSatisfies(t -> assertThat(t)
-                    .isInstanceOf(CallNotPermittedException.class));
+            showcaseQueryOperations
+                    .fetchList(query)
+                    .as(StepVerifier::create)
+                    .verifyErrorSatisfies(t -> assertThat(t).isInstanceOf(CallNotPermittedException.class));
         }
     }
 }

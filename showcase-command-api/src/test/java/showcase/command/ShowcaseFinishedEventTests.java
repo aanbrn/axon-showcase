@@ -31,16 +31,18 @@ class ShowcaseFinishedEventTests {
     @Test
     @DisplayName("An event without a showcase ID throws a null pointer exception")
     void construction_missingShowcaseId_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ShowcaseFinishedEvent.builder()
-                .finishedAt(Instant.now())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ShowcaseFinishedEvent.builder()
+                        .finishedAt(Instant.now())
+                        .build());
     }
 
     @Test
     @DisplayName("An event without a finished-at time throws a null pointer exception")
     void construction_missingFinishedAt_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ShowcaseFinishedEvent.builder()
-                .showcaseId(aShowcaseId())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ShowcaseFinishedEvent.builder()
+                        .showcaseId(aShowcaseId())
+                        .build());
     }
 }

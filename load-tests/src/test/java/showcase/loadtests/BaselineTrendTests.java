@@ -87,8 +87,9 @@ class BaselineTrendTests {
                 "2026-09-27.md",
                 generated("http://axon-showcase-api") + "\n## Notes\n\nThe gateway was the busiest pod.\n");
 
-        assertThat(BaselineTrend.read(directory)).singleElement().satisfies(entry -> assertThat(entry.readable())
-                .isTrue());
+        assertThat(BaselineTrend.read(directory))
+                .singleElement()
+                .satisfies(entry -> assertThat(entry.readable()).isTrue());
     }
 
     @Test
@@ -96,8 +97,9 @@ class BaselineTrendTests {
     void read_aRecordWithNoFigures_isReportedUnreadable(@TempDir Path directory) throws IOException {
         write(directory, "2026-09-26.md", HAND_AUTHORED);
 
-        assertThat(BaselineTrend.read(directory)).singleElement().satisfies(entry -> assertThat(entry.readable())
-                .isFalse());
+        assertThat(BaselineTrend.read(directory))
+                .singleElement()
+                .satisfies(entry -> assertThat(entry.readable()).isFalse());
         assertThat(BaselineTrend.report(directory)).contains("unreadable");
     }
 

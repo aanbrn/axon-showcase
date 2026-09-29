@@ -48,12 +48,13 @@ class ShowcaseScheduledEventTests {
     void construction_missingShowcaseId_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> ShowcaseScheduledEvent.builder()
-                .title(aShowcaseTitle())
-                .startTime(aShowcaseStartTime(scheduleTime))
-                .duration(aShowcaseDuration())
-                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                .build());
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> ShowcaseScheduledEvent.builder()
+                        .title(aShowcaseTitle())
+                        .startTime(aShowcaseStartTime(scheduleTime))
+                        .duration(aShowcaseDuration())
+                        .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                        .build());
     }
 
     @Test
@@ -61,23 +62,25 @@ class ShowcaseScheduledEventTests {
     void construction_missingTitle_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> ShowcaseScheduledEvent.builder()
-                .showcaseId(aShowcaseId())
-                .startTime(aShowcaseStartTime(scheduleTime))
-                .duration(aShowcaseDuration())
-                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                .build());
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> ShowcaseScheduledEvent.builder()
+                        .showcaseId(aShowcaseId())
+                        .startTime(aShowcaseStartTime(scheduleTime))
+                        .duration(aShowcaseDuration())
+                        .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                        .build());
     }
 
     @Test
     @DisplayName("An event without a start time throws a null pointer exception")
     void construction_missingStartTime_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ShowcaseScheduledEvent.builder()
-                .showcaseId(aShowcaseId())
-                .title(aShowcaseTitle())
-                .duration(aShowcaseDuration())
-                .scheduledAt(Instant.now())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ShowcaseScheduledEvent.builder()
+                        .showcaseId(aShowcaseId())
+                        .title(aShowcaseTitle())
+                        .duration(aShowcaseDuration())
+                        .scheduledAt(Instant.now())
+                        .build());
     }
 
     @Test
@@ -85,22 +88,24 @@ class ShowcaseScheduledEventTests {
     void construction_missingDuration_throwsNullPointerException() {
         val scheduleTime = Instant.now();
 
-        assertThatNullPointerException().isThrownBy(() -> ShowcaseScheduledEvent.builder()
-                .showcaseId(aShowcaseId())
-                .title(aShowcaseTitle())
-                .startTime(aShowcaseStartTime(scheduleTime))
-                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ShowcaseScheduledEvent.builder()
+                        .showcaseId(aShowcaseId())
+                        .title(aShowcaseTitle())
+                        .startTime(aShowcaseStartTime(scheduleTime))
+                        .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                        .build());
     }
 
     @Test
     @DisplayName("An event without a scheduled-at time throws a null pointer exception")
     void construction_missingScheduledAt_throwsNullPointerException() {
-        assertThatNullPointerException().isThrownBy(() -> ShowcaseScheduledEvent.builder()
-                .showcaseId(aShowcaseId())
-                .title(aShowcaseTitle())
-                .startTime(aShowcaseStartTime(Instant.now()))
-                .duration(aShowcaseDuration())
-                .build());
+        assertThatNullPointerException()
+                .isThrownBy(() -> ShowcaseScheduledEvent.builder()
+                        .showcaseId(aShowcaseId())
+                        .title(aShowcaseTitle())
+                        .startTime(aShowcaseStartTime(Instant.now()))
+                        .duration(aShowcaseDuration())
+                        .build());
     }
 }

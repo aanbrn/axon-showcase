@@ -20,8 +20,9 @@
       120-character check over the lines this change introduces in `.github/workflows/dependency-security.yml` and the
       change dir's `.openspec.yaml`.
 - [x] 2.5 Request the user's manual review pass — the step before committing.
-- [ ] 2.6 After the approval pushes the branch (before the archive commit), dispatch
+- [x] 2.6 After the approval pushes the branch (before the archive commit), dispatch
       `gh workflow run dependency-security.yml --ref <branch>` and confirm the pinned Snyk CLI installs and the scan
       runs — the credentialed run is the first real execution that installs the pinned version, which neither
       `workflowLint` nor a local `dependencySecurityCheck` (it uses the developer's own `snyk`) can prove. Running it
-      against the pushed branch keeps the task from archiving unticked.
+      against the pushed branch keeps the task from archiving unticked. Done: run 36572555242 on the pushed branch — the
+      "Set up Snyk CLI" step ran with `snyk-version: v1.1307.4` and both jobs (`snyk`, `web-ui-audit`) succeeded.

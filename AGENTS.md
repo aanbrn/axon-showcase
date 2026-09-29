@@ -586,11 +586,13 @@ initialized:
 `.github/workflows/ci.yml` runs a single `build` job on every pull request and every push to `main`:
 
 - **Pull requests** run the Docker-free fast gate: `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` plus
-  `openspec validate --all` and a probe that the OpenSpec config's declared list surfaces (its artifact rules and its
-  operation guidance) are readable by the CLI — the coverage gate is disabled because the 0.80 baseline is calibrated on
-  integration-test coverage, which PRs skip by design.
+  `openspec validate --all`, a probe that the OpenSpec config's declared list surfaces (its artifact rules and its
+  operation guidance) are readable by the CLI, and, when the pull request changes `.opencode/opencode.json*` or
+  `.github/workflows/ci.yml`, a probe that the config loads under the consumer the `opencode` action installs (the v1
+  binary). The coverage gate is disabled because the 0.80 baseline is calibrated on integration-test coverage, which PRs
+  skip by design.
 - **Pushes to `main`** run the full gate: `./gradlew check` (with integration tests and the coverage gate) plus the same
-  OpenSpec validation and config probe as the pull-request path.
+  OpenSpec validation and OpenSpec config probe as the pull-request path; the OpenCode config probe is PR-scoped.
 - **A check belongs in the pull-request gate only when the change that trips it can remediate it.** Drift in state no
   pull request causes would fail every unrelated PR, so it belongs in the observational scheduled pattern instead (the
   observational workflows listed below, and the out-of-repository surfaces the Docs-refresh bullet names), never
@@ -1177,12 +1179,12 @@ Key modules (libraries, not services):
   (a `/oc` run was found stuck on exactly
   `/usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/*`); the wildcard covers the
   per-machine prefix, so nothing is resolved at init. Only reading that package tree outside the workspace exercises the
-  `openspec` grant, and no CI job does — the `build` gate runs no action and `workflowLint` checks only the YAML — so a
-  green `check` does not validate it. This replaced a v1 plugin (`.opencode/plugin/grant-cli-config-dirs.ts`) whose
-  `config` hook injected the grants: OpenCode v2 changed the plugin contract and its typed plugin API has no permission
-  hook, so the plugin no longer loaded and was retired. A tool's major-version migration has to treat each v1 surface
-  separately: v2's normalizer auto-mapped the config's `permission.bash` onto v2's `shell`, which did not vouch for that
-  sibling plugin, whose load failed with
+  `openspec` grant, and no CI job does — the `build` gate's OpenCode config probe only loads the configuration and never
+  invokes `openspec`, and `workflowLint` checks only the YAML — so a green `check` does not validate it. This replaced a
+  v1 plugin (`.opencode/plugin/grant-cli-config-dirs.ts`) whose `config` hook injected the grants: OpenCode v2 changed
+  the plugin contract and its typed plugin API has no permission hook, so the plugin no longer loaded and was retired. A
+  tool's major-version migration has to treat each v1 surface separately: v2's normalizer auto-mapped the config's
+  `permission.bash` onto v2's `shell`, which did not vouch for that sibling plugin, whose load failed with
   `Plugin must export a default definition with an id and an effect or setup function`. v2 pre-approves the
   machine-specific `<tmpdir>/opencode`, which is enough for this repo; `anomalyco/opencode#48100` asks for a portable
   default and remains open upstream. `.opencode/package.json` (tracked) holds the dependencies OpenCode installs at
@@ -1192,9 +1194,10 @@ Key modules (libraries, not services):
   array and `mcp.servers` envelope rather than the v2 spellings: the GitHub action the cloud workflows run installs
   `releases/latest` — the v1 line — and a v2-only `permissions` array makes v1 exit at startup
   (`V2 permissions are not supported by OpenCode V1`), which silently broke both cloud workflows until a dispatch
-  exposed it. Keep this file loadable by both majors; the local workflow still runs v2, per the README's row — and
-  verify a change to it by dispatching the cloud workflow that loads it (`gh workflow run audit.yml`): no in-repo gate
-  loads the config with the action's v1 binary, so a dispatch (or the next scheduled run) proves it starts. captured:
+  exposed it. Keep this file loadable by both majors; the local workflow still runs v2, per the README's row. Verify a
+  behavioural change to it — a new grant, model, or server — by dispatching the cloud workflow that loads it
+  (`gh workflow run audit.yml`): the `build` gate probes the config's load under the action's v1 binary when a pull
+  request changes it, but only a dispatch (or the next scheduled run) proves the workflow starts. captured:
   migrate-opencode-config-to-v2 captured: retire-opencode-permission-plugin (#388) captured:
   fix-cloud-agent-config-for-v1 (#438)
 
@@ -1514,6 +1517,13 @@ capture-stash-stale-copy
   already exist.** When installing actionlint in CI with `bash <(curl .../scripts/download-actionlint.bash)`, pass
   `latest "$RUNNER_TEMP/actionlint"` and `mkdir -p` the dir first — a `--dir` flag is rejected as an invalid version
   (the script exits 1 with its usage).
+- **A changed-file check in a workflow step needs a two-dot diff, and a path-gated step must list its own definition.**
+  `actions/checkout`'s default `fetch-depth: 1` leaves the pull-request head a grafted root with no merge base, so a
+  three-dot `git diff --name-only FETCH_HEAD...HEAD -- <paths>` exits 128 (`fatal: FETCH_HEAD...HEAD: no merge base`;
+  reproduced against a depth-1 clone) while the two-dot `git diff --name-only FETCH_HEAD HEAD -- <paths>` form works; it
+  can list a file the base changed past the merge base (which merely runs the step), never fail. And a step gated on
+  changed paths must list its own definition file among them, or the pull request that edits the step skips it.
+  captured: probe-opencode-config-read-path
 - **`gh pr list` does not support a `--since` flag, and a `gh <x> list` command silently truncates at its default
   `--limit`.** Filter merged PRs by window with the search qualifier
   `gh pr list --state merged --search "merged:>=<YYYY-MM-DD>"` (an unknown flag like `--since` is rejected outright, and
@@ -1781,7 +1791,11 @@ capture-stash-stale-copy
     failing from the root its consumer resolves from (here, the editor's project root). A `review-quick` round proposed
     the simpler fix ("add `@types/node`; a tsconfig isn't needed"), which held only in the passing directory. Run a
     reproduction from the context that fails — the directory whose config the failing tool reads, not the artifact's own
-    directory — and treat a different error as its own signal. captured: fix-tmpdir-plugin-types (#299) The context is
+    directory — and treat a different error as its own signal. The binary is part of that context: a control that
+    installs one major and then invokes it by a bare command name runs whatever the host has instead — the host's V2
+    `opencode` accepts the V2-only key the V1 probe rejects (exit 0), so the control would prove the opposite — so run
+    the installed binary by absolute path, isolate its `HOME` so it does not read the host's global config, and assert
+    its version. captured: probe-opencode-config-read-path captured: fix-tmpdir-plugin-types (#299) The context is
     temporal as well as spatial: a plugin hook or a config read runs at process init, so a standalone execution proves
     what the artifact emits but never that its inputs exist by then. The now-retired
     `.opencode/plugin/grant-cli-config-dirs.ts` grant was proved with a `bun` run (every grant emitted), yet in the
@@ -2157,12 +2171,16 @@ capture-stash-stale-copy
   the tool's own validation while the tool silently ignores part of it, and from outside a valid config and an ignored
   one are indistinguishable — the only signal is a warning on stderr that no gate reads. Do not lint the shape with a
   second parser of your own (that encodes an assumption about a contract the tool owns); probe the consumer's own read
-  path, and fail a gate on the tool's own warning. Keep the guard's list-shape pattern generic
-  (`must be an array of strings`), not one surface's enumerated wording — it grew from `ignoring this artifact's rules`
-  to `ignoring this artifact's rules|could not parse`, then to the generic phrase, which is what covered every surface —
-  so a malformed `rules` or `operations.*.guidance` item drops no config list silently. The same class covers the
-  change's own `.openspec.yaml`, quieter still: OpenSpec's change-metadata schema is not strict, so an unrecognized key
-  is silently stripped with no warning at all — a `skip_design: true` marker (an inherited agent habit; a dozen archived
+  path, and fail a gate on the tool's own warning. Where the probe's subject is a load that either succeeds or throws,
+  take the signal from the process exit status, not from a message grepped out of the tool's output:
+  `opencode debug config` prints the whole resolved configuration, including every agent's full prompt, so a grep can
+  match text the config merely embeds; a loadable config exits 0 and a V2-only `permissions` key exits 1. captured:
+  probe-opencode-config-read-path Keep the guard's list-shape pattern generic (`must be an array of strings`), not one
+  surface's enumerated wording — it grew from `ignoring this artifact's rules` to
+  `ignoring this artifact's rules|could not parse`, then to the generic phrase, which is what covered every surface — so
+  a malformed `rules` or `operations.*.guidance` item drops no config list silently. The same class covers the change's
+  own `.openspec.yaml`, quieter still: OpenSpec's change-metadata schema is not strict, so an unrecognized key is
+  silently stripped with no warning at all — a `skip_design: true` marker (an inherited agent habit; a dozen archived
   changes carry it) does nothing, and `openspec status` still reports `design` incomplete and points at
   `openspec instructions design`. There is no artifact-skip key beyond `skip_specs`: skip `design.md` by simply not
   writing it, never by adding a key. captured: bump-snyk-cli-pin Upstream, the reports are `Fission-AI/OpenSpec#1891`

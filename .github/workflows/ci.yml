@@ -66,3 +66,25 @@ jobs:
             echo "::error::this gate must fail."
             exit 1
           fi
+
+      - name: Probe the OpenCode config's V1 read path
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          changed=$(git diff --name-only FETCH_HEAD HEAD -- '.opencode/opencode.json*' .github/workflows/ci.yml)
+          if [ -z "$changed" ]; then
+            echo "skipped: .opencode/opencode.json* and .github/workflows/ci.yml are unchanged"
+            exit 0
+          fi
+          curl -fsSL https://opencode.ai/install | bash
+          export PATH="$HOME/.opencode/bin:$PATH"
+          set +e
+          output=$(opencode debug config 2>&1)
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            echo "$output"
+            echo "::error::opencode debug config failed under the V1 consumer; see the echoed output"
+            exit 1
+          fi

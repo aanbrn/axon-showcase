@@ -17,7 +17,8 @@ and Testcontainers, and the Bitnami Helm chart version (`bitnami-*`) used by the
 an independent version. Every Helm chart coordinate in the version catalog — including the observability charts
 (`prometheus-community-stack`, `grafana-tempo`) and the application chart's `common` subchart dependency — SHALL be a
 concrete version (e.g. `77.14.0`), never a floating major-line pin such as `77.x.x`, so the Helm deployment is
-reproducible at a reviewable version.
+reproducible at a reviewable version. The `AGENTS.md` Kubernetes Deployment section's manual `helm install … --version`
+commands SHALL quote each chart's catalog version, so a chart bump cannot leave the documented command stale.
 
 #### Scenario: All surfaces resolve from the catalog
 
@@ -51,6 +52,13 @@ reproducible at a reviewable version.
   and bumping the coordinate to a new concrete version is verified with a live install + smoke test — the release
   installs cleanly, the metrics/observability pods are ready, and the Prometheus targets and Grafana datasources are
   wired — before the bump is merged
+
+#### Scenario: The AGENTS.md manual install commands match the catalog
+
+- **WHEN** `check` runs
+- **THEN** each `helm install <name> <chartRef> --version <v>` command in `AGENTS.md`'s Kubernetes Deployment block is
+  verified against the catalog pin for its chart, and a command whose version differs from the pin (or whose chart has
+  no pin) fails `check`, naming the chart — so a chart bump cannot leave the documented command stale
 
 ### Requirement: The deployed Bitnami image tag is the chart's preconfigured tag
 

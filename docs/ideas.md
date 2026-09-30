@@ -28,6 +28,14 @@ dated when it was added (start a new section for a new day rather than appending
   paths plus the doc and spec references (`AGENTS.md`, `README.md`, `.opencode/commands/dependency-updates.md`, and the
   architecture-auditor's swept surfaces) with it.
 
+- Pin or validate the CI runners before `ubuntu-latest` migrates to Ubuntu 26 — parked; no change yet. GitHub announced
+  the label migrates beginning 2026-10-19 (`actions/runner-images#14748`), and all 12 jobs across the 11 workflow files
+  use `ubuntu-latest`, so every job would move onto a new runner OS at once, with no repository-side pin and nothing
+  that tracks it (Dependabot manages action versions, not runner labels). The decision is whether to pin an explicit
+  image (e.g. `ubuntu-24.04`) and bump deliberately, or keep `ubuntu-latest` and validate the workflows ahead of the
+  migration; the pin branch is not workflow-only — `merge-governance` names `ubuntu-latest` in nine requirements, each
+  owing a `MODIFIED` delta. The notice surfaced as an annotation on PR #464's run.
+
 ## 2026-09-30
 
 - Correct the `code-quality` spec's shellcheck scenario — parked; no change yet. The requirement "GitHub workflows are

@@ -13,6 +13,21 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-01
+
+- Rework the suppression lists and rename them off `.properties` — parked; no change yet. `DependencyUpdateRules` now
+  parses `config/dependency-updates/major-disabled.properties` and `config/dependency-updates/hold-back.properties` as
+  line lists split on the first `=` (a `group:module` entry keeps its colon), so `.properties` names a format they no
+  longer use — and it invited the defect the hold-back change fixed, since under `java.util.Properties` a colon-key
+  entry collapses to a group prefix. `config/helm-updates/major-disabled.properties` is the last suppression list still
+  read with `Properties`, inline in `build.gradle.kts` and untested: rework it the same way — a line parse owned by
+  `HelmUpdateRules`, beside the tested `sameMajor` — and rename all three off `.properties`. This is not a new
+  capability: the helm entries stay a name set with the major-disabled/same-major-fallback behavior unchanged, and a
+  chart hold-back is out until a chart needs one. It is not docs-only either: the loader paths are hard-coded in
+  `build-logic/src/main/kotlin/dependency-versions-conventions.gradle.kts` and `build.gradle.kts`, so it moves those
+  paths plus the doc and spec references (`AGENTS.md`, `README.md`, `.opencode/commands/dependency-updates.md`, and the
+  architecture-auditor's swept surfaces) with it.
+
 ## 2026-09-30
 
 - Correct the `code-quality` spec's shellcheck scenario — parked; no change yet. The requirement "GitHub workflows are
@@ -60,13 +75,6 @@ dated when it was added (start a new section for a new day rather than appending
   deferred because typescript-eslint caps TypeScript at `<6.1.0`. There is still no web UI major-suppression mechanism
   (unlike the JVM's `config/dependency-updates/major-disabled.properties`), so the weekly tracker re-lists the deferred
   major — and any future one — until a suppression list lands.
-- Hold back a same-major JVM coordinate in the dependency-update report — parked; no change yet.
-  `config/dependency-updates/major-disabled.properties` suppresses only **major** updates, so a coordinate that must be
-  held at an older **minor** is re-listed by the weekly tracker every week. The `bump-dependencies-2026-09-25` change
-  hit this: `opensearch-java` `3.9.0`→`3.10.0` is binary-incompatible with `spring-data-opensearch` 2.x
-  (`Hit.matchedQueries()`'s return type changed from `List` to the new `MatchedQueries`, breaking
-  `DocumentAdapters.from`), so the bump holds `3.9.0` and the tracker keeps listing `3.10.0` until
-  `spring-data-opensearch` 3.x (SB4, ADR-0004) or a hold-back mechanism lands.
 
 ## 2026-09-24
 

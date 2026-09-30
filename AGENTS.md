@@ -529,8 +529,9 @@ wait for approval before merging.
 # Web UI npm vulnerability audit (fails on high-severity findings; not part of check)
 ./gradlew :showcase-web-ui:npmAudit
 
-# Dependency update report (only catalog-owned coordinates; majors suppressed for groups in
-# config/dependency-updates/major-disabled.properties)
+# Dependency update report (only catalog-owned coordinates; majors suppressed per
+# config/dependency-updates/major-disabled.properties and same-major updates held back per
+# config/dependency-updates/hold-back.properties)
 ./gradlew dependencyUpdates
 # Web UI npm update report (not part of check)
 ./gradlew :showcase-web-ui:npmOutdated
@@ -553,9 +554,11 @@ them (see ADR-0007). When documenting such an external constraint, name the coor
 version: that coordinate is not catalog-owned and its resolved version is not verifiable from the repository, so a
 pinned version rots on the next SpotBugs bump.
 
-Major-blocking entries in `config/dependency-updates/major-disabled.properties` carry a pointer comment naming the
-coordinate and its rationale; the authoritative reasoning for each suppressed coordinate lives in the
-`showcase/quality/dependency-management` spec.
+Major-blocking entries in `config/dependency-updates/major-disabled.properties` and held-back entries in
+`config/dependency-updates/hold-back.properties` carry a pointer comment naming the coordinate and its rationale; the
+authoritative reasoning for each suppressed or held-back coordinate lives in the
+`showcase/quality/dependency-management` spec. Both files are line lists parsed on the first `=`, so a `group:module`
+coordinate keeps its colon (see the config-read-path gotcha for the `Properties` mis-parse this avoids).
 
 The Helm update check has its own suppression file, `config/helm-updates/major-disabled.properties`: major bumps of the
 bitnami infra charts (postgres, kafka, opensearch) are suppressed there because a major chart ships a new preconfigured
@@ -1108,9 +1111,9 @@ Key modules (libraries, not services):
   and reports **where clarification of intent is missing** — a deliberate choice or absence whose rationale is not
   recorded (its finding classes, its advisory section, and the report contract are in the `agent-skills` spec). It
   sweeps the surfaces a rationale must exist for (dependency `exclude(...)` declarations, the major-version-suppressed
-  coordinates, the suppression annotations and retained deprecated APIs, and the deferrals and band-aids recorded in
-  ADRs or `docs/ideas.md`) and searches the repository for a rationale before reporting each item — an item whose
-  rationale is already recorded is not reported. It deliberately does **not** check behavior against the code (the
+  and held-back coordinates, the suppression annotations and retained deprecated APIs, and the deferrals and band-aids
+  recorded in ADRs or `docs/ideas.md`) and searches the repository for a rationale before reporting each item — an item
+  whose rationale is already recorded is not reported. It deliberately does **not** check behavior against the code (the
   review loop and archive-time sync own that), the corpus's internal structure (`specs-auditor` owns that), or any
   property an existing gate enforces. Trigger it with the `/audit-architecture` command. The main agent applies the
   approved findings under the review gate: a finding whose fix is an ADR correction, a new ADR, or an
@@ -2244,22 +2247,26 @@ capture-stash-stale-copy
   fields throughout the lockfile — so describe the lockfile diff by what moved (not as "patches/minors") and run the
   frontend `check`. captured: test-build-logic-rules-and-unify-version-comparison (#306) captured:
   monitor-web-ui-npm-dependencies (#395) captured: bump-gradle-and-web-ui-dependencies
-- **A CLI warning dismissed as noise can report a live defect — a config a tool consumes is unverified until its own
-  read path is probed, and a warning no gate reads is not a check.** `openspec/config.yaml` declared per-artifact rules
-  for four artifacts, but two items contained an unquoted `: `, so YAML parsed them as mappings, the lists stopped being
-  arrays of strings, and the CLI ignored those two artifacts' rules — warning on stderr ("Rules for 'proposal' must be
-  an array of strings, ignoring this artifact's rules") wherever the rules are read (`openspec new change`,
-  `openspec instructions`), which read as noise for as long as the config existed; `openspec validate --all` emits no
-  warning at all, which is why CI missed it. The dropped `proposal` rules included
-  `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the rule the review loop kept
-  catching missing. Quote any YAML scalar containing `: `; the CI `build` job now probes for the list-shape warning on
-  any declared list surface and the whole-file `could not parse` one (a malformed scalar) and fails on either, and
-  `/opsx-tool-update` re-verifies both with a positive control. The general rule: a config can look well-formed and pass
-  the tool's own validation while the tool silently ignores part of it, and from outside a valid config and an ignored
-  one are indistinguishable — the only signal is a warning on stderr that no gate reads. Do not lint the shape with a
-  second parser of your own (that encodes an assumption about a contract the tool owns); probe the consumer's own read
-  path, and fail a gate on the tool's own warning. Where the probe's subject is a load that either succeeds or throws,
-  take the signal from the process exit status, not from a message grepped out of the tool's output:
+- **A CLI warning dismissed as noise can report a live defect — a config is unverified until its own read path is
+  probed, whoever consumes it (a tool or the repository's own build), and a warning no gate reads is not a check.**
+  `openspec/config.yaml` declared per-artifact rules for four artifacts, but two items contained an unquoted `: `, so
+  YAML parsed them as mappings, the lists stopped being arrays of strings, and the CLI ignored those two artifacts'
+  rules — warning on stderr ("Rules for 'proposal' must be an array of strings, ignoring this artifact's rules")
+  wherever the rules are read (`openspec new change`, `openspec instructions`), which read as noise for as long as the
+  config existed; `openspec validate --all` emits no warning at all, which is why CI missed it. The dropped `proposal`
+  rules included `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the rule the
+  review loop kept catching missing. Quote any YAML scalar containing `: `; the CI `build` job now probes for the
+  list-shape warning on any declared list surface and the whole-file `could not parse` one (a malformed scalar) and
+  fails on either, and `/opsx-tool-update` re-verifies both with a positive control. The general rule: a config can look
+  well-formed and pass the consumer's validation while the consumer silently ignores or reinterprets part of it, and
+  from outside a valid config and an ignored one are indistinguishable — the signal may be a warning on stderr that no
+  gate reads, **or none at all**: `java.util.Properties` splits a key at its first `:`, so `major-disabled.properties`'s
+  `group:module` entries collapsed to group prefixes — a dead exact-coordinate branch and a whole-group
+  over-suppression. For a config **a tool owns**, do not substitute a parser of your own (it assumes a contract the tool
+  owns): probe the consumer's read path and fail a gate on its warning. For a format **the repository defines**, own the
+  parse and unit-test it — a repository-owned line parser (`DependencyUpdateRulesTests`) beats escaping a library's
+  delimiters. captured: hold-back-minor-dependency-updates Where the probe's subject is a load that either succeeds or
+  throws, take the signal from the process exit status, not from a message grepped out of the tool's output:
   `opencode debug config` prints the whole resolved configuration, including every agent's full prompt, so a grep can
   match text the config merely embeds; a loadable config exits 0 and a V2-only `permissions` key exits 1. captured:
   probe-opencode-config-read-path Keep the guard's list-shape pattern generic (`must be an array of strings`), not one

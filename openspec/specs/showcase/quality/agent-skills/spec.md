@@ -399,7 +399,8 @@ the main agent verifies and applies those the user approves.
 The `architecture-auditor` subagent SHALL report, in its advisory section, the deliberate choices and deliberate
 absences whose rationale is not recorded in the repository. It SHALL sweep the surfaces where a deliberate decision
 implies a rejected alternative: dependency `exclude(...)` declarations; major-version-suppressed coordinates in
-`config/dependency-updates/major-disabled.properties`; suppression annotations that encode a design choice
+`config/dependency-updates/major-disabled.properties` and coordinates held back at a version line in
+`config/dependency-updates/hold-back.properties`; suppression annotations that encode a design choice
 (`@SuppressWarnings`) and deprecated-API usages the project still carries; and deferrals or band-aids recorded in an ADR
 or parked in `docs/ideas.md`. It SHALL verify by searching the repository that no rationale is recorded before reporting
 an item, and SHALL NOT report a choice whose rationale is already recorded. Each item SHALL name the deliberate choice
@@ -410,8 +411,8 @@ can say which unrecorded rationales matter.
 #### Scenario: An unexplained deliberate choice is surfaced as a question
 
 - **WHEN** the `architecture-auditor` subagent sweeps a deliberate choice (a dependency exclusion, a suppressed
-  major-version coordinate, a suppression annotation, a retained deprecated API, or a recorded deferral) and finds no
-  rationale recorded for it
+  major-version coordinate, a held-back coordinate, a suppression annotation, a retained deprecated API, or a recorded
+  deferral) and finds no rationale recorded for it
 - **THEN** it reports the choice and its location in the advisory section together with the question whose answer would
   record the rationale, so the owner can triage it
 

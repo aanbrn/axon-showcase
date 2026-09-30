@@ -14,8 +14,9 @@ Report the result to the user as what to do, not as a raw dump:
 - If every required prerequisite is satisfied, say so in one line and list only the optional ones that are missing.
 - For each unsatisfied or too-old prerequisite, give the user the exact command the doctor printed — that is the install
   hint for their platform, which the README's Prerequisites table also carries.
-- Only Java 21+ and Docker with a reachable Compose v2 are required for the build and tests; call everything else
-  optional and do not present a missing optional tool as blocking.
+- Report the doctor's own required/optional classification rather than reciting one: its default run exits non-zero only
+  when a required prerequisite is unsatisfied (under `--all`, any missing prerequisite fails the run), so a tool the
+  doctor lists as optional must not be presented as blocking.
 
 Do not restate the tool list or the install commands from memory — the doctor's output is the source. If the doctor
 reports a prerequisite as `unknown` (its version could not be read), say that explicitly rather than treating it as

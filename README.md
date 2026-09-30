@@ -389,7 +389,8 @@ pins Gradle 9.8.0 and downloads it on first use.
 
 Run `./scripts/doctor.sh` (or the agent's `/check-tooling` command) to check your machine: it probes each tool below,
 the version floors, and the repo state, and prints the install command for anything missing on your platform. The table
-is the documented list; the doctor is the mechanical check of it (`scripts/test-doctor.sh` keeps the two in step).
+is the documented list; the doctor is the mechanical check of it (`scripts/test-doctor.sh` keeps the two in step and
+asserts each probe's required/optional class against the spec's build-and-test path).
 
 | Tool                          | Needed for                                                   | Install (macOS)                                                     | Install (Debian/Ubuntu)                                                               |
 | ----------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |

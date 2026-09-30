@@ -398,6 +398,16 @@ val pythonExecutable: String =
         .firstOrNull { it.canExecute() }
         ?.absolutePath ?: "python3"
 
+// Resolved to an absolute path for the same reason as `pythonExecutable`: the Gradle daemon caches PATH at start, so a
+// bare `sh` can fail to resolve depending on which client spawned the daemon.
+val shExecutable: String =
+    System.getenv("PATH")
+        .orEmpty()
+        .split(File.pathSeparator)
+        .map { File(it, "sh") }
+        .firstOrNull { it.canExecute() }
+        ?.absolutePath ?: "sh"
+
 tasks.register<Exec>("verifyCapturedMarkers") {
     group = "verification"
     description = "Verifies captured: marker placement in AGENTS.md"
@@ -414,6 +424,16 @@ tasks.register<Exec>("testCommitHygiene") {
     inputs.file("scripts/test-commit-hygiene.py")
     outputs.upToDateWhen { false }
     commandLine(pythonExecutable, "scripts/test-commit-hygiene.py")
+}
+
+tasks.register<Exec>("testDoctorCharter") {
+    group = "verification"
+    description = "Asserts the doctor's declared probes, their shape, and that the doctor reports each one"
+    inputs.file("scripts/doctor.sh")
+    inputs.file("scripts/test-doctor.sh")
+    inputs.file("README.md")
+    outputs.upToDateWhen { false }
+    commandLine(shExecutable, "scripts/test-doctor.sh")
 }
 
 tasks.register<Exec>("verifyTrackedIgnoredFiles") {
@@ -467,6 +487,7 @@ tasks.named("check") {
     dependsOn("verifyModuleDependencies")
     dependsOn("verifyCapturedMarkers")
     dependsOn("testCommitHygiene")
+    dependsOn("testDoctorCharter")
     dependsOn("verifyTrackedIgnoredFiles")
     dependsOn("verifyConflictMarkers")
     dependsOn("verifyExecutableBits")

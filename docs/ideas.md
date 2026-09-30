@@ -75,11 +75,6 @@ dated when it was added (start a new section for a new day rather than appending
   would bound it, at the cost of a threshold to tune.
 - Enforce line endings via `.gitattributes` — parked; no change yet. The repository has no `.gitattributes`, so Spotless
   normalizes only the files it owns; a `* text=auto eol=lf` (or per-type) policy would make it uniform.
-- Pass `-z` to the checker's remaining git path-parsing sites — parked; no change yet. The `git ls-files -s` parse in
-  `find_non_executable_scripts` was fixed with `-z`, but `staged_paths` (`git diff --cached --name-only`),
-  `find_tracked_ignored` (`git ls-files --cached --ignored`), and `find_staged_then_edited` (`git status --porcelain`)
-  still C-quote a non-ASCII path — so `formatter_owned`'s `.endswith(FORMATTER_OWNED)`, which decides whether the guard
-  runs the formatter, silently skips it. The AGENTS.md git-path-quoting lesson names the fix.
 - Widen the `commit-hygiene` test-coverage requirement to every check — parked; no change yet. The spec's "The guard's
   checks are covered by tests run in the build" is scoped to the guard's classes, while the build checks
   (`verifyCapturedMarkers`, `verifyTrackedIgnoredFiles`, `verifyConflictMarkers`, `verifyExecutableBits`,

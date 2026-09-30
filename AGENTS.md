@@ -1756,8 +1756,15 @@ capture-stash-stale-copy
     partial result. A parsed command's output is a third under-match source: `git ls-files -s` C-quotes any path holding
     non-ASCII bytes (`"caf\303\251.sh"`, `core.quotePath` defaulting on), so a `.endswith(".sh")` filter silently skips
     it and the check reports a clean set it never examined — pass `-z` to any git command whose paths you parse
-    (NUL-delimited and unquoted) and keep a positive-control test with a non-ASCII path. captured:
-    make-captured-rules-traceable (#279) captured: add-conflict-marker-and-executable-bit-checks
+    (NUL-delimited and unquoted) and keep a positive-control test with a non-ASCII path. Deriving the record shape is
+    not enough: a `-z` fix that must skip a field git emits _beside_ the path (a rename's old name) placed the skip
+    **inside** the branch that tests the record, so the neighbour state that never enters it — a clean rename, `R ` with
+    no worktree edit — leaked the field and yielded a bogus path (`['txt']` from `git mv RM.txt New.txt`), which would
+    have blocked a legitimate commit. Put a field-skip **before** the branch test, and derive the fixture from the state
+    space (a clean rename and an edited one are two cases), not from the one case the design's scratch fixture happened
+    to model — a test mirroring only the case you were thinking about passes against code that is wrong for its
+    neighbour. captured: make-captured-rules-traceable (#279) captured: add-conflict-marker-and-executable-bit-checks
+    captured: quote-safe-git-path-parsing
   - **A lookup that yields no readable version reads as current.** `buildpackUpdates` (like `helmUpdates`) maps a failed
     lookup to "no update", so a wrongly-built URL or renamed repository reads as current — and so does a parse pattern
     that cannot match the provider's real body. Verify a new or changed check by temporarily pinning a known-older

@@ -33,8 +33,8 @@ def git(repo: Path, *args: str) -> subprocess.CompletedProcess:
 
 
 def staged_paths(repo: Path) -> list[str]:
-    result = git(repo, "diff", "--cached", "--name-only", "--diff-filter=ACMR")
-    return [line for line in result.stdout.splitlines() if line]
+    result = git(repo, "diff", "--cached", "--name-only", "-z", "--diff-filter=ACMR")
+    return [path for path in result.stdout.split("\0") if path]
 
 
 def staged_file_text(repo: Path, path: str) -> Optional[str]:
@@ -44,21 +44,29 @@ def staged_file_text(repo: Path, path: str) -> Optional[str]:
 
 def find_staged_then_edited(repo: Path) -> list[str]:
     offenders = []
-    for line in git(repo, "status", "--porcelain").stdout.splitlines():
+    # `-z` NUL-separates the records and, for a rename, emits the new name in the status-prefixed field followed by the
+    # old name as its own field with no status columns. That old-name field must be skipped for EVERY rename, before the
+    # offender test: a clean rename (`R ` with an unmodified worktree) does not enter the branch below, and an old name
+    # whose first two characters look like status columns (e.g. `RM.txt`) would otherwise be read as a record and yield
+    # a bogus path such as `txt`.
+    records = git(repo, "status", "--porcelain", "-z").stdout.split("\0")
+    index = 0
+    while index < len(records):
+        line = records[index]
+        index += 1
         if len(line) < 3:
             continue
         index_status, worktree_status = line[0], line[1]
+        if index_status == "R":
+            index += 1
         if index_status in "MARC" and worktree_status in "MADRC":
-            path = line[3:]
-            if " -> " in path:
-                path = path.split(" -> ", 1)[1]
-            offenders.append(path.strip('"'))
+            offenders.append(line[3:])
     return offenders
 
 
 def find_tracked_ignored(repo: Path) -> list[str]:
-    result = git(repo, "ls-files", "--cached", "--ignored", "--exclude-standard")
-    return [line for line in result.stdout.splitlines() if line]
+    result = git(repo, "ls-files", "--cached", "--ignored", "--exclude-standard", "-z")
+    return [path for path in result.stdout.split("\0") if path]
 
 
 def find_force_staged_artifacts(repo: Path) -> list[str]:

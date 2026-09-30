@@ -220,10 +220,12 @@ case "$hooks_path" in
 '') hooks_resolved="" ;;
 *) hooks_resolved="${repo_root:-.}/$hooks_path" ;;
 esac
+# The hooks are advisory, not required: a clone that has not run install-git-hooks.sh still builds and tests (the hooks
+# guard commits, not the default build-and-test path), so an uninstalled hook is reported without failing the run.
 if [ -n "$hooks_resolved" ] && [ -x "$hooks_resolved/pre-commit" ]; then
-    report "git-hooks" required "$status_ok" "$hooks_path" ""
+    report "git-hooks" optional "$status_ok" "$hooks_path" ""
 else
-    report "git-hooks" required "$status_missing" "" "./scripts/install-git-hooks.sh"
+    report "git-hooks" optional "$status_missing" "" "./scripts/install-git-hooks.sh"
 fi
 
 if command -v docker >/dev/null 2>&1; then

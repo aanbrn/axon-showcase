@@ -177,8 +177,13 @@ is the design to adopt, not re-derive; a false absence claim runs a whole propos
 duplicates what exists. `add-readme-auditor`'s planning proposed widening `agents-auditor` past the parked
 `readme-auditor` idea the repo already had, caught by the owner rather than a gate; an
 `enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import rule that ADR-0013's Accepted
-Decision already forbade, caught by a reviewer. captured: spec-cache-fallback-failed-fetch-contract captured:
-enforce-web-ui-import-boundaries
+Decision already forbade, caught by a reviewer. Before treating a spec change as owed, read the spec's **existing**
+wording for the behavior the code implements — the contract may already state it, in which case the fix is code→spec
+alignment, not a spec rewrite. `#455`'s `scripts/doctor.sh` classified the repo-state checks as `required` while
+`showcase/quality/toolchain-check` already carried the exit contract ("unsatisfied prerequisites for the **default
+build-and-test path**") and only ever had the hooks _reported_, so the defect was a classification chosen in the code
+and never written into the spec. captured: spec-cache-fallback-failed-fetch-contract captured:
+enforce-web-ui-import-boundaries captured: classify-repo-state-checks
 
 **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's own
 prior reconciliation.** ADR-0002 makes the Java `@ConfigurationProperties` the surface that owns a property's default,

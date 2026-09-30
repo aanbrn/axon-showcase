@@ -5,10 +5,7 @@ set -euo pipefail
 # changes, AGENTS.md gotchas, and docs/ideas.md. The window applies to the events — merged PRs and the git log; the
 # archived changes, AGENTS.md gotchas, and docs/ideas.md are current state and are gathered in full. Prints a structured
 # digest to stdout for the main agent to feed to `.opencode/agent/experience-analyzer.md`.
-# Run it through `/retrospective`: the digest is agent input, not a contributor report. It lives under `scripts/`
-# because that is the repo's home for dev tooling whatever the caller — the human-documented `setup-idea.sh` and its
-# script-only helper `ensure-idea-settings.py` sit alongside it — while `.opencode/` has no root-level script location
-# (its entry points are agents, commands, skills, and plugins).
+# Run it through `/retrospective`: the digest is agent input, not a contributor report.
 # Usage: ./scripts/experience-analysis.sh [since]   (since defaults to 7 days ago, e.g. 2026-09-02)
 
 # Portable 7-days-ago: BSD date (macOS) uses -v-7d, GNU date (Linux) uses --date=-7day.

@@ -1186,6 +1186,18 @@ Key modules (libraries, not services):
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired
   plugin version and update the recorded version here and in the `showcase/quality/agent-skills` spec — a deliberate,
   reviewed change, not silent drift.
+- **Tooling lives in a stated place, in four kinds of location — state it here, not per script.** Repository-wide
+  tooling goes in `scripts/`; a module's own tooling stays beside that module
+  (`showcase-web-ui/scripts/outdated-report.sh`, `showcase-web-ui/start.sh`); the repository root carries only the
+  generated `gradlew` and the human-facing setup entry points `db.sh` / `setup-hosts.sh`; and `.opencode/` holds the
+  OpenCode-runtime surface — agents, commands, skills — with **no executable**, so a command may trigger a `scripts/`
+  tool but never hosts its implementation. A `scripts/` tool an agent drives gets its own command trigger, and the tool
+  keeps the implementation (`doctor.sh` ↔ `/check-tooling`, `setup-idea.sh` ↔ `/setup-idea`, `experience-analysis.sh` ↔
+  `/retrospective`); a tool with no agent caller stays untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`),
+  and `commit-hygiene.py` is driven by the tracked `git-hooks/pre-commit` and by the Gradle `verify*` tasks. The
+  generated OpenSpec command/skill files and the vendored `axon4to5-*` skills are not the repository's to place. Derive
+  any claim about placement from the complete set (`git ls-files -s | awk '$1=="100755"'`), not from the location in
+  hand. captured: state-tooling-placement-rule (#456)
 - **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
   `.opencode/commands/setup-agent-tools.md` (project-local, **not** one of the vendored `axon4to5-*` skills) let a
   contributor ask the agent to wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only,
@@ -2011,24 +2023,29 @@ capture-stash-stale-copy
   exclusions from memory and counted the vendored `axon4to5-*` and generated `openspec-*` skill files as gated, while
   the target's own `target(...)` / `targetExclude(...)` entries put them on the excluded side (the project-authored
   skills stay gated) — and _both_ splits summed to the same total, so the arithmetic check cannot catch it. For a
-  gated-vs-excluded split, or any enumeration or partition of a set the build or config declares — the root `check`
-  task's members, a CLI's modes — derive the members from that declaration (`build.gradle.kts`'s `check` block, its
-  `target`/`targetExclude` entries), not from intent or a hand-written complement, and update every doc that enumerates
-  the set when a change adds a member; never write the resulting totals into a durable artifact — they move with every
-  change the corpus gains. captured: gate-github-markdown-with-prettier Name a count's referent and check its arithmetic
-  against the total it belongs to: an early draft of the `make-captured-rules-traceable` design wrote "46 of them
-  capture-class, and those 65 are concentrated in Gotchas (41) and Conventions (21)" — 41 + 21 = 62, so the split could
-  not belong to the 46; it was the 65-bullet set the same sentence also named, and the mismatch was invisible until the
-  review did the addition. Distinguish a point-in-time count from a durable one: an exact count of a growing corpus
-  (capability specs, requirements, archived changes) belongs in a change's own artifacts, where a stale snapshot does no
-  harm, and never in a durable artifact (a subagent definition loaded on every invocation, `AGENTS.md`, the README, a
-  command file, a main spec) — where it drifts on every archive and becomes exactly the drift the `specs-auditor` exists
-  to catch. The `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the change's own delta made
-  the main spec hold 158, and the README still stated a hard "22 capability specs". Describe the shape instead of
-  freezing a tally — the `specs-auditor` definition now says "a corpus … that grows with every archived change", and the
-  README's "120+ and counting" is the pattern to follow. A process count — review rounds, elapsed time, effort — is not
-  a durable fact either, though for a different reason: no reader can verify it from the repository at all, so describe
-  it qualitatively ("repeated review rounds"), not as a precise number. That targets _human_ process narrative — effort,
+  gated-vs-excluded split, or any enumeration or partition of a set the repository declares — the root `check` task's
+  members, a CLI's modes, the tracked executables (`git ls-files -s | awk '$1=="100755"'`) — derive the members from
+  that declaration (`build.gradle.kts`'s `check` block, its `target`/`targetExclude` entries, the `git ls-files` query),
+  not from intent or a hand-written complement, and update every doc that enumerates the set when a change adds a
+  member; never write the resulting totals into a durable artifact — they move with every change the corpus gains. A
+  list attached to such a set must not read as complete while naming a subset, and a claim **patched at the instance is
+  still wrong one level down**: a placement rule first drafted as "executables live in `scripts/`" was corrected for the
+  repo-root wrappers, then re-broken by the module-local pair, while the sibling clauses of the same rule enumerated 2/2
+  and 3/3 so its `scripts/` colon-list (5 of 8) read as exhaustive — derive the claim from the complete set, and either
+  enumerate a set in full or name the location only. Name a count's referent and check its arithmetic against the total
+  it belongs to: an early draft of the `make-captured-rules-traceable` design wrote "46 of them capture-class, and those
+  65 are concentrated in Gotchas (41) and Conventions (21)" — 41 + 21 = 62, so the split could not belong to the 46; it
+  was the 65-bullet set the same sentence also named, and the mismatch was invisible until the review did the addition.
+  Distinguish a point-in-time count from a durable one: an exact count of a growing corpus (capability specs,
+  requirements, archived changes) belongs in a change's own artifacts, where a stale snapshot does no harm, and never in
+  a durable artifact (a subagent definition loaded on every invocation, `AGENTS.md`, the README, a command file, a main
+  spec) — where it drifts on every archive and becomes exactly the drift the `specs-auditor` exists to catch. The
+  `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the change's own delta made the main spec
+  hold 158, and the README still stated a hard "22 capability specs". Describe the shape instead of freezing a tally —
+  the `specs-auditor` definition now says "a corpus … that grows with every archived change", and the README's "120+ and
+  counting" is the pattern to follow. A process count — review rounds, elapsed time, effort — is not a durable fact
+  either, though for a different reason: no reader can verify it from the repository at all, so describe it
+  qualitatively ("repeated review rounds"), not as a precise number. That targets _human_ process narrative — effort,
   review rounds, how long a session ran — which no machine-measured evidence records; a _machine-measured_ figure is a
   different class, since the CI run log is its evidence, so an order-of-magnitude build cost (the one-time-full-rebuild
   vs warm CI timings above) is not a process count and need not be made qualitative. A named example or mechanism inside
@@ -2036,7 +2053,7 @@ capture-stash-stale-copy
   which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in the test JVM — a false example
   that surfaced only when ADR-0009 had to restate the same rule. When a second artifact restates an existing fact, diff
   the two against the code rather than copying the prose. captured: make-captured-rules-traceable (#279) captured:
-  verify-tracked-ignored-files
+  verify-tracked-ignored-files captured: state-tooling-placement-rule (#456)
 
 - **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
   is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`

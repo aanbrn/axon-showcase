@@ -1197,7 +1197,7 @@ Key modules (libraries, not services):
   and `commit-hygiene.py` is driven by the tracked `git-hooks/pre-commit` and by the Gradle `verify*` tasks. The
   generated OpenSpec command/skill files and the vendored `axon4to5-*` skills are not the repository's to place. Derive
   any claim about placement from the complete set (`git ls-files -s | awk '$1=="100755"'`), not from the location in
-  hand. captured: state-tooling-placement-rule (#456)
+  hand. captured: state-tooling-placement-rule (#458)
 - **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
   `.opencode/commands/setup-agent-tools.md` (project-local, **not** one of the vendored `axon4to5-*` skills) let a
   contributor ask the agent to wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only,
@@ -2053,7 +2053,7 @@ capture-stash-stale-copy
   which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in the test JVM — a false example
   that surfaced only when ADR-0009 had to restate the same rule. When a second artifact restates an existing fact, diff
   the two against the code rather than copying the prose. captured: make-captured-rules-traceable (#279) captured:
-  verify-tracked-ignored-files captured: state-tooling-placement-rule (#456)
+  verify-tracked-ignored-files captured: state-tooling-placement-rule (#458)
 
 - **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
   is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`

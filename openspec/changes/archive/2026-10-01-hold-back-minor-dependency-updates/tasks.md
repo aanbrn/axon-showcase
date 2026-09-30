@@ -82,9 +82,10 @@
       `./gradlew check -PskipITs -Pcoverage.gate.enabled=false`; confirm both green. Re-run `spotlessApply` after any
       last edit to a Spotless-owned file (a task tick included) and re-check `spotlessCheck`. — verified: build-logic
       test green; `check -PskipITs -Pcoverage.gate.enabled=false` BUILD SUCCESSFUL in 1m50s.
-- [ ] 3.2 Refresh the `showcase/quality/dependency-management` `## Purpose` (its current text describes major-only
+- [x] 3.2 Refresh the `showcase/quality/dependency-management` `## Purpose` (its current text describes major-only
       suppression) to cover the hold-back list — a delta cannot carry a Purpose, so this edit lands in the archive
-      commit per `AGENTS.md`. Record the deferral in the change report.
+      commit per `AGENTS.md`. Record the deferral in the change report. — applied in the archive commit: the Purpose now
+      names the hold-back list alongside the major-disabled suppression.
 - [x] 3.3 Run the `lesson-capture` subagent over the diff, review findings, and change dir; apply its durable
       `AGENTS.md` proposals and record the applied net `AGENTS.md` delta on this task. — applied: one merge into the
       existing config-read-path gotcha (a format the repository defines is parsed and unit-tested by the repo, not read

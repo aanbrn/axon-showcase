@@ -15,6 +15,14 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-09-30
 
+- Make `scripts/test-doctor.sh` derive the probe classes it asserts, rather than hand-copying what it checks — parked;
+  no change yet. Its header says the tool list is derived from the doctor's `report`/`check_tool` call sites (and
+  `doctor_tools` is), but `state_probes` and `non_table_probes` are hand-written name lists, and the test asserts no
+  **class** at all — so the `git-hooks` `required`→`optional` correction (`classify-repo-state-checks`) passed it
+  silently and only a controlled run caught the defect. Deriving each probe's class from the same call sites the test
+  already parses is mechanically cheap, and the general lesson (a check whose input set is narrower than what it reads
+  is not a check) is already captured — this is the concrete instance, not a new rule.
+
 - Retire the OpenSpec config probe and the `/opsx-tool-update` re-verification once `validate` checks the config —
   parked; no change yet. `Fission-AI/OpenSpec#1891` closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still
   unmerged and in no release (the latest CLI, our pinned `1.13.2`, has no `inspectProjectConfig`), so the `ci.yml` probe

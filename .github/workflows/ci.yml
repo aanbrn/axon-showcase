@@ -43,8 +43,23 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/actionlint"
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) \
-            latest "$RUNNER_TEMP/actionlint"
+          # Retried: the installer fetches its own release asset with curl piped straight into tar, honouring no retry
+          # flag or environment variable, so a transient upstream failure (an HTTP 504 clears within minutes) would
+          # otherwise fail this gate with an unrelated error — a red main and a manual re-run.
+          for attempt in 1 2 3; do
+            if bash <(curl -fsSL \
+              https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) \
+              latest "$RUNNER_TEMP/actionlint"; then
+              install_ok=1
+              break
+            fi
+            echo "::warning::actionlint install attempt $attempt failed; retrying"
+            sleep 5
+          done
+          if [ "${install_ok:-}" != 1 ]; then
+            echo "::error::actionlint could not be installed after 3 attempts"
+            exit 1
+          fi
           echo "$RUNNER_TEMP/actionlint" >> "$GITHUB_PATH"
 
       - name: Run quality gates

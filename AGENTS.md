@@ -1818,8 +1818,11 @@ capture-stash-stale-copy
     `verifyExecutableBits` reads the git index (`git ls-files -s`), so `chmod 644 scripts/doctor.sh` left the gate green
     until the mode change was `git add`-ed, so perturb the surface the check reads, not the one a tool writes; and a
     control in a pipeline reads the **sink's** status, not the subject's (`cmd | tail; echo $?` reports `tail`), so a
-    control whose exit code you did not take from the command under test proves nothing. captured:
-    widen-config-probe-to-guidance captured: enforce-web-ui-naming-conventions captured: check-toolchain-prerequisites
+    control whose exit code you did not take from the command under test proves nothing. A control harness for a
+    workflow `run:` block must execute that step's own shell with the collaborator substituted — no test covers the
+    block and here only actionlint reads it (no shellcheck) — and be syntax-checked itself (`bash -n`) before its exit
+    codes are trusted. captured: widen-config-probe-to-guidance captured: enforce-web-ui-naming-conventions captured:
+    check-toolchain-prerequisites captured: retry-the-actionlint-download
   - **A check whose input set is narrower than what it reads is not a check — whether the set varies by task graph or
     omits a file the tool reads.** `verifyModuleDependencies` inspected 36 edges standalone and 47 under `check`, the
     11-edge difference being exactly the project dependencies declared inside `testing { suites { … } }` blocks: a
@@ -2058,32 +2061,37 @@ capture-stash-stale-copy
   that declaration (`build.gradle.kts`'s `check` block, its `target`/`targetExclude` entries, the `git ls-files` query),
   not from intent or a hand-written complement, and update every doc that enumerates the set when a change adds a
   member; never write the resulting totals into a durable artifact — they move with every change the corpus gains. A
-  list attached to such a set must not read as complete while naming a subset, and a claim **patched at the instance is
-  still wrong one level down**: a placement rule first drafted as "executables live in `scripts/`" was corrected for the
-  repo-root wrappers, then re-broken by the module-local pair, while the sibling clauses of the same rule enumerated 2/2
-  and 3/3 so its `scripts/` colon-list (5 of 8) read as exhaustive — derive the claim from the complete set, and either
-  enumerate a set in full or name the location only. Name a count's referent and check its arithmetic against the total
-  it belongs to: an early draft of the `make-captured-rules-traceable` design wrote "46 of them capture-class, and those
-  65 are concentrated in Gotchas (41) and Conventions (21)" — 41 + 21 = 62, so the split could not belong to the 46; it
-  was the 65-bullet set the same sentence also named, and the mismatch was invisible until the review did the addition.
-  Distinguish a point-in-time count from a durable one: an exact count of a growing corpus (capability specs,
-  requirements, archived changes) belongs in a change's own artifacts, where a stale snapshot does no harm, and never in
-  a durable artifact (a subagent definition loaded on every invocation, `AGENTS.md`, the README, a command file, a main
-  spec) — where it drifts on every archive and becomes exactly the drift the `specs-auditor` exists to catch. The
-  `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the change's own delta made the main spec
-  hold 158, and the README still stated a hard "22 capability specs". Describe the shape instead of freezing a tally —
-  the `specs-auditor` definition now says "a corpus … that grows with every archived change", and the README's "120+ and
-  counting" is the pattern to follow. A process count — review rounds, elapsed time, effort — is not a durable fact
-  either, though for a different reason: no reader can verify it from the repository at all, so describe it
-  qualitatively ("repeated review rounds"), not as a precise number. That targets _human_ process narrative — effort,
-  review rounds, how long a session ran — which no machine-measured evidence records; a _machine-measured_ figure is a
-  different class, since the CI run log is its evidence, so an order-of-magnitude build cost (the one-time-full-rebuild
-  vs warm CI timings above) is not a process count and need not be made qualitative. A named example or mechanism inside
-  a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep it on "the gateway e2e test,
-  which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in the test JVM — a false example
-  that surfaced only when ADR-0009 had to restate the same rule. When a second artifact restates an existing fact, diff
-  the two against the code rather than copying the prose. captured: make-captured-rules-traceable (#279) captured:
-  verify-tracked-ignored-files captured: state-tooling-placement-rule (#458)
+  claim about what a gate, task, or check _runs_ is the same class: derive it from that tool's own definition — its task
+  registration and `commandLine` — not from recall. `workflowLint` runs `actionlint` alone (the repository installs and
+  documents no `shellcheck`; actionlint invokes it only if it happens to be on `PATH`), yet two artifacts asserted
+  "actionlint + shellcheck" — the `add-actionlint-gate` proposal that named a spec scenario, and a later change's
+  verification story. A list attached to such a set must not read as complete while naming a subset, and a claim
+  **patched at the instance is still wrong one level down**: a placement rule first drafted as "executables live in
+  `scripts/`" was corrected for the repo-root wrappers, then re-broken by the module-local pair, while the sibling
+  clauses of the same rule enumerated 2/2 and 3/3 so its `scripts/` colon-list (5 of 8) read as exhaustive — derive the
+  claim from the complete set, and either enumerate a set in full or name the location only. Name a count's referent and
+  check its arithmetic against the total it belongs to: an early draft of the `make-captured-rules-traceable` design
+  wrote "46 of them capture-class, and those 65 are concentrated in Gotchas (41) and Conventions (21)" — 41 + 21 = 62,
+  so the split could not belong to the 46; it was the 65-bullet set the same sentence also named, and the mismatch was
+  invisible until the review did the addition. Distinguish a point-in-time count from a durable one: an exact count of a
+  growing corpus (capability specs, requirements, archived changes) belongs in a change's own artifacts, where a stale
+  snapshot does no harm, and never in a durable artifact (a subagent definition loaded on every invocation, `AGENTS.md`,
+  the README, a command file, a main spec) — where it drifts on every archive and becomes exactly the drift the
+  `specs-auditor` exists to catch. The `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the
+  change's own delta made the main spec hold 158, and the README still stated a hard "22 capability specs". Describe the
+  shape instead of freezing a tally — the `specs-auditor` definition now says "a corpus … that grows with every archived
+  change", and the README's "120+ and counting" is the pattern to follow. A process count — review rounds, elapsed time,
+  effort — is not a durable fact either, though for a different reason: no reader can verify it from the repository at
+  all, so describe it qualitatively ("repeated review rounds"), not as a precise number. That targets _human_ process
+  narrative — effort, review rounds, how long a session ran — which no machine-measured evidence records; a
+  _machine-measured_ figure is a different class, since the CI run log is its evidence, so an order-of-magnitude build
+  cost (the one-time-full-rebuild vs warm CI timings above) is not a process count and need not be made qualitative. A
+  named example or mechanism inside a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep
+  it on "the gateway e2e test, which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in
+  the test JVM — a false example that surfaced only when ADR-0009 had to restate the same rule. When a second artifact
+  restates an existing fact, diff the two against the code rather than copying the prose. captured:
+  make-captured-rules-traceable (#279) captured: verify-tracked-ignored-files captured: state-tooling-placement-rule
+  (#458)
 
 - **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
   is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`

@@ -54,7 +54,7 @@ axon-showcase/
 ├── Scripts
 │   ├── db.sh                            # Database setup (init / drop / reset)
 │   ├── setup-hosts.sh                   # Manage /etc/hosts entries for the local ingress
-│   └── scripts/                         # Dev tooling: setup-idea.sh, experience-analysis.sh
+│   └── scripts/                         # Dev tooling: checkers, dev scripts, and guards
 ```
 
 ## The Cool Story

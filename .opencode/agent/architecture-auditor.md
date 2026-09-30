@@ -52,7 +52,8 @@ Within the advisory section, report **where clarification of intent is missing**
 absence whose rationale is not recorded anywhere. Surface only what a rationale must exist for, by checking:
 
 - dependency `exclude(...)` declarations in the build files;
-- major-version-suppressed coordinates in `config/dependency-updates/major-disabled.properties`;
+- major-version-suppressed coordinates in `config/dependency-updates/major-disabled.properties`, and coordinates held
+  back at a version line in `config/dependency-updates/hold-back.properties`;
 - suppression annotations that encode a design choice (`@SuppressWarnings`), and deprecated-API usages the project still
   carries;
 - deferrals and band-aids recorded in an ADR or parked in `docs/ideas.md`.

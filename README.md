@@ -727,8 +727,11 @@ surfaced as a trigger to check rather than declared actionable — observational
 `dependencyUpdates` reports newer versions of dependencies whose version is declared with an exact `version.ref` in the
 version catalog (`gradle/libs.versions.toml`); BOM-inherited versions are not reported. Major updates can be suppressed
 per coordinate or group prefix in `config/dependency-updates/major-disabled.properties` — minor and patch updates for
-those coordinates are still reported. The suppression rationale for each coordinate is recorded in the
-`showcase/quality/dependency-management` spec. See ADR-0004 for the deferred Spring Boot 4 migration context.
+those coordinates are still reported. A coordinate can also be held back at a version line in
+`config/dependency-updates/hold-back.properties`: updates on a newer minor line within the same major are suppressed,
+while patches within the held line and any major jump stay reported. The rationale for each suppressed or held-back
+coordinate is recorded in the `showcase/quality/dependency-management` spec. See ADR-0004 for the deferred Spring Boot 4
+migration context.
 
 The web UI's npm dependencies are covered separately: `:showcase-web-ui:npmOutdated` reports their available updates and
 `:showcase-web-ui:npmAudit` audits them for high-severity vulnerabilities. See ADR-0014 for why the web UI uses npm's

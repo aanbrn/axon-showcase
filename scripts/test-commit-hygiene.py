@@ -45,14 +45,41 @@ class StagedThenEditedTests(unittest.TestCase):
 
         self.assertEqual([], commit_hygiene.find_staged_then_edited(repo))
 
+    def test_a_non_ascii_path_staged_and_then_edited_is_reported_by_real_name(self):
+        repo = make_repo(self)
+        (repo / "café.txt").write_text("one", encoding="utf-8")
+        subprocess.run(("git", "add", "café.txt"), cwd=repo, check=True)
+        (repo / "café.txt").write_text("two", encoding="utf-8")
+
+        self.assertEqual(["café.txt"], commit_hygiene.find_staged_then_edited(repo))
+
+    def test_a_renamed_staged_path_does_not_yield_a_bogus_offender(self):
+        repo = make_repo(self)
+        (repo / "RM.txt").write_text("one", encoding="utf-8")
+        subprocess.run(("git", "add", "RM.txt"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
+        subprocess.run(("git", "mv", "RM.txt", "New.txt"), cwd=repo, check=True)
+        (repo / "New.txt").write_text("two", encoding="utf-8")
+
+        self.assertEqual(["New.txt"], commit_hygiene.find_staged_then_edited(repo))
+
+    def test_a_clean_rename_is_not_reported(self):
+        repo = make_repo(self)
+        (repo / "RM.txt").write_text("one", encoding="utf-8")
+        subprocess.run(("git", "add", "RM.txt"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
+        subprocess.run(("git", "mv", "RM.txt", "New.txt"), cwd=repo, check=True)
+
+        self.assertEqual([], commit_hygiene.find_staged_then_edited(repo))
+
 
 class TrackedIgnoredTests(unittest.TestCase):
-    def _repo_with_committed_artifact(self) -> Path:
+    def _repo_with_committed_artifact(self, name: str = "a.pyc") -> Path:
         repo = make_repo(self)
         (repo / ".gitignore").write_text("*.pyc\n", encoding="utf-8")
-        (repo / "a.pyc").write_text("x", encoding="utf-8")
+        (repo / name).write_text("x", encoding="utf-8")
         subprocess.run(("git", "add", ".gitignore"), cwd=repo, check=True)
-        subprocess.run(("git", "add", "-f", "a.pyc"), cwd=repo, check=True)
+        subprocess.run(("git", "add", "-f", name), cwd=repo, check=True)
         subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
         return repo
 
@@ -68,6 +95,11 @@ class TrackedIgnoredTests(unittest.TestCase):
         subprocess.run(("git", "commit", "-q", "-m", "add"), cwd=repo, check=True)
 
         self.assertEqual([], commit_hygiene.find_tracked_ignored(repo))
+
+    def test_a_non_ascii_force_committed_ignored_file_is_reported_by_real_name(self):
+        repo = self._repo_with_committed_artifact(name="café.pyc")
+
+        self.assertEqual(["café.pyc"], commit_hygiene.find_tracked_ignored(repo))
 
     def test_tracked_ignored_mode_reports_the_offender(self):
         repo = self._repo_with_committed_artifact()
@@ -109,6 +141,15 @@ class ForceStagedArtifactTests(unittest.TestCase):
         subprocess.run(("git", "add", "a.txt"), cwd=repo, check=True)
 
         self.assertEqual([], commit_hygiene.find_force_staged_artifacts(repo))
+
+    def test_a_non_ascii_force_staged_artifact_is_reported_across_both_sites(self):
+        repo = make_repo(self)
+        (repo / ".gitignore").write_text("*.pyc\n", encoding="utf-8")
+        (repo / "café.pyc").write_text("x", encoding="utf-8")
+        subprocess.run(("git", "add", ".gitignore"), cwd=repo, check=True)
+        subprocess.run(("git", "add", "-f", "café.pyc"), cwd=repo, check=True)
+
+        self.assertEqual(["café.pyc"], commit_hygiene.find_force_staged_artifacts(repo))
 
 
 class MisplacedMarkerTests(unittest.TestCase):
@@ -162,6 +203,16 @@ class FormatterTests(unittest.TestCase):
         with contextlib.redirect_stderr(io.StringIO()):
             code = commit_hygiene.check_staged(repo, formatter)
         return code
+
+    def test_a_non_ascii_formatter_owned_file_is_staged_under_its_real_name(self):
+        repo = make_repo(self)
+        (repo / "café.md").write_text("# A\n", encoding="utf-8")
+        subprocess.run(("git", "add", "café.md"), cwd=repo, check=True)
+
+        staged = commit_hygiene.staged_paths(repo)
+
+        self.assertIn("café.md", staged)
+        self.assertEqual(["café.md"], commit_hygiene.formatter_owned(staged))
 
     def test_a_failing_formatter_refuses_the_commit(self):
         repo = make_repo(self)

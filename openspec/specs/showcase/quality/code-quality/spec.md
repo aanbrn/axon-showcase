@@ -158,7 +158,9 @@ needs an IDE to validate a change.
 
 The build SHALL lint every GitHub Actions workflow (`.github/workflows/*.yml`) with actionlint as part of the standard
 `check` task, so workflow syntax and `run:` script errors surface locally instead of failing remotely after push. If
-`actionlint` is not installed, the gate SHALL fail with a clear message naming the tool.
+`actionlint` is not installed, the gate SHALL fail with a clear message naming the tool. Where the merge gate installs
+that tool in CI, the install SHALL be resilient to a transient download failure — retried before the step fails — so an
+upstream hiccup does not fail a gate whose subject is the repository's own workflows.
 
 #### Scenario: Workflow lint runs in the standard check
 
@@ -179,6 +181,12 @@ The build SHALL lint every GitHub Actions workflow (`.github/workflows/*.yml`) w
 
 - **WHEN** the lint check runs on a machine without `actionlint` installed
 - **THEN** it fails with a message naming `actionlint` as the required tool
+
+#### Scenario: A transient install failure is retried before the step fails
+
+- **WHEN** the merge gate's install of the lint tool fails transiently (a download error that clears on a later attempt)
+- **THEN** the step retries the install, so the gate fails only once the retries are exhausted — not on a single
+  upstream hiccup whose subject is unrelated to the repository's workflows
 
 ### Requirement: The web module's formatting is applied by the build
 

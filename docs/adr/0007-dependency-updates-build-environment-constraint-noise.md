@@ -34,8 +34,8 @@ Alternatives considered and rejected:
   constraint updates (e.g. a tool raising its minimum version). Too broad a trade-off for one noisy row.
 - _`filterConfigurations` excluding `spotbugs*`_ — proven ineffective: the row persists because the constraint is read
   via the build-environment path, not a project configuration.
-- _Per-coordinate suppression in `config/dependency-updates/major-disabled.properties`_ — inapplicable: `2.26.1` vs
-  `2.17.1` is same-major, so the major-blocking rule cannot reject it.
+- _Per-coordinate suppression in `config/dependency-updates/major-disabled.txt`_ — inapplicable: `2.26.1` vs `2.17.1` is
+  same-major, so the major-blocking rule cannot reject it.
 
 ## Consequences
 

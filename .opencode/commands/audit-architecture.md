@@ -10,9 +10,8 @@ Run the architecture audit to check that the design the project records still ma
    `docs/adr/` in full plus the architectural surface (the service boundaries, the module dependency graph, and the spec
    corpus's capability decomposition), and sweeps the intent-clarification surfaces (dependency `exclude(...)`
    declarations, the major-version-suppressed coordinates and held-back coordinates in
-   `config/dependency-updates/major-disabled.properties` and `config/dependency-updates/hold-back.properties`, the
-   suppression annotations and retained deprecated APIs, and the deferrals and band-aids recorded in ADRs or
-   `docs/ideas.md`).
+   `config/dependency-updates/major-disabled.txt` and `config/dependency-updates/hold-back.txt`, the suppression
+   annotations and retained deprecated APIs, and the deferrals and band-aids recorded in ADRs or `docs/ideas.md`).
 2. Present its report in the contract it returns (the verdict line first, then the two sections — **findings** and
    **advisory** observations, each budgeted per item).
 3. Ask the user which findings to apply — an advisory observation, including an intent-clarification item (a question

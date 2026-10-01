@@ -14,4 +14,47 @@ class HelmUpdateRulesTests {
         assertThat(HelmUpdateRules.sameMajor(versions, "90.0.0")).isEqualTo("90.9.9")
         assertThat(HelmUpdateRules.sameMajor(versions, "89.0.0")).isNull()
     }
+
+    @Test
+    @DisplayName("A suppression list skips comments and blank lines and keeps each chart name whole")
+    fun suppressionListSkipsCommentsAndBlanks() {
+        val lines =
+            listOf(
+                "# Helm chart names whose MAJOR version updates are suppressed",
+                "",
+                "bitnami-postgresql",
+                "  bitnami-kafka  ",
+                "bitnami-opensearch",
+            )
+
+        assertThat(HelmUpdateRules.disabledEntries(lines))
+            .containsExactlyInAnyOrder("bitnami-postgresql", "bitnami-kafka", "bitnami-opensearch")
+    }
+
+    @Test
+    @DisplayName("A comment containing an equals sign is skipped whole, not split into an entry")
+    fun commentWithEqualsSignIsSkipped() {
+        val lines =
+            listOf(
+                "# see release=latest for how the tag is chosen",
+                "bitnami-kafka",
+            )
+
+        assertThat(HelmUpdateRules.disabledEntries(lines)).containsExactly("bitnami-kafka")
+    }
+
+    @Test
+    @DisplayName("An entry carrying a value is read up to the equals sign")
+    fun entryValueIsDiscarded() {
+        val lines = listOf("bitnami-postgresql=17.6")
+
+        assertThat(HelmUpdateRules.disabledEntries(lines)).containsExactly("bitnami-postgresql")
+    }
+
+    @Test
+    @DisplayName("An empty or comment-only list yields no entries")
+    fun emptyListYieldsNoEntries() {
+        assertThat(HelmUpdateRules.disabledEntries(emptyList())).isEmpty()
+        assertThat(HelmUpdateRules.disabledEntries(listOf("# just a comment", "   "))).isEmpty()
+    }
 }

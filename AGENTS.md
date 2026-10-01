@@ -654,14 +654,14 @@ re-warm lands pays the full rebuild once (the docs-only #138 raced #137's 10-min
 `.github/workflows/deployment-smoke.yml` runs a **deployment smoke** on a nightly schedule and via `workflow_dispatch`:
 it creates a throwaway `kind` cluster in the runner, builds the five images and loads them into it (kind's nodes cannot
 see the host daemon's images), installs the application, infrastructure, and ingress releases — not the observability —
-through the `ci` release target (`./gradlew helmInstallToCi`), whose values fit the runner's 4 vCPU, and drives the
-smoke profile at the deployed gateway through that ingress — a failed request fails the run, no performance numbers are
-recorded (a shared runner's timings are host state, not the system's, so a check that runs there asserts availability,
-not a latency threshold), and the cluster is deleted even when a step fails — after a failed run has printed the pods,
-their restart counts, and the service logs, so a failure names its cause. It exercises the chart's values, probes, and
-resource wiring, which neither e2e suite does (one boots the pipeline through Testcontainers, the other from compose,
-and neither installs the chart). It is observational — never a merge gate. captured: fix-the-deployment-smoke-503s
-(#424)
+through the `ci` release target (`./gradlew helmInstallToCi`), whose values fit the runner's 4 vCPU and whose
+`remoteTimeout` waits past Helm's default for the slow OpenSearch and ingress start, and drives the smoke profile at the
+deployed gateway through that ingress — a failed request fails the run, no performance numbers are recorded (a shared
+runner's timings are host state, not the system's, so a check that runs there asserts availability, not a latency
+threshold), and the cluster is deleted even when a step fails — after a failed run has printed the pods, their restart
+counts, and the service logs, so a failure names its cause. It exercises the chart's values, probes, and resource
+wiring, which neither e2e suite does (one boots the pipeline through Testcontainers, the other from compose, and neither
+installs the chart). It is observational — never a merge gate. captured: fix-the-deployment-smoke-503s (#424)
 
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same

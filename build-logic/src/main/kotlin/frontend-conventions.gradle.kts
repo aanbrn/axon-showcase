@@ -93,17 +93,30 @@ val npmTypeCheck =
         inputs.file("tsconfig.json")
     }
 
+/** The web UI packages whose major updates the `npmOutdated` report suppresses, read from the repo's config list. */
+fun npmMajorDisabled(): Set<String> {
+    val file = rootProject.layout.projectDirectory.file("config/web-ui-updates/major-disabled.txt").asFile
+    return if (file.exists()) NpmOutdatedRules.suppressedEntries(file.readLines()) else emptySet()
+}
+
 val npmOutdated =
     tasks.register<NpmTask>("npmOutdated") {
         group = "help"
-        description = "Reports the web UI's outdated npm dependencies (writes build/npm-outdated.txt)."
+        description =
+            "Reports the web UI's outdated npm dependencies, major-suppressed packages removed " +
+                "(writes build/npm-outdated.txt)."
         dependsOn(npmCi)
         args.set(listOf("run", "outdated:report"))
+        inputs.file(rootProject.layout.projectDirectory.file("config/web-ui-updates/major-disabled.txt"))
 
         doLast {
+            val raw = layout.buildDirectory.file("npm-outdated-raw.txt").get().asFile
             val report = layout.buildDirectory.file("npm-outdated.txt").get().asFile
             val error = layout.buildDirectory.file("npm-outdated.err.txt").get().asFile
             val exit = layout.buildDirectory.file("npm-outdated.exit").get().asFile
+            if (raw.exists()) {
+                report.writeText(NpmOutdatedRules.filterReport(raw.readLines(), npmMajorDisabled()))
+            }
             val updates = report.takeIf { it.exists() }?.readText().orEmpty()
             if (updates.isNotBlank()) {
                 logger.lifecycle("\nWeb UI dependency updates:\n$updates")

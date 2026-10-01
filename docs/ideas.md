@@ -62,15 +62,6 @@ dated when it was added (start a new section for a new day rather than appending
   the pipeline (gateway or OpenSearch tail latency under this cluster's state) or an artifact of the environment the
   measurement ran in is unestablished: the reference was refreshed to match reality, not to resolve it.
 
-## 2026-09-25
-
-- Suppress or schedule the web UI's npm major updates — parked; no change yet. The `migrate-web-ui-frontend-majors`
-  change took the eight frontend majors (React, Vite, Vitest, jsdom, `@vitejs/plugin-react`, and the
-  `@types/react(-dom)` pair) and bumped `typescript` to `6.0.3`; the single remaining major is `typescript` 6 → 7,
-  deferred because typescript-eslint caps TypeScript at `<6.1.0`. There is still no web UI major-suppression mechanism
-  (unlike the JVM's `config/dependency-updates/major-disabled.txt`), so the weekly tracker re-lists the deferred major —
-  and any future one — until a suppression list lands.
-
 ## 2026-09-24
 
 - Scan the source tree for secrets — parked; no change yet. `dependencySecurityCheck` (Snyk) scans dependencies, not

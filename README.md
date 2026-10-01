@@ -735,7 +735,8 @@ patches within the held line and any major jump stay reported. The rationale for
 is recorded in the `showcase/quality/dependency-management` spec. See ADR-0004 for the deferred Spring Boot 4 migration
 context.
 
-The web UI's npm dependencies are covered separately: `:showcase-web-ui:npmOutdated` reports their available updates and
+The web UI's npm dependencies are covered separately: `:showcase-web-ui:npmOutdated` reports their available updates —
+excluding the majors suppressed in `config/web-ui-updates/major-disabled.txt`, as the JVM report excludes its own — and
 `:showcase-web-ui:npmAudit` audits them for high-severity vulnerabilities. See ADR-0014 for why the web UI uses npm's
 own tooling rather than Snyk.
 

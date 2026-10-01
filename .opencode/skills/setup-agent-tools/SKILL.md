@@ -36,9 +36,11 @@ user before reading or editing files outside this repo.
    - If `gh` is missing, point the user at https://cli.github.com and stop this step.
    - If not authenticated, ask the user to run `gh auth login` (it is interactive — you cannot complete it) and wait.
    - If `shuymn/gh-mcp` is absent from `gh extension list`, run `gh extension install shuymn/gh-mcp`.
-   - If `opencode mcp list` shows no `github` server, run `opencode mcp add github -- gh mcp`. This writes the user's
-     global config; the `-- <command>` form is not shown in `opencode mcp add --help`, but it is the non-interactive
-     path and preserves JSONC comments. An entry with no `disabled` key is enabled by default.
+   - If `opencode mcp list` shows no `github` server, add it to the **flat** `mcp` map of the user's global config
+     (`~/.config/opencode/opencode.jsonc`) — beside the existing servers, as
+     `"github": { "type": "local", "command": ["gh", "mcp"] }`. An entry with no `disabled` key is enabled by default.
+     Write the flat map, not an `mcp.servers` nesting: OpenCode 1.x consumers (the npm `latest` line, and the agent
+     IntelliJ IDEA's AI launches) reject `mcp.servers`, while the flat map loads under both lines.
 
 3. **Steroid (optional — IntelliJ IDEA only).**
    - Ask whether the user wants the agent to work through their live IDE. If not, skip this step — nothing in the repo
@@ -48,7 +50,8 @@ user before reading or editing files outside this repo.
      re-check.
    - Install the MCP Steroid plugin into the running IDE with `devrig install plugin`, or point the user at the
      JetBrains Marketplace; the IDE shows its own confirmation dialog.
-   - If `opencode mcp list` shows no `steroid` server, run `opencode mcp add steroid -- devrig mcp` (or use the absolute
+   - If `opencode mcp list` shows no `steroid` server, add
+     `"steroid": { "type": "local", "command": ["devrig", "mcp"] }` to the same flat `mcp` map (use the absolute
      `devrig` path if the agent runs from a GUI, whose `PATH` may be minimal).
 
 4. **Verify and hand back.**
@@ -57,6 +60,10 @@ user before reading or editing files outside this repo.
 
 ## Notes
 
-- If `opencode mcp add` is unavailable, fall back to adding the entry under `mcp.servers` in the user's
-  `~/.config/opencode/opencode.jsonc` directly (with their confirmation).
-- If a `github` or `steroid` server already exists, leave it and say so; do not duplicate it.
+- Prefer editing the flat `mcp` map directly. `opencode mcp add` also works, but it defaults to the **project** config —
+  pass `--global` — and it writes the `servers` nesting, which 1.x consumers reject; if you use it, move the entry out
+  of `servers` into the flat map afterwards. (`anomalyco/opencode#49904`; retire this caveat when `mcp add` emits the
+  flat shape.)
+- If a `github` or `steroid` server already exists as a flat `mcp` entry, leave it and say so; do not duplicate it. If
+  it sits under an `mcp.servers` nesting (a config written before this change), offer to move it into the flat map —
+  that nesting is what makes the 1.x consumers refuse the file.

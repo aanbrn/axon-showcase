@@ -146,17 +146,18 @@ the authoritative policy may be adopted; one that cannot be reproduced is droppe
 
 **Report an upstream gap we identify, not only the workaround around it.** A dependency or tool we rely on is worth
 improving: when a gap is identified — a spurious update row, a deprecation with no fix, a limitation that forces a
-workaround — report it upstream with a reproduction and the evidence, and keep the reference where the constraint bites,
-with the close-out clause for when it lands. The workaround is ours to keep; the fix belongs where the defect is, and an
-upstream project improves only if its users say what is wrong. Post it through the review gate like any outward-facing
-artifact. Resolve the tool's owning repository from its own metadata before searching or filing
-(`npm view <pkg> repository.url`, the `homepage` field, or the CLI's docs) — a tool is not necessarily hosted where it
-is configured: the `openspec` CLI is `@fission-ai/openspec` on npm, tracked at `Fission-AI/OpenSpec`, not the repo it
-configures. Confirm a candidate duplicate by reading its body, not its title — `Fission-AI/OpenSpec#1322` reads like the
-config-rules defect but concerns rules keys valid for another schema, a different bug; a matching title is a lead, not a
-verdict. Name the close-out's exact retiring mechanism, not the broader ask it is one option under: a clause keyed on a
-wider condition (the config-rules issue's own close-out is at the read-path gotcha) can retire a guard on a change that
-cannot replace it.
+workaround — report it upstream with a reproduction and the evidence, and keep the reference where the constraint bites
+— and in a file the closure report scans, so its `retires when` can fire (see the upstream-reference bullet) — with the
+close-out clause for when it lands. The workaround is ours to keep; the fix belongs where the defect is, and an upstream
+project improves only if its users say what is wrong. Post it through the review gate like any outward-facing artifact.
+Resolve the tool's owning repository from its own metadata before searching or filing (`npm view <pkg> repository.url`,
+the `homepage` field, or the CLI's docs) — a tool is not necessarily hosted where it is configured: the `openspec` CLI
+is `@fission-ai/openspec` on npm, tracked at `Fission-AI/OpenSpec`, not the repo it configures. Confirm a candidate
+duplicate by reading its body, not its title — `Fission-AI/OpenSpec#1322` reads like the config-rules defect but
+concerns rules keys valid for another schema, a different bug; a matching title is a lead, not a verdict. Name the
+close-out's exact retiring mechanism, not the broader ask it is one option under: a clause keyed on a wider condition
+(the config-rules issue's own close-out is at the read-path gotcha) can retire a guard on a change that cannot replace
+it.
 
 **Interrogate the premise before designing a change — moving, copying, or removing existing state, or proposing a
 mechanism the repo may already have.** Establish _why the current state exists_, whether it is deliberate, and whether
@@ -1215,7 +1216,8 @@ Key modules (libraries, not services):
 - **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
   `.opencode/commands/setup-agent-tools.md` (project-local, **not** one of the vendored `axon4to5-*` skills) let a
   contributor ask the agent to wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only,
-  the Steroid MCP — into their global `~/.config/opencode/opencode.jsonc` via `opencode mcp add <name> -- <command…>`.
+  the Steroid MCP — into the flat `mcp` map of their global `~/.config/opencode/opencode.jsonc` (not the `mcp.servers`
+  nesting: `opencode mcp add` needs `--global`, and Gotchas carries the shape rationale and the upstream reference).
   Playwright is project-configured. The README deliberately documents only GitHub (and the project-configured
   Playwright): Steroid is optional, IDEA-only, and nothing in the repo requires it (formatting is Spotless), so it is
   surfaced on demand via `/setup-agent-tools` rather than advertised — do not re-add it to the README's server list.
@@ -1251,11 +1253,15 @@ Key modules (libraries, not services):
   array and `mcp.servers` envelope rather than the v2 spellings: the GitHub action the cloud workflows run installs
   `releases/latest` — the v1 line — and a v2-only `permissions` array makes v1 exit at startup
   (`V2 permissions are not supported by OpenCode V1`), which silently broke both cloud workflows until a dispatch
-  exposed it. Keep this file loadable by both majors; the local workflow still runs v2, per the README's row. Verify a
-  behavioural change to it — a new grant, model, or server — by dispatching the cloud workflow that loads it
-  (`gh workflow run audit.yml`): the `build` gate probes the config's load under the action's v1 binary when a pull
-  request changes it, but only a dispatch (or the next scheduled run) proves the workflow starts. captured:
-  migrate-opencode-config-to-v2 captured: retire-opencode-permission-plugin (#388) captured:
+  exposed it. The same applies to a contributor's **global** config: the ACP agent IntelliJ IDEA's AI launches is a 1.x
+  binary, and it exits on `permissions` (`Unrecognized key: permissions`) and on an `mcp.servers` key
+  (`Missing key mcp.servers.enabled`) — so the global config is kept in the flat `mcp` shape too, and the setup guidance
+  leads there. `opencode mcp add` writes that nesting upstream (`anomalyco/opencode#49904`); the guidance retires its
+  caveat when the command emits the flat shape. Keep this file loadable by both majors; the local workflow still runs
+  v2, per the README's row. Verify a behavioural change to it — a new grant, model, or server — by dispatching the cloud
+  workflow that loads it (`gh workflow run audit.yml`): the `build` gate probes the config's load under the action's v1
+  binary when a pull request changes it, but only a dispatch (or the next scheduled run) proves the workflow starts.
+  captured: migrate-opencode-config-to-v2 captured: retire-opencode-permission-plugin (#388) captured:
   fix-cloud-agent-config-for-v1 (#438)
 
 ## Docker Images
@@ -2223,30 +2229,34 @@ capture-stash-stale-copy
 - **A CLI's `--help` and its docs are not its contract — a missing flag, an asserted exit code, an assumed output
   stream, and a flag's default each have to be probed before a design keys on them.** The `setup-agent-tools` design
   originally asserted `opencode mcp add` was interactive "with no `--command` flag for a local server, so it cannot be
-  driven by the agent"; in fact `opencode mcp add <name> -- <command…>` is non-interactive, writes the global config,
-  and preserves JSONC comments — the `-- <command>` form is simply not shown in `opencode mcp add --help` (which shows
-  only the MCP-server flags `--url`, `--env`, `--header`). A quick review caught the false premise. Before designing
-  around a limitation ("this can't be automated"), verify it by trying the command or reading its source/docs — do not
-  infer impossibility from a help screen. The same holds for a capability the docs describe only _partially_: the
-  permissions docs name `~`/`$HOME` pattern expansion, and an `AGENTS.md` bullet wrongly concluded `{env:VAR}` was
-  unsupported. That false limitation survived the review gate and was only caught by reading the source, because a
-  tool's behavior is not repo-evidenced and no in-repo gate can check it. Treat a doc's account of a feature as a floor,
-  not a boundary, and verify a tool-behavior claim against the source/CLI before writing it into a durable artifact.
-  Confirm too that the file you read is the code path that runs: a package can hold a mock or test harness whose name
-  matches the entry point (`github/index.ts` is a local dev/test entry; the shipped handler is `github.handler.ts`), and
-  a matching filename or path is not evidence you read the implementation. The same probe-first rule covers a compiler
-  or build-tool semantics claim: a design drafted the premise that a precompiled `.gradle.kts` cannot see an `internal`
-  declaration, and a scratch `kotlin-dsl` build disproved it — the `internal object` compiles from the script, and only
-  `private` fails — so the shared helper stayed `internal` rather than being widened to `public`. Verify a visibility or
-  build-semantics claim with a minimal scratch build before it constrains a design. The web UI's npm checks asserted
-  npm's contract and took repeated review rounds to correct: `npm outdated` exits `1` both when updates exist and on
-  error (the report's content, not the exit code alone, is the discriminator), npm warns to stderr on clean runs (so
-  stderr is not the error signal), and `npm audit`'s default `--audit-level` resolves to `low`, not "moderate".
-  `npm update` reconciles the whole dependency graph rather than the packages you asked for: an in-range direct bump
-  moved its eslint cache stack (`file-entry-cache`, `flat-cache`, `keyv`) across majors, and npm 11 filled `license`
-  fields throughout the lockfile — so describe the lockfile diff by what moved (not as "patches/minors") and run the
-  frontend `check`. captured: test-build-logic-rules-and-unify-version-comparison (#306) captured:
-  monitor-web-ui-npm-dependencies (#395) captured: bump-gradle-and-web-ui-dependencies
+  driven by the agent"; in fact `opencode mcp add <name> -- <command…>` is non-interactive and preserves JSONC comments.
+  A quick review caught the false premise — and the correction held only for the CLI of its day: the same probe
+  concluded it "writes the global config", which 2.0.21 does not (it defaults to the **project** config; `--global`
+  writes the global one), and its `--help` does list the `-- <command>` form. A probe can also write into the
+  repository: `opencode mcp add` without `--global` dropped a server into this repo's project config — run a probe whose
+  default target is the repo from a scratch working directory (a scratch `HOME` can hang a CLI that starts a background
+  daemon) and `git status` afterwards. Before designing around a limitation ("this can't be automated"), verify it by
+  trying the command or reading its source/docs — do not infer impossibility from a help screen. The same holds for a
+  capability the docs describe only _partially_: the permissions docs name `~`/`$HOME` pattern expansion, and an
+  `AGENTS.md` bullet wrongly concluded `{env:VAR}` was unsupported. That false limitation survived the review gate and
+  was only caught by reading the source, because a tool's behavior is not repo-evidenced and no in-repo gate can check
+  it. Treat a doc's account of a feature as a floor, not a boundary, and verify a tool-behavior claim against the
+  source/CLI before writing it into a durable artifact. Confirm too that the file you read is the code path that runs: a
+  package can hold a mock or test harness whose name matches the entry point (`github/index.ts` is a local dev/test
+  entry; the shipped handler is `github.handler.ts`), and a matching filename or path is not evidence you read the
+  implementation. The same probe-first rule covers a compiler or build-tool semantics claim: a design drafted the
+  premise that a precompiled `.gradle.kts` cannot see an `internal` declaration, and a scratch `kotlin-dsl` build
+  disproved it — the `internal object` compiles from the script, and only `private` fails — so the shared helper stayed
+  `internal` rather than being widened to `public`. Verify a visibility or build-semantics claim with a minimal scratch
+  build before it constrains a design. The web UI's npm checks asserted npm's contract and took repeated review rounds
+  to correct: `npm outdated` exits `1` both when updates exist and on error (the report's content, not the exit code
+  alone, is the discriminator), npm warns to stderr on clean runs (so stderr is not the error signal), and `npm audit`'s
+  default `--audit-level` resolves to `low`, not "moderate". `npm update` reconciles the whole dependency graph rather
+  than the packages you asked for: an in-range direct bump moved its eslint cache stack (`file-entry-cache`,
+  `flat-cache`, `keyv`) across majors, and npm 11 filled `license` fields throughout the lockfile — so describe the
+  lockfile diff by what moved (not as "patches/minors") and run the frontend `check`. captured:
+  test-build-logic-rules-and-unify-version-comparison (#306) captured: monitor-web-ui-npm-dependencies (#395) captured:
+  bump-gradle-and-web-ui-dependencies
 - **A CLI warning dismissed as noise can report a live defect — a config is unverified until its own read path is
   probed, whoever consumes it (a tool or the repository's own build), and a warning no gate reads is not a check.**
   `openspec/config.yaml` declared per-artifact rules for four artifacts, but two items contained an unquoted `: `, so
@@ -2295,12 +2305,15 @@ capture-stash-stale-copy
   constraints (`satisfiesDeclaredBound`, "nothing changes by default"), so our spurious row from
   `checkBuildEnvironmentConstraints` remains even though the fix shipped in 0.60.0, so any pin since then already
   contains it. An upstream reference must also document the symptom it is cited for — read the body against the symptom,
-  not the title or the release. The first `hold-back-nginx-buildpack` draft blamed an arm64 build-extraction failure on
-  `paketo-buildpacks/nginx#1340`, whose body documents only the runtime symptom (an AArch64 `nginx` in an amd64 image)
-  and states that the `io.buildpacks.buildpackage.metadata` label is present on both slices; the draft also contradicted
-  the host-state gotcha's account of that same signature, and review caught both. When a passage already explains a
-  signature, reconcile with it rather than writing a second explanation beside it. This is the write-time check for the
-  reference you are touching; the periodic corpus sweep is parked in `docs/ideas.md`.
+  not the title or the release. A close-out reference must also live in a file `upstreamReferences` scans (`AGENTS.md`,
+  `README.md`, `docs/ideas.md`, `docs/adr/**`): cited only in a skill, command, subagent definition, or code comment it
+  is invisible to the report that would fire its `retires when`. The first `hold-back-nginx-buildpack` draft blamed an
+  arm64 build-extraction failure on `paketo-buildpacks/nginx#1340`, whose body documents only the runtime symptom (an
+  AArch64 `nginx` in an amd64 image) and states that the `io.buildpacks.buildpackage.metadata` label is present on both
+  slices; the draft also contradicted the host-state gotcha's account of that same signature, and review caught both.
+  When a passage already explains a signature, reconcile with it rather than writing a second explanation beside it.
+  This is the write-time check for the reference you are touching; the periodic corpus sweep is parked in
+  `docs/ideas.md`.
 - **Work a change surfaces is parked durably — a PR body is not a record.** When a docs change records an external state
   change that implies work, park that work in `docs/ideas.md` (or record it as a task) in the same change: a PR body is
   squashed and no tool reads it, so work named only there is lost.
@@ -2453,13 +2466,12 @@ capture-stash-stale-copy
   `message="spawning process"` lines, so a search for a token matches its own invocation — a
   `grep 'evaluated permission'` over the log returns its own command lines as hits; exclude them
   (`grep -v 'spawning process'`) before reading a count as evidence. Its `info` is the **normalized** document, not a
-  literal input: the normalizer materializes defaults, so the legacy flat `mcp.<name>` entry normalizes to a
-  `disabled: false` the native `mcp.servers.<name>` form omits (v2.0.15) — a migration verified against `debug config`
-  is behaviourally equivalent, never literally identical, so name the delta it accepts. A source's `info` can also carry
-  credentials — the pinned v2.0.15 renders the global config's MCP `environment` value (a `GH_TOKEN`) verbatim — so
-  scope a capture to the project document or redact before quoting its output into a report, a PR body, a change dir, or
-  any other artifact; upstream's `debug config` redacts those values, so re-check the claim on a v2 bump. captured:
-  migrate-opencode-config-to-v2
+  literal input: the normalizer materializes defaults and lifts a flat `mcp.<name>` entry into `mcp.servers.<name>`, so
+  a migration verified against `debug config` is behaviourally equivalent, never literally identical — name the delta it
+  accepts (2.0.21: no `disabled` key materialized, credential values masked). A source's `info` can carry credentials —
+  the v2.0.15 build rendered the global config's MCP `environment` value (a `GH_TOKEN`) verbatim — so scope a capture to
+  the project document or redact before quoting its output into a report, a PR body, a change dir, or any other
+  artifact; re-check the masking on each v2 bump. captured: migrate-opencode-config-to-v2
 - **`external_directory` and the `shell` permission are separate actions.** `external_directory` governs the file tools
   (`read`/`edit`/`write`/`glob`/`grep`) and path-taking commands, while a script's own out-of-tree writes run under the
   `shell` action (`permission.bash` in v1) — so removing the blanket `/tmp/**` allow from `external_directory` leaves a

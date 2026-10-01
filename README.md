@@ -343,13 +343,15 @@ and installs the `gh-mcp` extension, handing back only what it can't do for you 
 The one that matters is **GitHub** (the agent reads PRs, issues, and CI checks); **Playwright** is already configured in
 the project, so there's nothing to set up.
 
-By hand, the auth-bound server (GitHub) goes under `mcp.servers` in your **global** config
-(`~/.config/opencode/opencode.jsonc`), not the project config — a project entry can't use your credentials:
+By hand, the auth-bound server (GitHub) goes under the **flat** `mcp` map of your **global** config
+(`~/.config/opencode/opencode.jsonc`), not the project config — a project entry can't use your credentials, and the flat
+map (not the `mcp.servers` nesting) is what both OpenCode lines load: the 1.x agent IntelliJ IDEA's AI launches rejects
+`mcp.servers`, and the flat map loads under both.
 
 - **Playwright** (project) — the agent's browser: it drives the running web UI and captures screenshots for the `vision`
   subagent. It needs only Node/`npx` (no credentials).
 - **GitHub** — read PRs, issues, and CI checks. Run `gh auth login` (the server reuses your `gh` credentials), install
-  the `gh-mcp` extension (`gh extension install shuymn/gh-mcp`), then add it under `mcp.servers`:
+  the `gh-mcp` extension (`gh extension install shuymn/gh-mcp`), then add it to that map:
   `"github": { "type": "local", "command": ["gh", "mcp"] }`.
 
 MCP config is read at startup, so restart OpenCode after adding one.

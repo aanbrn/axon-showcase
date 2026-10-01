@@ -41,9 +41,9 @@
       from `docs/ideas.md`. Verify by reading each and confirming the idea is gone. — verified: every doc and definition
       site names the suppression list; the idea is removed, along with its now-empty dated section heading, and the
       unrelated runner-migration idea is still present.
-- [ ] 2.2 Refresh the `showcase/quality/dependency-management` `## Purpose` — it says the web UI's `npmOutdated` report
+- [x] 2.2 Refresh the `showcase/quality/dependency-management` `## Purpose` — it says the web UI's `npmOutdated` report
       "lists its outdated npm dependencies", which this change narrows by filtering suppressed majors. A delta cannot
-      carry a Purpose, so the edit lands in the archive commit; record the deferral in the change report.
+      carry a Purpose, so the edit lands in the archive commit; record the deferral in the change report. — applied in the archive commit: the Purpose now says the report filters out the packages whose majors the project defers.
 - [x] 2.3 `./gradlew spotlessApply`, then `./gradlew check -PskipITs -Pcoverage.gate.enabled=false`; confirm green.
       Re-run `spotlessApply` after the last edit to a Spotless-owned file (a task tick included). — verified: `check`
       BUILD SUCCESSFUL; `spotlessCheck` green after the final `spotlessApply`.

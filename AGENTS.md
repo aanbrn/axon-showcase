@@ -169,10 +169,10 @@ grepping the Helm plugin's `HelmInstallationOptions` missed the `remoteTimeout` 
 `ConfigurableHelmServerOperationOptions`, and a whole change was designed around "the plugin exposes no install timeout"
 until its docs showed `helm.remoteTimeout` → `--timeout`, while the blanket `extraArgs` that _was_ read is the worse
 tool (it reaches every command, `helm repo search` included) — and a setting a build script does add is read back from
-the task that resolves it, not asserted from the declaring script. The `remove-redis-client-label` detour ran a full
-propose→apply→verify cycle for a chart-default the labels must not have — the worked case, and why the premise
-collapses, are in the `*-client` pod-labels bullet below. The design weighed implementation alternatives but never
-questioned the premise. Verify the current state's rationale against the repo — grep for consumers, read the values and
+the task that resolves it, not asserted from the declaring script. The worked case is the `remove-redis-client-label`
+detour — a full propose→apply→verify cycle for a chart-default its labels must not have, with the design weighing
+implementation alternatives but never questioning the premise; the premise, and why it collapses, are in the `*-client`
+pod-labels bullet below. Verify the current state's rationale against the repo — grep for consumers, read the values and
 their comments, check `git log` for the introducing change — and record it in the design's Context; treat "this looks
 redundant" as a hypothesis to verify, not a justification to remove. Before proposing a mechanism (an auditor, a check,
 a workflow, a scan) **or asserting in the premise that the repo lacks a rule**, grep `docs/ideas.md` for a parked

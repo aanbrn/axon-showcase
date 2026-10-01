@@ -1,5 +1,6 @@
 import io.github.build.extensions.oss.gradle.plugins.helm.dsl.HelmRepository
 import io.github.build.extensions.oss.gradle.plugins.helm.release.dsl.HelmRelease
+import java.time.Duration
 import java.util.*
 
 plugins {
@@ -636,6 +637,8 @@ helm {
             selectTags = "database,kafka,application,ci-ingress"
             // Keep in sync with CLUSTER_NAME in .github/workflows/deployment-smoke.yml.
             kubeContext.set("kind-axon-showcase-smoke")
+            // The runner is slow to bring OpenSearch and the ingress up; Helm's default five-minute wait expires.
+            remoteTimeout.set(Duration.ofMinutes(15))
         }
     }
 }

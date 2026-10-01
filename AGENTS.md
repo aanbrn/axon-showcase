@@ -162,28 +162,34 @@ it.
 **Interrogate the premise before designing a change — moving, copying, or removing existing state, or proposing a
 mechanism the repo may already have.** Establish _why the current state exists_, whether it is deliberate, and whether
 the mechanism already exists before designing _how_ to add or change it — a change that relocates configuration already
-in place, or re-derives a parked design, can be the best-executed version of the wrong idea. The
-`remove-redis-client-label` detour ran a full propose→apply→verify cycle for a chart-default the labels must not have —
-the worked case, and why the premise collapses, are in the `*-client` pod-labels bullet below. The design weighed
-implementation alternatives but never questioned the premise. Verify the current state's rationale against the repo —
-grep for consumers, read the values and their comments, check `git log` for the introducing change — and record it in
-the design's Context; treat "this looks redundant" as a hypothesis to verify, not a justification to remove. Before
-proposing a mechanism (an auditor, a check, a workflow, a scan) **or asserting in the premise that the repo lacks a
-rule**, grep `docs/ideas.md` for a parked design, the spec corpus and archived changes for an existing requirement **or
-a recorded decision about it — including a `skip_specs` decision not to spec it**, and `docs/adr/` for an Accepted
-decision the design would implement or contradict — an ADR's Decision is normative, so designing a relaxation past it is
-a premise error, not a design choice — and the artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling
-change merged earlier the same session may already have added it. A parked idea, a spec'd capability, or an Accepted ADR
-is the design to adopt, not re-derive; a false absence claim runs a whole propose cycle on the wrong premise and
-duplicates what exists. `add-readme-auditor`'s planning proposed widening `agents-auditor` past the parked
-`readme-auditor` idea the repo already had, caught by the owner rather than a gate; an
-`enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import rule that ADR-0013's Accepted
-Decision already forbade, caught by a reviewer. Before treating a spec change as owed, read the spec's **existing**
-wording for the behavior the code implements — the contract may already state it, in which case the fix is code→spec
-alignment, not a spec rewrite. `#455`'s `scripts/doctor.sh` classified the repo-state checks as `required` while
-`showcase/quality/toolchain-check` already carried the exit contract ("unsatisfied prerequisites for the **default
-build-and-test path**") and only ever had the hooks _reported_, so the defect was a classification chosen in the code
-and never written into the spec. captured: spec-cache-fallback-failed-fetch-contract captured:
+in place, or re-derives a parked design, can be the best-executed version of the wrong idea. A third-party capability
+claim takes the same treatment: establish it from the dependency's own sources (its documented DSL, its jar, the task's
+resolved configuration read back by a scratch init script), never from one interface cargo-culted into a search —
+grepping the Helm plugin's `HelmInstallationOptions` missed the `remoteTimeout` it inherits from
+`ConfigurableHelmServerOperationOptions`, and a whole change was designed around "the plugin exposes no install timeout"
+until its docs showed `helm.remoteTimeout` → `--timeout`, while the blanket `extraArgs` that _was_ read is the worse
+tool (it reaches every command, `helm repo search` included) — and a setting a build script does add is read back from
+the task that resolves it, not asserted from the declaring script. The `remove-redis-client-label` detour ran a full
+propose→apply→verify cycle for a chart-default the labels must not have — the worked case, and why the premise
+collapses, are in the `*-client` pod-labels bullet below. The design weighed implementation alternatives but never
+questioned the premise. Verify the current state's rationale against the repo — grep for consumers, read the values and
+their comments, check `git log` for the introducing change — and record it in the design's Context; treat "this looks
+redundant" as a hypothesis to verify, not a justification to remove. Before proposing a mechanism (an auditor, a check,
+a workflow, a scan) **or asserting in the premise that the repo lacks a rule**, grep `docs/ideas.md` for a parked
+design, the spec corpus and archived changes for an existing requirement **or a recorded decision about it — including a
+`skip_specs` decision not to spec it**, and `docs/adr/` for an Accepted decision the design would implement or
+contradict — an ADR's Decision is normative, so designing a relaxation past it is a premise error, not a design choice —
+and the artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier the same session
+may already have added it. A parked idea, a spec'd capability, or an Accepted ADR is the design to adopt, not re-derive;
+a false absence claim runs a whole propose cycle on the wrong premise and duplicates what exists. `add-readme-auditor`'s
+planning proposed widening `agents-auditor` past the parked `readme-auditor` idea the repo already had, caught by the
+owner rather than a gate; an `enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import
+rule that ADR-0013's Accepted Decision already forbade, caught by a reviewer. Before treating a spec change as owed,
+read the spec's **existing** wording for the behavior the code implements — the contract may already state it, in which
+case the fix is code→spec alignment, not a spec rewrite. `#455`'s `scripts/doctor.sh` classified the repo-state checks
+as `required` while `showcase/quality/toolchain-check` already carried the exit contract ("unsatisfied prerequisites for
+the **default build-and-test path**") and only ever had the hooks _reported_, so the defect was a classification chosen
+in the code and never written into the spec. captured: spec-cache-fallback-failed-fetch-contract captured:
 enforce-web-ui-import-boundaries captured: classify-repo-state-checks
 
 **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's own
@@ -654,14 +660,14 @@ re-warm lands pays the full rebuild once (the docs-only #138 raced #137's 10-min
 `.github/workflows/deployment-smoke.yml` runs a **deployment smoke** on a nightly schedule and via `workflow_dispatch`:
 it creates a throwaway `kind` cluster in the runner, builds the five images and loads them into it (kind's nodes cannot
 see the host daemon's images), installs the application, infrastructure, and ingress releases — not the observability —
-through the `ci` release target (`./gradlew helmInstallToCi`), whose values fit the runner's 4 vCPU, and drives the
-smoke profile at the deployed gateway through that ingress — a failed request fails the run, no performance numbers are
-recorded (a shared runner's timings are host state, not the system's, so a check that runs there asserts availability,
-not a latency threshold), and the cluster is deleted even when a step fails — after a failed run has printed the pods,
-their restart counts, and the service logs, so a failure names its cause. It exercises the chart's values, probes, and
-resource wiring, which neither e2e suite does (one boots the pipeline through Testcontainers, the other from compose,
-and neither installs the chart). It is observational — never a merge gate. captured: fix-the-deployment-smoke-503s
-(#424)
+through the `ci` release target (`./gradlew helmInstallToCi`), whose values fit the runner's 4 vCPU and whose
+`remoteTimeout` waits past Helm's default for the slow OpenSearch and ingress start, and drives the smoke profile at the
+deployed gateway through that ingress — a failed request fails the run, no performance numbers are recorded (a shared
+runner's timings are host state, not the system's, so a check that runs there asserts availability, not a latency
+threshold), and the cluster is deleted even when a step fails — after a failed run has printed the pods, their restart
+counts, and the service logs, so a failure names its cause. It exercises the chart's values, probes, and resource
+wiring, which neither e2e suite does (one boots the pipeline through Testcontainers, the other from compose, and neither
+installs the chart). It is observational — never a merge gate. captured: fix-the-deployment-smoke-503s (#424)
 
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same

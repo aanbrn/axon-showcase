@@ -1,0 +1,7 @@
+# npm packages whose MAJOR version updates are suppressed from the web UI's npmOutdated report.
+# Minor and patch updates for these packages are still reported.
+# Format: one package name per line; `#` starts a comment and blank lines are ignored.
+# The rationale for each suppressed package lives in showcase/quality/dependency-management.
+# typescript major deferred: typescript-eslint caps TypeScript below the next major (peer range `<6.1.0`),
+# so a TypeScript 7 bump is not actionable until that peer range admits it.
+typescript

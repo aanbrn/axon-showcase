@@ -574,6 +574,10 @@ migration, not an automatic update. The observability charts (kps, tempo) carry 
 surface as actionable; verify them with a live install + smoke test (pods ready, Prometheus targets up, Grafana
 datasources wired), since `verifyInfraImageVersions` covers only the bitnami infra charts.
 
+The web UI's npm report has a third suppression list, `config/web-ui-updates/major-disabled.txt`: its listed packages'
+major-only rows are filtered out of `npmOutdated` (`NpmOutdatedRules`), while their same-major updates stay reported —
+`npm outdated` has no `rejectVersionIf` equivalent, so the filter runs on the report's text.
+
 For calendar-versioned coordinates (leading segment is a 4-digit year, e.g. Spring `YYYY.MINOR.MICRO` such as
 `reactor-bom 2025.0.7`), the report treats a change in the `YYYY.TRAIN` pair (the first two version segments) as a major
 update — matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains — while a change
@@ -1117,19 +1121,19 @@ Key modules (libraries, not services):
   the module dependency graph, and the spec corpus's capability decomposition) for drift from its recorded decisions,
   and reports **where clarification of intent is missing** — a deliberate choice or absence whose rationale is not
   recorded (its finding classes, its advisory section, and the report contract are in the `agent-skills` spec). It
-  sweeps the surfaces a rationale must exist for (dependency `exclude(...)` declarations, the major-version-suppressed
-  and held-back coordinates, the suppression annotations and retained deprecated APIs, and the deferrals and band-aids
-  recorded in ADRs or `docs/ideas.md`) and searches the repository for a rationale before reporting each item — an item
-  whose rationale is already recorded is not reported. It deliberately does **not** check behavior against the code (the
-  review loop and archive-time sync own that), the corpus's internal structure (`specs-auditor` owns that), or any
-  property an existing gate enforces. Trigger it with the `/audit-architecture` command. The main agent applies the
-  approved findings under the review gate: a finding whose fix is an ADR correction, a new ADR, or an
-  `AGENTS.md`/`README.md` clarification lands as a docs PR, while one whose correction is a code change — or an edit to
-  a subagent/command definition that changes its spec'd behavior (which owes that definition's spec delta, per the
-  multi-artifact-sweep bullet) — becomes its own change, parked as an idea until then; do not force the suggested
-  correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet narrowing the
-  dependency broke `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`). An advisory
-  item needs the user's decision first. The scheduled variant runs unattended in the `audit` workflow.
+  sweeps the surfaces a rationale must exist for (dependency `exclude(...)` declarations, the major-version-suppressed,
+  held-back, and web-UI-npm-suppressed coordinates, the suppression annotations and retained deprecated APIs, and the
+  deferrals and band-aids recorded in ADRs or `docs/ideas.md`) and searches the repository for a rationale before
+  reporting each item — an item whose rationale is already recorded is not reported. It deliberately does **not** check
+  behavior against the code (the review loop and archive-time sync own that), the corpus's internal structure
+  (`specs-auditor` owns that), or any property an existing gate enforces. Trigger it with the `/audit-architecture`
+  command. The main agent applies the approved findings under the review gate: a finding whose fix is an ADR correction,
+  a new ADR, or an `AGENTS.md`/`README.md` clarification lands as a docs PR, while one whose correction is a code change
+  — or an edit to a subagent/command definition that changes its spec'd behavior (which owes that definition's spec
+  delta, per the multi-artifact-sweep bullet) — becomes its own change, parked as an idea until then; do not force the
+  suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet
+  narrowing the dependency broke `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`).
+  An advisory item needs the user's decision first. The scheduled variant runs unattended in the `audit` workflow.
 - **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
   (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
   guide, whose content no gate checks — on three axes: accuracy against the repository, design-intent fidelity (the
@@ -1939,9 +1943,11 @@ capture-stash-stale-copy
 
 - **Run `spotlessApply` after the _final_ write to a Spotless-owned file — ticking a checklist task is an edit too.** A
   `tasks.md` task was ticked ("`spotlessCheck` passes") _after_ the last `spotlessApply`; the re-wrapped prose broke
-  Prettier, so the claimed gate actually failed and only the quick review caught it. After any last edit to a
-  Spotless-owned file (a TODO tick, a status note, `AGENTS.md` itself) re-run `spotlessApply` and `spotlessCheck` before
-  reporting the gate green — do not trust a check that ran before the final edit.
+  Prettier, so the claimed gate actually failed and only the quick review caught it. The tick that claims a gate green
+  is the edit that falsifies it — so never tick a gate task as the last act: tick it, then re-run `spotlessApply` and
+  `spotlessCheck` before the file is committed. After any last edit to a Spotless-owned file (a TODO tick, a status
+  note, `AGENTS.md` itself) re-run `spotlessApply` and `spotlessCheck` before reporting the gate green — do not trust a
+  check that ran before the final edit. captured: suppress-web-ui-npm-majors
 - **palantir-java-format does not manage imports**: since 2.47.0 the plugin only takes over **Reformat Code**, and
   `Optimize Imports` is always run by IDEA's native optimizer, governed by `.editorconfig` (the import layout
   `ij_java_imports_layout = $*,|,*` and `ij_java_use_single_class_imports=true` with the two on-demand counts at `999`).
@@ -2354,10 +2360,16 @@ capture-stash-stale-copy
   plain **enumeration of a set** is the case the name-grep cannot see: neither it nor the `only`/`sole`/`never` grep
   finds a stale sentence that names the set's _other_ members — `AGENTS.md` said the `ci.yml` and `e2e.yml` workflows
   "additionally extend `gradle-home-cache-includes` with `nodejs`" while the npm-monitoring change added that include to
-  `dependency-updates.yml` and `dependency-security.yml` too. The sweep covers non-doc artifacts too: recording that a
-  component is deliberately _not_ used (ADR-0009's "without Axon Server") must grep the whole repo for its name, because
-  config, values, and template comments carry claims no auditor reads (`helm/chart/src/main/helm/values.yaml` still
-  called the `db-scheduler` settings "Axon Server scheduler settings"). captured: monitor-web-ui-npm-dependencies (#395)
+  `dependency-updates.yml` and `dependency-security.yml` too. Adding a **member** to such a set widens every live
+  enumeration of it in the same change — and when an auditor sweeps the set, that includes its definition, its trigger
+  command, `AGENTS.md`'s summary of the auditor, and the **spec requirement that owns the sweep**, which is a main spec
+  and so needs a `MODIFIED` delta rather than a docs edit (the swept-surface set is enumerated in exactly those four
+  places). Grep the set's distinctive members across `.opencode/`, `openspec/specs/`, and `AGENTS.md` before writing the
+  addition; the change's own four planning copies can be kept identical while all four live sites go stale. The sweep
+  covers non-doc artifacts too: recording that a component is deliberately _not_ used (ADR-0009's "without Axon Server")
+  must grep the whole repo for its name, because config, values, and template comments carry claims no auditor reads
+  (`helm/chart/src/main/helm/values.yaml` still called the `db-scheduler` settings "Axon Server scheduler settings").
+  captured: monitor-web-ui-npm-dependencies (#395)
 - **A buildpack's CNB id is not its Docker Hub repository — a registry lookup must target the repository, not the id.**
   The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are
   `paketobuildpacks/nginx` (no hyphen); querying the tags API with the CNB id 404s, so `BuildpackUpdatesTask`'s check

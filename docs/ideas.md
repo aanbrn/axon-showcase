@@ -15,19 +15,6 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-01
 
-- Rework the suppression lists and rename them off `.properties` — parked; no change yet. `DependencyUpdateRules` now
-  parses `config/dependency-updates/major-disabled.properties` and `config/dependency-updates/hold-back.properties` as
-  line lists split on the first `=` (a `group:module` entry keeps its colon), so `.properties` names a format they no
-  longer use — and it invited the defect the hold-back change fixed, since under `java.util.Properties` a colon-key
-  entry collapses to a group prefix. `config/helm-updates/major-disabled.properties` is the last suppression list still
-  read with `Properties`, inline in `build.gradle.kts` and untested: rework it the same way — a line parse owned by
-  `HelmUpdateRules`, beside the tested `sameMajor` — and rename all three off `.properties`. This is not a new
-  capability: the helm entries stay a name set with the major-disabled/same-major-fallback behavior unchanged, and a
-  chart hold-back is out until a chart needs one. It is not docs-only either: the loader paths are hard-coded in
-  `build-logic/src/main/kotlin/dependency-versions-conventions.gradle.kts` and `build.gradle.kts`, so it moves those
-  paths plus the doc and spec references (`AGENTS.md`, `README.md`, `.opencode/commands/dependency-updates.md`, and the
-  architecture-auditor's swept surfaces) with it.
-
 - Pin or validate the CI runners before `ubuntu-latest` migrates to Ubuntu 26 — parked; no change yet. GitHub announced
   the label migrates beginning 2026-10-19 (`actions/runner-images#14748`), and all 12 jobs across the 11 workflow files
   use `ubuntu-latest`, so every job would move onto a new runner OS at once, with no repository-side pin and nothing
@@ -81,8 +68,8 @@ dated when it was added (start a new section for a new day rather than appending
   change took the eight frontend majors (React, Vite, Vitest, jsdom, `@vitejs/plugin-react`, and the
   `@types/react(-dom)` pair) and bumped `typescript` to `6.0.3`; the single remaining major is `typescript` 6 → 7,
   deferred because typescript-eslint caps TypeScript at `<6.1.0`. There is still no web UI major-suppression mechanism
-  (unlike the JVM's `config/dependency-updates/major-disabled.properties`), so the weekly tracker re-lists the deferred
-  major — and any future one — until a suppression list lands.
+  (unlike the JVM's `config/dependency-updates/major-disabled.txt`), so the weekly tracker re-lists the deferred major —
+  and any future one — until a suppression list lands.
 
 ## 2026-09-24
 

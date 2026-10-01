@@ -537,8 +537,8 @@ wait for approval before merging.
 ./gradlew :showcase-web-ui:npmAudit
 
 # Dependency update report (only catalog-owned coordinates; majors suppressed per
-# config/dependency-updates/major-disabled.properties and same-major updates held back per
-# config/dependency-updates/hold-back.properties)
+# config/dependency-updates/major-disabled.txt and same-major updates held back per
+# config/dependency-updates/hold-back.txt)
 ./gradlew dependencyUpdates
 # Web UI npm update report (not part of check)
 ./gradlew :showcase-web-ui:npmOutdated
@@ -561,14 +561,14 @@ them (see ADR-0007). When documenting such an external constraint, name the coor
 version: that coordinate is not catalog-owned and its resolved version is not verifiable from the repository, so a
 pinned version rots on the next SpotBugs bump.
 
-Major-blocking entries in `config/dependency-updates/major-disabled.properties` and held-back entries in
-`config/dependency-updates/hold-back.properties` carry a pointer comment naming the coordinate and its rationale; the
+Major-blocking entries in `config/dependency-updates/major-disabled.txt` and held-back entries in
+`config/dependency-updates/hold-back.txt` carry a pointer comment naming the coordinate and its rationale; the
 authoritative reasoning for each suppressed or held-back coordinate lives in the
 `showcase/quality/dependency-management` spec. Both files are line lists parsed on the first `=`, so a `group:module`
 coordinate keeps its colon (see the config-read-path gotcha for the `Properties` mis-parse this avoids).
 
-The Helm update check has its own suppression file, `config/helm-updates/major-disabled.properties`: major bumps of the
-bitnami infra charts (postgres, kafka, opensearch) are suppressed there because a major chart ships a new preconfigured
+The Helm update check has its own suppression file, `config/helm-updates/major-disabled.txt`: major bumps of the bitnami
+infra charts (postgres, kafka, opensearch) are suppressed there because a major chart ships a new preconfigured
 `image.tag` that diverges from the test-surface `*-image-tag` pins (docker-compose/Testcontainers) — a coordinated
 migration, not an automatic update. The observability charts (kps, tempo) carry no `*-image-tag`, so their major bumps
 surface as actionable; verify them with a live install + smoke test (pods ready, Prometheus targets up, Grafana
@@ -2194,15 +2194,19 @@ capture-stash-stale-copy
   change between the two and no gate reads it (`#266`'s repeated review rounds caught several unverified external
   assertions — a GitHub docs URL written from memory, a false "Docker Hub carries nothing" against five live
   repositories, wrong dates; the owner deleted those repositories mid-session, invalidating the entry between its
-  writing and its review). Verify a URL by requesting it, and treat the review, not a gate, as the check. When a script
-  generates many claims at once, the method that derived them is not their evidence: each generated item needs its own
-  control, applied per item rather than as a spot check, because a heuristic that is right on nine of ten items writes
-  its one error silently into the durable file and a hedge tag (`approximate`, "uncertain") does not repair it. The
-  `retro-mark-captured-rules` backfill's first attempt named 8 origins whose commit contained no text of the rule at all
-  — including `ddaa51e`, claimed for the log-assertion rule whose text it never mentions — because the range and the
-  phrase were never required to be about the same rule; adding the per-item control (the candidate origin's added lines
-  must contain the rule's own opening phrase) substantiated 30+ origins independently. captured:
-  retro-mark-captured-rules
+  writing and its review). Verify a URL by requesting it, and treat the review, not a gate, as the check. An evidence
+  statement for a task that _touches_ such a surface has the same limit in the other direction: do not pin a value the
+  surface produced as the evidence the task was done — the rows of a live lookup vary run to run. `helmUpdates`'s rows
+  are a live `helm search repo` result; the same tick's evidence read "only `prometheus-community-stack`" in one run and
+  also showed `bitnami-kafka: 31.5.0 -> 32.4.3` in another, so the tick rests on the run succeeding plus the parse
+  pinned by unit tests, never on any row. captured: rework-the-helm-suppression-list When a script generates many claims
+  at once, the method that derived them is not their evidence: each generated item needs its own control, applied per
+  item rather than as a spot check, because a heuristic that is right on nine of ten items writes its one error silently
+  into the durable file and a hedge tag (`approximate`, "uncertain") does not repair it. The `retro-mark-captured-rules`
+  backfill's first attempt named 8 origins whose commit contained no text of the rule at all — including `ddaa51e`,
+  claimed for the log-assertion rule whose text it never mentions — because the range and the phrase were never required
+  to be about the same rule; adding the per-item control (the candidate origin's added lines must contain the rule's own
+  opening phrase) substantiated 30+ origins independently. captured: retro-mark-captured-rules
 
 - **A comparison between two runs or files that differ in more than one dimension cannot attribute the difference to
   either — isolate the variable before naming a cause.** Comparing `ci.yml`'s `Cache mode: write` with the `opencode`
@@ -2254,15 +2258,20 @@ capture-stash-stale-copy
   premise that a precompiled `.gradle.kts` cannot see an `internal` declaration, and a scratch `kotlin-dsl` build
   disproved it — the `internal object` compiles from the script, and only `private` fails — so the shared helper stayed
   `internal` rather than being widened to `public`. Verify a visibility or build-semantics claim with a minimal scratch
-  build before it constrains a design. The web UI's npm checks asserted npm's contract and took repeated review rounds
-  to correct: `npm outdated` exits `1` both when updates exist and on error (the report's content, not the exit code
-  alone, is the discriminator), npm warns to stderr on clean runs (so stderr is not the error signal), and `npm audit`'s
-  default `--audit-level` resolves to `low`, not "moderate". `npm update` reconciles the whole dependency graph rather
-  than the packages you asked for: an in-range direct bump moved its eslint cache stack (`file-entry-cache`,
-  `flat-cache`, `keyv`) across majors, and npm 11 filled `license` fields throughout the lockfile — so describe the
-  lockfile diff by what moved (not as "patches/minors") and run the frontend `check`. captured:
-  test-build-logic-rules-and-unify-version-comparison (#306) captured: monitor-web-ui-npm-dependencies (#395) captured:
-  bump-gradle-and-web-ui-dependencies
+  build before it constrains a design. A `build-logic` object is also unreachable from a root script's _configuration_
+  path for a second reason: `settings.gradle.kts` `includeBuild`s it, so its classes are not on the root script's
+  buildscript classpath — a probe saw `ClassNotFoundException: HelmUpdateRules` even from an init script, while the same
+  object is in scope inside a task _action_. Keep the rule in the `build-logic` task that applies it — pass the input
+  file as an `@InputFile` property, `@Optional` when it may be absent — and let the root script only point the task at
+  it, rather than loading it inline from `build.gradle.kts`. captured: rework-the-helm-suppression-list The web UI's npm
+  checks asserted npm's contract and took repeated review rounds to correct: `npm outdated` exits `1` both when updates
+  exist and on error (the report's content, not the exit code alone, is the discriminator), npm warns to stderr on clean
+  runs (so stderr is not the error signal), and `npm audit`'s default `--audit-level` resolves to `low`, not "moderate".
+  `npm update` reconciles the whole dependency graph rather than the packages you asked for: an in-range direct bump
+  moved its eslint cache stack (`file-entry-cache`, `flat-cache`, `keyv`) across majors, and npm 11 filled `license`
+  fields throughout the lockfile — so describe the lockfile diff by what moved (not as "patches/minors") and run the
+  frontend `check`. captured: test-build-logic-rules-and-unify-version-comparison (#306) captured:
+  monitor-web-ui-npm-dependencies (#395) captured: bump-gradle-and-web-ui-dependencies
 - **A CLI warning dismissed as noise can report a live defect — a config is unverified until its own read path is
   probed, whoever consumes it (a tool or the repository's own build), and a warning no gate reads is not a check.**
   `openspec/config.yaml` declared per-artifact rules for four artifacts, but two items contained an unquoted `: `, so
@@ -2276,7 +2285,7 @@ capture-stash-stale-copy
   fails on either, and `/opsx-tool-update` re-verifies both with a positive control. The general rule: a config can look
   well-formed and pass the consumer's validation while the consumer silently ignores or reinterprets part of it, and
   from outside a valid config and an ignored one are indistinguishable — the signal may be a warning on stderr that no
-  gate reads, **or none at all**: `java.util.Properties` splits a key at its first `:`, so `major-disabled.properties`'s
+  gate reads, **or none at all**: `java.util.Properties` splits a key at its first `:`, so the dependency list's
   `group:module` entries collapsed to group prefixes — a dead exact-coordinate branch and a whole-group
   over-suppression. For a config **a tool owns**, do not substitute a parser of your own (it assumes a contract the tool
   owns): probe the consumer's read path and fail a gate on its warning. For a format **the repository defines**, own the

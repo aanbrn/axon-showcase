@@ -8,8 +8,9 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
@@ -33,8 +34,8 @@ abstract class HelmUpdatesTask : AbstractHelmRepositoriesTask() {
     /** The chart repositories the report reads. */
     @get:Input abstract val repoUrls: MapProperty<String, String>
 
-    /** The check names whose major-line updates are suppressed. */
-    @get:Input abstract val majorDisabled: SetProperty<String>
+    /** The suppression list file: chart names whose major-line updates are suppressed, one per line. */
+    @get:InputFile @get:Optional abstract val majorDisabledFile: RegularFileProperty
 
     /** The report file the task writes. */
     @get:OutputFile abstract val reportFile: RegularFileProperty
@@ -43,6 +44,9 @@ abstract class HelmUpdatesTask : AbstractHelmRepositoriesTask() {
     @TaskAction
     fun check() {
         addHelmRepositories(repoUrls.get(), tolerateFailures = true)
+
+        val majorDisabled =
+            majorDisabledFile.orNull?.asFile?.let { HelmUpdateRules.disabledEntriesOf(it) } ?: emptySet()
 
         val report = mutableListOf<String>()
 
@@ -54,7 +58,7 @@ abstract class HelmUpdatesTask : AbstractHelmRepositoriesTask() {
 
         chartChecks.get().forEach { check ->
             val latest =
-                if (check.name in majorDisabled.get()) {
+                if (check.name in majorDisabled) {
                     latestSameMajorVersion(check)
                 } else {
                     latestChartVersion(check)

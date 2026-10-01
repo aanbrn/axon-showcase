@@ -7,10 +7,9 @@ Status: Accepted
 ## Context
 
 Axon Framework 5 is the current major, and the repository vendors the `axon4to5-*` migration skills, so moving off 4.x
-is a contemplated direction. The project pins the framework at 4.x, and
-`config/dependency-updates/major-disabled.properties` suppresses the `org.axonframework` major while pointing at
-`showcase/quality/dependency-management` for the rationale — a pointer that resolved to nothing, so the reason was
-recorded nowhere. This ADR records it.
+is a contemplated direction. The project pins the framework at 4.x, and `config/dependency-updates/major-disabled.txt`
+suppresses the `org.axonframework` major while pointing at `showcase/quality/dependency-management` for the rationale —
+a pointer that resolved to nothing, so the reason was recorded nowhere. This ADR records it.
 
 The pin is not a matter of preference but of upstream availability. The project runs Axon **without Axon Server** (see
 ADR-0009), and depends on framework modules and extensions that have no 5.x release: the Kafka and JGroups extensions
@@ -34,8 +33,8 @@ and e2e verification.
 ## Consequences
 
 - The reference stack stays on Axon Framework 4.13.x, a supported line, with no split across two framework majors.
-- The Axon major is suppressed in the dependency-update report (`config/dependency-updates/major-disabled.properties`),
-  so its availability is re-checked deliberately rather than surfacing as a routine update.
+- The Axon major is suppressed in the dependency-update report (`config/dependency-updates/major-disabled.txt`), so its
+  availability is re-checked deliberately rather than surfacing as a routine update.
 - The vendored `axon4to5-*` migration skills remain a forward-looking aid: they exist to drive the migration when it
   lands, and the repository still runs the 4.x they migrate from.
 - The `org.axonframework` suppression comment and the `showcase/quality/dependency-management` requirement that records

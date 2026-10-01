@@ -1,7 +1,6 @@
 import io.github.build.extensions.oss.gradle.plugins.helm.dsl.HelmRepository
 import io.github.build.extensions.oss.gradle.plugins.helm.release.dsl.HelmRelease
 import java.time.Duration
-import java.util.*
 
 plugins {
     id("dependency-security-conventions")
@@ -237,19 +236,7 @@ tasks.register("helmUpdates", HelmUpdatesTask::class.java) {
 
     repoUrls.set(helmRepoUrls)
 
-    majorDisabled.set(
-        providers.provider {
-            val file = rootProject.layout.projectDirectory.file("config/helm-updates/major-disabled.properties")
-            if (file.asFile.exists()) {
-                Properties()
-                    .apply { file.asFile.inputStream().use { load(it) } }
-                    .stringPropertyNames()
-                    .filter { it.isNotBlank() }
-            } else {
-                emptyList()
-            }
-        }
-    )
+    majorDisabledFile.set(rootProject.layout.projectDirectory.file("config/helm-updates/major-disabled.txt"))
 
     reportFile.set(layout.buildDirectory.file("helm-updates/report.txt"))
 

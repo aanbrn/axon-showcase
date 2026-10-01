@@ -9,10 +9,10 @@ The web UI's npm dependencies are reported separately by `:showcase-web-ui:npmOu
 packages and writes them to `showcase-web-ui/build/npm-outdated.txt`; they do not appear in the Gradle report.
 
 The report covers only catalog-owned coordinates (exact `version.ref` in `gradle/libs.versions.toml`); BOM-inherited
-modules are not listed. Major-version updates for groups listed in `config/dependency-updates/major-disabled.properties`
-are suppressed, while their minor/patch updates and all other catalog-owned majors remain reported. A coordinate listed
-in `config/dependency-updates/hold-back.properties` is held back at its version line: updates on a newer minor line
-within the same major are suppressed, while patches within the held line and any major jump remain reported.
+modules are not listed. Major-version updates for groups listed in `config/dependency-updates/major-disabled.txt` are
+suppressed, while their minor/patch updates and all other catalog-owned majors remain reported. A coordinate listed in
+`config/dependency-updates/hold-back.txt` is held back at its version line: updates on a newer minor line within the
+same major are suppressed, while patches within the held line and any major jump remain reported.
 
 Summarize the available updates grouped by module, flag any that require attention (e.g. major jumps, new majors, or
 coordinates no longer in the catalog), and note any errors. Do not apply any dependency changes unless asked.

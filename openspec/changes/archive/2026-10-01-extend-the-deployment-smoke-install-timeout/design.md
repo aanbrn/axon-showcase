@@ -42,10 +42,11 @@ See `proposal.md` — Why. Facts behind the approach (measured 2026-10-01):
   (rejected — the same value, hidden in the workflow and applied to any target the command happens to use);
   `extraArgs = ["--timeout", …]` (rejected — that list is applied by `AbstractHelmCommandTask` to _every_ Helm command,
   and `helm search repo` rejects `--timeout`).
-- **Fifteen minutes.** The observed need is a few minutes past five. Because the releases install with `--wait`, a
-  slow-but-healthy release is waited for rather than cut off; the budget check is that the independent infrastructure
-  releases install in parallel (`org.gradle.parallel`), so the worst case is roughly one fifteen-minute wait for
-  `os-views` plus one for the application release that installs after it — inside the job's 60-minute `timeout-minutes`.
+- **Fifteen minutes.** The observed need is a few minutes past five. The releases install with `--wait` (set once for
+  every release), so a slow-but-healthy release is waited for rather than cut off; the budget check is that the
+  independent infrastructure releases install in parallel (`org.gradle.parallel`), so the worst case is roughly one
+  fifteen-minute wait for `os-views` plus one for the application release that installs after it — inside the job's
+  60-minute `timeout-minutes`.
 - **Rejected: `-Phelm.wait=false` plus explicit `kubectl wait`.** It would have to re-implement the plugin's ordering,
   hook and job handling (`waitForJobs` covers the app chart's post-install jobs).
 - **Rejected for now: trimming the `ci` values further.** The wait, not the resources, is the constraint observed; a

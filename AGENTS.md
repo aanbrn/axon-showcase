@@ -162,28 +162,34 @@ it.
 **Interrogate the premise before designing a change — moving, copying, or removing existing state, or proposing a
 mechanism the repo may already have.** Establish _why the current state exists_, whether it is deliberate, and whether
 the mechanism already exists before designing _how_ to add or change it — a change that relocates configuration already
-in place, or re-derives a parked design, can be the best-executed version of the wrong idea. The
-`remove-redis-client-label` detour ran a full propose→apply→verify cycle for a chart-default the labels must not have —
-the worked case, and why the premise collapses, are in the `*-client` pod-labels bullet below. The design weighed
-implementation alternatives but never questioned the premise. Verify the current state's rationale against the repo —
-grep for consumers, read the values and their comments, check `git log` for the introducing change — and record it in
-the design's Context; treat "this looks redundant" as a hypothesis to verify, not a justification to remove. Before
-proposing a mechanism (an auditor, a check, a workflow, a scan) **or asserting in the premise that the repo lacks a
-rule**, grep `docs/ideas.md` for a parked design, the spec corpus and archived changes for an existing requirement **or
-a recorded decision about it — including a `skip_specs` decision not to spec it**, and `docs/adr/` for an Accepted
-decision the design would implement or contradict — an ADR's Decision is normative, so designing a relaxation past it is
-a premise error, not a design choice — and the artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling
-change merged earlier the same session may already have added it. A parked idea, a spec'd capability, or an Accepted ADR
-is the design to adopt, not re-derive; a false absence claim runs a whole propose cycle on the wrong premise and
-duplicates what exists. `add-readme-auditor`'s planning proposed widening `agents-auditor` past the parked
-`readme-auditor` idea the repo already had, caught by the owner rather than a gate; an
-`enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import rule that ADR-0013's Accepted
-Decision already forbade, caught by a reviewer. Before treating a spec change as owed, read the spec's **existing**
-wording for the behavior the code implements — the contract may already state it, in which case the fix is code→spec
-alignment, not a spec rewrite. `#455`'s `scripts/doctor.sh` classified the repo-state checks as `required` while
-`showcase/quality/toolchain-check` already carried the exit contract ("unsatisfied prerequisites for the **default
-build-and-test path**") and only ever had the hooks _reported_, so the defect was a classification chosen in the code
-and never written into the spec. captured: spec-cache-fallback-failed-fetch-contract captured:
+in place, or re-derives a parked design, can be the best-executed version of the wrong idea. A third-party capability
+claim takes the same treatment: establish it from the dependency's own sources (its documented DSL, its jar, the task's
+resolved configuration read back by a scratch init script), never from one interface cargo-culted into a search —
+grepping the Helm plugin's `HelmInstallationOptions` missed the `remoteTimeout` it inherits from
+`ConfigurableHelmServerOperationOptions`, and a whole change was designed around "the plugin exposes no install timeout"
+until its docs showed `helm.remoteTimeout` → `--timeout`, while the blanket `extraArgs` that _was_ read is the worse
+tool (it reaches every command, `helm repo search` included) — and a setting a build script does add is read back from
+the task that resolves it, not asserted from the declaring script. The `remove-redis-client-label` detour ran a full
+propose→apply→verify cycle for a chart-default the labels must not have — the worked case, and why the premise
+collapses, are in the `*-client` pod-labels bullet below. The design weighed implementation alternatives but never
+questioned the premise. Verify the current state's rationale against the repo — grep for consumers, read the values and
+their comments, check `git log` for the introducing change — and record it in the design's Context; treat "this looks
+redundant" as a hypothesis to verify, not a justification to remove. Before proposing a mechanism (an auditor, a check,
+a workflow, a scan) **or asserting in the premise that the repo lacks a rule**, grep `docs/ideas.md` for a parked
+design, the spec corpus and archived changes for an existing requirement **or a recorded decision about it — including a
+`skip_specs` decision not to spec it**, and `docs/adr/` for an Accepted decision the design would implement or
+contradict — an ADR's Decision is normative, so designing a relaxation past it is a premise error, not a design choice —
+and the artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier the same session
+may already have added it. A parked idea, a spec'd capability, or an Accepted ADR is the design to adopt, not re-derive;
+a false absence claim runs a whole propose cycle on the wrong premise and duplicates what exists. `add-readme-auditor`'s
+planning proposed widening `agents-auditor` past the parked `readme-auditor` idea the repo already had, caught by the
+owner rather than a gate; an `enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import
+rule that ADR-0013's Accepted Decision already forbade, caught by a reviewer. Before treating a spec change as owed,
+read the spec's **existing** wording for the behavior the code implements — the contract may already state it, in which
+case the fix is code→spec alignment, not a spec rewrite. `#455`'s `scripts/doctor.sh` classified the repo-state checks
+as `required` while `showcase/quality/toolchain-check` already carried the exit contract ("unsatisfied prerequisites for
+the **default build-and-test path**") and only ever had the hooks _reported_, so the defect was a classification chosen
+in the code and never written into the spec. captured: spec-cache-fallback-failed-fetch-contract captured:
 enforce-web-ui-import-boundaries captured: classify-repo-state-checks
 
 **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's own

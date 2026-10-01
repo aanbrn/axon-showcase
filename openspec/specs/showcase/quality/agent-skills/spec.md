@@ -399,14 +399,14 @@ the main agent verifies and applies those the user approves.
 The `architecture-auditor` subagent SHALL report, in its advisory section, the deliberate choices and deliberate
 absences whose rationale is not recorded in the repository. It SHALL sweep the surfaces where a deliberate decision
 implies a rejected alternative: dependency `exclude(...)` declarations; major-version-suppressed coordinates in
-`config/dependency-updates/major-disabled.properties` and coordinates held back at a version line in
-`config/dependency-updates/hold-back.properties`; suppression annotations that encode a design choice
-(`@SuppressWarnings`) and deprecated-API usages the project still carries; and deferrals or band-aids recorded in an ADR
-or parked in `docs/ideas.md`. It SHALL verify by searching the repository that no rationale is recorded before reporting
-an item, and SHALL NOT report a choice whose rationale is already recorded. Each item SHALL name the deliberate choice
-or absence with its location, and SHALL state the question whose answer would record the missing rationale. The items
-SHALL be advisory: reported without severity, and SHALL NOT be treated as defects to fix, because only the project owner
-can say which unrecorded rationales matter.
+`config/dependency-updates/major-disabled.txt` and coordinates held back at a version line in
+`config/dependency-updates/hold-back.txt`; suppression annotations that encode a design choice (`@SuppressWarnings`) and
+deprecated-API usages the project still carries; and deferrals or band-aids recorded in an ADR or parked in
+`docs/ideas.md`. It SHALL verify by searching the repository that no rationale is recorded before reporting an item, and
+SHALL NOT report a choice whose rationale is already recorded. Each item SHALL name the deliberate choice or absence
+with its location, and SHALL state the question whose answer would record the missing rationale. The items SHALL be
+advisory: reported without severity, and SHALL NOT be treated as defects to fix, because only the project owner can say
+which unrecorded rationales matter.
 
 #### Scenario: An unexplained deliberate choice is surfaced as a question
 

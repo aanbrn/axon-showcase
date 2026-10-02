@@ -2088,10 +2088,16 @@ capture-stash-stale-copy
   its content from the code or config it depicts: the Mermaid lifecycle conversion added a `STARTED --> REMOVED` edge
   that matched neither the ASCII it replaced nor `ShowcaseAggregate`, where a started showcase is finished before it is
   removed. Update the diagram's plain-text `<details>` fallback in the same edit, since nothing gates that second copy
-  and it drifted on exactly that edge. A `mermaid` fence is un-gated by Spotless, so render it (`mermaid-cli`) and have
-  the `vision` subagent read the render — node shapes and edge-label attribution are only visible there (two
-  differently-meaning edges both labelled `events`, and an SSE label on the wrong hop, survived a text read of the
-  source). captured: mermaid-event-flow-draft
+  and it drifted on exactly that edge. A `mermaid` fence is un-gated by Spotless, so render it and have the `vision`
+  subagent read the render — node shapes and edge-label attribution are only visible there (a duplicate edge label and
+  an SSE label on the wrong hop survived a text read of the source). GitHub then overlays the diagram with a control
+  toolbar on its right edge (~100 px wide) and scales a too-wide diagram to full width, hiding its rightmost node or
+  label (`mermaid-js/mermaid#7117`, closed, no config fix) — a local `mermaid-cli` render cannot show this, so reproduce
+  it on the live GitHub render (Playwright) and reserve ~120 px of right-hand space with
+  `%%{init: {"flowchart": {"diagramPadding": …}}}%%` (`stateDiagram-v2` has no `diagramPadding`, so a paddable state
+  diagram becomes a flowchart). A flow too wide to read once padded cannot be wrapped by a `direction LR` subgraph —
+  Mermaid ignores a subgraph's `direction` when it has outside edges — so stay wide, go vertical, or shed nodes (the
+  OpenSpec loop folded its `Review` nodes into edge labels). captured: mermaid-event-flow-draft
 - **Verify documented infrastructure/deployment numbers against the config files, not memory.** The README rewrite
   claimed "the API gateway's two replicas" (only `commandService.replicaCount` is 2 in
   `helm/values/axon-showcase/values-local.yaml`; the gateway defaults to 1), "36 panels" (36 is the raw top-level count

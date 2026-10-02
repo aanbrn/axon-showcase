@@ -13,6 +13,17 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-02
+
+- Widen the `diagrammer` subagent and `/diagram` command from ASCII to Mermaid — parked; no change yet. The README's
+  lifecycle, event-flow, and OpenSpec-loop diagrams are now Mermaid (each keeping its ASCII original in a `<details>`
+  fallback), but `diagrammer`, its `/diagram` trigger, the `AGENTS.md` bullet, the README's agent and slash-command
+  rows, and the `showcase/quality/agent-skills` requirement "Per-change quality-gate and analysis subagents are
+  available" — whose scenario "ASCII diagrams are drawn by the pro-model diagrammer" describes an ASCII-only tool — all
+  still point at the wrong medium, so a later "fix the diagram" invocation routes to it. Route: a `MODIFIED` delta on
+  that `agent-skills` requirement (rewording the scenario) plus the subagent/command/README/`AGENTS.md` sweep — a
+  tooling change, not a docs edit, so it cannot ride the README-only change that surfaced it.
+
 ## 2026-09-30
 
 - Correct the `code-quality` spec's shellcheck scenario — parked; no change yet. The requirement "GitHub workflows are

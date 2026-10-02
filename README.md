@@ -62,11 +62,27 @@ axon-showcase/
 The domain is deliberately simple — a "showcase" is a scheduled, timed event with a lifecycle. The value is in _what the
 plumbing does with it_:
 
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> SCHEDULED
+    SCHEDULED --> STARTED: saga deadline: startTime
+    STARTED --> FINISHED: saga deadline: +duration
+    SCHEDULED --> REMOVED: any time
+    FINISHED --> REMOVED: any time
+    REMOVED --> [*]
+```
+
+<details>
+<summary>Plain-text version (for renderers without Mermaid)</summary>
+
 ```
 Scheduled ──(saga deadline: startTime)──► STARTED ──(saga deadline: +duration)──► FINISHED
     │                                                                              │
     └────────────────────────────── REMOVED (any time) ────────────────────────────┘
 ```
+
+</details>
 
 - **The saga runs the show.** When you schedule a showcase, an Axon **saga** (in `ShowcaseSaga`) sets a deadline to
   start it at the scheduled time, then another to finish it after the configured duration. You can schedule a showcase
@@ -100,12 +116,40 @@ The application follows **CQRS (Command Query Responsibility Segregation)** with
 
 ### Event Flow
 
+```mermaid
+flowchart LR
+    Client([Client])
+    GW[API Gateway]
+    CS[Command Service]
+    Kafka[(Kafka)]
+    PS[Projection Service]
+    OS[(OpenSearch)]
+    PG[(PostgreSQL<br/>event store)]
+    QS[Query Service]
+
+    Client -->|"POST /showcases"| GW
+    GW -->|command| CS
+    CS -->|events| Kafka
+    CS -.->|persists| PG
+    Kafka -->|events| PS
+    Kafka -.->|"events for SSE"| GW
+    PS -->|"read model"| OS
+    GW -->|query| QS
+    QS -->|search| OS
+    GW -.->|"SSE /events"| Client
+```
+
+<details>
+<summary>Plain-text version (for renderers without Mermaid)</summary>
+
 ```
 Write: Client → API Gateway → Command Service → (Kafka) → Projection Service → OpenSearch
                               └─ Axon event store (PostgreSQL)                     │
 Read:  Client → API Gateway → Query Service → OpenSearch ◄─────────────────────────┘
 SSE:   Command Service → (Kafka) → Gateway /events → Client
 ```
+
+</details>
 
 A scheduled showcase flows through the whole pipeline: the command service stores the event and publishes it, the
 projection service builds the read model, the query service serves it, and the gateway streams the event live to any
@@ -155,6 +199,22 @@ it before contributing.
 
 Every change flows through the same loop:
 
+```mermaid
+flowchart LR
+    Idea --> Explore --> Propose
+    Propose --> Review1["Review (spec)"]
+    Review1 -->|"auto + manual"| Apply
+    Apply --> Review2["Review (code)"]
+    Review2 -->|"auto + manual"| PR
+    PR -->|"CI green"| Archive
+    Archive --> Merge
+    Propose -.->|"human approves"| Merge
+    Propose -.->|"delta spec → main spec"| Archive
+```
+
+<details>
+<summary>Plain-text version (for renderers without Mermaid)</summary>
+
 ```
                            ┌─────────────────────────────── human approves ───────────────────────────────┐
                            │                                                                              │
@@ -165,6 +225,8 @@ Every change flows through the same loop:
                            │                                                                  │
                            └───────────────────── delta spec → main spec ─────────────────────┘
 ```
+
+</details>
 
 An idea becomes a **proposal** (what and why), then a **spec delta** (the new behavior, scoped to a capability), a
 **design** (how), and **tasks**. Applying writes the code and tests. Each phase ends in **two reviews**: an

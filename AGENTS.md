@@ -2077,13 +2077,21 @@ capture-stash-stale-copy
   `awk`/`length()` counts UTF-8 box-drawing characters (`│`, `├`, `─`) as multiple bytes, so byte columns ≠ visual
   columns and the `#` comments end up misaligned. Measure with a decoded string (`len(line[:idx]) + 1` in Python) and
   align every comment to the longest entry (the tree's target column 42 is set by `showcase-resilience4j-extension/`).
-- **A diagram's geometry can encode semantics — do not normalize a deliberate asymmetry as a rendering defect.** The
-  README's OpenSpec-flow diagram has two brackets with different right edges on purpose: `human approves` spans
-  Propose→Merge, while `delta spec → main spec` ends at Archive (where the delta folds into main, one node before
-  Merge). A cleanup pass that aligned the body pipes to the full width flattened that distinction and had to be reverted
-  by the user. When a diagram (or any doc) has been hand-edited, treat an asymmetry as intentional until you verify what
-  each element is meant to start and end at — ask rather than "fixing" it, and never regenerate over a human edit
-  without diffing against it.
+- **A diagram's geometry and content encode semantics — do not normalize a deliberate asymmetry, and re-derive a redrawn
+  diagram from the code it depicts.** The README's OpenSpec-flow diagram encodes one on purpose: `human approves` spans
+  Propose→Merge, while `delta spec → main spec` ends at Archive (where the delta folds into main, one node before Merge)
+  — two Mermaid arcs ending at different nodes, and the same two brackets in its plain-text fallback. A cleanup pass
+  that aligned the body pipes to the full width flattened that distinction and had to be reverted by the user. When a
+  diagram (or any doc) has been hand-edited, treat an asymmetry as intentional until you verify what each element is
+  meant to start and end at — ask rather than "fixing" it, and never regenerate over a human edit without diffing
+  against it. Redrawing a diagram into a new medium makes the old diagram a starting point, not the contract — re-derive
+  its content from the code or config it depicts: the Mermaid lifecycle conversion added a `STARTED --> REMOVED` edge
+  that matched neither the ASCII it replaced nor `ShowcaseAggregate`, where a started showcase is finished before it is
+  removed. Update the diagram's plain-text `<details>` fallback in the same edit, since nothing gates that second copy
+  and it drifted on exactly that edge. A `mermaid` fence is un-gated by Spotless, so render it (`mermaid-cli`) and have
+  the `vision` subagent read the render — node shapes and edge-label attribution are only visible there (two
+  differently-meaning edges both labelled `events`, and an SSE label on the wrong hop, survived a text read of the
+  source). captured: mermaid-event-flow-draft
 - **Verify documented infrastructure/deployment numbers against the config files, not memory.** The README rewrite
   claimed "the API gateway's two replicas" (only `commandService.replicaCount` is 2 in
   `helm/values/axon-showcase/values-local.yaml`; the gateway defaults to 1), "36 panels" (36 is the raw top-level count

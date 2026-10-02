@@ -18,19 +18,23 @@ dated when it was added (start a new section for a new day rather than appending
 - Fix the web UI image build on Ubuntu 26.04 before the `ubuntu-latest` label moves — parked; no change yet. Validating
   ahead of the migration (`validate-the-workflows-on-ubuntu-2604`) found that the smoke's _Build the images_ step fails
   on `ubuntu-26.04` while the four JVM `bootBuildImage` tasks succeed: `:showcase-web-ui:dockerBuildImage` — the
-  `pack`-built Paketo NGINX image — errors with
-  `failed to fetch base layers: open /tmp/imgutil.local.image.*/blobs/sha256/980d29ce…: no such file or directory`, with
-  the same blob hash failing on two runs across two commits (reproducible, not a flake; runs 36944943462 and
-  36946385694). The label migrates sometime between 2026-10-19 and 2026-11-19 (`actions/runner-images#14748`), and all
-  12 jobs run on it, so this must be diagnosed and fixed — or the web UI build pinned — before then. The runs already
-  narrow it: the default-path success and both 26.04 failures use the **identical** `pack` (0.40.9),
-  `paketobuildpacks/builder-jammy-base:0.4.649`, and `run-jammy-base:latest`, and the four **JVM** `bootBuildImage`
-  tasks (same `pack`, a different builder) succeed on 26.04 — so the pinned paketo/builder coordinates are not the
-  variable, and this is not `imgutil`-in-general. The likely mechanism is host-side image-store state: the failing runs
-  emit the "daemon uses containerd storage" warning the 24.04 success does not, and only the web UI build uses the
-  `/tmp/imgutil.local.image.*` local store. The smoke's `runner` input is the tool for re-testing once fixed
-  (`gh workflow run deployment-smoke.yml --ref <branch> -f runner=ubuntu-26.04`), and the failure is worth reporting
-  upstream once diagnosed.
+  `pack`-built Paketo NGINX image, whose `imgutil` exporter is the one that fails — errors with
+  `failed to fetch base layers: open /tmp/imgutil.local.image.*/blobs/sha256/980d29ce…: no such file or directory`, the
+  same blob hash on two runs across two commits (runs 36944943462, 36946385694). **Diagnosed further (2026-10-02):** the
+  migration is really a **Docker 28 → 29** jump — `ubuntu-latest` (24.04) ships Docker 28.0.4 and the 26.04 image ships
+  29.4.2 — and Docker 29's `overlayfs` storage driver is the documented trigger of exactly this signature
+  (`spring-projects/spring-boot#49251`: "Paketo integration doesn't work with Docker's new overlayfs storage driver",
+  whose error text is byte-identical, and its workaround is to revert to `overlay2` or disable snapshots;
+  `buildpacks/pack#2272` is the same warning's performance half). Not our pins: `pack` 0.40.9, the builder, and the run
+  image are identical across the passing and failing runs, and the JVM images (`bootBuildImage`, a different exporter)
+  build on 26.04. **Not reproducible locally**, though: the same Docker 29.5.2 + `overlayfs` on this machine builds the
+  web UI image cold and warm — so the residual factor is runner-environment-specific (the CI runner installs Docker from
+  the official repo per `actions/runner-images`, which sets up something my colima daemon does not). Next steps: try the
+  documented workaround on the 26.04 runner (a `daemon.json` `storage-driver: overlay2`, or `--publish` so `pack` skips
+  the local store), and report upstream (`buildpacks/pack` / `spring-projects/spring-boot#49251`) with this run. The
+  label migrates 2026-10-19 → 2026-11-19 (`actions/runner-images#14748`), and all 12 jobs run on it, so this must land
+  before then. The smoke's `runner` input re-tests any fix
+  (`gh workflow run deployment-smoke.yml --ref <branch> -f runner=ubuntu-26.04`).
 
 ## 2026-09-30
 

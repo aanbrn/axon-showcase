@@ -34,5 +34,8 @@ None — `skip_specs: true`. No requirement names a runner image's version: `mer
 
 - **CI**: one workflow gains an optional input; every job's default runner is unchanged.
 - **Validation**: the deployment smoke (and any other workflow, once it opts in) can be run against Ubuntu 26.04 on
-  demand, before the label moves — the check that the decision to keep `ubuntu-latest` rests on.
+  demand, before the label moves — the check the decision to keep `ubuntu-latest` rests on. **That check has now run,
+  and it fails**: the web UI image's `pack` build breaks on Ubuntu 26.04 (`:showcase-web-ui:dockerBuildImage`),
+  reproducibly, while the four JVM images build. So the label may be kept for now, but the repo is _not yet_ safe on
+  Ubuntu 26.04 — the fix is parked in `docs/ideas.md` (2026-10-02), to land before the rollout completes on 2026-11-19.
 - **Deployment**: none.

@@ -60,15 +60,21 @@ See `proposal.md` — Why. Facts that shape the approach (verified 2026-10-02):
 
 - **A dispatch input that only one workflow takes.** → Deliberate and stated: the smoke proves the mechanism, and other
   workflows adopt it when they need it (the input is one line plus the `runs-on` expression).
-- **The validation is only as good as what runs on it.** → The smoke is the repo's broadest single job (builds five
-  images, boots the full pipeline, drives the ingress); a green run there is the strongest in-repo evidence available
-  before a push-to-main or nightly run exercises the rest.
+- **The validation is only as good as what runs on it — and it found a real break.** → The smoke is the repo's broadest
+  single job (builds five images, boots the full pipeline, drives the ingress). Dispatched against `ubuntu-26.04` it
+  **fails**: `:showcase-web-ui:dockerBuildImage` (the `pack`-built Paketo image) errors with
+  `failed to fetch base layers … no such file or directory`, reproducibly, while the four JVM images build. So the repo
+  is not yet safe on 26.04, and the fix is parked in `docs/ideas.md` (2026-10-02) to land before the rollout completes —
+  the input did its job on the first dispatch.
 - **The rollout may still surprise a job the smoke does not cover.** → The nightly smoke runs on the migrated label
   after 2026-10-19, and every other scheduled workflow keeps running on it weekly, so a surprise surfaces in the
-  observational workflows rather than in a merge gate.
+  observational workflows rather than in a merge gate. (The 26.04 break is already known, so this is now the _residual_
+  risk rather than the headline.)
 
 ## Migration Plan
 
 - Apply: the input, the `runs-on` expression, the image logging, and the `AGENTS.md` note.
-- Validate: dispatch the smoke against `ubuntu-26.04`; record the run.
+- Validate: the smoke was dispatched against `ubuntu-26.04` (runs 36944943462, 36946385694) — **it fails** at the web
+  UI's `pack` build, reproducibly; the default-path dispatch (36946374564) succeeds, so the label's behaviour is
+  unchanged. The 26.04 fix is parked, not part of this change.
 - Rollback: revert the commit — the input disappears and every job is back on the label.

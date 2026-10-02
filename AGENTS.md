@@ -681,7 +681,9 @@ nine `ubuntu-latest` clauses plus a bump process nothing tracks, so the label is
 `runner` input dispatches the job onto a newer image
 (`gh workflow run deployment-smoke.yml --ref <branch> -f runner=ubuntu-26.04`), and its first step prints `runner.os`,
 the requested label, and `/etc/os-release`'s name and version — so a failure during the rollout window is attributable
-to the image rather than to the change under test.
+to the image rather than to the change under test. **That check has already earned its keep:** the 26.04 dispatch fails
+at `:showcase-web-ui:dockerBuildImage` (the `pack`-built Paketo image), reproducibly, while the four JVM images build —
+so the repo is not yet safe on 26.04, and fixing it is parked in `docs/ideas.md` to land before the rollout completes.
 
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same

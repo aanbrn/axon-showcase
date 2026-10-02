@@ -2,7 +2,7 @@
 description:
   Audits the repository's human-facing showcase — README.md — for accuracy against the repository, fidelity to the
   README's documented design intent, and coverage of the human-visible capabilities the system offers, with the pro
-  model. Use on demand (e.g. via /audit-readme) to catch the README errors that no gate sees: miscounted replicas or
+  model. Use on demand (e.g. via /audit-readme) to catch the README errors no gate sees, such as miscounted replicas or
   panels, stale tallies, wrong ports or task names, a diagram whose semantics have drifted, and a capability a person
   can experience but the README never mentions.
 mode: subagent

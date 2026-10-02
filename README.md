@@ -199,15 +199,18 @@ it before contributing.
 Every change flows through the same loop:
 
 ```mermaid
-%%{init: {"flowchart": {"diagramPadding": 240}}}%%
+%%{init: {"flowchart": {"diagramPadding": 255}}}%%
 flowchart LR
-    Idea --> Explore --> Propose
-    Propose -->|"review: spec delta"| Apply
-    Apply -->|"review: code + tests"| PR
-    PR -->|"CI green"| Archive
-    Archive --> Merge
-    Propose -.->|"human approves"| Merge
-    Propose -.->|"delta spec → main spec"| Archive
+    Idea --> Explore
+    subgraph approve["human approves"]
+        direction LR
+        subgraph fold["delta spec → main spec"]
+            direction LR
+            Propose -->|"review: spec"| Apply -->|"review: code"| PR -->|"CI green"| Archive
+        end
+        Archive --> Merge
+    end
+    Explore --> Propose
 ```
 
 <details>

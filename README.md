@@ -212,14 +212,8 @@ flowchart LR
 <summary>Plain-text version (for renderers without Mermaid)</summary>
 
 ```
-                           ┌─────────────────────────────── human approves ───────────────────────────────┐
-                           │                                                                              │
-  Idea  ──►  Explore  ──►  Propose  ──►  Review  ──►  Apply  ──►  Review  ──►  PR  ──►  Archive  ──►  Merge
-                           │ (spec delta)         (code+tests)            (CI green)          │
-                           │         (auto+manual)            (auto+manual)                   │
-                           │         (optional PR)                      (mandatory PR)        │
-                           │                                                                  │
-                           └───────────────────── delta spec → main spec ─────────────────────┘
+Idea ──► Explore ──► Propose ──(you approve)──► Apply ──(you approve)──► PR
+     ──(CI green)──► Archive ──(delta spec → main spec)──► Merge
 ```
 
 </details>

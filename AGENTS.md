@@ -2083,12 +2083,12 @@ capture-stash-stale-copy
   draw span brackets: nested subgraphs do express the extents, but Mermaid bottom-aligns the outer subgraph's title in a
   fixed ~20 px band so it collides with the inner subgraph's border, a dashed arrow asserts a transition that does not
   exist, and a block diagram's bars left the terminal node under GitHub's toolbar. So the graphical diagram states the
-  ranges inline (the gates labelled `you approve`, the archive hop `delta spec → main spec`) and the bracket form
-  survives in its plain-text fallback. A cleanup pass that aligned the body pipes to the full width flattened the two
-  spans' distinction and had to be reverted by the user. When a diagram (or any doc) has been hand-edited, treat an
-  asymmetry as intentional until you verify what each element is meant to start and end at — ask rather than "fixing"
-  it, and never regenerate over a human edit without diffing against it. Redrawing a diagram into a new medium makes the
-  old diagram a starting point, not the contract — re-derive its content from the code or config it depicts: the Mermaid
+  ranges inline (the gates labelled `you approve`, the archive hop `delta spec → main spec`) and its plain-text fallback
+  mirrors that inline chain. A cleanup pass that aligned the body pipes to the full width flattened the two spans'
+  distinction and had to be reverted by the user. When a diagram (or any doc) has been hand-edited, treat an asymmetry
+  as intentional until you verify what each element is meant to start and end at — ask rather than "fixing" it, and
+  never regenerate over a human edit without diffing against it. Redrawing a diagram into a new medium makes the old
+  diagram a starting point, not the contract — re-derive its content from the code or config it depicts: the Mermaid
   lifecycle conversion added a `STARTED --> REMOVED` edge that matched neither the ASCII it replaced nor
   `ShowcaseAggregate`, where a started showcase is finished before it is removed. Update the diagram's plain-text
   `<details>` fallback in the same edit, since nothing gates that second copy and it drifted on exactly that edge. A

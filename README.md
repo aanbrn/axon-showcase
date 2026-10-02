@@ -199,20 +199,21 @@ it before contributing.
 Every change flows through the same loop:
 
 ```mermaid
-%%{init: {"flowchart": {"diagramPadding": 270}}}%%
-flowchart LR
-    Idea --> Explore
-    subgraph approve["human approves"]
-        direction LR
-        subgraph fold["delta spec → main spec"]
-            direction LR
-            Propose -->|"review: spec"| Apply -->|"review: code"| PR -->|"CI green"| Archive
-        end
-        Archive --> Merge
-    end
-    Explore --> Propose
-    style approve fill:none,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
-    style fold fill:none,stroke:#bf360c,stroke-width:2px,stroke-dasharray:6 4,color:#bf360c
+block-beta
+  columns 9
+  Idea Explore Propose R1["Review (spec)"] Apply R2["Review (code)"] PR Archive Merge
+  Idea --> Explore
+  Explore --> Propose
+  Propose --> R1
+  R1 --> Apply
+  Apply --> R2
+  R2 --> PR
+  PR --> Archive
+  Archive --> Merge
+  space:2 human["human approves"]:7
+  space:2 delta["delta spec → main spec"]:6
+  style human fill:none,stroke:#2e7d32,stroke-width:2px,stroke-dasharray:6 4,color:#1b5e20
+  style delta fill:none,stroke:#bf360c,stroke-width:2px,stroke-dasharray:6 4,color:#bf360c
 ```
 
 <details>

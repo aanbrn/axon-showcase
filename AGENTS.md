@@ -2078,14 +2078,17 @@ capture-stash-stale-copy
   columns and the `#` comments end up misaligned. Measure with a decoded string (`len(line[:idx]) + 1` in Python) and
   align every comment to the longest entry (the tree's target column 42 is set by `showcase-resilience4j-extension/`).
 - **A diagram's geometry and content encode semantics — do not normalize a deliberate asymmetry, and re-derive a redrawn
-  diagram from the code it depicts.** The README's OpenSpec-flow diagram encodes one on purpose: `human approves` spans
-  Propose→Merge, while `delta spec → main spec` ends at Archive (where the delta folds into main, one node before Merge)
-  — two nested Mermaid subgraphs ending at different nodes (the outer to Merge, the inner to Archive), mirroring its
-  plain-text fallback's two brackets. A cleanup pass that aligned the body pipes to the full width flattened that
-  distinction and had to be reverted by the user. When a diagram (or any doc) has been hand-edited, treat an asymmetry
-  as intentional until you verify what each element is meant to start and end at — ask rather than "fixing" it, and
-  never regenerate over a human edit without diffing against it. Redrawing a diagram into a new medium makes the old
-  diagram a starting point, not the contract — re-derive its content from the code or config it depicts: the Mermaid
+  diagram from the code it depicts.** The README's OpenSpec-flow diagram marks two ranges rather than steps —
+  `human approves` spans Propose→Merge and `delta spec → main spec` ends one node earlier at Archive. Mermaid cannot
+  draw span brackets: nested subgraphs do express the extents, but Mermaid bottom-aligns the outer subgraph's title in a
+  fixed ~20 px band so it collides with the inner subgraph's border, a dashed arrow asserts a transition that does not
+  exist, and a block diagram's bars left the terminal node under GitHub's toolbar. So the graphical diagram states the
+  ranges inline (the gates labelled `you approve`, the archive hop `delta spec → main spec`) and the bracket form
+  survives in its plain-text fallback. A cleanup pass that aligned the body pipes to the full width flattened the two
+  spans' distinction and had to be reverted by the user. When a diagram (or any doc) has been hand-edited, treat an
+  asymmetry as intentional until you verify what each element is meant to start and end at — ask rather than "fixing"
+  it, and never regenerate over a human edit without diffing against it. Redrawing a diagram into a new medium makes the
+  old diagram a starting point, not the contract — re-derive its content from the code or config it depicts: the Mermaid
   lifecycle conversion added a `STARTED --> REMOVED` edge that matched neither the ASCII it replaced nor
   `ShowcaseAggregate`, where a started showcase is finished before it is removed. Update the diagram's plain-text
   `<details>` fallback in the same edit, since nothing gates that second copy and it drifted on exactly that edge. A
@@ -2097,8 +2100,7 @@ capture-stash-stale-copy
   and reserve ~120 px of right-hand space with `%%{init: {"flowchart": {"diagramPadding": …}}}%%` (`stateDiagram-v2` has
   no `diagramPadding`, so a paddable state diagram becomes a flowchart). A flow too wide to read once padded cannot be
   wrapped by a `direction LR` subgraph — Mermaid ignores a subgraph's `direction` when it has outside edges — so stay
-  wide, go vertical, or shed nodes (the OpenSpec loop folded its `Review` nodes into edge labels). captured:
-  mermaid-event-flow-draft
+  wide, go vertical, or shed nodes. captured: mermaid-event-flow-draft
 - **Verify documented infrastructure/deployment numbers against the config files, not memory.** The README rewrite
   claimed "the API gateway's two replicas" (only `commandService.replicaCount` is 2 in
   `helm/values/axon-showcase/values-local.yaml`; the gateway defaults to 1), "36 panels" (36 is the raw top-level count

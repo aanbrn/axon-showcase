@@ -4,18 +4,36 @@ on:
   schedule:
     - cron: '45 20 * * *'
   workflow_dispatch:
+    inputs:
+      # The runner image to validate on. Left unset, the job runs on `ubuntu-latest`; dispatch with a newer image
+      # (e.g. `ubuntu-26.04`) to check the workflows before the `ubuntu-latest` label moves to it.
+      runner:
+        description: Runner image (defaults to ubuntu-latest)
+        required: false
+        default: ubuntu-latest
+        type: string
 
 permissions:
   contents: read
 
 jobs:
   smoke:
-    runs-on: ubuntu-latest
+    # The `||` fallback is required at runtime: on the schedule the input is empty, so a bare `inputs.runner` would
+    # resolve to an empty string and fail the job.
+    runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
     timeout-minutes: 60
     env:
       # Keep in sync with the ci release target's kubeContext in build.gradle.kts.
       CLUSTER_NAME: axon-showcase-smoke
     steps:
+      - name: Report the runner image
+        env:
+          REQUESTED_IMAGE: ${{ inputs.runner || 'ubuntu-latest' }}
+        run: |
+          echo "runner.os: ${{ runner.os }}"
+          echo "requested image: ${REQUESTED_IMAGE}"
+          grep -E '^(NAME|VERSION)=' /etc/os-release || true
+
       - name: Checkout repository
         uses: actions/checkout@v7
 

@@ -13,15 +13,24 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
-## 2026-10-01
+## 2026-10-02
 
-- Pin or validate the CI runners before `ubuntu-latest` migrates to Ubuntu 26 — parked; no change yet. GitHub announced
-  the label migrates beginning 2026-10-19 (`actions/runner-images#14748`), and all 12 jobs across the 11 workflow files
-  use `ubuntu-latest`, so every job would move onto a new runner OS at once, with no repository-side pin and nothing
-  that tracks it (Dependabot manages action versions, not runner labels). The decision is whether to pin an explicit
-  image (e.g. `ubuntu-24.04`) and bump deliberately, or keep `ubuntu-latest` and validate the workflows ahead of the
-  migration; the pin branch is not workflow-only — `merge-governance` names `ubuntu-latest` in nine requirements, each
-  owing a `MODIFIED` delta. The notice surfaced as an annotation on PR #464's run.
+- Fix the web UI image build on Ubuntu 26.04 before the `ubuntu-latest` label moves — parked; no change yet. Validating
+  ahead of the migration (`validate-the-workflows-on-ubuntu-2604`) found that the smoke's _Build the images_ step fails
+  on `ubuntu-26.04` while the four JVM `bootBuildImage` tasks succeed: `:showcase-web-ui:dockerBuildImage` — the
+  `pack`-built Paketo NGINX image — errors with
+  `failed to fetch base layers: open /tmp/imgutil.local.image.*/blobs/sha256/980d29ce…: no such file or directory`, with
+  the same blob hash failing on two runs across two commits (reproducible, not a flake; runs 36944943462 and
+  36946385694). The label migrates sometime between 2026-10-19 and 2026-11-19 (`actions/runner-images#14748`), and all
+  12 jobs run on it, so this must be diagnosed and fixed — or the web UI build pinned — before then. The runs already
+  narrow it: the default-path success and both 26.04 failures use the **identical** `pack` (0.40.9),
+  `paketobuildpacks/builder-jammy-base:0.4.649`, and `run-jammy-base:latest`, and the four **JVM** `bootBuildImage`
+  tasks (same `pack`, a different builder) succeed on 26.04 — so the pinned paketo/builder coordinates are not the
+  variable, and this is not `imgutil`-in-general. The likely mechanism is host-side image-store state: the failing runs
+  emit the "daemon uses containerd storage" warning the 24.04 success does not, and only the web UI build uses the
+  `/tmp/imgutil.local.image.*` local store. The smoke's `runner` input is the tool for re-testing once fixed
+  (`gh workflow run deployment-smoke.yml --ref <branch> -f runner=ubuntu-26.04`), and the failure is worth reporting
+  upstream once diagnosed.
 
 ## 2026-09-30
 

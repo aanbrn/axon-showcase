@@ -199,21 +199,13 @@ it before contributing.
 Every change flows through the same loop:
 
 ```mermaid
-block-beta
-  columns 9
-  Idea Explore Propose R1["Review (spec)"] Apply R2["Review (code)"] PR Archive Merge
-  Idea --> Explore
-  Explore --> Propose
-  Propose --> R1
-  R1 --> Apply
-  Apply --> R2
-  R2 --> PR
-  PR --> Archive
-  Archive --> Merge
-  space:2 human["human approves"]:7
-  space:2 delta["delta spec → main spec"]:6
-  style human fill:none,stroke:#2e7d32,stroke-width:2px,stroke-dasharray:6 4,color:#1b5e20
-  style delta fill:none,stroke:#bf360c,stroke-width:2px,stroke-dasharray:6 4,color:#bf360c
+%%{init: {"flowchart": {"nodeSpacing": 28, "rankSpacing": 40, "diagramPadding": 230}}}%%
+flowchart LR
+    Idea --> Explore --> Propose
+    Propose -->|"you approve"| Apply
+    Apply -->|"you approve"| PR
+    PR -->|"CI green"| Archive
+    Archive -->|"delta spec → main spec"| Merge
 ```
 
 <details>

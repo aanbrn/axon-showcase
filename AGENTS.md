@@ -152,12 +152,17 @@ close-out clause for when it lands. The workaround is ours to keep; the fix belo
 project improves only if its users say what is wrong. Post it through the review gate like any outward-facing artifact.
 Resolve the tool's owning repository from its own metadata before searching or filing (`npm view <pkg> repository.url`,
 the `homepage` field, or the CLI's docs) — a tool is not necessarily hosted where it is configured: the `openspec` CLI
-is `@fission-ai/openspec` on npm, tracked at `Fission-AI/OpenSpec`, not the repo it configures. Confirm a candidate
-duplicate by reading its body, not its title — `Fission-AI/OpenSpec#1322` reads like the config-rules defect but
-concerns rules keys valid for another schema, a different bug; a matching title is a lead, not a verdict. Name the
-close-out's exact retiring mechanism, not the broader ask it is one option under: a clause keyed on a wider condition
-(the config-rules issue's own close-out is at the read-path gotcha) can retire a guard on a change that cannot replace
-it.
+is `@fission-ai/openspec` on npm, tracked at `Fission-AI/OpenSpec`, not the repo it configures. When it is an **error
+string** you are triaging, the owner is the project that emits it, not the project whose issue text matches it: follow
+the string to its source (the package or file the message names — `failed to fetch base layers` is `imgutil`'s
+`local/local.go`, and its issue `buildpacks/pack#2527` carries the exact line) and file there, naming a downstream
+consumer's matching issue as the thread rather than filing on it — a comment posted to
+`spring-projects/spring-boot#49251` first was noise on a consumer's issue and had to be deleted. captured:
+pin-the-smoke-docker-to-overlay2 Confirm a candidate duplicate by reading its body, not its title —
+`Fission-AI/OpenSpec#1322` reads like the config-rules defect but concerns rules keys valid for another schema, a
+different bug; a matching title is a lead, not a verdict. Name the close-out's exact retiring mechanism, not the broader
+ask it is one option under: a clause keyed on a wider condition (the config-rules issue's own close-out is at the
+read-path gotcha) can retire a guard on a change that cannot replace it.
 
 **Interrogate the premise before designing a change — moving, copying, or removing existing state, or proposing a
 mechanism the repo may already have.** Establish _why the current state exists_, whether it is deliberate, and whether
@@ -681,9 +686,10 @@ nine `ubuntu-latest` clauses plus a bump process nothing tracks, so the label is
 `runner` input dispatches the job onto a newer image
 (`gh workflow run deployment-smoke.yml --ref <branch> -f runner=ubuntu-26.04`), and its first step prints `runner.os`,
 the requested label, and `/etc/os-release`'s name and version — so a failure during the rollout window is attributable
-to the image rather than to the change under test. **That check has already earned its keep:** the 26.04 dispatch fails
-at `:showcase-web-ui:dockerBuildImage` (the `pack`-built Paketo image), reproducibly, while the four JVM images build —
-so the repo is not yet safe on 26.04, and fixing it is parked in `docs/ideas.md` to land before the rollout completes.
+to the image rather than to the change under test. **That check has already earned its keep:** the 26.04 dispatch failed
+at `:showcase-web-ui:dockerBuildImage` (the `pack`-built Paketo image), reproducibly, while the four JVM images built —
+attributed to the Docker 28 → 29 difference, and addressed by the smoke's own `overlay2` step (see the buildpack note),
+which a re-dispatch on `ubuntu-26.04` is what confirms.
 
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
@@ -1326,14 +1332,20 @@ on by default when observability metrics export and the web UI ServiceMonitor ar
 Prometheus `/metrics` on port `9113`, which the Service's `http-metrics` port and the ServiceMonitor scrape — the chain
 is specified in the `deployment/web-ui` spec. A `PackBuildImageTask` convention defaults the image name to
 `${project.name}:${project.version}`, which the web UI module overrides with the deployable
-`aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. `SHOWCASE_API_BASE_URL` — **no
-baked default** (compose sets `http://localhost:8080`; the chart's `webUi.apiBaseUrl` defaults to empty) — has no
-ConfigMap or volume mount. The runtime contract (the `start.sh` render into `/workspace/config.js` and the fail-fast on
-an unset value) is specified in the `deployment/web-ui` spec. The `dockerBuildImage` run prints two informational
-warnings from the toolchain, not defects: "Exporting to docker daemon (building without --publish) and daemon uses
-containerd storage" (pack exports to the local daemon's containerd store, losing the fast publish path) and "deprecated
-usage of stack" (an upstream Paketo buildpack still declares the deprecated `stacks` key instead of `targets`). Neither
-is actionable in the build — ignore them.
+`aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. **A Docker 29 daemon needs the
+`overlay2` storage driver for this build:** on Docker 29's containerd/`overlayfs` store, `pack`'s `imgutil` local store
+cannot read the layers `docker image save` produces, and the build fails with
+`failed to fetch base layers: open /tmp/imgutil.local.image.*: no such file or directory` — the deployment smoke sets
+`overlay2` for this reason, and that step is retired when `buildpacks/pack#2527` (the owning venue;
+`spring-projects/spring-boot#49251` is the downstream thread) fixes the store. `SHOWCASE_API_BASE_URL` — **no baked
+default** (compose sets `http://localhost:8080`; the chart's `webUi.apiBaseUrl` defaults to empty) — has no ConfigMap or
+volume mount. The runtime contract (the `start.sh` render into `/workspace/config.js` and the fail-fast on an unset
+value) is specified in the `deployment/web-ui` spec. The `dockerBuildImage` run prints two informational warnings from
+the toolchain, not defects: "Exporting to docker daemon (building without --publish) and daemon uses containerd storage"
+(pack exports to the local daemon's containerd store, losing the fast publish path) and "deprecated usage of stack" (an
+upstream Paketo buildpack still declares the deprecated `stacks` key instead of `targets`). Neither is actionable in the
+build — ignore them. (The first warning names the store that _breaks_ the build when the daemon is Docker 29 — see the
+constraint above — so it is a signal about the daemon, not a defect to chase in the repo.)
 
 Similarly, a CNB-built image's timestamps are not host state: Cloud Native Buildpacks stamp buildpack layers with a
 fixed past date — they list as `Jan 1 1980` — so builds are reproducible and layer caching stays stable, and this build
@@ -2279,25 +2291,29 @@ capture-stash-stale-copy
   as a floor, not a boundary, and verify a tool-behavior claim against the source/CLI before writing it into a durable
   artifact. Confirm too that the file you read is the code path that runs: a package can hold a mock or test harness
   whose name matches the entry point (`github/index.ts` is a local dev/test entry; the shipped handler is
-  `github.handler.ts`), and a matching filename or path is not evidence you read the implementation. The same
-  probe-first rule covers a compiler or build-tool semantics claim: a design drafted the premise that a precompiled
-  `.gradle.kts` cannot see an `internal` declaration, and a scratch `kotlin-dsl` build disproved it — the
-  `internal object` compiles from the script, and only `private` fails — so the shared helper stayed `internal` rather
-  than being widened to `public`. Verify a visibility or build-semantics claim with a minimal scratch build before it
-  constrains a design. A `build-logic` object is also unreachable from a root script's _configuration_ path for a second
-  reason: `settings.gradle.kts` `includeBuild`s it, so its classes are not on the root script's buildscript classpath —
-  a probe saw `ClassNotFoundException: HelmUpdateRules` even from an init script, while the same object is in scope
-  inside a task _action_. Keep the rule in the `build-logic` task that applies it — pass the input file as an
-  `@InputFile` property, `@Optional` when it may be absent — and let the root script only point the task at it, rather
-  than loading it inline from `build.gradle.kts`. captured: rework-the-helm-suppression-list The web UI's npm checks
-  asserted npm's contract and took repeated review rounds to correct: `npm outdated` exits `1` both when updates exist
-  and on error (the report's content, not the exit code alone, is the discriminator), npm warns to stderr on clean runs
-  (so stderr is not the error signal), and `npm audit`'s default `--audit-level` resolves to `low`, not "moderate".
-  `npm update` reconciles the whole dependency graph rather than the packages you asked for: an in-range direct bump
-  moved its eslint cache stack (`file-entry-cache`, `flat-cache`, `keyv`) across majors, and npm 11 filled `license`
-  fields throughout the lockfile — so describe the lockfile diff by what moved (not as "patches/minors") and run the
-  frontend `check`. captured: test-build-logic-rules-and-unify-version-comparison (#306) captured:
-  monitor-web-ui-npm-dependencies (#395) captured: bump-gradle-and-web-ui-dependencies
+  `github.handler.ts`), and a matching filename or path is not evidence you read the implementation. The same applies to
+  a `uses:` step's side effects: a design asserted "the only step that touches Docker is `setup-gradle`'s cache service"
+  without reading the action, whose own README never mentions Docker — and the counter-claim that it _does_ use Docker,
+  reviewed and rejected, was equally unverified. Read the action's README/docs before writing what a step touches, and
+  settle both directions of a contested claim there. captured: pin-the-smoke-docker-to-overlay2 The same probe-first
+  rule covers a compiler or build-tool semantics claim: a design drafted the premise that a precompiled `.gradle.kts`
+  cannot see an `internal` declaration, and a scratch `kotlin-dsl` build disproved it — the `internal object` compiles
+  from the script, and only `private` fails — so the shared helper stayed `internal` rather than being widened to
+  `public`. Verify a visibility or build-semantics claim with a minimal scratch build before it constrains a design. A
+  `build-logic` object is also unreachable from a root script's _configuration_ path for a second reason:
+  `settings.gradle.kts` `includeBuild`s it, so its classes are not on the root script's buildscript classpath — a probe
+  saw `ClassNotFoundException: HelmUpdateRules` even from an init script, while the same object is in scope inside a
+  task _action_. Keep the rule in the `build-logic` task that applies it — pass the input file as an `@InputFile`
+  property, `@Optional` when it may be absent — and let the root script only point the task at it, rather than loading
+  it inline from `build.gradle.kts`. captured: rework-the-helm-suppression-list The web UI's npm checks asserted npm's
+  contract and took repeated review rounds to correct: `npm outdated` exits `1` both when updates exist and on error
+  (the report's content, not the exit code alone, is the discriminator), npm warns to stderr on clean runs (so stderr is
+  not the error signal), and `npm audit`'s default `--audit-level` resolves to `low`, not "moderate". `npm update`
+  reconciles the whole dependency graph rather than the packages you asked for: an in-range direct bump moved its eslint
+  cache stack (`file-entry-cache`, `flat-cache`, `keyv`) across majors, and npm 11 filled `license` fields throughout
+  the lockfile — so describe the lockfile diff by what moved (not as "patches/minors") and run the frontend `check`.
+  captured: test-build-logic-rules-and-unify-version-comparison (#306) captured: monitor-web-ui-npm-dependencies (#395)
+  captured: bump-gradle-and-web-ui-dependencies
 - **A CLI warning dismissed as noise can report a live defect — a config is unverified until its own read path is
   probed, whoever consumes it (a tool or the repository's own build), and a warning no gate reads is not a check.**
   `openspec/config.yaml` declared per-artifact rules for four artifacts, but two items contained an unquoted `: `, so

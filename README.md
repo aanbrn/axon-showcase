@@ -291,7 +291,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | `review-quick`         | Fast review after proposal & implementation, repeated until clean (automatic)                                                                                                                                      |
 | `review-thorough`      | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`                                                                                                                                      |
 | `vision`               | Reads screenshots for the text-only main agent                                                                                                                                                                     |
-| `diagrammer`           | Draws/fixes ASCII diagrams with the pro model — `/diagram`                                                                                                                                                         |
+| `diagrammer`           | Draws/fixes ASCII and Mermaid diagrams with the pro model — `/diagram`                                                                                                                                             |
 
 #### What the Agent Automates
 
@@ -426,7 +426,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                                           |
 | `/audit-architecture`        | Audits the architecture for recorded-decision drift + unrecorded intent (pro-model auditor)                                                                                                                        |
 | `/audit-readme`              | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage (pro-model auditor)                                                                                     |
-| `/diagram`                   | Draws or fixes an ASCII diagram with the pro-model diagrammer                                                                                                                                                      |
+| `/diagram`                   | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer                                                                                                                                           |
 | `/retrospective`             | Periodic retrospective with improvement suggestions                                                                                                                                                                |
 | `/dependency-updates`        | Runs and summarizes the Gradle and web-UI dependency update reports                                                                                                                                                |
 | `/gradle-update`             | Updates the Gradle wrapper to the latest stable                                                                                                                                                                    |

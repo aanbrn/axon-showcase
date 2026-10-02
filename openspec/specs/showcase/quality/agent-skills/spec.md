@@ -172,10 +172,19 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 
 #### Scenario: ASCII diagrams are drawn by the pro-model diagrammer
 
-- **WHEN** a diagram needs to be created, aligned, or fixed (e.g. a README flow diagram)
+- **WHEN** an ASCII diagram needs to be created, aligned, or fixed (e.g. the README project tree or a diagram's
+  plain-text fallback)
 - **THEN** the `diagrammer` subagent renders it with the pro model: it establishes the semantic mapping (which span
   starts and ends where), aligns by character width, and preserves deliberate asymmetry — so the cheap flash main agent
   does not spend effort on ASCII geometry
+
+#### Scenario: Mermaid diagrams are drawn by the pro-model diagrammer
+
+- **WHEN** a Mermaid diagram needs to be created, fixed, or reworked (e.g. a README flow diagram)
+- **THEN** the `diagrammer` subagent produces it with the pro model: it chooses the diagram type and constructs and
+  keeps the content clear of the host renderer's controls
+- **AND** it returns the diagram **source**, so the cheap flash main agent does not spend its own effort on Mermaid's
+  rendering pitfalls
 
 ### Requirement: The spec corpus is audited for structure and consistency
 

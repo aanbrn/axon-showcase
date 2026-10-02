@@ -23,14 +23,24 @@
 
 ## 2. Validation and close-out
 
-- [ ] 2.1 Prove the fix on the failing image: dispatch the smoke on the branch against `ubuntu-26.04` (its `runner`
+- [x] 2.1 Prove the fix on the failing image: dispatch the smoke on the branch against `ubuntu-26.04` (its `runner`
       input — the recipe is in the `AGENTS.md` note) and confirm it completes green — all five images build and the
       smoke profile passes. Record the run URL. If it still fails at the web UI build, record the failure rather than
-      proceeding (this is the check the change exists for).
-- [ ] 2.2 Prove the default path is unchanged: dispatch the smoke without the input (`ubuntu-latest`, Docker 28 today)
+      proceeding (this is the check the change exists for). — **verified**: run 36966281140 completes **success**; the
+      step reports `storage-driver=overlay2` and the build produces all five images (10 `Successfully built image`
+      lines). Both earlier 26.04 runs failed at this point, so the `daemon.json` lever fixed it.
+- [x] 2.2 Prove the default path is unchanged: dispatch the smoke without the input (`ubuntu-latest`, Docker 28 today)
       and confirm it succeeds — the check that the daemon rewrite/restart does not disturb the Docker 28 path, which is
-      expected to be `overlay2` already. Record the run URL.
-- [ ] 2.3 `./gradlew spotlessApply`, then `./gradlew check -PskipITs -Pcoverage.gate.enabled=false`; confirm green.
-      Re-run `spotlessApply` after the last edit to a Spotless-owned file (a task tick included).
-- [ ] 2.4 Run the `lesson-capture` subagent over the diff, review findings, and change dir; apply its durable
-      `AGENTS.md` proposals and record the applied net `AGENTS.md` delta on this task.
+      expected to be `overlay2` already. Record the run URL. — verified: run 36966290932 completes **success** on
+      `ubuntu-latest`.
+- [x] 2.3 `./gradlew spotlessApply`, then `./gradlew check -PskipITs -Pcoverage.gate.enabled=false`; confirm green.
+      Re-run `spotlessApply` after the last edit to a Spotless-owned file (a task tick included). — verified: `check`
+      BUILD SUCCESSFUL; `workflowLint`, `spotlessCheck`, `verifyCapturedMarkers` green.
+- [x] 2.4 Run the `lesson-capture` subagent over the diff, review findings, and change dir; apply its durable
+      `AGENTS.md` proposals and record the applied net `AGENTS.md` delta on this task. — applied: two merges into
+      existing bullets, no new bullet. Net **+9 `AGENTS.md` lines** (read from the two capture hunks: `+11/−6` and
+      `+23/−19`) — the "Report an upstream gap" bullet gains that an **error string's** owner is the project that emits
+      it, not the issue whose text matches it (follow it to the source; a consumer's matching issue is the thread, not
+      the venue), and the CLI-contract gotcha gains that a `uses:` step's side effects are read from the action's own
+      docs (both directions of a contested claim settled there). Four candidates were rejected as already covered (the
+      fabricated-ID class, the `skip_specs` reasoning, review-finding verification, the premise bullet).

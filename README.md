@@ -199,7 +199,7 @@ it before contributing.
 Every change flows through the same loop:
 
 ```mermaid
-%%{init: {"flowchart": {"diagramPadding": 255}}}%%
+%%{init: {"flowchart": {"diagramPadding": 270}}}%%
 flowchart LR
     Idea --> Explore
     subgraph approve["human approves"]
@@ -211,6 +211,8 @@ flowchart LR
         Archive --> Merge
     end
     Explore --> Propose
+    style approve fill:none,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
+    style fold fill:none,stroke:#bf360c,stroke-width:2px,stroke-dasharray:6 4,color:#bf360c
 ```
 
 <details>

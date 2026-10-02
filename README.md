@@ -199,12 +199,11 @@ it before contributing.
 Every change flows through the same loop:
 
 ```mermaid
-flowchart TB
+%%{init: {"flowchart": {"nodeSpacing": 18, "rankSpacing": 28, "diagramPadding": 240}}}%%
+flowchart LR
     Idea --> Explore --> Propose
-    Propose --> Review1["Review (spec)"]
-    Review1 -->|"auto + manual"| Apply
-    Apply --> Review2["Review (code)"]
-    Review2 -->|"auto + manual"| PR
+    Propose -->|"review: spec delta"| Apply
+    Apply -->|"review: code + tests"| PR
     PR -->|"CI green"| Archive
     Archive --> Merge
     Propose -.->|"human approves"| Merge

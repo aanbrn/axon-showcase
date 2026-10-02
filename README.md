@@ -62,11 +62,25 @@ axon-showcase/
 The domain is deliberately simple — a "showcase" is a scheduled, timed event with a lifecycle. The value is in _what the
 plumbing does with it_:
 
+```mermaid
+%%{init: {"flowchart": {"diagramPadding": 160}}}%%
+flowchart LR
+    SCHEDULED([SCHEDULED]) -->|"saga deadline: startTime"| STARTED([STARTED])
+    STARTED -->|"saga deadline: +duration"| FINISHED([FINISHED])
+    SCHEDULED -.->|"REMOVED (any time)"| REMOVED([REMOVED])
+    FINISHED -.-> REMOVED
+```
+
+<details>
+<summary>Plain-text version (for renderers without Mermaid)</summary>
+
 ```
 Scheduled ──(saga deadline: startTime)──► STARTED ──(saga deadline: +duration)──► FINISHED
     │                                                                              │
     └────────────────────────────── REMOVED (any time) ────────────────────────────┘
 ```
+
+</details>
 
 - **The saga runs the show.** When you schedule a showcase, an Axon **saga** (in `ShowcaseSaga`) sets a deadline to
   start it at the scheduled time, then another to finish it after the configured duration. You can schedule a showcase
@@ -100,12 +114,41 @@ The application follows **CQRS (Command Query Responsibility Segregation)** with
 
 ### Event Flow
 
+```mermaid
+%%{init: {"flowchart": {"diagramPadding": 230}}}%%
+flowchart LR
+    Client([Client])
+    GW[API Gateway]
+    CS[Command Service]
+    Kafka[(Kafka)]
+    PS[Projection Service]
+    OS[(OpenSearch)]
+    PG[(PostgreSQL<br/>event store)]
+    QS[Query Service]
+
+    Client -->|"POST /showcases"| GW
+    GW -->|command| CS
+    CS -->|events| Kafka
+    CS -.->|persists| PG
+    Kafka -->|events| PS
+    Kafka -.->|"events for SSE"| GW
+    PS -->|"read model"| OS
+    GW -->|query| QS
+    QS -->|search| OS
+    GW -.->|"SSE /events"| Client
+```
+
+<details>
+<summary>Plain-text version (for renderers without Mermaid)</summary>
+
 ```
 Write: Client → API Gateway → Command Service → (Kafka) → Projection Service → OpenSearch
                               └─ Axon event store (PostgreSQL)                     │
 Read:  Client → API Gateway → Query Service → OpenSearch ◄─────────────────────────┘
 SSE:   Command Service → (Kafka) → Gateway /events → Client
 ```
+
+</details>
 
 A scheduled showcase flows through the whole pipeline: the command service stores the event and publishes it, the
 projection service builds the read model, the query service serves it, and the gateway streams the event live to any
@@ -155,16 +198,25 @@ it before contributing.
 
 Every change flows through the same loop:
 
+```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 28, "rankSpacing": 40, "diagramPadding": 230}}}%%
+flowchart LR
+    Idea --> Explore --> Propose
+    Propose -->|"you approve"| Apply
+    Apply -->|"you approve"| PR
+    PR -->|"CI green"| Archive
+    Archive -->|"delta spec → main spec"| Merge
 ```
-                           ┌─────────────────────────────── human approves ───────────────────────────────┐
-                           │                                                                              │
-  Idea  ──►  Explore  ──►  Propose  ──►  Review  ──►  Apply  ──►  Review  ──►  PR  ──►  Archive  ──►  Merge
-                           │ (spec delta)         (code+tests)            (CI green)          │
-                           │         (auto+manual)            (auto+manual)                   │
-                           │         (optional PR)                      (mandatory PR)        │
-                           │                                                                  │
-                           └───────────────────── delta spec → main spec ─────────────────────┘
+
+<details>
+<summary>Plain-text version (for renderers without Mermaid)</summary>
+
 ```
+Idea ──► Explore ──► Propose ──(you approve)──► Apply ──(you approve)──► PR
+     ──(CI green)──► Archive ──(delta spec → main spec)──► Merge
+```
+
+</details>
 
 An idea becomes a **proposal** (what and why), then a **spec delta** (the new behavior, scoped to a capability), a
 **design** (how), and **tasks**. Applying writes the code and tests. Each phase ends in **two reviews**: an

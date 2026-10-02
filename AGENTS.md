@@ -681,9 +681,10 @@ nine `ubuntu-latest` clauses plus a bump process nothing tracks, so the label is
 `runner` input dispatches the job onto a newer image
 (`gh workflow run deployment-smoke.yml --ref <branch> -f runner=ubuntu-26.04`), and its first step prints `runner.os`,
 the requested label, and `/etc/os-release`'s name and version — so a failure during the rollout window is attributable
-to the image rather than to the change under test. **That check has already earned its keep:** the 26.04 dispatch fails
-at `:showcase-web-ui:dockerBuildImage` (the `pack`-built Paketo image), reproducibly, while the four JVM images build —
-so the repo is not yet safe on 26.04, and fixing it is parked in `docs/ideas.md` to land before the rollout completes.
+to the image rather than to the change under test. **That check has already earned its keep:** the 26.04 dispatch failed
+at `:showcase-web-ui:dockerBuildImage` (the `pack`-built Paketo image), reproducibly, while the four JVM images built —
+attributed to the Docker 28 → 29 difference, and addressed by the smoke's own `overlay2` step (see the buildpack note),
+which a re-dispatch on `ubuntu-26.04` is what confirms.
 
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
@@ -1326,14 +1327,20 @@ on by default when observability metrics export and the web UI ServiceMonitor ar
 Prometheus `/metrics` on port `9113`, which the Service's `http-metrics` port and the ServiceMonitor scrape — the chain
 is specified in the `deployment/web-ui` spec. A `PackBuildImageTask` convention defaults the image name to
 `${project.name}:${project.version}`, which the web UI module overrides with the deployable
-`aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. `SHOWCASE_API_BASE_URL` — **no
-baked default** (compose sets `http://localhost:8080`; the chart's `webUi.apiBaseUrl` defaults to empty) — has no
-ConfigMap or volume mount. The runtime contract (the `start.sh` render into `/workspace/config.js` and the fail-fast on
-an unset value) is specified in the `deployment/web-ui` spec. The `dockerBuildImage` run prints two informational
-warnings from the toolchain, not defects: "Exporting to docker daemon (building without --publish) and daemon uses
-containerd storage" (pack exports to the local daemon's containerd store, losing the fast publish path) and "deprecated
-usage of stack" (an upstream Paketo buildpack still declares the deprecated `stacks` key instead of `targets`). Neither
-is actionable in the build — ignore them.
+`aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. **A Docker 29 daemon needs the
+`overlay2` storage driver for this build:** on Docker 29's containerd/`overlayfs` store, `pack`'s `imgutil` local store
+cannot read the layers `docker image save` produces, and the build fails with
+`failed to fetch base layers: open /tmp/imgutil.local.image.*: no such file or directory` — the deployment smoke sets
+`overlay2` for this reason, and that step is retired when `buildpacks/pack#2527` (the owning venue;
+`spring-projects/spring-boot#49251` is the downstream thread) fixes the store. `SHOWCASE_API_BASE_URL` — **no baked
+default** (compose sets `http://localhost:8080`; the chart's `webUi.apiBaseUrl` defaults to empty) — has no ConfigMap or
+volume mount. The runtime contract (the `start.sh` render into `/workspace/config.js` and the fail-fast on an unset
+value) is specified in the `deployment/web-ui` spec. The `dockerBuildImage` run prints two informational warnings from
+the toolchain, not defects: "Exporting to docker daemon (building without --publish) and daemon uses containerd storage"
+(pack exports to the local daemon's containerd store, losing the fast publish path) and "deprecated usage of stack" (an
+upstream Paketo buildpack still declares the deprecated `stacks` key instead of `targets`). Neither is actionable in the
+build — ignore them. (The first warning names the store that _breaks_ the build when the daemon is Docker 29 — see the
+constraint above — so it is a signal about the daemon, not a defect to chase in the repo.)
 
 Similarly, a CNB-built image's timestamps are not host state: Cloud Native Buildpacks stamp buildpack layers with a
 fixed past date — they list as `Jan 1 1980` — so builds are reproducible and layer caching stays stable, and this build

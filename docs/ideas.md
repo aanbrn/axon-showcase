@@ -13,29 +13,6 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
-## 2026-10-02
-
-- Fix the web UI image build on Ubuntu 26.04 before the `ubuntu-latest` label moves — parked; no change yet. Validating
-  ahead of the migration (`validate-the-workflows-on-ubuntu-2604`) found that the smoke's _Build the images_ step fails
-  on `ubuntu-26.04` while the four JVM `bootBuildImage` tasks succeed: `:showcase-web-ui:dockerBuildImage` — the
-  `pack`-built Paketo NGINX image, whose `imgutil` exporter is the one that fails — errors with
-  `failed to fetch base layers: open /tmp/imgutil.local.image.*/blobs/sha256/980d29ce…: no such file or directory`, the
-  same blob hash on two runs across two commits (runs 36944943462, 36946385694). **Diagnosed further (2026-10-02):** the
-  migration is really a **Docker 28 → 29** jump — `ubuntu-latest` (24.04) ships Docker 28.0.4 and the 26.04 image ships
-  29.4.2 — and Docker 29's `overlayfs` storage driver is the documented trigger of exactly this signature
-  (`spring-projects/spring-boot#49251`: "Paketo integration doesn't work with Docker's new overlayfs storage driver",
-  whose error text is byte-identical, and its workaround is to revert to `overlay2` or disable snapshots;
-  `buildpacks/pack#2272` is the same warning's performance half). Not our pins: `pack` 0.40.9, the builder, and the run
-  image are identical across the passing and failing runs, and the JVM images (`bootBuildImage`, a different exporter)
-  build on 26.04. **Not reproducible locally**, though: the same Docker 29.5.2 + `overlayfs` on this machine builds the
-  web UI image cold and warm — so the residual factor is runner-environment-specific (the CI runner installs Docker from
-  the official repo per `actions/runner-images`, which sets up something my colima daemon does not). Next steps: try the
-  documented workaround on the 26.04 runner (a `daemon.json` `storage-driver: overlay2`, or `--publish` so `pack` skips
-  the local store), and report upstream (`buildpacks/pack` / `spring-projects/spring-boot#49251`) with this run. The
-  label migrates 2026-10-19 → 2026-11-19 (`actions/runner-images#14748`), and all 12 jobs run on it, so this must land
-  before then. The smoke's `runner` input re-tests any fix
-  (`gh workflow run deployment-smoke.yml --ref <branch> -f runner=ubuntu-26.04`).
-
 ## 2026-09-30
 
 - Correct the `code-quality` spec's shellcheck scenario — parked; no change yet. The requirement "GitHub workflows are

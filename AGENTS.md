@@ -2344,35 +2344,39 @@ capture-stash-stale-copy
   wherever the rules are read (`openspec new change`, `openspec instructions`), which read as noise for as long as the
   config existed; `openspec validate --all` emits no warning at all, which is why CI missed it. The dropped `proposal`
   rules included `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the rule the
-  review loop kept catching missing. Quote any YAML scalar containing `: `; the CI `build` job now probes for the
-  list-shape warning on any declared list surface and the whole-file `could not parse` one (a malformed scalar) and
-  fails on either, and `/opsx-tool-update` re-verifies both with a positive control. The general rule: a config can look
-  well-formed and pass the consumer's validation while the consumer silently ignores or reinterprets part of it, and
-  from outside a valid config and an ignored one are indistinguishable — the signal may be a warning on stderr that no
-  gate reads, **or none at all**: `java.util.Properties` splits a key at its first `:`, so the dependency list's
-  `group:module` entries collapsed to group prefixes — a dead exact-coordinate branch and a whole-group
-  over-suppression. For a config **a tool owns**, do not substitute a parser of your own (it assumes a contract the tool
-  owns): probe the consumer's read path and fail a gate on its warning. For a format **the repository defines**, own the
-  parse and unit-test it — a repository-owned line parser (`DependencyUpdateRulesTests`) beats escaping a library's
-  delimiters. captured: hold-back-minor-dependency-updates Where the probe's subject is a load that either succeeds or
-  throws, take the signal from the process exit status, not from a message grepped out of the tool's output:
-  `opencode debug config` prints the whole resolved configuration, including every agent's full prompt, so a grep can
-  match text the config merely embeds; a loadable config exits 0 and a V2-only `permissions` key exits 1. captured:
-  probe-opencode-config-read-path Keep the guard's list-shape pattern generic (`must be an array of strings`), not one
-  surface's enumerated wording — it grew from `ignoring this artifact's rules` to
-  `ignoring this artifact's rules|could not parse`, then to the generic phrase, which is what covered every surface — so
-  a malformed `rules` or `operations.*.guidance` item drops no config list silently. The same class covers the change's
-  own `.openspec.yaml`, quieter still: OpenSpec's change-metadata schema is not strict, so an unrecognized key is
-  silently stripped with no warning at all — a `skip_design: true` marker (an inherited agent habit; a dozen archived
-  changes carry it) does nothing, and `openspec status` still reports `design` incomplete and points at
-  `openspec instructions design`. There is no artifact-skip key beyond `skip_specs`: skip `design.md` by simply not
-  writing it, never by adding a key. captured: bump-snyk-cli-pin Upstream, the reports are `Fission-AI/OpenSpec#1891`
-  (an unquoted `: ` in a rules item; closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still unmerged and in
-  no release — the latest CLI, our pinned `1.13.2`, has no `inspectProjectConfig`, so the defect is live here) and
-  `Fission-AI/OpenSpec#1892` (an unparseable config; still open); if `validate` gains a config check that fails (an ask
-  in each), the CI probe and the `/opsx-tool-update` re-verification become redundant and can go. captured:
-  inject-positive-control-task-rule (#375) captured: widen-config-probe-to-guidance captured:
-  record-openspec-1891-closure
+  review loop kept catching missing. Quote any YAML scalar containing `: ` — the scope is any declarative artifact, a
+  project-defined definition file as much as a config: an unquoted `: ` in a `.opencode/agent/*.md` frontmatter's
+  `description` made YAML read the value as a mapping, the parse failed, and the agent silently did not load
+  (`/audit-readme` failed with `Agent readme-auditor cannot run as a subagent`) — no gate validates that frontmatter,
+  and a reload does not fix it, unlike the not-registered `Unknown agent type` failure. captured:
+  fix-readme-auditor-frontmatter (#477) The CI `build` job now probes for the list-shape warning on any declared list
+  surface and the whole-file `could not parse` one (a malformed scalar) and fails on either, and `/opsx-tool-update`
+  re-verifies both with a positive control. The general rule: a config can look well-formed and pass the consumer's
+  validation while the consumer silently ignores or reinterprets part of it, and from outside a valid config and an
+  ignored one are indistinguishable — the signal may be a warning on stderr that no gate reads, **or none at all**:
+  `java.util.Properties` splits a key at its first `:`, so the dependency list's `group:module` entries collapsed to
+  group prefixes — a dead exact-coordinate branch and a whole-group over-suppression. For a config **a tool owns**, do
+  not substitute a parser of your own (it assumes a contract the tool owns): probe the consumer's read path and fail a
+  gate on its warning. For a format **the repository defines**, own the parse and unit-test it — a repository-owned line
+  parser (`DependencyUpdateRulesTests`) beats escaping a library's delimiters. captured:
+  hold-back-minor-dependency-updates Where the probe's subject is a load that either succeeds or throws, take the signal
+  from the process exit status, not from a message grepped out of the tool's output: `opencode debug config` prints the
+  whole resolved configuration, including every agent's full prompt, so a grep can match text the config merely embeds;
+  a loadable config exits 0 and a V2-only `permissions` key exits 1. captured: probe-opencode-config-read-path Keep the
+  guard's list-shape pattern generic (`must be an array of strings`), not one surface's enumerated wording — it grew
+  from `ignoring this artifact's rules` to `ignoring this artifact's rules|could not parse`, then to the generic phrase,
+  which is what covered every surface — so a malformed `rules` or `operations.*.guidance` item drops no config list
+  silently. The same class covers the change's own `.openspec.yaml`, quieter still: OpenSpec's change-metadata schema is
+  not strict, so an unrecognized key is silently stripped with no warning at all — a `skip_design: true` marker (an
+  inherited agent habit; a dozen archived changes carry it) does nothing, and `openspec status` still reports `design`
+  incomplete and points at `openspec instructions design`. There is no artifact-skip key beyond `skip_specs`: skip
+  `design.md` by simply not writing it, never by adding a key. captured: bump-snyk-cli-pin Upstream, the reports are
+  `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item; closed 2026-09-29, but its fix
+  `Fission-AI/OpenSpec#1894` is still unmerged and in no release — the latest CLI, our pinned `1.13.2`, has no
+  `inspectProjectConfig`, so the defect is live here) and `Fission-AI/OpenSpec#1892` (an unparseable config; still
+  open); if `validate` gains a config check that fails (an ask in each), the CI probe and the `/opsx-tool-update`
+  re-verification become redundant and can go. captured: inject-positive-control-task-rule (#375) captured:
+  widen-config-probe-to-guidance captured: record-openspec-1891-closure
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
   changes without the repository moving: when the upstream-reference report was parked, review found two of four

@@ -330,13 +330,16 @@ one delta; a new requirement costs a permanent corpus entry, and the corpus accr
 genuinely new subject like `concise-agent-reports`' shared report contract is still `ADDED`).
 
 **A `MODIFIED` requirement block replaces the whole requirement — the delta must carry every existing scenario the main
-spec still has, in the main spec's order.** `openspec validate --changes` fails with "MODIFIED ... omits scenario(s) the
-current spec still has" when a delta drops an existing scenario (the first `helm-install-builds-webui-image` delta wrote
-only the new web UI scenario, omitting "The deployed UI can call the gateway" and "The UI origin is configurable") but
-not when one is reordered — `openspec archive` writes the delta's order into the main spec, so a reorder is silent
-drift. The safe recipe: copy the current spec's full requirement block (description + all scenarios) into the delta,
-then edit it, preserving the existing scenarios' relative order — never hand-write a MODIFIED block from memory.
-captured: name-review-finding-classes (#367)
+spec still has, in the main spec's order, matched by name, so a scenario cannot be renamed.**
+`openspec validate --changes` fails with "MODIFIED ... omits scenario(s) the current spec still has" both when a delta
+drops an existing scenario (the first `helm-install-builds-webui-image` delta wrote only the new web UI scenario,
+omitting "The deployed UI can call the gateway" and "The UI origin is configurable") and when it renames one (renaming
+the ASCII scenario in `widen-diagrammer-to-mermaid` read as omitting it and adding another) — but not when one is
+reordered, since `openspec archive` writes the delta's order into the main spec and a reorder is silent drift. To change
+a scenario's subject, keep the existing scenario (narrowing its body) and add a sibling — a `MODIFIED` block may add a
+scenario, never rename one. The safe recipe: copy the current spec's full requirement block (description + all
+scenarios) into the delta, then edit it, preserving the existing scenarios' relative order — never hand-write a MODIFIED
+block from memory. captured: name-review-finding-classes (#367) captured: widen-diagrammer-to-mermaid
 
 A `MODIFIED` block names one `### Requirement:` header, so folding a second requirement into the first does not retire
 that second requirement: the delta also needs a `REMOVED` block for it, or the main spec keeps both the merged
@@ -1096,12 +1099,14 @@ Key modules (libraries, not services):
   When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent — it inherits the
   Playwright MCP, captures the screenshot into its own context, reads it, and returns a description, while the main
   session stays on the cheap model. This auto-routes vision work without manual model switching.
-- **Diagrammer subagent for ASCII diagrams**: the main agent (the cheap flash model) is weak at ASCII diagram geometry —
-  drawing or fixing a diagram (a README flow diagram, alignment, bracket spans) repeatedly cost extra effort and review
-  cycles. A `diagrammer` subagent (`.opencode/agent/diagrammer.md`) is pinned to `opencode-go/deepseek-v4-pro` to draw
-  and fix ASCII diagrams. When a diagram needs creating, aligning, or correcting, delegate to it via the `/diagram`
-  command: it establishes the semantic mapping (which span ends where) before rendering, aligns by character width, and
-  preserves deliberate asymmetry. The main agent stays on the cheap model.
+- **Diagrammer subagent for ASCII and Mermaid diagrams**: the main agent (the cheap flash model) is weak at diagram work
+  — ASCII geometry (alignment, bracket spans) and Mermaid's constructs and rendering pitfalls (a span has no `flowchart`
+  equivalent; a wide diagram's rightmost node hides under GitHub's control toolbar) each repeatedly cost extra effort
+  and review cycles. A `diagrammer` subagent (`.opencode/agent/diagrammer.md`) is pinned to
+  `opencode-go/deepseek-v4-pro` to draw and fix diagrams in both media — ASCII for plain text (e.g. the README project
+  tree or a diagram's plain-text fallback), Mermaid for a Markdown host that renders it (e.g. a README flow diagram).
+  Delegate to it via the `/diagram` command: it establishes the semantic mapping (which span ends where) before
+  rendering, applies the recorded pitfalls, and verifies its output. The main agent stays on the cheap model.
 - **Experience-analyzer subagent for retrospectives and improvements**: the `experience-analyzer` subagent
   (`.opencode/agent/experience-analyzer.md`) aggregates recent experience across many changes — above the per-unit
   `review-quick`/`lesson-capture` agents. Trigger it with the `/retrospective` OpenCode command (or run it manually):

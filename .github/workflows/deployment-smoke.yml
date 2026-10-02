@@ -27,10 +27,12 @@ jobs:
       CLUSTER_NAME: axon-showcase-smoke
     steps:
       - name: Report the runner image
+        env:
+          REQUESTED_IMAGE: ${{ inputs.runner || 'ubuntu-latest' }}
         run: |
           echo "runner.os: ${{ runner.os }}"
-          echo "requested image: ${{ inputs.runner || 'ubuntu-latest' }}"
-          cat /etc/os-release | grep -E '^(NAME|VERSION)=' || true
+          echo "requested image: ${REQUESTED_IMAGE}"
+          grep -E '^(NAME|VERSION)=' /etc/os-release || true
 
       - name: Checkout repository
         uses: actions/checkout@v7

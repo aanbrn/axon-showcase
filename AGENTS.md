@@ -673,6 +673,16 @@ counts, and the service logs, so a failure names its cause. It exercises the cha
 wiring, which neither e2e suite does (one boots the pipeline through Testcontainers, the other from compose, and neither
 installs the chart). It is observational — never a merge gate. captured: fix-the-deployment-smoke-503s (#424)
 
+**The workflows track `ubuntu-latest` deliberately; validate a newer image before the label moves.** GitHub migrates the
+label to Ubuntu 26.04 over a rollout from 2026-10-19 to 2026-11-19 (`actions/runner-images#14748`), whose impact is the
+image's system libraries, package versions, and prebuilt binaries — the surface the smoke's `kind`/`kubectl`/
+`docker`/`sudo` steps touch. Pinning an explicit image would cost a `MODIFIED` delta on each of `merge-governance`'s
+nine `ubuntu-latest` clauses plus a bump process nothing tracks, so the label is kept and validated instead: the smoke's
+`runner` input dispatches the job onto a newer image
+(`gh workflow run deployment-smoke.yml --ref <branch> -f runner=ubuntu-26.04`), and its first step prints `runner.os`,
+the requested label, and `/etc/os-release`'s name and version — so a failure during the rollout window is attributable
+to the image rather than to the change under test.
+
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
 pipeline with Playwright) on a nightly schedule and via `workflow_dispatch`. It installs the `pack` CLI explicitly
@@ -2256,23 +2266,31 @@ capture-stash-stale-copy
   capability the docs describe only _partially_: the permissions docs name `~`/`$HOME` pattern expansion, and an
   `AGENTS.md` bullet wrongly concluded `{env:VAR}` was unsupported. That false limitation survived the review gate and
   was only caught by reading the source, because a tool's behavior is not repo-evidenced and no in-repo gate can check
-  it. Treat a doc's account of a feature as a floor, not a boundary, and verify a tool-behavior claim against the
-  source/CLI before writing it into a durable artifact. Confirm too that the file you read is the code path that runs: a
-  package can hold a mock or test harness whose name matches the entry point (`github/index.ts` is a local dev/test
-  entry; the shipped handler is `github.handler.ts`), and a matching filename or path is not evidence you read the
-  implementation. The same probe-first rule covers a compiler or build-tool semantics claim: a design drafted the
-  premise that a precompiled `.gradle.kts` cannot see an `internal` declaration, and a scratch `kotlin-dsl` build
-  disproved it — the `internal object` compiles from the script, and only `private` fails — so the shared helper stayed
-  `internal` rather than being widened to `public`. Verify a visibility or build-semantics claim with a minimal scratch
-  build before it constrains a design. A `build-logic` object is also unreachable from a root script's _configuration_
-  path for a second reason: `settings.gradle.kts` `includeBuild`s it, so its classes are not on the root script's
-  buildscript classpath — a probe saw `ClassNotFoundException: HelmUpdateRules` even from an init script, while the same
-  object is in scope inside a task _action_. Keep the rule in the `build-logic` task that applies it — pass the input
-  file as an `@InputFile` property, `@Optional` when it may be absent — and let the root script only point the task at
-  it, rather than loading it inline from `build.gradle.kts`. captured: rework-the-helm-suppression-list The web UI's npm
-  checks asserted npm's contract and took repeated review rounds to correct: `npm outdated` exits `1` both when updates
-  exist and on error (the report's content, not the exit code alone, is the discriminator), npm warns to stderr on clean
-  runs (so stderr is not the error signal), and `npm audit`'s default `--audit-level` resolves to `low`, not "moderate".
+  it. Reproduce the _condition_, not the message: a tool error read from a log names only what it rejected in that one
+  invocation, so a limitation derived from it is about the input, not the tool. `actionlint 1.7.12` rejects
+  `runs-on: ${{ inputs.runner }}` only when the input is **undeclared**
+  (`property "runner" is not defined in object type {}`); declare the input and the bare reference passes (both
+  directions reproduced) — so the fallback that message seemed to mandate was a _runtime_ need (the scheduled trigger
+  leaves the input empty), and the false cause nearly discarded the real one. Before writing "tool X rejects Y" into a
+  design or a comment, run X on the minimal input that does and on one that does not, and quote the discriminating
+  condition rather than the message. captured: validate-the-workflows-on-ubuntu-2604 Treat a doc's account of a feature
+  as a floor, not a boundary, and verify a tool-behavior claim against the source/CLI before writing it into a durable
+  artifact. Confirm too that the file you read is the code path that runs: a package can hold a mock or test harness
+  whose name matches the entry point (`github/index.ts` is a local dev/test entry; the shipped handler is
+  `github.handler.ts`), and a matching filename or path is not evidence you read the implementation. The same
+  probe-first rule covers a compiler or build-tool semantics claim: a design drafted the premise that a precompiled
+  `.gradle.kts` cannot see an `internal` declaration, and a scratch `kotlin-dsl` build disproved it — the
+  `internal object` compiles from the script, and only `private` fails — so the shared helper stayed `internal` rather
+  than being widened to `public`. Verify a visibility or build-semantics claim with a minimal scratch build before it
+  constrains a design. A `build-logic` object is also unreachable from a root script's _configuration_ path for a second
+  reason: `settings.gradle.kts` `includeBuild`s it, so its classes are not on the root script's buildscript classpath —
+  a probe saw `ClassNotFoundException: HelmUpdateRules` even from an init script, while the same object is in scope
+  inside a task _action_. Keep the rule in the `build-logic` task that applies it — pass the input file as an
+  `@InputFile` property, `@Optional` when it may be absent — and let the root script only point the task at it, rather
+  than loading it inline from `build.gradle.kts`. captured: rework-the-helm-suppression-list The web UI's npm checks
+  asserted npm's contract and took repeated review rounds to correct: `npm outdated` exits `1` both when updates exist
+  and on error (the report's content, not the exit code alone, is the discriminator), npm warns to stderr on clean runs
+  (so stderr is not the error signal), and `npm audit`'s default `--audit-level` resolves to `low`, not "moderate".
   `npm update` reconciles the whole dependency graph rather than the packages you asked for: an in-range direct bump
   moved its eslint cache stack (`file-entry-cache`, `flat-cache`, `keyv`) across majors, and npm 11 filled `license`
   fields throughout the lockfile — so describe the lockfile diff by what moved (not as "patches/minors") and run the

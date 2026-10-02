@@ -63,14 +63,12 @@ The domain is deliberately simple — a "showcase" is a scheduled, timed event w
 plumbing does with it_:
 
 ```mermaid
-stateDiagram-v2
-    direction LR
-    [*] --> SCHEDULED
-    SCHEDULED --> STARTED: saga deadline: startTime
-    STARTED --> FINISHED: saga deadline: +duration
-    SCHEDULED --> REMOVED: any time
-    FINISHED --> REMOVED: any time
-    REMOVED --> [*]
+%%{init: {"flowchart": {"diagramPadding": 160}}}%%
+flowchart LR
+    SCHEDULED([SCHEDULED]) -->|"saga deadline: startTime"| STARTED([STARTED])
+    STARTED -->|"saga deadline: +duration"| FINISHED([FINISHED])
+    SCHEDULED -.->|"REMOVED (any time)"| REMOVED([REMOVED])
+    FINISHED -.-> REMOVED
 ```
 
 <details>
@@ -117,6 +115,7 @@ The application follows **CQRS (Command Query Responsibility Segregation)** with
 ### Event Flow
 
 ```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 30, "rankSpacing": 40, "diagramPadding": 230}}}%%
 flowchart LR
     Client([Client])
     GW[API Gateway]
@@ -200,7 +199,7 @@ it before contributing.
 Every change flows through the same loop:
 
 ```mermaid
-flowchart LR
+flowchart TB
     Idea --> Explore --> Propose
     Propose --> Review1["Review (spec)"]
     Review1 -->|"auto + manual"| Apply

@@ -209,11 +209,6 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-09-07
 
-- Measure code coverage for the web UI — parked; no change yet. The JVM modules have a JaCoCo coverage gate
-  (`jacocoTestCoverageVerification`, baseline in `config/jacoco/coverage-baseline.properties`), but `showcase-web-ui`
-  (Vitest) has no coverage measurement. Explore wiring Vitest's built-in `--coverage` (via `@vitest/coverage-v8`) into
-  the frontend `check`, and whether a coverage gate (threshold) makes sense for the UI or just a reporting step.
-
 - Client-side (RUM) observability for the web UI — parked; no change yet. The deployable-UI change adds only server-side
   nginx metrics (stub_status + ServiceMonitor); the UI's user-facing experience is still unobserved, so a separate UI
   change would add web-vitals + JS-error reporting (e.g. Grafana Faro or a push-to-gateway metrics endpoint).

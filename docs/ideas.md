@@ -15,16 +15,6 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-09-30
 
-- Correct the `code-quality` spec's shellcheck scenario — parked; no change yet. The requirement "GitHub workflows are
-  linted by the build" carries the scenario "Broken run script fails the build", whose WHEN conditions on "a shell error
-  **that shellcheck reports**" — but `shellcheck` appears nowhere in the repository
-  (`workflow-lint-conventions.gradle.kts` invokes `actionlint` alone; actionlint only calls shellcheck if it happens to
-  be on `PATH`, which nothing installs or documents). The scenario is therefore unfalsifiable as written, and it
-  survived `retry-the-actionlint-download` because a `MODIFIED` block must carry an existing scenario verbatim. Route: a
-  `MODIFIED` correction to that scenario (either drop the shellcheck clause, or install and document shellcheck so the
-  claim becomes true), or a `skip_specs` docs fix. It predates the change that surfaced it, from the archived
-  `add-actionlint-gate` proposal.
-
 - Retire the OpenSpec config probe and the `/opsx-tool-update` re-verification once `validate` checks the config —
   parked; no change yet. `Fission-AI/OpenSpec#1891` closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still
   unmerged and in no release (the latest CLI, our pinned `1.14.0`, has no `inspectProjectConfig`), so the `ci.yml` probe

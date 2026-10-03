@@ -2273,7 +2273,13 @@ capture-stash-stale-copy
   `permissions:` had hidden `ci.yml`'s top-level one. GitHub's dependency-caching reference names the trigger, so a fix
   built on the misattribution (granting `actions: write`) would have widened the token for nothing. Read the
   authoritative policy for the mechanism you are hypothesising, or vary only that dimension; a fix that enlarges a
-  privilege to explain a behavior is a signal the cause is still undiagnosed.
+  privilege to explain a behavior is a signal the cause is still undiagnosed. The same rule binds a single experiment
+  that varies two dimensions at once: probing one malformed frontmatter on an agent and a different one on a command
+  read the results as kind-keyed ("command → exit 1") when the status depends on the resolved YAML shape, not the kind —
+  `guard-agent-loader-read-path` fixed the design only by re-deriving at a held-constant shape. A later review round
+  then could not reproduce the silent-drop row because it chose a different shape, and read its clean run as a
+  refutation of a true fact: a disagreement between two runs that differ in an uncontrolled dimension refutes neither,
+  so compare the inputs before concluding either wrong. captured: guard-agent-loader-read-path
 - **A reproduction in an outward-facing artifact is itself part of the claim — write it so a reader reruns it to the
   same output, and rerun the exact sequence before posting.** State the tool version and the starting state, and record
   the commands in the order they ran: an order-dependent transcript can self-contradict (a `Fission-AI/OpenSpec#1892`

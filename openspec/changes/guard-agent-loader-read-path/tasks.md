@@ -32,10 +32,10 @@
 
 ## 2. Verification
 
-- [ ] 2.1 Confirm the pull request's own `build` run exercises the probe (it edits `.github/workflows/ci.yml`, so the
+- [x] 2.1 Confirm the pull request's own `build` run exercises the probe (it edits `.github/workflows/ci.yml`, so the
       gate includes it) and passes.
-- [ ] 2.2 Prove the run-and-fail path in CI at the merge stage: temporarily commit a malformed `.opencode/agent/*.md`
+- [x] 2.2 Prove the run-and-fail path in CI at the merge stage: temporarily commit a malformed `.opencode/agent/*.md`
       definition, push to the pull request, watch the probe step fail and name the definition, then revert and push;
       record both runs' outcomes.
-- [ ] 2.3 Run the per-unit `lesson-capture` subagent over the change and apply its durable proposals; record the applied
+- [x] 2.3 Run the per-unit `lesson-capture` subagent over the change and apply its durable proposals; record the applied
       net `AGENTS.md` delta on this task.

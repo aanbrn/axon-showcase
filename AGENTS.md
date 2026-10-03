@@ -910,11 +910,13 @@ Key modules (libraries, not services):
   properties) and JCache (a JVM-global cache manager). Contexts that are safely cacheable don't need it: service slices,
   and `@Nested` classes with distinct `@ActiveProfiles` (which already get separate cached contexts). Keep it on the
   gateway/command-service full-context ITs (each boots a JGroups-enabled service); drop it elsewhere
-- **Code coverage**: modules opt in via `code-coverage-conventions`. Coverage is measured per module with
+- **Code coverage**: JVM modules opt in via `code-coverage-conventions`. Coverage is measured per module with
   `jacocoTestReport` (unit + component + integration exec data) and aggregated with the root `jacocoRootReport`. The
   `jacocoTestCoverageVerification` gate is wired into `check` at the baseline in
   `config/jacoco/coverage-baseline.properties` and requires Docker (integration tests). A module can extend the
-  generated-class excludes via `coverage.generatedClassExcludes`
+  generated-class excludes via `coverage.generatedClassExcludes`. The **web UI's** coverage is a separate Vitest/V8
+  gate: `npmTestCoverage` (in the frontend `check`) enforces the statement minimum in
+  `config/web-ui-coverage/coverage-baseline.properties` (fraction form, scaled to Vitest's percentage thresholds)
 - **Architecture Decision Records**: record cross-cutting architecture decisions as numbered ADRs under `docs/adr/`
   (Nygard format — Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture the
   _why_ behind structural choices. Capture a decision as an ADR when it is made, not after the fact. A decision that
@@ -1970,8 +1972,13 @@ capture-stash-stale-copy
   the check's row (a stalled `smoke` run failed `Global: count of failed events … actual : 1.0`); a name with no stats
   cannot be asserted at all — `ratio: 1` drops the write names and the per-name assertions fail with
   `Could not find stats matching assertion path`, so a read-only verification runs under an assertion-free profile
-  (`calibrate`). Perturb the metric the assertion reads, not the check's condition. captured: rework-load-tests
-  captured: close-load-test-knee-loop captured: tighten-load-test-streams
+  (`calibrate`). Perturb the metric the assertion reads, not the check's condition. The same unit discipline applies at
+  a **library's own API boundary**: verify the unit that API expects before feeding a value into it, and scale at the
+  boundary — Vitest's coverage `thresholds` are **percentages (0–100)**, compared against `summary.pct` with
+  `coverage < threshold`, so the web-UI gate keeps its baseline in the JVM's **fraction** form (`0.80`) and multiplies
+  by 100 in `vite.config.ts`; a fraction passed straight through is always below any real coverage and the gate silently
+  never fires. captured: rework-load-tests captured: close-load-test-knee-loop captured: tighten-load-test-streams
+  captured: web-ui-coverage-gate
 
 - **Do not write a Gatling stream's loop or retry condition as an EL string — use the typed session predicate; an EL
   condition can crash on the substituted value and KO the whole stream.** The write stream's

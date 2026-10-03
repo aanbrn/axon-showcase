@@ -1,5 +1,7 @@
 import com.github.gradle.node.npm.task.NpmTask
 import gradle.kotlin.dsl.accessors._31ffc96443a0302ceb6c1c60c45624ec.node
+import java.math.BigDecimal
+import java.util.Properties
 import org.gradle.accessors.dm.LibrariesForLibs
 
 plugins {
@@ -71,7 +73,7 @@ val npmFormat =
 val npmTest =
     tasks.register<NpmTask>("npmTest") {
         group = "verification"
-        description = "Runs the frontend unit tests."
+        description = "Runs the frontend unit tests without coverage (standalone; `check` runs `npmTestCoverage`)."
         dependsOn(npmCi)
         args.set(listOf("run", "test"))
         inputs.files(fileTree("src"))
@@ -82,6 +84,38 @@ val npmTest =
         inputs.file("package-lock.json")
         outputs.dir(layout.buildDirectory.dir("reports"))
     }
+
+val npmTestCoverage =
+    tasks.register<NpmTask>("npmTestCoverage") {
+        group = "verification"
+        description = "Runs the frontend unit tests with coverage and enforces the committed statement minimum."
+        dependsOn(npmCi)
+        args.set(listOf("run", "test:coverage"))
+        inputs.files(fileTree("src"))
+        inputs.file("eslint.config.js")
+        inputs.file("vite.config.ts")
+        inputs.file("tsconfig.json")
+        inputs.file("package.json")
+        inputs.file("package-lock.json")
+        inputs.file(rootProject.layout.projectDirectory.file("config/web-ui-coverage/coverage-baseline.properties"))
+        // The committed baseline (a fraction, mirroring the JVM baseline) is injected as the environment variable the
+        // config reads; the config scales it to Vitest's percentage thresholds.
+        environment.put(
+            "VITEST_COVERAGE_MIN",
+            coverageStatementsMinimum().toPlainString(),
+        )
+        outputs.dir(layout.buildDirectory.dir("coverage"))
+    }
+
+/** The frontend statement-coverage minimum, read from the committed baseline file (fraction form, e.g. 0.80). */
+fun coverageStatementsMinimum(): BigDecimal {
+    val file = rootProject.layout.projectDirectory.file("config/web-ui-coverage/coverage-baseline.properties").asFile
+    val properties = Properties()
+    if (file.exists()) {
+        file.inputStream().use { properties.load(it) }
+    }
+    return properties.getProperty("coverage.statements.minimum", "0.80").toBigDecimal()
+}
 
 val npmTypeCheck =
     tasks.register<NpmTask>("npmTypeCheck") {
@@ -231,7 +265,7 @@ val npmE2e =
     }
 
 tasks.named("check") {
-    dependsOn(npmLint, npmFormatCheck, npmTypeCheck, npmTest)
+    dependsOn(npmLint, npmFormatCheck, npmTypeCheck, npmTestCoverage)
 }
 
 tasks.named("assemble") {

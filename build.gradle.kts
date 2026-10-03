@@ -299,6 +299,13 @@ tasks.register("toolingUpdates", ToolingUpdatesTask::class.java) {
                 source = ToolingVersionSource.GITHUB_RELEASE,
                 sourceRef = "buildpacks/pack",
             ),
+            ToolingUpdateCheck(
+                name = "gitleaks-cli",
+                workflowFile = "ci.yml",
+                pinPattern = "version=([0-9][^\\s]*)",
+                source = ToolingVersionSource.GITHUB_RELEASE,
+                sourceRef = "gitleaks/gitleaks",
+            ),
         )
     )
 

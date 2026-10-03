@@ -82,12 +82,13 @@ A pull request to the repository SHALL run the Docker-free quality tiers as a si
 standard `check` task with `-PskipITs` (unit tests, component tests, and all static gates — formatting, checkstyle,
 SpotBugs, ErrorProne), an OpenSpec validation of changes and specs, a verification that the OpenSpec configuration's
 declared list surfaces — its per-artifact rules and its operation guidance — are readable by the CLI, so a list the CLI
-would silently ignore fails the check, and a verification that the OpenCode configuration (`.opencode/opencode.json*`)
-and the project's agent, command, and skill definitions are loadable by the consumer the `opencode` GitHub action
-installs with each definition's metadata intact, so a V2-only setting the action's V1 binary rejects, or a definition
-the loader silently degrades, fails the check instead of silently killing the cloud workflows. The coverage gate SHALL
-NOT run on the pull-request path, because it is calibrated on integration-test coverage that only the `main` gate
-provides. The check SHALL run on `ubuntu-latest` with a Temurin JDK 21 and SHALL NOT require Docker.
+would silently ignore fails the check, a verification that the OpenCode configuration (`.opencode/opencode.json*`) and
+the project's agent, command, and skill definitions are loadable by the consumer the `opencode` GitHub action installs
+with each definition's metadata intact, so a V2-only setting the action's V1 binary rejects, or a definition the loader
+silently degrades, fails the check instead of silently killing the cloud workflows, and a source-secret scan with
+gitleaks over the pull request's files, so a committed secret fails the check. The coverage gate SHALL NOT run on the
+pull-request path, because it is calibrated on integration-test coverage that only the `main` gate provides. The check
+SHALL run on `ubuntu-latest` with a Temurin JDK 21 and SHALL NOT require Docker.
 
 #### Scenario: Pull request triggers the fast gate
 
@@ -95,12 +96,12 @@ provides. The check SHALL run on `ubuntu-latest` with a Temurin JDK 21 and SHALL
 - **THEN** the `build` check runs `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (without the coverage gate)
   and `openspec validate --all` against the pull request head, followed by the OpenSpec configuration check and — when
   the pull request changes any `.opencode/` path or `.github/workflows/ci.yml` — the OpenCode configuration and
-  definition-inventory check
+  definition-inventory check, and the source-secret scan
 
 #### Scenario: Fast gate failure blocks merging
 
-- **WHEN** a pull request's `build` check fails (style, unit, component, OpenSpec validation, or an OpenCode
-  configuration or definition the action's consumer cannot load intact)
+- **WHEN** a pull request's `build` check fails (style, unit, component, OpenSpec validation, an OpenCode configuration
+  or definition the action's consumer cannot load intact, or a committed secret)
 - **THEN** the pull request is not mergeable until the check passes
 
 #### Scenario: A rule set the CLI cannot read fails the fast gate
@@ -132,6 +133,18 @@ provides. The check SHALL run on `ubuntu-latest` with a Temurin JDK 21 and SHALL
   exits 0; or a definition the loader drops from the resolved inventory entirely
 - **THEN** the OpenCode definition-inventory check fails and reports the definition, instead of the loader silently
   degrading or dropping it
+
+#### Scenario: A committed secret fails the fast gate
+
+- **WHEN** a pull request's files contain a secret gitleaks detects — for example a hardcoded API key or password
+- **THEN** the source-secret scan fails the `build` check and reports the finding, so the secret is removed before it is
+  merged rather than after it is in `main`'s history
+
+#### Scenario: A secret in generated or dependency output is not reported
+
+- **WHEN** gitleaks matches a string that resembles a secret inside a generated or downloaded path (`build/`,
+  `.gradle/`, or `node_modules/`) rather than source
+- **THEN** the committed `gitleaks.toml` allowlists that path, so the scan reports no finding and stays scoped to source
 
 ### Requirement: Pushes to main run the full quality gate
 

@@ -179,12 +179,14 @@ subscribed browser — all from one `POST /showcases`.
 - **Checkstyle, SpotBugs, ErrorProne (NullAway + JSpecify), JaCoCo coverage gate** — all in `check`, no IDE required
   (the web UI has its own Vitest coverage gate)
 - **actionlint** — lints the GitHub Actions workflows
-- **Snyk and `npm audit`** — dependency security scanning (JVM classpaths and web-UI npm packages)
+- **Snyk and `npm audit`** — dependency security scanning (JVM classpaths and web-UI npm packages); **gitleaks** — a
+  source-secret scan in the merge gate
 - **OpenSpec** — spec-driven behavior capture (`propose → apply → archive`)
 - **OpenCode** — the agentic coding tool driving the process: slash-commands, spec-aware subagents, a self-learning
   lesson-capture loop, on-request setup of its own tooling ([Tooling MCP Servers](#tooling-mcp-servers)), and a project
   practice of reporting a dependency's gap back upstream — with a reproduction — instead of only working around it
-- **GitHub Actions** — CI, e2e, dependency, helm, buildpack and tooling updates, security scans
+- **GitHub Actions** — CI (with a gitleaks source-secret scan), e2e, dependency, helm, buildpack and tooling updates,
+  security scans
 
 ## Development Workflow
 
@@ -725,7 +727,8 @@ Gradle cache is restored across runs via `gradle/actions/setup-gradle`. The `mai
 
 `.github/workflows/e2e.yml` runs the end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four service
 images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same pipeline
-with Playwright) on a nightly schedule and via `workflow_dispatch` — observational, never a merge gate, no secrets.
+with Playwright) on a nightly schedule and via `workflow_dispatch` — observational, never a merge gate, and no
+repository secret is passed to it.
 
 `.github/workflows/deployment-smoke.yml` goes a step further nightly: it installs the application, its infrastructure,
 and an ingress controller on a throwaway `kind` cluster through the `ci` release target — a trimmed install that fits
@@ -749,8 +752,8 @@ gate.
 pinned chart versions that have a newer version) — observational, never a merge gate.
 
 `.github/workflows/tooling-updates.yml` runs the workflow-pinned tool update check (`toolingUpdates`) on a weekly
-schedule and via `workflow_dispatch`, opening or updating the "Tooling updates" issue with the OpenSpec, Snyk and `pack`
-CLI versions whose pin lags the latest release — observational, never a merge gate.
+schedule and via `workflow_dispatch`, opening or updating the "Tooling updates" issue with the OpenSpec, Snyk, `pack`,
+and gitleaks CLI versions whose pin lags the latest release — observational, never a merge gate.
 
 `.github/workflows/audit.yml` runs the three repository audits (agent tooling, spec corpus, architecture) on a weekly
 schedule and via manual dispatch, opening a pull request with their combined findings and mentioning the repository

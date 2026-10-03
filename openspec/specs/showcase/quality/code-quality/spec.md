@@ -157,7 +157,7 @@ needs an IDE to validate a change.
 ### Requirement: GitHub workflows are linted by the build
 
 The build SHALL lint every GitHub Actions workflow (`.github/workflows/*.yml`) with actionlint as part of the standard
-`check` task, so workflow syntax and `run:` script errors surface locally instead of failing remotely after push. If
+`check` task, so workflow structure and expression errors surface locally instead of failing remotely after push. If
 `actionlint` is not installed, the gate SHALL fail with a clear message naming the tool. Where the merge gate installs
 that tool in CI, the install SHALL be resilient to a transient download failure — retried before the step fails — so an
 upstream hiccup does not fail a gate whose subject is the repository's own workflows.
@@ -174,8 +174,10 @@ upstream hiccup does not fail a gate whose subject is the repository's own workf
 
 #### Scenario: Broken run script fails the build
 
-- **WHEN** a `run:` script in a workflow contains a shell error that shellcheck reports
-- **THEN** the lint check fails and reports the offending script
+- **WHEN** a workflow carries an error actionlint catches natively — an invalid step in the `run:` step's own definition
+  (a `syntax-check` error), or an expression error such as an undefined context variable — rather than one only
+  shellcheck would report
+- **THEN** the lint check fails and reports the offending workflow and location
 
 #### Scenario: Missing actionlint is reported clearly
 

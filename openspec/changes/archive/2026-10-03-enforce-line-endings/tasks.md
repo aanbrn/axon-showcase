@@ -34,7 +34,7 @@
       modified by the renormalization.
 - [x] 3.2 Run `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` and confirm it stays green (the change adds no
       `check` member).
-- [ ] 3.3 Refresh the `commit-hygiene` capability's `## Purpose` in the **archive commit** (a delta cannot carry a
+- [x] 3.3 Refresh the `commit-hygiene` capability's `## Purpose` in the **archive commit** (a delta cannot carry a
       Purpose, so it is edited directly when the change is archived): its sentence enumerates the tracked-file checks
       and must gain the line-ending policy alongside the others. Verify the archived main spec's Purpose names it.
 - [x] 3.4 Run the per-unit `lesson-capture` subagent over the change and apply its durable proposals; record the applied

@@ -55,9 +55,6 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-09-24
 
-- Scan the source tree for secrets — parked; no change yet. `dependencySecurityCheck` (Snyk) scans dependencies, not
-  source, so a committed token passes every gate; a scanner (gitleaks/trufflehog) needs a workflow and a
-  maintainer-owned policy for false positives.
 - Widen the `commit-hygiene` test-coverage requirement to every check — parked; no change yet. The spec's "The guard's
   checks are covered by tests run in the build" is scoped to the guard's classes, while the build checks
   (`verifyCapturedMarkers`, `verifyTrackedIgnoredFiles`, `verifyConflictMarkers`, `verifyExecutableBits`,

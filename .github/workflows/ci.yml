@@ -82,6 +82,34 @@ jobs:
             exit 1
           fi
 
+      - name: Scan the source for secrets
+        shell: bash
+        run: |
+          version=8.30.1
+          asset="gitleaks_${version}_linux_x64.tar.gz"
+          # Pinned with a verified checksum (no other workflow downloads a release asset): a scanner's rule set is
+          # security-relevant, so the version is deliberate rather than floating. Retried in actionlint's shape — a
+          # transient upstream failure (a 504 clears within minutes) would otherwise fail this gate with an unrelated
+          # error.
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          checksum="551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+          for attempt in 1 2 3; do
+            if curl -fsSL -o "$RUNNER_TEMP/gitleaks/$asset" \
+              "https://github.com/gitleaks/gitleaks/releases/download/v${version}/${asset}" &&
+              echo "${checksum}  $RUNNER_TEMP/gitleaks/$asset" | sha256sum -c -; then
+              install_ok=1
+              break
+            fi
+            echo "::warning::gitleaks download attempt $attempt failed; retrying"
+            sleep 5
+          done
+          if [ "${install_ok:-}" != 1 ]; then
+            echo "::error::gitleaks could not be downloaded and verified after 3 attempts"
+            exit 1
+          fi
+          tar -xzf "$RUNNER_TEMP/gitleaks/$asset" -C "$RUNNER_TEMP/gitleaks" gitleaks
+          "$RUNNER_TEMP/gitleaks/gitleaks" dir . --config gitleaks.toml --no-banner --redact
+
       - name: Probe the OpenCode config's V1 read path
         if: github.event_name == 'pull_request'
         shell: bash

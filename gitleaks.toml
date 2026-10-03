@@ -1,0 +1,18 @@
+# Gitleaks configuration — extends the built-in rules and scopes the scan to source.
+#
+# `gitleaks dir` reads the filesystem, untracked files included, so without these excludes a scan of the working tree
+# reports false positives from generated and downloaded output (build reports, test results, the node runtime's own
+# headers). The excluded trees are gitignored, so their bytes cannot reach a commit; excluding them scopes the scan to
+# the committable source the source-secret gate guards.
+title = "Axon Showcase"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Generated and downloaded trees that are gitignored and cannot be committed"
+paths = [
+  '''(^|/)build/''',
+  '''(^|/)\.gradle/''',
+  '''(^|/)node_modules/''',
+]

@@ -638,11 +638,12 @@ initialized:
 
 - **Pull requests** run the Docker-free fast gate: `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` plus
   `openspec validate --all`, a probe that the OpenSpec config's declared list surfaces (its artifact rules and its
-  operation guidance) are readable by the CLI, and, when the pull request changes any `.opencode/` path or
-  `.github/workflows/ci.yml`, a probe that the config loads under the consumer the `opencode` action installs (the v1
-  binary) and that every agent, command, and skill definition resolves with its metadata intact — so a definition the
-  loader silently degrades fails the gate, not only a config the consumer rejects. The coverage gate is disabled because
-  the 0.80 baseline is calibrated on integration-test coverage, which PRs skip by design.
+  operation guidance) are readable by the CLI, a source-secret scan with gitleaks over the pull request's files, and,
+  when the pull request changes any `.opencode/` path or `.github/workflows/ci.yml`, a probe that the config loads under
+  the consumer the `opencode` action installs (the v1 binary) and that every agent, command, and skill definition
+  resolves with its metadata intact — so a definition the loader silently degrades fails the gate, not only a config the
+  consumer rejects. The coverage gate is disabled because the 0.80 baseline is calibrated on integration-test coverage,
+  which PRs skip by design.
 - **Pushes to `main`** run the full gate: `./gradlew check` (with integration tests and the coverage gate) plus the same
   OpenSpec validation and OpenSpec config probe as the pull-request path; the OpenCode probe is PR-scoped.
 - **A check belongs in the pull-request gate only when the change that trips it can remediate it.** Drift in state no
@@ -703,12 +704,12 @@ which a re-dispatch on `ubuntu-26.04` is what confirms.
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
 pipeline with Playwright) on a nightly schedule and via `workflow_dispatch`. It installs the `pack` CLI explicitly
 (`buildpacks/github-actions/setup-pack`, pinned to the same version as local development — the GitHub runner image does
-not guarantee it), and uses `actions/cache@v6` for the npm cache. It is observational — never a merge gate, no secrets,
-and it shares the same `gradle/actions/setup-gradle` caching rules as `.github/workflows/ci.yml`. The PR gate's `check`
-never builds the web UI bundle (the frontend `check` composes lint, format-check, the TypeScript type-check, and Vitest;
-only `vite build` — the bundle — lives in `build`/`assemble`), so a change that alters the built bundle or its runtime —
-a React/Vite major — must run `./gradlew :showcase-web-ui:e2eTest` deliberately before it is reported done. captured:
-migrate-web-ui-frontend-majors
+not guarantee it), and uses `actions/cache@v6` for the npm cache. It is observational — never a merge gate, and no
+repository secret is passed to it — and it shares the same `gradle/actions/setup-gradle` caching rules as
+`.github/workflows/ci.yml`. The PR gate's `check` never builds the web UI bundle (the frontend `check` composes lint,
+format-check, the TypeScript type-check, and Vitest; only `vite build` — the bundle — lives in `build`/`assemble`), so a
+change that alters the built bundle or its runtime — a React/Vite major — must run `./gradlew :showcase-web-ui:e2eTest`
+deliberately before it is reported done. captured: migrate-web-ui-frontend-majors
 
 `.github/workflows/dependency-security.yml` runs the credentialed dependency security scans — the Snyk scan
 (`./gradlew dependencySecurityCheck`, all sub-projects with the root `.snyk` policy, authenticated with the `SNYK_TOKEN`
@@ -769,7 +770,8 @@ merge gate.
 - `buildpack-updates.yml` — `./gradlew buildpackUpdates`; the pinned builder and buildpack coordinates from
   `build/buildpack-updates/report.txt` that have a newer version, in the "Buildpack updates" issue.
 - `tooling-updates.yml` — `./gradlew toolingUpdates`; the actionable lines from `build/tooling-updates/report.txt` (the
-  tool versions pinned in workflow files — the OpenSpec, Snyk and `pack` CLIs), in the "Tooling updates" issue.
+  tool versions pinned in workflow files — the OpenSpec, Snyk, `pack`, and gitleaks CLIs), in the "Tooling updates"
+  issue.
 - `upstream-references.yml` — `./gradlew upstreamReferences`; the `owner/repo#NNN` references the durable artifacts
   cite, each with its state (open / closed / unresolved) and citation sites, in the "Upstream references" issue. A
   closure is surfaced as a trigger to check, not declared actionable.
@@ -1900,6 +1902,15 @@ capture-stash-stale-copy
     block and here only actionlint reads it (no shellcheck) — and be syntax-checked itself (`bash -n`) before its exit
     codes are trusted. captured: widen-config-probe-to-guidance captured: enforce-web-ui-naming-conventions captured:
     check-toolchain-prerequisites captured: retry-the-actionlint-download
+  - **A positive control's input must be one the subject does not itself exclude — plant a value the check's own config
+    allows or suppresses and the control "passes" for the wrong reason.** A scanner, lint rule, or baseline filter
+    carries its own allowlist or suppression list, so the canonical example value you reach for may be on it: the
+    source-secret scan's first known-bad control planted the AWS docs example key `AKIAIOSFODNN7EXAMPLE`, which
+    gitleaks' default config allowlists, so the scan reported "no leaks found" and the control proved nothing —
+    reproduced: that value exits 0, while a high-entropy generic token (`api_key = "a1b2…"`) trips a rule and exits 1.
+    Pick a control input the subject's own rules do not already excuse (check the tool's default config, not a
+    well-known sample), and read the control's outcome from the subject's exit status, not a piped summary. captured:
+    scan-source-for-secrets
   - **A check whose input set is narrower than what it reads is not a check — whether the set varies by task graph or
     omits a file the tool reads.** `verifyModuleDependencies` inspected 36 edges standalone and 47 under `check`, the
     11-edge difference being exactly the project dependencies declared inside `testing { suites { … } }` blocks: a
@@ -2492,24 +2503,24 @@ capture-stash-stale-copy
   release.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates (and, through the same
   workflow, the web UI's npm dependencies), `helmUpdates` / `helm-updates.yml` the Helm CLI and pinned charts,
   `buildpackUpdates` / `buildpack-updates.yml` the Paketo builder and buildpacks, `toolingUpdates` /
-  `tooling-updates.yml` the versions pinned in workflow files (the OpenSpec, Snyk and `pack` CLIs), and Dependabot
-  covers `uses:` action refs. Add a pin to that check's declared list when you add it to a workflow — its patterns are
-  asserted to match exactly once, so a renamed input fails the task rather than reading as current — and note that
-  extending the list one pin at a time is how the OpenSpec pin, then the `pack` CLI, was each missed in turn while the
-  check did not exist. The `/opsx-tool-update` command regenerates the instruction files after a release but does not
-  detect one. (`java-version: '21'` and the opencode workflow's `model` input are deliberate pins, not tooling currency
-  — the model pin has its own multi-file bump sweep, see the OpenCode model-pin gotcha.) A Snyk or pack bump cannot be
-  verified locally: `workflowLint` (actionlint) proves only that the YAML lints, not that the version tag is installable
-  — the credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real execution.
-  `workflowLint` also cannot see inside a quoted `gh api --jq` program — actionlint parses the YAML and the shell, not
-  the jq — so a malformed copied filter passes `check` and fails only on the scheduled run; verify a new or edited
-  update workflow by diffing it against the sibling it copies (a `tooling-updates.yml` jq filter was missing a closing
-  parenthesis, caught by that diff and by nothing in `check`). The same skew bites a guard keyed off a tool's output: it
-  must be verified against the version CI pins, not only the locally-installed one, since the pinned CLI is what the
-  gate actually runs and the output text it matches on may differ there. The same caution applies to a proposed _fix_
-  attributed to a dependency bump: verify it exists in a released version, not only on the project's default branch — a
-  bump claimed to make a failure skip cleanly held on `actions/cache`'s `main` but in no release (latest `v6.1.0`).
-  captured: unify-tooling-currency-checks (#304)
+  `tooling-updates.yml` the versions pinned in workflow files (the OpenSpec, Snyk, `pack`, and gitleaks CLIs), and
+  Dependabot covers `uses:` action refs. Add a pin to that check's declared list when you add it to a workflow — its
+  patterns are asserted to match exactly once, so a renamed input fails the task rather than reading as current — and
+  note that extending the list one pin at a time is how the OpenSpec pin, then the `pack` CLI, was each missed in turn
+  while the check did not exist. The `/opsx-tool-update` command regenerates the instruction files after a release but
+  does not detect one. (`java-version: '21'` and the opencode workflow's `model` input are deliberate pins, not tooling
+  currency — the model pin has its own multi-file bump sweep, see the OpenCode model-pin gotcha.) A Snyk or pack bump
+  cannot be verified locally: `workflowLint` (actionlint) proves only that the YAML lints, not that the version tag is
+  installable — the credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real
+  execution. `workflowLint` also cannot see inside a quoted `gh api --jq` program — actionlint parses the YAML and the
+  shell, not the jq — so a malformed copied filter passes `check` and fails only on the scheduled run; verify a new or
+  edited update workflow by diffing it against the sibling it copies (a `tooling-updates.yml` jq filter was missing a
+  closing parenthesis, caught by that diff and by nothing in `check`). The same skew bites a guard keyed off a tool's
+  output: it must be verified against the version CI pins, not only the locally-installed one, since the pinned CLI is
+  what the gate actually runs and the output text it matches on may differ there. The same caution applies to a proposed
+  _fix_ attributed to a dependency bump: verify it exists in a released version, not only on the project's default
+  branch — a bump claimed to make a failure skip cleanly held on `actions/cache`'s `main` but in no release (latest
+  `v6.1.0`). captured: unify-tooling-currency-checks (#304)
 - **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
   first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
   output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change

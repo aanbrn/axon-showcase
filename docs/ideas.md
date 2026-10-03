@@ -47,15 +47,13 @@ dated when it was added (start a new section for a new day rather than appending
 - Scan the source tree for secrets — parked; no change yet. `dependencySecurityCheck` (Snyk) scans dependencies, not
   source, so a committed token passes every gate; a scanner (gitleaks/trufflehog) needs a workflow and a
   maintainer-owned policy for false positives.
-- Bound the size of committed files — parked; no change yet. Nothing stops a large blob from being committed; a check
-  would bound it, at the cost of a threshold to tune.
 - Enforce line endings via `.gitattributes` — parked; no change yet. The repository has no `.gitattributes`, so Spotless
   normalizes only the files it owns; a `* text=auto eol=lf` (or per-type) policy would make it uniform.
 - Widen the `commit-hygiene` test-coverage requirement to every check — parked; no change yet. The spec's "The guard's
   checks are covered by tests run in the build" is scoped to the guard's classes, while the build checks
   (`verifyCapturedMarkers`, `verifyTrackedIgnoredFiles`, `verifyConflictMarkers`, `verifyExecutableBits`,
-  `verifyUniqueCronSchedules`) carry no test-coverage clause; widening it needs a REMOVED+ADDED retitle, since a
-  `MODIFIED` block cannot rename a requirement header.
+  `verifyUniqueCronSchedules`, `verifyLargeFiles`) carry no test-coverage clause; widening it needs a REMOVED+ADDED
+  retitle, since a `MODIFIED` block cannot rename a requirement header.
 
 - Carry findings forward across audit reports — parked; no change yet. The reports under `docs/audits/` are write-only:
   a finding recurs run after run with nothing to say it is the same unapplied item, and the recorded smoke-run lesson is

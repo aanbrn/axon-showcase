@@ -616,7 +616,7 @@ build-side counterparts in `./gradlew check`: the formatter as `spotlessCheck`, 
 `verifyTrackedIgnoredFiles`, and conflict markers as `verifyConflictMarkers` — so they hold even without the hook.
 `verifyExecutableBits` additionally verifies the tracked scripts' executable bits, and the web module's own Prettier
 check (`npmFormatCheck`) remains part of `check`. `verifyUniqueCronSchedules` verifies no two workflow `cron` schedules
-collide.
+collide, and `verifyLargeFiles` verifies no tracked file exceeds the configured size limit.
 
 ### Formatting and IDE Setup
 
@@ -777,6 +777,7 @@ surfaced as a trigger to check rather than declared actionable — observational
 ./gradlew verifyInstallCommands        # verify the AGENTS.md manual install commands match the catalog
 ./gradlew verifyModuleDependencies     # verify the module dependency graph (ADR-0010)
 ./gradlew verifyDashboardJson          # verify the bundled Grafana dashboard JSON parses
+./gradlew verifyLargeFiles             # verify no tracked file exceeds the configured size limit
 ./gradlew workflowLint                 # lint the GitHub Actions workflows with actionlint
 ```
 

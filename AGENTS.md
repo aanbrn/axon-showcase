@@ -500,7 +500,7 @@ wait for approval before merging.
 # plus workflowLint (actionlint), verifyInfraImageVersions, verifyInstallCommands, verifyModuleDependencies,
 # verifyDashboardJson, and the commit-hygiene tasks
 # (verifyCapturedMarkers, testCommitHygiene, testDoctorCharter, verifyTrackedIgnoredFiles, verifyConflictMarkers,
-# verifyExecutableBits, verifyUniqueCronSchedules)
+# verifyExecutableBits, verifyUniqueCronSchedules, verifyLargeFiles)
 # (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
 # check)
 ./gradlew :showcase-command-service:check
@@ -2451,12 +2451,12 @@ capture-stash-stale-copy
   enumeration of it in the same change — and when an auditor sweeps the set, that includes its definition, its trigger
   command, `AGENTS.md`'s summary of the auditor, and the **spec requirement that owns the sweep**, which is a main spec
   and so needs a `MODIFIED` delta rather than a docs edit (the swept-surface set is enumerated in exactly those four
-  places). Grep the set's distinctive members across `.opencode/`, `openspec/specs/`, and `AGENTS.md` before writing the
-  addition; the change's own four planning copies can be kept identical while all four live sites go stale. The sweep
-  covers non-doc artifacts too: recording that a component is deliberately _not_ used (ADR-0009's "without Axon Server")
-  must grep the whole repo for its name, because config, values, and template comments carry claims no auditor reads
-  (`helm/chart/src/main/helm/values.yaml` still called the `db-scheduler` settings "Axon Server scheduler settings").
-  captured: monitor-web-ui-npm-dependencies (#395)
+  places). Grep the set's distinctive members across `.opencode/`, `openspec/specs/`, `AGENTS.md`, `README.md`, and
+  `docs/ideas.md` before writing the addition; the change's own four planning copies can be kept identical while all
+  four live sites go stale. The sweep covers non-doc artifacts too: recording that a component is deliberately _not_
+  used (ADR-0009's "without Axon Server") must grep the whole repo for its name, because config, values, and template
+  comments carry claims no auditor reads (`helm/chart/src/main/helm/values.yaml` still called the `db-scheduler`
+  settings "Axon Server scheduler settings"). captured: monitor-web-ui-npm-dependencies (#395)
 - **A buildpack's CNB id is not its Docker Hub repository — a registry lookup must target the repository, not the id.**
   The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are
   `paketobuildpacks/nginx` (no hyphen); querying the tags API with the CNB id 404s, so `BuildpackUpdatesTask`'s check

@@ -457,6 +457,15 @@ tasks.register<Exec>("verifyUniqueCronSchedules") {
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--unique-crons")
 }
 
+tasks.register<Exec>("verifyLargeFiles") {
+    group = "verification"
+    description = "Verifies no tracked file exceeds the configured size limit"
+    inputs.file("scripts/commit-hygiene.py")
+    inputs.file("config/commit-hygiene/large-files.properties")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--large-files")
+}
+
 tasks.register("verifyInstallCommands", VerifyInstallCommandsTask::class.java) {
     group = "verification"
     description = "Verifies the AGENTS.md manual helm install commands quote the catalog chart versions"
@@ -490,6 +499,7 @@ tasks.named("check") {
     dependsOn("verifyConflictMarkers")
     dependsOn("verifyExecutableBits")
     dependsOn("verifyUniqueCronSchedules")
+    dependsOn("verifyLargeFiles")
     // build-logic is an included build, so its tests are not reached by this project's check.
     dependsOn(gradle.includedBuild("build-logic").task(":test"))
 }

@@ -13,14 +13,6 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
-## 2026-10-03
-
-- Validate the bundled Grafana dashboard JSON in the build — parked; no change yet. `helm lint` (and `helm template`)
-  treat `helm/chart/src/main/helm/files/grafana-dashboards/*.json` as an opaque string the ConfigMap template emits
-  verbatim, so a malformed dashboard JSON passes every gate and only surfaces when Grafana's sidecar fails to provision
-  it. A cheap Gradle/CI task asserting the file parses (the class of `verifyInstallCommands`) would close it. Surfaced
-  while adding the Web UI section to the dashboard.
-
 ## 2026-09-30
 
 - Correct the `code-quality` spec's shellcheck scenario — parked; no change yet. The requirement "GitHub workflows are

@@ -468,9 +468,19 @@ tasks.register("verifyInstallCommands", VerifyInstallCommandsTask::class.java) {
     resultFile.set(layout.buildDirectory.file("verification/install-commands.txt"))
 }
 
+tasks.register("verifyDashboardJson", VerifyDashboardJsonTask::class.java) {
+    group = "verification"
+    description = "Verifies every bundled Grafana dashboard is valid JSON (Helm emits it as an opaque string)"
+
+    dashboards.setFrom(layout.projectDirectory.dir("helm/chart/src/main/helm/files/grafana-dashboards").asFileTree)
+
+    resultFile.set(layout.buildDirectory.file("verification/dashboard-json.txt"))
+}
+
 tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
     dependsOn("verifyInstallCommands")
+    dependsOn("verifyDashboardJson")
     dependsOn("workflowLint")
     dependsOn("verifyModuleDependencies")
     dependsOn("verifyCapturedMarkers")

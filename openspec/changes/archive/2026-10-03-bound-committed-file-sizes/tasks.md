@@ -48,7 +48,7 @@
       net `AGENTS.md` delta on this task. Applied: one merge — the "the only X" gotcha's grep host list now names
       `README.md` and `docs/ideas.md` (the two sites this unit's loop hit), net 0 lines; captured:
       bound-committed-file-sizes.
-- [ ] 3.4 Refresh the `commit-hygiene` capability's `## Purpose` in the **archive commit** (a delta cannot carry a
+- [x] 3.4 Refresh the `commit-hygiene` capability's `## Purpose` in the **archive commit** (a delta cannot carry a
       Purpose, so it is edited directly when the change is archived): its sentence enumerates the build checks and must
       gain the size check alongside the conflict-marker, executable-bit, tracked-ignored, and cron-collision checks.
       Verify the archived main spec's Purpose names the size check.

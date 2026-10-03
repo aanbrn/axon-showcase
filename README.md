@@ -850,7 +850,7 @@ and Tempo into the `monitoring` namespace alongside the application. The local d
 - **Metrics**: each service exports Prometheus metrics (HTTP throughput/latency/failure, Axon command bus, event store,
   saga, deadlines, projection lag, cache hits, query performance); the web UI exports nginx `stub_status` via a sidecar.
   ServiceMonitors are wired for all of them.
-- **Grafana**: a custom **Axon Showcase** dashboard is provisioned automatically (31 panels across 5 sections covering
+- **Grafana**: a custom **Axon Showcase** dashboard is provisioned automatically (35 panels across 6 sections covering
   every service and the Axon internals), and Grafana is preconfigured with a Tempo data source. The default login is
   `admin` with the password from the chart's generated secret.
 - **Tracing**: services export **OpenTelemetry** traces to **Grafana Tempo** (`tempo.monitoring`), viewable in Grafana's

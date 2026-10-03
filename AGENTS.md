@@ -2108,57 +2108,56 @@ capture-stash-stale-copy
   wide, go vertical, or shed nodes. captured: mermaid-event-flow-draft
 - **Verify documented infrastructure/deployment numbers against the config files, not memory.** The README rewrite
   claimed "the API gateway's two replicas" (only `commandService.replicaCount` is 2 in
-  `helm/values/axon-showcase/values-local.yaml`; the gateway defaults to 1), "36 panels" (36 is the raw top-level count
-  — 5 are empty row separators, 31 are real panels), and "four services and a gateway" (double-counting a table that
-  lists four components). The quick review against repo files caught all three. Before writing a replica count,
-  panel/section count, or diagram count into a doc, read the source (`helm/values/*/values-*.yaml`, the dashboard JSON,
-  the component table — or, for an upstream chart's shipped default or a container the values do not override, the
-  pinned chart via `helm show values <chart> --version <pinned>`) and cite the real number. The same holds for _which
-  check_ a documented figure belongs to: two mechanisms can bound the same metric at the same order of magnitude, so a
-  boundary's owner cannot be inferred from the figure's size — the 2026-09-28 refresh left the below-knee profiles'
-  floor-dominated thresholds unchanged (`5 x 27 ms = 135 ms` is under their 200 ms p99 floor), while the ~1.5x boundary
-  an annotation named was the drift check's own tolerance. Read the mechanism's definition and name the one the boundary
-  belongs to. captured: re-measure-load-test-baseline (#429) A two-way split of an enumerated set can also sum to its
-  total and still be wrong when its boundary is hand-drawn: a scan of the markdown target's completeness re-listed
-  exclusions from memory and counted the vendored `axon4to5-*` and generated `openspec-*` skill files as gated, while
-  the target's own `target(...)` / `targetExclude(...)` entries put them on the excluded side (the project-authored
-  skills stay gated) — and _both_ splits summed to the same total, so the arithmetic check cannot catch it. For a
-  gated-vs-excluded split, or any enumeration or partition of a set the repository declares — the root `check` task's
-  members, a CLI's modes, the tracked executables (`git ls-files -s | awk '$1=="100755"'`) — derive the members from
-  that declaration (`build.gradle.kts`'s `check` block, its `target`/`targetExclude` entries, the `git ls-files` query),
-  not from intent or a hand-written complement, and update every doc that enumerates the set when a change adds a
-  member; never write the resulting totals into a durable artifact — they move with every change the corpus gains. A
-  claim about what a gate, task, or check _runs_ is the same class: derive it from that tool's own definition — its task
-  registration and `commandLine` — not from recall. `workflowLint` runs `actionlint` alone (the repository installs and
-  documents no `shellcheck`; actionlint invokes it only if it happens to be on `PATH`), yet two artifacts asserted
-  "actionlint + shellcheck" — the `add-actionlint-gate` proposal that named a spec scenario, and a later change's
-  verification story. A list attached to such a set must not read as complete while naming a subset, and a claim
-  **patched at the instance is still wrong one level down**: a placement rule first drafted as "executables live in
-  `scripts/`" was corrected for the repo-root wrappers, then re-broken by the module-local pair, while the sibling
-  clauses of the same rule enumerated 2/2 and 3/3 so its `scripts/` colon-list (5 of 8) read as exhaustive — derive the
-  claim from the complete set, and either enumerate a set in full or name the location only. Name a count's referent and
-  check its arithmetic against the total it belongs to: an early draft of the `make-captured-rules-traceable` design
-  wrote "46 of them capture-class, and those 65 are concentrated in Gotchas (41) and Conventions (21)" — 41 + 21 = 62,
-  so the split could not belong to the 46; it was the 65-bullet set the same sentence also named, and the mismatch was
-  invisible until the review did the addition. Distinguish a point-in-time count from a durable one: an exact count of a
-  growing corpus (capability specs, requirements, archived changes) belongs in a change's own artifacts, where a stale
-  snapshot does no harm, and never in a durable artifact (a subagent definition loaded on every invocation, `AGENTS.md`,
-  the README, a command file, a main spec) — where it drifts on every archive and becomes exactly the drift the
-  `specs-auditor` exists to catch. The `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the
-  change's own delta made the main spec hold 158, and the README still stated a hard "22 capability specs". Describe the
-  shape instead of freezing a tally — the `specs-auditor` definition now says "a corpus … that grows with every archived
-  change", and the README's "120+ and counting" is the pattern to follow. A process count — review rounds, elapsed time,
-  effort — is not a durable fact either, though for a different reason: no reader can verify it from the repository at
-  all, so describe it qualitatively ("repeated review rounds"), not as a precise number. That targets _human_ process
-  narrative — effort, review rounds, how long a session ran — which no machine-measured evidence records; a
-  _machine-measured_ figure is a different class, since the CI run log is its evidence, so an order-of-magnitude build
-  cost (the one-time-full-rebuild vs warm CI timings above) is not a process count and need not be made qualitative. A
-  named example or mechanism inside a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep
-  it on "the gateway e2e test, which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in
-  the test JVM — a false example that surfaced only when ADR-0009 had to restate the same rule. When a second artifact
-  restates an existing fact, diff the two against the code rather than copying the prose. captured:
-  make-captured-rules-traceable (#279) captured: verify-tracked-ignored-files captured: state-tooling-placement-rule
-  (#458)
+  `helm/values/axon-showcase/values-local.yaml`; the gateway defaults to 1), "36 panels" (the raw top-level count, row
+  separators included, not the real panel count), and "four services and a gateway" (double-counting a table that lists
+  four components). The quick review against repo files caught all three. Before writing a replica count, panel/section
+  count, or diagram count into a doc, read the source (`helm/values/*/values-*.yaml`, the dashboard JSON, the component
+  table — or, for an upstream chart's shipped default or a container the values do not override, the pinned chart via
+  `helm show values <chart> --version <pinned>`) and cite the real number. The same holds for _which check_ a documented
+  figure belongs to: two mechanisms can bound the same metric at the same order of magnitude, so a boundary's owner
+  cannot be inferred from the figure's size — the 2026-09-28 refresh left the below-knee profiles' floor-dominated
+  thresholds unchanged (`5 x 27 ms = 135 ms` is under their 200 ms p99 floor), while the ~1.5x boundary an annotation
+  named was the drift check's own tolerance. Read the mechanism's definition and name the one the boundary belongs to.
+  captured: re-measure-load-test-baseline (#429) A two-way split of an enumerated set can also sum to its total and
+  still be wrong when its boundary is hand-drawn: a scan of the markdown target's completeness re-listed exclusions from
+  memory and counted the vendored `axon4to5-*` and generated `openspec-*` skill files as gated, while the target's own
+  `target(...)` / `targetExclude(...)` entries put them on the excluded side (the project-authored skills stay gated) —
+  and _both_ splits summed to the same total, so the arithmetic check cannot catch it. For a gated-vs-excluded split, or
+  any enumeration or partition of a set the repository declares — the root `check` task's members, a CLI's modes, the
+  tracked executables (`git ls-files -s | awk '$1=="100755"'`) — derive the members from that declaration
+  (`build.gradle.kts`'s `check` block, its `target`/`targetExclude` entries, the `git ls-files` query), not from intent
+  or a hand-written complement, and update every doc that enumerates the set when a change adds a member; never write
+  the resulting totals into a durable artifact — they move with every change the corpus gains. A claim about what a
+  gate, task, or check _runs_ is the same class: derive it from that tool's own definition — its task registration and
+  `commandLine` — not from recall. `workflowLint` runs `actionlint` alone (the repository installs and documents no
+  `shellcheck`; actionlint invokes it only if it happens to be on `PATH`), yet two artifacts asserted "actionlint +
+  shellcheck" — the `add-actionlint-gate` proposal that named a spec scenario, and a later change's verification story.
+  A list attached to such a set must not read as complete while naming a subset, and a claim **patched at the instance
+  is still wrong one level down**: a placement rule first drafted as "executables live in `scripts/`" was corrected for
+  the repo-root wrappers, then re-broken by the module-local pair, while the sibling clauses of the same rule enumerated
+  2/2 and 3/3 so its `scripts/` colon-list (5 of 8) read as exhaustive — derive the claim from the complete set, and
+  either enumerate a set in full or name the location only. Name a count's referent and check its arithmetic against the
+  total it belongs to: an early draft of the `make-captured-rules-traceable` design wrote "46 of them capture-class, and
+  those 65 are concentrated in Gotchas (41) and Conventions (21)" — 41 + 21 = 62, so the split could not belong to the
+  46; it was the 65-bullet set the same sentence also named, and the mismatch was invisible until the review did the
+  addition. Distinguish a point-in-time count from a durable one: an exact count of a growing corpus (capability specs,
+  requirements, archived changes) belongs in a change's own artifacts, where a stale snapshot does no harm, and never in
+  a durable artifact (a subagent definition loaded on every invocation, `AGENTS.md`, the README, a command file, a main
+  spec) — where it drifts on every archive and becomes exactly the drift the `specs-auditor` exists to catch. The
+  `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the change's own delta made the main spec
+  hold 158, and the README still stated a hard "22 capability specs". Describe the shape instead of freezing a tally —
+  the `specs-auditor` definition now says "a corpus … that grows with every archived change", and the README's "120+ and
+  counting" is the pattern to follow. A process count — review rounds, elapsed time, effort — is not a durable fact
+  either, though for a different reason: no reader can verify it from the repository at all, so describe it
+  qualitatively ("repeated review rounds"), not as a precise number. That targets _human_ process narrative — effort,
+  review rounds, how long a session ran — which no machine-measured evidence records; a _machine-measured_ figure is a
+  different class, since the CI run log is its evidence, so an order-of-magnitude build cost (the one-time-full-rebuild
+  vs warm CI timings above) is not a process count and need not be made qualitative. A named example or mechanism inside
+  a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep it on "the gateway e2e test,
+  which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in the test JVM — a false example
+  that surfaced only when ADR-0009 had to restate the same rule. When a second artifact restates an existing fact, diff
+  the two against the code rather than copying the prose. captured: make-captured-rules-traceable (#279) captured:
+  verify-tracked-ignored-files captured: state-tooling-placement-rule (#458)
 
 - **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
   is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`
@@ -2184,9 +2183,13 @@ capture-stash-stale-copy
   _concept_, not the old wording: replacing the commit discipline left four restatements (two gotchas, the docs-refresh
   convention, and `docs/ideas.md`'s header). An abandoned approach needs the same sweep: reverting an experiment's code
   line does not remove the comment or the task/design prose that describes it, so grep the artifact for the approach's
-  name before calling the revert done. The sweep spans live copies only: `openspec/changes/archive/` is the historical
-  record, left as recorded — the Spotless target already excludes it — so a corrected command or a renamed symbol found
-  there stays as recorded rather than being "fixed". captured: right-size-infra-resources
+  name before calling the revert done. The sweep spans live copies whose sentence makes a present-tense claim:
+  `openspec/changes/archive/` is the historical record, left as recorded — the Spotless target already excludes it — so
+  a corrected command or a renamed symbol found there stays as recorded rather than being "fixed". A live artifact is no
+  different when its sentence cites the figure as a historical incident: `.opencode/agent/readme-auditor.md`'s "a '36
+  panels' that counted row separators" names the README defect the auditor exists to catch, not the dashboard's current
+  structure, so it stays too — and the change records why the match is deliberately left rather than silently skipping
+  it. captured: right-size-infra-resources captured: add-web-ui-dashboard-panels
 - **A configuration-default change names every test assertion that pins the value and every doc that describes it, on
   each surface it is declared.** The `reconcile-showcase-cache-default` plan initially missed that
   `allPropertiesHaveDocumentedDefaults` asserts the Java field (so the change would fail it) and that the yml-wiring

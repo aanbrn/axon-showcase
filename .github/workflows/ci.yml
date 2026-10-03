@@ -87,9 +87,9 @@ jobs:
         shell: bash
         run: |
           git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
-          changed=$(git diff --name-only FETCH_HEAD HEAD -- '.opencode/opencode.json*' .github/workflows/ci.yml)
+          changed=$(git diff --name-only FETCH_HEAD HEAD -- '.opencode/' .github/workflows/ci.yml)
           if [ -z "$changed" ]; then
-            echo "skipped: .opencode/opencode.json* and .github/workflows/ci.yml are unchanged"
+            echo "skipped: .opencode/ and .github/workflows/ci.yml are unchanged"
             exit 0
           fi
           curl -fsSL https://opencode.ai/install | bash
@@ -103,3 +103,61 @@ jobs:
             echo "::error::opencode debug config failed under the V1 consumer; see the echoed output"
             exit 1
           fi
+          # The load's exit status alone does not see a definition the loader silently degrades: a malformed frontmatter
+          # (an unquoted ': ' in a multi-line scalar) leaves an agent or command resolved without its description and a
+          # skill absent from the inventory, all with exit 0. Assert the resolved inventory the consumer builds.
+          python3 - <<'PY'
+          import json, subprocess, sys, tempfile, os, glob
+
+          # Root the skill scan at the workspace, so a glob that matches nothing cannot pass vacuously.
+          workspace = os.environ.get("GITHUB_WORKSPACE", os.getcwd())
+          os.chdir(workspace)
+
+          def capture(*args):
+              fd, path = tempfile.mkstemp()
+              os.close(fd)
+              with open(path, "w") as out:
+                  rc = subprocess.run(["opencode", *args], stdout=out, stderr=subprocess.DEVNULL).returncode
+              data = open(path).read()
+              os.unlink(path)
+              return rc, data
+
+          rc, out = capture("debug", "config")
+          if rc != 0:
+              print(f"opencode debug config exited {rc}")
+              sys.exit(1)
+          cfg = json.loads(out)
+
+          rc, out = capture("debug", "skill")
+          if rc != 0:
+              print(f"opencode debug skill exited {rc}")
+              sys.exit(1)
+          skills = json.loads(out)
+
+          failures = []
+          # File-driven: every on-disk definition must appear in the resolved inventory with its description intact —
+          # an entry-driven loop over the resolved map would miss a definition the loader dropped entirely.
+          for kind, pattern in (("agent", ".opencode/agent/*.md"), ("command", ".opencode/commands/*.md")):
+              resolved = cfg.get(kind) or {}
+              for path in sorted(glob.glob(pattern)):
+                  name = os.path.splitext(os.path.basename(path))[0]
+                  entry = resolved.get(name)
+                  if entry is None:
+                      failures.append(f"{kind} '{name}' is absent from the resolved inventory")
+                  elif not entry.get("description"):
+                      failures.append(f"{kind} '{name}' resolved without its description")
+
+          listed = {os.path.realpath(s["location"]) for s in skills if s.get("location")}
+          for path in sorted(glob.glob(".opencode/skills/*/SKILL.md")):
+              if os.path.realpath(path) not in listed:
+                  failures.append(f"skill '{os.path.dirname(path)}' is absent from the resolved skill inventory")
+
+          print("agents=%d commands=%d skills=%d" % (
+              len(glob.glob(".opencode/agent/*.md")),
+              len(glob.glob(".opencode/commands/*.md")),
+              len(glob.glob(".opencode/skills/*/SKILL.md"))))
+          if failures:
+              for f in failures:
+                  print(f"::error::OpenCode definition {f}")
+              sys.exit(1)
+          PY

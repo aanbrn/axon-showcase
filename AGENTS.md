@@ -634,12 +634,13 @@ initialized:
 
 - **Pull requests** run the Docker-free fast gate: `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` plus
   `openspec validate --all`, a probe that the OpenSpec config's declared list surfaces (its artifact rules and its
-  operation guidance) are readable by the CLI, and, when the pull request changes `.opencode/opencode.json*` or
+  operation guidance) are readable by the CLI, and, when the pull request changes any `.opencode/` path or
   `.github/workflows/ci.yml`, a probe that the config loads under the consumer the `opencode` action installs (the v1
-  binary). The coverage gate is disabled because the 0.80 baseline is calibrated on integration-test coverage, which PRs
-  skip by design.
+  binary) and that every agent, command, and skill definition resolves with its metadata intact — so a definition the
+  loader silently degrades fails the gate, not only a config the consumer rejects. The coverage gate is disabled because
+  the 0.80 baseline is calibrated on integration-test coverage, which PRs skip by design.
 - **Pushes to `main`** run the full gate: `./gradlew check` (with integration tests and the coverage gate) plus the same
-  OpenSpec validation and OpenSpec config probe as the pull-request path; the OpenCode config probe is PR-scoped.
+  OpenSpec validation and OpenSpec config probe as the pull-request path; the OpenCode probe is PR-scoped.
 - **A check belongs in the pull-request gate only when the change that trips it can remediate it.** Drift in state no
   pull request causes would fail every unrelated PR, so it belongs in the observational scheduled pattern instead (the
   observational workflows listed below, and the out-of-repository surfaces the Docs-refresh bullet names), never
@@ -1271,11 +1272,12 @@ Key modules (libraries, not services):
   (a `/oc` run was found stuck on exactly
   `/usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/*`); the wildcard covers the
   per-machine prefix, so nothing is resolved at init. Only reading that package tree outside the workspace exercises the
-  `openspec` grant, and no CI job does — the `build` gate's OpenCode config probe only loads the configuration and never
-  invokes `openspec`, and `workflowLint` checks only the YAML — so a green `check` does not validate it. This replaced a
-  v1 plugin (`.opencode/plugin/grant-cli-config-dirs.ts`) whose `config` hook injected the grants: OpenCode v2 changed
-  the plugin contract and its typed plugin API has no permission hook, so the plugin no longer loaded and was retired. A
-  tool's major-version migration has to treat each v1 surface separately: v2's normalizer auto-mapped the config's
+  `openspec` grant, and no CI job does — the `build` gate's OpenCode probe loads the configuration and the
+  agent/command/skill definitions (asserting each resolves with its metadata) and never invokes `openspec`, and
+  `workflowLint` checks only the YAML — so a green `check` does not validate it. This replaced a v1 plugin
+  (`.opencode/plugin/grant-cli-config-dirs.ts`) whose `config` hook injected the grants: OpenCode v2 changed the plugin
+  contract and its typed plugin API has no permission hook, so the plugin no longer loaded and was retired. A tool's
+  major-version migration has to treat each v1 surface separately: v2's normalizer auto-mapped the config's
   `permission.bash` onto v2's `shell`, which did not vouch for that sibling plugin, whose load failed with
   `Plugin must export a default definition with an id and an effect or setup function`. v2 pre-approves the
   machine-specific `<tmpdir>/opencode`, which is enough for this repo; `anomalyco/opencode#48100` asks for a portable
@@ -2271,7 +2273,13 @@ capture-stash-stale-copy
   `permissions:` had hidden `ci.yml`'s top-level one. GitHub's dependency-caching reference names the trigger, so a fix
   built on the misattribution (granting `actions: write`) would have widened the token for nothing. Read the
   authoritative policy for the mechanism you are hypothesising, or vary only that dimension; a fix that enlarges a
-  privilege to explain a behavior is a signal the cause is still undiagnosed.
+  privilege to explain a behavior is a signal the cause is still undiagnosed. The same rule binds a single experiment
+  that varies two dimensions at once: probing one malformed frontmatter on an agent and a different one on a command
+  read the results as kind-keyed ("command → exit 1") when the status depends on the resolved YAML shape, not the kind —
+  `guard-agent-loader-read-path` fixed the design only by re-deriving at a held-constant shape. A later review round
+  then could not reproduce the silent-drop row because it chose a different shape, and read its clean run as a
+  refutation of a true fact: a disagreement between two runs that differ in an uncontrolled dimension refutes neither,
+  so compare the inputs before concluding either wrong. captured: guard-agent-loader-read-path
 - **A reproduction in an outward-facing artifact is itself part of the claim — write it so a reader reruns it to the
   same output, and rerun the exact sequence before posting.** State the tool version and the starting state, and record
   the commands in the order they ran: an order-dependent transcript can self-contradict (a `Fission-AI/OpenSpec#1892`
@@ -2350,8 +2358,9 @@ capture-stash-stale-copy
   review loop kept catching missing. Quote any YAML scalar containing `: ` — the scope is any declarative artifact, a
   project-defined definition file as much as a config: an unquoted `: ` in a `.opencode/agent/*.md` frontmatter's
   `description` made YAML read the value as a mapping, the parse failed, and the agent silently did not load
-  (`/audit-readme` failed with `Agent readme-auditor cannot run as a subagent`) — no gate validates that frontmatter,
-  and a reload does not fix it, unlike the not-registered `Unknown agent type` failure. captured:
+  (`/audit-readme` failed with `Agent readme-auditor cannot run as a subagent`) — the CI `build` gate now probes that
+  every agent/command/skill definition resolves with its metadata intact (its definition-inventory assertion), and a
+  reload does not fix it, unlike the not-registered `Unknown agent type` failure. captured:
   fix-readme-auditor-frontmatter (#477) The CI `build` job now probes for the list-shape warning on any declared list
   surface and the whole-file `could not parse` one (a malformed scalar) and fails on either, and `/opsx-tool-update`
   re-verifies both with a positive control. The general rule: a config can look well-formed and pass the consumer's
@@ -2365,21 +2374,24 @@ capture-stash-stale-copy
   hold-back-minor-dependency-updates Where the probe's subject is a load that either succeeds or throws, take the signal
   from the process exit status, not from a message grepped out of the tool's output: `opencode debug config` prints the
   whole resolved configuration, including every agent's full prompt, so a grep can match text the config merely embeds;
-  a loadable config exits 0 and a V2-only `permissions` key exits 1. captured: probe-opencode-config-read-path Keep the
-  guard's list-shape pattern generic (`must be an array of strings`), not one surface's enumerated wording — it grew
-  from `ignoring this artifact's rules` to `ignoring this artifact's rules|could not parse`, then to the generic phrase,
-  which is what covered every surface — so a malformed `rules` or `operations.*.guidance` item drops no config list
-  silently. The same class covers the change's own `.openspec.yaml`, quieter still: OpenSpec's change-metadata schema is
-  not strict, so an unrecognized key is silently stripped with no warning at all — a `skip_design: true` marker (an
-  inherited agent habit; a dozen archived changes carry it) does nothing, and `openspec status` still reports `design`
-  incomplete and points at `openspec instructions design`. There is no artifact-skip key beyond `skip_specs`: skip
-  `design.md` by simply not writing it, never by adding a key. captured: bump-snyk-cli-pin Upstream, the reports are
-  `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item; closed 2026-09-29, but its fix
-  `Fission-AI/OpenSpec#1894` is still unmerged and in no release — the latest CLI, our pinned `1.13.2`, has no
-  `inspectProjectConfig`, so the defect is live here) and `Fission-AI/OpenSpec#1892` (an unparseable config; still
-  open); if `validate` gains a config check that fails (an ask in each), the CI probe and the `/opsx-tool-update`
-  re-verification become redundant and can go. captured: inject-positive-control-task-rule (#375) captured:
-  widen-config-probe-to-guidance captured: record-openspec-1891-closure
+  a loadable config exits 0 and a V2-only `permissions` key exits 1. Its blind spot is the definition that loads but is
+  silently degraded — an agent's or command's fields dropped, a skill absent from the inventory, all with exit 0 — which
+  is why the CI `build` gate additionally asserts every definition's resolved metadata, not the exit alone. captured:
+  probe-opencode-config-read-path Keep the guard's list-shape pattern generic (`must be an array of strings`), not one
+  surface's enumerated wording — it grew from `ignoring this artifact's rules` to
+  `ignoring this artifact's rules|could not parse`, then to the generic phrase, which is what covered every surface — so
+  a malformed `rules` or `operations.*.guidance` item drops no config list silently. The same class covers the change's
+  own `.openspec.yaml`, quieter still: OpenSpec's change-metadata schema is not strict, so an unrecognized key is
+  silently stripped with no warning at all — a `skip_design: true` marker (an inherited agent habit; a dozen archived
+  changes carry it) does nothing, and `openspec status` still reports `design` incomplete and points at
+  `openspec instructions design`. There is no artifact-skip key beyond `skip_specs`: skip `design.md` by simply not
+  writing it, never by adding a key. captured: bump-snyk-cli-pin Upstream, the reports are `Fission-AI/OpenSpec#1891`
+  (an unquoted `: ` in a rules item; closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still unmerged and in
+  no release — the latest CLI, our pinned `1.13.2`, has no `inspectProjectConfig`, so the defect is live here) and
+  `Fission-AI/OpenSpec#1892` (an unparseable config; still open); if `validate` gains a config check that fails (an ask
+  in each), the CI probe and the `/opsx-tool-update` re-verification become redundant and can go. captured:
+  inject-positive-control-task-rule (#375) captured: widen-config-probe-to-guidance captured:
+  record-openspec-1891-closure
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
   changes without the repository moving: when the upstream-reference report was parked, review found two of four

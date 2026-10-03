@@ -21,16 +21,6 @@ dated when it was added (start a new section for a new day rather than appending
   it. A cheap Gradle/CI task asserting the file parses (the class of `verifyInstallCommands`) would close it. Surfaced
   while adding the Web UI section to the dashboard.
 
-## 2026-10-02
-
-- Guard the agent-loader read path so a malformed agent definition fails a gate — parked; no change yet.
-  `.opencode/agent/readme-auditor.md`'s `description` carried an unquoted `: `, YAML read it as a mapping, and
-  OpenCode's loader silently dropped the agent — `/audit-readme` was unspawnable until `fix-readme-auditor-frontmatter`
-  rephrased it. `spotlessCheck` reflows that frontmatter but never validates it as YAML, and `ci.yml`'s OpenSpec-config
-  probe covers only `openspec/config.yaml`, so this class recurs silently. Route: extend that probe — which already
-  loads the OpenCode config through the pinned binary — to assert the project's agent/command/skill inventory loads, per
-  the "probe the consumer's read path" rule, rather than adding an independent YAML parse.
-
 ## 2026-09-30
 
 - Correct the `code-quality` spec's shellcheck scenario — parked; no change yet. The requirement "GitHub workflows are

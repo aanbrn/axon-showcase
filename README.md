@@ -715,9 +715,10 @@ refresh, or `./setup-hosts.sh remove` to clean up.
 the Docker-free fast gate (`check -PskipITs` with the coverage gate disabled), while pushes to `main` run the full gate
 (`check` with integration tests and coverage); both validate the OpenSpec specs and check that the CLI reads the
 OpenSpec config's declared list surfaces (its artifact rules and its operation guidance). A pull request that changes
-`.opencode/opencode.json*` (or the workflow itself) additionally checks that the config loads under the consumer the
-`opencode` action installs. The Gradle cache is restored across runs via `gradle/actions/setup-gradle`. The
-`main-required-checks` ruleset requires the `build` check for all merges into `main`, with no bypass actors.
+any `.opencode/` path (or the workflow itself) additionally checks that the config loads under the consumer the
+`opencode` action installs and that every agent, command, and skill definition resolves with its metadata intact. The
+Gradle cache is restored across runs via `gradle/actions/setup-gradle`. The `main-required-checks` ruleset requires the
+`build` check for all merges into `main`, with no bypass actors.
 
 `.github/workflows/e2e.yml` runs the end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four service
 images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same pipeline

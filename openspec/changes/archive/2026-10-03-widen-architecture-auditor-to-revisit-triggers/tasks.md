@@ -58,7 +58,7 @@
       net `AGENTS.md` delta on this task. Applied: one clause-level merge into the auto-review bullet — its sweep
       trigger now covers a **framing/coherence** correction, not only a behavior-adding finding (net +3 lines, the
       clause); the other candidate lessons (smoke-run seed premise; the control must fire) were already covered.
-- [ ] 3.5 Record the `agent-skills` capability `## Purpose` refresh for the archive commit (a delta cannot carry a
+- [x] 3.5 Record the `agent-skills` capability `## Purpose` refresh for the archive commit (a delta cannot carry a
       Purpose): the Purpose currently scopes the architecture audit to "where a deliberate decision's rationale is **not
       recorded**", which does **not** cover the new class (a _recorded_ condition whose premise may be met — the
       opposite subject), so **add** the deferred-decision subject to the Purpose rather than extending that clause.

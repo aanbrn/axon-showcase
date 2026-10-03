@@ -13,6 +13,17 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-03
+
+- Record the Elasticsearch Java client's role on the read side — parked; no change yet. The projection/query services
+  and the query client declare `co.elastic.clients:elasticsearch-java` directly (`showcase-projection-service`,
+  `showcase-query-service`, and `showcase-query-client` build files), but no Java source imports a `co.elastic.clients`
+  type and no ADR records why — ADR-0012 records the OpenSearch-client swap but never mentions it, and no build-file
+  comment explains the declaration. The dependency's Jackson-3 transitives are covered by the dependency-security spec
+  and the transitive-vulnerability archives, but the structural decision (why the read side depends on Elastic's client
+  at all) is recorded nowhere. Surfaced by the widened `architecture-auditor`'s smoke-run; extend ADR-0012 (or ADR-0003)
+  with the clause once the reason is established.
+
 ## 2026-09-30
 
 - Retire the OpenSpec config probe and the `/opsx-tool-update` re-verification once `validate` checks the config —
@@ -191,21 +202,6 @@ dated when it was added (start a new section for a new day rather than appending
   candidate does not apply — `#1060` leaves our `checkBuildEnvironmentConstraints` row untouched (the `#755` verdict is
   recorded in the upstream-reference bullet in `AGENTS.md` and ADR-0007). Recorded here rather than in the PR body that
   surfaced it, which no tool reads.
-
-## 2026-09-13
-
-- ADR revisit triggers for time-bounded decisions — parked; no change yet. ADR-0003, ADR-0004, and ADR-0011 are explicit
-  deferrals whose entire point is to be revisited when a stated condition is met: ADR-0003 (retain Jackson 2; adopt
-  Jackson 3 only once Axon and the OpenSearch client support it — an external gate) ADR-0004 (defer Spring Boot 4;
-  reopen when there is capacity — an internal one), and ADR-0011 (defer Axon Framework 5 until its dependency surface
-  ships 5.x — an external gate). Both _state_ their condition in prose in their Decision, but nothing _surfaces_ it: the
-  ADR template has no `Revisit when:` field, no check watches for the condition, and `Status` only records a replacement
-  after the fact — so a deferral silently becomes permanent until someone remembers it. Add a `Revisit when:` line to
-  the template (and to the existing deferrals), and decide how a due trigger reaches a human: the `architecture-auditor`
-  checks `Status` integrity and a Decision contradicted by the code, but not whether a deferred decision's condition has
-  since been met, so either extend it to flag a deferred ADR whose condition looks met, or list such ADRs in a small
-  report alongside the dependency-update checks. Distinct from status drift: the decision still holds, its premise may
-  not.
 
 ## 2026-09-07
 

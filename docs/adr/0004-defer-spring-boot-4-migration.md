@@ -4,6 +4,9 @@ Date: 2026-08-18
 
 Status: Accepted
 
+Revisit when: there is capacity for the coordinated migration. This is an internal trigger, not a repository fact the
+tooling can detect (the audit records it for a human, not a check).
+
 ## Context
 
 Spring Boot 4 is the current major with an active support window, and Axon Framework 4.13 officially supports it, so a

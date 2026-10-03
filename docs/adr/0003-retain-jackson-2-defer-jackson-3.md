@@ -4,6 +4,10 @@ Date: 2026-08-18
 
 Status: Accepted
 
+Revisit when: the pinned `org.axonframework` and the Elasticsearch Java client (`co.elastic.clients:elasticsearch-java`,
+declared directly on the read side) resolve Jackson 3. This is a third-party-adoption gate, not a bump of the project's
+own `jackson2-bom` (a 2.x line that can never publish a 3.x).
+
 ## Context
 
 Spring Boot 4 defaults to Jackson 3 (the `tools.jackson` package / `jackson-core` 3.x). The project's serialization

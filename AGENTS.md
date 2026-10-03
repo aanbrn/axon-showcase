@@ -497,8 +497,8 @@ wait for approval before merging.
 ./gradlew :showcase-web-ui:e2eTest
 
 # Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
-# plus workflowLint (actionlint), verifyInfraImageVersions, verifyInstallCommands, verifyModuleDependencies, and the
-# commit-hygiene tasks
+# plus workflowLint (actionlint), verifyInfraImageVersions, verifyInstallCommands, verifyModuleDependencies,
+# verifyDashboardJson, and the commit-hygiene tasks
 # (verifyCapturedMarkers, testCommitHygiene, testDoctorCharter, verifyTrackedIgnoredFiles, verifyConflictMarkers,
 # verifyExecutableBits, verifyUniqueCronSchedules)
 # (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
@@ -1844,6 +1844,16 @@ capture-stash-stale-copy
     CI provides one (attached to GitHub requests only, never to the npm one): an anonymous lookup is rate limited, and
     the throttled body lands exactly where "current" does. captured: unify-tooling-currency-checks (#304) captured:
     fix-dependency-updates-catalog-extraction
+  - **A parser that returns "no exception" is not a gate that rejects the input class it claims to — know what your
+    parser silently accepts.** `DashboardJsonRules` treated a successful `mapper.readTree(file)` as "valid JSON", but
+    Jackson returns a `MissingNode` for an empty/blank file rather than throwing, so an empty dashboard passed the gate;
+    `readTree` is lenient in a second way — it accepts trailing or multiple documents (`{"a":1}x`, `{}{}`) unless
+    `FAIL_ON_TRAILING_TOKENS` is enabled, so "the file parses" is weaker than "the file is one valid document". The
+    rule's initial tests (valid / truncated / two-malformed / no-files) never covered either class, so both gaps passed
+    the suite and surfaced only from the live known-bad control (zeroing the file, then appending a trailing byte) —
+    caught and fixed before the gate shipped, not by the tests. Before trusting a parse-as-validation gate, enumerate
+    the input classes it must reject (empty, blank, trailing content, a second document) and exercise each. captured:
+    validate-dashboard-json
   - **A control must perturb the surface the check actually reads.** `reconcile-showcase-cache-default`'s control
     perturbs the yml placeholder because `applicationYmlPlaceholdersBindDocumentedDefaults` boots `application.yml` and
     never binds the Java field — reverting the field instead would have proved nothing, since that test passes

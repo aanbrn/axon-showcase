@@ -776,6 +776,7 @@ surfaced as a trigger to check rather than declared actionable — observational
 ./gradlew verifyInfraImageVersions     # verify infra image tags match their pinned charts
 ./gradlew verifyInstallCommands        # verify the AGENTS.md manual install commands match the catalog
 ./gradlew verifyModuleDependencies     # verify the module dependency graph (ADR-0010)
+./gradlew verifyDashboardJson          # verify the bundled Grafana dashboard JSON parses
 ./gradlew workflowLint                 # lint the GitHub Actions workflows with actionlint
 ```
 

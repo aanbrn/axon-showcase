@@ -24,6 +24,8 @@ dependencies {
 
     implementation(libs.commons.lang3)
 
+    implementation(libs.jackson2.databind)
+
     testImplementation(kotlin("test"))
     testImplementation(platform(libs.assertj.bom))
     testImplementation(libs.assertj.core)

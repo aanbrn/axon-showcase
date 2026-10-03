@@ -5,8 +5,8 @@ The `--staged` mode is the pre-commit guard. It refuses a commit whose staged se
 rewrite, that force-stages a generated artifact, that stages a path and then edits it again (leaving the index stale),
 that carries a merge conflict marker, or that misplaces a `captured:` marker in `AGENTS.md`. The `--markers` mode checks
 marker placement in the working-tree `AGENTS.md`; the `--tracked-ignored`, `--conflict-markers`, and `--executable-bits`
-modes each verify the tracked set for the build, and `--unique-crons` verifies the workflow `cron` schedules do not
-collide. Stdlib only.
+modes each verify the tracked set for the build, `--unique-crons` verifies the workflow `cron` schedules do not
+collide, and `--large-files` verifies no tracked file exceeds the configured size limit. Stdlib only.
 """
 
 import argparse
@@ -21,6 +21,7 @@ AGENTS = "AGENTS.md"
 FORMATTER_OWNED = (".java", ".kt", ".kts", ".md", ".json")
 DEFAULT_FORMATTER = ("./gradlew", "spotlessCheck")
 MARKER = "captured:"
+LARGE_FILES_CONFIG = "config/commit-hygiene/large-files.properties"
 LEAD_RE = re.compile(r"^(- |\*\*)")
 CONFLICT_MARKER_RE = r"^(<<<<<<< |>>>>>>> )"
 VENDORED_SKILL_PREFIXES = (".opencode/skills/axon4to5-", ".opencode/skills/openspec-")
@@ -97,6 +98,43 @@ def find_non_executable_scripts(repo: Path) -> list[str]:
         mode, path = parts[0], parts[3]
         if mode != "100755" and _should_be_executable(path):
             offenders.append(path)
+    return offenders
+
+
+def tracked_paths(repo: Path) -> list[str]:
+    result = git(repo, "ls-files", "-z")
+    return [path for path in result.stdout.split("\0") if path]
+
+
+def read_max_bytes(repo: Path) -> int:
+    """The configured maximum file size, from the properties file."""
+    properties = repo / LARGE_FILES_CONFIG
+    try:
+        text = properties.read_text(encoding="utf-8")
+    except OSError as error:
+        raise ValueError(f"{LARGE_FILES_CONFIG} could not be read: {error}") from error
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#") or "=" not in stripped:
+            continue
+        key, _, value = stripped.partition("=")
+        if key.strip() == "maxBytes":
+            try:
+                return int(value.strip())
+            except ValueError as error:
+                raise ValueError(f"maxBytes in {LARGE_FILES_CONFIG} is not an integer: {value.strip()!r}") from error
+    raise ValueError(f"maxBytes is not set in {LARGE_FILES_CONFIG}")
+
+
+def find_oversized_files(repo: Path, limit: int) -> list[tuple[str, int]]:
+    offenders = []
+    for path in tracked_paths(repo):
+        try:
+            size = (repo / path).stat().st_size
+        except OSError:
+            continue
+        if size > limit:
+            offenders.append((path, size))
     return offenders
 
 
@@ -275,6 +313,26 @@ def check_executable_bits(repo: Path) -> int:
     return len(offenders)
 
 
+def check_large_files(repo: Path) -> int:
+    try:
+        limit = read_max_bytes(repo)
+    except ValueError as error:
+        print(f"The large-file size limit is misconfigured: {error}", file=sys.stderr)
+        return 1
+    checked = len(tracked_paths(repo))
+    offenders = find_oversized_files(repo, limit)
+    for path, size in offenders:
+        print(
+            "A tracked file exceeds the size limit: {0} ({1} bytes, limit {2} bytes / {3:.0f} KiB)".format(
+                path, size, limit, limit / 1024
+            ),
+            file=sys.stderr,
+        )
+    if not offenders:
+        print(f"Checked {checked} tracked file(s) against the {limit}-byte size limit.")
+    return len(offenders)
+
+
 def check_unique_crons(repo: Path) -> int:
     collisions = find_cron_collisions(repo)
     for left_path, left_cron, right_path, right_cron in collisions:
@@ -309,6 +367,9 @@ def main(argv: Sequence[str] = ()) -> int:
     mode.add_argument(
         "--unique-crons", action="store_true", help="check no two workflow cron schedules collide"
     )
+    mode.add_argument(
+        "--large-files", action="store_true", help="check no tracked file exceeds the configured size limit"
+    )
     parser.add_argument("--repo", default=str(REPO_ROOT), help="repository root (default: the script's parent)")
     parser.add_argument(
         "--formatter",
@@ -329,6 +390,8 @@ def main(argv: Sequence[str] = ()) -> int:
         return 1 if check_executable_bits(repo) else 0
     if args.unique_crons:
         return 1 if check_unique_crons(repo) else 0
+    if args.large_files:
+        return 1 if check_large_files(repo) else 0
     return 1 if check_staged(repo, args.formatter) else 0
 
 

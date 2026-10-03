@@ -551,6 +551,94 @@ class UniqueCronTests(unittest.TestCase):
         self.assertIn("0 2 * * 1", stderr.getvalue())
 
 
+class LargeFileTests(unittest.TestCase):
+    def _repo_with_limit(self, limit: int) -> Path:
+        repo = make_repo(self)
+        config = repo / "config" / "commit-hygiene" / "large-files.properties"
+        config.parent.mkdir(parents=True)
+        config.write_text("# max size\nmaxBytes = {0}\n".format(limit), encoding="utf-8")
+        return repo
+
+    def _commit(self, repo: Path, name: str, size: int) -> None:
+        path = repo / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"x" * size)
+        subprocess.run(("git", "add", "-f", name), cwd=repo, check=True)
+
+    def test_the_limit_is_read_from_the_config_file(self):
+        repo = self._repo_with_limit(4096)
+
+        self.assertEqual(4096, commit_hygiene.read_max_bytes(repo))
+
+    def test_a_tracked_file_over_the_limit_is_reported(self):
+        repo = self._repo_with_limit(4096)
+        self._commit(repo, "big.bin", 4097)
+
+        offenders = commit_hygiene.find_oversized_files(repo, 4096)
+
+        self.assertEqual([("big.bin", 4097)], offenders)
+
+    def test_a_tracked_file_at_the_limit_is_not_reported(self):
+        repo = self._repo_with_limit(4096)
+        self._commit(repo, "exact.bin", 4096)
+
+        self.assertEqual([], commit_hygiene.find_oversized_files(repo, 4096))
+
+    def test_a_tracked_file_under_the_limit_is_not_reported(self):
+        repo = self._repo_with_limit(4096)
+        self._commit(repo, "small.txt", 10)
+
+        self.assertEqual([], commit_hygiene.find_oversized_files(repo, 4096))
+
+    def test_large_files_mode_reports_the_offender(self):
+        repo = self._repo_with_limit(4096)
+        self._commit(repo, "big.bin", 5000)
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--large-files", "--repo", str(repo)])
+
+        self.assertEqual(1, code)
+        self.assertIn("big.bin", stderr.getvalue())
+        self.assertIn("5000", stderr.getvalue())
+
+    def test_large_files_mode_passes_a_repository_under_the_limit(self):
+        repo = self._repo_with_limit(4096)
+        self._commit(repo, "small.txt", 10)
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--large-files", "--repo", str(repo)])
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr.getvalue())
+
+    def test_a_missing_config_is_reported_not_a_traceback(self):
+        repo = make_repo(self)
+        self._commit(repo, "small.txt", 10)
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--large-files", "--repo", str(repo)])
+
+        self.assertEqual(1, code)
+        self.assertIn("misconfigured", stderr.getvalue())
+
+    def test_a_non_integer_limit_is_reported_not_a_traceback(self):
+        repo = self._repo_with_limit(0)
+        (repo / "config" / "commit-hygiene" / "large-files.properties").write_text(
+            "maxBytes = big\n", encoding="utf-8"
+        )
+        self._commit(repo, "small.txt", 10)
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--large-files", "--repo", str(repo)])
+
+        self.assertEqual(1, code)
+        self.assertIn("misconfigured", stderr.getvalue())
+
+
 class CliTests(unittest.TestCase):
     @staticmethod
     def _run(argv):

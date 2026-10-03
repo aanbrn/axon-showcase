@@ -88,12 +88,16 @@ everything the quick review finds, re-run it, and stop only when it comes back c
 manual review pass. A finding that adds behavior is a scope change, not a code fix: applying it to the code and a test
 alone leaves the change's planning artifacts — proposal, design, tasks, and delta spec — describing the old behavior,
 and the next round reports the residue as spec-/task-drift: sweep every one of them, not only the file the finding
-names, as part of applying the finding (and the docs, per the docs-refresh convention). A clean quick review is a
-precondition for asking for the manual review, **not** a substitute for it — it means _ask the user now_, not _the
-implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength of a clean `review-quick`
-alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes, without ever requesting the manual
-pass. The commit → push → PR → CI → archive sequence starts only after the user approves the implementation — the "Run
-CI before archiving" convention does not authorize committing earlier. An unanswered approval request is not an
+names, as part of applying the finding (and the docs, per the docs-refresh convention). A **framing or coherence**
+correction takes the same sweep even though it adds no behavior: the planning artifacts state one model of the subject,
+so correcting the model in the artifacts the finding names leaves a sibling — most often `proposal.md` — stating the old
+framing, which the next round flags as coherence drift. Re-read every planning artifact that states the corrected claim,
+`proposal.md` included, before re-running the review. captured: widen-architecture-auditor-to-revisit-triggers. A clean
+quick review is a precondition for asking for the manual review, **not** a substitute for it — it means _ask the user
+now_, not _the implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength of a clean
+`review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes, without ever requesting
+the manual pass. The commit → push → PR → CI → archive sequence starts only after the user approves the implementation —
+the "Run CI before archiving" convention does not authorize committing earlier. An unanswered approval request is not an
 approval: a reply that does not address it — the user asks about something else, or the thread moves on — leaves the
 request outstanding, so re-ask explicitly before committing, pushing, opening the PR, archiving, or merging, and do not
 read a tangential reply as clearance. Work done while awaiting the pass must stay in the working tree until it is given;
@@ -1149,24 +1153,28 @@ Key modules (libraries, not services):
   `/audit-specs` command. It deliberately does **not** check behavior against the code — the change workflow's review
   loop and the archive-time sync own that. The main agent applies approved findings through the normal change workflow
   (a spec edit is a change). The scheduled variant runs unattended in the `audit` workflow.
-- **Architecture-auditor subagent for design drift and unrecorded intent**: the `architecture-auditor` subagent
-  (`.opencode/agent/architecture-auditor.md`) audits `docs/adr/` plus the architectural surface (the service boundaries,
-  the module dependency graph, and the spec corpus's capability decomposition) for drift from its recorded decisions,
-  and reports **where clarification of intent is missing** — a deliberate choice or absence whose rationale is not
-  recorded (its finding classes, its advisory section, and the report contract are in the `agent-skills` spec). It
-  sweeps the surfaces a rationale must exist for (dependency `exclude(...)` declarations, the major-version-suppressed,
-  held-back, and web-UI-npm-suppressed coordinates, the suppression annotations and retained deprecated APIs, and the
-  deferrals and band-aids recorded in ADRs or `docs/ideas.md`) and searches the repository for a rationale before
-  reporting each item — an item whose rationale is already recorded is not reported. It deliberately does **not** check
-  behavior against the code (the review loop and archive-time sync own that), the corpus's internal structure
-  (`specs-auditor` owns that), or any property an existing gate enforces. Trigger it with the `/audit-architecture`
-  command. The main agent applies the approved findings under the review gate: a finding whose fix is an ADR correction,
-  a new ADR, or an `AGENTS.md`/`README.md` clarification lands as a docs PR, while one whose correction is a code change
-  — or an edit to a subagent/command definition that changes its spec'd behavior (which owes that definition's spec
-  delta, per the multi-artifact-sweep bullet) — becomes its own change, parked as an idea until then; do not force the
-  suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet
-  narrowing the dependency broke `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`).
-  An advisory item needs the user's decision first. The scheduled variant runs unattended in the `audit` workflow.
+- **Architecture-auditor subagent for design drift, unrecorded intent, and due deferrals**: the `architecture-auditor`
+  subagent (`.opencode/agent/architecture-auditor.md`) audits `docs/adr/` plus the architectural surface (the service
+  boundaries, the module dependency graph, and the spec corpus's capability decomposition) for drift from its recorded
+  decisions, and reports **where clarification of intent is missing** — a deliberate choice or absence whose rationale
+  is not recorded — and **a deferral whose recorded `Revisit when:` condition appears met** (its finding classes, its
+  advisory section, and the report contract are in the `agent-skills` spec). It sweeps the surfaces a rationale must
+  exist for (dependency `exclude(...)` declarations, the major-version-suppressed, held-back, and web-UI-npm-suppressed
+  coordinates, the suppression annotations and retained deprecated APIs, the deferrals and band-aids recorded in ADRs or
+  `docs/ideas.md`, and a deferred ADR's `Revisit when:` condition held against the repository where it names a checkable
+  fact) and searches the repository for a rationale before reporting each item — an item whose rationale is already
+  recorded is not reported. The **deferred-condition** item is the inverse — its record exists, so it is reported when
+  that record's premise appears met, a different question from whether the rationale exists. It deliberately does
+  **not** check behavior against the code (the review loop and archive-time sync own that), the corpus's internal
+  structure (`specs-auditor` owns that), or any property an existing gate enforces. Trigger it with the
+  `/audit-architecture` command. The main agent applies the approved findings under the review gate: a finding whose fix
+  is an ADR correction, a new ADR, or an `AGENTS.md`/`README.md` clarification lands as a docs PR, while one whose
+  correction is a code change — or an edit to a subagent/command definition that changes its spec'd behavior (which owes
+  that definition's spec delta, per the multi-artifact-sweep bullet) — becomes its own change, parked as an idea until
+  then; do not force the suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was
+  verified drift, yet narrowing the dependency broke `:showcase-query-client:compileJava` — since landed as
+  `narrow-query-api-dependency`). An advisory item needs the user's decision first. The scheduled variant runs
+  unattended in the `audit` workflow.
 - **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
   (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
   guide, whose content no gate checks — on three axes: accuracy against the repository, design-intent fidelity (the

@@ -4,6 +4,10 @@ Date: 2026-09-21
 
 Status: Accepted
 
+Revisit when: `org.axonframework:axon-bom` publishes a 5.x release and the extensions and modules the project uses — the
+Kafka and JGroups extensions and the Micrometer and OpenTelemetry modules — ship 5.x, with a released (not preview)
+Spring Boot starter. This is an external coordinate gate, checked by resolving the pinned coordinates.
+
 ## Context
 
 Axon Framework 5 is the current major, and the repository vendors the `axon4to5-*` migration skills, so moving off 4.x

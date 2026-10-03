@@ -17,6 +17,8 @@ Date: YYYY-MM-DD
 
 Status: Proposed | Accepted | Superseded by ADR-NNNN
 
+Revisit when: <the condition that would reopen this decision, and the signal that shows it met>
+
 ## Context
 
 The situation that prompted the decision — the problem, constraints, and forces in play.
@@ -35,3 +37,7 @@ What becomes easier or harder, what this enables and what it forecloses. Update 
 - Copy the template, pick the next `NNNN`, and fill it in.
 - One decision per ADR. Keep it short; the decision and its rationale matter, not ceremony.
 - Record the decision at the time it is made — do not leave decisions implicit in commit history.
+- The `Revisit when:` line is **required for a deferral** — a decision deliberately not acted on now, to be revisited
+  when a stated condition is met — and omitted for a settled decision. Name the condition and the signal that shows it
+  met (an external coordinate that would publish a newer major, a third-party adoption, or an internal trigger), so the
+  `architecture-auditor` can surface it once due.

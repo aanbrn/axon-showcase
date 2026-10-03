@@ -1,10 +1,10 @@
 ---
 description:
   Audits the project's architecture — the ADRs under docs/adr/ plus the architectural surface (service boundaries,
-  module dependency graph, spec-corpus capability decomposition) — for drift from its recorded decisions and for
-  deliberate choices whose rationale is not recorded, with the pro model. Use on demand (e.g. via /audit-architecture)
-  to check that the design the repo documents still matches the design it has, and to surface where clarification of
-  intent is missing.
+  module dependency graph, spec-corpus capability decomposition) — for drift from its recorded decisions, for deliberate
+  choices whose rationale is not recorded, and for a deferral whose recorded `Revisit when:` condition appears met, with
+  the pro model. Use on demand (e.g. via /audit-architecture) to check that the design the repo documents still matches
+  the design it has, and to surface where clarification of intent is missing or a deferred decision is due.
 mode: subagent
 model: opencode-go/deepseek-v4-pro
 temperature: 0
@@ -49,7 +49,8 @@ decomposition, apparently missing ADRs, and the design-intent gaps below. No sev
 agent must not "fix" an advisory item without the user's decision.
 
 Within the advisory section, report **where clarification of intent is missing** — a deliberate choice or deliberate
-absence whose rationale is not recorded anywhere. Surface only what a rationale must exist for, by checking:
+absence whose rationale is not recorded anywhere — and **a deferral whose recorded condition appears met** (the record
+exists; its premise may have expired). Surface only what a rationale must exist for, by checking:
 
 - dependency `exclude(...)` declarations in the build files;
 - major-version-suppressed coordinates in `config/dependency-updates/major-disabled.txt`, coordinates held back at a
@@ -57,13 +58,23 @@ absence whose rationale is not recorded anywhere. Surface only what a rationale 
   `config/web-ui-updates/major-disabled.txt`;
 - suppression annotations that encode a design choice (`@SuppressWarnings`), and deprecated-API usages the project still
   carries;
-- deferrals and band-aids recorded in an ADR or parked in `docs/ideas.md`.
+- deferrals and band-aids recorded in an ADR or parked in `docs/ideas.md`;
+- **a decision deferred in an ADR whose recorded `Revisit when:` condition appears met** — read each ADR's
+  `Revisit when:` line and hold it against the repository where it names a checkable fact: an external coordinate gate
+  (resolve the coordinates the line names — the pinned BOM, or the extension/module coordinates it enumerates — and see
+  a newer major published) or a third-party-adoption gate (the consumed artifacts now satisfy it). A condition that
+  names no repository fact the auditor can check (an internal capacity trigger) is not reported on the repository's own
+  state — its line records the trigger for a human.
 
 Before reporting an item, search the whole repository for a recorded rationale — the ADRs, the specs, `AGENTS.md`, the
 code and the configuration. A suppressed major with a spec requirement, a deferral with an ADR, or a suppression with a
-recorded convention is explained; reporting it is noise. Name the choice or absence with its location, and state the
-question whose answer would record the rationale (for example, "why is Axon pinned to 4.x?"). This is a candidate list
-for the owner's decision, not a defect list: only the project owner can say which unrecorded rationales matter.
+recorded convention is explained; reporting it is noise. The **deferred-condition** item is the inverse: its rationale
+_is_ recorded (the ADR and its `Revisit when:` line), so the recorded-rationale check does not suppress it — it is
+reported only when the recorded condition appears met, which is a different question from whether the rationale exists.
+Name the choice or absence with its location, and state the question whose answer would record the rationale (for
+example, "why is Axon pinned to 4.x?") — for a deferred decision, the recorded condition and the signal that appears to
+meet it. This is a candidate list for the owner's decision, not a defect list: only the project owner can say which
+unrecorded rationales matter.
 
 Method:
 

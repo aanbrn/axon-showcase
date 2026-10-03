@@ -262,7 +262,7 @@ Cross-cutting architecture decisions and their rationale are recorded as Archite
 the way it is. An `architecture-auditor` subagent (`/audit-architecture`, on demand) checks that those decisions still
 describe the system — an ADR the code has outgrown, a boundary that drifted, or a decision made in code without an ADR —
 and surfaces design observations separately for your judgment, including where a deliberate choice's rationale was never
-written down.
+written down and a deferral whose recorded `Revisit when:` condition now looks met.
 
 ### The Agentic Process
 
@@ -286,7 +286,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | `experience-analyzer`  | Periodic retrospectives + improvement suggestions (system & process) — `/retrospective`                                                                                                                            |
 | `agents-auditor`       | Audits AGENTS.md + project-owned `.opencode/` files, flags third-party files our usage contradicts, and reports accreted meta rules with their origins plus merge, removal, and route candidates — `/audit-agents` |
 | `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                                                                                                                   |
-| `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift + unrecorded intent — `/audit-architecture`                                                                                             |
+| `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift, unrecorded intent, and a due deferral — `/audit-architecture`                                                                          |
 | `readme-auditor`       | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage — `/audit-readme`                                                                                       |
 | `lesson-capture`       | Captures gotchas/conventions into AGENTS.md after every unit, consolidating rather than accreting, retiring the rules a unit obsoletes, and marking each rule with its origin (automatic)                          |
 | `review-quick`         | Fast review after proposal & implementation, repeated until clean (automatic)                                                                                                                                      |
@@ -425,7 +425,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/review-thorough`           | Deep on-demand review of a change                                                                                                                                                                                  |
 | `/audit-agents`              | Audits AGENTS.md + project-owned .opencode/ files, flags third-party files our usage contradicts, and reports accreted meta rules with their origins plus merge, removal, and route candidates (pro-model auditor) |
 | `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                                           |
-| `/audit-architecture`        | Audits the architecture for recorded-decision drift + unrecorded intent (pro-model auditor)                                                                                                                        |
+| `/audit-architecture`        | Audits the architecture for recorded-decision drift, unrecorded intent, and a due deferral (pro-model auditor)                                                                                                     |
 | `/audit-readme`              | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage (pro-model auditor)                                                                                     |
 | `/diagram`                   | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer                                                                                                                                           |
 | `/retrospective`             | Periodic retrospective with improvement suggestions                                                                                                                                                                |

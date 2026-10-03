@@ -1084,6 +1084,13 @@ Key modules (libraries, not services):
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with
     `@SuppressWarnings("CodeBlock2Expr")` on the source method (the correct token — not `StatementLambdaInspection`).
+  - Line endings are normalized by the committed `.gitattributes` (`* text=auto eol=lf`, with `*.bat text eol=crlf` for
+    `gradlew.bat`), so a text file is stored as LF in the index regardless of a machine's `core.autocrlf` and the batch
+    file is checked out as CRLF. This is git-enforced, not a Spotless rule: it covers the files Spotless does not own.
+    `eol=crlf` governs the checkout only — the stored blob is LF like every other text file; read the two axes with
+    `git ls-files --eol` (`i/` is the index, `w/` the checkout), and note `git check-attr` reports `text: set` for the
+    explicit `*.bat` rule but `text: auto` for every path the `* text=auto` catch-all matches. captured:
+    enforce-line-endings.
 - **IDE inspections (optional)**: the build gates are the canonical verification — after each edit, run
   `./gradlew spotlessApply` and the touched module's quality gates (`compileJava`/`check`); no IDE is required. If the
   IDE is available, you may additionally run its inspections on the touched files (through the Steroid MCP

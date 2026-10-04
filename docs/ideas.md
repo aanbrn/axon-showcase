@@ -13,6 +13,16 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-04
+
+- Identify a running service's build at runtime — parked; no change yet. The gateway carries Spring Boot build info
+  (`build-info.properties`, added for its OpenAPI `info.version`), but the other four services do not, and no service
+  exposes `/actuator/info` (`application.yml` exposes only `health` and `prometheus`). Enabling `buildInfo()` (with
+  `build.time` excluded, so `bootBuildInfo` stays cacheable) and exposing `info` across all five would let a running
+  deployment report its own version without inspecting image tags — useful when diagnosing which build a pod is running.
+  Deliberately not folded into `publish-github-releases`, which only needed it for the gateway's OpenAPI document; the
+  images' version is otherwise already single-sourced through their tag.
+
 ## 2026-10-03
 
 - Record the Elasticsearch Java client's role on the read side — parked; no change yet. The projection/query services

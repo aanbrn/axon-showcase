@@ -1274,7 +1274,7 @@ Key modules (libraries, not services):
   tool but never hosts its implementation. A `scripts/` tool an agent drives gets its own command trigger, and the tool
   keeps the implementation (`doctor.sh` ↔ `/check-tooling`, `setup-idea.sh` ↔ `/setup-idea`, `experience-analysis.sh` ↔
   `/retrospective`); a tool with no agent caller stays untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`),
-  and `commit-hygiene.py` is driven by the tracked `git-hooks/pre-commit` and by the Gradle `verify*` tasks. The
+  and `commit-hygiene.py` is driven by the tracked `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks. The
   generated OpenSpec command/skill files and the vendored `axon4to5-*` skills are not the repository's to place. Derive
   any claim about placement from the complete set (`git ls-files -s | awk '$1=="100755"'`), not from the location in
   hand. captured: state-tooling-placement-rule (#458)

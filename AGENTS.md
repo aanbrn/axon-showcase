@@ -1640,10 +1640,15 @@ capture-stash-stale-copy
   moves the directory (`fs.rename`/`mv`), so git reports the old path deleted and the new path untracked:
   `git add -A openspec/changes` stages the move (a commit records the unchanged files as renames, the edit-carrying one
   as delete+add), whereas staging only the archive directory commits the addition while the original stays tracked — a
-  **duplicated** change dir. Format the change-dir markdown **before** the archive (`build.gradle.kts` excludes
-  `openspec/changes/archive/**` from the markdown target), and confirm the status before committing. A hand-run `git mv`
-  is a different trap: it stages the **already-committed** content, so a file carrying an uncommitted edit (typically
-  the `tasks.md` tick) shows `RM`, and a plain `git commit` records the pre-edit content.
+  **duplicated** change dir. The same command also writes the delta → main sync into `openspec/specs/**` — a second,
+  separate staged output, so `git add -A openspec/changes` leaves the spec edits unstaged and a commit of the move alone
+  ships the archive without its sync (a change arrived on `main` exactly that way, the sync recovered as a follow-up
+  PR). Stage `openspec/specs` too and inspect the staged set (`git diff --cached --name-only` against `git status` — an
+  ` M openspec/specs/...` line is unstaged) before committing; format the change-dir markdown **before** the archive
+  (`build.gradle.kts` excludes `openspec/changes/archive/**` from the markdown target). A hand-run `git mv` is a
+  different trap: it stages the **already-committed** content, so a file carrying an uncommitted edit (typically the
+  `tasks.md` tick) shows `RM`, and a plain `git commit` records the pre-edit content. captured:
+  sync-audit-spec-findings-2026-10-04 (#497)
 - **The actionlint download script takes positional arguments (`version dir`), not `--dir`, and the target dir must
   already exist.** When installing actionlint in CI with `bash <(curl .../scripts/download-actionlint.bash)`, pass
   `latest "$RUNNER_TEMP/actionlint"` and `mkdir -p` the dir first — a `--dir` flag is rejected as an invalid version

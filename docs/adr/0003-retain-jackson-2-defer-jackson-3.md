@@ -13,7 +13,7 @@ own `jackson2-bom` (a 2.x line that can never publish a 3.x).
 Spring Boot 4 defaults to Jackson 3 (the `tools.jackson` package / `jackson-core` 3.x). The project's serialization
 backend — Axon Framework 4.13 — targets Jackson 2, and the project pins `jackson2-bom` with the Blackbird module for
 efficient serialization. Migrating to Jackson 3 would couple two risky upgrades (a new Spring Boot major and a new
-serialization backend) at once, with uncertain support in Axon and OpenSearch. Note that the OpenSearch Java client
+serialization backend) at once, with uncertain support in Axon and OpenSearch. Note that the Elasticsearch Java client
 (`co.elastic.clients:elasticsearch-java`) already brings Jackson 3 artifacts onto the query and projection service
 classpaths transitively, constrained by the platform's `jackson3-bom`; this change therefore carries Jackson 3 as a
 transitive dependency today without adopting it as a serialization backend.

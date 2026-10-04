@@ -13,6 +13,26 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-05
+
+- Revisit ADR-0003's Jackson-3 deferral gate — parked; no change yet. The 2026-10-04 architecture audit reports the
+  recorded `Revisit when:` condition ("the pinned `org.axonframework` and the Elasticsearch Java client … resolve
+  Jackson 3") appears substantially met: `elasticsearch-client-java = 9.5.4` declares
+  `tools.jackson.core:jackson-databind`/`jackson-core` as non-optional runtime dependencies, and
+  `axon-framework = 4.13.2` now declares `tools.jackson.core:jackson-databind` as an **optional** dependency — Axon 4.13
+  gained Jackson-3 support since the ADR (2026-08-18) characterized it as "targets Jackson 2". Open question: is the
+  gate met, or does Axon's support being opt-in (not the default) mean it is still not? A decision, not a defect: if
+  met, the Jackson-3 backend migration becomes due for re-planning (currently deferred behind Spring Boot 4, ADR-0004).
+
+- Note that the generated `/opsx-sync` is archive-internal, not a standalone command — parked; no change yet. The
+  2026-10-04 agents-audit reports that the generated `opsx-sync` command and its `openspec-sync-specs` skill invite a
+  standalone "sync delta specs to main specs without archiving" run, which contradicts the load-bearing "Sync the main
+  spec only at archive" rule (`AGENTS.md`). The legitimate use is inline within `openspec archive`, and a standalone run
+  would write the main spec to describe behavior the code has not been verified against, with `openspec validate` unable
+  to flag it. The fix is our usage, not upstream: document in the archive-only rule that `/opsx-sync` is
+  archive-internal and must not be run standalone. Parked as one occurrence, routed to the archive-only rule's wording
+  when next touched.
+
 ## 2026-10-04
 
 - Identify a running service's build at runtime — parked; no change yet. The gateway carries Spring Boot build info

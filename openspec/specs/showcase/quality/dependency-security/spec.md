@@ -48,7 +48,7 @@ fixes the reported issue (at least `4.2.18.Final`).
 
 #### Scenario: Dependency scan reports no vulnerable paths
 
-- **WHEN** `snyk test --all-sub-projects` runs against the build
+- **WHEN** `snyk test --all-sub-projects --policy-path=.snyk` runs against the build
 - **THEN** none of `showcase-projection-model`, `showcase-projection-service`, `showcase-query-client`, and
   `showcase-query-service` report a vulnerable path for Jackson 3 or `httpclient5`, no sub-project reports one for
   Jackson 2, `zstd-jni`, or `io.netty`, and the only suppressed findings are those pinned in `.snyk` with a stated
@@ -57,14 +57,15 @@ fixes the reported issue (at least `4.2.18.Final`).
 ### Requirement: Local dependency security scan task
 
 The build SHALL provide a `dependencySecurityCheck` Gradle task that runs the Snyk dependency scan
-(`snyk test --all-sub-projects`) across all sub-projects and reports the result to the developer. The task SHALL NOT be
-part of the `check` lifecycle.
+(`snyk test --all-sub-projects --policy-path=.snyk`) across all sub-projects and reports the result to the developer.
+The `--policy-path=.snyk` flag SHALL point the scan at the repository's `.snyk` policy so its suppressed findings take
+effect. The task SHALL NOT be part of the `check` lifecycle.
 
 #### Scenario: Developer runs the dependency security scan
 
 - **WHEN** a developer runs `./gradlew dependencySecurityCheck` with the Snyk CLI installed
-- **THEN** the task invokes `snyk test --all-sub-projects` against the build and reports the scan result, failing when
-  vulnerable paths are found
+- **THEN** the task invokes `snyk test --all-sub-projects --policy-path=.snyk` against the build and reports the scan
+  result, failing when vulnerable paths are found
 
 #### Scenario: Normal build does not run the dependency scan
 

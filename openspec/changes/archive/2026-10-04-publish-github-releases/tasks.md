@@ -89,12 +89,14 @@
 - [x] 6.2 Show the check hits a known-bad input: run the workflow's version-validation snippet locally against `0.2.0`
       (mismatched) and confirm it exits non-zero, and against `0.1.0` (matching) and confirm it passes — from the same
       script body the workflow runs.
-- [ ] 6.3 After the change merges, dispatch the workflow with a mismatched version (e.g. `9.9.9`) from `main` and
+- [x] 6.3 After the change merges, dispatch the workflow with a mismatched version (e.g. `9.9.9`) from `main` and
       confirm the run fails creating nothing, then dispatch `0.1.0` to cut the first release and verify the tag `v0.1.0`
       and its generated notes. The workflow is new, so `workflow_dispatch` exists only on the default branch — run this
-      at the merge and name it in the change's report.
-- [ ] 6.4 Open a follow-up PR bumping `gradle.properties` to the next development version (`0.2.0-SNAPSHOT`), so the
-      next release has a base to name.
+      at the merge and name it in the change's report. **Done at the merge:** the `9.9.9` dispatch failed at "Validate
+      the requested version" creating nothing (0 tags, no releases); the `0.1.0` dispatch cut tag `v0.1.0` at the merge
+      commit `97382e0` and published the release with generated notes.
+- [x] 6.4 Open a follow-up PR bumping `gradle.properties` to the next development version (`0.2.0-SNAPSHOT`), so the
+      next release has a base to name. **Done:** PR #491, merged.
 
 ## 7. Capture
 

@@ -45,7 +45,8 @@
 
 - [ ] 4.1 Push the branch, open the PR with the change dir, confirm the `build` check is green, then archive the change
       (`openspec archive sync-audit-spec-findings-2026-10-04`) as an additional commit in the same PR and merge once the
-      user approves.
+      user approves. _Agent-side steps done: pushed (`3bbfbf3`), PR #496 opened, `build` green, change archived on this
+      branch. Remaining: the owner's merge of PR #496._
 
 _Note: `design.md` is deliberately omitted — this is a spec-only change (no cross-cutting concern, dependency,
 data-model, security, or ambiguity), so the schema's conditional design artifact does not apply._

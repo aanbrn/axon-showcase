@@ -1,0 +1,71 @@
+# Spec Delta
+
+## MODIFIED Requirements
+
+### Requirement: Vulnerable transitive dependencies are constrained to patched versions
+
+The platform SHALL constrain the transitive dependencies that dependency scans flag as vulnerable to their patched
+versions: `tools.jackson.core` modules SHALL resolve through the `tools.jackson:jackson-bom` at a version that fixes the
+reported issues (at least `3.2.3`), `com.fasterxml.jackson.core` modules (Jackson 2) SHALL resolve through the
+`com.fasterxml.jackson:jackson-bom` at a version that fixes the reported issues (at least `2.22.3`),
+`org.apache.httpcomponents.client5:httpclient5` SHALL resolve to at least `5.6.4`, `com.github.luben:zstd-jni` SHALL
+resolve to at least `1.5.7-14`, and `io.netty` modules SHALL resolve through the `io.netty:netty-bom` at a version that
+fixes the reported issue (at least `4.2.18.Final`).
+
+#### Scenario: Jackson 3 modules resolve to the aligned BOM version
+
+- **WHEN** a module that depends on `elasticsearch-java` resolves its runtime classpath
+- **THEN** `tools.jackson.core:jackson-core` and `tools.jackson.core:jackson-databind` resolve to the
+  `tools.jackson:jackson-bom` version, which is at least `3.2.3`
+
+#### Scenario: Jackson 2 modules resolve to the patched BOM version
+
+- **WHEN** a module that depends on `jackson-databind` resolves its runtime classpath
+- **THEN** `com.fasterxml.jackson.core:jackson-core` and `com.fasterxml.jackson.core:jackson-databind` resolve to the
+  `com.fasterxml.jackson:jackson-bom` version, which is at least `2.22.3`
+
+#### Scenario: httpclient5 resolves to a patched version in every consuming module
+
+- **WHEN** a module that depends on `opensearch-rest-client` resolves its runtime classpath
+- **THEN** `org.apache.httpcomponents.client5:httpclient5` resolves to version `5.6.4` or newer
+
+#### Scenario: zstd-jni resolves to a patched version wherever kafka-clients is present
+
+- **WHEN** a module that depends on `kafka-clients` resolves its runtime classpath
+- **THEN** `com.github.luben:zstd-jni` resolves to version `1.5.7-14` or newer
+
+#### Scenario: Netty modules resolve to a patched version wherever reactor-netty is present
+
+- **WHEN** a module that depends on `reactor-netty-http` resolves its runtime classpath
+- **THEN** `io.netty:netty-codec-http` resolves to version `4.2.18.Final` or newer
+
+#### Scenario: Dependency scan reports no vulnerable paths
+
+- **WHEN** `snyk test --all-sub-projects --policy-path=.snyk` runs against the build
+- **THEN** none of `showcase-projection-model`, `showcase-projection-service`, `showcase-query-client`, and
+  `showcase-query-service` report a vulnerable path for Jackson 3 or `httpclient5`, no sub-project reports one for
+  Jackson 2, `zstd-jni`, or `io.netty`, and the only suppressed findings are those pinned in `.snyk` with a stated
+  reason and expiry
+
+### Requirement: Local dependency security scan task
+
+The build SHALL provide a `dependencySecurityCheck` Gradle task that runs the Snyk dependency scan
+(`snyk test --all-sub-projects --policy-path=.snyk`) across all sub-projects and reports the result to the developer.
+The `--policy-path=.snyk` flag SHALL point the scan at the repository's `.snyk` policy so its suppressed findings take
+effect. The task SHALL NOT be part of the `check` lifecycle.
+
+#### Scenario: Developer runs the dependency security scan
+
+- **WHEN** a developer runs `./gradlew dependencySecurityCheck` with the Snyk CLI installed
+- **THEN** the task invokes `snyk test --all-sub-projects --policy-path=.snyk` against the build and reports the scan
+  result, failing when vulnerable paths are found
+
+#### Scenario: Normal build does not run the dependency scan
+
+- **WHEN** a developer runs `./gradlew check` or any build task other than `dependencySecurityCheck`
+- **THEN** the dependency scan does not run
+
+#### Scenario: Snyk CLI is not installed
+
+- **WHEN** a developer runs `./gradlew dependencySecurityCheck` without the Snyk CLI on `PATH`
+- **THEN** the task fails with a clear message that the Snyk CLI is required

@@ -2074,6 +2074,14 @@ capture-stash-stale-copy
   custom `NANOS_DATE_PATTERN` (`yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]`) with `format = {}`; do not "simplify" it back to
   the built-in enum until the fix (PR #3337, 6.2.0-M2) reaches us through `spring-data-opensearch`; the truncation is
   invisible on macOS (microsecond clocks) and surfaces only on nanosecond clocks (Linux CI).
+- **A task whose verdict derives from wall-clock time or external state must not declare an output Gradle can re-use — a
+  cached UP-TO-DATE run serves a stale verdict.** `npmAudit` first declared `outputs.file(...)`, so a re-run was
+  UP-TO-DATE and its `doLast` verdict — including the `LocalDate.now()` suppression-expiry check — was never re-derived:
+  a cached pass could outlive a suppression's expiry. Drop the `outputs.file` declaration (matching the sibling
+  `npmOutdated` task) so the verdict re-runs every invocation; declare `inputs` (the suppression file) without declaring
+  an output the task does not produce as an artifact. Any verdict task whose result changes without its inputs changing
+  — a date check, a live registry query, a remote state read — takes the same treatment. captured:
+  suppress-braces-npm-advisory
 - **Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
   `implementation`-only dependencies** — each suite re-declares what it needs (client component suites duplicate
   axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be
@@ -2484,9 +2492,13 @@ capture-stash-stale-copy
   arm64 build-extraction failure on `paketo-buildpacks/nginx#1340`, whose body documents only the runtime symptom (an
   AArch64 `nginx` in an amd64 image) and states that the `io.buildpacks.buildpackage.metadata` label is present on both
   slices; the draft also contradicted the host-state gotcha's account of that same signature, and review caught both.
-  When a passage already explains a signature, reconcile with it rather than writing a second explanation beside it.
-  This is the write-time check for the reference you are touching; the periodic corpus sweep is parked in
-  `docs/ideas.md`.
+  When a passage already explains a signature, reconcile with it rather than writing a second explanation beside it. A
+  planned task that _posts_ to an external tracker depends on that venue's mutable state — a security-advisory thread is
+  often **locked** (comments disabled): the `suppress-braces-npm-advisory` task "comment on `micromatch/braces#70`" was
+  unachievable because #70 is locked, and the actionable reference was the open fix PR `micromatch/braces#72`. Check a
+  thread is writable before writing the posting task, and when the issue itself is closed or locked, cite the fix PR the
+  close-out actually keys on. This is the write-time check for the reference you are touching; the periodic corpus sweep
+  is parked in `docs/ideas.md`. captured: suppress-braces-npm-advisory
 - **Work a change surfaces is parked durably — a PR body is not a record.** When a docs change records an external state
   change that implies work, park that work in `docs/ideas.md` (or record it as a task) in the same change: a PR body is
   squashed and no tool reads it, so work named only there is lost.

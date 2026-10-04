@@ -19,7 +19,9 @@ therefore leaves the check permanently red, which is the condition ADR-0014 alre
 - Update ADR-0014 — its Consequences (it named this mechanism as a follow-on) and its Decision, whose `npmAudit`
   invocation (`npm audit --audit-level=high`) and "`npm audit` without `--audit-level` … rejected" clause the reworked
   task supersedes — and the `dependency-security` spec.
-- Report the upstream gap: `micromatch/braces` has no release fixing CVE-2026-93687.
+- Record the upstream state: `micromatch/braces` has no released fix for CVE-2026-93687, and the fix is the open PR
+  `micromatch/braces#72` (the advisory thread `#70` is locked), so the ADR names the close-out condition — the
+  suppression retires when that PR merges and a release carries it.
 
 ## Capabilities
 

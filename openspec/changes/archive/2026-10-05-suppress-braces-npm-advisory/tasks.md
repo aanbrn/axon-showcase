@@ -62,8 +62,9 @@
       empty ignore file the task failed, listing `@boundaries/elements`, `braces`, `eslint-plugin-boundaries`,
       `micromatch`; (b) with a non-matching id it failed naming the entry; both restored; `NpmAuditRulesTests` covers
       the rules-level unsuppressed case._
-- [ ] 4.3 Dispatch `gh workflow run dependency-security.yml` against the change branch and confirm the `web-ui-audit`
-      job passes with the suppression in place.
+- [x] 4.3 Dispatch `gh workflow run dependency-security.yml` against the change branch and confirm the `web-ui-audit`
+      job passes with the suppression in place. _Done: dispatched run `37245070473` from the branch — `web-ui-audit`
+      success (and `snyk` success)._
 
 ## 5. Capture and delivery
 
@@ -73,6 +74,8 @@
       stale-expiry bug) and a folded clause in the upstream-reference bullet (verify a posting venue is writable; a
       locked advisory thread). Applied net `AGENTS.md` delta: **+12 lines** (15 insertions, 3 deletions); markers valid,
       Spotless green._
-- [ ] 5.2 Push the branch, open the PR with the change dir, confirm `build` is green, then archive the change
+- [x] 5.2 Push the branch, open the PR with the change dir, confirm `build` is green, then archive the change
       (`openspec archive suppress-braces-npm-advisory`) as an additional commit in the same PR — staging **both**
-      `openspec/changes` and `openspec/specs` — and merge once the owner approves.
+      `openspec/changes` and `openspec/specs` — and merge once the owner approves. _Done:
+      [PR #499](https://github.com/aanbrn/axon-showcase/pull/499); `build` green (8m38s); archive committed on the
+      branch; merged at the owner's direction._

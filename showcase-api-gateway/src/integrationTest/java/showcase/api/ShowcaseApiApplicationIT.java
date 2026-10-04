@@ -88,6 +88,25 @@ class ShowcaseApiApplicationIT {
     }
 
     @Test
+    @DisplayName("The served OpenAPI document reports the project version")
+    void openApiDocument_reportsProjectVersion() {
+        val expectedVersion = System.getProperty("project.version");
+        assertThat(expectedVersion).isNotNull();
+
+        val client =
+                WebTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
+
+        client.get()
+                .uri("/v3/api-docs")
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.info.version")
+                .isEqualTo(expectedVersion);
+    }
+
+    @Test
     @DisplayName("A preflight from the standalone UI origin is granted the headers the UI sends")
     void corsPreflight_fromUiOrigin_isGrantedUiHeaders() {
         val client =

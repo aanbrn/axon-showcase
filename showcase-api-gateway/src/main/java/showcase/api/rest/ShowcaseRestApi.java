@@ -35,8 +35,7 @@ import showcase.query.ShowcaseStatus;
  * times out, a {@code 202} is returned with the idempotency key in the response header so the client can retry
  * safely. Queries are served from read-side projections backed by OpenSearch.
  */
-@OpenAPIDefinition(
-        info = @Info(title = "Showcase REST API", version = "0.1.0", description = "The REST API to manage showcases."))
+@OpenAPIDefinition(info = @Info(title = "Showcase REST API", description = "The REST API to manage showcases."))
 @Tag(name = "Showcase Operations")
 @SuppressWarnings("unused")
 interface ShowcaseRestApi {

@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The version to release, without the leading v (e.g. 0.1.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Require the default branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "Release must be dispatched from main, not '${{ github.ref }}'." >&2
+            exit 1
+          fi
+
+      - name: Validate the requested version
+        shell: bash
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+
+          declared="$(sed -n 's/^version=//p' gradle.properties)"
+          if ! printf '%s' "$declared" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$'; then
+            echo "gradle.properties must declare a development version of the form X.Y.Z-SNAPSHOT, got '$declared'." >&2
+            exit 1
+          fi
+
+          expected="${declared%-SNAPSHOT}"
+
+          if ! printf '%s' "$REQUESTED_VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Requested version '$REQUESTED_VERSION' is not of the form X.Y.Z." >&2
+            exit 1
+          fi
+
+          if [ "$REQUESTED_VERSION" != "$expected" ]; then
+            echo "Requested version '$REQUESTED_VERSION' does not match the declared version '$expected'." >&2
+            exit 1
+          fi
+
+      - name: Require the tag not to exist
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --tags --exit-code origin "refs/tags/v${RELEASE_VERSION}"; then
+            echo "Tag v${RELEASE_VERSION} already exists." >&2
+            exit 1
+          fi
+
+      - name: Create the tag and the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          gh release create "v${RELEASE_VERSION}" \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --generate-notes

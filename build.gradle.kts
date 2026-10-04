@@ -67,7 +67,6 @@ spotless {
 
 allprojects {
     group = "com.github.aanbrn"
-    version = "0.1.0-SNAPSHOT"
 
     configurations.configureEach {
         resolutionStrategy {

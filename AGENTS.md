@@ -731,10 +731,12 @@ dispatch, not by waiting for its schedule: GitHub only exposes `workflow_dispatc
 branch, so an added workflow is dispatched from `main` (`gh workflow run <file>`), while an edit to one already on the
 default branch runs from the change's own pushed branch (`gh workflow run <file> --ref <branch>`) (no CI job exercises
 it, and `workflowLint` checks only the YAML) to exercise the workflow end to end — for an update check that is its
-report path, jq filter and tracker-issue lookup. A **schedule-only** edit is the exception: a dispatch runs the workflow
-body, not the scheduler, so the new `cron`'s first fire is its verification — never tick a schedule change off on a
-dispatch. Schedule each workflow's runtime into the repo owner's night (UTC+7), so its result is waiting at the start of
-their day; the metered pass's placement is the model-pin bullet's off-peak call. captured: bump-snyk-cli-pin captured:
+report path, jq filter and tracker-issue lookup. The `release` workflow is the one added workflow whose _only_ trigger
+is `workflow_dispatch`, so its happy path runs after merge; its failure paths are exercised first with dispatches that
+create nothing. A **schedule-only** edit is the exception: a dispatch runs the workflow body, not the scheduler, so the
+new `cron`'s first fire is its verification — never tick a schedule change off on a dispatch. Schedule each workflow's
+runtime into the repo owner's night (UTC+7), so its result is waiting at the start of their day; the metered pass's
+placement is the model-pin bullet's off-peak call. captured: bump-snyk-cli-pin captured:
 schedule-jobs-into-the-owners-night
 
 A verification the local environment cannot run cannot live as a task in the change dir: `openspec/changes/archive/` is
@@ -759,6 +761,16 @@ schedule and via `workflow_dispatch`, through the OpenCode GitHub action's sched
 `contents: write` + `pull-requests: write`), and opens a pull request with their findings, mentioning the repository
 owner so the report is not left unread — or commits nothing when they report nothing. It is observational — never a
 merge gate.
+
+`.github/workflows/release.yml` cuts a release on `workflow_dispatch` (the only trigger — not a schedule, not a merge
+gate): it requires the `main` ref, a dispatched version matching `gradle.properties`'s declaration without its
+`-SNAPSHOT` suffix, and a tag that does not already exist, then creates the tag `v<version>` at the head of `main` and a
+GitHub Release with `--generate-notes`. The version declaration lives in `gradle.properties` (added by this workflow's
+change; the root `build.gradle.kts` no longer sets `version`), and the gateway's OpenAPI `info.version` reads the build
+info. A release is followed by a bump of `gradle.properties` to the next development version (a normal pull request);
+the ADR-0016 `Revisit when:` records that automating that bump is deferred. GitHub exposes `workflow_dispatch` a
+workflow only once it is on the default branch, so a newly added release workflow's first run is a dispatch from `main`
+after its PR merges.
 
 **What each covers:**
 
@@ -1693,6 +1705,14 @@ capture-stash-stale-copy
   (`curl -H "Host: axon-showcase-grafana" http://<address>/api/health`) and hand the write to the owner; record which
   half ran rather than ticking a task on the script's assumed completion. captured: propagate-ui-trace-context (#362)
   captured: expose-grafana-by-hostname
+- **An exit-code probe's status is inverted from the question it answers — run it inside an `if`, never bare under a
+  step shell's `set -e`.** `git ls-remote --tags --exit-code origin "refs/tags/v<version>"` exits `0` when the ref
+  **exists** and `2` when it does not, so a bare invocation under `set -euo pipefail` aborts the step on a **free** tag
+  and continues on an **existing** one — the guard that should reject a taken tag passes it and rejects the good case.
+  The release workflow writes `if git ls-remote --tags --exit-code … ; then echo exists; exit 1; fi`, which suppresses
+  `set -e` for the probe and inverts the status to the intent. Before gating a workflow step on a command's exit status,
+  probe that command's actual codes on both the hit and the miss (a taken ref and a free one) and place it in an `if`; a
+  bare status-checking command in a `set -e` step is the inversion bug. captured: publish-github-releases
 - **Checking CI status**: don't poll a PR build with an idle `sleep` loop — use `gh run watch <run-id> --exit-status`
   (or `gh pr checks <pr> --watch`), which blocks until the check finishes and exits non-zero on failure. When the run id
   isn't known, fetch it once via the GitHub MCP `pull_request_read` / `get_check_runs` (or `gh run list`), then
@@ -2365,26 +2385,33 @@ capture-stash-stale-copy
   design or a comment, run X on the minimal input that does and on one that does not, and quote the discriminating
   condition rather than the message. captured: validate-the-workflows-on-ubuntu-2604 Treat a doc's account of a feature
   as a floor, not a boundary, and verify a tool-behavior claim against the source/CLI before writing it into a durable
-  artifact. Confirm too that the file you read is the code path that runs: a package can hold a mock or test harness
-  whose name matches the entry point (`github/index.ts` is a local dev/test entry; the shipped handler is
-  `github.handler.ts`), and a matching filename or path is not evidence you read the implementation. The same applies to
-  a `uses:` step's side effects: a design asserted "the only step that touches Docker is `setup-gradle`'s cache service"
-  without reading the action, whose own README never mentions Docker — and the counter-claim that it _does_ use Docker,
-  reviewed and rejected, was equally unverified. Read the action's README/docs before writing what a step touches, and
-  settle both directions of a contested claim there. captured: pin-the-smoke-docker-to-overlay2 The same probe-first
-  rule covers a compiler or build-tool semantics claim: a design drafted the premise that a precompiled `.gradle.kts`
-  cannot see an `internal` declaration, and a scratch `kotlin-dsl` build disproved it — the `internal object` compiles
-  from the script, and only `private` fails — so the shared helper stayed `internal` rather than being widened to
-  `public`. Verify a visibility or build-semantics claim with a minimal scratch build before it constrains a design. A
-  `build-logic` object is also unreachable from a root script's _configuration_ path for a second reason:
-  `settings.gradle.kts` `includeBuild`s it, so its classes are not on the root script's buildscript classpath — a probe
-  saw `ClassNotFoundException: HelmUpdateRules` even from an init script, while the same object is in scope inside a
-  task _action_. Keep the rule in the `build-logic` task that applies it — pass the input file as an `@InputFile`
-  property, `@Optional` when it may be absent — and let the root script only point the task at it, rather than loading
-  it inline from `build.gradle.kts`. captured: rework-the-helm-suppression-list The web UI's npm checks asserted npm's
-  contract and took repeated review rounds to correct: `npm outdated` exits `1` both when updates exist and on error
-  (the report's content, not the exit code alone, is the discriminator), npm warns to stderr on clean runs (so stderr is
-  not the error signal), and `npm audit`'s default `--audit-level` resolves to `low`, not "moderate". `npm update`
+  artifact — the same holds for a framework or library doc, whose snippet can be written for another version and can
+  name a mechanism that does not apply to the pinned one: Spring Boot's `buildInfo()` doc offered `time.set(null)`, a
+  no-op on the pinned 3.5.16 (which needs `excludes`), and `build-info.properties` is exposed as a `BuildProperties`
+  **bean**, not a Spring `Environment` property source, so a `@Info(version = "${build.version}")` placeholder would not
+  resolve and would serve the literal — re-derived from the pinned jar (`ProjectInfoAutoConfiguration.buildProperties`
+  is a plain `@Bean`) and from an empty run, not from the reference. Check the mechanism against the pinned version's
+  own classes before designing around the doc's form. captured: publish-github-releases Confirm too that the file you
+  read is the code path that runs: a package can hold a mock or test harness whose name matches the entry point
+  (`github/index.ts` is a local dev/test entry; the shipped handler is `github.handler.ts`), and a matching filename or
+  path is not evidence you read the implementation. The same applies to a `uses:` step's side effects: a design asserted
+  "the only step that touches Docker is `setup-gradle`'s cache service" without reading the action, whose own README
+  never mentions Docker — and the counter-claim that it _does_ use Docker, reviewed and rejected, was equally
+  unverified. Read the action's README/docs before writing what a step touches, and settle both directions of a
+  contested claim there. captured: pin-the-smoke-docker-to-overlay2 The same probe-first rule covers a compiler or
+  build-tool semantics claim: a design drafted the premise that a precompiled `.gradle.kts` cannot see an `internal`
+  declaration, and a scratch `kotlin-dsl` build disproved it — the `internal object` compiles from the script, and only
+  `private` fails — so the shared helper stayed `internal` rather than being widened to `public`. Verify a visibility or
+  build-semantics claim with a minimal scratch build before it constrains a design. A `build-logic` object is also
+  unreachable from a root script's _configuration_ path for a second reason: `settings.gradle.kts` `includeBuild`s it,
+  so its classes are not on the root script's buildscript classpath — a probe saw
+  `ClassNotFoundException: HelmUpdateRules` even from an init script, while the same object is in scope inside a task
+  _action_. Keep the rule in the `build-logic` task that applies it — pass the input file as an `@InputFile` property,
+  `@Optional` when it may be absent — and let the root script only point the task at it, rather than loading it inline
+  from `build.gradle.kts`. captured: rework-the-helm-suppression-list The web UI's npm checks asserted npm's contract
+  and took repeated review rounds to correct: `npm outdated` exits `1` both when updates exist and on error (the
+  report's content, not the exit code alone, is the discriminator), npm warns to stderr on clean runs (so stderr is not
+  the error signal), and `npm audit`'s default `--audit-level` resolves to `low`, not "moderate". `npm update`
   reconciles the whole dependency graph rather than the packages you asked for: an in-range direct bump moved its eslint
   cache stack (`file-entry-cache`, `flat-cache`, `keyv`) across majors, and npm 11 filled `license` fields throughout
   the lockfile — so describe the lockfile diff by what moved (not as "patches/minors") and run the frontend `check`.

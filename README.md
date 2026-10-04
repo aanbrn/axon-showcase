@@ -768,6 +768,13 @@ schedule and via `workflow_dispatch`, opening or updating the "Upstream referenc
 reference the durable artifacts cite, its state (open / closed / unresolved), and where it is cited — so a closure is
 surfaced as a trigger to check rather than declared actionable — observational, never a merge gate.
 
+`.github/workflows/release.yml` cuts a release: dispatch it from `main` with a version (e.g. `0.1.0`), and it creates
+the tag `v<version>` at the head of `main` and publishes a GitHub Release whose notes GitHub generates from the pull
+requests merged since the previous release. It refuses a version that does not match the declaration in
+`gradle.properties` (without its `-SNAPSHOT` suffix) and refuses a tag that already exists. Afterward, bump
+`gradle.properties` to the next development version in a follow-up pull request, so the next release has a base. It is
+not a merge gate.
+
 ### Dependency Updates and Security
 
 ```bash

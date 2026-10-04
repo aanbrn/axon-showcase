@@ -156,11 +156,6 @@ dated when it was added (start a new section for a new day rather than appending
   missing _enforce_ layer now exists (ADR-0010), and the highest-value candidate it named — web-UI trace propagation —
   has since shipped.
 
-- Publish a first GitHub release and keep tagging — parked; no change yet. The repo has 250+ merged PRs, 150+ archived
-  changes, and versioned service images, but zero releases and zero git tags, so there is no "what shipped, when"
-  surface for a visitor. Decide the version (the images already carry `${project.version}`), what a release notes, and
-  whether it is cut per change, per milestone, or on a cadence.
-
 - GitHub Discussions are disabled — parked; no change yet. Enabling them would give the project a second support surface
   beside issues, but it needs moderation, so it is a decision rather than a toggle.
 - Nothing is published to a container registry — parked; no change yet. The image tasks (`bootBuildImage` for the four

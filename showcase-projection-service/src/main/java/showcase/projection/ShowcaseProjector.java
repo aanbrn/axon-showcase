@@ -40,6 +40,7 @@ import org.axonframework.monitoring.NoOpMessageMonitorCallback;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
+import org.opensearch.client.opensearch._types.Refresh;
 import org.opensearch.client.opensearch._types.Result;
 import org.opensearch.client.opensearch.core.BulkRequest;
 import org.opensearch.client.opensearch.core.BulkResponse;
@@ -409,7 +410,7 @@ class ShowcaseProjector implements SmartLifecycle {
                                 .map(Tuple2::getT1)
                                 .map(this::eventToBulkOperation)
                                 .collectList()
-                                .map(operations -> BulkRequest.of(request -> request.operations(operations)))
+                                .map(ShowcaseProjector::bulkRequest)
                                 .flatMap(this::execute)
                                 .map(BulkResponse::items)
                                 .flatMapIterable(Function.identity()))
@@ -439,6 +440,17 @@ class ShowcaseProjector implements SmartLifecycle {
                     }
                 }))
                 .then();
+    }
+
+    /**
+     * Builds the bulk request for the given operations, forcing an immediate refresh so a projected write is
+     * searchable when the request completes.
+     *
+     * @param operations the bulk operations to apply
+     * @return the bulk request, refreshing on completion
+     */
+    static BulkRequest bulkRequest(List<BulkOperation> operations) {
+        return BulkRequest.of(request -> request.operations(operations).refresh(Refresh.True));
     }
 
     /**

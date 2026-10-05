@@ -2041,6 +2041,16 @@ capture-stash-stale-copy
   never fires. captured: rework-load-tests captured: close-load-test-knee-loop captured: tighten-load-test-streams
   captured: web-ui-coverage-gate
 
+- **To attribute a runtime-cost effect to your change, measure a before/after pair on the same environment — a single
+  run against the committed reference conflates every merge since that reference — and read the timer of the operation
+  under test, not an upstream queue metric.** The `refresh-projection-writes` measurement toggled `Refresh.True` /
+  `Refresh.False` on the projector's bulk, rebuilt and redeployed, and ran `./scripts/load-test-baseline.sh` once each:
+  the read/write and `showcaseProjector.projectionLag` figures were flat while the projector's bulk-write latency rose
+  4× (`showcaseProjector_successTimer_seconds`, mean 4.4 → 18.4 ms). `projectionLag` is recorded at Kafka ingest, before
+  the write, so it cannot show write cost; query the message timer as a histogram (`histogram_quantile` over `_bucket`,
+  since the monitor publishes a percentile histogram and there is no `quantile` label). captured:
+  refresh-projection-writes
+
 - **Do not write a Gatling stream's loop or retry condition as an EL string — use the typed session predicate; an EL
   condition can crash on the substituted value and KO the whole stream.** The write stream's
   `doWhileDuring("#{queryStatus} != 200", …)` crashed under a sustained run —

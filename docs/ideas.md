@@ -33,6 +33,14 @@ dated when it was added (start a new section for a new day rather than appending
   archive-internal and must not be run standalone. Parked as one occurrence, routed to the archive-only rule's wording
   when next touched.
 
+- Make the audit workflow's report filename collision-safe — parked; no change yet. The prompt names the report for
+  "today's date", so two runs on the same UTC day write the same `docs/audits/<date>.md` and the second silently
+  overwrites the first: the 2026-10-04 scheduled run reused the dispatch run's report filename (`#494`), which the
+  archived `sync-audit-spec-findings-2026-10-04` change and the scheduled report's own "prior finding" reference cite,
+  so the scheduled run's report had to be renamed to `docs/audits/2026-10-04-scheduled.md` (`#500`) to preserve both.
+  Routes to `.github/workflows/audit.yml`'s prompt (name a same-day second run distinctly, e.g. by including the run's
+  trigger) and the `merge-governance` spec requirement that owns that workflow's report behavior.
+
 ## 2026-10-04
 
 - Identify a running service's build at runtime — parked; no change yet. The gateway carries Spring Boot build info

@@ -1,6 +1,7 @@
 import com.github.gradle.node.npm.task.NpmTask
 import gradle.kotlin.dsl.accessors._31ffc96443a0302ceb6c1c60c45624ec.node
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.Properties
 import org.gradle.accessors.dm.LibrariesForLibs
 
@@ -167,9 +168,36 @@ val npmOutdated =
 val npmAudit =
     tasks.register<NpmTask>("npmAudit") {
         group = "verification"
-        description = "Audits the web UI's npm dependencies, failing on high-severity vulnerabilities."
+        description =
+            "Audits the web UI's npm dependencies, failing on high-severity vulnerabilities " +
+                "(advisories listed in npm-audit-ignores.json with an unexpired date are suppressed)."
         dependsOn(npmCi)
-        args.set(listOf("audit", "--audit-level=high"))
+        args.set(listOf("run", "audit:report"))
+        inputs.file("npm-audit-ignores.json")
+
+        doLast {
+            val report = layout.buildDirectory.file("npm-audit-raw.json").get().asFile
+            val suppressions = file("npm-audit-ignores.json")
+            val result =
+                NpmAuditRules.evaluate(
+                    report.takeIf { it.exists() }?.readText().orEmpty(),
+                    suppressions.takeIf { it.exists() }?.readText().orEmpty(),
+                    LocalDate.now(),
+                )
+            result.applied.forEach {
+                logger.lifecycle("Suppressed ${it.id} until ${it.expires}: ${it.reason}")
+            }
+            if (!result.isClean()) {
+                val reasons = buildList {
+                    addAll(result.violations)
+                    if (result.unsuppressed.isNotEmpty()) {
+                        add("unsuppressed high-severity findings: ${result.unsuppressed.joinToString(", ")}")
+                    }
+                }
+                throw GradleException("Web UI npm audit failed:\n" + reasons.joinToString("\n") { "  - $it" })
+            }
+            logger.lifecycle("\nWeb UI npm audit is clean (${result.applied.size} suppression(s) applied).")
+        }
     }
 
 val npmDev =

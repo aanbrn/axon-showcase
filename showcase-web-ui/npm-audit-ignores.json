@@ -1,0 +1,9 @@
+{
+  "suppressions": [
+    {
+      "id": "GHSA-vfj7-8cjw-p6xm",
+      "reason": "braces <= 3.0.3 stack-exhaustion DoS (CVE-2026-93687); no patched version upstream. Reached only as a dev-only transitive of eslint-plugin-boundaries -> @boundaries/elements -> micromatch, never in the built bundle.",
+      "expires": "2026-11-16"
+    }
+  ]
+}

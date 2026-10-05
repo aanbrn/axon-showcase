@@ -697,8 +697,8 @@ nine `ubuntu-latest` clauses plus a bump process nothing tracks, so the label is
 the requested label, and `/etc/os-release`'s name and version — so a failure during the rollout window is attributable
 to the image rather than to the change under test. **That check has already earned its keep:** the 26.04 dispatch failed
 at `:showcase-web-ui:dockerBuildImage` (the `pack`-built Paketo image), reproducibly, while the four JVM images built —
-attributed to the Docker 28 → 29 difference, and addressed by the smoke's own `overlay2` step (see the buildpack note),
-which a re-dispatch on `ubuntu-26.04` is what confirms.
+attributed to the Docker 28 → 29 difference (the store alone is not the trigger — see the buildpack note), and addressed
+by the smoke's own `overlay2` step, which a re-dispatch on `ubuntu-26.04` is what confirms.
 
 `.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
 service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
@@ -1350,15 +1350,15 @@ ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64
 
 The web UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
 `PackBuildImageTask`) that runs the `pack` CLI with the **version-pinned** Paketo NGINX + Procfile buildpacks
-(`paketo-buildpacks/nginx@1.2.2`, `paketo-buildpacks/procfile@5.15.1`; the versions are catalog-owned as `paketo-nginx`
+(`paketo-buildpacks/nginx@1.3.0`, `paketo-buildpacks/procfile@5.15.2`; the versions are catalog-owned as `paketo-nginx`
 and `paketo-procfile`) over `build/dist` (the `pack` CLI is a build prerequisite like Helm/Snyk). The pins are explicit
 because an unversioned buildpack reference becomes ambiguous — `pack` fails with "multiple versions … must specify an
 explicit version" — once the builder bundles two versions of a buildpack (the intermittent `e2e`/`helmInstallToLocal`
-failure). The builder itself is also pinned (`builder-jammy-base:0.4.649`, catalog-owned as `paketo-builder-jammy-base`)
+failure). The builder itself is also pinned (`builder-jammy-base:0.4.653`, catalog-owned as `paketo-builder-jammy-base`)
 rather than floating, and the `buildpackUpdates` task / `buildpack-updates` workflow reports newer builder and buildpack
 versions — no other update check covers Paketo. **The builder and the buildpacks it bundles must be bumped together:** a
-`paketo-nginx` pin that is _absent_ from the builder (e.g. `1.2.0` against a builder bundling `1.2.1`) makes `pack` add
-it from the registry and resolve the added buildpackage to an **arm64** slice even though the builder is published
+`paketo-nginx` pin that is _absent_ from the builder (e.g. holding a buildpack one line behind the builder) makes `pack`
+add it from the registry and resolve the added buildpackage to an **arm64** slice even though the builder is published
 `linux/amd64` only — the mismatched pair fails with `exec: nginx: not found` where the matched pair serves a proper
 x86-64 nginx; the full mechanics and the `address-2026-09-21-update-checks` A/B are in the buildpack-pin gotcha below.
 An earlier record held `paketo-nginx` back at `1.2.0` because `1.2.1` "does not work" —
@@ -1374,20 +1374,22 @@ on by default when observability metrics export and the web UI ServiceMonitor ar
 Prometheus `/metrics` on port `9113`, which the Service's `http-metrics` port and the ServiceMonitor scrape — the chain
 is specified in the `deployment/web-ui` spec. A `PackBuildImageTask` convention defaults the image name to
 `${project.name}:${project.version}`, which the web UI module overrides with the deployable
-`aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. **A Docker 29 daemon needs the
-`overlay2` storage driver for this build:** on Docker 29's containerd/`overlayfs` store, `pack`'s `imgutil` local store
-cannot read the layers `docker image save` produces, and the build fails with
-`failed to fetch base layers: open /tmp/imgutil.local.image.*: no such file or directory` — the deployment smoke sets
-`overlay2` for this reason, and that step is retired when `buildpacks/pack#2527` (the owning venue;
-`spring-projects/spring-boot#49251` is the downstream thread) fixes the store. `SHOWCASE_API_BASE_URL` — **no baked
-default** (compose sets `http://localhost:8080`; the chart's `webUi.apiBaseUrl` defaults to empty) — has no ConfigMap or
-volume mount. The runtime contract (the `start.sh` render into `/workspace/config.js` and the fail-fast on an unset
-value) is specified in the `deployment/web-ui` spec. The `dockerBuildImage` run prints two informational warnings from
-the toolchain, not defects: "Exporting to docker daemon (building without --publish) and daemon uses containerd storage"
-(pack exports to the local daemon's containerd store, losing the fast publish path) and "deprecated usage of stack" (an
-upstream Paketo buildpack still declares the deprecated `stacks` key instead of `targets`). Neither is actionable in the
-build — ignore them. (The first warning names the store that _breaks_ the build when the daemon is Docker 29 — see the
-constraint above — so it is a signal about the daemon, not a defect to chase in the repo.)
+`aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. **A Docker 29 daemon's store is
+not by itself the trigger for this build's failure — do not read the driver as the cause:** the failure
+(`failed to fetch base layers: open /tmp/imgutil.local.image.*: no such file or directory`) reproduced on the GitHub
+runner's Docker 29.4.2 (`ubuntu-26.04`) while **the same build succeeds on Docker 29.5.2 with the containerd `overlayfs`
+snapshotter locally** (`io.containerd.snapshotter.v1`), so the driver alone does not explain it and the runner's Docker
+setup is part of the trigger. The `daemon.json` `{"storage-driver":"overlay2"}` step is a documented workaround the
+runner needs — the deployment smoke sets it for that reason, and that step is retired when `buildpacks/pack#2527` (the
+owning venue; `spring-projects/spring-boot#49251` is the downstream thread) fixes the store. `SHOWCASE_API_BASE_URL` —
+**no baked default** (compose sets `http://localhost:8080`; the chart's `webUi.apiBaseUrl` defaults to empty) — has no
+ConfigMap or volume mount. The runtime contract (the `start.sh` render into `/workspace/config.js` and the fail-fast on
+an unset value) is specified in the `deployment/web-ui` spec. The `dockerBuildImage` run prints two informational
+warnings from the toolchain, not defects: "Exporting to docker daemon (building without --publish) and daemon uses
+containerd storage" (pack exports to the local daemon's containerd store, losing the fast publish path) and "deprecated
+usage of stack" (an upstream Paketo buildpack still declares the deprecated `stacks` key instead of `targets`). Neither
+is actionable in the build — ignore them. (The first warning names the store the runner's Docker 29 reports, the context
+the constraint above is scoped to — so it is a signal about the daemon, not a defect to chase in the repo.)
 
 Similarly, a CNB-built image's timestamps are not host state: Cloud Native Buildpacks stamp buildpack layers with a
 fixed past date — they list as `Jan 1 1980` — so builds are reproducible and layer caching stays stable, and this build
@@ -1789,7 +1791,11 @@ capture-stash-stale-copy
   wrong-architecture binary comes from the resolved **buildpackage slice**, so a label reading `1.2.0` does not clear a
   `1.2.0` pin — the `address-2026-09-21-update-checks` A/B found the pin build cleanly and exit 127 when `pack` added it
   from the registry as an arm64 slice (`sha256:0d6fedc4…`), because the builder bundled a _different_ nginx version,
-  while the matched pair (pin = the builder's bundled version) ran.
+  while the matched pair (pin = the builder's bundled version) ran. **Establish that pair before choosing the pin, not
+  after:** on a builder or buildpack bump, inspect the new builder's bundled versions
+  (`pack builder inspect paketobuildpacks/builder-jammy-base:<version>`) and pick the buildpack pins from what it lists
+  — a builder that no longer bundles the pinned version makes `pack` add it from the registry as an arm64 slice (the
+  mismatch above). captured: bump-buildpacks-2026-10-05
 - IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java, ktfmt
   for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**, **Auto
   Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins (JVM) or
@@ -2551,7 +2557,7 @@ capture-stash-stale-copy
   The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are
   `paketobuildpacks/nginx` (no hyphen); querying the tags API with the CNB id 404s, so `BuildpackUpdatesTask`'s check
   model carries `repository` separately from the display `name`. When adding a buildpack to the check, use its Docker
-  Hub repository. The same repositories also publish alias tags (`1.2`, `5.15`) alongside the full semver (`1.2.2`),
+  Hub repository. The same repositories also publish alias tags (`1.3`, `5.15`) alongside the full semver (`1.3.0`),
   which is why the buildpack check has two version operations rather than one: `Versions.isNewer` — the shared
   comparator all three update checks use — compares numerically with zero padding, so the two spellings of one release
   are equal and neither reports the other as an update, while `Versions.highest`, which only this check needs, keeps a

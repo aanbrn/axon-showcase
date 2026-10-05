@@ -62,11 +62,13 @@ jobs:
         with:
           pack-version: 0.40.9
 
-      # The `pack`-built web UI image fails on a Docker 29 daemon (which `ubuntu-26.04` ships): its `imgutil` local
-      # store cannot read the layers `docker image save` produces on the new containerd/overlayfs store. Switching the
-      # daemon back to the overlay2 driver is the documented workaround (buildpacks/pack#2527, where the error is
-      # emitted; spring-projects/spring-boot#49251 is the downstream thread). The wait is bounded because the next
-      # Docker consumer is the kind cluster below. Remove this step when pack/imgutil fix the store, per that issue.
+      # The `pack`-built web UI image fails on the runner's Docker 29 setup (`ubuntu-26.04` ships 29.4.2): its `imgutil`
+      # local store cannot read the layers `docker image save` produces on the new containerd/overlayfs store. The
+      # daemon store alone is not the trigger — the same build succeeds on Docker 29.5.2 + overlayfs locally (the Docker
+      # Images note in AGENTS.md records this) — so switching the daemon back to the overlay2 driver is the documented
+      # workaround (buildpacks/pack#2527, where the error is emitted; spring-projects/spring-boot#49251 is the
+      # downstream thread). The wait is bounded because the next Docker consumer is the kind cluster below. Remove this
+      # step when pack/imgutil fix the store, per that issue.
       - name: Switch Docker to the overlay2 storage driver
         run: |
           echo '{"storage-driver":"overlay2"}' | sudo tee /etc/docker/daemon.json

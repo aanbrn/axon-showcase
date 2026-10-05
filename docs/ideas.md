@@ -41,6 +41,22 @@ dated when it was added (start a new section for a new day rather than appending
   Routes to `.github/workflows/audit.yml`'s prompt (name a same-day second run distinctly, e.g. by including the run's
   trigger) and the `merge-governance` spec requirement that owns that workflow's report behavior.
 
+- Trim the AGENTS.md rules the 2026-10-04 audits found restated — parked; no change yet. The scheduled agents-audit
+  (`docs/audits/2026-10-04-scheduled.md`) names three reduction candidates: the pre-commit guard's five-check
+  enumeration stated in both the Prerequisites list and the `git add <dir>` gotcha; the 120-character check recipe and
+  its `awk`-counts-bytes caveat restated in the Formatting convention, the verdict-echo gotcha, and
+  `.opencode/agent/review-quick.md`; and the captured-marker placement rule restated in the `retro-mark-captured-rules`
+  gotcha though `verifyCapturedMarkers` and the pre-commit guard enforce it. The dispatch agents-audit
+  (`docs/audits/2026-10-04.md`) also flagged the capture bullet restating the promotion gate — never applied and not
+  re-reported by the scheduled run — so it belongs with these. All are `/audit-agents` merge/route candidates, applied
+  through that audit's workflow when next run.
+
+- Record the LZ4 relocation's rationale — parked; no change yet. `build.gradle.kts` forces `org.lz4:lz4-java` to
+  `at.yawk.lz4:lz4-java`, but its `.because("Force relocation of LZ4 implementation")` restates what the substitution
+  does, not why the build redirects to a third-party rehost (yawkat's `at.yawk.lz4` republish of `org.lz4` — a
+  supply-chain-relevant swap). Both 2026-10-04 architecture audits report the rationale as unrecorded — `AGENTS.md`
+  records only the mechanism — and it is parked nowhere. Routes to `AGENTS.md` or an ADR.
+
 ## 2026-10-04
 
 - Identify a running service's build at runtime — parked; no change yet. The gateway carries Spring Boot build info

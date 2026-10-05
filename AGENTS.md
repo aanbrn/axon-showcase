@@ -2436,9 +2436,13 @@ capture-stash-stale-copy
   the error signal), and `npm audit`'s default `--audit-level` resolves to `low`, not "moderate". `npm update`
   reconciles the whole dependency graph rather than the packages you asked for: an in-range direct bump moved its eslint
   cache stack (`file-entry-cache`, `flat-cache`, `keyv`) across majors, and npm 11 filled `license` fields throughout
-  the lockfile — so describe the lockfile diff by what moved (not as "patches/minors") and run the frontend `check`.
-  captured: test-build-logic-rules-and-unify-version-comparison (#306) captured: monitor-web-ui-npm-dependencies (#395)
-  captured: bump-gradle-and-web-ui-dependencies
+  the lockfile — so describe the lockfile diff by what moved (not as "patches/minors") and run the frontend `check`. The
+  frontend `check` never builds the production bundle — `vite build` is reached only by `build`/`assemble`/`e2eTest`
+  (`check` depends on lint/format-check/type-check/Vitest) — so a bump that touches a bundle-path package, `vite` most
+  of all, must also run `./gradlew :showcase-web-ui:build` and confirm the bundle emits (a `vite` patch bump can break
+  it while `check` stays green). captured: test-build-logic-rules-and-unify-version-comparison (#306) captured:
+  monitor-web-ui-npm-dependencies (#395) captured: bump-gradle-and-web-ui-dependencies captured:
+  bump-web-ui-npm-2026-10-05
 - **A CLI warning dismissed as noise can report a live defect — a config is unverified until its own read path is
   probed, whoever consumes it (a tool or the repository's own build), and a warning no gate reads is not a check.**
   `openspec/config.yaml` declared per-artifact rules for four artifacts, but two items contained an unquoted `: `, so

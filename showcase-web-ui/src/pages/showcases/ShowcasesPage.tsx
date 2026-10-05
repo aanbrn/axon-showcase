@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 import { useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { connectEventStream, useEventReceived, useLiveEvents } from '@/entities/showcase-event';
 import {
   mergeTimeline,
   useSelectedShowcaseId,
   useSelectShowcase,
   useShowcases,
-  waitForEvent,
+  useShowcaseReconciliation,
 } from '@/entities/showcase';
 import { CreateShowcaseForm, useCreateShowcase } from '@/features/create-showcase';
 import { useFinishShowcase, useRemoveShowcase, useStartShowcase } from '@/features/showcase-actions';
@@ -17,17 +16,17 @@ import { ShowcaseDetail } from '@/widgets/showcase-detail';
 /**
  * The showcases page.
  *
- * <p>Composes the create form, list, and detail widgets, drives the lifecycle mutations, subscribes to the live event
- * stream, and reconciles the list with the read model after local writes and saga-triggered events so the UI stays
- * consistent with the eventually-consistent projection.
+ * <p>Composes the create form, list, and detail widgets, drives the lifecycle mutations, and subscribes to the live
+ * event stream. The showcase entity reconciles the list with the eventually-consistent read model from those events, so
+ * the page renders rather than polls.
  */
 export function ShowcasesPage() {
   const onEventReceived = useEventReceived();
-  const queryClient = useQueryClient();
   const { data: showcases = [], isPending } = useShowcases();
   const liveEvents = useLiveEvents();
   const selectedId = useSelectedShowcaseId();
   const selectShowcase = useSelectShowcase();
+  useShowcaseReconciliation();
 
   const create = useCreateShowcase();
   const start = useStartShowcase();
@@ -35,16 +34,8 @@ export function ShowcasesPage() {
   const remove = useRemoveShowcase();
 
   useEffect(() => {
-    const connectedAt = new Date();
-    return connectEventStream((event) => {
-      onEventReceived(event);
-      // The gateway replays recent history on connect; only reconcile events that arrive after the
-      // connection was established, so an initial connect does not poll for already-projected history.
-      if (new Date(event.timestamp) > connectedAt) {
-        void waitForEvent(queryClient, event);
-      }
-    });
-  }, [onEventReceived, queryClient]);
+    return connectEventStream((event) => onEventReceived(event));
+  }, [onEventReceived]);
 
   const selected = showcases.find((showcase) => showcase.showcaseId === selectedId) ?? null;
   const selectedTimeline = selected ? mergeTimeline(selected, liveEvents) : [];

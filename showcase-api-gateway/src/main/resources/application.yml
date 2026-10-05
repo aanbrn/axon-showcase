@@ -71,7 +71,7 @@ showcase:
         expires-after-access: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_ACCESS:PT10M}
         expires-after-write: ${FETCH_SHOWCASE_BY_ID_QUERY_CACHE_EXPIRES_AFTER_WRITE:PT5M}
   query:
-    api-url: ${SHOWCASE_QUERY_SERVICE_URL:http://localhost:8084}
+    api-url: ${SHOWCASE_QUERY_SERVICE_URL:http://localhost:8083}
 
 resilience4j:
   enabled: ${RESILIENCE_ENABLED:true}

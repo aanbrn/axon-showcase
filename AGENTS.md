@@ -2301,7 +2301,11 @@ capture-stash-stale-copy
   measured data is what it records. `right-size-chart-resources` changed the chart defaults; the Target bullet and the
   Result paragraph of `docs/load-tests/2026-09-26.md` both described the old ones in the present tense, the plan
   enumerated only the Target bullet, and review caught the Result paragraph — derive a doc's sites from a grep, not the
-  plan's list. captured: fix-gateway-cors-allowed-headers (#359) captured: right-size-chart-resources
+  plan's list. A service URL's yml fallback is overridden by the container path (`BPE_DEFAULT_*`; in-container every
+  service listens on 8080), so it is exercised only under host `bootRun` and must equal the target service's local
+  `server.port` — a component test asserting the placeholder literally pins whatever value is there, not the right one.
+  captured: fix-gateway-cors-allowed-headers (#359) captured: right-size-chart-resources captured:
+  fix-gateway-query-service-url
 - **Doc claims must match their source and their strength — quote verbatim or paraphrase explicitly, and reserve
   "enforced" for a real gate.** The self-learning README section described `AGENTS.md` rules in quotes;
   `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an

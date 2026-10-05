@@ -2318,32 +2318,37 @@ capture-stash-stale-copy
   is not repo history.** An earlier draft of this bullet cited a `/var/folders/**` config attempt — a pattern proposed
   in conversation but never written to a config file — and asserted an unobserved `setup-hosts.sh` outcome; a review
   pass caught both. Before writing a historical or behavioral claim into `AGENTS.md`, `README.md`, a subagent
-  definition, or a main spec, find its evidence — a config file, a log line, a commit, or a run whose output you have. A
-  commit cited as evidence is itself a claim: read what it did (`git show --stat`) and whether the path existed at
-  `<commit>^` before attributing lines or a reflow to it — an early draft of the `make-captured-rules-traceable`
-  artifacts called `c62feda` one of "two Spotless commits" that reflowed `AGENTS.md`, but `c62feda` created the file
-  (164 insertions, and `AGENTS.md` is absent at its parent); a review caught it. If the only source is the conversation,
-  omit it or label it as the owner's account; for an outcome you did not observe, state the mechanism ("a bash-script
-  write runs under the `shell` permission") rather than the observation ("it did not prompt"). Point-in-time narrative
-  belongs in a change's archived artifacts, not in a durable one. A claim about a surface **outside** the repository — a
-  registry's contents, a repository setting, a live URL — has no config file or commit behind it, so its evidence is a
-  query whose output you have: run it before writing the claim, and re-run it at review, because such a surface can
-  change between the two and no gate reads it (`#266`'s repeated review rounds caught several unverified external
-  assertions — a GitHub docs URL written from memory, a false "Docker Hub carries nothing" against five live
-  repositories, wrong dates; the owner deleted those repositories mid-session, invalidating the entry between its
-  writing and its review). Verify a URL by requesting it, and treat the review, not a gate, as the check. An evidence
-  statement for a task that _touches_ such a surface has the same limit in the other direction: do not pin a value the
-  surface produced as the evidence the task was done — the rows of a live lookup vary run to run. `helmUpdates`'s rows
-  are a live `helm search repo` result; the same tick's evidence read "only `prometheus-community-stack`" in one run and
-  also showed `bitnami-kafka: 31.5.0 -> 32.4.3` in another, so the tick rests on the run succeeding plus the parse
-  pinned by unit tests, never on any row. captured: rework-the-helm-suppression-list When a script generates many claims
-  at once, the method that derived them is not their evidence: each generated item needs its own control, applied per
-  item rather than as a spot check, because a heuristic that is right on nine of ten items writes its one error silently
-  into the durable file and a hedge tag (`approximate`, "uncertain") does not repair it. The `retro-mark-captured-rules`
-  backfill's first attempt named 8 origins whose commit contained no text of the rule at all — including `ddaa51e`,
-  claimed for the log-assertion rule whose text it never mentions — because the range and the phrase were never required
-  to be about the same rule; adding the per-item control (the candidate origin's added lines must contain the rule's own
-  opening phrase) substantiated 30+ origins independently. captured: retro-mark-captured-rules
+  definition, or a main spec, find its evidence — a config file, a log line, a commit, or a run whose output you have.
+  Check a cited source's provenance too, not only its existence: a clause written _for_ an event cannot evidence a
+  _prior_ occurrence of it, so before a recurrence claim take a source that predates the event and was not produced by
+  it (a retrospective draft cited the `openspec archive` gotcha's parenthetical as a second lost-spec-sync occurrence,
+  but the incident's own capture #498 had added it — `git blame`/`git log -S` the clause, or grep the rule's `captured:`
+  token to find its introducing commit). captured: store-2026-10-05-retrospective A commit cited as evidence is itself a
+  claim: read what it did (`git show --stat`) and whether the path existed at `<commit>^` before attributing lines or a
+  reflow to it — an early draft of the `make-captured-rules-traceable` artifacts called `c62feda` one of "two Spotless
+  commits" that reflowed `AGENTS.md`, but `c62feda` created the file (164 insertions, and `AGENTS.md` is absent at its
+  parent); a review caught it. If the only source is the conversation, omit it or label it as the owner's account; for
+  an outcome you did not observe, state the mechanism ("a bash-script write runs under the `shell` permission") rather
+  than the observation ("it did not prompt"). Point-in-time narrative belongs in a change's archived artifacts, not in a
+  durable one. A claim about a surface **outside** the repository — a registry's contents, a repository setting, a live
+  URL — has no config file or commit behind it, so its evidence is a query whose output you have: run it before writing
+  the claim, and re-run it at review, because such a surface can change between the two and no gate reads it (`#266`'s
+  repeated review rounds caught several unverified external assertions — a GitHub docs URL written from memory, a false
+  "Docker Hub carries nothing" against five live repositories, wrong dates; the owner deleted those repositories
+  mid-session, invalidating the entry between its writing and its review). Verify a URL by requesting it, and treat the
+  review, not a gate, as the check. An evidence statement for a task that _touches_ such a surface has the same limit in
+  the other direction: do not pin a value the surface produced as the evidence the task was done — the rows of a live
+  lookup vary run to run. `helmUpdates`'s rows are a live `helm search repo` result; the same tick's evidence read "only
+  `prometheus-community-stack`" in one run and also showed `bitnami-kafka: 31.5.0 -> 32.4.3` in another, so the tick
+  rests on the run succeeding plus the parse pinned by unit tests, never on any row. captured:
+  rework-the-helm-suppression-list When a script generates many claims at once, the method that derived them is not
+  their evidence: each generated item needs its own control, applied per item rather than as a spot check, because a
+  heuristic that is right on nine of ten items writes its one error silently into the durable file and a hedge tag
+  (`approximate`, "uncertain") does not repair it. The `retro-mark-captured-rules` backfill's first attempt named 8
+  origins whose commit contained no text of the rule at all — including `ddaa51e`, claimed for the log-assertion rule
+  whose text it never mentions — because the range and the phrase were never required to be about the same rule; adding
+  the per-item control (the candidate origin's added lines must contain the rule's own opening phrase) substantiated 30+
+  origins independently. captured: retro-mark-captured-rules
 
 - **A comparison between two runs or files that differ in more than one dimension cannot attribute the difference to
   either — isolate the variable before naming a cause.** Comparing `ci.yml`'s `Cache mode: write` with the `opencode`

@@ -77,7 +77,7 @@ class ShowcaseApiPropertiesCT {
                     });
             assertThat(properties.getEvents().getKeepAliveInterval()).isEqualTo(Duration.ofSeconds(15));
             assertThat(context.getEnvironment().getProperty("showcase.query.api-url"))
-                    .isEqualTo("http://localhost:8084");
+                    .isEqualTo("http://localhost:8083");
         });
 
         ymlContextRunner

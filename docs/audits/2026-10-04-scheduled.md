@@ -1,0 +1,166 @@
+# Repository Audit Report — 2026-10-04 (scheduled run)
+
+Combined findings from the three repository audits run in sequence: the agent-tooling audit (`agents-auditor`), the
+spec-corpus audit (`specs-auditor`), and the architecture audit (`architecture-auditor`). Each section reproduces the
+audit's report contract: a verdict line first, then findings budgeted per item, with passing checks collapsed.
+
+## Agent-tooling audit (`agents-auditor`)
+
+**3 findings (2 merge, 0 removal, 1 route), 1 advisory, ~71 accreted**
+
+### Redundant (merge candidates)
+
+**1. The pre-commit guard's five-check enumeration is stated twice (`AGENTS.md:462` vs `AGENTS.md:2566`).** The
+Prerequisites bullet (`:462-464`) lists "the formatter, generated-artifact, staged-then-edited, conflict-marker, and
+`captured:` marker checks", and the `git add <dir>` gotcha (`:2566-2568`) re-lists the same five checks, expanded into
+their failure modes. The gotcha's expanded form is canonical.
+
+**Suggested rewrite** — reduce the Prerequisites parenthetical to a pointer:
+
+> `Git hooks: run \`./scripts/install-git-hooks.sh\` once per clone to activate the pre-commit guard (the five checks
+> the \`git add <dir>\` gotcha enumerates); bypass a deliberate exception with \`git commit --no-verify\`.`
+
+**2. The 120-character check recipe and the `awk`-counts-bytes caveat are restated three times (`AGENTS.md:1083`,
+`AGENTS.md:1973`, `.opencode/agent/review-quick.md`).** The Formatting convention (`:1083-1084`) is the canonical home
+of the `perl -CSD -lne 'print if length > 120'` recipe and the `awk`/non-ASCII caveat; the verdict-echo gotcha (`:1973`)
+and the `review-quick` agent's step restate both. The `review-quick` copy also carries "formatters cannot reflow string
+literals", already in the convention.
+
+**Suggested rewrite** — collapse the `review-quick` step to a pointer at the convention, and drop the `:1973`
+restatement (its own lesson, "let the exit status carry the verdict", survives the trim):
+
+> `review-quick.md`: "Run the project's 120-character check (the `Formatting` convention's perl recipe) over the changed
+> files the formatter does not cover — YAML and so on; everything else is formatter-gated."
+
+### Redundant (route candidate)
+
+**3. The captured-marker placement rule ("inside a rule block, never on a plain bullet") is enforced by
+`verifyCapturedMarkers` and the pre-commit guard, yet restated in the `retro-mark-captured-rules` gotcha
+(`AGENTS.md:2111-2112`).** `AGENTS.md:251` already points at the guard; the gotcha's lesson is range-boundary
+derivation, not marker placement. **Mechanism:** `verifyCapturedMarkers` (`build.gradle.kts:405`, a `check` member) plus
+`scripts/git-hooks/pre-commit` → `commit-hygiene.py --staged` — confirmed present and covering the subject.
+
+**Suggested rewrite** — drop the parenthetical restatement and keep the pointer:
+
+> "…assert that boundary itself — the pre-commit guard enforces marker placement — before trusting the result."
+
+The placement rule survives in full at `:251`; the gate enforces placement but not the "at the end of the rule"
+ordering, which is why that half stays in the gotcha.
+
+### Entries verified still accurate (collapsed)
+
+- Versions Java 21 / Spring Boot 3.5.16 / Gradle 9.8.0 / openspec 1.14.0 / wrapper `-all` — all match the catalog, the
+  wrapper, and the three workflow pins.
+- "19 modules" matches the 19 `include(...)` entries in `settings.gradle.kts`; the seven role groups and the 25 spec
+  paths all resolve; the "infrastructure + shared libraries carry none" claim matches the actual spec set.
+- The `check` member list matches `build.gradle.kts:496-508`; CORS defaults and the empty fail-closed origins baked into
+  the image match the code; buildpack/Helm chart pins match the catalog.
+- The `toolingUpdates` declared list and the workflow CLI pins (snyk, pack, gitleaks) match; the four-auditor split (3
+  scheduled + `readme-auditor` on-demand) matches `audit.yml`.
+- All ADR cross-references resolve; the flash-pin enumeration and the vision `-vision-exp` exclusion match the
+  frontmatter.
+
+### Advisory — third-party inconsistency
+
+**The generated `opsx-sync` command + `openspec-sync-specs` skill present "sync delta specs to main specs without
+archiving the change" as a standalone operation, contradicting the load-bearing "Sync the main spec only at archive"
+rule (`AGENTS.md:296-297`).** **Harm:** an agent or user following the generated command would write the main spec ahead
+of the verified change, silently — the exact drift the archive-only rule exists to prevent. The command's legitimate use
+is inline within `openspec archive`, but nothing in its own text marks it archive-internal. **Decision: change our
+usage** — document in the archive-only rule that `/opsx-sync` is archive-internal and must not be run standalone
+(already parked in `docs/ideas.md` with this disposition; not yet applied to the rule's wording). Not an upstream bug.
+
+### Accretion — meta rules with their origins
+
+`AGENTS.md` is overwhelmingly meta rather than product (~1,600 of 2,677 lines are rules about the agent, its tooling,
+the per-change workflow, or documentation). Expected for an agent-guidance file — not a defect; the inventory makes the
+accumulation visible. **Origin-source limitation:** this checkout is a single-commit shallow clone, so `git blame` /
+`git log -S` cannot attribute rules; only the in-prose `captured:` marker is available, and 71 distinct units are
+recorded. Representative clusters:
+
+- Per-change branch/commit discipline — `capture-reverted-sweep-lessons (#283)`, `route-the-smoke-through-the-ingress`,
+  `add-pre-commit-staged-set-guard (#372)`, `capture-untracked-follows-switch (#284)`.
+- Review gate — `widen-architecture-auditor-to-revisit-triggers`, `single-source-the-scheduled-audit-mechanism`,
+  `name-review-finding-classes (#367)`.
+- Lesson-capture discipline — `make-captured-rules-traceable (#279)`, `retro-mark-captured-rules`,
+  `make-the-capture-visible`.
+- OpenSpec/spec mechanics — `gate-github-markdown-with-prettier`, `notify-owner-from-the-audit-report (#327)`,
+  `restructure-spec-corpus-findings (#332)`, `sync-audit-spec-findings-2026-10-04 (#497)`.
+- Verification & positive-control discipline — `declare-probes-with-shape-and-behavioural-checks`,
+  `check-toolchain-prerequisites`, `scan-source-for-secrets`, `guard-agent-loader-read-path`, and others.
+- Tooling-currency / update checks — `unify-tooling-currency-checks (#304)`,
+  `fix-dependency-updates-catalog-extraction`, `bump-buildpacks-2026-09-29`.
+- OpenCode v1/v2 config & model-pin migration — `migrate-opencode-config-to-v2`,
+  `retire-opencode-permission-plugin (#388)`, `fix-cloud-agent-config-for-v1 (#438)`.
+
+Rules written before the marker convention (the `## Line Length` section, the OpenSpec workflow agreement's core
+branch/commit/review clauses, the Prerequisites list, most Architecture/Docker/Kubernetes reference material) are
+**unattributed** in this checkout — not guessed.
+
+## Spec-corpus audit (`specs-auditor`)
+
+**nothing to report**
+
+All 25 capability specs under `openspec/specs/showcase/` were read in full and verified against the repository; the
+corpus is clean across all four axes.
+
+### Verified-and-clean (collapsed)
+
+- **Title ↔ path**: all 25 first-line `#` titles match their capability path exactly (script-verified).
+- **Purpose ↔ requirements**: every `## Purpose` summarizes the requirements its spec holds; `helm-chart` and
+  `merge-governance` are deliberate, not narrow drift.
+- **Requirement conventions**: every header is a declarative noun phrase, every body a SHALL statement, every
+  requirement has WHEN/THEN scenarios (script-verified, 0 missing).
+- **Cross-spec duplication**: shared headers are legitimate with distinct bodies — `Business error translation`, the
+  resilience quartet, `Module dependency exposure`, and the web-UI Deployment split across `helm-chart` vs
+  `deployment/web-ui` (a deliberate capability split).
+- **Dead references**: every named class, file, config key, coordinate, ADR, and workflow job resolves against the
+  repository.
+
+## Architecture audit (`architecture-auditor`)
+
+**0 findings, 3 advisory**
+
+### Findings
+
+None. The prior architecture finding (`docs/audits/2026-10-04.md`, "ADR-0003 mislabels the Elasticsearch Java client")
+is already fixed — `docs/adr/0003-retain-jackson-2-defer-jackson-3.md:16` now reads "the Elasticsearch Java client".
+Every category was re-verified: all 16 ADRs are `Accepted` with no stale status or unrecorded supersession; every
+`ADR-NNNN` reference (0001–0016) resolves; ADR-0010's forbidden-edge set matches `verifyModuleDependencies`; the
+`axon-server-connector` (ADR-0009) and `opensearch-rest-high-level-client` (ADR-0012) exclusions are exactly as
+recorded; the seven spec role groups map cleanly onto the 19 modules; the FSD layers and the single `@x` cross-import
+match ADR-0013; ADR-0016's version declaration propagates to subprojects.
+
+### Advisory
+
+**1. ADR-0003's deferred condition appears substantially met (deferral-due).**
+`docs/adr/0003-retain-jackson-2-defer-jackson-3.md:7` — "Revisit when: the pinned org.axonframework and the
+Elasticsearch Java client … resolve Jackson 3". Verified against the pins: `elasticsearch-client-java = 9.5.4` declares
+`tools.jackson.core:jackson-databind`/`jackson-core` 3.1.0 as **non-optional** runtime dependencies, and
+`axon-messaging = 4.13.2` declares `tools.jackson.core:jackson-databind` as an **optional** dependency — Axon 4.13
+gained Jackson-3 support since the ADR characterized it as "targets Jackson 2". **Question:** is the Jackson-3 backend
+migration now due for revisit, or does Axon's support being opt-in (optional, not the default) mean the gate is still
+unmet? Already parked in `docs/ideas.md`; the recorded condition's premise has moved.
+
+**2. The `co.elastic.clients:elasticsearch-java` direct declaration has no recorded rationale (missing intent).**
+Declared as `implementation(libs.elasticsearch.client.java)` in `showcase-projection-service/build.gradle.kts:35`,
+`showcase-query-service/build.gradle.kts:33`, and `showcase-query-client/build.gradle.kts:59`, yet no Java source
+imports a `co.elastic.clients` type, and ADR-0012 records the OpenSearch-client swap without mentioning this coordinate.
+**Question:** why is `elasticsearch-java` declared directly on the read side (version pinning? forcing Jackson-3
+transitives?), and which ADR should record it? Already parked in `docs/ideas.md`; the rationale remains unrecorded.
+
+**3. The LZ4 relocation's rationale is unrecorded (missing intent).** `build.gradle.kts:74-83` —
+`substitute(module("org.lz4:lz4-java")).using(module("at.yawk.lz4:lz4-java")).because("Force relocation of LZ4 implementation")`.
+`AGENTS.md` records only the mechanism; the `.because()` string restates _what_ the substitution does, not _why_ the
+build redirects `org.lz4` to yawkat's third-party rehost of the same artifact (a supply-chain-relevant swap).
+**Question:** why is `lz4-java` force-relocated from `org.lz4` to `at.yawk.lz4`? Recurrence of the 2026-10-04 audit's
+advisory; no rationale recorded since.
+
+**Recorded, not reported (collapsed):** all suppressed coordinates in `major-disabled.txt` (Axon→ADR-0011,
+Flyway/JGroups/spring-data-opensearch/springdoc→`dependency-management` spec, Spring→ADR-0004), the held-back
+`opensearch-java=3.9` and the npm-suppressed `typescript` (→`dependency-management` spec), and the Helm-suppressed
+bitnami charts (→`infra-image-versions` spec) all carry a recorded rationale. The 14
+`@SuppressWarnings("ClassCanBeRecord")` and the `CodeBlock2Expr` suppression match `AGENTS.md`; the retained deprecated
+`RestClientBuilderCustomizer` usage is parked in `docs/ideas.md`. ADR-0011's `Revisit when:` is **not** met (resolved
+`axon-bom` 4.13.3 with no 5.x; the Spring Boot starter only at preview/M2/M3), ADR-0016's is not met (only `v0.1.0`),
+and ADR-0004's condition is an internal capacity trigger with no repository-checkable fact.

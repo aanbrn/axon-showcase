@@ -66,6 +66,36 @@ dated when it was added (start a new section for a new day rather than appending
   supply-chain-relevant swap). Both 2026-10-04 architecture audits report the rationale as unrecorded — `AGENTS.md`
   records only the mechanism — and it is parked nowhere. Routes to `AGENTS.md` or an ADR.
 
+- Pair an archive move with its staged spec sync in the pre-commit guard — parked; no change yet. `openspec archive`
+  writes the delta→main sync into `openspec/specs/**` and relocates the change dir with a filesystem move, staging
+  neither, so `git add -A openspec/changes` easily commits the archive move while the sync stays unstaged: the
+  2026-10-04 change merged exactly that way (#496), recovered minutes later (#497) and captured in the
+  `openspec archive` gotcha (#498). The prose did not prevent it, so route the class to the mechanism —
+  `commit-hygiene.py --staged` already inspects the staged set; extend it to fail when a change dir under
+  `openspec/changes/archive/**` is staged, that change carries delta specs, and `openspec/specs/**` has unstaged
+  modifications, allowing the `skip_specs` / no-delta case by checking the archived change's own `specs/` dir. Its own
+  `commit-hygiene` change (code + test + spec delta), with the `openspec archive` gotcha pointing at the check; if the
+  `skip_specs` nuance proves fiddly, keep it parked.
+
+- Give the agents-auditor's growth metric one definition — parked; no change yet. The capture rule leans on the
+  verdict's accreted-rule count as the control on `AGENTS.md` growth, but the five reports under `docs/audits/` do not
+  agree on what the count measures — one counts markers (`87+`, ≈ 89), another distinct rule units (`~71`), and one
+  states a bare `4` — so the series 24, 16, 87+, 4, ~71 cannot be read as a trend. Fix one definition (recommend
+  distinct rule units carrying a `captured:` marker, reported as a total, with rules added since the last report
+  reported separately) in the `agents-auditor` definition and the `agent-skills` report contract — a `MODIFIED` delta,
+  since the contract is spec'd. Unblocks the parked "Trend the audit counts across reports" idea and is material because
+  the file's growth bound is otherwise unfalsifiable.
+
+- Give parked reduction candidates an application slot, not another report — parked; no change yet. The 2026-10-04
+  audits' merge/route reduction candidates are parked ("Trim the AGENTS.md rules the 2026-10-04 audits found restated",
+  above) to be applied "through that audit's workflow when next run", but the scheduled `audit` workflow only reports —
+  it opens a findings PR — and applying is a separate owner-gated unit, so candidates age while captures accumulate and
+  `AGENTS.md` has not shrunk in a window: `Apply the 2026-09-28 audit's docs-route findings` (#446) proves application
+  works, yet it netted +2 lines because the applying unit rode its own capture. Either let the report PR carry the
+  merge/removal edits for one owner review instead of routing them to `docs/ideas.md`, or run a standing owner-gated
+  "apply parked reductions" unit per audit. Refines — rather than duplicates — the parked "Carry findings forward across
+  audit reports" idea, which addresses reporting only.
+
 ## 2026-10-04
 
 - Identify a running service's build at runtime — parked; no change yet. The gateway carries Spring Boot build info
@@ -141,8 +171,8 @@ dated when it was added (start a new section for a new day rather than appending
 - Trend the audit counts across reports — parked; no change yet. The capture rule leans on the verdict's accreted-rule
   count as the growth control, but nothing reads it back, so the only quantitative signal that consolidation is winning
   goes uncollected. A small report — or a `/retrospective` input — extracting the verdict lines from `docs/audits/*.md`
-  would show findings, merge, removal, and accreted counts over time. Thin today (two reports); revisit once several
-  accumulate.
+  would show findings, merge, removal, and accreted counts over time. Five reports now exist, but their accreted counts
+  use differing definitions (see the 2026-10-05 entry above), so the trend awaits that fix.
 
 - Record the lesson-capture's rejected proposals — parked; no change yet. A "nothing durable" verdict is a judgment that
   vanishes (the `widen-auditor-to-route-candidates` capture's, for instance); recording each rejected proposal with the

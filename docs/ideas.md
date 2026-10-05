@@ -276,17 +276,16 @@ dated when it was added (start a new section for a new day rather than appending
 ## 2026-09-14
 
 - Retire the `NANOS_DATE_PATTERN` workaround once its fix reaches us — parked; no change yet.
-  `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337, milestone 6.2.0-M2), but the fix is in
-  **no published release**: the newest artifacts are `6.2.0-M1`, `6.1.1` and `6.0.7`, all published 2026-08-20, ten days
-  _before_ the fix merged — so `M1` predates it and only the unreleased `6.2.0-M2` carries it. We resolve
+  `spring-projects/spring-data-elasticsearch#3334` closed 2026-08-30 (PR #3337, milestone 6.2.0-M2), and the fix is now
+  published — but only on lines above ours: `6.2.0-M2` (2026-09-24) carries it, while we resolve
   spring-data-elasticsearch 5.5.13 on the `spring-data-opensearch` 2.0.8 line (which declares 5.5.13 directly), so the
-  truncation is still live. The condition to watch is therefore a release _containing the fix_, not a line or a
-  milestone: `spring-data-opensearch` 3.x is the line that would carry it (the latest, 3.1.4, still ships 6.1.1), but
-  3.x targets Spring Boot 4 and `spring-data-elasticsearch` 6.x, so retiring the workaround rides the deferred Spring
-  Boot 4 migration (ADR-0004) — re-check when that migration lands, not on a chart or patch bump. The other closure
-  candidate does not apply — `#1060` leaves our `checkBuildEnvironmentConstraints` row untouched (the `#755` verdict is
-  recorded in the upstream-reference bullet in `AGENTS.md` and ADR-0007). Recorded here rather than in the PR body that
-  surfaced it, which no tool reads.
+  truncation is still live. The condition to watch is therefore a release _containing the fix on our line_, not a line
+  or a milestone: `spring-data-opensearch` 3.x is the line that would carry it (the latest, 3.1.4, still ships 6.1.1),
+  but 3.x targets Spring Boot 4 and `spring-data-elasticsearch` 6.x, so retiring the workaround rides the deferred
+  Spring Boot 4 migration (ADR-0004) — re-check when that migration lands, not on a chart or patch bump. The other
+  closure candidate does not apply — `#1060` leaves our `checkBuildEnvironmentConstraints` row untouched (the `#755`
+  verdict is recorded in the upstream-reference bullet in `AGENTS.md` and ADR-0007). Recorded here rather than in the PR
+  body that surfaced it, which no tool reads.
 
 ## 2026-09-07
 

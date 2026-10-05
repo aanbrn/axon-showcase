@@ -15,6 +15,15 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-05
 
+- Guarantee the weekly reports against a dropped or delayed `schedule` — parked; no change yet. The `schedule:` trigger
+  is best-effort (delayed or dropped under load — a recent run slipped ~3 hours), and no `cron` value makes it punctual,
+  so `reschedule-weekly-workflows-earlier` only widens the margin. A dispatch-fallback would turn "likely" into
+  "present-or-retriggered": one scheduled watchdog that, after the expected window, checks via `gh` whether each weekly
+  workflow produced its artifact for the current cycle (the audit's dated report/PR, each update check's tracker issue)
+  and calls `gh workflow run <file>` for any that is absent — idempotent, so a healthy week is a no-op. Needs
+  `workflow: write` + `issues: read`, and owes a `merge-governance` spec delta (a new scheduled workflow). Deferred
+  while the reschedule's added margin is judged sufficient; its own change when the guarantee is wanted.
+
 - Revisit ADR-0003's Jackson-3 deferral gate — parked; no change yet. The 2026-10-04 architecture audit reports the
   recorded `Revisit when:` condition ("the pinned `org.axonframework` and the Elasticsearch Java client … resolve
   Jackson 3") appears substantially met: `elasticsearch-client-java = 9.5.4` declares

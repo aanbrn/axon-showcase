@@ -734,10 +734,14 @@ it, and `workflowLint` checks only the YAML) to exercise the workflow end to end
 report path, jq filter and tracker-issue lookup. The `release` workflow is the one added workflow whose _only_ trigger
 is `workflow_dispatch`, so its happy path runs after merge; its failure paths are exercised first with dispatches that
 create nothing. A **schedule-only** edit is the exception: a dispatch runs the workflow body, not the scheduler, so the
-new `cron`'s first fire is its verification — never tick a schedule change off on a dispatch. Schedule each workflow's
-runtime into the repo owner's night (UTC+7), so its result is waiting at the start of their day; the metered pass's
-placement is the model-pin bullet's off-peak call. captured: bump-snyk-cli-pin captured:
-schedule-jobs-into-the-owners-night
+new `cron`'s first fire is its verification — never tick a schedule change off on a dispatch. GitHub's `schedule`
+trigger is best-effort — a run can slip by hours or be dropped under load, and no `cron` value makes it punctual — so an
+earlier slot is margin against a delay, never a guarantee: verify a workflow's own run before treating a late report as
+a defect. Schedule each workflow's runtime into the repo owner's small hours (UTC+7) — early Sunday morning for the
+weekly runs, so the results are waiting at the start of the owner's working week, and off the
+`:00`/`:10`/`:20`/`:30`/`:40`/`:50` minutes GitHub documents as its high-load slots; the metered pass's placement is the
+model-pin bullet's off-peak call. captured: bump-snyk-cli-pin captured: schedule-jobs-into-the-owners-night captured:
+reschedule-weekly-workflows-earlier
 
 A verification the local environment cannot run cannot live as a task in the change dir: `openspec/changes/archive/` is
 invisible and no gate reads it, so an unchecked task is silently lost — a dispatch

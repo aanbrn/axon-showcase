@@ -2,7 +2,7 @@ name: Dependency Security
 
 on:
   schedule:
-    - cron: '0 19 * * 0'
+    - cron: '27 17 * * 6'
   workflow_dispatch:
 
 permissions:

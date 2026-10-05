@@ -892,7 +892,11 @@ Key modules (libraries, not services):
   `expect(fetchMock).toHaveBeenCalledWith('<url>', { method: 'PUT' })` into field reads because the added `traceparent`
   header broke the exact match dropped the call's URL check at every rewritten site, and only the quick review caught
   it; assert the URL alongside the new field (`fetchMock.mock.calls[0][0]`), since a silently dropped subject leaves a
-  test that still passes. captured: propagate-ui-trace-context (#362)
+  test that still passes. A refactor can silently stop a test from exercising its subject: a function moved into a new
+  module needs its tests moved with it (deleting the old test file left a re-created four-case event→predicate mapping
+  with two cases covered), and a negative test driving a captured mock callback must assert the callback was captured —
+  `callback?.()` no-ops when the wiring is absent, so the assertion passes vacuously. captured:
+  propagate-ui-trace-context (#362) captured: rethink-web-ui-reconciliation
 - **Spring bean mocks in tests**: use `@MockitoBean` (from `org.springframework.test.context.bean.override.mockito`),
   not the deprecated-for-removal `@MockBean` (`org.springframework.boot.test.mock.mockito`), which has been deprecated
   since Spring Boot 3.4
@@ -1040,10 +1044,10 @@ Key modules (libraries, not services):
 - **Javadoc**: classes, methods, and fields carry a Javadoc comment describing their purpose (see
   `ShowcaseApiErrorResolver`, `ShowcaseRestController`); wrap at 120 characters. The `showcase-web-ui` uses JSDoc the
   same way: exported components, hooks, and helpers carry a `/** ... */` comment describing their purpose (e.g.
-  `ShowcasesPage`, `contextualTime`, `waitForReadModel`); both wrap at 120 characters. The rule covers every declaration
-  in a file you touch, not only the one a review named: adding a class to an existing `build-logic` or Java file puts
-  the enclosing type and its private helpers in scope too, so sweep each touched file's declarations in the same pass.
-  captured: check-agents-install-commands
+  `ShowcasesPage`, `contextualTime`, `useShowcaseReconciliation`); both wrap at 120 characters. The rule covers every
+  declaration in a file you touch, not only the one a review named: adding a class to an existing `build-logic` or Java
+  file puts the enclosing type and its private helpers in scope too, so sweep each touched file's declarations in the
+  same pass. captured: check-agents-install-commands
 - **Frontend (`showcase-web-ui`)**: organized per Feature-Sliced Design (`app`/`pages`/`widgets`/`features`/`entities`/
   `shared`, importing only downward and only through a slice's public API — a sibling-slice import needs a declared `@x`
   cross-import API; `eslint-plugin-boundaries` enforces the direction and the public-API rule in the lint gate; `@/`
@@ -1055,7 +1059,10 @@ Key modules (libraries, not services):
   Zod. Format with Prettier (`format:check` gated in `check`; apply with `./gradlew :showcase-web-ui:npmFormat`); lint
   with ESLint 10 via the flat `showcase-web-ui/eslint.config.js`. Stub a browser global constructor with a `function`
   implementation (`vi.fn(function () { return fake; })`) — under Vitest 5 the arrow form `vi.fn(() => fake)` is not
-  constructable and throws. captured: migrate-web-ui-frontend-majors
+  constructable and throws. The live event stream has exactly one subscription (the page's `connectEventStream`);
+  another consumer reads the events the `showcase-event` slice already records, through its `@x/showcase` cross-import
+  API, rather than opening a second `EventSource` — a second connection re-receives the gateway's replay buffer and
+  double-delivers events. captured: migrate-web-ui-frontend-majors captured: rethink-web-ui-reconciliation
 - **Avoid redundancy**: don't write redundant code — e.g. redundant `throws` clauses on test methods, explicit type
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable. The same applies to prose: when a bullet needs a set another

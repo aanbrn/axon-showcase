@@ -1,21 +1,35 @@
 // SPDX-License-Identifier: MIT
+import { configureStore } from '@reduxjs/toolkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { type PropsWithChildren } from 'react';
 import { Provider } from 'react-redux';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as api from '@/features/create-showcase/api';
 import * as entityApi from '@/entities/showcase/api';
+import { showcaseSelectionReducer } from '@/entities/showcase';
+import { DEFAULT_DEBOUNCE_MS } from '@/entities/showcase/lib/reconciliation';
 import type { Showcase } from '@/entities/showcase/types';
-import { store } from '@/app/store';
+import { showcaseEventsReducer } from '@/entities/showcase-event';
+import type { ShowcaseEvent } from '@/entities/showcase-event';
 import { ShowcasesPage } from './ShowcasesPage';
 
+const stream = vi.hoisted(() => ({ callback: null as ((event: ShowcaseEvent) => void) | null }));
+
 vi.mock('@/entities/showcase-event/api/eventStream', () => ({
-  connectEventStream: () => () => {},
+  connectEventStream: (callback: (event: ShowcaseEvent) => void) => {
+    stream.callback = callback;
+    return () => {
+      stream.callback = null;
+    };
+  },
 }));
 
 function createWrapper() {
+  const store = configureStore({
+    reducer: { showcaseEvents: showcaseEventsReducer, showcaseSelection: showcaseSelectionReducer },
+  });
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -28,6 +42,17 @@ function createWrapper() {
         <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
       </Provider>
     );
+  };
+}
+
+function showcase(status: Showcase['status']): Showcase {
+  return {
+    showcaseId: '1',
+    title: 'Demo',
+    startTime: '2026-09-02T10:00:00Z',
+    duration: 'PT5M',
+    status,
+    scheduledAt: '2026-09-02T10:00:00Z',
   };
 }
 
@@ -45,15 +70,7 @@ describe('ShowcasesPage', () => {
   });
 
   it('lists showcases and shows details for the selected one', async () => {
-    const showcase: Showcase = {
-      showcaseId: '1',
-      title: 'Demo',
-      startTime: '2026-09-02T10:00:00Z',
-      duration: 'PT5M',
-      status: 'SCHEDULED',
-      scheduledAt: '2026-09-02T10:00:00Z',
-    };
-    vi.spyOn(entityApi, 'fetchShowcases').mockResolvedValue([showcase]);
+    vi.spyOn(entityApi, 'fetchShowcases').mockResolvedValue([showcase('SCHEDULED')]);
     const user = userEvent.setup();
     render(<ShowcasesPage />, { wrapper: createWrapper() });
 
@@ -83,5 +100,34 @@ describe('ShowcasesPage', () => {
     const submittedStartTime = scheduleSpy.mock.calls[0][0].startTime as string;
     expect(new Date(submittedStartTime).getTime()).toBe(new Date('2030-09-02T10:00').getTime());
     await waitFor(() => expect(screen.getByPlaceholderText('Title')).toHaveValue(''));
+  });
+
+  it('refetches the list when a live event arrives after connect', async () => {
+    const fetchSpy = vi.spyOn(entityApi, 'fetchShowcases').mockResolvedValue([showcase('STARTED')]);
+    render(<ShowcasesPage />, { wrapper: createWrapper() });
+    await screen.findByRole('button', { name: /Demo/ });
+    expect(stream.callback).not.toBeNull();
+    const before = fetchSpy.mock.calls.length;
+
+    act(() => {
+      stream.callback?.({ type: 'STARTED', showcaseId: '1', timestamp: new Date(Date.now() + 1000).toISOString() });
+    });
+
+    await waitFor(() => expect(fetchSpy.mock.calls.length).toBeGreaterThan(before));
+  });
+
+  it('does not refetch for history replayed on connect', async () => {
+    const fetchSpy = vi.spyOn(entityApi, 'fetchShowcases').mockResolvedValue([showcase('SCHEDULED')]);
+    render(<ShowcasesPage />, { wrapper: createWrapper() });
+    await screen.findByRole('button', { name: /Demo/ });
+    expect(stream.callback).not.toBeNull();
+    const before = fetchSpy.mock.calls.length;
+
+    act(() => {
+      stream.callback?.({ type: 'SCHEDULED', showcaseId: '1', timestamp: new Date(Date.now() - 1000).toISOString() });
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, DEFAULT_DEBOUNCE_MS + 100));
+    expect(fetchSpy.mock.calls.length).toBe(before);
   });
 });

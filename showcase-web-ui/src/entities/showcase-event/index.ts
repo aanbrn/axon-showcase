@@ -3,7 +3,7 @@
  * The showcase-event entity slice's public API.
  *
  * <p>The event type, the stream connection, and the received-events state it owns. The sibling showcase slice reads the
- * event type through the declared `@x` cross-import API instead.
+ * event type and the received-events feed through the declared `@x` cross-import API instead.
  */
 export { connectEventStream } from './api/eventStream';
 export { showcaseEventsReducer, useEventReceived, useLiveEvents } from './state';

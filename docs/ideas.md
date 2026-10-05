@@ -293,12 +293,6 @@ dated when it was added (start a new section for a new day rather than appending
   nginx metrics (stub_status + ServiceMonitor); the UI's user-facing experience is still unobserved, so a separate UI
   change would add web-vitals + JS-error reporting (e.g. Grafana Faro or a push-to-gateway metrics endpoint).
 
-- Rethink reconciliation in the web UI — parked; no change yet. `ShowcasesPage` reconciles local writes and
-  saga-triggered events against the eventually-consistent read model by waiting on the projected state per event
-  (`waitForEvent`/`waitForReadModel`, with a connect-time filter). This works but couples the page to polling; a
-  redesign could subscribe the read model itself to the event stream (server-side projection push) or refetch on event
-  with a single debounced invalidation instead of one wait per event.
-
 - Migrate off the deprecated OpenSearch low-level REST client — parked; no change yet.
   `org.opensearch.client.RestClientBuilder` (and the `RestClient` it builds) is `@Deprecated`, to be removed in future
   releases in favor of the official OpenSearch Java Client. The projection service's

@@ -2501,23 +2501,29 @@ capture-stash-stale-copy
   `spring-projects/spring-data-elasticsearch#3334` (2026-08-30, PR #3337) — while both constraint notes still read as
   open. Resolve an `owner/repo#NNN` through the tracker before writing or editing such a reference, and when it has
   closed, read the fixing PR's own diff and the release it shipped in against our pin before treating the note as
-  retirable — the issue's premise and its closure are not enough. `#755` closed through a change to platform-sourced
-  constraints (`satisfiesDeclaredBound`, "nothing changes by default"), so our spurious row from
-  `checkBuildEnvironmentConstraints` remains even though the fix shipped in 0.60.0, so any pin since then already
-  contains it. An upstream reference must also document the symptom it is cited for — read the body against the symptom,
-  not the title or the release. A close-out reference must also live in a file `upstreamReferences` scans (`AGENTS.md`,
-  `README.md`, `docs/ideas.md`, `docs/adr/**`): cited only in a skill, command, subagent definition, or code comment it
-  is invisible to the report that would fire its `retires when`. The first `hold-back-nginx-buildpack` draft blamed an
-  arm64 build-extraction failure on `paketo-buildpacks/nginx#1340`, whose body documents only the runtime symptom (an
-  AArch64 `nginx` in an amd64 image) and states that the `io.buildpacks.buildpackage.metadata` label is present on both
-  slices; the draft also contradicted the host-state gotcha's account of that same signature, and review caught both.
-  When a passage already explains a signature, reconcile with it rather than writing a second explanation beside it. A
-  planned task that _posts_ to an external tracker depends on that venue's mutable state — a security-advisory thread is
-  often **locked** (comments disabled): the `suppress-braces-npm-advisory` task "comment on `micromatch/braces#70`" was
-  unachievable because #70 is locked, and the actionable reference was the open fix PR `micromatch/braces#72`. Check a
-  thread is writable before writing the posting task, and when the issue itself is closed or locked, cite the fix PR the
-  close-out actually keys on. This is the write-time check for the reference you are touching; the periodic corpus sweep
-  is parked in `docs/ideas.md`. captured: suppress-braces-npm-advisory
+  retirable — the issue's premise and its closure are not enough. What a reference note records about a reference (the
+  reason it is not yet retirable, or a pointer to where its re-check lives) is itself a claim a later change can
+  falsify, and no gate re-checks it (the `upstreamReferences` report resolves only the reference's open/closed state,
+  never its recorded reason) — so re-verify the note, not only the reference's state, when revisiting one. `#3334`'s
+  entry named a release that later published, and the meta-rule's own "the periodic corpus sweep is parked" pointer
+  outlived the sweep's build. `#755` closed through a change to platform-sourced constraints (`satisfiesDeclaredBound`,
+  "nothing changes by default"), so our spurious row from `checkBuildEnvironmentConstraints` remains even though the fix
+  shipped in 0.60.0, so any pin since then already contains it. An upstream reference must also document the symptom it
+  is cited for — read the body against the symptom, not the title or the release. A close-out reference must also live
+  in a file `upstreamReferences` scans (`AGENTS.md`, `README.md`, `docs/ideas.md`, `docs/adr/**`): cited only in a
+  skill, command, subagent definition, or code comment it is invisible to the report that would fire its `retires when`.
+  The first `hold-back-nginx-buildpack` draft blamed an arm64 build-extraction failure on
+  `paketo-buildpacks/nginx#1340`, whose body documents only the runtime symptom (an AArch64 `nginx` in an amd64 image)
+  and states that the `io.buildpacks.buildpackage.metadata` label is present on both slices; the draft also contradicted
+  the host-state gotcha's account of that same signature, and review caught both. When a passage already explains a
+  signature, reconcile with it rather than writing a second explanation beside it. A planned task that _posts_ to an
+  external tracker depends on that venue's mutable state — a security-advisory thread is often **locked** (comments
+  disabled): the `suppress-braces-npm-advisory` task "comment on `micromatch/braces#70`" was unachievable because #70 is
+  locked, and the actionable reference was the open fix PR `micromatch/braces#72`. Check a thread is writable before
+  writing the posting task, and when the issue itself is closed or locked, cite the fix PR the close-out actually keys
+  on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
+  `upstream-references.yml` report (the fifth observational check above). captured: suppress-braces-npm-advisory
+  captured: refresh-upstream-references-2026-10-05
 - **Work a change surfaces is parked durably — a PR body is not a record.** When a docs change records an external state
   change that implies work, park that work in `docs/ideas.md` (or record it as a task) in the same change: a PR body is
   squashed and no tool reads it, so work named only there is lost.

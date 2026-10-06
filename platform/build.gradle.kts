@@ -19,6 +19,7 @@ dependencies {
     api(platform(libs.mockito.bom))
     api(platform(libs.jetty.bom))
     api(platform(libs.jetty.ee10.bom))
+    api(platform(libs.grpc.bom))
     api(platform(libs.netty.bom))
     api(platform(libs.opentelemetry.bom))
     api(platform(libs.protobuf.bom))

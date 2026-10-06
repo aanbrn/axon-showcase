@@ -9,6 +9,7 @@ import org.apache.commons.lang3.ClassUtils;
 import org.axonframework.messaging.GenericMessage;
 import org.axonframework.messaging.MetaData;
 import org.axonframework.queryhandling.GenericStreamingQueryMessage;
+import org.axonframework.queryhandling.QueryResponseMessage;
 import org.axonframework.queryhandling.StreamingQueryMessage;
 import org.axonframework.serialization.SerializedMetaData;
 import org.axonframework.serialization.Serializer;
@@ -16,11 +17,12 @@ import org.axonframework.serialization.SimpleSerializedObject;
 import org.axonframework.serialization.SimpleSerializedType;
 
 /**
- * Maps between Axon streaming query messages and their Protobuf {@link QueryRequest} representations.
+ * Maps between Axon streaming query messages/responses and their Protobuf {@link QueryRequest}/{@link QueryResponse}
+ * representations.
  */
 @RequiredArgsConstructor
 @SuppressWarnings("ClassCanBeRecord")
-public final class QueryMessageRequestMapper {
+public final class QueryMessageMapper {
     /**
      * The serializer used to serialize and deserialize payloads and metadata.
      */
@@ -72,5 +74,44 @@ public final class QueryMessageRequestMapper {
                 new GenericMessage<>(request.getQueryIdentifier(), payload, metaData),
                 request.getQueryName(),
                 responseType);
+    }
+
+    /**
+     * Converts the given query response message into a {@link QueryResponse}.
+     *
+     * @param message the response message to convert
+     * @return the serialized query response
+     */
+    public QueryResponse messageToResponse(QueryResponseMessage<?> message) {
+        val payload = message.serializePayload(messageSerializer, byte[].class);
+        val metaData = message.serializeMetaData(messageSerializer, byte[].class);
+        val responseBuilder = QueryResponse.newBuilder()
+                .setPayloadType(payload.getType().getName())
+                .setSerializedPayload(ByteString.copyFrom(payload.getData()))
+                .setSerializedMetaData(ByteString.copyFrom(metaData.getData()));
+        if (payload.getType().getRevision() != null) {
+            responseBuilder.setPayloadRevision(payload.getType().getRevision());
+        }
+        return responseBuilder.build();
+    }
+
+    /**
+     * Deserializes the payload of the given {@link QueryResponse} into the expected type.
+     *
+     * @param response    the response to deserialize
+     * @param payloadType the expected payload type
+     * @param <T>         the payload type
+     * @return the deserialized payload
+     */
+    public <T> T payloadFromResponse(QueryResponse response, Class<T> payloadType) {
+        val type = new SimpleSerializedType(
+                response.getPayloadType(),
+                Optional.of(response)
+                        .filter(QueryResponse::hasPayloadRevision)
+                        .map(QueryResponse::getPayloadRevision)
+                        .orElse(null));
+        val serialized =
+                new SimpleSerializedObject<>(response.getSerializedPayload().toByteArray(), byte[].class, type);
+        return payloadType.cast(messageSerializer.deserialize(serialized));
     }
 }

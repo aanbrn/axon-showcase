@@ -4,8 +4,7 @@ package showcase.query;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import io.grpc.Status;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.DisplayName;
@@ -13,48 +12,52 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @DisplayName("Showcase query retry filter tests")
 class ShowcaseQueryRetryFilterTests {
 
     private final ShowcaseQueryRetryFilter filter = new ShowcaseQueryRetryFilter();
 
-    static List<Arguments> retryableStatusCodes() {
+    static List<Arguments> retryableStatuses() {
         return List.of(
-                argumentSet("Request Timeout", 408),
-                argumentSet("Too Early", 425),
-                argumentSet("Too Many Requests", 429),
-                argumentSet("Internal Server Error", 500),
-                argumentSet("Bad Gateway", 502),
-                argumentSet("Service Unavailable", 503),
-                argumentSet("Gateway Timeout", 504),
-                argumentSet("Timeout Occurred", 524));
+                argumentSet("Unavailable", Status.UNAVAILABLE),
+                argumentSet("Deadline exceeded", Status.DEADLINE_EXCEEDED),
+                argumentSet("Resource exhausted", Status.RESOURCE_EXHAUSTED),
+                argumentSet("Aborted", Status.ABORTED));
     }
 
-    static List<Arguments> nonRetryableStatusCodes() {
+    static List<Arguments> nonRetryableStatuses() {
         return List.of(
-                argumentSet("Bad Request", 400),
-                argumentSet("Forbidden", 403),
-                argumentSet("Not Found", 404),
-                argumentSet("Not Implemented", 501));
+                argumentSet("Invalid argument", Status.INVALID_ARGUMENT),
+                argumentSet("Not found", Status.NOT_FOUND),
+                argumentSet("Permission denied", Status.PERMISSION_DENIED),
+                argumentSet("Internal", Status.INTERNAL));
     }
 
     @ParameterizedTest
-    @MethodSource("retryableStatusCodes")
-    @DisplayName("Retrying a response exception with a retryable status code is allowed")
-    void test_retryableStatusCode_isAllowed(int statusCode) {
-        assertThat(filter.test(responseException(statusCode))).isTrue();
+    @MethodSource("retryableStatuses")
+    @DisplayName("Retrying a runtime status exception with a retryable status is allowed")
+    void test_retryableStatusRuntimeException_isAllowed(Status status) {
+        assertThat(filter.test(status.asRuntimeException())).isTrue();
     }
 
     @ParameterizedTest
-    @MethodSource("nonRetryableStatusCodes")
-    @DisplayName("Retrying a response exception with a non-retryable status code is not allowed")
-    void test_nonRetryableStatusCode_isNotAllowed(int statusCode) {
-        assertThat(filter.test(responseException(statusCode))).isFalse();
+    @MethodSource("nonRetryableStatuses")
+    @DisplayName("Retrying a runtime status exception with a non-retryable status is not allowed")
+    void test_nonRetryableStatusRuntimeException_isNotAllowed(Status status) {
+        assertThat(filter.test(status.asRuntimeException())).isFalse();
+    }
+
+    @Test
+    @DisplayName("Retrying a status exception with a retryable status is allowed")
+    void test_retryableStatusException_isAllowed() {
+        assertThat(filter.test(Status.UNAVAILABLE.asException())).isTrue();
+    }
+
+    @Test
+    @DisplayName("Retrying a status exception with a non-retryable status is not allowed")
+    void test_nonRetryableStatusException_isNotAllowed() {
+        assertThat(filter.test(Status.INVALID_ARGUMENT.asException())).isFalse();
     }
 
     @Test
@@ -64,27 +67,8 @@ class ShowcaseQueryRetryFilterTests {
     }
 
     @Test
-    @DisplayName("Retrying a WebClient request exception is allowed")
-    void test_requestException_isAllowed() {
-        assertThat(filter.test(requestException())).isTrue();
-    }
-
-    @Test
     @DisplayName("Retrying an unrelated exception is not allowed")
     void test_unrelatedException_isNotAllowed() {
         assertThat(filter.test(new IllegalArgumentException("boom"))).isFalse();
-    }
-
-    private static WebClientResponseException responseException(int statusCode) {
-        return WebClientResponseException.create(
-                statusCode, "Status " + statusCode, HttpHeaders.EMPTY, new byte[0], StandardCharsets.UTF_8);
-    }
-
-    private static WebClientRequestException requestException() {
-        return new WebClientRequestException(
-                new IllegalStateException("boom"),
-                HttpMethod.GET,
-                URI.create("http://localhost/streaming-query"),
-                HttpHeaders.EMPTY);
     }
 }

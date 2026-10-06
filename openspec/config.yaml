@@ -10,12 +10,12 @@ context: |
     - showcase-command-service — write side, Axon aggregate, publishes events to Kafka,
       PostgreSQL event store
     - showcase-projection-service — consumes Kafka events, writes projections to OpenSearch
-    - showcase-query-service — read side, queries OpenSearch
+    - showcase-query-service — read side, queries OpenSearch, serves a generic gRPC query transport
     - showcase-api-gateway — REST entry point (/showcases), routes to command/query services
     - showcase-web-ui — React + Vite (Feature-Sliced Design) browser UI, deployed as an nginx image
   Key library modules: showcase-command-api / showcase-query-api (interfaces + testFixtures),
   showcase-command-client / showcase-query-client (reactive clients), showcase-query-proto
-  (Protobuf), showcase-projection-model, showcase-test, showcase-identifier-extension (KSUID),
+  (Protobuf + gRPC), showcase-projection-model, showcase-test, showcase-identifier-extension (KSUID),
   showcase-mapstruct-extension, showcase-resilience4j-extension, platform (Java BOM),
   build-logic (Gradle convention plugins), helm (Helm releases), load-tests (Gatling).
 

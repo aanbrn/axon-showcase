@@ -28,3 +28,24 @@ message QueryRequest {
   // The fully-qualified name of the expected response type.
   string responseType = 7;
 }
+
+// A serialized Axon streaming query response exchanged between services.
+message QueryResponse {
+  // The fully-qualified name of the response payload type.
+  string payloadType = 1;
+
+  // The revision of the response payload type, if set.
+  optional string payloadRevision = 2;
+
+  // The serialized response payload.
+  bytes serializedPayload = 3;
+
+  // The serialized response metadata.
+  bytes serializedMetaData = 4;
+}
+
+// The generic query transport: dispatches a serialized Axon streaming query message and streams its responses.
+service ShowcaseQueryTransport {
+  // Dispatches the query and streams every response produced for it.
+  rpc Dispatch(QueryRequest) returns (stream QueryResponse);
+}

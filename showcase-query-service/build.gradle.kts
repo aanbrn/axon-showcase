@@ -23,6 +23,8 @@ dependencies {
     implementation(libs.spring.boot.starter.webflux)
     implementation(libs.spring.boot.starter.validation)
 
+    implementation(libs.grpc.server.spring.boot.starter)
+
     implementation(libs.spring.data.opensearch.starter) {
         exclude(
             group = libs.opensearch.client.restHighLevel.get().group,
@@ -145,6 +147,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
     environment.putAll(
         mapOf(
             "BPE_DEFAULT_SERVER_PORT" to "8080",
+            "BPE_DEFAULT_GRPC_SERVER_PORT" to "9090",
             "BPE_DEFAULT_DB_HOSTS" to "axon-showcase-db-events",
             "BPE_DEFAULT_OS_URIS" to "http://axon-showcase-os-views:9200",
         )

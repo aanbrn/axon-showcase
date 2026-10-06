@@ -28,6 +28,8 @@ streamex = "0.9.0"
 jgroups = "4.2.32.Final"
 jgroups-kubernetes = "1.0.17.Final"
 protobuf = "4.36.2"
+grpc = "1.84.0"
+grpc-spring-boot-starter = "3.1.0.RELEASE"
 parsson = "1.1.9"
 elasticsearch-client-java = "9.5.4"
 opensearch = "4.1.0"
@@ -56,7 +58,6 @@ hamcrest = "3.0"
 assertj = "3.27.7"
 mockito = "5.24.0"
 testcontainers = "2.0.5"
-wiremock-spring-boot = "4.4.2"
 handlebars = "4.5.5"
 kotlin = "2.4.20"
 errorprone = "2.50.0"
@@ -142,6 +143,11 @@ jgroups = { group = "org.jgroups", name = "jgroups", version.ref = "jgroups" }
 jgroups-kunernetes = { group = "org.jgroups.kubernetes", name = "jgroups-kubernetes", version.ref = "jgroups-kubernetes" }
 protobuf-bom = { group = "com.google.protobuf", name = "protobuf-bom", version.ref = "protobuf" }
 protobuf-java = { group = "com.google.protobuf", name = "protobuf-java" }
+grpc-bom = { group = "io.grpc", name = "grpc-bom", version.ref = "grpc" }
+grpc-netty-shaded = { group = "io.grpc", name = "grpc-netty-shaded" }
+grpc-protobuf = { group = "io.grpc", name = "grpc-protobuf" }
+grpc-stub = { group = "io.grpc", name = "grpc-stub" }
+grpc-server-spring-boot-starter = { group = "net.devh", name = "grpc-server-spring-boot-starter", version.ref = "grpc-spring-boot-starter" }
 parsson = { group = "org.eclipse.parsson", name = "parsson", version.ref = "parsson" }
 testcontainers-bom = { group = "org.testcontainers", name = "testcontainers-bom", version.ref = "testcontainers" }
 testcontainers-junit-jupiter = { group = "org.testcontainers", name = "testcontainers-junit-jupiter" }
@@ -180,7 +186,6 @@ jetty-bom = { group = "org.eclipse.jetty", name = "jetty-bom", version.ref = "je
 jetty-ee10-bom = { group = "org.eclipse.jetty.ee10", name = "jetty-ee10-bom", version.ref = "jetty" }
 netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty-bom" }
 netty-resolver-dnsNativeMacos = { group = "io.netty", name = "netty-resolver-dns-native-macos" }
-wiremock-springBoot = { group = "org.wiremock.integrations", name = "wiremock-spring-boot", version.ref = "wiremock-spring-boot" }
 handlebars = { group = "com.github.jknack", name = "handlebars", version.ref = "handlebars" }
 axon-bom = { group = "org.axonframework", name = "axon-bom", version.ref = "axon-bom" }
 axon-modelling = { group = "org.axonframework", name = "axon-modelling", version.ref = "axon-framework" }

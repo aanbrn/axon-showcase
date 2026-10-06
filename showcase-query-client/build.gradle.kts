@@ -15,7 +15,11 @@ dependencies {
 
     implementation(project(":showcase-query-proto"))
 
-    implementation(libs.spring.boot.starter.webflux)
+    implementation(libs.grpc.netty.shaded)
+
+    implementation(libs.spring.boot.autoconfigure)
+    implementation(libs.jackson2.databind)
+    implementation(libs.jackson2.jsr310)
 
     implementation(libs.hibernate.validator)
 
@@ -63,8 +67,9 @@ testing {
                 implementation(libs.resilience4j.springBoot3)
                 implementation(libs.spring.boot.starter.aop)
                 implementation(libs.spring.boot.starter.test)
-                implementation(libs.spring.boot.starter.webflux)
-                implementation(libs.wiremock.springBoot)
+                implementation(libs.jackson2.databind)
+                implementation(libs.jackson2.jsr310)
+                implementation(libs.grpc.netty.shaded)
             }
 
             targets {

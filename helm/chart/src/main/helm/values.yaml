@@ -456,12 +456,12 @@ queryService:
 
   extraEnvVarsSecret: ""
 
-  # @param queryService.containerPorts.server Application HTTP port
-  # @param queryService.containerPorts.managementServer Actuator HTTP port
+  # @param queryService.containerPorts.managementServer HTTP/management port (the query service has no HTTP API)
+  # @param queryService.containerPorts.grpc gRPC port
   # @param queryService.extraContainerPorts Additional container ports
   containerPorts:
-    server: 8080
     managementServer: 8888
+    grpc: 9090
 
   extraContainerPorts: [ ]
 

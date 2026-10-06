@@ -669,11 +669,21 @@ into `main`, with no bypass actors.
 **A build-file or dependency change costs a one-time full rebuild (~9 min vs ~1 min warm).** `setup-gradle` partitions
 its caches by a hash of the build/dependency configuration (log keys like `gradle-home-v2|Linux-X64|build[<hash>]` and
 `gradle-build-cache-v2-<hash>`), and Gradle build-cache entries are keyed on task inputs — so changing
-`libs.versions.toml` or a `build.gradle.kts` invalidates the compile/test/static-analysis entries for every module. PR
-runs are `cache-read-only: true` (they restore from `main` but never write), so a PR cannot re-warm the cache itself and
-waits for the next push-to-main run; a docs or tiny PR that branches off the updated `main` and builds before that
-re-warm lands pays the full rebuild once (the docs-only #138 raced #137's 10-minute re-warm and took ~9 min instead of
-~1). It self-heals as soon as `main` re-warms — nothing to fix.
+`libs.versions.toml` or a `build.gradle.kts` invalidates the compile/test/static-analysis entries for every module, and
+editing a `build-logic` convention plugin is colder still: `build-logic` is an `includeBuild`, so the plugin jar changes
+and every module's tasks re-execute. PR runs are `cache-read-only: true` (they restore from `main` but never write), so
+a PR cannot re-warm the cache itself and waits for the next push-to-main run; a docs or tiny PR that branches off the
+updated `main` and builds before that re-warm lands pays the full rebuild once (the docs-only #138 raced #137's
+10-minute re-warm and took ~9 min instead of ~1). On the 4-vCPU runner (`org.gradle.parallel=true`, workers = cores) the
+concurrent load can starve a time-sensitive test past its framework-default timeout: `grpc-query-transport` (#514),
+which edited the `protobuf`/`code-check` conventions, failed `ShowcaseRestControllerCT` 38 of 111 deterministically
+across two CI runs, every failure a `TimeoutException` at the `WebTestClient` `.exchange()` (the default 5s), while the
+same suite passed locally with `--rerun`, the runner's `--max-workers=4`, full CPU saturation, and the four
+component-test tasks concurrent. A suite whose subject the change did not change, a stable failure count, and one
+framework-default timeout at the same call point to cold-load timing rather than a code defect: give that slice an
+explicit response timeout (`@AutoConfigureWebTestClient(timeout = "30s")`) instead of changing the subject, and treat a
+local pass as no evidence the CI failure is spurious. The rebuild cost self-heals as soon as `main` re-warms, but the
+test-timing assumption the cold build exposes needs a real fix. captured: grpc-query-transport (#514)
 
 `.github/workflows/deployment-smoke.yml` runs a **deployment smoke** on a nightly schedule and via `workflow_dispatch`:
 it creates a throwaway `kind` cluster in the runner, builds the five images and loads them into it (kind's nodes cannot

@@ -2,35 +2,10 @@
 
 ## Purpose
 
-Documents the current behavior of the read side of the CQRS showcase application: exposing protobuf query endpoints,
-dispatching Axon streaming queries, and searching the `showcases` projection in OpenSearch.
+Documents the current behavior of the read side of the CQRS showcase application: serving the generic gRPC query
+transport, dispatching Axon streaming queries, and searching the `showcases` projection in OpenSearch.
 
 ## Requirements
-
-### Requirement: Query transport and endpoints
-
-The system SHALL expose two HTTP endpoints accepting a protobuf `QueryRequest` body: `POST /streaming-query` returning
-the full response stream, and `POST /query` returning only the first response.
-
-#### Scenario: Streaming query returns the full response stream
-
-- **WHEN** a `POST /streaming-query` request carrying a valid protobuf `QueryRequest` is received
-- **THEN** the system responds with every query response produced for that request
-
-#### Scenario: Query returns only the first response
-
-- **WHEN** a `POST /query` request carrying a valid protobuf `QueryRequest` is received
-- **THEN** the system responds with only the first query response
-
-#### Scenario: Unknown expected response type is rejected
-
-- **WHEN** a `QueryRequest` references a response type that cannot be resolved
-- **THEN** the system rejects the request with a 400 Bad Request and detail "Unknown expected response type"
-
-#### Scenario: Tracing context is propagated to the dispatched query
-
-- **WHEN** a `QueryRequest` is dispatched to the query bus
-- **THEN** the tracing context is propagated with the query message
 
 ### Requirement: Fetch showcase list query
 
@@ -68,88 +43,95 @@ The system SHALL handle `FetchShowcaseListQuery`, optionally filtering by title 
 - **WHEN** a `FetchShowcaseListQuery` with a `size` is dispatched
 - **THEN** the system responds with at most `size` showcases
 
-### Requirement: Fetch showcase by ID query
+### Requirement: Query transport and RPC
 
-The system SHALL handle `FetchShowcaseByIdQuery`, responding with the matching showcase or a NOT_FOUND error when the
-showcase is absent. The system SHALL route every controller method on the bounded-elastic scheduler, so that a query-bus
-`NOT_FOUND` can reach its error translation; without that routing a missing showcase surfaces as a
-`503 Service Unavailable` rather than the `404 Not Found` above.
+The system SHALL expose a generic gRPC `Dispatch(QueryRequest) returns (stream QueryResponse)` RPC that reconstructs the
+Axon streaming query message from the request, dispatches it on the query bus, and streams each response as a
+`QueryResponse` carrying the response type, its revision, the serialized payload, and the serialized metadata.
+
+#### Scenario: Streaming query returns the full response stream
+
+- **WHEN** a `Dispatch` call carrying a valid `QueryRequest` is received
+- **THEN** the system streams every query response produced for that request as a `QueryResponse`
+
+#### Scenario: Each response carries its serialized payload and type
+
+- **WHEN** a query response is streamed
+- **THEN** its `QueryResponse` carries the response payload type, its revision when set, the serialized payload, and the
+  serialized metadata
+
+#### Scenario: Unknown expected response type is rejected
+
+- **WHEN** a `QueryRequest` references a response type that cannot be resolved
+- **THEN** the system fails the call with an `INVALID_ARGUMENT` status and detail "Unknown expected response type"
+
+#### Scenario: Tracing context is propagated to the dispatched query
+
+- **WHEN** a `QueryRequest` is dispatched to the query bus
+- **THEN** the tracing context is propagated with the query message
+
+### Requirement: Fetch showcase by ID handling
+
+The system SHALL handle `FetchShowcaseByIdQuery`, streaming the matching showcase as a `QueryResponse`, or failing the
+call with a `NOT_FOUND` status when the showcase is absent.
 
 #### Scenario: Existing showcase is returned
 
 - **WHEN** a `FetchShowcaseByIdQuery` is dispatched for a showcase ID that exists in the projection
-- **THEN** the system responds with the showcase for that ID
+- **THEN** the system streams the showcase for that ID
 
 #### Scenario: Missing showcase produces NOT_FOUND
 
 - **WHEN** a `FetchShowcaseByIdQuery` is dispatched for a showcase ID that does not exist in the projection
-- **THEN** the system responds with a 404 Not Found problem detail with message "No showcase with given ID"
+- **THEN** the system fails the call with a `NOT_FOUND` status and message "No showcase with given ID"
 
-#### Scenario: A missing showcase is reported as 404 only while the routing is present
+### Requirement: Query payload validation
 
-- **WHEN** a `FetchShowcaseByIdQuery` is dispatched for a showcase ID that does not exist, and controller methods run on
-  the bounded-elastic scheduler
-- **THEN** the system responds with a `404 Not Found` problem detail
-- **AND** if the routing is removed, the same query surfaces as a `503 Service Unavailable` instead
-
-### Requirement: Query validation
-
-The system SHALL route every controller method on the bounded-elastic scheduler, so that inbound requests can be
-validated on the scheduler that carries them, and SHALL validate query payloads against bean validation constraints,
-enabled by default and configurable via the `showcase.query.validation-enabled` property, and SHALL reject invalid
-queries with a 400 Bad Request problem detail whose `fieldErrors` property maps each offending property path to its
-violation messages. The routing SHALL NOT be removed as redundant: without it an invalid query cannot be rejected as a
-`400 Bad Request` and surfaces as a `503 Service Unavailable` instead.
+The system SHALL validate query payloads against bean validation constraints, enabled by default and configurable via
+the `showcase.query.validation-enabled` property, and SHALL reject invalid queries by failing the call with an
+`INVALID_ARGUMENT` status whose `field-errors-bin` trailer maps each offending property path to its violation messages.
 
 #### Scenario: Invalid list query is rejected with property errors
 
 - **WHEN** a `FetchShowcaseListQuery` is dispatched whose payload violates its constraints (for example an `afterId`
   that is not a valid KSUID or a `size` outside 1 to 1000 inclusive) and validation is enabled (the default)
-- **THEN** the system rejects the request with a 400 Bad Request, detail "Given query is not valid", and a `fieldErrors`
-  map of each offending property path to its validation messages
+- **THEN** the system fails the call with an `INVALID_ARGUMENT` status, detail "Given query is not valid", and a
+  `field-errors-bin` trailer of each offending property path to its validation messages
 
 #### Scenario: Invalid by-ID query is rejected with property errors
 
 - **WHEN** a `FetchShowcaseByIdQuery` is dispatched with a `showcaseId` that is not a valid KSUID and validation is
   enabled (the default)
-- **THEN** the system rejects the request with a 400 Bad Request, detail "Given query is not valid", and a `fieldErrors`
-  map of the `showcaseId` property to its validation messages
+- **THEN** the system fails the call with an `INVALID_ARGUMENT` status, detail "Given query is not valid", and a
+  `field-errors-bin` trailer of the `showcaseId` property to its validation messages
 
 #### Scenario: Query violating constraints succeeds when validation is disabled
 
 - **WHEN** a query is dispatched whose payload violates its constraints while `showcase.query.validation-enabled` is set
   to `false`
-- **THEN** the query proceeds to handling without validation, and no 400 Bad Request is produced
+- **THEN** the query proceeds to handling without validation, and no `INVALID_ARGUMENT` status is produced
 
-#### Scenario: Rejection as 400 depends on the request routing
+### Requirement: Query failure translation
 
-- **WHEN** a query whose payload violates its constraints is dispatched with validation enabled and controller methods
-  run on the bounded-elastic scheduler
-- **THEN** the system rejects it with a `400 Bad Request`
-- **AND** if the routing is removed, the same query surfaces as a `503 Service Unavailable` instead
+The system SHALL map query failures to gRPC statuses: data access failures to `UNAVAILABLE`, timeouts to
+`DEADLINE_EXCEEDED`, cancelled calls to the default client status, and unknown errors to `INTERNAL`.
 
-### Requirement: Error translation for query failures
-
-The system SHALL map query failures to structured problem details: data access failures to 503 Service Unavailable,
-timeouts to 504 Gateway Timeout, aborted inbound connections to 408 Request Timeout, and unknown errors to 503 Service
-Unavailable.
-
-#### Scenario: Data access failure produces 503
+#### Scenario: Data access failure produces UNAVAILABLE
 
 - **WHEN** searching the projection fails with a data access error
-- **THEN** the system responds with a 503 Service Unavailable problem detail
+- **THEN** the system fails the call with an `UNAVAILABLE` status
 
-#### Scenario: Timeout produces 504
+#### Scenario: Timeout produces DEADLINE_EXCEEDED
 
 - **WHEN** query handling times out
-- **THEN** the system responds with a 504 Gateway Timeout problem detail and message "Operation timeout exceeded"
+- **THEN** the system fails the call with a `DEADLINE_EXCEEDED` status and message "Operation timeout exceeded"
 
-#### Scenario: Aborted inbound connection produces 408
+#### Scenario: Cancelled call produces the default status
 
-- **WHEN** the inbound connection aborts during query handling
-- **THEN** the system responds with a 408 Request Timeout
+- **WHEN** the caller cancels the call during query handling
+- **THEN** the call ends cancelled with the default client status
 
-#### Scenario: Unknown error produces 503
+#### Scenario: Unknown error produces INTERNAL
 
 - **WHEN** an unhandled error occurs during query handling
-- **THEN** the system responds with a 503 Service Unavailable problem detail
+- **THEN** the system fails the call with an `INTERNAL` status

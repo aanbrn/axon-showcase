@@ -22,9 +22,10 @@ SHALL declare the Bitnami `common` chart as a dependency.
 ### Requirement: Service deployments
 
 The chart SHALL render one Deployment per service (command-service, query-service, projection-service, api-gateway,
-web-ui), each with a single `main` container running the service image, exposing the server, management, and (for
-command-service and api-gateway) JGroups ports, and mounting an empty-dir volume at `/tmp`. The web-ui Deployment runs
-the static web-UI image on its container port (8080) and has no JGroups or management port.
+web-ui), each with a single `main` container running the service image, exposing the server and management ports, the
+JGroups ports for command-service and api-gateway, and, for query-service, the management and gRPC ports (the query
+service has no HTTP API, so its HTTP server is its management server), and mounting an empty-dir volume at `/tmp`. The
+web-ui Deployment runs the static web-UI image on its container port (8080) and has no JGroups or management port.
 
 #### Scenario: Deployment replicas are taken from the replica count
 
@@ -45,8 +46,9 @@ the static web-UI image on its container port (8080) and has no JGroups or manag
 #### Scenario: Container ports are exposed per service
 
 - **WHEN** a service Deployment is rendered
-- **THEN** the container exposes the server port (default 8080) and management port (default 8888), and the JGroups port
-  (default 7800) for command-service and api-gateway; the web-ui container exposes its static-serve port (8080)
+- **THEN** the container exposes the server port (default 8080) and management port (default 8888), the JGroups port
+  (default 7800) for command-service and api-gateway, and the management (default 8888) and gRPC (default 9090) ports
+  for query-service (which exposes no server port); the web-ui container exposes its static-serve port (8080)
 
 #### Scenario: Environment comes from values with defaults
 
@@ -96,7 +98,7 @@ filesystem, all Linux capabilities dropped, and the `RuntimeDefault` seccomp pro
 ### Requirement: Per-service services
 
 The chart SHALL render a Service for each service exposing the server and management ports, except command-service SHALL
-expose only the management port.
+expose only the management port and query-service SHALL expose the management and gRPC ports.
 
 #### Scenario: Command service is not directly reachable
 
@@ -105,8 +107,13 @@ expose only the management port.
 
 #### Scenario: Other services expose server and management ports
 
-- **WHEN** a Service for query-service, projection-service, or api-gateway is rendered
+- **WHEN** a Service for projection-service or api-gateway is rendered
 - **THEN** it exposes both the server port and the management port
+
+#### Scenario: The query service exposes the management and gRPC ports
+
+- **WHEN** the query-service Service is rendered
+- **THEN** it exposes the management port and the gRPC port
 
 ### Requirement: Database migration job
 
@@ -207,9 +214,9 @@ maximum allowed resource bounds.
 ### Requirement: Network policies
 
 The chart SHALL render a NetworkPolicy per service gated by the service's `networkPolicy.enabled` flag (default true),
-restricting ingress to the server and management ports and allowing DNS, same-namespace, OTLP, and Kubernetes API
-egress. The `commandService` and `apiGateway` NetworkPolicies SHALL allow egress to the Kubernetes API so JGroups
-kube-ping discovery can reach the API server.
+restricting ingress to the server and management ports (for query-service, the gRPC and management ports) and allowing
+DNS, same-namespace, OTLP, and Kubernetes API egress. The `commandService` and `apiGateway` NetworkPolicies SHALL allow
+egress to the Kubernetes API so JGroups kube-ping discovery can reach the API server.
 
 #### Scenario: Command and API gateway server ports are open
 
@@ -219,7 +226,8 @@ kube-ping discovery can reach the API server.
 #### Scenario: Projection and query server ports are restricted
 
 - **WHEN** the projection-service or query-service NetworkPolicy is rendered
-- **THEN** the server port accepts ingress only from pods in the same service
+- **THEN** the server port (projection-service) or the gRPC port (query-service) accepts ingress only from pods in the
+  same service
 
 #### Scenario: Management port is restricted
 
@@ -416,15 +424,15 @@ deployment.
 
 ### Requirement: API gateway runtime tuning
 
-The api-gateway Deployment SHALL wire its runtime tuning through environment: the query-service internal URL for read
-routing, two Caffeine query caches (the showcase list and showcase-by-id queries) with size and expiry settings, the
-live event stream's keep-alive interval, and the resilience4j environment for the time limiter, circuit breaker, and
+The api-gateway Deployment SHALL wire its runtime tuning through environment: the query-service internal gRPC target for
+read routing, two Caffeine query caches (the showcase list and showcase-by-id queries) with size and expiry settings,
+the live event stream's keep-alive interval, and the resilience4j environment for the time limiter, circuit breaker, and
 retry, each with defaults and per-service command/query overrides.
 
 #### Scenario: Gateway routes reads to the query service
 
 - **WHEN** an api-gateway container is rendered
-- **THEN** it receives the internal query-service URL for forwarding read requests
+- **THEN** it receives the internal query-service gRPC target for forwarding read requests
 
 #### Scenario: Query caches are tunable
 

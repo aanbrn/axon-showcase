@@ -57,10 +57,12 @@
       slice of the excluded Axon Server connector.
 - [x] 4.2 Refresh `AGENTS.md` and `README.md` for the new transport and the distribution story (commands via JGroups,
       queries via gRPC), and remove any `docs/ideas.md` entry this implements.
-- [ ] 4.3 Refresh the `showcase/clients/query-client` and `showcase/read-side/query-service` `## Purpose` sections in
+- [x] 4.3 Refresh the `showcase/clients/query-client` and `showcase/read-side/query-service` `## Purpose` sections in
       the archive commit (a delta cannot carry a `Purpose`), since both Purposes describe the HTTP/protobuf endpoints
       and problem-detail errors this change removes — including the query-client `Contract source:` line that names the
-      removed `/streaming-query` and `/query` endpoints.
+      removed `/streaming-query` and `/query` endpoints. **Outcome: both Purposes refreshed in the archive commit — the
+      query client's now names the generic gRPC `Dispatch` RPC and drops the `/streaming-query`/`/query` endpoints from
+      its `Contract source:` line; the query service's now names the generic gRPC query transport.**
 
 ## 5. Verification
 

@@ -676,14 +676,16 @@ a PR cannot re-warm the cache itself and waits for the next push-to-main run; a 
 updated `main` and builds before that re-warm lands pays the full rebuild once (the docs-only #138 raced #137's
 10-minute re-warm and took ~9 min instead of ~1). On the 4-vCPU runner (`org.gradle.parallel=true`, workers = cores) the
 concurrent load can starve a time-sensitive test past its framework-default timeout: `grpc-query-transport` (#514),
-which edited the `protobuf`/`code-check` conventions, failed `ShowcaseRestControllerCT` 38 of 111 deterministically
-across two CI runs, every failure a `TimeoutException` at the `WebTestClient` `.exchange()` (the default 5s), while the
-same suite passed locally with `--rerun`, the runner's `--max-workers=4`, full CPU saturation, and the four
-component-test tasks concurrent. A suite whose subject the change did not change, a stable failure count, and one
-framework-default timeout at the same call point to cold-load timing rather than a code defect: give that slice an
-explicit response timeout (`@AutoConfigureWebTestClient(timeout = "30s")`) instead of changing the subject, and treat a
-local pass as no evidence the CI failure is spurious. The rebuild cost self-heals as soon as `main` re-warms, but the
-test-timing assumption the cold build exposes needs a real fix. captured: grpc-query-transport (#514)
+which edited the `protobuf`/`code-check` conventions, saw `ShowcaseRestControllerCT` fail 38 of its 76 cases at the
+default 5s `WebTestClient` timeout, while the same suite passed locally with `--rerun`, the runner's `--max-workers=4`,
+full CPU saturation, and the four component-test tasks concurrent. A suite whose subject the change did not change, a
+stable failure count, and one framework-default timeout at the same call point point to load timing rather than a code
+defect: give that slice an explicit response timeout (`@AutoConfigureWebTestClient(timeout = "30s")`) instead of
+changing the subject, and treat a local pass as no evidence the CI failure is spurious. That raise made the later
+Docker-free PR runs pass but did **not** prevent a failure in a full `check` run, so the mechanism stays an open
+question: `docs/ideas.md` (2026-10-06) records it. The rebuild cost self-heals as soon as `main` re-warms, but the
+test-timing assumption the cold build exposes needs a real fix. captured: grpc-query-transport (#514) captured:
+fix-main-ci-regressions
 
 `.github/workflows/deployment-smoke.yml` runs a **deployment smoke** on a nightly schedule and via `workflow_dispatch`:
 it creates a throwaway `kind` cluster in the runner, builds the five images and loads them into it (kind's nodes cannot
@@ -2689,7 +2691,14 @@ capture-stash-stale-copy
   `jacocoTestCoverageVerification` verifies against a figure below the 0.80 baseline and fails; the gate is added to
   `check` only when `coverage.gate.enabled` is not `false` (`code-coverage-conventions.gradle.kts`). The PR CI gate is
   exactly `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (see Continuous Integration) — run that for a local
-  Docker-free check, not the bare `-PskipITs` form.
+  Docker-free check, not the bare `-PskipITs` form. That form disables the coverage gate exactly as the PR gate does, so
+  it cannot catch a coverage regression: when a change adds production code to a gated module, run that module's `check`
+  with the gate enabled before merging — Docker-free with `-PskipITs` for a module with no integration tests
+  (`./gradlew :showcase-query-proto:check -PskipITs`), or the full `./gradlew check` — since the drop otherwise merges
+  green and reddens the push-to-main full `check` (`grpc-query-transport` (#514) added
+  `QueryMessageMapper.messageToResponse`/`payloadFromResponse` with no module test, `showcase-query-proto` fell to 0.60
+  against 0.80, and every full `check` since failed until a component test covered them). captured:
+  fix-main-ci-regressions
 - **Bumping the Gradle wrapper needs two `wrapper` runs with `--distribution-type all`: the first run only rewrites
   `distributionUrl`, and the second, executing under the new version, regenerates `gradle-wrapper.jar`/`gradlew`/
   `gradlew.bat`.** A single run leaves the jar and scripts at the old version, and a run without the flag flips the

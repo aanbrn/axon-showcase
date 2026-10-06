@@ -13,6 +13,17 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-06
+
+- Explain or eliminate the gateway controller CT's load-sensitive hang — parked; no change yet.
+  `ShowcaseRestControllerCT` failed 38 of its 76 cases with a `TimeoutException` at the `WebTestClient` `.exchange()` at
+  the default 5s timeout; raising the slice's response timeout to 30s made the later Docker-free PR runs pass, but a
+  full `check` run still failed the same 38 of 76 at 30s. Every full `check` run in the window also failed the
+  `showcase-query-proto` coverage gate (0.60 vs 0.80, fixed by this unit's mapper test). So the failure is
+  load-sensitive and its mechanism is unproven: the slice is a `@WebFluxTest` of controller code the change did not
+  touch, and it passes locally even with the runner's worker count, full CPU saturation, and the four component-test
+  tasks concurrent. Needs a run that reproduces it with thread/scheduler diagnostics before another mitigation.
+
 ## 2026-10-05
 
 - Guarantee the weekly reports against a dropped or delayed `schedule` — parked; no change yet. The `schedule:` trigger

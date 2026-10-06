@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.val;
 import org.axonframework.common.IdentifierFactory;
 import org.axonframework.messaging.MetaData;
+import org.axonframework.queryhandling.GenericQueryResponseMessage;
 import org.axonframework.queryhandling.GenericStreamingQueryMessage;
 import org.axonframework.serialization.Revision;
 import org.axonframework.serialization.Serializer;
@@ -98,5 +99,32 @@ class QueryMessageMapperCT {
         assertThat(queryMessage.getPayload()).isEqualTo(payload);
         assertThat(queryMessage.getMetaData()).isEqualTo(metaData);
         assertThat(queryMessage.getResponseType().getExpectedResponseType()).isEqualTo(responseType);
+    }
+
+    @ParameterizedTest
+    @MethodSource("payloadAndMetaDataAndResponseType")
+    @DisplayName("Mapping a query response to a response and back preserves its payload, metadata, and revision")
+    void messageToResponseAndBack(Object payload, MetaData metaData, Class<?> responseType) {
+        val message = new GenericQueryResponseMessage<>(payload).withMetaData(metaData);
+
+        val serializedPayload = messageSerializer.serialize(message.getPayload(), byte[].class);
+        val serializedMetaData = messageSerializer.serialize(message.getMetaData(), byte[].class);
+
+        val mapper = new QueryMessageMapper(messageSerializer);
+        val queryResponse = mapper.messageToResponse(message);
+        assertThat(queryResponse.getPayloadType())
+                .isEqualTo(serializedPayload.getType().getName());
+        assertThat(queryResponse.getSerializedPayload()).isEqualTo(ByteString.copyFrom(serializedPayload.getData()));
+        assertThat(queryResponse.getSerializedMetaData()).isEqualTo(ByteString.copyFrom(serializedMetaData.getData()));
+        if (serializedPayload.getType().getRevision() != null) {
+            assertThat(queryResponse.hasPayloadRevision()).isTrue();
+            assertThat(queryResponse.getPayloadRevision())
+                    .isEqualTo(serializedPayload.getType().getRevision());
+        } else {
+            assertThat(queryResponse.hasPayloadRevision()).isFalse();
+        }
+
+        assertThat(mapper.payloadFromResponse(queryResponse, payload.getClass()))
+                .isEqualTo(payload);
     }
 }

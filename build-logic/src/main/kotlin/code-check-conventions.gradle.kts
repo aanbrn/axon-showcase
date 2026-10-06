@@ -83,6 +83,7 @@ tasks.withType<JavaCompile> {
         options.errorprone {
             check("NullAway", CheckSeverity.ERROR)
             option("NullAway:AnnotatedPackages", "showcase")
+            excludedPaths.set(".*/build/generated/.*")
 
             disable("StringConcatToTextBlock")
             disableWarningsInGeneratedCode = true

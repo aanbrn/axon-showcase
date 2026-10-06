@@ -76,17 +76,17 @@ class ShowcaseApiPropertiesCT {
                         assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofMinutes(5));
                     });
             assertThat(properties.getEvents().getKeepAliveInterval()).isEqualTo(Duration.ofSeconds(15));
-            assertThat(context.getEnvironment().getProperty("showcase.query.api-url"))
-                    .isEqualTo("http://localhost:8083");
+            assertThat(context.getEnvironment().getProperty("showcase.query.target"))
+                    .isEqualTo("dns:///localhost:9090");
         });
 
         ymlContextRunner
                 .withInitializer(context -> context.getEnvironment()
                         .getPropertySources()
                         .addFirst(new SystemEnvironmentPropertySource(
-                                "test-env-vars", Map.of("SHOWCASE_QUERY_SERVICE_URL", "http://override:8080"))))
-                .run(context -> assertThat(context.getEnvironment().getProperty("showcase.query.api-url"))
-                        .isEqualTo("http://override:8080"));
+                                "test-env-vars", Map.of("SHOWCASE_QUERY_SERVICE_TARGET", "dns:///override:9090"))))
+                .run(context -> assertThat(context.getEnvironment().getProperty("showcase.query.target"))
+                        .isEqualTo("dns:///override:9090"));
     }
 
     @ParameterizedTest

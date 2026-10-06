@@ -1,6 +1,6 @@
 {{- /*
 Service for the query service.
-Exposes the HTTP API (reached via the API gateway) and the management port.
+Exposes the management port (actuator) and the gRPC port (reached via the API gateway).
 */ -}}
 {{- $labels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.labels .Values.commonLabels) "context" $) }}
 {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.queryService.podLabels .Values.commonLabels) "context" $) }}
@@ -19,9 +19,9 @@ spec:
   selector: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 4 }}
     app.kubernetes.io/component: query-service
   ports:
-    - name: http
-      port: {{ .Values.queryService.containerPorts.server }}
-      targetPort: {{ .Values.queryService.containerPorts.server }}
     - name: http-management
       port: {{ .Values.queryService.containerPorts.managementServer }}
       targetPort: {{ .Values.queryService.containerPorts.managementServer }}
+    - name: grpc
+      port: {{ .Values.queryService.containerPorts.grpc }}
+      targetPort: {{ .Values.queryService.containerPorts.grpc }}

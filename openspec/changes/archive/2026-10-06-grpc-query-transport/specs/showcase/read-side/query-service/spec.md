@@ -1,47 +1,34 @@
-# showcase/read-side/query-service Specification
+## REMOVED Requirements
 
-## Purpose
+### Requirement: Query transport and endpoints
 
-Documents the current behavior of the read side of the CQRS showcase application: serving the generic gRPC query
-transport, dispatching Axon streaming queries, and searching the `showcases` projection in OpenSearch.
+**Reason**: Replaced by a single generic gRPC RPC exposing the same Axon query messages; the two HTTP endpoints
+(`POST /streaming-query`, `POST /query`) and their JSON response encoding are removed.
 
-## Requirements
+**Migration**: The gateway's query client calls the gRPC `Dispatch` RPC with the same protobuf `QueryRequest`; the
+response stream carries `QueryResponse` messages, and callers that want a single response take the first.
 
-### Requirement: Fetch showcase list query
+### Requirement: Fetch showcase by ID query
 
-The system SHALL handle `FetchShowcaseListQuery`, optionally filtering by title and statuses, sorting results by
-`showcaseId` in descending order, supporting cursor pagination via `afterId` and a bounded page size.
+**Reason**: The requirement fused the by-ID handling with the WebFlux bounded-elastic routing clause, which no longer
+applies to a gRPC handler; the by-ID behavior is restated in `Fetch showcase by ID handling`.
 
-#### Scenario: No filtering returns all showcases sorted by ID descending
+**Migration**: Same handling; a missing showcase surfaces as a gRPC `NOT_FOUND` status instead of a 404 problem detail.
 
-- **WHEN** a `FetchShowcaseListQuery` without title, statuses, or `afterId` is dispatched
-- **THEN** the system responds with all showcases sorted by `showcaseId` in descending order
+### Requirement: Query validation
 
-#### Scenario: Title filter restricts results
+**Reason**: The validation survives, but the WebFlux bounded-elastic routing clause and the 400-problem-detail shape are
+replaced by a gRPC `INVALID_ARGUMENT` status; restated in `Query payload validation`.
 
-- **WHEN** a `FetchShowcaseListQuery` with a `title` is dispatched
-- **THEN** the system responds with only showcases whose title full-text matches the given title
+**Migration**: An invalid query fails the RPC with `INVALID_ARGUMENT` and a `field-errors-bin` trailer.
 
-#### Scenario: Single status filter restricts results
+### Requirement: Error translation for query failures
 
-- **WHEN** a `FetchShowcaseListQuery` with a single `status` is dispatched
-- **THEN** the system responds with only showcases in that status
+**Reason**: The HTTP problem-detail mapping is replaced by gRPC status mapping; restated in `Query failure translation`.
 
-#### Scenario: Multiple statuses filter restrict results
+**Migration**: Failures fail the RPC with the corresponding gRPC status instead of an HTTP problem detail.
 
-- **WHEN** a `FetchShowcaseListQuery` with multiple `statuses` is dispatched
-- **THEN** the system responds with showcases in any of the given statuses
-
-#### Scenario: Cursor pagination returns subsequent showcases
-
-- **WHEN** a `FetchShowcaseListQuery` with an `afterId` is dispatched
-- **THEN** the system responds with showcases that sort after the showcase with that ID, in descending `showcaseId`
-  order
-
-#### Scenario: Page size limits the result count
-
-- **WHEN** a `FetchShowcaseListQuery` with a `size` is dispatched
-- **THEN** the system responds with at most `size` showcases
+## ADDED Requirements
 
 ### Requirement: Query transport and RPC
 

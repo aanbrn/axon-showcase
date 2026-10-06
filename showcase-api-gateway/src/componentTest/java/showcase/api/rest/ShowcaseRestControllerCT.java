@@ -51,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -91,6 +92,7 @@ import showcase.query.ShowcaseQueryException;
 import showcase.query.ShowcaseQueryOperations;
 
 @WebFluxTest(ShowcaseRestController.class)
+@AutoConfigureWebTestClient(timeout = "30s")
 @DisplayName("Showcase API controller component tests")
 class ShowcaseRestControllerCT {
 

@@ -27,35 +27,35 @@ class ShowcaseQueryClientPropertiesCT {
             .withUserConfiguration(PropertiesConfig.class);
 
     @Test
-    @DisplayName("An env-var-form property value binds the query service URL")
-    void envVarFormPropertyBindsApiUrl() {
+    @DisplayName("An env-var-form property value binds the query service target")
+    void envVarFormPropertyBindsTarget() {
         contextRunner
                 .withInitializer(context -> context.getEnvironment()
                         .getPropertySources()
                         .addFirst(new SystemEnvironmentPropertySource(
-                                "test-env-vars", Map.of("SHOWCASE_QUERY_API_URL", "http://query:8080"))))
+                                "test-env-vars", Map.of("SHOWCASE_QUERY_TARGET", "dns:///query:9090"))))
                 .run(context -> assertThat(context.getBean(ShowcaseQueryClientProperties.class)
-                                .getApiUrl())
-                        .isEqualTo("http://query:8080"));
+                                .getTarget())
+                        .isEqualTo("dns:///query:9090"));
     }
 
     @ParameterizedTest
-    @MethodSource("invalidApiUrls")
+    @MethodSource("invalidTargets")
     @DisplayName("An invalid env-var-form property value fails the context")
-    void invalidApiUrlFailsContext(String envValue) {
+    void invalidTargetFailsContext(String envValue) {
         contextRunner
                 .withInitializer(context -> context.getEnvironment()
                         .getPropertySources()
                         .addFirst(new SystemEnvironmentPropertySource(
-                                "test-env-vars", Map.of("SHOWCASE_QUERY_API_URL", envValue))))
+                                "test-env-vars", Map.of("SHOWCASE_QUERY_TARGET", envValue))))
                 .run(context -> {
                     assertThat(context).hasFailed();
                     assertThat(context.getStartupFailure()).hasRootCauseInstanceOf(BindValidationException.class);
                 });
     }
 
-    static List<Arguments> invalidApiUrls() {
-        return List.of(argumentSet("An empty URL", ""), argumentSet("A non-URL value", "not-a-url"));
+    static List<Arguments> invalidTargets() {
+        return List.of(argumentSet("An empty target", ""));
     }
 
     @Configuration

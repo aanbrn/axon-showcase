@@ -19,8 +19,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-@DisplayName("Query message request mapper component tests")
-class QueryMessageRequestMapperCT {
+@DisplayName("Query message mapper component tests")
+class QueryMessageMapperCT {
 
     private record Payload(String value) {}
 
@@ -54,7 +54,7 @@ class QueryMessageRequestMapperCT {
         val serializedPayload = messageSerializer.serialize(message.getPayload(), byte[].class);
         val serializedMetaData = messageSerializer.serialize(message.getMetaData(), byte[].class);
 
-        val queryRequest = new QueryMessageRequestMapper(messageSerializer).messageToRequest(message);
+        val queryRequest = new QueryMessageMapper(messageSerializer).messageToRequest(message);
         assertThat(queryRequest).isNotNull();
         assertThat(queryRequest.getQueryName()).isEqualTo(message.getQueryName());
         assertThat(queryRequest.getQueryIdentifier()).isEqualTo(message.getIdentifier());
@@ -91,7 +91,7 @@ class QueryMessageRequestMapperCT {
         }
         val queryRequest = queryRequestBuilder.build();
 
-        val queryMessage = new QueryMessageRequestMapper(messageSerializer).requestToMessage(queryRequest);
+        val queryMessage = new QueryMessageMapper(messageSerializer).requestToMessage(queryRequest);
         assertThat(queryMessage).isNotNull();
         assertThat(queryMessage.getQueryName()).isEqualTo(queryRequest.getQueryName());
         assertThat(queryMessage.getIdentifier()).isEqualTo(queryRequest.getQueryIdentifier());

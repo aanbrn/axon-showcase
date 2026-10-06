@@ -13,6 +13,16 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-06
+
+- Reconcile the helm-chart NetworkPolicy spec's "same service" wording with what the chart renders — parked; no change
+  yet. The `Network policies` scenarios say the projection-service/query-service server (and gRPC) port, the management
+  port, and the JGroups port accept ingress "only from pods in the same service", but the rendered NetworkPolicy's
+  `from.podSelector` uses `common.labels.matchLabels` (`app.kubernetes.io/name` + `instance`) — every pod of the
+  **release**, not only the service's own pods — so the wording is inaccurate. Surfaced by the `grpc-query-transport`
+  implementation quick review, which found the change's helm delta restating the pre-existing wording unchanged. Routes
+  to the `deployment/helm-chart` spec's `Network policies` scenarios (and the netpol templates' comments).
+
 ## 2026-10-05
 
 - Guarantee the weekly reports against a dropped or delayed `schedule` — parked; no change yet. The `schedule:` trigger

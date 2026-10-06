@@ -120,8 +120,8 @@ spec:
             - name: "SHOWCASE_EVENTS_KEEP_ALIVE_INTERVAL"
               value: {{ .Values.apiGateway.events.keepAliveInterval | quote }}
             # Query service endpoint used to forward read requests.
-            - name: "SHOWCASE_QUERY_SERVICE_URL"
-              value: {{ include "axon-showcase.query-service.url" $ | quote }}
+            - name: "SHOWCASE_QUERY_SERVICE_TARGET"
+              value: {{ include "axon-showcase.query-service.target" $ | quote }}
             # Caffeine caches for the showcase queries.
             - name: "FETCH_SHOWCASE_LIST_QUERY_CACHE_MAX_SIZE"
               value: {{ .Values.apiGateway.caches.FetchShowcaseListQuery.maxSize | int64 | toString | quote }}

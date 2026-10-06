@@ -95,11 +95,14 @@ spec:
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.queryService.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
           env:
-            # Core runtime settings: ports.
+            # Core runtime settings: the query service has no HTTP API, so its reactive server binds the management
+            # port and management shares it (one HTTP server); the gRPC server carries the application traffic.
             - name: "SERVER_PORT"
-              value: {{ .Values.queryService.containerPorts.server | toString | quote }}
+              value: {{ .Values.queryService.containerPorts.managementServer | toString | quote }}
             - name: "MANAGEMENT_SERVER_PORT"
               value: {{ .Values.queryService.containerPorts.managementServer | toString | quote }}
+            - name: "GRPC_SERVER_PORT"
+              value: {{ .Values.queryService.containerPorts.grpc | toString | quote }}
             # OpenSearch read-side connection.
             - name: "OS_URIS"
               value: {{ .Values.osViews.uris | quote }}
@@ -145,12 +148,13 @@ spec:
                 name: {{ include "common.tplvalues.render" (dict "value" .Values.queryService.extraEnvVarsSecret "context" $) }}
             {{- end }}
           {{- end }}
-          # Ports exposed by the container: HTTP API and management.
+          # Ports exposed by the container: management (HTTP) and gRPC. The application HTTP server port is
+          # bound by the reactive server but serves no API, so it is not declared.
           ports:
-            - name: http
-              containerPort: {{ .Values.queryService.containerPorts.server }}
             - name: management
               containerPort: {{ .Values.queryService.containerPorts.managementServer }}
+            - name: grpc
+              containerPort: {{ .Values.queryService.containerPorts.grpc }}
             {{- if .Values.queryService.extraContainerPorts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.queryService.extraContainerPorts "context" $) | nindent 12 }}
             {{- end }}

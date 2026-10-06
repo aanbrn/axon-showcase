@@ -1,38 +1,43 @@
 // SPDX-License-Identifier: MIT
 package showcase.query;
 
+import io.grpc.Status;
+import io.grpc.StatusException;
+import io.grpc.StatusRuntimeException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 /**
  * Decides which exceptions should trigger a retry on the query service.
  */
 final class ShowcaseQueryRetryFilter implements Predicate<Throwable> {
     /**
-     * Returns {@code true} when the exception is retryable, matching retryable HTTP status codes, timeouts, and
-     * WebClient request failures.
+     * Returns {@code true} when the exception is retryable, matching retryable gRPC statuses and timeouts.
      *
      * @param t the exception to examine
      * @return {@code true} if the exception should trigger a retry
      */
     @Override
     public boolean test(Throwable t) {
-        if (t instanceof WebClientResponseException e) {
-            return switch (e.getStatusCode().value()) {
-                case 408, // Request Timeout
-                        425, // Too Early
-                        429, // Too Many Requests
-                        500, // Internal Server Error
-                        502, // Bad Gateway
-                        503, // Service Unavailable
-                        504, // Gateway Timeout
-                        524 // Timeout Occurred
-                -> true;
-                default -> false;
-            };
+        if (t instanceof StatusRuntimeException e) {
+            return isRetryable(e.getStatus().getCode());
         }
-        return t instanceof TimeoutException || t instanceof WebClientRequestException;
+        if (t instanceof StatusException e) {
+            return isRetryable(e.getStatus().getCode());
+        }
+        return t instanceof TimeoutException;
+    }
+
+    /**
+     * Returns whether a gRPC status code is retryable.
+     *
+     * @param code the status code
+     * @return true when the code is retryable
+     */
+    private boolean isRetryable(Status.Code code) {
+        return switch (code) {
+            case UNAVAILABLE, DEADLINE_EXCEEDED, RESOURCE_EXHAUSTED, ABORTED -> true;
+            default -> false;
+        };
     }
 }

@@ -10,6 +10,8 @@ extra["coverage.generatedClassExcludes"] =
     listOf(
         "**/QueryProto*.class",
         "**/QueryRequest*.class",
+        "**/QueryResponse*.class",
+        "**/ShowcaseQueryTransport*.class",
     )
 
 project.description = "Showcase Query Protocol"
@@ -19,6 +21,8 @@ dependencies {
 
     api(libs.axon.messaging)
     api(libs.protobuf.java)
+    api(libs.grpc.protobuf)
+    api(libs.grpc.stub)
 
     implementation(libs.commons.lang3)
 }

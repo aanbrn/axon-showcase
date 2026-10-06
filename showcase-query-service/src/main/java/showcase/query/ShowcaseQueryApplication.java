@@ -136,14 +136,14 @@ class ShowcaseQueryApplication {
     }
 
     /**
-     * Creates the mapper converting query requests to query messages.
+     * Creates the mapper converting query requests and responses to and from their Protobuf representations.
      *
      * @param messageSerializer the message serializer
-     * @return the query message request mapper
+     * @return the query message mapper
      */
     @Bean
-    QueryMessageRequestMapper queryMessageRequestMapper(@Qualifier("messageSerializer") Serializer messageSerializer) {
-        return new QueryMessageRequestMapper(messageSerializer);
+    QueryMessageMapper queryMessageMapper(@Qualifier("messageSerializer") Serializer messageSerializer) {
+        return new QueryMessageMapper(messageSerializer);
     }
 
     /**

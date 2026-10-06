@@ -1,16 +1,4 @@
-# showcase/clients/query-client Specification
-
-## Purpose
-
-Documents the behavior of the showcase query client: a reactive consumer fetching showcases from the query service over
-its generic gRPC query RPC, translating gRPC status errors, and protecting the service with Resilience4j time limiter,
-circuit breaker, and conditional retry over retryable gRPC statuses and operation timeouts.
-
-**Contract source:** the RPC, query types, and error codes this client calls are owned by the `read-side/query-service`
-spec — the generic `Dispatch` RPC, the queries `FetchShowcaseListQuery` and `FetchShowcaseByIdQuery`, and the error
-codes `INVALID_QUERY`, `NOT_FOUND`.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Query operations and endpoints
 
@@ -65,30 +53,24 @@ configured timeout SHALL fail with a timeout error.
 - **WHEN** the query service does not respond within the configured timeout
 - **THEN** the operation fails with a timeout error
 
-### Requirement: Circuit breaker isolation of business errors
+## REMOVED Requirements
 
-The system SHALL treat business errors as circuit breaker failures to ignore: a `ShowcaseQueryException` SHALL NOT count
-toward opening the circuit breaker, while infrastructure failures SHALL.
+### Requirement: Business error translation
 
-#### Scenario: Business error does not open the circuit breaker
+**Reason**: The HTTP problem-detail translation is replaced by gRPC status translation, which no longer maps problem
+details; restated in `Query error translation`.
 
-- **WHEN** a query fails with a `ShowcaseQueryException`
-- **THEN** the circuit breaker is not affected by that failure
+**Migration**: Business errors arrive as gRPC statuses (`INVALID_ARGUMENT` / `NOT_FOUND`) and are mapped to
+`ShowcaseQueryException` with the same error codes.
 
-### Requirement: Automatic resilience configuration
+### Requirement: Client configuration
 
-The system SHALL register, on auto-configuration, the Resilience4j customizers that wire the retry filter and the
-circuit breaker behavior above for the query service, so consumers get the protection without additional setup.
+**Reason**: The property configures an HTTP URL, which no longer fits a gRPC channel; restated in
+`Client target configuration`.
 
-#### Scenario: Retry customizer is registered
+**Migration**: `showcase.query.api-url` becomes `showcase.query.target`, a non-empty gRPC target.
 
-- **WHEN** the query client is auto-configured
-- **THEN** the retry configuration for the query service retries only failures accepted by the retry filter
-
-#### Scenario: Circuit breaker customizer is registered
-
-- **WHEN** the query client is auto-configured
-- **THEN** the circuit breaker configuration for the query service ignores business errors
+## ADDED Requirements
 
 ### Requirement: Query error translation
 

@@ -11,9 +11,6 @@ spring:
     default-property-inclusion: non_null
   web:
     locale: en
-  webflux:
-    problemdetails:
-      enabled: true
   reactor:
     context-propagation: auto
   threads:
@@ -46,6 +43,10 @@ showcase:
     index-initialization-enabled: ${INDEX_INITIALIZATION_ENABLED:true}
     exit-after-index-initialization: ${EXIT_AFTER_INDEX_INITIALIZATION:false}
     validation-enabled: ${SHOWCASE_QUERY_VALIDATION_ENABLED:true}
+
+grpc:
+  server:
+    port: ${GRPC_SERVER_PORT:9090}
 
 server:
   port: 8083

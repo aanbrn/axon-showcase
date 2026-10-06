@@ -25,9 +25,9 @@ spec:
     - Ingress
     - Egress
   ingress:
-    # Allow HTTP traffic on the server port from other pods in the release.
+    # Allow gRPC traffic on the application port from other pods in the release.
     - ports:
-        - port: {{ .Values.queryService.containerPorts.server }}
+        - port: {{ .Values.queryService.containerPorts.grpc }}
       from:
         - podSelector:
             matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 14 }}

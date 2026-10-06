@@ -26,14 +26,14 @@ axon-showcase/
 │   ├── showcase-api-gateway/            # REST entry point (/showcases), SSE live events (/events)
 │   ├── showcase-command-service/        # Write side: Axon aggregate, saga, distributed bus
 │   ├── showcase-projection-service/     # Consumes Kafka, writes read models to OpenSearch
-│   ├── showcase-query-service/          # Read side: queries OpenSearch, Protobuf query API
+│   ├── showcase-query-service/          # Read side: queries OpenSearch, gRPC query transport
 │   └── showcase-web-ui/                 # Standalone browser UI (React + Vite, Feature-Sliced Design)
 ├── API and clients
 │   ├── showcase-command-api/            # Command-side API interfaces
 │   ├── showcase-command-client/         # Reactive command client
 │   ├── showcase-query-api/              # Query-side API interfaces
 │   ├── showcase-query-client/           # Reactive query client
-│   └── showcase-query-proto/            # Protobuf definitions for queries
+│   └── showcase-query-proto/            # Protobuf + gRPC definitions for queries
 ├── Shared libraries
 │   ├── showcase-projection-model/       # Shared query model definitions
 │   ├── showcase-identifier-extension/   # KSUID identifier support
@@ -91,6 +91,9 @@ Scheduled ──(saga deadline: startTime)──► STARTED ──(saga deadline
   its two replicas and the API gateway form one JGroups cluster — peers discover each other through the Kubernetes API
   (KUBE_PING) and commands route across all nodes — so the write side scales out like a real system. Every service can
   be autoscaled (HPA/VPA) and protected with Pod Disruption Budgets.
+- **The read side speaks gRPC.** The gateway reads through the query service over a **generic** gRPC RPC — one method
+  carries any query, and the query service dispatches it on its own `QueryBus`. It fills the distributed-query-bus role
+  **without Axon Server** (see `docs/adr/0017`), just as the command side uses a JGroups command bus.
 - **A real browser UI shows it live.** The React UI renders the event timeline, listens to the SSE stream, and
   reconciles against the eventually-consistent read model — so you see the saga's transitions appear live.
 - **Resilience is built in.** The command and query clients apply **Resilience4j** circuit breakers, time limiters, and
@@ -110,7 +113,7 @@ The application follows **CQRS (Command Query Responsibility Segregation)** with
 | **API Gateway**        | REST entry point (`/showcases`), SSE live events (`/events`)                                |
 | **Command Service**    | Write side: Axon aggregate, saga, distributed command bus (JGroups), PostgreSQL event store |
 | **Projection Service** | Consumes events from Kafka, writes read models to OpenSearch                                |
-| **Query Service**      | Read side: queries OpenSearch, Protobuf query API                                           |
+| **Query Service**      | Read side: queries OpenSearch, gRPC query transport                                         |
 
 ### Event Flow
 
@@ -160,13 +163,14 @@ subscribed browser — all from one `POST /showcases`.
 
 - **Java 21** and **Spring Boot 3.5.16** (a Spring Boot 4 migration is deferred — see `docs/adr/0004`)
 - **Axon Framework** — aggregates, sagas and deadlines, command/query buses, and a **JGroups** distributed command bus;
-  deliberately run **without Axon Server** (a project intention — see `docs/adr/0009`)
+  deliberately run **without Axon Server** (a project intention — see `docs/adr/0009`), with queries crossing to the
+  query service over a generic **gRPC** transport that fills the distributed query bus role (`docs/adr/0017`)
 - **PostgreSQL** — the Axon event store
 - **Apache Kafka** — event streaming between services
 - **OpenSearch** — the read-side projection store
 - **React + Vite + TypeScript** — web UI (TanStack Query, Redux Toolkit, React Hook Form + Zod, Vitest, Playwright),
   Feature-Sliced Design
-- **KSUID** identifiers, **MapStruct** mapping, **Resilience4j** resilience, **Protobuf** inter-service queries
+- **KSUID** identifiers, **MapStruct** mapping, **Resilience4j** resilience, **Protobuf + gRPC** inter-service queries
 - **Helm** + **Kubernetes** — deployment (HPA/VPA/PDB, network policies, ingress)
 - **Prometheus / Grafana / Tempo** — metrics, a custom observability dashboard, and distributed tracing (in the
   Kubernetes deployment)
@@ -528,7 +532,7 @@ with `bootRun` while the infrastructure stays in Docker:
 ./gradlew :showcase-api-gateway:bootRun        # :8080
 ./gradlew :showcase-command-service:bootRun    # :8081
 ./gradlew :showcase-projection-service:bootRun # :8082
-./gradlew :showcase-query-service:bootRun      # :8083
+./gradlew :showcase-query-service:bootRun      # :8083 (gRPC :9090)
 ```
 
 Each service runs on its own HTTP port. The web UI runs on the Vite dev server (hot reload, proxies `/showcases` and
@@ -580,9 +584,11 @@ curl "http://localhost:8080/showcases?title=My&status=SCHEDULED&size=10"
 curl http://localhost:8080/showcases/{showcaseId}
 ```
 
-The query service also exposes two Protobuf endpoints (`/query` and `/streaming-query`, `application/x-protobuf`),
-consumed by the query-client (`showcase-query-client`) for inter-service communication — the gateway queries the query
-service through that client, which in turn queries OpenSearch.
+The query service exposes a single **generic gRPC RPC** (`ShowcaseQueryTransport.Dispatch`, with
+`QueryRequest → stream QueryResponse`) on port `9090`, consumed by the query-client (`showcase-query-client`) for
+inter-service communication — the gateway queries the query service through that client over gRPC, which in turn queries
+OpenSearch. The RPC is name-routed and carries any Axon query, so it stands in for Axon's distributed query bus without
+Axon Server (see `docs/adr/0017`).
 
 ## Development Practices
 

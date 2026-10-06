@@ -199,10 +199,11 @@ and trimmed of a trailing dash after truncation.
 {{- end }}
 
 {{- /*
-Internal HTTP URL of the query service (used by the API gateway to route requests).
+Internal gRPC target of the query service (used by the API gateway to route read requests).
 */ -}}
-{{- define "axon-showcase.query-service.url" }}
-    {{- printf "http://%s:%d" (include "axon-showcase.query-service.fullname" $) (.Values.queryService.containerPorts.server | int) }}
+{{- define "axon-showcase.query-service.target" }}
+    {{- $grpcPort := .Values.queryService.containerPorts.grpc | int }}
+    {{- printf "dns:///%s:%d" (include "axon-showcase.query-service.fullname" $) $grpcPort }}
 {{- end }}
 
 {{- define "axon-showcase.api-gateway.fullname" }}

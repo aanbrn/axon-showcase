@@ -27,6 +27,7 @@ import showcase.projection.ShowcaseEntity;
 @SpringBootTest
 @AutoConfigureWebTestClient
 @Testcontainers
+@TestPropertySource(properties = "grpc.server.port=0")
 @DisplayName("Showcase query application integration tests")
 class ShowcaseQueryApplicationIT {
 
@@ -82,7 +83,7 @@ class ShowcaseQueryApplicationIT {
     }
 
     @Nested
-    @TestPropertySource(properties = "showcase.query.index-initialization-enabled=false")
+    @TestPropertySource(properties = {"grpc.server.port=0", "showcase.query.index-initialization-enabled=false"})
     @DisplayName("When index initialization is disabled")
     class IndexInitializationDisabled {
 
@@ -98,7 +99,7 @@ class ShowcaseQueryApplicationIT {
     }
 
     @Nested
-    @TestPropertySource(properties = "showcase.query.exit-after-index-initialization=true")
+    @TestPropertySource(properties = {"grpc.server.port=0", "showcase.query.exit-after-index-initialization=true"})
     @DisplayName("When exit after index initialization is enabled")
     class ExitAfterIndexInitialization {
 

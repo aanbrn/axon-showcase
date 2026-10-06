@@ -607,9 +607,9 @@ run:
 - **Unit** (`src/test/java`, suffix `Tests`): the subject under test is isolated — its collaborators are mocks/fakes, no
   Spring context. Verifies single-class logic (e.g. `KsuidIdentifierFactoryTests`).
 - **Component** (`src/componentTest/java`, suffix `CT`): the subject is composed with real, in-process collaborators —
-  real serializers, Axon `AggregateTestFixture`/`SagaTestFixture`, or a Spring context with WireMock — but external
-  infrastructure is never started. Verifies a component behaves correctly against its real neighbors (e.g.
-  `QueryMessageRequestMapperCT`, `ShowcaseAggregateCT`, `ShowcaseQueryClientCT`).
+  real serializers, Axon `AggregateTestFixture`/`SagaTestFixture`, or a Spring context with a stubbed remote call — but
+  external infrastructure is never started. Verifies a component behaves correctly against its real neighbors (e.g.
+  `QueryMessageMapperCT`, `ShowcaseAggregateCT`, `ShowcaseQueryClientCT`).
 - **Integration** (`src/integrationTest/java`, suffix `IT`): real external infrastructure via Testcontainers
   (PostgreSQL, Kafka, OpenSearch). Verifies services against the real things they talk to. A dependency bump of a
   runtime-path library is verified **here**: a same-major release can be binary-incompatible with another pinned library
@@ -617,12 +617,12 @@ run:
   changed `Hit.matchedQueries()`'s return type, which `spring-data-opensearch` 2.x's `DocumentAdapters.from` calls — so
   run the full `check` with integration tests before reporting such a bump done. captured: bump-dependencies-2026-09-25
 - **End-to-end** (`src/e2eTest/java`, suffix `E2E`): a real deployed system is booted and exercised against all-real
-  collaborators, transport-independent — HTTP for the gateway/query-service, the distributed command bus (JGroups) for
-  the command-service. The gateway e2e boots the full four-service pipeline and verifies cross-service propagation over
-  the full command → Kafka → projection → query pipeline (e.g. `ShowcaseApiGatewayE2E`). The web UI e2e
-  (`showcase-web-ui/e2e`, Playwright) boots the same pipeline via docker compose and drives the browser against it:
-  create → appears, start → STARTED, saga auto-start reflected over SSE, live events appended to the timeline, and a
-  duplicate title surfacing the gateway validation error.
+  collaborators, transport-independent — HTTP for the gateway's client-facing API, gRPC for the gateway → query-service
+  read path, the distributed command bus (JGroups) for the command-service. The gateway e2e boots the full four-service
+  pipeline and verifies cross-service propagation over the full command → Kafka → projection → query pipeline (e.g.
+  `ShowcaseApiGatewayE2E`). The web UI e2e (`showcase-web-ui/e2e`, Playwright) boots the same pipeline via docker
+  compose and drives the browser against it: create → appears, start → STARTED, saga auto-start reflected over SSE, live
+  events appended to the timeline, and a duplicate title surfacing the gateway validation error.
 
 **DB scripts** — before running the command-service standalone (outside Docker), ensure the PostgreSQL event store is
 initialized:
@@ -816,7 +816,7 @@ CQRS with four services and a web UI:
 
 - **showcase-command-service** — write side, publishes events to Kafka, uses PostgreSQL event store
 - **showcase-projection-service** — consumes Kafka events, writes projections to OpenSearch
-- **showcase-query-service** — read side, queries OpenSearch
+- **showcase-query-service** — read side, queries OpenSearch, serves the generic gRPC query transport (`Dispatch`)
 - **showcase-api-gateway** — REST entry point (`/showcases`), routes to command/query services; also exposes the live
   event stream over SSE (`/events`) and applies CORS for the web UI origin
 - **showcase-web-ui** — standalone browser UI (React + Vite, Feature-Sliced Design) that browses and drives showcases
@@ -827,7 +827,7 @@ Key modules (libraries, not services):
 
 - `showcase-command-api` / `showcase-query-api` — API interfaces; their testFixtures are used by clients and services
 - `showcase-command-client` / `showcase-query-client` — reactive clients for remote services
-- `showcase-query-proto` — Protobuf definitions for query side
+- `showcase-query-proto` — Protobuf + gRPC definitions for the query side
 - `showcase-projection-model` — shared query model definitions
 - `showcase-test` — shared test utilities
 - `showcase-identifier-extension` — KSUID identifier support
@@ -895,8 +895,11 @@ Key modules (libraries, not services):
   test that still passes. A refactor can silently stop a test from exercising its subject: a function moved into a new
   module needs its tests moved with it (deleting the old test file left a re-created four-case event→predicate mapping
   with two cases covered), and a negative test driving a captured mock callback must assert the callback was captured —
-  `callback?.()` no-ops when the wiring is absent, so the assertion passes vacuously. captured:
-  propagate-ui-trace-context (#362) captured: rethink-web-ui-reconciliation
+  `callback?.()` no-ops when the wiring is absent, so the assertion passes vacuously. An error-translation chain must be
+  tested by driving the whole method, not only its branches: `ShowcaseQueryTransportService.translate` re-mapped its own
+  `INVALID_ARGUMENT` output to `INTERNAL` because the default arm caught the `StatusRuntimeException` the chain had just
+  produced, and the per-branch cases were all green — only the component test exercising `dispatch` end to end saw it.
+  captured: propagate-ui-trace-context (#362) captured: rethink-web-ui-reconciliation captured: grpc-query-transport
 - **Spring bean mocks in tests**: use `@MockitoBean` (from `org.springframework.test.context.bean.override.mockito`),
   not the deprecated-for-removal `@MockBean` (`org.springframework.boot.test.mock.mockito`), which has been deprecated
   since Spring Boot 3.4
@@ -915,15 +918,15 @@ Key modules (libraries, not services):
   `-XX:+AllowRedefinitionToAddDeleteMethods` and `-XX:+EnableDynamicAgentLoading` (e.g. the query-client `componentTest`
   and the gateway `e2eTest` suites); leave them off suites that don't (e.g. a `componentTest` with only an
   `ApplicationContextRunner` test)
-- **The WebFlux blocking-execution routing in the gateway and query-service is load-bearing — do not remove it as a
-  BlockHound band-aid.** Both services route every controller method to the bounded-elastic scheduler; removing it
-  reddens the error and validation paths (the gateway's invalid payloads become `500` instead of `400`; the
-  query-service's invalid/missing queries become `503` instead of `400`/`404`) with zero BlockHound hits either way. The
-  rules and the measured evidence live in the specs that own the outcomes — `gateway/rest-api`
-  (`Command error translation`, `Query error translation`) and `read-side/query-service` (`Query validation`,
-  `Fetch showcase by ID query`) — and in `design.md` of the change that moved them there
+- **The WebFlux blocking-execution routing in the gateway is load-bearing — do not remove it as a BlockHound band-aid.**
+  Every controller method routes to the bounded-elastic scheduler; removing it reddens the error and validation paths
+  (the gateway's invalid payloads become `500` instead of `400`) with zero BlockHound hits either way. The rules and the
+  measured evidence live in the spec that owns the outcome — `gateway/rest-api` (`Command error translation`,
+  `Query error translation`) — and in `design.md` of the change that moved them there
   (`extract-specd-rationale-from-agents-md`). Do not read the `@WebFluxTest` component-scan the routing forces as
-  removable complexity.
+  removable complexity. The query service carried the same routing until its HTTP controller was replaced by the generic
+  gRPC transport (`grpc-query-transport`), which is why its error and validation outcomes are gRPC statuses now rather
+  than HTTP problem details.
 - **Asserting log output**: use `OutputCaptureExtension` (`CapturedOutput`) when the code under test runs **in the test
   JVM** (e.g. `ShowcaseProjectorIT`'s projector logging, `ShowcaseRestControllerCT`'s gateway fallback logging). It
   cannot capture a separate process's output — to assert a **containerized** service's logs (the code-under-test runs in
@@ -1132,7 +1135,11 @@ Key modules (libraries, not services):
   exception" and "Argument 'frame.data()' might be null" — and the intermediate
   `assertThat(frame).extracting(ServerSentEvent::data).isNull()` still warns ("Function may return null, but it's not
   allowed here"); assert through the holder instead — `assertThat(frame).matches(f -> f.data() == null)` — which is
-  clean. captured: keep-sse-stream-alive (#301)
+  clean. When an IDE inspection and a checkstyle rule demand opposite shapes, the checkstyle gate decides:
+  `UnusedLocalVariable` fails a `switch` arm whose pattern variable is unused (`case TimeoutException ex ->` with `ex`
+  unread), while `IfCanBeSwitch` warns on the `if (x instanceof …)` chain that avoids the binding — give every binding a
+  use (the timeout arm logs it) rather than contorting the code for an advisory inspection. captured:
+  keep-sse-stream-alive (#301) captured: grpc-query-transport
 - **Vision subagent for screenshot review**: the main agent runs on the cheap flash model (text-only); a `vision`
   subagent (`.opencode/agent/vision.md`) is pinned to `opencode-go/deepseek-v4-flash-vision-exp` to read screenshots.
   When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent — it inherits the
@@ -1524,7 +1531,7 @@ docker compose up -d
 # Run services individually (each on separate port)
 ./gradlew :showcase-api-gateway:bootRun        # :8080
 ./gradlew :showcase-command-service:bootRun     # :8081
-./gradlew :showcase-query-service:bootRun       # :8083
+./gradlew :showcase-query-service:bootRun       # :8083 (gRPC :9090)
 ./gradlew :showcase-projection-service:bootRun  # :8082
 
 # Web UI (Vite dev server, proxies /showcases and /events to :8080)
@@ -1541,10 +1548,12 @@ deployed web UI at `http://localhost:8084` (its image is the nginx-built
 for UI development.
 
 **Ports:** the HTTP ports (`server.port` in each service's `application.yml`) are the API Gateway `8080`, Command
-Service `8081`, Query Service `8083`, Projection Service `8082`. In `docker-compose.yml`, the published `8000`–`8003`
-mappings are **JVM debug ports** (`BPL_DEBUG_PORT`), not the services' HTTP ports — only the API Gateway publishes its
-HTTP port (`8080`); the other services' HTTP ports are reachable only via the Docker network or `bootRun`. The web UI is
-published on `8084` (its container nginx port is `8080`; `stub_status` metrics on `9090`).
+Service `8081`, Query Service `8083`, Projection Service `8082`. The query service **additionally** serves the generic
+gRPC query transport on `9090` (`grpc.server.port`); its `server.port` (`8083`) now serves only the actuator, since the
+query service has no HTTP API. In `docker-compose.yml`, the published `8000`–`8003` mappings are **JVM debug ports**
+(`BPL_DEBUG_PORT`), not the services' HTTP ports — only the API Gateway publishes its HTTP port (`8080`); the other
+services' HTTP ports are reachable only via the Docker network or `bootRun`. The web UI is published on `8084` (its
+container nginx port is `8080`; `stub_status` metrics on `9090`).
 
 The `docker-conventions` plugin adds `compose*` Gradle tasks that wrap Docker Compose and set `PROJECT_VERSION` + image
 versions automatically (also `composeBuildAndUp`, `composeBuildAndRestart`): `./gradlew composeUp`,
@@ -2111,19 +2120,24 @@ capture-stash-stale-copy
   suppress-braces-npm-advisory
 - **Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
   `implementation`-only dependencies** — each suite re-declares what it needs (client component suites duplicate
-  axon/opensearch/wiremock/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be
-  referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g.
+  axon/opensearch/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be referenced in
+  `shouldRunAfter(...)` only when bound as a `val` (e.g.
   `val integrationTest = suites.register<JvmTestSuite>("integrationTest")`). Source sets are siblings — `src/test/java`
   cannot see a type declared in `src/gatling/java`, while both see `main` — so a pure-logic type a unit test and a
   custom source set both need belongs in the module's `main` source set. captured: check-load-test-drift
-- **A `project(...)` dependency a module does not use can still be load-bearing for a consumer — narrowing it can break
-  a downstream `compileJava`.** Before removing or narrowing a `project(...)` dependency, grep the consumers' sources
-  for what they actually import and compile the affected modules; an unused direct dependency may be carrying the
-  transitive one a consumer's main source needs. Worked case: `showcase-query-api` held
-  `api(project(":showcase-command-api"))` only for `showcase.identifier.KSUID`; narrowing it to
-  `api(project(":showcase-identifier-extension"))` (`narrow-query-api-dependency`) broke `:showcase-query-client`'s main
-  compile, because `ShowcaseQueryClientProperties` imports `org.hibernate.validator.constraints.URL` and had been
-  receiving it through `command-api`'s `api(libs.hibernate.validator)` — that consumer now declares it.
+- **A dependency a module does not use can still be load-bearing — narrowing a `project(...)` dependency can break a
+  downstream `compileJava`, and removing a starter drops the modules it transitively provided.** Before removing or
+  narrowing a dependency, grep the consumers' sources for what they actually import and compile the affected modules; an
+  unused direct dependency may be carrying the transitive one a consumer's main source needs. Worked case:
+  `showcase-query-api` held `api(project(":showcase-command-api"))` only for `showcase.identifier.KSUID`; narrowing it
+  to `api(project(":showcase-identifier-extension"))` (`narrow-query-api-dependency`) broke `:showcase-query-client`'s
+  main compile, because `ShowcaseQueryClientProperties` imports `org.hibernate.validator.constraints.URL` and had been
+  receiving it through `command-api`'s `api(libs.hibernate.validator)` — that consumer now declares it. The same holds
+  for an external starter: removing `spring-boot-starter-webflux` from `showcase-query-client` silently removed the
+  `jackson-datatype-jsr310` it had provided, and `JacksonSerializer.defaultSerializer()` failed at test-class init with
+  `NoClassDefFoundError: JavaTimeModule` — name every module a removed starter was providing, declare it explicitly
+  (`jackson-databind`, `jackson-datatype-jsr310`), and run the module's tests, not only `compileJava`. captured:
+  grpc-query-transport
 - `@Nested` test classes are incompatible with Spring Boot slice tests (`@WebFluxTest`/`@WebMvcTest`): nested classes
   load the full application context instead of the slice and fail on infrastructure beans (e.g. the gateway's JGroups
   `DistributedCommandBusProperties`). Keep slice-test classes flat (see `ShowcaseRestControllerCT`).
@@ -2139,11 +2153,11 @@ capture-stash-stale-copy
   item granularity: the `retro-mark-captured-rules` provenance sweep derived each rule's line range with a boundary
   heuristic that treated a top-level plain `- Text` bullet directly after a bold-lead rule as the rule's continuation.
   Three such adjacencies exist in `AGENTS.md` (`A buildpack pin is verified…`,
-  `palantir-java-format does not manage imports`, `A project(...) dependency…`), and the second rule's range ran through
-  the eight plain bullets behind it — so both the `git log -L` range an origin was read from and the line the
-  `captured:` marker was appended to belonged to the wrong item, and the marker landed on the following bullet. Derive
-  an item's end from the list's own structure (a wrapped continuation is indented; a `- ` at column zero starts a new
-  item) and have any script that ranges over or appends to items assert that boundary itself — no marker on a plain
+  `palantir-java-format does not manage imports`, `A dependency a module does not use…`), and the second rule's range
+  ran through the eight plain bullets behind it — so both the `git log -L` range an origin was read from and the line
+  the `captured:` marker was appended to belonged to the wrong item, and the marker landed on the following bullet.
+  Derive an item's end from the list's own structure (a wrapped continuation is indented; a `- ` at column zero starts a
+  new item) and have any script that ranges over or appends to items assert that boundary itself — no marker on a plain
   bullet (the pre-commit guard enforces this), and place every marker at the end of the rule it names — before trusting
   the result. captured: retro-mark-captured-rules The same range-boundary hazard bites source: removing three tasks'
   private comparators with a range running from the first deleted member to the end of the file took each class's
@@ -2336,11 +2350,12 @@ capture-stash-stale-copy
   condition; the PR's test plan records the review catching it). Check a recorded _mechanism_ against every measurement
   the change made, not only against other docs: name the evidence points the explanation must cover and confirm the
   wording holds for each, because a generalization one of your own runs contradicts is wrong however well it reads. The
-  blocking-execution mechanism has two evidence points — the gateway's not-found test passing (its `fetchById` is
-  stubbed, so the handler maps the error directly) and the query-service's failing (`404` → `503`, because its error
-  comes off the dispatched query bus) — so a wording covering only one contradicts the other; both are recorded in
-  `design.md` of `extract-specd-rationale-from-agents-md`, which moved the rule into the specs it belongs to. captured:
-  record-blocking-execution-rationale (#335)
+  blocking-execution mechanism's evidence point is the gateway's not-found test passing (its `fetchById` is stubbed, so
+  the handler maps the error directly); the query-service's mirror (`404` → `503`) went with its HTTP controller
+  (`grpc-query-transport`), so a second evidence point must be re-derived rather than cited from memory. Both the
+  surviving evidence point and the removed one are recorded in `design.md` of `extract-specd-rationale-from-agents-md`,
+  which moved the rule into the specs it belongs to. captured: record-blocking-execution-rationale (#335) captured:
+  grpc-query-transport
 - **A durable artifact may assert only what the repository can evidence — a history that lives only in the conversation
   is not repo history.** An earlier draft of this bullet cited a `/var/folders/**` config attempt — a pattern proposed
   in conversation but never written to a config file — and asserted an unobserved `setup-hosts.sh` outcome; a review
@@ -2467,9 +2482,12 @@ capture-stash-stale-copy
   frontend `check` never builds the production bundle — `vite build` is reached only by `build`/`assemble`/`e2eTest`
   (`check` depends on lint/format-check/type-check/Vitest) — so a bump that touches a bundle-path package, `vite` most
   of all, must also run `./gradlew :showcase-web-ui:build` and confirm the bundle emits (a `vite` patch bump can break
-  it while `check` stays green). captured: test-build-logic-rules-and-unify-version-comparison (#306) captured:
-  monitor-web-ui-npm-dependencies (#395) captured: bump-gradle-and-web-ui-dependencies captured:
-  bump-web-ui-npm-2026-10-05
+  it while `check` stays green). A **dependency's last usage** takes the same sweep: remove its catalog entry and grep
+  the docs and build files for its name in the same change — after WireMock was removed from its last consumer, its dead
+  `wiremock-spring-boot` catalog entry and two `AGENTS.md` examples naming it had to follow, since an unused catalog
+  entry is resolved by no configuration and no update check reports it. captured:
+  test-build-logic-rules-and-unify-version-comparison (#306) captured: monitor-web-ui-npm-dependencies (#395) captured:
+  bump-gradle-and-web-ui-dependencies captured: bump-web-ui-npm-2026-10-05 captured: grpc-query-transport
 - **A CLI warning dismissed as noise can report a live defect — a config is unverified until its own read path is
   probed, whoever consumes it (a tool or the repository's own build), and a warning no gate reads is not a check.**
   `openspec/config.yaml` declared per-artifact rules for four artifacts, but two items contained an unquoted `: `, so

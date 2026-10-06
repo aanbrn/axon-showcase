@@ -227,19 +227,19 @@ egress to the Kubernetes API so JGroups kube-ping discovery can reach the API se
 
 - **WHEN** the projection-service or query-service NetworkPolicy is rendered
 - **THEN** the server port (projection-service) or the gRPC port (query-service) accepts ingress only from pods in the
-  same service
+  release
 
 #### Scenario: Management port is restricted
 
 - **WHEN** any service NetworkPolicy is rendered
-- **THEN** the management port accepts ingress only from same-service pods and, when configured, from pods carrying the
-  release client label (`addExternalClientAccess`), pods matching `ingressPodMatchLabels`, pods in namespaces and pods
-  matching `ingressManagementNSMatchLabels`/`ingressManagementNSPodMatchLabels`, and any extra ingress rules
+- **THEN** the management port accepts ingress only from pods in the release and, when configured, from pods carrying
+  the release client label (`addExternalClientAccess`), pods matching `ingressPodMatchLabels`, pods in namespaces and
+  pods matching `ingressManagementNSMatchLabels`/`ingressManagementNSPodMatchLabels`, and any extra ingress rules
 
 #### Scenario: JGroups traffic is limited to the cluster
 
 - **WHEN** the command-service or api-gateway NetworkPolicy is rendered
-- **THEN** the JGroups port accepts ingress only from same-service pods carrying the `jgroups-cluster: axon-showcase`
+- **THEN** the JGroups port accepts ingress only from pods in the release carrying the `jgroups-cluster: axon-showcase`
   label
 
 #### Scenario: DNS and same-namespace egress are allowed

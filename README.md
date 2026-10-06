@@ -63,12 +63,14 @@ The domain is deliberately simple — a "showcase" is a scheduled, timed event w
 plumbing does with it_:
 
 ```mermaid
-%%{init: {"flowchart": {"diagramPadding": 160}}}%%
+%%{init: {"flowchart": {"diagramPadding": 230}}}%%
 flowchart LR
-    SCHEDULED([SCHEDULED]) -->|"saga deadline: startTime"| STARTED([STARTED])
-    STARTED -->|"saga deadline: +duration"| FINISHED([FINISHED])
-    SCHEDULED -.->|"REMOVED (any time)"| REMOVED([REMOVED])
-    FINISHED -.-> REMOVED
+    subgraph lifecycle["REMOVED (any time)"]
+        direction LR
+        SCHEDULED([SCHEDULED]) -->|"saga deadline: startTime"| STARTED([STARTED])
+        STARTED -->|"saga deadline: +duration"| FINISHED([FINISHED])
+    end
+    lifecycle -.-> REMOVED([REMOVED])
 ```
 
 <details>
@@ -76,8 +78,8 @@ flowchart LR
 
 ```
 Scheduled ──(saga deadline: startTime)──► STARTED ──(saga deadline: +duration)──► FINISHED
-    │                                                                              │
-    └────────────────────────────── REMOVED (any time) ────────────────────────────┘
+    │                                                                                │
+    └────────────────────────────── REMOVED (any time) ──────────────────────────────┘
 ```
 
 </details>

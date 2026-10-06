@@ -115,8 +115,11 @@ artifacts, and the diff — or abandon the unit; do not layer another special ca
 the change was single-sourcing: each round finds another residue of the duplicate the pointer should have removed
 because the edit trimmed the sub-clause that round named; replace the whole duplicated unit in one edit and derive what
 stays at the pointing site from that site's own subject, not from the finding. captured:
-single-source-the-scheduled-audit-mechanism A revert after a non-converging loop is a legitimate outcome — record why in
-the change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362) captured:
+single-source-the-scheduled-audit-mechanism A third shape is a rule's own boundary wording: a discriminator that reads
+plausibly but excludes the very case it was written for must be re-derived from the mechanism that distinguishes the
+cases — not merely re-worded — and tested against that motivating case before its wording is swept across the artifact
+set. captured: relax-diagram-span-rule A revert after a non-converging loop is a legitimate outcome — record why in the
+change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362) captured:
 realistic-load-test-profiles captured: check-load-test-drift captured: check-unique-cron-schedules (#436)
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
@@ -1158,9 +1161,9 @@ Key modules (libraries, not services):
   Playwright MCP, captures the screenshot into its own context, reads it, and returns a description, while the main
   session stays on the cheap model. This auto-routes vision work without manual model switching.
 - **Diagrammer subagent for ASCII and Mermaid diagrams**: the main agent (the cheap flash model) is weak at diagram work
-  — ASCII geometry (alignment, bracket spans) and Mermaid's constructs and rendering pitfalls (a span has no `flowchart`
-  equivalent; a wide diagram's rightmost node hides under GitHub's control toolbar) each repeatedly cost extra effort
-  and review cycles. A `diagrammer` subagent (`.opencode/agent/diagrammer.md`) is pinned to
+  — ASCII geometry (alignment, bracket spans) and Mermaid's constructs and rendering pitfalls (spans have no native
+  `flowchart` construct; a wide diagram's rightmost node hides under GitHub's control toolbar) each repeatedly cost
+  extra effort and review cycles. A `diagrammer` subagent (`.opencode/agent/diagrammer.md`) is pinned to
   `opencode-go/deepseek-v4-pro` to draw and fix diagrams in both media — ASCII for plain text (e.g. the README project
   tree or a diagram's plain-text fallback), Mermaid for a Markdown host that renders it (e.g. a README flow diagram).
   Delegate to it via the `/diagram` command: it establishes the semantic mapping (which span ends where) before
@@ -2216,15 +2219,18 @@ capture-stash-stale-copy
 - **A diagram's geometry and content encode semantics — do not normalize a deliberate asymmetry, and re-derive a redrawn
   diagram from the code it depicts.** The README's OpenSpec-flow diagram marks two ranges rather than steps —
   `human approves` spans Propose→Merge and `delta spec → main spec` ends one node earlier at Archive. Mermaid cannot
-  draw span brackets: nested subgraphs do express the extents, but Mermaid bottom-aligns the outer subgraph's title in a
-  fixed ~20 px band so it collides with the inner subgraph's border, a dashed arrow asserts a transition that does not
-  exist, and a block diagram's bars left the terminal node under GitHub's toolbar. So the graphical diagram states the
-  ranges inline (the gates labelled `you approve`, the archive hop `delta spec → main spec`) and its plain-text fallback
-  mirrors that inline chain. A cleanup pass that aligned the body pipes to the full width flattened the two spans'
-  distinction and had to be reverted by the user. When a diagram (or any doc) has been hand-edited, treat an asymmetry
-  as intentional until you verify what each element is meant to start and end at — ask rather than "fixing" it, and
-  never regenerate over a human edit without diffing against it. Redrawing a diagram into a new medium makes the old
-  diagram a starting point, not the contract — re-derive its content from the code or config it depicts: the Mermaid
+  draw two overlapping brackets over one run: nested subgraphs do express the extents, but Mermaid bottom-aligns the
+  outer subgraph's title in a fixed ~20 px band so it collides with the inner subgraph's border, a dashed arrow asserts
+  a transition that does not exist, and a block diagram's bars left the terminal node under GitHub's toolbar. So the
+  graphical diagram states the ranges inline (the gates labelled `you approve`, the archive hop
+  `delta spec → main spec`) and its plain-text fallback mirrors that inline chain. That is the overlapping case; a
+  **single** range over a run is drawn as one **non-nested** labelled subgraph — the README lifecycle groups
+  `SCHEDULED`/`STARTED`/`FINISHED` under `REMOVED (any time)` with one dashed edge to the `REMOVED` state, because a
+  single bracket has nothing to collide with. A cleanup pass that aligned the body pipes to the full width flattened the
+  two spans' distinction and had to be reverted by the user. When a diagram (or any doc) has been hand-edited, treat an
+  asymmetry as intentional until you verify what each element is meant to start and end at — ask rather than "fixing"
+  it, and never regenerate over a human edit without diffing against it. Redrawing a diagram into a new medium makes the
+  old diagram a starting point, not the contract — re-derive its content from the code or config it depicts: the Mermaid
   lifecycle conversion added a `STARTED --> REMOVED` edge that matched neither the ASCII it replaced nor
   `ShowcaseAggregate`, where a started showcase is finished before it is removed. Update the diagram's plain-text
   `<details>` fallback in the same edit, since nothing gates that second copy and it drifted on exactly that edge. A
@@ -2234,9 +2240,13 @@ capture-stash-stale-copy
   scales a too-wide diagram to full width, hiding its rightmost node or label (`mermaid-js/mermaid#7117`, closed, no
   config fix) — a local `mermaid-cli` render cannot show this, so reproduce it on the live GitHub render (Playwright)
   and reserve ~120 px of right-hand space with `%%{init: {"flowchart": {"diagramPadding": …}}}%%` (`stateDiagram-v2` has
-  no `diagramPadding`, so a paddable state diagram becomes a flowchart). A flow too wide to read once padded cannot be
-  wrapped by a `direction LR` subgraph — Mermaid ignores a subgraph's `direction` when it has outside edges — so stay
-  wide, go vertical, or shed nodes. captured: mermaid-event-flow-draft
+  no `diagramPadding`, so a paddable state diagram becomes a flowchart). A single, non-nested `direction LR` subgraph is
+  honoured when its outside edge leaves the subgraph itself (`subgraph_id -.-> X`, as the README lifecycle's
+  `lifecycle -.-> REMOVED` does — verified against `@mermaid-js/mermaid-cli@11.17.0`: its three states lay out
+  horizontally with the directive and stack vertically without). A **member node's** edge to outside the subgraph is
+  what an earlier note here described: Mermaid then ignores the subgraph's `direction` and inherits the parent's, so
+  wrapping a wide flow whose members link outward does not re-orient it — stay wide, go vertical, or shed nodes.
+  captured: mermaid-event-flow-draft
 - **Verify documented infrastructure/deployment numbers against the config files, not memory.** The README rewrite
   claimed "the API gateway's two replicas" (only `commandService.replicaCount` is 2 in
   `helm/values/axon-showcase/values-local.yaml`; the gateway defaults to 1), "36 panels" (the raw top-level count, row

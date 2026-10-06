@@ -36,9 +36,13 @@ ASCII; a Markdown host that renders fenced `mermaid` blocks (e.g. GitHub) gets M
 **Mermaid render rules:**
 
 - **Pick the diagram type and constructs for the mapping** — `flowchart` for a process, `sequenceDiagram` for
-  interactions, `stateDiagram-v2` for a lifecycle. Prefer the simplest construct that carries the meaning; never fake a
-  range annotation with a transition or a nested labelled subgraph (a bracket span has no `flowchart` equivalent — state
-  the range inline instead).
+  interactions, `stateDiagram-v2` for a lifecycle. Prefer the simplest construct that carries the meaning. A **single**
+  range over a run is drawn as **one non-nested labelled subgraph** — its border is the bracket and its title the label
+  (the README's showcase lifecycle groups `SCHEDULED`/`STARTED`/`FINISHED` under "REMOVED (any time)" with one dashed
+  edge to the `REMOVED` state) — and its `direction` is honoured when the outside edge leaves the subgraph itself (a
+  member node's edge to outside makes Mermaid ignore the `direction` and inherit the parent's). **Overlapping or nested
+  ranges** over the same run cannot each get a bracket (Mermaid bottom-aligns an outer subgraph's title into the inner
+  border), so they are stated inline as edge labels, never faked with a transition or a **nested** subgraph.
 - **Keep the content clear of the host renderer's controls.** GitHub pins a control toolbar to the right edge of every
   Mermaid diagram and scales a wide diagram to the column, so its rightmost node lands under the toolbar; reserve
   right-hand space (e.g. `%%{init: {"flowchart": {"diagramPadding": …}}}%%`, which `stateDiagram-v2` lacks). The

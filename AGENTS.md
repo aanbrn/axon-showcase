@@ -2691,7 +2691,14 @@ capture-stash-stale-copy
   `jacocoTestCoverageVerification` verifies against a figure below the 0.80 baseline and fails; the gate is added to
   `check` only when `coverage.gate.enabled` is not `false` (`code-coverage-conventions.gradle.kts`). The PR CI gate is
   exactly `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (see Continuous Integration) — run that for a local
-  Docker-free check, not the bare `-PskipITs` form.
+  Docker-free check, not the bare `-PskipITs` form. That form disables the coverage gate exactly as the PR gate does, so
+  it cannot catch a coverage regression: when a change adds production code to a gated module, run that module's `check`
+  with the gate enabled before merging — Docker-free with `-PskipITs` for a module with no integration tests
+  (`./gradlew :showcase-query-proto:check -PskipITs`), or the full `./gradlew check` — since the drop otherwise merges
+  green and reddens the push-to-main full `check` (`grpc-query-transport` (#514) added
+  `QueryMessageMapper.messageToResponse`/`payloadFromResponse` with no module test, `showcase-query-proto` fell to 0.60
+  against 0.80, and every full `check` since failed until a component test covered them). captured:
+  fix-main-ci-regressions
 - **Bumping the Gradle wrapper needs two `wrapper` runs with `--distribution-type all`: the first run only rewrites
   `distributionUrl`, and the second, executing under the new version, regenerates `gradle-wrapper.jar`/`gradlew`/
   `gradlew.bat`.** A single run leaves the jar and scripts at the old version, and a run without the flag flips the

@@ -1060,12 +1060,14 @@ Key modules (libraries, not services):
   the flat `showcase-web-ui/eslint.config.js`, since the original plugin is unmaintained and does not support ESLint
   9/10) on every `showcase-web-ui` source file (the project is MIT licensed; see the LICENSE file)
 - **Javadoc**: classes, methods, and fields carry a Javadoc comment describing their purpose (see
-  `ShowcaseApiErrorResolver`, `ShowcaseRestController`); wrap at 120 characters. The `showcase-web-ui` uses JSDoc the
-  same way: exported components, hooks, and helpers carry a `/** ... */` comment describing their purpose (e.g.
-  `ShowcasesPage`, `contextualTime`, `useShowcaseReconciliation`); both wrap at 120 characters. The rule covers every
-  declaration in a file you touch, not only the one a review named: adding a class to an existing `build-logic` or Java
-  file puts the enclosing type and its private helpers in scope too, so sweep each touched file's declarations in the
-  same pass. captured: check-agents-install-commands
+  `ShowcaseApiErrorResolver`, `ShowcaseRestController`); where a `@Nullable` field's `null` encodes a domain state
+  rather than "unknown", state what `null` means and why a live instance cannot be `null` (`ShowcaseSaga.showcaseStatus`
+  is `null` only once the showcase is removed); wrap at 120 characters. The `showcase-web-ui` uses JSDoc the same way:
+  exported components, hooks, and helpers carry a `/** ... */` comment describing their purpose (e.g. `ShowcasesPage`,
+  `contextualTime`, `useShowcaseReconciliation`); both wrap at 120 characters. The rule covers every declaration in a
+  file you touch, not only the one a review named: adding a class to an existing `build-logic` or Java file puts the
+  enclosing type and its private helpers in scope too, so sweep each touched file's declarations in the same pass.
+  captured: check-agents-install-commands captured: document-saga-status-removed-marker
 - **Frontend (`showcase-web-ui`)**: organized per Feature-Sliced Design (`app`/`pages`/`widgets`/`features`/`entities`/
   `shared`, importing only downward and only through a slice's public API — a sibling-slice import needs a declared `@x`
   cross-import API; `eslint-plugin-boundaries` enforces the direction and the public-API rule in the lint gate; `@/`

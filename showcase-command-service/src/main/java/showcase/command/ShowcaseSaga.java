@@ -27,7 +27,11 @@ import org.jspecify.annotations.Nullable;
 @Slf4j
 public class ShowcaseSaga {
     /**
-     * The current lifecycle status of the showcase, if known.
+     * The current lifecycle status of the showcase, or {@code null} once the showcase has been removed.
+     *
+     * <p>A live saga is never {@code null} here, since the saga is started by a {@link ShowcaseScheduledEvent} that
+     * sets {@link ShowcaseStatus#SCHEDULED}. Removal clears the status, and the deadline handlers treat a {@code null}
+     * status as "nothing to do".
      */
     @Nullable
     private ShowcaseStatus showcaseStatus;

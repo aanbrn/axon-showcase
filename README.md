@@ -140,8 +140,7 @@ The application follows **CQRS (Command Query Responsibility Segregation)** with
 ### Event Flow
 
 ```mermaid
-%%{init: {"flowchart": {"diagramPadding": 230}}}%%
-flowchart LR
+flowchart TB
     Client([Client])
     GW[API Gateway]
     CS[Command Service]
@@ -167,10 +166,39 @@ flowchart LR
 <summary>Plain-text version (for renderers without Mermaid)</summary>
 
 ```
-Write: Client → API Gateway → Command Service → (Kafka) → Projection Service → OpenSearch
-                              └─ Axon event store (PostgreSQL)                     │
-Read:  Client → API Gateway → Query Service → OpenSearch ◄─────────────────────────┘
-SSE:   Command Service → (Kafka) → Gateway /events → Client
+                       ┌───────────────────┐
+╎╌╌╌╌╌SSE /events╌╌╌╌╌►│       Client      │
+╎                      └───────────────────┘
+╎                                │ POST /showcases
+╎                                ▼
+╎                      ┌───────────────────┐
+╎╌╌╌events for SSE╌╌╌╌►│    API Gateway    │
+╎                      └───────────────────┘
+╎                                │
+╎              ┌─────────────────┴─────────────────┐
+╎  command     │                                   │ query
+╎              ▼                                   ▼
+╎    ┌───────────────────┐               ┌───────────────────┐
+╎    │  Command Service  │               │   Query Service   │
+╎    └───────────────────┘               └───────────────────┘
+╎              │ events                            │ search
+╎              ├─────────────────────┐             │
+╎              │                     │ persists    │
+╎              ▼                     ▼             │
+╎    ┌───────────────────┐ ┌───────────────────┐   │
+╎╌╌╌╌│       Kafka       │ │     PostgreSQL    │   │
+     └───────────────────┘ │    event store    │   │
+               │ events    └───────────────────┘   │
+               ▼                                   │
+     ┌───────────────────┐                         │
+     │ Projection Service│                         │
+     └───────────────────┘                         │
+               │ read model                        │
+               └─────────────────┬─────────────────┘
+                                 ▼
+                       ┌───────────────────┐
+                       │     OpenSearch    │
+                       └───────────────────┘
 ```
 
 </details>
@@ -228,21 +256,44 @@ it before contributing.
 Every change flows through the same loop:
 
 ```mermaid
-%%{init: {"flowchart": {"nodeSpacing": 28, "rankSpacing": 40, "diagramPadding": 230}}}%%
-flowchart LR
-    Idea --> Explore --> Propose
-    Propose -->|"you approve"| Apply
-    Apply -->|"you approve"| PR
-    PR -->|"CI green"| Archive
-    Archive -->|"delta spec → main spec"| Merge
+%%{init: {"flowchart": {"nodeSpacing": 18}}}%%
+flowchart TB
+    subgraph r1[" "]
+        direction LR
+        Idea --> Explore --> Propose
+    end
+    subgraph r2[" "]
+        direction LR
+        Apply -->|"approve"| PR -->|"CI green"| Archive
+    end
+    subgraph r3[" "]
+        direction LR
+        Merge
+    end
+    r1 -->|"approve"| r2
+    r2 -->|"spec → main"| r3
+    style r1 fill:none,stroke:none
+    style r2 fill:none,stroke:none
+    style r3 fill:none,stroke:none
 ```
 
 <details>
 <summary>Plain-text version (for renderers without Mermaid)</summary>
 
 ```
-Idea ──► Explore ──► Propose ──(you approve)──► Apply ──(you approve)──► PR
-     ──(CI green)──► Archive ──(delta spec → main spec)──► Merge
+┌─────────┐            ┌─────────┐            ┌─────────┐
+│   Idea  │───────────►│ Explore │───────────►│ Propose │
+└─────────┘            └─────────┘            └─────────┘
+                                                   │ approve
+     ▼─────────────────────────────────────────────┘
+┌─────────┐            ┌─────────┐            ┌─────────┐
+│  Apply  │──approve──►│    PR   │─CI green──►│ Archive │
+└─────────┘            └─────────┘            └─────────┘
+                                                   │ spec → main
+                            ▼──────────────────────┘
+                       ┌─────────┐
+                       │  Merge  │
+                       └─────────┘
 ```
 
 </details>

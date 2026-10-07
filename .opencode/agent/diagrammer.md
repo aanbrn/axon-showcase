@@ -30,6 +30,9 @@ ASCII; a Markdown host that renders fenced `mermaid` blocks (e.g. GitHub) gets M
 - **Preserve deliberate asymmetry**: two brackets with different right edges are often intentional (e.g. one span ends
   at Archive, another at Merge). Do not "normalize" different-width brackets to the same width — that flattens the
   meaning. Treat an existing asymmetry as meaningful until proven otherwise.
+- **Derive a fallback from its Mermaid**: when the ASCII is a plain-text fallback for a Mermaid diagram, enumerate that
+  Mermaid's node, edge, and label list and carry every edge — direction and label — before drawing, rather than
+  hand-authoring from the picture; a hand-authored fallback silently drops labels nothing gates.
 - **Verify before returning**: re-measure every line's left/right box characters and the annotation-vs-node alignment,
   and report the alignment check alongside the diagram.
 
@@ -42,11 +45,12 @@ ASCII; a Markdown host that renders fenced `mermaid` blocks (e.g. GitHub) gets M
   makes Mermaid ignore the `direction` and inherit the parent's). **Overlapping or nested ranges** over the same run
   cannot each get a bracket (Mermaid bottom-aligns an outer subgraph's title into the inner border), so they are stated
   inline as edge labels, never faked with a transition or a **nested** subgraph.
-- **Keep the content clear of the host renderer's controls.** GitHub pins a control toolbar to the right edge of every
-  Mermaid diagram and scales a wide diagram to the column, so its rightmost node lands under the toolbar; reserve
-  right-hand space (e.g. `%%{init: {"flowchart": {"diagramPadding": …}}}%%`, which `stateDiagram-v2` lacks). The
-  repository's pitfalls are recorded in the `AGENTS.md` bullet "**A diagram's geometry and content encode semantics…**"
-  — read it before choosing an approach.
+- **Keep the content clear of the host renderer's controls.** GitHub renders Mermaid in a `viewscreen` iframe that caps
+  the SVG at its natural width (a wider one scales down to the fluid column) and centers it, with a control toolbar
+  overlaid on the right edge; `diagramPadding` reserves only symmetric margins, so keep the diagram's natural width
+  under the column (a vertical `TB` layout for a wide pipeline, or a compact multi-row grid for a wide chain) rather
+  than padding it. The repository's pitfalls are recorded in the `AGENTS.md` bullet "**A diagram's geometry and content
+  encode semantics…**" — read it before choosing an approach.
 - **Verify before returning**: render the source once with `mermaid-cli`
   (`npx @mermaid-js/mermaid-cli@11 -i <file>.mmd -o <file>.svg`) and confirm it parses and lays out as intended; report
   that check alongside the diagram.

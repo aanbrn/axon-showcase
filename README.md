@@ -63,26 +63,46 @@ The domain is deliberately simple — a "showcase" is a scheduled, timed event w
 plumbing does with it_:
 
 ```mermaid
-%%{init: {"flowchart": {"diagramPadding": 230}}}%%
-flowchart LR
-    subgraph lifecycle["REMOVED (any time)"]
-        direction LR
-        SCHEDULED([SCHEDULED]) -->|"saga deadline: startTime"| STARTED([STARTED])
-        STARTED -->|"saga deadline: +duration"| FINISHED([FINISHED])
-    end
-    lifecycle -.-> REMOVED([REMOVED])
+flowchart TB
+    SCHEDULED([SCHEDULED]) -->|"user: start"| STARTED([STARTED])
+    SCHEDULED -.->|"saga deadline: startTime"| STARTED
+    STARTED -->|"user: finish"| FINISHED([FINISHED])
+    STARTED -.->|"saga deadline: +duration"| FINISHED
+    SCHEDULED -->|"user: remove"| REMOVED([REMOVED])
+    STARTED -->|"user: remove<br/>(finishes first)"| REMOVED
+    FINISHED -->|"user: remove"| REMOVED
 ```
 
 <details>
 <summary>Plain-text version (for renderers without Mermaid)</summary>
 
 ```
-Scheduled ──(saga deadline: startTime)──► STARTED ──(saga deadline: +duration)──► FINISHED
-    │                                                                                │
-    └────────────────────────────── REMOVED (any time) ──────────────────────────────┘
+      ┌───────────────┐
+      │   SCHEDULED   │───────────────┐
+      └───────┬───────┘               │
+              │ user: start           │
+              │ ┄ saga: startTime     │
+      ┌───────────────┐               │
+      │    STARTED    │───────────────┤
+      └───────┬───────┘               │
+              │ user: finish          │
+              │ ┄ saga: +duration     │
+      ┌───────────────┐               │
+      │    FINISHED   │───────────────┤
+      └───────────────┘               │
+                                      │  user: remove
+                                      │  (a started showcase is
+                                      │  finished before removal)
+              ┌───────────────────────┘
+              ▼
+      ┌───────────────┐
+      │    REMOVED    │
+      └───────────────┘
 ```
 
 </details>
+
+You can also drive the lifecycle by hand — start or finish a showcase before the saga does, or remove it at any time.
 
 - **The saga runs the show.** When you schedule a showcase, an Axon **saga** (in `ShowcaseSaga`) sets a deadline to
   start it at the scheduled time, then another to finish it after the configured duration. You can schedule a showcase

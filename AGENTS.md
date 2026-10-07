@@ -186,23 +186,24 @@ detour — a full propose→apply→verify cycle for a chart-default its labels 
 implementation alternatives but never questioning the premise; the premise, and why it collapses, are in the `*-client`
 pod-labels bullet below. Verify the current state's rationale against the repo — grep for consumers, read the values and
 their comments, check `git log` for the introducing change — and record it in the design's Context; treat "this looks
-redundant" as a hypothesis to verify, not a justification to remove. Before proposing a mechanism (an auditor, a check,
-a workflow, a scan) **or asserting in the premise that the repo lacks a rule**, grep `docs/ideas.md` for a parked
-design, the spec corpus and archived changes for an existing requirement **or a recorded decision about it — including a
-`skip_specs` decision not to spec it**, and `docs/adr/` for an Accepted decision the design would implement or
-contradict — an ADR's Decision is normative, so designing a relaxation past it is a premise error, not a design choice —
-and the artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier the same session
-may already have added it. A parked idea, a spec'd capability, or an Accepted ADR is the design to adopt, not re-derive;
-a false absence claim runs a whole propose cycle on the wrong premise and duplicates what exists. `add-readme-auditor`'s
-planning proposed widening `agents-auditor` past the parked `readme-auditor` idea the repo already had, caught by the
-owner rather than a gate; an `enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import
-rule that ADR-0013's Accepted Decision already forbade, caught by a reviewer. Before treating a spec change as owed,
-read the spec's **existing** wording for the behavior the code implements — the contract may already state it, in which
-case the fix is code→spec alignment, not a spec rewrite. `#455`'s `scripts/doctor.sh` classified the repo-state checks
-as `required` while `showcase/quality/toolchain-check` already carried the exit contract ("unsatisfied prerequisites for
-the **default build-and-test path**") and only ever had the hooks _reported_, so the defect was a classification chosen
-in the code and never written into the spec. captured: spec-cache-fallback-failed-fetch-contract captured:
-enforce-web-ui-import-boundaries captured: classify-repo-state-checks
+redundant" as a hypothesis to verify, not a justification to remove. Before designing the change — proposing a mechanism
+(an auditor, a check, a workflow, a scan), **reworking an existing artifact**, or asserting in the premise that the repo
+lacks a rule — grep `docs/ideas.md` for a parked design, the spec corpus and archived changes for an existing
+requirement **or a recorded decision about it — including a `skip_specs` decision not to spec it and a recent change's
+Non-Goal**, and `docs/adr/` for an Accepted decision the design would implement or contradict — an ADR's Decision is
+normative, so designing a relaxation past it is a premise error, not a design choice — and the artifact you are editing
+at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier the same session may already have added it. A
+parked idea, a spec'd capability, or an Accepted ADR is the design to adopt, not re-derive; a false absence claim runs a
+whole propose cycle on the wrong premise and duplicates what exists. `add-readme-auditor`'s planning proposed widening
+`agents-auditor` past the parked `readme-auditor` idea the repo already had, caught by the owner rather than a gate; an
+`enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import rule that ADR-0013's Accepted
+Decision already forbade, caught by a reviewer. Before treating a spec change as owed, read the spec's **existing**
+wording for the behavior the code implements — the contract may already state it, in which case the fix is code→spec
+alignment, not a spec rewrite. `#455`'s `scripts/doctor.sh` classified the repo-state checks as `required` while
+`showcase/quality/toolchain-check` already carried the exit contract ("unsatisfied prerequisites for the **default
+build-and-test path**") and only ever had the hooks _reported_, so the defect was a classification chosen in the code
+and never written into the spec. captured: spec-cache-fallback-failed-fetch-contract captured:
+enforce-web-ui-import-boundaries captured: classify-repo-state-checks captured: rework-readme-lifecycle-diagram
 
 **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's own
 prior reconciliation.** ADR-0002 makes the Java `@ConfigurationProperties` the surface that owns a property's default,
@@ -1161,7 +1162,11 @@ Key modules (libraries, not services):
   subagent (`.opencode/agent/vision.md`) is pinned to `opencode-go/deepseek-v4-flash-vision-exp` to read screenshots.
   When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent — it inherits the
   Playwright MCP, captures the screenshot into its own context, reads it, and returns a description, while the main
-  session stays on the cheap model. This auto-routes vision work without manual model switching.
+  session stays on the cheap model. This auto-routes vision work without manual model switching. Treat its description
+  as a claim, not a measurement — it reported a diagram label clipped across repeated renders while a measurement found
+  no overflow, so verify a clipping claim by measuring the text against its box (`getComputedTextLength()` for SVG text;
+  a label `div`'s `scrollWidth` vs its `foreignObject` width), not the vision report. captured:
+  rework-readme-lifecycle-diagram
 - **Diagrammer subagent for ASCII and Mermaid diagrams**: the main agent (the cheap flash model) is weak at diagram work
   — ASCII geometry (alignment, bracket spans) and Mermaid's constructs and rendering pitfalls (spans have no native
   `flowchart` construct; a wide diagram's rightmost node hides under GitHub's control toolbar) each repeatedly cost
@@ -2226,29 +2231,31 @@ capture-stash-stale-copy
   a transition that does not exist, and a block diagram's bars left the terminal node under GitHub's toolbar. So the
   graphical diagram states the ranges inline (the gates labelled `you approve`, the archive hop
   `delta spec → main spec`) and its plain-text fallback mirrors that inline chain. That is the overlapping case; a
-  **single** range over a run is drawn as one **non-nested** labelled subgraph — the README lifecycle groups
-  `SCHEDULED`/`STARTED`/`FINISHED` under `REMOVED (any time)` with one dashed edge to the `REMOVED` state, because a
-  single bracket has nothing to collide with. A cleanup pass that aligned the body pipes to the full width flattened the
-  two spans' distinction and had to be reverted by the user. When a diagram (or any doc) has been hand-edited, treat an
-  asymmetry as intentional until you verify what each element is meant to start and end at — ask rather than "fixing"
-  it, and never regenerate over a human edit without diffing against it. Redrawing a diagram into a new medium makes the
-  old diagram a starting point, not the contract — re-derive its content from the code or config it depicts: the Mermaid
-  lifecycle conversion added a `STARTED --> REMOVED` edge that matched neither the ASCII it replaced nor
-  `ShowcaseAggregate`, where a started showcase is finished before it is removed. Update the diagram's plain-text
-  `<details>` fallback in the same edit, since nothing gates that second copy and it drifted on exactly that edge. A
-  `mermaid` fence is un-gated by Spotless, so render it and have the `vision` subagent read the render — node shapes and
-  edge-label attribution are only visible there (a duplicate edge label and an SSE label on the wrong hop survived a
-  text read of the source). GitHub then overlays the diagram with a control toolbar on its right edge (~100 px wide) and
-  scales a too-wide diagram to full width, hiding its rightmost node or label (`mermaid-js/mermaid#7117`, closed, no
-  config fix) — a local `mermaid-cli` render cannot show this, so reproduce it on the live GitHub render (Playwright)
-  and reserve ~120 px of right-hand space with `%%{init: {"flowchart": {"diagramPadding": …}}}%%` (`stateDiagram-v2` has
-  no `diagramPadding`, so a paddable state diagram becomes a flowchart). A single, non-nested `direction LR` subgraph is
-  honoured when its outside edge leaves the subgraph itself (`subgraph_id -.-> X`, as the README lifecycle's
-  `lifecycle -.-> REMOVED` does — verified against `@mermaid-js/mermaid-cli@11.17.0`: its three states lay out
-  horizontally with the directive and stack vertically without). A **member node's** edge to outside the subgraph is
-  what an earlier note here described: Mermaid then ignores the subgraph's `direction` and inherits the parent's, so
-  wrapping a wide flow whose members link outward does not re-orient it — stay wide, go vertical, or shed nodes.
-  captured: mermaid-event-flow-draft
+  **single** range over a run is drawn as one **non-nested** labelled subgraph — its border is the bracket and its title
+  the label, because a single bracket has nothing to collide with. A cleanup pass that aligned the body pipes to the
+  full width flattened the two spans' distinction and had to be reverted by the user. When a diagram (or any doc) has
+  been hand-edited, treat an asymmetry as intentional until you verify what each element is meant to start and end at —
+  ask rather than "fixing" it, and never regenerate over a human edit without diffing against it. Redrawing a diagram
+  into a new medium makes the old diagram a starting point, not the contract — re-derive its content from the code or
+  config it depicts: the Mermaid lifecycle conversion scoped the removal annotation to one edge
+  (`SCHEDULED -.->|"REMOVED (any time)"| REMOVED`) though the ASCII bracket it replaced spanned every state and
+  `ShowcaseAggregate` accepts removal from any state (a started showcase is finished before removal). Update the
+  diagram's plain-text `<details>` fallback in the same edit, since nothing gates that second copy and it drifted on
+  exactly that edge. A `mermaid` fence is un-gated by Spotless, so render it and have the `vision` subagent read the
+  render — node shapes and edge-label attribution are only visible there (a duplicate edge label and an SSE label on the
+  wrong hop survived a text read of the source). GitHub then overlays the diagram with a control toolbar on its right
+  edge (~100 px wide) and scales a too-wide diagram to full width, hiding its rightmost node or label
+  (`mermaid-js/mermaid#7117`, closed, no config fix) — a local `mermaid-cli` render cannot show this, so reproduce it on
+  the live GitHub render (Playwright) and reserve ~120 px of right-hand space with
+  `%%{init: {"flowchart": {"diagramPadding": …}}}%%` (`stateDiagram-v2` has no `diagramPadding`, so a paddable state
+  diagram becomes a flowchart). The reserve is only for a diagram whose natural width reaches the column: a wide `LR`
+  diagram is scaled to full width, while a narrow vertical `TB` diagram is narrower than the column and never reaches
+  the toolbar, so padding only widens it. A single, non-nested `direction LR` subgraph is honoured when its outside edge
+  leaves the subgraph itself (`subgraph_id -.-> X` — verified against `@mermaid-js/mermaid-cli@11.17.0`: a three-state
+  subgraph lays out horizontally with the directive and stacks vertically without). A **member node's** edge to outside
+  the subgraph is what an earlier note here described: Mermaid then ignores the subgraph's `direction` and inherits the
+  parent's, so wrapping a wide flow whose members link outward does not re-orient it — stay wide, go vertical, or shed
+  nodes. captured: mermaid-event-flow-draft captured: rework-readme-lifecycle-diagram
 - **Verify documented infrastructure/deployment numbers against the config files, not memory.** The README rewrite
   claimed "the API gateway's two replicas" (only `commandService.replicaCount` is 2 in
   `helm/values/axon-showcase/values-local.yaml`; the gateway defaults to 1), "36 panels" (the raw top-level count, row

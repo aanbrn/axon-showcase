@@ -2224,38 +2224,42 @@ capture-stash-stale-copy
   columns and the `#` comments end up misaligned. Measure with a decoded string (`len(line[:idx]) + 1` in Python) and
   align every comment to the longest entry (the tree's target column 42 is set by `showcase-resilience4j-extension/`).
 - **A diagram's geometry and content encode semantics — do not normalize a deliberate asymmetry, and re-derive a redrawn
-  diagram from the code it depicts.** The README's OpenSpec-flow diagram marks two ranges rather than steps —
-  `human approves` spans Propose→Merge and `delta spec → main spec` ends one node earlier at Archive. Mermaid cannot
-  draw two overlapping brackets over one run: nested subgraphs do express the extents, but Mermaid bottom-aligns the
-  outer subgraph's title in a fixed ~20 px band so it collides with the inner subgraph's border, a dashed arrow asserts
-  a transition that does not exist, and a block diagram's bars left the terminal node under GitHub's toolbar. So the
-  graphical diagram states the ranges inline (the gates labelled `you approve`, the archive hop
-  `delta spec → main spec`) and its plain-text fallback mirrors that inline chain. That is the overlapping case; a
-  **single** range over a run is drawn as one **non-nested** labelled subgraph — its border is the bracket and its title
-  the label, because a single bracket has nothing to collide with. A cleanup pass that aligned the body pipes to the
-  full width flattened the two spans' distinction and had to be reverted by the user. When a diagram (or any doc) has
-  been hand-edited, treat an asymmetry as intentional until you verify what each element is meant to start and end at —
-  ask rather than "fixing" it, and never regenerate over a human edit without diffing against it. Redrawing a diagram
-  into a new medium makes the old diagram a starting point, not the contract — re-derive its content from the code or
-  config it depicts: the Mermaid lifecycle conversion scoped the removal annotation to one edge
-  (`SCHEDULED -.->|"REMOVED (any time)"| REMOVED`) though the ASCII bracket it replaced spanned every state and
-  `ShowcaseAggregate` accepts removal from any state (a started showcase is finished before removal). Update the
-  diagram's plain-text `<details>` fallback in the same edit, since nothing gates that second copy and it drifted on
-  exactly that edge. A `mermaid` fence is un-gated by Spotless, so render it and have the `vision` subagent read the
-  render — node shapes and edge-label attribution are only visible there (a duplicate edge label and an SSE label on the
-  wrong hop survived a text read of the source). GitHub then overlays the diagram with a control toolbar on its right
-  edge (~100 px wide) and scales a too-wide diagram to full width, hiding its rightmost node or label
-  (`mermaid-js/mermaid#7117`, closed, no config fix) — a local `mermaid-cli` render cannot show this, so reproduce it on
-  the live GitHub render (Playwright) and reserve ~120 px of right-hand space with
-  `%%{init: {"flowchart": {"diagramPadding": …}}}%%` (`stateDiagram-v2` has no `diagramPadding`, so a paddable state
-  diagram becomes a flowchart). The reserve is only for a diagram whose natural width reaches the column: a wide `LR`
-  diagram is scaled to full width, while a narrow vertical `TB` diagram is narrower than the column and never reaches
-  the toolbar, so padding only widens it. A single, non-nested `direction LR` subgraph is honoured when its outside edge
-  leaves the subgraph itself (`subgraph_id -.-> X` — verified against `@mermaid-js/mermaid-cli@11.17.0`: a three-state
-  subgraph lays out horizontally with the directive and stacks vertically without). A **member node's** edge to outside
-  the subgraph is what an earlier note here described: Mermaid then ignores the subgraph's `direction` and inherits the
-  parent's, so wrapping a wide flow whose members link outward does not re-orient it — stay wide, go vertical, or shed
-  nodes. captured: mermaid-event-flow-draft captured: rework-readme-lifecycle-diagram
+  diagram from the code it depicts.** The README's OpenSpec-flow diagram marks its review gates as edge labels rather
+  than bracket spans — `approve` on Propose→Apply and Apply→PR, and `spec → main` on Archive→Merge. Mermaid cannot draw
+  two overlapping brackets over one run: nested subgraphs do express the extents, but Mermaid bottom-aligns the outer
+  subgraph's title in a fixed ~20 px band so it collides with the inner subgraph's border, a dashed arrow asserts a
+  transition that does not exist, and a block diagram's bars left the terminal node under GitHub's toolbar. So the
+  graphical diagram states the gates inline (`approve`, `spec → main`) and its plain-text fallback mirrors it. That is
+  the overlapping case; a **single** range over a run is drawn as one **non-nested** labelled subgraph — its border is
+  the bracket and its title the label, because a single bracket has nothing to collide with. A cleanup pass that aligned
+  the body pipes to the full width flattened the two spans' distinction and had to be reverted by the user. When a
+  diagram (or any doc) has been hand-edited, treat an asymmetry as intentional until you verify what each element is
+  meant to start and end at — ask rather than "fixing" it, and never regenerate over a human edit without diffing
+  against it. Redrawing a diagram into a new medium makes the old diagram a starting point, not the contract — re-derive
+  its content from the code or config it depicts: the Mermaid lifecycle conversion scoped the removal annotation to one
+  edge (`SCHEDULED -.->|"REMOVED (any time)"| REMOVED`) though the ASCII bracket it replaced spanned every state and
+  `ShowcaseAggregate` accepts removal from any state (a started showcase is finished before removal). Derive the
+  diagram's plain-text `<details>` fallback edge-by-edge from the Mermaid's own node, edge, and label list in the same
+  edit — each edge with its direction and its label — rather than hand-authoring it from the picture, since nothing
+  gates that second copy: two review rounds found hand-authored fallbacks missing labels the Mermaid carried
+  (`approve`/`CI green`, `search`, the event store) and an edge whose arrowhead pointed back into its source; re-check
+  every label the fallback and the prose citing it carry after a rename. A `mermaid` fence is un-gated by Spotless, so
+  render it and have the `vision` subagent read the render — node shapes and edge-label attribution are only visible
+  there (a duplicate edge label and an SSE label on the wrong hop survived a text read of the source). GitHub renders
+  Mermaid inside a `viewscreen` iframe that caps the SVG at its natural width — a wider one is scaled down to the
+  container width — and centers it, with a control toolbar overlaid on the right edge (~100 px wide;
+  `mermaid-js/mermaid#7117`, closed, no config fix). A local `mermaid-cli` render cannot show this, so reproduce it on
+  the live GitHub render (Playwright). A diagram wider than the container fills it, and `diagramPadding` then reserves
+  only symmetric (centered) margins whose pixel width shrinks with the fluid column — so the reserve differs between the
+  wider blob view and the narrower home/tree view and cannot reliably keep the rightmost node clear. Prefer a diagram
+  whose natural width stays under the column — a vertical `TB` layout for a wide pipeline, or a compact multi-row grid
+  for a wide chain — so it renders at natural size, centered, clear of the toolbar. A single, non-nested `direction LR`
+  subgraph is honoured when its outside edge leaves the subgraph itself (`subgraph_id -.-> X` — verified against
+  `@mermaid-js/mermaid-cli@11.17.0`: a three-state subgraph lays out horizontally with the directive and stacks
+  vertically without). A **member node's** edge to outside the subgraph is what an earlier note here described: Mermaid
+  then ignores the subgraph's `direction` and inherits the parent's, so wrapping a wide flow whose members link outward
+  does not re-orient it — stay wide, go vertical, or shed nodes. captured: mermaid-event-flow-draft captured:
+  rework-readme-lifecycle-diagram captured: rework-readme-diagrams-for-github-mermaid
 - **Verify documented infrastructure/deployment numbers against the config files, not memory.** The README rewrite
   claimed "the API gateway's two replicas" (only `commandService.replicaCount` is 2 in
   `helm/values/axon-showcase/values-local.yaml`; the gateway defaults to 1), "36 panels" (the raw top-level count, row
@@ -2333,17 +2337,19 @@ capture-stash-stale-copy
   The correction's dependents are a further sweep: re-read the statements that depend on the claim without repeating it
   — a caveat, a design rationale, a concluding sentence — which a grep for the claim does not find. A **replaced** rule
   sweeps one degree harder still: its restatements are paraphrases rather than repetitions and live beyond the artifact
-  — in other gotchas and conventions, and in file headers — so grep every doc that describes the workflow for the
-  _concept_, not the old wording: replacing the commit discipline left four restatements (two gotchas, the docs-refresh
-  convention, and `docs/ideas.md`'s header). An abandoned approach needs the same sweep: reverting an experiment's code
-  line does not remove the comment or the task/design prose that describes it, so grep the artifact for the approach's
-  name before calling the revert done. The sweep spans live copies whose sentence makes a present-tense claim:
-  `openspec/changes/archive/` is the historical record, left as recorded — the Spotless target already excludes it — so
-  a corrected command or a renamed symbol found there stays as recorded rather than being "fixed". A live artifact is no
-  different when its sentence cites the figure as a historical incident: `.opencode/agent/readme-auditor.md`'s "a '36
-  panels' that counted row separators" names the README defect the auditor exists to catch, not the dashboard's current
-  structure, so it stays too — and the change records why the match is deliberately left rather than silently skipping
-  it. captured: right-size-infra-resources captured: add-web-ui-dashboard-panels
+  — in other gotchas and conventions, in file headers, and in the `.opencode/agent/*.md` / `.opencode/commands/*.md`
+  definitions that restate it — so grep every doc that describes the workflow for the _concept_, not the old wording:
+  replacing the commit discipline left four restatements (two gotchas, the docs-refresh convention, and
+  `docs/ideas.md`'s header), and the diagram bullet's `diagramPadding` rule survived in `diagrammer.md` until the quick
+  review. An abandoned approach needs the same sweep: reverting an experiment's code line does not remove the comment or
+  the task/design prose that describes it, so grep the artifact for the approach's name before calling the revert done.
+  The sweep spans live copies whose sentence makes a present-tense claim: `openspec/changes/archive/` is the historical
+  record, left as recorded — the Spotless target already excludes it — so a corrected command or a renamed symbol found
+  there stays as recorded rather than being "fixed". A live artifact is no different when its sentence cites the figure
+  as a historical incident: `.opencode/agent/readme-auditor.md`'s "a '36 panels' that counted row separators" names the
+  README defect the auditor exists to catch, not the dashboard's current structure, so it stays too — and the change
+  records why the match is deliberately left rather than silently skipping it. captured: right-size-infra-resources
+  captured: add-web-ui-dashboard-panels captured: rework-readme-diagrams-for-github-mermaid
 - **A configuration-default change names every test assertion that pins the value and every doc that describes it, on
   each surface it is declared.** The `reconcile-showcase-cache-default` plan initially missed that
   `allPropertiesHaveDocumentedDefaults` asserts the Java field (so the change would fail it) and that the yml-wiring

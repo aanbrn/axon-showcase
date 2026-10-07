@@ -2,6 +2,7 @@ import com.github.spotbugs.snom.SpotBugsTask
 import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
 import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.api.tasks.SourceSetContainer
 
 plugins {
     id("com.github.spotbugs")
@@ -69,6 +70,19 @@ tasks.withType<SpotBugsTask> {
     }
     reports.create("xml") {
         required = true
+    }
+}
+
+// SpotBugs' auxiliary classpath defaults to a source set's compile classpath, which omits the dependencies a library
+// declares `runtime`-scoped (e.g. `opensearch-java`, needed to analyze a use of `OpenSearchTemplate`). Reference them
+// from the runtime classpath so the analysis resolves them instead of reporting them as missing.
+val sourceSets = the<SourceSetContainer>()
+
+sourceSets.configureEach {
+    val runtimeClasspath = configurations.named(runtimeClasspathConfigurationName)
+    val spotbugsTaskName = "spotbugs" + name.replaceFirstChar { it.uppercaseChar() }
+    tasks.named(spotbugsTaskName, SpotBugsTask::class.java) {
+        auxClassPaths.from(runtimeClasspath)
     }
 }
 

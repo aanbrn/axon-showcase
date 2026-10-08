@@ -4,6 +4,7 @@ package showcase.api.events;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
 
+import java.time.Duration;
 import java.time.Instant;
 import lombok.val;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +23,8 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import showcase.api.ShowcaseApiProperties;
+import showcase.command.ShowcaseEvent;
+import showcase.command.ShowcaseScheduledEvent;
 
 @WebFluxTest(ShowcaseEventStreamController.class)
 @DisplayName("Showcase event stream controller component tests")
@@ -42,12 +45,19 @@ class ShowcaseEventStreamControllerCT {
         }
 
         @Bean
-        Flux<ShowcaseEventDto> showcaseEventStream() {
-            return Flux.just(ShowcaseEventDto.builder()
-                    .type("SCHEDULED")
+        Flux<ShowcaseEvent> showcaseEventReceiver() {
+            return Flux.just(ShowcaseScheduledEvent.builder()
                     .showcaseId("1")
-                    .timestamp(Instant.parse("2026-09-02T10:00:00Z"))
+                    .title("Demo")
+                    .startTime(Instant.parse("2026-09-02T10:30:00Z"))
+                    .duration(Duration.ofMinutes(5))
+                    .scheduledAt(Instant.parse("2026-09-02T10:00:00Z"))
                     .build());
+        }
+
+        @Bean
+        ShowcaseEventMapper showcaseEventMapper() {
+            return new ShowcaseEventMapperImpl();
         }
     }
 
@@ -55,8 +65,8 @@ class ShowcaseEventStreamControllerCT {
     private WebTestClient webTestClient;
 
     @Test
-    @DisplayName("GET /events streams showcase events as Server-Sent Events")
-    void getEvents_streamsShowcaseEventsAsServerSentEvents() {
+    @DisplayName("GET /events streams received domain events mapped to their SSE DTOs")
+    void getEvents_streamsReceivedDomainEventsMappedToTheirSseDtos() {
         val body = webTestClient
                 .get()
                 .uri("/events")

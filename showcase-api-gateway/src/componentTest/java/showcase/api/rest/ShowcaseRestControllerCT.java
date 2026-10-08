@@ -8,6 +8,7 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -27,12 +28,16 @@ import static showcase.test.RandomTestUtils.anEnum;
 
 import com.github.benmanes.caffeine.cache.AsyncCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Ticker;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.val;
 import org.apache.commons.lang3.ArrayUtils;
 import org.axonframework.commandhandling.NoHandlerForCommandException;
@@ -41,7 +46,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -53,14 +57,10 @@ import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguratio
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -72,9 +72,13 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.blockhound.BlockHound;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+import reactor.core.scheduler.Schedulers;
 import reactor.netty.channel.AbortedException;
+import reactor.util.context.Context;
 import showcase.api.ShowcaseApiErrorResolver;
 import showcase.api.ShowcaseApiProperties;
+import showcase.api.shared.ShowcaseQueryCache;
 import showcase.command.FinishShowcaseCommand;
 import showcase.command.RemoveShowcaseCommand;
 import showcase.command.ScheduleShowcaseCommand;
@@ -82,6 +86,7 @@ import showcase.command.ShowcaseCommandErrorCode;
 import showcase.command.ShowcaseCommandErrorDetails;
 import showcase.command.ShowcaseCommandException;
 import showcase.command.ShowcaseCommandOperations;
+import showcase.command.ShowcaseEvent;
 import showcase.command.StartShowcaseCommand;
 import showcase.query.FetchShowcaseByIdQuery;
 import showcase.query.FetchShowcaseListQuery;
@@ -97,9 +102,7 @@ import showcase.query.ShowcaseQueryOperations;
 class ShowcaseRestControllerCT {
 
     @Configuration
-    @ComponentScan(
-            basePackages = "showcase.api.rest",
-            excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ShowcaseRestConfiguration.class))
+    @ComponentScan(basePackages = "showcase.api.rest")
     @EnableConfigurationProperties(ShowcaseApiProperties.class)
     @ImportAutoConfiguration(TaskExecutionAutoConfiguration.class)
     static class TestConfig {
@@ -117,13 +120,41 @@ class ShowcaseRestControllerCT {
         }
 
         @Bean
-        AsyncCache<@NonNull FetchShowcaseListQuery, List<String>> fetchShowcaseListCache() {
-            return Caffeine.newBuilder().maximumSize(100).buildAsync();
+        TestTicker testTicker() {
+            return new TestTicker();
         }
 
         @Bean
-        AsyncCache<@NonNull String, Showcase> fetchShowcaseByIdCache() {
-            return Caffeine.newBuilder().maximumSize(100).buildAsync();
+        AsyncCache<@NonNull FetchShowcaseListQuery, List<Showcase>> fetchShowcaseListCache(TestTicker ticker) {
+            return Caffeine.newBuilder()
+                    .maximumSize(100)
+                    .expireAfterWrite(Duration.ofMinutes(1))
+                    .ticker(ticker)
+                    .buildAsync();
+        }
+
+        @Bean
+        AsyncCache<@NonNull String, Showcase> fetchShowcaseByIdCache(TestTicker ticker) {
+            return Caffeine.newBuilder()
+                    .maximumSize(100)
+                    .expireAfterWrite(Duration.ofMinutes(1))
+                    .ticker(ticker)
+                    .buildAsync();
+        }
+
+        @Bean
+        Flux<ShowcaseEvent> showcaseEventReceiver() {
+            return Flux.empty();
+        }
+
+        @Bean
+        ShowcaseQueryCache showcaseQueryCache(
+                ShowcaseQueryOperations queryOperations,
+                AsyncCache<FetchShowcaseListQuery, List<Showcase>> fetchShowcaseListCache,
+                AsyncCache<String, Showcase> fetchShowcaseByIdCache,
+                Flux<ShowcaseEvent> showcaseEventReceiver) {
+            return new ShowcaseQueryCache(
+                    queryOperations, fetchShowcaseListCache, fetchShowcaseByIdCache, showcaseEventReceiver);
         }
     }
 
@@ -204,10 +235,16 @@ class ShowcaseRestControllerCT {
     private ShowcaseQueryOperations showcaseQueryOperations;
 
     @Autowired
-    private AsyncCache<@NonNull FetchShowcaseListQuery, List<String>> fetchShowcaseListCache;
+    private AsyncCache<@NonNull FetchShowcaseListQuery, List<Showcase>> fetchShowcaseListCache;
 
     @Autowired
     private AsyncCache<@NonNull String, Showcase> fetchShowcaseByIdCache;
+
+    @Autowired
+    private TestTicker testTicker;
+
+    @Autowired
+    private ShowcaseQueryCache showcaseQueryCache;
 
     @BeforeAll
     static void installBlockHound() {
@@ -995,8 +1032,8 @@ class ShowcaseRestControllerCT {
     }
 
     @Test
-    @DisplayName("Fetching the list puts showcases into caches and responds with OK status and showcases in the body")
-    void fetchShowcaseList_success_putShowcasesIntoCachesAndRespondsWithOkStatusAndShowcasesInBody() {
+    @DisplayName("Fetching the list on a cache miss fetches from the query service and caches the list")
+    void fetchShowcaseList_cacheMiss_fetchesFromQueryServiceAndCachesTheList() {
         val showcases = showcases();
         val query = FetchShowcaseListQuery.builder().build();
 
@@ -1017,18 +1054,31 @@ class ShowcaseRestControllerCT {
         verifyNoMoreInteractions(showcaseQueryOperations);
 
         await().untilAsserted(() -> {
-            val cachedIds = fetchShowcaseListCache.getIfPresent(query);
-            assertThat(cachedIds).isNotNull();
-            assertThat(cachedIds.join())
-                    .isEqualTo(showcases.stream().map(Showcase::showcaseId).toList());
+            val cached = fetchShowcaseListCache.getIfPresent(query);
+            assertThat(cached).isNotNull();
+            assertThat(cached.join()).isEqualTo(showcases);
         });
-        await().untilAsserted(() -> {
-            for (val showcase : showcases) {
-                val cachedShowcase = fetchShowcaseByIdCache.getIfPresent(showcase.showcaseId());
-                assertThat(cachedShowcase).isNotNull();
-                assertThat(cachedShowcase.join()).isEqualTo(showcase);
-            }
-        });
+    }
+
+    @Test
+    @DisplayName("Fetching the list on a cache hit serves the cached list without calling the query service")
+    void fetchShowcaseList_cacheHit_servesCachedListWithoutQuerying() {
+        val showcases = showcases();
+        val query = FetchShowcaseListQuery.builder().build();
+        fetchShowcaseListCache.put(query, completedFuture(showcases));
+
+        webClient
+                .get()
+                .uri(uriBuilder -> uriBuilder.path("/showcases").build())
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectHeader()
+                .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
+                .expectBodyList(Showcase.class)
+                .isEqualTo(showcases);
+
+        verifyNoInteractions(showcaseQueryOperations);
     }
 
     @Test
@@ -1098,118 +1148,6 @@ class ShowcaseRestControllerCT {
                 .doesNotHaveJsonPath();
 
         verifyNoInteractions(showcaseCommandOperations);
-    }
-
-    @Test
-    @ExtendWith(OutputCaptureExtension.class)
-    @DisplayName("Fetching the list with a fallback cache hit logs the failure and responds with the cached result")
-    void fetchShowcaseList_fallbackFetchShowcaseListCacheHit_logsFailureAndRespondsWithCachedResult(
-            CapturedOutput output) {
-        val showcases = showcases();
-        val query = FetchShowcaseListQuery.builder().build();
-        val failure = WebClientResponseException.create(
-                anEnum(HttpStatus.class), anAlphabeticString(32), new HttpHeaders(), new byte[0], null, null);
-
-        given(showcaseQueryOperations.fetchList(query)).willReturn(Flux.error(failure));
-        fetchShowcaseListCache.put(
-                query,
-                completedFuture(showcases.stream().map(Showcase::showcaseId).toList()));
-        for (val showcase : showcases) {
-            fetchShowcaseByIdCache.put(showcase.showcaseId(), completedFuture(showcase));
-        }
-
-        webClient
-                .get()
-                .uri("/showcases")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectHeader()
-                .contentTypeCompatibleWith(APPLICATION_JSON)
-                .expectBodyList(Showcase.class)
-                .isEqualTo(showcases);
-
-        verify(showcaseQueryOperations).fetchList(query);
-        verifyNoMoreInteractions(showcaseQueryOperations);
-
-        await().untilAsserted(() ->
-                assertThat(output).contains("Fallback on %s".formatted(query)).contains(failure.getMessage()));
-    }
-
-    @Test
-    @ExtendWith(OutputCaptureExtension.class)
-    @DisplayName("Fetching the list with a fallback cache miss responds with service unavailable and a problem")
-    void fetchShowcaseList_fallbackFetchShowcaseListCacheMiss_respondsWithServiceUnavailableStatusAndProblemInBody(
-            CapturedOutput output) {
-        val query = FetchShowcaseListQuery.builder().build();
-        val failure = WebClientResponseException.create(
-                anEnum(HttpStatus.class), anAlphabeticString(32), new HttpHeaders(), new byte[0], null, null);
-
-        given(showcaseQueryOperations.fetchList(query)).willReturn(Flux.error(failure));
-
-        webClient
-                .get()
-                .uri("/showcases")
-                .exchange()
-                .expectStatus()
-                .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
-                .expectHeader()
-                .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
-                .expectBody()
-                .jsonPath("$.type")
-                .isEqualTo("about:blank")
-                .jsonPath("$.title")
-                .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
-                .jsonPath("$.status")
-                .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
-                .jsonPath("$.detail")
-                .doesNotHaveJsonPath();
-
-        verify(showcaseQueryOperations).fetchList(query);
-        verifyNoMoreInteractions(showcaseQueryOperations);
-
-        await().untilAsserted(() -> assertThat(output)
-                .doesNotContain("Fallback on %s".formatted(query))
-                .contains(failure.getMessage()));
-    }
-
-    @Test
-    @ExtendWith(OutputCaptureExtension.class)
-    @DisplayName("Fetching the list on a fallback fetch-by-ID cache miss fails with service unavailable")
-    void fetchShowcaseList_fallbackFetchShowcaseByIdCacheMiss_respondsWithServiceUnavailableStatusAndProblemInBody(
-            CapturedOutput output) {
-        val query = FetchShowcaseListQuery.builder().build();
-        val showcaseId = aShowcaseId();
-        val failure = WebClientResponseException.create(
-                anEnum(HttpStatus.class), anAlphabeticString(32), new HttpHeaders(), new byte[0], null, null);
-
-        given(showcaseQueryOperations.fetchList(query)).willReturn(Flux.error(failure));
-        fetchShowcaseListCache.put(query, completedFuture(List.of(showcaseId)));
-
-        webClient
-                .get()
-                .uri("/showcases")
-                .exchange()
-                .expectStatus()
-                .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
-                .expectHeader()
-                .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
-                .expectBody()
-                .jsonPath("$.type")
-                .isEqualTo("about:blank")
-                .jsonPath("$.title")
-                .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
-                .jsonPath("$.status")
-                .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
-                .jsonPath("$.detail")
-                .doesNotHaveJsonPath();
-
-        verify(showcaseQueryOperations).fetchList(query);
-        verifyNoMoreInteractions(showcaseQueryOperations);
-
-        await().untilAsserted(() -> assertThat(output)
-                .doesNotContain("Fallback on %s".formatted(query))
-                .contains(failure.getMessage()));
     }
 
     @ParameterizedTest
@@ -1339,6 +1277,133 @@ class ShowcaseRestControllerCT {
     }
 
     @Test
+    @DisplayName("Fetching by ID on a cache hit serves the cached showcase without calling the query service")
+    void fetchShowcaseById_cacheHit_servesCachedShowcaseWithoutQuerying() {
+        val showcase = aShowcase();
+        fetchShowcaseByIdCache.put(showcase.showcaseId(), completedFuture(showcase));
+
+        webClient
+                .get()
+                .uri("/showcases/{showcaseId}", showcase.showcaseId())
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectHeader()
+                .valueEquals(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE)
+                .expectBody(Showcase.class)
+                .isEqualTo(showcase);
+
+        verifyNoInteractions(showcaseQueryOperations);
+    }
+
+    @Test
+    @DisplayName("An expired cache entry is refetched from the query service")
+    void fetchShowcaseById_expiredEntry_refetchesFromQueryService() {
+        val showcase = aShowcase();
+        val query = FetchShowcaseByIdQuery.builder()
+                .showcaseId(showcase.showcaseId())
+                .build();
+        given(showcaseQueryOperations.fetchById(query)).willReturn(Mono.just(showcase));
+
+        webClient
+                .get()
+                .uri("/showcases/{showcaseId}", showcase.showcaseId())
+                .exchange()
+                .expectStatus()
+                .isOk();
+        webClient
+                .get()
+                .uri("/showcases/{showcaseId}", showcase.showcaseId())
+                .exchange()
+                .expectStatus()
+                .isOk();
+        verify(showcaseQueryOperations, times(1)).fetchById(query);
+
+        testTicker.advance(Duration.ofMinutes(2));
+
+        webClient
+                .get()
+                .uri("/showcases/{showcaseId}", showcase.showcaseId())
+                .exchange()
+                .expectStatus()
+                .isOk();
+        verify(showcaseQueryOperations, times(2)).fetchById(query);
+    }
+
+    @Test
+    @DisplayName("A failed fetch is not cached, so the next read queries the query service again")
+    void fetchShowcaseById_failedFetch_isNotCached() {
+        val showcaseId = aShowcaseId();
+        val query = FetchShowcaseByIdQuery.builder().showcaseId(showcaseId).build();
+        given(showcaseQueryOperations.fetchById(query))
+                .willReturn(Mono.error(new ShowcaseQueryException(ShowcaseQueryErrorDetails.builder()
+                        .errorCode(ShowcaseQueryErrorCode.NOT_FOUND)
+                        .errorMessage("No showcase with id")
+                        .build())));
+
+        webClient
+                .get()
+                .uri("/showcases/{showcaseId}", showcaseId)
+                .exchange()
+                .expectStatus()
+                .isNotFound();
+        webClient
+                .get()
+                .uri("/showcases/{showcaseId}", showcaseId)
+                .exchange()
+                .expectStatus()
+                .isNotFound();
+
+        verify(showcaseQueryOperations, times(2)).fetchById(query);
+    }
+
+    @Test
+    @DisplayName("Concurrent reads for the same key collapse into one query-service call")
+    void fetchShowcaseById_concurrentReads_collapseIntoOneCall() {
+        val showcase = aShowcase();
+        val query = FetchShowcaseByIdQuery.builder()
+                .showcaseId(showcase.showcaseId())
+                .build();
+        Sinks.One<Showcase> gate = Sinks.one();
+        given(showcaseQueryOperations.fetchById(query)).willReturn(gate.asMono());
+
+        val first = showcaseQueryCache
+                .fetchById(query)
+                .subscribeOn(Schedulers.boundedElastic())
+                .toFuture();
+        val second = showcaseQueryCache
+                .fetchById(query)
+                .subscribeOn(Schedulers.boundedElastic())
+                .toFuture();
+        gate.tryEmitValue(showcase);
+
+        assertThat(first.join()).isEqualTo(showcase);
+        assertThat(second.join()).isEqualTo(showcase);
+        verify(showcaseQueryOperations, times(1)).fetchById(query);
+    }
+
+    @Test
+    @DisplayName("The read-through subscription carries the request's Reactor context")
+    void fetchShowcaseById_carriesReactorContext() {
+        val showcase = aShowcase();
+        val query = FetchShowcaseByIdQuery.builder()
+                .showcaseId(showcase.showcaseId())
+                .build();
+        val seen = new AtomicReference<Object>("absent");
+        given(showcaseQueryOperations.fetchById(query)).willReturn(Mono.deferContextual(ctx -> {
+            seen.set(ctx.getOrDefault("test-key", "absent"));
+            return Mono.just(showcase);
+        }));
+
+        showcaseQueryCache
+                .fetchById(query)
+                .contextWrite(Context.of("test-key", "test-value"))
+                .block();
+
+        assertThat(seen.get()).isEqualTo("test-value");
+    }
+
+    @Test
     @DisplayName("Fetching by ID with an invalid showcase ID responds with bad request and a problem in the body")
     void fetchShowcaseById_invalidShowcaseId_respondsWithBadRequestStatusAndProblemInBody() {
         webClient
@@ -1402,77 +1467,6 @@ class ShowcaseRestControllerCT {
 
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
-    }
-
-    @Test
-    @ExtendWith(OutputCaptureExtension.class)
-    @DisplayName("Fetching by ID with a fallback cache hit logs the failure and responds with the cached result")
-    void fetchShowcaseById_fallbackFetchShowcaseByCacheHit_logsFailureAndRespondsWithCachedResult(
-            CapturedOutput output) {
-        val showcase = aShowcase();
-        val query = FetchShowcaseByIdQuery.builder()
-                .showcaseId(showcase.showcaseId())
-                .build();
-        val failure = WebClientResponseException.create(
-                anEnum(HttpStatus.class), anAlphabeticString(32), new HttpHeaders(), new byte[0], null, null);
-
-        given(showcaseQueryOperations.fetchById(any())).willReturn(Mono.error(failure));
-        fetchShowcaseByIdCache.put(showcase.showcaseId(), completedFuture(showcase));
-
-        webClient
-                .get()
-                .uri("/showcases/{showcaseId}", showcase.showcaseId())
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectHeader()
-                .contentTypeCompatibleWith(APPLICATION_JSON)
-                .expectBody(Showcase.class)
-                .isEqualTo(showcase);
-
-        verify(showcaseQueryOperations).fetchById(query);
-        verifyNoMoreInteractions(showcaseQueryOperations);
-
-        await().untilAsserted(() ->
-                assertThat(output).contains("Fallback on %s".formatted(query)).contains(failure.getMessage()));
-    }
-
-    @Test
-    @ExtendWith(OutputCaptureExtension.class)
-    @DisplayName("Fetching by ID with a fallback cache miss responds with service unavailable and a problem")
-    void fetchShowcaseById_fallbackFetchShowcaseByIdCacheMiss_respondsWithServiceUnavailableStatusAndProblemInBody(
-            CapturedOutput output) {
-        val showcaseId = aShowcaseId();
-        val query = FetchShowcaseByIdQuery.builder().showcaseId(showcaseId).build();
-        val failure = WebClientResponseException.create(
-                anEnum(HttpStatus.class), anAlphabeticString(32), new HttpHeaders(), new byte[0], null, null);
-
-        given(showcaseQueryOperations.fetchById(any())).willReturn(Mono.error(failure));
-
-        webClient
-                .get()
-                .uri("/showcases/{showcaseId}", showcaseId)
-                .exchange()
-                .expectStatus()
-                .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
-                .expectHeader()
-                .contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
-                .expectBody()
-                .jsonPath("$.type")
-                .isEqualTo("about:blank")
-                .jsonPath("$.title")
-                .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
-                .jsonPath("$.status")
-                .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value())
-                .jsonPath("$.detail")
-                .doesNotHaveJsonPath();
-
-        verify(showcaseQueryOperations).fetchById(query);
-        verifyNoMoreInteractions(showcaseQueryOperations);
-
-        await().untilAsserted(() -> assertThat(output)
-                .doesNotContain("Fallback on %s".formatted(query))
-                .contains(failure.getMessage()));
     }
 
     @ParameterizedTest
@@ -1575,5 +1569,18 @@ class ShowcaseRestControllerCT {
 
         verify(showcaseQueryOperations).fetchById(query);
         verifyNoMoreInteractions(showcaseQueryOperations);
+    }
+
+    static final class TestTicker implements Ticker {
+        private final AtomicLong nanos = new AtomicLong();
+
+        @Override
+        public long read() {
+            return nanos.get();
+        }
+
+        void advance(Duration duration) {
+            nanos.addAndGet(duration.toNanos());
+        }
     }
 }

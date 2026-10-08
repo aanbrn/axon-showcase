@@ -44,14 +44,14 @@ class ShowcaseApiPropertiesCT {
             assertThat(cacheFor(properties, FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME))
                     .satisfies(cache -> {
                         assertThat(cache.getMaximumSize()).isEqualTo(10000);
-                        assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofMinutes(10));
-                        assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofMinutes(5));
+                        assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofSeconds(1));
+                        assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofSeconds(1));
                     });
             assertThat(cacheFor(properties, FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME))
                     .satisfies(cache -> {
                         assertThat(cache.getMaximumSize()).isEqualTo(100000);
-                        assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofMinutes(10));
-                        assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofMinutes(5));
+                        assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofSeconds(5));
+                        assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofSeconds(5));
                     });
             assertThat(properties.getEvents().getKeepAliveInterval()).isEqualTo(Duration.ofSeconds(15));
         });
@@ -66,14 +66,14 @@ class ShowcaseApiPropertiesCT {
             assertThat(cacheFor(properties, FETCH_SHOWCASE_LIST_QUERY_CACHE_NAME))
                     .satisfies(cache -> {
                         assertThat(cache.getMaximumSize()).isEqualTo(10000);
-                        assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofMinutes(10));
-                        assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofMinutes(5));
+                        assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofSeconds(1));
+                        assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofSeconds(1));
                     });
             assertThat(cacheFor(properties, FETCH_SHOWCASE_BY_ID_QUERY_CACHE_NAME))
                     .satisfies(cache -> {
                         assertThat(cache.getMaximumSize()).isEqualTo(100000);
-                        assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofMinutes(10));
-                        assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofMinutes(5));
+                        assertThat(cache.getExpiresAfterAccess()).isEqualTo(Duration.ofSeconds(5));
+                        assertThat(cache.getExpiresAfterWrite()).isEqualTo(Duration.ofSeconds(5));
                     });
             assertThat(properties.getEvents().getKeepAliveInterval()).isEqualTo(Duration.ofSeconds(15));
             assertThat(context.getEnvironment().getProperty("showcase.query.target"))

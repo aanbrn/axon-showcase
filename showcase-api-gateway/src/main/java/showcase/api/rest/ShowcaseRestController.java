@@ -1,17 +1,14 @@
 // SPDX-License-Identifier: MIT
 package showcase.api.rest;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
-import com.github.benmanes.caffeine.cache.AsyncCache;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +38,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.netty.channel.AbortedException;
 import showcase.api.ShowcaseApiErrorResolver;
+import showcase.api.shared.ShowcaseQueryCache;
 import showcase.command.FinishShowcaseCommand;
 import showcase.command.RemoveShowcaseCommand;
 import showcase.command.ScheduleShowcaseCommand;
@@ -51,14 +49,12 @@ import showcase.query.FetchShowcaseByIdQuery;
 import showcase.query.FetchShowcaseListQuery;
 import showcase.query.Showcase;
 import showcase.query.ShowcaseQueryException;
-import showcase.query.ShowcaseQueryOperations;
 import showcase.query.ShowcaseStatus;
 
 /**
  * REST controller implementing the showcase management API.
  *
- * <p>Coordinates command and query operations, with in-memory caching as a fallback layer when downstream calls fail
- * transiently.
+ * <p>Coordinates command operations and delegates query reads to the shared read-through cache.
  */
 @RestController
 @RequestMapping("/showcases")
@@ -71,19 +67,9 @@ final class ShowcaseRestController implements ShowcaseRestApi {
     private final ShowcaseCommandOperations commandOperations;
 
     /**
-     * Operations for querying showcases from the read side.
+     * The shared read-through cache over the showcase query operations.
      */
-    private final ShowcaseQueryOperations queryOperations;
-
-    /**
-     * Cache for {@link FetchShowcaseListQuery} → showcase IDs, used as a fallback on query errors.
-     */
-    private final AsyncCache<FetchShowcaseListQuery, List<String>> fetchShowcaseListCache;
-
-    /**
-     * Cache for showcase ID → {@link Showcase}, used as a fallback on query errors.
-     */
-    private final AsyncCache<String, Showcase> fetchShowcaseByIdCache;
+    private final ShowcaseQueryCache queryCache;
 
     /**
      * Resolves Spring validation exceptions into per-parameter error maps on problem details.
@@ -172,11 +158,10 @@ final class ShowcaseRestController implements ShowcaseRestApi {
     }
 
     /**
-     * Fetches a paginated list of showcases, with in-memory cache fallback.
+     * Fetches a paginated list of showcases through the shared read-through cache.
      *
-     * <p>On a transient query error, the method attempts to serve cached IDs from {@link #fetchShowcaseListCache}
-     * and then resolves each showcase from {@link #fetchShowcaseByIdCache}. If no cached data is available, the
-     * error is propagated and a warning is logged.
+     * <p>The list is served from the cache when present and otherwise fetched from the query service and cached;
+     * concurrent identical reads coalesce into one query-service call.
      */
     @GetMapping
     @Override
@@ -191,49 +176,19 @@ final class ShowcaseRestController implements ShowcaseRestApi {
                 .afterId(afterId)
                 .size(size)
                 .build();
-        return queryOperations
-                .fetchList(query)
-                .doOnNext(showcase -> fetchShowcaseByIdCache.put(showcase.showcaseId(), completedFuture(showcase)))
-                .collectList()
-                .doOnNext(showcases -> fetchShowcaseListCache.put(
-                        query,
-                        completedFuture(
-                                showcases.stream().map(Showcase::showcaseId).toList())))
-                .flatMapIterable(Function.identity())
-                .onErrorResume(Predicate.not(ShowcaseQueryException.class::isInstance), t -> {
-                    val cachedShowcaseIds = fetchShowcaseListCache.getIfPresent(query);
-                    if (cachedShowcaseIds == null) {
-                        return Flux.error(t);
-                    }
-                    return Mono.fromFuture(cachedShowcaseIds)
-                            .flatMapMany(Flux::fromIterable)
-                            .concatMap(showcaseId -> {
-                                val cachedShowcase = fetchShowcaseByIdCache.getIfPresent(showcaseId);
-                                return cachedShowcase == null ? Mono.error(t) : Mono.fromFuture(cachedShowcase);
-                            })
-                            .doOnComplete(() -> log.warn("Fallback on {}", query, t));
-                });
+        return queryCache.fetchList(query);
     }
 
     /**
-     * Fetches a single showcase by ID, with in-memory cache fallback.
+     * Fetches a single showcase by ID through the shared read-through cache.
      *
-     * <p>On a transient query error, the method attempts to serve the showcase from {@link #fetchShowcaseByIdCache}.
-     * If no cached entry exists, the error is propagated and a warning is logged.
+     * <p>The showcase is served from the cache when present and otherwise fetched from the query service and cached.
      */
     @GetMapping("/{showcaseId}")
     @Override
     public Mono<Showcase> fetchById(@PathVariable String showcaseId) {
         val query = FetchShowcaseByIdQuery.builder().showcaseId(showcaseId).build();
-        return queryOperations
-                .fetchById(query)
-                .doOnNext(showcase -> fetchShowcaseByIdCache.put(showcaseId, completedFuture(showcase)))
-                .onErrorResume(Predicate.not(ShowcaseQueryException.class::isInstance), t -> {
-                    val cachedShowcase = fetchShowcaseByIdCache.getIfPresent(showcaseId);
-                    return cachedShowcase == null
-                            ? Mono.error(t)
-                            : Mono.fromFuture(cachedShowcase).doOnSuccess(__ -> log.warn("Fallback on {}", query, t));
-                });
+        return queryCache.fetchById(query);
     }
 
     /**

@@ -10,17 +10,20 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import showcase.api.ShowcaseApiProperties;
+import showcase.command.ShowcaseEvent;
+import showcase.command.ShowcaseRemovedEvent;
+import showcase.command.ShowcaseStartedEvent;
 
 @DisplayName("Showcase event stream controller unit tests")
 class ShowcaseEventStreamControllerTests {
 
     @Test
-    @DisplayName("A showcase event is wrapped as a named Server-Sent Event")
-    void showcaseEvent_isWrappedAsNamedServerSentEvent() {
-        val event = ShowcaseEventDto.builder()
-                .type("STARTED")
+    @DisplayName("A showcase event is mapped to its DTO and wrapped as a named Server-Sent Event")
+    void showcaseEvent_isMappedAndWrappedAsNamedServerSentEvent() {
+        val event = ShowcaseStartedEvent.builder()
                 .showcaseId("1")
-                .timestamp(Instant.parse("2026-09-02T10:05:00Z"))
+                .duration(Duration.ofMinutes(5))
+                .startedAt(Instant.parse("2026-09-02T10:05:00Z"))
                 .build();
         val controller = controllerFor(Flux.just(event));
 
@@ -30,16 +33,17 @@ class ShowcaseEventStreamControllerTests {
         assertThat(sse.event()).isEqualTo("showcase");
         val data = sse.data();
         assertThat(data).isNotNull();
-        assertThat(data).isEqualTo(event);
+        assertThat(data.type()).isEqualTo("STARTED");
+        assertThat(data.showcaseId()).isEqualTo("1");
+        assertThat(data.timestamp()).isEqualTo(Instant.parse("2026-09-02T10:05:00Z"));
     }
 
     @Test
     @DisplayName("A removed showcase event is mapped with its type preserved")
     void removedShowcaseEvent_isMappedWithTypePreserved() {
-        val event = ShowcaseEventDto.builder()
-                .type("REMOVED")
+        val event = ShowcaseRemovedEvent.builder()
                 .showcaseId("1")
-                .timestamp(Instant.parse("2026-09-02T10:11:00Z"))
+                .removedAt(Instant.parse("2026-09-02T10:11:00Z"))
                 .build();
         val controller = controllerFor(Flux.just(event));
 
@@ -63,9 +67,9 @@ class ShowcaseEventStreamControllerTests {
         assertThat(frame).matches(keepAlive -> keepAlive.data() == null);
     }
 
-    private static ShowcaseEventStreamController controllerFor(Flux<ShowcaseEventDto> showcaseEventStream) {
+    private static ShowcaseEventStreamController controllerFor(Flux<ShowcaseEvent> showcaseEventReceiver) {
         val apiProperties = new ShowcaseApiProperties();
         apiProperties.getEvents().setKeepAliveInterval(Duration.ofMillis(100));
-        return new ShowcaseEventStreamController(showcaseEventStream, apiProperties);
+        return new ShowcaseEventStreamController(showcaseEventReceiver, new ShowcaseEventMapperImpl(), apiProperties);
     }
 }

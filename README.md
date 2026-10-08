@@ -119,7 +119,7 @@ You can also drive the lifecycle by hand — start or finish a showcase before t
 - **A real browser UI shows it live.** The React UI renders the event timeline, listens to the SSE stream, and
   reconciles against the eventually-consistent read model — so you see the saga's transitions appear live.
 - **Resilience is built in.** The command and query clients apply **Resilience4j** circuit breakers, time limiters, and
-  retries, and the gateway falls back to a cache when the query side is unavailable.
+  retries, and the gateway serves repeated reads from a read-through cache.
 - **It is observable.** Tempo traces, Prometheus metrics (including web-UI nginx metrics), a dedicated Grafana
   dashboard, health checks, and Gatling load tests are wired in — the same observability a production service needs.
   Observability is available in the **Kubernetes deployment** (Prometheus, Grafana, and Tempo run in the `monitoring`

@@ -78,6 +78,7 @@ class ShowcaseApiErrorResolverCT {
     private static final String MULTI_ERROR_METHOD = "otherMultiErrors";
 
     private final MessageSource messageSource = new ResourceBundleMessageSource();
+
     private final ShowcaseApiErrorResolver resolver = new ShowcaseApiErrorResolver(messageSource);
 
     @ParameterizedTest

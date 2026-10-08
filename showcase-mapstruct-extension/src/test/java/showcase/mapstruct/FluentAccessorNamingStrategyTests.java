@@ -32,7 +32,9 @@ import org.mapstruct.ap.spi.MapStructProcessingEnvironment;
 class FluentAccessorNamingStrategyTests {
 
     private FluentAccessorNamingStrategy strategy;
+
     private final Map<String, Name> names = new HashMap<>();
+
     private final Map<String, TypeMirror> types = new HashMap<>();
 
     @BeforeEach

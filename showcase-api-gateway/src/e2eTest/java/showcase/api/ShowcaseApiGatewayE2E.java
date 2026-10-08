@@ -152,7 +152,9 @@ class ShowcaseApiGatewayE2E {
             .withLogConsumer(frame -> System.out.print(frame.getUtf8String()));
 
     private WebTestClient webClient;
+
     private WebClient sseClient;
+
     private final List<String> createdShowcaseIds = new ArrayList<>();
 
     @BeforeAll

@@ -1110,6 +1110,10 @@ Key modules (libraries, not services):
     and will not insert the padding, so a new glued member is fixed by hand. A Checkstyle `message` is a `MessageFormat`
     pattern — a lone `'` is consumed and an unbalanced `{` throws at violation time — so author it without either.
     captured: enforce-type-body-padding
+  - A blank line separates consecutive members of a type body (fields included), gated by Checkstyle's
+    `EmptyLineSeparator` with member tokens. The exemption is directional — the module checks the gap after a token
+    before its next sibling, so no blank line is required _after_ an enum's constant, an annotation type's declaration,
+    or an annotation type's member, while the gap before one is still checked. captured: enforce-member-separation
   - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML; Javadoc
     and JSDoc prose, which the formatters do not reflow — a >120-character comment line passes the formatter gate and
     only the manual check catches it); markdown is formatted by the root Spotless `markdown` format (Prettier,

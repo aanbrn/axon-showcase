@@ -13,6 +13,23 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-08
+
+- Enforce a blank line after a type body's opening brace — parked; no change yet. Spotless (palantir-java-format/ktfmt)
+  has no blank-line style option and strips a blank line before a closing brace, so it cannot enforce this. Checkstyle's
+  `TypeBodyPadding` (since 13.9.0; the repo pins 13.11.0) can: `atStartOfBody` requires the blank after the opening
+  brace and is viable (Spotless preserves it), while its default `atEndOfBody=true` is un-satisfiable alongside Spotless
+  (which removes that blank), so it must be set false. Adopting it is a config rule plus a tree-wide sweep (Spotless
+  won't add the start padding) plus an `AGENTS.md` Formatting note; the convention is currently inconsistent — the big
+  gateway CTs have the blank, production classes don't.
+- Record the load-test baseline's operating point, and compare only at a matching rate — parked; no change yet. The
+  committed `baseline.properties` records per-request response times but not the operating point they were measured at,
+  and `baselineStats` compares a new plateau against them regardless of rate: a re-measure whose calibration found a
+  higher knee ran its plateau at 300 vs 124 workload units/s and reported a spurious regression across every request
+  (writes included, which the change under test cannot affect), while a re-run at the reference's operating point showed
+  the list read improved. Record the operating point (or the calibration ceiling) in the reference and gate the
+  comparison on a match.
+
 ## 2026-10-06
 
 - Explain or eliminate the gateway controller CT's load-sensitive hang — parked; no change yet.

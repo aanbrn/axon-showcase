@@ -966,12 +966,12 @@ apiGateway:
   caches:
     FetchShowcaseListQuery:
       maxSize: 10000
-      expiresAfterAccess: PT10M
-      expiresAfterWrite: PT5M
+      expiresAfterAccess: PT1S
+      expiresAfterWrite: PT1S
     FetchShowcaseByIdQuery:
       maxSize: 100000
-      expiresAfterAccess: PT10M
-      expiresAfterWrite: PT5M
+      expiresAfterAccess: PT5S
+      expiresAfterWrite: PT5S
 
   # Browser origins allowed to call the gateway cross-origin.
   # @param apiGateway.cors.allowedOrigins List of allowed origins (empty denies all browser origins)

@@ -88,8 +88,8 @@ class ShowcaseApiApplicationIT {
     }
 
     @Test
-    @DisplayName("The served OpenAPI document reports the project version")
-    void openApiDocument_reportsProjectVersion() {
+    @DisplayName("The served OpenAPI document reports the configured title and the project version")
+    void openApiDocument_reportsTitleAndProjectVersion() {
         val expectedVersion = System.getProperty("project.version");
         assertThat(expectedVersion).isNotNull();
 
@@ -102,6 +102,8 @@ class ShowcaseApiApplicationIT {
                 .expectStatus()
                 .isOk()
                 .expectBody()
+                .jsonPath("$.info.title")
+                .isEqualTo("Showcase API Gateway")
                 .jsonPath("$.info.version")
                 .isEqualTo(expectedVersion);
     }

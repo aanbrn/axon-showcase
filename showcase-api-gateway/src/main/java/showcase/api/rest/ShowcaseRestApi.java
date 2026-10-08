@@ -4,12 +4,10 @@ package showcase.api.rest;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.headers.Header;
-import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -35,8 +33,7 @@ import showcase.query.ShowcaseStatus;
  * times out, a {@code 202} is returned with the idempotency key in the response header so the client can retry
  * safely. Queries are served from read-side projections backed by OpenSearch.
  */
-@OpenAPIDefinition(info = @Info(title = "Showcase REST API", description = "The REST API to manage showcases."))
-@Tag(name = "Showcase Operations")
+@Tag(name = "Showcase Management")
 @SuppressWarnings("unused")
 interface ShowcaseRestApi {
     /**

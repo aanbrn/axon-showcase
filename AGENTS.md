@@ -944,13 +944,12 @@ Key modules (libraries, not services):
   gRPC transport (`grpc-query-transport`), which is why its error and validation outcomes are gRPC statuses now rather
   than HTTP problem details.
 - **Asserting log output**: use `OutputCaptureExtension` (`CapturedOutput`) when the code under test runs **in the test
-  JVM** (e.g. `ShowcaseProjectorIT`'s projector logging, `ShowcaseRestControllerCT`'s gateway fallback logging). It
-  cannot capture a separate process's output — to assert a **containerized** service's logs (the code-under-test runs in
-  a different JVM), collect them via `withLogConsumer` into a `static StringBuilder` and poll it, as the command-client
-  e2e did before the suite was consolidated (see `69f2811`). When an integration test fails with an opaque timeout, read
-  the service-side log the runner captured into the test report's XML (`system-out`) before diagnosing the assertion — a
-  5s `TimeoutException` on a `WebTestClient` exchange hid the real `NoSuchMethodError`. captured:
-  bump-dependencies-2026-09-25
+  JVM** (e.g. `ShowcaseProjectorIT`'s projector logging). It cannot capture a separate process's output — to assert a
+  **containerized** service's logs (the code-under-test runs in a different JVM), collect them via `withLogConsumer`
+  into a `static StringBuilder` and poll it, as the command-client e2e did before the suite was consolidated (see
+  `69f2811`). When an integration test fails with an opaque timeout, read the service-side log the runner captured into
+  the test report's XML (`system-out`) before diagnosing the assertion — a 5s `TimeoutException` on a `WebTestClient`
+  exchange hid the real `NoSuchMethodError`. captured: bump-dependencies-2026-09-25
 - **`@DirtiesContext`**: add it only where a full-context boot leaks global JVM state — JGroups (ports and system
   properties) and JCache (a JVM-global cache manager). Contexts that are safely cacheable don't need it: service slices,
   and `@Nested` classes with distinct `@ActiveProfiles` (which already get separate cached contexts). Keep it on the
@@ -2160,6 +2159,12 @@ capture-stash-stale-copy
   `NoClassDefFoundError: JavaTimeModule` — name every module a removed starter was providing, declare it explicitly
   (`jackson-databind`, `jackson-datatype-jsr310`), and run the module's tests, not only `compileJava`. captured:
   grpc-query-transport
+- **Extracting a component that exists in a sibling service means mirroring the sibling's full wiring, not the shape you
+  copied.** The gateway's Kafka converter was lifted from the projection service without its Axon `upcasterChain`, and
+  its event receiver from `ShowcaseProjector` without the `ObservationRegistry` — both silent until review, and no gate
+  catches either. Grep the sibling for every configuration call it makes on the same component and carry each across: a
+  missing upcaster chain deserializes events un-upcast and a missing registry drops their traces. captured:
+  read-through-gateway-caches
 - `@Nested` test classes are incompatible with Spring Boot slice tests (`@WebFluxTest`/`@WebMvcTest`): nested classes
   load the full application context instead of the slice and fail on infrastructure beans (e.g. the gateway's JGroups
   `DistributedCommandBusProperties`). Keep slice-test classes flat (see `ShowcaseRestControllerCT`).
@@ -2789,13 +2794,18 @@ capture-stash-stale-copy
   value to an `Object` local. A compile-valid call proves only that some overload matched; confirm the binding with
   `javap -c` or a run. captured: anchor-the-load-test-baseline
 
-- **Caffeine's `AsyncCache.getIfPresent` returns `null` for a future that completed exceptionally — a failed cached
-  future is indistinguishable from a cache miss.** A cached `CompletableFuture` that failed is not surfaced:
-  `getIfPresent` yields `null`, so the `if (present) … else …` shape takes the miss branch and no callback runs. Two
-  consequences for a future-callback style (`future.thenAccept(…)`): the callback only ever executes on success, and the
-  returned future ErrorProne's `FutureReturnValueIgnored` flags can never leave a sink hanging here. So a
-  `@SuppressWarnings( "FutureReturnValueIgnored")` on such a method is **redundant**, not a documented decision or a
-  hidden bug — verified against Caffeine 3.3.0 (`getIfPresent` of an exceptionally-completed future returns `null`).
-  Prefer `Mono.fromFuture(…)` over a raw sink-plus-`thenAccept`: Reactor observes the future (no dangling return, no
-  suppression needed) and the empty-vs-failed distinction stays with the cache's own contract.
-  `ShowcaseRestController`'s fallback paths were refactored this way and the two method-level suppressions deleted.
+- **Caffeine's `AsyncCache` trips a Reactor bridge on two contracts — a non-null value type and an empty source — and
+  its access expiry never bounds a hot entry.** `getIfPresent` returns `null` for a future that completed exceptionally,
+  so a failed cached future is indistinguishable from a miss: the `if (present) … else …` shape takes the miss branch, a
+  `future.thenAccept(…)` callback only runs on success, and the future ErrorProne's `FutureReturnValueIgnored` flags can
+  never leave a sink hanging — so a `@SuppressWarnings("FutureReturnValueIgnored")` on such a method is **redundant**,
+  not a hidden bug (verified against Caffeine 3.3.0). Prefer `Mono.fromFuture(…)` over a raw sink-plus-`thenAccept`:
+  Reactor observes the future and the empty-vs-failed distinction stays with the cache's own contract. The reverse
+  bridge — a `Mono` fed into `AsyncCache.get`'s mapping callback — needs a helper: `Mono.toFuture()` is typed
+  `CompletableFuture<@Nullable T>`, and a fresh future completed from
+  `source.subscribe(future::complete, future::completeExceptionally)` never completes on an empty source, so guard it
+  with `switchIfEmpty(Mono.error(…))` or that entry wedges forever. The callback runs on the calling thread, so a
+  subscription created inside it does not inherit the caller's Reactor context — carry it with
+  `Mono.deferContextual(ctx -> … contextWrite(ctx) …)` or the trace link breaks. A cache's freshness bound is
+  `expiresAfterWrite`: every read resets an access expiry, so `expiresAfterAccess` never bounds a hot entry. captured:
+  read-through-gateway-caches

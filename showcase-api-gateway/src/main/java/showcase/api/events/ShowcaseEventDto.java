@@ -12,7 +12,6 @@ import lombok.NonNull;
 import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
-import org.jspecify.annotations.NullMarked;
 
 /**
  * The SSE payload describing a showcase domain event streamed to clients.
@@ -23,7 +22,6 @@ import org.jspecify.annotations.NullMarked;
 @EqualsAndHashCode(cacheStrategy = CacheStrategy.LAZY)
 @Builder
 @Jacksonized
-@NullMarked
 @Schema(description = "A showcase domain event streamed over Server-Sent Events.")
 @SuppressWarnings("ClassCanBeRecord")
 public class ShowcaseEventDto {

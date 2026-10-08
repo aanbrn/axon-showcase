@@ -256,18 +256,20 @@ whose absence falls back to the absolute thresholds.
 ### Requirement: A baseline run reports its measurements
 
 A `baseline` run SHALL produce a report of its measurement: the target's shape, the calibration knee, the operating
-point and duration, the plateau's response times, and the per-service resource usage during the plateau. It SHALL also
-compare the plateau's per read and write request mean, 95th, and 99th percentile response times against the reference
-recorded for the target it measured, reporting each figure alongside the recorded value and their delta, and record
-those figures as the baseline reference the performance profiles assert against. It SHALL write that reference unless a
-figure regresses beyond the configured tolerance and no refresh is intended; when one does, the run SHALL fail, naming
-the regressed figures, and leave the reference unchanged. A measurement that records no request figures SHALL also fail
-and leave the reference unchanged, even when a refresh is intended, since a figure-less reference would silently send
-the performance profiles to their absolute thresholds. The run SHALL write a dated record of itself, identified by the
-environment it measured when that is not the default, ready to be annotated and committed, whether or not its comparison
-failed. The report SHALL take the calibration knee from the `calibrate` run's written output rather than re-deriving it
-at run time. When the calibration finds no sustained departure, the report SHALL state that the knee was not measured
-and give the operating point as a fraction of the calibration ceiling.
+point and duration, the plateau's response times, and the per-service resource usage during the plateau. It SHALL record
+the operating point it measured in the baseline reference, alongside the plateau's per read and write request mean,
+95th, and 99th percentile response times and the derivation policy. It SHALL compare those figures against the reference
+recorded for the target it measured and for an operating point within a tenth of the recorded operating point (the
+matching band), reporting each figure alongside the recorded value and their delta — a reference recorded for another
+target, at an operating point beyond the matching band, or with no operating point, is not compared. It SHALL write that
+reference unless a figure regresses beyond the configured tolerance and no refresh is intended; when one does, the run
+SHALL fail, naming the regressed figures, and leave the reference unchanged. A measurement that records no request
+figures SHALL also fail and leave the reference unchanged, even when a refresh is intended, since a figure-less
+reference would silently send the performance profiles to their absolute thresholds. The run SHALL write a dated record
+of itself, identified by the environment it measured when that is not the default, ready to be annotated and committed,
+whether or not its comparison failed. The report SHALL take the calibration knee from the `calibrate` run's written
+output rather than re-deriving it at run time. When the calibration finds no sustained departure, the report SHALL state
+that the knee was not measured and give the operating point as a fraction of the calibration ceiling.
 
 #### Scenario: The run writes a report
 
@@ -278,8 +280,8 @@ and give the operating point as a fraction of the calibration ceiling.
 
 - **WHEN** a `baseline` run completes and no figure regresses beyond the configured tolerance, or a refresh is intended,
   and the run measured at least one request figure
-- **THEN** it writes the baseline reference — the plateau's response times per read and write request, with the
-  derivation policy and the target measured — for the performance profiles to assert against
+- **THEN** it writes the baseline reference — the operating point it measured, the plateau's response times per read and
+  write request, with the derivation policy and the target measured — for the performance profiles to assert against
 
 #### Scenario: The run writes a committable record
 
@@ -301,8 +303,8 @@ and give the operating point as a fraction of the calibration ceiling.
 
 #### Scenario: The run reports its figures against the recorded reference
 
-- **WHEN** a `baseline` run completes and a reference is recorded for the target it measured, and the run measured at
-  least one request figure
+- **WHEN** a `baseline` run completes and a reference is recorded for the target it measured at an operating point
+  within the matching band, and the run measured at least one request figure
 - **THEN** it reports each read and write request's mean, 95th, and 99th percentile response time alongside the recorded
   value and their delta
 
@@ -328,6 +330,20 @@ and give the operating point as a fraction of the calibration ceiling.
 - **WHEN** no reference is recorded for the target the run measured, or the recorded one names another target, and the
   run measured at least one request figure
 - **THEN** the run reports that there is nothing to compare and writes the reference it measured
+
+#### Scenario: A reference recorded beyond the operating-point band is not compared
+
+- **WHEN** a reference is recorded for the target at an operating point beyond the matching band, and the run measured
+  at least one request figure
+- **THEN** the run reports that the reference is for another operating point, does not report a regression, and records
+  the measurement it made
+
+#### Scenario: A reference that records no operating point is not compared
+
+- **WHEN** a reference is recorded for the target but records no operating point, and the run measured at least one
+  request figure
+- **THEN** the run reports that the reference records no operating point, does not report a regression, and records the
+  measurement it made
 
 ### Requirement: Knee-relative injection profiles
 

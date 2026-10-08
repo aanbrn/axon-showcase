@@ -3,8 +3,8 @@
 ## Purpose
 
 Documents the current behavior of the REST entry point of the CQRS showcase application: the `/showcases` command and
-query endpoints, asynchronous write handling with idempotency keys, cache fallback on query failures, and structured
-error mapping.
+query endpoints, asynchronous write handling with idempotency keys, read-through query caching with event-driven
+invalidation, and structured error mapping.
 
 ## Requirements
 
@@ -150,41 +150,6 @@ detail when it does not exist.
 - **THEN** the system responds with a `400 Bad Request` problem detail, detail "Invalid request.", and a `pathErrors`
   map containing the `showcaseId` property
 
-### Requirement: Cache fallback on transient query failures
-
-The system SHALL maintain in-memory caches of fetch-showcase-list and fetch-showcase-by-id results, and SHALL serve
-cached results when a query fails with a transient error, falling back to the cached IDs and showcases before failing.
-
-#### Scenario: Successful list fetch populates the caches
-
-- **WHEN** a `GET /showcases` request succeeds
-- **THEN** the fetched showcases are stored in the by-ID cache and their IDs in the list cache
-
-#### Scenario: List fetch falls back to cached results on transient error
-
-- **WHEN** fetching the showcase list fails with a transient error and cached IDs with their showcases exist
-- **THEN** the system responds with `200 OK` and the cached showcases
-
-#### Scenario: List fetch with no cached IDs produces 503
-
-- **WHEN** fetching the showcase list fails with a transient error and no cached IDs exist
-- **THEN** the system responds with a `503 Service Unavailable` problem detail
-
-#### Scenario: List fetch with missing cached showcase produces 503
-
-- **WHEN** fetching the showcase list fails with a transient error and a cached ID has no cached showcase
-- **THEN** the system responds with a `503 Service Unavailable` problem detail
-
-#### Scenario: By-ID fetch falls back to cached showcase on transient error
-
-- **WHEN** fetching a showcase by ID fails with a transient error and the showcase is cached
-- **THEN** the system responds with `200 OK` and the cached showcase
-
-#### Scenario: By-ID fetch with no cached showcase produces 503
-
-- **WHEN** fetching a showcase by ID fails with a transient error and the showcase is not cached
-- **THEN** the system responds with a `503 Service Unavailable` problem detail
-
 ### Requirement: Command error translation
 
 The system SHALL route every controller method on the bounded-elastic scheduler, so that request validation can resolve,
@@ -296,3 +261,65 @@ would reject the UI's own preflight.
 - **WHEN** a browser at the configured UI origin sends a preflight for a state-changing request carrying the headers the
   UI sends (`Content-Type`, `Idempotency-Key`, `traceparent`)
 - **THEN** the gateway grants the preflight, listing those headers in `Access-Control-Allow-Headers`
+
+### Requirement: Read-through caching of showcase queries
+
+The gateway SHALL maintain in-memory caches of fetch-showcase-list and fetch-showcase-by-id results and SHALL serve a
+read from the cache when a matching entry is present; otherwise it SHALL fetch from the query service and cache the
+result. Entries SHALL expire after each cache's configured write time-to-live. The two caches SHALL be independent — a
+list entry SHALL hold the full showcases rather than resolving through the by-ID cache — and concurrent reads for the
+same key SHALL collapse into a single query-service call.
+
+#### Scenario: A list read is served from the cache
+
+- **WHEN** a `GET /showcases` request matches a cached list query
+- **THEN** the system responds with `200 OK` and the cached showcases without calling the query service
+
+#### Scenario: A list read on a miss fetches and caches
+
+- **WHEN** a `GET /showcases` request matches no cached list query
+- **THEN** the system fetches the list from the query service, responds with `200 OK`, and caches the list under that
+  query
+
+#### Scenario: A by-ID read is served from the cache
+
+- **WHEN** a `GET /showcases/{showcaseId}` request matches a cached showcase
+- **THEN** the system responds with `200 OK` and the cached showcase without calling the query service
+
+#### Scenario: A by-ID read on a miss fetches and caches
+
+- **WHEN** a `GET /showcases/{showcaseId}` request matches no cached showcase
+- **THEN** the system fetches the showcase from the query service, responds with `200 OK`, and caches it under its ID
+
+#### Scenario: An entry expires after its write time-to-live
+
+- **WHEN** a cached entry's write time-to-live has elapsed
+- **THEN** the next matching read fetches from the query service rather than serving the expired entry
+
+#### Scenario: The list cache is independent of the by-ID cache
+
+- **WHEN** a list read is served from the cache
+- **THEN** its showcases come from the cached list entry itself, without a by-ID lookup
+
+#### Scenario: Concurrent reads for the same key collapse into one call
+
+- **WHEN** several reads for the same query or showcase arrive before the first has completed
+- **THEN** the query service is called once and every read is served from that result
+
+#### Scenario: A failed fetch on a miss is not cached and propagates
+
+- **WHEN** a read misses the cache and its query fails
+- **THEN** the system responds with the error mapped by the query or availability error translation (a `404` or `400`
+  for a query error, a `503` for an availability failure) rather than serving a cached result
+- **AND** a subsequent identical read queries the query service again rather than serving a cached failure
+
+### Requirement: Showcase events invalidate the by-ID cache
+
+On any showcase domain event, the gateway SHALL evict that showcase's by-ID cache entry, so a subsequent by-ID read
+re-queries the query service rather than serving a cached pre-change state.
+
+#### Scenario: An event for a cached showcase evicts its by-ID entry
+
+- **WHEN** the gateway receives any showcase event for a showcase it has cached by ID
+- **THEN** the cache no longer holds that showcase, so a read that starts after the eviction queries the query service
+  rather than serving the cached showcase

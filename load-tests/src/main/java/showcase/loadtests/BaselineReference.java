@@ -11,9 +11,9 @@ import lombok.val;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The load-test baseline reference: the plateau's mean, 95th, and 99th percentile response time per read and write
- * request, with the derivation policy the below-knee profiles apply and the target it was measured against. Parses and
- * renders the properties text the {@code baselineStats} task writes.
+ * The load-test baseline reference: the operating point the plateau ran at and the plateau's mean, 95th, and 99th
+ * percentile response time per read and write request, with the derivation policy the below-knee profiles apply and the
+ * target it was measured against. Parses and renders the properties text the {@code baselineStats} task writes.
  */
 @Value
 @Builder
@@ -24,7 +24,7 @@ public class BaselineReference {
      * The comment header the reference file carries.
      */
     public static final String HEADER =
-            "# The load-test baseline reference: the plateau's response times per read and write request.\n"
+            "# The load-test baseline reference: the operating point the plateau ran at and its response times.\n"
                     + "# A baseline run writes it; the below-knee profiles derive their thresholds from it as\n"
                     + "# max(floor, factor x baseline), and ignore it when its target is not theirs.\n";
 
@@ -53,6 +53,13 @@ public class BaselineReference {
      */
     @Nullable
     Instant recordedAt;
+
+    /**
+     * The operating point the plateau ran at, in workload units per second, absent when a hand-written or pre-change
+     * reference omits it.
+     */
+    @Nullable
+    Integer operatingPoint;
 
     /**
      * The multiple of a baseline value a derived threshold allows.
@@ -116,6 +123,7 @@ public class BaselineReference {
         val parsed = new LinkedHashMap<String, Map<String, Integer>>();
         var target = "";
         Instant recordedAt = null;
+        Integer operatingPoint = null;
         var factor = 0;
         var floorMeanMs = 0;
         var floorP95Ms = 0;
@@ -134,6 +142,7 @@ public class BaselineReference {
             switch (key) {
                 case "target" -> target = value;
                 case "recordedAt" -> recordedAt = Instant.parse(value);
+                case "operatingPoint" -> operatingPoint = Integer.parseInt(value);
                 case "factor" -> factor = Integer.parseInt(value);
                 case "floorMeanMs" -> floorMeanMs = Integer.parseInt(value);
                 case "floorP95Ms" -> floorP95Ms = Integer.parseInt(value);
@@ -161,6 +170,7 @@ public class BaselineReference {
         return BaselineReference.builder()
                 .target(target)
                 .recordedAt(recordedAt)
+                .operatingPoint(operatingPoint)
                 .factor(factor)
                 .floorMeanMs(floorMeanMs)
                 .floorP95Ms(floorP95Ms)
@@ -179,6 +189,9 @@ public class BaselineReference {
         text.append("target=").append(target).append('\n');
         if (recordedAt != null) {
             text.append("recordedAt=").append(recordedAt).append('\n');
+        }
+        if (operatingPoint != null) {
+            text.append("operatingPoint=").append(operatingPoint).append('\n');
         }
         text.append("factor=").append(factor).append('\n');
         text.append("floorMeanMs=").append(floorMeanMs).append('\n');

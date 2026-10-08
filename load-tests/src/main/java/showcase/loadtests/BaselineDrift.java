@@ -11,10 +11,11 @@ import lombok.val;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The drift of a measured baseline reference against a recorded one: each read and write request's mean, 95th, and 99th
- * percentile response time, its delta, and whether it regresses beyond the configured tolerance. Also carries the write
- * decision — a regression beyond the tolerance withholds the recorded reference unless a refresh is intended, a
- * measurement with no figures always withholds it, and nothing to compare records the measurement.
+ * The drift of a measured baseline reference against a recorded one that names the same target and a matching operating
+ * point: each read and write request's mean, 95th, and 99th percentile response time, its delta, and whether it
+ * regresses beyond the configured tolerance. Also carries the write decision — a regression beyond the tolerance
+ * withholds the recorded reference unless a refresh is intended, a measurement with no figures always withholds it, and
+ * nothing to compare records the measurement.
  */
 @Value
 @Builder
@@ -25,6 +26,11 @@ public class BaselineDrift {
      * The relative increase above a recorded figure that still passes, as a fraction.
      */
     public static final double DEFAULT_TOLERANCE = 0.5;
+
+    /**
+     * The relative difference between two operating points within which the comparison is made, as a fraction.
+     */
+    static final double OPERATING_POINT_TOLERANCE = 0.1;
 
     /**
      * The drift floor for a mean response time, in milliseconds.
@@ -58,6 +64,18 @@ public class BaselineDrift {
     String recordedTarget;
 
     /**
+     * The operating point the recorded reference names, absent when nothing was recorded or it records none.
+     */
+    @Nullable
+    Integer recordedOperatingPoint;
+
+    /**
+     * The operating point the measurement ran at, absent when the measurement did not record one.
+     */
+    @Nullable
+    Integer measuredOperatingPoint;
+
+    /**
      * The per-request figure deltas, in the measured reference's request order.
      */
     List<Figure> figures;
@@ -73,7 +91,7 @@ public class BaselineDrift {
     boolean measuredEmpty;
 
     /**
-     * Compares a measured reference against a recorded one.
+     * Compares a measured reference against a recorded one that names the same target and a matching operating point.
      *
      * @param recorded the recorded reference, absent when none exists
      * @param measured the reference measured by this run
@@ -86,7 +104,9 @@ public class BaselineDrift {
             BaselineReference measured,
             double tolerance,
             boolean refreshIntended) {
-        val comparable = recorded != null && measured.target().equals(recorded.target());
+        val comparable = recorded != null
+                && measured.target().equals(recorded.target())
+                && operatingPointsMatch(recorded, measured);
         val measuredEmpty = measured.requests().isEmpty();
         val figures = new ArrayList<Figure>();
         if (recorded != null && comparable) {
@@ -124,10 +144,28 @@ public class BaselineDrift {
                 .target(measured.target())
                 .comparable(comparable)
                 .recordedTarget(recorded == null ? null : recorded.target())
+                .recordedOperatingPoint(recorded == null ? null : recorded.operatingPoint())
+                .measuredOperatingPoint(measured.operatingPoint())
                 .figures(figures)
                 .measuredEmpty(measuredEmpty)
                 .writeReference(!measuredEmpty && (!comparable || !regressed || refreshIntended))
                 .build();
+    }
+
+    /**
+     * Whether the recorded and measured operating points match: both present and within the tolerance band of the
+     * recorded one.
+     *
+     * @param recorded the recorded reference
+     * @param measured the measured reference
+     * @return true when the operating points match
+     */
+    private static boolean operatingPointsMatch(BaselineReference recorded, BaselineReference measured) {
+        val recordedPoint = recorded.operatingPoint();
+        val measuredPoint = measured.operatingPoint();
+        return recordedPoint != null
+                && measuredPoint != null
+                && Math.abs(measuredPoint - recordedPoint) <= Math.round(recordedPoint * OPERATING_POINT_TOLERANCE);
     }
 
     /**
@@ -205,10 +243,7 @@ public class BaselineDrift {
             return "baseline drift: no request figures were measured; withholding the reference\n";
         }
         if (!comparable) {
-            return recordedTarget == null
-                    ? "baseline drift: no reference recorded for %s; nothing to compare\n".formatted(target)
-                    : "baseline drift: the reference is recorded for %s, not %s; nothing to compare\n"
-                            .formatted(recordedTarget, target);
+            return "baseline drift: %s; nothing to compare\n".formatted(notComparableReason());
         }
         val text = new StringBuilder("baseline drift against %s:\n".formatted(target));
         for (val figure : figures) {
@@ -223,6 +258,29 @@ public class BaselineDrift {
             text.append("  beyond the tolerance; withholding the reference\n");
         }
         return text.toString();
+    }
+
+    /**
+     * The reason the comparison was not made: no recorded reference, another target, another operating point, or no
+     * operating point.
+     *
+     * @return the reason
+     */
+    private String notComparableReason() {
+        if (recordedTarget == null) {
+            return "no reference recorded for " + target;
+        }
+        if (!target.equals(recordedTarget)) {
+            return "the reference is recorded for " + recordedTarget + ", not " + target;
+        }
+        if (recordedOperatingPoint == null) {
+            return "the reference records no operating point";
+        }
+        if (measuredOperatingPoint == null) {
+            return "the measurement records no operating point";
+        }
+        return "the reference is recorded at %d units/s, not %d"
+                .formatted(recordedOperatingPoint, measuredOperatingPoint);
     }
 
     /**

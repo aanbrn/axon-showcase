@@ -53,6 +53,7 @@ tasks.register<JavaExec>("baselineStats") {
             providers.gradleProperty("target").get(),
             providers.gradleProperty("refreshBaseline").getOrElse("false"),
             providers.gradleProperty("tolerancePercent").getOrElse("50"),
+            providers.gradleProperty("operatingPoint").get(),
         )
     }
 }

@@ -4,8 +4,9 @@
 # Runs the load-test measurement against a Helm cluster: a calibration ramp that finds the load knee, then a baseline
 # plateau at an operating point below it, sampling per-service resource usage throughout. Writes the knee to
 # knee.properties, the assembled measurement to report.md under load-tests/build/load-tests/, a ready-to-annotate record
-# under docs/load-tests/, and the plateau's per-request response times to the baseline reference the profiles assert
-# against — unless a figure regresses beyond TOLERANCE, which leaves the reference unchanged unless REFRESH_BASELINE=1.
+# under docs/load-tests/, and the plateau's operating point and per-request response times to the baseline reference the
+# profiles assert against — unless a figure regresses beyond TOLERANCE, which leaves the reference unchanged unless
+# REFRESH_BASELINE=1.
 # Exits non-zero when the calibration, the baseline, the comparison, or a requested profile run fails.
 set -uo pipefail
 
@@ -148,7 +149,8 @@ echo "==> wrote $RECORD (annotate, then ./gradlew spotlessApply before committin
 
 STATS_STATUS=0
 if ! run ./gradlew :load-tests:baselineStats -Plog="$BASE_LOG" -PbaselineOut="$BASELINE_REF" \
-    -Ptarget="$BASE_URL" -PrefreshBaseline="$REFRESH_BASELINE" -PtolerancePercent="$TOLERANCE" -q; then
+    -Ptarget="$BASE_URL" -PoperatingPoint="$OPERATING" -PrefreshBaseline="$REFRESH_BASELINE" \
+    -PtolerancePercent="$TOLERANCE" -q; then
     STATS_STATUS=1
     echo "reference left unchanged: a figure beyond the $TOLERANCE% tolerance is the usual cause" >&2
     echo "(REFRESH_BASELINE=1 accepts a regression); otherwise the recording failed — see the report above" >&2

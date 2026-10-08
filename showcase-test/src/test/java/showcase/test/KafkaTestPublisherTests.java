@@ -19,6 +19,7 @@ import org.mockito.ArgumentCaptor;
 class KafkaTestPublisherTests {
 
     private static final String AGGREGATE_TYPE = "ShowcaseAggregate";
+
     private static final String AGGREGATE_ID = "aggregate-1";
 
     @Test

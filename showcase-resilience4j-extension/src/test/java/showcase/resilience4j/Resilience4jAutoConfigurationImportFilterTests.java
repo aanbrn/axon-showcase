@@ -21,12 +21,16 @@ class Resilience4jAutoConfigurationImportFilterTests {
 
     private static final String BULKHEAD_AUTOCONFIGURATION =
             "io.github.resilience4j.springboot3.bulkhead.autoconfigure.BulkheadAutoConfiguration";
+
     private static final String TIME_LIMITER_AUTOCONFIGURATION =
             "io.github.resilience4j.springboot3.timelimiter.autoconfigure.TimeLimiterAutoConfiguration";
+
     private static final String RATE_LIMITER_AUTOCONFIGURATION =
             "io.github.resilience4j.springboot3.ratelimiter.autoconfigure.RateLimiterAutoConfiguration";
+
     private static final String CIRCUIT_BREAKER_AUTOCONFIGURATION =
             "io.github.resilience4j.springboot3.circuitbreaker.autoconfigure.CircuitBreakerAutoConfiguration";
+
     private static final String RETRY_AUTOCONFIGURATION =
             "io.github.resilience4j.springboot3.retry.autoconfigure.RetryAutoConfiguration";
 

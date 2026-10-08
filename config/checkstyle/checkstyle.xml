@@ -24,6 +24,13 @@
         <module name="SimplifyBooleanReturn"/>
         <module name="UnusedLocalVariable"/>
         <module name="AvoidStarImport"/>
+
+        <module name="EmptyLineSeparator">
+            <property name="tokens"
+                      value="VARIABLE_DEF,METHOD_DEF,CTOR_DEF,CLASS_DEF,INTERFACE_DEF,ENUM_DEF,RECORD_DEF,
+                             STATIC_INIT,INSTANCE_INIT,COMPACT_CTOR_DEF"/>
+            <property name="allowNoEmptyLineBetweenFields" value="false"/>
+        </module>
     </module>
 
     <module name="RegexpMultiline">

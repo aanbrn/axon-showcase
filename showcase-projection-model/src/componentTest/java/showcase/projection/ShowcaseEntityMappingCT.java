@@ -15,7 +15,9 @@ import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMa
 class ShowcaseEntityMappingCT {
 
     private final SimpleElasticsearchMappingContext mappingContext = new SimpleElasticsearchMappingContext();
+
     private final MappingElasticsearchConverter converter = new MappingElasticsearchConverter(mappingContext);
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 class RandomTestUtilsTests {
 
     private static final String[] STRINGS = {"alpha", "beta", "gamma"};
+
     private static final List<String> STRING_LIST = List.of("alpha", "beta", "gamma");
 
     @Test

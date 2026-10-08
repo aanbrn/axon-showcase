@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 class ShowcaseDbSchedulerMetricsCT {
 
     private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+
     private final ShowcaseDbSchedulerMetrics metrics =
             ShowcaseDbSchedulerMetrics.builder().meterRegistry(meterRegistry).build();
 

@@ -13,16 +13,6 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
-## 2026-10-08
-
-- Enforce an empty line between type members — parked; no change yet. Checkstyle's `EmptyLineSeparator` (with member
-  tokens) is the stock rule; measured against the repo (generated sources suppressed) it flags no hand-written methods,
-  constructors, initializers, or nested types and 14 grouped fields across 8 blocks, all in test sources. The open
-  decision is `allowNoEmptyLineBetweenFields` — `false` (the module default) forces the grouped fields apart, `true`
-  keeps them grouped and leaves the rule a pure regression gate with no sweep — and whether to tighten
-  `allowMultipleEmptyLines` (default true; the repo has no runs of two or more blanks). Complementary to the type-body
-  padding rule, which covers the gap after `{` that `EmptyLineSeparator` never checks.
-
 ## 2026-10-06
 
 - Explain or eliminate the gateway controller CT's load-sensitive hang — parked; no change yet.

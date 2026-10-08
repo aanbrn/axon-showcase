@@ -12,11 +12,12 @@ import org.junit.jupiter.api.Test;
 class BaselineReferenceTests {
 
     private static final String REFERENCE = """
-            # The load-test baseline reference: the plateau's response times per read and write request.
+            # The load-test baseline reference: the operating point the plateau ran at and its response times.
             # A baseline run writes it; the below-knee profiles derive their thresholds from it as
             # max(floor, factor x baseline), and ignore it when its target is not theirs.
             target=http://axon-showcase-api
             recordedAt=2026-09-27T12:12:46.593961Z
+            operatingPoint=127
             factor=5
             floorMeanMs=50
             floorP95Ms=100
@@ -30,12 +31,14 @@ class BaselineReferenceTests {
             """;
 
     @Test
-    @DisplayName("Parsing a reference extracts its target, policy, and per-request figures in file order")
+    @DisplayName(
+            "Parsing a reference extracts its target, policy, operating point, and per-request figures in file order")
     void parse_extractsTargetPolicyAndFiguresInFileOrder() {
         val reference = BaselineReference.parse(REFERENCE);
 
         assertThat(reference.target()).isEqualTo("http://axon-showcase-api");
         assertThat(reference.recordedAt()).isEqualTo(Instant.parse("2026-09-27T12:12:46.593961Z"));
+        assertThat(reference.operatingPoint()).isEqualTo(127);
         assertThat(reference.factor()).isEqualTo(5);
         assertThat(reference.floorMeanMs()).isEqualTo(50);
         assertThat(reference.floorP95Ms()).isEqualTo(100);
@@ -67,5 +70,16 @@ class BaselineReferenceTests {
         assertThat(reference.requests().get("FetchShowcases").meanMs()).isEqualTo(7);
         assertThat(reference.requests().get("FetchShowcases").p95Ms()).isEqualTo(10);
         assertThat(reference.requests().get("FetchShowcases").p99Ms()).isNull();
+    }
+
+    @Test
+    @DisplayName("A reference that omits its operating point parses with it absent")
+    void parse_aMissingOperatingPoint_leavesItAbsent() {
+        val reference = BaselineReference.parse("""
+                target=http://axon-showcase-api
+                FetchShowcases.meanMs=7
+                """);
+
+        assertThat(reference.operatingPoint()).isNull();
     }
 }

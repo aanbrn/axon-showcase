@@ -16,10 +16,11 @@ import lombok.val;
 import scala.Option;
 
 /**
- * Records the baseline reference from a Gatling simulation log: the plateau's mean, 95th, and 99th percentile response
- * time per read and write request, with the derivation policy the below-knee profiles apply. Compares the measurement
- * against the reference recorded for the target it measured, reports the deltas, and writes the reference unless a
- * figure regresses beyond the tolerance with no refresh intended.
+ * Records the baseline reference from a Gatling simulation log: the operating point the plateau ran at and its mean,
+ * 95th, and 99th percentile response time per read and write request, with the derivation policy the below-knee
+ * profiles apply. Compares the measurement against the reference recorded for the target and a matching operating
+ * point, reports the deltas, and writes the reference unless a figure regresses beyond the tolerance with no refresh
+ * intended.
  */
 public final class BaselineStats {
 
@@ -58,7 +59,8 @@ public final class BaselineStats {
      * reports the deltas, and writes the reference per the tolerance-gated policy.
      *
      * @param args the simulation log path, the reference path, the target the log was recorded against, whether a
-     *     refresh is intended, and the tolerance as a percentage
+     *     refresh is intended, the tolerance as a percentage, and the operating point the plateau ran at in workload
+     *     units per second
      * @throws IOException if the log cannot be read or the reference cannot be written
      */
     public static void main(String[] args) throws IOException {
@@ -67,9 +69,10 @@ public final class BaselineStats {
         val target = args[2];
         val refreshIntended = args.length > 3 && isTruthy(args[3]);
         val tolerance = args.length > 4 ? Double.parseDouble(args[4]) / 100.0 : BaselineDrift.DEFAULT_TOLERANCE;
+        val operatingPoint = Integer.parseInt(args[5]);
 
         val data = new LogFileReader(new File(logPath), GatlingConfiguration.load()).read();
-        val measured = measure(data, target);
+        val measured = measure(data, target, operatingPoint);
         val recorded = Files.exists(output) ? BaselineReference.parse(Files.readString(output)) : null;
         val drift = BaselineDrift.compare(recorded, measured, tolerance, refreshIntended);
         System.out.print(drift.report());
@@ -109,9 +112,10 @@ public final class BaselineStats {
      *
      * @param data the simulation log's data
      * @param target the target the log was recorded against
+     * @param operatingPoint the operating point the plateau ran at, in workload units per second
      * @return the measured reference
      */
-    private static BaselineReference measure(LogFileData data, String target) {
+    private static BaselineReference measure(LogFileData data, String target, int operatingPoint) {
         val requests = new LinkedHashMap<String, BaselineReference.Figures>();
         for (val name : LoadTestRequests.READ_WRITE) {
             val stats = data.requestGeneralStats(Option.apply(name), Option.empty(), Option.apply(Status.apply(OK)));
@@ -129,6 +133,7 @@ public final class BaselineStats {
         return BaselineReference.builder()
                 .target(target)
                 .recordedAt(Instant.now())
+                .operatingPoint(operatingPoint)
                 .factor(DEFAULT_FACTOR)
                 .floorMeanMs(DEFAULT_FLOOR_MEAN_MS)
                 .floorP95Ms(DEFAULT_FLOOR_P95_MS)

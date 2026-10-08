@@ -92,12 +92,16 @@ names, as part of applying the finding (and the docs, per the docs-refresh conve
 correction takes the same sweep even though it adds no behavior: the planning artifacts state one model of the subject,
 so correcting the model in the artifacts the finding names leaves a sibling — most often `proposal.md` — stating the old
 framing, which the next round flags as coherence drift. Re-read every planning artifact that states the corrected claim,
-`proposal.md` included, before re-running the review. captured: widen-architecture-auditor-to-revisit-triggers. A clean
-quick review is a precondition for asking for the manual review, **not** a substitute for it — it means _ask the user
-now_, not _the implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength of a clean
-`review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes, without ever requesting
-the manual pass. The commit → push → PR → CI → archive sequence starts only after the user approves the implementation —
-the "Run CI before archiving" convention does not authorize committing earlier. An unanswered approval request is not an
+`proposal.md` included, before re-running the review. When the claim is a predicate the requirement owns — a threshold,
+band, or formula — single-source it: state it once in the requirement and reference it by name, since a restated copy
+re-anchors on its own (a README copy made the matching band a tenth of the _measured_ rate where the requirement and
+code use the _recorded_ one) and the sweep has no canonical wording to sweep to. captured:
+record-baseline-operating-point captured: widen-architecture-auditor-to-revisit-triggers. A clean quick review is a
+precondition for asking for the manual review, **not** a substitute for it — it means _ask the user now_, not _the
+implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength of a clean `review-quick`
+alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes, without ever requesting the manual
+pass. The commit → push → PR → CI → archive sequence starts only after the user approves the implementation — the "Run
+CI before archiving" convention does not authorize committing earlier. An unanswered approval request is not an
 approval: a reply that does not address it — the user asks about something else, or the thread moves on — leaves the
 request outstanding, so re-ask explicitly before committing, pushing, opening the PR, archiving, or merging, and do not
 read a tangential reply as clearance. Work done while awaiting the pass must stay in the working tree until it is given;
@@ -525,15 +529,16 @@ wait for approval before merging.
 # calibrate, baseline — the performance profiles scale from kneeRate, spike/breakpoint carry no assertions, and an
 # unsupported profile name fails the run. The measurement run is ./scripts/load-test-baseline.sh: it raises the ceiling
 # (up to CALIBRATE_MAX_RATE) until a knee is measured, runs a baseline plateau, compares the plateau's per read/write
-# request mean, 95th, and 99th percentile response times against the reference recorded for the target it measured —
-# reporting each figure's delta — and records the plateau's response times as the committed reference
-# (load-tests/src/gatling/resources/baseline.properties, or baseline-<slug>.properties for a target other than the
-# default). A figure beyond max(floor, round(recorded x (1 + TOLERANCE/100))) — floors 5/10/20 ms — regresses: the run
-# fails, naming the regressed figures, and leaves the reference unchanged unless REFRESH_BASELINE=1 accepts it; with
-# nothing recorded for the target it records the measurement; a measurement that recorded no figures is withheld,
-# refreshed or not. TOLERANCE defaults to 50 (percent). The run writes a
-# ready-to-annotate record under docs/load-tests/ and load-tests/build/load-tests/report.md either way, and — with
-# PROFILE=<name> — runs that performance profile at the derived knee. The calibration deliberately ramps past the knee
+# request mean, 95th, and 99th percentile response times against the reference recorded for the target and a matching
+# operating point — reporting each figure's delta — and records the plateau's operating point and response times as the
+# committed reference (load-tests/src/gatling/resources/baseline.properties, or baseline-<slug>.properties for a target
+# other than the default). A figure beyond max(floor, round(recorded x (1 + TOLERANCE/100))) — floors 5/10/20 ms —
+# regresses: the run fails, naming the regressed figures, and leaves the reference unchanged unless REFRESH_BASELINE=1
+# accepts it; with nothing recorded for the target, or a reference recorded at an operating point more than a tenth of
+# the recorded rate away or with no operating point, it records the measurement; a measurement that recorded no figures
+# is withheld, refreshed or not. TOLERANCE defaults to 50 (percent). The run writes a ready-to-annotate record
+# under docs/load-tests/ and load-tests/build/load-tests/report.md either way, and — with PROFILE=<name> — runs that
+# performance profile at the derived knee. The calibration deliberately ramps past the knee
 # and the resource sampling follows the current kube context (kubectl top pods -A), so point a run at an environment you
 # own. The CI deployment smoke (.github/workflows/deployment-smoke.yml) installs the chart and an ingress controller on
 # a throwaway kind cluster and drives the smoke profile at the deployed gateway through its ingress.

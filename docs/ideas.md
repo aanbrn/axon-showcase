@@ -22,13 +22,6 @@ dated when it was added (start a new section for a new day rather than appending
   (which removes that blank), so it must be set false. Adopting it is a config rule plus a tree-wide sweep (Spotless
   won't add the start padding) plus an `AGENTS.md` Formatting note; the convention is currently inconsistent — the big
   gateway CTs have the blank, production classes don't.
-- Record the load-test baseline's operating point, and compare only at a matching rate — parked; no change yet. The
-  committed `baseline.properties` records per-request response times but not the operating point they were measured at,
-  and `baselineStats` compares a new plateau against them regardless of rate: a re-measure whose calibration found a
-  higher knee ran its plateau at 300 vs 124 workload units/s and reported a spurious regression across every request
-  (writes included, which the change under test cannot affect), while a re-run at the reference's operating point showed
-  the list read improved. Record the operating point (or the calibration ceiling) in the reference and gate the
-  comparison on a match.
 
 ## 2026-10-06
 

@@ -202,6 +202,7 @@ class ShowcaseQueryTransportServiceCT {
      * Captures the signals a {@link StreamObserver} receives.
      */
     private static final class CapturingObserver implements StreamObserver<QueryResponse> {
+
         private final List<QueryResponse> responses = new ArrayList<>();
 
         private Throwable error;

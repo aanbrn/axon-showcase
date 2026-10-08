@@ -1105,6 +1105,11 @@ Key modules (libraries, not services):
   take no version — they ship with the `spotless-plugin` pin — so a plugin bump can reflow sources tree-wide with no
   config change (`8.10.2`→`8.10.3` reflowed 13 Java test sources); after bumping it, run `spotlessApply` and account for
   the reflowed files in the change rather than declaring "no source change". captured: bump-dependencies-2026-09-29
+  - A type body's opening brace is followed by a blank line or a comment (Checkstyle's `RegexpMultiline` gate; enum,
+    annotation-type, and empty bodies are exempt): palantir preserves a blank after `{` and removes the one before `}`,
+    and will not insert the padding, so a new glued member is fixed by hand. A Checkstyle `message` is a `MessageFormat`
+    pattern — a lone `'` is consumed and an unbalanced `{` throws at violation time — so author it without either.
+    captured: enforce-type-body-padding
   - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML; Javadoc
     and JSDoc prose, which the formatters do not reflow — a >120-character comment line passes the formatter gate and
     only the manual check catches it); markdown is formatted by the root Spotless `markdown` format (Prettier,

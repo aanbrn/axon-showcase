@@ -15,13 +15,13 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-08
 
-- Enforce a blank line after a type body's opening brace — parked; no change yet. Spotless (palantir-java-format/ktfmt)
-  has no blank-line style option and strips a blank line before a closing brace, so it cannot enforce this. Checkstyle's
-  `TypeBodyPadding` (since 13.9.0; the repo pins 13.11.0) can: `atStartOfBody` requires the blank after the opening
-  brace and is viable (Spotless preserves it), while its default `atEndOfBody=true` is un-satisfiable alongside Spotless
-  (which removes that blank), so it must be set false. Adopting it is a config rule plus a tree-wide sweep (Spotless
-  won't add the start padding) plus an `AGENTS.md` Formatting note; the convention is currently inconsistent — the big
-  gateway CTs have the blank, production classes don't.
+- Enforce an empty line between type members — parked; no change yet. Checkstyle's `EmptyLineSeparator` (with member
+  tokens) is the stock rule; measured against the repo (generated sources suppressed) it flags no hand-written methods,
+  constructors, initializers, or nested types and 14 grouped fields across 8 blocks, all in test sources. The open
+  decision is `allowNoEmptyLineBetweenFields` — `false` (the module default) forces the grouped fields apart, `true`
+  keeps them grouped and leaves the rule a pure regression gate with no sweep — and whether to tighten
+  `allowMultipleEmptyLines` (default true; the repo has no runs of two or more blanks). Complementary to the type-body
+  padding rule, which covers the gap after `{` that `EmptyLineSeparator` never checks.
 
 ## 2026-10-06
 

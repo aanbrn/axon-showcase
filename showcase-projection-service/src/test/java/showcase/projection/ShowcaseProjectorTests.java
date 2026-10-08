@@ -11,6 +11,7 @@ import org.opensearch.client.opensearch.core.bulk.BulkOperation;
 
 @DisplayName("Showcase projector bulk requests")
 class ShowcaseProjectorTests {
+
     @Test
     @DisplayName("The bulk request refreshes immediately so a projected write is searchable on completion")
     void bulkRequest_refreshesImmediately() {

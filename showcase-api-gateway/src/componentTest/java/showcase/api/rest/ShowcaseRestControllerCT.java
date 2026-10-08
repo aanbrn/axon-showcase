@@ -1572,6 +1572,7 @@ class ShowcaseRestControllerCT {
     }
 
     static final class TestTicker implements Ticker {
+
         private final AtomicLong nanos = new AtomicLong();
 
         @Override

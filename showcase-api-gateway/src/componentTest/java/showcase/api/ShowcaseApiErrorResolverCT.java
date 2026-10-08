@@ -43,11 +43,13 @@ class ShowcaseApiErrorResolverCT {
 
     @SuppressWarnings("unused")
     static class Payload {
+
         private final String name = "value";
     }
 
     @SuppressWarnings("unused")
     static class Controller {
+
         void cookie(@CookieValue(name = "cookie") String cookie) {}
 
         void matrix(@MatrixVariable(name = "matrix") String matrix) {}

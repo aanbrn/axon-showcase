@@ -13,6 +13,15 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-08
+
+- Gate the `@NullMarked` package-info convention — parked; no change yet. NullAway 0.14.2 (the pinned version) ships the
+  `RequireExplicitNullMarking` Error Prone checker, which reports a top-level class unless it or its package is
+  explicitly `@NullMarked`/`@NullUnmarked`, so enabling it (`-Xep:RequireExplicitNullMarking:ERROR`) would enforce the
+  convention mechanically. It needs its own change: it is a separate Error Prone check from `NullAway`, so the existing
+  `disable("NullAway")` on `*TestJava` tasks does not disable it — enablement must be scoped to the non-`TestJava`
+  branch (or the test packages marked), which is a real investigation.
+
 ## 2026-10-06
 
 - Explain or eliminate the gateway controller CT's load-sensitive hang — parked; no change yet.

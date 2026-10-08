@@ -24,7 +24,7 @@ context: |
     - Wrap code and text at 120 characters
     - Lombok: addNullAnnotations = jspecify; copyable annotations @Qualifier and @Value
     - MapStruct: default component model is spring
-    - ErrorProne NullAway on showcase.* packages in production code
+    - ErrorProne NullAway on showcase.* packages; disabled in TestJava tasks
     - SpotBugs with findsecbugs and fbContrib; uses spotbugs-include.xml and spotbugs-exclude.xml filters if present
     - All JavaCompile tasks add -parameters
 

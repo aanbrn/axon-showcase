@@ -877,7 +877,9 @@ Key modules (libraries, not services):
   declaration with no initializer or more than one declarator, a `null`/lambda/method-reference/array initializer, a
   declared boxed type the initializer would unbox, or a declared primitive wider than the initializer.
 - **MapStruct**: default component model is `spring` (`-Amapstruct.defaultComponentModel=spring`)
-- **ErrorProne**: NullAway on `showcase.*` packages in production code; disabled in `TestJava` tasks
+- **ErrorProne**: NullAway on `showcase.*` packages; disabled in `TestJava` tasks. Every package in a NullAway-compiled
+  source set (`main`, `testFixtures`, and `load-tests`' `gatling`) carries a `package-info.java` with `@NullMarked`
+  (`org.jspecify.annotations.NullMarked`), so the nullness contract is declared for the whole package.
 - **Checkstyle**: style gate wired into `check` via `code-check-conventions.gradle.kts`; ruleset at
   `config/checkstyle/checkstyle.xml`, generated sources excluded via `config/checkstyle/suppressions.xml`
 - **SpotBugs**: finds bugs with findsecbugs and fbContrib plugins; uses `spotbugs-include.xml` and

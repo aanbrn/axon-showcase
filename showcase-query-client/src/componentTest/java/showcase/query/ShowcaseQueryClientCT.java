@@ -388,6 +388,7 @@ class ShowcaseQueryClientCT {
      * Serves canned responses or a status error for the query transport, recording the requests it receives.
      */
     static final class FakeQueryService extends ShowcaseQueryTransportImplBase {
+
         private final Serializer serializer = JacksonSerializer.defaultSerializer();
 
         private final QueryMessageMapper mapper = new QueryMessageMapper(serializer);

@@ -25,4 +25,11 @@
         <module name="UnusedLocalVariable"/>
         <module name="AvoidStarImport"/>
     </module>
+
+    <module name="RegexpMultiline">
+        <property name="format"
+                  value="^[ \t]*(?:(?:public|protected|private|static|abstract|final|sealed|non-sealed|strictfp)\s+)*(?:class|interface|record)\s+\w[^{};\n]*(?:\n[^{};\n]*)*?\{[ \t]*\n(?![ \t]*\n)(?![ \t]*[/\*])(?![ \t]*\})"/>
+        <property name="message"
+                  value="An opening brace in a type body must be followed by a blank line or a comment."/>
+    </module>
 </module>

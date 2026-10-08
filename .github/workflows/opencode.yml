@@ -26,7 +26,7 @@ jobs:
           persist-credentials: false
 
       - name: Install openspec CLI
-        run: npm install --global @fission-ai/openspec@1.14.0
+        run: npm install --global @fission-ai/openspec@1.14.1
 
       - name: Run opencode
         uses: anomalyco/opencode/github@latest

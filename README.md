@@ -607,10 +607,10 @@ docker pull ghcr.io/aanbrn/axon-showcase-api-gateway:<version>
 
 The five repositories are
 `ghcr.io/aanbrn/axon-showcase-{command-service,api-gateway,query-service,projection-service,web-ui}`, and each is a
-`linux/amd64` image. The packages start private on their first publish — make them public in the package settings to
-allow anonymous pulls. A release that predates the publishing workflow (e.g. `v0.1.0`) can be backfilled by dispatching
-the workflow with `publish_tag`. This path pulls a released build; the local cluster above keeps building the images
-from source.
+`linux/amd64` image. The packages are public and pull anonymously: a package published by this repository's workflow
+inherits the repository's visibility (still a per-package setting, so verify after a first publish). A release that
+predates the publishing workflow (e.g. `v0.1.0`) can be backfilled by dispatching the workflow with `publish_tag`. This
+path pulls a released build; the local cluster above keeps building the images from source.
 
 ### Install from the Published Chart
 
@@ -896,9 +896,9 @@ release. It also publishes the Helm chart to `oci://ghcr.io/aanbrn/charts/axon-s
 `dry_run` pushes a throwaway chart version; a `publish_tag` backfill publishes no chart). To publish the images for an
 existing release that predates this workflow, dispatch it with `publish_tag` (e.g. `-f publish_tag=v0.1.0`): it builds
 from that tag and pushes only its version tag, leaving `latest` unchanged and creating no tag or release. The images are
-`linux/amd64`, and the packages start private — make them public for anonymous pulls. Afterward, bump
-`gradle.properties` to the next development version in a follow-up pull request, so the next release has a base. It is
-not a merge gate.
+`linux/amd64`, and the packages are public — a workflow-published package inherits the repository's visibility, though
+visibility stays a per-package setting. Afterward, bump `gradle.properties` to the next development version in a
+follow-up pull request, so the next release has a base. It is not a merge gate.
 
 ### Dependency Updates and Security
 

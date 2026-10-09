@@ -36,8 +36,8 @@ version mapping to keep right); multi-arch images (a buildx pipeline for a targe
 
 - A released version's images are pullable (`docker pull ghcr.io/aanbrn/axon-showcase-*:<version>`), and the chart
   resolves them from GHCR by default (ADR-0019).
-- GHCR packages default to private, so the owner must make each package public once for anonymous pulls — a per-package
-  setting with no file diff.
+- GHCR packages published by this repository's workflow are public (a package inherits the repository's visibility), so
+  anonymous pulls work; visibility remains a per-package setting.
 - The release run grows (JDK, Gradle, `pack`, and five image builds) and needs `packages: write`; the `pack` pin joins
   the `toolingUpdates` check.
 - Publishing is amd64-only and triggered only by a release or a backfill dispatch; a per-commit or multi-arch publish

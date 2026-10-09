@@ -4,8 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'The version to release, without the leading v (e.g. 0.1.0)'
-        required: true
+        description: 'The version to release, without the leading v (e.g. 0.1.0). Omit when backfilling.'
+        required: false
+        type: string
+      publish_tag:
+        description: 'Backfill: publish images for an existing release tag (e.g. v0.1.0)'
+        required: false
         type: string
       dry_run:
         description: 'Build and push the images under a throwaway tag without creating a tag or release'
@@ -24,18 +28,54 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.publish_tag }}
           fetch-depth: 0
+
+      - name: Resolve the dispatch mode and version
+        shell: bash
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+          PUBLISH_TAG: ${{ inputs.publish_tag }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ -n "$PUBLISH_TAG" ] && [ -n "$REQUESTED_VERSION" ]; then
+            echo "Supply either 'version' (cut a release) or 'publish_tag' (backfill), not both." >&2
+            exit 1
+          fi
+          if [ -n "$PUBLISH_TAG" ] && [ "$DRY_RUN" = "true" ]; then
+            echo "The dry-run input applies to a release dispatch, not a backfill." >&2
+            exit 1
+          fi
+          if [ -z "$PUBLISH_TAG" ] && [ -z "$REQUESTED_VERSION" ]; then
+            echo "Supply 'version' to cut a release or 'publish_tag' to backfill an existing release." >&2
+            exit 1
+          fi
+          if [ -n "$PUBLISH_TAG" ]; then
+            if ! printf '%s' "$PUBLISH_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "publish_tag '$PUBLISH_TAG' is not of the form vX.Y.Z." >&2
+              exit 1
+            fi
+            echo "MODE=backfill" >> "$GITHUB_ENV"
+            echo "RELEASE_VERSION=${PUBLISH_TAG#v}" >> "$GITHUB_ENV"
+          else
+            echo "MODE=release" >> "$GITHUB_ENV"
+            echo "RELEASE_VERSION=${REQUESTED_VERSION}" >> "$GITHUB_ENV"
+          fi
 
       - name: Require the default branch
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${{ github.ref }}" != "refs/heads/main" ] && [ "${{ inputs.dry_run }}" != "true" ]; then
+          if [ "${{ github.ref }}" != "refs/heads/main" ] \
+            && [ "${{ inputs.dry_run }}" != "true" ] \
+            && [ -z "${{ inputs.publish_tag }}" ]; then
             echo "Release must be dispatched from main, not '${{ github.ref }}'." >&2
             exit 1
           fi
 
       - name: Validate the requested version
+        if: ${{ inputs.publish_tag == '' }}
         shell: bash
         env:
           REQUESTED_VERSION: ${{ inputs.version }}
@@ -61,6 +101,7 @@ jobs:
           fi
 
       - name: Require the tag not to exist
+        if: ${{ inputs.publish_tag == '' }}
         shell: bash
         env:
           RELEASE_VERSION: ${{ inputs.version }}
@@ -68,6 +109,18 @@ jobs:
           set -euo pipefail
           if git ls-remote --tags --exit-code origin "refs/tags/v${RELEASE_VERSION}"; then
             echo "Tag v${RELEASE_VERSION} already exists." >&2
+            exit 1
+          fi
+
+      - name: Require the tag to exist
+        if: ${{ inputs.publish_tag != '' }}
+        shell: bash
+        env:
+          PUBLISH_TAG: ${{ inputs.publish_tag }}
+        run: |
+          set -euo pipefail
+          if ! git ls-remote --tags --exit-code origin "refs/tags/${PUBLISH_TAG}" >/dev/null; then
+            echo "Tag ${PUBLISH_TAG} does not exist." >&2
             exit 1
           fi
 
@@ -112,8 +165,6 @@ jobs:
 
       - name: Build the images
         shell: bash
-        env:
-          RELEASE_VERSION: ${{ inputs.version }}
         run: ./gradlew bootBuildImage :showcase-web-ui:dockerBuildImage -Pversion="${RELEASE_VERSION}"
 
       - name: Log in to the GitHub Container Registry
@@ -122,14 +173,11 @@ jobs:
 
       - name: Tag and push the images
         shell: bash
-        env:
-          RELEASE_VERSION: ${{ inputs.version }}
-          OWNER: ${{ github.repository_owner }}
         run: |
           set -euo pipefail
-          owner="$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')"
+          owner="$(printf '%s' "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
           tag="${RELEASE_VERSION}"
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
+          if [ "${MODE}" = "release" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
             tag="${RELEASE_VERSION}-dryrun-${GITHUB_RUN_ID}"
           fi
           for image in \
@@ -141,18 +189,17 @@ jobs:
             target="ghcr.io/${owner}/${image##*/}"
             docker tag "${image}:${RELEASE_VERSION}" "${target}:${tag}"
             docker push "${target}:${tag}"
-            if [ "${{ inputs.dry_run }}" != "true" ]; then
+            if [ "${MODE}" = "release" ] && [ "${{ inputs.dry_run }}" != "true" ]; then
               docker tag "${image}:${RELEASE_VERSION}" "${target}:latest"
               docker push "${target}:latest"
             fi
           done
 
       - name: Create the tag and the release
-        if: ${{ inputs.dry_run != true }}
+        if: ${{ inputs.publish_tag == '' && inputs.dry_run != true }}
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           gh release create "v${RELEASE_VERSION}" \

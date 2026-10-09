@@ -608,7 +608,9 @@ docker pull ghcr.io/aanbrn/axon-showcase-api-gateway:<version>
 The five repositories are
 `ghcr.io/aanbrn/axon-showcase-{command-service,api-gateway,query-service,projection-service,web-ui}`, and each is a
 `linux/amd64` image. The packages start private on their first publish — make them public in the package settings to
-allow anonymous pulls. This path pulls a released build; the local cluster above keeps building the images from source.
+allow anonymous pulls. A release that predates the publishing workflow (e.g. `v0.1.0`) can be backfilled by dispatching
+the workflow with `publish_tag`. This path pulls a released build; the local cluster above keeps building the images
+from source.
 
 ### Develop from Source
 
@@ -867,9 +869,11 @@ version and `latest`), then creates the tag `v<version>` at the head of `main` a
 notes GitHub generates from the pull requests merged since the previous release. It refuses a version that does not
 match the declaration in `gradle.properties` (without its `-SNAPSHOT` suffix) and refuses a tag that already exists.
 Dispatch it with the `dry_run` input to build and push the images under a throwaway tag without creating a tag or
-release. The images are `linux/amd64`, and the packages start private — make them public for anonymous pulls. Afterward,
-bump `gradle.properties` to the next development version in a follow-up pull request, so the next release has a base. It
-is not a merge gate.
+release. To publish the images for an existing release that predates this workflow, dispatch it with `publish_tag` (e.g.
+`-f publish_tag=v0.1.0`): it builds from that tag and pushes only its version tag, leaving `latest` unchanged and
+creating no tag or release. The images are `linux/amd64`, and the packages start private — make them public for
+anonymous pulls. Afterward, bump `gradle.properties` to the next development version in a follow-up pull request, so the
+next release has a base. It is not a merge gate.
 
 ### Dependency Updates and Security
 

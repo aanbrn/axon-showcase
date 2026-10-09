@@ -754,17 +754,18 @@ default branch runs from the change's own pushed branch (`gh workflow run <file>
 it, and `workflowLint` checks only the YAML) to exercise the workflow end to end — for an update check that is its
 report path, jq filter and tracker-issue lookup. The `release` workflow is the one added workflow whose _only_ trigger
 is `workflow_dispatch`, so its tag-and-release path first runs after merge; its build-and-push path is exercised
-pre-merge through a `dry_run` input that bypasses the `main`-ref guard and creates no tag or release — the bypass a
-ref-guarded dispatch workflow needs, since its own guard otherwise blocks the pre-merge dispatch the verification rule
-requires. Its failure paths are exercised first with dispatches that create nothing. captured: publish-images-to-ghcr A
-**schedule-only** edit is the exception: a dispatch runs the workflow body, not the scheduler, so the new `cron`'s first
-fire is its verification — never tick a schedule change off on a dispatch. GitHub's `schedule` trigger is best-effort —
-a run can slip by hours or be dropped under load, and no `cron` value makes it punctual — so an earlier slot is margin
-against a delay, never a guarantee: verify a workflow's own run before treating a late report as a defect. Schedule each
-workflow's runtime into the repo owner's small hours (UTC+7) — early Sunday morning for the weekly runs, so the results
-are waiting at the start of the owner's working week, and off the `:00`/`:10`/`:20`/`:30`/`:40`/`:50` minutes GitHub
-documents as its high-load slots; the metered pass's placement is the model-pin bullet's off-peak call. captured:
-bump-snyk-cli-pin captured: schedule-jobs-into-the-owners-night captured: reschedule-weekly-workflows-earlier
+pre-merge through a `dry_run` input or a `publish_tag` backfill, each of which bypasses the `main`-ref guard and creates
+no tag or release — the bypass a ref-guarded dispatch workflow needs, since its own guard otherwise blocks the pre-merge
+dispatch the verification rule requires. Its failure paths are exercised first with dispatches that create nothing.
+captured: publish-images-to-ghcr A **schedule-only** edit is the exception: a dispatch runs the workflow body, not the
+scheduler, so the new `cron`'s first fire is its verification — never tick a schedule change off on a dispatch. GitHub's
+`schedule` trigger is best-effort — a run can slip by hours or be dropped under load, and no `cron` value makes it
+punctual — so an earlier slot is margin against a delay, never a guarantee: verify a workflow's own run before treating
+a late report as a defect. Schedule each workflow's runtime into the repo owner's small hours (UTC+7) — early Sunday
+morning for the weekly runs, so the results are waiting at the start of the owner's working week, and off the
+`:00`/`:10`/`:20`/`:30`/`:40`/`:50` minutes GitHub documents as its high-load slots; the metered pass's placement is the
+model-pin bullet's off-peak call. captured: bump-snyk-cli-pin captured: schedule-jobs-into-the-owners-night captured:
+reschedule-weekly-workflows-earlier
 
 A verification the local environment cannot run cannot live as a task in the change dir: `openspec/changes/archive/` is
 invisible and no gate reads it, so an unchecked task is silently lost — a dispatch
@@ -795,12 +796,14 @@ without its `-SNAPSHOT` suffix, and a tag that does not already exist, then buil
 the GitHub Container Registry (`ghcr.io/<owner>/axon-showcase-*`, tagged `<version>` and `latest`, `linux/amd64`, with
 the run's `GITHUB_TOKEN` granted `packages: write`), and only then creates the tag `v<version>` at the head of `main`
 and a GitHub Release with `--generate-notes`. A `dry_run` dispatch runs the same build and push under a throwaway tag
-without creating a tag or release, and may run from a ref other than `main`. The version declaration lives in
-`gradle.properties` (added by this workflow's change; the root `build.gradle.kts` no longer sets `version`), and the
-gateway's OpenAPI `info.version` reads the build info. A release is followed by a bump of `gradle.properties` to the
-next development version (a normal pull request); the ADR-0016 `Revisit when:` records that automating that bump is
-deferred. GitHub exposes `workflow_dispatch` a workflow only once it is on the default branch, so a newly added release
-workflow's first run is a dispatch from `main` after its PR merges.
+without creating a tag or release, and may run from a ref other than `main`. A `publish_tag` dispatch backfills an
+existing release: it checks out that tag, builds its images, and pushes only the `<version>` tag (no `latest`, no tag or
+release), and may run from any ref; a dispatch supplies exactly one of `version` or `publish_tag`. The version
+declaration lives in `gradle.properties` (added by this workflow's change; the root `build.gradle.kts` no longer sets
+`version`), and the gateway's OpenAPI `info.version` reads the build info. A release is followed by a bump of
+`gradle.properties` to the next development version (a normal pull request); the ADR-0016 `Revisit when:` records that
+automating that bump is deferred. GitHub exposes `workflow_dispatch` a workflow only once it is on the default branch,
+so a newly added release workflow's first run is a dispatch from `main` after its PR merges.
 
 **What each covers:**
 
@@ -1401,8 +1404,9 @@ Each boot service builds a Docker image:
 - `aanbrn/axon-showcase-web-ui:${project.version}` (static nginx serving the built frontend)
 
 On a release, `.github/workflows/release.yml` publishes the five images to the GitHub Container Registry
-(`ghcr.io/<owner>/axon-showcase-*`, tagged `<version>` and `latest`, `linux/amd64`) — see ADR-0018 — while the local and
-`ci` targets keep building them into the local daemon.
+(`ghcr.io/<owner>/axon-showcase-*`, tagged `<version>` and `latest`, `linux/amd64`) — see ADR-0018 — and a `publish_tag`
+dispatch backfills an existing release's `<version>` image (no `latest`), while the local and `ci` targets keep building
+them into the local daemon.
 
 Image names are set in each service's `bootBuildImage` task configuration. To build for a non-default platform (e.g.,
 ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64`), which Gradle maps to the

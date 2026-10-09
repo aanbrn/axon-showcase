@@ -55,6 +55,7 @@ rarely. The bump is a follow-up PR for now.
   built from it.
 - The served OpenAPI document reports the build's version rather than a literal, so a release cannot leave it stale.
 - The dev version must be bumped after a release to give the next one a base; until then the workflow rejects a
-  re-dispatch (the tag exists, and the declared version already names the released one).
+  re-release dispatch (the tag exists, and the declared version already names the released one). A `publish_tag`
+  re-dispatch that only backfills an existing release's images (ADR-0018) is unaffected.
 - The release workflow's first run happens after its merge, since GitHub exposes `workflow_dispatch` only once the file
   is on the default branch.

@@ -12,9 +12,9 @@ signal that the amd64-only, GHCR-only choice has become a constraint rather than
 ADR-0016 shipped the release workflow — the tag and the generated GitHub Release — but scoped itself to the version and
 tag decision. The five service images (`aanbrn/axon-showcase-*:${project.version}`) were built only to a local Docker
 daemon, no workflow pushed them, and the `aanbrn` Docker Hub namespace was empty. A release therefore named images
-nobody could pull, and the reference app could not be run from a release. The Helm chart already resolves each image
-from `image.registry` (default empty) plus `image.repository` and `image.tag`, so a registry-published image becomes
-directly deployable once one exists.
+nobody could pull, and the reference app could not be run from a release. The Helm chart resolves each image from
+`image.registry` plus `image.repository` and `image.tag` (the registry defaults to `ghcr.io` since ADR-0019), so a
+published image is directly deployable.
 
 ## Decision
 
@@ -24,7 +24,7 @@ before it creates the tag and the GitHub Release. The workflow authenticates the
 `packages: write`. A `dry_run` dispatch input runs the same build and push under a throwaway tag without creating a tag
 or a release, so the path is exercisable from a branch before merge. A `publish_tag` dispatch backfills an existing
 release instead: it checks out that release's tag, builds its images, and pushes only the `<version>` tag (no `latest`,
-and no tag or Release), so a release cut before this workflow gained publishing can be completed.
+and no tag or release), so a release cut before this workflow gained publishing can be completed.
 
 Alternatives considered and rejected: Docker Hub (a second credential and an empty namespace to seed first); publishing
 on every push to `main` (registry churn, and a `latest` that would move between releases); `bootBuildImage`'s native
@@ -34,8 +34,8 @@ version mapping to keep right); multi-arch images (a buildx pipeline for a targe
 
 ## Consequences
 
-- A released version's images are pullable (`docker pull ghcr.io/aanbrn/axon-showcase-*:<version>`), and the chart's
-  `image.registry` can point a registry-based deployment at GHCR.
+- A released version's images are pullable (`docker pull ghcr.io/aanbrn/axon-showcase-*:<version>`), and the chart
+  resolves them from GHCR by default (ADR-0019).
 - GHCR packages default to private, so the owner must make each package public once for anonymous pulls — a per-package
   setting with no file diff.
 - The release run grows (JDK, Gradle, `pack`, and five image builds) and needs `packages: write`; the `pack` pin joins

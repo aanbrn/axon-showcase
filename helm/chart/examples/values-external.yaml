@@ -1,0 +1,76 @@
+# Example values for installing the published axon-showcase chart against your own infrastructure.
+#
+# Copy this file, fill in the endpoints and hostnames, then install:
+#
+#   helm install axon-showcase oci://ghcr.io/aanbrn/charts/axon-showcase \
+#     --version <version> -f values-external.yaml
+#
+# The chart carries the application only. Before installing, have:
+#   - PostgreSQL (the event store), Kafka, and OpenSearch reachable from the cluster;
+#   - a Secret holding the PostgreSQL password, and one for OpenSearch if it is secured, e.g.:
+#       kubectl create secret generic showcase-db --from-literal=password=<db-password>
+#       kubectl create secret generic showcase-opensearch --from-literal=password=<os-password>
+
+# PostgreSQL event store. The chart runs a migration hook against it before install and upgrade.
+dbEvents:
+  hosts: postgres.example.svc.cluster.local
+  name: showcase-events
+  username: showcase
+  passwordSecret:
+    name: showcase-db
+    key: password
+
+# OpenSearch: the projection service writes here and the query service reads here.
+osViews:
+  uris: https://opensearch.example.svc.cluster.local:9200
+  secured: true
+  passwordSecret:
+    name: showcase-opensearch
+    key: password
+
+# Kafka: the command service publishes domain events and the projection service consumes them.
+kafka:
+  bootstrapServers: kafka.example.svc.cluster.local:9092
+  securityProtocol: PLAINTEXT
+
+# The browser's externally-visible gateway URL. Required: the web-UI image fails fast if it is empty.
+webUi:
+  apiBaseUrl: https://showcase-api.example.com
+  ingress:
+    enabled: true
+    hostname: showcase.example.com
+
+apiGateway:
+  # The UI's origin must be allowed, or the browser cannot call the API cross-origin.
+  cors:
+    allowedOrigins:
+      - https://showcase.example.com
+  ingress:
+    enabled: true
+    hostname: showcase-api.example.com
+  # ServiceMonitors need the Prometheus-operator CRDs, so they are off here to install on a bare cluster.
+  serviceMonitor:
+    enabled: false
+
+commandService:
+  serviceMonitor:
+    enabled: false
+queryService:
+  serviceMonitor:
+    enabled: false
+projectionService:
+  serviceMonitor:
+    enabled: false
+
+# Optional observability: point these at the Prometheus/Tempo stack you run, and enable the
+# ServiceMonitors above once the Prometheus operator is installed.
+observability:
+  prometheus:
+    metrics:
+      export:
+        enabled: false
+  otlp:
+    tracing:
+      export:
+        enabled: false
+        endpoint: http://tempo.monitoring.svc.cluster.local:4317

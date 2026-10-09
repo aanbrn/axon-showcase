@@ -97,7 +97,7 @@ commandService:
   # @param commandService.image.pullPolicy Command service image pull policy (Always, IfNotPresent, Never)
   # @param commandService.image.pullSecrets Command service image pull secrets
   image:
-    registry: ""
+    registry: "ghcr.io"
     repository: aanbrn/axon-showcase-command-service
     tag: ${projectVersion}
     digest: ""
@@ -414,7 +414,7 @@ queryService:
   # @param queryService.image.pullPolicy Query service image pull policy (Always, IfNotPresent, Never)
   # @param queryService.image.pullSecrets Query service image pull secrets
   image:
-    registry: ""
+    registry: "ghcr.io"
     repository: aanbrn/axon-showcase-query-service
     tag: ${projectVersion}
     digest: ""
@@ -667,7 +667,7 @@ projectionService:
   # @param projectionService.image.pullPolicy Projection service image pull policy (Always, IfNotPresent, Never)
   # @param projectionService.image.pullSecrets Projection service image pull secrets
   image:
-    registry: ""
+    registry: "ghcr.io"
     repository: aanbrn/axon-showcase-projection-service
     tag: ${projectVersion}
     digest: ""
@@ -942,7 +942,7 @@ apiGateway:
   # @param apiGateway.image.pullPolicy API gateway image pull policy (Always, IfNotPresent, Never)
   # @param apiGateway.image.pullSecrets API gateway image pull secrets
   image:
-    registry: ""
+    registry: "ghcr.io"
     repository: aanbrn/axon-showcase-api-gateway
     tag: ${projectVersion}
     digest: ""
@@ -1327,7 +1327,7 @@ webUi:
   # @param webUi.image.pullPolicy Web UI image pull policy (Always, IfNotPresent, Never)
   # @param webUi.image.pullSecrets Web UI image pull secrets
   image:
-    registry: ""
+    registry: "ghcr.io"
     repository: aanbrn/axon-showcase-web-ui
     tag: ${projectVersion}
     digest: ""
@@ -1346,7 +1346,8 @@ webUi:
 
   # Runtime API base URL for the web UI, rendered to config.js at container start.
   # @param webUi.apiBaseUrl Externally-visible URL of the API gateway the browser calls (the in-cluster Service name is
-  # not resolvable from the browser, so there is no computed default; empty = same-origin). Configured per deployment.
+  # not resolvable from the browser, so there is no computed default; an empty value makes the container fail fast, so
+  # an install must set it). Configured per deployment.
   apiBaseUrl: ""
 
   # @param webUi.extraEnvVars Extra environment variables (string map)

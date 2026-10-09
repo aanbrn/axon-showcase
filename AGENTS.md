@@ -185,21 +185,24 @@ grepping the Helm plugin's `HelmInstallationOptions` missed the `remoteTimeout` 
 `ConfigurableHelmServerOperationOptions`, and a whole change was designed around "the plugin exposes no install timeout"
 until its docs showed `helm.remoteTimeout` → `--timeout`, while the blanket `extraArgs` that _was_ read is the worse
 tool (it reaches every command, `helm repo search` included) — and a setting a build script does add is read back from
-the task that resolves it, not asserted from the declaring script. The worked case is the `remove-redis-client-label`
-detour — a full propose→apply→verify cycle for a chart-default its labels must not have, with the design weighing
-implementation alternatives but never questioning the premise; the premise, and why it collapses, are in the `*-client`
-pod-labels bullet below. Verify the current state's rationale against the repo — grep for consumers, read the values and
-their comments, check `git log` for the introducing change — and record it in the design's Context; treat "this looks
-redundant" as a hypothesis to verify, not a justification to remove. Before designing the change — proposing a mechanism
-(an auditor, a check, a workflow, a scan), **reworking an existing artifact**, or asserting in the premise that the repo
-lacks a rule — grep `docs/ideas.md` for a parked design, the spec corpus and archived changes for an existing
-requirement **or a recorded decision about it — including a `skip_specs` decision not to spec it and a recent change's
-Non-Goal**, and `docs/adr/` for an Accepted decision the design would implement or contradict — an ADR's Decision is
-normative, so designing a relaxation past it is a premise error, not a design choice — and the artifact you are editing
-at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier the same session may already have added it. A
-parked idea, a spec'd capability, or an Accepted ADR is the design to adopt, not re-derive; a false absence claim runs a
-whole propose cycle on the wrong premise and duplicates what exists. `add-readme-auditor`'s planning proposed widening
-`agents-auditor` past the parked `readme-auditor` idea the repo already had, caught by the owner rather than a gate; an
+the task that resolves it, not asserted from the declaring script. A shared helper's **precedence** is part of that
+claim too: read its own template, since a non-empty global can override every per-component value (defaulting the
+Bitnami `common.images.image` global would have misrouted the Docker-Hub metrics-exporter sidecar). captured:
+publish-helm-chart The worked case is the `remove-redis-client-label` detour — a full propose→apply→verify cycle for a
+chart-default its labels must not have, with the design weighing implementation alternatives but never questioning the
+premise; the premise, and why it collapses, are in the `*-client` pod-labels bullet below. Verify the current state's
+rationale against the repo — grep for consumers, read the values and their comments, check `git log` for the introducing
+change — and record it in the design's Context; treat "this looks redundant" as a hypothesis to verify, not a
+justification to remove. Before designing the change — proposing a mechanism (an auditor, a check, a workflow, a scan),
+**reworking an existing artifact**, or asserting in the premise that the repo lacks a rule — grep `docs/ideas.md` for a
+parked design, the spec corpus and archived changes for an existing requirement **or a recorded decision about it —
+including a `skip_specs` decision not to spec it and a recent change's Non-Goal**, and `docs/adr/` for an Accepted
+decision the design would implement or contradict — an ADR's Decision is normative, so designing a relaxation past it is
+a premise error, not a design choice — and the artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling
+change merged earlier the same session may already have added it. A parked idea, a spec'd capability, or an Accepted ADR
+is the design to adopt, not re-derive; a false absence claim runs a whole propose cycle on the wrong premise and
+duplicates what exists. `add-readme-auditor`'s planning proposed widening `agents-auditor` past the parked
+`readme-auditor` idea the repo already had, caught by the owner rather than a gate; an
 `enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import rule that ADR-0013's Accepted
 Decision already forbade, caught by a reviewer. Before treating a spec change as owed, read the spec's **existing**
 wording for the behavior the code implements — the contract may already state it, in which case the fix is code→spec
@@ -794,16 +797,18 @@ merge gate.
 gate): on a release dispatch it requires the `main` ref, a dispatched version matching `gradle.properties`'s declaration
 without its `-SNAPSHOT` suffix, and a tag that does not already exist, then builds the five images, publishes them to
 the GitHub Container Registry (`ghcr.io/<owner>/axon-showcase-*`, tagged `<version>` and `latest`, `linux/amd64`, with
-the run's `GITHUB_TOKEN` granted `packages: write`), and only then creates the tag `v<version>` at the head of `main`
-and a GitHub Release with `--generate-notes`. A `dry_run` dispatch runs the same build and push under a throwaway tag
-without creating a tag or release, and may run from a ref other than `main`. A `publish_tag` dispatch backfills an
-existing release: it checks out that tag, builds its images, and pushes only the `<version>` tag (no `latest`, no tag or
-release), and may run from any ref; a dispatch supplies exactly one of `version` or `publish_tag`. The version
-declaration lives in `gradle.properties` (added by this workflow's change; the root `build.gradle.kts` no longer sets
-`version`), and the gateway's OpenAPI `info.version` reads the build info. A release is followed by a bump of
-`gradle.properties` to the next development version (a normal pull request); the ADR-0016 `Revisit when:` records that
-automating that bump is deferred. GitHub exposes `workflow_dispatch` a workflow only once it is on the default branch,
-so a newly added release workflow's first run is a dispatch from `main` after its PR merges.
+the run's `GITHUB_TOKEN` granted `packages: write`), packages the Helm chart and pushes it to
+`oci://ghcr.io/<owner>/charts/axon-showcase` (`-Pversion=<version>`; see ADR-0019), and only then creates the tag
+`v<version>` at the head of `main` and a GitHub Release with `--generate-notes`. A `dry_run` dispatch runs the same
+build and push under a throwaway tag (and pushes the chart under a throwaway version) without creating a tag or release,
+and may run from a ref other than `main`. A `publish_tag` dispatch backfills an existing release: it checks out that
+tag, builds its images, and pushes only the `<version>` tag (no `latest`, no chart, no tag or release), and may run from
+any ref; a dispatch supplies exactly one of `version` or `publish_tag`. The version declaration lives in
+`gradle.properties` (added by this workflow's change; the root `build.gradle.kts` no longer sets `version`), and the
+gateway's OpenAPI `info.version` reads the build info. A release is followed by a bump of `gradle.properties` to the
+next development version (a normal pull request); the ADR-0016 `Revisit when:` records that automating that bump is
+deferred. GitHub exposes `workflow_dispatch` a workflow only once it is on the default branch, so a newly added release
+workflow's first run is a dispatch from `main` after its PR merges.
 
 **What each covers:**
 
@@ -1404,9 +1409,11 @@ Each boot service builds a Docker image:
 - `aanbrn/axon-showcase-web-ui:${project.version}` (static nginx serving the built frontend)
 
 On a release, `.github/workflows/release.yml` publishes the five images to the GitHub Container Registry
-(`ghcr.io/<owner>/axon-showcase-*`, tagged `<version>` and `latest`, `linux/amd64`) — see ADR-0018 — and a `publish_tag`
-dispatch backfills an existing release's `<version>` image (no `latest`), while the local and `ci` targets keep building
-them into the local daemon.
+(`ghcr.io/<owner>/axon-showcase-*`, tagged `<version>` and `latest`, `linux/amd64`) — see ADR-0018 — and the Helm chart
+to `oci://ghcr.io/<owner>/charts/axon-showcase` — see ADR-0019 — while a `publish_tag` dispatch backfills an existing
+release's `<version>` image (no `latest`, no chart), and the local and `ci` targets keep building the images into the
+local daemon. Each service's `image.registry` defaults to `ghcr.io`; the local and `ci` values set it empty, and the
+global registry stays empty so the metrics-exporter sidecar keeps Docker Hub.
 
 Image names are set in each service's `bootBuildImage` task configuration. To build for a non-default platform (e.g.,
 ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64`), which Gradle maps to the
@@ -1473,7 +1480,9 @@ helm install axon-showcase-kafka bitnami/kafka --version 31.5.0 \
   --namespace axon-showcase --create-namespace --wait
 helm install axon-showcase-os-views bitnami/opensearch --version 2.0.10 \
   --namespace axon-showcase --create-namespace --wait
-helm install axon-showcase ./helm/chart --namespace axon-showcase --create-namespace --wait
+helm install axon-showcase helm/chart/build/helm/charts/axon-showcase \
+  -f helm/values/axon-showcase/values-local.yaml \
+  --namespace axon-showcase --create-namespace --wait
 
 # Or use Gradle Helm plugin (builds images, then installs all releases to the local target)
 ./gradlew helmInstallToLocal
@@ -1498,8 +1507,8 @@ enumerate an image-build task for every image the chart's Deployments reference 
 web UI Deployment without adding its image build, so `helmInstallToLocal` deployed a web UI pod with an image that was
 never built. Note the web UI image is built by `:showcase-web-ui:dockerBuildImage` (a pack-based task, not a
 `bootBuildImage`); verify the graph with `./gradlew helmInstallToLocal --dry-run` and confirm every chart Deployment's
-image has a build task in it. The chart resolves images from the local daemon by default (a release publishes them to
-GHCR, but the local/`ci` targets build rather than pull), and a `kind` cluster's nodes cannot see the host daemon's
+image has a build task in it. The local and `ci` values set the chart's image registry empty (see the Docker Images note
+above), so those targets use the locally-built daemon images, and a `kind` cluster's nodes cannot see the host daemon's
 images, so a runner or bare-kind install must build them and `kind load` each before `helmInstallToLocal` — load by
 repository rather than pinning the image version, and pass `--name <cluster>` to `kind load`, since kind's CLI defaults
 to a cluster named `kind`: a bare `kind load docker-image` against the smoke's `axon-showcase-smoke` failed its first

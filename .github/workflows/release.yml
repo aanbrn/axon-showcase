@@ -196,6 +196,22 @@ jobs:
             fi
           done
 
+      - name: Package and push the Helm chart
+        if: ${{ inputs.publish_tag == '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          owner="$(printf '%s' "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
+          chart_version="${RELEASE_VERSION}"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            chart_version="0.0.0-dryrun.${GITHUB_RUN_ID}"
+          fi
+          ./gradlew :helm:chart:helmPackageMainChart -Pversion="${chart_version}"
+          helm_bin="$(find .gradle/helm/client -name helm -type f -perm -u+x | head -1)"
+          "${helm_bin}" push \
+            "helm/chart/build/helm/charts/axon-showcase-${chart_version}.tgz" \
+            "oci://ghcr.io/${owner}/charts"
+
       - name: Create the tag and the release
         if: ${{ inputs.publish_tag == '' && inputs.dry_run != true }}
         shell: bash

@@ -49,7 +49,7 @@ rarely. The bump is a follow-up PR for now.
 
 ## Consequences
 
-- A release is one dispatch; the tag, the Release, and its notes are produced together, and the notes need no
+- A release is one dispatch; the tag, the release, and its notes are produced together, and the notes need no
   per-release curation.
 - The tag and the build report the same version, because both read one declaration; the images the release names are
   built from it.

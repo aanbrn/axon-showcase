@@ -41,7 +41,8 @@ context: |
 
   Docker images: aanbrn/axon-showcase-{command-service,api-gateway,query-service,projection-service,web-ui};
   a release publishes them to the GitHub Container Registry (ghcr.io/<owner>/axon-showcase-*,
-  tagged <version> and latest), and a publish_tag dispatch backfills an existing release's <version> image
+  tagged <version> and latest) and publishes the Helm chart to oci://ghcr.io/<owner>/charts/axon-showcase;
+  a publish_tag dispatch backfills an existing release's <version> image
   Deployment: Helm chart in helm/chart (use ./gradlew helmInstallToLocal)
 
 # Per-artifact rules

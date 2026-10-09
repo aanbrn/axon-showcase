@@ -96,8 +96,8 @@ spec:
               containerPort: {{ .Values.webUi.containerPorts.stubStatus }}
           env:
             # The browser needs the externally-visible gateway URL, which only the deployment knows (the in-cluster
-            # Service name is unresolvable from the browser), so it is configured per deployment (empty default =
-            # same-origin). The chart does not compute an in-cluster default.
+            # Service name is unresolvable from the browser), so it is configured per deployment. The chart does not
+            # compute an in-cluster default; an empty value makes the container fail fast, so an install must set it.
             - name: "SHOWCASE_API_BASE_URL"
               value: {{ .Values.webUi.apiBaseUrl | quote }}
           {{- if .Values.webUi.startupProbe.enabled }}

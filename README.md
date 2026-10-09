@@ -612,6 +612,29 @@ allow anonymous pulls. A release that predates the publishing workflow (e.g. `v0
 the workflow with `publish_tag`. This path pulls a released build; the local cluster above keeps building the images
 from source.
 
+### Install from the Published Chart
+
+Releases also publish the Helm chart to the GitHub Container Registry as an OCI artifact, versioned with the release:
+
+```bash
+helm install axon-showcase oci://ghcr.io/aanbrn/charts/axon-showcase --version <version> \
+  -f values-external.yaml
+```
+
+The chart carries the application only and its defaults point at the local development releases, so an install needs a
+values file. [`helm/chart/examples/values-external.yaml`](helm/chart/examples/values-external.yaml) is a commented
+example: copy it, fill in your endpoints and hostnames, and install with `-f`. The prerequisites are:
+
+- **Infrastructure** — PostgreSQL (the event store), Kafka, and OpenSearch reachable from the cluster (the local
+  target's Bitnami releases are in [Kubernetes Deployment](#kubernetes-deployment)).
+- **Secrets** — one holding the PostgreSQL password, and one for OpenSearch if it is secured (the example shows the
+  `kubectl create secret` commands).
+- **The UI's URL** — `webUi.apiBaseUrl` (the browser's externally-visible gateway URL; the UI image fails fast if it is
+  empty) and `apiGateway.cors.allowedOrigins` (the UI's origin, since an empty list denies all browser origins).
+
+Its service images resolve from `ghcr.io` by default. The example leaves ServiceMonitors off (they need the
+Prometheus-operator CRDs); enable them and the `observability` endpoints if you run that stack.
+
 ### Develop from Source
 
 The compose stack runs the application as pre-built containers. To develop a service with hot reload, run it from source
@@ -869,11 +892,13 @@ version and `latest`), then creates the tag `v<version>` at the head of `main` a
 notes GitHub generates from the pull requests merged since the previous release. It refuses a version that does not
 match the declaration in `gradle.properties` (without its `-SNAPSHOT` suffix) and refuses a tag that already exists.
 Dispatch it with the `dry_run` input to build and push the images under a throwaway tag without creating a tag or
-release. To publish the images for an existing release that predates this workflow, dispatch it with `publish_tag` (e.g.
-`-f publish_tag=v0.1.0`): it builds from that tag and pushes only its version tag, leaving `latest` unchanged and
-creating no tag or release. The images are `linux/amd64`, and the packages start private — make them public for
-anonymous pulls. Afterward, bump `gradle.properties` to the next development version in a follow-up pull request, so the
-next release has a base. It is not a merge gate.
+release. It also publishes the Helm chart to `oci://ghcr.io/aanbrn/charts/axon-showcase`, versioned with the release (a
+`dry_run` pushes a throwaway chart version; a `publish_tag` backfill publishes no chart). To publish the images for an
+existing release that predates this workflow, dispatch it with `publish_tag` (e.g. `-f publish_tag=v0.1.0`): it builds
+from that tag and pushes only its version tag, leaving `latest` unchanged and creating no tag or release. The images are
+`linux/amd64`, and the packages start private — make them public for anonymous pulls. Afterward, bump
+`gradle.properties` to the next development version in a follow-up pull request, so the next release has a base. It is
+not a merge gate.
 
 ### Dependency Updates and Security
 

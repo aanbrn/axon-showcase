@@ -60,8 +60,8 @@ web-ui Deployment runs the static web-UI image on its container port (8080) and 
 
 - **WHEN** a web-UI Deployment is rendered
 - **THEN** it sets the `SHOWCASE_API_BASE_URL` env var from `webUi.apiBaseUrl` (the externally-visible gateway URL the
-  browser calls; empty default = same-origin), rendered to `config.js` at container start — the chart never bakes a
-  per-environment base URL into the image
+  browser calls; an empty value makes the container fail fast, so an install must set it), rendered to `config.js` at
+  container start — the chart never bakes a per-environment base URL into the image
 
 ### Requirement: Health and readiness probes
 
@@ -591,3 +591,26 @@ machine-specific local context name (such as a macOS-only colima context) in the
 - **WHEN** a maintainer reads the `releaseTargets` configuration in `build.gradle.kts`
 - **THEN** the `local` target does not hard-code a context name that only exists on one OS (such as `colima`), and any
   per-machine context value is supplied via the `helm.local.kubeContext` property
+
+### Requirement: The chart defaults its service images to the published registry
+
+The chart SHALL default each service's `image.registry` to `ghcr.io`, so an install with the chart's default values
+resolves each service image from the GitHub Container Registry. The local and `ci` values SHALL set each service's
+registry empty so those targets resolve their images from the local daemon. The web UI's metrics-exporter sidecar is not
+a service image and SHALL keep its own registry (Docker Hub), which the empty global registry preserves.
+
+#### Scenario: A default install pulls the published images
+
+- **WHEN** the chart is installed with its default values
+- **THEN** each service image is resolved from `ghcr.io`
+
+#### Scenario: The metrics-exporter sidecar keeps its own registry
+
+- **WHEN** the web UI's metrics-exporter sidecar is rendered
+- **THEN** its image is resolved from its own registry (Docker Hub), not `ghcr.io`
+
+#### Scenario: The local and ci targets use local images
+
+- **WHEN** the local or `ci` values are applied
+- **THEN** each service's registry is empty and each service image is resolved from the local daemon rather than a
+  registry

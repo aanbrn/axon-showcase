@@ -67,7 +67,7 @@
 - [x] 4.2 Package the chart locally (`./gradlew :helm:chart:helmPackageMainChart`) and confirm the `.tgz` exists and
       carries the vendored `common` subchart; render it with default values (image from `ghcr.io`), with
       `values-local.yaml` (no registry), and with the example values file.
-- [ ] 4.3 On the pushed branch, exercise the chart publish pre-merge: dispatch it with the dry-run input
+- [x] 4.3 On the pushed branch, exercise the chart publish pre-merge: dispatch it with the dry-run input
       (`gh workflow run release.yml --ref <branch> -f version=<v> -f dry_run=true`), then confirm the chart appears at
       `oci://ghcr.io/aanbrn/charts/axon-showcase` under the throwaway version, no `v<version>` tag or release was
       created, and the `charts` package is public (make it public if it starts private).

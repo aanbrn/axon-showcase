@@ -22,7 +22,9 @@ On a release dispatch, `.github/workflows/release.yml` builds the five images an
 Registry at `ghcr.io/<owner>/axon-showcase-<service>`, tagged with the released version and `latest` for `linux/amd64`,
 before it creates the tag and the GitHub Release. The workflow authenticates the push with its `GITHUB_TOKEN`, granted
 `packages: write`. A `dry_run` dispatch input runs the same build and push under a throwaway tag without creating a tag
-or a release, so the path is exercisable from a branch before merge.
+or a release, so the path is exercisable from a branch before merge. A `publish_tag` dispatch backfills an existing
+release instead: it checks out that release's tag, builds its images, and pushes only the `<version>` tag (no `latest`,
+and no tag or Release), so a release cut before this workflow gained publishing can be completed.
 
 Alternatives considered and rejected: Docker Hub (a second credential and an empty namespace to seed first); publishing
 on every push to `main` (registry churn, and a `latest` that would move between releases); `bootBuildImage`'s native
@@ -38,4 +40,5 @@ version mapping to keep right); multi-arch images (a buildx pipeline for a targe
   setting with no file diff.
 - The release run grows (JDK, Gradle, `pack`, and five image builds) and needs `packages: write`; the `pack` pin joins
   the `toolingUpdates` check.
-- Publishing is amd64-only and release-only; a per-commit or multi-arch publish stays deferred.
+- Publishing is amd64-only and triggered only by a release or a backfill dispatch; a per-commit or multi-arch publish
+  stays deferred.

@@ -12,13 +12,14 @@ declaration that the tag, the build, and the served OpenAPI document share.
 
 Releases SHALL be published through a `release` workflow triggered only by manual dispatch. It SHALL run on
 `ubuntu-latest` with `GITHUB_TOKEN` granted `contents: write` and `packages: write`, and SHALL NOT be a required check
-for merging into `main`. On a valid dispatch that is not a dry run it SHALL create the tag `v<version>` at the head of
-`main` and publish a GitHub Release for that tag whose notes GitHub generates from the pull requests merged since the
-previous release.
+for merging into `main`. On a valid dispatch that is not a dry run and supplies no `publish_tag`, it SHALL create the
+tag `v<version>` at the head of `main` and publish a GitHub Release for that tag whose notes GitHub generates from the
+pull requests merged since the previous release.
 
 #### Scenario: Manual dispatch publishes a release
 
-- **WHEN** a maintainer dispatches the `release` workflow from `main` with a valid version without the dry-run input
+- **WHEN** a maintainer dispatches the `release` workflow from `main` with a valid version without the dry-run input and
+  without a `publish_tag`
 - **THEN** the workflow creates the tag `v<version>` at the head of `main` and publishes a GitHub Release for it whose
   notes are generated from the pull requests merged since the previous release
 
@@ -29,13 +30,19 @@ previous release.
 
 #### Scenario: A dispatch from a ref other than main is rejected
 
-- **WHEN** the workflow is dispatched against a ref other than `main` without the dry-run input
+- **WHEN** the workflow is dispatched against a ref other than `main` without the dry-run input and without a
+  `publish_tag`
 - **THEN** the run fails without creating a tag or a release
 
 #### Scenario: A dry run may be dispatched from another ref
 
 - **WHEN** the workflow is dispatched from a ref other than `main` with the dry-run input
 - **THEN** the run proceeds, pushing only the throwaway tag and creating no tag or release
+
+#### Scenario: A backfill may be dispatched from another ref
+
+- **WHEN** the workflow is dispatched from a ref other than `main` with a `publish_tag`
+- **THEN** the run proceeds, pushing only the backfilled `<version>` tags and creating no tag or release
 
 #### Scenario: A malformed version is rejected
 
@@ -87,30 +94,31 @@ declaration rather than a literal, so a release does not leave a hard-coded vers
 
 ### Requirement: The release workflow publishes the service images
 
-On a valid release dispatch that is not a dry run, the `release` workflow SHALL build the five images and publish each
-to GitHub Container Registry as `ghcr.io/<owner>/<image>`, tagged with the released version and `latest` for
-`linux/amd64`, authenticating with the run's `GITHUB_TOKEN`.
+On a valid release dispatch that is not a dry run and supplies no `publish_tag`, the `release` workflow SHALL build the
+five images and publish each to GitHub Container Registry as `ghcr.io/<owner>/<image>`, tagged with the released version
+and `latest` for `linux/amd64`, authenticating with the run's `GITHUB_TOKEN`.
 
 #### Scenario: Manual dispatch publishes the images
 
-- **WHEN** a maintainer dispatches the `release` workflow from `main` with a valid version without the dry-run input
+- **WHEN** a maintainer dispatches the `release` workflow from `main` with a valid version without the dry-run input and
+  without a `publish_tag`
 - **THEN** the workflow builds all five images and pushes each to `ghcr.io/<owner>/<image>`
 
 #### Scenario: Each image carries the released version and latest
 
-- **WHEN** the workflow publishes the service images for version `X.Y.Z`
+- **WHEN** the workflow publishes the service images on a release dispatch for version `X.Y.Z`
 - **THEN** each image is tagged both `X.Y.Z` and `latest`
 
 #### Scenario: The published images target linux/amd64
 
-- **WHEN** the workflow publishes the service images
+- **WHEN** the workflow publishes the service images on a release dispatch
 - **THEN** each published image is a `linux/amd64` image
 
 ### Requirement: A release is created only after its images publish
 
-The `release` workflow SHALL create the tag `v<version>` and the GitHub Release only after every service image is
-published, so a published release never names an image that failed to publish. A dry-run dispatch SHALL publish the
-images under a throwaway tag and create neither the tag nor the Release.
+On a release dispatch that creates a release, the `release` workflow SHALL create the tag `v<version>` and the GitHub
+Release only after every service image is published, so a published release never names an image that failed to publish.
+A dry-run or backfill dispatch SHALL publish images without creating or moving the tag or the Release.
 
 #### Scenario: A failed image publish leaves no tag or release
 
@@ -122,3 +130,57 @@ images under a throwaway tag and create neither the tag nor the Release.
 - **WHEN** a maintainer dispatches the workflow with the dry-run input set
 - **THEN** the workflow builds and pushes the images under a throwaway tag, and creates neither the `latest` tag nor the
   tag `v<version>` nor a GitHub Release
+
+### Requirement: The release workflow can backfill the images for an existing release
+
+A `release` workflow dispatch MAY supply a `publish_tag` naming an existing release tag of the form
+`v<MAJOR.MINOR.PATCH>`. In that mode the workflow SHALL check out that tag, build the five images at its version, and
+publish each to the GitHub Container Registry tagged only `<version>` for `linux/amd64`, SHALL NOT create or move a tag
+or a GitHub Release, and SHALL NOT move the `latest` tag.
+
+#### Scenario: Backfill publishes an existing release's images
+
+- **WHEN** a maintainer dispatches the workflow with a `publish_tag` naming an existing release tag
+- **THEN** the workflow checks out that tag, builds the five images, and pushes each to
+  `ghcr.io/<owner>/<image>:<version>`
+
+#### Scenario: A backfill does not move latest
+
+- **WHEN** the workflow backfills an existing release at version `X.Y.Z`
+- **THEN** each image carries the tag `X.Y.Z` and the `latest` tag is unchanged
+
+#### Scenario: A backfill creates no tag or release
+
+- **WHEN** the workflow backfills an existing release
+- **THEN** no tag is created or moved and no GitHub Release is created or mutated
+
+#### Scenario: An unknown tag is rejected
+
+- **WHEN** the workflow is dispatched with a `publish_tag` that names no existing tag
+- **THEN** the run fails before publishing any image
+
+#### Scenario: A malformed publish_tag is rejected
+
+- **WHEN** the workflow is dispatched with a `publish_tag` that is not of the form `v<MAJOR.MINOR.PATCH>`
+- **THEN** the run fails before publishing any image
+
+### Requirement: A release dispatch requires exactly one mode
+
+A `release` dispatch SHALL require exactly one of `version` (the release path) or `publish_tag` (the backfill path). It
+SHALL reject a dispatch that supplies neither, a dispatch that supplies both, and a dispatch that combines `publish_tag`
+with the dry-run input.
+
+#### Scenario: A dispatch with neither a version nor a publish_tag is rejected
+
+- **WHEN** the workflow is dispatched with no `version` and no `publish_tag`
+- **THEN** the run fails without publishing any image or creating a tag or release
+
+#### Scenario: A dispatch with both a version and a publish_tag is rejected
+
+- **WHEN** the workflow is dispatched with both a `version` and a `publish_tag`
+- **THEN** the run fails without publishing any image or creating a tag or release
+
+#### Scenario: A backfill rejects the dry-run input
+
+- **WHEN** the workflow is dispatched with both a `publish_tag` and the dry-run input
+- **THEN** the run fails without publishing any image or creating a tag or release

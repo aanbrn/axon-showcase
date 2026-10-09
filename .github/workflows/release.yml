@@ -25,12 +25,6 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ inputs.publish_tag }}
-          fetch-depth: 0
-
       - name: Resolve the dispatch mode and version
         shell: bash
         env:
@@ -63,6 +57,19 @@ jobs:
             echo "RELEASE_VERSION=${REQUESTED_VERSION}" >> "$GITHUB_ENV"
           fi
 
+      - name: Require the tag to exist
+        if: ${{ inputs.publish_tag != '' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUBLISH_TAG: ${{ inputs.publish_tag }}
+        run: |
+          set -euo pipefail
+          if ! gh api "repos/${{ github.repository }}/git/ref/tags/${PUBLISH_TAG}" >/dev/null 2>&1; then
+            echo "Tag ${PUBLISH_TAG} does not exist." >&2
+            exit 1
+          fi
+
       - name: Require the default branch
         shell: bash
         run: |
@@ -73,6 +80,12 @@ jobs:
             echo "Release must be dispatched from main, not '${{ github.ref }}'." >&2
             exit 1
           fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.publish_tag }}
+          fetch-depth: 0
 
       - name: Validate the requested version
         if: ${{ inputs.publish_tag == '' }}
@@ -109,18 +122,6 @@ jobs:
           set -euo pipefail
           if git ls-remote --tags --exit-code origin "refs/tags/v${RELEASE_VERSION}"; then
             echo "Tag v${RELEASE_VERSION} already exists." >&2
-            exit 1
-          fi
-
-      - name: Require the tag to exist
-        if: ${{ inputs.publish_tag != '' }}
-        shell: bash
-        env:
-          PUBLISH_TAG: ${{ inputs.publish_tag }}
-        run: |
-          set -euo pipefail
-          if ! git ls-remote --tags --exit-code origin "refs/tags/${PUBLISH_TAG}" >/dev/null; then
-            echo "Tag ${PUBLISH_TAG} does not exist." >&2
             exit 1
           fi
 

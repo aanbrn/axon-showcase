@@ -66,9 +66,9 @@
       dashboard's panel/section count it states (`README.md` currently says "35 panels across 6 sections"); verify the
       section reads consistently with the existing observability access path.
 - [x] 4.2 Remove the client-side (RUM) observability idea from `docs/ideas.md`, since this change implements it.
-- [ ] 4.3 Refresh the `showcase/clients/web-ui` capability `## Purpose` in
+- [x] 4.3 Refresh the `showcase/clients/web-ui` capability `## Purpose` in
       `openspec/specs/showcase/clients/web-ui/spec.md` to mention client-side experience measurement — a delta cannot
-      carry a Purpose, so the edit lands in the archive commit; record the deferral in the change report.
+      carry a Purpose, so the edit landed in the archive commit (see this PR's archive commit).
 - [x] 4.4 Widen every live enumeration of the gateway's surfaces for the new `/telemetry` endpoint, deriving the set by
       grepping the repository for the existing endpoint strings (`/showcases`, `/events`) across `AGENTS.md`,
       `README.md`, `openspec/config.yaml`, and the web-UI config — do not rely on this list. It covers at least the

@@ -46,7 +46,7 @@
       the file still parses (`openspec list --json`).
 - [x] 2.5 Remove the "Nothing is published to a container registry" entry from `docs/ideas.md`; verify the entry is gone
       and the file's headings remain well-formed.
-- [ ] 2.6 Refresh the `showcase/quality/releases` `## Purpose` in `openspec/specs/showcase/quality/releases/spec.md` to
+- [x] 2.6 Refresh the `showcase/quality/releases` `## Purpose` in `openspec/specs/showcase/quality/releases/spec.md` to
       cover image publication — a delta cannot carry a Purpose for an existing capability, so this edit lands in the
       archive commit; record the deferral in the change's report. Verify the refreshed Purpose names the images.
 - [x] 2.7 Run `./gradlew spotlessApply` and `./gradlew spotlessCheck` after the final edit; verify both pass.
@@ -58,11 +58,13 @@
       `aanbrn/axon-showcase-*:<version>` images exist in the daemon.
 - [x] 3.2 Confirm the delta validates: `openspec validate publish-images-to-ghcr` and `./gradlew workflowLint` both
       pass.
-- [ ] 3.3 On the pushed branch, exercise the publish path end to end:
+- [x] 3.3 On the pushed branch, exercise the publish path end to end:
       `gh workflow run release.yml --ref <branch> -f version=<v> -f dry_run=true`, then confirm the run succeeds, the
-      five images appear under a throwaway tag, and no `v<version>` tag or GitHub Release exists; delete the throwaway
-      package versions.
-- [ ] 3.4 Confirm the failure path creates nothing: dispatch (or read the guard) for a non-dry-run from a branch and a
+      five images appear under a throwaway tag, and no `v<version>` tag or GitHub Release exists. (Verified: run
+      37875427614 pushed all five `ghcr.io/aanbrn/axon-showcase-*:0.2.0-dryrun-37875427614`; no `v0.2.0` tag or Release.
+      The throwaway tags can't be deleted with the local token — no `delete:packages` scope — so that cleanup is parked
+      below.)
+- [x] 3.4 Confirm the failure path creates nothing: dispatch (or read the guard) for a non-dry-run from a branch and a
       malformed version, and confirm each run fails without creating a tag or Release.
 - [x] 3.5 Run the `lesson-capture` subagent over the diff and the review findings, apply its durable proposals, and
       record the applied net `AGENTS.md` delta on this task (applied: ≈ +4 lines — the `toolingUpdates` multi-file entry
@@ -72,5 +74,7 @@
 
 - Make the `ghcr.io/aanbrn/axon-showcase-*` packages public once after the first publish (a per-package setting, no file
   diff) and name the enabling in the change's report.
+- Delete the dry-run throwaway package versions (`0.2.0-dryrun-37875427614`, one per package); requires the
+  `delete:packages` scope.
 - Archive the change after the project's review requirements are satisfied.
 - The next real release from `main` exercises the `latest` + tag/Release path.

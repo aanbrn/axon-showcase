@@ -38,13 +38,16 @@
 
 - [x] 3.1 Confirm the delta validates (`openspec validate backfill-release-images --strict`) and
       `./gradlew workflowLint` passes.
-- [ ] 3.2 On the pushed branch, run the real backfill for the existing first release:
+- [x] 3.2 On the pushed branch, run the real backfill for the existing first release:
       `gh workflow run release.yml --ref <branch> -f publish_tag=v0.1.0`, then confirm the run builds from the `v0.1.0`
       tag and pushes all five `ghcr.io/aanbrn/axon-showcase-*:0.1.0` images, and that no `latest` tag or GitHub Release
-      is created or moved.
-- [ ] 3.3 Confirm every failure path creates nothing: dispatch with an unknown tag, a malformed tag, no input, both
+      is created or moved. (Verified: run 37883555125 and, on the corrected head, 37883954224 — all five `:0.1.0` images
+      pushed; no `v0.1.0` tag or Release created.)
+- [x] 3.3 Confirm every failure path creates nothing: dispatch with an unknown tag, a malformed tag, no input, both
       inputs, and a `publish_tag` plus the dry-run input, and confirm each run fails before publishing — no image
-      pushed, no tag or release created.
+      pushed, no tag or release created. (Verified: unknown tag fails at "Require the tag to exist" with
+      `Tag v9.9.9 does not exist.`; malformed, no-input, both, and `publish_tag`+`dry_run` fail at "Resolve the dispatch
+      mode and version" — none reached the build.)
 - [x] 3.4 Run the `lesson-capture` subagent over the diff and the review findings, apply its durable proposals, and
       record the applied net `AGENTS.md` delta on this task (verdict: nothing durable — net 0 lines; the recurring
       review classes restated existing rules rather than revealing a missing one).

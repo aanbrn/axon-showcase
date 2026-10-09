@@ -292,8 +292,22 @@ tasks.register("toolingUpdates", ToolingUpdatesTask::class.java) {
                 sourceRef = "snyk/cli",
             ),
             ToolingUpdateCheck(
-                name = "pack-cli",
+                name = "pack-cli (e2e.yml)",
                 workflowFile = "e2e.yml",
+                pinPattern = "pack-version:\\s*(v?[0-9][^\\s]*)",
+                source = ToolingVersionSource.GITHUB_RELEASE,
+                sourceRef = "buildpacks/pack",
+            ),
+            ToolingUpdateCheck(
+                name = "pack-cli (release.yml)",
+                workflowFile = "release.yml",
+                pinPattern = "pack-version:\\s*(v?[0-9][^\\s]*)",
+                source = ToolingVersionSource.GITHUB_RELEASE,
+                sourceRef = "buildpacks/pack",
+            ),
+            ToolingUpdateCheck(
+                name = "pack-cli (deployment-smoke.yml)",
+                workflowFile = "deployment-smoke.yml",
                 pinPattern = "pack-version:\\s*(v?[0-9][^\\s]*)",
                 source = ToolingVersionSource.GITHUB_RELEASE,
                 sourceRef = "buildpacks/pack",
@@ -312,6 +326,8 @@ tasks.register("toolingUpdates", ToolingUpdatesTask::class.java) {
         layout.projectDirectory.file(".github/workflows/ci.yml"),
         layout.projectDirectory.file(".github/workflows/dependency-security.yml"),
         layout.projectDirectory.file(".github/workflows/e2e.yml"),
+        layout.projectDirectory.file(".github/workflows/release.yml"),
+        layout.projectDirectory.file(".github/workflows/deployment-smoke.yml"),
     )
 
     reportFile.set(layout.buildDirectory.file("tooling-updates/report.txt"))

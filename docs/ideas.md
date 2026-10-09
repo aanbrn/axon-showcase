@@ -271,12 +271,6 @@ dated when it was added (start a new section for a new day rather than appending
 
 - GitHub Discussions are disabled — parked; no change yet. Enabling them would give the project a second support surface
   beside issues, but it needs moderation, so it is a decision rather than a toggle.
-- Nothing is published to a container registry — parked; no change yet. The image tasks (`bootBuildImage` for the four
-  JVM services, `dockerBuildImage` for the web UI) build to the local daemon only, so the `aanbrn/axon-showcase-*` names
-  documented in `AGENTS.md` are a convention the images never leave: nothing pushes them, and the `aanbrn` Docker Hub
-  namespace is empty today (the owner deleted the repositories an earlier manual attempt had created). The decision is
-  whether to publish at all, and where — GHCR (discoverable from the repository) and/or Docker Hub — which makes this a
-  pipeline change plus a registry choice.
 - No project homepage — parked; no change yet. The README _is_ the documentation, so the `homepage` field stays empty
   until there is a site (or a GitHub Pages rendering of the README) to point at.
 - No social preview image — parked; no change yet. It is the card shown when the repository is shared, it needs a

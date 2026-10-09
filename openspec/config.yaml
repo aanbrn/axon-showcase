@@ -39,7 +39,9 @@ context: |
     - ./db.sh init creates user `showcase` and database `showcase-events` before running
       the command-service standalone
 
-  Docker images: aanbrn/axon-showcase-{command-service,api-gateway,query-service,projection-service,web-ui}
+  Docker images: aanbrn/axon-showcase-{command-service,api-gateway,query-service,projection-service,web-ui};
+  a release publishes them to the GitHub Container Registry (ghcr.io/<owner>/axon-showcase-*,
+  tagged <version> and latest)
   Deployment: Helm chart in helm/chart (use ./gradlew helmInstallToLocal)
 
 # Per-artifact rules

@@ -596,6 +596,20 @@ Each `<module>` compose task is scoped to that module's service: `:showcase-api-
 `api-gateway` with its Compose dependency graph, and `:showcase-api-gateway:composeDown` stops and removes just that
 container.
 
+### Run from the Published Images
+
+Releases cut by the release workflow publish the five service images to the GitHub Container Registry, tagged with the
+release version and `latest`:
+
+```bash
+docker pull ghcr.io/aanbrn/axon-showcase-api-gateway:<version>
+```
+
+The five repositories are
+`ghcr.io/aanbrn/axon-showcase-{command-service,api-gateway,query-service,projection-service,web-ui}`, and each is a
+`linux/amd64` image. The packages start private on their first publish — make them public in the package settings to
+allow anonymous pulls. This path pulls a released build; the local cluster above keeps building the images from source.
+
 ### Develop from Source
 
 The compose stack runs the application as pre-built containers. To develop a service with hot reload, run it from source
@@ -847,12 +861,15 @@ schedule and via `workflow_dispatch`, opening or updating the "Upstream referenc
 reference the durable artifacts cite, its state (open / closed / unresolved), and where it is cited — so a closure is
 surfaced as a trigger to check rather than declared actionable — observational, never a merge gate.
 
-`.github/workflows/release.yml` cuts a release: dispatch it from `main` with a version (e.g. `0.1.0`), and it creates
-the tag `v<version>` at the head of `main` and publishes a GitHub Release whose notes GitHub generates from the pull
-requests merged since the previous release. It refuses a version that does not match the declaration in
-`gradle.properties` (without its `-SNAPSHOT` suffix) and refuses a tag that already exists. Afterward, bump
-`gradle.properties` to the next development version in a follow-up pull request, so the next release has a base. It is
-not a merge gate.
+`.github/workflows/release.yml` cuts a release: dispatch it from `main` with a version (e.g. `0.1.0`), and it builds the
+five service images, publishes them to the GitHub Container Registry (`ghcr.io/aanbrn/axon-showcase-*`, tagged with the
+version and `latest`), then creates the tag `v<version>` at the head of `main` and publishes a GitHub Release whose
+notes GitHub generates from the pull requests merged since the previous release. It refuses a version that does not
+match the declaration in `gradle.properties` (without its `-SNAPSHOT` suffix) and refuses a tag that already exists.
+Dispatch it with the `dry_run` input to build and push the images under a throwaway tag without creating a tag or
+release. The images are `linux/amd64`, and the packages start private — make them public for anonymous pulls. Afterward,
+bump `gradle.properties` to the next development version in a follow-up pull request, so the next release has a base. It
+is not a merge gate.
 
 ### Dependency Updates and Security
 

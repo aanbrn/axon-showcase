@@ -668,12 +668,12 @@ workflows with actionlint (installed on the runner via the official download scr
 The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (dependencies, wrapper, and local build
 cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the
 coverage gate. The workflows that build or use the web UI — `.github/workflows/ci.yml`, `.github/workflows/e2e.yml`,
-`.github/workflows/deployment-smoke.yml`, `.github/workflows/dependency-updates.yml`, and
-`.github/workflows/dependency-security.yml` — additionally extend `gradle-home-cache-includes` with `nodejs` (the
-node-gradle plugin's Node download in `~/.gradle/nodejs`) and add an `actions/cache` step for the npm package cache
-(`~/.npm`, keyed on `showcase-web-ui/package-lock.json`), so the web UI build does not re-download the Node runtime or
-the dependency tree on every run. The `main-required-checks` branch ruleset requires the `build` check for every merge
-into `main`, with no bypass actors.
+`.github/workflows/deployment-smoke.yml`, `.github/workflows/dependency-updates.yml`,
+`.github/workflows/dependency-security.yml`, and `.github/workflows/release.yml` — additionally extend
+`gradle-home-cache-includes` with `nodejs` (the node-gradle plugin's Node download in `~/.gradle/nodejs`) and add an
+`actions/cache` step for the npm package cache (`~/.npm`, keyed on `showcase-web-ui/package-lock.json`), so the web UI
+build does not re-download the Node runtime or the dependency tree on every run. The `main-required-checks` branch
+ruleset requires the `build` check for every merge into `main`, with no bypass actors.
 
 **A build-file or dependency change costs a one-time full rebuild (~9 min vs ~1 min warm).** `setup-gradle` partitions
 its caches by a hash of the build/dependency configuration (log keys like `gradle-home-v2|Linux-X64|build[<hash>]` and
@@ -753,16 +753,18 @@ branch, so an added workflow is dispatched from `main` (`gh workflow run <file>`
 default branch runs from the change's own pushed branch (`gh workflow run <file> --ref <branch>`) (no CI job exercises
 it, and `workflowLint` checks only the YAML) to exercise the workflow end to end — for an update check that is its
 report path, jq filter and tracker-issue lookup. The `release` workflow is the one added workflow whose _only_ trigger
-is `workflow_dispatch`, so its happy path runs after merge; its failure paths are exercised first with dispatches that
-create nothing. A **schedule-only** edit is the exception: a dispatch runs the workflow body, not the scheduler, so the
-new `cron`'s first fire is its verification — never tick a schedule change off on a dispatch. GitHub's `schedule`
-trigger is best-effort — a run can slip by hours or be dropped under load, and no `cron` value makes it punctual — so an
-earlier slot is margin against a delay, never a guarantee: verify a workflow's own run before treating a late report as
-a defect. Schedule each workflow's runtime into the repo owner's small hours (UTC+7) — early Sunday morning for the
-weekly runs, so the results are waiting at the start of the owner's working week, and off the
-`:00`/`:10`/`:20`/`:30`/`:40`/`:50` minutes GitHub documents as its high-load slots; the metered pass's placement is the
-model-pin bullet's off-peak call. captured: bump-snyk-cli-pin captured: schedule-jobs-into-the-owners-night captured:
-reschedule-weekly-workflows-earlier
+is `workflow_dispatch`, so its tag-and-release path first runs after merge; its build-and-push path is exercised
+pre-merge through a `dry_run` input that bypasses the `main`-ref guard and creates no tag or release — the bypass a
+ref-guarded dispatch workflow needs, since its own guard otherwise blocks the pre-merge dispatch the verification rule
+requires. Its failure paths are exercised first with dispatches that create nothing. captured: publish-images-to-ghcr A
+**schedule-only** edit is the exception: a dispatch runs the workflow body, not the scheduler, so the new `cron`'s first
+fire is its verification — never tick a schedule change off on a dispatch. GitHub's `schedule` trigger is best-effort —
+a run can slip by hours or be dropped under load, and no `cron` value makes it punctual — so an earlier slot is margin
+against a delay, never a guarantee: verify a workflow's own run before treating a late report as a defect. Schedule each
+workflow's runtime into the repo owner's small hours (UTC+7) — early Sunday morning for the weekly runs, so the results
+are waiting at the start of the owner's working week, and off the `:00`/`:10`/`:20`/`:30`/`:40`/`:50` minutes GitHub
+documents as its high-load slots; the metered pass's placement is the model-pin bullet's off-peak call. captured:
+bump-snyk-cli-pin captured: schedule-jobs-into-the-owners-night captured: reschedule-weekly-workflows-earlier
 
 A verification the local environment cannot run cannot live as a task in the change dir: `openspec/changes/archive/` is
 invisible and no gate reads it, so an unchecked task is silently lost — a dispatch
@@ -788,14 +790,17 @@ owner so the report is not left unread — or commits nothing when they report n
 merge gate.
 
 `.github/workflows/release.yml` cuts a release on `workflow_dispatch` (the only trigger — not a schedule, not a merge
-gate): it requires the `main` ref, a dispatched version matching `gradle.properties`'s declaration without its
-`-SNAPSHOT` suffix, and a tag that does not already exist, then creates the tag `v<version>` at the head of `main` and a
-GitHub Release with `--generate-notes`. The version declaration lives in `gradle.properties` (added by this workflow's
-change; the root `build.gradle.kts` no longer sets `version`), and the gateway's OpenAPI `info.version` reads the build
-info. A release is followed by a bump of `gradle.properties` to the next development version (a normal pull request);
-the ADR-0016 `Revisit when:` records that automating that bump is deferred. GitHub exposes `workflow_dispatch` a
-workflow only once it is on the default branch, so a newly added release workflow's first run is a dispatch from `main`
-after its PR merges.
+gate): on a release dispatch it requires the `main` ref, a dispatched version matching `gradle.properties`'s declaration
+without its `-SNAPSHOT` suffix, and a tag that does not already exist, then builds the five images, publishes them to
+the GitHub Container Registry (`ghcr.io/<owner>/axon-showcase-*`, tagged `<version>` and `latest`, `linux/amd64`, with
+the run's `GITHUB_TOKEN` granted `packages: write`), and only then creates the tag `v<version>` at the head of `main`
+and a GitHub Release with `--generate-notes`. A `dry_run` dispatch runs the same build and push under a throwaway tag
+without creating a tag or release, and may run from a ref other than `main`. The version declaration lives in
+`gradle.properties` (added by this workflow's change; the root `build.gradle.kts` no longer sets `version`), and the
+gateway's OpenAPI `info.version` reads the build info. A release is followed by a bump of `gradle.properties` to the
+next development version (a normal pull request); the ADR-0016 `Revisit when:` records that automating that bump is
+deferred. GitHub exposes `workflow_dispatch` a workflow only once it is on the default branch, so a newly added release
+workflow's first run is a dispatch from `main` after its PR merges.
 
 **What each covers:**
 
@@ -1395,6 +1400,10 @@ Each boot service builds a Docker image:
 - `aanbrn/axon-showcase-projection-service:${project.version}`
 - `aanbrn/axon-showcase-web-ui:${project.version}` (static nginx serving the built frontend)
 
+On a release, `.github/workflows/release.yml` publishes the five images to the GitHub Container Registry
+(`ghcr.io/<owner>/axon-showcase-*`, tagged `<version>` and `latest`, `linux/amd64`) — see ADR-0018 — while the local and
+`ci` targets keep building them into the local daemon.
+
 Image names are set in each service's `bootBuildImage` task configuration. To build for a non-default platform (e.g.,
 ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64`), which Gradle maps to the
 `bootBuildImage`/`dockerBuildImage` task's `imagePlatform` `@Option`.
@@ -1485,12 +1494,13 @@ enumerate an image-build task for every image the chart's Deployments reference 
 web UI Deployment without adding its image build, so `helmInstallToLocal` deployed a web UI pod with an image that was
 never built. Note the web UI image is built by `:showcase-web-ui:dockerBuildImage` (a pack-based task, not a
 `bootBuildImage`); verify the graph with `./gradlew helmInstallToLocal --dry-run` and confirm every chart Deployment's
-image has a build task in it. The chart's images are published to no registry, and a `kind` cluster's nodes cannot see
-the host daemon's images, so a runner or bare-kind install must build them and `kind load` each before
-`helmInstallToLocal` — load by repository rather than pinning the image version, and pass `--name <cluster>` to
-`kind load`, since kind's CLI defaults to a cluster named `kind`: a bare `kind load docker-image` against the smoke's
-`axon-showcase-smoke` failed its first dispatch with `ERROR: no nodes found for cluster "kind"`. captured:
-add-deployment-smoke captured: trim-deployment-smoke-install
+image has a build task in it. The chart resolves images from the local daemon by default (a release publishes them to
+GHCR, but the local/`ci` targets build rather than pull), and a `kind` cluster's nodes cannot see the host daemon's
+images, so a runner or bare-kind install must build them and `kind load` each before `helmInstallToLocal` — load by
+repository rather than pinning the image version, and pass `--name <cluster>` to `kind load`, since kind's CLI defaults
+to a cluster named `kind`: a bare `kind load docker-image` against the smoke's `axon-showcase-smoke` failed its first
+dispatch with `ERROR: no nodes found for cluster "kind"`. captured: add-deployment-smoke captured:
+trim-deployment-smoke-install
 
 **Helm release order**: kps → tempo → db-events/kafka/os-views → axon-showcase, declared by `mustInstallAfter`/
 `mustUninstallAfter` in `build.gradle.kts`. Uninstall in reverse. Because the app release also depends on the five image
@@ -2677,20 +2687,24 @@ capture-stash-stale-copy
   Dependabot covers `uses:` action refs. Add a pin to that check's declared list when you add it to a workflow — its
   patterns are asserted to match exactly once, so a renamed input fails the task rather than reading as current — and
   note that extending the list one pin at a time is how the OpenSpec pin, then the `pack` CLI, was each missed in turn
-  while the check did not exist. The `/opsx-tool-update` command regenerates the instruction files after a release but
-  does not detect one. (`java-version: '21'` and the opencode workflow's `model` input are deliberate pins, not tooling
-  currency — the model pin has its own multi-file bump sweep, see the OpenCode model-pin gotcha.) A Snyk or pack bump
-  cannot be verified locally: `workflowLint` (actionlint) proves only that the YAML lints, not that the version tag is
-  installable — the credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real
-  execution. `workflowLint` also cannot see inside a quoted `gh api --jq` program — actionlint parses the YAML and the
-  shell, not the jq — so a malformed copied filter passes `check` and fails only on the scheduled run; verify a new or
-  edited update workflow by diffing it against the sibling it copies (a `tooling-updates.yml` jq filter was missing a
-  closing parenthesis, caught by that diff and by nothing in `check`). The same skew bites a guard keyed off a tool's
-  output: it must be verified against the version CI pins, not only the locally-installed one, since the pinned CLI is
-  what the gate actually runs and the output text it matches on may differ there. The same caution applies to a proposed
-  _fix_ attributed to a dependency bump: verify it exists in a released version, not only on the project's default
-  branch — a bump claimed to make a failure skip cleanly held on `actions/cache`'s `main` but in no release (latest
-  `v6.1.0`). captured: unify-tooling-currency-checks (#304)
+  while the check did not exist. A tool pinned in more than one workflow file takes one check entry per file: a check
+  reads exactly one `workflowFile`, which must also be registered in `pinFiles`, and a file no entry names has its pin
+  silently unchecked (the smoke's `pack` pin sat unlisted until `release.yml` joined it) — name each entry per file
+  (`pack-cli (e2e.yml)`), since the report names the check, not its file. captured: publish-images-to-ghcr The
+  `/opsx-tool-update` command regenerates the instruction files after a release but does not detect one.
+  (`java-version: '21'` and the opencode workflow's `model` input are deliberate pins, not tooling currency — the model
+  pin has its own multi-file bump sweep, see the OpenCode model-pin gotcha.) A Snyk or pack bump cannot be verified
+  locally: `workflowLint` (actionlint) proves only that the YAML lints, not that the version tag is installable — the
+  credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real execution.
+  `workflowLint` also cannot see inside a quoted `gh api --jq` program — actionlint parses the YAML and the shell, not
+  the jq — so a malformed copied filter passes `check` and fails only on the scheduled run; verify a new or edited
+  update workflow by diffing it against the sibling it copies (a `tooling-updates.yml` jq filter was missing a closing
+  parenthesis, caught by that diff and by nothing in `check`). The same skew bites a guard keyed off a tool's output: it
+  must be verified against the version CI pins, not only the locally-installed one, since the pinned CLI is what the
+  gate actually runs and the output text it matches on may differ there. The same caution applies to a proposed _fix_
+  attributed to a dependency bump: verify it exists in a released version, not only on the project's default branch — a
+  bump claimed to make a failure skip cleanly held on `actions/cache`'s `main` but in no release (latest `v6.1.0`).
+  captured: unify-tooling-currency-checks (#304)
 - **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
   first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
   output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change

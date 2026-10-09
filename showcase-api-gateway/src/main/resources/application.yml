@@ -165,7 +165,7 @@ server:
       enabled: false
 
 springdoc:
-  packages-to-scan: showcase.api.rest, showcase.api.events
+  packages-to-scan: showcase.api.rest, showcase.api.events, showcase.api.telemetry
 
 management:
   endpoints:

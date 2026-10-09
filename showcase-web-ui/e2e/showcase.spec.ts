@@ -68,3 +68,15 @@ test('a duplicate title surfaces the gateway validation error', async ({ page })
 
   await expect(page.getByText('Given title is in use already')).toBeVisible({ timeout: 30_000 });
 });
+
+test('reports browser telemetry to the gateway on page load', async ({ page }) => {
+  const telemetryRequest = page.waitForRequest(
+    (request) => request.method() === 'POST' && request.url().endsWith('/telemetry'),
+    { timeout: 30_000 },
+  );
+
+  await page.goto('/');
+
+  const request = await telemetryRequest;
+  expect(request.postDataJSON().path).toBe('/');
+});

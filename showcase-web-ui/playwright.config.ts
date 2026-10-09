@@ -6,7 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
  *
  * <p>Assumes the full service stack (infra + four services) is already running — the Gradle `e2eTest` task boots it
  * via docker-compose before Playwright starts. The UI is served from the production build (`vite preview`), whose
- * proxy forwards `/showcases` and `/events` to the gateway on :8080.
+ * proxy forwards `/showcases`, `/events`, and `/telemetry` to the gateway on :8080.
  */
 export default defineConfig({
   testDir: './e2e',

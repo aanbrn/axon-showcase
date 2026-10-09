@@ -23,7 +23,7 @@ It is also a personal vehicle for learning agentic development: the process is a
 ```
 axon-showcase/
 ├── Services and gateway
-│   ├── showcase-api-gateway/            # REST entry point (/showcases), SSE live events (/events)
+│   ├── showcase-api-gateway/            # REST (/showcases), SSE (/events), client telemetry (/telemetry)
 │   ├── showcase-command-service/        # Write side: Axon aggregate, saga, distributed bus
 │   ├── showcase-projection-service/     # Consumes Kafka, writes read models to OpenSearch
 │   ├── showcase-query-service/          # Read side: queries OpenSearch, gRPC query transport
@@ -130,12 +130,12 @@ You can also drive the lifecycle by hand — start or finish a showcase before t
 
 The application follows **CQRS (Command Query Responsibility Segregation)** with four services and the web UI:
 
-| Component              | Role                                                                                        |
-| ---------------------- | ------------------------------------------------------------------------------------------- |
-| **API Gateway**        | REST entry point (`/showcases`), SSE live events (`/events`)                                |
-| **Command Service**    | Write side: Axon aggregate, saga, distributed command bus (JGroups), PostgreSQL event store |
-| **Projection Service** | Consumes events from Kafka, writes read models to OpenSearch                                |
-| **Query Service**      | Read side: queries OpenSearch, gRPC query transport                                         |
+| Component              | Role                                                                                          |
+| ---------------------- | --------------------------------------------------------------------------------------------- |
+| **API Gateway**        | REST entry point (`/showcases`), SSE live events (`/events`), client telemetry (`/telemetry`) |
+| **Command Service**    | Write side: Axon aggregate, saga, distributed command bus (JGroups), PostgreSQL event store   |
+| **Projection Service** | Consumes events from Kafka, writes read models to OpenSearch                                  |
+| **Query Service**      | Read side: queries OpenSearch, gRPC query transport                                           |
 
 ### Event Flow
 
@@ -647,8 +647,8 @@ with `bootRun` while the infrastructure stays in Docker:
 ./gradlew :showcase-query-service:bootRun      # :8083 (gRPC :9090)
 ```
 
-Each service runs on its own HTTP port. The web UI runs on the Vite dev server (hot reload, proxies `/showcases` and
-`/events` to the gateway on `:8080`):
+Each service runs on its own HTTP port. The web UI runs on the Vite dev server (hot reload, proxies `/showcases`,
+`/events`, and `/telemetry` to the gateway on `:8080`):
 
 ```bash
 ./gradlew :showcase-web-ui:viteDev
@@ -991,11 +991,12 @@ Observability is part of the **Kubernetes deployment** — `./gradlew helmInstal
 and Tempo into the `monitoring` namespace alongside the application. The local docker-compose stack does not run it.
 
 - **Metrics**: each service exports Prometheus metrics (HTTP throughput/latency/failure, Axon command bus, event store,
-  saga, deadlines, projection lag, cache hits, query performance); the web UI exports nginx `stub_status` via a sidecar.
-  ServiceMonitors are wired for all of them.
-- **Grafana**: a custom **Axon Showcase** dashboard is provisioned automatically (35 panels across 6 sections covering
-  every service and the Axon internals), and Grafana is preconfigured with a Tempo data source. The default login is
-  `admin` with the password from the chart's generated secret.
+  saga, deadlines, projection lag, cache hits, query performance); the web UI exports nginx `stub_status` via a sidecar
+  and reports browser-side Core Web Vitals and JavaScript errors through the gateway, which exposes them as Prometheus
+  metrics. ServiceMonitors are wired for all of them.
+- **Grafana**: a custom **Axon Showcase** dashboard is provisioned automatically (39 panels across 7 sections covering
+  every service, the browser experience, and the Axon internals), and Grafana is preconfigured with a Tempo data source.
+  The default login is `admin` with the password from the chart's generated secret.
 - **Tracing**: services export **OpenTelemetry** traces to **Grafana Tempo** (`tempo.monitoring`), viewable in Grafana's
   Explore. The web UI propagates W3C trace context on its API calls, so a page load's requests join one trace that
   continues through the gateway into the command and query services.

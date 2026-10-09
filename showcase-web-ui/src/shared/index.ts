@@ -7,4 +7,5 @@
 export { BASE, handle, isPending, mutate, request, type MutationResult } from './api';
 export { formatDateTime, formatDuration, formatTime } from './format';
 export { retryUntilCompleted } from './retry';
+export { initClientTelemetry } from './telemetry';
 export { traceparent } from './tracing';

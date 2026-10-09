@@ -852,7 +852,7 @@ CQRS with four services and a web UI:
 - **showcase-projection-service** — consumes Kafka events, writes projections to OpenSearch
 - **showcase-query-service** — read side, queries OpenSearch, serves the generic gRPC query transport (`Dispatch`)
 - **showcase-api-gateway** — REST entry point (`/showcases`), routes to command/query services; also exposes the live
-  event stream over SSE (`/events`) and applies CORS for the web UI origin
+  event stream over SSE (`/events`), ingests client telemetry (`/telemetry`), and applies CORS for the web UI origin
 - **showcase-web-ui** — standalone browser UI (React + Vite, Feature-Sliced Design) that browses and drives showcases
   through the gateway and renders the live event timeline; deployed as its own nginx container image (see Docker Images)
   with the API base URL configured via `SHOWCASE_API_BASE_URL`
@@ -880,15 +880,21 @@ Key modules (libraries, not services):
   three types whose variants tests derive — `ScheduleShowcaseCommand`, `Showcase`, `ShowcaseEntity`) rather than Java
   records, and the builder is the reason: the aggregate and saga construct events and commands through `builder()`
   (`ShowcaseScheduledEvent.builder()`, `StartShowcaseCommand.builder()`), and tests derive variants via `toBuilder()` —
-  a record's canonical constructor cannot express that. Fourteen `@SuppressWarnings("ClassCanBeRecord")` annotations
-  encode the choice; delete one only if the type genuinely needs no builder. Whether records would be faster is
-  **untested** — the suppression records intent, not a measured result, so do not read it as a performance claim.
-  Declare local variables with Lombok's `val` when the initializer infers the type and the local is not reassigned, and
-  with the language's `var` when it is reassigned (Lombok's `var` cannot be imported on Java 10+ — the compiler rejects
-  `import lombok.var;` as a restricted type); keep an explicit type where inference is impossible or would change the
-  type — fields, method parameters and returns, a diamond initializer with no target type (`new TreeMap<>()`), a
-  declaration with no initializer or more than one declarator, a `null`/lambda/method-reference/array initializer, a
-  declared boxed type the initializer would unbox, or a declared primitive wider than the initializer.
+  a record's canonical constructor cannot express that. The value classes carry `@SuppressWarnings("ClassCanBeRecord")`
+  to encode the choice; delete one only if the type genuinely needs no builder, and omit it where the class is already
+  not record-convertible (an initialized `@Builder.Default` field is one such case — IntelliJ flags the suppression as
+  redundant there). A `@Builder.Default` on a `@Jacksonized` value class guards only an omitted JSON key: an explicit
+  `null` sets the field to `null` (`@Size` ignores a `null`), so a builder-defaulted collection also carries `@NotNull`
+  or the request NPEs to a 500; a collection that should instead _tolerate_ an omitted or `null` list uses
+  `@Singular(ignoreNullCollections = true)`, which makes both empty (as `FetchShowcaseListQuery` does). Whether records
+  would be faster is **untested** — the suppression records intent, not a measured result, so do not read it as a
+  performance claim. Declare local variables with Lombok's `val` when the initializer infers the type and the local is
+  not reassigned, and with the language's `var` when it is reassigned (Lombok's `var` cannot be imported on Java 10+ —
+  the compiler rejects `import lombok.var;` as a restricted type); keep an explicit type where inference is impossible
+  or would change the type — fields, method parameters and returns, a diamond initializer with no target type
+  (`new TreeMap<>()`), a declaration with no initializer or more than one declarator, a
+  `null`/lambda/method-reference/array initializer, a declared boxed type the initializer would unbox, or a declared
+  primitive wider than the initializer. captured: add-web-ui-rum-observability
 - **MapStruct**: default component model is `spring` (`-Amapstruct.defaultComponentModel=spring`)
 - **ErrorProne**: NullAway on `showcase.*` packages; disabled in `TestJava` tasks. Every package in a NullAway-compiled
   source set (`main`, `testFixtures`, and `load-tests`' `gatling`) carries a `package-info.java` with `@NullMarked`
@@ -1144,8 +1150,10 @@ Key modules (libraries, not services):
     `awk 'length > 120'` — `awk` counts bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow
     tripped this three times); the `-l` chomps the trailing newline `-ne` would otherwise count, so an
     exactly-120-character line is not false-flagged. Verify a verification command on a boundary case before recording
-    it — the first recipe omitted `-l` and false-flagged every exactly-120-character line. Formatters cannot reflow
-    string literals (e.g. an error message in Kotlin/Gradle), so wrap an over-long string with concatenation
+    it — the first recipe omitted `-l` and false-flagged every exactly-120-character line. Apply it over the change's
+    whole changed set (`git diff --name-only`), not only the files a finding named — a per-file scope leaves the rest
+    unverified and the review re-finds them. captured: add-web-ui-rum-observability Formatters cannot reflow string
+    literals (e.g. an error message in Kotlin/Gradle), so wrap an over-long string with concatenation
     (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as natural prose and let `spotlessApply`
     (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the wrapping and reflows on every run. A bare
     `$` in prose (outside inline code) is parsed as inline math and blocks that reflow — the paragraph silently keeps
@@ -1594,7 +1602,7 @@ docker compose up -d
 ./gradlew :showcase-query-service:bootRun       # :8083 (gRPC :9090)
 ./gradlew :showcase-projection-service:bootRun  # :8082
 
-# Web UI (Vite dev server, proxies /showcases and /events to :8080)
+# Web UI (Vite dev server, proxies /showcases, /events, and /telemetry to :8080)
 ./gradlew :showcase-web-ui:viteDev              # :5173
 ```
 
@@ -1681,6 +1689,17 @@ that override when bumping the Kafka image tag.
 
 ## Gotchas
 
+- **A controller-local `@ExceptionHandler(HandlerMethodValidationException.class)` fires only when method validation is
+  active for that controller — put a constraint (`@NotNull`) directly on the method parameter, not only `@Valid`.**
+  Without it a body failure arrives as a `WebExchangeBindException`, so the shared `ShowcaseApiErrorResolver`'s
+  `bodyErrors` contract is silently lost (`ShowcaseRestController` gets activation incidentally from the `@Min`/`@Max`
+  on its page-size parameter). A component test that posts a malformed body and asserts `bodyErrors` covers it.
+  captured: add-web-ui-rum-observability
+- **A new gateway controller package or browser-called endpoint is silent until registered in two un-gated lists.** Add
+  the package to `springdoc.packages-to-scan` (else the endpoint is absent from `/v3/api-docs`) and, for a path the
+  browser calls, add it to the Vite proxy in `showcase-web-ui/vite.config.ts` (else it never reaches `viteDev` or the
+  e2e `vite preview`); widen the live endpoint enumerations per the docs-refresh convention too. captured:
+  add-web-ui-rum-observability
 - **`git stash pop` can leave conflict markers after a rebase.** The commit-only-at-push workflow leaves the change
   uncommitted and stashes it when a rebase needs a clean tree; if a docs file (e.g. `docs/ideas.md`) advances on `main`
   between the stash and the rebase, popping the stash after the rebase can leave `<<<<<<<` conflict markers in the

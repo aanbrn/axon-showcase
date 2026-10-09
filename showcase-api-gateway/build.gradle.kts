@@ -72,6 +72,7 @@ testing {
                 implementation(project(":showcase-test"))
                 implementation(testFixtures(project(":showcase-command-api")))
                 implementation(testFixtures(project(":showcase-query-api")))
+                implementation(libs.micrometer.registry.prometheus)
             }
         }
 

@@ -3,9 +3,10 @@
 ## Purpose
 
 Documents the behavior of the standalone web UI: a browser application that browses and drives showcase lifecycle
-actions through the gateway REST API, renders a live event timeline fed by the gateway's SSE stream, and propagates W3C
-Trace Context on its API calls so a page load's requests join one trace through the pipeline — all so the
-CQRS/Event-Sourcing pipeline can be demonstrated visually and followed end to end.
+actions through the gateway REST API, renders a live event timeline fed by the gateway's SSE stream, propagates W3C
+Trace Context on its API calls so a page load's requests join one trace through the pipeline, and measures and reports
+its own client-side experience (Core Web Vitals and JavaScript errors) — all so the CQRS/Event-Sourcing pipeline can be
+demonstrated visually and followed end to end.
 
 ## Requirements
 
@@ -158,3 +159,25 @@ parent id, and the trace SHALL be marked sampled, so the pipeline records it rat
 
 - **WHEN** the UI builds a `traceparent`
 - **THEN** its version is `00` and its flags are `01`, so the gateway continues and records the trace
+
+### Requirement: Client-side experience measurement and reporting
+
+The UI SHALL measure the Core Web Vitals (LCP, INP, CLS, FCP, TTFB) and capture uncaught JavaScript errors and unhandled
+promise rejections, and SHALL report them to the gateway's telemetry endpoint tagged with the current route. Reporting
+SHALL be fire-and-forget and SHALL NOT degrade or block the page. (The report's trace context is owned by the
+"Trace-context propagation on API calls" requirement, which covers every fetch-based gateway request.)
+
+#### Scenario: A measured vital is reported
+
+- **WHEN** the browser reports a Core Web Vital for the page
+- **THEN** the UI sends the vital to the gateway telemetry endpoint
+
+#### Scenario: A client-side error is reported
+
+- **WHEN** an uncaught JavaScript error or an unhandled promise rejection occurs
+- **THEN** the UI reports it to the gateway telemetry endpoint
+
+#### Scenario: A failed report leaves the page working
+
+- **WHEN** the telemetry request fails or is unavailable
+- **THEN** the page continues to work without a user-visible error

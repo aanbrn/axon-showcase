@@ -21,6 +21,7 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
+      '/telemetry': 'http://localhost:8080',
     },
   },
   build: {

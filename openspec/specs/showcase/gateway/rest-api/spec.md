@@ -233,13 +233,13 @@ failures, WebClient failures, circuit breaker rejections, and unknown errors.
 ### Requirement: CORS allows the standalone UI origin
 
 The gateway SHALL allow browser cross-origin requests from the standalone web UI origin, so the UI can call the
-`/showcases` REST endpoints and the `/events` SSE endpoint directly. The allowed origins SHALL be configurable; the
-container image default SHALL be empty (fail-closed — every deployment must allow its UI origin explicitly), while local
-development (docker-compose and `bootRun`) SHALL permit the local UI dev-server and preview origins. The gateway SHALL
-also allow the request headers the UI sends (`Content-Type`, `Idempotency-Key`, `traceparent`), because a cross-origin
-request naming a header the gateway does not allow is rejected at the browser's preflight; the allowed headers SHALL be
-configurable, defaulting to the headers the UI sends rather than to an empty list, since a fail-closed header default
-would reject the UI's own preflight.
+`/showcases` REST endpoints, the `/events` SSE endpoint, and the `/telemetry` telemetry endpoint directly. The allowed
+origins SHALL be configurable; the container image default SHALL be empty (fail-closed — every deployment must allow its
+UI origin explicitly), while local development (docker-compose and `bootRun`) SHALL permit the local UI dev-server and
+preview origins. The gateway SHALL also allow the request headers the UI sends (`Content-Type`, `Idempotency-Key`,
+`traceparent`), because a cross-origin request naming a header the gateway does not allow is rejected at the browser's
+preflight; the allowed headers SHALL be configurable, defaulting to the headers the UI sends rather than to an empty
+list, since a fail-closed header default would reject the UI's own preflight.
 
 #### Scenario: The UI origin is allowed
 
@@ -261,6 +261,11 @@ would reject the UI's own preflight.
 - **WHEN** a browser at the configured UI origin sends a preflight for a state-changing request carrying the headers the
   UI sends (`Content-Type`, `Idempotency-Key`, `traceparent`)
 - **THEN** the gateway grants the preflight, listing those headers in `Access-Control-Allow-Headers`
+
+#### Scenario: The telemetry endpoint is callable cross-origin
+
+- **WHEN** a browser at the configured UI origin posts a client-telemetry report
+- **THEN** the gateway grants CORS access, so the report is accepted
 
 ### Requirement: Read-through caching of showcase queries
 

@@ -303,10 +303,6 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-09-07
 
-- Client-side (RUM) observability for the web UI — parked; no change yet. The deployable-UI change adds only server-side
-  nginx metrics (stub_status + ServiceMonitor); the UI's user-facing experience is still unobserved, so a separate UI
-  change would add web-vitals + JS-error reporting (e.g. Grafana Faro or a push-to-gateway metrics endpoint).
-
 - Migrate off the deprecated OpenSearch low-level REST client — parked; no change yet.
   `org.opensearch.client.RestClientBuilder` (and the `RestClient` it builds) is `@Deprecated`, to be removed in future
   releases in favor of the official OpenSearch Java Client. The projection service's

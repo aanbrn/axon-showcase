@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { App } from '@/app/App';
 import { store } from '@/app/store';
+import { initClientTelemetry } from '@/shared';
 import './app/styles.css';
 
 /**
@@ -13,6 +14,8 @@ import './app/styles.css';
  * <p>Used by all query hooks; its default retry/stale settings apply across the showcase queries.
  */
 const queryClient = new QueryClient();
+
+initClientTelemetry();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

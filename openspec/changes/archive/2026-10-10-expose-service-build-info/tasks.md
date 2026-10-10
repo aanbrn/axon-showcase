@@ -32,7 +32,7 @@
       human-visible capability, or record why not). Done: `AGENTS.md`'s only build-info mention is the general
       `buildInfo()` mechanics rule (not gateway-only), so it needs no change; the README's observability section gains a
       "Build version" bullet naming the `/actuator/info` access path.
-- [ ] 3.3 Refresh the `showcase/quality/releases` capability `## Purpose` in
+- [x] 3.3 Refresh the `showcase/quality/releases` capability `## Purpose` in
       `openspec/specs/showcase/quality/releases/spec.md` to name the runtime build-identity surface — its enumeration
       ("the tag, the build, and the served OpenAPI document") gains the actuator `info` endpoint. A delta cannot carry a
       Purpose, so the edit lands in the archive commit; record the deferral in the change report.

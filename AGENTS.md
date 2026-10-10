@@ -90,14 +90,16 @@ manual review pass. A finding that adds behavior is a scope change, not a code f
 alone leaves the change's planning artifacts — proposal, design, tasks, and delta spec — describing the old behavior,
 and the next round reports the residue as spec-/task-drift: sweep every one of them, not only the file the finding
 names, as part of applying the finding (and the docs, per the docs-refresh convention). A **framing or coherence**
-correction takes the same sweep even though it adds no behavior: the planning artifacts state one model of the subject,
-so correcting the model in the artifacts the finding names leaves a sibling — most often `proposal.md` — stating the old
-framing, which the next round flags as coherence drift. Re-read every planning artifact that states the corrected claim,
-`proposal.md` included, before re-running the review. When the claim is a predicate the requirement owns — a threshold,
-band, or formula — single-source it: state it once in the requirement and reference it by name, since a restated copy
-re-anchors on its own (a README copy made the matching band a tenth of the _measured_ rate where the requirement and
-code use the _recorded_ one) and the sweep has no canonical wording to sweep to. captured:
-record-baseline-operating-point captured: widen-architecture-auditor-to-revisit-triggers. A clean quick review is a
+correction takes the same sweep even though it adds no behavior: the artifacts the change states the model across —
+planning and shipped alike — state one model of the subject, so correcting the model in the artifacts the finding names
+leaves a sibling — often the shipped copy, not only `proposal.md` — stating the old framing, which the next round flags
+as coherence drift. Re-read every artifact that states the corrected claim, `proposal.md` and the shipped copies
+included, before re-running the review. When one source owns the claim — a predicate the requirement owns (a threshold,
+band, or formula), or a scope the owning definition states via its class names — single-source it: state it once there
+and repeat it identically (referencing it by name where the site can), since a restated copy re-anchors on its own (a
+README copy made the matching band a tenth of the _measured_ rate where the requirement and code use the _recorded_ one)
+and the sweep has no canonical wording to sweep to. captured: record-baseline-operating-point captured:
+widen-architecture-auditor-to-revisit-triggers captured: add-apply-audit-reductions-command. A clean quick review is a
 precondition for asking for the manual review, **not** a substitute for it — it means _ask the user now_, not _the
 implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength of a clean `review-quick`
 alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes, without ever requesting the manual
@@ -1244,7 +1246,9 @@ Key modules (libraries, not services):
   it with the `/audit-agents` command; the main agent applies the approved findings under the review gate, and one
   audit's findings can need different delivery routes — split the output by fix type and scope each unit's artifacts and
   diff to its own fixes, rather than running the whole audit through one unit. The scheduled variant runs unattended in
-  the `audit` workflow; the audit itself is on demand.
+  the `audit` workflow; the audit itself is on demand. A report's reduction candidates are drained by the standing
+  owner-gated unit `/apply-audit-reductions` (specified in `showcase/quality/agent-skills`), run per report rather than
+  left to age; the report's other findings go through the normal change workflow.
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus for the cross-spec structural consistency
   `openspec validate` does not gate — title ↔ capability-path match, Purpose ↔ requirements fit, requirement

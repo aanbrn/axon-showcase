@@ -456,8 +456,10 @@ The process is designed to **learn from itself** — and that is the mechanic, n
   consistency problems (contradictions, stale claims, dead cross-references, drift) and conciseness problems
   (duplication, trivia, length, placement) — each with a concrete suggested rewrite, including standing merge, removal,
   and route candidates — and, separately and without severity, a third-party file our usage contradicts and the meta
-  rules that accreted with the origin that introduced each — decisions for the owner rather than defects to fix. So the
-  guidance and tooling stay consistent and concise instead of only growing.
+  rules that accreted with the origin that introduced each — decisions for the owner rather than defects to fix. A
+  report's reduction candidates do not age: the standing, owner-gated `/apply-audit-reductions` unit applies them as
+  merged text, pointers, or deletions under the review gate. So the guidance and tooling stay consistent and concise
+  instead of only growing.
 - **Periodic retrospectives zoom out.** `/retrospective` turns a window of merged PRs and the git log, together with the
   archived changes and accumulated gotchas, into a sprint retrospective whose suggestions are classified `process` (→
   `AGENTS.md` or a subagent definition) or `system` (→ an idea or a proposal), so both the process and the system keep
@@ -506,6 +508,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                                           |
 | `/audit-architecture`        | Audits the architecture for recorded-decision drift, unrecorded intent, and a due deferral (pro-model auditor)                                                                                                     |
 | `/audit-readme`              | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage (pro-model auditor)                                                                                     |
+| `/apply-audit-reductions`    | Applies an audit report's merge/removal/route reduction candidates as merged text, pointers, or deletions, under the review gate                                                                                   |
 | `/diagram`                   | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer                                                                                                                                           |
 | `/retrospective`             | Periodic retrospective with improvement suggestions                                                                                                                                                                |
 | `/dependency-updates`        | Runs and summarizes the Gradle and web-UI dependency update reports                                                                                                                                                |

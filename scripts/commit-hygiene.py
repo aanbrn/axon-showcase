@@ -3,10 +3,11 @@
 
 The `--staged` mode is the pre-commit guard. It refuses a commit whose staged set the project's formatter would
 rewrite, that force-stages a generated artifact, that stages a path and then edits it again (leaving the index stale),
-that carries a merge conflict marker, or that misplaces a `captured:` marker in `AGENTS.md`. The `--markers` mode checks
-marker placement in the working-tree `AGENTS.md`; the `--tracked-ignored`, `--conflict-markers`, and `--executable-bits`
-modes each verify the tracked set for the build, `--unique-crons` verifies the workflow `cron` schedules do not
-collide, and `--large-files` verifies no tracked file exceeds the configured size limit. Stdlib only.
+that carries a merge conflict marker, that misplaces a `captured:` marker in `AGENTS.md`, or that stages an
+`openspec/changes/archive/**` change dir while leaving its `openspec/specs/**` sync unstaged. The `--markers` mode
+checks marker placement in the working-tree `AGENTS.md`; the `--tracked-ignored`, `--conflict-markers`, and
+`--executable-bits` modes each verify the tracked set for the build, `--unique-crons` verifies the workflow `cron`
+schedules do not collide, and `--large-files` verifies no tracked file exceeds the configured size limit. Stdlib only.
 """
 
 import argparse
@@ -25,6 +26,8 @@ LARGE_FILES_CONFIG = "config/commit-hygiene/large-files.properties"
 LEAD_RE = re.compile(r"^(- |\*\*)")
 CONFLICT_MARKER_RE = r"^(<<<<<<< |>>>>>>> )"
 VENDORED_SKILL_PREFIXES = (".opencode/skills/axon4to5-", ".opencode/skills/openspec-")
+ARCHIVE_PREFIX = "openspec/changes/archive/"
+SPECS_PREFIX = "openspec/specs/"
 CRON_LINE_RE = re.compile(r"^\s*-\s*cron:\s*(?P<value>.+?)\s*$")
 WORKFLOW_SUFFIXES = (".yml", ".yaml")
 
@@ -73,6 +76,35 @@ def find_tracked_ignored(repo: Path) -> list[str]:
 def find_force_staged_artifacts(repo: Path) -> list[str]:
     ignored = set(find_tracked_ignored(repo))
     return [path for path in staged_paths(repo) if path in ignored]
+
+
+def unstaged_spec_paths(repo: Path) -> list[str]:
+    modified = git(repo, "diff", "--name-only", "-z", "--", SPECS_PREFIX).stdout
+    untracked = git(repo, "ls-files", "--others", "--exclude-standard", "-z", "--", SPECS_PREFIX).stdout
+    return [path for path in (modified + untracked).split("\0") if path]
+
+
+def _staged_archived_changes(staged: list[str]) -> list[str]:
+    changes = set()
+    for path in staged:
+        if path.startswith(ARCHIVE_PREFIX):
+            rest = path[len(ARCHIVE_PREFIX):]
+            if "/" in rest:
+                changes.add(ARCHIVE_PREFIX + rest.split("/", 1)[0])
+    return sorted(changes)
+
+
+def _carries_delta_specs(repo: Path, change_dir: str) -> bool:
+    return any((repo / change_dir).glob("specs/**/spec.md"))
+
+
+def find_unpaired_archive_sync(repo: Path) -> list[tuple[str, list[str]]]:
+    staged = staged_paths(repo)
+    with_deltas = [change for change in _staged_archived_changes(staged) if _carries_delta_specs(repo, change)]
+    if not with_deltas:
+        return []
+    spec_paths = unstaged_spec_paths(repo)
+    return [(change, spec_paths) for change in with_deltas] if spec_paths else []
 
 
 def find_conflict_markers(repo: Path, staged: bool = False) -> list[str]:
@@ -277,6 +309,16 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
             for line, content in find_misplaced_markers(text):
                 failures += 1
                 print(f"Misplaced captured: marker in {AGENTS}:{line}: {content}", file=sys.stderr)
+
+    for change_dir, spec_paths in find_unpaired_archive_sync(repo):
+        failures += 1
+        print(
+            f"An archive move is staged without its spec sync ({change_dir}); "
+            "stage the un-staged openspec/specs sync:",
+            file=sys.stderr,
+        )
+        for path in spec_paths:
+            print(f"  {path}", file=sys.stderr)
 
     return failures
 

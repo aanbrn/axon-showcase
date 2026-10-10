@@ -471,8 +471,8 @@ wait for approval before merging.
 - Python 3 (for `./scripts/setup-idea.sh`'s IDE-settings merge and the commit-hygiene guard/check; macOS ships it via
   Command Line Tools)
 - Git hooks: run `./scripts/install-git-hooks.sh` once per clone to activate the pre-commit guard (the formatter,
-  generated-artifact, staged-then-edited, conflict-marker, and `captured:` marker checks); bypass a deliberate exception
-  with `git commit --no-verify`
+  generated-artifact, staged-then-edited, conflict-marker, `captured:` marker, and archive-spec-sync checks); bypass a
+  deliberate exception with `git commit --no-verify`
 - Toolchain doctor: `./scripts/doctor.sh` (or `/check-tooling`) probes this list — presence, version floors, and repo
   state — and prints the platform-appropriate install command for anything missing. Strictly POSIX `sh` and needs
   nothing else, so it reports the build's own prerequisites (Java included) on a machine where nothing else runs. **The
@@ -1135,39 +1135,39 @@ Key modules (libraries, not services):
     `EmptyLineSeparator` with member tokens. The exemption is directional — the module checks the gap after a token
     before its next sibling, so no blank line is required _after_ an enum's constant, an annotation type's declaration,
     or an annotation type's member, while the gap before one is still checked. captured: enforce-member-separation
-  - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML; Javadoc
-    and JSDoc prose, which the formatters do not reflow — a >120-character comment line passes the formatter gate and
-    only the manual check catches it); markdown is formatted by the root Spotless `markdown` format (Prettier,
-    `printWidth: 120` with `proseWrap: "always"` — a preference, not a hard limit: backtick-dense lines can still exceed
-    120, the accepted trade-off of automating markdown wrapping). The markdown scope is `docs/`, `AGENTS.md`,
-    `README.md`, `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`, the `.github/` markdown, and the
-    project-authored `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files and the vendored `axon4to5-*`
-    skills are excluded, while the project-authored `opsx-tool-update.md` stays in scope despite the shared prefix — and
-    `.opencode/opencode.json` has its own `json` format. A target's generated-file exclusions must track what the
-    generator writes — `/opsx-tool-update` checks the list when the generated inventory changes, since a newly generated
-    `opsx-*` command would otherwise be reformatted by `spotlessApply` and then overwritten by the next
-    `openspec update`. Verify with a character count (`perl -CSD -lne 'print if length > 120'`), not
-    `awk 'length > 120'` — `awk` counts bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow
-    tripped this three times); the `-l` chomps the trailing newline `-ne` would otherwise count, so an
-    exactly-120-character line is not false-flagged. Verify a verification command on a boundary case before recording
-    it — the first recipe omitted `-l` and false-flagged every exactly-120-character line. Apply it over the change's
-    whole changed set (`git diff --name-only`), not only the files a finding named — a per-file scope leaves the rest
-    unverified and the review re-finds them. captured: add-web-ui-rum-observability Formatters cannot reflow string
-    literals (e.g. an error message in Kotlin/Gradle), so wrap an over-long string with concatenation
-    (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as natural prose and let `spotlessApply`
-    (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the wrapping and reflows on every run. A bare
-    `$` in prose (outside inline code) is parsed as inline math and blocks that reflow — the paragraph silently keeps
-    its original ragged wrapping while `spotlessCheck` still passes; escape it as `\$` (which renders as `$`). The
-    formatter also leaves the interior of an inline code span untouched — it wraps prose around the span but never
-    rewrites the code text it contains — so a defect inside one (a whitespace run) passes `spotlessCheck` and the manual
-    120-character check alike, neither of which has a rule that detects it: proofread inline-code content as content,
-    not as something the gate will fix. Never author an inline code span across a source line break — Prettier's reflow
-    joins the lines and leaves the continuation line's indentation as extra spaces inside the span (a
-    `paketo-buildpacks/procfile` split from its `5.15.0` came out as `paketo-buildpacks/procfile     5.15.0`): keep a
-    span on one source line and let the reflow move the whole span. Fenced blocks are a different story — Prettier
-    applies embedded formatting inside a fence whose info string names a language it supports (`json`, `yaml`,
-    `markdown`), so that content is gated, while an unsupported one (`bash`, `java`, `mermaid`) is not. captured:
-    fix-gateway-cors-allowed-headers (#359)
+  - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML; the
+    repo's Python scripts (`scripts/*.py`), which Spotless does not own; Javadoc and JSDoc prose, which the formatters
+    do not reflow — a >120-character comment line passes the formatter gate and only the manual check catches it);
+    markdown is formatted by the root Spotless `markdown` format (Prettier, `printWidth: 120` with `proseWrap: "always"`
+    — a preference, not a hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating
+    markdown wrapping). The markdown scope is `docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, active
+    `openspec/changes/*/`, `SECURITY.md`, the `.github/` markdown, and the project-authored `.opencode/` markdown — the
+    generated `opsx-*`/`openspec-*` files and the vendored `axon4to5-*` skills are excluded, while the project-authored
+    `opsx-tool-update.md` stays in scope despite the shared prefix — and `.opencode/opencode.json` has its own `json`
+    format. A target's generated-file exclusions must track what the generator writes — `/opsx-tool-update` checks the
+    list when the generated inventory changes, since a newly generated `opsx-*` command would otherwise be reformatted
+    by `spotlessApply` and then overwritten by the next `openspec update`. Verify with a character count
+    (`perl -CSD -lne 'print if length > 120'`), not `awk 'length > 120'` — `awk` counts bytes and false-flags a
+    ≤120-character line containing non-ASCII (the `→` arrow tripped this three times); the `-l` chomps the trailing
+    newline `-ne` would otherwise count, so an exactly-120-character line is not false-flagged. Verify a verification
+    command on a boundary case before recording it — the first recipe omitted `-l` and false-flagged every
+    exactly-120-character line. Apply it over the change's whole changed set (`git diff --name-only`), not only the
+    files a finding named — a per-file scope leaves the rest unverified and the review re-finds them. captured:
+    add-web-ui-rum-observability Formatters cannot reflow string literals (e.g. an error message in Kotlin/Gradle), so
+    wrap an over-long string with concatenation (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as
+    natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the
+    wrapping and reflows on every run. A bare `$` in prose (outside inline code) is parsed as inline math and blocks
+    that reflow — the paragraph silently keeps its original ragged wrapping while `spotlessCheck` still passes; escape
+    it as `\$` (which renders as `$`). The formatter also leaves the interior of an inline code span untouched — it
+    wraps prose around the span but never rewrites the code text it contains — so a defect inside one (a whitespace run)
+    passes `spotlessCheck` and the manual 120-character check alike, neither of which has a rule that detects it:
+    proofread inline-code content as content, not as something the gate will fix. Never author an inline code span
+    across a source line break — Prettier's reflow joins the lines and leaves the continuation line's indentation as
+    extra spaces inside the span (a `paketo-buildpacks/procfile` split from its `5.15.0` came out as
+    `paketo-buildpacks/procfile     5.15.0`): keep a span on one source line and let the reflow move the whole span.
+    Fenced blocks are a different story — Prettier applies embedded formatting inside a fence whose info string names a
+    language it supports (`json`, `yaml`, `markdown`), so that content is gated, while an unsupported one (`bash`,
+    `java`, `mermaid`) is not. captured: fix-gateway-cors-allowed-headers (#359)
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with
@@ -1744,12 +1744,12 @@ capture-stash-stale-copy
   **duplicated** change dir. The same command also writes the delta → main sync into `openspec/specs/**` — a second,
   separate staged output, so `git add -A openspec/changes` leaves the spec edits unstaged and a commit of the move alone
   ships the archive without its sync (a change arrived on `main` exactly that way, the sync recovered as a follow-up
-  PR). Stage `openspec/specs` too and inspect the staged set (`git diff --cached --name-only` against `git status` — an
-  ` M openspec/specs/...` line is unstaged) before committing; format the change-dir markdown **before** the archive
-  (`build.gradle.kts` excludes `openspec/changes/archive/**` from the markdown target). A hand-run `git mv` is a
-  different trap: it stages the **already-committed** content, so a file carrying an uncommitted edit (typically the
-  `tasks.md` tick) shows `RM`, and a plain `git commit` records the pre-edit content. captured:
-  sync-audit-spec-findings-2026-10-04 (#497)
+  PR); the pre-commit guard now refuses exactly that commit. Stage `openspec/specs` too and inspect the staged set
+  (`git diff --cached --name-only` against `git status` — an ` M openspec/specs/...` line is unstaged) before
+  committing; format the change-dir markdown **before** the archive (`build.gradle.kts` excludes
+  `openspec/changes/archive/**` from the markdown target). A hand-run `git mv` is a different trap: it stages the
+  **already-committed** content, so a file carrying an uncommitted edit (typically the `tasks.md` tick) shows `RM`, and
+  a plain `git commit` records the pre-edit content. captured: sync-audit-spec-findings-2026-10-04 (#497)
 - **The actionlint download script takes positional arguments (`version dir`), not `--dir`, and the target dir must
   already exist.** When installing actionlint in CI with `bash <(curl .../scripts/download-actionlint.bash)`, pass
   `latest "$RUNNER_TEMP/actionlint"` and `mkdir -p` the dir first — a `--dir` flag is rejected as an invalid version
@@ -2056,7 +2056,10 @@ capture-stash-stale-copy
     and `npmBuild` already omitted `index.html` and the lockfile that owns the installed `node_modules`. Derive the
     whole set in one pass (configs, entry html, `package.json`, `package-lock.json`) rather than one round per surfaced
     file, and prove it by editing an input and confirming the task re-executes rather than reading its cached status as
-    green. captured: enforce-web-ui-import-boundaries
+    green. A check's _view_ of its subject is part of that scope: when the spec states the predicate as a property of an
+    artifact — an archived change dir that _carries_ delta specs — read the artifact's own contents, not the subset that
+    happens to be staged, since a predicate that read the staged set let a partially-staged archive change (one file
+    added) escape the guard entirely. captured: enforce-web-ui-import-boundaries captured: guard-archive-spec-sync
   - **An assertion about a declaration's content cannot see a value that never reaches the code — assert what the
     subject _emits_, not only what it declares.** Both abandoned fixes of `scripts/test-doctor.sh` (five and seven
     review rounds) read the doctor's probe declaration and asserted things about the data; each round found another way
@@ -2433,7 +2436,7 @@ capture-stash-stale-copy
   service listens on 8080), so it is exercised only under host `bootRun` and must equal the target service's local
   `server.port` — a component test asserting the placeholder literally pins whatever value is there, not the right one.
   captured: fix-gateway-cors-allowed-headers (#359) captured: right-size-chart-resources captured:
-  fix-gateway-query-service-url
+  fix-gateway-query-service-url captured: guard-archive-spec-sync
 - **Doc claims must match their source and their strength — quote verbatim or paraphrase explicitly, and reserve
   "enforced" for a real gate.** The self-learning README section described `AGENTS.md` rules in quotes;
   `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an
@@ -2749,7 +2752,8 @@ capture-stash-stale-copy
   `git add`, which would have shipped half the fix. A pre-commit guard (`scripts/git-hooks/pre-commit`, activated by
   `scripts/install-git-hooks.sh`) enforces this inspection mechanically: it refuses a commit whose staged set fails the
   formatter check, force-stages a generated artifact, stages a path and then edits it, carries a merge conflict marker,
-  or misplaces a `captured:` marker.
+  misplaces a `captured:` marker, or stages an `openspec/changes/archive/**` change dir while leaving its
+  `openspec/specs/**` sync unstaged.
 - **Never chain an edit to a commit without reading the edit's result — gate the commit on a content check, not on the
   edit command's exit status.** While implementing the `concise-agent-reports` change, an anchor assertion in the edit
   script failed (Spotless had re-wrapped the text), so the edit no-opped — and the next command in the shell sequence

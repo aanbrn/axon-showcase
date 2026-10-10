@@ -71,9 +71,9 @@ dated when it was added (start a new section for a new day rather than appending
   trigger) and the `merge-governance` spec requirement that owns that workflow's report behavior.
 
 - Trim the AGENTS.md rules the 2026-10-04 audits found restated — parked; no change yet. The scheduled agents-audit
-  (`docs/audits/2026-10-04-scheduled.md`) names three reduction candidates: the pre-commit guard's five-check
-  enumeration stated in both the Prerequisites list and the `git add <dir>` gotcha; the 120-character check recipe and
-  its `awk`-counts-bytes caveat restated in the Formatting convention, the verdict-echo gotcha, and
+  (`docs/audits/2026-10-04-scheduled.md`) names three reduction candidates: the pre-commit guard's check enumeration
+  stated in both the Prerequisites list and the `git add <dir>` gotcha; the 120-character check recipe and its
+  `awk`-counts-bytes caveat restated in the Formatting convention, the verdict-echo gotcha, and
   `.opencode/agent/review-quick.md`; and the captured-marker placement rule restated in the `retro-mark-captured-rules`
   gotcha though `verifyCapturedMarkers` and the pre-commit guard enforce it. The dispatch agents-audit
   (`docs/audits/2026-10-04.md`) also flagged the capture bullet restating the promotion gate — never applied and not
@@ -85,17 +85,6 @@ dated when it was added (start a new section for a new day rather than appending
   does, not why the build redirects to a third-party rehost (yawkat's `at.yawk.lz4` republish of `org.lz4` — a
   supply-chain-relevant swap). Both 2026-10-04 architecture audits report the rationale as unrecorded — `AGENTS.md`
   records only the mechanism — and it is parked nowhere. Routes to `AGENTS.md` or an ADR.
-
-- Pair an archive move with its staged spec sync in the pre-commit guard — parked; no change yet. `openspec archive`
-  writes the delta→main sync into `openspec/specs/**` and relocates the change dir with a filesystem move, staging
-  neither, so `git add -A openspec/changes` easily commits the archive move while the sync stays unstaged: the
-  2026-10-04 change merged exactly that way (#496), recovered minutes later (#497) and captured in the
-  `openspec archive` gotcha (#498). The prose did not prevent it, so route the class to the mechanism —
-  `commit-hygiene.py --staged` already inspects the staged set; extend it to fail when a change dir under
-  `openspec/changes/archive/**` is staged, that change carries delta specs, and `openspec/specs/**` has unstaged
-  modifications, allowing the `skip_specs` / no-delta case by checking the archived change's own `specs/` dir. Its own
-  `commit-hygiene` change (code + test + spec delta), with the `openspec archive` gotcha pointing at the check; if the
-  `skip_specs` nuance proves fiddly, keep it parked.
 
 - Give the agents-auditor's growth metric one definition — parked; no change yet. The capture rule leans on the
   verdict's accreted-rule count as the control on `AGENTS.md` growth, but the five reports under `docs/audits/` do not

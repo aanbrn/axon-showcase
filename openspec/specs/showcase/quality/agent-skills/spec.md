@@ -269,7 +269,12 @@ introduced it (established from the in-prose `captured:` marker where present, a
 otherwise), and the source used to establish it. The class SHALL be reported without severity and is not a defect: an
 accreted rule may be correct and load-bearing, so the audit SHALL NOT propose removing or merging it for being meta — a
 meta rule that governs no decision is a removal candidate under the conciseness analysis, not a victim of its class —
-that is the user's decision on the report.
+that is the user's decision on the report. The class's count SHALL use one fixed metric, so successive reports are
+comparable: the number of distinct meta rule units carrying at least one `captured:` marker, each counted once however
+many markers it carries — never the raw marker count, and never the number of items the report lists — and a rule
+written before the marker convention carries none and falls outside the metric. The audit SHALL also state how many of
+those rule units are new since the newest prior report under `docs/audits/`, reporting `none recorded` when no prior
+report exists and that the figure is unavailable when it cannot be determined.
 
 #### Scenario: An agent-tooling audit is produced
 
@@ -319,6 +324,14 @@ that is the user's decision on the report.
 - **THEN** it reports the in-scope rules that are meta rather than product as a separate accretion class, each with the
   origin that introduced it (the `captured:` marker where present, `git blame` / `git log -S` otherwise) and the source
   used, without proposing that the rule be removed or merged for being meta
+
+#### Scenario: The accretion count uses one fixed metric
+
+- **WHEN** the `agents-auditor` subagent reports its accretion class
+- **THEN** its verdict states the count as the number of distinct meta rule units carrying at least one `captured:`
+  marker, each counted once regardless of how many markers it carries, together with the number of those rule units new
+  since the newest prior report under `docs/audits/` (`none recorded` when no prior report exists), so the count is
+  comparable across successive reports
 
 #### Scenario: Merge and removal candidates are standing findings
 

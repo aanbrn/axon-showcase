@@ -73,6 +73,106 @@ class StagedThenEditedTests(unittest.TestCase):
         self.assertEqual([], commit_hygiene.find_staged_then_edited(repo))
 
 
+class ArchiveSyncTests(unittest.TestCase):
+    @staticmethod
+    def _stage(repo: Path, *paths: str) -> None:
+        subprocess.run(("git", "add", *paths), cwd=repo, check=True)
+
+    def _stage_archive_move(self, repo: Path, name: str = "2026-01-01-demo", with_deltas: bool = True) -> None:
+        change = repo / "openspec" / "changes" / "archive" / name
+        change.mkdir(parents=True, exist_ok=True)
+        (change / "proposal.md").write_text("# Proposal\n", encoding="utf-8")
+        if with_deltas:
+            spec = change / "specs" / "showcase" / "demo" / "spec.md"
+            spec.parent.mkdir(parents=True, exist_ok=True)
+            spec.write_text("# Spec Delta\n", encoding="utf-8")
+
+    @staticmethod
+    def _write_main_spec(repo: Path) -> None:
+        main_spec = repo / "openspec" / "specs" / "showcase" / "demo" / "spec.md"
+        main_spec.parent.mkdir(parents=True, exist_ok=True)
+        main_spec.write_text("# Spec\n", encoding="utf-8")
+
+    def test_an_unstaged_sync_is_reported(self):
+        repo = make_repo(self)
+        self._stage_archive_move(repo)
+        self._write_main_spec(repo)
+        self._stage(repo, "openspec/changes/archive")
+
+        offenders = commit_hygiene.find_unpaired_archive_sync(repo)
+
+        self.assertEqual(
+            [("openspec/changes/archive/2026-01-01-demo", ["openspec/specs/showcase/demo/spec.md"])],
+            offenders,
+        )
+
+    def test_a_modified_tracked_spec_is_reported(self):
+        repo = make_repo(self)
+        self._write_main_spec(repo)
+        self._stage(repo, "openspec/specs")
+        subprocess.run(("git", "commit", "-q", "-m", "add spec"), cwd=repo, check=True)
+        self._stage_archive_move(repo)
+        self._stage(repo, "openspec/changes/archive")
+        (repo / "openspec" / "specs" / "showcase" / "demo" / "spec.md").write_text("# Spec v2\n", encoding="utf-8")
+
+        self.assertEqual(
+            [("openspec/changes/archive/2026-01-01-demo", ["openspec/specs/showcase/demo/spec.md"])],
+            commit_hygiene.find_unpaired_archive_sync(repo),
+        )
+
+    def test_a_staged_sync_is_not_reported(self):
+        repo = make_repo(self)
+        self._stage_archive_move(repo)
+        self._write_main_spec(repo)
+        self._stage(repo, "openspec/changes/archive", "openspec/specs")
+
+        self.assertEqual([], commit_hygiene.find_unpaired_archive_sync(repo))
+
+    def test_a_no_delta_archive_move_is_not_reported(self):
+        repo = make_repo(self)
+        self._stage_archive_move(repo, with_deltas=False)
+        self._write_main_spec(repo)
+        self._stage(repo, "openspec/changes/archive")
+
+        self.assertEqual([], commit_hygiene.find_unpaired_archive_sync(repo))
+
+    def test_a_partially_staged_archive_change_still_reports(self):
+        repo = make_repo(self)
+        self._stage_archive_move(repo)
+        self._write_main_spec(repo)
+        self._stage(repo, "openspec/changes/archive/2026-01-01-demo/proposal.md")
+
+        self.assertEqual(
+            [("openspec/changes/archive/2026-01-01-demo", ["openspec/specs/showcase/demo/spec.md"])],
+            commit_hygiene.find_unpaired_archive_sync(repo),
+        )
+
+    def test_check_staged_refuses_an_unpaired_archive_move(self):
+        repo = make_repo(self)
+        self._stage_archive_move(repo)
+        self._write_main_spec(repo)
+        self._stage(repo, "openspec/changes/archive")
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.check_staged(repo, ["true"])
+
+        self.assertEqual(1, code)
+        self.assertIn("openspec/changes/archive/2026-01-01-demo", stderr.getvalue())
+        self.assertIn("openspec/specs/showcase/demo/spec.md", stderr.getvalue())
+
+    def test_check_staged_allows_a_paired_archive_move(self):
+        repo = make_repo(self)
+        self._stage_archive_move(repo)
+        self._write_main_spec(repo)
+        self._stage(repo, "openspec/changes/archive", "openspec/specs")
+
+        with contextlib.redirect_stderr(io.StringIO()):
+            code = commit_hygiene.check_staged(repo, ["true"])
+
+        self.assertEqual(0, code)
+
+
 class TrackedIgnoredTests(unittest.TestCase):
     def _repo_with_committed_artifact(self, name: str = "a.pyc") -> Path:
         repo = make_repo(self)

@@ -728,16 +728,17 @@ for a Docker-free check and disable the coverage gate it would otherwise fail; `
 quality gates run in the Gradle build, so no IDE is required to verify a change. An IDE (e.g. IntelliJ IDEA) is an
 optional convenience for interactive editing, debugging, and inspection.
 
-A pre-commit guard (`scripts/git-hooks/pre-commit`) catches five commit-hygiene slips before they reach CI: a staged
-file `spotlessCheck` would rewrite, a force-staged generated artifact, a path staged and then edited (leaving the index
-stale), a merge conflict marker, and a misplaced `captured:` marker in `AGENTS.md`. It is activated once per clone (see
-[Get the Sources](#get-the-sources)); bypass a deliberate exception with `git commit --no-verify`. Its checks also have
-build-side counterparts in `./gradlew check`: the formatter as `spotlessCheck`, marker placement as
-`verifyCapturedMarkers`, tracked-file hygiene (the tracked-set counterpart of the force-staged-artifact check) as
-`verifyTrackedIgnoredFiles`, and conflict markers as `verifyConflictMarkers` — so they hold even without the hook.
-`verifyExecutableBits` additionally verifies the tracked scripts' executable bits, and the web module's own Prettier
-check (`npmFormatCheck`) remains part of `check`. `verifyUniqueCronSchedules` verifies no two workflow `cron` schedules
-collide, and `verifyLargeFiles` verifies no tracked file exceeds the configured size limit.
+A pre-commit guard (`scripts/git-hooks/pre-commit`) catches six commit-hygiene slips before they reach CI: a staged file
+`spotlessCheck` would rewrite, a force-staged generated artifact, a path staged and then edited (leaving the index
+stale), a merge conflict marker, a misplaced `captured:` marker in `AGENTS.md`, and an `openspec archive` move staged
+without its spec sync. It is activated once per clone (see [Get the Sources](#get-the-sources)); bypass a deliberate
+exception with `git commit --no-verify`. Its checks also have build-side counterparts in `./gradlew check`: the
+formatter as `spotlessCheck`, marker placement as `verifyCapturedMarkers`, tracked-file hygiene (the tracked-set
+counterpart of the force-staged-artifact check) as `verifyTrackedIgnoredFiles`, and conflict markers as
+`verifyConflictMarkers` — so they hold even without the hook. `verifyExecutableBits` additionally verifies the tracked
+scripts' executable bits, and the web module's own Prettier check (`npmFormatCheck`) remains part of `check`.
+`verifyUniqueCronSchedules` verifies no two workflow `cron` schedules collide, and `verifyLargeFiles` verifies no
+tracked file exceeds the configured size limit.
 
 ### Formatting and IDE Setup
 

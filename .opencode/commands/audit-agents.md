@@ -9,8 +9,9 @@ Run the agent-tooling audit to check the project's guidance and agent files for 
 1. Invoke the `agents-auditor` subagent (`.opencode/agent/agents-auditor.md`) on the repository — it reads `AGENTS.md`
    and the project-authored `.opencode/` files in full, and also reads the generated (OpenSpec instruction files) and
    vendored (`axon4to5-*`) ones to report any that contradict how the repository uses them, and reports the accreted
-   meta rules with their origins (the `captured:` marker, or `git blame` / `git log -S`); it never edits an excluded
-   file.
+   meta rules with their origins (the `captured:` marker, or `git blame` / `git log -S`); its verdict counts the
+   accreted rules as distinct meta rule units carrying a `captured:` marker and states how many are new since the newest
+   report under `docs/audits/`; it never edits an excluded file.
 2. Present its report in the contract it returns (the verdict line first, then findings budgeted per item and grouped by
    severity, plus separate advisory (third-party inconsistency) and accretion (meta rules with their origins) classes,
    and the merge, removal, and route candidates counted in the verdict line).

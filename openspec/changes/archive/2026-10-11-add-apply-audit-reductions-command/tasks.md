@@ -24,7 +24,7 @@
       leave the "Carry findings forward across audit reports" idea parked (this change drains candidates, it does not
       make the report name unapplied items). Verify with `grep -n "application slot"` (absent) and by reading the
       carry-forward entry.
-- [ ] 2.4 Record the `agent-skills` `## Purpose` refresh as its own step: a delta cannot carry a Purpose, so add the new
+- [x] 2.4 Record the `agent-skills` `## Purpose` refresh as its own step: a delta cannot carry a Purpose, so add the new
       unit to the Purpose in the archive commit (the Purpose enumerates the capability's parts). Verify the Purpose
       names the unit after archive.
 

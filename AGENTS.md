@@ -314,6 +314,12 @@ the Spotless target, but `showcase/quality/code-quality` already specified the m
 a `MODIFIED` delta like the analogous `bring-opencode-under-spotless`; `openspec validate` cannot flag a missing delta,
 so the misclassification would have left the spec silently stale. captured: gate-github-markdown-with-prettier
 
+**A capability spec covers a human-facing artifact's outcome — that it exists and what it is for — not its presentation
+content** (an inventory of its parts, their layout, or their count, which the documented-numbers gotcha owns):
+`add-web-ui-dashboard-panels` added dashboard panels and owed no delta (the requirement's outcome was unchanged), while
+`capture-axon-showcase-dashboard-in-spec` added the dashboard's existence and purpose to
+`showcase/deployment/helm-chart` and no panel inventory. captured: capture-axon-showcase-dashboard-in-spec
+
 The grep needs the behavior's name as well as its file: a requirement may name no file at all, and
 `.github/workflows/audit.yml` appears in none — yet `merge-governance`'s audit requirement owns that workflow's
 report-body behavior, so a prompt edit there owes a `MODIFIED` delta that `openspec validate` cannot flag as missing.

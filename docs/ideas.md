@@ -13,6 +13,22 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-10
+
+- Adopt `git worktree` for the per-change branch workflow — parked; no change yet. The workflow keeps a change
+  uncommitted until a push forces a commit and forbids carrying unfinished work (tracked or untracked) across a branch
+  switch, so a worktree per change would remove the stash/switch seam entirely: no `git stash pop` conflict-marker
+  hazard, and `main`'s working tree stays free of in-progress diffs. It fits this repo well because the git hooks are
+  shared — `core.hooksPath = scripts/git-hooks` lives in the common `.git/config`, so the pre-commit guard runs in every
+  worktree with no per-worktree setup. Costs: build state is per-worktree (`.gradle/` ~228M, `build/`,
+  `showcase-web-ui/node_modules` ~225M), so a fresh worktree's first build re-resolves and re-installs whatever the
+  shared `~/.gradle` and `~/.npm` caches cannot restore, and `.idea/` is git-ignored so each worktree needs
+  `./scripts/setup-idea.sh` (or one tree stays the IDE tree). A harness note too: the OpenCode session's cwd is
+  per-session, so making a worktree the primary directory needs a session move. Suggested shape: primary clone on
+  `main`, `git worktree add --no-track -b <change> ../axon-showcase-<change> origin/main` per change (`--no-track`, or a
+  first push with `-u origin <branch>`, avoids the silent `origin/main` upstream), `git worktree remove` after merge.
+  Not worth it for a docs-only or single-file fix, where the fresh-worktree build and IDE setup outweigh the benefit.
+
 ## 2026-10-08
 
 - Gate the `@NullMarked` package-info convention — parked; no change yet. NullAway 0.14.2 (the pinned version) ships the

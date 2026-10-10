@@ -71,14 +71,15 @@ agent verifies the delegate stayed inside them before using its output.
 `origin/main` (fetch first), never from another work branch. Branching from a work branch silently carries its commits
 into the new PR (a fix PR ended up shipping a change's commit history); recover by rebasing `--onto origin/main` and
 force-pushing, then verify the PR's changed-file set is the intended one. Create the branch with `--no-track`
-(`git switch -c <name> --no-track origin/main`), or push its first time with `git push -u origin <branch>`: a plain
-`git checkout -b <name> origin/main` silently makes `origin/main` the new branch's upstream (`branch.autoSetupMerge`),
-so a later bare `git push` refuses with the confusing "The upstream branch of your current branch does not match the
-name of your current branch" (fix with `git push -u origin <branch>`, which repoints it, or
-`git branch --unset-upstream`). When the local branch is not named after the remote branch it must update — completing
-an agent's `opencode/…` PR from a differently-named checkout — push with an explicit refspec
+(`git switch -c <name> --no-track origin/main`; `git worktree add` takes the same flag, so
+`git worktree add -b <name> <path> origin/main` needs it too), or push its first time with
+`git push -u origin <branch>`: a plain `git checkout -b <name> origin/main` silently makes `origin/main` the new
+branch's upstream (`branch.autoSetupMerge`), so a later bare `git push` refuses with the confusing "The upstream branch
+of your current branch does not match the name of your current branch" (fix with `git push -u origin <branch>`, which
+repoints it, or `git branch --unset-upstream`). When the local branch is not named after the remote branch it must
+update — completing an agent's `opencode/…` PR from a differently-named checkout — push with an explicit refspec
 (`git push origin HEAD:<remote-branch>`); the `git push -u origin <branch>` remedy above would open a second branch and
-leave the PR without the commit.
+leave the PR without the commit. captured: park-git-worktree-idea
 
 **Auto-review the change before asking for a manual review.** After finishing a change's **proposal** (planning
 artifacts) and again after finishing its **implementation**, run a quick review of the work (the `review-quick`

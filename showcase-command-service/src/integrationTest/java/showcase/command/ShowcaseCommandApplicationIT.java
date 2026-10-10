@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
 import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer;
+import lombok.val;
 import org.axonframework.commandhandling.CommandBus;
 import org.axonframework.commandhandling.distributed.DistributedCommandBus;
 import org.axonframework.common.jdbc.PersistenceExceptionResolver;
@@ -18,8 +19,10 @@ import org.axonframework.modelling.saga.repository.jdbc.SagaSqlSchema;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.junit.jupiter.Container;
@@ -72,6 +75,16 @@ class ShowcaseCommandApplicationIT {
 
     @Autowired
     private PersistenceExceptionResolver persistenceExceptionResolver;
+
+    @Test
+    @DisplayName("The service bakes its build identity and exposes the info endpoint")
+    void buildIdentity_isBakedAndExposed(ApplicationContext context) {
+        val build = context.getBean(BuildProperties.class);
+        assertThat(build.getVersion()).isEqualTo(System.getProperty("project.version"));
+        assertThat(build.getTime()).isNull();
+        assertThat(context.getEnvironment().getProperty("management.endpoints.web.exposure.include"))
+                .contains("info");
+    }
 
     @Test
     @DisplayName("The JGroups connector factory bean produces a JGroups connector")

@@ -9,12 +9,6 @@ plugins {
 
 project.description = "Showcase API Gateway"
 
-springBoot {
-    buildInfo {
-        excludes.set(listOf("time"))
-    }
-}
-
 dependencies {
     implementation(platform(project(":platform")))
 

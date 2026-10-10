@@ -29,6 +29,14 @@ dated when it was added (start a new section for a new day rather than appending
   first push with `-u origin <branch>`, avoids the silent `origin/main` upstream), `git worktree remove` after merge.
   Not worth it for a docs-only or single-file fix, where the fresh-worktree build and IDE setup outweigh the benefit.
 
+- Confirm the vendored migration skills' model pins resolve — parked; no change yet. The vendored `axon4to5-*` skills
+  carry frontmatter model pins (`axon4to5-isolatedtest` → `haiku`, `axon4to5-openrewrite` → `sonnet`, Anthropic aliases)
+  while every project-authored model pin is `opencode-go/deepseek-*`. Surfaced by the 2026-10-10 `agents-auditor`
+  smoke-run as a low-confidence advisory: the harm is a hypothesis until it is established whether OpenCode applies (or
+  how it resolves) a skill's frontmatter `model` — a triggered skill may ignore it. Confirm that before acting; if it
+  applies, the fix is a re-vendor decision (the skills are copied verbatim from `AxonIQ/agent-skills`), not a local
+  edit.
+
 ## 2026-10-08
 
 - Gate the `@NullMarked` package-info convention — parked; no change yet. NullAway 0.14.2 (the pinned version) ships the
@@ -101,15 +109,6 @@ dated when it was added (start a new section for a new day rather than appending
   does, not why the build redirects to a third-party rehost (yawkat's `at.yawk.lz4` republish of `org.lz4` — a
   supply-chain-relevant swap). Both 2026-10-04 architecture audits report the rationale as unrecorded — `AGENTS.md`
   records only the mechanism — and it is parked nowhere. Routes to `AGENTS.md` or an ADR.
-
-- Give the agents-auditor's growth metric one definition — parked; no change yet. The capture rule leans on the
-  verdict's accreted-rule count as the control on `AGENTS.md` growth, but the five reports under `docs/audits/` do not
-  agree on what the count measures — one counts markers (`87+`, ≈ 89), another distinct rule units (`~71`), and one
-  states a bare `4` — so the series 24, 16, 87+, 4, ~71 cannot be read as a trend. Fix one definition (recommend
-  distinct rule units carrying a `captured:` marker, reported as a total, with rules added since the last report
-  reported separately) in the `agents-auditor` definition and the `agent-skills` report contract — a `MODIFIED` delta,
-  since the contract is spec'd. Unblocks the parked "Trend the audit counts across reports" idea and is material because
-  the file's growth bound is otherwise unfalsifiable.
 
 - Give parked reduction candidates an application slot, not another report — parked; no change yet. The 2026-10-04
   audits' merge/route reduction candidates are parked ("Trim the AGENTS.md rules the 2026-10-04 audits found restated",
@@ -186,8 +185,8 @@ dated when it was added (start a new section for a new day rather than appending
 - Trend the audit counts across reports — parked; no change yet. The capture rule leans on the verdict's accreted-rule
   count as the growth control, but nothing reads it back, so the only quantitative signal that consolidation is winning
   goes uncollected. A small report — or a `/retrospective` input — extracting the verdict lines from `docs/audits/*.md`
-  would show findings, merge, removal, and accreted counts over time. Five reports now exist, but their accreted counts
-  use differing definitions (see the 2026-10-05 entry above), so the trend awaits that fix.
+  would show findings, merge, removal, and accreted counts over time. Five reports now exist, and one definition now
+  governs the accreted count, so reports from here on are comparable and the trend is buildable.
 
 - Record the lesson-capture's rejected proposals — parked; no change yet. A "nothing durable" verdict is a judgment that
   vanishes (the `widen-auditor-to-route-candidates` capture's, for instance); recording each rejected proposal with the

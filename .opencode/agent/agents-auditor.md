@@ -104,13 +104,19 @@ load-bearing — so never propose removing or merging it for being meta — a me
 removal candidate under the conciseness analysis, not a victim of its class: the report is what makes the accumulation
 visible and attributable. For each item, name the rule, the origin that introduced it, and the source you used to
 establish it: the in-prose `captured:` marker where present, and `git blame` / `git log -S` otherwise, including for the
-rules written before the marker convention. A rule with neither is reported as unattributed rather than guessed.
+rules written before the marker convention. A rule with neither is reported as unattributed rather than guessed. Give
+the class's count one fixed metric, so successive reports are comparable: the number of **distinct meta rule units
+carrying at least one `captured:` marker**, each counted once however many markers it carries — never the raw marker
+count, and never the number of items you list — and a rule written before the marker convention carries none and falls
+outside the metric. Also state how many of those rule units are new since the newest prior report under `docs/audits/`:
+`none recorded` when no prior report exists, and that the figure is unavailable when it cannot be determined.
 
 **Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
 
-- Open with the verdict: `<n> findings (<n> merge, <n> removal, <n> route), <n> advisory, <n> accreted` or
-  `nothing to report` as the first line, then the severity groups (highest-value first) and the advisory and accretion
-  sections.
+- Open with the verdict:
+  `<n> findings (<n> merge, <n> removal, <n> route), <n> advisory, <n> accreted (<n> new since <latest prior report>)`
+  or `nothing to report` as the first line, then the severity groups (highest-value first) and the advisory and
+  accretion sections.
 - Budget each item: a finding gets its `file:line`, its severity, and a concrete suggested rewrite; an advisory item
   gets the excluded file, the harm, and the decision it invites — the budget is per item, not a cap on the total.
 - Collapse entries verified as still accurate to one line each, or one summary line.

@@ -100,16 +100,6 @@ dated when it was added (start a new section for a new day rather than appending
   supply-chain-relevant swap). Both 2026-10-04 architecture audits report the rationale as unrecorded — `AGENTS.md`
   records only the mechanism — and it is parked nowhere. Routes to `AGENTS.md` or an ADR.
 
-- Give parked reduction candidates an application slot, not another report — parked; no change yet. The 2026-10-04
-  audits' merge/route reduction candidates were applied once by a hand-run owner-gated unit, but no standing mechanism
-  exists: the scheduled `audit` workflow only reports — it opens a findings PR — and applying is a separate owner-gated
-  unit, so candidates age while captures accumulate. `Apply the 2026-09-28 audit's docs-route findings` (#446) proved
-  application works, yet it netted +2 lines because the applying unit rode its own capture, and the one-off trim still
-  depended on a human opening it. Either let the report PR carry the merge/removal edits for one owner review instead of
-  routing them to `docs/ideas.md`, or run a standing owner-gated "apply parked reductions" unit per audit. Refines —
-  rather than duplicates — the parked "Carry findings forward across audit reports" idea, which addresses reporting
-  only.
-
 ## 2026-10-03
 
 - Record the Elasticsearch Java client's role on the read side — parked; no change yet. The projection/query services

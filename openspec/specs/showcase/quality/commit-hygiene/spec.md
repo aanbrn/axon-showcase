@@ -16,10 +16,12 @@ caught only by a human or a review pass are blocked by construction.
 The repository SHALL provide a tracked git `pre-commit` hook that inspects the staged set before a commit is created and
 refuses the commit when it detects a mechanically defective state: the project's formatter check fails; a staged path is
 a generated artifact that must not be committed; a path is staged and then modified again so the index no longer matches
-the working tree; a staged file carries a merge conflict marker; or a `captured:` marker is misplaced in a staged
-`AGENTS.md`. The hook SHALL name each offending path and the reason and SHALL exit non-zero. The hook's path parsing
-SHALL be quote-safe: every path it reads from git SHALL be the real path rather than git's C-quoted rendering, so a path
-containing non-ASCII bytes is inspected exactly like any other and no check is silently skipped for it.
+the working tree; a staged file carries a merge conflict marker; a `captured:` marker is misplaced in a staged
+`AGENTS.md`; or a change dir under `openspec/changes/archive/**` is staged while the spec sync `openspec archive` wrote
+under `openspec/specs/**` is left unstaged or untracked. The hook SHALL name each offending path and the reason and
+SHALL exit non-zero. The hook's path parsing SHALL be quote-safe: every path it reads from git SHALL be the real path
+rather than git's C-quoted rendering, so a path containing non-ASCII bytes is inspected exactly like any other and no
+check is silently skipped for it.
 
 #### Scenario: A failing formatter check refuses the commit
 
@@ -80,6 +82,17 @@ containing non-ASCII bytes is inspected exactly like any other and no check is s
 
 - **WHEN** a non-ASCII path is staged and then modified again so the index and the working tree differ for it
 - **THEN** the guard names that path and refuses the commit
+
+#### Scenario: An unpaired archive move refuses the commit
+
+- **WHEN** a change dir under `openspec/changes/archive/**` that carries delta specs is staged while the spec sync
+  `openspec archive` wrote under `openspec/specs/**` is left unstaged or untracked
+- **THEN** the guard refuses the commit and names the archived change and the un-staged spec paths
+
+#### Scenario: A no-delta archive move requires no spec sync
+
+- **WHEN** a change dir under `openspec/changes/archive/**` with no delta specs (a `skip_specs` change) is staged
+- **THEN** the guard does not require a spec sync and does not report the archive move
 
 ### Requirement: The guard is activated per clone and does not alter state
 

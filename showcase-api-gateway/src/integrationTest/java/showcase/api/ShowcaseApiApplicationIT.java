@@ -12,6 +12,7 @@ import org.axonframework.extensions.jgroups.commandhandling.JGroupsConnectorFact
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -51,6 +52,9 @@ class ShowcaseApiApplicationIT {
 
     @Autowired
     private com.github.benmanes.caffeine.cache.AsyncCache<?, ?> fetchShowcaseByIdCache;
+
+    @Autowired
+    private BuildProperties buildProperties;
 
     @LocalServerPort
     private int port;
@@ -129,5 +133,28 @@ class ShowcaseApiApplicationIT {
                                 .containsIgnoringCase("content-type")
                                 .containsIgnoringCase("idempotency-key")
                                 .containsIgnoringCase("traceparent"));
+    }
+
+    @Test
+    @DisplayName("The build information carries the version and no build time")
+    void buildProperties_carryVersionAndNoBuildTime() {
+        assertThat(buildProperties.getVersion()).isEqualTo(System.getProperty("project.version"));
+        assertThat(buildProperties.getTime()).isNull();
+    }
+
+    @Test
+    @DisplayName("The info endpoint reports the build version")
+    void infoEndpoint_reportsBuildVersion() {
+        val client =
+                WebTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
+
+        client.get()
+                .uri("/actuator/info")
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.build.version")
+                .isEqualTo(System.getProperty("project.version"));
     }
 }

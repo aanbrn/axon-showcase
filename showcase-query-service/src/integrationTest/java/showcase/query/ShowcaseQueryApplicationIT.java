@@ -14,9 +14,11 @@ import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -41,6 +43,30 @@ class ShowcaseQueryApplicationIT {
 
     @Autowired
     private WebTestClient webClient;
+
+    @Test
+    @DisplayName("The service bakes its build identity and exposes the info endpoint")
+    void buildIdentity_isBakedAndExposed(ApplicationContext context) {
+        val build = context.getBean(BuildProperties.class);
+        assertThat(build.getVersion()).isEqualTo(System.getProperty("project.version"));
+        assertThat(build.getTime()).isNull();
+        assertThat(context.getEnvironment().getProperty("management.endpoints.web.exposure.include"))
+                .contains("info");
+    }
+
+    @Test
+    @DisplayName("The info endpoint reports the build version")
+    void infoEndpoint_reportsBuildVersion() {
+        webClient
+                .get()
+                .uri("/actuator/info")
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.build.version")
+                .isEqualTo(System.getProperty("project.version"));
+    }
 
     @Test
     @DisplayName("The health endpoint reports UP when OpenSearch is healthy")

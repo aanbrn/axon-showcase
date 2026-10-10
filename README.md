@@ -1001,6 +1001,8 @@ and Tempo into the `monitoring` namespace alongside the application. The local d
 - **Tracing**: services export **OpenTelemetry** traces to **Grafana Tempo** (`tempo.monitoring`), viewable in Grafana's
   Explore. The web UI propagates W3C trace context on its API calls, so a page load's requests join one trace that
   continues through the gateway into the command and query services.
+- **Build version**: every JVM service reports the version it was built from at its management `/actuator/info`
+  endpoint, so a running pod's build is identifiable without inspecting its image tag.
 
 Grafana is reachable through the same ingress at http://axon-showcase-grafana (see
 [Access the Deployed System](#access-the-deployed-system)). Traces are available in the Tempo data source under Grafana

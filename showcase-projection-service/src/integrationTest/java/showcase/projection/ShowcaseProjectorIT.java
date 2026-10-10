@@ -25,10 +25,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.opensearch.data.client.osc.OpenSearchTemplate;
 import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -73,6 +75,16 @@ class ShowcaseProjectorIT {
     private KafkaTestPublisher<ShowcaseEvent> kafkaTestPublisher;
 
     private IndexOperations showcaseIndexOperations;
+
+    @Test
+    @DisplayName("The service bakes its build identity and exposes the info endpoint")
+    void buildIdentity_isBakedAndExposed(ApplicationContext context) {
+        val build = context.getBean(BuildProperties.class);
+        assertThat(build.getVersion()).isEqualTo(System.getProperty("project.version"));
+        assertThat(build.getTime()).isNull();
+        assertThat(context.getEnvironment().getProperty("management.endpoints.web.exposure.include"))
+                .contains("info");
+    }
 
     @BeforeAll
     static void installBlockHound() {

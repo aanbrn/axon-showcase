@@ -913,6 +913,11 @@ Key modules (libraries, not services):
   bare `[versions]` entry is not resolved as a dependency, so `dependencyUpdates` ignores it — but `helmUpdates` reads
   the Helm CLI and chart pins, `buildpackUpdates` the Paketo builder and buildpack pins, and `toolingUpdates` the CLI
   versions pinned in workflow files, so only the entries none of them reads must be audited by hand.
+- **A `build-logic` convention plugin's effect is verified through a consuming module, not unit-tested.** `build-logic`
+  has no `gradleTestKit()`, so its `src/test` holds unit tests of plain helper objects (`Versions`, the `*Rules`
+  classes) and a plugin's Gradle DSL — e.g. `spring-boot-conventions`' `springBoot { buildInfo { … } }` — cannot be
+  exercised there. Assert the effect in a module that applies the plugin (the four JVM services' ITs assert the baked
+  `BuildProperties`) rather than writing a test that cannot reach it. captured: expose-service-build-info
 - **All JavaCompile tasks** add `-parameters` flag
 - **Test display names**: every test class and every `@Test`/`@ParameterizedTest` method (plus `@Nested` groups) carries
   a static-sentence `@DisplayName` (e.g., `@DisplayName("Showcase aggregate component tests")`,

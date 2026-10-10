@@ -9,6 +9,12 @@ plugins {
 
 val libs = the<LibrariesForLibs>()
 
+springBoot {
+    buildInfo {
+        excludes.set(listOf("time"))
+    }
+}
+
 tasks.named<JavaCompile>("compileJava") {
     options.compilerArgs.add("-Amapstruct.defaultComponentModel=spring")
 }

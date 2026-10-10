@@ -25,6 +25,6 @@
 - [x] 2.6 Confirmed the `helm-chart` `## Purpose` needs no refresh — its "observability wiring" already covers the
       dashboard, and the change does not falsify the Purpose's text.
 - [x] 2.7 Request the user's manual review pass; the commit → push → PR sequence starts only after that approval.
-- [ ] 2.8 After the `build` check is green **and the user approves**, archive the change on this branch
+- [x] 2.8 After the `build` check is green **and the user approves**, archive the change on this branch
       (`openspec archive capture-axon-showcase-dashboard-in-spec --yes`); confirm the main `helm-chart` spec carries the
       new clause and run `openspec validate --specs`.

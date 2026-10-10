@@ -94,16 +94,6 @@ dated when it was added (start a new section for a new day rather than appending
   Routes to `.github/workflows/audit.yml`'s prompt (name a same-day second run distinctly, e.g. by including the run's
   trigger) and the `merge-governance` spec requirement that owns that workflow's report behavior.
 
-- Trim the AGENTS.md rules the 2026-10-04 audits found restated — parked; no change yet. The scheduled agents-audit
-  (`docs/audits/2026-10-04-scheduled.md`) names three reduction candidates: the pre-commit guard's check enumeration
-  stated in both the Prerequisites list and the `git add <dir>` gotcha; the 120-character check recipe and its
-  `awk`-counts-bytes caveat restated in the Formatting convention, the verdict-echo gotcha, and
-  `.opencode/agent/review-quick.md`; and the captured-marker placement rule restated in the `retro-mark-captured-rules`
-  gotcha though `verifyCapturedMarkers` and the pre-commit guard enforce it. The dispatch agents-audit
-  (`docs/audits/2026-10-04.md`) also flagged the capture bullet restating the promotion gate — never applied and not
-  re-reported by the scheduled run — so it belongs with these. All are `/audit-agents` merge/route candidates, applied
-  through that audit's workflow when next run.
-
 - Record the LZ4 relocation's rationale — parked; no change yet. `build.gradle.kts` forces `org.lz4:lz4-java` to
   `at.yawk.lz4:lz4-java`, but its `.because("Force relocation of LZ4 implementation")` restates what the substitution
   does, not why the build redirects to a third-party rehost (yawkat's `at.yawk.lz4` republish of `org.lz4` — a
@@ -111,14 +101,14 @@ dated when it was added (start a new section for a new day rather than appending
   records only the mechanism — and it is parked nowhere. Routes to `AGENTS.md` or an ADR.
 
 - Give parked reduction candidates an application slot, not another report — parked; no change yet. The 2026-10-04
-  audits' merge/route reduction candidates are parked ("Trim the AGENTS.md rules the 2026-10-04 audits found restated",
-  above) to be applied "through that audit's workflow when next run", but the scheduled `audit` workflow only reports —
-  it opens a findings PR — and applying is a separate owner-gated unit, so candidates age while captures accumulate and
-  `AGENTS.md` has not shrunk in a window: `Apply the 2026-09-28 audit's docs-route findings` (#446) proves application
-  works, yet it netted +2 lines because the applying unit rode its own capture. Either let the report PR carry the
-  merge/removal edits for one owner review instead of routing them to `docs/ideas.md`, or run a standing owner-gated
-  "apply parked reductions" unit per audit. Refines — rather than duplicates — the parked "Carry findings forward across
-  audit reports" idea, which addresses reporting only.
+  audits' merge/route reduction candidates were applied once by a hand-run owner-gated unit, but no standing mechanism
+  exists: the scheduled `audit` workflow only reports — it opens a findings PR — and applying is a separate owner-gated
+  unit, so candidates age while captures accumulate. `Apply the 2026-09-28 audit's docs-route findings` (#446) proved
+  application works, yet it netted +2 lines because the applying unit rode its own capture, and the one-off trim still
+  depended on a human opening it. Either let the report PR carry the merge/removal edits for one owner review instead of
+  routing them to `docs/ideas.md`, or run a standing owner-gated "apply parked reductions" unit per audit. Refines —
+  rather than duplicates — the parked "Carry findings forward across audit reports" idea, which addresses reporting
+  only.
 
 ## 2026-10-03
 

@@ -29,10 +29,8 @@ repository with no change dir, do a fast verification pass:
   has not converged and the root cause should be re-derived rather than the instance patched again — say so explicitly
   in your report. When no prior-round list is supplied, still classify each finding, and state that a repetition is
   unknown rather than inferring one, since you have nothing to compare against.
-- Run `perl -CSD -lne 'print if length > 120' <changed-files>` over the changed files the formatter does not cover —
-  YAML, and so on; everything else is formatter-gated — and report any lines over 120 (the project's wrapping
-  convention; `awk` counts bytes and false-flags non-ASCII like `→`, and formatters cannot reflow string literals, so
-  long strings are a common manual-check gap).
+- Run the project's 120-character check (the `Formatting` convention's `perl` recipe) over the changed files the
+  formatter does not cover — YAML, and so on; everything else is formatter-gated — and report any lines over 120.
 
 Prioritize concrete, actionable gaps over style nitpicks. Do not edit files — the calling agent handles changes.
 

@@ -263,29 +263,28 @@ name wraps to the next line. Place the marker at the end of the rule it records;
 mechanically checkable part — a marker lies inside a rule block, never on a plain bullet. On a bullet the capture merged
 into rather than authored, the end-of-bullet marker records only the latest captured contribution, not the bullet's
 total origin — the pre-existing text stays recoverable from `git blame` / `git log -S`. AGENTS.md's growth is bounded,
-but the bound is a discipline rather than a hard cap: applying a capture should leave the file no larger than it was,
-preferring a merge or a replacement over an addition and retiring a rule the unit makes unnecessary, and any net growth
-is a justified decision stated with the proposal — not a side effect of accumulating prose. The applying agent records
-the applied net delta on the capture record described above. The cheapest way to keep it flat: **when a bullet's
-rationale is normative in a spec, keep only what a reader needs to act and point at the spec — a pointer, not a
-condensed copy** (the spec records why). The same routing covers the case where the specs describe a rule's subject
-**only as an outcome**: the mechanism belongs in the capability spec **only when changing it would change a scenario's
-outcome — verify that against the code before moving it**, and a mechanism whose alternatives yield the same result
-stays in `AGENTS.md` as internal control flow. A pointer must also carry every **imperative or target-less fact** the
-old text held — a warning the reader must still act on is a rule, not rationale, and is lost rather than condensed when
-the pointer drops it — and **must not claim more than its target holds**: a spec holds an outcome, not the identifiers,
-declarations, or gate conditions implementing it, nor a rationale it never states. Verify a trim by sweeping every
-removed line's distinctive tokens against both the trimmed text and the pointer's target —
-`trim-agents-md-rule-restatements`' five trims dropped six such facts, restored only by review. Durability governs where
-the _rule_ lives, not whether every sentence about it does. Because the corpus is evidence-anchored incident memory, the
-control is the periodic `/audit-agents` pass — whose verdict already reports the accreted-rule count — not mass deletion
-to hit a number. Do not skip the subagent or conclude "nothing to capture" on your own judgment — the subagent is the
-arbiter, and an initial "nothing to capture" verdict is a hypothesis: a merge that closed a change was once skipped on
-exactly such an assumption and the forgotten-archive and premise-interrogation lessons went uncaptured until the user
-pushed back twice. When the user asks "is there anything else to capture?", treat it as a prompt to run the subagent
-again over the events — not as a request to justify the previous pass. A docs-fix merge has nothing further to capture
-only if the subagent actually reviewed it and said so — or if the merge-time detection above found no candidate.
-captured: add-pre-commit-staged-set-guard (#372) captured: re-measure-load-test-baseline (#429)
+but the bound is a discipline rather than a hard cap: applying a capture should leave the file no larger than it was —
+the rule and its rationale are in the `agent-skills` spec — and the applying agent records the applied net delta on the
+capture record described above. The cheapest way to keep it flat: **when a bullet's rationale is normative in a spec,
+keep only what a reader needs to act and point at the spec — a pointer, not a condensed copy** (the spec records why).
+The same routing covers the case where the specs describe a rule's subject **only as an outcome**: the mechanism belongs
+in the capability spec **only when changing it would change a scenario's outcome — verify that against the code before
+moving it**, and a mechanism whose alternatives yield the same result stays in `AGENTS.md` as internal control flow. A
+pointer must also carry every **imperative or target-less fact** the old text held — a warning the reader must still act
+on is a rule, not rationale, and is lost rather than condensed when the pointer drops it — and **must not claim more
+than its target holds**: a spec holds an outcome, not the identifiers, declarations, or gate conditions implementing it,
+nor a rationale it never states. Verify a trim by sweeping every removed line's distinctive tokens against both the
+trimmed text and the pointer's target — `trim-agents-md-rule-restatements`' five trims dropped six such facts, restored
+only by review. Durability governs where the _rule_ lives, not whether every sentence about it does. Because the corpus
+is evidence-anchored incident memory, the control is the periodic `/audit-agents` pass — whose verdict already reports
+the accreted-rule count — not mass deletion to hit a number. Do not skip the subagent or conclude "nothing to capture"
+on your own judgment — the subagent is the arbiter, and an initial "nothing to capture" verdict is a hypothesis: a merge
+that closed a change was once skipped on exactly such an assumption and the forgotten-archive and premise-interrogation
+lessons went uncaptured until the user pushed back twice. When the user asks "is there anything else to capture?", treat
+it as a prompt to run the subagent again over the events — not as a request to justify the previous pass. A docs-fix
+merge has nothing further to capture only if the subagent actually reviewed it and said so — or if the merge-time
+detection above found no candidate. captured: add-pre-commit-staged-set-guard (#372) captured:
+re-measure-load-test-baseline (#429)
 
 **A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not merely
 records it.** The merge-time detection is the pass that can read the merge's non-diff effects: an agent PR's closing
@@ -477,9 +476,8 @@ wait for approval before merging.
   on macOS)
 - Python 3 (for `./scripts/setup-idea.sh`'s IDE-settings merge and the commit-hygiene guard/check; macOS ships it via
   Command Line Tools)
-- Git hooks: run `./scripts/install-git-hooks.sh` once per clone to activate the pre-commit guard (the formatter,
-  generated-artifact, staged-then-edited, conflict-marker, `captured:` marker, and archive-spec-sync checks); bypass a
-  deliberate exception with `git commit --no-verify`
+- Git hooks: run `./scripts/install-git-hooks.sh` once per clone to activate the pre-commit guard (the checks the
+  `git add <dir>` gotcha enumerates); bypass a deliberate exception with `git commit --no-verify`
 - Toolchain doctor: `./scripts/doctor.sh` (or `/check-tooling`) probes this list — presence, version floors, and repo
   state — and prints the platform-appropriate install command for anything missing. Strictly POSIX `sh` and needs
   nothing else, so it reports the build's own prerequisites (Java included) on a machine where nothing else runs. **The
@@ -2087,13 +2085,12 @@ capture-stash-stale-copy
     never full coverage. Recording is for what cannot be closed: the cron check closes its day-of-week `7`-as-`0` miss
     (the `commit-hygiene` spec records the normalization) while recording its stdlib-only scan's unparseable YAML forms,
     and the conflict-marker check records its lone-`=======` exclusion. captured: check-unique-cron-schedules (#436)
-  - **A verdict echo is not a check.** While fixing `scripts/experience-analysis.sh`, the 120-character recipe printed
+  - **A verdict echo is not a check.** While fixing `scripts/experience-analysis.sh`, the 120-character check printed
     the offending line and the next command echoed "(script 120 clean)" regardless — the log carried the defect and the
-    summary contradicted it. Let the exit status carry the verdict
-    (`test -z "$(perl -CSD -lne 'print if length > 120' <file>)"` is non-zero when a line is over the limit) or read the
-    output before writing the sentence; never emit a canned "clean" you did not derive from that run. That idiom still
-    fails open — `perl` exits 0 on a missing file, so `test -z` reports clean on a typo'd path — which is why the check
-    must be seen to hit a known positive before its clean run means anything.
+    summary contradicted it. Let the exit status carry the verdict — wrap the `Formatting` convention's recipe so a line
+    over the limit is non-zero — or read the output before writing the sentence; never emit a canned "clean" you did not
+    derive from that run. The wrapper still fails open on a missing file, which is why the check must be seen to hit a
+    known positive before its clean run means anything.
   - **A clean run from the wrong resolution context — a directory, or a point in the lifecycle — is not a
     reproduction.** TypeScript's automatic inclusion of `@types` packages walks up from the tsconfig's directory (the
     then-`.opencode/tsconfig.json`, retired with the plugin below) — or the current working directory when no tsconfig
@@ -2257,15 +2254,15 @@ capture-stash-stale-copy
   ran through the eight plain bullets behind it — so both the `git log -L` range an origin was read from and the line
   the `captured:` marker was appended to belonged to the wrong item, and the marker landed on the following bullet.
   Derive an item's end from the list's own structure (a wrapped continuation is indented; a `- ` at column zero starts a
-  new item) and have any script that ranges over or appends to items assert that boundary itself — no marker on a plain
-  bullet (the pre-commit guard enforces this), and place every marker at the end of the rule it names — before trusting
-  the result. captured: retro-mark-captured-rules The same range-boundary hazard bites source: removing three tasks'
-  private comparators with a range running from the first deleted member to the end of the file took each class's
-  **closing brace** (the members were last in the body), failing three compiles, and orphaned a KDoc above the deleted
-  region — which compiled clean and only a reviewer saw. Derive a deletion's end from the member boundaries, and after
-  removing members confirm each surviving KDoc still attaches to a declaration: a compile catches the lost brace, never
-  the orphan. captured: test-build-logic-rules-and-unify-version-comparison (#306) A formatter-owned file is re-wrapped,
-  so a whitespace-tolerant substitution — a normalization or `\s*`-style pattern — silently matches the wrong span or
+  new item) and have any script that ranges over or appends to items assert that boundary itself — the marker-placement
+  rule above states what the pre-commit guard enforces — before trusting the result. captured: retro-mark-captured-rules
+  The same range-boundary hazard bites source: removing three tasks' private comparators with a range running from the
+  first deleted member to the end of the file took each class's **closing brace** (the members were last in the body),
+  failing three compiles, and orphaned a KDoc above the deleted region — which compiled clean and only a reviewer saw.
+  Derive a deletion's end from the member boundaries, and after removing members confirm each surviving KDoc still
+  attaches to a declaration: a compile catches the lost brace, never the orphan. captured:
+  test-build-logic-rules-and-unify-version-comparison (#306) A formatter-owned file is re-wrapped, so a
+  whitespace-tolerant substitution — a normalization or `\s*`-style pattern — silently matches the wrong span or
   rebuilds it unformatted. The edit no-opped or mangled several times across one arc: a workflow step inserted at the
   wrong YAML indentation (a parse error), a README bullet reported as exactly one match that never landed, a `body=`
   line left 198 characters long, and a prompt line replaced at the wrong indentation. Locate the target by line index in

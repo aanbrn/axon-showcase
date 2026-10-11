@@ -2680,9 +2680,9 @@ capture-stash-stale-copy
   signature, reconcile with it rather than writing a second explanation beside it. A planned task that _posts_ to an
   external tracker depends on that venue's mutable state — a security-advisory thread is often **locked** (comments
   disabled): the `suppress-braces-npm-advisory` task "comment on `micromatch/braces#70`" was unachievable because #70 is
-  locked, and the actionable reference was the open fix PR `micromatch/braces#72`. Check a thread is writable before
-  writing the posting task, and when the issue itself is closed or locked, cite the fix PR the close-out actually keys
-  on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
+  locked, and the actionable reference was the fix PR `micromatch/braces#72` (later closed unmerged). Check a thread is
+  writable before writing the posting task, and when the issue itself is closed or locked, cite the fix PR the close-out
+  actually keys on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
   `upstream-references.yml` report (the fifth observational check above). captured: suppress-braces-npm-advisory
   captured: refresh-upstream-references-2026-10-05
 - **Work a change surfaces is parked durably — a PR body is not a record.** When a docs change records an external state

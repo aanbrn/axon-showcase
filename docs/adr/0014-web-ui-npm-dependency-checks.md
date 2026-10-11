@@ -43,6 +43,6 @@ the supply chain).
   scans; the Snyk-free npm audit needs no token.
 - Renaming the workflow moves its dispatch reference to `gh workflow run dependency-security.yml`.
 - `braces <= 3.0.3` (GHSA-vfj7-8cjw-p6xm, CVE-2026-93687) has no patched **release** upstream, so its suppression entry
-  is a dated acceptance, not a fix. The fix exists as the open `micromatch/braces#72` (the advisory thread `#70` is
-  locked); the entry retires when that PR merges and a `braces` release carrying it resolves (the expiry re-surfaces the
-  finding for re-assessment until then).
+  is a dated acceptance, not a fix. The first fix attempt, `micromatch/braces#72`, closed **unmerged** on 2026-10-05
+  (the advisory thread `#70` is open and locked), so the entry retires when a `braces` release carrying a fix
+  **resolves** — not on that PR — and the expiry re-surfaces the finding for re-assessment until then.

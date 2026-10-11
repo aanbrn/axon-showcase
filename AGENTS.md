@@ -1384,11 +1384,11 @@ Key modules (libraries, not services):
   `/private/tmp`), which would grant every application's temporary files; that is why `/private/tmp` is not in the
   config. The other external paths an unattended run needs are granted declaratively in `.opencode/opencode.json`'s
   `permission` rules. The **`gh` CLI's config directory** is granted as `$HOME/.config/gh/*`: the agent invokes `gh`,
-  which consults that directory outside the workspace, and a missing grant hangs an unattended run (a `/oc` run was
-  found stuck on `/home/runner/.config/gh/*`); v2 expands `~`/`$HOME` and substitutes `{env:VAR}` in a pattern, but an
-  unset variable substitutes to an empty string (a pattern matching every path), so the config grants the `$HOME`
-  default and a run that sets `$GH_CONFIG_DIR` or `$XDG_CONFIG_HOME` elsewhere still prompts. The **globally-installed
-  `openspec` package** is granted as `*/@fission-ai/openspec/*` — the CLI reads its own schema templates from an
+  which consults that directory outside the workspace, and a missing grant hangs an unattended run (see the
+  unattended-`ask` gotcha); v2 expands `~`/`$HOME` and substitutes `{env:VAR}` in a pattern, but an unset variable
+  substitutes to an empty string (a pattern matching every path), so the config grants the `$HOME` default and a run
+  that sets `$GH_CONFIG_DIR` or `$XDG_CONFIG_HOME` elsewhere still prompts. The **globally-installed `openspec`
+  package** is granted as `*/@fission-ai/openspec/*` — the CLI reads its own schema templates from an
   outside-the-workspace package directory, and an unattended cloud run cannot answer the prompt it would otherwise raise
   (a `/oc` run was found stuck on exactly
   `/usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven/templates/*`); the wildcard covers the
@@ -2863,6 +2863,15 @@ capture-stash-stale-copy
   (`read`/`edit`/`write`/`glob`/`grep`) and path-taking commands, while a script's own out-of-tree writes run under the
   `shell` action (`permission.bash` in v1) — so removing the blanket `/tmp/**` allow from `external_directory` leaves a
   bash-script write such as `setup-hosts.sh`'s unaffected, and a temp-root grant should not be re-added there for it.
+
+- **An unanswered `ask` hangs an unattended run — anchor a `bash`/`shell` permission pattern to the parsed command, and
+  bound the job.** OpenCode emits one pattern per parsed `command` node, so a whole-command-string guard
+  (`"*git push*"`) also matches a read-only command that merely quotes the phrase (`grep … "git push"`); anchor it
+  (`"git push *": "ask"`) so a bare, argumented, or chained push still asks while the quote does not. The action's
+  handler denies only the `question` permission, so bound each unattended job with `timeout-minutes` — a scheduled
+  `audit` hung 2h13m on a `bash` rule, and `/oc` runs were cancelled at 42m and 17m on `external_directory` asks.
+  Reported upstream as `anomalyco/opencode#54477`; retires when the handler resolves a non-`question` `ask` (or fails
+  the run on an unanswerable prompt). captured: fix-unattended-permission-hang
 
 - **A generic getter's inferred type can bind an overloaded call to the wrong overload — cast to the erased type, and
   verify the binding, not the source.** `Session.get` is generic (`<T> T get(String)`), so

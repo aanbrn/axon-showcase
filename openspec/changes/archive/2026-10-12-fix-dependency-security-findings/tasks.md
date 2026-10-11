@@ -22,10 +22,12 @@
       — `source-map-js` via `vite` → `postcss` — and `check` never runs `vite build`), plus
       `./gradlew spotlessApply spotlessCheck`; confirm the frontend and the touched files are clean.
 - [x] 3.2 Run `./gradlew check` with the integration tests (Docker), covering the runtime-path driver bump.
-- [ ] 3.3 Dispatch the credentialed scan against this branch as part of the merge —
-      `gh workflow run dependency-security.yml --ref fix-dependency-security-findings` — and confirm it passes with the
-      two `postgresql` findings gone (a local `./gradlew dependencySecurityCheck` with `SNYK_TOKEN` is the alternative).
-- [ ] 3.4 Run a `review-quick` pass over the proposal and implementation, repeating until clean.
+- [x] 3.3 Dispatch the credentialed scan against this branch as part of the merge —
+      `gh workflow run dependency-security.yml --ref fix-dependency-security-findings`. Ran (run 38184554382): the two
+      `postgresql` findings are gone and `web-ui-audit` passes, but Snyk now fails on two advisories published since the
+      2026-10-10 run (`snappy-java` 1.1.10.5, fixable, and `guava` 33.6.0-jre, no fix) — deferred to a follow-up unit
+      rather than folded in.
+- [x] 3.4 Run a `review-quick` pass over the proposal and implementation, repeating until clean.
 
 ## 4. Capture
 

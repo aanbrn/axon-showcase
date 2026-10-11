@@ -1406,8 +1406,8 @@ Key modules (libraries, not services):
   startup — the `@opencode-ai/plugin` package stays because the v2 binary installs it into each `.opencode/`, rewriting
   the tracked pin to its own version, so a cloud run's PR can carry the bump (report PR #543 carried
   `1.18.34`→`1.19.0`): read it as the startup install, not a deliberate dependency change, and decide whether to keep or
-  revert it. captured: capture-cloud-plugin-pin-bump `.opencode/.gitignore` keeps only `node_modules` and the lockfiles
-  out of the repo. The config is written in the **V1 shape** — the `permission` block, the flat `mcp` map, and
+  revert it. captured: capture-cloud-plugin-pin-bump (#545) `.opencode/.gitignore` keeps only `node_modules` and the
+  lockfiles out of the repo. The config is written in the **V1 shape** — the `permission` block, the flat `mcp` map, and
   `small_model` — which v2 lowers into its own `permissions` array and `mcp.servers` envelope rather than the v2
   spellings: the GitHub action the cloud workflows run installs `releases/latest` — the v1 line — and a v2-only
   `permissions` array makes v1 exit at startup (`V2 permissions are not supported by OpenCode V1`), which silently broke

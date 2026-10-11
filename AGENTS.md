@@ -1403,22 +1403,24 @@ Key modules (libraries, not services):
   `Plugin must export a default definition with an id and an effect or setup function`. v2 pre-approves the
   machine-specific `<tmpdir>/opencode`, which is enough for this repo; `anomalyco/opencode#48100` asks for a portable
   default and remains open upstream. `.opencode/package.json` (tracked) holds the dependencies OpenCode installs at
-  startup — the `@opencode-ai/plugin` package stays because the v2 binary installs it into each `.opencode/` at startup.
-  `.opencode/.gitignore` keeps only `node_modules` and the lockfiles out of the repo. The config is written in the **V1
-  shape** — the `permission` block, the flat `mcp` map, and `small_model` — which v2 lowers into its own `permissions`
-  array and `mcp.servers` envelope rather than the v2 spellings: the GitHub action the cloud workflows run installs
-  `releases/latest` — the v1 line — and a v2-only `permissions` array makes v1 exit at startup
-  (`V2 permissions are not supported by OpenCode V1`), which silently broke both cloud workflows until a dispatch
-  exposed it. The same applies to a contributor's **global** config: the ACP agent IntelliJ IDEA's AI launches is a 1.x
-  binary, and it exits on `permissions` (`Unrecognized key: permissions`) and on an `mcp.servers` key
-  (`Missing key mcp.servers.enabled`) — so the global config is kept in the flat `mcp` shape too, and the setup guidance
-  leads there. `opencode mcp add` writes that nesting upstream (`anomalyco/opencode#49904`); the guidance retires its
-  caveat when the command emits the flat shape. Keep this file loadable by both majors; the local workflow still runs
-  v2, per the README's row. Verify a behavioural change to it — a new grant, model, or server — by dispatching the cloud
-  workflow that loads it (`gh workflow run audit.yml`): the `build` gate probes the config's load under the action's v1
-  binary when a pull request changes it, but only a dispatch (or the next scheduled run) proves the workflow starts.
-  captured: migrate-opencode-config-to-v2 captured: retire-opencode-permission-plugin (#388) captured:
-  fix-cloud-agent-config-for-v1 (#438)
+  startup — the `@opencode-ai/plugin` package stays because the v2 binary installs it into each `.opencode/`, rewriting
+  the tracked pin to its own version, so a cloud run's PR can carry the bump (report PR #543 carried
+  `1.18.34`→`1.19.0`): read it as the startup install, not a deliberate dependency change, and decide whether to keep or
+  revert it. captured: capture-cloud-plugin-pin-bump (#545) `.opencode/.gitignore` keeps only `node_modules` and the
+  lockfiles out of the repo. The config is written in the **V1 shape** — the `permission` block, the flat `mcp` map, and
+  `small_model` — which v2 lowers into its own `permissions` array and `mcp.servers` envelope rather than the v2
+  spellings: the GitHub action the cloud workflows run installs `releases/latest` — the v1 line — and a v2-only
+  `permissions` array makes v1 exit at startup (`V2 permissions are not supported by OpenCode V1`), which silently broke
+  both cloud workflows until a dispatch exposed it. The same applies to a contributor's **global** config: the ACP agent
+  IntelliJ IDEA's AI launches is a 1.x binary, and it exits on `permissions` (`Unrecognized key: permissions`) and on an
+  `mcp.servers` key (`Missing key mcp.servers.enabled`) — so the global config is kept in the flat `mcp` shape too, and
+  the setup guidance leads there. `opencode mcp add` writes that nesting upstream (`anomalyco/opencode#49904`); the
+  guidance retires its caveat when the command emits the flat shape. Keep this file loadable by both majors; the local
+  workflow still runs v2, per the README's row. Verify a behavioural change to it — a new grant, model, or server — by
+  dispatching the cloud workflow that loads it (`gh workflow run audit.yml`): the `build` gate probes the config's load
+  under the action's v1 binary when a pull request changes it, but only a dispatch (or the next scheduled run) proves
+  the workflow starts. captured: migrate-opencode-config-to-v2 captured: retire-opencode-permission-plugin (#388)
+  captured: fix-cloud-agent-config-for-v1 (#438)
 
 ## Docker Images
 

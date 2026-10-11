@@ -7,10 +7,16 @@
       "*": "allow",
       "git push *": "ask"
     },
+    "read": {
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow"
+    },
     "external_directory": {
       "$HOME/.config/gh/*": "allow",
       "*/@fission-ai/openspec/*": "allow"
-    }
+    },
+    "doom_loop": "deny"
   },
   "mcp": {
     "playwright": {

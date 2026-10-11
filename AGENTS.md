@@ -2870,10 +2870,16 @@ capture-stash-stale-copy
   bound the job.** OpenCode emits one pattern per parsed `command` node, so a whole-command-string guard
   (`"*git push*"`) also matches a read-only command that merely quotes the phrase (`grep … "git push"`); anchor it
   (`"git push *": "ask"`) so a bare, argumented, or chained push still asks while the quote does not. The action's
-  handler denies only the `question` permission, so bound each unattended job with `timeout-minutes` — a scheduled
-  `audit` hung 2h13m on a `bash` rule, and `/oc` runs were cancelled at 42m and 17m on `external_directory` asks.
-  Reported upstream as `anomalyco/opencode#54477`; retires when the handler resolves a non-`question` `ask` (or fails
-  the run on an unanswerable prompt). captured: fix-unattended-permission-hang
+  handler denies only the `question` permission, so resolve each binary's ask-defaults — the cloud (v1) binary asks for
+  `read` `.env`, `external_directory`, and `doom_loop`, the local (v2) binary for `read` `.env` only — to `allow`/`deny`
+  in the config the action uses, and bound each unattended job with `timeout-minutes` — a scheduled `audit` hung 2h13m
+  on a `bash` rule, and `/oc` runs were cancelled at 42m and 17m on `external_directory` asks. Deny only a default whose
+  internal allows the config can re-express, since a config rule is appended last and overrides a default:
+  `external_directory`'s `*` cannot be denied (it would override v1's scratch/skill/reference allows, which `expand()` —
+  only `~`/`$HOME` — cannot re-express), while denying `*.env.*` needs `*.env.example` re-allowed. Reported upstream as
+  `anomalyco/opencode#54477` (declined for v1 — `wont_fix`); retires when the handler resolves a non-`question` `ask`
+  (or fails the run on an unanswerable prompt). captured: fix-unattended-permission-hang captured:
+  harden-cloud-runs-against-ask-hangs
 
 - **A generic getter's inferred type can bind an overloaded call to the wrong overload — cast to the erased type, and
   verify the binding, not the source.** `Session.get` is generic (`<T> T get(String)`), so

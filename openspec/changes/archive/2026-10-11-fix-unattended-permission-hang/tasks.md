@@ -35,7 +35,7 @@
 - [x] 4.1 Run `./gradlew spotlessApply` then `./gradlew spotlessCheck`, and `openspec validate --all`; confirm the
       config, workflow, and change dir are formatter- and schema-clean.
 - [x] 4.2 Run a `review-quick` pass over the proposal and implementation, repeating until clean.
-- [ ] 4.3 Dispatch the audit workflow against this branch
+- [x] 4.3 Dispatch the audit workflow against this branch
       (`gh workflow run audit.yml --ref fix-unattended-permission-hang`) and confirm the run completes within the
       timeout and its log shows no unanswered `asking` event — the end-to-end check of the guard, run before the archive
       commit.

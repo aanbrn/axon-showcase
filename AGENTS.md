@@ -2215,6 +2215,14 @@ capture-stash-stale-copy
   an output the task does not produce as an artifact. Any verdict task whose result changes without its inputs changing
   — a date check, a live registry query, a remote state read — takes the same treatment. captured:
   suppress-braces-npm-advisory
+- **A fixable npm advisory in a transitive that a dev dependency pins exactly is forced with an `overrides` entry — not
+  npm's suggested fix.** npm's offered fix is a _breaking_ downgrade of the pinning package (`eslint-plugin-boundaries`
+  7.2.0 → 5.4.0, breaking the FSD boundary lint), because the plugin and `@boundaries/elements` pin
+  `handlebars: "4.7.9"` exactly; `overrides` forces the patched `4.7.10` under them instead. A suppression
+  (`npm-audit-ignores.json`) is for an advisory with no fix — the `dependency-security` spec owns that policy — and
+  unlike one the override carries no expiry, so park its re-check in `docs/ideas.md` and derive the retrigger from the
+  resolved graph: every package that pins the vulnerable version must bump before it is dropped. captured:
+  fix-dependency-security-findings
 - **Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
   `implementation`-only dependencies** — each suite re-declares what it needs (client component suites duplicate
   axon/opensearch/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be referenced in

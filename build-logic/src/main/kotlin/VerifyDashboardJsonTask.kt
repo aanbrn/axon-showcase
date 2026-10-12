@@ -40,12 +40,12 @@ abstract class VerifyDashboardJsonTask : DefaultTask() {
                 } else {
                     violations.forEach { appendLine(it) }
                 }
-            }
+            },
         )
 
         if (violations.isNotEmpty()) {
             throw GradleException(
-                "Bundled Grafana dashboard check failed:\n" + violations.joinToString("\n") { "  - $it" }
+                "Bundled Grafana dashboard check failed:\n" + violations.joinToString("\n") { "  - $it" },
             )
         }
     }

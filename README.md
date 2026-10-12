@@ -522,7 +522,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 ### Prerequisites
 
 Most verification runs entirely in the Gradle build, so the tool list is small. Gradle itself is not on it — the wrapper
-pins Gradle 9.8.0 and downloads it on first use.
+pins Gradle 9.8.1 and downloads it on first use.
 
 Run `./scripts/doctor.sh` (or the agent's `/check-tooling` command) to check your machine: it probes each tool below,
 the version floors, and the repo state, and prints the install command for anything missing on your platform. The table

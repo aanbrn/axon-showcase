@@ -134,6 +134,6 @@ tasks.named<BootBuildImage>("bootBuildImage") {
             "BPE_DEFAULT_DB_HOSTS" to "axon-showcase-db-events",
             "BPE_DEFAULT_KAFKA_BOOTSTRAP_SERVERS" to "axon-showcase-kafka:9092",
             "BPE_DEFAULT_OS_URIS" to "http://axon-showcase-os-views:9200",
-        )
+        ),
     )
 }

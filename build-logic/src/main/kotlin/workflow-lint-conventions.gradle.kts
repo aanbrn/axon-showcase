@@ -15,7 +15,7 @@ tasks.register<Exec>("workflowLint") {
         if (actionlintExecutable().isEmpty()) {
             throw GradleException(
                 "actionlint is required to lint GitHub workflows. Install it from " +
-                    "https://github.com/rhysd/actionlint (brew, go install, or a release binary)"
+                    "https://github.com/rhysd/actionlint (brew, go install, or a release binary)",
             )
         }
     }

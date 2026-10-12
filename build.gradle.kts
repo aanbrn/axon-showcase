@@ -45,7 +45,7 @@ spotless {
                     "singleQuote" to true,
                     "trailingComma" to "all",
                     "semi" to true,
-                )
+                ),
             )
     }
 
@@ -94,10 +94,10 @@ tasks.register<JacocoReport>("jacocoRootReport") {
     dependsOn(covered.map { "${it.path}:jacocoTestReport" })
 
     executionData.setFrom(
-        covered.map { it.layout.buildDirectory.dir("jacoco").get().asFileTree.matching { include("*.exec") } }
+        covered.map { it.layout.buildDirectory.dir("jacoco").get().asFileTree.matching { include("*.exec") } },
     )
     sourceDirectories.setFrom(
-        covered.map { it.extensions.getByType<SourceSetContainer>().named("main").get().allSource.srcDirs }
+        covered.map { it.extensions.getByType<SourceSetContainer>().named("main").get().allSource.srcDirs },
     )
     classDirectories.setFrom(
         covered.map {
@@ -109,7 +109,7 @@ tasks.register<JacocoReport>("jacocoRootReport") {
                     "**/*Grpc.class",
                 )
             }
-        }
+        },
     )
 
     reports {
@@ -173,7 +173,7 @@ tasks.register("verifyInfraImageVersions", VerifyInfraImageVersionsTask::class.j
                 .map { valuesDir ->
                     fileTree(rootProject.layout.projectDirectory.dir(valuesDir)) { include("values*.yaml") }
                 }
-        }
+        },
     )
 
     resultFile.set(layout.buildDirectory.file("verification/infra-image-versions.txt"))
@@ -263,7 +263,7 @@ tasks.register("buildpackUpdates", BuildpackUpdatesTask::class.java) {
                 repository = "paketobuildpacks/procfile",
                 pinnedVersion = libs.versions.paketo.procfile.get(),
             ),
-        )
+        ),
     )
 
     reportFile.set(layout.buildDirectory.file("buildpack-updates/report.txt"))
@@ -319,7 +319,7 @@ tasks.register("toolingUpdates", ToolingUpdatesTask::class.java) {
                 source = ToolingVersionSource.GITHUB_RELEASE,
                 sourceRef = "gitleaks/gitleaks",
             ),
-        )
+        ),
     )
 
     pinFiles.from(
@@ -345,7 +345,7 @@ tasks.register("upstreamReferences", UpstreamReferencesTask::class.java) {
             include("README.md")
             include("docs/ideas.md")
             include("docs/adr/**/*.md")
-        }
+        },
     )
 
     reportFile.set(layout.buildDirectory.file("upstream-references/report.txt"))
@@ -396,7 +396,7 @@ tasks.register("verifyModuleDependencies", VerifyModuleDependenciesTask::class.j
                             }
                         }
                 }
-        }
+        },
     )
 }
 

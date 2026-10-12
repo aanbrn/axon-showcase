@@ -150,6 +150,6 @@ tasks.named<BootBuildImage>("bootBuildImage") {
             "BPE_DEFAULT_GRPC_SERVER_PORT" to "9090",
             "BPE_DEFAULT_DB_HOSTS" to "axon-showcase-db-events",
             "BPE_DEFAULT_OS_URIS" to "http://axon-showcase-os-views:9200",
-        )
+        ),
     )
 }

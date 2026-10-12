@@ -13,7 +13,7 @@ tasks.register<Exec>("dependencySecurityCheck") {
     doFirst {
         if (snykExecutable().isEmpty()) {
             throw GradleException(
-                "Snyk CLI is required to run the dependency security scan. Install it from https://snyk.io/download"
+                "Snyk CLI is required to run the dependency security scan. Install it from https://snyk.io/download",
             )
         }
     }

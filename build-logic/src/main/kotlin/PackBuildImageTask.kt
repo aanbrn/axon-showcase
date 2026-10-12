@@ -61,7 +61,7 @@ abstract class PackBuildImageTask : DefaultTask() {
             throw GradleException(
                 "The pack CLI is required to build the container image. Install it (" +
                     installHint() +
-                    ") and make 'pack' available on PATH."
+                    ") and make 'pack' available on PATH.",
             )
         }
         val args =

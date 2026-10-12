@@ -40,7 +40,7 @@ fun registerComposeTask(
         doFirst {
             if (dockerCli().isEmpty()) {
                 throw GradleException(
-                    "The Docker CLI is required to run the compose tasks. Install Docker and make 'docker' available on PATH."
+                    "The Docker CLI is required to run the compose tasks. Install Docker and make 'docker' available on PATH.",
                 )
             }
         }

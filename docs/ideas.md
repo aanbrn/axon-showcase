@@ -15,6 +15,12 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-12
 
+- Report Gradle's `--info` environment dump upstream — parked; no change yet. `--info`/`--debug` logs each exec'd
+  process's full environment (values included), so a diagnostic run puts `SNYK_TOKEN`/`GH_TOKEN`/`NVD_API_KEY`-style
+  values into captured output; the owning repository is `gradle/gradle`, and the reproduction is
+  `./gradlew --info :helm:chart:helmLintMainChart` (7 `with environment:` lines). The durable rule is in `AGENTS.md`;
+  this entry tracks the upstream report.
+
 - Correct the `architecture-auditor`'s deferral check for renamed and compound ADR gates — parked; no change yet. Its
   definition resolves the coordinates the `Revisit when:` line names, and the `agent-skills` scenario frames the check
   as an external coordinate gate whose pinned coordinate published a newer major — so a gate whose coordinate upstream
@@ -99,7 +105,7 @@ dated when it was added (start a new section for a new day rather than appending
 
 - Revisit ADR-0003's Jackson-3 deferral gate — parked; no change yet. The 2026-10-04 architecture audit reports the
   recorded `Revisit when:` condition ("the pinned `org.axonframework` and the Elasticsearch Java client … resolve
-  Jackson 3") appears substantially met: `elasticsearch-client-java = 9.5.4` declares
+  Jackson 3") appears substantially met: `elasticsearch-client-java = 9.5.5` declares
   `tools.jackson.core:jackson-databind`/`jackson-core` as non-optional runtime dependencies, and
   `axon-framework = 4.13.2` now declares `tools.jackson.core:jackson-databind` as an **optional** dependency — Axon 4.13
   gained Jackson-3 support since the ADR (2026-08-18) characterized it as "targets Jackson 2". Open question: is the

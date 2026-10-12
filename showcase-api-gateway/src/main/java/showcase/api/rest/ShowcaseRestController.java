@@ -200,18 +200,16 @@ final class ShowcaseRestController implements ShowcaseRestApi {
     @ExceptionHandler
     private ProblemDetail handleShowcaseCommandException(ShowcaseCommandException e) {
         val errorDetails = e.getErrorDetails();
-        val problemDetail =
-                switch (errorDetails.errorCode()) {
-                    case INVALID_COMMAND -> {
-                        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.errorMessage());
-                        pd.setProperty("fieldErrors", errorDetails.metaData());
-                        yield pd;
-                    }
-                    case NOT_FOUND ->
-                        ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.errorMessage());
-                    case TITLE_IN_USE, ILLEGAL_STATE ->
-                        ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, errorDetails.errorMessage());
-                };
+        val problemDetail = switch (errorDetails.errorCode()) {
+            case INVALID_COMMAND -> {
+                val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.errorMessage());
+                pd.setProperty("fieldErrors", errorDetails.metaData());
+                yield pd;
+            }
+            case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.errorMessage());
+            case TITLE_IN_USE, ILLEGAL_STATE ->
+                ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, errorDetails.errorMessage());
+        };
         problemDetail.setProperty("code", errorDetails.errorCode());
         return problemDetail;
     }
@@ -225,16 +223,14 @@ final class ShowcaseRestController implements ShowcaseRestApi {
     @ExceptionHandler
     private ProblemDetail handleShowcaseQueryException(ShowcaseQueryException e) {
         val errorDetails = e.getErrorDetails();
-        val problemDetail =
-                switch (errorDetails.errorCode()) {
-                    case INVALID_QUERY -> {
-                        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.errorMessage());
-                        pd.setProperty("fieldErrors", errorDetails.metaData());
-                        yield pd;
-                    }
-                    case NOT_FOUND ->
-                        ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.errorMessage());
-                };
+        val problemDetail = switch (errorDetails.errorCode()) {
+            case INVALID_QUERY -> {
+                val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errorDetails.errorMessage());
+                pd.setProperty("fieldErrors", errorDetails.metaData());
+                yield pd;
+            }
+            case NOT_FOUND -> ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, errorDetails.errorMessage());
+        };
         problemDetail.setProperty("code", errorDetails.errorCode());
         return problemDetail;
     }

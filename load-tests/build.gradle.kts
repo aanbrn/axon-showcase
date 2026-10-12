@@ -68,7 +68,7 @@ tasks.register<JavaExec>("baselineTrend") {
         listOf(
             providers
                 .gradleProperty("records")
-                .getOrElse(rootProject.layout.projectDirectory.dir("docs/load-tests").asFile.absolutePath)
+                .getOrElse(rootProject.layout.projectDirectory.dir("docs/load-tests").asFile.absolutePath),
         )
     }
 }

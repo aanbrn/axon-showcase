@@ -380,12 +380,11 @@ class ShowcaseRestControllerCT {
                         .errorMessage(errorMessage)
                         .build())));
 
-        val expectedStatus =
-                switch (errorCode) {
-                    case INVALID_COMMAND -> HttpStatus.BAD_REQUEST;
-                    case NOT_FOUND -> HttpStatus.NOT_FOUND;
-                    case TITLE_IN_USE, ILLEGAL_STATE -> HttpStatus.CONFLICT;
-                };
+        val expectedStatus = switch (errorCode) {
+            case INVALID_COMMAND -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case TITLE_IN_USE, ILLEGAL_STATE -> HttpStatus.CONFLICT;
+        };
 
         webClient
                 .post()
@@ -619,12 +618,11 @@ class ShowcaseRestControllerCT {
                         .errorMessage(errorMessage)
                         .build())));
 
-        val expectedStatus =
-                switch (errorCode) {
-                    case INVALID_COMMAND -> HttpStatus.BAD_REQUEST;
-                    case NOT_FOUND -> HttpStatus.NOT_FOUND;
-                    case TITLE_IN_USE, ILLEGAL_STATE -> HttpStatus.CONFLICT;
-                };
+        val expectedStatus = switch (errorCode) {
+            case INVALID_COMMAND -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case TITLE_IN_USE, ILLEGAL_STATE -> HttpStatus.CONFLICT;
+        };
 
         webClient
                 .put()
@@ -778,12 +776,11 @@ class ShowcaseRestControllerCT {
                         .errorMessage(errorMessage)
                         .build())));
 
-        val expectedStatus =
-                switch (errorCode) {
-                    case INVALID_COMMAND -> HttpStatus.BAD_REQUEST;
-                    case NOT_FOUND -> HttpStatus.NOT_FOUND;
-                    case TITLE_IN_USE, ILLEGAL_STATE -> HttpStatus.CONFLICT;
-                };
+        val expectedStatus = switch (errorCode) {
+            case INVALID_COMMAND -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case TITLE_IN_USE, ILLEGAL_STATE -> HttpStatus.CONFLICT;
+        };
 
         webClient
                 .put()
@@ -937,12 +934,11 @@ class ShowcaseRestControllerCT {
                         .errorMessage(errorMessage)
                         .build())));
 
-        val expectedStatus =
-                switch (errorCode) {
-                    case INVALID_COMMAND -> HttpStatus.BAD_REQUEST;
-                    case NOT_FOUND -> HttpStatus.NOT_FOUND;
-                    case TITLE_IN_USE, ILLEGAL_STATE -> HttpStatus.CONFLICT;
-                };
+        val expectedStatus = switch (errorCode) {
+            case INVALID_COMMAND -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case TITLE_IN_USE, ILLEGAL_STATE -> HttpStatus.CONFLICT;
+        };
 
         webClient
                 .delete()
@@ -1162,11 +1158,10 @@ class ShowcaseRestControllerCT {
                         .errorMessage(errorMessage)
                         .build())));
 
-        val expectedStatus =
-                switch (errorCode) {
-                    case INVALID_QUERY -> HttpStatus.BAD_REQUEST;
-                    case NOT_FOUND -> HttpStatus.NOT_FOUND;
-                };
+        val expectedStatus = switch (errorCode) {
+            case INVALID_QUERY -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+        };
 
         webClient
                 .get()
@@ -1482,11 +1477,10 @@ class ShowcaseRestControllerCT {
                         .errorMessage(errorMessage)
                         .build())));
 
-        val expectedStatus =
-                switch (errorCode) {
-                    case INVALID_QUERY -> HttpStatus.BAD_REQUEST;
-                    case NOT_FOUND -> HttpStatus.NOT_FOUND;
-                };
+        val expectedStatus = switch (errorCode) {
+            case INVALID_QUERY -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+        };
 
         webClient
                 .get()

@@ -13,6 +13,14 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-12
+
+- Make the quick-review subagent cluster co-classed findings on the first round — parked; no change yet. The per-unit
+  quick review classifies each finding, but on the first round (no prior-round list) co-classed findings are reported as
+  independent items, so the root-cause signal fires only after two or more rounds. The `agent-skills` spec's "Quick
+  review runs after proposal and implementation" scenario owns that contract, so intra-round clustering owes that
+  capability's delta. Routes to `.opencode/agent/review-quick.md` and the scenario.
+
 ## 2026-10-11
 
 - Re-check the web UI's `handlebars` override when the lint plugin bumps it — parked; no change yet.

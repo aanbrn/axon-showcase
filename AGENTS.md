@@ -563,7 +563,10 @@ wait for approval before merging.
 ./gradlew dependencySecurityCheck
 # The scan passes --policy-path=.snyk (the root Snyk policy). The currently-suppressed findings, their expiry
 # rationale, and the rate-limit nuance live in `.snyk` (its header comment and each ignore's `reason`) and the
-# /dependency-security-check command — see those rather than restating them here.
+# /dependency-security-check command — see those rather than restating them here. A version-pinned ignore goes dead
+# silently once a constraint or bump moves the coordinate past its pinned version — unlike the web UI's
+# `npm-audit-ignores.json`, which `npmAudit` fails on when an entry matches no finding, the `.snyk` policy has no
+# staleness guard — so sweep the ignore and its rationale comment in the change that moves past it.
 # Web UI npm vulnerability audit (fails on high-severity findings; not part of check)
 ./gradlew :showcase-web-ui:npmAudit
 
@@ -2223,6 +2226,14 @@ capture-stash-stale-copy
   unlike one the override carries no expiry, so park its re-check in `docs/ideas.md` and derive the retrigger from the
   resolved graph: every package that pins the vulnerable version must bump before it is dropped. captured:
   fix-dependency-security-findings
+- **A build tool's own vulnerable transitive does not reach the platform BOM, and a tool configuration that rejects a
+  platform project is aligned with a dependency constraint instead.** The platform's `constraints` reach the
+  compile/runtime classpaths, not Gradle's tool configurations: `errorprone(platform(project(":platform")))` works (its
+  `annotationProcessor` classpath extends it), while `checkstyle(platform(project(":platform")))` drops the checkstyle
+  tool and fails `checkstyleMain` with `ClassNotFoundException: CheckstyleAntTask` — constrain that one with
+  `constraints { checkstyle(libs.guava) }`. A scan names the coordinate, not the configuration carrying it, so derive
+  the owning configuration from the graph (`./gradlew :<module>:dependencies --configuration <config>`) before choosing
+  the fix. captured: fix-new-security-advisories
 - **Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
   `implementation`-only dependencies** — each suite re-declares what it needs (client component suites duplicate
   axon/opensearch/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be referenced in

@@ -173,10 +173,11 @@ Spring Boot 4 migration (per ADR-0004). Minor and patch updates for this coordin
 ### Requirement: Axon Framework major updates are suppressed until the framework's 5.x dependency surface exists
 
 The shipped major-disabled configuration SHALL include `org.axonframework` as a group prefix: the framework major is
-deferred because the modules and extensions the project runs on have no 5.x release — the Kafka and JGroups extensions
-(event propagation and command routing) and the Micrometer metrics and OpenTelemetry tracing modules — with the Spring
-Boot starter at a preview only. The deferral and its reopen trigger are recorded in ADR-0011, which the configuration's
-comment SHALL name. Minor and patch updates for these coordinates SHALL remain reported.
+deferred because the migration is not yet viable — the Kafka extension has no 5.x release, and AF4's JGroups distributed
+command bus moved into AxonIQ's commercial offering in Axon Framework 5, so command routing needs a decision rather than
+an upstream wait. The framework, Spring Boot, Reactor, Micrometer-metrics, and OpenTelemetry-tracing extensions DO have
+stable 5.x under coordinates Axon renamed. The deferral and its reopen trigger are recorded in ADR-0011, which the
+configuration's comment SHALL name. Minor and patch updates for these coordinates SHALL remain reported.
 
 #### Scenario: The Axon framework major is suppressed
 

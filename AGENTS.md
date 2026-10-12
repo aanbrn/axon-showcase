@@ -162,7 +162,10 @@ explicit answer — as with an unanswered approval request, an ambiguous instruc
 **A review finding is a claim to verify, not an instruction to apply.** The review gate catches errors, but its
 corrections are themselves claims: reproduce each against the mechanism or artifact before adopting it, and when a
 correction cannot be substantiated, remove the claim rather than assert it either way — a refutation confirmed against
-the authoritative policy may be adopted; one that cannot be reproduced is dropped, not written in either direction.
+the authoritative policy may be adopted; one that cannot be reproduced is dropped, not written in either direction. A
+correction that **deletes** an existing statement has no downstream reader to catch it, so reproduce it at the source
+the statement names before deleting — a POM's `<exclusion>` searched as Gradle's `<exclude>` returned 0 hits, read as
+"no exclusions", and removed a true one. captured: record-remaining-architecture-advisories
 
 **Report an upstream gap we identify, not only the workaround around it.** A dependency or tool we rely on is worth
 improving: when a gap is identified — a spurious update row, a deprecation with no fix, a limitation that forces a
@@ -197,35 +200,38 @@ tool (it reaches every command, `helm repo search` included) — and a setting a
 the task that resolves it, not asserted from the declaring script. A shared helper's **precedence** is part of that
 claim too: read its own template, since a non-empty global can override every per-component value (defaulting the
 Bitnami `common.images.image` global would have misrouted the Docker-Hub metrics-exporter sidecar). captured:
-publish-helm-chart The worked case is the `remove-redis-client-label` detour — a full propose→apply→verify cycle for a
-chart-default its labels must not have, with the design weighing implementation alternatives but never questioning the
-premise; the premise, and why it collapses, are in the `*-client` pod-labels bullet below. Verify the current state's
-rationale against the repo — grep for consumers, read the values and their comments, check `git log` for the introducing
-change — and record it in the design's Context; treat "this looks redundant" as a hypothesis to verify, not a
-justification to remove. A cost, effort, or performance claim is a hypothesis of the same kind, and no file in the repo
-states it — its only source is a deliberate measurement, so probe it before it drives a proceed-or-skip decision: the
-parked `git worktree` idea carried an assumed build cost behind a conclusion that worktrees were not worth it for a
-docs-only or single-file fix, and a throwaway probe (a detached worktree from `main`, shared caches warm) measured the
-first build at a one-time ~1 minute (its Docker-free `check` ran 78s) and ~628M per tree, partly falsifying the premise
-that had steered the idea away from the small changes it suits. captured: record-worktree-cost-measurement Before
-designing the change — proposing a mechanism (an auditor, a check, a workflow, a scan), **reworking an existing
-artifact**, or asserting in the premise that the repo lacks a rule — grep `docs/ideas.md` for a parked design, the spec
-corpus and archived changes for an existing requirement **or a recorded decision about it — including a `skip_specs`
-decision not to spec it and a recent change's Non-Goal**, and `docs/adr/` for an Accepted decision the design would
-implement or contradict — an ADR's Decision is normative, so designing a relaxation past it is a premise error, not a
-design choice — and the artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier
-the same session may already have added it. A parked idea, a spec'd capability, or an Accepted ADR is the design to
-adopt, not re-derive; a false absence claim runs a whole propose cycle on the wrong premise and duplicates what exists.
-`add-readme-auditor`'s planning proposed widening `agents-auditor` past the parked `readme-auditor` idea the repo
-already had, caught by the owner rather than a gate; an `enforce-web-ui-import-boundaries` design proposed two
-relaxations of the one-way import rule that ADR-0013's Accepted Decision already forbade, caught by a reviewer. Before
-treating a spec change as owed, read the spec's **existing** wording for the behavior the code implements — the contract
-may already state it, in which case the fix is code→spec alignment, not a spec rewrite. `#455`'s `scripts/doctor.sh`
-classified the repo-state checks as `required` while `showcase/quality/toolchain-check` already carried the exit
-contract ("unsatisfied prerequisites for the **default build-and-test path**") and only ever had the hooks _reported_,
-so the defect was a classification chosen in the code and never written into the spec. captured:
-spec-cache-fallback-failed-fetch-contract captured: enforce-web-ui-import-boundaries captured:
-classify-repo-state-checks captured: rework-readme-lifecycle-diagram
+publish-helm-chart A claim about a dependency's mechanism — what a coordinate pulls, what a jar contains, what a POM
+excludes — is derived from the resolved graph or the artifact's own contents, never hand-enumerated from memory: a
+remembered inventory standing in for an absence claim is wrong on the members beside the ones you listed. captured:
+record-remaining-architecture-advisories The worked case is the `remove-redis-client-label` detour — a full
+propose→apply→verify cycle for a chart-default its labels must not have, with the design weighing implementation
+alternatives but never questioning the premise; the premise, and why it collapses, are in the `*-client` pod-labels
+bullet below. Verify the current state's rationale against the repo — grep for consumers, read the values and their
+comments, check `git log` for the introducing change — and record it in the design's Context; treat "this looks
+redundant" as a hypothesis to verify, not a justification to remove. A cost, effort, or performance claim is a
+hypothesis of the same kind, and no file in the repo states it — its only source is a deliberate measurement, so probe
+it before it drives a proceed-or-skip decision: the parked `git worktree` idea carried an assumed build cost behind a
+conclusion that worktrees were not worth it for a docs-only or single-file fix, and a throwaway probe (a detached
+worktree from `main`, shared caches warm) measured the first build at a one-time ~1 minute (its Docker-free `check` ran
+78s) and ~628M per tree, partly falsifying the premise that had steered the idea away from the small changes it suits.
+captured: record-worktree-cost-measurement Before designing the change — proposing a mechanism (an auditor, a check, a
+workflow, a scan), **reworking an existing artifact**, or asserting in the premise that the repo lacks a rule — grep
+`docs/ideas.md` for a parked design, the spec corpus and archived changes for an existing requirement **or a recorded
+decision about it — including a `skip_specs` decision not to spec it and a recent change's Non-Goal**, and `docs/adr/`
+for an Accepted decision the design would implement or contradict — an ADR's Decision is normative, so designing a
+relaxation past it is a premise error, not a design choice — and the artifact you are editing at `HEAD`, `AGENTS.md`
+included, since a sibling change merged earlier the same session may already have added it. A parked idea, a spec'd
+capability, or an Accepted ADR is the design to adopt, not re-derive; a false absence claim runs a whole propose cycle
+on the wrong premise and duplicates what exists. `add-readme-auditor`'s planning proposed widening `agents-auditor` past
+the parked `readme-auditor` idea the repo already had, caught by the owner rather than a gate; an
+`enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import rule that ADR-0013's Accepted
+Decision already forbade, caught by a reviewer. Before treating a spec change as owed, read the spec's **existing**
+wording for the behavior the code implements — the contract may already state it, in which case the fix is code→spec
+alignment, not a spec rewrite. `#455`'s `scripts/doctor.sh` classified the repo-state checks as `required` while
+`showcase/quality/toolchain-check` already carried the exit contract ("unsatisfied prerequisites for the **default
+build-and-test path**") and only ever had the hooks _reported_, so the defect was a classification chosen in the code
+and never written into the spec. captured: spec-cache-fallback-failed-fetch-contract captured:
+enforce-web-ui-import-boundaries captured: classify-repo-state-checks captured: rework-readme-lifecycle-diagram
 
 **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's own
 prior reconciliation.** ADR-0002 makes the Java `@ConfigurationProperties` the surface that owns a property's default,
@@ -928,7 +934,8 @@ Key modules (libraries, not services):
   `config/checkstyle/checkstyle.xml`, generated sources excluded via `config/checkstyle/suppressions.xml`
 - **SpotBugs**: finds bugs with findsecbugs and fbContrib plugins; uses `spotbugs-include.xml` and
   `spotbugs-exclude.xml` filters in `config/spotbugs/` if present (see `code-check-conventions.gradle.kts`)
-- **LZ4 relocation**: root build forces `org.lz4:lz4-java` substitution (see `build.gradle.kts`)
+- **LZ4 relocation**: root build forces `org.lz4:lz4-java` substitution (an unmaintained, CVE-affected line; see
+  ADR-0020 and `build.gradle.kts`)
 - **Build-tool versions live in the version catalog**: a `build-logic` convention plugin never hard-codes a tool version
   — it declares it in `gradle/libs.versions.toml` and reads it via `val libs = the<LibrariesForLibs>()` /
   `libs.versions.<name>.get()` (runtime `node`/`java`, plugin `toolVersion` `checkstyle`/`spotbugs`/`jacoco`, the

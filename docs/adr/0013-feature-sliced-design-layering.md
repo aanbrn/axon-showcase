@@ -44,7 +44,8 @@ The layers, as populated:
 - `features` — user interactions (`create-showcase`, `showcase-actions`); use entities and shared.
 - `entities` — domain display units (`showcase`, `showcase-event`) owning their state slices; use `shared`, and one
   declared `@x` cross-import for the events edge (`showcase` reading the `showcase-event` type).
-- `shared` — the layer with no domain knowledge (`api`, `format`, `retry`); imports nothing from the layers above.
+- `shared` — the layer with no domain knowledge (`api`, `format`, `retry`, `tracing`, `telemetry`); imports nothing from
+  the layers above.
 
 Alternatives considered and rejected: a single flat `components/` directory (no enforceable direction, cycles likely as
 the UI grows); a type-based split (`components`/`hooks`/`utils`) with no domain grouping (organizes by implementation

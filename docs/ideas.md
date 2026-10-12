@@ -114,23 +114,6 @@ dated when it was added (start a new section for a new day rather than appending
   Routes to `.github/workflows/audit.yml`'s prompt (name a same-day second run distinctly, e.g. by including the run's
   trigger) and the `merge-governance` spec requirement that owns that workflow's report behavior.
 
-- Record the LZ4 relocation's rationale — parked; no change yet. `build.gradle.kts` forces `org.lz4:lz4-java` to
-  `at.yawk.lz4:lz4-java`, but its `.because("Force relocation of LZ4 implementation")` restates what the substitution
-  does, not why the build redirects to a third-party rehost (yawkat's `at.yawk.lz4` republish of `org.lz4` — a
-  supply-chain-relevant swap). Both 2026-10-04 architecture audits report the rationale as unrecorded — `AGENTS.md`
-  records only the mechanism — and it is parked nowhere. Routes to `AGENTS.md` or an ADR.
-
-## 2026-10-03
-
-- Record the Elasticsearch Java client's role on the read side — parked; no change yet. The projection/query services
-  and the query client declare `co.elastic.clients:elasticsearch-java` directly (`showcase-projection-service`,
-  `showcase-query-service`, and `showcase-query-client` build files), but no Java source imports a `co.elastic.clients`
-  type and no ADR records why — ADR-0012 records the OpenSearch-client swap but never mentions it, and no build-file
-  comment explains the declaration. The dependency's Jackson-3 transitives are covered by the dependency-security spec
-  and the transitive-vulnerability archives, but the structural decision (why the read side depends on Elastic's client
-  at all) is recorded nowhere. Surfaced by the widened `architecture-auditor`'s smoke-run; extend ADR-0012 (or ADR-0003)
-  with the clause once the reason is established.
-
 ## 2026-09-30
 
 - Retire the OpenSpec config probe and the `/opsx-tool-update` re-verification once `validate` checks the config —

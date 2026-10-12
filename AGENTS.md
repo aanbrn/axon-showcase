@@ -1050,52 +1050,53 @@ Key modules (libraries, not services):
   dependency, tool, or wrapper version) is the mechanical case: it makes stale every live doc that names the bumped
   version — including a coordinate version an ADR or idea quotes as the catalog's current value — so grep the old string
   across `AGENTS.md`, `README.md`, `openspec/config.yaml`, `docs/adr/`, and `docs/ideas.md` and fix each, since no gate
-  reads any of them. Update them before reporting the change done; also remove the change's idea from `docs/ideas.md`
-  **in the same PR**, so it rides the change branch and commits with its push rather than landing as a separate docs PR.
-  An idea is removed once implemented (captured by a change) or once explored and decided against (the durable lesson is
-  captured in `AGENTS.md`/an ADR instead); only open ideas remain (see the file's header). Promotion to a GitHub issue
-  is a **link, not a removal** — annotate the idea with the issue number when you promote it, since the file's header
-  names only the issue's link to the change, not the scratchpad's back-link to the issue, so the two drift apart — and
-  prefer promoting a unit's idea at that unit's merge: while its PR is open, citing an artifact the unit ships is a
-  contingent claim that must say so (`open as #NNN; not yet merged`) and the clause drops at the merge, because the
-  issue is a permanent record outside the repository and cannot cite what the default branch does not have. Give every
-  parked entry a trailing status tag stating its disposition (`— parked; no change yet.` is the common form; a promoted
-  or explored-and-set-aside idea says so instead: the promotion _replaces_ the parked tag,
-  `— promoted to issue #NNN; no change yet.`, never a clause appended past the tag's sentence-final period), since the
-  header fixes the sections' order and dating but not the tag, and the tag is what marks the entry as a still-unowned
-  idea rather than one already routed to work. Also sweep `docs/ideas.md` for references to the thing this change
-  shipped — an open idea that still calls it "the proposed X" is itself a stale claim, and no auditor covers that file
-  (the four auditors own `AGENTS.md`/`.opencode/`, the spec corpus, `docs/adr/` plus the architectural surface, and
-  `README.md` respectively); update the idea's prose in the same change, including any enumeration or count it carries
-  ("two others remain open: A, B") that the change's new instance makes wrong. Docs that ARE the change (new
-  agent/command/skill documentation, README rows describing a new capability, the change's idea removal) ship with the
-  change's PR. For every other docs edit the boundary is **causation _while the change is in flight_**: an edit the
-  change causes and that exists while it can still ride a branch — a lesson from its implementation (the capture), an
-  idea its own sweep surfaced, a fact it falsified — ships in that change's PR, while an edit the change did not cause
-  (a stale fact it merely passed by, a standalone reword, a refresh of an already-completed change) and one surfaced
-  only after the change is done (a merge-time capture, caused by the change but with no branch left to ride) ships as
-  its own docs PR, forked from `main`, batched into one docs PR rather than one per item. Decide the owner before
-  committing — a docs PR forked from `main` cannot carry an edit committed on a change branch, so committing it there
-  first for a clean tree silently leaves it out of the docs PR and `main` unchanged — and verify the fix against the
-  merged PR's diff rather than the PR description, which can claim a change the diff does not contain. A parked-idea
-  docs PR owes the refresh too: fold any durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section
-  (e.g. add a newly surfaced manual pin to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a
-  fact left only there is lost once the idea is implemented or dropped. `openspec/config.yaml`'s `context:` block is a
-  second, un-gated copy of the same project facts (runtime/Spring/Gradle versions, module count, service list, Docker
-  image names) that OpenSpec shows the AI when creating artifacts — refresh it in the same change whenever one of those
-  facts moves. Some of its per-artifact `rules` restate obligations stated in `AGENTS.md` and the specs, and what is
-  un-gated is their content and currency: `ci.yml`'s probe fails on a malformed item — the list's shape, since a bad one
-  silently drops the whole artifact's rule set — but not on whether a rule's wording still matches `AGENTS.md` and the
-  spec, so refresh a rule whose obligation moves even though the gate stays green. A **removal** counts too: when a
-  sweep deletes an entry as non-durable, check these copies for the same sentence — the fact has not moved, so the move
-  rule does not fire (`disable-axoniq-console-message`'s sentence outlived #292's removal from `AGENTS.md` by four PRs
-  in `config.yaml`, until the audit noticed). `openspec validate` never checks it, so it drifts silently. The
-  repository's own GitHub description and topics are a third un-gated copy of the same facts — so refresh them in the
-  change that moves one; no gate reads them and no auditor owns a surface outside the repository. A file can also
-  _depend_ on such a surface rather than describe one: `SECURITY.md`'s private-reporting path is a dead end unless
-  private vulnerability reporting is enabled. Enable the setting as part of the change that ships the instruction — a
-  repository setting leaves no diff, so a diff-only review cannot see it — and name the enabling in the change's report.
-  captured: park-retro-marking-idea (#281) captured: re-measure-load-test-baseline (#429)
+  reads any of them. captured: bump-dependencies-2026-10-12 Update them before reporting the change done; also remove
+  the change's idea from `docs/ideas.md` **in the same PR**, so it rides the change branch and commits with its push
+  rather than landing as a separate docs PR. An idea is removed once implemented (captured by a change) or once explored
+  and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open ideas remain (see the
+  file's header). Promotion to a GitHub issue is a **link, not a removal** — annotate the idea with the issue number
+  when you promote it, since the file's header names only the issue's link to the change, not the scratchpad's back-link
+  to the issue, so the two drift apart — and prefer promoting a unit's idea at that unit's merge: while its PR is open,
+  citing an artifact the unit ships is a contingent claim that must say so (`open as #NNN; not yet merged`) and the
+  clause drops at the merge, because the issue is a permanent record outside the repository and cannot cite what the
+  default branch does not have. Give every parked entry a trailing status tag stating its disposition
+  (`— parked; no change yet.` is the common form; a promoted or explored-and-set-aside idea says so instead: the
+  promotion _replaces_ the parked tag, `— promoted to issue #NNN; no change yet.`, never a clause appended past the
+  tag's sentence-final period), since the header fixes the sections' order and dating but not the tag, and the tag is
+  what marks the entry as a still-unowned idea rather than one already routed to work. Also sweep `docs/ideas.md` for
+  references to the thing this change shipped — an open idea that still calls it "the proposed X" is itself a stale
+  claim, and no auditor covers that file (the four auditors own `AGENTS.md`/`.opencode/`, the spec corpus, `docs/adr/`
+  plus the architectural surface, and `README.md` respectively); update the idea's prose in the same change, including
+  any enumeration or count it carries ("two others remain open: A, B") that the change's new instance makes wrong. Docs
+  that ARE the change (new agent/command/skill documentation, README rows describing a new capability, the change's idea
+  removal) ship with the change's PR. For every other docs edit the boundary is **causation _while the change is in
+  flight_**: an edit the change causes and that exists while it can still ride a branch — a lesson from its
+  implementation (the capture), an idea its own sweep surfaced, a fact it falsified — ships in that change's PR, while
+  an edit the change did not cause (a stale fact it merely passed by, a standalone reword, a refresh of an
+  already-completed change) and one surfaced only after the change is done (a merge-time capture, caused by the change
+  but with no branch left to ride) ships as its own docs PR, forked from `main`, batched into one docs PR rather than
+  one per item. Decide the owner before committing — a docs PR forked from `main` cannot carry an edit committed on a
+  change branch, so committing it there first for a clean tree silently leaves it out of the docs PR and `main`
+  unchanged — and verify the fix against the merged PR's diff rather than the PR description, which can claim a change
+  the diff does not contain. A parked-idea docs PR owes the refresh too: fold any durable fact the idea reveals into the
+  relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin to an existing enumeration) —
+  `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the idea is implemented or dropped.
+  `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the same project facts (runtime/Spring/Gradle
+  versions, module count, service list, Docker image names) that OpenSpec shows the AI when creating artifacts — refresh
+  it in the same change whenever one of those facts moves. Some of its per-artifact `rules` restate obligations stated
+  in `AGENTS.md` and the specs, and what is un-gated is their content and currency: `ci.yml`'s probe fails on a
+  malformed item — the list's shape, since a bad one silently drops the whole artifact's rule set — but not on whether a
+  rule's wording still matches `AGENTS.md` and the spec, so refresh a rule whose obligation moves even though the gate
+  stays green. A **removal** counts too: when a sweep deletes an entry as non-durable, check these copies for the same
+  sentence — the fact has not moved, so the move rule does not fire (`disable-axoniq-console-message`'s sentence
+  outlived #292's removal from `AGENTS.md` by four PRs in `config.yaml`, until the audit noticed). `openspec validate`
+  never checks it, so it drifts silently. The repository's own GitHub description and topics are a third un-gated copy
+  of the same facts — so refresh them in the change that moves one; no gate reads them and no auditor owns a surface
+  outside the repository. A file can also _depend_ on such a surface rather than describe one: `SECURITY.md`'s
+  private-reporting path is a dead end unless private vulnerability reporting is enabled. Enable the setting as part of
+  the change that ships the instruction — a repository setting leaves no diff, so a diff-only review cannot see it — and
+  name the enabling in the change's report. captured: park-retro-marking-idea (#281) captured:
+  re-measure-load-test-baseline (#429)
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
@@ -1479,11 +1480,11 @@ ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64
 
 The web UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
 `PackBuildImageTask`) that runs the `pack` CLI with the **version-pinned** Paketo NGINX + Procfile buildpacks
-(`paketo-buildpacks/nginx@1.3.0`, `paketo-buildpacks/procfile@5.15.2`; the versions are catalog-owned as `paketo-nginx`
+(`paketo-buildpacks/nginx@1.3.0`, `paketo-buildpacks/procfile@5.15.3`; the versions are catalog-owned as `paketo-nginx`
 and `paketo-procfile`) over `build/dist` (the `pack` CLI is a build prerequisite like Helm/Snyk). The pins are explicit
 because an unversioned buildpack reference becomes ambiguous — `pack` fails with "multiple versions … must specify an
 explicit version" — once the builder bundles two versions of a buildpack (the intermittent `e2e`/`helmInstallToLocal`
-failure). The builder itself is also pinned (`builder-jammy-base:0.4.653`, catalog-owned as `paketo-builder-jammy-base`)
+failure). The builder itself is also pinned (`builder-jammy-base:0.4.659`, catalog-owned as `paketo-builder-jammy-base`)
 rather than floating, and the `buildpackUpdates` task / `buildpack-updates` workflow reports newer builder and buildpack
 versions — no other update check covers Paketo. **The builder and the buildpacks it bundles must be bumped together:** a
 `paketo-nginx` pin that is _absent_ from the builder (e.g. holding a buildpack one line behind the builder) makes `pack`
@@ -1928,11 +1929,13 @@ capture-stash-stale-copy
   on `dockerBuildImage` succeeding and on reading the built image's `io.buildpacks.build.metadata` label back (which
   named `paketo-buildpacks/nginx 1.2.1`), and the pin it shipped exits 127 on the development machine: the image is
   amd64 but its `nginx` is AArch64, while the build log says `Installing Nginx Server 1.31.5` on both architectures. Run
-  the image after a buildpack or builder bump — `docker run`, `GET /`, check the binary's architecture — and be explicit
-  about the platform when reasoning about a multi-arch artifact: the buildpack images are multi-arch, so a bare
-  `docker pull` on an arm64 host resolves the host's own slice and cannot evidence a claim about the amd64 one (the
-  image this pipeline produces is amd64-only, so a bare run of it is not the risk). The metadata label is doubly
-  misleading: it names the _buildpack version_ the build used (correctly the pinned version) while the
+  the image after a buildpack or builder bump — `docker run`, `GET /`, and read the binary's architecture **from the
+  buildpack's layer** (`/layers/paketo-buildpacks_nginx/nginx/sbin/nginx`), not the runtime `PATH` (a
+  `file $(which nginx)` probe returns not-found there), decoding the ELF `e_machine` (`3e 00` = x86-64, `b7 00` =
+  AArch64) — and be explicit about the platform when reasoning about a multi-arch artifact: the buildpack images are
+  multi-arch, so a bare `docker pull` on an arm64 host resolves the host's own slice and cannot evidence a claim about
+  the amd64 one (the image this pipeline produces is amd64-only, so a bare run of it is not the risk). The metadata
+  label is doubly misleading: it names the _buildpack version_ the build used (correctly the pinned version) while the
   wrong-architecture binary comes from the resolved **buildpackage slice**, so a label reading `1.2.0` does not clear a
   `1.2.0` pin — the `address-2026-09-21-update-checks` A/B found the pin build cleanly and exit 127 when `pack` added it
   from the registry as an arm64 slice (`sha256:0d6fedc4…`), because the builder bundled a _different_ nginx version,
@@ -1940,7 +1943,7 @@ capture-stash-stale-copy
   after:** on a builder or buildpack bump, inspect the new builder's bundled versions
   (`pack builder inspect paketobuildpacks/builder-jammy-base:<version>`) and pick the buildpack pins from what it lists
   — a builder that no longer bundles the pinned version makes `pack` add it from the registry as an arm64 slice (the
-  mismatch above). captured: bump-buildpacks-2026-10-05
+  mismatch above). captured: bump-buildpacks-2026-10-05 captured: bump-buildpacks-2026-10-12
 - IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java, ktfmt
   for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**, **Auto
   Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins (JVM) or

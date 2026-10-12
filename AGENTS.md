@@ -202,24 +202,30 @@ chart-default its labels must not have, with the design weighing implementation 
 premise; the premise, and why it collapses, are in the `*-client` pod-labels bullet below. Verify the current state's
 rationale against the repo — grep for consumers, read the values and their comments, check `git log` for the introducing
 change — and record it in the design's Context; treat "this looks redundant" as a hypothesis to verify, not a
-justification to remove. Before designing the change — proposing a mechanism (an auditor, a check, a workflow, a scan),
-**reworking an existing artifact**, or asserting in the premise that the repo lacks a rule — grep `docs/ideas.md` for a
-parked design, the spec corpus and archived changes for an existing requirement **or a recorded decision about it —
-including a `skip_specs` decision not to spec it and a recent change's Non-Goal**, and `docs/adr/` for an Accepted
-decision the design would implement or contradict — an ADR's Decision is normative, so designing a relaxation past it is
-a premise error, not a design choice — and the artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling
-change merged earlier the same session may already have added it. A parked idea, a spec'd capability, or an Accepted ADR
-is the design to adopt, not re-derive; a false absence claim runs a whole propose cycle on the wrong premise and
-duplicates what exists. `add-readme-auditor`'s planning proposed widening `agents-auditor` past the parked
-`readme-auditor` idea the repo already had, caught by the owner rather than a gate; an
-`enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import rule that ADR-0013's Accepted
-Decision already forbade, caught by a reviewer. Before treating a spec change as owed, read the spec's **existing**
-wording for the behavior the code implements — the contract may already state it, in which case the fix is code→spec
-alignment, not a spec rewrite. `#455`'s `scripts/doctor.sh` classified the repo-state checks as `required` while
-`showcase/quality/toolchain-check` already carried the exit contract ("unsatisfied prerequisites for the **default
-build-and-test path**") and only ever had the hooks _reported_, so the defect was a classification chosen in the code
-and never written into the spec. captured: spec-cache-fallback-failed-fetch-contract captured:
-enforce-web-ui-import-boundaries captured: classify-repo-state-checks captured: rework-readme-lifecycle-diagram
+justification to remove. A cost, effort, or performance claim is a hypothesis of the same kind, and no file in the repo
+states it — its only source is a deliberate measurement, so probe it before it drives a proceed-or-skip decision: the
+parked `git worktree` idea carried an assumed build cost behind a conclusion that worktrees were not worth it for a
+docs-only or single-file fix, and a throwaway probe (a detached worktree from `main`, shared caches warm) measured the
+first build at a one-time ~1 minute (its Docker-free `check` ran 78s) and ~628M per tree, partly falsifying the premise
+that had steered the idea away from the small changes it suits. captured: record-worktree-cost-measurement Before
+designing the change — proposing a mechanism (an auditor, a check, a workflow, a scan), **reworking an existing
+artifact**, or asserting in the premise that the repo lacks a rule — grep `docs/ideas.md` for a parked design, the spec
+corpus and archived changes for an existing requirement **or a recorded decision about it — including a `skip_specs`
+decision not to spec it and a recent change's Non-Goal**, and `docs/adr/` for an Accepted decision the design would
+implement or contradict — an ADR's Decision is normative, so designing a relaxation past it is a premise error, not a
+design choice — and the artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier
+the same session may already have added it. A parked idea, a spec'd capability, or an Accepted ADR is the design to
+adopt, not re-derive; a false absence claim runs a whole propose cycle on the wrong premise and duplicates what exists.
+`add-readme-auditor`'s planning proposed widening `agents-auditor` past the parked `readme-auditor` idea the repo
+already had, caught by the owner rather than a gate; an `enforce-web-ui-import-boundaries` design proposed two
+relaxations of the one-way import rule that ADR-0013's Accepted Decision already forbade, caught by a reviewer. Before
+treating a spec change as owed, read the spec's **existing** wording for the behavior the code implements — the contract
+may already state it, in which case the fix is code→spec alignment, not a spec rewrite. `#455`'s `scripts/doctor.sh`
+classified the repo-state checks as `required` while `showcase/quality/toolchain-check` already carried the exit
+contract ("unsatisfied prerequisites for the **default build-and-test path**") and only ever had the hooks _reported_,
+so the defect was a classification chosen in the code and never written into the spec. captured:
+spec-cache-fallback-failed-fetch-contract captured: enforce-web-ui-import-boundaries captured:
+classify-repo-state-checks captured: rework-readme-lifecycle-diagram
 
 **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's own
 prior reconciliation.** ADR-0002 makes the Java `@ConfigurationProperties` the surface that owns a property's default,

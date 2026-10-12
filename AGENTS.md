@@ -86,19 +86,25 @@ artifacts) and again after finishing its **implementation**, run a quick review 
 subagent) against the change's planning artifacts — for the proposal, the proposal/design/tasks/spec-delta coherence and
 repo fit; for the implementation, the tasks and delta spec — and repeat it until it reports no new observations. Fix
 everything the quick review finds, re-run it, and stop only when it comes back clean — only then ask the user for a
-manual review pass. A finding that adds behavior is a scope change, not a code fix: applying it to the code and a test
-alone leaves the change's planning artifacts — proposal, design, tasks, and delta spec — describing the old behavior,
-and the next round reports the residue as spec-/task-drift: sweep every one of them, not only the file the finding
-names, as part of applying the finding (and the docs, per the docs-refresh convention). A **framing or coherence**
-correction takes the same sweep even though it adds no behavior: the artifacts the change states the model across —
-planning and shipped alike — state one model of the subject, so correcting the model in the artifacts the finding names
-leaves a sibling — often the shipped copy, not only `proposal.md` — stating the old framing, which the next round flags
-as coherence drift. Re-read every artifact that states the corrected claim, `proposal.md` and the shipped copies
-included, before re-running the review. When one source owns the claim — a predicate the requirement owns (a threshold,
-band, or formula), or a scope the owning definition states via its class names — single-source it: state it once there
-and repeat it identically (referencing it by name where the site can), since a restated copy re-anchors on its own (a
-README copy made the matching band a tenth of the _measured_ rate where the requirement and code use the _recorded_ one)
-and the sweep has no canonical wording to sweep to. captured: record-baseline-operating-point captured:
+manual review pass. Before the first round, run a **pre-write derivation pass** over the planning artifacts, deriving
+each of the four claim classes this loop keeps catching from its source: read every run-log, issue-state, or
+external-artifact claim from the artifact now; re-grep every count against its set; single-source a model stated in more
+than one artifact; and derive every mechanism or task-check claim from the tool or the graph. The rules for those
+classes already exist — the pass spends at authoring time the rounds the review otherwise spends finding them. Pass the
+prior round's findings on every re-run, so the subagent can report a repeated class rather than classifying each round
+in isolation. A finding that adds behavior is a scope change, not a code fix: applying it to the code and a test alone
+leaves the change's planning artifacts — proposal, design, tasks, and delta spec — describing the old behavior, and the
+next round reports the residue as spec-/task-drift: sweep every one of them, not only the file the finding names, as
+part of applying the finding (and the docs, per the docs-refresh convention). A **framing or coherence** correction
+takes the same sweep even though it adds no behavior: the artifacts the change states the model across — planning and
+shipped alike — state one model of the subject, so correcting the model in the artifacts the finding names leaves a
+sibling — often the shipped copy, not only `proposal.md` — stating the old framing, which the next round flags as
+coherence drift. Re-read every artifact that states the corrected claim, `proposal.md` and the shipped copies included,
+before re-running the review. When one source owns the claim — a predicate the requirement owns (a threshold, band, or
+formula), or a scope the owning definition states via its class names — single-source it: state it once there and repeat
+it identically (referencing it by name where the site can), since a restated copy re-anchors on its own (a README copy
+made the matching band a tenth of the _measured_ rate where the requirement and code use the _recorded_ one) and the
+sweep has no canonical wording to sweep to. captured: record-baseline-operating-point captured:
 widen-architecture-auditor-to-revisit-triggers captured: add-apply-audit-reductions-command. A clean quick review is a
 precondition for asking for the manual review, **not** a substitute for it — it means _ask the user now_, not _the
 implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength of a clean `review-quick`
@@ -2704,9 +2710,10 @@ capture-stash-stale-copy
   actually keys on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
   `upstream-references.yml` report (the fifth observational check above). captured: suppress-braces-npm-advisory
   captured: refresh-upstream-references-2026-10-05
-- **Work a change surfaces is parked durably — a PR body is not a record.** When a docs change records an external state
-  change that implies work, park that work in `docs/ideas.md` (or record it as a task) in the same change: a PR body is
-  squashed and no tool reads it, so work named only there is lost.
+- **Work a change surfaces is parked durably — a PR body is not a record.** When a change records an external state
+  change that implies work, or names a companion change it will not deliver, park that work in `docs/ideas.md` (or
+  record it as a task) in the same change: a PR body is squashed and a change dir is archived, and no tool reads either,
+  so work named only there is lost. captured: cut-review-loop-rounds
 - **A change merged without its archive is incomplete — do not merge the implementation PR and defer the archive.** The
   "one PR per change" rule puts the archive commit in the _same_ PR before merge; a change whose PR merged but whose
   change dir was never archived is easy to forget (the `remove-redis-client-label` change was merged and sat unarchived

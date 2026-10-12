@@ -52,6 +52,8 @@ rules:
     - List "What Changes" at the file level, not as a rephrasing of Why
     - Declare "New Capabilities" / "Modified Capabilities" using existing capability names
     - Note the "Impact" on build, tests, and deployment explicitly
+    - Every claim about a run log, issue state, or external artifact is read from that artifact, not recalled
+    - Every count is re-derived by grepping the set it counts
   specs:
     - Requirements are declarative SHALL statements, testable via WHEN/THEN scenarios
     - Delta specs use ADDED/MODIFIED/DEPRECATED/REMOVED requirement blocks
@@ -61,6 +63,8 @@ rules:
     - Start with "Context" referencing the proposal, then "Goals / Non-Goals"
     - Capture "Decisions" with the alternatives considered and why they were rejected
     - Flag "Risks / Trade-offs" with concrete mitigation
+    - A model stated in more than one artifact is single-sourced, the rest referencing it by name
+    - Every mechanism or task-check claim is derived from the dependency graph or the tool's own definition
   tasks:
     - Break tasks into chunks of max 2 hours
     - Reference exact file paths and commands so each task is verifiable

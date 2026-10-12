@@ -2,7 +2,7 @@
 
 ## 1. The spec
 
-- [ ] 1.1 Record the `dependency-security` `## Purpose` refresh as its own step: a delta cannot carry a Purpose, so add
+- [x] 1.1 Record the `dependency-security` `## Purpose` refresh as its own step: a delta cannot carry a Purpose, so add
       `org.xerial.snappy:snappy-java` and `guava` to the Purpose (which enumerates the constrained set) in the archive
       commit. Verify the Purpose names both after archive.
 
@@ -29,8 +29,8 @@
 ## 5. Verification
 
 - [x] 5.1 Run `./gradlew check` with the integration tests (Docker), covering the runtime-path constraint.
-- [ ] 5.2 Dispatch the credentialed scan against this branch
-      (`gh workflow run dependency-security.yml --ref fix-new-security-advisories`) and confirm it passes.
+- [x] 5.2 Dispatch the credentialed scan against this branch
+      (`gh workflow run dependency-security.yml --ref fix-new-security-advisories`) — ran (run 38195676967) and passed.
 - [x] 5.3 Run a `review-quick` pass over the proposal and implementation, repeating until clean.
 
 ## 6. Capture

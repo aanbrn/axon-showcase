@@ -4,8 +4,8 @@
 
 Ensures the build does not ship known-vulnerable dependencies: the platform constrains vulnerable transitive
 dependencies — Jackson 3 (`tools.jackson.core`), Jackson 2 (`com.fasterxml.jackson.core`), Apache HttpClient 5,
-`zstd-jni`, and `io.netty` — to patched versions so the Snyk scan reports clean, and the web UI's npm dependencies are
-audited by `npmAudit`.
+`zstd-jni`, `snappy-java`, `guava` (including on the `errorprone`/`checkstyle` tool classpaths), and `io.netty` — to
+patched versions so the Snyk scan reports clean, and the web UI's npm dependencies are audited by `npmAudit`.
 
 ## Requirements
 
@@ -16,8 +16,10 @@ versions: `tools.jackson.core` modules SHALL resolve through the `tools.jackson:
 reported issues (at least `3.2.3`), `com.fasterxml.jackson.core` modules (Jackson 2) SHALL resolve through the
 `com.fasterxml.jackson:jackson-bom` at a version that fixes the reported issues (at least `2.22.3`),
 `org.apache.httpcomponents.client5:httpclient5` SHALL resolve to at least `5.6.4`, `com.github.luben:zstd-jni` SHALL
-resolve to at least `1.5.7-14`, and `io.netty` modules SHALL resolve through the `io.netty:netty-bom` at a version that
-fixes the reported issue (at least `4.2.18.Final`).
+resolve to at least `1.5.7-14`, `org.xerial.snappy:snappy-java` SHALL resolve to at least `1.1.10.10`,
+`com.google.guava:guava` SHALL resolve to the platform's constrained version (at least `33.7.2-jre`) on the tool
+classpaths a scan reads (`annotationProcessor` for the Error Prone tool, and `checkstyle`) — and `io.netty` modules
+SHALL resolve through the `io.netty:netty-bom` at a version that fixes the reported issue (at least `4.2.18.Final`).
 
 #### Scenario: Jackson 3 modules resolve to the aligned BOM version
 
@@ -41,6 +43,17 @@ fixes the reported issue (at least `4.2.18.Final`).
 - **WHEN** a module that depends on `kafka-clients` resolves its runtime classpath
 - **THEN** `com.github.luben:zstd-jni` resolves to version `1.5.7-14` or newer
 
+#### Scenario: snappy-java resolves to a patched version wherever kafka-clients is present
+
+- **WHEN** a module that depends on `kafka-clients` resolves its runtime classpath
+- **THEN** `org.xerial.snappy:snappy-java` resolves to version `1.1.10.10` or newer
+
+#### Scenario: Guava resolves to the constrained version on the tool classpaths
+
+- **WHEN** a module applying the code-check conventions resolves its `checkstyle` and `annotationProcessor`
+  configurations
+- **THEN** `com.google.guava:guava` resolves to version `33.7.2-jre` or newer on each
+
 #### Scenario: Netty modules resolve to a patched version wherever reactor-netty is present
 
 - **WHEN** a module that depends on `reactor-netty-http` resolves its runtime classpath
@@ -51,8 +64,8 @@ fixes the reported issue (at least `4.2.18.Final`).
 - **WHEN** `snyk test --all-sub-projects --policy-path=.snyk` runs against the build
 - **THEN** none of `showcase-projection-model`, `showcase-projection-service`, `showcase-query-client`, and
   `showcase-query-service` report a vulnerable path for Jackson 3 or `httpclient5`, no sub-project reports one for
-  Jackson 2, `zstd-jni`, or `io.netty`, and the only suppressed findings are those pinned in `.snyk` with a stated
-  reason and expiry
+  Jackson 2, `zstd-jni`, `snappy-java`, `guava`, or `io.netty`, and the only suppressed findings are those pinned in
+  `.snyk` with a stated reason and expiry
 
 ### Requirement: Local dependency security scan task
 

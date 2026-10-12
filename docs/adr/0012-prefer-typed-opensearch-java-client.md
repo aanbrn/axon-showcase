@@ -17,12 +17,15 @@ audit surfaced the exclusions as a choice whose rationale was missing. Both halv
 misread: the high-level client is **excluded** in four modules but **version-managed** in `platform`, so a reader sees
 the coordinate in two places with opposite treatment and no explanation.
 
+This ADR also records a third coordinate on that graph — **Elastic's typed client** — retrospectively on 2026-10-12,
+after probing its removal established why it is load-bearing (see the Decision).
+
 ## Decision
 
 Use the typed `org.opensearch.client:opensearch-java` client for OpenSearch access, and keep the legacy
 `opensearch-rest-high-level-client` off the runtime classpath of every module that talks to the cluster.
 
-The arrangement has two parts:
+The arrangement has three parts:
 
 - **Exclusion (every module that pulls `spring-data-opensearch`)** — `showcase-projection-model`,
   `showcase-projection-service`, `showcase-query-service`, and `showcase-query-client` each declare the dependency with
@@ -37,6 +40,13 @@ The arrangement has two parts:
   rather than whatever `spring-data-opensearch` happens to request. Managing the version and excluding the artifact are
   not in tension: the constraint keeps the coordinate consistent for anything that still resolves it, while the
   exclusions keep it off the modules' classpaths.
+- **The Elasticsearch client (`co.elastic.clients:elasticsearch-java`)** — declared explicitly by
+  `showcase-projection-service`, `showcase-query-service`, and `showcase-query-client`'s `componentTest`, though no
+  project source imports `co.elastic.clients`. It is **not** supplied transitively: `spring-data-opensearch`'s POM
+  excludes `co.elastic.clients:*` (and `org.elasticsearch.client:*`) from the Spring Data Elasticsearch dependency it
+  pulls, while Spring Data Elasticsearch's `client.elc` classes do reference Elastic's client — and Spring Boot's
+  `ElasticsearchDataAutoConfiguration` conditions on `client.elc.ElasticsearchTemplate`, so the read side cannot start
+  without it. The catalog pins the coordinate at `9.5.4`, where Spring Boot's BOM manages `8.18.8`.
 
 Alternatives considered and rejected: keeping the high-level REST client (it is the deprecated surface the swap exists
 to leave, and mixing it with `opensearch-java` would put two client models on one classpath); dropping
@@ -60,3 +70,6 @@ the swap is from the _high-level_ client only, not from the REST transport.
   when reasoning about the OpenSearch dependency graph.
 - The deprecated low-level `RestClientBuilder`/`RestClient` still surface in the codebase's history as a separately
   parked concern; this ADR covers the high-level client only.
+- The Elasticsearch client declaration is **load-bearing, not a leftover**: a probe removing it from its three modules
+  failed every read-side suite at application-context startup with `NoClassDefFoundError: co/elastic/clients/ApiClient`.
+  A future cleanup that finds the coordinate "unused" by a source search must run that probe before removing it.

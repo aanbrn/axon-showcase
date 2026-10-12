@@ -1342,15 +1342,16 @@ Key modules (libraries, not services):
   subagent in AGENTS.md does not make it reachable — ship a `.opencode/commands/*.md` command (e.g. the `/retrospective`
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
   documentation first and was only usable once the user pointed out it had no trigger and the command was added.
-- **A subagent/command change is a multi-artifact sweep — diff against the last analogous change instead of re-deriving
-  the artifact set.** **A definition edit that changes spec'd behavior is a change, not a docs edit** — the
-  `agent-skills` spec describes that definition's behavior, so such an edit owes that spec's delta and never rides a
-  docs, audit-fix, or retrospective PR; a definition-only edit the spec does not describe (a model-pin bump,
-  `skip_specs: true`) still ships as a change, with no delta. Beyond the descriptors the auditor-justification bullet
-  names, a change also touches the definition's frontmatter `description`; its **own report-contract verdict line** (a
-  report that gains or changes an output section must name it there — the shared contract makes an auditor's first line
-  state a count, so a pre-widening `<n> findings` line is stale the moment an advisory section exists, becoming
-  `<n> findings, <n> advisory`); the shared report-contract requirement's own bearer list, which enumerates the
+- **A recurring unit type — a subagent/command change, a version bump — derives its change dir from the last analogous
+  archived change instead of re-deriving it: the artifact set for the former, and for a bump the task set, each task's
+  result record, and the spec-position rationale.** **A definition edit that changes spec'd behavior is a change, not a
+  docs edit** — the `agent-skills` spec describes that definition's behavior, so such an edit owes that spec's delta and
+  never rides a docs, audit-fix, or retrospective PR; a definition-only edit the spec does not describe (a model-pin
+  bump, `skip_specs: true`) still ships as a change, with no delta. Beyond the descriptors the auditor-justification
+  bullet names, a change also touches the definition's frontmatter `description`; its **own report-contract verdict
+  line** (a report that gains or changes an output section must name it there — the shared contract makes an auditor's
+  first line state a count, so a pre-widening `<n> findings` line is stale the moment an advisory section exists,
+  becoming `<n> findings, <n> advisory`); the shared report-contract requirement's own bearer list, which enumerates the
   report-producing subagents and goes stale when one is added, so it needs a `MODIFIED` delta; the trigger command
   (including its step-1 read-list); the README **slash-command table row** and its **prose** description of the auditor
   (the Spec-Driven Development, Agentic Process, and Self-Learning Loop sentences) whenever what it reports changes —
@@ -1359,7 +1360,7 @@ Key modules (libraries, not services):
   Keep any enumerated list (the swept surfaces, the finding classes) verbatim-identical across proposal/design/tasks/
   delta. The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round
   surfaced one of these that a prior analogous change had covered — read the archived analogous change and grep for the
-  artifact's name before hand-writing the set. captured: add-readme-auditor (#315)
+  artifact's name before hand-writing the set. captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
   `.opencode/opencode.json` (`model` and `small_model` — two keys), the flash-pinned subagent frontmatter
@@ -1530,7 +1531,7 @@ the image's age, as evidence about when it was built, which host built it, or wh
 
 ```bash
 # Deploy to local cluster (must be ordered)
-helm install kps prometheus-community/kube-prometheus-stack --version 91.9.0 \
+helm install kps prometheus-community/kube-prometheus-stack --version 92.3.0 \
   --namespace monitoring --create-namespace --wait
 helm install tempo grafana/tempo --version 1.24.4 --namespace monitoring --create-namespace --wait
 helm install axon-showcase-db-events bitnami/postgresql --version 16.7.27 \

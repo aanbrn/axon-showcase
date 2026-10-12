@@ -157,7 +157,7 @@ val npmOutdated =
                 logger.lifecycle("\nWeb UI dependency updates:\n$updates")
             } else if (exit.takeIf { it.exists() }?.readText()?.trim() != "0") {
                 logger.error(
-                    "Web UI dependency update report failed:\n" + error.takeIf { it.exists() }?.readText().orEmpty()
+                    "Web UI dependency update report failed:\n" + error.takeIf { it.exists() }?.readText().orEmpty(),
                 )
             } else {
                 logger.lifecycle("\nNo web UI dependency updates available.")
@@ -233,14 +233,14 @@ val dockerBuildImage =
             listOf(
                 "paketo-buildpacks/nginx@" + libs.versions.paketo.nginx.get(),
                 "paketo-buildpacks/procfile@" + libs.versions.paketo.procfile.get(),
-            )
+            ),
         )
         environment.putAll(
             mapOf(
                 "BP_WEB_SERVER" to "nginx",
                 "BP_WEB_SERVER_ROOT" to "/workspace",
                 "BP_NGINX_STUB_STATUS_PORT" to "9090",
-            )
+            ),
         )
         appDir.set(layout.buildDirectory.dir("dist"))
         inputs.file("Procfile")

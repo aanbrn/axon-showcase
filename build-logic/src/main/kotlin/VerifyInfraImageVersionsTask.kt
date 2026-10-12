@@ -61,7 +61,7 @@ abstract class VerifyInfraImageVersionsTask : AbstractHelmRepositoriesTask() {
             InfraImageVersionRules.mismatchReason(check, chartImageTag)?.let { throw GradleException(it) }
             println(
                 "${check.component}: image tag '${check.imageTag}' and chart " +
-                    "'${check.chartRef}@${check.chartVersion}' preconfigured image tag '$chartImageTag' are consistent"
+                    "'${check.chartRef}@${check.chartVersion}' preconfigured image tag '$chartImageTag' are consistent",
             )
         }
 
@@ -77,7 +77,7 @@ abstract class VerifyInfraImageVersionsTask : AbstractHelmRepositoriesTask() {
             if (pinnedTag != null) {
                 throw GradleException(
                     "values file '${file.path}' overrides 'image.tag' to '$pinnedTag'; " +
-                        "the Helm deployment must use the chart's preconfigured image tag."
+                        "the Helm deployment must use the chart's preconfigured image tag.",
                 )
             }
         }

@@ -56,7 +56,7 @@ tasks.named<JacocoReport>("jacocoTestReport") {
         fileTree(jacocoExecDir) {
             include("*.exec")
             exclude("e2eTest.exec")
-        }
+        },
     )
     dependsOn(allSuiteTestTasks)
 }
@@ -67,7 +67,7 @@ tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
         fileTree(jacocoExecDir) {
             include("*.exec")
             exclude("e2eTest.exec")
-        }
+        },
     )
     dependsOn(allSuiteTestTasks)
 

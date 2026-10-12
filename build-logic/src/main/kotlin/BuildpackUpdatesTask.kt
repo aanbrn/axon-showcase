@@ -61,7 +61,7 @@ abstract class BuildpackUpdatesTask : DefaultTask() {
         try {
             val uri =
                 URI.create(
-                    "https://hub.docker.com/v2/repositories/$repository/tags?page_size=100&ordering=last_updated"
+                    "https://hub.docker.com/v2/repositories/$repository/tags?page_size=100&ordering=last_updated",
                 )
             val request =
                 HttpRequest.newBuilder(uri)

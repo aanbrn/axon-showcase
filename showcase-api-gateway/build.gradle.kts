@@ -224,6 +224,6 @@ tasks.named<BootBuildImage>("bootBuildImage") {
             "BPE_DEFAULT_JGROUPS_BIND_PORT" to "7800",
             "BPE_DEFAULT_JGROUPS_TCP_PING_HOSTS" to
                 "axon-showcase-api-gateway[7800],axon-showcase-command-service[7800]",
-        )
+        ),
     )
 }

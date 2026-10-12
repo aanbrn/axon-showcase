@@ -155,16 +155,15 @@ public class ShowcaseSimulation extends Simulation {
     /**
      * The period an SSE connection holds open, matching the profile's run length (ramps plus hold).
      */
-    private static final Duration SSE_HOLD =
-            switch (PROFILE) {
-                case "calibrate", "baseline" -> DURATION;
-                case "average" -> RAMP_5M.plus(HOLD_30M).plus(RAMP_5M);
-                case "soak" -> RAMP_5M.plus(HOLD).plus(RAMP_5M);
-                case "stress" -> RAMP_10M.plus(HOLD_30M).plus(RAMP_5M);
-                case "spike" -> SPIKE_UP.plus(SPIKE_DOWN);
-                case "breakpoint" -> BREAKPOINT_RAMP;
-                default -> SSE_QUIET_PERIOD;
-            };
+    private static final Duration SSE_HOLD = switch (PROFILE) {
+        case "calibrate", "baseline" -> DURATION;
+        case "average" -> RAMP_5M.plus(HOLD_30M).plus(RAMP_5M);
+        case "soak" -> RAMP_5M.plus(HOLD).plus(RAMP_5M);
+        case "stress" -> RAMP_10M.plus(HOLD_30M).plus(RAMP_5M);
+        case "spike" -> SPIKE_UP.plus(SPIKE_DOWN);
+        case "breakpoint" -> BREAKPOINT_RAMP;
+        default -> SSE_QUIET_PERIOD;
+    };
 
     /**
      * The SSE request's name.

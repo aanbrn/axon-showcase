@@ -10,7 +10,7 @@
 ## Project Overview
 
 **axon-showcase** — a CQRS/Event Sourcing reference app using the Axon Framework. Java 21, Spring Boot 3.5.16, Gradle
-9.8.0 (Kotlin DSL), monorepo with 19 modules (18 JVM + `showcase-web-ui`).
+9.8.1 (Kotlin DSL), monorepo with 19 modules (18 JVM + `showcase-web-ui`).
 
 This repo uses **spec-driven development**: behavior is captured as OpenSpec specs in `openspec/specs/showcase/`
 (organized by architectural role: `gateway`, `write-side`, `read-side`, `clients`, `extensions`, `deployment`,
@@ -1044,18 +1044,21 @@ Key modules (libraries, not services):
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md`, `README.md`, and `docs/adr/` need to be
   refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
   a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on
-  concern for weeks after the Snyk workflow landed, until the first architecture audit caught it) — and update them
-  before reporting the change done; also remove the change's idea from `docs/ideas.md` **in the same PR**, so it rides
-  the change branch and commits with its push rather than landing as a separate docs PR. An idea is removed once
-  implemented (captured by a change) or once explored and decided against (the durable lesson is captured in
-  `AGENTS.md`/an ADR instead); only open ideas remain (see the file's header). Promotion to a GitHub issue is a **link,
-  not a removal** — annotate the idea with the issue number when you promote it, since the file's header names only the
-  issue's link to the change, not the scratchpad's back-link to the issue, so the two drift apart — and prefer promoting
-  a unit's idea at that unit's merge: while its PR is open, citing an artifact the unit ships is a contingent claim that
-  must say so (`open as #NNN; not yet merged`) and the clause drops at the merge, because the issue is a permanent
-  record outside the repository and cannot cite what the default branch does not have. Give every parked entry a
-  trailing status tag stating its disposition (`— parked; no change yet.` is the common form; a promoted or
-  explored-and-set-aside idea says so instead: the promotion _replaces_ the parked tag,
+  concern for weeks after the Snyk workflow landed, until the first architecture audit caught it). A **version bump** (a
+  dependency, tool, or wrapper version) is the mechanical case: it makes stale every live doc that names the bumped
+  version — including a coordinate version an ADR or idea quotes as the catalog's current value — so grep the old string
+  across `AGENTS.md`, `README.md`, `openspec/config.yaml`, `docs/adr/`, and `docs/ideas.md` and fix each, since no gate
+  reads any of them. Update them before reporting the change done; also remove the change's idea from `docs/ideas.md`
+  **in the same PR**, so it rides the change branch and commits with its push rather than landing as a separate docs PR.
+  An idea is removed once implemented (captured by a change) or once explored and decided against (the durable lesson is
+  captured in `AGENTS.md`/an ADR instead); only open ideas remain (see the file's header). Promotion to a GitHub issue
+  is a **link, not a removal** — annotate the idea with the issue number when you promote it, since the file's header
+  names only the issue's link to the change, not the scratchpad's back-link to the issue, so the two drift apart — and
+  prefer promoting a unit's idea at that unit's merge: while its PR is open, citing an artifact the unit ships is a
+  contingent claim that must say so (`open as #NNN; not yet merged`) and the clause drops at the merge, because the
+  issue is a permanent record outside the repository and cannot cite what the default branch does not have. Give every
+  parked entry a trailing status tag stating its disposition (`— parked; no change yet.` is the common form; a promoted
+  or explored-and-set-aside idea says so instead: the promotion _replaces_ the parked tag,
   `— promoted to issue #NNN; no change yet.`, never a clause appended past the tag's sentence-final period), since the
   header fixes the sections' order and dating but not the tag, and the tag is what marks the entry as a still-unowned
   idea rather than one already routed to work. Also sweep `docs/ideas.md` for references to the thing this change
@@ -2906,7 +2909,10 @@ capture-stash-stale-copy
   accepts (2.0.21: no `disabled` key materialized, credential values masked). A source's `info` can carry credentials —
   the v2.0.15 build rendered the global config's MCP `environment` value (a `GH_TOKEN`) verbatim — so scope a capture to
   the project document or redact before quoting its output into a report, a PR body, a change dir, or any other
-  artifact; re-check the masking on each v2 bump. captured: migrate-opencode-config-to-v2
+  artifact; re-check the masking on each v2 bump. The same redaction binds any diagnostic capture:
+  `./gradlew --info`/`--debug` logs each exec'd process's full environment (`with environment: {…}`, values included),
+  putting `SNYK_TOKEN`, `GH_TOKEN`, and `NVD_API_KEY` into the output — never persist a verbose log into an artifact;
+  read it with a targeted `grep`. captured: bump-dependencies-2026-10-12
 - **`external_directory` and the `shell` permission are separate actions.** `external_directory` governs the file tools
   (`read`/`edit`/`write`/`glob`/`grep`) and path-taking commands, while a script's own out-of-tree writes run under the
   `shell` action (`permission.bash` in v1) — so removing the blanket `/tmp/**` allow from `external_directory` leaves a

@@ -46,7 +46,7 @@ The arrangement has three parts:
   excludes `co.elastic.clients:*` (and `org.elasticsearch.client:*`) from the Spring Data Elasticsearch dependency it
   pulls, while Spring Data Elasticsearch's `client.elc` classes do reference Elastic's client — and Spring Boot's
   `ElasticsearchDataAutoConfiguration` conditions on `client.elc.ElasticsearchTemplate`, so the read side cannot start
-  without it. The catalog pins the coordinate at `9.5.4`, where Spring Boot's BOM manages `8.18.8`.
+  without it. The catalog pins the coordinate at `9.5.5`, where Spring Boot's BOM manages `8.18.8`.
 
 Alternatives considered and rejected: keeping the high-level REST client (it is the deprecated surface the swap exists
 to leave, and mixing it with `opensearch-java` would put two client models on one classpath); dropping

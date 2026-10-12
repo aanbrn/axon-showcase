@@ -59,7 +59,7 @@ abstract class UpstreamReferencesTask : DefaultTask() {
                     "No upstream references found.\n"
                 } else {
                     rows.joinToString("\n") { it.render() } + "\n"
-                }
+                },
             )
         }
     }

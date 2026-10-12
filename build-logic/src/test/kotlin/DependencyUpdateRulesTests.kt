@@ -117,7 +117,7 @@ class DependencyUpdateRulesTests {
 
     @Test
     @DisplayName(
-        "The composed decision rejects a newer-line candidate and an unowned coordinate, and keeps a same-line patch and a major jump"
+        "The composed decision rejects a newer-line candidate and an unowned coordinate, and keeps a same-line patch and a major jump",
     )
     fun composedDecision() {
         val holdBack = mapOf("org.opensearch.client:opensearch-java" to "3.9")
@@ -156,13 +156,18 @@ class DependencyUpdateRulesTests {
 
     @Test
     @DisplayName(
-        "An exact major-disabled entry blocks its module's major jump and leaves another module's jump reported"
+        "An exact major-disabled entry blocks its module's major jump and leaves another module's jump reported",
     )
     fun exactMajorDisabledBlocksItsModuleOnly() {
         val majorDisabled = setOf("org.opensearch.client:spring-data-opensearch")
 
         assertThat(
-                shouldReject("spring-data-opensearch", "3.0.0", currentVersion = "2.0.8", majorDisabled = majorDisabled)
+                shouldReject(
+                    "spring-data-opensearch",
+                    "3.0.0",
+                    currentVersion = "2.0.8",
+                    majorDisabled = majorDisabled,
+                ),
             )
             .isTrue()
         assertThat(shouldReject("opensearch-java", "4.0.0", majorDisabled = majorDisabled)).isFalse()
@@ -183,7 +188,7 @@ class DependencyUpdateRulesTests {
                     currentVersion = "2.0.8",
                     catalogOwned = catalog,
                     majorDisabled = majorDisabled,
-                )
+                ),
             )
             .isTrue()
         assertThat(
@@ -193,7 +198,7 @@ class DependencyUpdateRulesTests {
                     catalogOwned = catalog,
                     majorDisabled = majorDisabled,
                     holdBack = holdBack,
-                )
+                ),
             )
             .isFalse()
         assertThat(
@@ -203,7 +208,7 @@ class DependencyUpdateRulesTests {
                     catalogOwned = catalog,
                     majorDisabled = majorDisabled,
                     holdBack = holdBack,
-                )
+                ),
             )
             .isTrue()
     }

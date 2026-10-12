@@ -33,7 +33,7 @@ helm {
             mapOf(
                 "bitnamiCommonVersion" to libs.versions.bitnami.common.get(),
                 "nginxPrometheusExporterVersion" to libs.versions.nginx.prometheus.exporter.get(),
-            )
+            ),
         )
     }
 }

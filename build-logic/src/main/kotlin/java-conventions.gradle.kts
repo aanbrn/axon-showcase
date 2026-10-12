@@ -82,6 +82,6 @@ tasks.named("check") {
                 "integrationTest" -> !skipITs.get()
                 else -> true
             }
-        }
+        },
     )
 }

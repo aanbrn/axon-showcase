@@ -39,13 +39,13 @@ abstract class VerifyModuleDependenciesTask : DefaultTask() {
                 appendLine()
                 appendLine("Inspected edges:")
                 distinct.sortedBy { it.toString() }.forEach { appendLine("  $it") }
-            }
+            },
         )
 
         if (violations.isNotEmpty()) {
             throw GradleException(
                 "The module dependency graph has ${violations.size} forbidden edge(s):\n" +
-                    violations.joinToString("\n") { "  - $it" }
+                    violations.joinToString("\n") { "  - $it" },
             )
         }
     }

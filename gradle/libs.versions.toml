@@ -12,6 +12,7 @@ springdoc-openapi-starter = "2.9.1"
 swagger = "2.2.55"
 swagger-ui = "5.33.1"
 postgresql = "42.7.14"
+snappy-java = "1.1.10.12"
 flyway = "11.20.3"
 caffeine = "3.3.0"
 db-scheduler = "16.12.0"
@@ -200,6 +201,7 @@ axon-extensions-jgroups-springBootStarter = { group = "org.axonframework.extensi
 axon-extensions-reactor-springBootStarter = { group = "org.axonframework.extensions.reactor", name = "axon-reactor-spring-boot-starter" }
 axon-test = { group = "org.axonframework", name = "axon-test", version.ref = "axon-framework" }
 postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
+snappy-java = { group = "org.xerial.snappy", name = "snappy-java", version.ref = "snappy-java" }
 caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
 caffeine-jcache = { group = "com.github.ben-manes.caffeine", name = "jcache", version.ref = "caffeine" }
 dbScheduler-springBootStarter = { group = "com.github.kagkarlsson", name = "db-scheduler-spring-boot-starter", version.ref = "db-scheduler" }

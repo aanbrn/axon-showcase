@@ -50,8 +50,13 @@ dependencies {
     spotbugsPlugins(libs.spotbugs.findsecbugs.plugin)
     spotbugsPlugins(libs.spotbugs.fbContrib.plugin)
 
+    errorprone(platform(project(":platform")))
     errorprone(libs.errorprone.core)
     errorprone(libs.nullaway)
+
+    constraints {
+        checkstyle(libs.guava)
+    }
 }
 
 tasks.withType<SpotBugsTask> {

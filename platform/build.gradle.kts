@@ -54,6 +54,7 @@ dependencies {
         api(libs.opensearch.client.rest)
         api(libs.opensearch.client.restHighLevel)
         api(libs.parsson)
+        api(libs.snappy.java)
         api(libs.swagger.annotations.jakarta)
         api(libs.swagger.core.jakarta)
         api(libs.swagger.models.jakarta)

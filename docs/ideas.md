@@ -38,14 +38,18 @@ dated when it was added (start a new section for a new day rather than appending
   switch, so a worktree per change would remove the stash/switch seam entirely: no `git stash pop` conflict-marker
   hazard, and `main`'s working tree stays free of in-progress diffs. It fits this repo well because the git hooks are
   shared — `core.hooksPath = scripts/git-hooks` lives in the common `.git/config`, so the pre-commit guard runs in every
-  worktree with no per-worktree setup. Costs: build state is per-worktree (`.gradle/` ~228M, `build/`,
-  `showcase-web-ui/node_modules` ~225M), so a fresh worktree's first build re-resolves and re-installs whatever the
-  shared `~/.gradle` and `~/.npm` caches cannot restore, and `.idea/` is git-ignored so each worktree needs
-  `./scripts/setup-idea.sh` (or one tree stays the IDE tree). A harness note too: the OpenCode session's cwd is
+  worktree with no per-worktree setup. Costs: the per-tree disk, measured (2026-10-12, a throwaway worktree from `main`
+  with the shared caches warm) at ~628M after a fresh worktree's first Docker-free `check` — dominated by `.gradle`
+  (129M), `showcase-web-ui/node_modules` (225M), and the per-module `build/` directories, over a 12M checkout — and the
+  IDE, since `.idea/` is git-ignored so each worktree needs `./scripts/setup-idea.sh` (or one tree stays the IDE tree).
+  The first build is a one-time ~1 minute, not a cold rebuild: the shared `~/.gradle`/`~/.npm` caches and the Gradle
+  build cache restored 251 of 374 tasks, so that Docker-free gate ran in 78 seconds against ~16 seconds warm on the same
+  machine — not the re-resolve and re-install the entry first assumed. A harness note too: the OpenCode session's cwd is
   per-session, so making a worktree the primary directory needs a session move. Suggested shape: primary clone on
   `main`, `git worktree add --no-track -b <change> ../axon-showcase-<change> origin/main` per change (`--no-track`, or a
   first push with `-u origin <branch>`, avoids the silent `origin/main` upstream), `git worktree remove` after merge.
-  Not worth it for a docs-only or single-file fix, where the fresh-worktree build and IDE setup outweigh the benefit.
+  The remaining trade is the ~628M/worktree and the IDE setup rather than build time, so the choice turns on whether the
+  isolation is wanted for the change at hand.
 
 - Confirm the vendored migration skills' model pins resolve — parked; no change yet. The vendored `axon4to5-*` skills
   carry frontmatter model pins (`axon4to5-isolatedtest` → `haiku`, `axon4to5-openrewrite` → `sonnet`, Anthropic aliases)

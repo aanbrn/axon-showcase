@@ -99,15 +99,6 @@ dated when it was added (start a new section for a new day rather than appending
   gate met, or does Axon's support being opt-in (not the default) mean it is still not? A decision, not a defect: if
   met, the Jackson-3 backend migration becomes due for re-planning (currently deferred behind Spring Boot 4, ADR-0004).
 
-- Note that the generated `/opsx-sync` is archive-internal, not a standalone command — parked; no change yet. The
-  2026-10-04 agents-audit reports that the generated `opsx-sync` command and its `openspec-sync-specs` skill invite a
-  standalone "sync delta specs to main specs without archiving" run, which contradicts the load-bearing "Sync the main
-  spec only at archive" rule (`AGENTS.md`). The legitimate use is inline within `openspec archive`, and a standalone run
-  would write the main spec to describe behavior the code has not been verified against, with `openspec validate` unable
-  to flag it. The fix is our usage, not upstream: document in the archive-only rule that `/opsx-sync` is
-  archive-internal and must not be run standalone. Parked as one occurrence, routed to the archive-only rule's wording
-  when next touched.
-
 - Make the audit workflow's report filename collision-safe — parked; no change yet. The prompt names the report for
   "today's date", so two runs on the same UTC day write the same `docs/audits/<date>.md` and the second silently
   overwrites the first: the 2026-10-04 scheduled run reused the dispatch run's report filename (`#494`), which the

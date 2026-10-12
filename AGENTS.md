@@ -20,7 +20,7 @@ Follow these workflows for new work, and treat the captured specs as the behavio
 `helm` parent module) and the shared library modules (`showcase-command-api`, `showcase-query-api`,
 `showcase-query-proto`) carry none — the shared APIs are specified through the service and client capabilities that use
 them — and a module's name need not equal its spec path — the `showcase-api-gateway` module is specified as
-`gateway/rest-api` plus `gateway/live-events`.
+`gateway/rest-api`, `gateway/live-events`, and `gateway/client-telemetry`.
 
 ## OpenSpec Workflow Agreement
 
@@ -320,12 +320,15 @@ apply-2026-09-28-audit-docs-findings
 
 **Sync the main spec only at archive.** Apply edits to code and the change dir's _delta_ spec — never the main spec
 under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the source
-of truth never describes behavior the code hasn't yet been verified against. `skip_specs` is only for a change no
-capability spec covers — grep `openspec/specs/` for the file, config key, or behavior you are changing before declaring
-it. `gate-github-markdown-with-prettier` first declared `skip_specs` for adding `.github/**/*.md` and `SECURITY.md` to
-the Spotless target, but `showcase/quality/code-quality` already specified the markdown scope, so it owed (and shipped)
-a `MODIFIED` delta like the analogous `bring-opencode-under-spotless`; `openspec validate` cannot flag a missing delta,
-so the misclassification would have left the spec silently stale. captured: gate-github-markdown-with-prettier
+of truth never describes behavior the code hasn't yet been verified against. The generated `/opsx-sync` command (and its
+`openspec-sync-specs` skill) is archive-internal — its legitimate use is inline within `openspec archive`, and it must
+not be run standalone, since a standalone run writes the main spec ahead of verified behavior and `openspec validate`
+cannot flag it. `skip_specs` is only for a change no capability spec covers — grep `openspec/specs/` for the file,
+config key, or behavior you are changing before declaring it. `gate-github-markdown-with-prettier` first declared
+`skip_specs` for adding `.github/**/*.md` and `SECURITY.md` to the Spotless target, but `showcase/quality/code-quality`
+already specified the markdown scope, so it owed (and shipped) a `MODIFIED` delta like the analogous
+`bring-opencode-under-spotless`; `openspec validate` cannot flag a missing delta, so the misclassification would have
+left the spec silently stale. captured: gate-github-markdown-with-prettier
 
 **A capability spec covers a human-facing artifact's outcome — that it exists and what it is for — not its presentation
 content** (an inventory of its parts, their layout, or their count, which the documented-numbers gotcha owns):
@@ -1373,16 +1376,16 @@ Key modules (libraries, not services):
   reviewed change, not silent drift.
 - **Tooling lives in a stated place, in four kinds of location — state it here, not per script.** Repository-wide
   tooling goes in `scripts/`; a module's own tooling stays beside that module
-  (`showcase-web-ui/scripts/outdated-report.sh`, `showcase-web-ui/start.sh`); the repository root carries only the
-  generated `gradlew` and the human-facing setup entry points `db.sh` / `setup-hosts.sh`; and `.opencode/` holds the
-  OpenCode-runtime surface — agents, commands, skills — with **no executable**, so a command may trigger a `scripts/`
-  tool but never hosts its implementation. A `scripts/` tool an agent drives gets its own command trigger, and the tool
-  keeps the implementation (`doctor.sh` ↔ `/check-tooling`, `setup-idea.sh` ↔ `/setup-idea`, `experience-analysis.sh` ↔
-  `/retrospective`); a tool with no agent caller stays untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`),
-  and `commit-hygiene.py` is driven by the tracked `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks. The
-  generated OpenSpec command/skill files and the vendored `axon4to5-*` skills are not the repository's to place. Derive
-  any claim about placement from the complete set (`git ls-files -s | awk '$1=="100755"'`), not from the location in
-  hand. captured: state-tooling-placement-rule (#458)
+  (`showcase-web-ui/scripts/outdated-report.sh`, `showcase-web-ui/scripts/audit-report.sh`, `showcase-web-ui/start.sh`);
+  the repository root carries only the generated `gradlew` and the human-facing setup entry points `db.sh` /
+  `setup-hosts.sh`; and `.opencode/` holds the OpenCode-runtime surface — agents, commands, skills — with **no
+  executable**, so a command may trigger a `scripts/` tool but never hosts its implementation. A `scripts/` tool an
+  agent drives gets its own command trigger, and the tool keeps the implementation (`doctor.sh` ↔ `/check-tooling`,
+  `setup-idea.sh` ↔ `/setup-idea`, `experience-analysis.sh` ↔ `/retrospective`); a tool with no agent caller stays
+  untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`), and `commit-hygiene.py` is driven by the tracked
+  `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks. The generated OpenSpec command/skill files and the
+  vendored `axon4to5-*` skills are not the repository's to place. Derive any claim about placement from the complete set
+  (`git ls-files -s | awk '$1=="100755"'`), not from the location in hand. captured: state-tooling-placement-rule (#458)
 - **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
   `.opencode/commands/setup-agent-tools.md` (project-local, **not** one of the vendored `axon4to5-*` skills) let a
   contributor ask the agent to wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only,
@@ -2771,22 +2774,22 @@ capture-stash-stale-copy
   note that extending the list one pin at a time is how the OpenSpec pin, then the `pack` CLI, was each missed in turn
   while the check did not exist. A tool pinned in more than one workflow file takes one check entry per file: a check
   reads exactly one `workflowFile`, which must also be registered in `pinFiles`, and a file no entry names has its pin
-  silently unchecked (the smoke's `pack` pin sat unlisted until `release.yml` joined it) — name each entry per file
-  (`pack-cli (e2e.yml)`), since the report names the check, not its file. captured: publish-images-to-ghcr The
-  `/opsx-tool-update` command regenerates the instruction files after a release but does not detect one.
-  (`java-version: '21'` and the opencode workflow's `model` input are deliberate pins, not tooling currency — the model
-  pin has its own multi-file bump sweep, see the OpenCode model-pin gotcha.) A Snyk or pack bump cannot be verified
-  locally: `workflowLint` (actionlint) proves only that the YAML lints, not that the version tag is installable — the
-  credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real execution.
-  `workflowLint` also cannot see inside a quoted `gh api --jq` program — actionlint parses the YAML and the shell, not
-  the jq — so a malformed copied filter passes `check` and fails only on the scheduled run; verify a new or edited
-  update workflow by diffing it against the sibling it copies (a `tooling-updates.yml` jq filter was missing a closing
-  parenthesis, caught by that diff and by nothing in `check`). The same skew bites a guard keyed off a tool's output: it
-  must be verified against the version CI pins, not only the locally-installed one, since the pinned CLI is what the
-  gate actually runs and the output text it matches on may differ there. The same caution applies to a proposed _fix_
-  attributed to a dependency bump: verify it exists in a released version, not only on the project's default branch — a
-  bump claimed to make a failure skip cleanly held on `actions/cache`'s `main` but in no release (latest `v6.1.0`).
-  captured: unify-tooling-currency-checks (#304)
+  silently unchecked (the smoke's `pack` pin sat unlisted until it gained its own `pack-cli (deployment-smoke.yml)`
+  entry) — name each entry per file (`pack-cli (e2e.yml)`, `pack-cli (release.yml)`, `pack-cli (deployment-smoke.yml)`),
+  since the report names the check, not its file. captured: publish-images-to-ghcr The `/opsx-tool-update` command
+  regenerates the instruction files after a release but does not detect one. (`java-version: '21'` and the opencode
+  workflow's `model` input are deliberate pins, not tooling currency — the model pin has its own multi-file bump sweep,
+  see the OpenCode model-pin gotcha.) A Snyk or pack bump cannot be verified locally: `workflowLint` (actionlint) proves
+  only that the YAML lints, not that the version tag is installable — the credentialed weekly run (or a local
+  `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real execution. `workflowLint` also cannot see inside a
+  quoted `gh api --jq` program — actionlint parses the YAML and the shell, not the jq — so a malformed copied filter
+  passes `check` and fails only on the scheduled run; verify a new or edited update workflow by diffing it against the
+  sibling it copies (a `tooling-updates.yml` jq filter was missing a closing parenthesis, caught by that diff and by
+  nothing in `check`). The same skew bites a guard keyed off a tool's output: it must be verified against the version CI
+  pins, not only the locally-installed one, since the pinned CLI is what the gate actually runs and the output text it
+  matches on may differ there. The same caution applies to a proposed _fix_ attributed to a dependency bump: verify it
+  exists in a released version, not only on the project's default branch — a bump claimed to make a failure skip cleanly
+  held on `actions/cache`'s `main` but in no release (latest `v6.1.0`). captured: unify-tooling-currency-checks (#304)
 - **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
   first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
   output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change

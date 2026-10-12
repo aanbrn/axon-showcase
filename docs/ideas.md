@@ -15,6 +15,13 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-12
 
+- Correct the `architecture-auditor`'s deferral check for renamed and compound ADR gates — parked; no change yet. Its
+  definition resolves the coordinates the `Revisit when:` line names, and the `agent-skills` scenario frames the check
+  as an external coordinate gate whose pinned coordinate published a newer major — so a gate whose coordinate upstream
+  renamed reads as permanently unmet (it resolves a frozen artifact), and a compound gate can read as met on one axis
+  while a sibling clause is open. The 2026-10-11 advisory read ADR-0011's gate that way. Routes to
+  `.opencode/agent/architecture-auditor.md` and the scenario, which owes that capability's delta.
+
 - Make the quick-review subagent cluster co-classed findings on the first round — parked; no change yet. The per-unit
   quick review classifies each finding, but on the first round (no prior-round list) co-classed findings are reported as
   independent items, so the root-cause signal fires only after two or more rounds. The `agent-skills` spec's "Quick

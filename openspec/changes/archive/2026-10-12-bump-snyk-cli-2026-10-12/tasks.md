@@ -10,10 +10,11 @@
 
 ## 2. Verification
 
-- [ ] 2.1 **After the owner's approval pushes the branch** (before the archive commit), dispatch the credentialed
+- [x] 2.1 **After the owner's approval pushes the branch** (before the archive commit), dispatch the credentialed
       workflow against it (`gh workflow run dependency-security.yml --ref bump-snyk-cli-2026-10-12`) and watch the run:
       it must install the pinned CLI and complete the scan. A red run attributed to the pin means the tag does not
-      install; a red run attributed to a finding means the policy, not the pin.
+      install; a red run attributed to a finding means the policy, not the pin. (Dispatch run `38274443956` passed — the
+      `snyk` job installed the pinned CLI and completed.)
 - [x] 2.2 Run `./gradlew spotlessApply` then `./gradlew spotlessCheck` and `openspec validate --all`; run the manual
       120-character check over the changed set (`git diff --name-only`) — here
       `.github/workflows/dependency-security.yml` and the change dir's `.openspec.yaml`, both formatter-uncovered — and

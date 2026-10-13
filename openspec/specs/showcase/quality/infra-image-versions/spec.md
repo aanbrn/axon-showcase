@@ -18,7 +18,9 @@ an independent version. Every Helm chart coordinate in the version catalog — i
 (`prometheus-community-stack`, `grafana-tempo`) and the application chart's `common` subchart dependency — SHALL be a
 concrete version (e.g. `77.14.0`), never a floating major-line pin such as `77.x.x`, so the Helm deployment is
 reproducible at a reviewable version. The `AGENTS.md` Kubernetes Deployment section's manual `helm install … --version`
-commands SHALL quote each chart's catalog version, so a chart bump cannot leave the documented command stale.
+commands SHALL quote each chart's catalog version, so a chart bump cannot leave the documented command stale. A live doc
+(`AGENTS.md` or `README.md`) SHALL state the catalog's Paketo pins — the buildpack builder and the buildpacks — at their
+catalog versions, so a buildpack bump cannot leave the documented pin stale.
 
 #### Scenario: All surfaces resolve from the catalog
 
@@ -59,6 +61,15 @@ commands SHALL quote each chart's catalog version, so a chart bump cannot leave 
 - **THEN** each `helm install <name> <chartRef> --version <v>` command in `AGENTS.md`'s Kubernetes Deployment block is
   verified against the catalog pin for its chart, and a command whose version differs from the pin (or whose chart has
   no pin) fails `check`, naming the chart — so a chart bump cannot leave the documented command stale
+
+#### Scenario: The Paketo pins a live doc states match the catalog
+
+- **WHEN** `check` runs
+- **THEN** each Paketo pin a live doc (`AGENTS.md` or `README.md`) states in the declared adjacent forms
+  (`paketo-buildpacks/<name>@<version>`, `builder-jammy-base:<version>`) is verified against its catalog coordinate, and
+  a pin whose version differs fails `check`, naming the doc site, the pin as written, and the catalog version — so a
+  buildpack bump cannot leave the documented pin stale; a stated pin whose key the catalog does not pin fails `check`
+  too, naming the key
 
 ### Requirement: The deployed Bitnami image tag is the chart's preconfigured tag
 

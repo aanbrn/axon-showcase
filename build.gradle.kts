@@ -242,29 +242,30 @@ tasks.register("helmUpdates", HelmUpdatesTask::class.java) {
     outputs.upToDateWhen { false }
 }
 
+val buildpackChecks =
+    listOf(
+        BuildpackUpdateCheck(
+            name = "paketo-builder-jammy-base",
+            repository = "paketobuildpacks/builder-jammy-base",
+            pinnedVersion = libs.versions.paketo.builder.jammy.base.get(),
+        ),
+        BuildpackUpdateCheck(
+            name = "paketo-nginx",
+            repository = "paketobuildpacks/nginx",
+            pinnedVersion = libs.versions.paketo.nginx.get(),
+        ),
+        BuildpackUpdateCheck(
+            name = "paketo-procfile",
+            repository = "paketobuildpacks/procfile",
+            pinnedVersion = libs.versions.paketo.procfile.get(),
+        ),
+    )
+
 tasks.register("buildpackUpdates", BuildpackUpdatesTask::class.java) {
     group = "help"
     description = "Displays the Paketo builder and buildpack updates for the project."
 
-    checks.set(
-        listOf(
-            BuildpackUpdateCheck(
-                name = "paketo-builder-jammy-base",
-                repository = "paketobuildpacks/builder-jammy-base",
-                pinnedVersion = libs.versions.paketo.builder.jammy.base.get(),
-            ),
-            BuildpackUpdateCheck(
-                name = "paketo-nginx",
-                repository = "paketobuildpacks/nginx",
-                pinnedVersion = libs.versions.paketo.nginx.get(),
-            ),
-            BuildpackUpdateCheck(
-                name = "paketo-procfile",
-                repository = "paketobuildpacks/procfile",
-                pinnedVersion = libs.versions.paketo.procfile.get(),
-            ),
-        ),
-    )
+    checks.set(buildpackChecks)
 
     reportFile.set(layout.buildDirectory.file("buildpack-updates/report.txt"))
 
@@ -499,6 +500,17 @@ tasks.register("verifyInstallCommands", VerifyInstallCommandsTask::class.java) {
     resultFile.set(layout.buildDirectory.file("verification/install-commands.txt"))
 }
 
+tasks.register("verifyDocumentedPins", VerifyDocumentedPinsTask::class.java) {
+    group = "verification"
+    description = "Verifies the catalog's Paketo pins a live doc states match the catalog"
+
+    docs.from(layout.projectDirectory.file("AGENTS.md"), layout.projectDirectory.file("README.md"))
+
+    paketoPins.set(buildpackChecks.associate { it.name to it.pinnedVersion })
+
+    resultFile.set(layout.buildDirectory.file("verification/documented-pins.txt"))
+}
+
 tasks.register("verifyDashboardJson", VerifyDashboardJsonTask::class.java) {
     group = "verification"
     description = "Verifies every bundled Grafana dashboard is valid JSON (Helm emits it as an opaque string)"
@@ -511,6 +523,7 @@ tasks.register("verifyDashboardJson", VerifyDashboardJsonTask::class.java) {
 tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
     dependsOn("verifyInstallCommands")
+    dependsOn("verifyDocumentedPins")
     dependsOn("verifyDashboardJson")
     dependsOn("workflowLint")
     dependsOn("verifyModuleDependencies")

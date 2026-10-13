@@ -33,3 +33,16 @@
 2026-10-13	make-the-pre-write-pass-visible	10	documented-numbers	documented-numbers	1
 2026-10-13	make-the-pre-write-pass-visible	11	-	-	0
 2026-10-13	make-the-pre-write-pass-visible	12	-	-	0
+2026-10-13	verify-documented-pins	1	mechanism,contradiction,missing-content,scope,dropped-content	-	2
+2026-10-13	verify-documented-pins	2	mechanism,scope,documented-numbers,dropped-content	mechanism,scope,dropped-content	3
+2026-10-13	verify-documented-pins	3	contradiction,documented-numbers,robustness	contradiction,documented-numbers	1
+2026-10-13	verify-documented-pins	4	test-control,documented-numbers,contradiction,typo	documented-numbers,contradiction	3
+2026-10-13	verify-documented-pins	5	documented-numbers	documented-numbers	1
+2026-10-13	verify-documented-pins	6	test-control,imprecise-claim	test-control	2
+2026-10-13	verify-documented-pins	7	test-control	test-control	1
+2026-10-13	verify-documented-pins	8	test-control,formatting	test-control	1
+2026-10-13	verify-documented-pins	9	test-control,documented-numbers,formatting	test-control,documented-numbers,formatting	1
+2026-10-13	verify-documented-pins	10	test-control,documented-numbers,redundant-code	test-control,documented-numbers	3
+2026-10-13	verify-documented-pins	11	documented-numbers	documented-numbers	1
+2026-10-13	verify-documented-pins	12	documented-numbers	documented-numbers	1
+2026-10-13	verify-documented-pins	13	-	-	0

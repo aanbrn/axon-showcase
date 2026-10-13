@@ -12,3 +12,12 @@
 2026-10-13	record-review-rounds	7	incomplete-enumeration	-	1
 2026-10-13	record-review-rounds	8	contradiction	-	0
 2026-10-13	record-review-rounds	9	-	-	0
+2026-10-13	bound-the-review-loop	1	contradiction,incomplete-enumeration,missing-artifact-decision,wording	-	3
+2026-10-13	bound-the-review-loop	2	incomplete-enumeration,missing-artifact-decision,documented-numbers	incomplete-enumeration,missing-artifact-decision	3
+2026-10-13	bound-the-review-loop	3	missing-artifact-decision,contradiction,single-sourcing	missing-artifact-decision,contradiction	2
+2026-10-13	bound-the-review-loop	4	contradiction	contradiction	1
+2026-10-13	bound-the-review-loop	5	contradiction	contradiction	1
+2026-10-13	bound-the-review-loop	6	missing-artifact-decision,contradiction	missing-artifact-decision,contradiction	2
+2026-10-13	bound-the-review-loop	7	contradiction,compliance-miss	contradiction	1
+2026-10-13	bound-the-review-loop	8	-	-	0
+2026-10-13	bound-the-review-loop	9	-	-	0

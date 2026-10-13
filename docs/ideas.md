@@ -13,13 +13,6 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
-## 2026-10-13
-
-- Bound the review loop for a record artifact — parked; no change yet. A record (a retrospective, a load-test record)
-  has no shipped behavior to converge on, so a second round raising only new instances of an already-raised class should
-  stop and escalate rather than iterate; safe only once the digest derives the countable claims, so the trade is
-  coverage the derivation restores. Routes to the `AGENTS.md` review-loop bullet.
-
 ## 2026-10-12
 
 - Report Gradle's `--info` environment dump upstream — parked; no change yet. `--info`/`--debug` logs each exec'd

@@ -119,26 +119,26 @@ pre-change there (expected, not a revert). captured: bump-snyk-cli-2026-10-12 Wo
 stay in the working tree until it is given; as the owner recounted afterwards, a clean quick review asked for the manual
 pass, the reply asked about lesson capture instead, and the capture was folded into the same branch and the work
 continued — nothing was committed before the repeated request was answered, but the request had been missed. The
-`review-quick` subagent's finding classes, its repeated-class flag, its class-exhaustion clause, and its per-round
-record line are specified in `showcase/quality/agent-skills` — see there rather than here — so act on its verdict line
-rather than on your own recollection of the thread. A review loop that keeps finding the **same class** of observation
-round after round is not converging — each fix is treating a symptom of a root cause that is still there, and the next
-round will find another instance. Stop and re-derive the root cause — when the recurring class is a claim about another
-artifact **or about the change's own mechanism** that under-describes or contradicts it (a surface list, an artifact
-set, a list of touched files or test sites, a count, a unit, a decision's numbers, **what a command yields or which
-inputs it can receive**), the root cause is that claim written from memory rather than derived from the surface it
-summarizes; re-derive it by grepping the corpus, the archive, the change's sibling artifacts, and the diff **— or, for a
-mechanism claim, by running the tool** — or abandon the unit; do not layer another special case. A second root-cause
-shape is a passage the change was single-sourcing: each round finds another residue of the duplicate the pointer should
-have removed because the edit trimmed the sub-clause that round named; replace the whole duplicated unit in one edit and
-derive what stays at the pointing site from that site's own subject, not from the finding. captured:
-single-source-the-scheduled-audit-mechanism A third shape is a rule's own boundary wording: a discriminator that reads
-plausibly but excludes the very case it was written for must be re-derived from the mechanism that distinguishes the
-cases — not merely re-worded — and tested against that motivating case before its wording is swept across the artifact
-set. captured: relax-diagram-span-rule A revert after a non-converging loop is a legitimate outcome — record why in the
-change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362) captured:
-realistic-load-test-profiles captured: check-load-test-drift captured: check-unique-cron-schedules (#436) captured:
-derive-retrospective-facts
+`review-quick` subagent's finding classes, its repeated-class flag, its class-exhaustion clause, its per-round record
+line, and its record-artifact loop bound are specified in `showcase/quality/agent-skills` — see there rather than here —
+so act on its verdict line rather than on your own recollection of the thread. A review loop that keeps finding the
+**same class** of observation round after round is not converging — each fix is treating a symptom of a root cause that
+is still there, and the next round will find another instance. Stop and re-derive the root cause — when the recurring
+class is a claim about another artifact **or about the change's own mechanism** that under-describes or contradicts it
+(a surface list, an artifact set, a list of touched files or test sites, a count, a unit, a decision's numbers, **what a
+command yields or which inputs it can receive**), the root cause is that claim written from memory rather than derived
+from the surface it summarizes; re-derive it by grepping the corpus, the archive, the change's sibling artifacts, and
+the diff **— or, for a mechanism claim, by running the tool** — or abandon the unit; do not layer another special case.
+A second root-cause shape is a passage the change was single-sourcing: each round finds another residue of the duplicate
+the pointer should have removed because the edit trimmed the sub-clause that round named; replace the whole duplicated
+unit in one edit and derive what stays at the pointing site from that site's own subject, not from the finding.
+captured: single-source-the-scheduled-audit-mechanism A third shape is a rule's own boundary wording: a discriminator
+that reads plausibly but excludes the very case it was written for must be re-derived from the mechanism that
+distinguishes the cases — not merely re-worded — and tested against that motivating case before its wording is swept
+across the artifact set. captured: relax-diagram-span-rule A revert after a non-converging loop is a legitimate outcome
+— record why in the change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362)
+captured: realistic-load-test-profiles captured: check-load-test-drift captured: check-unique-cron-schedules (#436)
+captured: derive-retrospective-facts
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -256,14 +256,17 @@ non-diff effects, such as an agent PR closing its own tracker — and report any
 bullet it would extend, then ask the user for explicit confirmation before running one. Every unit carries a capture
 record — a task in a change's `tasks.md`, or a line in the pull-request checklist for a unit with no change dir — so the
 merge-time read reports an unrun capture as that record missing or unticked, rather than reconstructing a skip from
-recollection. One capture per unit, never a chain. Apply the proposals the main agent judges durable: an implementation
-capture is caused by the unit, so it rides the unit's branch and ships in its PR (a merge-time capture, discovered after
-the unit is done, ships as its own docs PR per the docs-refresh convention). Process mistakes that leave no diff trace
-(e.g. a git command that discarded work) are the most valuable thing to capture — this is what makes the capture
-systematic instead of memory-dependent. For a docs-only merge that fixes stale facts or removes duplication, the fix is
-the lesson — do not re-capture it as a new gotcha; capture only what the merge left unaddressed. Read that as barring a
-gotcha that _restates the fix_, not a general rule the fix exemplifies: a durable rule absent from `main` is one of the
-things the merge left unaddressed. Before rejecting a captured rule as a re-capture, check `main`'s own text
+recollection. A unit whose review loop runs rounds carries its per-round record rows the same way — the append is the
+calling agent's per-round act, so leaving it to the spec's record line runs the rounds unrecorded
+(`bound-the-review-loop` ran seven unrecorded until a reviewer caught it). captured: bound-the-review-loop One capture
+per unit, never a chain. Apply the proposals the main agent judges durable: an implementation capture is caused by the
+unit, so it rides the unit's branch and ships in its PR (a merge-time capture, discovered after the unit is done, ships
+as its own docs PR per the docs-refresh convention). Process mistakes that leave no diff trace (e.g. a git command that
+discarded work) are the most valuable thing to capture — this is what makes the capture systematic instead of
+memory-dependent. For a docs-only merge that fixes stale facts or removes duplication, the fix is the lesson — do not
+re-capture it as a new gotcha; capture only what the merge left unaddressed. Read that as barring a gotcha that
+_restates the fix_, not a general rule the fix exemplifies: a durable rule absent from `main` is one of the things the
+merge left unaddressed. Before rejecting a captured rule as a re-capture, check `main`'s own text
 (`git show origin/main:AGENTS.md`) and reject only a rule that restates the fix itself. Every proposal names the
 existing bullet it extends, or states that no bullet covers the lesson — a new rule merges into or replaces one rather
 than accreting. Every proposal also names **the decision its rule governs**, and states whether a future change would
@@ -1365,8 +1368,10 @@ Key modules (libraries, not services):
   Keep any enumerated list (the swept surfaces, the finding classes) verbatim-identical across proposal/design/tasks/
   delta. The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round
   surfaced one of these that a prior analogous change had covered — read the archived analogous change and grep for the
-  artifact's name before hand-writing the set. captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12
-  captured: record-review-rounds
+  artifact's name before hand-writing the set — and point the proposal's site list at the tasks that name those sites
+  rather than hand-writing it, since a hand-written enumeration keeps under-matching the union it derives from.
+  captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12 captured: record-review-rounds captured:
+  bound-the-review-loop
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
   `.opencode/opencode.json` (`model` and `small_model` — two keys), the flash-pinned subagent frontmatter

@@ -124,6 +124,10 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
   pass can be evaluated
 - **AND** with no prior-round list supplied, the review still classifies each finding and states that a repetition is
   unknown rather than inferring one, since the classification cannot be compared against what it has not seen
+- **AND** for a record artifact (a retrospective, a load-test record), a later round raising only new instances of an
+  already-raised class stops and escalates to the owner rather than iterating — the class-exhaustion clause above
+  already required that class whole on the round that raised it, so the escalation names the incomplete exhaustion
+  rather than continuing
 
 #### Scenario: Thorough review is available on demand
 

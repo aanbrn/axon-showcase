@@ -21,3 +21,15 @@
 2026-10-13	bound-the-review-loop	7	contradiction,compliance-miss	contradiction	1
 2026-10-13	bound-the-review-loop	8	-	-	0
 2026-10-13	bound-the-review-loop	9	-	-	0
+2026-10-13	make-the-pre-write-pass-visible	1	documented-numbers,unverifiable-claim,contradiction,dropped-content	-	3
+2026-10-13	make-the-pre-write-pass-visible	2	documented-numbers,unverifiable-claim,contradiction,dropped-content	documented-numbers,unverifiable-claim,contradiction,dropped-content	3
+2026-10-13	make-the-pre-write-pass-visible	3	documented-numbers,contradiction,single-sourcing,unverifiable-claim	documented-numbers,contradiction,unverifiable-claim	4
+2026-10-13	make-the-pre-write-pass-visible	4	single-sourcing,dangling-reference,typo	single-sourcing	1
+2026-10-13	make-the-pre-write-pass-visible	5	single-sourcing,documented-numbers,typo	single-sourcing,documented-numbers,typo	1
+2026-10-13	make-the-pre-write-pass-visible	6	documented-numbers,single-sourcing,typo	documented-numbers,single-sourcing,typo	2
+2026-10-13	make-the-pre-write-pass-visible	7	ambiguity,task-state	-	0
+2026-10-13	make-the-pre-write-pass-visible	8	incomplete-enumeration	-	1
+2026-10-13	make-the-pre-write-pass-visible	9	unverifiable-claim,contradiction	unverifiable-claim,contradiction	2
+2026-10-13	make-the-pre-write-pass-visible	10	documented-numbers	documented-numbers	1
+2026-10-13	make-the-pre-write-pass-visible	11	-	-	0
+2026-10-13	make-the-pre-write-pass-visible	12	-	-	0

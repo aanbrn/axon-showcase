@@ -123,19 +123,21 @@ continued — nothing was committed before the repeated request was answered, bu
 see there rather than here — so act on its verdict line rather than on your own recollection of the thread. A review
 loop that keeps finding the **same class** of observation round after round is not converging — each fix is treating a
 symptom of a root cause that is still there, and the next round will find another instance. Stop and re-derive the root
-cause — when the recurring class is a claim about another artifact that under-describes or contradicts it (a surface
-list, an artifact set, a list of touched files or test sites, a count, a unit, a decision's numbers), the root cause is
-that claim written from memory rather than derived from the surface it summarizes; re-derive it by grepping the corpus,
-the archive, the change's sibling artifacts, and the diff — or abandon the unit; do not layer another special case. A
-second root-cause shape is a passage the change was single-sourcing: each round finds another residue of the duplicate
-the pointer should have removed because the edit trimmed the sub-clause that round named; replace the whole duplicated
-unit in one edit and derive what stays at the pointing site from that site's own subject, not from the finding.
-captured: single-source-the-scheduled-audit-mechanism A third shape is a rule's own boundary wording: a discriminator
-that reads plausibly but excludes the very case it was written for must be re-derived from the mechanism that
-distinguishes the cases — not merely re-worded — and tested against that motivating case before its wording is swept
-across the artifact set. captured: relax-diagram-span-rule A revert after a non-converging loop is a legitimate outcome
-— record why in the change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362)
-captured: realistic-load-test-profiles captured: check-load-test-drift captured: check-unique-cron-schedules (#436)
+cause — when the recurring class is a claim about another artifact **or about the change's own mechanism** that
+under-describes or contradicts it (a surface list, an artifact set, a list of touched files or test sites, a count, a
+unit, a decision's numbers, **what a command yields or which inputs it can receive**), the root cause is that claim
+written from memory rather than derived from the surface it summarizes; re-derive it by grepping the corpus, the
+archive, the change's sibling artifacts, and the diff **— or, for a mechanism claim, by running the tool** — or abandon
+the unit; do not layer another special case. A second root-cause shape is a passage the change was single-sourcing: each
+round finds another residue of the duplicate the pointer should have removed because the edit trimmed the sub-clause
+that round named; replace the whole duplicated unit in one edit and derive what stays at the pointing site from that
+site's own subject, not from the finding. captured: single-source-the-scheduled-audit-mechanism A third shape is a
+rule's own boundary wording: a discriminator that reads plausibly but excludes the very case it was written for must be
+re-derived from the mechanism that distinguishes the cases — not merely re-worded — and tested against that motivating
+case before its wording is swept across the artifact set. captured: relax-diagram-span-rule A revert after a
+non-converging loop is a legitimate outcome — record why in the change dir so the decision is not re-litigated.
+captured: propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured: check-load-test-drift
+captured: check-unique-cron-schedules (#436) captured: derive-retrospective-facts
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -1262,12 +1264,13 @@ Key modules (libraries, not services):
   (`.opencode/agent/experience-analyzer.md`) aggregates recent experience across many changes — above the per-unit
   `review-quick`/`lesson-capture` agents. Trigger it with the `/retrospective` OpenCode command (or run it manually):
   the command gathers the digest with `./scripts/experience-analysis.sh [since]` (merged PRs, git log, archived changes,
-  AGENTS.md gotchas, docs/ideas.md), then the subagent returns a retrospective (shipped PRs by theme, lessons,
-  went-well/went-wrong) and improvement suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process`
-  (→ AGENTS.md or a subagent definition), which the main agent verifies and applies. Retrospectives land in
-  `docs/retrospectives/<date>.md` as a docs change. It is deliberately **not** in the scheduled `audit` workflow —
-  unlike the three audits, a retrospective is a judgment about a _period_ whose richest input is session-only, so it
-  stays on demand (the `agent-skills` spec records why).
+  AGENTS.md gotchas, docs/ideas.md, and a derived-facts block carrying the window's countable claims already resolved),
+  then the subagent returns a retrospective (shipped PRs by theme, lessons, went-well/went-wrong) and improvement
+  suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process` (→ AGENTS.md or a subagent
+  definition), which the main agent verifies and applies. Retrospectives land in `docs/retrospectives/<date>.md` as a
+  docs change. It is deliberately **not** in the scheduled `audit` workflow — unlike the three audits, a retrospective
+  is a judgment about a _period_ whose richest input is session-only, so it stays on demand (the `agent-skills` spec
+  records why).
 - **Agents-auditor subagent for agent-tooling maintenance**: the `agents-auditor` subagent
   (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
   `.opencode/` files — for the drift an accretion-only set produces: entries contradicted elsewhere, stale enumerations,
@@ -1813,8 +1816,8 @@ capture-stash-stale-copy
   can list a file the base changed past the merge base (which merely runs the step), never fail. And a step gated on
   changed paths must list its own definition file among them, or the pull request that edits the step skips it.
   captured: probe-opencode-config-read-path
-- **`gh pr list` does not support a `--since` flag, and a `gh <x> list` command silently truncates at its default
-  `--limit`.** Filter merged PRs by window with the search qualifier
+- **`gh pr list` does not support a `--since` flag; a `gh <x> list` command silently truncates at its default `--limit`;
+  and a windowed git query is not the PR window.** Filter merged PRs by window with the search qualifier
   `gh pr list --state merged --search "merged:>=<YYYY-MM-DD>"` (an unknown flag like `--since` is rejected outright, and
   there is no date variant of `--merged`). This bit the `/retrospective` gather script
   (`scripts/experience-analysis.sh`), whose first version used `--since`; the proposal/tasks that described
@@ -1822,14 +1825,20 @@ capture-stash-stale-copy
   default page with no warning when more exists (`--limit` defaults to 30 for `pr` and `issue`, 20 for `run`), so the
   same script returned 30 rows for a window holding 249 merges until it gained an explicit `--limit 1000`. Any future
   "what shipped since X" automation must use the `--search "merged:>=..."` form **and** an explicit `--limit` sized to
-  the corpus. The same truncation is self-inflicted by an explicit slice: `head -1` on the `buildpackUpdates` report hid
-  the second of its two lines, and the tasks file cited the first as though it were the whole report. Cite a command's
-  full captured output before recording it as evidence or scoping a change from it — read the whole report file or CI
-  run log, and take the flagged set from the tool's own findings list, not a `head`/`tail` slice, a `grep` filter, or a
-  derived/narrative section of the output. A filtered read of the 2026-09-24 Snyk run's `--log-failed` output showed
-  only four of the seven Jackson advisories, so the change was scoped Jackson 2-only and would have left the three
-  Jackson 3 ones (fix `3.2.3`) unaddressed; the full log named both lines. captured:
-  test-build-logic-rules-and-unify-version-comparison (#306) captured: bump-jackson-boms-for-snyk-findings
+  the corpus. Scope the window's git side with a time-explicit `since` (`--since="${SINCE}T00:00:00"`) — a bare
+  date-only `--since` excludes commits before the wall-clock time of day on that date, so the count varies run to run
+  (verified: 48 commits bare vs 65 at `T00:00:00`) — and never read a git window's start as the PR window's start: a
+  squash-merged commit's date can differ from its PR's merge date (verified: `#494` merged 2026-10-04T22:25Z, committed
+  2026-10-05), so a baseline at the raw git window's start is a PR late (`derive-retrospective-facts` first read 2672
+  lines where the window's start is 2693). The same truncation is self-inflicted by an explicit slice: `head -1` on the
+  `buildpackUpdates` report hid the second of its two lines, and the tasks file cited the first as though it were the
+  whole report. Cite a command's full captured output before recording it as evidence or scoping a change from it — read
+  the whole report file or CI run log, and take the flagged set from the tool's own findings list, not a `head`/`tail`
+  slice, a `grep` filter, or a derived/narrative section of the output. A filtered read of the 2026-09-24 Snyk run's
+  `--log-failed` output showed only four of the seven Jackson advisories, so the change was scoped Jackson 2-only and
+  would have left the three Jackson 3 ones (fix `3.2.3`) unaddressed; the full log named both lines. captured:
+  test-build-logic-rules-and-unify-version-comparison (#306) captured: bump-jackson-boms-for-snyk-findings captured:
+  derive-retrospective-facts
 - **`gh pr create --body` with Markdown can fail under zsh with `no matches found`** — an inline body containing
   `**bold**` (or other shell metacharacters/newlines) is subject to zsh's `nomatch` glob error
   (`zsh: no matches found: **...`). Write the body to a file and use `--body-file <file>` instead; it also sidesteps

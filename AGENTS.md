@@ -119,25 +119,25 @@ pre-change there (expected, not a revert). captured: bump-snyk-cli-2026-10-12 Wo
 stay in the working tree until it is given; as the owner recounted afterwards, a clean quick review asked for the manual
 pass, the reply asked about lesson capture instead, and the capture was folded into the same branch and the work
 continued — nothing was committed before the repeated request was answered, but the request had been missed. The
-`review-quick` subagent's finding classes and its repeated-class flag are specified in `showcase/quality/agent-skills` —
-see there rather than here — so act on its verdict line rather than on your own recollection of the thread. A review
-loop that keeps finding the **same class** of observation round after round is not converging — each fix is treating a
-symptom of a root cause that is still there, and the next round will find another instance. Stop and re-derive the root
-cause — when the recurring class is a claim about another artifact **or about the change's own mechanism** that
-under-describes or contradicts it (a surface list, an artifact set, a list of touched files or test sites, a count, a
-unit, a decision's numbers, **what a command yields or which inputs it can receive**), the root cause is that claim
-written from memory rather than derived from the surface it summarizes; re-derive it by grepping the corpus, the
-archive, the change's sibling artifacts, and the diff **— or, for a mechanism claim, by running the tool** — or abandon
-the unit; do not layer another special case. A second root-cause shape is a passage the change was single-sourcing: each
-round finds another residue of the duplicate the pointer should have removed because the edit trimmed the sub-clause
-that round named; replace the whole duplicated unit in one edit and derive what stays at the pointing site from that
-site's own subject, not from the finding. captured: single-source-the-scheduled-audit-mechanism A third shape is a
-rule's own boundary wording: a discriminator that reads plausibly but excludes the very case it was written for must be
-re-derived from the mechanism that distinguishes the cases — not merely re-worded — and tested against that motivating
-case before its wording is swept across the artifact set. captured: relax-diagram-span-rule A revert after a
-non-converging loop is a legitimate outcome — record why in the change dir so the decision is not re-litigated.
-captured: propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured: check-load-test-drift
-captured: check-unique-cron-schedules (#436) captured: derive-retrospective-facts
+`review-quick` subagent's finding classes, its repeated-class flag, and its class-exhaustion clause are specified in
+`showcase/quality/agent-skills` — see there rather than here — so act on its verdict line rather than on your own
+recollection of the thread. A review loop that keeps finding the **same class** of observation round after round is not
+converging — each fix is treating a symptom of a root cause that is still there, and the next round will find another
+instance. Stop and re-derive the root cause — when the recurring class is a claim about another artifact **or about the
+change's own mechanism** that under-describes or contradicts it (a surface list, an artifact set, a list of touched
+files or test sites, a count, a unit, a decision's numbers, **what a command yields or which inputs it can receive**),
+the root cause is that claim written from memory rather than derived from the surface it summarizes; re-derive it by
+grepping the corpus, the archive, the change's sibling artifacts, and the diff **— or, for a mechanism claim, by running
+the tool** — or abandon the unit; do not layer another special case. A second root-cause shape is a passage the change
+was single-sourcing: each round finds another residue of the duplicate the pointer should have removed because the edit
+trimmed the sub-clause that round named; replace the whole duplicated unit in one edit and derive what stays at the
+pointing site from that site's own subject, not from the finding. captured: single-source-the-scheduled-audit-mechanism
+A third shape is a rule's own boundary wording: a discriminator that reads plausibly but excludes the very case it was
+written for must be re-derived from the mechanism that distinguishes the cases — not merely re-worded — and tested
+against that motivating case before its wording is swept across the artifact set. captured: relax-diagram-span-rule A
+revert after a non-converging loop is a legitimate outcome — record why in the change dir so the decision is not
+re-litigated. captured: propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured:
+check-load-test-drift captured: check-unique-cron-schedules (#436) captured: derive-retrospective-facts
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is

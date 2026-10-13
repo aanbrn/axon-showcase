@@ -112,6 +112,9 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
   class a prior round already raised is reported as a repeat of that class, naming it — so the loop's convergence signal
   comes from the review's output rather than the caller's recollection, and the caller re-derives the root cause on that
   signal rather than patching the instance
+- **AND** a class raised on any round — the first included — is **exhausted**: the review searches the artifact for
+  every instance of that class's shape and reports them as one clustered finding, so a class surfaces whole rather than
+  one instance per round
 - **AND** with no prior-round list supplied, the review still classifies each finding and states that a repetition is
   unknown rather than inferring one, since the classification cannot be compared against what it has not seen
 

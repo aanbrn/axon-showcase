@@ -41,12 +41,6 @@ dated when it was added (start a new section for a new day rather than appending
   while a sibling clause is open. The 2026-10-11 advisory read ADR-0011's gate that way. Routes to
   `.opencode/agent/architecture-auditor.md` and the scenario, which owes that capability's delta.
 
-- Make the quick-review subagent cluster co-classed findings on the first round — parked; no change yet. The per-unit
-  quick review classifies each finding, but on the first round (no prior-round list) co-classed findings are reported as
-  independent items, so the root-cause signal fires only after two or more rounds. The `agent-skills` spec's "Quick
-  review runs after proposal and implementation" scenario owns that contract, so intra-round clustering owes that
-  capability's delta. Routes to `.opencode/agent/review-quick.md` and the scenario.
-
 ## 2026-10-11
 
 - Re-check the web UI's `handlebars` override when the lint plugin bumps it — parked; no change yet.

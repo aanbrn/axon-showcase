@@ -10,10 +10,10 @@ set -euo pipefail
 # Usage: ./scripts/experience-analysis.sh [since]   (since defaults to 7 days ago, e.g. 2026-09-02)
 #
 # The derived-facts block is the authoritative source for the retrospective's countable claims (the merged-PR boundary,
-# the archived-change count, AGENTS.md's metrics, and the window's captured: lines): read them from there rather than
-# re-deriving them by hand. Both the PR and the archive counts carry the same `since` boundary — the search and
-# `git log --since` are inclusive of the `since` date — so the block names the `since`-date items and the previous
-# retrospective's file, and the author resolves the split (the previous window's tail) against it.
+# the archived-change count, AGENTS.md's metrics, the window's captured: lines, and the window's review rounds): read
+# them from there rather than re-deriving them by hand. Both the PR and the archive counts carry the same `since`
+# boundary — the search and `git log --since` are inclusive of the `since` date — so the block names the `since`-date
+# items and the previous retrospective's file, and the author resolves the split against it.
 
 # Portable 7-days-ago: BSD date (macOS) uses -v-7d, GNU date (Linux) uses --date=-7day.
 if [ $# -gt 0 ]; then
@@ -83,6 +83,13 @@ if [ -n "${RAW_BASE}" ]; then
     echo "  ${token} (introduced by $(git log -S"${token}" --format='%h %ad %s' --date=short -- AGENTS.md \
       | tail -n 1))"
   done
+fi
+echo "Review rounds (docs/review-rounds.tsv; compliance_misses = findings that were a miss of an existing rule):"
+if [ -f docs/review-rounds.tsv ]; then
+  awk -F'\t' -v s="${SINCE}" '$1 !~ /^#/ && $1 >= s { rounds++; miss += $6; printf "  %s\n", $0 }
+    END { printf "  window: %d round(s), %d compliance miss(es)\n", rounds + 0, miss + 0 }' docs/review-rounds.tsv
+else
+  echo "  (none on disk)"
 fi
 echo
 echo "=== Merged pull requests ==="

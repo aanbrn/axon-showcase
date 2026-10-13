@@ -128,6 +128,16 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
   already-raised class stops and escalates to the owner rather than iterating — the class-exhaustion clause above
   already required that class whole on the round that raised it, so the escalation names the incomplete exhaustion
   rather than continuing
+- **AND** every unit carries the pre-write derivation pass as a record — a task in the change's `tasks.md`, or a line in
+  the pull-request checklist for a unit with no change dir — so a skipped pass is a missing box rather than looking like
+  a pass that found nothing
+
+#### Scenario: A skipped pre-write pass is a missing record
+
+- **WHEN** a unit's planning artifacts are finished and the review loop is about to start
+- **THEN** the unit's record names the pre-write derivation pass it ran — the change's `tasks.md` task, or the
+  pull-request checklist line for a unit with no change dir — so a pass that was skipped is reported as that record
+  missing or unticked rather than reconstructed from recollection
 
 #### Scenario: Thorough review is available on demand
 

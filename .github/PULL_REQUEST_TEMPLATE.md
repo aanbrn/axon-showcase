@@ -16,3 +16,5 @@
       a standalone fix, or a dependency bump, which need no change dir
 - [ ] The per-unit `lesson-capture` ran — recorded as a task in the change's `tasks.md` with the applied `AGENTS.md`
       delta, or, for a unit with no change dir, by ticking this line and noting the applied delta
+- [ ] The pre-write derivation pass ran — recorded as a task in the change's `tasks.md`, or, for a unit with no change
+      dir, by ticking this line

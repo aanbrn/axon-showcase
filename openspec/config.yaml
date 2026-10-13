@@ -74,6 +74,9 @@ rules:
     - Include the per-unit `lesson-capture` step as a task in every change — run the `lesson-capture` subagent, apply
       its durable proposals, and record the applied net `AGENTS.md` delta on the task — so an unrun capture is a missing
       box rather than a recollection
+    - Carry the pre-write derivation pass as a task in every change — the pass `AGENTS.md`'s review-loop bullet names,
+      with the four claim classes that bullet states, not restated here — so a skipped pass is a missing box rather than
+      looking like a pass that found nothing
 
 # Per-operation guidance
 operations:

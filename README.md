@@ -439,9 +439,9 @@ The process is designed to **learn from itself** — and that is the mechanic, n
   lesson written there does not merely document the past — it changes how the agent behaves on the next change.
 - **Every unit closes the loop.** The `lesson-capture` subagent runs after a unit's implementation, and the unit carries
   a record of it — a task in a change's `tasks.md`, or a checklist line on the pull request — so a skipped run shows as
-  a missing box at the merge. At a merge the agent detects — reading the merge's non-diff effects and reporting any
-  candidate — so lessons that only surface once a unit is live still get captured (it asks before running one); the ones
-  you accept land in `AGENTS.md`.
+  a missing box at the merge. The pre-write derivation pass, run before the review loop, is carried the same way. At a
+  merge the agent detects — reading the merge's non-diff effects and reporting any candidate — so lessons that only
+  surface once a unit is live still get captured (it asks before running one); the ones you accept land in `AGENTS.md`.
 - **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
   same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
   uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.

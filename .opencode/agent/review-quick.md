@@ -49,3 +49,8 @@ Prioritize concrete, actionable gaps over style nitpicks. Do not edit files — 
   total.
 - Collapse checks that passed to one line each, or one summary line.
 - State the recommendation; do not offer alternatives — the calling agent decides.
+- End with one machine-readable record line, as the report's last line — tab-separated fields: the date, the unit (its
+  branch or change name), the round (continuous per unit across its proposal and implementation reviews), the classes
+  raised (comma-separated, or `-` when none), which of them repeated a prior round's class (comma-separated, or `-` when
+  none), and how many findings were a compliance miss of an existing rule (`AGENTS.md`, the specs, or this definition).
+  The calling agent appends it to `docs/review-rounds.tsv` verbatim, so keep it one line with no wrapping.

@@ -15,12 +15,6 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-13
 
-- Record per-unit review rounds and whether each finding was a compliance miss — parked; no change yet. The review
-  loop's cost is the 2026-10-13 retrospective's central finding, but no per-unit record exists: a round's findings live
-  only in the session, so the cost cannot trend and `cut-review-loop-rounds`'s pre-write pass cannot be evaluated.
-  Routes to `.opencode/agent/review-quick.md` (one machine-readable line per round) and `scripts/experience-analysis.sh`
-  (the digest aggregates them).
-
 - Bound the review loop for a record artifact — parked; no change yet. A record (a retrospective, a load-test record)
   has no shipped behavior to converge on, so a second round raising only new instances of an already-raised class should
   stop and escalate rather than iterate; safe only once the digest derives the countable claims, so the trade is

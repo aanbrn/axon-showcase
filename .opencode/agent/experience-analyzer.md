@@ -22,9 +22,9 @@ You are given:
 - AGENTS.md gotchas/conventions (the accumulated lessons)
 - docs/ideas.md (parked ideas, including what was decided against and why)
 - A derived-facts block resolving the window's countable claims (the merged-PR boundary facts, the archived changes
-  scoped to the window's commits, AGENTS.md's metrics at HEAD and just before each `since`-date PR, and each `captured:`
-  marker added since the window start with its introducing commit) — read the retrospective's countable claims from it
-  rather than re-deriving them
+  scoped to the window's commits, AGENTS.md's metrics at HEAD and just before each `since`-date PR, each `captured:`
+  marker added since the window start with its introducing commit, and the window's review rounds from
+  `docs/review-rounds.tsv`) — read the retrospective's countable claims from it rather than re-deriving them
 - A short context note from the main agent (e.g. what went well/wrong that no diff captures)
 
 Produce two sections:

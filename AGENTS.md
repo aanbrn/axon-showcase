@@ -119,25 +119,26 @@ pre-change there (expected, not a revert). captured: bump-snyk-cli-2026-10-12 Wo
 stay in the working tree until it is given; as the owner recounted afterwards, a clean quick review asked for the manual
 pass, the reply asked about lesson capture instead, and the capture was folded into the same branch and the work
 continued — nothing was committed before the repeated request was answered, but the request had been missed. The
-`review-quick` subagent's finding classes, its repeated-class flag, and its class-exhaustion clause are specified in
-`showcase/quality/agent-skills` — see there rather than here — so act on its verdict line rather than on your own
-recollection of the thread. A review loop that keeps finding the **same class** of observation round after round is not
-converging — each fix is treating a symptom of a root cause that is still there, and the next round will find another
-instance. Stop and re-derive the root cause — when the recurring class is a claim about another artifact **or about the
-change's own mechanism** that under-describes or contradicts it (a surface list, an artifact set, a list of touched
-files or test sites, a count, a unit, a decision's numbers, **what a command yields or which inputs it can receive**),
-the root cause is that claim written from memory rather than derived from the surface it summarizes; re-derive it by
-grepping the corpus, the archive, the change's sibling artifacts, and the diff **— or, for a mechanism claim, by running
-the tool** — or abandon the unit; do not layer another special case. A second root-cause shape is a passage the change
-was single-sourcing: each round finds another residue of the duplicate the pointer should have removed because the edit
-trimmed the sub-clause that round named; replace the whole duplicated unit in one edit and derive what stays at the
-pointing site from that site's own subject, not from the finding. captured: single-source-the-scheduled-audit-mechanism
-A third shape is a rule's own boundary wording: a discriminator that reads plausibly but excludes the very case it was
-written for must be re-derived from the mechanism that distinguishes the cases — not merely re-worded — and tested
-against that motivating case before its wording is swept across the artifact set. captured: relax-diagram-span-rule A
-revert after a non-converging loop is a legitimate outcome — record why in the change dir so the decision is not
-re-litigated. captured: propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured:
-check-load-test-drift captured: check-unique-cron-schedules (#436) captured: derive-retrospective-facts
+`review-quick` subagent's finding classes, its repeated-class flag, its class-exhaustion clause, and its per-round
+record line are specified in `showcase/quality/agent-skills` — see there rather than here — so act on its verdict line
+rather than on your own recollection of the thread. A review loop that keeps finding the **same class** of observation
+round after round is not converging — each fix is treating a symptom of a root cause that is still there, and the next
+round will find another instance. Stop and re-derive the root cause — when the recurring class is a claim about another
+artifact **or about the change's own mechanism** that under-describes or contradicts it (a surface list, an artifact
+set, a list of touched files or test sites, a count, a unit, a decision's numbers, **what a command yields or which
+inputs it can receive**), the root cause is that claim written from memory rather than derived from the surface it
+summarizes; re-derive it by grepping the corpus, the archive, the change's sibling artifacts, and the diff **— or, for a
+mechanism claim, by running the tool** — or abandon the unit; do not layer another special case. A second root-cause
+shape is a passage the change was single-sourcing: each round finds another residue of the duplicate the pointer should
+have removed because the edit trimmed the sub-clause that round named; replace the whole duplicated unit in one edit and
+derive what stays at the pointing site from that site's own subject, not from the finding. captured:
+single-source-the-scheduled-audit-mechanism A third shape is a rule's own boundary wording: a discriminator that reads
+plausibly but excludes the very case it was written for must be re-derived from the mechanism that distinguishes the
+cases — not merely re-worded — and tested against that motivating case before its wording is swept across the artifact
+set. captured: relax-diagram-span-rule A revert after a non-converging loop is a legitimate outcome — record why in the
+change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362) captured:
+realistic-load-test-profiles captured: check-load-test-drift captured: check-unique-cron-schedules (#436) captured:
+derive-retrospective-facts
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -1346,7 +1347,8 @@ Key modules (libraries, not services):
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
   documentation first and was only usable once the user pointed out it had no trigger and the command was added.
 - **A recurring unit type — a subagent/command change, a version bump — derives its change dir from the last analogous
-  archived change instead of re-deriving it: the artifact set for the former, and for a bump the task set, each task's
+  archived change instead of re-deriving it: the artifact set for the former — the union of the sites every
+  artifact-bearing task in that change names, not the list one task carries — and for a bump the task set, each task's
   result record, and the spec-position rationale.** **A definition edit that changes spec'd behavior is a change, not a
   docs edit** — the `agent-skills` spec describes that definition's behavior, so such an edit owes that spec's delta and
   never rides a docs, audit-fix, or retrospective PR; a definition-only edit the spec does not describe (a model-pin
@@ -1364,6 +1366,7 @@ Key modules (libraries, not services):
   delta. The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round
   surfaced one of these that a prior analogous change had covered — read the archived analogous change and grep for the
   artifact's name before hand-writing the set. captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12
+  captured: record-review-rounds
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
   `.opencode/opencode.json` (`model` and `small_model` — two keys), the flash-pinned subagent frontmatter
@@ -2443,23 +2446,26 @@ capture-stash-stale-copy
   so the split could not belong to the 46; it was the 65-bullet set the same sentence also named, and the mismatch was
   invisible until the review did the addition. Distinguish a point-in-time count from a durable one: an exact count of a
   growing corpus (capability specs, requirements, archived changes) belongs in a change's own artifacts, where a stale
-  snapshot does no harm, and never in a durable artifact (a subagent definition loaded on every invocation, `AGENTS.md`,
-  the README, a command file, a main spec) — where it drifts on every archive and becomes exactly the drift the
-  `specs-auditor` exists to catch. The `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the
-  change's own delta made the main spec hold 158, and the README still stated a hard "22 capability specs". Describe the
-  shape instead of freezing a tally — the `specs-auditor` definition now says "a corpus … that grows with every archived
-  change", and the README's "120+ and counting" is the pattern to follow. A process count — review rounds, elapsed time,
-  effort — is not a durable fact either, though for a different reason: no reader can verify it from the repository at
-  all, so describe it qualitatively ("repeated review rounds"), not as a precise number. That targets _human_ process
-  narrative — effort, review rounds, how long a session ran — which no machine-measured evidence records; a
-  _machine-measured_ figure is a different class, since the CI run log is its evidence, so an order-of-magnitude build
-  cost (the one-time-full-rebuild vs warm CI timings above) is not a process count and need not be made qualitative. A
-  named example or mechanism inside a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep
-  it on "the gateway e2e test, which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in
-  the test JVM — a false example that surfaced only when ADR-0009 had to restate the same rule. When a second artifact
-  restates an existing fact, diff the two against the code rather than copying the prose. captured:
-  make-captured-rules-traceable (#279) captured: verify-tracked-ignored-files captured: state-tooling-placement-rule
-  (#458)
+  snapshot usually does no harm — except when the counted artifact is the change's own and grows while the change is in
+  flight (its own review-round record, its own appended rows), where a checked task certifying "the first N rows" is
+  falsified by the next row, so state the mechanism with no count — and never in a durable artifact (a subagent
+  definition loaded on every invocation, `AGENTS.md`, the README, a command file, a main spec) — where it drifts on
+  every archive and becomes exactly the drift the `specs-auditor` exists to catch. The `add-specs-auditor-agent`
+  proposal said the corpus held "157 requirements"; the change's own delta made the main spec hold 158, and the README
+  still stated a hard "22 capability specs". Describe the shape instead of freezing a tally — the `specs-auditor`
+  definition now says "a corpus … that grows with every archived change", and the README's "120+ and counting" is the
+  pattern to follow. A process count — elapsed time, effort — is not a durable fact either, though for a different
+  reason: no reader can verify it from the repository at all, so describe it qualitatively, not as a precise number.
+  Review rounds are the exception: `docs/review-rounds.tsv` records them per unit and `scripts/experience-analysis.sh`
+  aggregates the window, so cite the record rather than a session-only number. That targets _human_ process narrative —
+  effort, how long a session ran — which no machine-measured evidence records; a _machine-measured_ figure is a
+  different class, since the CI run log is its evidence, so an order-of-magnitude build cost (the one-time-full-rebuild
+  vs warm CI timings above) is not a process count and need not be made qualitative. A named example or mechanism inside
+  a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep it on "the gateway e2e test,
+  which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in the test JVM — a false example
+  that surfaced only when ADR-0009 had to restate the same rule. When a second artifact restates an existing fact, diff
+  the two against the code rather than copying the prose. captured: make-captured-rules-traceable (#279) captured:
+  verify-tracked-ignored-files captured: state-tooling-placement-rule (#458) captured: record-review-rounds
 
 - **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
   is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`

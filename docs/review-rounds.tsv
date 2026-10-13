@@ -1,0 +1,14 @@
+# One row per review round. Tab-separated fields: date (YYYY-MM-DD), unit, round (continuous per unit across its
+# proposal and implementation reviews), classes raised (comma-separated, or - when none), classes that repeated a prior
+# round (comma-separated, or - when none), and compliance_misses (findings that were a miss of an existing rule).
+# Appended by the main agent from the record line a review round emits; aggregated in the window by
+# scripts/experience-analysis.sh.
+2026-10-13	record-review-rounds	1	contradiction,missing-delta,ambiguity	-	2
+2026-10-13	record-review-rounds	2	missing-artifact,wording	missing-artifact	1
+2026-10-13	record-review-rounds	3	missing-artifact	missing-artifact	1
+2026-10-13	record-review-rounds	4	-	-	0
+2026-10-13	record-review-rounds	5	missing-artifact,ambiguity	-	1
+2026-10-13	record-review-rounds	6	stale-claim	-	1
+2026-10-13	record-review-rounds	7	incomplete-enumeration	-	1
+2026-10-13	record-review-rounds	8	contradiction	-	0
+2026-10-13	record-review-rounds	9	-	-	0

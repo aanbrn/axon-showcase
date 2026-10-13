@@ -59,12 +59,13 @@ retrospective and forward-looking improvement suggestions. The derived-facts blo
 claims already resolved — the merged-PR boundary facts (the search's count, each PR merged on the `since` date, and the
 previous retrospective's file), the archived changes scoped to the window's commits, `AGENTS.md`'s line,
 top-level-bullet, and `captured:` metrics at HEAD and just before each `since`-date PR (so the window's baseline is read
-off the first counted PR), and each `captured:` marker added since the window start with its introducing commit — so the
-retrospective is written around derived facts rather than re-deriving them by hand. The retrospective SHALL group
-shipped PRs by theme, summarize lessons learned, and record went-well/went-wrong observations. Each improvement
-suggestion SHALL be classified as a system suggestion (addressed via `docs/ideas.md` or an OpenSpec proposal) or a
-process suggestion (addressed via `AGENTS.md` or a subagent definition). The agent SHALL propose the retrospective and
-suggestions without editing files; the main agent verifies and applies them.
+off the first counted PR), each `captured:` marker added since the window start with its introducing commit, and the
+window's review rounds from `docs/review-rounds.tsv` (its round count, the classes raised, and the compliance-miss
+count) — so the retrospective is written around derived facts rather than re-deriving them by hand. The retrospective
+SHALL group shipped PRs by theme, summarize lessons learned, and record went-well/went-wrong observations. Each
+improvement suggestion SHALL be classified as a system suggestion (addressed via `docs/ideas.md` or an OpenSpec
+proposal) or a process suggestion (addressed via `AGENTS.md` or a subagent definition). The agent SHALL propose the
+retrospective and suggestions without editing files; the main agent verifies and applies them.
 
 #### Scenario: A retrospective is produced from gathered experience
 
@@ -79,7 +80,8 @@ suggestions without editing files; the main agent verifies and applies them.
   each PR merged on the `since` date, and the previous retrospective's file), the archived changes scoped to the
   window's commits with the `since`-date dirs named for the same resolution, `AGENTS.md`'s line, top-level-bullet, and
   `captured:` metrics at HEAD and just before each `since`-date PR (so the window's baseline is read off the first
-  counted PR), and each `captured:` marker added since the window start with its introducing commit, so the
+  counted PR), each `captured:` marker added since the window start with its introducing commit, and the window's review
+  rounds from `docs/review-rounds.tsv` (its round count, the classes raised, and the compliance-miss count), so the
   retrospective's countable claims are read from the block rather than authored from memory
 
 #### Scenario: Improvement suggestions are classified
@@ -115,6 +117,11 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 - **AND** a class raised on any round — the first included — is **exhausted**: the review searches the artifact for
   every instance of that class's shape and reports them as one clustered finding, so a class surfaces whole rather than
   one instance per round
+- **AND** every round emits one machine-readable record line — the date, the unit, the round (continuous per unit across
+  its proposal and implementation reviews), the classes raised (comma-separated; `-` when none), which repeated a prior
+  class (comma-separated; `-` when none), and the count of findings that were a compliance miss of an existing rule —
+  for the calling agent to append to `docs/review-rounds.tsv`, so the digest can trend the loop's cost and the pre-write
+  pass can be evaluated
 - **AND** with no prior-round list supplied, the review still classifies each finding and states that a repetition is
   unknown rather than inferring one, since the classification cannot be compared against what it has not seen
 

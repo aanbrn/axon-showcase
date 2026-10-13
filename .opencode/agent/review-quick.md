@@ -29,6 +29,11 @@ repository with no change dir, do a fast verification pass:
   has not converged and the root cause should be re-derived rather than the instance patched again — say so explicitly
   in your report. When no prior-round list is supplied, still classify each finding, and state that a repetition is
   unknown rather than inferring one, since you have nothing to compare against.
+- **Exhaust a class on the round that raises it.** When a finding falls in a class — the first round included — search
+  the artifact for **every** instance of that class's shape before reporting: grep a count against its set, an
+  enumeration against the corpus it summarizes, a mechanism claim against the tool or the graph. Report them as **one
+  clustered finding** that names the search you ran and each instance's `file:line`, so a class surfaces whole rather
+  than one instance per round, and the repeat-marking above fires early rather than after several rounds.
 - Run the project's 120-character check (the `Formatting` convention's `perl` recipe) over the changed files the
   formatter does not cover — YAML, and so on; everything else is formatter-gated — and report any lines over 120.
 

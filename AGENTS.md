@@ -550,7 +550,8 @@ wait for approval before merging.
 ./gradlew :showcase-web-ui:e2eTest
 
 # Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
-# plus workflowLint (actionlint), verifyInfraImageVersions, verifyInstallCommands, verifyModuleDependencies,
+# plus workflowLint (actionlint), verifyInfraImageVersions, verifyInstallCommands, verifyDocumentedPins,
+# verifyModuleDependencies,
 # verifyDashboardJson, and the commit-hygiene tasks
 # (verifyCapturedMarkers, testCommitHygiene, testDoctorCharter, verifyTrackedIgnoredFiles, verifyConflictMarkers,
 # verifyExecutableBits, verifyUniqueCronSchedules, verifyLargeFiles)
@@ -1708,19 +1709,21 @@ postgres omits a trailing `.0`), and pinned `bitnami-*` chart versions (`bitnami
 deploy as-is — no `image.tag` override in build logic or values files. To bump an infra component, update its
 `*-image-tag` and/or its `bitnami-*` chart version together. The `verifyInstallCommands` task (also part of `check`)
 verifies the manual `helm install … --version` commands in this file's Kubernetes Deployment section against the catalog
-chart pins, so a chart bump cannot leave the documented command stale. The `verifyInfraImageVersions` task (part of
-`check`) derives its checks from the actual `helm.releases` container, resolves each pinned chart's preconfigured
-`image.tag` via the Helm CLI (`helm show values bitnami/<chart> --version <pinned>`, using the plugin-managed client;
-the task adds and updates the bitnami chart repository itself), fails the build if its app version drifts from the
-`*-image-tag` after truncating the chart app version to the official tag's numeric segment count (so `17.6` matches a
-chart app version `17.6.0` at minor granularity, while `3.9.0` requires an exact chart app version match), rejects any
-official tag with fewer than two numeric segments as a floating reference (e.g. `17`, which Docker Hub re-points to the
-latest 17.x), and fails if any infra values file (`helm/values/*/values*.yaml`) pins `image.tag` — so the repo cannot
-reintroduce a separate override. The task is build-cacheable on its inputs (the pinned coordinates and values files):
-since a pinned chart version's preconfigured `image.tag` is immutable, unchanged inputs restore the verification from
-the Gradle build cache and skip the Helm resolution entirely. Deriving the checks from the configured releases means
-renaming an infra release retargets its check and removing one drops it. External `image.tag` overrides at deploy time
-(e.g. `--set` in a release pipeline) are outside this in-repo gate.
+chart pins, so a chart bump cannot leave the documented command stale. The `verifyDocumentedPins` task (also part of
+`check`) verifies the catalog's Paketo pins — the buildpack builder and the buildpacks — wherever `AGENTS.md` or
+`README.md` states them, so a buildpack bump cannot leave a documented pin stale. The `verifyInfraImageVersions` task
+(part of `check`) derives its checks from the actual `helm.releases` container, resolves each pinned chart's
+preconfigured `image.tag` via the Helm CLI (`helm show values bitnami/<chart> --version <pinned>`, using the
+plugin-managed client; the task adds and updates the bitnami chart repository itself), fails the build if its app
+version drifts from the `*-image-tag` after truncating the chart app version to the official tag's numeric segment count
+(so `17.6` matches a chart app version `17.6.0` at minor granularity, while `3.9.0` requires an exact chart app version
+match), rejects any official tag with fewer than two numeric segments as a floating reference (e.g. `17`, which Docker
+Hub re-points to the latest 17.x), and fails if any infra values file (`helm/values/*/values*.yaml`) pins `image.tag` —
+so the repo cannot reintroduce a separate override. The task is build-cacheable on its inputs (the pinned coordinates
+and values files): since a pinned chart version's preconfigured `image.tag` is immutable, unchanged inputs restore the
+verification from the Gradle build cache and skip the Helm resolution entirely. Deriving the checks from the configured
+releases means renaming an infra release retargets its check and removing one drops it. External `image.tag` overrides
+at deploy time (e.g. `--set` in a release pipeline) are outside this in-repo gate.
 
 **Every Helm chart coordinate in the version catalog is a concrete version** — never a floating major-line pin such as
 `77.x.x`. This covers the observability charts (`prometheus-community-stack`, `grafana-tempo`) and the `common` subchart
@@ -2074,8 +2077,14 @@ capture-stash-stale-copy
     rule's initial tests (valid / truncated / two-malformed / no-files) never covered either class, so both gaps passed
     the suite and surfaced only from the live known-bad control (zeroing the file, then appending a trailing byte) —
     caught and fixed before the gate shipped, not by the tests. Before trusting a parse-as-validation gate, enumerate
-    the input classes it must reject (empty, blank, trailing content, a second document) and exercise each. captured:
-    validate-dashboard-json
+    the input classes it must reject (empty, blank, trailing content, a second document) and exercise each. For a
+    regex-based gate, find those classes with a **mutation battery** over the pattern's branches — mutate each branch (a
+    character class, a quantifier, a trailing delimiter) and read which fixtures flip verdict: a branch whose mutation
+    flips no fixture is unexercised, so add the discriminating fixture rather than one fixture per review round. A
+    surviving branch no live input can reach is not a gap but an accepted surface (see the deliberately-conservative-
+    check bullet) — record the equivalence and the inputs that make it unreachable, rather than closing it, since the
+    fixture would test the pattern's grammar, not the check's behaviour. captured: validate-dashboard-json captured:
+    verify-documented-pins
   - **A control must perturb the surface the check actually reads.** `reconcile-showcase-cache-default`'s control
     perturbs the yml placeholder because `applicationYmlPlaceholdersBindDocumentedDefaults` boots `application.yml` and
     never binds the Java field — reverting the field instead would have proved nothing, since that test passes

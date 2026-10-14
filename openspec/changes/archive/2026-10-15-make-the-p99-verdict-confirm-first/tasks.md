@@ -65,4 +65,4 @@
 - [x] 4.4 Run the per-unit `lesson-capture` and record the applied net `AGENTS.md` delta (**+7 lines**: a skip is not a
       pass, merged into the Formatting convention's markdown sub-bullet, and the per-round record append is made at the
       round's report, merged into the capture bullet; no rule retired).
-- [ ] 4.5 Request the user's manual review pass.
+- [x] 4.5 Request the user's manual review pass.

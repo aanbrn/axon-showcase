@@ -65,6 +65,8 @@ rules:
     - Flag "Risks / Trade-offs" with concrete mitigation
     - A model stated in more than one artifact is single-sourced, the rest referencing it by name
     - Every mechanism or task-check claim is derived from the dependency graph or the tool's own definition
+    - Carry the claims table — each fact the change states about its evidence (the prior artifacts it rests on) with its
+      source or the command that derives it
   tasks:
     - Break tasks into chunks of max 2 hours
     - Reference exact file paths and commands so each task is verifiable
@@ -75,8 +77,8 @@ rules:
       its durable proposals, and record the applied net `AGENTS.md` delta on the task — so an unrun capture is a missing
       box rather than a recollection
     - Carry the pre-write derivation pass as a task in every change — the pass `AGENTS.md`'s review-loop bullet names,
-      with the four claim classes that bullet states, not restated here — so a skipped pass is a missing box rather than
-      looking like a pass that found nothing
+      whose output is the claims table, never restated here — so a skipped pass is a missing box rather than looking
+      like a pass that found nothing
 
 # Per-operation guidance
 operations:

@@ -83,3 +83,12 @@
 2026-10-14	attribute-load-test-tail	6	derived-number,contradiction,incomplete-enumeration,missing-step,unverifiable-claim,task-state,contingent-reference	derived-number,contradiction,incomplete-enumeration,missing-step	5
 2026-10-14	attribute-load-test-tail	7	derived-number,incomplete-enumeration,unverifiable-claim	derived-number,incomplete-enumeration,unverifiable-claim	3
 2026-10-14	attribute-load-test-tail	8	-	-	0
+2026-10-14	merge-time-contingency-and-follow-up	1	missing-marker,over-claim,missing-step	-	3
+2026-10-14	merge-time-contingency-and-follow-up	2	documented-numbers,missing-step	missing-step	2
+2026-10-14	merge-time-contingency-and-follow-up	3	derived-number,over-claim,missing-step	over-claim,missing-step	3
+2026-10-14	merge-time-contingency-and-follow-up	4	claims-table-omission,claims-table-source,over-claim	over-claim	4
+2026-10-14	merge-time-contingency-and-follow-up	5	claims-table-source,over-claim,documented-numbers	claims-table-source,over-claim,documented-numbers	3
+2026-10-14	merge-time-contingency-and-follow-up	6	claims-table-source,incomplete-enumeration	claims-table-source	2
+2026-10-14	merge-time-contingency-and-follow-up	7	missing-step	-	0
+2026-10-14	merge-time-contingency-and-follow-up	8	over-claim	over-claim	1
+2026-10-14	merge-time-contingency-and-follow-up	9	-	-	0

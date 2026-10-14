@@ -92,55 +92,61 @@ external-artifact claim from the artifact now; re-grep every count against its s
 than one artifact; and derive every mechanism or task-check claim from the tool or the graph. The rules for those
 classes already exist — the pass spends at authoring time the rounds the review otherwise spends finding them. Every
 unit carries the pass as a task — a task in a change's `tasks.md`, or a line in the pull-request checklist for a unit
-with no change dir — so a missing box is a skip, not a pass that found nothing. Pass the prior round's findings on every
-re-run, so the subagent can report a repeated class rather than classifying each round in isolation. A finding that adds
-behavior is a scope change, not a code fix: applying it to the code and a test alone leaves the change's planning
-artifacts — proposal, design, tasks, and delta spec — describing the old behavior, and the next round reports the
-residue as spec-/task-drift: sweep every one of them, not only the file the finding names, as part of applying the
-finding (and the docs, per the docs-refresh convention). A **framing or coherence** correction takes the same sweep even
-though it adds no behavior: the artifacts the change states the model across — planning and shipped alike — state one
-model of the subject, so correcting the model in the artifacts the finding names leaves a sibling — often the shipped
-copy, not only `proposal.md` — stating the old framing, which the next round flags as coherence drift. Re-read every
-artifact that states the corrected claim, `proposal.md` and the shipped copies included, before re-running the review.
-When one source owns the claim — a predicate the requirement owns (a threshold, band, or formula), or a scope the owning
-definition states via its class names — single-source it: state it once there and repeat it identically (referencing it
-by name where the site can), since a restated copy re-anchors on its own (a README copy made the matching band a tenth
-of the _measured_ rate where the requirement and code use the _recorded_ one) and the sweep has no canonical wording to
-sweep to. captured: record-baseline-operating-point captured: widen-architecture-auditor-to-revisit-triggers captured:
-add-apply-audit-reductions-command. A clean quick review is a precondition for asking for the manual review, **not** a
-substitute for it — it means _ask the user now_, not _the implementation is approved_. Never commit, push, open a PR,
-archive, or merge on the strength of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR
-(#152) within minutes, without ever requesting the manual pass. The commit → push → PR → CI → archive sequence starts
-only after the user approves the implementation — the "Run CI before archiving" convention does not authorize committing
-earlier. An unanswered approval request is not an approval: a reply that does not address it — the user asks about
-something else, or the thread moves on — leaves the request outstanding, so re-ask explicitly before committing,
-pushing, opening the PR, archiving, or merging, and do not read a tangential reply as clearance. The request outlives
-its unit too: when a reply moves the thread to the next unit, re-ask it before starting that unit — the new branch
-forked from `main` excludes the unmerged one, so its edits read pre-change there (expected, not a revert). captured:
-bump-snyk-cli-2026-10-12 Work done while awaiting the pass must stay in the working tree until it is given; as the owner
-recounted afterwards, a clean quick review asked for the manual pass, the reply asked about lesson capture instead, and
-the capture was folded into the same branch and the work continued — nothing was committed before the repeated request
-was answered, but the request had been missed. The `review-quick` subagent's finding classes, its repeated-class flag,
-its class-exhaustion clause, its per-round record line, and its record-artifact loop bound are specified in
-`showcase/quality/agent-skills`, as is the pre-write pass record — see there rather than here — so act on its verdict
-line rather than on your own recollection of the thread. A review loop that keeps finding the **same class** of
-observation round after round is not converging — each fix is treating a symptom of a root cause that is still there,
-and the next round will find another instance. Stop and re-derive the root cause — when the recurring class is a claim
-about another artifact **or about the change's own mechanism** that under-describes or contradicts it (a surface list,
-an artifact set, a list of touched files or test sites, a count, a unit, a decision's numbers, **what a command yields
-or which inputs it can receive**), the root cause is that claim written from memory rather than derived from the surface
-it summarizes; re-derive it by grepping the corpus, the archive, the change's sibling artifacts, and the diff **— or,
-for a mechanism claim, by running the tool** — or abandon the unit; do not layer another special case. A second
-root-cause shape is a passage the change was single-sourcing: each round finds another residue of the duplicate the
-pointer should have removed because the edit trimmed the sub-clause that round named; replace the whole duplicated unit
-in one edit and derive what stays at the pointing site from that site's own subject, not from the finding. captured:
-single-source-the-scheduled-audit-mechanism A third shape is a rule's own boundary wording: a discriminator that reads
-plausibly but excludes the very case it was written for must be re-derived from the mechanism that distinguishes the
-cases — not merely re-worded — and tested against that motivating case before its wording is swept across the artifact
-set. captured: relax-diagram-span-rule A revert after a non-converging loop is a legitimate outcome — record why in the
-change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362) captured:
-realistic-load-test-profiles captured: check-load-test-drift captured: check-unique-cron-schedules (#436) captured:
-derive-retrospective-facts
+with no change dir — so a missing box is a skip, not a pass that found nothing. Its output is the change's **claims
+table** — each fact the change states about its evidence (the prior artifacts it rests on) with its source or the
+deriving command, its rows seeded from the recurring classes `docs/review-rounds.tsv` records — in `design.md`, or in
+`tasks.md` for a unit that writes no `design.md`, or on the pull-request checklist line for a unit with no change dir.
+Pass each prior finding's **instance** (`file:line` and the claim) from the prior round's report on every re-run, not
+only its class, so the subagent can report an unfixed prior instance or a new instance of an exhausted class rather than
+classifying each round in isolation. A finding that adds behavior is a scope change, not a code fix: applying it to the
+code and a test alone leaves the change's planning artifacts — proposal, design, tasks, and delta spec — describing the
+old behavior, and the next round reports the residue as spec-/task-drift: sweep every one of them, not only the file the
+finding names, as part of applying the finding (and the docs, per the docs-refresh convention). A **framing or
+coherence** correction takes the same sweep even though it adds no behavior: the artifacts the change states the model
+across — planning and shipped alike — state one model of the subject, so correcting the model in the artifacts the
+finding names leaves a sibling — often the shipped copy, not only `proposal.md` — stating the old framing, which the
+next round flags as coherence drift. Re-read every artifact that states the corrected claim, `proposal.md` and the
+shipped copies included, before re-running the review. When one source owns the claim — a predicate the requirement owns
+(a threshold, band, or formula), or a scope the owning definition states via its class names — single-source it: state
+it once there and repeat it identically (referencing it by name where the site can), since a restated copy re-anchors on
+its own (a README copy made the matching band a tenth of the _measured_ rate where the requirement and code use the
+_recorded_ one) and the sweep has no canonical wording to sweep to. captured: record-baseline-operating-point captured:
+widen-architecture-auditor-to-revisit-triggers captured: add-apply-audit-reductions-command. A clean quick review is a
+precondition for asking for the manual review, **not** a substitute for it — it means _ask the user now_, not _the
+implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength of a clean `review-quick`
+alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes, without ever requesting the manual
+pass. The commit → push → PR → CI → archive sequence starts only after the user approves the implementation — the "Run
+CI before archiving" convention does not authorize committing earlier. An unanswered approval request is not an
+approval: a reply that does not address it — the user asks about something else, or the thread moves on — leaves the
+request outstanding, so re-ask explicitly before committing, pushing, opening the PR, archiving, or merging, and do not
+read a tangential reply as clearance. The request outlives its unit too: when a reply moves the thread to the next unit,
+re-ask it before starting that unit — the new branch forked from `main` excludes the unmerged one, so its edits read
+pre-change there (expected, not a revert). captured: bump-snyk-cli-2026-10-12 Work done while awaiting the pass must
+stay in the working tree until it is given; as the owner recounted afterwards, a clean quick review asked for the manual
+pass, the reply asked about lesson capture instead, and the capture was folded into the same branch and the work
+continued — nothing was committed before the repeated request was answered, but the request had been missed. The
+`review-quick` subagent's finding classes, its repeated-class flag, its class-exhaustion clause, its per-round record
+line, and its record-artifact loop bound are specified in `showcase/quality/agent-skills`, as is the pre-write pass
+record — see there rather than here — so act on its verdict line rather than on your own recollection of the thread. A
+review loop that keeps finding the **same class** of observation round after round is not converging — each fix is
+treating a symptom of a root cause that is still there, and the next round will find another instance. Stop and
+re-derive the root cause — when the recurring class is a claim about another artifact **or about the change's own
+mechanism** that under-describes or contradicts it (a surface list, an artifact set, a list of touched files or test
+sites, a count, a unit, a decision's numbers, **what a command yields or which inputs it can receive**), the root cause
+is that claim written from memory rather than derived from the surface it summarizes; re-derive it by grepping the
+corpus, the archive, the change's sibling artifacts, and the diff **— or, for a mechanism claim, by running the tool** —
+or, when the change's mechanism does not need the claim, **delete it** and shrink the change to its mechanism — the
+`derive-the-change-claims` proposal loop ran 14 rounds until that rewrite — or abandon the unit; do not layer another
+special case. A second root-cause shape is a passage the change was single-sourcing: each round finds another residue of
+the duplicate the pointer should have removed because the edit trimmed the sub-clause that round named; replace the
+whole duplicated unit in one edit and derive what stays at the pointing site from that site's own subject, not from the
+finding. captured: single-source-the-scheduled-audit-mechanism A third shape is a rule's own boundary wording: a
+discriminator that reads plausibly but excludes the very case it was written for must be re-derived from the mechanism
+that distinguishes the cases — not merely re-worded — and tested against that motivating case before its wording is
+swept across the artifact set. captured: relax-diagram-span-rule A revert after a non-converging loop is a legitimate
+outcome — record why in the change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362)
+captured: realistic-load-test-profiles captured: check-load-test-drift captured: check-unique-cron-schedules (#436)
+captured: derive-retrospective-facts captured: derive-the-change-claims
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -1193,38 +1199,39 @@ Key modules (libraries, not services):
     before its next sibling, so no blank line is required _after_ an enum's constant, an annotation type's declaration,
     or an annotation type's member, while the gap before one is still checked. captured: enforce-member-separation
   - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML; the
-    repo's Python scripts (`scripts/*.py`), which Spotless does not own; Javadoc and JSDoc prose, which the formatters
-    do not reflow — a >120-character comment line passes the formatter gate and only the manual check catches it);
-    markdown is formatted by the root Spotless `markdown` format (Prettier, `printWidth: 120` with `proseWrap: "always"`
-    — a preference, not a hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating
-    markdown wrapping). The markdown scope is `docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, active
-    `openspec/changes/*/`, `SECURITY.md`, the `.github/` markdown, and the project-authored `.opencode/` markdown — the
-    generated `opsx-*`/`openspec-*` files and the vendored `axon4to5-*` skills are excluded, while the project-authored
-    `opsx-tool-update.md` stays in scope despite the shared prefix — and `.opencode/opencode.json` has its own `json`
-    format. A target's generated-file exclusions must track what the generator writes — `/opsx-tool-update` checks the
-    list when the generated inventory changes, since a newly generated `opsx-*` command would otherwise be reformatted
-    by `spotlessApply` and then overwritten by the next `openspec update`. Verify with a character count
-    (`perl -CSD -lne 'print if length > 120'`), not `awk 'length > 120'` — `awk` counts bytes and false-flags a
-    ≤120-character line containing non-ASCII (the `→` arrow tripped this three times); the `-l` chomps the trailing
-    newline `-ne` would otherwise count, so an exactly-120-character line is not false-flagged. Verify a verification
-    command on a boundary case before recording it — the first recipe omitted `-l` and false-flagged every
-    exactly-120-character line. Apply it over the change's whole changed set (`git diff --name-only`), not only the
-    files a finding named — a per-file scope leaves the rest unverified and the review re-finds them. captured:
-    add-web-ui-rum-observability Formatters cannot reflow string literals (e.g. an error message in Kotlin/Gradle), so
-    wrap an over-long string with concatenation (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as
-    natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the
-    wrapping and reflows on every run. A bare `$` in prose (outside inline code) is parsed as inline math and blocks
-    that reflow — the paragraph silently keeps its original ragged wrapping while `spotlessCheck` still passes; escape
-    it as `\$` (which renders as `$`). The formatter also leaves the interior of an inline code span untouched — it
-    wraps prose around the span but never rewrites the code text it contains — so a defect inside one (a whitespace run)
-    passes `spotlessCheck` and the manual 120-character check alike, neither of which has a rule that detects it:
-    proofread inline-code content as content, not as something the gate will fix. Never author an inline code span
-    across a source line break — Prettier's reflow joins the lines and leaves the continuation line's indentation as
-    extra spaces inside the span (a `paketo-buildpacks/procfile` split from its `5.15.0` came out as
-    `paketo-buildpacks/procfile     5.15.0`): keep a span on one source line and let the reflow move the whole span.
-    Fenced blocks are a different story — Prettier applies embedded formatting inside a fence whose info string names a
-    language it supports (`json`, `yaml`, `markdown`), so that content is gated, while an unsupported one (`bash`,
-    `java`, `mermaid`) is not. captured: fix-gateway-cors-allowed-headers (#359)
+    repo's Python scripts (`scripts/*.py`), which Spotless does not own; the `docs/review-rounds.tsv` record rows, one
+    line by contract and therefore unwrappable; Javadoc and JSDoc prose, which the formatters do not reflow —
+    a >120-character comment line passes the formatter gate and only the manual check catches it); markdown is formatted
+    by the root Spotless `markdown` format (Prettier, `printWidth: 120` with `proseWrap: "always"` — a preference, not a
+    hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating markdown wrapping). The
+    markdown scope is `docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`,
+    the `.github/` markdown, and the project-authored `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files
+    and the vendored `axon4to5-*` skills are excluded, while the project-authored `opsx-tool-update.md` stays in scope
+    despite the shared prefix — and `.opencode/opencode.json` has its own `json` format. A target's generated-file
+    exclusions must track what the generator writes — `/opsx-tool-update` checks the list when the generated inventory
+    changes, since a newly generated `opsx-*` command would otherwise be reformatted by `spotlessApply` and then
+    overwritten by the next `openspec update`. Verify with a character count (`perl -CSD -lne 'print if length > 120'`),
+    not `awk 'length > 120'` — `awk` counts bytes and false-flags a ≤120-character line containing non-ASCII (the `→`
+    arrow tripped this three times); the `-l` chomps the trailing newline `-ne` would otherwise count, so an
+    exactly-120-character line is not false-flagged. Verify a verification command on a boundary case before recording
+    it — the first recipe omitted `-l` and false-flagged every exactly-120-character line. Apply it over the change's
+    whole changed set (`git diff --name-only`), not only the files a finding named — a per-file scope leaves the rest
+    unverified and the review re-finds them. captured: add-web-ui-rum-observability Formatters cannot reflow string
+    literals (e.g. an error message in Kotlin/Gradle), so wrap an over-long string with concatenation
+    (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as natural prose and let `spotlessApply`
+    (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the wrapping and reflows on every run. A bare
+    `$` in prose (outside inline code) is parsed as inline math and blocks that reflow — the paragraph silently keeps
+    its original ragged wrapping while `spotlessCheck` still passes; escape it as `\$` (which renders as `$`). The
+    formatter also leaves the interior of an inline code span untouched — it wraps prose around the span but never
+    rewrites the code text it contains — so a defect inside one (a whitespace run) passes `spotlessCheck` and the manual
+    120-character check alike, neither of which has a rule that detects it: proofread inline-code content as content,
+    not as something the gate will fix. Never author an inline code span across a source line break — Prettier's reflow
+    joins the lines and leaves the continuation line's indentation as extra spaces inside the span (a
+    `paketo-buildpacks/procfile` split from its `5.15.0` came out as `paketo-buildpacks/procfile     5.15.0`): keep a
+    span on one source line and let the reflow move the whole span. Fenced blocks are a different story — Prettier
+    applies embedded formatting inside a fence whose info string names a language it supports (`json`, `yaml`,
+    `markdown`), so that content is gated, while an unsupported one (`bash`, `java`, `mermaid`) is not. captured:
+    fix-gateway-cors-allowed-headers (#359)
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with
@@ -2465,24 +2472,27 @@ capture-stash-stale-copy
   growing corpus (capability specs, requirements, archived changes) belongs in a change's own artifacts, where a stale
   snapshot usually does no harm — except when the counted artifact is the change's own and grows while the change is in
   flight (its own review-round record, its own appended rows), where a checked task certifying "the first N rows" is
-  falsified by the next row, so state the mechanism with no count — and never in a durable artifact (a subagent
-  definition loaded on every invocation, `AGENTS.md`, the README, a command file, a main spec) — where it drifts on
-  every archive and becomes exactly the drift the `specs-auditor` exists to catch. The `add-specs-auditor-agent`
-  proposal said the corpus held "157 requirements"; the change's own delta made the main spec hold 158, and the README
-  still stated a hard "22 capability specs". Describe the shape instead of freezing a tally — the `specs-auditor`
-  definition now says "a corpus … that grows with every archived change", and the README's "120+ and counting" is the
-  pattern to follow. A process count — elapsed time, effort — is not a durable fact either, though for a different
-  reason: no reader can verify it from the repository at all, so describe it qualitatively, not as a precise number.
-  Review rounds are the exception: `docs/review-rounds.tsv` records them per unit and `scripts/experience-analysis.sh`
-  aggregates the window, so cite the record rather than a session-only number. That targets _human_ process narrative —
-  effort, how long a session ran — which no machine-measured evidence records; a _machine-measured_ figure is a
-  different class, since the CI run log is its evidence, so an order-of-magnitude build cost (the one-time-full-rebuild
-  vs warm CI timings above) is not a process count and need not be made qualitative. A named example or mechanism inside
-  a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep it on "the gateway e2e test,
-  which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in the test JVM — a false example
-  that surfaced only when ADR-0009 had to restate the same rule. When a second artifact restates an existing fact, diff
-  the two against the code rather than copying the prose. captured: make-captured-rules-traceable (#279) captured:
-  verify-tracked-ignored-files captured: state-tooling-placement-rule (#458) captured: record-review-rounds
+  falsified by the next row, so state the mechanism with no count — unless the count is what the artifact records as
+  evidence (a claims-table row counting a live corpus), where the deriving command names the boundary that stabilizes
+  it, excluding the unit's own rows (`$2 != "<unit>"`), or the figure moves every time the unit appends one — and never
+  in a durable artifact (a subagent definition loaded on every invocation, `AGENTS.md`, the README, a command file, a
+  main spec) — where it drifts on every archive and becomes exactly the drift the `specs-auditor` exists to catch. The
+  `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the change's own delta made the main spec
+  hold 158, and the README still stated a hard "22 capability specs". Describe the shape instead of freezing a tally —
+  the `specs-auditor` definition now says "a corpus … that grows with every archived change", and the README's "120+ and
+  counting" is the pattern to follow. A process count — elapsed time, effort — is not a durable fact either, though for
+  a different reason: no reader can verify it from the repository at all, so describe it qualitatively, not as a precise
+  number. Review rounds are the exception: `docs/review-rounds.tsv` records them per unit and
+  `scripts/experience-analysis.sh` aggregates the window, so cite the record rather than a session-only number. That
+  targets _human_ process narrative — effort, how long a session ran — which no machine-measured evidence records; a
+  _machine-measured_ figure is a different class, since the CI run log is its evidence, so an order-of-magnitude build
+  cost (the one-time-full-rebuild vs warm CI timings above) is not a process count and need not be made qualitative. A
+  named example or mechanism inside a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep
+  it on "the gateway e2e test, which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in
+  the test JVM — a false example that surfaced only when ADR-0009 had to restate the same rule. When a second artifact
+  restates an existing fact, diff the two against the code rather than copying the prose. captured:
+  make-captured-rules-traceable (#279) captured: verify-tracked-ignored-files captured: state-tooling-placement-rule
+  (#458) captured: record-review-rounds captured: derive-the-change-claims
 
 - **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
   is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`

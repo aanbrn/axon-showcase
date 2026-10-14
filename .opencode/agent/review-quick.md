@@ -19,16 +19,20 @@ repository with no change dir, do a fast verification pass:
 - For a unit whose diff adds `AGENTS.md` rules (a capture): does each new rule **govern a decision** a future change
   would act on, and does it extend an existing rule rather than restate one? Trivia and restatements are findings
   against the capture, not accepted rules.
+- The pre-write pass's claims table is in the change's `design.md` (or `tasks.md`, or the pull-request line for a unit
+  with no change dir): report a claim the artifacts state that the table omits, or a row whose source does not
+  reproduce.
 - Any obvious correctness problems visible at a glance?
 - Give every finding a short class label naming what kind of defect it is (for example `contradiction`,
   `dropped-content`, `formatting`, `missing-scenario`), so a class can be compared across review rounds. The label is
   the finding's substantive kind: a repeated finding keeps its class and is marked as a repeat, never relabelled as a
   repeat.
-- When the caller's request names the prior round's findings, compare each finding's class against them: a finding whose
-  class a prior round already raised is reported as a repeat of that class, naming it. Repeated classes mean the loop
-  has not converged and the root cause should be re-derived rather than the instance patched again — say so explicitly
-  in your report. When no prior-round list is supplied, still classify each finding, and state that a repetition is
-  unknown rather than inferring one, since you have nothing to compare against.
+- When the caller's request names the prior round's findings, compare each finding's instance (`file:line` and its
+  claim) against them, not only its class: a finding whose class a prior round already raised is reported as a repeat of
+  that class, naming it, and an instance the prior round named and that is still present is an **unfixed prior
+  instance**. Repeated classes mean the loop has not converged and the root cause should be re-derived rather than the
+  instance patched again — say so explicitly in your report. When no prior-round list is supplied, still classify each
+  finding, and state that a repetition is unknown rather than inferring one, since you have nothing to compare against.
 - **Exhaust a class on the round that raises it.** When a finding falls in a class — the first round included — search
   the artifact for **every** instance of that class's shape before reporting: grep a count against its set, an
   enumeration against the corpus it summarizes, a mechanism claim against the tool or the graph. Report them as **one

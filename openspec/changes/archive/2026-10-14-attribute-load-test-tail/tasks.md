@@ -54,4 +54,4 @@
 - [x] 4.5 Run the per-unit `lesson-capture` and record the applied net `AGENTS.md` delta (**+8 lines**: the
       window-scoping rule merged into the measurement-attribution gotcha, a fifth pre-write claim class for a change's
       own derived figures, and the per-request-series source on the `baselineTrend` note; no rule retired).
-- [ ] 4.6 Request the user's manual review pass.
+- [x] 4.6 Request the user's manual review pass.

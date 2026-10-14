@@ -145,10 +145,13 @@ named; replace the whole duplicated unit in one edit and derive what stays at th
 subject, not from the finding. captured: single-source-the-scheduled-audit-mechanism A third shape is a rule's own
 boundary wording: a discriminator that reads plausibly but excludes the very case it was written for must be re-derived
 from the mechanism that distinguishes the cases — not merely re-worded — and tested against that motivating case before
-its wording is swept across the artifact set. captured: relax-diagram-span-rule A revert after a non-converging loop is
-a legitimate outcome — record why in the change dir so the decision is not re-litigated. captured:
-propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured: check-load-test-drift captured:
-check-unique-cron-schedules (#436) captured: derive-retrospective-facts captured: derive-the-change-claims
+its wording is swept across the artifact set. captured: relax-diagram-span-rule A fourth shape is the change's own
+claims table: when the repeated class is its completeness (a stated fact it omits, a source that does not reproduce),
+adding the omitted row re-triggers — the rows track the facts the artifacts state — so delete the unneeded fact rather
+than add the row. captured: dont-report-what-a-gate-covers A revert after a non-converging loop is a legitimate outcome
+— record why in the change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362)
+captured: realistic-load-test-profiles captured: check-load-test-drift captured: check-unique-cron-schedules (#436)
+captured: derive-retrospective-facts captured: derive-the-change-claims
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is

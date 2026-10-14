@@ -13,6 +13,18 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-14
+
+- Decide what the drift check should track, now that its figure is half environment — parked; no change yet. The
+  2026-10-14 attribution run (see `docs/load-tests/2026-10-14.md`) found the committed reference's client-side p99 is
+  about twice the gateway's own server-side p99 per route while the means differ by up to ~2 ms, so roughly half of what
+  the drift comparison tracks is the client and host rather than the pipeline. Its run-to-run spread is also wide — the
+  poll request's p99 has read 12, 24, 56 and 22 ms across the four recorded runs, while the write service's own handling
+  measured 8.0 ms p99 in the 2026-10-14 run, the only one that measured it. Whether the comparison keeps the client-side
+  p99, tracks a less noisy one (the server side, or a lower percentile), or requires a regression to confirm before it
+  fails is a change to the `showcase/quality/load-tests` requirement's own sensitivity, so it owes that capability's
+  delta.
+
 ## 2026-10-12
 
 - Report Gradle's `--info` environment dump upstream — parked; no change yet. `--info`/`--debug` logs each exec'd
@@ -134,14 +146,6 @@ dated when it was added (start a new section for a new day rather than appending
   environment to attribute a delta to the code at all — a shared runner's timings are host state, the same reason the
   smoke runs only the `smoke` profile and records no performance numbers. Observational only if ever done, never a merge
   gate.
-
-- Explain the load tests' accepted tail degradation — promoted to issue #430; no change yet. The 2026-09-28 re-measure
-  accepted a **p99** regression into the committed reference (`FetchShowcases` 15 → 24 ms, `ScheduleShowcase` 15 → 27,
-  `PollShowcase` 12 → 24, `RemoveShowcase` 13 → 24) while mean and p95 moved by ~1 ms. The profiles' own thresholds do
-  not move with the tail (5x these values still lands under their 200 ms p99 floor), so only the drift check tracks it:
-  a further p99 rise of up to ~1.5x them (the tolerance, floored) passes it. Whether that tail is a real degradation of
-  the pipeline (gateway or OpenSearch tail latency under this cluster's state) or an artifact of the environment the
-  measurement ran in is unestablished: the reference was refreshed to match reality, not to resolve it.
 
 ## 2026-09-24
 

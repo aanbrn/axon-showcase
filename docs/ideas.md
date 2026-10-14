@@ -13,14 +13,6 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
-## 2026-10-14
-
-- Gate a non-converging markdown file rather than silently skipping it — parked; no change yet. Spotless prints
-  "Skipping '<path>' because it does not converge" and exits zero, so `spotlessCheck` never covers that file and the
-  gate reads green: a `tasks.md` whose fenced block nests six spaces under a checklist item does not converge under the
-  pinned Prettier 3.9.6, while the version the web module resolves (3.9.10) converges. Either pin one Prettier for both
-  or fail the check on a skip.
-
 ## 2026-10-12
 
 - Report Gradle's `--info` environment dump upstream — parked; no change yet. `--info`/`--debug` logs each exec'd

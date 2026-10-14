@@ -111,3 +111,11 @@
 2026-10-14	make-the-p99-verdict-confirm-first	17	misleading-name	misleading-name	0
 2026-10-14	make-the-p99-verdict-confirm-first	18	misleading-name	misleading-name	0
 2026-10-15	make-the-p99-verdict-confirm-first	19	-	-	0
+2026-10-15	align-the-root-prettier-pin	1	claims-table-source,over-claim,claims-table-omission,unreproducible-reproduction,unticked-task	-	3
+2026-10-15	align-the-root-prettier-pin	2	claims-table-source,claims-table-omission,formatting	claims-table-source,claims-table-omission	3
+2026-10-15	align-the-root-prettier-pin	3	claims-table-source,docs-residue	claims-table-source	1
+2026-10-15	align-the-root-prettier-pin	4	claims-table-source,unticked-task	claims-table-source,unticked-task	2
+2026-10-15	align-the-root-prettier-pin	5	claims-table-source	claims-table-source	1
+2026-10-15	align-the-root-prettier-pin	6	impact-omission,imprecise-claim	-	1
+2026-10-15	align-the-root-prettier-pin	7	imprecise-claim	imprecise-claim	1
+2026-10-15	align-the-root-prettier-pin	8	-	-	0

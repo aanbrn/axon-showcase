@@ -131,6 +131,11 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 - **AND** every unit carries the pre-write derivation pass as a record — a task in the change's `tasks.md`, or a line in
   the pull-request checklist for a unit with no change dir — so a skipped pass is a missing box rather than looking like
   a pass that found nothing
+- **AND** the pass emits a claims table — each fact the change states about its evidence, the prior artifacts it rests
+  on, with its source or the deriving command — so the review reports a claim in the artifacts missing from the table,
+  or a claimed source that does not reproduce, rather than re-deriving the class from scratch
+- **AND** the caller passes each prior finding's instance (`file:line` and the claim), not only its class, so a repeat
+  is reported as an unfixed prior instance or as a new instance of an exhausted class
 
 #### Scenario: A skipped pre-write pass is a missing record
 

@@ -37,7 +37,7 @@ spotless {
             ".opencode/skills/axon4to5-*/**",
             ".opencode/skills/openspec-*/**",
         )
-        prettier("3.9.6")
+        prettier(libs.versions.prettier.get())
             .config(
                 mapOf(
                     "printWidth" to 120,
@@ -51,7 +51,7 @@ spotless {
 
     format("json") {
         target(".opencode/opencode.json")
-        prettier("3.9.6").config(mapOf("printWidth" to 120))
+        prettier(libs.versions.prettier.get()).config(mapOf("printWidth" to 120))
     }
 
     kotlinGradle {

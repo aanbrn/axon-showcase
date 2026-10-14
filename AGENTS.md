@@ -1221,13 +1221,15 @@ Key modules (libraries, not services):
     hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating markdown wrapping). A
     file the markdown format does not converge on is **skipped with a zero exit**
     (`Skipping '<path>' because it does not converge`), so a green `spotlessCheck` is not evidence for that file — treat
-    a skip as a failure for it, not a pass. captured: make-the-p99-verdict-confirm-first The markdown scope is `docs/`,
-    `AGENTS.md`, `README.md`, `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`, the `.github/` markdown,
-    and the project-authored `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files and the vendored
-    `axon4to5-*` skills are excluded, while the project-authored `opsx-tool-update.md` stays in scope despite the shared
-    prefix — and `.opencode/opencode.json` has its own `json` format. A target's generated-file exclusions must track
-    what the generator writes — `/opsx-tool-update` checks the list when the generated inventory changes, since a newly
-    generated `opsx-*` command would otherwise be reformatted by `spotlessApply` and then overwritten by the next
+    a skip as a failure for it, not a pass (reported upstream as `diffplug/spotless#3143`; retires when a skip fails the
+    check — the alignment removes this repository's known trigger for such a skip, but the gap remains upstream).
+    captured: make-the-p99-verdict-confirm-first The markdown scope is `docs/`, `AGENTS.md`, `README.md`,
+    `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`, the `.github/` markdown, and the project-authored
+    `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files and the vendored `axon4to5-*` skills are excluded,
+    while the project-authored `opsx-tool-update.md` stays in scope despite the shared prefix — and
+    `.opencode/opencode.json` has its own `json` format. A target's generated-file exclusions must track what the
+    generator writes — `/opsx-tool-update` checks the list when the generated inventory changes, since a newly generated
+    `opsx-*` command would otherwise be reformatted by `spotlessApply` and then overwritten by the next
     `openspec update`. Verify with a character count (`perl -CSD -lne 'print if length > 120'`), not
     `awk 'length > 120'` — `awk` counts bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow
     tripped this three times); the `-l` chomps the trailing newline `-ne` would otherwise count, so an

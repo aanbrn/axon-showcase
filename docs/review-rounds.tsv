@@ -75,3 +75,11 @@
 2026-10-14	dont-report-what-a-gate-covers	6	claims-table-omission,claims-table-source	claims-table-omission,claims-table-source	2
 2026-10-14	dont-report-what-a-gate-covers	7	claims-table-omission,claims-table-source	claims-table-omission,claims-table-source	2
 2026-10-14	dont-report-what-a-gate-covers	8	-	-	0
+2026-10-14	attribute-load-test-tail	1	claims-table-omission,claims-table-source,contradiction,missing-step,missing-scenario,incomplete-enumeration	-	5
+2026-10-14	attribute-load-test-tail	2	incorrect-mapping,claims-table-omission,claims-table-source,missing-step,derived-number,contradiction	claims-table-omission,claims-table-source,missing-step,contradiction	5
+2026-10-14	attribute-load-test-tail	3	contradiction,claims-table-source,missing-step	contradiction,claims-table-source,missing-step	3
+2026-10-14	attribute-load-test-tail	4	contradiction,claims-table-source	contradiction,claims-table-source	2
+2026-10-14	attribute-load-test-tail	5	-	-	0
+2026-10-14	attribute-load-test-tail	6	derived-number,contradiction,incomplete-enumeration,missing-step,unverifiable-claim,task-state,contingent-reference	derived-number,contradiction,incomplete-enumeration,missing-step	5
+2026-10-14	attribute-load-test-tail	7	derived-number,incomplete-enumeration,unverifiable-claim	derived-number,incomplete-enumeration,unverifiable-claim	3
+2026-10-14	attribute-load-test-tail	8	-	-	0

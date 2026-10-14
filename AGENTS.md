@@ -87,12 +87,14 @@ subagent) against the change's planning artifacts — for the proposal, the prop
 repo fit; for the implementation, the tasks and delta spec — and repeat it until it reports no new observations. Fix
 everything the quick review finds, re-run it, and stop only when it comes back clean — only then ask the user for a
 manual review pass. Before the first round, run a **pre-write derivation pass** over the planning artifacts, deriving
-each of the four claim classes this loop keeps catching from its source: read every run-log, issue-state, or
+each of the five claim classes this loop keeps catching from its source: read every run-log, issue-state, or
 external-artifact claim from the artifact now; re-grep every count against its set; single-source a model stated in more
-than one artifact; and derive every mechanism or task-check claim from the tool or the graph. The rules for those
-classes already exist — the pass spends at authoring time the rounds the review otherwise spends finding them. Every
-unit carries the pass as a task — a task in a change's `tasks.md`, or a line in the pull-request checklist for a unit
-with no change dir — so a missing box is a skip, not a pass that found nothing. Its output is the change's **claims
+than one artifact; derive every mechanism or task-check claim from the tool or the graph; and, for a change whose facts
+are its own measurement or computation, derive each figure from the mechanism that produces it — the window or instant
+it spans and the aggregation it applies (the measurement-attribution gotcha carries the series rule). The rules for
+those classes already exist — the pass spends at authoring time the rounds the review otherwise spends finding them.
+Every unit carries the pass as a task — a task in a change's `tasks.md`, or a line in the pull-request checklist for a
+unit with no change dir — so a missing box is a skip, not a pass that found nothing. Its output is the change's **claims
 table** — each fact the change states about its evidence (the prior artifacts it rests on) with its source or the
 deriving command, its rows seeded from the recurring classes `docs/review-rounds.tsv` records — in `design.md`, or in
 `tasks.md` for a unit that writes no `design.md`, or on the pull-request checklist line for a unit with no change dir. A
@@ -600,7 +602,9 @@ wait for approval before merging.
 # duration, and plateau mean/95th/99th percentile response time and throughput)
 ./gradlew :load-tests:baselineTrend
 # reads docs/load-tests/*.md by default (-Precords=<dir> overrides it); a record whose figures cannot be read is
-# reported as unreadable rather than failing the view.
+# reported as unreadable rather than failing the view. The dated records carry only aggregate figures; the per-request
+# figures live in the committed reference, so a per-request series across recorded runs comes from git
+# (git show <commit>:load-tests/src/gatling/resources/baseline.properties).
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
@@ -2234,9 +2238,13 @@ capture-stash-stale-copy
   `Refresh.False` on the projector's bulk, rebuilt and redeployed, and ran `./scripts/load-test-baseline.sh` once each:
   the read/write and `showcaseProjector.projectionLag` figures were flat while the projector's bulk-write latency rose
   4× (`showcaseProjector_successTimer_seconds`, mean 4.4 → 18.4 ms). `projectionLag` is recorded at Kafka ingest, before
-  the write, so it cannot show write cost; query the message timer as a histogram (`histogram_quantile` over `_bucket`,
-  since the monitor publishes a percentile histogram and there is no `quantile` label). captured:
-  refresh-projection-writes
+  the write, so it cannot show write cost. Window-scope a retained series from **counter or histogram deltas over the
+  measurement's own window** (`histogram_quantile` over `_bucket` for a percentile) — never from a `*_max` **gauge**,
+  which a Micrometer `TimeWindowMax` decays over its own ring buffer (configured here by `METRICS_EXPIRY_ALL`), so its
+  value can be a pre-window excursion and `increase()`/`rate()` over it is invalid; a bucket's `le` is the cumulative
+  _below_ count, and `histogram_quantile` needs `le` series (on an in-flight gauge it returns nonsense). Take the window
+  from the measurement itself — the profile's own injection span, not a reference's `recordedAt`. captured:
+  refresh-projection-writes captured: attribute-load-test-tail
 
 - **Do not write a Gatling stream's loop or retry condition as an EL string — use the typed session predicate; an EL
   condition can crash on the substituted value and KO the whole stream.** The write stream's

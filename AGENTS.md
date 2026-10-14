@@ -95,22 +95,24 @@ unit carries the pass as a task — a task in a change's `tasks.md`, or a line i
 with no change dir — so a missing box is a skip, not a pass that found nothing. Its output is the change's **claims
 table** — each fact the change states about its evidence (the prior artifacts it rests on) with its source or the
 deriving command, its rows seeded from the recurring classes `docs/review-rounds.tsv` records — in `design.md`, or in
-`tasks.md` for a unit that writes no `design.md`, or on the pull-request checklist line for a unit with no change dir.
-Pass each prior finding's **instance** (`file:line` and the claim) from the prior round's report on every re-run, not
-only its class, so the subagent can report an unfixed prior instance or a new instance of an exhausted class rather than
-classifying each round in isolation. A finding that adds behavior is a scope change, not a code fix: applying it to the
-code and a test alone leaves the change's planning artifacts — proposal, design, tasks, and delta spec — describing the
-old behavior, and the next round reports the residue as spec-/task-drift: sweep every one of them, not only the file the
-finding names, as part of applying the finding (and the docs, per the docs-refresh convention). A **framing or
-coherence** correction takes the same sweep even though it adds no behavior: the artifacts the change states the model
-across — planning and shipped alike — state one model of the subject, so correcting the model in the artifacts the
-finding names leaves a sibling — often the shipped copy, not only `proposal.md` — stating the old framing, which the
-next round flags as coherence drift. Re-read every artifact that states the corrected claim, `proposal.md` and the
-shipped copies included, before re-running the review. When one source owns the claim — a predicate the requirement owns
-(a threshold, band, or formula), or a scope the owning definition states via its class names — single-source it: state
-it once there and repeat it identically (referencing it by name where the site can), since a restated copy re-anchors on
-its own (a README copy made the matching band a tenth of the _measured_ rate where the requirement and code use the
-_recorded_ one) and the sweep has no canonical wording to sweep to. captured: record-baseline-operating-point captured:
+`tasks.md` for a unit that writes no `design.md`, or on the pull-request checklist line for a unit with no change dir. A
+row about an artifact the change itself edits anchors its source to that artifact's pre-change state
+(`git show HEAD:<path>`): it stops reproducing once the change lands. Pass each prior finding's **instance**
+(`file:line` and the claim) from the prior round's report on every re-run, not only its class, so the subagent can
+report an unfixed prior instance or a new instance of an exhausted class rather than classifying each round in
+isolation. A finding that adds behavior is a scope change, not a code fix: applying it to the code and a test alone
+leaves the change's planning artifacts — proposal, design, tasks, and delta spec — describing the old behavior, and the
+next round reports the residue as spec-/task-drift: sweep every one of them, not only the file the finding names, as
+part of applying the finding (and the docs, per the docs-refresh convention). A **framing or coherence** correction
+takes the same sweep even though it adds no behavior: the artifacts the change states the model across — planning and
+shipped alike — state one model of the subject, so correcting the model in the artifacts the finding names leaves a
+sibling — often the shipped copy, not only `proposal.md` — stating the old framing, which the next round flags as
+coherence drift. Re-read every artifact that states the corrected claim, `proposal.md` and the shipped copies included,
+before re-running the review. When one source owns the claim — a predicate the requirement owns (a threshold, band, or
+formula), or a scope the owning definition states via its class names — single-source it: state it once there and repeat
+it identically (referencing it by name where the site can), since a restated copy re-anchors on its own (a README copy
+made the matching band a tenth of the _measured_ rate where the requirement and code use the _recorded_ one) and the
+sweep has no canonical wording to sweep to. captured: record-baseline-operating-point captured:
 widen-architecture-auditor-to-revisit-triggers captured: add-apply-audit-reductions-command. A clean quick review is a
 precondition for asking for the manual review, **not** a substitute for it — it means _ask the user now_, not _the
 implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength of a clean `review-quick`
@@ -121,32 +123,32 @@ approval: a reply that does not address it — the user asks about something els
 request outstanding, so re-ask explicitly before committing, pushing, opening the PR, archiving, or merging, and do not
 read a tangential reply as clearance. The request outlives its unit too: when a reply moves the thread to the next unit,
 re-ask it before starting that unit — the new branch forked from `main` excludes the unmerged one, so its edits read
-pre-change there (expected, not a revert). captured: bump-snyk-cli-2026-10-12 Work done while awaiting the pass must
-stay in the working tree until it is given; as the owner recounted afterwards, a clean quick review asked for the manual
-pass, the reply asked about lesson capture instead, and the capture was folded into the same branch and the work
-continued — nothing was committed before the repeated request was answered, but the request had been missed. The
-`review-quick` subagent's finding classes, its repeated-class flag, its class-exhaustion clause, its per-round record
-line, and its record-artifact loop bound are specified in `showcase/quality/agent-skills`, as is the pre-write pass
-record — see there rather than here — so act on its verdict line rather than on your own recollection of the thread. A
-review loop that keeps finding the **same class** of observation round after round is not converging — each fix is
-treating a symptom of a root cause that is still there, and the next round will find another instance. Stop and
-re-derive the root cause — when the recurring class is a claim about another artifact **or about the change's own
-mechanism** that under-describes or contradicts it (a surface list, an artifact set, a list of touched files or test
-sites, a count, a unit, a decision's numbers, **what a command yields or which inputs it can receive**), the root cause
-is that claim written from memory rather than derived from the surface it summarizes; re-derive it by grepping the
-corpus, the archive, the change's sibling artifacts, and the diff **— or, for a mechanism claim, by running the tool** —
-or, when the change's mechanism does not need the claim, **delete it** and shrink the change to its mechanism — the
-`derive-the-change-claims` proposal loop ran 14 rounds until that rewrite — or abandon the unit; do not layer another
-special case. A second root-cause shape is a passage the change was single-sourcing: each round finds another residue of
-the duplicate the pointer should have removed because the edit trimmed the sub-clause that round named; replace the
-whole duplicated unit in one edit and derive what stays at the pointing site from that site's own subject, not from the
-finding. captured: single-source-the-scheduled-audit-mechanism A third shape is a rule's own boundary wording: a
-discriminator that reads plausibly but excludes the very case it was written for must be re-derived from the mechanism
-that distinguishes the cases — not merely re-worded — and tested against that motivating case before its wording is
-swept across the artifact set. captured: relax-diagram-span-rule A revert after a non-converging loop is a legitimate
-outcome — record why in the change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362)
-captured: realistic-load-test-profiles captured: check-load-test-drift captured: check-unique-cron-schedules (#436)
-captured: derive-retrospective-facts captured: derive-the-change-claims
+pre-change there (expected, not a revert). captured: bump-snyk-cli-2026-10-12 captured: require-check-controls-as-tests
+Work done while awaiting the pass must stay in the working tree until it is given; as the owner recounted afterwards, a
+clean quick review asked for the manual pass, the reply asked about lesson capture instead, and the capture was folded
+into the same branch and the work continued — nothing was committed before the repeated request was answered, but the
+request had been missed. The `review-quick` subagent's finding classes, its repeated-class flag, its class-exhaustion
+clause, its per-round record line, and its record-artifact loop bound are specified in `showcase/quality/agent-skills`,
+as is the pre-write pass record — see there rather than here — so act on its verdict line rather than on your own
+recollection of the thread. A review loop that keeps finding the **same class** of observation round after round is not
+converging — each fix is treating a symptom of a root cause that is still there, and the next round will find another
+instance. Stop and re-derive the root cause — when the recurring class is a claim about another artifact **or about the
+change's own mechanism** that under-describes or contradicts it (a surface list, an artifact set, a list of touched
+files or test sites, a count, a unit, a decision's numbers, **what a command yields or which inputs it can receive**),
+the root cause is that claim written from memory rather than derived from the surface it summarizes; re-derive it by
+grepping the corpus, the archive, the change's sibling artifacts, and the diff **— or, for a mechanism claim, by running
+the tool** — or, when the change's mechanism does not need the claim, **delete it** and shrink the change to its
+mechanism — the `derive-the-change-claims` proposal loop ran 14 rounds until that rewrite — or abandon the unit; do not
+layer another special case. A second root-cause shape is a passage the change was single-sourcing: each round finds
+another residue of the duplicate the pointer should have removed because the edit trimmed the sub-clause that round
+named; replace the whole duplicated unit in one edit and derive what stays at the pointing site from that site's own
+subject, not from the finding. captured: single-source-the-scheduled-audit-mechanism A third shape is a rule's own
+boundary wording: a discriminator that reads plausibly but excludes the very case it was written for must be re-derived
+from the mechanism that distinguishes the cases — not merely re-worded — and tested against that motivating case before
+its wording is swept across the artifact set. captured: relax-diagram-span-rule A revert after a non-converging loop is
+a legitimate outcome — record why in the change dir so the decision is not re-litigated. captured:
+propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured: check-load-test-drift captured:
+check-unique-cron-schedules (#436) captured: derive-retrospective-facts captured: derive-the-change-claims
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -2015,8 +2017,10 @@ capture-stash-stale-copy
   after an OpenCode reload).
 
 - **A check is evidence only once it has been shown to fail — a clean run, an empty result, or an unmoved control proves
-  nothing until the check hits a known positive.** Recurring incidents share this root, each with its own mode to guard
-  against:
+  nothing until the check hits a known positive — and its control is a committed test, not a task: a gate whose logic
+  lives in a rules object carries its known-bad and known-good cases in that object's `*RulesTests`, an inline gate in
+  its consuming module, since a checklist task asserting the control ran can be ticked without it running.** Recurring
+  incidents share this root, each with its own mode to guard against:
 
   - **A glob or filter that matches nothing is vacuous, not clean.** An audit command told the agent to run "a manual
     120-character check for `.opencode/*.md`" — a glob matching **no file**, since the markdown lives in

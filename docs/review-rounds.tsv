@@ -63,3 +63,7 @@
 2026-10-14	derive-the-change-claims	14	contradiction	contradiction	0
 2026-10-14	derive-the-change-claims	15	wording,incomplete-enumeration,task-state	-	1
 2026-10-14	derive-the-change-claims	16	task-check,formatting	formatting	2
+2026-10-14	require-check-controls-as-tests	1	contradiction,missing-scenario,documented-numbers,derived-claim,claims-table-omission,impact-omission,dropped-content	-	2
+2026-10-14	require-check-controls-as-tests	2	dropped-content,impact-omission,derived-claim,claims-table-omission	dropped-content,impact-omission,derived-claim,claims-table-omission	2
+2026-10-14	require-check-controls-as-tests	3	missing-section,impact-omission,claims-table-source	impact-omission	2
+2026-10-14	require-check-controls-as-tests	4	formatting,claims-table-source,impact-omission,missing-scenario,task-state,claims-table-omission	claims-table-source,impact-omission,missing-scenario,claims-table-omission	3

@@ -66,13 +66,16 @@ rules:
     - A model stated in more than one artifact is single-sourced, the rest referencing it by name
     - Every mechanism or task-check claim is derived from the dependency graph or the tool's own definition
     - Carry the claims table — each fact the change states about its evidence (the prior artifacts it rests on) with its
-      source or the command that derives it
+      source or the command that derives it; a row about an artifact the change itself edits anchors to that artifact's
+      pre-change state (`git show HEAD:<path>`), since it stops reproducing once the change lands
   tasks:
     - Break tasks into chunks of max 2 hours
     - Reference exact file paths and commands so each task is verifiable
     - 'Group into sections: implementation tasks, then a verification section'
-    - A change that adds or changes a check must include a task proving the check fails on a known-bad input and passes
-      on a known-good one, and a task to read the output of any scratch command used as evidence
+    - A change that adds or changes a check must include a committed test asserting it fails on a known-bad input and
+      passes on a known-good one — a gate whose logic lives in a rules object carries the case in that object's
+      `*RulesTests`, an inline gate in its consuming module — instead of a task asserting the control was run, plus a
+      task to read the output of any scratch command used as evidence
     - Include the per-unit `lesson-capture` step as a task in every change — run the `lesson-capture` subagent, apply
       its durable proposals, and record the applied net `AGENTS.md` delta on the task — so an unrun capture is a missing
       box rather than a recollection

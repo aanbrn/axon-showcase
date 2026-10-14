@@ -15,7 +15,10 @@ repository with no change dir, do a fast verification pass:
 - For an implementation: are all implemented behaviors present in the delta specs (no missing scenarios)? For a
   non-OpenSpec diff, do the edits match the repo's conventions and not contradict what the docs/artifacts claim?
 - Do the tasks.md items marked done actually correspond to the work?
-- Any obvious convention violations (formatting, naming, redundant code, missing Javadoc)?
+- Any obvious convention violations (naming, redundant code, missing Javadoc)? A defect the applying command rewrites is
+  not a finding — route it to `./gradlew spotlessApply` (or the web module's `./gradlew :showcase-web-ui:npmFormat`).
+  The boundary is that command's own rewrite, not a category of violation, so what it leaves alone stays reportable: a
+  defect inside an inline code span, or a file type no formatter owns (the 120-character recipe below covers the rest).
 - For a unit whose diff adds `AGENTS.md` rules (a capture): does each new rule **govern a decision** a future change
   would act on, and does it extend an existing rule rather than restate one? Trivia and restatements are findings
   against the capture, not accepted rules.

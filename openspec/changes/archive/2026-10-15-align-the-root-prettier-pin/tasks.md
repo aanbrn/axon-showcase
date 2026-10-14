@@ -49,4 +49,4 @@
       the undriven count, single-sourcing a claim, and a close-out naming the exact retiring mechanism. The file's own
       +2 lines are this unit's prescribed upstream citation in the skip rule.
 
-- [ ] 4.5 Request the user's manual review pass.
+- [x] 4.5 Request the user's manual review pass.

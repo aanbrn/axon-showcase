@@ -27,7 +27,7 @@ class BaselineDriftTests {
     }
 
     @Test
-    @DisplayName("A figure beyond the tolerance regresses, withholds the reference, and is named")
+    @DisplayName("A mean figure beyond the tolerance regresses, withholds the reference, and is named")
     void beyondTolerance_withholdsAndNamesTheFigure() {
         val drift = BaselineDrift.compare(reference(TARGET, 10, 20, 30), reference(TARGET, 16, 22, 33), 0.5, false);
 
@@ -169,6 +169,66 @@ class BaselineDriftTests {
         assertThat(drift.regressed()).isFalse();
         assertThat(drift.writeReference()).isFalse();
         assertThat(drift.report()).contains("no request figures were measured").doesNotContain("tolerance");
+    }
+
+    @Test
+    @DisplayName("A p99-only excursion beyond the tolerance is unconfirmed, withholds the reference,"
+            + " and names the confirmation")
+    void p99OnlyExcursion_isUnconfirmedAndWithholdsTheReference() {
+        val drift = BaselineDrift.compare(reference(TARGET, 10, 20, 30), reference(TARGET, 12, 22, 50), 0.5, false);
+
+        assertThat(drift.regressed()).isFalse();
+        assertThat(drift.unconfirmed()).isTrue();
+        assertThat(drift.writeReference()).isFalse();
+        assertThat(drift.unconfirmedFigures())
+                .extracting(BaselineDrift.Figure::label)
+                .containsExactly("FetchShowcases.p99Ms");
+        assertThat(drift.regressedFigures()).isEmpty();
+        assertThat(drift.report()).contains("99th-percentile excursion").contains("re-run at the same operating point");
+    }
+
+    @Test
+    @DisplayName("A 95th-percentile figure beyond the tolerance regresses and withholds the reference")
+    void p95Regression_regressesAndWithholdsTheReference() {
+        val drift = BaselineDrift.compare(reference(TARGET, 10, 20, 30), reference(TARGET, 12, 34, 33), 0.5, false);
+
+        assertThat(drift.regressed()).isTrue();
+        assertThat(drift.unconfirmed()).isFalse();
+        assertThat(drift.writeReference()).isFalse();
+        assertThat(drift.regressedFigures())
+                .extracting(BaselineDrift.Figure::label)
+                .containsExactly("FetchShowcases.p95Ms");
+    }
+
+    @Test
+    @DisplayName("A mean regression with a p99 excursion is a regression and reports both figures")
+    void meanRegressionWithP99Excursion_isARegressionReportingBoth() {
+        val drift = BaselineDrift.compare(reference(TARGET, 10, 20, 30), reference(TARGET, 16, 22, 50), 0.5, false);
+
+        assertThat(drift.regressed()).isTrue();
+        assertThat(drift.unconfirmed()).isFalse();
+        assertThat(drift.writeReference()).isFalse();
+        assertThat(drift.regressedFigures())
+                .extracting(BaselineDrift.Figure::label)
+                .containsExactly("FetchShowcases.meanMs");
+        assertThat(drift.report())
+                .contains("meanMs")
+                .contains("REGRESSED")
+                .contains("p99Ms")
+                .contains("UNCONFIRMED")
+                .contains("regressed beyond the tolerance")
+                .contains("need a re-run at the same operating point");
+    }
+
+    @Test
+    @DisplayName("An intended refresh accepts a p99-only excursion and writes the reference")
+    void intendedRefresh_acceptsAP99OnlyExcursion() {
+        val drift = BaselineDrift.compare(reference(TARGET, 10, 20, 30), reference(TARGET, 12, 22, 50), 0.5, true);
+
+        assertThat(drift.regressed()).isFalse();
+        assertThat(drift.unconfirmed()).isTrue();
+        assertThat(drift.writeReference()).isTrue();
+        assertThat(drift.report()).contains("with it accepted");
     }
 
     /**

@@ -272,12 +272,14 @@ bullet it would extend, then ask the user for explicit confirmation before runni
 record — a task in a change's `tasks.md`, or a line in the pull-request checklist for a unit with no change dir — so the
 merge-time read reports an unrun capture as that record missing or unticked, rather than reconstructing a skip from
 recollection. A unit whose review loop runs rounds carries its per-round record rows the same way — the append is the
-calling agent's per-round act, so leaving it to the spec's record line runs the rounds unrecorded
-(`bound-the-review-loop` ran seven unrecorded until a reviewer caught it). captured: bound-the-review-loop One capture
-per unit, never a chain. Apply the proposals the main agent judges durable: an implementation capture is caused by the
-unit, so it rides the unit's branch and ships in its PR (a merge-time capture, discovered after the unit is done, ships
-as its own docs PR per the docs-refresh convention). Process mistakes that leave no diff trace (e.g. a git command that
-discarded work) are the most valuable thing to capture — this is what makes the capture systematic instead of
+calling agent's per-round act, made when that round's report arrives rather than while fixing the next round's findings,
+so a deferred append lands late or never (`make-the-p99-verdict-confirm-first` appended rows a round late until the
+owner caught one), so leaving it to the spec's record line runs the rounds unrecorded (`bound-the-review-loop` ran seven
+unrecorded until a reviewer caught it). captured: bound-the-review-loop captured: make-the-p99-verdict-confirm-first One
+capture per unit, never a chain. Apply the proposals the main agent judges durable: an implementation capture is caused
+by the unit, so it rides the unit's branch and ships in its PR (a merge-time capture, discovered after the unit is done,
+ships as its own docs PR per the docs-refresh convention). Process mistakes that leave no diff trace (e.g. a git command
+that discarded work) are the most valuable thing to capture — this is what makes the capture systematic instead of
 memory-dependent. For a docs-only merge that fixes stale facts or removes duplication, the fix is the lesson — do not
 re-capture it as a new gotcha; capture only what the merge left unaddressed. Read that as barring a gotcha that
 _restates the fix_, not a general rule the fix exemplifies: a durable rule absent from `main` is one of the things the
@@ -588,8 +590,10 @@ wait for approval before merging.
 # operating point — reporting each figure's delta — and records the plateau's operating point and response times as the
 # committed reference (load-tests/src/gatling/resources/baseline.properties, or baseline-<slug>.properties for a target
 # other than the default). A figure beyond max(floor, round(recorded x (1 + TOLERANCE/100))) — floors 5/10/20 ms —
-# regresses: the run fails, naming the regressed figures, and leaves the reference unchanged unless REFRESH_BASELINE=1
-# accepts it; with nothing recorded for the target, or a reference recorded at an operating point more than a tenth of
+# withholds the reference: a mean or 95th-percentile figure beyond it fails the run, naming the regressed figures, while
+# a 99th-percentile excursion withholds without failing and names the re-run that confirms it, since the client-side
+# p99's own run-to-run spread exceeds the tolerance (see docs/load-tests/2026-10-14.md); REFRESH_BASELINE=1 accepts
+# either; with nothing recorded for the target, or a reference recorded at an operating point more than a tenth of
 # the recorded rate away or with no operating point, it records the measurement; a measurement that recorded no figures
 # is withheld, refreshed or not. TOLERANCE defaults to 50 (percent). The run writes a ready-to-annotate record
 # under docs/load-tests/ and load-tests/build/load-tests/report.md either way, and — with PROFILE=<name> — runs that
@@ -1214,16 +1218,19 @@ Key modules (libraries, not services):
     line by contract and therefore unwrappable; Javadoc and JSDoc prose, which the formatters do not reflow —
     a >120-character comment line passes the formatter gate and only the manual check catches it); markdown is formatted
     by the root Spotless `markdown` format (Prettier, `printWidth: 120` with `proseWrap: "always"` — a preference, not a
-    hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating markdown wrapping). The
-    markdown scope is `docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`,
-    the `.github/` markdown, and the project-authored `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files
-    and the vendored `axon4to5-*` skills are excluded, while the project-authored `opsx-tool-update.md` stays in scope
-    despite the shared prefix — and `.opencode/opencode.json` has its own `json` format. A target's generated-file
-    exclusions must track what the generator writes — `/opsx-tool-update` checks the list when the generated inventory
-    changes, since a newly generated `opsx-*` command would otherwise be reformatted by `spotlessApply` and then
-    overwritten by the next `openspec update`. Verify with a character count (`perl -CSD -lne 'print if length > 120'`),
-    not `awk 'length > 120'` — `awk` counts bytes and false-flags a ≤120-character line containing non-ASCII (the `→`
-    arrow tripped this three times); the `-l` chomps the trailing newline `-ne` would otherwise count, so an
+    hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating markdown wrapping). A
+    file the markdown format does not converge on is **skipped with a zero exit**
+    (`Skipping '<path>' because it does not converge`), so a green `spotlessCheck` is not evidence for that file — treat
+    a skip as a failure for it, not a pass. captured: make-the-p99-verdict-confirm-first The markdown scope is `docs/`,
+    `AGENTS.md`, `README.md`, `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`, the `.github/` markdown,
+    and the project-authored `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files and the vendored
+    `axon4to5-*` skills are excluded, while the project-authored `opsx-tool-update.md` stays in scope despite the shared
+    prefix — and `.opencode/opencode.json` has its own `json` format. A target's generated-file exclusions must track
+    what the generator writes — `/opsx-tool-update` checks the list when the generated inventory changes, since a newly
+    generated `opsx-*` command would otherwise be reformatted by `spotlessApply` and then overwritten by the next
+    `openspec update`. Verify with a character count (`perl -CSD -lne 'print if length > 120'`), not
+    `awk 'length > 120'` — `awk` counts bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow
+    tripped this three times); the `-l` chomps the trailing newline `-ne` would otherwise count, so an
     exactly-120-character line is not false-flagged. Verify a verification command on a boundary case before recording
     it — the first recipe omitted `-l` and false-flagged every exactly-120-character line. Apply it over the change's
     whole changed set (`git diff --name-only`), not only the files a finding named — a per-file scope leaves the rest

@@ -982,10 +982,11 @@ ready-to-annotate record under `docs/load-tests/`, for the operator to annotate 
 plateau cannot quietly become the new normal, a baseline run first compares its plateau's per-request mean and 95th/99th
 percentiles against the recorded reference — made only when the reference's target matches and the measured operating
 point is within a tenth of the reference's, so a plateau run at a different load is not misread as a regression — and
-reports every delta; a figure beyond `TOLERANCE` (a percent, default 50) fails the run and leaves the reference
-unchanged — set `REFRESH_BASELINE=1` to accept a regression deliberately — while a measurement that recorded no figures
-is withheld even when refreshed, and the dated record is written either way, so the movement stays visible.
-`./gradlew :load-tests:baselineTrend` reads those records back (`-Precords=<dir>` overrides the default
+reports every delta; a mean or 95th-percentile figure beyond `TOLERANCE` (a percent, default 50) fails the run and
+leaves the reference unchanged, while a 99th-percentile excursion withholds it without failing and asks for a re-run at
+the same operating point to confirm it — set `REFRESH_BASELINE=1` to accept either deliberately — while a measurement
+that recorded no figures is withheld even when refreshed, and the dated record is written either way, so the movement
+stays visible. `./gradlew :load-tests:baselineTrend` reads those records back (`-Precords=<dir>` overrides the default
 `docs/load-tests/`) and prints them as a chronological series: each record's date, target, operating point, and plateau
 figures, reporting a record it cannot read as unreadable rather than failing. The calibration deliberately ramps past
 the knee and the resource sampling follows the current kube context, so point it at an environment you own.

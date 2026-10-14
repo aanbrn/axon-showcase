@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import lombok.val;
 import scala.Option;
 
@@ -19,8 +20,9 @@ import scala.Option;
  * Records the baseline reference from a Gatling simulation log: the operating point the plateau ran at and its mean,
  * 95th, and 99th percentile response time per read and write request, with the derivation policy the below-knee
  * profiles apply. Compares the measurement against the reference recorded for the target and a matching operating
- * point, reports the deltas, and writes the reference unless a figure regresses beyond the tolerance with no refresh
- * intended.
+ * point, reports the deltas, and writes the reference unless a figure exceeds the tolerance with no refresh intended —
+ * failing the run for a mean or 95th-percentile regression, and reporting a 99th-percentile excursion as unconfirmed,
+ * since one run cannot tell it from the measurement environment.
  */
 public final class BaselineStats {
 
@@ -86,15 +88,25 @@ public final class BaselineStats {
         } else if (drift.measuredEmpty()) {
             System.err.printf("withheld %s: the run measured no request figures%n", output);
             System.exit(1);
+        } else if (drift.regressed()) {
+            System.err.printf("withheld %s: regressed %s%n", output, labels(drift.regressedFigures()));
+            System.exit(1);
         } else {
             System.err.printf(
-                    "withheld %s: regressed %s%n",
-                    output,
-                    drift.regressedFigures().stream()
-                            .map(BaselineDrift.Figure::label)
-                            .toList());
-            System.exit(1);
+                    "withheld %s: an unconfirmed 99th-percentile excursion beyond the tolerance in %s — re-run at the"
+                            + " same operating point to confirm it%n",
+                    output, labels(drift.unconfirmedFigures()));
         }
+    }
+
+    /**
+     * The labels of a figure list.
+     *
+     * @param figures the figures
+     * @return their labels
+     */
+    private static List<String> labels(List<BaselineDrift.Figure> figures) {
+        return figures.stream().map(BaselineDrift.Figure::label).toList();
     }
 
     /**

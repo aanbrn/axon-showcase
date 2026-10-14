@@ -5,8 +5,10 @@
 # plateau at an operating point below it, sampling per-service resource usage throughout. Writes the knee to
 # knee.properties, the assembled measurement to report.md under load-tests/build/load-tests/, a ready-to-annotate record
 # under docs/load-tests/, and the plateau's operating point and per-request response times to the baseline reference the
-# profiles assert against — unless a figure regresses beyond TOLERANCE, which leaves the reference unchanged unless
-# REFRESH_BASELINE=1.
+# profiles assert against — unless a figure exceeds TOLERANCE, which leaves the reference unchanged unless
+# REFRESH_BASELINE=1. A mean or 95th-percentile figure beyond the tolerance fails the run; a 99th-percentile excursion
+# withholds the reference without failing it, since one run cannot tell a tail regression from the measurement
+# environment and a re-run at the same operating point is what does.
 # Exits non-zero when the calibration, the baseline, the comparison, or a requested profile run fails.
 set -uo pipefail
 
@@ -148,15 +150,22 @@ mkdir -p "$(dirname "$RECORD")"
 echo "==> wrote $RECORD (annotate, then ./gradlew spotlessApply before committing)"
 
 STATS_STATUS=0
+REFERENCE_BEFORE=$(mktemp)
+cp -f "$BASELINE_REF" "$REFERENCE_BEFORE" 2>/dev/null || true
 if ! run ./gradlew :load-tests:baselineStats -Plog="$BASE_LOG" -PbaselineOut="$BASELINE_REF" \
     -Ptarget="$BASE_URL" -PoperatingPoint="$OPERATING" -PrefreshBaseline="$REFRESH_BASELINE" \
     -PtolerancePercent="$TOLERANCE" -q; then
     STATS_STATUS=1
-    echo "reference left unchanged: a figure beyond the $TOLERANCE% tolerance is the usual cause" >&2
-    echo "(REFRESH_BASELINE=1 accepts a regression); otherwise the recording failed — see the report above" >&2
-else
-    echo "==> reference written to $BASELINE_REF"
 fi
+if [ -f "$BASELINE_REF" ] && ! cmp -s "$REFERENCE_BEFORE" "$BASELINE_REF"; then
+    echo "==> reference written to $BASELINE_REF"
+else
+    echo "reference left unchanged: a mean or 95th-percentile figure beyond the $TOLERANCE% tolerance, or a" >&2
+    echo "99th-percentile excursion, is the usual cause — a p99-only excursion needs a re-run at the same" >&2
+    echo "operating point to confirm it (REFRESH_BASELINE=1 accepts either); otherwise the recording failed" >&2
+    echo "— see the report above" >&2
+fi
+rm -f "$REFERENCE_BEFORE"
 
 STATUS=$BASELINE_STATUS
 if [ "$STATS_STATUS" -ne 0 ]; then

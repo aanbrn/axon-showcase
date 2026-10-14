@@ -15,15 +15,11 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-14
 
-- Decide what the drift check should track, now that its figure is half environment — promoted to issue #571; no change
-  yet. The 2026-10-14 attribution run (see `docs/load-tests/2026-10-14.md`) found the run's client-side p99 exceeds the
-  gateway's own server-side p99 on all six routes (by 1.5x to 2.5x) while the means differ by up to ~2 ms, so roughly
-  half of what the drift comparison tracks is the client and host rather than the pipeline. Its run-to-run spread is
-  also wide — the poll request's p99 has read 12, 24, 56 and 22 ms across the four recorded runs, while the write
-  service's own handling measured 8.0 ms p99 in the 2026-10-14 run, the only one that measured it. Whether the
-  comparison keeps the client-side p99, tracks a less noisy one (the server side, or a lower percentile), or requires a
-  regression to confirm before it fails is a change to the `showcase/quality/load-tests` requirement's own sensitivity,
-  so it owes that capability's delta.
+- Gate a non-converging markdown file rather than silently skipping it — parked; no change yet. Spotless prints
+  "Skipping '<path>' because it does not converge" and exits zero, so `spotlessCheck` never covers that file and the
+  gate reads green: a `tasks.md` whose fenced block nests six spaces under a checklist item does not converge under the
+  pinned Prettier 3.9.6, while the version the web module resolves (3.9.10) converges. Either pin one Prettier for both
+  or fail the check on a skip.
 
 ## 2026-10-12
 

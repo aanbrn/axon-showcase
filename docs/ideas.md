@@ -29,6 +29,20 @@ dated when it was added (start a new section for a new day rather than appending
   two cannot drift apart — to be compared against the first window whose rounds are both post-lever and canonically
   labelled. That comparison is what should decide any further review-loop change, not a fresh proposal.
 
+- Mechanically enumerate an authored diff's claim shapes to seed the pre-write claims table — parked; no change yet. The
+  table's rows are author-seeded, so a fact the author never noticed stating cannot become a row, and the
+  `claims-table*` family is one of the largest class clusters the record carries (`docs/review-rounds.tsv`). Scanning
+  the authored diff for claim shapes — a number with a referent, `only`/`every`/`all`/`never`, a backticked path or
+  symbol, a cross-artifact reference — and requiring each to be resolved into a row or explicitly dismissed would turn
+  the pass's weakest step into a search, as `review-quick`'s class-exhaustion clause did; a second mode would catch a
+  claim restating a fact the diff corrected. Proposal-sized: a `scripts/` tool plus an `agent-skills` delta.
+
+- Measure whether the review loop's non-convergence is model-bounded — parked; no change yet. The loop's reviewer shares
+  the main agent's model (the model-pin gotcha), so it cannot find what that model cannot see — plausibly why
+  `contradiction`, `over-claim`, and `premise` survive it. The decisive cheap experiment is to run one unit through both
+  `review-quick` (flash) and `review-thorough` (pro) and diff the _classes_ each finds, which would show whether those
+  classes should escalate to the pro pass.
+
 ## 2026-10-12
 
 - Report Gradle's `--info` environment dump upstream — parked; no change yet. `--info`/`--debug` logs each exec'd

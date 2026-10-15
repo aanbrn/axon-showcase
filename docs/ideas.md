@@ -59,13 +59,6 @@ dated when it was added (start a new section for a new day rather than appending
   reaches it only through a pull request. Re-check with `./gradlew :load-tests:gatlingRecorder --configuration-cache`,
   and retrigger on a release whose recorder task no longer holds those types.
 
-- Declare `mapstruct` for `showcase-query-service`'s `componentTest` — parked; no change yet.
-  `:showcase-query-service:compileComponentTestJava` emits `warning: unknown enum constant ReportingPolicy.IGNORE`
-  (`reason: class file for org.mapstruct.ReportingPolicy not found`), because the suite reads a `@Mapper`-annotated main
-  class without `mapstruct` on its classpath — the custom-suite trap, since a suite does not inherit the project's
-  `implementation` dependencies. Declare `libs.mapstruct` in the suite block, or accept the warning as compile-only
-  (`@Mapper` is `CLASS`-retained).
-
 - Widen the reviewers' 120-character check to every changed file — parked; no change yet. `review-quick.md` and
   `review-thorough.md` both scope it to the files the formatter does not cover (YAML, and so on), treating everything
   else as formatter-gated, which excludes Java — yet the Formatting convention records that Javadoc and JSDoc prose is

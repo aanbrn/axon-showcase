@@ -88,6 +88,12 @@ testing {
                     }
                     implementation(libs.opensearch.client.java)
                     implementation(libs.spring.tx)
+
+                    // The suite compiles against the @Mapper-annotated ShowcaseMapper, so MapStruct must be on its
+                    // compile classpath: main's `implementation` declaration reaches a custom suite only at runtime,
+                    // and without it javac warns that the annotation's ReportingPolicy constant is unknown.
+                    implementation(libs.mapstruct)
+
                     implementation(project(":showcase-projection-model"))
                     implementation(project(":showcase-query-proto"))
                 }

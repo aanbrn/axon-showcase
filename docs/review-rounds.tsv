@@ -145,3 +145,11 @@
 2026-10-15	decide-against-pre-review	1	coherence,single-sourcing,claim-unreproducible,claim-missing,missing-task	-	5
 2026-10-15	decide-against-pre-review	2	single-sourcing	single-sourcing	1
 2026-10-15	decide-against-pre-review	3	-	-	0
+2026-10-15	record-saved-allow-override	1	premise,over-claim,coherence,wording,missing-task	-	3
+2026-10-15	record-saved-allow-override	2	missing-task,claim-unreproducible	missing-task	2
+2026-10-15	record-saved-allow-override	3	wording	wording	1
+2026-10-15	record-saved-allow-override	4	-	-	0
+2026-10-15	issue-48456-comment	1	claim-unreproducible,wording	-	2
+2026-10-15	issue-48456-comment	2	claim-unreproducible,wording	claim-unreproducible,wording	2
+2026-10-15	issue-48456-comment	3	claim-unreproducible	claim-unreproducible	1
+2026-10-15	issue-48456-comment	4	-	-	0

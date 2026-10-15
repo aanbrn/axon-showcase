@@ -2373,12 +2373,16 @@ capture-stash-stale-copy
   the owning configuration from the graph (`./gradlew :<module>:dependencies --configuration <config>`) before choosing
   the fix. captured: fix-new-security-advisories
 - **Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
-  `implementation`-only dependencies** — each suite re-declares what it needs (client component suites duplicate
-  axon/opensearch/resilience4j deps, and `showcase-query-proto` must be listed explicitly). A suite can be referenced in
-  `shouldRunAfter(...)` only when bound as a `val` (e.g.
+  `implementation`-only dependencies on their compile classpath** — the default `test` suite does, since its classpath
+  extends `main`'s, while a custom suite receives them only at runtime through its `project()` dependency — so each
+  suite re-declares what it needs to compile (client component suites duplicate axon/opensearch/resilience4j deps,
+  `showcase-query-proto` must be listed explicitly, and a suite compiling against a `@Mapper`-annotated main class needs
+  `libs.mapstruct`, or javac warns that the annotation's `ReportingPolicy` constant is unknown). A suite can be
+  referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g.
   `val integrationTest = suites.register<JvmTestSuite>("integrationTest")`). Source sets are siblings — `src/test/java`
   cannot see a type declared in `src/gatling/java`, while both see `main` — so a pure-logic type a unit test and a
-  custom source set both need belongs in the module's `main` source set. captured: check-load-test-drift
+  custom source set both need belongs in the module's `main` source set. captured: check-load-test-drift captured:
+  fix-mapstruct-suite-warning
 - **A dependency a module does not use can still be load-bearing — narrowing a `project(...)` dependency can break a
   downstream `compileJava`, and removing a starter drops the modules it transitively provided.** Before removing or
   narrowing a dependency, grep the consumers' sources for what they actually import and compile the affected modules; an
@@ -2691,7 +2695,12 @@ capture-stash-stale-copy
   `guard-agent-loader-read-path` fixed the design only by re-deriving at a held-constant shape. A later review round
   then could not reproduce the silent-drop row because it chose a different shape, and read its clean run as a
   refutation of a true fact: a disagreement between two runs that differ in an uncontrolled dimension refutes neither,
-  so compare the inputs before concluding either wrong. captured: guard-agent-loader-read-path
+  so compare the inputs before concluding either wrong. The rule extends to a single observation: a token used to
+  evidence which route supplies a surface must reach it only by that route — a `commons-lang3` probe of `main`'s
+  `implementation` on a custom suite's compile classpath "confirmed" the opposite, because the coordinate arrived
+  through the suite's declared `project(":showcase-test")`; read the route the graph prints
+  (`./gradlew :<module>:dependencies --configuration <suite>CompileClasspath`, whose tree names each route's parent), or
+  pick a token with one route. captured: guard-agent-loader-read-path captured: fix-mapstruct-suite-warning
 - **A reproduction in an outward-facing artifact is itself part of the claim — write it so a reader reruns it to the
   same output, and rerun the exact sequence before posting.** State the tool version and the starting state, and record
   the commands in the order they ran: an order-dependent transcript can self-contradict (a `Fission-AI/OpenSpec#1892`

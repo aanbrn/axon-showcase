@@ -759,12 +759,14 @@ which edited the `protobuf`/`code-check` conventions, saw `ShowcaseRestControlle
 default 5s `WebTestClient` timeout, while the same suite passed locally with `--rerun`, the runner's `--max-workers=4`,
 full CPU saturation, and the four component-test tasks concurrent. A suite whose subject the change did not change, a
 stable failure count, and one framework-default timeout at the same call point point to load timing rather than a code
-defect: give that slice an explicit response timeout (`@AutoConfigureWebTestClient(timeout = "30s")`) instead of
-changing the subject, and treat a local pass as no evidence the CI failure is spurious. That raise made the later
-Docker-free PR runs pass but did **not** prevent a failure in a full `check` run, so the mechanism stays an open
-question: `docs/ideas.md` (2026-10-06) records it. The rebuild cost self-heals as soon as `main` re-warms, but the
-test-timing assumption the cold build exposes needs a real fix. captured: grpc-query-transport (#514) captured:
-fix-main-ci-regressions
+defect. That 30s raise did not hold: a Docker-free PR gate failed the same way at 30s on 2026-10-15, so the mechanism
+stays an open question — `docs/ideas.md` (2026-10-06) records it, the slice now autodetects a thread-dump extension for
+the next occurrence, and the rebuild cost self-heals as soon as `main` re-warms, but the test-timing assumption the cold
+build exposes needs a real fix. An intermittent CI-only failure that does not reproduce locally owes that diagnostic in
+place of another speculative mitigation — its output must reach the stream the runner prints
+(`testLogging { showStandardStreams = true }`; verified: without it the dump is absent from the console) — and a clean
+local probe of a candidate cause leaves it **unconfirmed, not refuted**. captured: grpc-query-transport (#514) captured:
+fix-main-ci-regressions captured: diagnose-rest-controller-ct-hang
 
 `.github/workflows/deployment-smoke.yml` runs a **deployment smoke** on a nightly schedule and via `workflow_dispatch`:
 it creates a throwaway `kind` cluster in the runner, builds the five images and loads them into it (kind's nodes cannot
@@ -2182,7 +2184,10 @@ capture-stash-stale-copy
     green. A check's _view_ of its subject is part of that scope: when the spec states the predicate as a property of an
     artifact — an archived change dir that _carries_ delta specs — read the artifact's own contents, not the subset that
     happens to be staged, since a predicate that read the staged set let a partially-staged archive change (one file
-    added) escape the guard entirely. captured: enforce-web-ui-import-boundaries captured: guard-archive-spec-sync
+    added) escape the guard entirely. A shell loop is a third mode: in zsh an unquoted stored value does not word-split
+    (`for f in $(…)` still does), so `files=$(git diff --name-only); for f in $files` runs its body **once** over the
+    joined string and the check reads one file; split it with `${(f)files}` or loop the substitution directly. captured:
+    enforce-web-ui-import-boundaries captured: guard-archive-spec-sync captured: diagnose-rest-controller-ct-hang
   - **An assertion about a declaration's content cannot see a value that never reaches the code — assert what the
     subject _emits_, not only what it declares.** Both abandoned fixes of `scripts/test-doctor.sh` (five and seven
     review rounds) read the doctor's probe declaration and asserted things about the data; each round found another way

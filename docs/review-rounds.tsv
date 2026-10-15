@@ -163,3 +163,9 @@
 2026-10-15	record-gatling-report-block	3	-	-	0
 2026-10-15	suppress-lombok-javadoc-false-positive	1	claim-unreproducible,claim-missing,incomplete-enumeration,contradiction,premise	-	4
 2026-10-15	suppress-lombok-javadoc-false-positive	2	-	-	0
+2026-10-15	diagnose-rest-controller-ct-hang	1	docs-residue,claim-missing,over-claim,impact-omission,test-control	-	4
+2026-10-15	diagnose-rest-controller-ct-hang	2	claim-unreproducible,claim-missing	claim-missing	2
+2026-10-15	diagnose-rest-controller-ct-hang	3	formatting,claim-missing	claim-missing	2
+2026-10-15	diagnose-rest-controller-ct-hang	4	-	-	0
+2026-10-15	diagnose-rest-controller-ct-hang	5	wording,claim-unreproducible	-	1
+2026-10-15	diagnose-rest-controller-ct-hang	6	-	-	0

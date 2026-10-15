@@ -59,6 +59,13 @@ dated when it was added (start a new section for a new day rather than appending
   `implementation` dependencies. Declare `libs.mapstruct` in the suite block, or accept the warning as compile-only
   (`@Mapper` is `CLASS`-retained).
 
+- Widen the reviewers' 120-character check to every changed file — parked; no change yet. `review-quick.md` and
+  `review-thorough.md` both scope it to the files the formatter does not cover (YAML, and so on), treating everything
+  else as formatter-gated, which excludes Java — yet the Formatting convention records that Javadoc and JSDoc prose is
+  not reflowed and only the manual check catches it, and two 122-character Javadoc lines passed `spotlessCheck` until an
+  explicit scan found them. Name Javadoc prose in both definitions, and have the recipe iterate the changed set (split
+  correctly — an unquoted stored value does not word-split in zsh).
+
 - Retry `verifyInfraImageVersions`'s helm repository update — parked; no change yet. On a cold or forced run the task
   resolves each pinned chart's preconfigured `image.tag` over the network, and `addHelmRepositories` retries nothing, so
   a transient `failed to update the following repositories: [<repo>]` fails `check` — the failing repository differs
@@ -129,14 +136,19 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-06
 
-- Explain or eliminate the gateway controller CT's load-sensitive hang — parked; no change yet.
-  `ShowcaseRestControllerCT` failed 38 of its 76 cases with a `TimeoutException` at the `WebTestClient` `.exchange()` at
-  the default 5s timeout; raising the slice's response timeout to 30s made the later Docker-free PR runs pass, but a
-  full `check` run still failed the same 38 of 76 at 30s. Every full `check` run in the window also failed the
-  `showcase-query-proto` coverage gate (0.60 vs 0.80, fixed by this unit's mapper test). So the failure is
-  load-sensitive and its mechanism is unproven: the slice is a `@WebFluxTest` of controller code the change did not
-  touch, and it passes locally even with the runner's worker count, full CPU saturation, and the four component-test
-  tasks concurrent. Needs a run that reproduces it with thread/scheduler diagnostics before another mitigation.
+- Explain or eliminate the gateway controller CT's load-sensitive hang — parked; diagnostics shipped, mechanism open.
+  `ShowcaseRestControllerCT` fails with a `TimeoutException` at the `WebTestClient` `.exchange()`: 38 of its 76 cases at
+  the default 5s timeout, and the same shape at the 30s the slice now configures — a Docker-free PR gate failed that way
+  on 2026-10-15, so the raise no longer holds there. The mechanism is unproven and does not reproduce locally: shrinking
+  the JVM-wide `Schedulers.boundedElastic()` pool to 4 and running the suite six times all passed, which leaves
+  boundedElastic starvation unconfirmed rather than refuted — a local pass is no evidence against a CI-only cause. The
+  failed CI attempt ran the suite concurrently with the web UI's `check` and spotbugs on a 4-vCPU runner (the #514
+  starvation shape), and the suite's CT classes share one JVM (the #301 interference shape); JUnit kept dispatching
+  distinct tests, each new one timing out on a 30s cadence for four minutes, so the stall is in the request path's
+  threads rather than the JVM. The diagnostics this entry asked for are shipped: JUnit's extension autodetection
+  registers `ThreadDumpOnFailure`, which dumps every thread's stack trace to the test output on a test failure — with
+  the suite's `showStandardStreams`, which prints its standard output and error, a deliberate cost to remove with the
+  extension once the mechanism is found.
 
 ## 2026-10-05
 

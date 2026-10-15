@@ -98,6 +98,10 @@ testing {
                                     "-XX:+EnableDynamicAgentLoading",
                                 )
 
+                            testLogging {
+                                showStandardStreams = true
+                            }
+
                             shouldRunAfter(test)
                         }
                     }

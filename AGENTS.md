@@ -3001,17 +3001,22 @@ capture-stash-stale-copy
 - **An unanswered `ask` hangs an unattended run — anchor a `bash`/`shell` permission pattern to the parsed command, and
   bound the job.** OpenCode emits one pattern per parsed `command` node, so a whole-command-string guard
   (`"*git push*"`) also matches a read-only command that merely quotes the phrase (`grep … "git push"`); anchor it
-  (`"git push *": "ask"`) so a bare, argumented, or chained push still asks while the quote does not. The action's
-  handler denies only the `question` permission, so resolve each binary's ask-defaults — the cloud (v1) binary asks for
-  `read` `.env`, `external_directory`, and `doom_loop`, the local (v2) binary for `read` `.env` only — to `allow`/`deny`
-  in the config the action uses, and bound each unattended job with `timeout-minutes` — a scheduled `audit` hung 2h13m
-  on a `bash` rule, and `/oc` runs were cancelled at 42m and 17m on `external_directory` asks. Deny only a default whose
-  internal allows the config can re-express, since a config rule is appended last and overrides a default:
+  (`"git push *": "ask"`). A **saved "always" allow overrides the rule**: the engine appends the saved rules after the
+  config rules and takes the last match (`findLast`, `packages/core/src/permission.ts`), and v2 persists "always" per
+  project in the DB's `permission` table though the docs call it session-only — so a guard that never prompts is a saved
+  row until proven otherwise; check or clear it before changing the rule (saved rows are per-project in that table).
+  Tracked upstream as `anomalyco/opencode#48456` (open; `#50600` asks for session-scoped or resettable approvals);
+  retires when a saved allow stops overriding a configured `ask`. The action's handler denies only the `question`
+  permission, so resolve each binary's ask-defaults — the cloud (v1) binary asks for `read` `.env`,
+  `external_directory`, and `doom_loop`, the local (v2) binary for `read` `.env` only — to `allow`/`deny` in the config
+  the action uses, and bound each unattended job with `timeout-minutes` — a scheduled `audit` hung 2h13m on a `bash`
+  rule, and `/oc` runs were cancelled at 42m and 17m on `external_directory` asks. Deny only a default whose internal
+  allows the config can re-express, since a config rule is appended after the binary's defaults and overrides them:
   `external_directory`'s `*` cannot be denied (it would override v1's scratch/skill/reference allows, which `expand()` —
   only `~`/`$HOME` — cannot re-express), while denying `*.env.*` needs `*.env.example` re-allowed. Reported upstream as
   `anomalyco/opencode#54477` (declined for v1 — `wont_fix`); retires when the handler resolves a non-`question` `ask`
   (or fails the run on an unanswerable prompt). captured: fix-unattended-permission-hang captured:
-  harden-cloud-runs-against-ask-hangs
+  harden-cloud-runs-against-ask-hangs captured: record-saved-allow-override
 
 - **A generic getter's inferred type can bind an overloaded call to the wrong overload — cast to the erased type, and
   verify the binding, not the source.** `Session.get` is generic (`<T> T get(String)`), so

@@ -13,6 +13,22 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-15
+
+- Park the review loop's rejected levers, and the comparison its baseline enables — parked; no change yet. Four levers
+  the owner's proposal for optimizing the iterative review loop asked for are **contradicted by the repository's own
+  record**, so they are not to be re-derived the next time the question is asked: a **persistent reviewer session** (the
+  loop's measured cost is re-raised claims about the change's own artifacts rather than re-exploration, per the
+  retrospective's baseline, and the class-exhaustion clause requires searching the artifact anew each round, so a
+  session's prior context is an anchoring liability); **diff-scoped follow-ups** (an unapplied fix produces no diff, so
+  a diff-only round can report a false clean); a **fixed iteration cap** (`bound-the-review-loop` explicitly rejected
+  one, since a count would stop a productive loop); and **token, elapsed-time or session-count telemetry** (a process
+  count is not a verifiable repository fact, per the documented-numbers rule). The one change the record did support —
+  the canonical class list — has since landed. The companion measurement: `docs/retrospectives/2026-10-15.md` records
+  the review loop's baseline — the figures and the boundary that makes them quotable live there rather than here, so the
+  two cannot drift apart — to be compared against the first window whose rounds are both post-lever and canonically
+  labelled. That comparison is what should decide any further review-loop change, not a fresh proposal.
+
 ## 2026-10-12
 
 - Report Gradle's `--info` environment dump upstream — parked; no change yet. `--info`/`--debug` logs each exec'd

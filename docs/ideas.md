@@ -15,6 +15,13 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-15
 
+- Spec the owner-notification path for a bot-authored pull request — parked; no change yet. `merge-governance` owns the
+  rulesets, the CI gates and the scheduled workflows, but nothing states how the owner learns that a Dependabot PR is
+  open — and that path was dead on arrival: GitHub retired `dependabot.yml`'s `reviewers` option on 2025-05-20 and `#91`
+  added the key anyway sixteen months later, so no review request (and no notification) was ever raised until `#586`
+  replaced it with `.github/CODEOWNERS`. A requirement would state the outcome — a pull request the code owner did not
+  author requests their review — while leaving the mechanism free to change, which is what the repo's own experience
+  says it will do.
 - Park the review loop's rejected levers, and the comparison its baseline enables — parked; no change yet. Four levers
   the owner's proposal for optimizing the iterative review loop asked for are **contradicted by the repository's own
   record**, so they are not to be re-derived the next time the question is asked: a **persistent reviewer session** (the

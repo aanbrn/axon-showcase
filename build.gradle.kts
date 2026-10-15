@@ -520,11 +520,22 @@ tasks.register("verifyDashboardJson", VerifyDashboardJsonTask::class.java) {
     resultFile.set(layout.buildDirectory.file("verification/dashboard-json.txt"))
 }
 
+tasks.register("verifyPrettierAlignment", VerifyPrettierAlignmentTask::class.java) {
+    group = "verification"
+    description = "Verifies the catalog's Prettier version is the one the web module resolves"
+
+    catalog.set(layout.projectDirectory.file("gradle/libs.versions.toml"))
+    lockfile.set(layout.projectDirectory.file("showcase-web-ui/package-lock.json"))
+
+    resultFile.set(layout.buildDirectory.file("verification/prettier-alignment.txt"))
+}
+
 tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
     dependsOn("verifyInstallCommands")
     dependsOn("verifyDocumentedPins")
     dependsOn("verifyDashboardJson")
+    dependsOn("verifyPrettierAlignment")
     dependsOn("workflowLint")
     dependsOn("verifyModuleDependencies")
     dependsOn("verifyCapturedMarkers")

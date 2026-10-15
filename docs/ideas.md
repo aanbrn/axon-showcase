@@ -43,13 +43,14 @@ dated when it was added (start a new section for a new day rather than appending
   `review-quick` (flash) and `review-thorough` (pro) and diff the _classes_ each finds, which would show whether those
   classes should escalate to the pro pass.
 
-- File the Gatling plugin's configuration-cache gap upstream — parked; no change yet. The `gatlingRecorder` task (the
+- Re-check the Gatling plugin's configuration-cache gap — parked; no change yet. The `gatlingRecorder` task (the
   plugin's `GatlingRecorderTask`, gatling-gradle-plugin 3.15.1.2) holds a `Configuration` and a `SourceSet`, which the
   configuration cache cannot serialize, so `load-tests/build.gradle.kts` marks it `notCompatibleWithConfigurationCache`
-  — a graph containing it runs cache-less. The plugin's own "support gradle configuration cache" work (#131, closed)
-  left this task uncovered. Report it upstream with the probe
-  (`./gradlew :load-tests:gatlingRecorder --configuration-cache`), and retrigger on a release whose recorder task no
-  longer holds those types.
+  — a graph containing it runs cache-less. The plugin's own "support gradle configuration cache" work (#131, a merged
+  PR) left this task uncovered, and the plugin repository's own tracker and discussions are disabled
+  (`has_issues: false`, `has_discussions: false`), so it carries no report thread and no PR addressing it to cite; a fix
+  reaches it only through a pull request. Re-check with `./gradlew :load-tests:gatlingRecorder --configuration-cache`,
+  and retrigger on a release whose recorder task no longer holds those types.
 
 - Retry `verifyInfraImageVersions`'s helm repository update — parked; no change yet. On a cold or forced run the task
   resolves each pinned chart's preconfigured `image.tag` over the network, and `addHelmRepositories` retries nothing, so

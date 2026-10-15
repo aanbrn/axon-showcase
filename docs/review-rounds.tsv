@@ -158,3 +158,6 @@
 2026-10-15	enable-configuration-cache	3	missing-task	-	1
 2026-10-15	enable-configuration-cache	4	missing-task	missing-task	1
 2026-10-15	enable-configuration-cache	5	-	-	0
+2026-10-15	record-gatling-report-block	1	contradiction,over-claim,dropped-content,wording	-	2
+2026-10-15	record-gatling-report-block	2	claim-missing	-	1
+2026-10-15	record-gatling-report-block	3	-	-	0

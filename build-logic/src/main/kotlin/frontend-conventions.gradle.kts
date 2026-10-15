@@ -144,20 +144,23 @@ val npmOutdated =
         args.set(listOf("run", "outdated:report"))
         inputs.file(rootProject.layout.projectDirectory.file("config/web-ui-updates/major-disabled.txt"))
 
+        val rawFile = layout.buildDirectory.file("npm-outdated-raw.txt").get().asFile
+        val reportFile = layout.buildDirectory.file("npm-outdated.txt").get().asFile
+        val errorFile = layout.buildDirectory.file("npm-outdated.err.txt").get().asFile
+        val exitFile = layout.buildDirectory.file("npm-outdated.exit").get().asFile
+        val majorDisabled = npmMajorDisabled()
+
         doLast {
-            val raw = layout.buildDirectory.file("npm-outdated-raw.txt").get().asFile
-            val report = layout.buildDirectory.file("npm-outdated.txt").get().asFile
-            val error = layout.buildDirectory.file("npm-outdated.err.txt").get().asFile
-            val exit = layout.buildDirectory.file("npm-outdated.exit").get().asFile
-            if (raw.exists()) {
-                report.writeText(NpmOutdatedRules.filterReport(raw.readLines(), npmMajorDisabled()))
+            if (rawFile.exists()) {
+                reportFile.writeText(NpmOutdatedRules.filterReport(rawFile.readLines(), majorDisabled))
             }
-            val updates = report.takeIf { it.exists() }?.readText().orEmpty()
+            val updates = reportFile.takeIf { it.exists() }?.readText().orEmpty()
             if (updates.isNotBlank()) {
                 logger.lifecycle("\nWeb UI dependency updates:\n$updates")
-            } else if (exit.takeIf { it.exists() }?.readText()?.trim() != "0") {
+            } else if (exitFile.takeIf { it.exists() }?.readText()?.trim() != "0") {
                 logger.error(
-                    "Web UI dependency update report failed:\n" + error.takeIf { it.exists() }?.readText().orEmpty(),
+                    "Web UI dependency update report failed:\n" +
+                        errorFile.takeIf { it.exists() }?.readText().orEmpty(),
                 )
             } else {
                 logger.lifecycle("\nNo web UI dependency updates available.")
@@ -175,13 +178,14 @@ val npmAudit =
         args.set(listOf("run", "audit:report"))
         inputs.file("npm-audit-ignores.json")
 
+        val auditReportFile = layout.buildDirectory.file("npm-audit-raw.json").get().asFile
+        val suppressionsFile = file("npm-audit-ignores.json")
+
         doLast {
-            val report = layout.buildDirectory.file("npm-audit-raw.json").get().asFile
-            val suppressions = file("npm-audit-ignores.json")
             val result =
                 NpmAuditRules.evaluate(
-                    report.takeIf { it.exists() }?.readText().orEmpty(),
-                    suppressions.takeIf { it.exists() }?.readText().orEmpty(),
+                    auditReportFile.takeIf { it.exists() }?.readText().orEmpty(),
+                    suppressionsFile.takeIf { it.exists() }?.readText().orEmpty(),
                     LocalDate.now(),
                 )
             result.applied.forEach {
@@ -264,14 +268,8 @@ val npmE2e =
         // evaluated before this task's actions run. This is explicit rather than a task-graph scan, which
         // can re-enter Gradle's scheduler on lazily configured tasks (e.g. the gateway e2e's
         // bootBuildImage deps). The key uses the compose task's own `path` (`:composeBuildAndUp`).
-        rootProject.extra.set(
-            "composeTaskScheduled-:composeBuildAndUp",
-            true,
-        )
-        rootProject.extra.set(
-            "composeTaskScheduled-:composeDown",
-            true,
-        )
+        composeScheduleState(rootProject).add(":composeBuildAndUp")
+        composeScheduleState(rootProject).add(":composeDown")
 
         // composeBuildAndUp returns as soon as containers start (no --wait: a one-shot kafka-init exits,
         // which `--wait` treats as a failure). The gateway is the last service the e2e talks to, so poll

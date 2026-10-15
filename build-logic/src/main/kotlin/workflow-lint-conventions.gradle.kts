@@ -11,8 +11,10 @@ tasks.register<Exec>("workflowLint") {
     val workflowFiles = fileTree(rootProject.layout.projectDirectory.dir(".github/workflows")) { include("*.yml") }
     inputs.files(workflowFiles)
 
+    val actionlint = actionlintExecutable()
+
     doFirst {
-        if (actionlintExecutable().isEmpty()) {
+        if (actionlint.isEmpty()) {
             throw GradleException(
                 "actionlint is required to lint GitHub workflows. Install it from " +
                     "https://github.com/rhysd/actionlint (brew, go install, or a release binary)",
@@ -20,7 +22,7 @@ tasks.register<Exec>("workflowLint") {
         }
     }
 
-    commandLine(actionlintExecutable(), *workflowFiles.files.map { it.absolutePath }.toTypedArray())
+    commandLine(actionlint, *workflowFiles.files.map { it.absolutePath }.toTypedArray())
 }
 
 // Resolves the absolute path of the actionlint executable from the current PATH. The absolute path is used in the

@@ -28,7 +28,20 @@ fun registerComposeTask(
             dependsOn(allprojects.flatMap { project -> project.tasks.named { it == "dockerBuildImage" } })
         }
 
-        commandLine = listOf(dockerCli(), "compose") + action + composeServices
+        val docker = dockerCli()
+        val scheduledKey = path
+        val explicitName =
+            if (project == defaultProject) {
+                name
+            } else if (defaultProject == rootProject) {
+                project.path.removePrefix(":") + ":" + name
+            } else {
+                project.path.removePrefix(defaultProject.path).removePrefix(":") + ":" + name
+            }
+        val requestedTasks = gradle.startParameter.taskRequests.flatMap { it.args }.map { it.removePrefix(":") }
+        val scheduled = composeScheduleState(rootProject)
+
+        commandLine = listOf(docker, "compose") + action + composeServices
 
         workingDir = rootProject.layout.projectDirectory.asFile
 
@@ -38,38 +51,22 @@ fun registerComposeTask(
         environment["KAFKA_VERSION"] = libs.versions.kafka.image.tag.get()
 
         doFirst {
-            if (dockerCli().isEmpty()) {
+            if (docker.isEmpty()) {
                 throw GradleException(
                     "The Docker CLI is required to run the compose tasks. Install Docker and make 'docker' available on PATH.",
                 )
             }
         }
 
-        // Run only when this compose task is explicitly requested on the command line (standalone
-        // `./gradlew composeUp`) or when a consuming task marks it scheduled (the web-UI `e2eTest` sets
-        // `composeTaskScheduled-<path>` at configuration time for the `composeBuildAndUp`/`composeDown` it
-        // depends on / finalizes with). The explicit-request check covers the standalone case and naturally
+        // Run when this compose task is explicitly requested on the command line (standalone
+        // `./gradlew composeUp`), or when a consuming task marks it scheduled (the web-UI `e2eTest` adds this
+        // task's path to `composeScheduleState` at configuration time for the `composeBuildAndUp`/`composeDown`
+        // it depends on / finalizes with). The explicit-request check covers the standalone case and naturally
         // excludes the per-service compose tasks that Gradle schedules alongside a root compose run. The
         // comparison tolerates the leading ':' IDEA/Tooling API adds (e.g. `:composeUp`), matching both the
         // CLI and IDE invocations.
         onlyIf {
-            val explicitlyRequested =
-                gradle.startParameter.taskRequests
-                    .flatMap { it.args }
-                    .any {
-                        it.removePrefix(":") ==
-                            if (project == defaultProject) {
-                                name
-                            } else if (defaultProject == rootProject) {
-                                project.path.removePrefix(":") + ":" + name
-                            } else {
-                                project.path.removePrefix(defaultProject.path).removePrefix(":") + ":" + name
-                            }
-                    }
-            val markedScheduled =
-                rootProject.extra.has("composeTaskScheduled-${path}") &&
-                    (rootProject.extra.get("composeTaskScheduled-${path}") as? Boolean ?: false)
-            explicitlyRequested || markedScheduled
+            requestedTasks.contains(explicitName) || scheduled.get().contains(scheduledKey)
         }
     }
 }

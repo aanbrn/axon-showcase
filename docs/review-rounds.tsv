@@ -119,3 +119,14 @@
 2026-10-15	align-the-root-prettier-pin	6	impact-omission,imprecise-claim	-	1
 2026-10-15	align-the-root-prettier-pin	7	imprecise-claim	imprecise-claim	1
 2026-10-15	align-the-root-prettier-pin	8	-	-	0
+2026-10-15	verify-the-prettier-pin-alignment	1	claims-table-source,claims-table-omission,impact-omission,over-claim,contradiction,coherence	-	2
+2026-10-15	verify-the-prettier-pin-alignment	2	claims-table-source,claims-table-omission	claims-table-source,claims-table-omission	2
+2026-10-15	verify-the-prettier-pin-alignment	3	formatting,claims-table-source	claims-table-source	2
+2026-10-15	verify-the-prettier-pin-alignment	4	premise,claims-table-anchor	claims-table-anchor	2
+2026-10-15	verify-the-prettier-pin-alignment	5	claims-table-omission	claims-table-omission	1
+2026-10-15	verify-the-prettier-pin-alignment	6	missing-task	-	1
+2026-10-15	verify-the-prettier-pin-alignment	7	-	-	0
+2026-10-15	verify-the-prettier-pin-alignment	8	formatting,test-control,missing-scenario	-	3
+2026-10-15	verify-the-prettier-pin-alignment	9	missing-artifact-decision	-	1
+2026-10-15	verify-the-prettier-pin-alignment	10	contradiction	contradiction	0
+2026-10-15	verify-the-prettier-pin-alignment	11	-	-	0

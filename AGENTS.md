@@ -567,7 +567,7 @@ wait for approval before merging.
 # Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
 # plus workflowLint (actionlint), verifyInfraImageVersions, verifyInstallCommands, verifyDocumentedPins,
 # verifyModuleDependencies,
-# verifyDashboardJson, and the commit-hygiene tasks
+# verifyDashboardJson, verifyPrettierAlignment, and the commit-hygiene tasks
 # (verifyCapturedMarkers, testCommitHygiene, testDoctorCharter, verifyTrackedIgnoredFiles, verifyConflictMarkers,
 # verifyExecutableBits, verifyUniqueCronSchedules, verifyLargeFiles)
 # (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of

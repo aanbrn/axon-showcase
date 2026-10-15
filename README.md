@@ -920,6 +920,7 @@ follow-up pull request, so the next release has a base. It is not a merge gate.
 ./gradlew verifyDocumentedPins         # verify the catalog's Paketo pins a live doc states match the catalog
 ./gradlew verifyModuleDependencies     # verify the module dependency graph (ADR-0010)
 ./gradlew verifyDashboardJson          # verify the bundled Grafana dashboard JSON parses
+./gradlew verifyPrettierAlignment      # verify the catalog's Prettier version is the one the web module resolves
 ./gradlew verifyLargeFiles             # verify no tracked file exceeds the configured size limit
 ./gradlew workflowLint                 # lint the GitHub Actions workflows with actionlint
 ```

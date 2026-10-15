@@ -46,4 +46,4 @@
       (0 additions, 0 retirements; net 0) — every class was a compliance miss of a rule the file already carries. The
       capture also found a live defect it routed here: the count claims said 55 mapped where the table maps 54
       (`compliance-miss` is the record's flag, not a class), now corrected in the design, the proposal and task 1.2.
-- [ ] 5.6 Request the user's manual review pass.
+- [x] 5.6 Request the user's manual review pass.

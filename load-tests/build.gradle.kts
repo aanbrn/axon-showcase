@@ -29,14 +29,22 @@ gatling {
 val gatlingSourceSet = extensions.getByType(SourceSetContainer::class.java)["gatling"]
 val gatlingExtension = extensions.getByType(io.gatling.gradle.GatlingPluginExtension::class.java)
 
+tasks.named("gatlingRecorder") {
+    notCompatibleWithConfigurationCache(
+        "The Gatling plugin's task holds a Configuration and a SourceSet, which the configuration cache cannot serialize",
+    )
+}
+
 tasks.register<JavaExec>("kneeFinder") {
     group = "Gatling"
     description = "Derives the load knee from a Gatling simulation log"
     classpath = gatlingSourceSet.runtimeClasspath
     mainClass.set("showcase.loadtests.KneeFinder")
     jvmArgs(gatlingExtension.jvmArgs)
+    val logProperty = providers.gradleProperty("log")
+    val kneeProperty = providers.gradleProperty("knee")
     argumentProviders.add {
-        listOf(providers.gradleProperty("log").get(), providers.gradleProperty("knee").get())
+        listOf(logProperty.get(), kneeProperty.get())
     }
 }
 
@@ -46,14 +54,20 @@ tasks.register<JavaExec>("baselineStats") {
     classpath = gatlingSourceSet.runtimeClasspath
     mainClass.set("showcase.loadtests.BaselineStats")
     jvmArgs(gatlingExtension.jvmArgs)
+    val logProperty = providers.gradleProperty("log")
+    val baselineOutProperty = providers.gradleProperty("baselineOut")
+    val targetProperty = providers.gradleProperty("target")
+    val refreshBaselineProperty = providers.gradleProperty("refreshBaseline")
+    val tolerancePercentProperty = providers.gradleProperty("tolerancePercent")
+    val operatingPointProperty = providers.gradleProperty("operatingPoint")
     argumentProviders.add {
         listOf(
-            providers.gradleProperty("log").get(),
-            providers.gradleProperty("baselineOut").get(),
-            providers.gradleProperty("target").get(),
-            providers.gradleProperty("refreshBaseline").getOrElse("false"),
-            providers.gradleProperty("tolerancePercent").getOrElse("50"),
-            providers.gradleProperty("operatingPoint").get(),
+            logProperty.get(),
+            baselineOutProperty.get(),
+            targetProperty.get(),
+            refreshBaselineProperty.getOrElse("false"),
+            tolerancePercentProperty.getOrElse("50"),
+            operatingPointProperty.get(),
         )
     }
 }
@@ -64,12 +78,10 @@ tasks.register<JavaExec>("baselineTrend") {
     classpath = gatlingSourceSet.runtimeClasspath
     mainClass.set("showcase.loadtests.BaselineTrend")
     jvmArgs(gatlingExtension.jvmArgs)
+    val defaultRecordsDir = rootProject.layout.projectDirectory.dir("docs/load-tests").asFile.absolutePath
+    val recordsProperty = providers.gradleProperty("records")
     argumentProviders.add {
-        listOf(
-            providers
-                .gradleProperty("records")
-                .getOrElse(rootProject.layout.projectDirectory.dir("docs/load-tests").asFile.absolutePath),
-        )
+        listOf(recordsProperty.getOrElse(defaultRecordsDir))
     }
 }
 

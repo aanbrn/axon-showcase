@@ -43,6 +43,20 @@ dated when it was added (start a new section for a new day rather than appending
   `review-quick` (flash) and `review-thorough` (pro) and diff the _classes_ each finds, which would show whether those
   classes should escalate to the pro pass.
 
+- File the Gatling plugin's configuration-cache gap upstream — parked; no change yet. The `gatlingRecorder` task (the
+  plugin's `GatlingRecorderTask`, gatling-gradle-plugin 3.15.1.2) holds a `Configuration` and a `SourceSet`, which the
+  configuration cache cannot serialize, so `load-tests/build.gradle.kts` marks it `notCompatibleWithConfigurationCache`
+  — a graph containing it runs cache-less. The plugin's own "support gradle configuration cache" work (#131, closed)
+  left this task uncovered. Report it upstream with the probe
+  (`./gradlew :load-tests:gatlingRecorder --configuration-cache`), and retrigger on a release whose recorder task no
+  longer holds those types.
+
+- Retry `verifyInfraImageVersions`'s helm repository update — parked; no change yet. On a cold or forced run the task
+  resolves each pinned chart's preconfigured `image.tag` over the network, and `addHelmRepositories` retries nothing, so
+  a transient `failed to update the following repositories: [<repo>]` fails `check` — the failing repository differs
+  between runs, and the task passes alone and on a warm cache. Give the update a bounded retry, as the actionlint
+  download did; do not set `tolerateFailures = true`, which turns the check into a false pass.
+
 ## 2026-10-12
 
 - Report Gradle's `--info` environment dump upstream — parked; no change yet. `--info`/`--debug` logs each exec'd

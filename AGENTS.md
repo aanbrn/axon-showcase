@@ -2295,14 +2295,23 @@ capture-stash-stale-copy
   restart to take effect.
 - E2E tests for `showcase-api-gateway` depend on Docker images of all other services being built (`bootBuildImage`). Run
   those first.
-- The `io.github.build-extensions-oss.helm` / `io.github.build-extensions-oss.helm-releases` gradle-helm-plugin tasks
-  are not configuration-cache compatible — do not enable `org.gradle.configuration-cache=true` (verify with
-  `--configuration-cache` before adding it).
-- The gradle-helm-plugin 3.1.2 calls the deprecated `Project.getProperties()` (a `--warning-mode all` deprecation that
-  becomes a hard error in Gradle 10). Tracked upstream as build-extensions-oss/gradle-helm-plugin#145; bump the plugin
-  when a fix is released. Separately, the Gradle `Configuration.visible` deprecation (`setVisible(boolean)`, removed in
-  Gradle 11) is emitted across the build by several third-party plugins — the helm, errorprone, SpotBugs, Spring Boot,
-  and protobuf plugins among them — and is likewise plugin-side, with no action of ours.
+- The configuration cache is **enabled** (`org.gradle.configuration-cache=true`). A task action must not reference
+  anything belonging to the Gradle script — `project`, `gradle`, `rootProject`, `providers`, a script-level `val`/`fun`,
+  the script's own `this` — because serializing the captured **script object** fails the store; compute what the action
+  needs into a `val` local to the configuration lambda (a class/object reference is safe). It needed the
+  gradle-helm-plugin at **3.2.0** (its tasks captured a `Task`/`Project` through 3.1.2 —
+  build-extensions-oss/gradle-helm-plugin#140, closed), that hoist at each task action that had it (`workflowLint`,
+  `dependencySecurityCheck`, the frontend `npmAudit`/`npmOutdated`, the load-tests
+  `kneeFinder`/`baselineStats`/`baselineTrend`, and the compose tasks — whose `onlyIf` also read `gradle.startParameter`
+  and a `rootProject.extra` handshake, now `composeScheduleState`), and `notCompatibleWithConfigurationCache` on
+  `:load-tests:gatlingRecorder`, whose third-party task type holds a `Configuration`/`SourceSet` no hoist can fix (an
+  upstream-report candidate). Sweep such a change over the build's **whole task list** (`./gradlew tasks --all`'s set,
+  requested in one graph), not the closures you know about — a plugin task type is the other failure shape.
+- The gradle-helm-plugin 3.2.0 still calls the deprecated `Project.getProperties()` (a `--warning-mode all` deprecation
+  that becomes a hard error in Gradle 10). Tracked upstream as build-extensions-oss/gradle-helm-plugin#145; bump the
+  plugin when a fix is released. Separately, the Gradle `Configuration.visible` deprecation (`setVisible(boolean)`,
+  removed in Gradle 11) is emitted across the build by several third-party plugins — the helm, errorprone, SpotBugs,
+  Spring Boot, and protobuf plugins among them — and is likewise plugin-side, with no action of ours.
 
 - NullAway is strict on `showcase.*` packages — ensure proper `@Nullable`/`@NonNull` annotations from `jspecify`.
 - Jackson 3 artifacts (`tools.jackson.core:*`) on the query-service and projection-service runtime classpaths are

@@ -8,10 +8,12 @@ tasks.register<Exec>("dependencySecurityCheck") {
 
     workingDir = rootProject.layout.projectDirectory.asFile
 
-    commandLine(snykExecutable(), "test", "--all-sub-projects", "--policy-path=.snyk")
+    val snyk = snykExecutable()
+
+    commandLine(snyk, "test", "--all-sub-projects", "--policy-path=.snyk")
 
     doFirst {
-        if (snykExecutable().isEmpty()) {
+        if (snyk.isEmpty()) {
             throw GradleException(
                 "Snyk CLI is required to run the dependency security scan. Install it from https://snyk.io/download",
             )

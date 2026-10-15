@@ -52,6 +52,13 @@ dated when it was added (start a new section for a new day rather than appending
   reaches it only through a pull request. Re-check with `./gradlew :load-tests:gatlingRecorder --configuration-cache`,
   and retrigger on a release whose recorder task no longer holds those types.
 
+- Declare `mapstruct` for `showcase-query-service`'s `componentTest` — parked; no change yet.
+  `:showcase-query-service:compileComponentTestJava` emits `warning: unknown enum constant ReportingPolicy.IGNORE`
+  (`reason: class file for org.mapstruct.ReportingPolicy not found`), because the suite reads a `@Mapper`-annotated main
+  class without `mapstruct` on its classpath — the custom-suite trap, since a suite does not inherit the project's
+  `implementation` dependencies. Declare `libs.mapstruct` in the suite block, or accept the warning as compile-only
+  (`@Mapper` is `CLASS`-retained).
+
 - Retry `verifyInfraImageVersions`'s helm repository update — parked; no change yet. On a cold or forced run the task
   resolves each pinned chart's preconfigured `image.tag` over the network, and `addHelmRepositories` retries nothing, so
   a transient `failed to update the following repositories: [<repo>]` fails `check` — the failing repository differs

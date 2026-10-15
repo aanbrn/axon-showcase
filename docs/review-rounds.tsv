@@ -3,6 +3,9 @@
 # round (comma-separated, or - when none), and compliance_misses (findings that were a miss of an existing rule).
 # Appended by the main agent from the record line a review round emits; aggregated in the window by
 # scripts/experience-analysis.sh.
+# Classes come from the canonical list the reviewer's contract carries (`.opencode/agent/review-quick.md`), which makes
+# the repeat column and the aggregation comparable; rows recorded before that list landed keep the labels
+# they were recorded with, and the mapping from them is in the archived canonical-class-list change's design.
 2026-10-13	record-review-rounds	1	contradiction,missing-delta,ambiguity	-	2
 2026-10-13	record-review-rounds	2	missing-artifact,wording	missing-artifact	1
 2026-10-13	record-review-rounds	3	missing-artifact	missing-artifact	1
@@ -130,3 +133,6 @@
 2026-10-15	verify-the-prettier-pin-alignment	9	missing-artifact-decision	-	1
 2026-10-15	verify-the-prettier-pin-alignment	10	contradiction	contradiction	0
 2026-10-15	verify-the-prettier-pin-alignment	11	-	-	0
+2026-10-15	give-the-review-a-canonical-class-list	1	claim-unreproducible,contradiction,docs-residue,impact-omission,missing-task,coherence,wording	-	4
+2026-10-15	give-the-review-a-canonical-class-list	2	coherence,wording	coherence,wording	1
+2026-10-15	give-the-review-a-canonical-class-list	3	-	-	0

@@ -172,3 +172,7 @@
 2026-10-15	fix-timeout-load-flakes	1	dropped-content	-	1
 2026-10-15	fix-timeout-load-flakes	2	-	-	0
 2026-10-15	fix-timeout-load-flakes	3	-	-	0
+2026-10-15	fix-dependabot-review-notification	1	single-sourcing,over-claim,missing-task	-	3
+2026-10-15	fix-dependabot-review-notification	2	-	-	0
+2026-10-15	fix-dependabot-review-notification	3	over-claim	over-claim	1
+2026-10-15	fix-dependabot-review-notification	4	-	-	0

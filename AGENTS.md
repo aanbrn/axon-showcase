@@ -966,6 +966,11 @@ Key modules (libraries, not services):
 - **ErrorProne**: NullAway on `showcase.*` packages; disabled in `TestJava` tasks. Every package in a NullAway-compiled
   source set (`main`, `testFixtures`, and `load-tests`' `gatling`) carries a `package-info.java` with `@NullMarked`
   (`org.jspecify.annotations.NullMarked`), so the nullness contract is declared for the whole package.
+  `UnrecognisedJavadocTag` is suppressed where it fires (`@SuppressWarnings("UnrecognisedJavadocTag")` on the
+  Lombok-processed class): it is a false positive from Lombok's copy of a field Javadoc carrying an inline tag, so the
+  Javadoc's wording is not the defect — only removing the tag or suppressing the check clears it. Tracked upstream as
+  `google/error-prone#5855` (open, the pinned 2.50.0); retires when an ErrorProne bump past the fix lands. captured:
+  suppress-lombok-javadoc-false-positive
 - **Checkstyle**: style gate wired into `check` via `code-check-conventions.gradle.kts`; ruleset at
   `config/checkstyle/checkstyle.xml`, generated sources excluded via `config/checkstyle/suppressions.xml`
 - **SpotBugs**: finds bugs with findsecbugs and fbContrib plugins; uses `spotbugs-include.xml` and

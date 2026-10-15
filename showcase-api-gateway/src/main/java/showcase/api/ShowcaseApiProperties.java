@@ -26,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties("showcase.api")
 @Data
 @Validated
+@SuppressWarnings("UnrecognisedJavadocTag")
 public final class ShowcaseApiProperties {
     /**
      * Configuration for a single in-memory cache.

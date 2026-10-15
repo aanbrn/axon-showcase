@@ -176,3 +176,9 @@
 2026-10-15	fix-dependabot-review-notification	2	-	-	0
 2026-10-15	fix-dependabot-review-notification	3	over-claim	over-claim	1
 2026-10-15	fix-dependabot-review-notification	4	-	-	0
+2026-10-15	record-codeowners-author-rule	1	over-claim,incomplete-enumeration,single-sourcing,missing-task	-	4
+2026-10-15	record-codeowners-author-rule	2	over-claim,incomplete-enumeration	over-claim,incomplete-enumeration	2
+2026-10-15	record-codeowners-author-rule	3	dropped-content	-	1
+2026-10-15	record-codeowners-author-rule	4	-	-	0
+2026-10-15	record-codeowners-author-rule	5	wording	-	1
+2026-10-15	record-codeowners-author-rule	6	-	-	0

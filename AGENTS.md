@@ -907,9 +907,11 @@ silent CI deprecation warning. **The review request that notifies the owner of a
 `https://github.blog/changelog/2025-04-29-dependabot-reviewers-configuration-option-being-replaced-by-code-owners`) and
 now silently ignores it, so the key `#91` had added requested no review, and so raised no notification, on any
 Dependabot PR; keep the notification path in `CODEOWNERS`. GitHub reads that file from the pull request's base branch
-and skips drafts, so the requests begin once the file is on `main`. The `opencode` workflow's
-`anomalyco/opencode/github@latest` and the Snyk workflow's `snyk/actions/setup@master` are deliberate floating refs that
-Dependabot does not manage. The `opencode` workflow's runs also log a benign
+and skips drafts, so the requests begin once the file is on `main` — and are observable only on a pull request the code
+owner did not author, so a self-authored probe PR showing none is expected and the confirmation here takes a
+bot-authored PR (Dependabot's, or the `opencode` action's); the refusal is recorded with the config-read-path gotcha
+below. The `opencode` workflow's `anomalyco/opencode/github@latest` and the Snyk workflow's `snyk/actions/setup@master`
+are deliberate floating refs that Dependabot does not manage. The `opencode` workflow's runs also log a benign
 `Cache reservation failed: cache write denied` warning — the action's own `actions/cache@v4` step cannot save on the
 comment triggers (`issue_comment`, `pull_request_review_comment`), low-trust events GitHub gives read-only cache access
 — while the run itself succeeds; do not chase it. Reported upstream as `anomalyco/opencode#49127`; retires when the
@@ -2819,8 +2821,15 @@ capture-stash-stale-copy
   where it has one, else the event it produces. A retired key can be accepted and ignored with no local signal —
   `dependabot.yml`'s `reviewers` was — so probe the service's read path
   (`gh api "repos/<owner>/<repo>/codeowners/errors?ref=<branch>"` returns `{"errors":[]}` for a valid file and 404s for
-  a ref without one) or observe the event it produces (a review request on a real pull request). captured:
-  fix-dependabot-review-notification
+  a ref without one) or observe the event it produces (a review request on a real pull request) — GitHub refuses a
+  review request from the pull request's author (`Review cannot be requested from pull request author`, HTTP 422), so
+  probe with a pull request you did not author. The general mode: an exclusion can sit on the actor's side rather than
+  the input's (the positive-control rule above), where no input choice avoids it. GitHub refuses the request when the
+  requested reviewer is the pull request's own author, so the remedy keeps the identity and changes the object —
+  `probe with a pull request you did not author` — and a probe run without that change is uninformative by construction
+  (three self-authored probes, differing only in the probe's shape, each read `reviewRequests: []`). Confirm that the
+  observable can exist for the actor before reading a negative as evidence. captured: fix-dependabot-review-notification
+  captured: record-codeowners-author-rule
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
   changes without the repository moving: when the upstream-reference report was parked, review found two of four

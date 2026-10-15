@@ -1,0 +1,3 @@
+# Requests the owner's review on a pull request opened against `main`, which is what notifies them of an opened
+# Dependabot PR; see AGENTS.md before removing it.
+* @aanbrn

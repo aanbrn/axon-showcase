@@ -901,12 +901,19 @@ workflow's first run is a dispatch from `main` after its PR merges.
 
 `.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so an action whose
 major bump targets a newer Node runtime (e.g. the Node 20 → Node 24 migration) surfaces as a reviewable PR instead of a
-silent CI deprecation warning. The `opencode` workflow's `anomalyco/opencode/github@latest` and the Snyk workflow's
-`snyk/actions/setup@master` are deliberate floating refs that Dependabot does not manage. The `opencode` workflow's runs
-also log a benign `Cache reservation failed: cache write denied` warning — the action's own `actions/cache@v4` step
-cannot save on the comment triggers (`issue_comment`, `pull_request_review_comment`), low-trust events GitHub gives
-read-only cache access — while the run itself succeeds; do not chase it. Reported upstream as
-`anomalyco/opencode#49127`; retires when the action's cache step skips cleanly (or drops to restore-only).
+silent CI deprecation warning. **The review request that notifies the owner of an opened Dependabot PR comes from
+`.github/CODEOWNERS`, not from `dependabot.yml`** — GitHub retired that file's `reviewers` option on 2025-05-20 (its
+2025-04-29 changelog,
+`https://github.blog/changelog/2025-04-29-dependabot-reviewers-configuration-option-being-replaced-by-code-owners`) and
+now silently ignores it, so the key `#91` had added requested no review, and so raised no notification, on any
+Dependabot PR; keep the notification path in `CODEOWNERS`. GitHub reads that file from the pull request's base branch
+and skips drafts, so the requests begin once the file is on `main`. The `opencode` workflow's
+`anomalyco/opencode/github@latest` and the Snyk workflow's `snyk/actions/setup@master` are deliberate floating refs that
+Dependabot does not manage. The `opencode` workflow's runs also log a benign
+`Cache reservation failed: cache write denied` warning — the action's own `actions/cache@v4` step cannot save on the
+comment triggers (`issue_comment`, `pull_request_review_comment`), low-trust events GitHub gives read-only cache access
+— while the run itself succeeds; do not chase it. Reported upstream as `anomalyco/opencode#49127`; retires when the
+action's cache step skips cleanly (or drops to restore-only).
 
 **An update-check issue's named target version can be stale by the time it is actioned — re-resolve the latest before
 bumping, and re-run the check after.** The update-check issues refresh weekly, so the upstream can publish again in
@@ -2765,19 +2772,19 @@ capture-stash-stale-copy
   test-build-logic-rules-and-unify-version-comparison (#306) captured: monitor-web-ui-npm-dependencies (#395) captured:
   bump-gradle-and-web-ui-dependencies captured: bump-web-ui-npm-2026-10-05 captured: grpc-query-transport
 - **A CLI warning dismissed as noise can report a live defect — a config is unverified until its own read path is
-  probed, whoever consumes it (a tool or the repository's own build), and a warning no gate reads is not a check.**
-  `openspec/config.yaml` declared per-artifact rules for four artifacts, but two items contained an unquoted `: `, so
-  YAML parsed them as mappings, the lists stopped being arrays of strings, and the CLI ignored those two artifacts'
-  rules — warning on stderr ("Rules for 'proposal' must be an array of strings, ignoring this artifact's rules")
-  wherever the rules are read (`openspec new change`, `openspec instructions`), which read as noise for as long as the
-  config existed; `openspec validate --all` emits no warning at all, which is why CI missed it. The dropped `proposal`
-  rules included `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the rule the
-  review loop kept catching missing. Quote any YAML scalar containing `: ` — the scope is any declarative artifact, a
-  project-defined definition file as much as a config: an unquoted `: ` in a `.opencode/agent/*.md` frontmatter's
-  `description` made YAML read the value as a mapping, the parse failed, and the agent silently did not load
-  (`/audit-readme` failed with `Agent readme-auditor cannot run as a subagent`) — the CI `build` gate now probes that
-  every agent/command/skill definition resolves with its metadata intact (its definition-inventory assertion), and a
-  reload does not fix it, unlike the not-registered `Unknown agent type` failure. captured:
+  probed, whoever consumes it (a tool, a hosted service, or the repository's own build), and a warning no gate reads is
+  not a check.** `openspec/config.yaml` declared per-artifact rules for four artifacts, but two items contained an
+  unquoted `: `, so YAML parsed them as mappings, the lists stopped being arrays of strings, and the CLI ignored those
+  two artifacts' rules — warning on stderr ("Rules for 'proposal' must be an array of strings, ignoring this artifact's
+  rules") wherever the rules are read (`openspec new change`, `openspec instructions`), which read as noise for as long
+  as the config existed; `openspec validate --all` emits no warning at all, which is why CI missed it. The dropped
+  `proposal` rules included `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the
+  rule the review loop kept catching missing. Quote any YAML scalar containing `: ` — the scope is any declarative
+  artifact, a project-defined definition file as much as a config: an unquoted `: ` in a `.opencode/agent/*.md`
+  frontmatter's `description` made YAML read the value as a mapping, the parse failed, and the agent silently did not
+  load (`/audit-readme` failed with `Agent readme-auditor cannot run as a subagent`) — the CI `build` gate now probes
+  that every agent/command/skill definition resolves with its metadata intact (its definition-inventory assertion), and
+  a reload does not fix it, unlike the not-registered `Unknown agent type` failure. captured:
   fix-readme-auditor-frontmatter (#477) The CI `build` job now probes for the list-shape warning on any declared list
   surface and the whole-file `could not parse` one (a malformed scalar) and fails on either, and `/opsx-tool-update`
   re-verifies both with a positive control. The general rule: a config can look well-formed and pass the consumer's
@@ -2808,7 +2815,12 @@ capture-stash-stale-copy
   `Fission-AI/OpenSpec#1892` (an unparseable config; still open); if `validate` gains a config check that fails (an ask
   in each), the CI probe and the `/opsx-tool-update` re-verification become redundant and can go. captured:
   inject-positive-control-task-rule (#375) captured: widen-config-probe-to-guidance captured:
-  record-openspec-1891-closure
+  record-openspec-1891-closure A hosted service is a third consumer class, verified by the service itself: its own check
+  where it has one, else the event it produces. A retired key can be accepted and ignored with no local signal —
+  `dependabot.yml`'s `reviewers` was — so probe the service's read path
+  (`gh api "repos/<owner>/<repo>/codeowners/errors?ref=<branch>"` returns `{"errors":[]}` for a valid file and 404s for
+  a ref without one) or observe the event it produces (a review request on a real pull request). captured:
+  fix-dependabot-review-notification
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
   changes without the repository moving: when the upstream-reference report was parked, review found two of four

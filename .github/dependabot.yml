@@ -1,6 +1,7 @@
 # Dependabot for GitHub Actions.
 # Keeps the action versions in the workflows current, so an action whose major bump targets a newer Node runtime
 # (e.g. the Node 20 -> Node 24 migration) surfaces as a reviewable PR instead of a silent CI deprecation warning.
+# Review requests come from `.github/CODEOWNERS`; a `reviewers` key here is ignored — see AGENTS.md.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -8,7 +9,3 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
-    # Auto-assign the repo owner as reviewer so Dependabot PRs surface as review requests (GitHub notifies on
-    # reviewer assignment) instead of being silently merged/ignored.
-    reviewers:
-      - aanbrn

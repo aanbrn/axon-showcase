@@ -26,10 +26,21 @@ repository with no change dir, do a fast verification pass:
   with no change dir): report a claim the artifacts state that the table omits, or a row whose source does not
   reproduce.
 - Any obvious correctness problems visible at a glance?
-- Give every finding a short class label naming what kind of defect it is (for example `contradiction`,
-  `dropped-content`, `formatting`, `missing-scenario`), so a class can be compared across review rounds. The label is
-  the finding's substantive kind: a repeated finding keeps its class and is marked as a repeat, never relabelled as a
-  repeat.
+- Give every finding a class from this canonical list, each naming what must change, so a class is comparable across
+  rounds and units: `claim-unreproducible` (a stated fact whose source does not reproduce), `claim-missing` (a stated
+  fact with no source or row), `contradiction` (two statements, or a statement and its evidence, are mutually
+  exclusive), `incomplete-enumeration` (a set is under-matched or under-listed), `over-claim` (a statement claims more
+  than its evidence supports — a broader quantifier, a stronger cause, a wider scope), `wording` (prose that does not
+  say what it means), `formatting` (a formatter-owned or manual-wrap defect), `single-sourcing` (a claim restated rather
+  than pointed at), `missing-task` (required work, or a required record, is missing or unrecorded), `missing-scenario`
+  (an implemented behavior is absent from the delta), `impact-omission` (a touched file or site is not named in the
+  plan), `test-control` (a check's known-bad case is missing or unexercised), `dropped-content` (an edit dropped content
+  it should keep), `premise` (the change rests on an unverified or contradicted premise), `coherence` (artifacts state
+  different models of the subject), `redundant-code` (dead or duplicated code), `docs-residue` (a doc still states the
+  old behavior), `proposal-schema` (the proposal breaks its schema). A finding that fits none of these: the calling
+  agent adds a class here, in the same change, so the list stays canonical rather than drifting into a second long tail.
+  The label is the finding's substantive kind: a repeated finding keeps its class and is marked as a repeat, never
+  relabelled as a repeat.
 - When the caller's request names the prior round's findings, compare each finding's instance (`file:line` and its
   claim) against them, not only its class: a finding whose class a prior round already raised is reported as a repeat of
   that class, naming it, and an instance the prior round named and that is still present is an **unfixed prior

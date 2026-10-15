@@ -34,8 +34,10 @@ context: |
     - integrationTest requires Docker (Testcontainers)
     - showcase-api-gateway e2eTest depends on Docker images of all other services being built
       (bootBuildImage) and runs after that module's own integrationTest
-    - the io.github.build-extensions-oss.helm / io.github.build-extensions-oss.helm-releases gradle-helm-plugin tasks
-      are not configuration-cache compatible; do not enable org.gradle.configuration-cache=true
+    - org.gradle.configuration-cache=true is enabled; a task action must not reference anything belonging to the Gradle
+      script (project, gradle, rootProject, providers, a script-level val/fun) — compute what it needs into a val local
+      to the configuration lambda; the gradle-helm-plugin is configuration-cache compatible at its pinned 3.2.0, and
+      :load-tests:gatlingRecorder is marked notCompatibleWithConfigurationCache
     - ./db.sh init creates user `showcase` and database `showcase-events` before running
       the command-service standalone
 

@@ -110,10 +110,11 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 - **AND** for a unit whose diff adds `AGENTS.md` rules (a capture), it also challenges each new rule's durability — the
   decision the rule governs, and whether a future change would plausibly hit it — so trivia and restatements are caught
   at review time rather than by a later consolidation audit
-- **AND** each finding is classified, and when the caller's request names a prior round's findings, a finding whose
-  class a prior round already raised is reported as a repeat of that class, naming it — so the loop's convergence signal
-  comes from the review's output rather than the caller's recollection, and the caller re-derives the root cause on that
-  signal rather than patching the instance
+- **AND** each finding is classified from the canonical list the reviewer's contract carries — each class naming what
+  must change, and the calling agent extending the list in the same change when a finding fits none — and when the
+  caller's request names a prior round's findings, a finding whose class a prior round already raised is reported as a
+  repeat of that class, naming it — so the loop's convergence signal comes from the review's output rather than the
+  caller's recollection, and the caller re-derives the root cause on that signal rather than patching the instance
 - **AND** a class raised on any round — the first included — is **exhausted**: the review searches the artifact for
   every instance of that class's shape and reports them as one clustered finding, so a class surfaces whole rather than
   one instance per round

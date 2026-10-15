@@ -37,7 +37,7 @@ spotless {
             ".opencode/skills/axon4to5-*/**",
             ".opencode/skills/openspec-*/**",
         )
-        prettier("3.9.6")
+        prettier(libs.versions.prettier.get())
             .config(
                 mapOf(
                     "printWidth" to 120,
@@ -51,7 +51,7 @@ spotless {
 
     format("json") {
         target(".opencode/opencode.json")
-        prettier("3.9.6").config(mapOf("printWidth" to 120))
+        prettier(libs.versions.prettier.get()).config(mapOf("printWidth" to 120))
     }
 
     kotlinGradle {
@@ -520,11 +520,22 @@ tasks.register("verifyDashboardJson", VerifyDashboardJsonTask::class.java) {
     resultFile.set(layout.buildDirectory.file("verification/dashboard-json.txt"))
 }
 
+tasks.register("verifyPrettierAlignment", VerifyPrettierAlignmentTask::class.java) {
+    group = "verification"
+    description = "Verifies the catalog's Prettier version is the one the web module resolves"
+
+    catalog.set(layout.projectDirectory.file("gradle/libs.versions.toml"))
+    lockfile.set(layout.projectDirectory.file("showcase-web-ui/package-lock.json"))
+
+    resultFile.set(layout.buildDirectory.file("verification/prettier-alignment.txt"))
+}
+
 tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
     dependsOn("verifyInstallCommands")
     dependsOn("verifyDocumentedPins")
     dependsOn("verifyDashboardJson")
+    dependsOn("verifyPrettierAlignment")
     dependsOn("workflowLint")
     dependsOn("verifyModuleDependencies")
     dependsOn("verifyCapturedMarkers")

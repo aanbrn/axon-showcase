@@ -92,44 +92,50 @@ external-artifact claim from the artifact now; re-grep every count against its s
 than one artifact; derive every mechanism or task-check claim from the tool or the graph; and, for a change whose facts
 are its own measurement or computation, derive each figure from the mechanism that produces it — the window or instant
 it spans and the aggregation it applies (the measurement-attribution gotcha carries the series rule). The rules for
-those classes already exist — the pass spends at authoring time the rounds the review otherwise spends finding them.
-Every unit carries the pass as a task — a task in a change's `tasks.md`, or a line in the pull-request checklist for a
-unit with no change dir — so a missing box is a skip, not a pass that found nothing. Its output is the change's **claims
-table** — each fact the change states about its evidence (the prior artifacts it rests on) with its source or the
-deriving command, its rows seeded from the recurring classes `docs/review-rounds.tsv` records — in `design.md`, or in
-`tasks.md` for a unit that writes no `design.md`, or on the pull-request checklist line for a unit with no change dir. A
-row about an artifact the change itself edits anchors its source to that artifact's pre-change state
-(`git show HEAD:<path>`): it stops reproducing once the change lands. Pass each prior finding's **instance**
-(`file:line` and the claim) from the prior round's report on every re-run, not only its class, so the subagent can
-report an unfixed prior instance or a new instance of an exhausted class rather than classifying each round in
-isolation. A finding that adds behavior is a scope change, not a code fix: applying it to the code and a test alone
-leaves the change's planning artifacts — proposal, design, tasks, and delta spec — describing the old behavior, and the
-next round reports the residue as spec-/task-drift: sweep every one of them, not only the file the finding names, as
-part of applying the finding (and the docs, per the docs-refresh convention). A **framing or coherence** correction
-takes the same sweep even though it adds no behavior: the artifacts the change states the model across — planning and
-shipped alike — state one model of the subject, so correcting the model in the artifacts the finding names leaves a
-sibling — often the shipped copy, not only `proposal.md` — stating the old framing, which the next round flags as
-coherence drift. Re-read every artifact that states the corrected claim, `proposal.md` and the shipped copies included,
-before re-running the review. When one source owns the claim — a predicate the requirement owns (a threshold, band, or
-formula), or a scope the owning definition states via its class names — single-source it: state it once there and repeat
-it identically (referencing it by name where the site can), since a restated copy re-anchors on its own (a README copy
-made the matching band a tenth of the _measured_ rate where the requirement and code use the _recorded_ one) and the
-sweep has no canonical wording to sweep to. captured: record-baseline-operating-point captured:
-widen-architecture-auditor-to-revisit-triggers captured: add-apply-audit-reductions-command. A clean quick review is a
-precondition for asking for the manual review, **not** a substitute for it — it means _ask the user now_, not _the
-implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength of a clean `review-quick`
-alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes, without ever requesting the manual
-pass. The commit → push → PR → CI → archive sequence starts only after the user approves the implementation — the "Run
-CI before archiving" convention does not authorize committing earlier. An unanswered approval request is not an
-approval: a reply that does not address it — the user asks about something else, or the thread moves on — leaves the
-request outstanding, so re-ask explicitly before committing, pushing, opening the PR, archiving, or merging, and do not
-read a tangential reply as clearance. The request outlives its unit too: when a reply moves the thread to the next unit,
-re-ask it before starting that unit — the new branch forked from `main` excludes the unmerged one, so its edits read
-pre-change there (expected, not a revert). captured: bump-snyk-cli-2026-10-12 captured: require-check-controls-as-tests
-Work done while awaiting the pass must stay in the working tree until it is given; as the owner recounted afterwards, a
-clean quick review asked for the manual pass, the reply asked about lesson capture instead, and the capture was folded
-into the same branch and the work continued — nothing was committed before the repeated request was answered, but the
-request had been missed. The `review-quick` subagent's finding classes, its repeated-class flag, its class-exhaustion
+those classes already exist — the pass spends at authoring time the rounds the review otherwise spends finding them. No
+semantic self-review precedes the loop — a re-read shares the blind spot that produced the claim — so the author owes
+only the pre-write pass above and the mechanical pre-flight (the formatter and the touched module's gates after the
+final edit). captured: decide-against-pre-review Every unit carries the pass as a task — a task in a change's
+`tasks.md`, or a line in the pull-request checklist for a unit with no change dir — so a missing box is a skip, not a
+pass that found nothing. Its output is the change's **claims table** — each fact the change states about its evidence
+(the prior artifacts it rests on) with its source or the deriving command, its rows seeded from the recurring classes
+`docs/review-rounds.tsv` records — in `design.md`, or in `tasks.md` for a unit that writes no `design.md`, or on the
+pull-request checklist line for a unit with no change dir. A row about an artifact the change itself edits anchors its
+source to that artifact's pre-change state (`git show HEAD:<path>`): it stops reproducing once the change lands. Pass
+each prior finding's **instance** (`file:line` and the claim) from the prior round's report on every re-run, not only
+its class, so the subagent can report an unfixed prior instance or a new instance of an exhausted class rather than
+classifying each round in isolation; the instances live only in that report, not the class-only record line, so a loop
+crossing a session boundary writes them to a handover before the context is lost and resumes by running the round; the
+prior session's own re-check is a recorded deviation, not a passed round (a resumed round found defects the handover's
+self-review had passed). captured: retrospective-2026-10-15 A finding that adds behavior is a scope change, not a code
+fix: applying it to the code and a test alone leaves the change's planning artifacts — proposal, design, tasks, and
+delta spec — describing the old behavior, and the next round reports the residue as spec-/task-drift: sweep every one of
+them, not only the file the finding names, as part of applying the finding (and the docs, per the docs-refresh
+convention). A **framing or coherence** correction takes the same sweep even though it adds no behavior: the artifacts
+the change states the model across — planning and shipped alike — state one model of the subject, so correcting the
+model in the artifacts the finding names leaves a sibling — often the shipped copy, not only `proposal.md` — stating the
+old framing, which the next round flags as coherence drift. Re-read every artifact that states the corrected claim,
+`proposal.md` and the shipped copies included, before re-running the review. When one source owns the claim — a
+predicate the requirement owns (a threshold, band, or formula), or a scope the owning definition states via its class
+names — single-source it: state it once there and repeat it identically (referencing it by name where the site can),
+since a restated copy re-anchors on its own (a README copy made the matching band a tenth of the _measured_ rate where
+the requirement and code use the _recorded_ one) and the sweep has no canonical wording to sweep to. captured:
+record-baseline-operating-point captured: widen-architecture-auditor-to-revisit-triggers captured:
+add-apply-audit-reductions-command. A clean quick review is a precondition for asking for the manual review, **not** a
+substitute for it — it means _ask the user now_, not _the implementation is approved_. Never commit, push, open a PR,
+archive, or merge on the strength of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR
+(#152) within minutes, without ever requesting the manual pass. The commit → push → PR → CI → archive sequence starts
+only after the user approves the implementation — the "Run CI before archiving" convention does not authorize committing
+earlier. An unanswered approval request is not an approval: a reply that does not address it — the user asks about
+something else, or the thread moves on — leaves the request outstanding, so re-ask explicitly before committing,
+pushing, opening the PR, archiving, or merging, and do not read a tangential reply as clearance. The request outlives
+its unit too: when a reply moves the thread to the next unit, re-ask it before starting that unit — the new branch
+forked from `main` excludes the unmerged one, so its edits read pre-change there (expected, not a revert). captured:
+bump-snyk-cli-2026-10-12 captured: require-check-controls-as-tests Work done while awaiting the pass must stay in the
+working tree until it is given; as the owner recounted afterwards, a clean quick review asked for the manual pass, the
+reply asked about lesson capture instead, and the capture was folded into the same branch and the work continued —
+nothing was committed before the repeated request was answered, but the request had been missed. The `review-quick`
+subagent's finding classes (the canonical list its own contract carries), its repeated-class flag, its class-exhaustion
 clause, its per-round record line, and its record-artifact loop bound are specified in `showcase/quality/agent-skills`,
 as is the pre-write pass record — see there rather than here — so act on its verdict line rather than on your own
 recollection of the thread. A review loop that keeps finding the **same class** of observation round after round is not
@@ -228,29 +234,31 @@ propose→apply→verify cycle for a chart-default its labels must not have, wit
 alternatives but never questioning the premise; the premise, and why it collapses, are in the `*-client` pod-labels
 bullet below. Verify the current state's rationale against the repo — grep for consumers, read the values and their
 comments, check `git log` for the introducing change — and record it in the design's Context; treat "this looks
-redundant" as a hypothesis to verify, not a justification to remove. A cost, effort, or performance claim is a
-hypothesis of the same kind, and no file in the repo states it — its only source is a deliberate measurement, so probe
-it before it drives a proceed-or-skip decision: the parked `git worktree` idea carried an assumed build cost behind a
-conclusion that worktrees were not worth it for a docs-only or single-file fix, and a throwaway probe (a detached
-worktree from `main`, shared caches warm) measured the first build at a one-time ~1 minute (its Docker-free `check` ran
-78s) and ~628M per tree, partly falsifying the premise that had steered the idea away from the small changes it suits.
-captured: record-worktree-cost-measurement Before designing the change — proposing a mechanism (an auditor, a check, a
-workflow, a scan), **reworking an existing artifact**, or asserting in the premise that the repo lacks a rule — grep
-`docs/ideas.md` for a parked design, the spec corpus and archived changes for an existing requirement **or a recorded
-decision about it — including a `skip_specs` decision not to spec it and a recent change's Non-Goal**, and `docs/adr/`
-for an Accepted decision the design would implement or contradict — an ADR's Decision is normative, so designing a
-relaxation past it is a premise error, not a design choice — and the artifact you are editing at `HEAD`, `AGENTS.md`
-included, since a sibling change merged earlier the same session may already have added it. A parked idea, a spec'd
-capability, or an Accepted ADR is the design to adopt, not re-derive; a false absence claim runs a whole propose cycle
-on the wrong premise and duplicates what exists. `add-readme-auditor`'s planning proposed widening `agents-auditor` past
-the parked `readme-auditor` idea the repo already had, caught by the owner rather than a gate; an
-`enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import rule that ADR-0013's Accepted
-Decision already forbade, caught by a reviewer. Before treating a spec change as owed, read the spec's **existing**
-wording for the behavior the code implements — the contract may already state it, in which case the fix is code→spec
-alignment, not a spec rewrite. `#455`'s `scripts/doctor.sh` classified the repo-state checks as `required` while
-`showcase/quality/toolchain-check` already carried the exit contract ("unsatisfied prerequisites for the **default
-build-and-test path**") and only ever had the hooks _reported_, so the defect was a classification chosen in the code
-and never written into the spec. captured: spec-cache-fallback-failed-fetch-contract captured:
+redundant" as a hypothesis to verify, not a justification to remove, and a falsified example narrows a rule rather than
+deleting its remedy — the rule governs a class, the example is evidence (`fix-timeout-load-flakes` restored a
+load-timing remedy #584 had deleted when the controller slice's 30s raise failed). captured: fix-timeout-load-flakes A
+cost, effort, or performance claim is a hypothesis of the same kind, and no file in the repo states it — its only source
+is a deliberate measurement, so probe it before it drives a proceed-or-skip decision: the parked `git worktree` idea
+carried an assumed build cost behind a conclusion that worktrees were not worth it for a docs-only or single-file fix,
+and a throwaway probe (a detached worktree from `main`, shared caches warm) measured the first build at a one-time ~1
+minute (its Docker-free `check` ran 78s) and ~628M per tree, partly falsifying the premise that had steered the idea
+away from the small changes it suits. captured: record-worktree-cost-measurement Before designing the change — proposing
+a mechanism (an auditor, a check, a workflow, a scan), **reworking an existing artifact**, or asserting in the premise
+that the repo lacks a rule — grep `docs/ideas.md` for a parked design, the spec corpus and archived changes for an
+existing requirement **or a recorded decision about it — including a `skip_specs` decision not to spec it and a recent
+change's Non-Goal**, and `docs/adr/` for an Accepted decision the design would implement or contradict — an ADR's
+Decision is normative, so designing a relaxation past it is a premise error, not a design choice — and the artifact you
+are editing at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier the same session may already have
+added it. A parked idea, a spec'd capability, or an Accepted ADR is the design to adopt, not re-derive; a false absence
+claim runs a whole propose cycle on the wrong premise and duplicates what exists. `add-readme-auditor`'s planning
+proposed widening `agents-auditor` past the parked `readme-auditor` idea the repo already had, caught by the owner
+rather than a gate; an `enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import rule
+that ADR-0013's Accepted Decision already forbade, caught by a reviewer. Before treating a spec change as owed, read the
+spec's **existing** wording for the behavior the code implements — the contract may already state it, in which case the
+fix is code→spec alignment, not a spec rewrite. `#455`'s `scripts/doctor.sh` classified the repo-state checks as
+`required` while `showcase/quality/toolchain-check` already carried the exit contract ("unsatisfied prerequisites for
+the **default build-and-test path**") and only ever had the hooks _reported_, so the defect was a classification chosen
+in the code and never written into the spec. captured: spec-cache-fallback-failed-fetch-contract captured:
 enforce-web-ui-import-boundaries captured: classify-repo-state-checks captured: rework-readme-lifecycle-diagram
 
 **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's own
@@ -272,12 +280,14 @@ bullet it would extend, then ask the user for explicit confirmation before runni
 record — a task in a change's `tasks.md`, or a line in the pull-request checklist for a unit with no change dir — so the
 merge-time read reports an unrun capture as that record missing or unticked, rather than reconstructing a skip from
 recollection. A unit whose review loop runs rounds carries its per-round record rows the same way — the append is the
-calling agent's per-round act, so leaving it to the spec's record line runs the rounds unrecorded
-(`bound-the-review-loop` ran seven unrecorded until a reviewer caught it). captured: bound-the-review-loop One capture
-per unit, never a chain. Apply the proposals the main agent judges durable: an implementation capture is caused by the
-unit, so it rides the unit's branch and ships in its PR (a merge-time capture, discovered after the unit is done, ships
-as its own docs PR per the docs-refresh convention). Process mistakes that leave no diff trace (e.g. a git command that
-discarded work) are the most valuable thing to capture — this is what makes the capture systematic instead of
+calling agent's per-round act, made when that round's report arrives rather than while fixing the next round's findings,
+so a deferred append lands late or never (`make-the-p99-verdict-confirm-first` appended rows a round late until the
+owner caught one), so leaving it to the spec's record line runs the rounds unrecorded (`bound-the-review-loop` ran seven
+unrecorded until a reviewer caught it). captured: bound-the-review-loop captured: make-the-p99-verdict-confirm-first One
+capture per unit, never a chain. Apply the proposals the main agent judges durable: an implementation capture is caused
+by the unit, so it rides the unit's branch and ships in its PR (a merge-time capture, discovered after the unit is done,
+ships as its own docs PR per the docs-refresh convention). Process mistakes that leave no diff trace (e.g. a git command
+that discarded work) are the most valuable thing to capture — this is what makes the capture systematic instead of
 memory-dependent. For a docs-only merge that fixes stale facts or removes duplication, the fix is the lesson — do not
 re-capture it as a new gotcha; capture only what the merge left unaddressed. Read that as barring a gotcha that
 _restates the fix_, not a general rule the fix exemplifies: a durable rule absent from `main` is one of the things the
@@ -565,7 +575,7 @@ wait for approval before merging.
 # Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
 # plus workflowLint (actionlint), verifyInfraImageVersions, verifyInstallCommands, verifyDocumentedPins,
 # verifyModuleDependencies,
-# verifyDashboardJson, and the commit-hygiene tasks
+# verifyDashboardJson, verifyPrettierAlignment, and the commit-hygiene tasks
 # (verifyCapturedMarkers, testCommitHygiene, testDoctorCharter, verifyTrackedIgnoredFiles, verifyConflictMarkers,
 # verifyExecutableBits, verifyUniqueCronSchedules, verifyLargeFiles)
 # (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
@@ -588,8 +598,10 @@ wait for approval before merging.
 # operating point — reporting each figure's delta — and records the plateau's operating point and response times as the
 # committed reference (load-tests/src/gatling/resources/baseline.properties, or baseline-<slug>.properties for a target
 # other than the default). A figure beyond max(floor, round(recorded x (1 + TOLERANCE/100))) — floors 5/10/20 ms —
-# regresses: the run fails, naming the regressed figures, and leaves the reference unchanged unless REFRESH_BASELINE=1
-# accepts it; with nothing recorded for the target, or a reference recorded at an operating point more than a tenth of
+# withholds the reference: a mean or 95th-percentile figure beyond it fails the run, naming the regressed figures, while
+# a 99th-percentile excursion withholds without failing and names the re-run that confirms it, since the client-side
+# p99's own run-to-run spread exceeds the tolerance (see docs/load-tests/2026-10-14.md); REFRESH_BASELINE=1 accepts
+# either; with nothing recorded for the target, or a reference recorded at an operating point more than a tenth of
 # the recorded rate away or with no operating point, it records the measurement; a measurement that recorded no figures
 # is withheld, refreshed or not. TOLERANCE defaults to 50 (percent). The run writes a ready-to-annotate record
 # under docs/load-tests/ and load-tests/build/load-tests/report.md either way, and — with PROFILE=<name> — runs that
@@ -749,12 +761,16 @@ which edited the `protobuf`/`code-check` conventions, saw `ShowcaseRestControlle
 default 5s `WebTestClient` timeout, while the same suite passed locally with `--rerun`, the runner's `--max-workers=4`,
 full CPU saturation, and the four component-test tasks concurrent. A suite whose subject the change did not change, a
 stable failure count, and one framework-default timeout at the same call point point to load timing rather than a code
-defect: give that slice an explicit response timeout (`@AutoConfigureWebTestClient(timeout = "30s")`) instead of
-changing the subject, and treat a local pass as no evidence the CI failure is spurious. That raise made the later
-Docker-free PR runs pass but did **not** prevent a failure in a full `check` run, so the mechanism stays an open
-question: `docs/ideas.md` (2026-10-06) records it. The rebuild cost self-heals as soon as `main` re-warms, but the
-test-timing assumption the cold build exposes needs a real fix. captured: grpc-query-transport (#514) captured:
-fix-main-ci-regressions
+defect: a test whose own cost is a one-time load — the web UI's `eslint-rules.test.ts` pays its ESLint flat-config load
+inside the first case, measured at ~0.9s locally — is given a budget that fits it rather than changing what the test
+covers. The controller slice's 30s raise did not hold: a Docker-free PR gate failed the same way at 30s on 2026-10-15,
+so its mechanism stays an open question — `docs/ideas.md` (2026-10-06) records it, the slice now autodetects a
+thread-dump extension for the next occurrence, and the rebuild cost self-heals as soon as `main` re-warms, but the
+test-timing assumption the cold build exposes needs a real fix. An intermittent CI-only failure that does not reproduce
+locally owes that diagnostic in place of another speculative mitigation — its output must reach the stream the runner
+prints (`testLogging { showStandardStreams = true }`; verified: without it the dump is absent from the console) — and a
+clean local probe of a candidate cause leaves it **unconfirmed, not refuted**. captured: grpc-query-transport (#514)
+captured: fix-main-ci-regressions captured: diagnose-rest-controller-ct-hang captured: fix-timeout-load-flakes
 
 `.github/workflows/deployment-smoke.yml` runs a **deployment smoke** on a nightly schedule and via `workflow_dispatch`:
 it creates a throwaway `kind` cluster in the runner, builds the five images and loads them into it (kind's nodes cannot
@@ -956,6 +972,11 @@ Key modules (libraries, not services):
 - **ErrorProne**: NullAway on `showcase.*` packages; disabled in `TestJava` tasks. Every package in a NullAway-compiled
   source set (`main`, `testFixtures`, and `load-tests`' `gatling`) carries a `package-info.java` with `@NullMarked`
   (`org.jspecify.annotations.NullMarked`), so the nullness contract is declared for the whole package.
+  `UnrecognisedJavadocTag` is suppressed where it fires (`@SuppressWarnings("UnrecognisedJavadocTag")` on the
+  Lombok-processed class): it is a false positive from Lombok's copy of a field Javadoc carrying an inline tag, so the
+  Javadoc's wording is not the defect — only removing the tag or suppressing the check clears it. Tracked upstream as
+  `google/error-prone#5855` (open, the pinned 2.50.0); retires when an ErrorProne bump past the fix lands. captured:
+  suppress-lombok-javadoc-false-positive
 - **Checkstyle**: style gate wired into `check` via `code-check-conventions.gradle.kts`; ruleset at
   `config/checkstyle/checkstyle.xml`, generated sources excluded via `config/checkstyle/suppressions.xml`
 - **SpotBugs**: finds bugs with findsecbugs and fbContrib plugins; uses `spotbugs-include.xml` and
@@ -1214,16 +1235,21 @@ Key modules (libraries, not services):
     line by contract and therefore unwrappable; Javadoc and JSDoc prose, which the formatters do not reflow —
     a >120-character comment line passes the formatter gate and only the manual check catches it); markdown is formatted
     by the root Spotless `markdown` format (Prettier, `printWidth: 120` with `proseWrap: "always"` — a preference, not a
-    hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating markdown wrapping). The
-    markdown scope is `docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`,
-    the `.github/` markdown, and the project-authored `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files
-    and the vendored `axon4to5-*` skills are excluded, while the project-authored `opsx-tool-update.md` stays in scope
-    despite the shared prefix — and `.opencode/opencode.json` has its own `json` format. A target's generated-file
-    exclusions must track what the generator writes — `/opsx-tool-update` checks the list when the generated inventory
-    changes, since a newly generated `opsx-*` command would otherwise be reformatted by `spotlessApply` and then
-    overwritten by the next `openspec update`. Verify with a character count (`perl -CSD -lne 'print if length > 120'`),
-    not `awk 'length > 120'` — `awk` counts bytes and false-flags a ≤120-character line containing non-ASCII (the `→`
-    arrow tripped this three times); the `-l` chomps the trailing newline `-ne` would otherwise count, so an
+    hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating markdown wrapping). A
+    file the markdown format does not converge on is **skipped with a zero exit**
+    (`Skipping '<path>' because it does not converge`), so a green `spotlessCheck` is not evidence for that file — treat
+    a skip as a failure for it, not a pass (reported upstream as `diffplug/spotless#3143`; retires when a skip fails the
+    check — the alignment removes this repository's known trigger for such a skip, but the gap remains upstream).
+    captured: make-the-p99-verdict-confirm-first The markdown scope is `docs/`, `AGENTS.md`, `README.md`,
+    `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`, the `.github/` markdown, and the project-authored
+    `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files and the vendored `axon4to5-*` skills are excluded,
+    while the project-authored `opsx-tool-update.md` stays in scope despite the shared prefix — and
+    `.opencode/opencode.json` has its own `json` format. A target's generated-file exclusions must track what the
+    generator writes — `/opsx-tool-update` checks the list when the generated inventory changes, since a newly generated
+    `opsx-*` command would otherwise be reformatted by `spotlessApply` and then overwritten by the next
+    `openspec update`. Verify with a character count (`perl -CSD -lne 'print if length > 120'`), not
+    `awk 'length > 120'` — `awk` counts bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow
+    tripped this three times); the `-l` chomps the trailing newline `-ne` would otherwise count, so an
     exactly-120-character line is not false-flagged. Verify a verification command on a boundary case before recording
     it — the first recipe omitted `-l` and false-flagged every exactly-120-character line. Apply it over the change's
     whole changed set (`git diff --name-only`), not only the files a finding named — a per-file scope leaves the rest
@@ -1916,8 +1942,10 @@ capture-stash-stale-copy
   (or `gh pr checks <pr> --watch`), which blocks until the check finishes and exits non-zero on failure. When the run id
   isn't known, fetch it once via the GitHub MCP `pull_request_read` / `get_check_runs` (or `gh run list`), then
   `gh run watch` it — one blocking call, no manual polling. A docs/build change's `build` check typically completes in
-  about a minute; check once shortly after pushing, then confirm green before archiving/merging. Idle sleep loops only
-  waste time and add no information.
+  about a minute; check once shortly after pushing, then confirm green before archiving/merging. Verify the run itself
+  (`gh run view <run-id> --json conclusion`), never a pipeline's exit code — `gh run watch … | tail -6; echo $?` reports
+  `tail`'s, so a failed run reads as green. Idle sleep loops only waste time and add no information. captured:
+  fix-timeout-load-flakes
 - **A PR whose base advanced after its CI ran fails to merge with "Required status check 'build' is expected" and
   `mergeStateStatus` BEHIND.** When two PRs merge close together (a code PR followed by a docs PR), the second PR's
   branch is behind the new `main`; the `main-required-checks` ruleset demands the `build` check on the latest base, so
@@ -2162,7 +2190,10 @@ capture-stash-stale-copy
     green. A check's _view_ of its subject is part of that scope: when the spec states the predicate as a property of an
     artifact — an archived change dir that _carries_ delta specs — read the artifact's own contents, not the subset that
     happens to be staged, since a predicate that read the staged set let a partially-staged archive change (one file
-    added) escape the guard entirely. captured: enforce-web-ui-import-boundaries captured: guard-archive-spec-sync
+    added) escape the guard entirely. A shell loop is a third mode: in zsh an unquoted stored value does not word-split
+    (`for f in $(…)` still does), so `files=$(git diff --name-only); for f in $files` runs its body **once** over the
+    joined string and the check reads one file; split it with `${(f)files}` or loop the substitution directly. captured:
+    enforce-web-ui-import-boundaries captured: guard-archive-spec-sync captured: diagnose-rest-controller-ct-hang
   - **An assertion about a declaration's content cannot see a value that never reaches the code — assert what the
     subject _emits_, not only what it declares.** Both abandoned fixes of `scripts/test-doctor.sh` (five and seven
     review rounds) read the doctor's probe declaration and asserted things about the data; each round found another way
@@ -2280,14 +2311,24 @@ capture-stash-stale-copy
   restart to take effect.
 - E2E tests for `showcase-api-gateway` depend on Docker images of all other services being built (`bootBuildImage`). Run
   those first.
-- The `io.github.build-extensions-oss.helm` / `io.github.build-extensions-oss.helm-releases` gradle-helm-plugin tasks
-  are not configuration-cache compatible — do not enable `org.gradle.configuration-cache=true` (verify with
-  `--configuration-cache` before adding it).
-- The gradle-helm-plugin 3.1.2 calls the deprecated `Project.getProperties()` (a `--warning-mode all` deprecation that
-  becomes a hard error in Gradle 10). Tracked upstream as build-extensions-oss/gradle-helm-plugin#145; bump the plugin
-  when a fix is released. Separately, the Gradle `Configuration.visible` deprecation (`setVisible(boolean)`, removed in
-  Gradle 11) is emitted across the build by several third-party plugins — the helm, errorprone, SpotBugs, Spring Boot,
-  and protobuf plugins among them — and is likewise plugin-side, with no action of ours.
+- The configuration cache is **enabled** (`org.gradle.configuration-cache=true`). A task action must not reference
+  anything belonging to the Gradle script — `project`, `gradle`, `rootProject`, `providers`, a script-level `val`/`fun`,
+  the script's own `this` — because serializing the captured **script object** fails the store; compute what the action
+  needs into a `val` local to the configuration lambda (a class/object reference is safe). It needed the
+  gradle-helm-plugin at **3.2.0** (its tasks captured a `Task`/`Project` through 3.1.2 —
+  build-extensions-oss/gradle-helm-plugin#140, closed), that hoist at each task action that had it (`workflowLint`,
+  `dependencySecurityCheck`, the frontend `npmAudit`/`npmOutdated`, the load-tests
+  `kneeFinder`/`baselineStats`/`baselineTrend`, and the compose tasks — whose `onlyIf` also read `gradle.startParameter`
+  and a `rootProject.extra` handshake, now `composeScheduleState`), and `notCompatibleWithConfigurationCache` on
+  `:load-tests:gatlingRecorder`, whose third-party task type holds a `Configuration`/`SourceSet` no hoist can fix (the
+  plugin repository disables issues and discussions, so an upstream fix must arrive as a PR). Sweep such a change over
+  the build's **whole task list** (`./gradlew tasks --all`'s set, requested in one graph), not the closures you know
+  about — a plugin task type is the other failure shape.
+- The gradle-helm-plugin 3.2.0 still calls the deprecated `Project.getProperties()` (a `--warning-mode all` deprecation
+  that becomes a hard error in Gradle 10). Tracked upstream as build-extensions-oss/gradle-helm-plugin#145; bump the
+  plugin when a fix is released. Separately, the Gradle `Configuration.visible` deprecation (`setVisible(boolean)`,
+  removed in Gradle 11) is emitted across the build by several third-party plugins — the helm, errorprone, SpotBugs,
+  Spring Boot, and protobuf plugins among them — and is likewise plugin-side, with no action of ours.
 
 - NullAway is strict on `showcase.*` packages — ensure proper `@Nullable`/`@NonNull` annotations from `jspecify`.
 - Jackson 3 artifacts (`tools.jackson.core:*`) on the query-service and projection-service runtime classpaths are
@@ -2793,11 +2834,12 @@ capture-stash-stale-copy
   signature, reconcile with it rather than writing a second explanation beside it. A planned task that _posts_ to an
   external tracker depends on that venue's mutable state — a security-advisory thread is often **locked** (comments
   disabled): the `suppress-braces-npm-advisory` task "comment on `micromatch/braces#70`" was unachievable because #70 is
-  locked, and the actionable reference was the fix PR `micromatch/braces#72` (later closed unmerged). Check a thread is
-  writable before writing the posting task, and when the issue itself is closed or locked, cite the fix PR the close-out
-  actually keys on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
+  locked, and the actionable reference was the fix PR `micromatch/braces#72` (later closed unmerged). Check the
+  **venue** is writable before writing the posting task — a repository can disable issues and discussions outright, so
+  there may be no thread — and when the issue itself is closed or locked, cite the fix PR the close-out actually keys
+  on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
   `upstream-references.yml` report (the fifth observational check above). captured: suppress-braces-npm-advisory
-  captured: refresh-upstream-references-2026-10-05
+  captured: refresh-upstream-references-2026-10-05 captured: record-gatling-report-block
 - **Work a change surfaces is parked durably — a PR body is not a record.** When a change records an external state
   change that implies work, or names a companion change it will not deliver, park that work in `docs/ideas.md` (or
   record it as a task) in the same change: a PR body is squashed and a change dir is archived, and no tool reads either,
@@ -2986,17 +3028,22 @@ capture-stash-stale-copy
 - **An unanswered `ask` hangs an unattended run — anchor a `bash`/`shell` permission pattern to the parsed command, and
   bound the job.** OpenCode emits one pattern per parsed `command` node, so a whole-command-string guard
   (`"*git push*"`) also matches a read-only command that merely quotes the phrase (`grep … "git push"`); anchor it
-  (`"git push *": "ask"`) so a bare, argumented, or chained push still asks while the quote does not. The action's
-  handler denies only the `question` permission, so resolve each binary's ask-defaults — the cloud (v1) binary asks for
-  `read` `.env`, `external_directory`, and `doom_loop`, the local (v2) binary for `read` `.env` only — to `allow`/`deny`
-  in the config the action uses, and bound each unattended job with `timeout-minutes` — a scheduled `audit` hung 2h13m
-  on a `bash` rule, and `/oc` runs were cancelled at 42m and 17m on `external_directory` asks. Deny only a default whose
-  internal allows the config can re-express, since a config rule is appended last and overrides a default:
+  (`"git push *": "ask"`). A **saved "always" allow overrides the rule**: the engine appends the saved rules after the
+  config rules and takes the last match (`findLast`, `packages/core/src/permission.ts`), and v2 persists "always" per
+  project in the DB's `permission` table though the docs call it session-only — so a guard that never prompts is a saved
+  row until proven otherwise; check or clear it before changing the rule (saved rows are per-project in that table).
+  Tracked upstream as `anomalyco/opencode#48456` (open; `#50600` asks for session-scoped or resettable approvals);
+  retires when a saved allow stops overriding a configured `ask`. The action's handler denies only the `question`
+  permission, so resolve each binary's ask-defaults — the cloud (v1) binary asks for `read` `.env`,
+  `external_directory`, and `doom_loop`, the local (v2) binary for `read` `.env` only — to `allow`/`deny` in the config
+  the action uses, and bound each unattended job with `timeout-minutes` — a scheduled `audit` hung 2h13m on a `bash`
+  rule, and `/oc` runs were cancelled at 42m and 17m on `external_directory` asks. Deny only a default whose internal
+  allows the config can re-express, since a config rule is appended after the binary's defaults and overrides them:
   `external_directory`'s `*` cannot be denied (it would override v1's scratch/skill/reference allows, which `expand()` —
   only `~`/`$HOME` — cannot re-express), while denying `*.env.*` needs `*.env.example` re-allowed. Reported upstream as
   `anomalyco/opencode#54477` (declined for v1 — `wont_fix`); retires when the handler resolves a non-`question` `ask`
   (or fails the run on an unanswerable prompt). captured: fix-unattended-permission-hang captured:
-  harden-cloud-runs-against-ask-hangs
+  harden-cloud-runs-against-ask-hangs captured: record-saved-allow-override
 
 - **A generic getter's inferred type can bind an overloaded call to the wrong overload — cast to the erased type, and
   verify the binding, not the source.** `Session.get` is generic (`<T> T get(String)`), so

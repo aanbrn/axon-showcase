@@ -13,17 +13,64 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
-## 2026-10-14
+## 2026-10-15
 
-- Decide what the drift check should track, now that its figure is half environment — promoted to issue #571; no change
-  yet. The 2026-10-14 attribution run (see `docs/load-tests/2026-10-14.md`) found the run's client-side p99 exceeds the
-  gateway's own server-side p99 on all six routes (by 1.5x to 2.5x) while the means differ by up to ~2 ms, so roughly
-  half of what the drift comparison tracks is the client and host rather than the pipeline. Its run-to-run spread is
-  also wide — the poll request's p99 has read 12, 24, 56 and 22 ms across the four recorded runs, while the write
-  service's own handling measured 8.0 ms p99 in the 2026-10-14 run, the only one that measured it. Whether the
-  comparison keeps the client-side p99, tracks a less noisy one (the server side, or a lower percentile), or requires a
-  regression to confirm before it fails is a change to the `showcase/quality/load-tests` requirement's own sensitivity,
-  so it owes that capability's delta.
+- Park the review loop's rejected levers, and the comparison its baseline enables — parked; no change yet. Four levers
+  the owner's proposal for optimizing the iterative review loop asked for are **contradicted by the repository's own
+  record**, so they are not to be re-derived the next time the question is asked: a **persistent reviewer session** (the
+  loop's measured cost is re-raised claims about the change's own artifacts rather than re-exploration, per the
+  retrospective's baseline, and the class-exhaustion clause requires searching the artifact anew each round, so a
+  session's prior context is an anchoring liability); **diff-scoped follow-ups** (an unapplied fix produces no diff, so
+  a diff-only round can report a false clean); a **fixed iteration cap** (`bound-the-review-loop` explicitly rejected
+  one, since a count would stop a productive loop); and **token, elapsed-time or session-count telemetry** (a process
+  count is not a verifiable repository fact, per the documented-numbers rule). The one change the record did support —
+  the canonical class list — has since landed. The companion measurement: `docs/retrospectives/2026-10-15.md` records
+  the review loop's baseline — the figures and the boundary that makes them quotable live there rather than here, so the
+  two cannot drift apart — to be compared against the first window whose rounds are both post-lever and canonically
+  labelled. That comparison is what should decide any further review-loop change, not a fresh proposal.
+
+- Mechanically enumerate an authored diff's claim shapes to seed the pre-write claims table — parked; no change yet. The
+  table's rows are author-seeded, so a fact the author never noticed stating cannot become a row, and the
+  `claims-table*` family is one of the largest class clusters the record carries (`docs/review-rounds.tsv`). Scanning
+  the authored diff for claim shapes — a number with a referent, `only`/`every`/`all`/`never`, a backticked path or
+  symbol, a cross-artifact reference — and requiring each to be resolved into a row or explicitly dismissed would turn
+  the pass's weakest step into a search, as `review-quick`'s class-exhaustion clause did; a second mode would catch a
+  claim restating a fact the diff corrected. Proposal-sized: a `scripts/` tool plus an `agent-skills` delta.
+
+- Measure whether the review loop's non-convergence is model-bounded — parked; no change yet. The loop's reviewer shares
+  the main agent's model (the model-pin gotcha), so it cannot find what that model cannot see — plausibly why
+  `contradiction`, `over-claim`, and `premise` survive it. The decisive cheap experiment is to run one unit through both
+  `review-quick` (flash) and `review-thorough` (pro) and diff the _classes_ each finds, which would show whether those
+  classes should escalate to the pro pass.
+
+- Re-check the Gatling plugin's configuration-cache gap — parked; no change yet. The `gatlingRecorder` task (the
+  plugin's `GatlingRecorderTask`, gatling-gradle-plugin 3.15.1.2) holds a `Configuration` and a `SourceSet`, which the
+  configuration cache cannot serialize, so `load-tests/build.gradle.kts` marks it `notCompatibleWithConfigurationCache`
+  — a graph containing it runs cache-less. The plugin's own "support gradle configuration cache" work (#131, a merged
+  PR) left this task uncovered, and the plugin repository's own tracker and discussions are disabled
+  (`has_issues: false`, `has_discussions: false`), so it carries no report thread and no PR addressing it to cite; a fix
+  reaches it only through a pull request. Re-check with `./gradlew :load-tests:gatlingRecorder --configuration-cache`,
+  and retrigger on a release whose recorder task no longer holds those types.
+
+- Declare `mapstruct` for `showcase-query-service`'s `componentTest` — parked; no change yet.
+  `:showcase-query-service:compileComponentTestJava` emits `warning: unknown enum constant ReportingPolicy.IGNORE`
+  (`reason: class file for org.mapstruct.ReportingPolicy not found`), because the suite reads a `@Mapper`-annotated main
+  class without `mapstruct` on its classpath — the custom-suite trap, since a suite does not inherit the project's
+  `implementation` dependencies. Declare `libs.mapstruct` in the suite block, or accept the warning as compile-only
+  (`@Mapper` is `CLASS`-retained).
+
+- Widen the reviewers' 120-character check to every changed file — parked; no change yet. `review-quick.md` and
+  `review-thorough.md` both scope it to the files the formatter does not cover (YAML, and so on), treating everything
+  else as formatter-gated, which excludes Java — yet the Formatting convention records that Javadoc and JSDoc prose is
+  not reflowed and only the manual check catches it, and two 122-character Javadoc lines passed `spotlessCheck` until an
+  explicit scan found them. Name Javadoc prose in both definitions, and have the recipe iterate the changed set (split
+  correctly — an unquoted stored value does not word-split in zsh).
+
+- Retry `verifyInfraImageVersions`'s helm repository update — parked; no change yet. On a cold or forced run the task
+  resolves each pinned chart's preconfigured `image.tag` over the network, and `addHelmRepositories` retries nothing, so
+  a transient `failed to update the following repositories: [<repo>]` fails `check` — the failing repository differs
+  between runs, and the task passes alone and on a warm cache. Give the update a bounded retry, as the actionlint
+  download did; do not set `tolerateFailures = true`, which turns the check into a false pass.
 
 ## 2026-10-12
 
@@ -89,14 +136,19 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-06
 
-- Explain or eliminate the gateway controller CT's load-sensitive hang — parked; no change yet.
-  `ShowcaseRestControllerCT` failed 38 of its 76 cases with a `TimeoutException` at the `WebTestClient` `.exchange()` at
-  the default 5s timeout; raising the slice's response timeout to 30s made the later Docker-free PR runs pass, but a
-  full `check` run still failed the same 38 of 76 at 30s. Every full `check` run in the window also failed the
-  `showcase-query-proto` coverage gate (0.60 vs 0.80, fixed by this unit's mapper test). So the failure is
-  load-sensitive and its mechanism is unproven: the slice is a `@WebFluxTest` of controller code the change did not
-  touch, and it passes locally even with the runner's worker count, full CPU saturation, and the four component-test
-  tasks concurrent. Needs a run that reproduces it with thread/scheduler diagnostics before another mitigation.
+- Explain or eliminate the gateway controller CT's load-sensitive hang — parked; diagnostics shipped, mechanism open.
+  `ShowcaseRestControllerCT` fails with a `TimeoutException` at the `WebTestClient` `.exchange()`: 38 of its 76 cases at
+  the default 5s timeout, and the same shape at the 30s the slice now configures — a Docker-free PR gate failed that way
+  on 2026-10-15, so the raise no longer holds there. The mechanism is unproven and does not reproduce locally: shrinking
+  the JVM-wide `Schedulers.boundedElastic()` pool to 4 and running the suite six times all passed, which leaves
+  boundedElastic starvation unconfirmed rather than refuted — a local pass is no evidence against a CI-only cause. The
+  failed CI attempt ran the suite concurrently with the web UI's `check` and spotbugs on a 4-vCPU runner (the #514
+  starvation shape), and the suite's CT classes share one JVM (the #301 interference shape); JUnit kept dispatching
+  distinct tests, each new one timing out on a 30s cadence for four minutes, so the stall is in the request path's
+  threads rather than the JVM. The diagnostics this entry asked for are shipped: JUnit's extension autodetection
+  registers `ThreadDumpOnFailure`, which dumps every thread's stack trace to the test output on a test failure — with
+  the suite's `showStandardStreams`, which prints its standard output and error, a deliberate cost to remove with the
+  extension once the mechanism is found.
 
 ## 2026-10-05
 

@@ -66,9 +66,11 @@ build-logic Kotlin (`build-logic/src/**/*.kt`) with ktfmt matching the Gradle-DS
 the project-authored `.opencode/` markdown — the agent definitions, the project-authored commands, and the project
 skills) with Prettier at `printWidth: 120` with `proseWrap: "always"`, and the project-owned `.opencode/opencode.json`
 with Prettier at `printWidth: 120`, and verify each in `check` — ending the manual 120-char wrapping convention. The
-`openspec/changes/archive/` historical record is not reformatted, and neither are the generated OpenSpec instruction
-files (the six `opsx-*` commands — the project-authored `opsx-tool-update.md` is in scope — and the `openspec-*` skills)
-nor the vendored `axon4to5-*` skills, which are copied verbatim from upstream.
+catalog's Prettier version, which the root's formatting uses, SHALL be the version the web module resolves, and the
+build SHALL verify that agreement in `check`, since two formatter versions can disagree on whether a file converges at
+all. The `openspec/changes/archive/` historical record is not reformatted, and neither are the generated OpenSpec
+instruction files (the six `opsx-*` commands — the project-authored `opsx-tool-update.md` is in scope — and the
+`openspec-*` skills) nor the vendored `axon4to5-*` skills, which are copied verbatim from upstream.
 
 #### Scenario: Formatting check runs in the standard check
 
@@ -79,6 +81,12 @@ nor the vendored `axon4to5-*` skills, which are copied verbatim from upstream.
 
 - **WHEN** a source file does not conform to the canonical formatting
 - **THEN** the formatting check fails and reports the offending file
+
+#### Scenario: A Prettier version the two formatters disagree on fails the build
+
+- **WHEN** the version the root's formatting uses differs from the version the web module resolves, or either records no
+  Prettier version at all, or the web module's lockfile cannot be read
+- **THEN** the check fails, naming the versions it found, which side records none when one does, or the unreadable file
 
 #### Scenario: Unused import fails the build
 

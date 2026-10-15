@@ -13,9 +13,10 @@ import org.jspecify.annotations.Nullable;
 /**
  * The drift of a measured baseline reference against a recorded one that names the same target and a matching operating
  * point: each read and write request's mean, 95th, and 99th percentile response time, its delta, and whether it
- * regresses beyond the configured tolerance. Also carries the write decision — a regression beyond the tolerance
- * withholds the recorded reference unless a refresh is intended, a measurement with no figures always withholds it, and
- * nothing to compare records the measurement.
+ * exceeds the configured tolerance, and as which kind — a mean or 95th-percentile regression, or a 99th-percentile
+ * excursion (the split, and why one run cannot tell it from the measurement environment, are the load-tests spec's).
+ * Also carries the write decision — a figure beyond the tolerance withholds the recorded reference unless a refresh is
+ * intended, a measurement with no figures always withholds it, and nothing to compare records the measurement.
  */
 @Value
 @Builder
@@ -96,7 +97,7 @@ public class BaselineDrift {
      * @param recorded the recorded reference, absent when none exists
      * @param measured the reference measured by this run
      * @param tolerance the relative increase above a recorded figure that still passes, as a fraction
-     * @param refreshIntended whether a regression beyond the tolerance is accepted deliberately
+     * @param refreshIntended whether a figure beyond the tolerance is accepted deliberately
      * @return the drift and its write decision
      */
     public static BaselineDrift compare(
@@ -139,7 +140,7 @@ public class BaselineDrift {
                         tolerance);
             }
         }
-        val regressed = figures.stream().anyMatch(Figure::regressed);
+        val anyBeyondTolerance = figures.stream().anyMatch(Figure::beyondTolerance);
         return BaselineDrift.builder()
                 .target(measured.target())
                 .comparable(comparable)
@@ -148,7 +149,7 @@ public class BaselineDrift {
                 .measuredOperatingPoint(measured.operatingPoint())
                 .figures(figures)
                 .measuredEmpty(measuredEmpty)
-                .writeReference(!measuredEmpty && (!comparable || !regressed || refreshIntended))
+                .writeReference(!measuredEmpty && (!comparable || !anyBeyondTolerance || refreshIntended))
                 .build();
     }
 
@@ -204,33 +205,68 @@ public class BaselineDrift {
             return;
         }
         val threshold = recorded == null ? null : Math.max(floor, (int) Math.round(recorded * (1 + tolerance)));
-        val regressed = measured != null && threshold != null && measured > threshold;
+        val beyondTolerance = measured != null && threshold != null && measured > threshold;
         figures.add(Figure.builder()
                 .request(request)
                 .metric(metric)
                 .recordedMs(recorded)
                 .measuredMs(measured)
                 .thresholdMs(threshold)
-                .regressed(regressed)
+                .beyondTolerance(beyondTolerance)
                 .build());
     }
 
     /**
-     * Whether any figure regresses beyond the tolerance.
+     * Whether a mean or 95th-percentile figure regresses beyond the tolerance — the figures that are stable across runs
+     * at a matched operating point, so a single run's regression on them is evidence.
      *
-     * @return true when at least one figure regresses
+     * @return true when at least one stable figure regresses
      */
     public boolean regressed() {
-        return figures.stream().anyMatch(Figure::regressed);
+        return figures.stream().anyMatch(figure -> figure.beyondTolerance() && !isP99(figure));
     }
 
     /**
-     * The figures that regress beyond the tolerance.
+     * Whether the only figures beyond the tolerance are 99th percentiles — the figure whose run-to-run spread exceeds
+     * the tolerance, so one run cannot tell a regression from the measurement environment and a second run at the same
+     * operating point is what does.
+     *
+     * @return true when a 99th-percentile figure exceeds the tolerance with no stable figure regressing
+     */
+    public boolean unconfirmed() {
+        return !regressed() && figures.stream().anyMatch(figure -> figure.beyondTolerance() && isP99(figure));
+    }
+
+    /**
+     * The stable figures that regress beyond the tolerance.
      *
      * @return the regressed figures
      */
     public List<Figure> regressedFigures() {
-        return figures.stream().filter(Figure::regressed).toList();
+        return figures.stream()
+                .filter(figure -> figure.beyondTolerance() && !isP99(figure))
+                .toList();
+    }
+
+    /**
+     * The 99th-percentile figures beyond the tolerance.
+     *
+     * @return the unconfirmed figures
+     */
+    public List<Figure> unconfirmedFigures() {
+        return figures.stream()
+                .filter(figure -> figure.beyondTolerance() && isP99(figure))
+                .toList();
+    }
+
+    /**
+     * Whether a figure is a 99th percentile.
+     *
+     * @param figure the figure
+     * @return true when the figure's metric is the 99th percentile
+     */
+    private static boolean isP99(Figure figure) {
+        return BaselineReference.P99.equals(figure.metric());
     }
 
     /**
@@ -250,12 +286,27 @@ public class BaselineDrift {
             text.append("  ").append(figure.describe()).append('\n');
         }
         if (writeReference) {
+            if (regressed()) {
+                text.append("  regressed beyond the tolerance; writing the reference with the regression accepted");
+                text.append(unconfirmedFigures().isEmpty() ? "\n" : " and the excursions above accepted\n");
+            } else if (unconfirmed()) {
+                text.append(
+                        "  a 99th-percentile excursion beyond the tolerance; writing the reference with it accepted\n");
+            } else {
+                text.append("  within the tolerance; writing the reference\n");
+            }
+        } else if (unconfirmed()) {
             text.append(
-                    regressed()
-                            ? "  regressed beyond the tolerance; writing the reference with the regression accepted\n"
-                            : "  within the tolerance; writing the reference\n");
+                    "  a 99th-percentile excursion beyond the tolerance; withholding the reference — re-run at the same"
+                            + " operating point to confirm it, since one run cannot tell a tail regression from the"
+                            + " measurement environment\n");
         } else {
-            text.append("  beyond the tolerance; withholding the reference\n");
+            text.append("  regressed beyond the tolerance; withholding the reference");
+            text.append(
+                    unconfirmedFigures().isEmpty()
+                            ? "\n"
+                            : " — the unconfirmed 99th-percentile excursions above need a re-run at the same"
+                                    + " operating point\n");
         }
         return text.toString();
     }
@@ -285,7 +336,7 @@ public class BaselineDrift {
 
     /**
      * A request's figure: its recorded and measured values, their delta, the threshold it faced, and whether it
-     * regressed.
+     * exceeded it.
      */
     @Value
     @Builder
@@ -321,9 +372,9 @@ public class BaselineDrift {
         Integer thresholdMs;
 
         /**
-         * Whether the measured figure exceeds the threshold.
+         * Whether the measured figure exceeds the threshold, of either kind.
          */
-        boolean regressed;
+        boolean beyondTolerance;
 
         /**
          * The measured minus recorded figure, absent when either side is unrecorded.
@@ -359,7 +410,9 @@ public class BaselineDrift {
                             measuredMs,
                             measuredMs - recordedMs,
                             thresholdMs,
-                            regressed ? " REGRESSED" : "");
+                            beyondTolerance
+                                    ? (BaselineReference.P99.equals(metric) ? " UNCONFIRMED" : " REGRESSED")
+                                    : "");
         }
 
         /**

@@ -1,0 +1,55 @@
+# Design
+
+## Context
+
+See `proposal.md` — Why. The check's tolerance is smaller than the figure's own noise, so a single run cannot separate a
+tail regression from the environment. The facts this change rests on are in the table below, each with the source that
+derives it.
+
+## Claims table
+
+| Fact                                                                                                                                                     | Stated in              | Source (re-run)                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| the poll request's p99 read 12 / 24 / 56 ms over the three committed runs, while its mean stayed at 5 / 5 / 6 ms and its p95 at 7 / 8 / 11 ms            | `design.md`            | `for c in c57e8b12 e181fd9a 20585efd; do git show "${c}:load-tests/src/gatling/resources/baseline.properties" \| grep -E "^PollShowcase\.(meanMs\|p95Ms\|p99Ms)"; done`                                                                                                                                                                                                                                                                    |
+| the 2026-10-14 run's poll p99 is 22 ms                                                                                                                   | `design.md`            | `git show HEAD:docs/load-tests/2026-10-14.md \| grep -n "PollShowcase. 56 → 22 ms"`                                                                                                                                                                                                                                                                                                                                                        |
+| the tolerance is 50% with floors of 5 / 10 / 20 ms per figure                                                                                            | `design.md`            | `git show HEAD:load-tests/src/main/java/showcase/loadtests/BaselineDrift.java \| grep -n "DEFAULT_TOLERANCE\|FLOOR_MEAN_MS\|FLOOR_P95_MS\|FLOOR_P99_MS"`                                                                                                                                                                                                                                                                                   |
+| the reference is withheld when the measurement is empty, or when it is comparable and a figure regressed with no refresh intended                        | `design.md`            | `git show HEAD:load-tests/src/main/java/showcase/loadtests/BaselineDrift.java \| grep -n "writeReference(!measuredEmpty"`                                                                                                                                                                                                                                                                                                                  |
+| the read-through-cache change's trade moved the poll p99 24 → 56 ms, which the 2026-10-08 record attributes to the cache eviction's freshness/load trade | `design.md`            | `grep -n "PollShowcase" docs/load-tests/2026-10-08.md`                                                                                                                                                                                                                                                                                                                                                                                     |
+| that move left the poll request's mean and p95 within ~1 and ~3 ms of the previous run's                                                                 | `design.md`            | the row 1 command, compared with `grep -n "PollShowcase" docs/load-tests/2026-10-08.md`                                                                                                                                                                                                                                                                                                                                                    |
+| the below-knee profiles' derived thresholds sit at five times the reference, so the drift comparison is the tighter tracker of the tail                  | `design.md`            | `git show HEAD:load-tests/src/gatling/java/showcase/loadtests/BaselineStats.java \| grep -n "DEFAULT_FACTOR\|DEFAULT_FLOOR_P99_MS"`                                                                                                                                                                                                                                                                                                        |
+| the script prints that the reference is written whenever the comparison task exits zero, so an excursion that withholds it would be reported as written  | `design.md`            | `git show HEAD:scripts/load-test-baseline.sh \| sed -n '/STATS_STATUS=0/,/reference written to/p'`                                                                                                                                                                                                                                                                                                                                         |
+| the script writes the dated record before it runs the comparison, so the verdict is read from the task output                                            | `design.md`            | `git show HEAD:scripts/load-test-baseline.sh \| sed -n '145,152p'`                                                                                                                                                                                                                                                                                                                                                                         |
+| the 2026-10-08 refresh accepted the poll p99's move into the reference                                                                                   | `design.md`            | `git show HEAD:docs/load-tests/2026-10-08.md \| grep -n "were accepted into the reference"`                                                                                                                                                                                                                                                                                                                                                |
+| the four runs the series comes from measured at comparable operating points, and the earliest reference predates the recorded one                        | `design.md`            | `git show HEAD:docs/load-tests/2026-09-27.md \| grep -n "Operating point"`; `git show HEAD:docs/load-tests/2026-09-28.md \| grep -n "Operating point"`; `git show HEAD:docs/load-tests/2026-10-14.md \| grep -n "Operating point"`; `git show 20585efd:load-tests/src/gatling/resources/baseline.properties \| grep -n operatingPoint`; `git show c57e8b12:load-tests/src/gatling/resources/baseline.properties \| grep -c operatingPoint` |
+| the promoted idea entry this change implements is in `docs/ideas.md`, promoted to issue #571                                                             | `proposal.md` — Impact | `git show HEAD:docs/ideas.md \| grep -n "promoted to issue #571"`                                                                                                                                                                                                                                                                                                                                                                          |
+
+## Decisions
+
+**The split is by figure, not by a wider threshold.** The p99 varies by 2× or more between runs at a comparable
+operating point (12 → 24 ms, 56 → 22 ms, over runs measured at 122–127 units/s), which is inside the same range as the
+read-through-cache change's own trade (24 → 56 ms, 2.3×), so no single-run threshold separates a regression from the
+environment — a second run at the same operating point is what does. The mean and the 95th percentile of the same
+request are stable over those runs (5/5/6 ms and 7/8/11 ms), so their regression remains a single-run verdict.
+
+**The excursion withholds the reference.** Withholding is what makes the confirmation run comparable: it compares
+against the same figures, so a persistent excursion is reported again and a one-off is not — and the excursion is never
+recorded as the new reference, which is how it entered the reference on 2026-10-08 (a refresh accepting a trade the
+check could not distinguish from noise).
+
+**An unconfirmed excursion does not fail the run.** Failing on it teaches the owner to refresh, which is the step that
+bakes it in; the verdict is reported, the reference is withheld, and the message names the confirmation path — a second
+run at the same operating point. A regression (mean or 95th percentile) fails as before.
+
+**The script derives the verdict from the reference file.** The comparison task's status cannot say whether the
+reference was written — an unconfirmed excursion exits zero while withholding — so the script compares the file before
+and after the task and prints accordingly.
+
+## Risks / Trade-offs
+
+- A real tail-only regression needs two runs to read as a regression. That is the cost of the distinction, and the
+  second run reports it identically (the reference is withheld, so the comparison is against the same figures).
+- The confirmation is a procedural step, not enforced state: the comparison's message names it, and the reference's own
+  withheld state is what makes the next run comparable.
+- The `baseline` run is manual, and the verdict is read from the comparison task's output — the dated record is written
+  before the comparison and annotated by the owner, as before — so "does not fail" changes the owner's experience rather
+  than any automation's.

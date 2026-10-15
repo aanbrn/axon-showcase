@@ -2304,9 +2304,10 @@ capture-stash-stale-copy
   `dependencySecurityCheck`, the frontend `npmAudit`/`npmOutdated`, the load-tests
   `kneeFinder`/`baselineStats`/`baselineTrend`, and the compose tasks — whose `onlyIf` also read `gradle.startParameter`
   and a `rootProject.extra` handshake, now `composeScheduleState`), and `notCompatibleWithConfigurationCache` on
-  `:load-tests:gatlingRecorder`, whose third-party task type holds a `Configuration`/`SourceSet` no hoist can fix (an
-  upstream-report candidate). Sweep such a change over the build's **whole task list** (`./gradlew tasks --all`'s set,
-  requested in one graph), not the closures you know about — a plugin task type is the other failure shape.
+  `:load-tests:gatlingRecorder`, whose third-party task type holds a `Configuration`/`SourceSet` no hoist can fix (the
+  plugin repository disables issues and discussions, so an upstream fix must arrive as a PR). Sweep such a change over
+  the build's **whole task list** (`./gradlew tasks --all`'s set, requested in one graph), not the closures you know
+  about — a plugin task type is the other failure shape.
 - The gradle-helm-plugin 3.2.0 still calls the deprecated `Project.getProperties()` (a `--warning-mode all` deprecation
   that becomes a hard error in Gradle 10). Tracked upstream as build-extensions-oss/gradle-helm-plugin#145; bump the
   plugin when a fix is released. Separately, the Gradle `Configuration.visible` deprecation (`setVisible(boolean)`,
@@ -2817,11 +2818,12 @@ capture-stash-stale-copy
   signature, reconcile with it rather than writing a second explanation beside it. A planned task that _posts_ to an
   external tracker depends on that venue's mutable state — a security-advisory thread is often **locked** (comments
   disabled): the `suppress-braces-npm-advisory` task "comment on `micromatch/braces#70`" was unachievable because #70 is
-  locked, and the actionable reference was the fix PR `micromatch/braces#72` (later closed unmerged). Check a thread is
-  writable before writing the posting task, and when the issue itself is closed or locked, cite the fix PR the close-out
-  actually keys on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
+  locked, and the actionable reference was the fix PR `micromatch/braces#72` (later closed unmerged). Check the
+  **venue** is writable before writing the posting task — a repository can disable issues and discussions outright, so
+  there may be no thread — and when the issue itself is closed or locked, cite the fix PR the close-out actually keys
+  on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
   `upstream-references.yml` report (the fifth observational check above). captured: suppress-braces-npm-advisory
-  captured: refresh-upstream-references-2026-10-05
+  captured: refresh-upstream-references-2026-10-05 captured: record-gatling-report-block
 - **Work a change surfaces is parked durably — a PR body is not a record.** When a change records an external state
   change that implies work, or names a companion change it will not deliver, park that work in `docs/ideas.md` (or
   record it as a task) in the same change: a PR body is squashed and a change dir is archived, and no tool reads either,

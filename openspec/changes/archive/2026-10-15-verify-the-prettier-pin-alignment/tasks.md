@@ -53,4 +53,4 @@
       trailing assignment excludes `prettier-plugin`, the anchor excludes `my-prettier`), now corrected in the KDoc and
       in the artifacts that repeated it.
 
-- [ ] 5.6 Request the user's manual review pass.
+- [x] 5.6 Request the user's manual review pass.

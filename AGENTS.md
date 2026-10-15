@@ -102,19 +102,22 @@ row about an artifact the change itself edits anchors its source to that artifac
 (`git show HEAD:<path>`): it stops reproducing once the change lands. Pass each prior finding's **instance**
 (`file:line` and the claim) from the prior round's report on every re-run, not only its class, so the subagent can
 report an unfixed prior instance or a new instance of an exhausted class rather than classifying each round in
-isolation. A finding that adds behavior is a scope change, not a code fix: applying it to the code and a test alone
-leaves the change's planning artifacts — proposal, design, tasks, and delta spec — describing the old behavior, and the
-next round reports the residue as spec-/task-drift: sweep every one of them, not only the file the finding names, as
-part of applying the finding (and the docs, per the docs-refresh convention). A **framing or coherence** correction
-takes the same sweep even though it adds no behavior: the artifacts the change states the model across — planning and
-shipped alike — state one model of the subject, so correcting the model in the artifacts the finding names leaves a
-sibling — often the shipped copy, not only `proposal.md` — stating the old framing, which the next round flags as
-coherence drift. Re-read every artifact that states the corrected claim, `proposal.md` and the shipped copies included,
-before re-running the review. When one source owns the claim — a predicate the requirement owns (a threshold, band, or
-formula), or a scope the owning definition states via its class names — single-source it: state it once there and repeat
-it identically (referencing it by name where the site can), since a restated copy re-anchors on its own (a README copy
-made the matching band a tenth of the _measured_ rate where the requirement and code use the _recorded_ one) and the
-sweep has no canonical wording to sweep to. captured: record-baseline-operating-point captured:
+isolation; the instances live only in that report, not the class-only record line, so a loop crossing a session boundary
+writes them to a handover before the context is lost and resumes by running the round; the prior session's own re-check
+is a recorded deviation, not a passed round (a resumed round found defects the handover's self-review had passed).
+captured: retrospective-2026-10-15 A finding that adds behavior is a scope change, not a code fix: applying it to the
+code and a test alone leaves the change's planning artifacts — proposal, design, tasks, and delta spec — describing the
+old behavior, and the next round reports the residue as spec-/task-drift: sweep every one of them, not only the file the
+finding names, as part of applying the finding (and the docs, per the docs-refresh convention). A **framing or
+coherence** correction takes the same sweep even though it adds no behavior: the artifacts the change states the model
+across — planning and shipped alike — state one model of the subject, so correcting the model in the artifacts the
+finding names leaves a sibling — often the shipped copy, not only `proposal.md` — stating the old framing, which the
+next round flags as coherence drift. Re-read every artifact that states the corrected claim, `proposal.md` and the
+shipped copies included, before re-running the review. When one source owns the claim — a predicate the requirement owns
+(a threshold, band, or formula), or a scope the owning definition states via its class names — single-source it: state
+it once there and repeat it identically (referencing it by name where the site can), since a restated copy re-anchors on
+its own (a README copy made the matching band a tenth of the _measured_ rate where the requirement and code use the
+_recorded_ one) and the sweep has no canonical wording to sweep to. captured: record-baseline-operating-point captured:
 widen-architecture-auditor-to-revisit-triggers captured: add-apply-audit-reductions-command. A clean quick review is a
 precondition for asking for the manual review, **not** a substitute for it — it means _ask the user now_, not _the
 implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength of a clean `review-quick`

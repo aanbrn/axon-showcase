@@ -136,3 +136,9 @@
 2026-10-15	give-the-review-a-canonical-class-list	1	claim-unreproducible,contradiction,docs-residue,impact-omission,missing-task,coherence,wording	-	4
 2026-10-15	give-the-review-a-canonical-class-list	2	coherence,wording	coherence,wording	1
 2026-10-15	give-the-review-a-canonical-class-list	3	-	-	0
+2026-10-15	retrospective-2026-10-15	1	claim-unreproducible,incomplete-enumeration,contradiction,wording	-	3
+2026-10-15	retrospective-2026-10-15	2	contradiction,incomplete-enumeration,claim-unreproducible,wording	contradiction,incomplete-enumeration,claim-unreproducible,wording	3
+2026-10-15	retrospective-2026-10-15	3	claim-unreproducible,incomplete-enumeration,over-claim	claim-unreproducible,incomplete-enumeration	1
+2026-10-15	retrospective-2026-10-15	4	claim-unreproducible	claim-unreproducible	0
+2026-10-15	retrospective-2026-10-15	5	claim-unreproducible,single-sourcing,over-claim	claim-unreproducible,over-claim	0
+2026-10-15	retrospective-2026-10-15	6	-	-	0

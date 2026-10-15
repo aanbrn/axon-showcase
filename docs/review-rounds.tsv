@@ -142,3 +142,6 @@
 2026-10-15	retrospective-2026-10-15	4	claim-unreproducible	claim-unreproducible	0
 2026-10-15	retrospective-2026-10-15	5	claim-unreproducible,single-sourcing,over-claim	claim-unreproducible,over-claim	0
 2026-10-15	retrospective-2026-10-15	6	-	-	0
+2026-10-15	decide-against-pre-review	1	coherence,single-sourcing,claim-unreproducible,claim-missing,missing-task	-	5
+2026-10-15	decide-against-pre-review	2	single-sourcing	single-sourcing	1
+2026-10-15	decide-against-pre-review	3	-	-	0

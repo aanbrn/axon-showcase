@@ -414,7 +414,7 @@ service should validate it, and the UI should render the title in that color.
 That one prompt starts the whole loop. The agent:
 
 1. **Proposes** (`/opsx-propose`): scaffolds the change under `openspec/changes/` — a proposal, design, tasks, and a
-   spec delta that states the new behavior — then runs a quick self-review of the plan and shows it to you.
+   spec delta that states the new behavior — then runs the quick auto-review of the plan and shows it to you.
 2. **You approve the proposal**: reply "looks good", and the agent starts implementing.
 3. **Implements** (`/opsx-apply`): follows the design's tasks — the new API field, the validation, the UI color — writes
    the code and the tests, and runs the gates (`spotlessApply`, the module's `check`).

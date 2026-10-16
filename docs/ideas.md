@@ -15,6 +15,15 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-16
 
+- Give the persistent-reviewer-session rejection a durable home — parked; no change yet. The standing decision — a
+  persistent reviewer session may not substitute for the per-round instance hand-off (a session's prior context anchors,
+  and the class-exhaustion clause requires searching the artifact anew each round), while the session itself is the
+  caller's to reuse — is stated only for the caller, in `AGENTS.md`'s clause, and otherwise rests on a scratchpad (this
+  file's 2026-10-15 levers entry) and a retrospective that merely record it. Promote it into
+  `showcase/quality/agent-skills` (the requirement owning the quick-review scenario: a `MODIFIED` delta stating the
+  reuse permission and the caller-owned handover), as its own change — an ADR is the wrong genre, since `docs/adr/`
+  covers architecture.
+
 - Sweep `docs/ideas.md` for entries whose work has already landed — parked; no change yet. A parked entry's removal
   rides the change that implements it, but nothing checks that it happened: the actionlint-retry entry sat "parked; no
   change yet" for two and a half weeks after #463 implemented it, found only when `retry-verify-infra-image-versions`
@@ -51,17 +60,20 @@ dated when it was added (start a new section for a new day rather than appending
   says it will do.
 - Park the review loop's rejected levers, and the comparison its baseline enables — parked; no change yet. Four levers
   the owner's proposal for optimizing the iterative review loop asked for are **contradicted by the repository's own
-  record**, so they are not to be re-derived the next time the question is asked: a **persistent reviewer session** (the
-  loop's measured cost is re-raised claims about the change's own artifacts rather than re-exploration, per the
-  retrospective's baseline, and the class-exhaustion clause requires searching the artifact anew each round, so a
-  session's prior context is an anchoring liability); **diff-scoped follow-ups** (an unapplied fix produces no diff, so
-  a diff-only round can report a false clean); a **fixed iteration cap** (`bound-the-review-loop` explicitly rejected
-  one, since a count would stop a productive loop); and **token, elapsed-time or session-count telemetry** (a process
-  count is not a verifiable repository fact, per the documented-numbers rule). The one change the record did support —
-  the canonical class list — has since landed. The companion measurement: `docs/retrospectives/2026-10-15.md` records
-  the review loop's baseline — the figures and the boundary that makes them quotable live there rather than here, so the
-  two cannot drift apart — to be compared against the first window whose rounds are both post-lever and canonically
-  labelled. That comparison is what should decide any further review-loop change, not a fresh proposal.
+  record**, so they are not to be re-derived the next time the question is asked: a **persistent reviewer session as a
+  substitute for the per-round instance hand-off** (the loop's measured cost is re-raised claims about the change's own
+  artifacts rather than re-exploration, per the retrospective's baseline, so reusing a session buys little; and the
+  class-exhaustion clause requires searching the artifact anew each round, so a session's prior context must not stand
+  in for that search). The session itself is the caller's to reuse: the 2026-10-16 runs reused one across rounds to good
+  effect, and the day's one fresh-session loop was fresh only because its sessions had expired; **diff-scoped
+  follow-ups** (an unapplied fix produces no diff, so a diff-only round can report a false clean); a **fixed iteration
+  cap** (`bound-the-review-loop` explicitly rejected one, since a count would stop a productive loop); and **token,
+  elapsed-time or session-count telemetry** (a process count is not a verifiable repository fact, per the
+  documented-numbers rule). The one change the record did support — the canonical class list — has since landed. The
+  companion measurement: `docs/retrospectives/2026-10-15.md` records the review loop's baseline — the figures and the
+  boundary that makes them quotable live there rather than here, so the two cannot drift apart — to be compared against
+  the first window whose rounds are both post-lever and canonically labelled. That comparison is what should decide any
+  further review-loop change, not a fresh proposal.
 
 - Mechanically enumerate an authored diff's claim shapes to seed the pre-write claims table — parked; no change yet. The
   table's rows are author-seeded, so a fact the author never noticed stating cannot become a row, and the

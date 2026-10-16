@@ -378,12 +378,3 @@ dated when it was added (start a new section for a new day rather than appending
   (AKS, ~\$40-80/mo), or accepting ephemerality. Reference: `nce/oci-free-cloud-k8s` runs OKE free but on a leaner
   stack. Open decision: how faithful staging must be to the observability stack (the real decider between OKE-free and
   AKS-paid), and whether always-on vs on-demand node-pool stop/start changes the budget.
-
-- Address the two Snyk advisories the 2026-10-16 credentialed run surfaced — parked; no change yet. Both are _new_ (the
-  run flags one as `(new)`), so neither is caused by the pin bumps that dispatch accompanied: the fix for
-  `SNYK-JAVA-ORGHIBERNATEVALIDATOR-20877468` (Expression Language Injection, medium, in
-  `org.hibernate.validator:hibernate-validator@8.0.3.Final`) is `spring-boot-starter-validation@4.0.0`, i.e. the Spring
-  Boot 4 major ADR-0004 defers, and `SNYK-JAVA-JAKARTAVALIDATION-20936881` (low, in
-  `jakarta.validation:jakarta.validation-api@3.1.1`) has no direct upgrade or patch. The weekly
-  `dependency-security.yml` run stays red until one is fixed or suppressed with a rationale and an expiry, as `.snyk`'s
-  existing entries do; the `/dependency-security-check` command owns that decision.

@@ -42,7 +42,8 @@
       rule, so deriving this unit's set from them dropped the pass's record (its own finding, and the reason 3.1 above
       exists). It confirmed the reach-from-recall candidate as a compliance miss against three existing rules, and
       routed nothing else. No retirements.
-- [ ] 3.3 Ask the owner for the manual review pass, after 2.6 is clean and 3.2 is done.
+- [x] 3.3 Ask the owner for the manual review pass, after 2.6 is clean and 3.2 is done: requested, given, and PR #597's
+      `build` check is green; the archive commit follows on the same PR.
 
 ## Workflow follow-up
 

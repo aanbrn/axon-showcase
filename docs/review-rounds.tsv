@@ -239,6 +239,12 @@
 2026-10-16	retry-verify-infra-image-versions-2026-10-16	4	incomplete-enumeration	incomplete-enumeration	1
 2026-10-16	retry-verify-infra-image-versions-2026-10-16	5	-	-	0
 2026-10-16	fix-infra-image-repo-scope-2026-10-16	1	missing-task	-	1
+2026-10-16	widen-architecture-auditor-to-stale-ideas	1	contradiction,coherence,wording,claim-missing	-	3
+2026-10-16	widen-architecture-auditor-to-stale-ideas	2	coherence,missing-task	coherence	2
+2026-10-16	widen-architecture-auditor-to-stale-ideas	3	coherence,missing-task	coherence,missing-task	2
+2026-10-16	widen-architecture-auditor-to-stale-ideas	4	incomplete-enumeration,proposal-schema	-	2
+2026-10-16	widen-architecture-auditor-to-stale-ideas	5	claim-unreproducible,incomplete-enumeration	incomplete-enumeration	2
+2026-10-16	widen-architecture-auditor-to-stale-ideas	6	claim-unreproducible	claim-unreproducible	1
 2026-10-16	clarify-review-loop-session-owner-2026-10-16	1	wording	-	1
 2026-10-16	clarify-review-loop-session-owner-2026-10-16	2	claim-unreproducible	-	1
 2026-10-16	clarify-review-loop-session-owner-2026-10-16	3	contradiction	-	1

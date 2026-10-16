@@ -326,18 +326,21 @@ moving it**, and a mechanism whose alternatives yield the same result stays in `
 pointer must also carry every **imperative or target-less fact** the old text held — a warning the reader must still act
 on is a rule, not rationale, and is lost rather than condensed when the pointer drops it — and **must not claim more
 than its target holds**: a spec holds an outcome, not the identifiers, declarations, or gate conditions implementing it,
-nor a rationale it never states. Verify a trim by sweeping every removed line's distinctive tokens against both the
-trimmed text and the pointer's target — `trim-agents-md-rule-restatements`' five trims dropped six such facts, restored
-only by review. Durability governs where the _rule_ lives, not whether every sentence about it does. Because the corpus
-is evidence-anchored incident memory, the control is the periodic `/audit-agents` pass — whose verdict already reports
-the accreted-rule count — not mass deletion to hit a number. Do not skip the subagent or conclude "nothing to capture"
-on your own judgment — the subagent is the arbiter, and an initial "nothing to capture" verdict is a hypothesis: a merge
-that closed a change was once skipped on exactly such an assumption and the forgotten-archive and premise-interrogation
-lessons went uncaptured until the user pushed back twice. When the user asks "is there anything else to capture?", treat
-it as a prompt to run the subagent again over the events — not as a request to justify the previous pass. A docs-fix
-merge has nothing further to capture only if the subagent actually reviewed it and said so — or if the merge-time
-detection above found no candidate. captured: add-pre-commit-staged-set-guard (#372) captured:
-re-measure-load-test-baseline (#429)
+nor a rationale it never states. Verify a trim — or any block or span replace in an artifact — by sweeping the removed
+text's distinctive tokens against the trimmed text, the pointer's target where one applies, and the rest of the artifact
+set: a replace leaves the old text's tail behind as a fragment that fuses onto its replacement and reads as authored,
+which a self-re-read does not find — `bump-tooling-pins-2026-10-16` spent four review rounds on such survivors.
+`trim-agents-md-rule-restatements`' five trims dropped six such facts, restored only by review. captured:
+bump-tooling-pins-2026-10-16 Durability governs where the _rule_ lives, not whether every sentence about it does.
+Because the corpus is evidence-anchored incident memory, the control is the periodic `/audit-agents` pass — whose
+verdict already reports the accreted-rule count — not mass deletion to hit a number. Do not skip the subagent or
+conclude "nothing to capture" on your own judgment — the subagent is the arbiter, and an initial "nothing to capture"
+verdict is a hypothesis: a merge that closed a change was once skipped on exactly such an assumption and the
+forgotten-archive and premise-interrogation lessons went uncaptured until the user pushed back twice. When the user asks
+"is there anything else to capture?", treat it as a prompt to run the subagent again over the events — not as a request
+to justify the previous pass. A docs-fix merge has nothing further to capture only if the subagent actually reviewed it
+and said so — or if the merge-time detection above found no candidate. captured: add-pre-commit-staged-set-guard (#372)
+captured: re-measure-load-test-baseline (#429)
 
 **A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not merely
 records it.** The merge-time detection is the pass that can read the merge's non-diff effects: an agent PR's closing
@@ -2632,15 +2635,19 @@ capture-stash-stale-copy
   definitions that restate it — so grep every doc that describes the workflow for the _concept_, not the old wording:
   replacing the commit discipline left four restatements (two gotchas, the docs-refresh convention, and
   `docs/ideas.md`'s header), and the diagram bullet's `diagramPadding` rule survived in `diagrammer.md` until the quick
-  review. An abandoned approach needs the same sweep: reverting an experiment's code line does not remove the comment or
-  the task/design prose that describes it, so grep the artifact for the approach's name before calling the revert done.
-  The sweep spans live copies whose sentence makes a present-tense claim: `openspec/changes/archive/` is the historical
-  record, left as recorded — the Spotless target already excludes it — so a corrected command or a renamed symbol found
-  there stays as recorded rather than being "fixed". A live artifact is no different when its sentence cites the figure
-  as a historical incident: `.opencode/agent/readme-auditor.md`'s "a '36 panels' that counted row separators" names the
-  README defect the auditor exists to catch, not the dashboard's current structure, so it stays too — and the change
-  records why the match is deliberately left rather than silently skipping it. captured: right-size-infra-resources
-  captured: add-web-ui-dashboard-panels captured: rework-readme-diagrams-for-github-mermaid
+  review. A widened check's describers go stale the same way, and the version-string grep does not find them: the
+  2026-10-11 audit found `toolingUpdates`' worked example stale once the smoke's `pack` pin gained its own entry, and
+  `bump-tooling-pins-2026-10-16` left `/opsx-tool-update`'s "the check detects a release from `ci.yml` alone". captured:
+  bump-tooling-pins-2026-10-16 An abandoned approach needs the same sweep: reverting an experiment's code line does not
+  remove the comment or the task/design prose that describes it, so grep the artifact for the approach's name before
+  calling the revert done. The sweep spans live copies whose sentence makes a present-tense claim:
+  `openspec/changes/archive/` is the historical record, left as recorded — the Spotless target already excludes it — so
+  a corrected command or a renamed symbol found there stays as recorded rather than being "fixed". A live artifact is no
+  different when its sentence cites the figure as a historical incident: `.opencode/agent/readme-auditor.md`'s "a '36
+  panels' that counted row separators" names the README defect the auditor exists to catch, not the dashboard's current
+  structure, so it stays too — and the change records why the match is deliberately left rather than silently skipping
+  it. captured: right-size-infra-resources captured: add-web-ui-dashboard-panels captured:
+  rework-readme-diagrams-for-github-mermaid
 - **A configuration-default change names every test assertion that pins the value and every doc that describes it, on
   each surface it is declared.** The `reconcile-showcase-cache-default` plan initially missed that
   `allPropertiesHaveDocumentedDefaults` asserts the Java field (so the change would fail it) and that the yml-wiring
@@ -2865,23 +2872,22 @@ capture-stash-stale-copy
   `openspec instructions design`. There is no artifact-skip key beyond `skip_specs`: skip `design.md` by simply not
   writing it, never by adding a key. captured: bump-snyk-cli-pin Upstream, the reports are `Fission-AI/OpenSpec#1891`
   (an unquoted `: ` in a rules item; closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still unmerged and in
-  no release — the latest CLI, our pinned `1.14.1`, has no `inspectProjectConfig`, so the defect is live here) and
-  `Fission-AI/OpenSpec#1892` (an unparseable config; still open); if `validate` gains a config check that fails (an ask
-  in each), the CI probe and the `/opsx-tool-update` re-verification become redundant and can go. captured:
-  inject-positive-control-task-rule (#375) captured: widen-config-probe-to-guidance captured:
-  record-openspec-1891-closure A hosted service is a third consumer class, verified by the service itself: its own check
-  where it has one, else the event it produces. A retired key can be accepted and ignored with no local signal —
-  `dependabot.yml`'s `reviewers` was — so probe the service's read path
-  (`gh api "repos/<owner>/<repo>/codeowners/errors?ref=<branch>"` returns `{"errors":[]}` for a valid file and 404s for
-  a ref without one) or observe the event it produces (a review request on a real pull request) — GitHub refuses a
-  review request from the pull request's author (`Review cannot be requested from pull request author`, HTTP 422), so
-  probe with a pull request you did not author. The general mode: an exclusion can sit on the actor's side rather than
-  the input's (the positive-control rule above), where no input choice avoids it. GitHub refuses the request when the
-  requested reviewer is the pull request's own author, so the remedy keeps the identity and changes the object —
-  `probe with a pull request you did not author` — and a probe run without that change is uninformative by construction
-  (three self-authored probes, differing only in the probe's shape, each read `reviewRequests: []`). Confirm that the
-  observable can exist for the actor before reading a negative as evidence. captured: fix-dependabot-review-notification
-  captured: record-codeowners-author-rule
+  no release — no released CLI has `inspectProjectConfig`, so the defect is live here) and `Fission-AI/OpenSpec#1892`
+  (an unparseable config; still open); if `validate` gains a config check that fails (an ask in each), the CI probe and
+  the `/opsx-tool-update` re-verification become redundant and can go. captured: inject-positive-control-task-rule
+  (#375) captured: widen-config-probe-to-guidance captured: record-openspec-1891-closure A hosted service is a third
+  consumer class, verified by the service itself: its own check where it has one, else the event it produces. A retired
+  key can be accepted and ignored with no local signal — `dependabot.yml`'s `reviewers` was — so probe the service's
+  read path (`gh api "repos/<owner>/<repo>/codeowners/errors?ref=<branch>"` returns `{"errors":[]}` for a valid file and
+  404s for a ref without one) or observe the event it produces (a review request on a real pull request) — GitHub
+  refuses a review request from the pull request's author (`Review cannot be requested from pull request author`, HTTP
+  422), so probe with a pull request you did not author. The general mode: an exclusion can sit on the actor's side
+  rather than the input's (the positive-control rule above), where no input choice avoids it. GitHub refuses the request
+  when the requested reviewer is the pull request's own author, so the remedy keeps the identity and changes the object
+  — `probe with a pull request you did not author` — and a probe run without that change is uninformative by
+  construction (three self-authored probes, differing only in the probe's shape, each read `reviewRequests: []`).
+  Confirm that the observable can exist for the actor before reading a negative as evidence. captured:
+  fix-dependabot-review-notification captured: record-codeowners-author-rule
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
   changes without the repository moving: when the upstream-reference report was parked, review found two of four

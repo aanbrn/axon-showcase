@@ -203,11 +203,10 @@ dated when it was added (start a new section for a new day rather than appending
 
 - Retire the OpenSpec config probe and the `/opsx-tool-update` re-verification once `validate` checks the config —
   parked; no change yet. `Fission-AI/OpenSpec#1891` closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still
-  unmerged and in no release (the latest CLI, our pinned `1.14.1`, has no `inspectProjectConfig`), so the `ci.yml` probe
-  and the `/opsx-tool-update` re-verification remain the only guards against a config the CLI silently drops. The watch
-  condition is a release carrying `#1894` (and `#1892`'s unparseable-config half) — re-check when `@fission-ai/openspec`
-  publishes past `1.14.1`, not on the next weekly sweep. The `#1891` status is recorded inline in `AGENTS.md`'s
-  config-read-path gotcha.
+  unmerged and in no release (no released CLI has `inspectProjectConfig`), so the `ci.yml` probe and the
+  `/opsx-tool-update` re-verification remain the only guards against a config the CLI silently drops. The watch
+  condition is a release carrying `#1894` (and `#1892`'s unparseable-config half), checked when the CLI is bumped rather
+  than on the next weekly sweep. The `#1891` status is recorded inline in `AGENTS.md`'s config-read-path gotcha.
 
 ## 2026-09-28
 

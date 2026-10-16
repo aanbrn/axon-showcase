@@ -58,7 +58,8 @@
       which is transient and so belongs in the parked entry. Applied from its routing: the parked
       `verifyInfraImageVersions` entry in `docs/ideas.md` now names `--rerun-tasks` and the interim
       `check -x verifyInfraImageVersions`.
-- [ ] 4.2 Ask the owner for the manual review pass, after 3.5 is clean and 4.1 is done.
+- [x] 4.2 Ask the owner for the manual review pass, after 3.5 is clean and 4.1 is done: requested, given, and PR #596's
+      `build` check is green; the archive commit follows on the same PR.
 
 ## Workflow follow-up
 

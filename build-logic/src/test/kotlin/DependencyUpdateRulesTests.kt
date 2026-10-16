@@ -271,6 +271,28 @@ class DependencyUpdateRulesTests {
     }
 
     @Test
+    @DisplayName("The catalog libraries map each alias to its coordinate and the version its reference names")
+    fun catalogLibrariesMapAliasToCoordinate() {
+        val lines =
+            listOf(
+                "[versions]",
+                "log4j = \"2.26.1\"",
+                "",
+                "[libraries]",
+                "log4j-api = { group = \"org.apache.logging.log4j\", name = \"log4j-api\", version.ref = \"log4j\" }",
+                "log4j-core = { group = \"org.apache.logging.log4j\", name = \"log4j-core\", version.ref = \"log4j\" }",
+            )
+
+        assertThat(DependencyUpdateRules.catalogLibraries(lines))
+            .containsExactlyInAnyOrderEntriesOf(
+                mapOf(
+                    "log4j-api" to CatalogLibrary("org.apache.logging.log4j", "log4j-api", "2.26.1"),
+                    "log4j-core" to CatalogLibrary("org.apache.logging.log4j", "log4j-core", "2.26.1"),
+                ),
+            )
+    }
+
+    @Test
     @DisplayName("A candidate the catalog already declares is rejected as nothing to update")
     fun candidateAlreadyDeclaredIsRejected() {
         assertThat(rejectCandidate("2.26.1")).isTrue()

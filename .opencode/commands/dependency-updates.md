@@ -1,13 +1,18 @@
 ---
-description: Run the Gradle and web UI dependency update reports
+description: Run the Gradle, web UI, and build-logic pin dependency update reports
 ---
 
-Run `./gradlew dependencyUpdates` (Gradle) and `./gradlew :showcase-web-ui:npmOutdated` (web UI) from the repository
-root and report the results.
+Run `./gradlew dependencyUpdates` (Gradle), `./gradlew :showcase-web-ui:npmOutdated` (web UI), and
+`./gradlew buildLogicUpdates` (the plugin pins `build-logic` declares) from the repository root and report the results.
 
 The web UI's npm dependencies are reported separately by `:showcase-web-ui:npmOutdated`, which lists the outdated npm
 packages (filtering out the majors suppressed in `config/web-ui-updates/major-disabled.txt`) and writes the report to
 `showcase-web-ui/build/npm-outdated.txt`; they do not appear in the Gradle report.
+
+The Gradle plugin versions the included `build-logic` build pins resolve only on that build's buildscript classpath, so
+the Gradle report cannot see them: `buildLogicUpdates` looks each up in the Gradle Plugin Portal and writes
+`build/build-logic-updates/report.txt`, filtering with the same stability rule and the same suppression files as the
+Gradle report. A row naming `unread` is a lookup that returned no version — a repository failure to note, not an update.
 
 The report covers only catalog-owned coordinates (exact `version.ref` in `gradle/libs.versions.toml`); BOM-inherited
 modules are not listed. Major-version updates for groups listed in `config/dependency-updates/major-disabled.txt` are

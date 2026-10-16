@@ -15,6 +15,16 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-16
 
+- Sweep `docs/ideas.md` for entries whose work has already landed — parked; no change yet. A parked entry's removal
+  rides the change that implements it, but nothing checks that it happened: the actionlint-retry entry sat "parked; no
+  change yet" for two and a half weeks after #463 implemented it, found only when `retry-verify-infra-image-versions`
+  read it as that change's own precedent. No auditor owns the file (the four own `AGENTS.md`/`.opencode/`, the specs,
+  `docs/adr/` plus the architectural surface, and `README.md`), and the `upstream-references` report resolves only
+  `owner/repo#NNN` references. Route by widening rather than adding: `architecture-auditor` already sweeps "deferrals
+  and band-aids recorded in an ADR or parked in `docs/ideas.md`", so it is the coupled owner — report (advisory) a
+  parked entry whose work has landed. That widening owes the artifact set `AGENTS.md`'s multi-artifact-sweep bullet
+  states, enumerated from that bullet rather than re-listed here.
+
 - Give the `build` gate a chart-packaging path — parked; no change yet. Nothing in `check` packages the chart, which is
   why the broken chart-dependency fetch above was smoke-only for two days: a check that packages the chart and asserts
   `charts/common-*.tgz` lands would have caught it in the pull request that broke it. The cost is one fetch of the
@@ -83,15 +93,6 @@ dated when it was added (start a new section for a new day rather than appending
   not reflowed and only the manual check catches it, and two 122-character Javadoc lines passed `spotlessCheck` until an
   explicit scan found them. Name Javadoc prose in both definitions, and have the recipe iterate the changed set (split
   correctly — an unquoted stored value does not word-split in zsh).
-
-- Retry `verifyInfraImageVersions`'s helm repository update — parked; no change yet. On a cold or forced run (a plain
-  cold `check`, and any run under `--rerun-tasks`, which guarantees the cold path) the task resolves each pinned chart's
-  preconfigured `image.tag` over the network, and `addHelmRepositories` retries nothing, so a transient
-  `failed to update the following repositories: [<repo>]` fails `check` — the failing repository differs between runs,
-  and the task passes alone and on a warm cache. Until the retry lands, `check -x verifyInfraImageVersions` is the
-  interim way to verify the rest of the gate — running it under `--rerun-tasks` only guarantees the failure. Give the
-  update a bounded retry, as the actionlint download did; do not set `tolerateFailures = true`, which turns the check
-  into a false pass.
 
 ## 2026-10-12
 
@@ -295,18 +296,6 @@ dated when it was added (start a new section for a new day rather than appending
   the report.
 
 ## 2026-09-21
-
-- Retry the actionlint download in the `build` job — parked; no change yet. `ci.yml`'s "Install actionlint" step fetches
-  the tool with `bash <(curl …download-actionlint.bash)` and no retry, so a transient failure of GitHub's release-asset
-  download fails the whole merge-gate `build` job. It happened on `main` at `2011915`: the download returned HTTP
-  **504** with a 92-byte `text/html` body for actionlint `v1.7.12`, so `gzip: stdin: not in gzip format` and `tar`
-  exited 2 — the step passed minutes earlier on `7b4fcef` and the asset itself was intact (`gh api`, 2,353,908 bytes,
-  `state: uploaded`), and five consecutive `curl -I` probes reproduced the `504` until it cleared, after which
-  re-running the same commit succeeded. The `504` hit the script's **inner** asset download
-  (`curl -L "${url}" | tar xvz`, line 125 of `download-actionlint.bash`, which honours no retry flag or env var) — the
-  script fetch itself succeeded — so an outer `--retry` on `ci.yml`'s `curl …download-actionlint.bash` would absorb
-  nothing; retry the whole step, or download the release asset directly with `curl --retry`. Worth doing because the
-  failure is invisible to `workflowLint` and costs a red `main` plus a manual re-run.
 
 - Verify the audit workflow's generated PR title end to end — parked; no change yet. `fix-audit-pr-title` reworded the
   `audit` workflow's prompt so the agent no longer leads its response with the owner mention, because the OpenCode

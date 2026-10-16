@@ -13,17 +13,6 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
-## 2026-10-17
-
-- Guard the review-round ledger against a duplicate row — parked; no change yet. `docs/review-rounds.tsv` declares one
-  row per review round and `scripts/experience-analysis.sh` sums its compliance-miss column, so a duplicate
-  double-counts a round — and nothing enforces it: the same round's row written twice (a `printf` run in two calls) is
-  byte-identical and adjacent, so even a line count looks right. The archived `record-review-rounds` design deferred
-  exactly this ("a later change decides what the numbers should license") and this entry is that evidence. Route it as a
-  check, not prose: a `--unique-rounds` mode in `scripts/commit-hygiene.py` asserting one row per `unit`+`round`, a
-  `verifyUnique…` task in `check`, and a positive-control case in `test-commit-hygiene.py`, mirroring
-  `verifyUniqueCronSchedules`.
-
 ## 2026-10-16
 
 - Give the `build` gate a chart-packaging path — parked; no change yet. Nothing in `check` packages the chart, which is
@@ -229,8 +218,8 @@ dated when it was added (start a new section for a new day rather than appending
 - Widen the `commit-hygiene` test-coverage requirement to every check — parked; no change yet. The spec's "The guard's
   checks are covered by tests run in the build" is scoped to the guard's classes, while the build checks
   (`verifyCapturedMarkers`, `verifyTrackedIgnoredFiles`, `verifyConflictMarkers`, `verifyExecutableBits`,
-  `verifyUniqueCronSchedules`, `verifyLargeFiles`) carry no test-coverage clause; widening it needs a REMOVED+ADDED
-  retitle, since a `MODIFIED` block cannot rename a requirement header.
+  `verifyUniqueCronSchedules`, `verifyUniqueReviewRounds`, `verifyLargeFiles`) carry no test-coverage clause; widening
+  it needs a REMOVED+ADDED retitle, since a `MODIFIED` block cannot rename a requirement header.
 
 - Carry findings forward across audit reports — parked; no change yet. The reports under `docs/audits/` are write-only:
   a finding recurs run after run with nothing to say it is the same unapplied item, and the recorded smoke-run lesson is

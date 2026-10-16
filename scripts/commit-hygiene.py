@@ -6,8 +6,9 @@ rewrite, that force-stages a generated artifact, that stages a path and then edi
 that carries a merge conflict marker, that misplaces a `captured:` marker in `AGENTS.md`, or that stages an
 `openspec/changes/archive/**` change dir while leaving its `openspec/specs/**` sync unstaged. The `--markers` mode
 checks marker placement in the working-tree `AGENTS.md`; the `--tracked-ignored`, `--conflict-markers`, and
-`--executable-bits` modes each verify the tracked set for the build, `--unique-crons` verifies the workflow `cron`
-schedules do not collide, and `--large-files` verifies no tracked file exceeds the configured size limit. Stdlib only.
+`--executable-bits` modes each verify the tracked set for the build; `--unique-crons` verifies the workflow
+`cron` schedules do not collide; `--unique-rounds` verifies the review-round ledger carries one row per unit and
+round; and `--large-files` verifies no tracked file exceeds the configured size limit. Stdlib only.
 """
 
 import argparse
@@ -387,11 +388,48 @@ def check_unique_crons(repo: Path) -> int:
     return len(collisions)
 
 
+def find_duplicate_review_rounds(repo: Path) -> list[tuple[str, str, int, int]]:
+    """The duplicated (unit, round) rows in the review-round ledger, with both line numbers.
+
+    The ledger declares one row per review round and `scripts/experience-analysis.sh` sums a column, so a duplicate
+    double-counts a round. Its leading `#` lines are comments, and a row whose pair is absent is not a pair.
+    """
+    ledger = repo / "docs" / "review-rounds.tsv"
+    if not ledger.is_file():
+        return []
+    first_seen: dict[tuple[str, str], int] = {}
+    duplicates: list[tuple[str, str, int, int]] = []
+    for number, line in enumerate(ledger.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        fields = line.split("\t")
+        if len(fields) < 3:
+            continue
+        key = (fields[1], fields[2])
+        if key in first_seen:
+            duplicates.append((key[0], key[1], first_seen[key], number))
+        else:
+            first_seen[key] = number
+    return duplicates
+
+
+def check_unique_review_rounds(repo: Path) -> int:
+    duplicates = find_duplicate_review_rounds(repo)
+    for unit, round_number, first, second in duplicates:
+        print(
+            "Two review-round rows share unit '{0}' round {1}: lines {2} and {3}".format(
+                unit, round_number, first, second
+            ),
+            file=sys.stderr,
+        )
+    return len(duplicates)
+
+
 def main(argv: Sequence[str] = ()) -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Check commit hygiene over the staged set, AGENTS.md markers, the tracked set, or the workflow cron "
-            "schedules (--unique-crons)."
+            "Check commit hygiene over the staged set, AGENTS.md markers, the tracked set, the workflow cron "
+            "schedules, the review-round ledger, or a file's size."
         )
     )
     mode = parser.add_mutually_exclusive_group()
@@ -408,6 +446,9 @@ def main(argv: Sequence[str] = ()) -> int:
     )
     mode.add_argument(
         "--unique-crons", action="store_true", help="check no two workflow cron schedules collide"
+    )
+    mode.add_argument(
+        "--unique-rounds", action="store_true", help="check the review-round ledger carries one row per unit and round"
     )
     mode.add_argument(
         "--large-files", action="store_true", help="check no tracked file exceeds the configured size limit"
@@ -432,6 +473,8 @@ def main(argv: Sequence[str] = ()) -> int:
         return 1 if check_executable_bits(repo) else 0
     if args.unique_crons:
         return 1 if check_unique_crons(repo) else 0
+    if args.unique_rounds:
+        return 1 if check_unique_review_rounds(repo) else 0
     if args.large_files:
         return 1 if check_large_files(repo) else 0
     return 1 if check_staged(repo, args.formatter) else 0

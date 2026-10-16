@@ -937,6 +937,11 @@ re-run the check that produced the finding (`./gradlew dependencyUpdates` / `hel
 `toolingUpdates`) and confirm the bumped coordinates no longer appear in its report — otherwise the finding's clearance
 is a claim with no run behind it. captured: bump-buildpacks-2026-09-29
 
+`helm search repo` reads the **local** index, not the upstream, so refresh it first (`helm repo update <repo>`) or
+re-resolve from `./gradlew helmUpdates`, which runs `repo add`/`repo update` before its search. A hand-run search named
+`92.3.0` as newest where the check's fresh run reported `92.9.0`; the prior kps bump hit the same stale reading
+(`91.9.0` vs `92.3.0`). captured: bump-helm-and-kps-2026-10-16
+
 ## Architecture
 
 CQRS with four services and a web UI:
@@ -1612,7 +1617,7 @@ the image's age, as evidence about when it was built, which host built it, or wh
 
 ```bash
 # Deploy to local cluster (must be ordered)
-helm install kps prometheus-community/kube-prometheus-stack --version 92.3.0 \
+helm install kps prometheus-community/kube-prometheus-stack --version 92.9.0 \
   --namespace monitoring --create-namespace --wait
 helm install tempo grafana/tempo --version 1.24.4 --namespace monitoring --create-namespace --wait
 helm install axon-showcase-db-events bitnami/postgresql --version 16.7.27 \

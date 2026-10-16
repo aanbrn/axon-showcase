@@ -229,3 +229,7 @@
 2026-10-16	address-snyk-advisories-2026-10-16	4	-	-	0
 2026-10-16	bump-helm-and-kps-2026-10-16	1	formatting,claim-unreproducible,claim-missing,proposal-schema	-	4
 2026-10-16	bump-helm-and-kps-2026-10-16	2	-	-	0
+2026-10-16	bump-buildpacks-2026-10-16	1	claim-unreproducible,contradiction,formatting	-	2
+2026-10-16	bump-buildpacks-2026-10-16	2	-	-	0
+2026-10-16	bump-buildpacks-2026-10-16	3	wording	-	1
+2026-10-16	bump-buildpacks-2026-10-16	4	-	-	0

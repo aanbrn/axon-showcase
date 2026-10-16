@@ -1567,11 +1567,11 @@ ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64
 
 The web UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
 `PackBuildImageTask`) that runs the `pack` CLI with the **version-pinned** Paketo NGINX + Procfile buildpacks
-(`paketo-buildpacks/nginx@1.3.0`, `paketo-buildpacks/procfile@5.15.3`; the versions are catalog-owned as `paketo-nginx`
+(`paketo-buildpacks/nginx@1.3.0`, `paketo-buildpacks/procfile@5.15.4`; the versions are catalog-owned as `paketo-nginx`
 and `paketo-procfile`) over `build/dist` (the `pack` CLI is a build prerequisite like Helm/Snyk). The pins are explicit
 because an unversioned buildpack reference becomes ambiguous — `pack` fails with "multiple versions … must specify an
 explicit version" — once the builder bundles two versions of a buildpack (the intermittent `e2e`/`helmInstallToLocal`
-failure). The builder itself is also pinned (`builder-jammy-base:0.4.659`, catalog-owned as `paketo-builder-jammy-base`)
+failure). The builder itself is also pinned (`builder-jammy-base:0.4.662`, catalog-owned as `paketo-builder-jammy-base`)
 rather than floating, and the `buildpackUpdates` task / `buildpack-updates` workflow reports newer builder and buildpack
 versions — no other update check covers Paketo. **The builder and the buildpacks it bundles must be bumped together:** a
 `paketo-nginx` pin that is _absent_ from the builder (e.g. holding a buildpack one line behind the builder) makes `pack`
@@ -1941,6 +1941,14 @@ capture-stash-stale-copy
   `align-dependency-report-version-authority` abandon a working change on the false conclusion that the plugin's rule
   could not reach the row. Cite the run-scoped output, or confirm the summary is newer than the run. captured:
   align-dependency-report-version-authority
+
+  A slice of a list of _objects_ selects a subject, not only a shorter list: `head -1` on a `docker images` list picked
+  another tag's stale build, whose `io.buildpacks.build.metadata` label named procfile `5.15.2` where the tag the run
+  produced (`aanbrn/axon-showcase-web-ui:0.2.0-SNAPSHOT`) named the pin `5.15.4` — one repository's tags each carry
+  their own build's metadata — and the false discrepancy reached the task record and returned as a review finding
+  against a true `AGENTS.md` rule. Name a built image by the tag the declared version gives
+  (`aanbrn/axon-showcase-web-ui:${project.version}`), never by list position. captured: bump-buildpacks-2026-10-16
+
 - **`gh pr create --body` with Markdown can fail under zsh with `no matches found`** — an inline body containing
   `**bold**` (or other shell metacharacters/newlines) is subject to zsh's `nomatch` glob error
   (`zsh: no matches found: **...`). Write the body to a file and use `--body-file <file>` instead; it also sidesteps

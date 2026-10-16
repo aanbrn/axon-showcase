@@ -5,8 +5,22 @@ version: v1.25.1
 # occurrence is suppressed — a different version of the same package (potentially fixable) stays visible.
 # Spring Framework 6.2.x / Spring Security 6.5.x: fixed only in Spring Framework 7.0.9 and
 # Spring Security 7.0.7, which requires the deferred Spring Boot 4 migration (see ADR-0004).
+# Hibernate Validator 8.0.3.Final / Jakarta Validation 3.1.1: reached on every service's classpath through the
+# Spring Boot BOM's validation stack (declared by accessor in four modules), and Snyk fixes each only on the
+# Validation 4 line — hibernate-validator 9.2.0.Beta1, jakarta.validation-api 4.0.0-M1 — which requires the
+# deferred Spring Boot 4 migration (see ADR-0004).
 # Short-term expires so the scheduled scan re-surfaces these if the migration has not landed.
 ignore:
+  SNYK-JAVA-ORGHIBERNATEVALIDATOR-20877468:
+    - '* > org.hibernate.validator:hibernate-validator@8.0.3.Final':
+        reason: Expression Language injection; fixed only at hibernate-validator 9.2.0.Beta1 (ADR-0004)
+        expires: 2026-11-28T00:00:00.000Z
+        created: 2026-10-16T00:00:00.000Z
+  SNYK-JAVA-JAKARTAVALIDATION-20936881:
+    - '* > jakarta.validation:jakarta.validation-api@3.1.1':
+        reason: Improper input-type validation; 3.1.1 is the newest stable release, fixed only at 4.0.0-M1 (ADR-0004)
+        expires: 2026-11-28T00:00:00.000Z
+        created: 2026-10-16T00:00:00.000Z
   SNYK-JAVA-ORGSPRINGFRAMEWORK-19267072:
     - '* > org.springframework:spring-beans@6.2.19':
         reason: Spring Boot 4 migration deferred; fix requires Spring Framework 7.0.9 (ADR-0004)

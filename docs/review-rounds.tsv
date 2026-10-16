@@ -223,3 +223,7 @@
 2026-10-16	bump-tooling-pins-2026-10-16	4	wording	wording	1
 2026-10-16	bump-tooling-pins-2026-10-16	5	wording	wording	1
 2026-10-16	bump-tooling-pins-2026-10-16	6	-	-	0
+2026-10-16	address-snyk-advisories-2026-10-16	1	proposal-schema,claim-unreproducible,formatting,missing-scenario,missing-task	-	5
+2026-10-16	address-snyk-advisories-2026-10-16	2	claim-unreproducible,contradiction	claim-unreproducible	2
+2026-10-16	address-snyk-advisories-2026-10-16	3	contradiction	contradiction	1
+2026-10-16	address-snyk-advisories-2026-10-16	4	-	-	0

@@ -279,8 +279,22 @@ tasks.register("toolingUpdates", ToolingUpdatesTask::class.java) {
     checks.set(
         listOf(
             ToolingUpdateCheck(
-                name = "openspec-cli",
+                name = "openspec-cli (ci.yml)",
                 workflowFile = "ci.yml",
+                pinPattern = "@fission-ai/openspec@([0-9][^\\s]*)",
+                source = ToolingVersionSource.NPM_LATEST,
+                sourceRef = "@fission-ai/openspec",
+            ),
+            ToolingUpdateCheck(
+                name = "openspec-cli (opencode.yml)",
+                workflowFile = "opencode.yml",
+                pinPattern = "@fission-ai/openspec@([0-9][^\\s]*)",
+                source = ToolingVersionSource.NPM_LATEST,
+                sourceRef = "@fission-ai/openspec",
+            ),
+            ToolingUpdateCheck(
+                name = "openspec-cli (audit.yml)",
+                workflowFile = "audit.yml",
                 pinPattern = "@fission-ai/openspec@([0-9][^\\s]*)",
                 source = ToolingVersionSource.NPM_LATEST,
                 sourceRef = "@fission-ai/openspec",
@@ -329,6 +343,8 @@ tasks.register("toolingUpdates", ToolingUpdatesTask::class.java) {
         layout.projectDirectory.file(".github/workflows/e2e.yml"),
         layout.projectDirectory.file(".github/workflows/release.yml"),
         layout.projectDirectory.file(".github/workflows/deployment-smoke.yml"),
+        layout.projectDirectory.file(".github/workflows/opencode.yml"),
+        layout.projectDirectory.file(".github/workflows/audit.yml"),
     )
 
     reportFile.set(layout.buildDirectory.file("tooling-updates/report.txt"))

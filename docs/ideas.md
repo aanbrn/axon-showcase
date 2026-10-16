@@ -203,11 +203,10 @@ dated when it was added (start a new section for a new day rather than appending
 
 - Retire the OpenSpec config probe and the `/opsx-tool-update` re-verification once `validate` checks the config —
   parked; no change yet. `Fission-AI/OpenSpec#1891` closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still
-  unmerged and in no release (the latest CLI, our pinned `1.14.1`, has no `inspectProjectConfig`), so the `ci.yml` probe
-  and the `/opsx-tool-update` re-verification remain the only guards against a config the CLI silently drops. The watch
-  condition is a release carrying `#1894` (and `#1892`'s unparseable-config half) — re-check when `@fission-ai/openspec`
-  publishes past `1.14.1`, not on the next weekly sweep. The `#1891` status is recorded inline in `AGENTS.md`'s
-  config-read-path gotcha.
+  unmerged and in no release (no released CLI has `inspectProjectConfig`), so the `ci.yml` probe and the
+  `/opsx-tool-update` re-verification remain the only guards against a config the CLI silently drops. The watch
+  condition is a release carrying `#1894` (and `#1892`'s unparseable-config half), checked when the CLI is bumped rather
+  than on the next weekly sweep. The `#1891` status is recorded inline in `AGENTS.md`'s config-read-path gotcha.
 
 ## 2026-09-28
 
@@ -379,3 +378,12 @@ dated when it was added (start a new section for a new day rather than appending
   (AKS, ~\$40-80/mo), or accepting ephemerality. Reference: `nce/oci-free-cloud-k8s` runs OKE free but on a leaner
   stack. Open decision: how faithful staging must be to the observability stack (the real decider between OKE-free and
   AKS-paid), and whether always-on vs on-demand node-pool stop/start changes the budget.
+
+- Address the two Snyk advisories the 2026-10-16 credentialed run surfaced — parked; no change yet. Both are _new_ (the
+  run flags one as `(new)`), so neither is caused by the pin bumps that dispatch accompanied: the fix for
+  `SNYK-JAVA-ORGHIBERNATEVALIDATOR-20877468` (Expression Language Injection, medium, in
+  `org.hibernate.validator:hibernate-validator@8.0.3.Final`) is `spring-boot-starter-validation@4.0.0`, i.e. the Spring
+  Boot 4 major ADR-0004 defers, and `SNYK-JAVA-JAKARTAVALIDATION-20936881` (low, in
+  `jakarta.validation:jakarta.validation-api@3.1.1`) has no direct upgrade or patch. The weekly
+  `dependency-security.yml` run stays red until one is fixed or suppressed with a rationale and an expiry, as `.snyk`'s
+  existing entries do; the `/dependency-security-check` command owns that decision.

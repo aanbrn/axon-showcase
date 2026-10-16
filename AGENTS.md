@@ -493,13 +493,13 @@ apply nothing from it. Say so explicitly, rather than leaving the agent to infer
 PR whose file the workflow exists to keep. The cloud agent **cannot merge** — the action has no merge step — so on a
 report PR it must not attempt one; the merge is the human's. Treat its PR like any other: verify the self-report against
 the repository and the run log (a self-report is a claim to verify, like a review finding), then check out the agent's
-branch, run `openspec archive <change>`, commit and push it there, and merge once CI is green (the one-PR-per-change
-sequence above). GitHub never merges on an approval — an approval alone leaves the PR open. A PR the action opened from
-an issue carries a closing reference to its trigger (`Closes #<issue>`), so merging it closes that issue — right for a
-one-shot work item, wrong for a long-lived tracker like the update-check issues, whose workflows look them up with
-`is:issue is:open` and open a fresh one when none is open, so the merge orphans its history and the next weekly run
-opens a duplicate. Strip the closing keyword from an agent PR triggered from a tracker before merging, or reopen the
-tracker.
+branch, run `openspec archive <change> --yes`, commit and push it there, and merge once CI is green (the
+one-PR-per-change sequence above). GitHub never merges on an approval — an approval alone leaves the PR open. A PR the
+action opened from an issue carries a closing reference to its trigger (`Closes #<issue>`), so merging it closes that
+issue — right for a one-shot work item, wrong for a long-lived tracker like the update-check issues, whose workflows
+look them up with `is:issue is:open` and open a fresh one when none is open, so the merge orphans its history and the
+next weekly run opens a duplicate. Strip the closing keyword from an agent PR triggered from a tracker before merging,
+or reopen the tracker.
 
 The action uses the agent's final response as the PR **body** and derives the PR **title** by asking a model to
 summarise that response in under 40 characters (`summarize` → `createPR(base, branch, title, body)` in the action's
@@ -1888,7 +1888,11 @@ capture-stash-stale-copy
   committing; format the change-dir markdown **before** the archive (`build.gradle.kts` excludes
   `openspec/changes/archive/**` from the markdown target). A hand-run `git mv` is a different trap: it stages the
   **already-committed** content, so a file carrying an uncommitted edit (typically the `tasks.md` tick) shows `RM`, and
-  a plain `git commit` records the pre-edit content. captured: sync-audit-spec-findings-2026-10-04 (#497)
+  a plain `git commit` records the pre-edit content. `openspec archive` also prompts for confirmation when it would
+  update specs, and a non-interactive agent shell cannot answer (`no answer could be read from stdin`) — run it as
+  `openspec archive <change> --yes`; `--skip-specs` (which would skip the sync) and `--no-validate` (which would skip
+  the validation) are not the remedy. captured: sync-audit-spec-findings-2026-10-04 (#497) captured:
+  cover-the-included-builds-pins (#594)
 - **The actionlint download script takes positional arguments (`version dir`), not `--dir`, and the target dir must
   already exist.** When installing actionlint in CI with `bash <(curl .../scripts/download-actionlint.bash)`, pass
   `latest "$RUNNER_TEMP/actionlint"` and `mkdir -p` the dir first — a `--dir` flag is rejected as an invalid version
@@ -2963,27 +2967,27 @@ capture-stash-stale-copy
   Dependabot covers `uses:` action refs. Add a pin to that check's declared list when you add it to a workflow, and
   machine-assert the list's members against the file that declares them rather than trusting the list to be maintained
   by hand — a pattern is asserted to match exactly once (a renamed input fails the task rather than reading as current),
-  while `buildLogicUpdates` asserts its declared aliases equal the `-plugin` aliases `build-logic`'s own script
-  consumes, so a pin added there fails the check instead of going uncovered — since extending a list by hand one pin at
-  a time is how the OpenSpec pin, then the `pack` CLI, was each missed in turn while the check did not exist. captured:
-  cover-the-included-builds-pins A tool pinned in more than one workflow file takes one check entry per file: a check
-  reads exactly one `workflowFile`, which must also be registered in `pinFiles`, and a file no entry names has its pin
-  silently unchecked (the smoke's `pack` pin sat unlisted until it gained its own `pack-cli (deployment-smoke.yml)`
-  entry) — name each entry per file (`pack-cli (e2e.yml)`, `pack-cli (release.yml)`, `pack-cli (deployment-smoke.yml)`),
-  since the report names the check, not its file. captured: publish-images-to-ghcr The `/opsx-tool-update` command
-  regenerates the instruction files after a release but does not detect one. (`java-version: '21'` and the opencode
-  workflow's `model` input are deliberate pins, not tooling currency — the model pin has its own multi-file bump sweep,
-  see the OpenCode model-pin gotcha.) A Snyk or pack bump cannot be verified locally: `workflowLint` (actionlint) proves
-  only that the YAML lints, not that the version tag is installable — the credentialed weekly run (or a local
-  `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real execution. `workflowLint` also cannot see inside a
-  quoted `gh api --jq` program — actionlint parses the YAML and the shell, not the jq — so a malformed copied filter
-  passes `check` and fails only on the scheduled run; verify a new or edited update workflow by diffing it against the
-  sibling it copies (a `tooling-updates.yml` jq filter was missing a closing parenthesis, caught by that diff and by
-  nothing in `check`). The same skew bites a guard keyed off a tool's output: it must be verified against the version CI
-  pins, not only the locally-installed one, since the pinned CLI is what the gate actually runs and the output text it
-  matches on may differ there. The same caution applies to a proposed _fix_ attributed to a dependency bump: verify it
-  exists in a released version, not only on the project's default branch — a bump claimed to make a failure skip cleanly
-  held on `actions/cache`'s `main` but in no release (latest `v6.1.0`). captured: unify-tooling-currency-checks (#304)
+  while `buildLogicUpdates` asserts the same set-equality against `build-logic`'s own script (specified in
+  `showcase/quality/dependency-management`) — since extending a list by hand one pin at a time is how the OpenSpec pin,
+  then the `pack` CLI, was each missed in turn while the check did not exist. captured: cover-the-included-builds-pins A
+  tool pinned in more than one workflow file takes one check entry per file: a check reads exactly one `workflowFile`,
+  which must also be registered in `pinFiles`, and a file no entry names has its pin silently unchecked (the smoke's
+  `pack` pin sat unlisted until it gained its own `pack-cli (deployment-smoke.yml)` entry) — name each entry per file
+  (`pack-cli (e2e.yml)`, `pack-cli (release.yml)`, `pack-cli (deployment-smoke.yml)`), since the report names the check,
+  not its file. captured: publish-images-to-ghcr The `/opsx-tool-update` command regenerates the instruction files after
+  a release but does not detect one. (`java-version: '21'` and the opencode workflow's `model` input are deliberate
+  pins, not tooling currency — the model pin has its own multi-file bump sweep, see the OpenCode model-pin gotcha.) A
+  Snyk or pack bump cannot be verified locally: `workflowLint` (actionlint) proves only that the YAML lints, not that
+  the version tag is installable — the credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`)
+  is the first real execution. `workflowLint` also cannot see inside a quoted `gh api --jq` program — actionlint parses
+  the YAML and the shell, not the jq — so a malformed copied filter passes `check` and fails only on the scheduled run;
+  verify a new or edited update workflow by diffing it against the sibling it copies (a `tooling-updates.yml` jq filter
+  was missing a closing parenthesis, caught by that diff and by nothing in `check`). The same skew bites a guard keyed
+  off a tool's output: it must be verified against the version CI pins, not only the locally-installed one, since the
+  pinned CLI is what the gate actually runs and the output text it matches on may differ there. The same caution applies
+  to a proposed _fix_ attributed to a dependency bump: verify it exists in a released version, not only on the project's
+  default branch — a bump claimed to make a failure skip cleanly held on `actions/cache`'s `main` but in no release
+  (latest `v6.1.0`). captured: unify-tooling-currency-checks (#304)
 - **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
   first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
   output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change

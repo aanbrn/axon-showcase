@@ -210,3 +210,7 @@
 2026-10-16	cover-the-included-builds-pins	10	-	-	0
 2026-10-16	capture-archive-confirmation-flag	1	over-claim,missing-task	-	2
 2026-10-16	capture-archive-confirmation-flag	2	-	-	0
+2026-10-16	bump-build-logic-pins-2026-10-16	1	incomplete-enumeration,missing-task,wording	-	3
+2026-10-16	bump-build-logic-pins-2026-10-16	2	incomplete-enumeration,impact-omission,claim-unreproducible	incomplete-enumeration	3
+2026-10-16	bump-build-logic-pins-2026-10-16	3	incomplete-enumeration	incomplete-enumeration	1
+2026-10-16	bump-build-logic-pins-2026-10-16	4	-	-	0

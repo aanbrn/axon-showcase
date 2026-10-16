@@ -68,13 +68,14 @@ dated when it was added (start a new section for a new day rather than appending
   classes should escalate to the pro pass.
 
 - Re-check the Gatling plugin's configuration-cache gap — parked; no change yet. The `gatlingRecorder` task (the
-  plugin's `GatlingRecorderTask`, gatling-gradle-plugin 3.15.1.2) holds a `Configuration` and a `SourceSet`, which the
-  configuration cache cannot serialize, so `load-tests/build.gradle.kts` marks it `notCompatibleWithConfigurationCache`
-  — a graph containing it runs cache-less. The plugin's own "support gradle configuration cache" work (#131, a merged
-  PR) left this task uncovered, and the plugin repository's own tracker and discussions are disabled
-  (`has_issues: false`, `has_discussions: false`), so it carries no report thread and no PR addressing it to cite; a fix
-  reaches it only through a pull request. Re-check with `./gradlew :load-tests:gatlingRecorder --configuration-cache`,
-  and retrigger on a release whose recorder task no longer holds those types.
+  plugin's `GatlingRecorderTask`, the pinned Gatling Gradle plugin's own task) holds a `Configuration` and a
+  `SourceSet`, which the configuration cache cannot serialize, so `load-tests/build.gradle.kts` marks it
+  `notCompatibleWithConfigurationCache` — a graph containing it runs cache-less. The plugin's own "support gradle
+  configuration cache" work (#131, a merged PR) left this task uncovered, and the plugin repository's own tracker and
+  discussions are disabled (`has_issues: false`, `has_discussions: false`), so it carries no report thread and no PR
+  addressing it to cite; a fix reaches it only through a pull request. Re-check with
+  `./gradlew :load-tests:gatlingRecorder --configuration-cache`, and retrigger on a release whose recorder task no
+  longer holds those types.
 
 - Widen the reviewers' 120-character check to every changed file — parked; no change yet. `review-quick.md` and
   `review-thorough.md` both scope it to the files the formatter does not cover (YAML, and so on), treating everything
@@ -83,11 +84,14 @@ dated when it was added (start a new section for a new day rather than appending
   explicit scan found them. Name Javadoc prose in both definitions, and have the recipe iterate the changed set (split
   correctly — an unquoted stored value does not word-split in zsh).
 
-- Retry `verifyInfraImageVersions`'s helm repository update — parked; no change yet. On a cold or forced run the task
-  resolves each pinned chart's preconfigured `image.tag` over the network, and `addHelmRepositories` retries nothing, so
-  a transient `failed to update the following repositories: [<repo>]` fails `check` — the failing repository differs
-  between runs, and the task passes alone and on a warm cache. Give the update a bounded retry, as the actionlint
-  download did; do not set `tolerateFailures = true`, which turns the check into a false pass.
+- Retry `verifyInfraImageVersions`'s helm repository update — parked; no change yet. On a cold or forced run (a plain
+  cold `check`, and any run under `--rerun-tasks`, which guarantees the cold path) the task resolves each pinned chart's
+  preconfigured `image.tag` over the network, and `addHelmRepositories` retries nothing, so a transient
+  `failed to update the following repositories: [<repo>]` fails `check` — the failing repository differs between runs,
+  and the task passes alone and on a warm cache. Until the retry lands, `check -x verifyInfraImageVersions` is the
+  interim way to verify the rest of the gate — running it under `--rerun-tasks` only guarantees the failure. Give the
+  update a bounded retry, as the actionlint download did; do not set `tolerateFailures = true`, which turns the check
+  into a false pass.
 
 ## 2026-10-12
 

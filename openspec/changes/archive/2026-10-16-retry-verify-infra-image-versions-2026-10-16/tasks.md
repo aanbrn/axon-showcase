@@ -52,7 +52,7 @@
       toleration or the `check -x` interim. It judged the double control covered by the check-evidence bullet, and
       routed the missing `docs/ideas.md` stale-entry sweep to widening `architecture-auditor` rather than to an
       `AGENTS.md` rule — parked as its own idea under 2026-10-16, riding this change. No retirements.
-- [ ] 5.2 Ask the owner for the manual review pass, after 4.4 is clean and 5.1 is done.
+- [x] 5.2 Ask the owner for the manual review pass, after 4.4 is clean and 5.1 is done.
 
 ## 6. The change's own records
 

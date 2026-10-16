@@ -635,6 +635,8 @@ wait for approval before merging.
 ./gradlew dependencyUpdates
 # Web UI npm update report (not part of check)
 ./gradlew :showcase-web-ui:npmOutdated
+# Build-logic plugin pin update report — the pins only the included build resolves (not part of check)
+./gradlew buildLogicUpdates
 
 # Frontend (showcase-web-ui): install, lint, format-check, type-check, tests (verification; the production bundle
 # is built by `build`/`assemble`, like the JVM modules' bootJar)
@@ -823,9 +825,10 @@ weekly schedule and via `workflow_dispatch`, open or update their tracker issue 
 `GITHUB_TOKEN` (`issues: write`), post a comment mentioning the repository owner when there are actionable updates (so
 they are notified), and update the issue silently when there are none. They are observational — never a merge gate.
 `dependency-updates.yml` additionally runs the web UI npm update report (`./gradlew :showcase-web-ui:npmOutdated`) and
-includes its section in the same issue. `upstream-references.yml` follows the same shape for a different question — the
-state of the upstream references the durable artifacts cite, rather than a version comparison — so it is a fifth
-observational check, not a fifth _update_ check, and it is listed below.
+the build-logic pin check (`./gradlew buildLogicUpdates`) and includes their sections in the same issue.
+`upstream-references.yml` follows the same shape for a different question — the state of the upstream references the
+durable artifacts cite, rather than a version comparison — so it is a fifth observational check, not a fifth _update_
+check, and it is listed below.
 
 An added workflow among these — or any other `workflow_dispatch`-enabled scheduled workflow — gets its first real run by
 dispatch, not by waiting for its schedule: GitHub only exposes `workflow_dispatch` once the file exists on the default
@@ -889,9 +892,10 @@ workflow's first run is a dispatch from `main` after its PR merges.
 
 **What each covers:**
 
-- `dependency-updates.yml` — `./gradlew dependencyUpdates` and `./gradlew :showcase-web-ui:npmOutdated`; the actionable
-  sections of `build/dependencyUpdates/report.txt` (stable catalog updates + the Gradle wrapper status) and the web UI
-  npm report, in the "Dependency updates" issue.
+- `dependency-updates.yml` — `./gradlew dependencyUpdates`, `./gradlew :showcase-web-ui:npmOutdated`, and
+  `./gradlew buildLogicUpdates`; the actionable sections of `build/dependencyUpdates/report.txt` (stable catalog
+  updates, the Gradle wrapper status), the web UI npm report, and the build-logic pin report
+  (`build/build-logic-updates/report.txt`), in the "Dependency updates" issue.
 - `helm-updates.yml` — `./gradlew helmUpdates`; the actionable coordinates from `build/helm-updates/report.txt` (the
   Helm CLI and pinned chart versions that have a newer version), in the "Helm updates" issue.
 - `buildpack-updates.yml` — `./gradlew buildpackUpdates`; the pinned builder and buildpack coordinates from
@@ -1003,8 +1007,9 @@ Key modules (libraries, not services):
   rejected alternatives. A version that is not a `group:name` dependency (a buildpack id, a builder tag, `node`) is a
   `[versions]`-only entry with no `[libraries]` module. Catalog ownership is single-sourcing, not update tracking: a
   bare `[versions]` entry is not resolved as a dependency, so `dependencyUpdates` ignores it — but `helmUpdates` reads
-  the Helm CLI and chart pins, `buildpackUpdates` the Paketo builder and buildpack pins, and `toolingUpdates` the CLI
-  versions pinned in workflow files, so only the entries none of them reads must be audited by hand.
+  the Helm CLI and chart pins, `buildpackUpdates` the Paketo builder and buildpack pins, `toolingUpdates` the CLI
+  versions pinned in workflow files, and `buildLogicUpdates` the plugin pins the included `build-logic` build resolves
+  (which the main build's own report cannot see), so only the entries none of them reads must be audited by hand.
 - **A `build-logic` convention plugin's effect is verified through a consuming module, not unit-tested.** `build-logic`
   has no `gradleTestKit()`, so its `src/test` holds unit tests of plain helper objects (`Versions`, the `*Rules`
   classes) and a plugin's Gradle DSL — e.g. `spring-boot-conventions`' `springBoot { buildInfo { … } }` — cannot be
@@ -2142,8 +2147,11 @@ capture-stash-stale-copy
     pattern matches the tool's output. A sibling task that predates your change is not exempt from that positive control
     — grep the other update tasks for the same pattern. A GitHub-backed lookup also sends `GH_TOKEN`/`GITHUB_TOKEN` when
     CI provides one (attached to GitHub requests only, never to the npm one): an anonymous lookup is rate limited, and
-    the throttled body lands exactly where "current" does. captured: unify-tooling-currency-checks (#304) captured:
-    fix-dependency-updates-catalog-extraction
+    the throttled body lands exactly where "current" does. Filter the candidates before selecting the newest: a check
+    that takes the highest release first reports nothing when its filter rejects that release, hiding the acceptable one
+    below it (`BuildLogicPins.latestAccepted` filters with `shouldReject` before `Versions.highest`, so a pin at
+    `3.5.15` still reports `3.5.16` while `4.1.1` is a deferred major). captured: unify-tooling-currency-checks (#304)
+    captured: fix-dependency-updates-catalog-extraction captured: cover-the-included-builds-pins
   - **A parser that returns "no exception" is not a gate that rejects the input class it claims to — know what your
     parser silently accepts.** `DashboardJsonRules` treated a successful `mapper.readTree(file)` as "valid JSON", but
     Jackson returns a `MissingNode` for an empty/blank file rather than throwing, so an empty dashboard passed the gate;
@@ -2947,13 +2955,18 @@ capture-stash-stale-copy
   longer-spelling tiebreak so the _reported_ tag is the canonical form rather than the alias.
 - **A workflow tool pin belongs in the `toolingUpdates` check's declared list — it is the only thing that detects a
   release.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates (and, through the same
-  workflow, the web UI's npm dependencies), `helmUpdates` / `helm-updates.yml` the Helm CLI and pinned charts,
+  workflow, the web UI's npm dependencies), `buildLogicUpdates` / `dependency-updates.yml` the Gradle plugin pins the
+  included `build-logic` build resolves — invisible to the main build's report, and reached by the check's declared list
+  of the aliases that build consumes — `helmUpdates` / `helm-updates.yml` the Helm CLI and pinned charts,
   `buildpackUpdates` / `buildpack-updates.yml` the Paketo builder and buildpacks, `toolingUpdates` /
   `tooling-updates.yml` the versions pinned in workflow files (the OpenSpec, Snyk, `pack`, and gitleaks CLIs), and
-  Dependabot covers `uses:` action refs. Add a pin to that check's declared list when you add it to a workflow — its
-  patterns are asserted to match exactly once, so a renamed input fails the task rather than reading as current — and
-  note that extending the list one pin at a time is how the OpenSpec pin, then the `pack` CLI, was each missed in turn
-  while the check did not exist. A tool pinned in more than one workflow file takes one check entry per file: a check
+  Dependabot covers `uses:` action refs. Add a pin to that check's declared list when you add it to a workflow, and
+  machine-assert the list's members against the file that declares them rather than trusting the list to be maintained
+  by hand — a pattern is asserted to match exactly once (a renamed input fails the task rather than reading as current),
+  while `buildLogicUpdates` asserts its declared aliases equal the `-plugin` aliases `build-logic`'s own script
+  consumes, so a pin added there fails the check instead of going uncovered — since extending a list by hand one pin at
+  a time is how the OpenSpec pin, then the `pack` CLI, was each missed in turn while the check did not exist. captured:
+  cover-the-included-builds-pins A tool pinned in more than one workflow file takes one check entry per file: a check
   reads exactly one `workflowFile`, which must also be registered in `pinFiles`, and a file no entry names has its pin
   silently unchecked (the smoke's `pack` pin sat unlisted until it gained its own `pack-cli (deployment-smoke.yml)`
   entry) — name each entry per file (`pack-cli (e2e.yml)`, `pack-cli (release.yml)`, `pack-cli (deployment-smoke.yml)`),

@@ -14,8 +14,23 @@ internal object DependencyUpdateRules {
     /** A catalog library entry's `group`, `name`, and the `[versions]` key it references. */
     private val LIBRARY_ENTRY = Regex("""= \{ group = "([^"]+)", name = "([^"]+)", version.ref = "([^"]+)""")
 
+    /** The same entry with its alias, for a reader that selects a library by the alias a build script consumes. */
+    private val LIBRARY_ALIAS_ENTRY =
+        Regex("""^([A-Za-z0-9._-]+) = \{ group = "([^"]+)", name = "([^"]+)", version.ref = "([^"]+)"""")
+
     /** A `[versions]` entry's key and quoted value. */
     private val VERSION_ENTRY = Regex("""^([A-Za-z0-9._-]+)\s*=\s*"([^"]+)"$""")
+
+    /** The catalog's `[versions]` values in [lines], keyed by entry name. */
+    private fun declaredVersions(lines: List<String>): Map<String, String> =
+        lines
+            .asSequence()
+            .map { it.trim() }
+            .dropWhile { it != "[versions]" }
+            .drop(1)
+            .takeWhile { !it.startsWith("[") }
+            .mapNotNull { VERSION_ENTRY.find(it) }
+            .associate { it.groupValues[1] to it.groupValues[2] }
 
     /**
      * The catalog's `coordinate -> version` pairs in [lines], from the same `version.ref` entries the report scopes
@@ -24,20 +39,28 @@ internal object DependencyUpdateRules {
      * a version the catalog does not declare.
      */
     fun catalogVersions(lines: List<String>): Map<String, String> {
-        val versions =
-            lines
-                .asSequence()
-                .map { it.trim() }
-                .dropWhile { it != "[versions]" }
-                .drop(1)
-                .takeWhile { !it.startsWith("[") }
-                .mapNotNull { VERSION_ENTRY.find(it) }
-                .associate { it.groupValues[1] to it.groupValues[2] }
-
+        val versions = declaredVersions(lines)
         return lines
             .mapNotNull { LIBRARY_ENTRY.find(it) }
             .mapNotNull {
                 versions[it.groupValues[3]]?.let { version -> "${it.groupValues[1]}:${it.groupValues[2]}" to version }
+            }
+            .toMap()
+    }
+
+    /**
+     * The catalog's `alias -> entry` libraries in [lines], for a reader that selects a library by the alias a build
+     * script consumes rather than by its coordinate. An entry whose referenced version is absent is skipped, as in
+     * [catalogVersions].
+     */
+    fun catalogLibraries(lines: List<String>): Map<String, CatalogLibrary> {
+        val versions = declaredVersions(lines)
+        return lines
+            .mapNotNull { LIBRARY_ALIAS_ENTRY.find(it) }
+            .mapNotNull {
+                versions[it.groupValues[4]]?.let { version ->
+                    it.groupValues[1] to CatalogLibrary(it.groupValues[2], it.groupValues[3], version)
+                }
             }
             .toMap()
     }
@@ -144,3 +167,6 @@ internal object DependencyUpdateRules {
             heldBack
     }
 }
+
+/** A catalog library's coordinate and declared version, as the alias it is declared under names them. */
+internal data class CatalogLibrary(val group: String, val module: String, val version: String)

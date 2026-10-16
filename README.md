@@ -511,7 +511,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/apply-audit-reductions`    | Applies an audit report's merge/removal/route reduction candidates as merged text, pointers, or deletions, under the review gate                                                                                   |
 | `/diagram`                   | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer                                                                                                                                           |
 | `/retrospective`             | Periodic retrospective with improvement suggestions                                                                                                                                                                |
-| `/dependency-updates`        | Runs and summarizes the Gradle and web-UI dependency update reports                                                                                                                                                |
+| `/dependency-updates`        | Runs and summarizes the Gradle, web-UI, and build-logic pin dependency update reports                                                                                                                              |
 | `/gradle-update`             | Updates the Gradle wrapper to the latest stable                                                                                                                                                                    |
 | `/dependency-security-check` | Runs the Snyk and web-UI npm dependency security scans                                                                                                                                                             |
 | `/opsx-tool-update`          | Regenerates the OpenSpec command/skill files after an openspec CLI release                                                                                                                                         |
@@ -862,12 +862,12 @@ ingress, so a deployment that installs but does not serve is noticed without any
 and the web-UI npm audit (`:showcase-web-ui:npmAudit`) — on a weekly schedule and via `workflow_dispatch` —
 observational, never a merge gate.
 
-`.github/workflows/dependency-updates.yml` runs the Gradle and web-UI dependency update reports (`dependencyUpdates` and
-`:showcase-web-ui:npmOutdated`) on a weekly schedule and via `workflow_dispatch`, opening or updating the "Dependency
-updates" issue with only the actionable sections (stable catalog updates + Gradle wrapper status + web UI npm updates)
-using the `GITHUB_TOKEN` (`issues: write`). When there are actionable updates it posts a comment mentioning the
-repository owner (so they are notified); runs with no updates update the issue silently — observational, never a merge
-gate.
+`.github/workflows/dependency-updates.yml` runs the Gradle, web-UI, and build-logic pin dependency update reports
+(`dependencyUpdates`, `:showcase-web-ui:npmOutdated`, and `buildLogicUpdates`) on a weekly schedule and via
+`workflow_dispatch`, opening or updating the "Dependency updates" issue with only the actionable sections (stable
+catalog updates + Gradle wrapper status + web UI npm updates + build-logic plugin pins) using the `GITHUB_TOKEN`
+(`issues: write`). When there are actionable updates it posts a comment mentioning the repository owner (so they are
+notified); runs with no updates update the issue silently — observational, never a merge gate.
 
 `.github/workflows/helm-updates.yml` runs the Helm update check (`helmUpdates`) on a weekly schedule and via
 `workflow_dispatch`, opening or updating the "Helm updates" issue with the actionable coordinates (the Helm CLI and
@@ -909,6 +909,7 @@ follow-up pull request, so the next release has a base. It is not a merge gate.
 ```bash
 ./gradlew dependencyUpdates            # report available dependency updates
 ./gradlew :showcase-web-ui:npmOutdated # report the web UI's outdated npm dependencies
+./gradlew buildLogicUpdates            # report available updates for build-logic's plugin pins
 ./gradlew dependencySecurityCheck      # Snyk dependency security scan (needs Snyk CLI, not part of check)
 ./gradlew :showcase-web-ui:npmAudit    # web UI npm vulnerability audit (not part of check)
 ./gradlew helmUpdates                  # report available Helm CLI/chart updates
@@ -938,6 +939,11 @@ The web UI's npm dependencies are covered separately: `:showcase-web-ui:npmOutda
 excluding the majors suppressed in `config/web-ui-updates/major-disabled.txt`, as the JVM report excludes its own — and
 `:showcase-web-ui:npmAudit` audits them for high-severity vulnerabilities. See ADR-0014 for why the web UI uses npm's
 own tooling rather than Snyk.
+
+The Gradle plugin versions the included `build-logic` build pins are covered separately too: they resolve only on that
+build's buildscript classpath, so `dependencyUpdates` cannot see them, and `buildLogicUpdates` looks each one up in the
+Gradle Plugin Portal with the same stability rule and suppression files, reporting them in the "Dependency updates"
+issue.
 
 The `/dependency-updates` OpenCode command runs these reports and summarizes the available updates; the `/gradle-update`
 command updates the Gradle wrapper to the latest stable version when one is available, and the `/opsx-tool-update`

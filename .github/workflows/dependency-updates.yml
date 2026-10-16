@@ -42,6 +42,9 @@ jobs:
       - name: Run web UI dependency update report
         run: ./gradlew :showcase-web-ui:npmOutdated
 
+      - name: Run build-logic pin update report
+        run: ./gradlew buildLogicUpdates
+
       - name: Open or update the dependency updates issue
         shell: bash
         run: |
@@ -72,6 +75,9 @@ jobs:
           npm_updates="$(cat "$npm_report_file" 2>/dev/null || true)"
           npm_exit="$(cat "$npm_exit_file" 2>/dev/null || true)"
 
+          blpin_report_file=build/build-logic-updates/report.txt
+          blpin_updates="$(grep -v '^No build-logic pin updates available' "$blpin_report_file" 2>/dev/null || true)"
+
           if [ -z "$npm_updates" ] && [ -n "$npm_exit" ] && [ "$npm_exit" != "0" ]; then
             echo "The web UI dependency update report failed:" >&2
             cat "$npm_err_file" || true
@@ -88,14 +94,20 @@ jobs:
           if [ -n "$npm_updates" ]; then
             has_updates=true
           fi
+          if [ -n "$blpin_updates" ]; then
+            has_updates=true
+          fi
 
           if [ "$has_updates" = true ]; then
             body="cc @$owner"$'\n\n'"\`\`\`text"$'\n'"$updates"$'\n'"$gradle"$'\n'"\`\`\`"
             if [ -n "$npm_updates" ]; then
               body="$body"$'\n\n'"**Web UI (npm)**"$'\n\n'"\`\`\`text"$'\n'"$npm_updates"$'\n'"\`\`\`"
             fi
+            if [ -n "$blpin_updates" ]; then
+              body="$body"$'\n\n'"**Build-logic pins**"$'\n\n'"\`\`\`text"$'\n'"$blpin_updates"$'\n'"\`\`\`"
+            fi
           else
-            body="No stable catalog updates available."
+            body="No stable updates available."
           fi
 
           existing="$(gh issue list --repo "${{ github.repository }}" \

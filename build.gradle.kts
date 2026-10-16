@@ -336,6 +336,41 @@ tasks.register("toolingUpdates", ToolingUpdatesTask::class.java) {
     outputs.upToDateWhen { false }
 }
 
+val buildLogicPluginPins =
+    listOf(
+        "kotlin-plugin",
+        "lombok-plugin",
+        "spring-boot-plugin",
+        "protobuf-plugin",
+        "gatling-plugin",
+        "dependencyVersions-plugin",
+        "errorprone-plugin",
+        "spotbugs-plugin",
+        "spotless-plugin",
+        "helm-plugin",
+        "helm-releases-plugin",
+        "node-plugin",
+    )
+
+tasks.register("buildLogicUpdates", BuildLogicUpdatesTask::class.java) {
+    group = "help"
+    description = "Displays the plugin versions the included build-logic build pins that have a newer release."
+
+    aliases.set(buildLogicPluginPins)
+
+    catalogFile.set(rootProject.layout.projectDirectory.file("gradle/libs.versions.toml"))
+
+    buildLogicBuildFile.set(rootProject.layout.projectDirectory.file("build-logic/build.gradle.kts"))
+
+    majorDisabledFile.set(rootProject.layout.projectDirectory.file("config/dependency-updates/major-disabled.txt"))
+
+    holdBackFile.set(rootProject.layout.projectDirectory.file("config/dependency-updates/hold-back.txt"))
+
+    reportFile.set(layout.buildDirectory.file("build-logic-updates/report.txt"))
+
+    outputs.upToDateWhen { false }
+}
+
 tasks.register("upstreamReferences", UpstreamReferencesTask::class.java) {
     group = "help"
     description = "Displays the state of the upstream references cited in the repository's durable artifacts."

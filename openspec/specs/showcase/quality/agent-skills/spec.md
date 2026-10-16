@@ -9,10 +9,11 @@ diagram agents, and the on-demand auditors of the project-owned agent tooling (t
 `.opencode/` files, plus any generated or vendored file that contradicts how the repository uses it, the meta rules it
 reports with their origins, and the merge, removal, and route candidates it reports), of the `openspec/specs/` corpus,
 of the architecture (the ADRs, the service, module, and spec-decomposition surface, where a deliberate decision's
-rationale is not recorded, and where a deferral's recorded `Revisit when:` condition appears met), of the human-facing
-`README.md` (its claims against the repository, its shape against the README convention, and its coverage of the
-human-visible capabilities), and the scheduled unattended run that performs the audits without a human asking, together
-with the standing owner-gated unit that applies an audit report's reduction candidates.
+rationale is not recorded, and where a record's recorded premise appears met — a deferral's `Revisit when:` condition,
+or a parked `docs/ideas.md` entry whose work has landed), of the human-facing `README.md` (its claims against the
+repository, its shape against the README convention, and its coverage of the human-visible capabilities), and the
+scheduled unattended run that performs the audits without a human asking, together with the standing owner-gated unit
+that applies an audit report's reduction candidates.
 
 ## Requirements
 
@@ -474,15 +475,18 @@ implies a rejected alternative: dependency `exclude(...)` declarations; major-ve
 `config/dependency-updates/hold-back.txt`, and the web UI packages for which the npm report suppresses majors in
 `config/web-ui-updates/major-disabled.txt`; suppression annotations that encode a design choice (`@SuppressWarnings`)
 and deprecated-API usages the project still carries; deferrals or band-aids recorded in an ADR or parked in
-`docs/ideas.md`; and a decision deferred in an ADR whose recorded `Revisit when:` condition appears met, holding the
-condition against the repository where it names a checkable fact (an external coordinate or a consumed artifact's
-adoption) and not reporting a condition that names no such fact. For the first class it SHALL verify by searching the
-repository that no rationale is recorded before reporting an item, and SHALL NOT report a choice whose rationale is
-already recorded; the deferred-decision class is the inverse — its rationale is recorded, and it is reported only when
-that record's premise appears to have expired. Each item SHALL name the deliberate choice or absence with its location,
-and SHALL state the question whose answer would record the missing rationale — for a deferred decision, the recorded
-condition and the signal that appears to meet it. The items SHALL be advisory: reported without severity, and SHALL NOT
-be treated as defects to fix, because only the project owner can say which unrecorded rationales matter.
+`docs/ideas.md`; and a record whose premise appears to have expired — a decision deferred in an ADR whose recorded
+`Revisit when:` condition appears met, or a parked `docs/ideas.md` entry whose work has already landed. It SHALL hold
+the condition against the repository where it names a checkable fact (an external coordinate or a consumed artifact's
+adoption), and the parked entry against the change, commit, workflow or mechanism the entry describes rather than an
+artifact it merely cites, and SHALL NOT report one that names no such fact. For the first class it SHALL verify by
+searching the repository that no rationale is recorded before reporting an item, and SHALL NOT report a choice whose
+rationale is already recorded; the deferred-and-parked-record class is the inverse — its rationale is recorded, and it
+is reported only when that record's premise appears to have expired. Each item SHALL name the deliberate choice or
+absence with its location, and SHALL state the question whose answer would record the missing rationale — for a record
+whose premise appears to have expired, the recorded condition or parked entry and the signal that appears to meet it.
+The items SHALL be advisory: reported without severity, and SHALL NOT be treated as defects to fix, because only the
+project owner can say which unrecorded rationales matter.
 
 #### Scenario: An unexplained deliberate choice is surfaced as a question
 
@@ -519,6 +523,19 @@ be treated as defects to fix, because only the project owner can say which unrec
   trigger) and no such fact has changed
 - **THEN** the auditor does not report that ADR, since the condition is not one the repository's own state can meet or
   refute
+
+#### Scenario: A parked idea whose work has landed is surfaced
+
+- **WHEN** the `architecture-auditor` subagent sweeps `docs/ideas.md` and finds a parked entry whose own work exists in
+  the repository (its change, commit, workflow or mechanism is there)
+- **THEN** it reports the entry and its location in the advisory section together with the question whose answer would
+  retire it, so the owner can confirm and remove it
+
+#### Scenario: A parked idea that merely cites an artifact is not reported
+
+- **WHEN** a parked entry only names an artifact as context (a companion change, a workflow, or a file it refers to) and
+  the work the entry itself describes does not exist
+- **THEN** it is not reported, so the audit's output stays a list of open questions
 
 ### Requirement: Report-producing subagents follow a shared report contract
 

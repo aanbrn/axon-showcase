@@ -27,13 +27,19 @@
       corrupted every ticked task, the residue of that fix claimed a form it no longer used, and the class name and a
       list member were stated twice — all fixed by re-authoring or deleting, per the repeated-class remedy. The reused
       reviewer session (rounds 8-14) is what made the residues visible.
-- [ ] 3.3 **Smoke-run the widened subagent** with positive controls: a seeded stale `docs/ideas.md` entry it must
-      report, and a parked entry it must not (one whose citations are context). **Record the run's output and which
-      control each finding came from, and verify each seed's premise against the repository before reading the run** — a
-      seed the repository does not exhibit leaves the branch unexercised rather than failing, and the negative control
-      is vacuous unless its described work is confirmed absent. Needed because the edited definition is served from the
-      pre-change copy in this session, this smoke-run is a precondition for the **archive**: the owner's reload or new
-      session comes first, and the run happens before the archive commit.
+- [x] 3.3 **Ran after a restart, and passed both controls.** The run was given a neutral prompt ("Audit the
+      architecture... report as your contract specifies") so it demonstrated its behaviour rather than my expectations,
+      and each control's premise was verified first: the seeded entry's work exists (`56edc8ea`, #602 — `BoundedRetry`
+      wraps the gate's repo add/update) and the negative control's does not. **Positive**: it reported the seeded entry
+      (`docs/ideas.md:18-20`) with that evidence, as an advisory question. **Negative**: it did not report the
+      2026-10-12 `architecture-auditor` deferral-check entry. **Beyond the seed**: one advisory, ADR-0003's Jackson-3
+      `Revisit when:` gate — the standing item the 2026-10-05 audits already carry, not caused by this change. Verdict
+      line: `0 findings, 2 advisory`. report, and a parked entry it must not (one whose citations are context). **Record
+      the run's output and which control each finding came from, and verify each seed's premise against the repository
+      before reading the run** — a seed the repository does not exhibit leaves the branch unexercised rather than
+      failing, and the negative control is vacuous unless its described work is confirmed absent. Needed because the
+      edited definition is served from the pre-change copy in this session, this smoke-run is a precondition for the
+      **archive**: the owner's reload or new session comes first, and the run happens before the archive commit.
 - [x] 3.4 Run the `lesson-capture` subagent over the diff, apply its durable proposals, and record the applied net
       `AGENTS.md` delta: **+2 lines**, one clause merged into the quick-review bullet's claims-table anchor sentence — a
       site named for a later sweep is quoted by text or token, never by a line number, since a concurrent merge moves

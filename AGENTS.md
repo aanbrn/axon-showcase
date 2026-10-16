@@ -101,67 +101,69 @@ pass that found nothing. Its output is the change's **claims table** — each fa
 (the prior artifacts it rests on) with its source or the deriving command, its rows seeded from the recurring classes
 `docs/review-rounds.tsv` records — in `design.md`, or in `tasks.md` for a unit that writes no `design.md`, or on the
 pull-request checklist line for a unit with no change dir. A row about an artifact the change itself edits anchors its
-source to that artifact's pre-change state (`git show HEAD:<path>`): it stops reproducing once the change lands. Pass
-each prior finding's **instance** (`file:line` and the claim) from the prior round's report on every re-run, not only
-its class, so the subagent can report an unfixed prior instance or a new instance of an exhausted class rather than
-classifying each round in isolation; the instances live only in that report, not the class-only record line, so a loop
-whose **caller** is about to lose its context — a new session — writes them to a handover before it is lost and resumes
-by running the round. The reviewer's session is the caller's to reuse across rounds, or to start fresh when it has
-expired (a subagent session can); what each round must not do is lean on the reviewer's memory in place of the hand-off,
-which is the caller's record. The caller's own re-check of the handover is a recorded deviation, not a passed round (a
-resumed round found defects the handover's self-review had passed). captured: retrospective-2026-10-15 A finding that
-adds behavior is a scope change, not a code fix: applying it to the code and a test alone leaves the change's planning
-artifacts — proposal, design, tasks, and delta spec — describing the old behavior, and the next round reports the
-residue as spec-/task-drift: sweep every one of them, not only the file the finding names, as part of applying the
-finding (and the docs, per the docs-refresh convention). A **framing or coherence** correction takes the same sweep even
-though it adds no behavior: the artifacts the change states the model across — planning and shipped alike — state one
-model of the subject, so correcting the model in the artifacts the finding names leaves a sibling — often the shipped
-copy, not only `proposal.md` — stating the old framing, which the next round flags as coherence drift. Re-read every
-artifact that states the corrected claim, `proposal.md` and the shipped copies included, before re-running the review.
-When one source owns the claim — a predicate the requirement owns (a threshold, band, or formula), or a scope the owning
-definition states via its class names — single-source it: state it once there and repeat it identically (referencing it
-by name where the site can), since a restated copy re-anchors on its own (a README copy made the matching band a tenth
-of the _measured_ rate where the requirement and code use the _recorded_ one) and the sweep has no canonical wording to
-sweep to. captured: record-baseline-operating-point captured: widen-architecture-auditor-to-revisit-triggers captured:
-add-apply-audit-reductions-command. A clean quick review is a precondition for asking for the manual review, **not** a
-substitute for it — it means _ask the user now_, not _the implementation is approved_. Never commit, push, open a PR,
-archive, or merge on the strength of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR
-(#152) within minutes, without ever requesting the manual pass. The commit → push → PR → CI → archive sequence starts
-only after the user approves the implementation — the "Run CI before archiving" convention does not authorize committing
-earlier. An unanswered approval request is not an approval: a reply that does not address it — the user asks about
-something else, or the thread moves on — leaves the request outstanding, so re-ask explicitly before committing,
-pushing, opening the PR, archiving, or merging, and do not read a tangential reply as clearance. The request outlives
-its unit too: when a reply moves the thread to the next unit, re-ask it before starting that unit — the new branch
-forked from `main` excludes the unmerged one, so its edits read pre-change there (expected, not a revert). captured:
-bump-snyk-cli-2026-10-12 captured: require-check-controls-as-tests Work done while awaiting the pass must stay in the
-working tree until it is given; as the owner recounted afterwards, a clean quick review asked for the manual pass, the
-reply asked about lesson capture instead, and the capture was folded into the same branch and the work continued —
-nothing was committed before the repeated request was answered, but the request had been missed. The `review-quick`
-subagent's finding classes (the canonical list its own contract carries), its repeated-class flag, its class-exhaustion
-clause, its per-round record line, and its record-artifact loop bound are specified in `showcase/quality/agent-skills`,
-as is the pre-write pass record — see there rather than here — so act on its verdict line rather than on your own
-recollection of the thread. A review loop that keeps finding the **same class** of observation round after round is not
-converging — each fix is treating a symptom of a root cause that is still there, and the next round will find another
-instance. Stop and re-derive the root cause — when the recurring class is a claim about another artifact **or about the
-change's own mechanism** that under-describes or contradicts it (a surface list, an artifact set, a list of touched
-files or test sites, a count, a unit, a decision's numbers, **what a command yields or which inputs it can receive**),
-the root cause is that claim written from memory rather than derived from the surface it summarizes; re-derive it by
-grepping the corpus, the archive, the change's sibling artifacts, and the diff **— or, for a mechanism claim, by running
-the tool** — or, when the change's mechanism does not need the claim, **delete it** and shrink the change to its
-mechanism — the `derive-the-change-claims` proposal loop ran 14 rounds until that rewrite — or abandon the unit; do not
-layer another special case. A second root-cause shape is a passage the change was single-sourcing: each round finds
-another residue of the duplicate the pointer should have removed because the edit trimmed the sub-clause that round
-named; replace the whole duplicated unit in one edit and derive what stays at the pointing site from that site's own
-subject, not from the finding. captured: single-source-the-scheduled-audit-mechanism A third shape is a rule's own
-boundary wording: a discriminator that reads plausibly but excludes the very case it was written for must be re-derived
-from the mechanism that distinguishes the cases — not merely re-worded — and tested against that motivating case before
-its wording is swept across the artifact set. captured: relax-diagram-span-rule A fourth shape is the change's own
-claims table: when the repeated class is its completeness (a stated fact it omits, a source that does not reproduce),
-adding the omitted row re-triggers — the rows track the facts the artifacts state — so delete the unneeded fact rather
-than add the row. captured: dont-report-what-a-gate-covers A revert after a non-converging loop is a legitimate outcome
-— record why in the change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362)
-captured: realistic-load-test-profiles captured: check-load-test-drift captured: check-unique-cron-schedules (#436)
-captured: derive-retrospective-facts captured: derive-the-change-claims
+source to that artifact's pre-change state (`git show HEAD:<path>`): it stops reproducing once the change lands. A site
+named for a later sweep is quoted by its text or token, never by a line number — a concurrent merge moves it, so the
+anchor is stale as committed (`AGENTS.md:NNNN` anchors were two lines out here). captured:
+widen-architecture-auditor-to-stale-ideas Pass each prior finding's **instance** (`file:line` and the claim) from the
+prior round's report on every re-run, not only its class, so the subagent can report an unfixed prior instance or a new
+instance of an exhausted class rather than classifying each round in isolation; the instances live only in that report,
+not the class-only record line, so a loop whose **caller** is about to lose its context — a new session — writes them to
+a handover before it is lost and resumes by running the round. The reviewer's session is the caller's to reuse across
+rounds, or to start fresh when it has expired (a subagent session can); what each round must not do is lean on the
+reviewer's memory in place of the hand-off, which is the caller's record. The caller's own re-check of the handover is a
+recorded deviation, not a passed round (a resumed round found defects the handover's self-review had passed). captured:
+retrospective-2026-10-15 A finding that adds behavior is a scope change, not a code fix: applying it to the code and a
+test alone leaves the change's planning artifacts — proposal, design, tasks, and delta spec — describing the old
+behavior, and the next round reports the residue as spec-/task-drift: sweep every one of them, not only the file the
+finding names, as part of applying the finding (and the docs, per the docs-refresh convention). A **framing or
+coherence** correction takes the same sweep even though it adds no behavior: the artifacts the change states the model
+across — planning and shipped alike — state one model of the subject, so correcting the model in the artifacts the
+finding names leaves a sibling — often the shipped copy, not only `proposal.md` — stating the old framing, which the
+next round flags as coherence drift. Re-read every artifact that states the corrected claim, `proposal.md` and the
+shipped copies included, before re-running the review. When one source owns the claim — a predicate the requirement owns
+(a threshold, band, or formula), or a scope the owning definition states via its class names — single-source it: state
+it once there and repeat it identically (referencing it by name where the site can), since a restated copy re-anchors on
+its own (a README copy made the matching band a tenth of the _measured_ rate where the requirement and code use the
+_recorded_ one) and the sweep has no canonical wording to sweep to. captured: record-baseline-operating-point captured:
+widen-architecture-auditor-to-revisit-triggers captured: add-apply-audit-reductions-command. A clean quick review is a
+precondition for asking for the manual review, **not** a substitute for it — it means _ask the user now_, not _the
+implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength of a clean `review-quick`
+alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes, without ever requesting the manual
+pass. The commit → push → PR → CI → archive sequence starts only after the user approves the implementation — the "Run
+CI before archiving" convention does not authorize committing earlier. An unanswered approval request is not an
+approval: a reply that does not address it — the user asks about something else, or the thread moves on — leaves the
+request outstanding, so re-ask explicitly before committing, pushing, opening the PR, archiving, or merging, and do not
+read a tangential reply as clearance. The request outlives its unit too: when a reply moves the thread to the next unit,
+re-ask it before starting that unit — the new branch forked from `main` excludes the unmerged one, so its edits read
+pre-change there (expected, not a revert). captured: bump-snyk-cli-2026-10-12 captured: require-check-controls-as-tests
+Work done while awaiting the pass must stay in the working tree until it is given; as the owner recounted afterwards, a
+clean quick review asked for the manual pass, the reply asked about lesson capture instead, and the capture was folded
+into the same branch and the work continued — nothing was committed before the repeated request was answered, but the
+request had been missed. The `review-quick` subagent's finding classes (the canonical list its own contract carries),
+its repeated-class flag, its class-exhaustion clause, its per-round record line, and its record-artifact loop bound are
+specified in `showcase/quality/agent-skills`, as is the pre-write pass record — see there rather than here — so act on
+its verdict line rather than on your own recollection of the thread. A review loop that keeps finding the **same class**
+of observation round after round is not converging — each fix is treating a symptom of a root cause that is still there,
+and the next round will find another instance. Stop and re-derive the root cause — when the recurring class is a claim
+about another artifact **or about the change's own mechanism** that under-describes or contradicts it (a surface list,
+an artifact set, a list of touched files or test sites, a count, a unit, a decision's numbers, **what a command yields
+or which inputs it can receive**), the root cause is that claim written from memory rather than derived from the surface
+it summarizes; re-derive it by grepping the corpus, the archive, the change's sibling artifacts, and the diff **— or,
+for a mechanism claim, by running the tool** — or, when the change's mechanism does not need the claim, **delete it**
+and shrink the change to its mechanism — the `derive-the-change-claims` proposal loop ran 14 rounds until that rewrite —
+or abandon the unit; do not layer another special case. A second root-cause shape is a passage the change was
+single-sourcing: each round finds another residue of the duplicate the pointer should have removed because the edit
+trimmed the sub-clause that round named; replace the whole duplicated unit in one edit and derive what stays at the
+pointing site from that site's own subject, not from the finding. captured: single-source-the-scheduled-audit-mechanism
+A third shape is a rule's own boundary wording: a discriminator that reads plausibly but excludes the very case it was
+written for must be re-derived from the mechanism that distinguishes the cases — not merely re-worded — and tested
+against that motivating case before its wording is swept across the artifact set. captured: relax-diagram-span-rule A
+fourth shape is the change's own claims table: when the repeated class is its completeness (a stated fact it omits, a
+source that does not reproduce), adding the omitted row re-triggers — the rows track the facts the artifacts state — so
+delete the unneeded fact rather than add the row. captured: dont-report-what-a-gate-covers A revert after a
+non-converging loop is a legitimate outcome — record why in the change dir so the decision is not re-litigated.
+captured: propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured: check-load-test-drift
+captured: check-unique-cron-schedules (#436) captured: derive-retrospective-facts captured: derive-the-change-claims
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -1147,37 +1149,38 @@ Key modules (libraries, not services):
   shipped — `docs/ideas.md`, and a retrospective's suggestion rows and prose, which the change marks **Applied** rather
   than removes. An open idea that still calls it "the proposed X" is itself a stale claim: update its prose in the same
   change, including any enumeration or count it carries ("two others remain open: A, B") that the change's new instance
-  makes wrong. No auditor covers either file — the four auditors own `AGENTS.md`/`.opencode/`, the spec corpus,
-  `docs/adr/` plus the architectural surface, and `README.md`. Docs that ARE the change (new agent/command/skill
-  documentation, README rows describing a new capability, the change's idea removal) ship with the change's PR. For
-  every other docs edit the boundary is **causation _while the change is in flight_**: an edit the change causes and
-  that exists while it can still ride a branch — a lesson from its implementation (the capture), an idea its own sweep
-  surfaced, a fact it falsified — ships in that change's PR, while an edit the change did not cause (a stale fact it
-  merely passed by, a standalone reword, a refresh of an already-completed change) and one surfaced only after the
-  change is done (a merge-time capture, caused by the change but with no branch left to ride) ships as its own docs PR,
-  forked from `main`, batched into one docs PR rather than one per item. Decide the owner before committing — a docs PR
-  forked from `main` cannot carry an edit committed on a change branch, so committing it there first for a clean tree
-  silently leaves it out of the docs PR and `main` unchanged — and verify the fix against the merged PR's diff rather
-  than the PR description, which can claim a change the diff does not contain. A parked-idea docs PR owes the refresh
-  too: fold any durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly
-  surfaced manual pin to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a fact left only there
-  is lost once the idea is implemented or dropped. `openspec/config.yaml`'s `context:` block is a second, un-gated copy
-  of the same project facts (runtime/Spring/Gradle versions, module count, service list, Docker image names) that
-  OpenSpec shows the AI when creating artifacts — refresh it in the same change whenever one of those facts moves. Some
-  of its per-artifact `rules` restate obligations stated in `AGENTS.md` and the specs, and what is un-gated is their
-  content and currency: `ci.yml`'s probe fails on a malformed item — the list's shape, since a bad one silently drops
-  the whole artifact's rule set — but not on whether a rule's wording still matches `AGENTS.md` and the spec, so refresh
-  a rule whose obligation moves even though the gate stays green. A **removal** counts too: when a sweep deletes an
-  entry as non-durable, check these copies for the same sentence — the fact has not moved, so the move rule does not
-  fire (`disable-axoniq-console-message`'s sentence outlived #292's removal from `AGENTS.md` by four PRs in
-  `config.yaml`, until the audit noticed). `openspec validate` never checks it, so it drifts silently. The repository's
-  own GitHub description and topics are a third un-gated copy of the same facts — so refresh them in the change that
-  moves one; no gate reads them and no auditor owns a surface outside the repository. A file can also _depend_ on such a
-  surface rather than describe one: `SECURITY.md`'s private-reporting path is a dead end unless private vulnerability
-  reporting is enabled. Enable the setting as part of the change that ships the instruction — a repository setting
-  leaves no diff, so a diff-only review cannot see it — and name the enabling in the change's report. captured:
-  park-retro-marking-idea (#281) captured: re-measure-load-test-baseline (#429) captured: mark-s3-applied captured:
-  attribute-load-test-tail (#570)
+  makes wrong. No auditor **owns** either file — the four auditors own `AGENTS.md`/`.opencode/`, the spec corpus,
+  `docs/adr/` plus the architectural surface, and `README.md`; the architecture-auditor's sweep reaches `docs/ideas.md`
+  for a parked entry's staleness, but the file still has no owning auditor. Docs that ARE the change (new
+  agent/command/skill documentation, README rows describing a new capability, the change's idea removal) ship with the
+  change's PR. For every other docs edit the boundary is **causation _while the change is in flight_**: an edit the
+  change causes and that exists while it can still ride a branch — a lesson from its implementation (the capture), an
+  idea its own sweep surfaced, a fact it falsified — ships in that change's PR, while an edit the change did not cause
+  (a stale fact it merely passed by, a standalone reword, a refresh of an already-completed change) and one surfaced
+  only after the change is done (a merge-time capture, caused by the change but with no branch left to ride) ships as
+  its own docs PR, forked from `main`, batched into one docs PR rather than one per item. Decide the owner before
+  committing — a docs PR forked from `main` cannot carry an edit committed on a change branch, so committing it there
+  first for a clean tree silently leaves it out of the docs PR and `main` unchanged — and verify the fix against the
+  merged PR's diff rather than the PR description, which can claim a change the diff does not contain. A parked-idea
+  docs PR owes the refresh too: fold any durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section
+  (e.g. add a newly surfaced manual pin to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a
+  fact left only there is lost once the idea is implemented or dropped. `openspec/config.yaml`'s `context:` block is a
+  second, un-gated copy of the same project facts (runtime/Spring/Gradle versions, module count, service list, Docker
+  image names) that OpenSpec shows the AI when creating artifacts — refresh it in the same change whenever one of those
+  facts moves. Some of its per-artifact `rules` restate obligations stated in `AGENTS.md` and the specs, and what is
+  un-gated is their content and currency: `ci.yml`'s probe fails on a malformed item — the list's shape, since a bad one
+  silently drops the whole artifact's rule set — but not on whether a rule's wording still matches `AGENTS.md` and the
+  spec, so refresh a rule whose obligation moves even though the gate stays green. A **removal** counts too: when a
+  sweep deletes an entry as non-durable, check these copies for the same sentence — the fact has not moved, so the move
+  rule does not fire (`disable-axoniq-console-message`'s sentence outlived #292's removal from `AGENTS.md` by four PRs
+  in `config.yaml`, until the audit noticed). `openspec validate` never checks it, so it drifts silently. The
+  repository's own GitHub description and topics are a third un-gated copy of the same facts — so refresh them in the
+  change that moves one; no gate reads them and no auditor owns a surface outside the repository. A file can also
+  _depend_ on such a surface rather than describe one: `SECURITY.md`'s private-reporting path is a dead end unless
+  private vulnerability reporting is enabled. Enable the setting as part of the change that ships the instruction — a
+  repository setting leaves no diff, so a diff-only review cannot see it — and name the enabling in the change's report.
+  captured: park-retro-marking-idea (#281) captured: re-measure-load-test-baseline (#429) captured: mark-s3-applied
+  captured: attribute-load-test-tail (#570)
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
@@ -1380,28 +1383,29 @@ Key modules (libraries, not services):
   `/audit-specs` command. It deliberately does **not** check behavior against the code — the change workflow's review
   loop and the archive-time sync own that. The main agent applies approved findings through the normal change workflow
   (a spec edit is a change). The scheduled variant runs unattended in the `audit` workflow.
-- **Architecture-auditor subagent for design drift, unrecorded intent, and due deferrals**: the `architecture-auditor`
-  subagent (`.opencode/agent/architecture-auditor.md`) audits `docs/adr/` plus the architectural surface (the service
-  boundaries, the module dependency graph, and the spec corpus's capability decomposition) for drift from its recorded
-  decisions, and reports **where clarification of intent is missing** — a deliberate choice or absence whose rationale
-  is not recorded — and **a deferral whose recorded `Revisit when:` condition appears met** (its finding classes, its
-  advisory section, and the report contract are in the `agent-skills` spec). It sweeps the surfaces a rationale must
-  exist for (dependency `exclude(...)` declarations, the major-version-suppressed, held-back, and web-UI-npm-suppressed
+- **Architecture-auditor subagent for design drift, unrecorded intent, and a record whose premise is due**: the
+  `architecture-auditor` subagent (`.opencode/agent/architecture-auditor.md`) audits `docs/adr/` plus the architectural
+  surface (the service boundaries, the module dependency graph, and the spec corpus's capability decomposition) for
+  drift from its recorded decisions, and reports **where clarification of intent is missing** — a deliberate choice or
+  absence whose rationale is not recorded — and **a record whose recorded premise appears met** — a deferral's
+  `Revisit when:` condition, or a parked `docs/ideas.md` entry whose work has landed (its finding classes, its advisory
+  section, and the report contract are in the `agent-skills` spec). It sweeps the surfaces a rationale must exist for
+  (dependency `exclude(...)` declarations, the major-version-suppressed, held-back, and web-UI-npm-suppressed
   coordinates, the suppression annotations and retained deprecated APIs, the deferrals and band-aids recorded in ADRs or
-  `docs/ideas.md`, and a deferred ADR's `Revisit when:` condition held against the repository where it names a checkable
-  fact) and searches the repository for a rationale before reporting each item — an item whose rationale is already
-  recorded is not reported. The **deferred-condition** item is the inverse — its record exists, so it is reported when
-  that record's premise appears met, a different question from whether the rationale exists. It deliberately does
-  **not** check behavior against the code (the review loop and archive-time sync own that), the corpus's internal
-  structure (`specs-auditor` owns that), or any property an existing gate enforces. Trigger it with the
-  `/audit-architecture` command. The main agent applies the approved findings under the review gate: a finding whose fix
-  is an ADR correction, a new ADR, or an `AGENTS.md`/`README.md` clarification lands as a docs PR, while one whose
-  correction is a code change — or an edit to a subagent/command definition that changes its spec'd behavior (which owes
-  that definition's spec delta, per the multi-artifact-sweep bullet) — becomes its own change, parked as an idea until
-  then; do not force the suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was
-  verified drift, yet narrowing the dependency broke `:showcase-query-client:compileJava` — since landed as
-  `narrow-query-api-dependency`). An advisory item needs the user's decision first. The scheduled variant runs
-  unattended in the `audit` workflow.
+  `docs/ideas.md`, and a record whose premise is due — a deferred ADR's `Revisit when:` condition, or the work a parked
+  entry describes — held against the repository where it names a checkable fact) and searches the repository for a
+  rationale before reporting each item — an item whose rationale is already recorded is not reported. The
+  **deferred-and-parked-record** item is the inverse — its record exists, so it is reported when that record's premise
+  appears met, a different question from whether the rationale exists. It deliberately does **not** check behavior
+  against the code (the review loop and archive-time sync own that), the corpus's internal structure (`specs-auditor`
+  owns that), or any property an existing gate enforces. Trigger it with the `/audit-architecture` command. The main
+  agent applies the approved findings under the review gate: a finding whose fix is an ADR correction, a new ADR, or an
+  `AGENTS.md`/`README.md` clarification lands as a docs PR, while one whose correction is a code change — or an edit to
+  a subagent/command definition that changes its spec'd behavior (which owes that definition's spec delta, per the
+  multi-artifact-sweep bullet) — becomes its own change, parked as an idea until then; do not force the suggested
+  correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet narrowing the
+  dependency broke `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`). An advisory
+  item needs the user's decision first. The scheduled variant runs unattended in the `audit` workflow.
 - **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
   (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
   guide, whose content no gate checks — on three axes: accuracy against the repository, design-intent fidelity (the

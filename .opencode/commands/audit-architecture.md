@@ -1,7 +1,8 @@
 ---
 description:
-  Audit the project's architecture for recorded-decision drift, unrecorded intent, and a deferral whose condition is due
-  (docs/adr/ + the service/module topology + the spec decomposition) with the pro-model architecture-auditor subagent
+  Audit the project's architecture for recorded-decision drift, unrecorded intent, and a record whose recorded premise
+  is due (docs/adr/ + the service/module topology + the spec decomposition) with the pro-model architecture-auditor
+  subagent
 ---
 
 Run the architecture audit to check that the design the project records still matches the design it has.
@@ -12,7 +13,8 @@ Run the architecture audit to check that the design the project records still ma
    declarations, the suppressed coordinates, held-back coordinates, and npm-suppressed packages in
    `config/dependency-updates/major-disabled.txt`, `config/dependency-updates/hold-back.txt`, and
    `config/web-ui-updates/major-disabled.txt`, the suppression annotations and retained deprecated APIs, the deferrals
-   and band-aids recorded in ADRs or `docs/ideas.md`, and an ADR's `Revisit when:` condition that appears met).
+   and band-aids recorded in ADRs or `docs/ideas.md`, an ADR's `Revisit when:` condition that appears met, and a parked
+   `docs/ideas.md` entry whose work has already landed).
 2. Present its report in the contract it returns (the verdict line first, then the two sections — **findings** and
    **advisory** observations, each budgeted per item).
 3. Ask the user which findings to apply — an advisory observation, including an intent-clarification item (a question

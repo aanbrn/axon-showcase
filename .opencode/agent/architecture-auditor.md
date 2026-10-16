@@ -2,9 +2,10 @@
 description:
   Audits the project's architecture — the ADRs under docs/adr/ plus the architectural surface (service boundaries,
   module dependency graph, spec-corpus capability decomposition) — for drift from its recorded decisions, for deliberate
-  choices whose rationale is not recorded, and for a deferral whose recorded `Revisit when:` condition appears met, with
-  the pro model. Use on demand (e.g. via /audit-architecture) to check that the design the repo documents still matches
-  the design it has, and to surface where clarification of intent is missing or a deferred decision is due.
+  choices whose rationale is not recorded, and for a record whose premise has expired — a deferral's recorded `Revisit
+  when:` condition, or a parked `docs/ideas.md` entry whose work has already landed, with the pro model. Use on demand
+  (e.g. via /audit-architecture) to check that the design the repo documents still matches the design it has, and to
+  surface where clarification of intent is missing or a record's premise is due.
 mode: subagent
 model: opencode-go/deepseek-v4-pro
 temperature: 0
@@ -49,8 +50,9 @@ decomposition, apparently missing ADRs, and the design-intent gaps below. No sev
 agent must not "fix" an advisory item without the user's decision.
 
 Within the advisory section, report **where clarification of intent is missing** — a deliberate choice or deliberate
-absence whose rationale is not recorded anywhere — and **a deferral whose recorded condition appears met** (the record
-exists; its premise may have expired). Surface only what a rationale must exist for, by checking:
+absence whose rationale is not recorded anywhere — and **a record whose recorded premise appears met** — a deferral's
+condition, or a parked `docs/ideas.md` entry whose work has already landed (the record exists; its premise may have
+expired). Surface only what a rationale must exist for, by checking:
 
 - dependency `exclude(...)` declarations in the build files;
 - major-version-suppressed coordinates in `config/dependency-updates/major-disabled.txt`, coordinates held back at a
@@ -65,16 +67,19 @@ exists; its premise may have expired). Surface only what a rationale must exist 
   a newer major published) or a third-party-adoption gate (the consumed artifacts now satisfy it). A condition that
   names no repository fact the auditor can check (an internal capacity trigger) is not reported on the repository's own
   state — its line records the trigger for a human.
+- **a parked `docs/ideas.md` entry whose work has already landed** — for each parked entry, look for the work the entry
+  itself describes (its change, commit, workflow or mechanism); an artifact it merely cites as context does not make it
+  implemented.
 
 Before reporting an item, search the whole repository for a recorded rationale — the ADRs, the specs, `AGENTS.md`, the
 code and the configuration. A suppressed major with a spec requirement, a deferral with an ADR, or a suppression with a
-recorded convention is explained; reporting it is noise. The **deferred-condition** item is the inverse: its rationale
-_is_ recorded (the ADR and its `Revisit when:` line), so the recorded-rationale check does not suppress it — it is
-reported only when the recorded condition appears met, which is a different question from whether the rationale exists.
-Name the choice or absence with its location, and state the question whose answer would record the rationale (for
-example, "why is Axon pinned to 4.x?") — for a deferred decision, the recorded condition and the signal that appears to
-meet it. This is a candidate list for the owner's decision, not a defect list: only the project owner can say which
-unrecorded rationales matter.
+recorded convention is explained; reporting it is noise. The **deferred-and-parked-record** item is the inverse: its
+rationale _is_ recorded (the ADR and its `Revisit when:` line), so the recorded-rationale check does not suppress it —
+it is reported only when the recorded condition appears met, which is a different question from whether the rationale
+exists. Name the choice or absence with its location, and state the question whose answer would record the rationale
+(for example, "why is Axon pinned to 4.x?") — for a record whose premise appears to have expired, the recorded condition
+or parked entry and the signal that appears to meet it. This is a candidate list for the owner's decision, not a defect
+list: only the project owner can say which unrecorded rationales matter.
 
 Method:
 

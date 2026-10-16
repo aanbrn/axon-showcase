@@ -24,16 +24,6 @@ dated when it was added (start a new section for a new day rather than appending
   reuse permission and the caller-owned handover), as its own change — an ADR is the wrong genre, since `docs/adr/`
   covers architecture.
 
-- Sweep `docs/ideas.md` for entries whose work has already landed — parked; no change yet. A parked entry's removal
-  rides the change that implements it, but nothing checks that it happened: the actionlint-retry entry sat "parked; no
-  change yet" for two and a half weeks after #463 implemented it, found only when `retry-verify-infra-image-versions`
-  read it as that change's own precedent. No auditor owns the file (the four own `AGENTS.md`/`.opencode/`, the specs,
-  `docs/adr/` plus the architectural surface, and `README.md`), and the `upstream-references` report resolves only
-  `owner/repo#NNN` references. Route by widening rather than adding: `architecture-auditor` already sweeps "deferrals
-  and band-aids recorded in an ADR or parked in `docs/ideas.md`", so it is the coupled owner — report (advisory) a
-  parked entry whose work has landed. That widening owes the artifact set `AGENTS.md`'s multi-artifact-sweep bullet
-  states, enumerated from that bullet rather than re-listed here.
-
 - Give the `build` gate a chart-packaging path — parked; no change yet. Nothing in `check` packages the chart, which is
   why the broken chart-dependency fetch above was smoke-only for two days: a check that packages the chart and asserts
   `charts/common-*.tgz` lands would have caught it in the pull request that broke it. The cost is one fetch of the

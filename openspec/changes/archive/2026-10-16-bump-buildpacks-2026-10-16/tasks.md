@@ -42,7 +42,7 @@
       gives, never by list position (the multi-tag / per-tag-metadata mechanism, derived and reproduced). It judged the
       `[detector] pass:` probe, the held-nginx row, and the refused `contradiction` already covered by existing rules,
       and proposed no retirements.
-- [ ] 3.2 Ask the owner for the manual review pass, after 2.4 is clean and 3.1 is done.
+- [x] 3.2 Ask the owner for the manual review pass, after 2.4 is clean and 3.1 is done.
 
 ## 4. The change's own records
 

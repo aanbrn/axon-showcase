@@ -9,7 +9,7 @@ class DependencyUpdateRulesTests {
         module: String,
         candidateVersion: String,
         currentVersion: String = "3.9.0",
-        catalogOwned: Set<String> = setOf("org.opensearch.client:$module"),
+        catalogVersions: Map<String, String> = mapOf("org.opensearch.client:$module" to "3.9.0"),
         majorDisabled: Set<String> = emptySet(),
         holdBack: Map<String, String> = emptyMap(),
     ): Boolean =
@@ -18,7 +18,7 @@ class DependencyUpdateRulesTests {
             module,
             candidateVersion,
             currentVersion,
-            catalogOwned,
+            catalogVersions,
             majorDisabled,
             holdBack,
         )
@@ -125,7 +125,7 @@ class DependencyUpdateRulesTests {
         assertThat(shouldReject("opensearch-java", "3.10.0", holdBack = holdBack)).isTrue()
         assertThat(shouldReject("opensearch-java", "3.9.1", holdBack = holdBack)).isFalse()
         assertThat(shouldReject("opensearch-java", "4.0.0", holdBack = holdBack)).isFalse()
-        assertThat(shouldReject("opensearch-java", "3.9.1", catalogOwned = emptySet())).isTrue()
+        assertThat(shouldReject("opensearch-java", "3.9.1", catalogVersions = emptyMap())).isTrue()
     }
 
     @Test
@@ -179,14 +179,18 @@ class DependencyUpdateRulesTests {
         val majorDisabled =
             DependencyUpdateRules.disabledEntries(listOf("org.opensearch.client:spring-data-opensearch"))
         val holdBack = DependencyUpdateRules.holdBackEntries(listOf("org.opensearch.client:opensearch-java=3.9"))
-        val catalog = setOf("org.opensearch.client:spring-data-opensearch", "org.opensearch.client:opensearch-java")
+        val catalog =
+            mapOf(
+                "org.opensearch.client:spring-data-opensearch" to "2.0.8",
+                "org.opensearch.client:opensearch-java" to "3.9.0",
+            )
 
         assertThat(
                 shouldReject(
                     "spring-data-opensearch",
                     "3.0.0",
                     currentVersion = "2.0.8",
-                    catalogOwned = catalog,
+                    catalogVersions = catalog,
                     majorDisabled = majorDisabled,
                 ),
             )
@@ -195,7 +199,7 @@ class DependencyUpdateRulesTests {
                 shouldReject(
                     "opensearch-java",
                     "4.0.0",
-                    catalogOwned = catalog,
+                    catalogVersions = catalog,
                     majorDisabled = majorDisabled,
                     holdBack = holdBack,
                 ),
@@ -205,11 +209,113 @@ class DependencyUpdateRulesTests {
                 shouldReject(
                     "opensearch-java",
                     "3.10.0",
-                    catalogOwned = catalog,
+                    catalogVersions = catalog,
                     majorDisabled = majorDisabled,
                     holdBack = holdBack,
                 ),
             )
             .isTrue()
+    }
+
+    @Test
+    @DisplayName("The catalog pairs each referenced library's coordinate with the version its reference names")
+    fun catalogPairsCoordinateWithReferencedVersion() {
+        val lines =
+            listOf(
+                "[versions]",
+                "log4j = \"2.26.1\"",
+                "opensearch-java = \"3.9.0\"",
+                "",
+                "[libraries]",
+                "log4j-api = { group = \"org.apache.logging.log4j\", name = \"log4j-api\", version.ref = \"log4j\" }",
+                "log4j-core = { group = \"org.apache.logging.log4j\", name = \"log4j-core\", version.ref = \"log4j\" }",
+                "opensearch-java = { group = \"org.opensearch.client\", name = \"opensearch-java\", version.ref = \"opensearch-java\" }",
+            )
+
+        assertThat(DependencyUpdateRules.catalogVersions(lines))
+            .containsExactlyInAnyOrderEntriesOf(
+                mapOf(
+                    "org.apache.logging.log4j:log4j-api" to "2.26.1",
+                    "org.apache.logging.log4j:log4j-core" to "2.26.1",
+                    "org.opensearch.client:opensearch-java" to "3.9.0",
+                ),
+            )
+    }
+
+    @Test
+    @DisplayName("A library entry whose version reference is absent from the versions table is skipped")
+    fun catalogEntryWithAbsentReferenceSkipped() {
+        val lines =
+            listOf(
+                "[versions]",
+                "log4j = \"2.26.1\"",
+                "[libraries]",
+                "log4j-core = { group = \"org.apache.logging.log4j\", name = \"log4j-core\", version.ref = \"absent\" }",
+            )
+
+        assertThat(DependencyUpdateRules.catalogVersions(lines)).isEmpty()
+    }
+
+    @Test
+    @DisplayName("A catalog library entry missing a field yields no pair rather than a wrong version")
+    fun catalogEntryMissingFieldYieldsNoPair() {
+        val lines =
+            listOf(
+                "[versions]",
+                "log4j = \"2.26.1\"",
+                "[libraries]",
+                "log4j-core = { group = \"org.apache.logging.log4j\", version.ref = \"log4j\" }",
+            )
+
+        assertThat(DependencyUpdateRules.catalogVersions(lines)).isEmpty()
+    }
+
+    @Test
+    @DisplayName("A candidate the catalog already declares is rejected as nothing to update")
+    fun candidateAlreadyDeclaredIsRejected() {
+        assertThat(rejectCandidate("2.26.1")).isTrue()
+    }
+
+    @Test
+    @DisplayName("A candidate older than the version the catalog declares is rejected as nothing to update")
+    fun candidateOlderThanCatalogIsRejected() {
+        assertThat(rejectCandidate("2.26.0")).isTrue()
+    }
+
+    @Test
+    @DisplayName("A candidate newer than the version the catalog declares is still reported")
+    fun candidateNewerThanCatalogIsReported() {
+        assertThat(rejectCandidate("2.27.0")).isFalse()
+    }
+
+    /** Whether the rule rejects [candidate] for `log4j-core`, whose catalog version is `2.26.1`. */
+    private fun rejectCandidate(candidate: String): Boolean =
+        DependencyUpdateRules.shouldReject(
+            "org.apache.logging.log4j",
+            "log4j-core",
+            candidate,
+            "2.17.1",
+            mapOf("org.apache.logging.log4j:log4j-core" to "2.26.1"),
+            emptySet(),
+            emptyMap(),
+        )
+
+    @Test
+    @DisplayName("An up-to-date coordinate is not rejected, so it keeps its place in the report's up-to-date section")
+    fun upToDateCoordinateIsNotRejected() {
+        val catalog = mapOf("org.apache.logging.log4j:log4j-core" to "2.26.1")
+
+        assertThat(
+                DependencyUpdateRules.shouldReject(
+                    "org.apache.logging.log4j",
+                    "log4j-core",
+                    "2.26.1",
+                    "2.26.1",
+                    catalog,
+                    emptySet(),
+                    emptyMap(),
+                ),
+            )
+            .isFalse()
     }
 }

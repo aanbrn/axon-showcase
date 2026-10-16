@@ -4,8 +4,43 @@
  * The suppression files under `config/dependency-updates/` are line lists rather than Java properties: an entry may be
  * a `group:module` coordinate, whose colon `Properties` would treat as a key/value separator (collapsing an exact entry
  * to a group prefix), so the lines are parsed here on their first `=` instead.
+ *
+ * The version catalog's `coordinate -> version` pairs are read here for the same reason: the report treats the
+ * catalog's declared version as the project's version authority, so a row whose candidate it is not older than reports
+ * nothing to update, whatever "current" the plugin derived from a constraint floor.
  */
 internal object DependencyUpdateRules {
+
+    /** A catalog library entry's `group`, `name`, and the `[versions]` key it references. */
+    private val LIBRARY_ENTRY = Regex("""= \{ group = "([^"]+)", name = "([^"]+)", version.ref = "([^"]+)""")
+
+    /** A `[versions]` entry's key and quoted value. */
+    private val VERSION_ENTRY = Regex("""^([A-Za-z0-9._-]+)\s*=\s*"([^"]+)"$""")
+
+    /**
+     * The catalog's `coordinate -> version` pairs in [lines], from the same `version.ref` entries the report scopes
+     * ownership by: each `group`/`name`/`version.ref` triple becomes `group:name` paired with the `[versions]` value
+     * its reference names. An entry whose referenced version is absent is skipped, so a broken reference cannot report
+     * a version the catalog does not declare.
+     */
+    fun catalogVersions(lines: List<String>): Map<String, String> {
+        val versions =
+            lines
+                .asSequence()
+                .map { it.trim() }
+                .dropWhile { it != "[versions]" }
+                .drop(1)
+                .takeWhile { !it.startsWith("[") }
+                .mapNotNull { VERSION_ENTRY.find(it) }
+                .associate { it.groupValues[1] to it.groupValues[2] }
+
+        return lines
+            .mapNotNull { LIBRARY_ENTRY.find(it) }
+            .mapNotNull {
+                versions[it.groupValues[3]]?.let { version -> "${it.groupValues[1]}:${it.groupValues[2]}" to version }
+            }
+            .toMap()
+    }
 
     /**
      * The suppression entries in [lines]: blank lines and `#` comments are skipped, and an optional `=value` is
@@ -29,11 +64,16 @@ internal object DependencyUpdateRules {
         return if (entry.isEmpty()) null else entry to value
     }
 
+    /** The markers that make a version a stable release whatever else it carries. */
+    private val STABLE_KEYWORDS = listOf("RELEASE", "FINAL", "GA")
+
+    /** The shape of a stable numeric release. */
+    private val STABLE_VERSION = Regex("^[0-9,.v-]+(-r)?$")
+
     /** Whether [version] is not a stable release (a snapshot, milestone, RC, or a non-numeric shape). */
     fun isNonStable(version: String): Boolean {
-        val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
-        val regex = "^[0-9,.v-]+(-r)?$".toRegex()
-        return (stableKeyword || regex.matches(version)).not()
+        val stableKeyword = STABLE_KEYWORDS.any { version.uppercase().contains(it) }
+        return (stableKeyword || STABLE_VERSION.matches(version)).not()
     }
 
     /** Whether [version] is calendar-versioned (its leading segment is a 4-digit year). */
@@ -73,21 +113,34 @@ internal object DependencyUpdateRules {
 
     /**
      * Whether `dependencyUpdates` rejects the candidate: a non-stable version without a stable current release, a
-     * non-catalog-owned coordinate, a major-blocked entry, or a held-back coordinate.
+     * coordinate the catalog does not own, a candidate no newer than the version the catalog declares while the
+     * plugin's own "current" disagrees with that version (the signature of a current read from a constraint floor —
+     * nothing to update, and rejecting an up-to-date coordinate's own version would move it out of the report's
+     * up-to-date section), a major-blocked entry, or a held-back coordinate.
      */
     fun shouldReject(
         group: String,
         module: String,
         candidateVersion: String,
         currentVersion: String,
-        catalogOwned: Set<String>,
+        catalogVersions: Map<String, String>,
         majorDisabled: Set<String>,
         holdBack: Map<String, String>,
     ): Boolean {
-        val notOwned = "$group:$module" !in catalogOwned && candidateVersion != currentVersion
+        val coordinate = "$group:$module"
+        val notOwned = coordinate !in catalogVersions && candidateVersion != currentVersion
+        val declaredVersion = catalogVersions[coordinate]
+        val staleCurrentVersion =
+            declaredVersion != null &&
+                currentVersion != declaredVersion &&
+                !Versions.isNewer(candidateVersion, declaredVersion)
         val blockedMajor =
             majorDisabled.any { matchesDisabled(it, group, module) } && isMajorBump(currentVersion, candidateVersion)
-        val heldBack = holdBack["$group:$module"]?.let { isHeldBack(candidateVersion, it) } ?: false
-        return (isNonStable(candidateVersion) && !isNonStable(currentVersion)) || notOwned || blockedMajor || heldBack
+        val heldBack = holdBack[coordinate]?.let { isHeldBack(candidateVersion, it) } ?: false
+        return (isNonStable(candidateVersion) && !isNonStable(currentVersion)) ||
+            notOwned ||
+            staleCurrentVersion ||
+            blockedMajor ||
+            heldBack
     }
 }

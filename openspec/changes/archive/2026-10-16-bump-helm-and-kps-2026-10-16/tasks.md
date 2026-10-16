@@ -37,7 +37,7 @@
       occurrences: this unit's run and the 2026-10-13 kps bump). The collapsed-artifact and unswept-row candidates were
       judged compliance misses of existing rules (the structured-file edit bullet and the doc-consistency sweep bullet),
       and no retirements were proposed.
-- [ ] 3.2 Ask the owner for the manual review pass, after 2.4 is clean and 3.1 is done.
+- [x] 3.2 Ask the owner for the manual review pass, after 2.4 is clean and 3.1 is done.
 
 ## 4. The change's own records
 

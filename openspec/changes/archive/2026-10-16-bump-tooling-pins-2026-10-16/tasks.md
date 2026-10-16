@@ -36,10 +36,15 @@
 
 ## 3. The dispatch, the capture and the manual pass
 
-- [ ] 3.1 **After the owner's approval pushes the branch** (before the archive commit), dispatch the credentialed
+- [x] 3.1 **After the owner's approval pushes the branch** (before the archive commit), dispatch the credentialed
       workflow against it (`gh workflow run dependency-security.yml --ref bump-tooling-pins-2026-10-16`) and watch it:
       it must install the pinned CLI and complete the scan. A red run attributed to the pin means the tag does not
-      install; one attributed to a finding means the policy, not the pin.
+      install; one attributed to a finding means the policy, not the pin. **Run `38877275517` is red, and the
+      attribution is a finding, not the pin**: the CLI installed and the scan executed (10 tasks, 3m11s), and the
+      failures are two _new_ advisories — `SNYK-JAVA-ORGHIBERNATEVALIDATOR-20877468` (Expression Language Injection,
+      medium, in `hibernate-validator@8.0.3.Final`, whose fix is the Spring Boot 4 major ADR-0004 defers) and
+      `SNYK-JAVA-JAKARTAVALIDATION-20936881` (low, in `jakarta.validation-api@3.1.1`, no direct upgrade). Neither is
+      reachable from a CLI pin, so they are the credentialed weekly run's own finding, parked for a dedicated unit.
 - [x] 3.2 Run the `lesson-capture` subagent over the diff, apply its durable proposals, and record the applied net
       `AGENTS.md` delta here: the change's whole `AGENTS.md` diff is **+6 net** (`git diff --numstat`), the version
       sweep's rewrite (−1) and the capture's two clauses together. Both clauses merged into rules the incidents
@@ -48,7 +53,8 @@
       sentence, fixed here). It also found that defect and had me fix it, flagged a `docs/ideas.md` clause the weekly
       reference sweep makes misleading (corrected), and routed the check-coverage lesson to a machine assertion — parked
       in `docs/ideas.md`, since its landing would retire the `toolingUpdates` bullet's hazard clause.
-- [ ] 3.3 Ask the owner for the manual review pass, after 2.5 is clean and 3.2 is done.
+- [x] 3.3 Ask the owner for the manual review pass, after 2.5 is clean and 3.2 is done: requested, given, and PR #598's
+      `build` check is green; the archive commit follows on the same PR.
 
 ## 4. The change's own records
 

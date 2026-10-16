@@ -739,7 +739,12 @@ initialized:
 - **A check belongs in the pull-request gate only when the change that trips it can remediate it.** Drift in state no
   pull request causes would fail every unrelated PR, so it belongs in the observational scheduled pattern instead (the
   observational workflows listed below, and the out-of-repository surfaces the Docs-refresh bullet names), never
-  `build`.
+  `build`. Its complement is a gate-worthy step whose own fetch can fail transiently (such as the actionlint install or
+  the Helm chart-repository setup): it stays in the gate and is made resilient instead, with a bounded retry (a few
+  attempts and a short pause) that leaves each failure visible and still fails once the attempts are exhausted — never
+  toleration (`tolerateFailures`, `continue-on-error`), which makes the check pass falsely, or the `check -x <task>`
+  interim, which verifies the gate with a member removed. Each instance's outcome is in its capability requirement.
+  captured: retry-verify-infra-image-versions-2026-10-16
 
 The `check` task's members are listed in the Build & Test `check` note; `workflowLint` lints the GitHub Actions
 workflows with actionlint (installed on the runner via the official download script; see the Prerequisites),

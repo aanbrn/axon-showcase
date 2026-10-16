@@ -233,3 +233,8 @@
 2026-10-16	bump-buildpacks-2026-10-16	2	-	-	0
 2026-10-16	bump-buildpacks-2026-10-16	3	wording	-	1
 2026-10-16	bump-buildpacks-2026-10-16	4	-	-	0
+2026-10-16	retry-verify-infra-image-versions-2026-10-16	1	wording	-	0
+2026-10-16	retry-verify-infra-image-versions-2026-10-16	2	-	-	0
+2026-10-16	retry-verify-infra-image-versions-2026-10-16	3	incomplete-enumeration	-	1
+2026-10-16	retry-verify-infra-image-versions-2026-10-16	4	incomplete-enumeration	incomplete-enumeration	1
+2026-10-16	retry-verify-infra-image-versions-2026-10-16	5	-	-	0

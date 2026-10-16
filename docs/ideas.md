@@ -13,6 +13,17 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-17
+
+- Guard the review-round ledger against a duplicate row — parked; no change yet. `docs/review-rounds.tsv` declares one
+  row per review round and `scripts/experience-analysis.sh` sums its compliance-miss column, so a duplicate
+  double-counts a round — and nothing enforces it: the same round's row written twice (a `printf` run in two calls) is
+  byte-identical and adjacent, so even a line count looks right. The archived `record-review-rounds` design deferred
+  exactly this ("a later change decides what the numbers should license") and this entry is that evidence. Route it as a
+  check, not prose: a `--unique-rounds` mode in `scripts/commit-hygiene.py` asserting one row per `unit`+`round`, a
+  `verifyUnique…` task in `check`, and a positive-control case in `test-commit-hygiene.py`, mirroring
+  `verifyUniqueCronSchedules`.
+
 ## 2026-10-16
 
 - Give the persistent-reviewer-session rejection a durable home — parked; no change yet. The standing decision — a

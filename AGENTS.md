@@ -1416,16 +1416,17 @@ Key modules (libraries, not services):
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
   documentation first and was only usable once the user pointed out it had no trigger and the command was added.
 - **A recurring unit type — a subagent/command change, a version bump — derives its change dir from the last analogous
-  archived change instead of re-deriving it: the artifact set for the former — the union of the sites every
-  artifact-bearing task in that change names, not the list one task carries — and for a bump the task set, each task's
-  result record, and the spec-position rationale.** **A definition edit that changes spec'd behavior is a change, not a
-  docs edit** — the `agent-skills` spec describes that definition's behavior, so such an edit owes that spec's delta and
-  never rides a docs, audit-fix, or retrospective PR; a definition-only edit the spec does not describe (a model-pin
-  bump, `skip_specs: true`) still ships as a change, with no delta. Beyond the descriptors the auditor-justification
-  bullet names, a change also touches the definition's frontmatter `description`; its **own report-contract verdict
-  line** (a report that gains or changes an output section must name it there — the shared contract makes an auditor's
-  first line state a count, so a pre-widening `<n> findings` line is stale the moment an advisory section exists,
-  becoming `<n> findings, <n> advisory`); the shared report-contract requirement's own bearer list, which enumerates the
+  archived change as a **floor** rather than re-deriving it, unioned with the tasks the rules mandate now (the pre-write
+  pass's record and claims table first): the artifact set for the former — the union of the sites every artifact-bearing
+  task in that change names, not the list one task carries — and for a bump the task set, each task's result record, and
+  the spec-position rationale.** **A definition edit that changes spec'd behavior is a change, not a docs edit** — the
+  `agent-skills` spec describes that definition's behavior, so such an edit owes that spec's delta and never rides a
+  docs, audit-fix, or retrospective PR; a definition-only edit the spec does not describe (a model-pin bump,
+  `skip_specs: true`) still ships as a change, with no delta. Beyond the descriptors the auditor-justification bullet
+  names, a change also touches the definition's frontmatter `description`; its **own report-contract verdict line** (a
+  report that gains or changes an output section must name it there — the shared contract makes an auditor's first line
+  state a count, so a pre-widening `<n> findings` line is stale the moment an advisory section exists, becoming
+  `<n> findings, <n> advisory`); the shared report-contract requirement's own bearer list, which enumerates the
   report-producing subagents and goes stale when one is added, so it needs a `MODIFIED` delta; the trigger command
   (including its step-1 read-list); the README **slash-command table row** and its **prose** description of the auditor
   (the Spec-Driven Development, Agentic Process, and Self-Learning Loop sentences) whenever what it reports changes —
@@ -1437,7 +1438,7 @@ Key modules (libraries, not services):
   artifact's name before hand-writing the set — and point the proposal's site list at the tasks that name those sites
   rather than hand-writing it, since a hand-written enumeration keeps under-matching the union it derives from.
   captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12 captured: record-review-rounds captured:
-  bound-the-review-loop
+  bound-the-review-loop captured: bump-dependencies-2026-10-16
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
   `.opencode/opencode.json` (`model` and `small_model` — two keys), the flash-pinned subagent frontmatter

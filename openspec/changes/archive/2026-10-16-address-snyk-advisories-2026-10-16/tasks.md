@@ -20,11 +20,12 @@
 
 ## 3. Verification
 
-- [ ] 3.1 **After the owner's approval pushes the branch** (before the archive commit), dispatch
+- [x] 3.1 **After the owner's approval pushes the branch** (before the archive commit), dispatch
       `dependency-security.yml` from it
       (`gh workflow run dependency-security.yml --ref address-snyk-advisories-2026-10-16`) and watch the run: it must
       apply the policy and go **green**. A red run naming either suppressed coordinate means the ignore did not take
-      (its pin, its id, or the policy path), not a new finding.
+      (its pin, its id, or the policy path), not a new finding. **Run `38884444351` is green** — the policy applied both ignores and the scan
+      completed, so the scheduled run goes green on its next pass.
 - [x] 3.2 Run `spotlessApply`/`spotlessCheck`, `openspec validate --all`, and the manual 120-character check over the
       changed set.
 - [x] 3.3 Run a `review-quick` pass over the proposal and the implementation, repeating until clean: four rounds (5, 2,

@@ -196,3 +196,5 @@
 2026-10-16	align-dependency-report-version-authority	8	missing-scenario,coherence,wording	wording	3
 2026-10-16	align-dependency-report-version-authority	9	dropped-content,coherence,wording	coherence,wording	3
 2026-10-16	align-dependency-report-version-authority	10	missing-task,wording	wording	2
+2026-10-16	fix-chart-dependency-fetch	1	claim-unreproducible,premise,over-claim,wording	-	3
+2026-10-16	fix-chart-dependency-fetch	2	over-claim,formatting,wording	over-claim,wording	3

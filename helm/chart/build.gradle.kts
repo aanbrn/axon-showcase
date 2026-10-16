@@ -23,3 +23,7 @@ helm {
         }
     }
 }
+
+tasks.named("helmUpdateMainChartDependencies") {
+    setOnlyIf { true }
+}

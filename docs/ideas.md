@@ -15,6 +15,21 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-16
 
+- Give the `build` gate a chart-packaging path — parked; no change yet. Nothing in `check` packages the chart, which is
+  why the broken chart-dependency fetch above was smoke-only for two days: a check that packages the chart and asserts
+  `charts/common-*.tgz` lands would have caught it in the pull request that broke it. The cost is one fetch of the
+  Bitnami subchart per PR, which the gate already pays in kind for `verifyInfraImageVersions`.
+
+- Report the plugin's cache-dependent chart-dependency skip upstream — parked; no change yet. The
+  `helmUpdateMainChartDependencies` task (which the plugin's docs equate with `helm dependency update`) silently skips
+  when the **configuration cache** (#581) stores its entry before the chart sources are collected — a clean checkout or
+  CI: its `onlyIf` resolves false there, so nothing fetches the chart's external Bitnami `common` dependency,
+  `helm/chart`'s packaging produces a chart with no `charts/`, and both the strict lint and the deployed install fail.
+  Measured on one commit with only the cache toggled: SKIPPED with the cache on, fetches with
+  `--no-configuration-cache`. The repo's workaround is `setOnlyIf { true }` in `helm/chart/build.gradle.kts`;
+  `build-extensions-oss/gradle-helm-plugin` has issues enabled (`has_issues: true`, `has_discussions: false`), so a fix
+  belongs there as an issue or a pull request and would retire the workaround.
+
 - Bring `build-logic`'s own dependency pins under the update report — parked; no change yet. `dependencyUpdates` is
   applied only by the main build, so it sees that build's configurations, its plugin classpath and the tool
   configurations — but not the included build's own `dependencies {}`, where build-logic declares the plugin pins it

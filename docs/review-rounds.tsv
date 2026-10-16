@@ -238,3 +238,4 @@
 2026-10-16	retry-verify-infra-image-versions-2026-10-16	3	incomplete-enumeration	-	1
 2026-10-16	retry-verify-infra-image-versions-2026-10-16	4	incomplete-enumeration	incomplete-enumeration	1
 2026-10-16	retry-verify-infra-image-versions-2026-10-16	5	-	-	0
+2026-10-16	fix-infra-image-repo-scope-2026-10-16	1	missing-task	-	1

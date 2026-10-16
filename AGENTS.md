@@ -1799,7 +1799,7 @@ chart pins, so a chart bump cannot leave the documented command stale. The `veri
 `README.md` states them, so a buildpack bump cannot leave a documented pin stale. The `verifyInfraImageVersions` task
 (part of `check`) derives its checks from the actual `helm.releases` container, resolves each pinned chart's
 preconfigured `image.tag` via the Helm CLI (`helm show values bitnami/<chart> --version <pinned>`, using the
-plugin-managed client; the task adds and updates the bitnami chart repository itself), fails the build if its app
+plugin-managed client; the task adds and updates the declared chart repositories itself), fails the build if its app
 version drifts from the `*-image-tag` after truncating the chart app version to the official tag's numeric segment count
 (so `17.6` matches a chart app version `17.6.0` at minor granularity, while `3.9.0` requires an exact chart app version
 match), rejects any official tag with fewer than two numeric segments as a floating reference (e.g. `17`, which Docker

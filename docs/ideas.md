@@ -13,6 +13,21 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-16
+
+- Bring `build-logic`'s own dependency pins under the update report — parked; no change yet. `dependencyUpdates` is
+  applied only by the main build, so it sees that build's configurations, its plugin classpath and the tool
+  configurations — but not the included build's own `dependencies {}`, where build-logic declares the plugin pins it
+  applies from its convention plugins (`kotlin-plugin`, `lombok-plugin`, `spring-boot-plugin`, `protobuf-plugin`,
+  `gatling-plugin`, `dependencyVersions-plugin`, `errorprone-plugin`, `spotbugs-plugin`, `helm-plugin`,
+  `helm-releases-plugin`, `node-plugin`). They are hand-audited only, and `AGENTS.md`'s per-check inventory gestures at
+  that bucket without naming it. The cost of the gap is real: `helm-plugin` sat at `3.1.2` from 2026-09-27 (when `3.2.0`
+  was published) until 2026-10-15, when enabling the configuration cache needed `3.2.0` — two weekly reports ran in
+  between and listed no helm row, while `spotless-plugin` (also build-logic's, but additionally applied by the root's
+  `alias(libs.plugins.spotless)`) and the `spotbugs` tool-configuration dependency both appeared normally. The sketch:
+  apply `dependency-versions-conventions` inside `build-logic` and have the weekly workflow read its report as a second
+  source for the same issue; verify by leaving one of those pins deliberately behind and confirming a row appears.
+
 ## 2026-10-15
 
 - Spec the owner-notification path for a bot-authored pull request — parked; no change yet. `merge-governance` owns the

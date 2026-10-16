@@ -5,16 +5,7 @@ plugins {
 }
 
 val catalogToml = rootProject.layout.projectDirectory.file("gradle/libs.versions.toml")
-val catalogOwned =
-    catalogToml.asFile.useLines { lines ->
-        lines
-            .mapNotNull { line ->
-                Regex("""= \{ group = "([^"]+)", name = "([^"]+)", version.ref""").find(line)?.let {
-                    "${it.groupValues[1]}:${it.groupValues[2]}"
-                }
-            }
-            .toSet()
-    }
+val catalogVersions = DependencyUpdateRules.catalogVersions(catalogToml.asFile.readLines())
 
 fun readLinesOrEmpty(file: java.io.File): List<String> = if (file.exists()) file.readLines() else emptyList()
 
@@ -36,7 +27,7 @@ tasks.withType<DependencyUpdatesTask> {
             candidate.module,
             candidate.version,
             currentVersion,
-            catalogOwned,
+            catalogVersions,
             majorDisabled,
             holdBack,
         )

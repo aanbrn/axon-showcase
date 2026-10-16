@@ -645,14 +645,18 @@ The `/dependency-updates` OpenCode command runs these reports and summarizes the
 command updates the Gradle wrapper to the latest stable version when one is available, and the `/opsx-tool-update`
 command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI release.
 
-Build-environment constraints can surface as spurious "current version" rows in the report: build tooling such as
-SpotBugs publishes module constraints that `checkBuildEnvironmentConstraints` reads and reports as the current version.
-For example, a `log4j-core [2.17.1 -> 2.26.1]` row appears even though `log4j-core` resolves to `2.26.1` everywhere —
-`2.17.1` is the floor of an external Log4Shell guard published by `spotbugs-annotations`. These rows are a known
-`gradle-versions-plugin` limitation, not real updates (see upstream ben-manes/gradle-versions-plugin#755); do not chase
-them (see ADR-0007). When documenting such an external constraint, name the coordinate and the mechanism, not its
-version: that coordinate is not catalog-owned and its resolved version is not verifiable from the repository, so a
-pinned version rots on the next SpotBugs bump.
+Build-environment constraints can surface as spurious "current version" rows in the report: the build tooling itself
+publishes module constraints that `checkBuildEnvironmentConstraints` reads and reports as the current version. For
+example, `dependencyUpdates` reported `log4j-core [2.17.1 -> 2.26.1]` although `log4j-core` resolves to `2.26.1`
+everywhere — `2.17.1` is the floor of the Log4Shell ban **Gradle itself** applies to every classpath it builds
+(`Log4jBannedVersion` in the distribution's `gradle-logging` jar). Such a row is not a real update (upstream
+`ben-manes/gradle-versions-plugin#755`), and ADR-0021 filters it in the report's own rules: the plugin consults
+`rejectVersionIf` for this path, so a candidate no newer than the version the catalog declares is rejected **when the
+plugin's reported current differs from that version**. Keep both halves of that condition — the plugin treats a
+coordinate whose every candidate is rejected as unresolved, so a rule that also rejects an up-to-date coordinate's own
+version moves every catalog-owned entry out of the report's up-to-date section. When documenting such an external
+constraint, name the coordinate and the mechanism, not the constraint's version: that version is the _tool's_ guard, not
+a version this repository pins, so a pinned version rots on the next tool bump.
 
 Major-blocking entries in `config/dependency-updates/major-disabled.txt` and held-back entries in
 `config/dependency-updates/hold-back.txt` carry a pointer comment naming the coordinate and its rationale; the
@@ -1905,7 +1909,12 @@ capture-stash-stale-copy
   `--log-failed` output showed only four of the seven Jackson advisories, so the change was scoped Jackson 2-only and
   would have left the three Jackson 3 ones (fix `3.2.3`) unaddressed; the full log named both lines. captured:
   test-build-logic-rules-and-unify-version-comparison (#306) captured: bump-jackson-boms-for-snyk-findings captured:
-  derive-retrospective-facts
+  derive-retrospective-facts Confirm the file is the run's output: a build directory persists a tool's previous report,
+  and `dependencyUpdates` writes per-project `partials/*.json` as each resolves and `report.txt` afterwards, so a run
+  that did not regenerate leaves a stale aggregate — reading a stale `report.txt` twice made
+  `align-dependency-report-version-authority` abandon a working change on the false conclusion that the plugin's rule
+  could not reach the row. Cite the run-scoped output, or confirm the summary is newer than the run. captured:
+  align-dependency-report-version-authority
 - **`gh pr create --body` with Markdown can fail under zsh with `no matches found`** — an inline body containing
   `**bold**` (or other shell metacharacters/newlines) is subject to zsh's `nomatch` glob error
   (`zsh: no matches found: **...`). Write the body to a file and use `--body-file <file>` instead; it also sidesteps
@@ -2211,7 +2220,11 @@ capture-stash-stale-copy
     declaration was unchanged, so a content assertion saw nothing wrong. Run the subject and require every declared item
     in its output; keep a host-dependent exit code out of the assertion (capture with `set +e`, assert the output only),
     since a gate that depends on it fails PRs for causes they cannot remediate. captured:
-    declare-probes-with-shape-and-behavioural-checks
+    declare-probes-with-shape-and-behavioural-checks Require the whole of what it emits, not only the part a change
+    targets: a consumer that classifies its input has states beyond row-present/row-absent, so a filter's removal test
+    stays green while it reclassifies its neighbours — the first `DependencyUpdateRules` clause emptied
+    `dependencyUpdates`' up-to-date section of all 83 catalog-owned entries, since the plugin reads a coordinate whose
+    every candidate is rejected as unresolved. captured: align-dependency-report-version-authority
   - **A deliberately conservative check owes the false-negative surface it accepts — and a gap cheap to close is closed,
     not recorded.** A check narrowed to avoid false positives under-reports by design, so what it does not catch must be
     stated where its outcome is recorded (the design, and the spec where the outcome is spec'd), and a clean run is

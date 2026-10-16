@@ -943,12 +943,12 @@ The `/dependency-updates` OpenCode command runs these reports and summarizes the
 command updates the Gradle wrapper to the latest stable version when one is available, and the `/opsx-tool-update`
 command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI release.
 
-Note that the report can also surface spurious rows caused by build-environment constraints: build tooling such as
-SpotBugs publishes module constraints that `checkBuildEnvironmentConstraints` reads and reports as the "current
-version". For example, a `log4j-core [2.17.1 -> 2.26.1]` row appears even though `log4j-core` resolves to `2.26.1`
-everywhere — `2.17.1` is the floor of an external Log4Shell guard published by `spotbugs-annotations`. These rows are a
-known `gradle-versions-plugin` limitation, not real updates (see upstream ben-manes/gradle-versions-plugin#755); see
-ADR-0007 for the evidence trail.
+Note that the report can also surface spurious rows caused by build-environment constraints: the build tooling itself
+publishes module constraints that `checkBuildEnvironmentConstraints` reads and reports as the "current version". One
+such row was `log4j-core [2.17.1 -> 2.26.1]`, reported although `log4j-core` resolves to `2.26.1` everywhere: `2.17.1`
+is the floor of the Log4Shell ban Gradle itself applies to every classpath it builds. The report no longer lists that
+update: it rejects a candidate no newer than the version the catalog declares when the plugin's own "current" disagrees
+with it. See ADR-0021, and upstream ben-manes/gradle-versions-plugin#755 for the plugin behaviour.
 
 For calendar-versioned coordinates (leading segment is a 4-digit year, e.g. Spring `YYYY.MINOR.MICRO` such as
 `reactor-bom 2025.0.7`), a change in the `YYYY.TRAIN` pair (the first two version segments) is treated as a major update

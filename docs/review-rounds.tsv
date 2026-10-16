@@ -186,3 +186,13 @@
 2026-10-15	fix-mapstruct-suite-warning	2	-	-	0
 2026-10-15	fix-mapstruct-suite-warning	3	wording	-	1
 2026-10-15	fix-mapstruct-suite-warning	4	-	-	0
+2026-10-15	align-dependency-report-version-authority	1	premise,claim-unreproducible,impact-omission,claim-missing,missing-task,wording	-	4
+2026-10-15	align-dependency-report-version-authority	2	claim-unreproducible,over-claim,claim-missing,wording	claim-unreproducible,claim-missing,wording	3
+2026-10-15	align-dependency-report-version-authority	3	over-claim,wording,missing-task	over-claim,wording,missing-task	2
+2026-10-15	align-dependency-report-version-authority	4	wording,claim-missing	wording,claim-missing	2
+2026-10-15	align-dependency-report-version-authority	5	over-claim	over-claim	1
+2026-10-15	align-dependency-report-version-authority	6	-	-	0
+2026-10-16	align-dependency-report-version-authority	7	over-claim,claim-unreproducible,docs-residue,claim-missing,impact-omission,wording	-	5
+2026-10-16	align-dependency-report-version-authority	8	missing-scenario,coherence,wording	wording	3
+2026-10-16	align-dependency-report-version-authority	9	dropped-content,coherence,wording	coherence,wording	3
+2026-10-16	align-dependency-report-version-authority	10	missing-task,wording	wording	2

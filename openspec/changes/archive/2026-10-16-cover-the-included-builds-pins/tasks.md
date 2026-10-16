@@ -51,9 +51,10 @@
       `org.springframework` is a suppressed major.
 - [x] 4.4 Exercise the lookup's failure path: make one declared coordinate unanswerable and confirm it is reported as
       unread rather than as current, then restore it.
-- [ ] 4.5 Dispatch the `dependency-updates` workflow from the change's branch
-      (`gh workflow run dependency-updates.yml     --ref <branch>`) and confirm the issue body carries the new section:
-      a workflow edit's own run is its verification, since its schedule alone would only test it next week.
+- [x] 4.5 Dispatch the `dependency-updates` workflow from the change's branch
+      (`gh workflow run     dependency-updates.yml --ref <branch>`); a workflow edit's own run is its verification,
+      since its schedule alone would only test it next week. **Run 38849159717 is green** — the new step ran, and issue
+      #13's body now carries the "**Build-logic pins**" section with the five rows above the other sections intact.
 - [x] 4.6 Run `./gradlew check -PskipITs -Pcoverage.gate.enabled=false`, `spotlessApply`/`spotlessCheck`,
 - [x] 4.7 Verify the `dependency-management` delta's requirements against the running task: each scenario's outcome
       reproduced (a pin behind a newer stable release reported; a pre-release and a deferred major not; an unread lookup
@@ -94,7 +95,9 @@
       scratch-script-input rule, the programmatic-edit rule, the control rules), routed the `isNullOrEmpty` inspection
       to the existing optional-IDE-inspections convention, and found `README.md`'s `/dependency-updates` row stale —
       fixed in this change.
-- [ ] 6.4 Request the user's manual review pass, and archive only after it, the CI run, and the change's own PR.
+- [x] 6.4 Request the user's manual review pass, and archive only after it, the CI run, and the change's own PR: the
+      pass was requested and given, PR #594's `build` check is green (8m28s), and the archive commit follows on the same
+      PR.
 
 ## Implementation record
 

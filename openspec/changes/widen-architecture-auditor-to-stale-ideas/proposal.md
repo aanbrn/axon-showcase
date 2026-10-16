@@ -45,7 +45,6 @@ None.
 - A future audit reports a stale parked entry instead of leaving it to be stumbled upon; the item is advisory, so a
   false positive is a question for the owner, not a defect to fix.
 - **Build / tests / services**: no code, build, dependency or deployment change — a definition, a command, and prose.
-  The one gate that touches these files is the markdown formatter, run below and in `check`.
 - The verification is a **smoke-run** of the widened subagent with positive controls (a seeded stale entry it must
   report, a parked entry it must not), which needs the edited definition picked up — a reload or a new session — so the
   archive waits on it.

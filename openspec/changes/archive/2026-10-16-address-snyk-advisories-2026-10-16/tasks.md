@@ -39,7 +39,7 @@
       exits 1 while four modules reference it. It judged the second candidate (sweeping a restated claim by its subject)
       already covered by the review-gate sweeps and the repeated-class clause's "a count" — a compliance miss — and
       proposed no retirements.
-- [ ] 3.5 Ask the owner for the manual review pass, after 3.3 is clean and 3.4 is done.
+- [x] 3.5 Ask the owner for the manual review pass, after 3.3 is clean and 3.4 is done.
 
 ## 4. The change's own records
 

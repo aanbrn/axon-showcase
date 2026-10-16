@@ -1672,8 +1672,16 @@ hard-coded context name in the repo. The `ci` target declares the fixed `kind-ax
 deployment smoke's throwaway cluster is created under — a comment on each side names the other as the coupling's other
 half. Do not hard-code a machine-specific local context name (like `colima`) in the versioned build.
 
-**Chart validation**: the chart is linted as part of packaging (`helmPackageMainChart` → `helmLintMainChart`). Lint runs
-strict (warnings are errors) and lints the Bitnami `common` subchart, rendering two extra value sets:
+**Chart validation**: the chart is linted as part of packaging (`helmPackageMainChart` → `helmLintMainChart`). The
+Bitnami `common` dependency is fetched by the plugin's `helmUpdateMainChartDependencies` task — which its own docs
+equate with `helm dependency update` — and that task's `onlyIf` resolves false when the configuration cache stores its
+entry before the chart sources are collected, i.e. on clean checkouts and in CI, so `helm/chart/build.gradle.kts`
+replaces the gate with `setOnlyIf { true }`: without it nothing fetches on a clean checkout, the strict lint fails with
+"chart directory is missing these dependencies: common", and the deployment smoke fails at the install with "found in
+Chart.yaml, but missing in charts/ directory: common". Measured on one commit with only the cache toggled: the task
+reports SKIPPED with the cache on and fetches with `--no-configuration-cache`. The upstream gap is parked in
+`docs/ideas.md`. Lint runs strict (warnings are errors) and lints the Bitnami `common` subchart, rendering two extra
+value sets:
 
 ```bash
 ./gradlew :helm:chart:helmLintMainChartFull :helm:chart:helmLintMainChartMinimal
@@ -2255,7 +2263,11 @@ capture-stash-stale-copy
     cloud run the agent installed `openspec` mid-run, after init, so the resolved-path grant could not exist and the run
     hung — the config wildcard that replaced it removes the init-time dependency. Exercise the artifact at the lifecycle
     point it runs in (check the workflow's step order against the artifact's run point), not only its own invocation.
-    captured: grant-openspec-global-access-in-cloud (#325)
+    The context is also the retained state: clearing a module's `build/` is not the clean-checkout condition, because a
+    tool's own cache and the project's `.gradle/` survive it — `rm -rf helm/chart/build` alone still let the
+    chart-dependency task run, and only clearing the plugin's cache under `.gradle/` reproduced the skip CI saw — so
+    clear the caches outside `build/` before concluding a failure does not reproduce. captured:
+    fix-chart-dependency-fetch captured: grant-openspec-global-access-in-cloud (#325)
 
 - **A derived measurement may report only what it measured — pin its unit to a countable event, never let a fallback be
   indistinguishable from the real thing, and never let a check's failure gate nothing: label a reporting fallback as
@@ -2345,7 +2357,12 @@ capture-stash-stale-copy
   `:load-tests:gatlingRecorder`, whose third-party task type holds a `Configuration`/`SourceSet` no hoist can fix (the
   plugin repository disables issues and discussions, so an upstream fix must arrive as a PR). Sweep such a change over
   the build's **whole task list** (`./gradlew tasks --all`'s set, requested in one graph), not the closures you know
-  about — a plugin task type is the other failure shape.
+  about — a plugin task type is one failure shape (it cannot store), and a third-party task whose `onlyIf` reads build
+  state is another: it stores cleanly and then silently skips, because the cache resolves the predicate against the
+  state captured at store time. So compare each third-party task's _outcome_ (ran / skipped) with and without the cache
+  on a clean checkout, not only that the graph stores; and neutralize such a gate with `setOnlyIf { true }`, since a
+  bare `onlyIf { true }` only appends a spec that is ANDed with the plugin's and leaves it in force (the helm plugin's
+  chart-dependency skip is the worked case — see the Chart validation bullet above).
 - The gradle-helm-plugin 3.2.0 still calls the deprecated `Project.getProperties()` (a `--warning-mode all` deprecation
   that becomes a hard error in Gradle 10). Tracked upstream as build-extensions-oss/gradle-helm-plugin#145; bump the
   plugin when a fix is released. Separately, the Gradle `Configuration.visible` deprecation (`setVisible(boolean)`,

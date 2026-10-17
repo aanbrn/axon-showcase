@@ -11,13 +11,13 @@ by the review and audit subagents), and the locally-defined quality-gate and ana
 — the per-unit review and lesson-capture agents, the experience-analyzer, the visual and diagram agents, and the
 on-demand auditors of the project-owned agent tooling (the guidance and project-authored `.opencode/` files, plus any
 generated or vendored file that contradicts how the repository uses it, the meta rules it reports with their origins,
-and the merge, removal, and route candidates it reports), of the `openspec/specs/` corpus, of the architecture (the
-ADRs, the service, module, and spec-decomposition surface, where a deliberate decision's rationale is not recorded, and
-where a record's recorded premise appears met — a deferral's `Revisit when:` condition, or a parked `docs/ideas.md`
-entry whose work has landed), of the human-facing `README.md` (its claims against the repository, its shape against the
-README convention, and its coverage of the human-visible capabilities), and the scheduled unattended run that performs
-the audits without a human asking, together with the standing owner-gated unit that applies an audit report's reduction
-candidates.
+the merge, removal, and route candidates it reports, and the authoring-system gaps it traces to a mechanism that
+produces an artifact), of the `openspec/specs/` corpus, of the architecture (the ADRs, the service, module, and
+spec-decomposition surface, where a deliberate decision's rationale is not recorded, and where a record's recorded
+premise appears met — a deferral's `Revisit when:` condition, or a parked `docs/ideas.md` entry whose work has landed),
+of the human-facing `README.md` (its claims against the repository, its shape against the README convention, and its
+coverage of the human-visible capabilities), and the scheduled unattended run that performs the audits without a human
+asking, together with the standing owner-gated unit that applies an audit report's reduction candidates.
 
 ## Requirements
 
@@ -364,14 +364,28 @@ written before the marker convention carries none and falls outside the metric. 
 those rule units are new since the newest prior report under `docs/audits/`, reporting `none recorded` when no prior
 report exists and that the figure is unavailable when it cannot be determined.
 
+The audit SHALL additionally report, as an **authoring-system gap** class kept separate from its fix findings and
+reported without severity, a recurring defect whose cause is a mechanism that produces or maintains the artifact rather
+than the artifact's content. Each item SHALL name the mechanism, the gap in how that mechanism communicates or enforces
+the applicable standard, the smallest correction at the mechanism, and how that correction would prevent or reduce the
+recurrence. The class SHALL be bounded by evidence: a defect reported from a single artifact with no established link to
+the mechanism that produced it is a content defect under the consistency axis, not an authoring-system gap, and the
+class SHALL NOT become a route for speculative rules. The correction's handling SHALL follow the mechanism's scope: for
+an in-scope mechanism (an agent definition, command, or skill under `.opencode/`) the audit proposes the correction
+directly; for an editable project-owned mechanism outside the audit's scope (the `openspec/config.yaml` per-artifact
+rules) it reports the gap with the correction routed to the change workflow, never applied as a local edit; and for an
+excluded mechanism (a generated OpenSpec instruction file, or a vendored skill) it reports the item under the advisory
+class and never proposes a local edit to it. A correction SHALL reference the authoritative standard rather than copy it
+into the mechanism.
+
 #### Scenario: An agent-tooling audit is produced
 
 - **WHEN** the main agent invokes the `agents-auditor` subagent (e.g. via the `/audit-agents` command)
 - **THEN** it returns findings grouped by severity, covering consistency (contradictions, stale claims, dead
   cross-references, drift) and conciseness (duplication, trivia, length, placement) across `AGENTS.md` and the
   project-authored `.opencode/` files, each with a location and a suggested rewrite — plus, separately, any advisory
-  third-party inconsistency, the accreted meta rules with their origins, with the merge, removal, and route candidate
-  counts named in the verdict line
+  third-party inconsistency, the accreted meta rules with their origins, and any authoring-system gap, with the merge,
+  removal, and route candidate counts named in the verdict line
 
 #### Scenario: Generated and vendored files are excluded
 
@@ -452,6 +466,26 @@ report exists and that the figure is unavailable when it cannot be determined.
   mechanism enforces it
 - **THEN** the audit does not report the rule as a removal or route candidate, because review is not a gate and the rule
   may itself be what makes the violation visible to the reviewer
+
+#### Scenario: A recurring defect is traced to the authoring mechanism
+
+- **WHEN** the `agents-auditor` subagent finds a defect that recurs across the artifacts one mechanism produces — a
+  skill that keeps emitting dense procedural prose, or a command that omits a step the workflow needs
+- **THEN** it reports an authoring-system gap naming the mechanism, the gap in how that mechanism communicates or
+  enforces the standard, the smallest correction at the mechanism, and how the correction would prevent or reduce the
+  recurrence — separate from its fix findings and without severity
+
+#### Scenario: A one-off defect is not an authoring-system gap
+
+- **WHEN** a defect appears in a single artifact and no link to the mechanism that produced it is established
+- **THEN** it is reported as a content defect under the consistency axis, not as an authoring-system gap
+
+#### Scenario: An authoring-system gap in an excluded mechanism is advisory
+
+- **WHEN** the mechanism responsible for a recurring defect is excluded (a generated OpenSpec instruction file, or a
+  vendored skill)
+- **THEN** the audit reports the gap under the advisory class, naming the harm and the decision it invites, and never
+  proposes a local edit to the excluded mechanism
 
 ### Requirement: The architecture is audited for drift from its recorded decisions
 
@@ -891,5 +925,6 @@ pass, and each SHALL keep its own required template and sections.
 - **WHEN** an artifact is reviewed (`review-quick`, `review-thorough`) or audited (`agents-auditor`) and a passage packs
   several independently actionable statements into one paragraph or bullet, implies a condition, or merges mandatory
   text with its rationale
-- **THEN** it is reported as a finding, with its location and the restructure, without changing the passage's technical
-  meaning, normative strength, or required format
+- **THEN** it is reported as a finding, with its location, the practical impact of the current structure, and a
+  minimally invasive restructure, without changing the passage's technical meaning, normative strength, or required
+  format, and without introducing a requirement the passage did not state

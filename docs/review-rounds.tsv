@@ -361,3 +361,10 @@
 2026-10-17	capture-authoring-system-gaps	5	missing-scenario,single-sourcing	-	2
 2026-10-17	capture-authoring-system-gaps	6	incomplete-enumeration,claim-missing	incomplete-enumeration,claim-missing	2
 2026-10-17	capture-authoring-system-gaps	7	-	-	0
+2026-10-17	widen-audit-agents-to-authoring-gaps	1	incomplete-enumeration,docs-residue,claim-unreproducible	-	3
+2026-10-17	widen-audit-agents-to-authoring-gaps	2	claim-unreproducible,claim-missing,incomplete-enumeration	claim-unreproducible,incomplete-enumeration	3
+2026-10-17	widen-audit-agents-to-authoring-gaps	3	contradiction	-	1
+2026-10-17	widen-audit-agents-to-authoring-gaps	4	-	-	0
+2026-10-17	widen-audit-agents-to-authoring-gaps	5	single-sourcing,claim-unreproducible,missing-task,claim-missing	-	3
+2026-10-17	widen-audit-agents-to-authoring-gaps	6	missing-task,docs-residue	missing-task	2
+2026-10-17	widen-audit-agents-to-authoring-gaps	7	-	-	0

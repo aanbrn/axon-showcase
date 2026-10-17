@@ -488,6 +488,15 @@ tasks.register<Exec>("testCommitHygiene") {
     commandLine(pythonExecutable, "scripts/test-commit-hygiene.py")
 }
 
+tasks.register<Exec>("testClaimScan") {
+    group = "verification"
+    description = "Runs the claim scanner's tests"
+    inputs.file("scripts/claim-scan.py")
+    inputs.file("scripts/test-claim-scan.py")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/test-claim-scan.py")
+}
+
 tasks.register<Exec>("testDoctorCharter") {
     group = "verification"
     description = "Asserts the doctor's declared probes, their shape, and that the doctor reports each one"
@@ -600,6 +609,7 @@ tasks.named("check") {
     dependsOn("verifyModuleDependencies")
     dependsOn("verifyCapturedMarkers")
     dependsOn("testCommitHygiene")
+    dependsOn("testClaimScan")
     dependsOn("testDoctorCharter")
     dependsOn("verifyTrackedIgnoredFiles")
     dependsOn("verifyConflictMarkers")

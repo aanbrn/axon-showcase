@@ -91,42 +91,46 @@ each of the five claim classes this loop keeps catching from its source: read ev
 external-artifact claim from the artifact now; re-grep every count against its set; single-source a model stated in more
 than one artifact; derive every mechanism or task-check claim from the tool or the graph; and, for a change whose facts
 are its own measurement or computation, derive each figure from the mechanism that produces it — the window or instant
-it spans and the aggregation it applies (the measurement-attribution gotcha carries the series rule). The rules for
-those classes already exist — the pass spends at authoring time the rounds the review otherwise spends finding them. No
-semantic self-review precedes the loop — a re-read shares the blind spot that produced the claim — so the author owes
-only the pre-write pass above and the mechanical pre-flight (the formatter and the touched module's gates after the
-final edit). captured: decide-against-pre-review Every unit carries the pass as a task — a task in a change's
-`tasks.md`, or a line in the pull-request checklist for a unit with no change dir — so a missing box is a skip, not a
-pass that found nothing. Its output is the change's **claims table** — each fact the change states about its evidence
-(the prior artifacts it rests on) with its source or the deriving command, its rows seeded from the recurring classes
-`docs/review-rounds.tsv` records — in `design.md`, or in `tasks.md` for a unit that writes no `design.md`, or on the
-pull-request checklist line for a unit with no change dir. A row about an artifact the change itself edits anchors its
-source to that artifact's pre-change state (`git show HEAD:<path>`): it stops reproducing once the change lands. A site
-named for a later sweep is quoted by its text or token, never by a line number — a concurrent merge moves it, so the
-anchor is stale as committed (`AGENTS.md:NNNN` anchors were two lines out here). captured:
+it spans and the aggregation it applies, re-deriving it after that mechanism's last edit, since a figure measured before
+the final tuning does not reproduce (the measurement-attribution gotcha carries the series rule). captured:
+seed-claims-from-the-diff The rules for those classes already exist — the pass spends at authoring time the rounds the
+review otherwise spends finding them. No semantic self-review precedes the loop — a re-read shares the blind spot that
+produced the claim — so the author owes only the pre-write pass above and the mechanical pre-flight (the formatter and
+the touched module's gates after the final edit). captured: decide-against-pre-review Every unit carries the pass as a
+task — a task in a change's `tasks.md`, or a line in the pull-request checklist for a unit with no change dir — so a
+missing box is a skip, not a pass that found nothing. Its output is the change's **claims table** — each fact the change
+states about its evidence (the prior artifacts it rests on) with its source or the deriving command, its rows seeded
+from the recurring classes `docs/review-rounds.tsv` records — in `design.md`, or in `tasks.md` for a unit that writes no
+`design.md`, or on the pull-request checklist line for a unit with no change dir. Seed it with `scripts/claim-scan.py`
+(via `/seed-claims`), whose candidates for the unit's diff are each resolved into a row or recorded as a dismissal with
+the reason beside the table — a lead list, never a gate, and it seeds the table rather than replacing the derivation
+(`showcase/quality/agent-skills` owns the behaviour). A row about an artifact the change itself edits anchors its source
+to that artifact's pre-change state (`git show HEAD:<path>`): it stops reproducing once the change lands. A site named
+for a later sweep is quoted by its text or token, never by a line number — a concurrent merge moves it, so the anchor is
+stale as committed (`AGENTS.md:NNNN` anchors were two lines out here). captured:
 widen-architecture-auditor-to-stale-ideas Pass each prior finding's **instance** (`file:line` and the claim) from the
 prior round's report on every re-run, not only its class, so the subagent can report an unfixed prior instance or a new
 instance of an exhausted class rather than classifying each round in isolation; the instances live only in that report,
 not the class-only record line, so a loop whose **caller** is about to lose its context — a new session — writes them to
 a handover before it is lost and resumes by running the round. The caller continues the reviewer's session across rounds
-— passing its session id on the next request — and starts fresh only when that session has expired (a subagent session
-can); what each round must not do is lean on the reviewer's memory in place of the hand-off, which is the caller's
-record. The session-reuse rule's rationale is in `showcase/quality/agent-skills`, not restated here. The caller's own
-re-check of the handover is a recorded deviation, not a passed round (a resumed round found defects the handover's
-self-review had passed). captured: retrospective-2026-10-15 A finding that adds behavior is a scope change, not a code
-fix: applying it to the code and a test alone leaves the change's planning artifacts — proposal, design, tasks, and
-delta spec — describing the old behavior, and the next round reports the residue as spec-/task-drift: sweep every one of
-them, not only the file the finding names, as part of applying the finding (and the docs, per the docs-refresh
-convention). A **framing or coherence** correction takes the same sweep even though it adds no behavior: the artifacts
-the change states the model across — planning and shipped alike — state one model of the subject, so correcting the
-model in the artifacts the finding names leaves a sibling — often the shipped copy, not only `proposal.md` — stating the
-old framing, which the next round flags as coherence drift. Re-read every artifact that states the corrected claim,
-`proposal.md` and the shipped copies included, before re-running the review. When one source owns the claim — a
-predicate the requirement owns (a threshold, band, or formula), or a scope the owning definition states via its class
-names — single-source it: state it once there and repeat it identically (referencing it by name where the site can),
-since a restated copy re-anchors on its own (a README copy made the matching band a tenth of the _measured_ rate where
-the requirement and code use the _recorded_ one) and the sweep has no canonical wording to sweep to. captured:
-record-baseline-operating-point captured: widen-architecture-auditor-to-revisit-triggers captured:
+— passing its session id on the next request — and starts fresh only when that session has expired or the reviewer's
+definition changed (a subagent session can); what each round must not do is lean on the reviewer's memory in place of
+the hand-off, which is the caller's record. The session-reuse rule's rationale is in `showcase/quality/agent-skills`,
+not restated here. The caller's own re-check of the handover is a recorded deviation, not a passed round (a resumed
+round found defects the handover's self-review had passed). captured: retrospective-2026-10-15 A finding that adds
+behavior is a scope change, not a code fix: applying it to the code and a test alone leaves the change's planning
+artifacts — proposal, design, tasks, and delta spec — describing the old behavior, and the next round reports the
+residue as spec-/task-drift: sweep every one of them, not only the file the finding names, as part of applying the
+finding (and the docs, per the docs-refresh convention). A **framing or coherence** correction takes the same sweep even
+though it adds no behavior: the artifacts the change states the model across — planning and shipped alike — state one
+model of the subject, so correcting the model in the artifacts the finding names leaves a sibling — often the shipped
+copy, not only `proposal.md` — stating the old framing, which the next round flags as coherence drift. Re-read every
+artifact that states the corrected claim, `proposal.md` and the shipped copies included, before re-running the review.
+When one source owns the claim — a predicate the requirement owns (a threshold, band, or formula), or a scope the owning
+definition states via its class names — single-source it: state it once there and repeat it identically (referencing it
+by name where the site can), since a restated copy re-anchors on its own (a README copy made the matching band a tenth
+of the _measured_ rate where the requirement and code use the _recorded_ one) and the sweep has no canonical wording to
+sweep to. captured: record-baseline-operating-point captured: widen-architecture-auditor-to-revisit-triggers captured:
 add-apply-audit-reductions-command. A clean quick review is a precondition for asking for the manual review, **not** a
 substitute for it — it means _ask the user now_, not _the implementation is approved_. Never commit, push, open a PR,
 archive, or merge on the strength of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR
@@ -156,16 +160,19 @@ mechanism — the `derive-the-change-claims` proposal loop ran 14 rounds until t
 layer another special case. A second root-cause shape is a passage the change was single-sourcing: each round finds
 another residue of the duplicate the pointer should have removed because the edit trimmed the sub-clause that round
 named; replace the whole duplicated unit in one edit and derive what stays at the pointing site from that site's own
-subject, not from the finding. captured: single-source-the-scheduled-audit-mechanism A third shape is a rule's own
-boundary wording: a discriminator that reads plausibly but excludes the very case it was written for must be re-derived
-from the mechanism that distinguishes the cases — not merely re-worded — and tested against that motivating case before
-its wording is swept across the artifact set. captured: relax-diagram-span-rule A fourth shape is the change's own
-claims table: when the repeated class is its completeness (a stated fact it omits, a source that does not reproduce),
-adding the omitted row re-triggers — the rows track the facts the artifacts state — so delete the unneeded fact rather
-than add the row. captured: dont-report-what-a-gate-covers A revert after a non-converging loop is a legitimate outcome
-— record why in the change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362)
-captured: realistic-load-test-profiles captured: check-load-test-drift captured: check-unique-cron-schedules (#436)
-captured: derive-retrospective-facts captured: derive-the-change-claims
+subject, not from the finding. A description of a sibling artifact's contents — a source list, a delta description, a
+list of the change's own edits — is the same shape with a moving subject: it is stale the moment that artifact changes
+again, so delete the description and keep the pointer rather than updating it. captured:
+single-source-the-scheduled-audit-mechanism captured: seed-claims-from-the-diff A third shape is a rule's own boundary
+wording: a discriminator that reads plausibly but excludes the very case it was written for must be re-derived from the
+mechanism that distinguishes the cases — not merely re-worded — and tested against that motivating case before its
+wording is swept across the artifact set. captured: relax-diagram-span-rule A fourth shape is the change's own claims
+table: when the repeated class is its completeness (a stated fact it omits, a source that does not reproduce), adding
+the omitted row re-triggers — the rows track the facts the artifacts state — so delete the unneeded fact rather than add
+the row. captured: dont-report-what-a-gate-covers A revert after a non-converging loop is a legitimate outcome — record
+why in the change dir so the decision is not re-litigated. captured: propagate-ui-trace-context (#362) captured:
+realistic-load-test-profiles captured: check-load-test-drift captured: check-unique-cron-schedules (#436) captured:
+derive-retrospective-facts captured: derive-the-change-claims
 
 **The review gate is not OpenSpec-specific.** Run the same quick-review-then-manual-review sequence for every unit of
 work that will become a PR — a docs refresh, a standalone fix, a dependency bump — not only an OpenSpec change. There is
@@ -539,8 +546,8 @@ wait for approval before merging.
 - `pack` CLI (for the web UI `dockerBuildImage` image build; see
   https://buildpacks.io/docs/for-platform-operators/how-to/integrate-ci/pack/, e.g. `brew install buildpacks/tap/pack`
   on macOS)
-- Python 3 (for `./scripts/setup-idea.sh`'s IDE-settings merge and the commit-hygiene guard/check; macOS ships it via
-  Command Line Tools)
+- Python 3 (for `./scripts/setup-idea.sh`'s IDE-settings merge, the commit-hygiene guard/check, and `claim-scan.py`;
+  macOS ships it via Command Line Tools)
 - Git hooks: run `./scripts/install-git-hooks.sh` once per clone to activate the pre-commit guard (the checks the
   `git add <dir>` gotcha enumerates); bypass a deliberate exception with `git commit --no-verify`
 - Toolchain doctor: `./scripts/doctor.sh` (or `/check-tooling`) probes this list — presence, version floors, and repo
@@ -585,8 +592,8 @@ wait for approval before merging.
 # plus workflowLint (actionlint), verifyInfraImageVersions, verifyInstallCommands, verifyDocumentedPins,
 # verifyModuleDependencies,
 # verifyDashboardJson, verifyPrettierAlignment, and the commit-hygiene tasks
-# (verifyCapturedMarkers, testCommitHygiene, testDoctorCharter, verifyTrackedIgnoredFiles, verifyConflictMarkers,
-# verifyExecutableBits, verifyUniqueCronSchedules, verifyUniqueReviewRounds, verifyLargeFiles)
+# (verifyCapturedMarkers, testCommitHygiene, testClaimScan, testDoctorCharter, verifyTrackedIgnoredFiles,
+# verifyConflictMarkers, verifyExecutableBits, verifyUniqueCronSchedules, verifyUniqueReviewRounds, verifyLargeFiles)
 # (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
 # check)
 ./gradlew :showcase-command-service:check
@@ -1498,11 +1505,12 @@ Key modules (libraries, not services):
   `setup-hosts.sh`; and `.opencode/` holds the OpenCode-runtime surface — agents, commands, skills — with **no
   executable**, so a command may trigger a `scripts/` tool but never hosts its implementation. A `scripts/` tool an
   agent drives gets its own command trigger, and the tool keeps the implementation (`doctor.sh` ↔ `/check-tooling`,
-  `setup-idea.sh` ↔ `/setup-idea`, `experience-analysis.sh` ↔ `/retrospective`); a tool with no agent caller stays
-  untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`), and `commit-hygiene.py` is driven by the tracked
-  `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks. The generated OpenSpec command/skill files and the
-  vendored `axon4to5-*` skills are not the repository's to place. Derive any claim about placement from the complete set
-  (`git ls-files -s | awk '$1=="100755"'`), not from the location in hand. captured: state-tooling-placement-rule (#458)
+  `setup-idea.sh` ↔ `/setup-idea`, `experience-analysis.sh` ↔ `/retrospective`, `claim-scan.py` ↔ `/seed-claims`); a
+  tool with no agent caller stays untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`), and `commit-hygiene.py`
+  is driven by the tracked `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks. The generated OpenSpec
+  command/skill files and the vendored `axon4to5-*` skills are not the repository's to place. Derive any claim about
+  placement from the complete set (`git ls-files -s | awk '$1=="100755"'`), not from the location in hand. captured:
+  state-tooling-placement-rule (#458)
 - **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
   `.opencode/commands/setup-agent-tools.md` (project-local, **not** one of the vendored `axon4to5-*` skills) let a
   contributor ask the agent to wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only,

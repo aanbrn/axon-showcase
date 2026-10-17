@@ -1,7 +1,8 @@
 ---
 description:
-  Captures lessons learned from a unit into AGENTS.md and reports the rules the unit retires. Use after a unit's
-  implementation (and its quick review) finishes, so mistakes and conventions get recorded instead of relying on memory.
+  Captures lessons learned from a unit into AGENTS.md, reports the rules the unit retires, and routes a lesson whose
+  cause is an authoring mechanism to that mechanism. Use after a unit's implementation (and its quick review) finishes,
+  so mistakes and conventions get recorded instead of relying on memory.
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash
 temperature: 0
@@ -62,6 +63,15 @@ the capture record — the change's `tasks.md` task, or beside the pull-request 
 the merge-time read sees the figure the proposals landed on. The periodic `/audit-agents` pass, whose verdict already
 reports the accreted-rule count, is the control on that growth rather than mass deletion to hit a number.
 
+**Trace a lesson to its origin before proposing an entry: a defect in the mechanism that produces an artifact is fixed
+at that mechanism, not with another bullet an agent reads.** WHEN a lesson traces to the mechanism that produces a
+technical artifact rather than to the artifact's content — a prose shape a template encourages, a schema slot left
+ambiguous, a skill prompting the wrong structure — THEN identify that mechanism (an OpenSpec template or schema, an
+`openspec/config.yaml` rule, a skill or command that shapes drafting, or the authoring standard itself) and propose the
+smallest correction there, stating the mechanism, the gap, the proposed change, and why an entry in this file would not
+suffice. Report these as **authoring-system recommendations**: their own group, separate from the additions and the
+retirements, since they change how a future artifact is produced rather than what an agent reads.
+
 **Author every entry to the repository's knowledge-authoring standard** (the `agent-skills` spec): choose the entry's
 representation — a rule or invariant, a procedure, a decision rule, a gotcha, or reference knowledge — keep one
 authoritative definition for a subject and reference it rather than duplicating, and update an existing bullet before
@@ -76,10 +86,14 @@ for duplication, contradiction, unclear scope, surviving constraints, and eviden
 
 **Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
 
-- Open with the verdict: `<n> durable proposals (<n> additions, <n> retirements), net <n> AGENTS.md lines`, or
-  `nothing durable` (net 0) when there are neither, as the first line, not a closing sentence. The net figure is the
-  proposed `AGENTS.md` delta in lines — the additions minus the retirements, as authored.
+- Open with the verdict:
+  `<n> durable proposals (<n> additions, <n> retirements), <n> authoring-system recommendations, net <n> AGENTS.md lines`,
+  or `nothing durable (net 0)` when the report carries none of the three, as the first line, not a closing sentence. The
+  net figure is the proposed `AGENTS.md` delta in lines — the additions minus the retirements, as authored; an
+  authoring-system recommendation changes no `AGENTS.md` line.
 - Budget each proposal: the rule, its target location, and one line of evidence — the budget is per item, not a cap on
   the total.
+- Report **authoring-system recommendations** as their own group — each naming the mechanism, the gap, the proposed
+  change, and why an entry would not suffice — never as an `AGENTS.md` addition.
 - Collapse candidates verified as already covered or rejected to one line each, or one summary line.
 - State the recommendation; do not offer alternatives — the calling agent decides.

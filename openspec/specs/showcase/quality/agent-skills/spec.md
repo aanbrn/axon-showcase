@@ -75,6 +75,15 @@ Each improvement suggestion SHALL be classified as a system suggestion (addresse
 proposal) or a process suggestion (addressed via `AGENTS.md` or a subagent definition). The agent SHALL propose the
 retrospective and suggestions without editing files; the main agent verifies and applies them.
 
+Beyond grouping the shipped work, the retrospective SHALL trace each significant failure it reports to a root cause and
+name the earliest development stage at which the problem could reasonably have been prevented or detected — drawing the
+evidence from the digest's review-round data rather than restating the symptom — so an improvement can move prevention
+earlier. It SHALL evaluate the previous retrospective's recommendations when their outcomes can be observed, stating for
+each whether it was applied and whether the available evidence shows it helped, or that the window cannot yet show it,
+rather than presuming effectiveness from the absence of the failure. Each improvement suggestion SHALL state the failure
+pattern it targets, the observable outcome expected, and how that outcome would be verified, so a later window can judge
+whether it worked.
+
 #### Scenario: A retrospective is produced from gathered experience
 
 - **WHEN** the main agent gathers a digest of recent experience and invokes the `experience-analyzer` subagent
@@ -104,6 +113,25 @@ retrospective and suggestions without editing files; the main agent verifies and
 
 - **WHEN** the `experience-analyzer` subagent runs
 - **THEN** it returns proposed text and suggestions without modifying files; the main agent verifies and applies them
+
+#### Scenario: A significant failure is root-caused to its earliest prevention point
+
+- **WHEN** the retrospective reports a significant failure or a recurring review-finding class
+- **THEN** it names the underlying cause and the earliest development stage at which the problem could reasonably have
+  been prevented or detected, drawn from the digest's review-round data, so the improvement targets that stage rather
+  than the symptom
+
+#### Scenario: The previous retrospective's recommendations are evaluated
+
+- **WHEN** the digest names the previous retrospective and its recommendations' outcomes can be observed
+- **THEN** the retrospective states, for each, whether it was applied and whether the available evidence shows it
+  helped, or that the window cannot yet show it — never presuming effectiveness from the absence of the failure
+
+#### Scenario: Each suggestion carries a verifiable expected outcome
+
+- **WHEN** the `experience-analyzer` subagent proposes an improvement
+- **THEN** the suggestion states the failure pattern it targets, the observable outcome expected, and how that outcome
+  would be verified, so a later window can judge whether it worked
 
 ### Requirement: Per-change quality-gate and analysis subagents are available
 

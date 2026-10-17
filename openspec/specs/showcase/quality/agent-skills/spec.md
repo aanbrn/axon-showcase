@@ -152,9 +152,11 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 - **AND** the pass seeds that table mechanically: a scan of the authored set's added lines (`scripts/claim-scan.py`, run
   through `/seed-claims`) lists each claim shape it finds — a count, an absolute quantifier, a cross-artifact reference,
   a backticked path — with its location, and the author resolves each candidate into a row or records its dismissal
-  beside the table (grouped by kind where the dismissal is uniform), with the reason, so a claim the author did not
-  notice stating is listed rather than waiting for a review round to find it, and the scan's output is accounted for;
-  the scan seeds the table and never replaces the derivation, since it enumerates shapes, not facts
+  beside the table (grouped by kind where the dismissal is uniform, and a row's source states the reason by class rather
+  than a list of a command's output lines), with the reason, so a claim the author did not notice stating is listed
+  rather than waiting for a review round to find it, and the scan's output is accounted for; the table is re-derived
+  after the unit's last append to its own record, which adds a candidate to the scan; the scan seeds the table and never
+  replaces the derivation, since it enumerates shapes, not facts
 - **AND** the caller passes each prior finding's instance (`file:line` and the claim), not only its class, so a repeat
   is reported as an unfixed prior instance or as a new instance of an exhausted class
 - **AND** the caller continues the prior round's `review-quick` session — passing its session id on the next request —
@@ -192,6 +194,11 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
   cost, material (it prevents real breakage, risk, wasted work, or review churn), general enough for a class of future
   tasks rather than one file or incident, and high-confidence with a known scope — and a rule that fails the gate is
   routed to a check, a spec, an ADR, or the change dir instead of the always-loaded file
+- **AND** before proposing an entry, it traces the lesson to its origin — where the cause is a mechanism that produces
+  the artifact (an OpenSpec template or schema, an `openspec/config.yaml` rule, a skill or command that shapes drafting,
+  or the authoring standard itself), it proposes the smallest correction at that mechanism and reports it as an
+  authoring-system recommendation, separate from its additions and retirements, since it changes how a future artifact
+  is produced rather than what an agent reads
 - **AND** each proposed addition names the decision its rule governs, and answers whether a future change would
   plausibly hit it and whether the cost of not knowing it is material — a proposal that governs no decision is trivia,
   not a rule, and is not proposed
@@ -203,9 +210,9 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 - **AND** applying a capture should leave `AGENTS.md` no larger than it was, preferring a merge or a replacement over an
   addition, and any net growth is a justified decision stated with the proposal — not a side effect of accumulating
   prose
-- **AND** the capture's verdict states the proposed net `AGENTS.md` delta in lines (additions minus retirements), and
-  the applying agent records the applied delta, so net growth is stated when it is decided, alongside the periodic
-  audit's accreted-rule count
+- **AND** the capture's verdict states the proposed net `AGENTS.md` delta in lines (additions minus retirements) and its
+  authoring-system recommendation count, and the applying agent records the applied delta, so net growth is stated when
+  it is decided, alongside the periodic audit's accreted-rule count
 - **AND** when a rule's rationale is normative in a spec, the bullet keeps only what a reader needs to act and points at
   the spec — a pointer, not a condensed copy, since `AGENTS.md` is loaded on every invocation while a spec is loaded
   only when its capability is worked on
@@ -234,6 +241,16 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 - **WHEN** a unit is prepared for its merge and its implementation capture has not run
 - **THEN** the merge-time read reports the capture as unrun — the unit's record missing or unticked — rather than
   reconstructing the skip from recollection
+
+#### Scenario: A lesson whose cause is an authoring mechanism is routed to it
+
+- **WHEN** a unit's lessons trace to the mechanism that produces a technical artifact rather than to the artifact's
+  content — a template or schema that encourages the wrong structure, a `config.yaml` rule that is silently dropped, a
+  skill that prompts a shape the standard forbids
+- **THEN** the `lesson-capture` subagent proposes the smallest correction at that mechanism and reports it as an
+  authoring-system recommendation, naming the mechanism, the gap, the proposed change, and why an `AGENTS.md` entry
+  would not suffice — separate from its additions and retirements, since it changes how a future artifact is produced
+  rather than what an agent reads
 
 #### Scenario: Screenshots are reviewed visually
 

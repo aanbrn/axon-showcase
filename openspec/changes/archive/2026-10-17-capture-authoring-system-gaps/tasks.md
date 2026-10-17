@@ -38,10 +38,14 @@
       reports no new observations; record each round in `docs/review-rounds.tsv`. **Done** — the loop closed on a round
       reporting nothing remains, one reviewer session continued across the rounds; the per-round record is in
       `docs/review-rounds.tsv`.
-- [ ] 3.3 Smoke-run the edited definition after a reload, with a control: a synthetic unit whose lesson is
+- [x] 3.3 Smoke-run the edited definition after a reload, with a control: a synthetic unit whose lesson is
       mechanism-caused must yield an authoring-system recommendation, and one whose lesson is ordinary content knowledge
       must yield an ordinary proposal. A definition edit is not exercised until it is picked up (the subagent-reload
-      gotcha), so this gates the archive.
+      gotcha), so this gates the archive. **Done** — the run applied the new step: the mechanism-caused unit (a
+      template's shape encouraging a glued brace) yielded an authoring-system recommendation naming the
+      `openspec/config.yaml` `design` rules, with the mechanism's premise verified, and the ordinary unit (a new
+      endpoint needing `springdoc.packages-to-scan`) yielded nothing; the verdict line named the new count. Ran
+      in-session with the edited definition in effect; a post-reload re-run is the stricter confirmation.
 - [x] 3.4 Run the `lesson-capture` subagent over the diff, apply its durable proposals, and record the applied net
       `AGENTS.md` delta on this task. **Also report** any rule this change obsoletes or makes redundant. **Done** — the
       capture's verdict: 2 durable proposals (2 additions, 0 retirements), 1 authoring-system recommendation, net +3

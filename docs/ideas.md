@@ -15,24 +15,13 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-17
 
-- Make the digest's review-round aggregation comparable and quotable — parked; no change yet. The 2026-10-15
-  retrospective's S1, one of the two enablers of the comparison its baseline names. `scripts/experience-analysis.sh`
-  aggregates `docs/review-rounds.tsv` with a plain `$1 >= <since>` date filter. That filter folds the previous window's
-  same-day tail into the printed `window:` line. The script sums the per-round miss counts without normalizing a label,
-  so every pre-canonical class goes uncompared. The boundary and the measured figures are
-  `docs/retrospectives/2026-10-15.md`'s to state, not this file's. Normalize the rows recorded before the canonical list
-  through the mapping `2026-10-15-give-the-review-a-canonical-class-list` records in its `design.md`. Print the
-  window-proper figures beside the inclusive count. Routes to the script plus a `MODIFIED` delta on `agent-skills`'s
-  "Experience analysis is available to agents" requirement, whose derived-facts block already names the round count, the
-  classes raised, and the compliance-miss count.
-
 - Check that every recorded class is in the reviewer's canonical list — parked; no change yet. The 2026-10-15
-  retrospective's S2, the other enabler of that comparison. The label set lives as prose in `review-quick`'s class list,
-  and the retrospective found it drifting across the record — which matters because the whole convergence signal is
-  label comparability. Add a rules-object check carrying its known-bad and known-good cases (the `*RulesTests` shape)
-  asserting that every class in a `docs/review-rounds.tsv` row recorded on or after the canonical boundary is in that
-  list, so a genuinely new class is added to the contract before it is recorded. Routes to a `code-quality` requirement
-  plus an `agent-skills` delta.
+  retrospective's S2, the remaining enabler of the window comparison its baseline names. The label set lives as prose in
+  `review-quick`'s class list, and the retrospective found it drifting across the record — which matters because the
+  whole convergence signal is label comparability. Add a rules-object check carrying its known-bad and known-good cases
+  (the `*RulesTests` shape) asserting that every class in a `docs/review-rounds.tsv` row recorded on or after the
+  canonical boundary is in that list, so a genuinely new class is added to the contract before it is recorded. Routes to
+  a `code-quality` requirement plus an `agent-skills` delta.
 
 - Guard against unticked tasks in an archived change dir — parked; no change yet. The 2026-10-15 retrospective's S4,
   proposed at lower confidence. Archived change dirs carry unticked review-gate boxes (the count and the window-proper

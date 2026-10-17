@@ -316,12 +316,17 @@ capture-reverted-sweep-lessons (#283)
    its source or the deriving command, its rows seeded from the recurring classes `docs/review-rounds.tsv` records — in
    `design.md`, or in `tasks.md` for a unit that writes no `design.md`, or on the pull-request checklist line for a unit
    with no change dir. Seed it with `scripts/claim-scan.py` (via `/seed-claims`), whose candidates for the unit's diff
-   are each resolved into a row or recorded as a dismissal with the reason beside the table — a lead list, never a gate,
-   and it seeds the table rather than replacing the derivation (`showcase/quality/agent-skills` owns the behaviour). A
-   row about an artifact the change itself edits anchors its source to that artifact's pre-change state
-   (`git show HEAD:<path>`): it stops reproducing once the change lands. A site named for a later sweep is quoted by its
-   text or token, never by a line number — a concurrent merge moves it, so the anchor is stale as committed
-   (`AGENTS.md:NNNN` anchors were two lines out here). captured: widen-architecture-auditor-to-stale-ideas
+   are each resolved into a row or recorded as a dismissal beside the table — one reason per kind, never an enumerating
+   clause, since a list of a kind's candidates is incomplete by construction and the artifact stating it adds candidates
+   to the scanned set — a lead list, never a gate, and it seeds the table rather than replacing the derivation
+   (`showcase/quality/agent-skills` owns the behaviour). A row about an artifact the change itself edits anchors its
+   source to that artifact's pre-change state (`git show HEAD:<path>`): it stops reproducing once the change lands. A
+   site named for a later sweep is quoted by its text or token, never by a line number — a concurrent merge moves it, so
+   the anchor is stale as committed (`AGENTS.md:NNNN` anchors were two lines out here). A task's `**Done**` note that
+   must report a figure states a relative result — the difference between two runs, which the corpus's growth leaves
+   fixed — the command's outcome, or a text-quoted site, never an absolute count its own writes move (its appended
+   ledger rows, the candidates its own artifact adds to the scan). captured: widen-architecture-auditor-to-stale-ideas
+   captured: normalize-the-review-round-digest
 3. Run `review-quick` against the change's planning artifacts — for the proposal round, the
    proposal/design/tasks/spec-delta coherence and repo fit; for the implementation round, the tasks and delta spec.
 4. Fix everything it finds; re-run. Repeat until it reports no new observations.
@@ -709,8 +714,8 @@ line.
 - `pack` CLI (for the web UI `dockerBuildImage` image build; see
   https://buildpacks.io/docs/for-platform-operators/how-to/integrate-ci/pack/, e.g. `brew install buildpacks/tap/pack`
   on macOS)
-- Python 3 (for `./scripts/setup-idea.sh`'s IDE-settings merge, the commit-hygiene guard/check, and `claim-scan.py`;
-  macOS ships it via Command Line Tools)
+- Python 3 (for `./scripts/setup-idea.sh`'s IDE-settings merge, the commit-hygiene guard/check, `claim-scan.py`, and
+  `review-rounds.py`; macOS ships it via Command Line Tools)
 - Git hooks: run `./scripts/install-git-hooks.sh` once per clone to activate the pre-commit guard (the checks the
   `git add <dir>` gotcha enumerates); bypass a deliberate exception with `git commit --no-verify`
 - Toolchain doctor: `./scripts/doctor.sh` (or `/check-tooling`) probes this list — presence, version floors, and repo
@@ -756,8 +761,9 @@ line.
 # verifyInstallCommands, verifyDocumentedPins,
 # verifyModuleDependencies,
 # verifyDashboardJson, verifyPrettierAlignment, and the commit-hygiene tasks
-# (verifyCapturedMarkers, testCommitHygiene, testClaimScan, testDoctorCharter, verifyTrackedIgnoredFiles,
-# verifyConflictMarkers, verifyExecutableBits, verifyUniqueCronSchedules, verifyUniqueReviewRounds, verifyLargeFiles)
+# (verifyCapturedMarkers, testCommitHygiene, testClaimScan, testDoctorCharter, testReviewRounds,
+# verifyTrackedIgnoredFiles, verifyConflictMarkers, verifyExecutableBits, verifyUniqueCronSchedules,
+# verifyUniqueReviewRounds, verifyLargeFiles)
 # (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
 # check)
 ./gradlew :showcase-command-service:check
@@ -1697,11 +1703,11 @@ Key modules (libraries, not services):
   executable**, so a command may trigger a `scripts/` tool but never hosts its implementation. A `scripts/` tool an
   agent drives gets its own command trigger, and the tool keeps the implementation (`doctor.sh` ↔ `/check-tooling`,
   `setup-idea.sh` ↔ `/setup-idea`, `experience-analysis.sh` ↔ `/retrospective`, `claim-scan.py` ↔ `/seed-claims`); a
-  tool with no agent caller stays untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`), and `commit-hygiene.py`
-  is driven by the tracked `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks. The generated OpenSpec
-  command/skill files and the vendored `axon4to5-*` skills are not the repository's to place. Derive any claim about
-  placement from the complete set (`git ls-files -s | awk '$1=="100755"'`), not from the location in hand. captured:
-  state-tooling-placement-rule (#458)
+  tool with no agent caller stays untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`, `review-rounds.py`), and
+  `commit-hygiene.py` is driven by the tracked `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks. The
+  generated OpenSpec command/skill files and the vendored `axon4to5-*` skills are not the repository's to place. Derive
+  any claim about placement from the complete set (`git ls-files -s | awk '$1=="100755"'`), not from the location in
+  hand. captured: state-tooling-placement-rule (#458)
 - **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
   `.opencode/commands/setup-agent-tools.md` (project-local, **not** one of the vendored `axon4to5-*` skills) let a
   contributor ask the agent to wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only,
@@ -2336,6 +2342,15 @@ capture-stash-stale-copy
   gate, and the check is dead code that reads as coverage.** `helm package` rejects a chart whose declared dependency is
   missing (the strict lint too), so an assertion over the packaged chart cannot fire in the real graph; confirm a new
   check's rejected state is reachable before authoring it. captured: verify-chart-packaging
+
+- **A declaration transcribed from a recorded artifact drifts silently — verify it by re-deriving it from that artifact
+  and asserting equality, and assert its completeness against the real consumer's data.** A tool's declared table
+  transcribed by hand from another artifact's table carries a mistyped entry with no other symptom: the copy is asserted
+  equal to the source at test time (so a typo fails the build rather than mis-normalizing a figure quoted into a
+  committed document), and its coverage of the real input is asserted against that input, the agreement shape
+  `scripts/test-doctor.sh` checks for the doctor's `probe_table`. A figure that no longer reproduces from the grown
+  corpus is asserted over the test's own fixture, with the live corpus verified by a relative run. captured:
+  normalize-the-review-round-digest
 
 - **A glob or filter that matches nothing is vacuous, not clean.** An audit command told the agent to run "a manual
   120-character check for `.opencode/*.md`" — a glob matching **no file**, since the markdown lives in
@@ -3262,11 +3277,11 @@ capture-stash-stale-copy
   the `specs-auditor` definition now says "a corpus … that grows with every archived change", and the README's "120+ and
   counting" is the pattern to follow. A process count — elapsed time, effort — is not a durable fact either, though for
   a different reason: no reader can verify it from the repository at all, so describe it qualitatively, not as a precise
-  number. Review rounds are the exception: `docs/review-rounds.tsv` records them per unit and
-  `scripts/experience-analysis.sh` aggregates the window, so cite the record rather than a session-only number. That
-  targets _human_ process narrative — effort, how long a session ran — which no machine-measured evidence records; a
-  _machine-measured_ figure is a different class, since the CI run log is its evidence, so an order-of-magnitude build
-  cost (the one-time-full-rebuild vs warm CI timings above) is not a process count and need not be made qualitative.
+  number. Review rounds are the exception: `docs/review-rounds.tsv` records them per unit and `scripts/review-rounds.py`
+  aggregates the window for the digest, so cite the record rather than a session-only number. That targets _human_
+  process narrative — effort, how long a session ran — which no machine-measured evidence records; a _machine-measured_
+  figure is a different class, since the CI run log is its evidence, so an order-of-magnitude build cost (the
+  one-time-full-rebuild vs warm CI timings above) is not a process count and need not be made qualitative.
 
 - **A named example or mechanism inside a convention is itself a claim, not decoration:** the `@DirtiesContext` rule
   said keep it on "the gateway e2e test, which pulls in JGroups", but the e2e suite drives containers and never boots

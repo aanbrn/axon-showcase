@@ -13,7 +13,9 @@ set -euo pipefail
 # the archived-change count, AGENTS.md's metrics, the window's captured: lines, and the window's review rounds): read
 # them from there rather than re-deriving them by hand. Both the PR and the archive counts carry the same `since`
 # boundary — the search and `git log --since` are inclusive of the `since` date — so the block names the `since`-date
-# items and the previous retrospective's file, and the author resolves the split against it.
+# items and the previous retrospective's file, and the author resolves the split against it. The review-rounds block is
+# printed by `scripts/review-rounds.py`: the window proper's figures beside the `since`-inclusive ones, and the classes
+# normalized to the reviewer's canonical vocabulary.
 
 # Portable 7-days-ago: BSD date (macOS) uses -v-7d, GNU date (Linux) uses --date=-7day.
 if [ $# -gt 0 ]; then
@@ -84,13 +86,7 @@ if [ -n "${RAW_BASE}" ]; then
       | tail -n 1))"
   done
 fi
-echo "Review rounds (docs/review-rounds.tsv; compliance_misses = findings that were a miss of an existing rule):"
-if [ -f docs/review-rounds.tsv ]; then
-  awk -F'\t' -v s="${SINCE}" '$1 !~ /^#/ && $1 >= s { rounds++; miss += $6; printf "  %s\n", $0 }
-    END { printf "  window: %d round(s), %d compliance miss(es)\n", rounds + 0, miss + 0 }' docs/review-rounds.tsv
-else
-  echo "  (none on disk)"
-fi
+python3 "$(dirname "$0")/review-rounds.py" --since "${SINCE}"
 echo
 echo "=== Merged pull requests ==="
 gh pr list --state merged --search "merged:>=${SINCE}" --limit 1000 --json number,title,mergedAt,mergedBy \

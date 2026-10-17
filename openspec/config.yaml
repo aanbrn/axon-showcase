@@ -58,11 +58,15 @@ rules:
     - Note the "Impact" on build, tests, and deployment explicitly
     - Every claim about a run log, issue state, or external artifact is read from that artifact, not recalled
     - Every count is re-derived by grepping the set it counts
+    - Follow the "Structured Writing Standard" in AGENTS.md — one bullet per change in "What Changes", not a paragraph
+      carrying several independent points
   specs:
     - Requirements are declarative SHALL statements, testable via WHEN/THEN scenarios
     - Delta specs use ADDED/MODIFIED/DEPRECATED/REMOVED requirement blocks
     - Keep scenario wording consistent with existing captured specs
     - A requirement whose body enumerates its subjects needs a scenario exercising each
+    - Follow the "Structured Writing Standard" in AGENTS.md — one behavior per requirement and one WHEN/THEN pair per
+      scenario, with no requirement body carrying several behaviors
   design:
     - Start with "Context" referencing the proposal, then "Goals / Non-Goals"
     - Capture "Decisions" with the alternatives considered and why they were rejected
@@ -72,6 +76,8 @@ rules:
     - Carry the claims table — each fact the change states about its evidence (the prior artifacts it rests on) with its
       source or the command that derives it; a row about an artifact the change itself edits anchors to that artifact's
       pre-change state (`git show HEAD:<path>`), since it stops reproducing once the change lands
+    - Follow the "Structured Writing Standard" in AGENTS.md — one decision per entry with its alternatives as separate
+      bullets, and a table for the claims table or any like-row content
   tasks:
     - Break tasks into chunks of max 2 hours
     - Reference exact file paths and commands so each task is verifiable
@@ -86,6 +92,8 @@ rules:
     - Carry the pre-write derivation pass as a task in every change — the pass `AGENTS.md`'s review-loop bullet names,
       whose output is the claims table, never restated here — so a skipped pass is a missing box rather than looking
       like a pass that found nothing
+    - Follow the "Structured Writing Standard" in AGENTS.md — one action per task, its verification stated in the same
+      task
 
 # Per-operation guidance
 operations:
@@ -96,6 +104,8 @@ operations:
       - Verify each deliverable against its task description; note pre-existing work
       - Mark task checkboxes as they are completed, with verification evidence
       - Run the exact commands listed in the verification tasks
+      - Write and revise every artifact to the "Structured Writing Standard" in AGENTS.md — structure the content into
+        its sections and lists before drafting, not as a cleanup pass afterward
   archive:
     guidance:
       - Run openspec archive --yes only after all tasks are complete

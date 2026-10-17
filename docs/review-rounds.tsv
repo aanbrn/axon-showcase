@@ -316,3 +316,9 @@
 2026-10-17	record-agents-md-authoring-standard	8	-	-	0
 2026-10-17	record-agents-md-authoring-standard	9	wording	-	0
 2026-10-17	record-agents-md-authoring-standard	10	-	-	0
+2026-10-17	establish-structured-writing-standard	1	missing-task,single-sourcing,structured-writing,claim-missing	-	4
+2026-10-17	establish-structured-writing-standard	2	single-sourcing,impact-omission	single-sourcing	2
+2026-10-17	establish-structured-writing-standard	3	contradiction,claim-missing	claim-missing	2
+2026-10-17	establish-structured-writing-standard	4	contradiction,incomplete-enumeration,claim-missing	contradiction,claim-missing	3
+2026-10-17	establish-structured-writing-standard	5	claim-missing	claim-missing	1
+2026-10-17	establish-structured-writing-standard	6	-	-	0

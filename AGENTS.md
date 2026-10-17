@@ -586,7 +586,7 @@ wait for approval before merging.
 # verifyModuleDependencies,
 # verifyDashboardJson, verifyPrettierAlignment, and the commit-hygiene tasks
 # (verifyCapturedMarkers, testCommitHygiene, testDoctorCharter, verifyTrackedIgnoredFiles, verifyConflictMarkers,
-# verifyExecutableBits, verifyUniqueCronSchedules, verifyLargeFiles)
+# verifyExecutableBits, verifyUniqueCronSchedules, verifyUniqueReviewRounds, verifyLargeFiles)
 # (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
 # check)
 ./gradlew :showcase-command-service:check
@@ -2518,7 +2518,10 @@ capture-stash-stale-copy
   `++`/`--` and assignment reassign a variable (`!x` is a `UnaryExpr` but does not), and a declaration annotation
   (`@SuppressWarnings("unchecked")`) need not force a skip when a text edit preserves it. Verify the codemod's decisions
   rather than trusting the compile — a `var` emitted where `val` was intended compiles, so a green build does not show
-  the sweep conformed. captured: adopt-lombok-val-convention
+  the sweep conformed. captured: adopt-lombok-val-convention An edit to wrapped prose can mangle the clause around the
+  insertion when its replacement reflows into the neighbouring text, and patching the damage with further span edits
+  re-mangles it each round; replace the whole unit in one edit, re-derived from the site's own subject, and re-read the
+  sentence. captured: verify-unique-review-rounds
 - **A write to an already-occupied path replaces the file silently: check the path before creating a "new" file.**
   `ShowcaseEventStreamControllerTests.java` was assumed new, but it dated from #43 and held two tests (event wrapping;
   REMOVED-type preservation), and the whole-file write destroyed both. Before writing a file you believe is new, check
@@ -2979,12 +2982,14 @@ capture-stash-stale-copy
   enumeration of it in the same change — and when an auditor sweeps the set, that includes its definition, its trigger
   command, `AGENTS.md`'s summary of the auditor, and the **spec requirement that owns the sweep**, which is a main spec
   and so needs a `MODIFIED` delta rather than a docs edit (the swept-surface set is enumerated in exactly those four
-  places). Grep the set's distinctive members across `.opencode/`, `openspec/specs/`, `AGENTS.md`, `README.md`, and
-  `docs/ideas.md` before writing the addition; the change's own four planning copies can be kept identical while all
-  four live sites go stale. The sweep covers non-doc artifacts too: recording that a component is deliberately _not_
-  used (ADR-0009's "without Axon Server") must grep the whole repo for its name, because config, values, and template
+  places). Grep the set's distinctive members across `.opencode/`, `openspec/specs/`, `AGENTS.md`, `README.md`,
+  `docs/ideas.md`, and `scripts/` before writing the addition — a tool's own module docstring and its `--help` text are
+  live enumerations of the same set too; the change's own four planning copies can be kept identical while all four live
+  sites go stale. The sweep covers non-doc artifacts too: recording that a component is deliberately _not_ used
+  (ADR-0009's "without Axon Server") must grep the whole repo for its name, because config, values, and template
   comments carry claims no auditor reads (`helm/chart/src/main/helm/values.yaml` still called the `db-scheduler`
-  settings "Axon Server scheduler settings"). captured: monitor-web-ui-npm-dependencies (#395)
+  settings "Axon Server scheduler settings"). captured: monitor-web-ui-npm-dependencies (#395) captured:
+  verify-unique-review-rounds
 - **A buildpack's CNB id is not its Docker Hub repository — a registry lookup must target the repository, not the id.**
   The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are
   `paketobuildpacks/nginx` (no hyphen); querying the tags API with the CNB id 404s, so `BuildpackUpdatesTask`'s check

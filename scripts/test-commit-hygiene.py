@@ -739,6 +739,58 @@ class LargeFileTests(unittest.TestCase):
         self.assertIn("misconfigured", stderr.getvalue())
 
 
+class UniqueReviewRoundTests(unittest.TestCase):
+    def _write_ledger(self, repo: Path, body: str) -> Path:
+        ledger = repo / "docs" / "review-rounds.tsv"
+        ledger.parent.mkdir(parents=True, exist_ok=True)
+        ledger.write_text("# One row per review round.\n" + body, encoding="utf-8")
+        return ledger
+
+    def test_a_duplicated_round_is_reported_with_both_lines(self):
+        repo = make_repo(self)
+        self._write_ledger(
+            repo,
+            "2026-10-16\tunit-a\t1\twording\t-\t1\n"
+            "2026-10-16\tunit-a\t2\t-\t-\t0\n"
+            "2026-10-16\tunit-a\t2\t-\t-\t0\n",
+        )
+
+        self.assertEqual(commit_hygiene.find_duplicate_review_rounds(repo), [("unit-a", "2", 3, 4)])
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(commit_hygiene.check_unique_review_rounds(repo), 1)
+
+    def test_the_same_round_for_another_unit_is_not_a_duplicate(self):
+        repo = make_repo(self)
+        self._write_ledger(
+            repo,
+            "2026-10-16\tunit-a\t1\twording\t-\t1\n"
+            "2026-10-16\tunit-b\t1\t-\t-\t0\n",
+        )
+
+        self.assertEqual(commit_hygiene.find_duplicate_review_rounds(repo), [])
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(commit_hygiene.check_unique_review_rounds(repo), 0)
+
+    def test_a_missing_ledger_is_not_reported(self):
+        repo = make_repo(self)
+
+        self.assertEqual(commit_hygiene.find_duplicate_review_rounds(repo), [])
+
+    def test_the_mode_is_reachable_through_main(self):
+        repo = make_repo(self)
+        self._write_ledger(repo, "2026-10-16\tunit-a\t1\twording\t-\t1\n")
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(commit_hygiene.main(["--unique-rounds", "--repo", str(repo)]), 0)
+
+        self._write_ledger(repo, "2026-10-16\tunit-a\t1\twording\t-\t1\n2026-10-16\tunit-a\t1\twording\t-\t1\n")
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(commit_hygiene.main(["--unique-rounds", "--repo", str(repo)]), 1)
+        self.assertIn("share unit 'unit-a' round 1", stderr.getvalue())
+
+
 class CliTests(unittest.TestCase):
     @staticmethod
     def _run(argv):

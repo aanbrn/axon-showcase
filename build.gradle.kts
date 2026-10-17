@@ -531,6 +531,15 @@ tasks.register<Exec>("verifyUniqueCronSchedules") {
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--unique-crons")
 }
 
+tasks.register<Exec>("verifyUniqueReviewRounds") {
+    group = "verification"
+    description = "Verifies the review-round ledger carries one row per unit and round"
+    inputs.file("scripts/commit-hygiene.py")
+    inputs.file("docs/review-rounds.tsv")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--unique-rounds")
+}
+
 tasks.register<Exec>("verifyLargeFiles") {
     group = "verification"
     description = "Verifies no tracked file exceeds the configured size limit"
@@ -596,6 +605,7 @@ tasks.named("check") {
     dependsOn("verifyConflictMarkers")
     dependsOn("verifyExecutableBits")
     dependsOn("verifyUniqueCronSchedules")
+    dependsOn("verifyUniqueReviewRounds")
     dependsOn("verifyLargeFiles")
     // build-logic is an included build, so its tests are not reached by this project's check.
     dependsOn(gradle.includedBuild("build-logic").task(":test"))

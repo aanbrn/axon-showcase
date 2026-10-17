@@ -1975,17 +1975,8 @@ that override when bumping the Kafka image tag.
 
 ## Gotchas
 
-- **A controller-local `@ExceptionHandler(HandlerMethodValidationException.class)` fires only when method validation is
-  active for that controller — put a constraint (`@NotNull`) directly on the method parameter, not only `@Valid`.**
-  Without it a body failure arrives as a `WebExchangeBindException`, so the shared `ShowcaseApiErrorResolver`'s
-  `bodyErrors` contract is silently lost (`ShowcaseRestController` gets activation incidentally from the `@Min`/`@Max`
-  on its page-size parameter). A component test that posts a malformed body and asserts `bodyErrors` covers it.
-  captured: add-web-ui-rum-observability
-- **A new gateway controller package or browser-called endpoint is silent until registered in two un-gated lists.** Add
-  the package to `springdoc.packages-to-scan` (else the endpoint is absent from `/v3/api-docs`) and, for a path the
-  browser calls, add it to the Vite proxy in `showcase-web-ui/vite.config.ts` (else it never reaches `viteDev` or the
-  e2e `vite preview`); widen the live endpoint enumerations per the docs-refresh convention too. captured:
-  add-web-ui-rum-observability
+### Git & repository workflow
+
 - **`git stash pop` can leave conflict markers after a rebase.** The commit-only-at-push workflow leaves the change
   uncommitted and stashes it when a rebase needs a clean tree; if a docs file (e.g. `docs/ideas.md`) advances on `main`
   between the stash and the rebase, popping the stash after the rebase can leave `<<<<<<<` conflict markers in the
@@ -2022,6 +2013,7 @@ capture-stash-stale-copy
   discarding its uncommitted edits — a README change was lost this way to a `git checkout -- README.md` run inside an
   unrelated verification step (recovered only from a backup). While a work branch holds uncommitted edits, inspect
   committed content with `git diff`/`git show HEAD:<file>` rather than `checkout --`/`restore`/`reset`.
+
 - **`openspec archive` relocates the change dir with a filesystem move, not `git mv` — nothing is staged, so stage both
   sides — and the archived tree is outside Spotless, so a post-move `spotlessApply` will not normalize it.** The tool
   moves the directory (`fs.rename`/`mv`), so git reports the old path deleted and the new path untracked:
@@ -2040,208 +2032,217 @@ capture-stash-stale-copy
   `openspec archive <change> --yes`; `--skip-specs` (which would skip the sync) and `--no-validate` (which would skip
   the validation) are not the remedy. captured: sync-audit-spec-findings-2026-10-04 (#497) captured:
   cover-the-included-builds-pins (#594)
-- **The actionlint download script takes positional arguments (`version dir`), not `--dir`, and the target dir must
-  already exist.** When installing actionlint in CI with `bash <(curl .../scripts/download-actionlint.bash)`, pass
-  `latest "$RUNNER_TEMP/actionlint"` and `mkdir -p` the dir first — a `--dir` flag is rejected as an invalid version
-  (the script exits 1 with its usage).
-- **A changed-file check in a workflow step needs a two-dot diff, and a path-gated step must list its own definition.**
-  `actions/checkout`'s default `fetch-depth: 1` leaves the pull-request head a grafted root with no merge base, so a
-  three-dot `git diff --name-only FETCH_HEAD...HEAD -- <paths>` exits 128 (`fatal: FETCH_HEAD...HEAD: no merge base`;
-  reproduced against a depth-1 clone) while the two-dot `git diff --name-only FETCH_HEAD HEAD -- <paths>` form works; it
-  can list a file the base changed past the merge base (which merely runs the step), never fail. And a step gated on
-  changed paths must list its own definition file among them, or the pull request that edits the step skips it.
-  captured: probe-opencode-config-read-path
-- **`gh pr list` does not support a `--since` flag; a `gh <x> list` command silently truncates at its default `--limit`;
-  and a windowed git query is not the PR window.** Filter merged PRs by window with the search qualifier
-  `gh pr list --state merged --search "merged:>=<YYYY-MM-DD>"` (an unknown flag like `--since` is rejected outright, and
-  there is no date variant of `--merged`). This bit the `/retrospective` gather script
-  (`scripts/experience-analysis.sh`), whose first version used `--since`; the proposal/tasks that described
-  `--merged --since <window>` were corrected to the search form during implementation. A list command returns only its
-  default page with no warning when more exists (`--limit` defaults to 30 for `pr` and `issue`, 20 for `run`), so the
-  same script returned 30 rows for a window holding 249 merges until it gained an explicit `--limit 1000`. Any future
-  "what shipped since X" automation must use the `--search "merged:>=..."` form **and** an explicit `--limit` sized to
-  the corpus. Scope the window's git side with a time-explicit `since` (`--since="${SINCE}T00:00:00"`) — a bare
-  date-only `--since` excludes commits before the wall-clock time of day on that date, so the count varies run to run
-  (verified: 48 commits bare vs 65 at `T00:00:00`) — and never read a git window's start as the PR window's start: a
-  squash-merged commit's date can differ from its PR's merge date (verified: `#494` merged 2026-10-04T22:25Z, committed
-  2026-10-05), so a baseline at the raw git window's start is a PR late (`derive-retrospective-facts` first read 2672
-  lines where the window's start is 2693). The same truncation is self-inflicted by an explicit slice: `head -1` on the
-  `buildpackUpdates` report hid the second of its two lines, and the tasks file cited the first as though it were the
-  whole report. Cite a command's full captured output before recording it as evidence or scoping a change from it — read
-  the whole report file or CI run log, and take the flagged set from the tool's own findings list, not a `head`/`tail`
-  slice, a `grep` filter, or a derived/narrative section of the output. A filtered read of the 2026-09-24 Snyk run's
-  `--log-failed` output showed only four of the seven Jackson advisories, so the change was scoped Jackson 2-only and
-  would have left the three Jackson 3 ones (fix `3.2.3`) unaddressed; the full log named both lines. captured:
-  test-build-logic-rules-and-unify-version-comparison (#306) captured: bump-jackson-boms-for-snyk-findings captured:
-  derive-retrospective-facts Confirm the file is the run's output: a build directory persists a tool's previous report,
-  and `dependencyUpdates` writes per-project `partials/*.json` as each resolves and `report.txt` afterwards, so a run
-  that did not regenerate leaves a stale aggregate — reading a stale `report.txt` twice made
-  `align-dependency-report-version-authority` abandon a working change on the false conclusion that the plugin's rule
-  could not reach the row. Cite the run-scoped output, or confirm the summary is newer than the run. captured:
-  align-dependency-report-version-authority
 
-  A slice of a list of _objects_ selects a subject, not only a shorter list: `head -1` on a `docker images` list picked
-  another tag's stale build, whose `io.buildpacks.build.metadata` label named procfile `5.15.2` where the tag the run
-  produced (`aanbrn/axon-showcase-web-ui:0.2.0-SNAPSHOT`) named the pin `5.15.4` — one repository's tags each carry
-  their own build's metadata — and the false discrepancy reached the task record and returned as a review finding
-  against a true `AGENTS.md` rule. Name a built image by the tag the declared version gives
-  (`aanbrn/axon-showcase-web-ui:${project.version}`), never by list position. captured: bump-buildpacks-2026-10-16
+- **Programmatic edits to a structured file — markdown or source — can silently drop or misplace structure; verify at
+  the granularity you edited.** Reordering the README with a Python boundary script dropped the entire "Getting Started"
+  section: the move used `lines[ends['Development Workflow']:]`, which starts at the _next_ section and skips the block
+  sitting between the two, and only a follow-up grep for `## Getting Started` caught the loss. After any script-driven
+  move/rewrite of a markdown file, grep for each expected heading (or diff the heading list before/after) before
+  reporting done; for a docs reorder, prefer the edit tool over a hand-rolled reordering script. The same class bites at
+  item granularity: the `retro-mark-captured-rules` provenance sweep derived each rule's line range with a boundary
+  heuristic that treated a top-level plain `- Text` bullet directly after a bold-lead rule as the rule's continuation.
+  At the time, three such adjacencies existed in `AGENTS.md` (`A buildpack pin is verified…`,
+  `palantir-java-format does not manage imports`, `A dependency a module does not use…`), and the second rule's range
+  ran through the eight plain bullets behind it — so both the `git log -L` range an origin was read from and the line
+  the `captured:` marker was appended to belonged to the wrong item, and the marker landed on the following bullet.
+  Derive an item's end from the list's own structure (a wrapped continuation is indented; a `- ` at column zero starts a
+  new item) and have any script that ranges over or appends to items assert that boundary itself — the marker-placement
+  rule above states what the pre-commit guard enforces — before trusting the result. captured: retro-mark-captured-rules
 
-- **`gh pr create --body` with Markdown can fail under zsh with `no matches found`** — an inline body containing
-  `**bold**` (or other shell metacharacters/newlines) is subject to zsh's `nomatch` glob error
-  (`zsh: no matches found: **...`). Write the body to a file and use `--body-file <file>` instead; it also sidesteps
-  quoting and embedded-newline problems. Prefer `--body-file` for any multi-line PR or issue body. A body supplied this
-  way also bypasses the repository's pull-request template (`--template` is rejected alongside `--body`/`--body-file`),
-  so a line added to `.github/PULL_REQUEST_TEMPLATE.md` reaches an agent-opened PR only if the body file carries it —
-  write the template's sections and any new line into the body. captured: make-the-capture-visible
-- **Relative `date` arithmetic is not portable across macOS and Linux**: BSD `date` (macOS) uses `-v-7d`, GNU `date`
-  (Linux, incl. CI) rejects it and needs `--date='7 days ago'`. A cross-platform script computing a relative date must
-  probe first (`date -v-7d >/dev/null 2>&1 && … || date --date='…'`), as `scripts/experience-analysis.sh` does for its
-  7-days-ago default — don't hard-code one platform's form.
+- **The same range-boundary hazard bites source:** removing three tasks' private comparators with a range running from
+  the first deleted member to the end of the file took each class's **closing brace** (the members were last in the
+  body), failing three compiles, and orphaned a KDoc above the deleted region — which compiled clean and only a reviewer
+  saw. Derive a deletion's end from the member boundaries, and after removing members confirm each surviving KDoc still
+  attaches to a declaration: a compile catches the lost brace, never the orphan. captured:
+  test-build-logic-rules-and-unify-version-comparison (#306)
 
-- **Deployment investigations must include the Helm chart and values files.** When diagnosing a deployment issue, the
-  chart (`helm/chart/src/main/helm/`) and its values (`helm/values/*/values-*.yaml`) are always in scope alongside the
-  live cluster — the deployed resources are generated output of the chart, so a wrong live resource usually means a
-  wrong source (or a stale apply), not a standalone "cluster problem." The chart also introduces k8s-specific concerns
-  (namespaces, NetworkPolicies, KUBE_PING discovery) that do not exist under `bootRun`/`docker-compose`, so a bug can be
-  invisible locally and only surface once deployed. Recent deployment bugs were both chart bugs, not code bugs: the
-  `kubernetes` EndpointSlice `lookup` namespace in the network policies (`fix-kube-ping-api-egress`) and the missing
-  release-namespace declarations (`declare-axon-showcase-namespace`). Prefer rendering the chart locally with
-  `helm template` to inspect what the source produces before (or alongside) inspecting live resources — target the
-  packaged chart at `helm/chart/build/helm/charts/axon-showcase`, since the `helm/chart` module dir has no `Chart.yaml`
-  and the source at `helm/chart/src/main/helm` carries Gradle-filtered placeholders that `helm template` rejects. **A
-  deployment-only behavior is verified against the deployed signal, not the config.** Observability is Kubernetes-only
-  here, so a trace is proven by reading what the deployed system actually emitted: the `traceparent` the browser really
-  sent (`browser_network_request` with `part: request-headers`) and the exported trace from Tempo's API
-  (`kubectl port-forward -n monitoring svc/tempo 3200`, `GET /api/traces/<trace-id>`, with the root server span parented
-  at the browser's id). A green `check` and a correct chart value prove the configuration, not the behavior. An agent
-  shell has no TTY to answer `sudo`, so `./setup-hosts.sh setup` stops at the `/etc/hosts` write — it prints the ingress
-  LoadBalancer address before that, so verify a hostname with a `Host:`-header curl against that address
-  (`curl -H "Host: axon-showcase-grafana" http://<address>/api/health`) and hand the write to the owner; record which
-  half ran rather than ticking a task on the script's assumed completion. captured: propagate-ui-trace-context (#362)
-  captured: expose-grafana-by-hostname
-- **An exit-code probe's status is inverted from the question it answers — run it inside an `if`, never bare under a
-  step shell's `set -e`.** `git ls-remote --tags --exit-code origin "refs/tags/v<version>"` exits `0` when the ref
-  **exists** and `2` when it does not, so a bare invocation under `set -euo pipefail` aborts the step on a **free** tag
-  and continues on an **existing** one — the guard that should reject a taken tag passes it and rejects the good case.
-  The release workflow writes `if git ls-remote --tags --exit-code … ; then echo exists; exit 1; fi`, which suppresses
-  `set -e` for the probe and inverts the status to the intent. Before gating a workflow step on a command's exit status,
-  probe that command's actual codes on both the hit and the miss (a taken ref and a free one) and place it in an `if`; a
-  bare status-checking command in a `set -e` step is the inversion bug. captured: publish-github-releases
-- **Checking CI status**: don't poll a PR build with an idle `sleep` loop — use `gh run watch <run-id> --exit-status`
-  (or `gh pr checks <pr> --watch`), which blocks until the check finishes and exits non-zero on failure. When the run id
-  isn't known, fetch it once via the GitHub MCP `pull_request_read` / `get_check_runs` (or `gh run list`), then
-  `gh run watch` it — one blocking call, no manual polling. A docs/build change's `build` check typically completes in
-  about a minute; check once shortly after pushing, then confirm green before archiving/merging. Verify the run itself
-  (`gh run view <run-id> --json conclusion`), never a pipeline's exit code — `gh run watch … | tail -6; echo $?` reports
-  `tail`'s, so a failed run reads as green. Idle sleep loops only waste time and add no information. captured:
-  fix-timeout-load-flakes
-- **A PR whose base advanced after its CI ran fails to merge with "Required status check 'build' is expected" and
-  `mergeStateStatus` BEHIND.** When two PRs merge close together (a code PR followed by a docs PR), the second PR's
-  branch is behind the new `main`; the `main-required-checks` ruleset demands the `build` check on the latest base, so
-  the merge is blocked even though the branch's own CI is green. The error message does not say "update your branch" —
-  BEHIND is the tell. Fix: `gh pr update-branch` (or `gh pr merge --update-branch`), which re-runs CI against the
-  updated base; merge only once that check is green.
-- **Exec tasks (`docker`, `pack`, `snyk`) fail in IDEA on macOS**: an IDEA launched from Finder/Dock (or a stale Gradle
-  daemon) gives the Gradle daemon a minimal PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) without `/opt/homebrew/bin`, so
-  bare-name execs ("command 'docker' not found") fail even though the tools are installed. Root cause: Gradle applies
-  the client's environment to the daemon (`System.getenv("PATH")` is then the full shell PATH), but the JVM caches PATH
-  for native process spawning at daemon start and ignores later changes — so execs that resolve a bare command name via
-  the JVM's cached PATH fail intermittently depending on which client spawned the daemon. The build resolves this by
-  resolving the tool to its absolute path from `System.getenv("PATH")` (which is the real shell PATH) and passing that
-  in the `commandLine` (`dockerCli()` in `docker-conventions`, `packCli()` in `PackBuildImageTask`, `snykExecutable()`
-  in `dependency-security-conventions`), bypassing the JVM's cached PATH entirely. Do not revert to bare command names;
-  do not prepend tool dirs to PATH (the daemon JVM won't honor it). Launching IDEA from a terminal still helps avoid
-  stale minimal-PATH daemons in the first place.
-- **A repo Python script runs under whichever `python3` PATH resolves, not the documented prerequisite — verify a new
-  script under the system interpreter.** The documented Python is macOS's system `/usr/bin/python3` (3.9), where PEP 604
-  `X | Y` unions raise `TypeError` at import, while the newer `python3` on a contributor's PATH (and in CI) accepts them
-  — so the incompatibility passes every gate, none of which pins the interpreter. Keep repo Python stdlib-only and
-  compatible with the system interpreter (`typing.Optional`, not `str | None`), and run `/usr/bin/python3 <script>`
-  before reporting it done. captured: add-pre-commit-staged-set-guard (#372)
-- **macOS local-network privacy can leave a Warp-spawned shell unable to reach the local cluster.** Reaching a
-  local-network address is a per-app privilege macOS tracks by code-signing identity (Apple `TN3179`), and a third-party
-  terminal's child processes can be denied it while the internet works: the LAN and colima's vmnet subnet
-  (`192.168.64.0/24`, the address the kubeconfig points at) fail with `EHOSTUNREACH`, which reads as a cluster outage,
-  and neither a `colima restart` nor a `colima delete` + recreate changes it, because the fault is the host's consent
-  layer rather than the VM or k3s. Check the terminal app first: Warp can be _listed_ under System Settings → Privacy &
-  Security → Local Network with its toggle **off**, and switching it on restores access immediately
-  (`warpdotdev/warp#6320`); quit and reopen the app if its existing children keep the denied state. Fallbacks: run the
-  command from **Terminal.app** or under `sudo` (macOS auto-allows command-line tools run from Terminal or over SSH, and
-  any program running as root), or point the kubeconfig at colima's loopback forward (`https://127.0.0.1:<port>`, the
-  port changing per start), which is not a local-network operation at all. A/B against Terminal.app to confirm the
-  class.
-- **A containerized image build that fails in varying ways — including on the unmodified baseline — is host state until
-  proven otherwise; check the container runtime's amd64 emulation before touching a pin.** A Paketo `dockerBuildImage`
-  failure whose signature shifts between runs (a missing `io.buildpacks.buildpackage.metadata` label, an analyzer
-  `panic: could not parse '0.12' as version`, `flate: closed writer`, a Go GC fault) and that reproduces on the pre-bump
-  baseline points at the host, not the change: colima's template enables Rosetta, a macOS upgrade removed the Rosetta
-  runtime, colima silently fell back to QEMU for linux/amd64 containers, and the amd64 buildpack lifecycle crashes under
-  QEMU. With Rosetta reinstalled the same pins build — the identical nginx digest that reported "could not find label"
-  is the digest the successful build used — but a host explanation exonerates no pin: a surface that fails one run and
-  passes the next supports no causal claim in either direction, so name the failures that are host state and leave a
-  pin's fault an open question. `hold-back-nginx-buildpack` held `paketo-nginx` back at `1.2.0` because that episode's
-  arm64 architecture symptom survived every host reset and is tracked as `paketo-buildpacks/nginx#1340`. A pin decides
-  which image `pack` pulls, so a host failure mimics a pin defect exactly: confirm the runtime's configured emulation
-  (Rosetta versus its QEMU fallback) and whether the baseline fails too before changing a version.
-- **A buildpack pin is verified by running the image, not by a green build or a metadata label — a release can install a
-  binary of the wrong architecture and still build cleanly.** `bump-paketo-builder-and-buildpacks` ticked its test plan
-  on `dockerBuildImage` succeeding and on reading the built image's `io.buildpacks.build.metadata` label back (which
-  named `paketo-buildpacks/nginx 1.2.1`), and the pin it shipped exits 127 on the development machine: the image is
-  amd64 but its `nginx` is AArch64, while the build log says `Installing Nginx Server 1.31.5` on both architectures. Run
-  the image after a buildpack or builder bump — `docker run`, `GET /`, and read the binary's architecture **from the
-  buildpack's layer** (`/layers/paketo-buildpacks_nginx/nginx/sbin/nginx`), not the runtime `PATH` (a
-  `file $(which nginx)` probe returns not-found there), decoding the ELF `e_machine` (`3e 00` = x86-64, `b7 00` =
-  AArch64) — and be explicit about the platform when reasoning about a multi-arch artifact: the buildpack images are
-  multi-arch, so a bare `docker pull` on an arm64 host resolves the host's own slice and cannot evidence a claim about
-  the amd64 one (the image this pipeline produces is amd64-only, so a bare run of it is not the risk). The metadata
-  label is doubly misleading: it names the _buildpack version_ the build used (correctly the pinned version) while the
-  wrong-architecture binary comes from the resolved **buildpackage slice**, so a label reading `1.2.0` does not clear a
-  `1.2.0` pin — the `address-2026-09-21-update-checks` A/B found the pin build cleanly and exit 127 when `pack` added it
-  from the registry as an arm64 slice (`sha256:0d6fedc4…`), because the builder bundled a _different_ nginx version,
-  while the matched pair (pin = the builder's bundled version) ran. **Establish that pair before choosing the pin, not
-  after:** on a builder or buildpack bump, inspect the new builder's bundled versions
-  (`pack builder inspect paketobuildpacks/builder-jammy-base:<version>`) and pick the buildpack pins from what it lists
-  — a builder that no longer bundles the pinned version makes `pack` add it from the registry as an arm64 slice (the
-  mismatch above). captured: bump-buildpacks-2026-10-05 captured: bump-buildpacks-2026-10-12
-- IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java, ktfmt
-  for `.gradle.kts`), so the auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**, **Auto
-  Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins (JVM) or
-  the built-in **Prettier** (web module) are not active. The repo's IntelliJ config is **not versioned** — `.idea/` is
-  git-ignored entirely. Run `./scripts/setup-idea.sh` any time to reconcile: it **merges** the committed settings
-  (`config/idea/*.xml` and the test-tier naming inspection) into `.idea/`, replacing only our components and preserving
-  IntelliJ-managed content, so a re-run repairs a configuration that has drifted (e.g. it was never applied cleanly, or
-  IntelliJ overwrote it); it then installs the palantir-java-format and ktfmt plugins when IntelliJ is closed. The
-  configuration merge needs neither the launcher nor a closed IDE — only the plugin install does. IntelliJ reads the
-  merged files at startup (or on **File → Reload All from Disk**), so the settings take effect only after a reload or
-  restart. The `/setup-idea` agent command wraps the script (and negotiates quitting a running IDE for the plugin
-  install). For the web module it also enables IntelliJ's built-in **Prettier** (via `config/idea/prettier.xml`; free
-  from IntelliJ IDEA 2026.1, Ultimate on the earlier unified 2025.3–2026.0) and extends its file-type scope
-  (`myFilesPattern`) to CSS and HTML, which the Prettier default omits, so `Reformat Code` matches the
-  `prettier --check` gate, with the JS/TS indentation from `.editorconfig`. IDEA's Optimize Imports is gate-neutral for
-  the web module (it only removes unused/duplicate imports and reorders them, and no gate enforces import order). The
-  ktfmt config uses the plugin's **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with
-  unused-import removal, because the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the
-  line-length option (see README → Local Development → IntelliJ IDEA Setup).
-- **Verify an IDE formatting integration by actually reformatting — the right action and the full gate scope, neither of
-  which config review can see.** Two failure modes: a Prettier scope narrower than the gate (the web module's
-  `myFilesPattern` omitted CSS/HTML until extended) makes `Reformat Code` fall back to IDEA's built-in formatter and
-  break `prettier --check` — found only when the module was actually reformatted; and a script that called
-  `CodeStyleManager.reformat` silently did nothing (it runs IDEA's own formatter, not the external one). So enumerate
-  every extension the gate covers and reformat one file of each type before believing the setup; make a file
-  deliberately non-conforming, invoke the real `ReformatCode` action in the live IDE (`ActionManager` +
-  `AnActionEvent`), then check `prettier --check`/`git diff`. Verify a Gradle formatting task the same way — tamper a
-  file, run the task, and confirm the tree returns clean (`--dry-run` only proves the task is scheduled, not that it
-  formats). Also check `git status` after any IDE action — Optimize Imports ran project-wide and touched unrelated files
-  (noise, not a gate failure) when auditing only the web module.
-- **Adding a file type or path to a formatter target can rewrite content a consumer outside the build parses — verify
-  equivalence and exercise that consumer.** Bringing the `.opencode/` markdown under Spotless restyled every agent
-  definition's frontmatter (`description: <first line>` became `description:` plus an indented block), and Prettier also
-  normalized `*emphasis*` to `_emphasis_` and added missing trailing newlines; the consumer is the OpenCode agent
-  loader, not Gradle, so a passing `spotlessCheck` said nothing about the files still loading. After widening a
-  formatter target, diff the actual normalizations — do not describe the pass as "purely rewrapping" before you have —
-  and confirm the rewritten files parse to the same values and the consuming tool still works (for an agent or skill,
-  after an OpenCode reload).
+- **A formatter-owned file is re-wrapped, so a whitespace-tolerant substitution — a normalization or `\s*`-style pattern
+  — silently matches the wrong span or rebuilds it unformatted.** The edit no-opped or mangled several times across one
+  arc: a workflow step inserted at the wrong YAML indentation (a parse error), a README bullet reported as exactly one
+  match that never landed, a `body=` line left 198 characters long, and a prompt line replaced at the wrong indentation.
+  Locate the target by line index in the content you just read — or match one full line verbatim including its
+  indentation — and re-read the result. captured: notify-owner-from-the-audit-report (#327)
+
+- **An AST codemod is a further mode: re-printing the parsed tree (`unit.toString()`) re-serializes the whole file** —
+  stripping blank lines and reflowing untouched code — so edit the original text at the AST-located range (or use
+  `LexicalPreservingPrinter`), and bound the replacement by the next token's start, since JavaParser's `Range.end` is
+  inclusive (a range ending on the type's last character leaves it, `LogFileData` → `vala`). Derive a skip from the
+  transformation's actual constraint, not a blanket proxy: only `++`/`--` and assignment reassign a variable (`!x` is a
+  `UnaryExpr` but does not), and a declaration annotation (`@SuppressWarnings("unchecked")`) need not force a skip when
+  a text edit preserves it. Verify the codemod's decisions rather than trusting the compile — a `var` emitted where
+  `val` was intended compiles, so a green build does not show the sweep conformed. captured: adopt-lombok-val-convention
+
+- **An edit to wrapped prose can mangle the clause around the insertion when its replacement reflows into the
+  neighbouring text, and patching the damage with further span edits re-mangles it each round; replace the whole unit in
+  one edit, re-derived from the site's own subject, and re-read the sentence.** captured: verify-unique-review-rounds
+
+- **A write to an already-occupied path replaces the file silently: check the path before creating a "new" file.**
+  `ShowcaseEventStreamControllerTests.java` was assumed new, but it dated from #43 and held two tests (event wrapping;
+  REMOVED-type preservation), and the whole-file write destroyed both. Before writing a file you believe is new, check
+  the path — `test -e <path>` (or a read) proves it exists, `git ls-files <path>` whether it is tracked — and when it
+  exists, merge the addition into it rather than re-creating the class from its new-test shape. The loss happens at
+  write time, so the `git add <dir>` staging gotcha does not cover it. captured: keep-sse-stream-alive (#301)
+
+- **Work a change surfaces is parked durably — a PR body is not a record.** When a change records an external state
+  change that implies work, or names a companion change it will not deliver, park that work in `docs/ideas.md` (or
+  record it as a task) in the same change: a PR body is squashed and a change dir is archived, and no tool reads either,
+  so work named only there is lost. captured: cut-review-loop-rounds
+
+- **A change merged without its archive is incomplete — do not merge the implementation PR and defer the archive.** The
+  "one PR per change" rule puts the archive commit in the _same_ PR before merge; a change whose PR merged but whose
+  change dir was never archived is easy to forget (the `remove-redis-client-label` change was merged and sat unarchived
+  until the user pointed it out). When the merge completes, verify the change dir is archived; if archiving post-merge,
+  put it on its own branch and PR — never commit it to local `main` and `git push origin main`, which the branch ruleset
+  rejects and forces a branch-then-reset dance.
+
+- **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
+  first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
+  output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change
+  never intended. Stage explicit paths, add a `.gitignore` entry for the artifact, and check
+  `git diff --cached --name-only` (or `git status`) before committing — the `rework-idea-setup` commit swept in a
+  `scripts/__pycache__/*.pyc` that had to be removed and ignored. Staging is a snapshot, not a view of the working tree:
+  an edit made after the last `git add` sits unstaged, so `git diff --cached` can look complete while the commit ships
+  the older copy — check `git status` for a path listed under both staged and unstaged changes (or `git diff` for
+  unstaged edits) before committing, since a review caught the staged set missing corrections made after the last
+  `git add`, which would have shipped half the fix. A pre-commit guard (`scripts/git-hooks/pre-commit`, activated by
+  `scripts/install-git-hooks.sh`) enforces this inspection mechanically: it refuses a commit whose staged set fails the
+  formatter check, force-stages a generated artifact, stages a path and then edits it, carries a merge conflict marker,
+  misplaces a `captured:` marker, or stages an `openspec/changes/archive/**` change dir while leaving its
+  `openspec/specs/**` sync unstaged.
+
+- **Never chain an edit to a commit without reading the edit's result — gate the commit on a content check, not on the
+  edit command's exit status.** While implementing the `concise-agent-reports` change, an anchor assertion in the edit
+  script failed (Spotless had re-wrapped the text), so the edit no-opped — and the next command in the shell sequence
+  committed anyway, an unfixed state caught only by reading `git show --stat`, not the commit message or the exit codes
+  (an assertion that fails does not by itself stop a following command unless the chain is gated). Inspect the staged
+  set before committing — the `git add <dir>` gotcha above owns that files check — and read the diff's _content_, not
+  just its file list, since a names-only check cannot see an edit that no-opped. An anchor read before a formatter run
+  is stale the moment the formatter rewrites the file (`*italic*` → `_italic_`, rewrapping) — take the anchor from a
+  read that follows `spotlessApply`, or re-read the file before reusing a saved one. The same change also showed why a
+  multi-file change belongs in the apply workflow, not an ad-hoc edit script: hand-editing the six agent definitions
+  with `python` `replace` scripts left five of six files edited while `architecture-auditor.md` was untouched and still
+  reported edited, and duplicated a line in `lesson-capture.md` — the script's "edited" line is no per-file evidence,
+  while `openspec-apply-change`'s per-task edits make a skipped file visible. A script that batches its edits and writes
+  once is a third mode: an assert that aborts on a later edit discards every earlier edit in the same script, because
+  none reached the single write — a `tasks.md` script applied 11 checkbox ticks and two rewording replacements, hit a
+  stale anchor on the last and `sys.exit(1)`'d before its one `write_text`, and all 11 ticks were lost (only a later
+  review caught the file still unticked). Write each edit as it succeeds (or split the batch into per-edit scripts) and
+  verify the batch's full result afterward, rather than trusting a script that writes once at the end. captured:
+  make-captured-rules-traceable (#279)
+
+### Build, Gradle & dependency management
+
+- **A build property's name is shared across the module's tasks — grep the plugin's existing `gradleProperty(...)`
+  consumers before forwarding a new `-P<name>`.** `load-tests/build.gradle.kts` forwards its whitelisted properties into
+  the Gatling task's `systemProperties`, but the same module's `kneeFinder` task reads `-Pknee` as its **output-file
+  path** — so the knee-rate property had to be `kneeRate`, since a reused `knee` would forward a path where the
+  simulation parses an integer. A JavaExec task runs with the module's project directory as its working directory, so a
+  relative `-Plog`/`-Precords` resolves under `load-tests/`, not the repository root — hand-run one with the absolute
+  path the wrapper passes (`$ROOT/...`). captured: check-load-test-drift
+
+- **The configuration cache is enabled (`org.gradle.configuration-cache=true`); a task action must not reference
+  anything belonging to the Gradle script** — `project`, `gradle`, `rootProject`, `providers`, a script-level
+  `val`/`fun`, the script's own `this` — because serializing the captured **script object** fails the store; compute
+  what the action needs into a `val` local to the configuration lambda (a class/object reference is safe). It needed the
+  gradle-helm-plugin at **3.2.0** (its tasks captured a `Task`/`Project` through 3.1.2 —
+  build-extensions-oss/gradle-helm-plugin#140, closed), that hoist at each task action that had it (`workflowLint`,
+  `dependencySecurityCheck`, the frontend `npmAudit`/`npmOutdated`, the load-tests
+  `kneeFinder`/`baselineStats`/`baselineTrend`, and the compose tasks — whose `onlyIf` also read `gradle.startParameter`
+  and a `rootProject.extra` handshake, now `composeScheduleState`), and `notCompatibleWithConfigurationCache` on
+  `:load-tests:gatlingRecorder`, whose third-party task type holds a `Configuration`/`SourceSet` no hoist can fix (the
+  plugin repository disables issues and discussions, so an upstream fix must arrive as a PR). Sweep such a change over
+  the build's **whole task list** (`./gradlew tasks --all`'s set, requested in one graph), not the closures you know
+  about — a plugin task type is one failure shape (it cannot store), and a third-party task whose `onlyIf` reads build
+  state is another: it stores cleanly and then silently skips, because the cache resolves the predicate against the
+  state captured at store time. So compare each third-party task's _outcome_ (ran / skipped) with and without the cache
+  on a clean checkout, not only that the graph stores; and neutralize such a gate with `setOnlyIf { true }`, since a
+  bare `onlyIf { true }` only appends a spec that is ANDed with the plugin's and leaves it in force (the helm plugin's
+  chart-dependency skip is the worked case — see the Chart validation bullet above).
+
+- **The gradle-helm-plugin 3.2.0 deprecation warnings are upstream, not actionable here.** It still calls the deprecated
+  `Project.getProperties()` (a `--warning-mode all` deprecation that becomes a hard error in Gradle 10). Tracked
+  upstream as build-extensions-oss/gradle-helm-plugin#145; bump the plugin when a fix is released. Separately, the
+  Gradle `Configuration.visible` deprecation (`setVisible(boolean)`, removed in Gradle 11) is emitted across the build
+  by several third-party plugins — the helm, errorprone, SpotBugs, Spring Boot, and protobuf plugins among them — and is
+  likewise plugin-side, with no action of ours.
+
+- **A task whose verdict derives from wall-clock time or external state must not declare an output Gradle can re-use — a
+  cached UP-TO-DATE run serves a stale verdict.** `npmAudit` first declared `outputs.file(...)`, so a re-run was
+  UP-TO-DATE and its `doLast` verdict — including the `LocalDate.now()` suppression-expiry check — was never re-derived:
+  a cached pass could outlive a suppression's expiry. Drop the `outputs.file` declaration (matching the sibling
+  `npmOutdated` task) so the verdict re-runs every invocation; declare `inputs` (the suppression file) without declaring
+  an output the task does not produce as an artifact. Any verdict task whose result changes without its inputs changing
+  — a date check, a live registry query, a remote state read — takes the same treatment. captured:
+  suppress-braces-npm-advisory
+
+- **A fixable npm advisory in a transitive that a dev dependency pins exactly is forced with an `overrides` entry — not
+  npm's suggested fix.** npm's offered fix is a _breaking_ downgrade of the pinning package (`eslint-plugin-boundaries`
+  7.2.0 → 5.4.0, breaking the FSD boundary lint), because the plugin and `@boundaries/elements` pin
+  `handlebars: "4.7.9"` exactly; `overrides` forces the patched `4.7.10` under them instead. A suppression
+  (`npm-audit-ignores.json`) is for an advisory with no fix — the `dependency-security` spec owns that policy — and
+  unlike one the override carries no expiry, so park its re-check in `docs/ideas.md` and derive the retrigger from the
+  resolved graph: every package that pins the vulnerable version must bump before it is dropped. Verify the override
+  took effect with `npm ls <pkg>` (the patched version resolves). captured: fix-dependency-security-findings
+
+- **A build tool's own vulnerable transitive does not reach the platform BOM, and a tool configuration that rejects a
+  platform project is aligned with a dependency constraint instead.** The platform's `constraints` reach the
+  compile/runtime classpaths, not Gradle's tool configurations: `errorprone(platform(project(":platform")))` works (its
+  `annotationProcessor` classpath extends it), while `checkstyle(platform(project(":platform")))` drops the checkstyle
+  tool and fails `checkstyleMain` with `ClassNotFoundException: CheckstyleAntTask` — constrain that one with
+  `constraints { checkstyle(libs.guava) }`. A scan names the coordinate, not the configuration carrying it, so derive
+  the owning configuration from the graph (`./gradlew :<module>:dependencies --configuration <config>`) before choosing
+  the fix. A plain `compileJava` never exercises the tool configuration — only the tool task does. captured:
+  fix-new-security-advisories
+
+- **Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
+  `implementation`-only dependencies on their compile classpath** — the default `test` suite does, since its classpath
+  extends `main`'s, while a custom suite receives them only at runtime through its `project()` dependency — so each
+  suite re-declares what it needs to compile (client component suites duplicate axon/opensearch/resilience4j deps,
+  `showcase-query-proto` must be listed explicitly, and a suite compiling against a `@Mapper`-annotated main class needs
+  `libs.mapstruct`, or javac warns that the annotation's `ReportingPolicy` constant is unknown). A suite can be
+  referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g.
+  `val integrationTest = suites.register<JvmTestSuite>("integrationTest")`). Source sets are siblings — `src/test/java`
+  cannot see a type declared in `src/gatling/java`, while both see `main` — so a pure-logic type a unit test and a
+  custom source set both need belongs in the module's `main` source set. Verify a suite's classpath by compiling its
+  source set, which surfaces a missing dependency directly. captured: check-load-test-drift captured:
+  fix-mapstruct-suite-warning
+
+- **A dependency a module does not use can still be load-bearing — narrowing a `project(...)` dependency can break a
+  downstream `compileJava`, and removing a starter drops the modules it transitively provided.** Before removing or
+  narrowing a dependency, grep the consumers' sources for what they actually import and compile the affected modules; an
+  unused direct dependency may be carrying the transitive one a consumer's main source needs. Worked case:
+  `showcase-query-api` held `api(project(":showcase-command-api"))` only for `showcase.identifier.KSUID`; narrowing it
+  to `api(project(":showcase-identifier-extension"))` (`narrow-query-api-dependency`) broke `:showcase-query-client`'s
+  main compile, because `ShowcaseQueryClientProperties` imports `org.hibernate.validator.constraints.URL` and had been
+  receiving it through `command-api`'s `api(libs.hibernate.validator)` — that consumer now declares it. The same holds
+  for an external starter: removing `spring-boot-starter-webflux` from `showcase-query-client` silently removed the
+  `jackson-datatype-jsr310` it had provided, and `JacksonSerializer.defaultSerializer()` failed at test-class init with
+  `NoClassDefFoundError: JavaTimeModule` — name every module a removed starter was providing, declare it explicitly
+  (`jackson-databind`, `jackson-datatype-jsr310`), and run the module's tests, not only `compileJava`. captured:
+  grpc-query-transport
+
+- **`./gradlew check -PskipITs` alone fails the coverage gate — the Docker-free check also passes
+  `-Pcoverage.gate.enabled=false`.** `-PskipITs` excludes `integrationTest` from the jacoco exec data, so
+  `jacocoTestCoverageVerification` verifies against a figure below the 0.80 baseline and fails; the gate is added to
+  `check` only when `coverage.gate.enabled` is not `false` (`code-coverage-conventions.gradle.kts`). The PR CI gate is
+  exactly `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (see Continuous Integration) — run that for a local
+  Docker-free check, not the bare `-PskipITs` form. That form disables the coverage gate exactly as the PR gate does, so
+  it cannot catch a coverage regression: when a change adds production code to a gated module, run that module's `check`
+  with the gate enabled before merging — Docker-free with `-PskipITs` for a module with no integration tests
+  (`./gradlew :showcase-query-proto:check -PskipITs`), or the full `./gradlew check` — since the drop otherwise merges
+  green and reddens the push-to-main full `check` (`grpc-query-transport` (#514) added
+  `QueryMessageMapper.messageToResponse`/`payloadFromResponse` with no module test, `showcase-query-proto` fell to 0.60
+  against 0.80, and every full `check` since failed until a component test covered them). captured:
+  fix-main-ci-regressions
+
+- **Bumping the Gradle wrapper needs two `wrapper` runs with `--distribution-type all`: the first run only rewrites
+  `distributionUrl`, and the second, executing under the new version, regenerates `gradle-wrapper.jar`/`gradlew`/
+  `gradlew.bat`.** A single run leaves the jar and scripts at the old version, and a run without the flag flips the
+  repo's `-all` distribution to `-bin` — both silently. `./gradlew --version` cannot see either (it reports the version
+  from `distributionUrl`), so verify by diffing all four wrapper files and keep `/gradle-update`'s two-step invocation.
+  captured: bump-gradle-and-web-ui-dependencies
+
+### Writing checks and tests that can actually fail
 
 - **A check is evidence only once it has been shown to fail — a clean run, an empty result, or an unmoved control proves
   nothing until the check hits a known positive — and its control is a committed test, not a task: a gate whose logic
@@ -2249,196 +2250,195 @@ capture-stash-stale-copy
   its consuming module, since a checklist task asserting the control ran can be ticked without it running.** Recurring
   incidents share this root, each with its own mode to guard against:
 
-  - **A glob or filter that matches nothing is vacuous, not clean.** An audit command told the agent to run "a manual
-    120-character check for `.opencode/*.md`" — a glob matching **no file**, since the markdown lives in
-    `.opencode/agent/` and `.opencode/commands/`; it shipped that way because no gate reads a glob written in prose. The
-    first fix over-corrected to `.opencode/**/*.md`, which also matches `node_modules/`, the generator-written `opsx-*`
-    commands and `openspec-*` skills, and the vendored `axon4to5-*` skills — so "clean" was unachievable. Expand a glob
-    once (`ls <glob>`) before trusting it: a vacuous match fails silently and a recursive one over-matches generated or
-    vendored files. The same failure comes from a name pattern that truncates: a module-inventory diff written
-    `showcase-[a-z-]+` dropped the digit in `showcase-resilience4j-extension`, so the module read as _absent_ and the
-    audit nearly opened a change to "restore" an entry that was present all along — a pattern that silently
-    under-matches reports a false absence, which is worse than a false positive because it manufactures a defect. A glob
-    can also under-match across tools: the build's `**` matches zero or more directory levels, while a plain
-    `git ls-files '<dir>/**/*.md'` requires at least one and silently omits a file directly under `<dir>`
-    (`.github/PULL_REQUEST_TEMPLATE.md`) — reproduced, 1 file vs 2 — because git treats `**` specially only under
-    `:(glob)`. Reproduce a target's file set with `:(glob)` magic or a Gradle-native listing, and prove the scan returns
-    a known file from each directory level before trusting its total. captured: reconcile-readme-agents-architecture
-  - **A search that under-matches returns a plausible empty or partial result.** A grep for `permissions:` matched one
-    job-level block while the six top-level ones went unreported — a real result that looked complete, so nothing flags
-    it without a completeness check (unlike a vacuous glob, which fails silently); match the key at any indentation
-    (`^[[:space:]]*<key>:`, or strip leading whitespace) and count the hits. The same root hides a wrapped prose phrase:
-    a grep for a multi-word phrase that `spotlessApply` split across a line break returns zero though the content is
-    present, and that zero is not evidence the edit is absent — three such false negatives in one session led to a tool
-    being wrongly accused of reverting an edit (a Purpose refresh read as regenerated by `openspec archive`, when it had
-    survived and only a token grep showed so). Grep a token the formatter cannot break (`accretion`, `captured:`) or
-    flatten whitespace before matching, and confirm the search can hit a known positive before trusting an empty or
-    partial result. A check matching a subject's output for a name must also anchor to the shape the subject emits, not
-    the bare name: an unanchored ` java` match false-passed on a detail line (`Note:  java  …`) though `java` was never
-    reported — anchor to the report line's own form (`^  <key> `) and prove the pattern against the subject's real
-    output. A parsed command's output is a third under-match source: `git ls-files -s` C-quotes any path holding
-    non-ASCII bytes (`"caf\303\251.sh"`, `core.quotePath` defaulting on), so a `.endswith(".sh")` filter silently skips
-    it and the check reports a clean set it never examined — pass `-z` to any git command whose paths you parse
-    (NUL-delimited and unquoted) and keep a positive-control test with a non-ASCII path. Deriving the record shape is
-    not enough: a `-z` fix that must skip a field git emits _beside_ the path (a rename's old name) placed the skip
-    **inside** the branch that tests the record, so the neighbour state that never enters it — a clean rename, `R ` with
-    no worktree edit — leaked the field and yielded a bogus path (`['txt']` from `git mv RM.txt New.txt`), which would
-    have blocked a legitimate commit. Put a field-skip **before** the branch test, and derive the fixture from the state
-    space (a clean rename and an edited one are two cases), not from the one case the design's scratch fixture happened
-    to model — a test mirroring only the case you were thinking about passes against code that is wrong for its
-    neighbour. A fourth under-match source is the source's own spelling of the token: a version-catalog alias reaches
-    build scripts only as its accessor (`hibernate-validator` → `libs.hibernate.validator`, dots for dashes), so a
-    coordinate grep exits 1 while several modules reference it, and no positive instance of the searched spelling exists
-    to anchor a control — search the accessor form too. captured: address-snyk-advisories-2026-10-16 captured:
-    make-captured-rules-traceable (#279) captured: add-conflict-marker-and-executable-bit-checks captured:
-    quote-safe-git-path-parsing captured: declare-probes-with-shape-and-behavioural-checks
-  - **A lookup that yields no readable version reads as current.** `buildpackUpdates` (like `helmUpdates`) maps a failed
-    lookup to "no update", so a wrongly-built URL or renamed repository reads as current — and so does a parse pattern
-    that cannot match the provider's real body. Verify a new or changed check by temporarily pinning a known-older
-    version, confirming the report shows `<name>: <old> -> <latest>`, then reverting the pin (the `buildpackUpdates`
-    lookup was proved this way with `0.1.0`) — and unit-test the parse pattern against a **real provider response
-    body**, not a hand-written string: the GitHub releases API pretty-prints (its `tag_name` key has a space after the
-    colon) while npm compacts, so the no-space pattern never matched and left `HelmUpdatesTask`'s Helm CLI silently
-    uncompared (its pin happened to equal the live release, which is why nothing surfaced). The same silence hides in a
-    workflow's report **extraction**: `dependency-updates.yml`'s `awk` opened on
-    `The following dependencies have newer versions:` — a header the pinned `gradle-versions-plugin` never emits (its
-    reporter labels the section from the task's `revision` strategy, which the convention had left at the `milestone`
-    default) — so the issue's catalog section was always empty and 28 stable updates went unreported, reading exactly
-    like "no updates". Ground the extraction pattern in the pinned tool's emitted output (its reporter, or a real
-    report) and re-ground it whenever the tool or its report configuration (the task's `revision`, say) changes; the
-    sibling-diff catches a diverged copy (see the `toolingUpdates` bullet), while the positive control above proves the
-    pattern matches the tool's output. A sibling task that predates your change is not exempt from that positive control
-    — grep the other update tasks for the same pattern. A GitHub-backed lookup also sends `GH_TOKEN`/`GITHUB_TOKEN` when
-    CI provides one (attached to GitHub requests only, never to the npm one): an anonymous lookup is rate limited, and
-    the throttled body lands exactly where "current" does. Filter the candidates before selecting the newest: a check
-    that takes the highest release first reports nothing when its filter rejects that release, hiding the acceptable one
-    below it (`BuildLogicPins.latestAccepted` filters with `shouldReject` before `Versions.highest`, so a pin at
-    `3.5.15` still reports `3.5.16` while `4.1.1` is a deferred major). captured: unify-tooling-currency-checks (#304)
-    captured: fix-dependency-updates-catalog-extraction captured: cover-the-included-builds-pins
-  - **A parser that returns "no exception" is not a gate that rejects the input class it claims to — know what your
-    parser silently accepts.** `DashboardJsonRules` treated a successful `mapper.readTree(file)` as "valid JSON", but
-    Jackson returns a `MissingNode` for an empty/blank file rather than throwing, so an empty dashboard passed the gate;
-    `readTree` is lenient in a second way — it accepts trailing or multiple documents (`{"a":1}x`, `{}{}`) unless
-    `FAIL_ON_TRAILING_TOKENS` is enabled, so "the file parses" is weaker than "the file is one valid document". The
-    rule's initial tests (valid / truncated / two-malformed / no-files) never covered either class, so both gaps passed
-    the suite and surfaced only from the live known-bad control (zeroing the file, then appending a trailing byte) —
-    caught and fixed before the gate shipped, not by the tests. Before trusting a parse-as-validation gate, enumerate
-    the input classes it must reject (empty, blank, trailing content, a second document) and exercise each. For a
-    regex-based gate, find those classes with a **mutation battery** over the pattern's branches — mutate each branch (a
-    character class, a quantifier, a trailing delimiter) and read which fixtures flip verdict: a branch whose mutation
-    flips no fixture is unexercised, so add the discriminating fixture rather than one fixture per review round. A
-    surviving branch no live input can reach is not a gap but an accepted surface (see the deliberately-conservative-
-    check bullet) — record the equivalence and the inputs that make it unreachable, rather than closing it, since the
-    fixture would test the pattern's grammar, not the check's behaviour. captured: validate-dashboard-json captured:
-    verify-documented-pins
-  - **A control must perturb the surface the check actually reads.** `reconcile-showcase-cache-default`'s control
-    perturbs the yml placeholder because `applicationYmlPlaceholdersBindDocumentedDefaults` boots `application.yml` and
-    never binds the Java field — reverting the field instead would have proved nothing, since that test passes
-    regardless. Match the control's injection point to the test's binding source, confirm the assertion fails (a control
-    that runs without failing has not exercised the check), and prove the control's own setup actually perturbed its
-    target — assert the anchor occurs exactly once, or diff the surface before and after — before reading its outcome at
-    all. And when the surface the check reads enumerates alternatives — a brace pattern (`*.spec.{ts,tsx}`), an
-    alternation, or one rule entry per selector — exercise each with its own case, since one arm proves only that arm:
-    `enforce-web-ui-naming-conventions`'s control proved the `*.spec.ts` arm of the file rule but not `*.spec.tsx` until
-    the quick review added it. A tool that constructs its own input can manufacture the anomaly it appears to detect:
-    the config-rules control unquoted a `config.yaml` rule item that was already unquoted _and_ carried no `: `, and a
-    later control said to unquote an `operations.*.guidance` item when every one is unquoted and colon-free (select the
-    item on the surface you are exercising that carries `: ` — the shape whose unquoted parsing breaks; resolve it in
-    `config.yaml`, not from recall — and edit one to carry it where the surface has none), so each edit no-opped and the
-    silence was misread as a defect in the guard; a throwaway `python` `replace` left an unterminated quote whose
-    whole-file `could not parse … Missing closing 'quote` warning was briefly read as a wording defect — the wording was
-    faithful, though it did expose a real gap (a malformed edit yields `could not parse … ignoring it.`, which the CI
-    probe's grep did not match, so an unparseable config passed the job (exit 0)), since widened to catch both. When a
-    scratch script's result surprises you, print or diff the input it actually produced before drawing a conclusion from
-    it — a before/after diff proves the edit _landed_, not that it was the _intended_ one. Two further modes defeat the
-    "confirm the assertion fails" check: the check may **read an intermediary the edit does not touch** —
-    `verifyExecutableBits` reads the git index (`git ls-files -s`), so `chmod 644 scripts/doctor.sh` left the gate green
-    until the mode change was `git add`-ed, so perturb the surface the check reads, not the one a tool writes; and a
-    control in a pipeline reads the **sink's** status, not the subject's (`cmd | tail; echo $?` reports `tail`), so a
-    control whose exit code you did not take from the command under test proves nothing. A control harness for a
-    workflow `run:` block must execute that step's own shell with the collaborator substituted — no test covers the
-    block and here only actionlint reads it (no shellcheck) — and be syntax-checked itself (`bash -n`) before its exit
-    codes are trusted. captured: widen-config-probe-to-guidance captured: enforce-web-ui-naming-conventions captured:
-    check-toolchain-prerequisites captured: retry-the-actionlint-download
-  - **A positive control's input must be one the subject does not itself exclude — plant a value the check's own config
-    allows or suppresses and the control "passes" for the wrong reason.** A scanner, lint rule, or baseline filter
-    carries its own allowlist or suppression list, so the canonical example value you reach for may be on it: the
-    source-secret scan's first known-bad control planted the AWS docs example key `AKIAIOSFODNN7EXAMPLE`, which
-    gitleaks' default config allowlists, so the scan reported "no leaks found" and the control proved nothing —
-    reproduced: that value exits 0, while a high-entropy generic token (`api_key = "a1b2…"`) trips a rule and exits 1.
-    Pick a control input the subject's own rules do not already excuse (check the tool's default config, not a
-    well-known sample), and read the control's outcome from the subject's exit status, not a piped summary. captured:
-    scan-source-for-secrets
-  - **A check whose input set is narrower than what it reads is not a check — whether the set varies by task graph or
-    omits a file the tool reads.** `verifyModuleDependencies` inspected 36 edges standalone and 47 under `check`, the
-    11-edge difference being exactly the project dependencies declared inside `testing { suites { … } }` blocks: a
-    suite's configurations hold their dependencies only once its test tasks are realized, which `check`'s own
-    `dependsOn(testing.suites…)` caused incidentally. Four fixes failed (eager suite realization, `evaluationDependsOn`,
-    collecting suite edges where the `testing` accessor is in scope, reading every configuration) before the scope was
-    corrected: the invariant protects what ships and a suite's edges reach no artifact, so the walk reads only the
-    production source sets — `main` and `testFixtures`, declared directly in build scripts and thus eager. Have the
-    report enumerate every inspected item, not just its count — the "Inspected edges" list is what made the two
-    invocations diffable and named the missing 11 as a set; run a new verification standalone and through `check` and
-    diff its report. The same rule covers a _declared_ set: the web module's `npmTest` loaded `eslint.config.js` at
-    runtime while declaring only `src`, so a config-only regression restored the cached test result and ran nothing —
-    and `npmBuild` already omitted `index.html` and the lockfile that owns the installed `node_modules`. Derive the
-    whole set in one pass (configs, entry html, `package.json`, `package-lock.json`) rather than one round per surfaced
-    file, and prove it by editing an input and confirming the task re-executes rather than reading its cached status as
-    green. A check's _view_ of its subject is part of that scope: when the spec states the predicate as a property of an
-    artifact — an archived change dir that _carries_ delta specs — read the artifact's own contents, not the subset that
-    happens to be staged, since a predicate that read the staged set let a partially-staged archive change (one file
-    added) escape the guard entirely. A shell loop is a third mode: in zsh an unquoted stored value does not word-split
-    (`for f in $(…)` still does), so `files=$(git diff --name-only); for f in $files` runs its body **once** over the
-    joined string and the check reads one file; split it with `${(f)files}` or loop the substitution directly. captured:
-    enforce-web-ui-import-boundaries captured: guard-archive-spec-sync captured: diagnose-rest-controller-ct-hang
-  - **An assertion about a declaration's content cannot see a value that never reaches the code — assert what the
-    subject _emits_, not only what it declares.** Both abandoned fixes of `scripts/test-doctor.sh` (five and seven
-    review rounds) read the doctor's probe declaration and asserted things about the data; each round found another way
-    a probe could slip out of the reported set, the last being a `kind` flipped `tool`→`state` that made the probe
-    **vanish from the doctor's output while the check still reported "13 probes" and "required probes match"** — the
-    declaration was unchanged, so a content assertion saw nothing wrong. Run the subject and require every declared item
-    in its output; keep a host-dependent exit code out of the assertion (capture with `set +e`, assert the output only),
-    since a gate that depends on it fails PRs for causes they cannot remediate. captured:
-    declare-probes-with-shape-and-behavioural-checks Require the whole of what it emits, not only the part a change
-    targets: a consumer that classifies its input has states beyond row-present/row-absent, so a filter's removal test
-    stays green while it reclassifies its neighbours — the first `DependencyUpdateRules` clause emptied
-    `dependencyUpdates`' up-to-date section of all 83 catalog-owned entries, since the plugin reads a coordinate whose
-    every candidate is rejected as unresolved. captured: align-dependency-report-version-authority
-  - **A deliberately conservative check owes the false-negative surface it accepts — and a gap cheap to close is closed,
-    not recorded.** A check narrowed to avoid false positives under-reports by design, so what it does not catch must be
-    stated where its outcome is recorded (the design, and the spec where the outcome is spec'd), and a clean run is
-    never full coverage. Recording is for what cannot be closed: the cron check closes its day-of-week `7`-as-`0` miss
-    (the `commit-hygiene` spec records the normalization) while recording its stdlib-only scan's unparseable YAML forms,
-    and the conflict-marker check records its lone-`=======` exclusion. captured: check-unique-cron-schedules (#436)
-  - **A verdict echo is not a check.** While fixing `scripts/experience-analysis.sh`, the 120-character check printed
-    the offending line and the next command echoed "(script 120 clean)" regardless — the log carried the defect and the
-    summary contradicted it. Let the exit status carry the verdict — wrap the `Formatting` convention's recipe so a line
-    over the limit is non-zero — or read the output before writing the sentence; never emit a canned "clean" you did not
-    derive from that run. The wrapper still fails open on a missing file, which is why the check must be seen to hit a
-    known positive before its clean run means anything.
-  - **A clean run from the wrong resolution context — a directory, or a point in the lifecycle — is not a
-    reproduction.** TypeScript's automatic inclusion of `@types` packages walks up from the tsconfig's directory (the
-    then-`.opencode/tsconfig.json`, retired with the plugin below) — or the current working directory when no tsconfig
-    is used — not from the directory of the file being checked, so a check can pass from inside the package while
-    failing from the root its consumer resolves from (here, the editor's project root). A `review-quick` round proposed
-    the simpler fix ("add `@types/node`; a tsconfig isn't needed"), which held only in the passing directory. Run a
-    reproduction from the context that fails — the directory whose config the failing tool reads, not the artifact's own
-    directory — and treat a different error as its own signal. The binary is part of that context: a control that
-    installs one major and then invokes it by a bare command name runs whatever the host has instead — the host's V2
-    `opencode` accepts the V2-only key the V1 probe rejects (exit 0), so the control would prove the opposite — so run
-    the installed binary by absolute path, isolate its `HOME` so it does not read the host's global config, and assert
-    its version. captured: probe-opencode-config-read-path captured: fix-tmpdir-plugin-types (#299) The context is
-    temporal as well as spatial: a plugin hook or a config read runs at process init, so a standalone execution proves
-    what the artifact emits but never that its inputs exist by then. The now-retired
-    `.opencode/plugin/grant-cli-config-dirs.ts` grant was proved with a `bun` run (every grant emitted), yet in the
-    cloud run the agent installed `openspec` mid-run, after init, so the resolved-path grant could not exist and the run
-    hung — the config wildcard that replaced it removes the init-time dependency. Exercise the artifact at the lifecycle
-    point it runs in (check the workflow's step order against the artifact's run point), not only its own invocation.
-    The context is also the retained state: clearing a module's `build/` is not the clean-checkout condition, because a
-    tool's own cache and the project's `.gradle/` survive it — `rm -rf helm/chart/build` alone still let the
-    chart-dependency task run, and only clearing the plugin's cache under `.gradle/` reproduced the skip CI saw — so
-    clear the caches outside `build/` before concluding a failure does not reproduce. captured:
-    fix-chart-dependency-fetch captured: grant-openspec-global-access-in-cloud (#325)
+- **A glob or filter that matches nothing is vacuous, not clean.** An audit command told the agent to run "a manual
+  120-character check for `.opencode/*.md`" — a glob matching **no file**, since the markdown lives in
+  `.opencode/agent/` and `.opencode/commands/`; it shipped that way because no gate reads a glob written in prose. The
+  first fix over-corrected to `.opencode/**/*.md`, which also matches `node_modules/`, the generator-written `opsx-*`
+  commands and `openspec-*` skills, and the vendored `axon4to5-*` skills — so "clean" was unachievable. Expand a glob
+  once (`ls <glob>`) before trusting it: a vacuous match fails silently and a recursive one over-matches generated or
+  vendored files. The same failure comes from a name pattern that truncates: a module-inventory diff written
+  `showcase-[a-z-]+` dropped the digit in `showcase-resilience4j-extension`, so the module read as _absent_ and the
+  audit nearly opened a change to "restore" an entry that was present all along — a pattern that silently under-matches
+  reports a false absence, which is worse than a false positive because it manufactures a defect. A glob can also
+  under-match across tools: the build's `**` matches zero or more directory levels, while a plain
+  `git ls-files '<dir>/**/*.md'` requires at least one and silently omits a file directly under `<dir>`
+  (`.github/PULL_REQUEST_TEMPLATE.md`) — reproduced, 1 file vs 2 — because git treats `**` specially only under
+  `:(glob)`. Reproduce a target's file set with `:(glob)` magic or a Gradle-native listing, and prove the scan returns a
+  known file from each directory level before trusting its total. captured: reconcile-readme-agents-architecture
+- **A search that under-matches returns a plausible empty or partial result.** A grep for `permissions:` matched one
+  job-level block while the six top-level ones went unreported — a real result that looked complete, so nothing flags it
+  without a completeness check (unlike a vacuous glob, which fails silently); match the key at any indentation
+  (`^[[:space:]]*<key>:`, or strip leading whitespace) and count the hits. The same root hides a wrapped prose phrase: a
+  grep for a multi-word phrase that `spotlessApply` split across a line break returns zero though the content is
+  present, and that zero is not evidence the edit is absent — three such false negatives in one session led to a tool
+  being wrongly accused of reverting an edit (a Purpose refresh read as regenerated by `openspec archive`, when it had
+  survived and only a token grep showed so). Grep a token the formatter cannot break (`accretion`, `captured:`) or
+  flatten whitespace before matching, and confirm the search can hit a known positive before trusting an empty or
+  partial result. A check matching a subject's output for a name must also anchor to the shape the subject emits, not
+  the bare name: an unanchored ` java` match false-passed on a detail line (`Note:  java  …`) though `java` was never
+  reported — anchor to the report line's own form (`^  <key> `) and prove the pattern against the subject's real output.
+  A parsed command's output is a third under-match source: `git ls-files -s` C-quotes any path holding non-ASCII bytes
+  (`"caf\303\251.sh"`, `core.quotePath` defaulting on), so a `.endswith(".sh")` filter silently skips it and the check
+  reports a clean set it never examined — pass `-z` to any git command whose paths you parse (NUL-delimited and
+  unquoted) and keep a positive-control test with a non-ASCII path. Deriving the record shape is not enough: a `-z` fix
+  that must skip a field git emits _beside_ the path (a rename's old name) placed the skip **inside** the branch that
+  tests the record, so the neighbour state that never enters it — a clean rename, `R ` with no worktree edit — leaked
+  the field and yielded a bogus path (`['txt']` from `git mv RM.txt New.txt`), which would have blocked a legitimate
+  commit. Put a field-skip **before** the branch test, and derive the fixture from the state space (a clean rename and
+  an edited one are two cases), not from the one case the design's scratch fixture happened to model — a test mirroring
+  only the case you were thinking about passes against code that is wrong for its neighbour. A fourth under-match source
+  is the source's own spelling of the token: a version-catalog alias reaches build scripts only as its accessor
+  (`hibernate-validator` → `libs.hibernate.validator`, dots for dashes), so a coordinate grep exits 1 while several
+  modules reference it, and no positive instance of the searched spelling exists to anchor a control — search the
+  accessor form too. captured: address-snyk-advisories-2026-10-16 captured: make-captured-rules-traceable (#279)
+  captured: add-conflict-marker-and-executable-bit-checks captured: quote-safe-git-path-parsing captured:
+  declare-probes-with-shape-and-behavioural-checks
+- **A lookup that yields no readable version reads as current.** `buildpackUpdates` (like `helmUpdates`) maps a failed
+  lookup to "no update", so a wrongly-built URL or renamed repository reads as current — and so does a parse pattern
+  that cannot match the provider's real body. Verify a new or changed check by temporarily pinning a known-older
+  version, confirming the report shows `<name>: <old> -> <latest>`, then reverting the pin (the `buildpackUpdates`
+  lookup was proved this way with `0.1.0`) — and unit-test the parse pattern against a **real provider response body**,
+  not a hand-written string: the GitHub releases API pretty-prints (its `tag_name` key has a space after the colon)
+  while npm compacts, so the no-space pattern never matched and left `HelmUpdatesTask`'s Helm CLI silently uncompared
+  (its pin happened to equal the live release, which is why nothing surfaced). The same silence hides in a workflow's
+  report **extraction**: `dependency-updates.yml`'s `awk` opened on `The following dependencies have newer versions:` —
+  a header the pinned `gradle-versions-plugin` never emits (its reporter labels the section from the task's `revision`
+  strategy, which the convention had left at the `milestone` default) — so the issue's catalog section was always empty
+  and 28 stable updates went unreported, reading exactly like "no updates". Ground the extraction pattern in the pinned
+  tool's emitted output (its reporter, or a real report) and re-ground it whenever the tool or its report configuration
+  (the task's `revision`, say) changes; the sibling-diff catches a diverged copy (see the `toolingUpdates` bullet),
+  while the positive control above proves the pattern matches the tool's output. A sibling task that predates your
+  change is not exempt from that positive control — grep the other update tasks for the same pattern. A GitHub-backed
+  lookup also sends `GH_TOKEN`/`GITHUB_TOKEN` when CI provides one (attached to GitHub requests only, never to the npm
+  one): an anonymous lookup is rate limited, and the throttled body lands exactly where "current" does. Filter the
+  candidates before selecting the newest: a check that takes the highest release first reports nothing when its filter
+  rejects that release, hiding the acceptable one below it (`BuildLogicPins.latestAccepted` filters with `shouldReject`
+  before `Versions.highest`, so a pin at `3.5.15` still reports `3.5.16` while `4.1.1` is a deferred major). captured:
+  unify-tooling-currency-checks (#304) captured: fix-dependency-updates-catalog-extraction captured:
+  cover-the-included-builds-pins
+- **A parser that returns "no exception" is not a gate that rejects the input class it claims to — know what your parser
+  silently accepts.** `DashboardJsonRules` treated a successful `mapper.readTree(file)` as "valid JSON", but Jackson
+  returns a `MissingNode` for an empty/blank file rather than throwing, so an empty dashboard passed the gate;
+  `readTree` is lenient in a second way — it accepts trailing or multiple documents (`{"a":1}x`, `{}{}`) unless
+  `FAIL_ON_TRAILING_TOKENS` is enabled, so "the file parses" is weaker than "the file is one valid document". The rule's
+  initial tests (valid / truncated / two-malformed / no-files) never covered either class, so both gaps passed the suite
+  and surfaced only from the live known-bad control (zeroing the file, then appending a trailing byte) — caught and
+  fixed before the gate shipped, not by the tests. Before trusting a parse-as-validation gate, enumerate the input
+  classes it must reject (empty, blank, trailing content, a second document) and exercise each. For a regex-based gate,
+  find those classes with a **mutation battery** over the pattern's branches — mutate each branch (a character class, a
+  quantifier, a trailing delimiter) and read which fixtures flip verdict: a branch whose mutation flips no fixture is
+  unexercised, so add the discriminating fixture rather than one fixture per review round. A surviving branch no live
+  input can reach is not a gap but an accepted surface (see the deliberately conservative check bullet) — record the
+  equivalence and the inputs that make it unreachable, rather than closing it, since the fixture would test the
+  pattern's grammar, not the check's behaviour. captured: validate-dashboard-json captured: verify-documented-pins
+- **A control must perturb the surface the check actually reads.** `reconcile-showcase-cache-default`'s control perturbs
+  the yml placeholder because `applicationYmlPlaceholdersBindDocumentedDefaults` boots `application.yml` and never binds
+  the Java field — reverting the field instead would have proved nothing, since that test passes regardless. Match the
+  control's injection point to the test's binding source, confirm the assertion fails (a control that runs without
+  failing has not exercised the check), and prove the control's own setup actually perturbed its target — assert the
+  anchor occurs exactly once, or diff the surface before and after — before reading its outcome at all. And when the
+  surface the check reads enumerates alternatives — a brace pattern (`*.spec.{ts,tsx}`), an alternation, or one rule
+  entry per selector — exercise each with its own case, since one arm proves only that arm:
+  `enforce-web-ui-naming-conventions`'s control proved the `*.spec.ts` arm of the file rule but not `*.spec.tsx` until
+  the quick review added it. A tool that constructs its own input can manufacture the anomaly it appears to detect: the
+  config-rules control unquoted a `config.yaml` rule item that was already unquoted _and_ carried no `: `, and a later
+  control said to unquote an `operations.*.guidance` item when every one is unquoted and colon-free (select the item on
+  the surface you are exercising that carries `: ` — the shape whose unquoted parsing breaks; resolve it in
+  `config.yaml`, not from recall — and edit one to carry it where the surface has none), so each edit no-opped and the
+  silence was misread as a defect in the guard; a throwaway `python` `replace` left an unterminated quote whose
+  whole-file `could not parse … Missing closing 'quote` warning was briefly read as a wording defect — the wording was
+  faithful, though it did expose a real gap (a malformed edit yields `could not parse … ignoring it.`, which the CI
+  probe's grep did not match, so an unparseable config passed the job (exit 0)), since widened to catch both. When a
+  scratch script's result surprises you, print or diff the input it actually produced before drawing a conclusion from
+  it — a before/after diff proves the edit _landed_, not that it was the _intended_ one. Two further modes defeat the
+  "confirm the assertion fails" check: the check may **read an intermediary the edit does not touch** —
+  `verifyExecutableBits` reads the git index (`git ls-files -s`), so `chmod 644 scripts/doctor.sh` left the gate green
+  until the mode change was `git add`-ed, so perturb the surface the check reads, not the one a tool writes; and a
+  control in a pipeline reads the **sink's** status, not the subject's (`cmd | tail; echo $?` reports `tail`), so a
+  control whose exit code you did not take from the command under test proves nothing. A control harness for a workflow
+  `run:` block must execute that step's own shell with the collaborator substituted — no test covers the block and here
+  only actionlint reads it (no shellcheck) — and be syntax-checked itself (`bash -n`) before its exit codes are trusted.
+  captured: widen-config-probe-to-guidance captured: enforce-web-ui-naming-conventions captured:
+  check-toolchain-prerequisites captured: retry-the-actionlint-download
+- **A positive control's input must be one the subject does not itself exclude — plant a value the check's own config
+  allows or suppresses and the control "passes" for the wrong reason.** A scanner, lint rule, or baseline filter carries
+  its own allowlist or suppression list, so the canonical example value you reach for may be on it: the source-secret
+  scan's first known-bad control planted the AWS docs example key `AKIAIOSFODNN7EXAMPLE`, which gitleaks' default config
+  allowlists, so the scan reported "no leaks found" and the control proved nothing — reproduced: that value exits 0,
+  while a high-entropy generic token (`api_key = "a1b2…"`) trips a rule and exits 1. Pick a control input the subject's
+  own rules do not already excuse (check the tool's default config, not a well-known sample), and read the control's
+  outcome from the subject's exit status, not a piped summary. captured: scan-source-for-secrets
+- **A check whose input set is narrower than what it reads is not a check — whether the set varies by task graph or
+  omits a file the tool reads.** `verifyModuleDependencies` inspected 36 edges standalone and 47 under `check`, the
+  11-edge difference being exactly the project dependencies declared inside `testing { suites { … } }` blocks: a suite's
+  configurations hold their dependencies only once its test tasks are realized, which `check`'s own
+  `dependsOn(testing.suites…)` caused incidentally. Four fixes failed (eager suite realization, `evaluationDependsOn`,
+  collecting suite edges where the `testing` accessor is in scope, reading every configuration) before the scope was
+  corrected: the invariant protects what ships and a suite's edges reach no artifact, so the walk reads only the
+  production source sets — `main` and `testFixtures`, declared directly in build scripts and thus eager. Have the report
+  enumerate every inspected item, not just its count — the "Inspected edges" list is what made the two invocations
+  diffable and named the missing 11 as a set; run a new verification standalone and through `check` and diff its report.
+  The same rule covers a _declared_ set: the web module's `npmTest` loaded `eslint.config.js` at runtime while declaring
+  only `src`, so a config-only regression restored the cached test result and ran nothing — and `npmBuild` already
+  omitted `index.html` and the lockfile that owns the installed `node_modules`. Derive the whole set in one pass
+  (configs, entry html, `package.json`, `package-lock.json`) rather than one round per surfaced file, and prove it by
+  editing an input and confirming the task re-executes rather than reading its cached status as green. A check's _view_
+  of its subject is part of that scope: when the spec states the predicate as a property of an artifact — an archived
+  change dir that _carries_ delta specs — read the artifact's own contents, not the subset that happens to be staged,
+  since a predicate that read the staged set let a partially-staged archive change (one file added) escape the guard
+  entirely. A shell loop is a third mode: in zsh an unquoted stored value does not word-split (`for f in $(…)` still
+  does), so `files=$(git diff --name-only); for f in $files` runs its body **once** over the joined string and the check
+  reads one file; split it with `${(f)files}` or loop the substitution directly. captured:
+  enforce-web-ui-import-boundaries captured: guard-archive-spec-sync captured: diagnose-rest-controller-ct-hang
+- **An assertion about a declaration's content cannot see a value that never reaches the code — assert what the subject
+  _emits_, not only what it declares.** Both abandoned fixes of `scripts/test-doctor.sh` (five and seven review rounds)
+  read the doctor's probe declaration and asserted things about the data; each round found another way a probe could
+  slip out of the reported set, the last being a `kind` flipped `tool`→`state` that made the probe **vanish from the
+  doctor's output while the check still reported "13 probes" and "required probes match"** — the declaration was
+  unchanged, so a content assertion saw nothing wrong. Run the subject and require every declared item in its output;
+  keep a host-dependent exit code out of the assertion (capture with `set +e`, assert the output only), since a gate
+  that depends on it fails PRs for causes they cannot remediate. captured:
+  declare-probes-with-shape-and-behavioural-checks Require the whole of what it emits, not only the part a change
+  targets: a consumer that classifies its input has states beyond row-present/row-absent, so a filter's removal test
+  stays green while it reclassifies its neighbours — the first `DependencyUpdateRules` clause emptied
+  `dependencyUpdates`' up-to-date section of all 83 catalog-owned entries, since the plugin reads a coordinate whose
+  every candidate is rejected as unresolved. captured: align-dependency-report-version-authority
+- **A deliberately conservative check owes the false-negative surface it accepts — and a gap cheap to close is closed,
+  not recorded.** A check narrowed to avoid false positives under-reports by design, so what it does not catch must be
+  stated where its outcome is recorded (the design, and the spec where the outcome is spec'd), and a clean run is never
+  full coverage. Recording is for what cannot be closed: the cron check closes its day-of-week `7`-as-`0` miss (the
+  `commit-hygiene` spec records the normalization) while recording its stdlib-only scan's unparseable YAML forms, and
+  the conflict-marker check records its lone-`=======` exclusion. captured: check-unique-cron-schedules (#436)
+- **A verdict echo is not a check.** While fixing `scripts/experience-analysis.sh`, the 120-character check printed the
+  offending line and the next command echoed "(script 120 clean)" regardless — the log carried the defect and the
+  summary contradicted it. Let the exit status carry the verdict — wrap the `Formatting` convention's recipe so a line
+  over the limit is non-zero — or read the output before writing the sentence; never emit a canned "clean" you did not
+  derive from that run. The wrapper still fails open on a missing file, which is why the check must be seen to hit a
+  known positive before its clean run means anything.
+- **A clean run from the wrong resolution context — a directory, or a point in the lifecycle — is not a reproduction.**
+  TypeScript's automatic inclusion of `@types` packages walks up from the tsconfig's directory (the
+  then-`.opencode/tsconfig.json`, retired with the plugin below) — or the current working directory when no tsconfig is
+  used — not from the directory of the file being checked, so a check can pass from inside the package while failing
+  from the root its consumer resolves from (here, the editor's project root). A `review-quick` round proposed the
+  simpler fix ("add `@types/node`; a tsconfig isn't needed"), which held only in the passing directory. Run a
+  reproduction from the context that fails — the directory whose config the failing tool reads, not the artifact's own
+  directory — and treat a different error as its own signal. The binary is part of that context: a control that installs
+  one major and then invokes it by a bare command name runs whatever the host has instead — the host's V2 `opencode`
+  accepts the V2-only key the V1 probe rejects (exit 0), so the control would prove the opposite — so run the installed
+  binary by absolute path, isolate its `HOME` so it does not read the host's global config, and assert its version.
+  captured: probe-opencode-config-read-path captured: fix-tmpdir-plugin-types (#299) The context is temporal as well as
+  spatial: a plugin hook or a config read runs at process init, so a standalone execution proves what the artifact emits
+  but never that its inputs exist by then. The now-retired `.opencode/plugin/grant-cli-config-dirs.ts` grant was proved
+  with a `bun` run (every grant emitted), yet in the cloud run the agent installed `openspec` mid-run, after init, so
+  the resolved-path grant could not exist and the run hung — the config wildcard that replaced it removes the init-time
+  dependency. Exercise the artifact at the lifecycle point it runs in (check the workflow's step order against the
+  artifact's run point), not only its own invocation. The context is also the retained state: clearing a module's
+  `build/` is not the clean-checkout condition, because a tool's own cache and the project's `.gradle/` survive it —
+  `rm -rf helm/chart/build` alone still let the chart-dependency task run, and only clearing the plugin's cache under
+  `.gradle/` reproduced the skip CI saw — so clear the caches outside `build/` before concluding a failure does not
+  reproduce. captured: fix-chart-dependency-fetch captured: grant-openspec-global-access-in-cloud (#325)
+
+### Testing, measurement & load verification
 
 - **A derived measurement may report only what it measured — pin its unit to a countable event, never let a fallback be
   indistinguishable from the real thing, and never let a check's failure gate nothing: label a reporting fallback as
@@ -2492,638 +2492,172 @@ capture-stash-stale-copy
   0 failed, at 385 rps). Use `doWhileDuring(Function<Session, Boolean>, …)` (the shared `differs(attribute, expected)`);
   the source reads correct either way, so only a sustained run exposes it. captured: anchor-the-load-test-baseline
 
-- **A build property's name is shared across the module's tasks — grep the plugin's existing `gradleProperty(...)`
-  consumers before forwarding a new `-P<name>`.** `load-tests/build.gradle.kts` forwards its whitelisted properties into
-  the Gatling task's `systemProperties`, but the same module's `kneeFinder` task reads `-Pknee` as its **output-file
-  path** — so the knee-rate property had to be `kneeRate`, since a reused `knee` would forward a path where the
-  simulation parses an integer. A JavaExec task runs with the module's project directory as its working directory, so a
-  relative `-Plog`/`-Precords` resolves under `load-tests/`, not the repository root — hand-run one with the absolute
-  path the wrapper passes (`$ROOT/...`). captured: check-load-test-drift
+- **`showcase-api-gateway`'s e2e suite depends on Docker images of all other services being built (`bootBuildImage`).**
+  Run those first.
 
-- **Run `spotlessApply` after the _final_ write to a Spotless-owned file — ticking a checklist task is an edit too.** A
-  `tasks.md` task was ticked ("`spotlessCheck` passes") _after_ the last `spotlessApply`; the re-wrapped prose broke
-  Prettier, so the claimed gate actually failed and only the quick review caught it. The tick that claims a gate green
-  is the edit that falsifies it — so never tick a gate task as the last act: tick it, then re-run `spotlessApply` and
-  `spotlessCheck` before the file is committed. After any last edit to a Spotless-owned file (a TODO tick, a status
-  note, `AGENTS.md` itself) re-run `spotlessApply` and `spotlessCheck` before reporting the gate green — do not trust a
-  check that ran before the final edit. captured: suppress-web-ui-npm-majors
-- **palantir-java-format does not manage imports**: since 2.47.0 the plugin only takes over **Reformat Code**, and
-  `Optimize Imports` is always run by IDEA's native optimizer, governed by `.editorconfig` (the import layout
-  `ij_java_imports_layout = $*,|,*` and `ij_java_use_single_class_imports=true` with the two on-demand counts at `999`).
-  This is what stops IDEA collapsing to wildcard imports; without it, `spotlessApply` cannot auto-expand a wildcard
-  (palantir never touches imports), so a wildcard must be expanded by hand or via Optimize Imports. The build gate is
-  Spotless `forbidWildcardImports()` (fails on any `import x.*;`). A change to the code-style scheme requires an IDEA
-  restart to take effect.
-- E2E tests for `showcase-api-gateway` depend on Docker images of all other services being built (`bootBuildImage`). Run
-  those first.
-- The configuration cache is **enabled** (`org.gradle.configuration-cache=true`). A task action must not reference
-  anything belonging to the Gradle script — `project`, `gradle`, `rootProject`, `providers`, a script-level `val`/`fun`,
-  the script's own `this` — because serializing the captured **script object** fails the store; compute what the action
-  needs into a `val` local to the configuration lambda (a class/object reference is safe). It needed the
-  gradle-helm-plugin at **3.2.0** (its tasks captured a `Task`/`Project` through 3.1.2 —
-  build-extensions-oss/gradle-helm-plugin#140, closed), that hoist at each task action that had it (`workflowLint`,
-  `dependencySecurityCheck`, the frontend `npmAudit`/`npmOutdated`, the load-tests
-  `kneeFinder`/`baselineStats`/`baselineTrend`, and the compose tasks — whose `onlyIf` also read `gradle.startParameter`
-  and a `rootProject.extra` handshake, now `composeScheduleState`), and `notCompatibleWithConfigurationCache` on
-  `:load-tests:gatlingRecorder`, whose third-party task type holds a `Configuration`/`SourceSet` no hoist can fix (the
-  plugin repository disables issues and discussions, so an upstream fix must arrive as a PR). Sweep such a change over
-  the build's **whole task list** (`./gradlew tasks --all`'s set, requested in one graph), not the closures you know
-  about — a plugin task type is one failure shape (it cannot store), and a third-party task whose `onlyIf` reads build
-  state is another: it stores cleanly and then silently skips, because the cache resolves the predicate against the
-  state captured at store time. So compare each third-party task's _outcome_ (ran / skipped) with and without the cache
-  on a clean checkout, not only that the graph stores; and neutralize such a gate with `setOnlyIf { true }`, since a
-  bare `onlyIf { true }` only appends a spec that is ANDed with the plugin's and leaves it in force (the helm plugin's
-  chart-dependency skip is the worked case — see the Chart validation bullet above).
-- The gradle-helm-plugin 3.2.0 still calls the deprecated `Project.getProperties()` (a `--warning-mode all` deprecation
-  that becomes a hard error in Gradle 10). Tracked upstream as build-extensions-oss/gradle-helm-plugin#145; bump the
-  plugin when a fix is released. Separately, the Gradle `Configuration.visible` deprecation (`setVisible(boolean)`,
-  removed in Gradle 11) is emitted across the build by several third-party plugins — the helm, errorprone, SpotBugs,
-  Spring Boot, and protobuf plugins among them — and is likewise plugin-side, with no action of ours.
+- **`@Nested` test classes are incompatible with Spring Boot slice tests (`@WebFluxTest`/`@WebMvcTest`).** Nested
+  classes load the full application context instead of the slice and fail on infrastructure beans (e.g. the gateway's
+  JGroups `DistributedCommandBusProperties`). Keep slice-test classes flat (see `ShowcaseRestControllerCT`).
 
-- NullAway is strict on `showcase.*` packages — ensure proper `@Nullable`/`@NonNull` annotations from `jspecify`.
-- Jackson 3 artifacts (`tools.jackson.core:*`) on the query-service and projection-service runtime classpaths are
-  dependency hygiene, not the deferred Jackson 3 backend migration — Jackson 2 remains the serialization backend in
-  application code; the why (including the `jackson3-bom` constraint) lives in ADR-0003.
-- Spring Data Elasticsearch's `DateFormat.strict_date_optional_time_nanos` truncates to microseconds despite its name —
-  the nanosecond pattern and the reason live in the `read-side/projection-model` spec. `ShowcaseEntity` declares the
-  custom `NANOS_DATE_PATTERN` (`yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]`) with `format = {}`; do not "simplify" it back to
-  the built-in enum until the fix (PR #3337, 6.2.0-M2) reaches us through `spring-data-opensearch`; the truncation is
-  invisible on macOS (microsecond clocks) and surfaces only on nanosecond clocks (Linux CI).
-- **A task whose verdict derives from wall-clock time or external state must not declare an output Gradle can re-use — a
-  cached UP-TO-DATE run serves a stale verdict.** `npmAudit` first declared `outputs.file(...)`, so a re-run was
-  UP-TO-DATE and its `doLast` verdict — including the `LocalDate.now()` suppression-expiry check — was never re-derived:
-  a cached pass could outlive a suppression's expiry. Drop the `outputs.file` declaration (matching the sibling
-  `npmOutdated` task) so the verdict re-runs every invocation; declare `inputs` (the suppression file) without declaring
-  an output the task does not produce as an artifact. Any verdict task whose result changes without its inputs changing
-  — a date check, a live registry query, a remote state read — takes the same treatment. captured:
-  suppress-braces-npm-advisory
-- **A fixable npm advisory in a transitive that a dev dependency pins exactly is forced with an `overrides` entry — not
-  npm's suggested fix.** npm's offered fix is a _breaking_ downgrade of the pinning package (`eslint-plugin-boundaries`
-  7.2.0 → 5.4.0, breaking the FSD boundary lint), because the plugin and `@boundaries/elements` pin
-  `handlebars: "4.7.9"` exactly; `overrides` forces the patched `4.7.10` under them instead. A suppression
-  (`npm-audit-ignores.json`) is for an advisory with no fix — the `dependency-security` spec owns that policy — and
-  unlike one the override carries no expiry, so park its re-check in `docs/ideas.md` and derive the retrigger from the
-  resolved graph: every package that pins the vulnerable version must bump before it is dropped. captured:
-  fix-dependency-security-findings
-- **A build tool's own vulnerable transitive does not reach the platform BOM, and a tool configuration that rejects a
-  platform project is aligned with a dependency constraint instead.** The platform's `constraints` reach the
-  compile/runtime classpaths, not Gradle's tool configurations: `errorprone(platform(project(":platform")))` works (its
-  `annotationProcessor` classpath extends it), while `checkstyle(platform(project(":platform")))` drops the checkstyle
-  tool and fails `checkstyleMain` with `ClassNotFoundException: CheckstyleAntTask` — constrain that one with
-  `constraints { checkstyle(libs.guava) }`. A scan names the coordinate, not the configuration carrying it, so derive
-  the owning configuration from the graph (`./gradlew :<module>:dependencies --configuration <config>`) before choosing
-  the fix. captured: fix-new-security-advisories
-- **Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
-  `implementation`-only dependencies on their compile classpath** — the default `test` suite does, since its classpath
-  extends `main`'s, while a custom suite receives them only at runtime through its `project()` dependency — so each
-  suite re-declares what it needs to compile (client component suites duplicate axon/opensearch/resilience4j deps,
-  `showcase-query-proto` must be listed explicitly, and a suite compiling against a `@Mapper`-annotated main class needs
-  `libs.mapstruct`, or javac warns that the annotation's `ReportingPolicy` constant is unknown). A suite can be
-  referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g.
-  `val integrationTest = suites.register<JvmTestSuite>("integrationTest")`). Source sets are siblings — `src/test/java`
-  cannot see a type declared in `src/gatling/java`, while both see `main` — so a pure-logic type a unit test and a
-  custom source set both need belongs in the module's `main` source set. captured: check-load-test-drift captured:
-  fix-mapstruct-suite-warning
-- **A dependency a module does not use can still be load-bearing — narrowing a `project(...)` dependency can break a
-  downstream `compileJava`, and removing a starter drops the modules it transitively provided.** Before removing or
-  narrowing a dependency, grep the consumers' sources for what they actually import and compile the affected modules; an
-  unused direct dependency may be carrying the transitive one a consumer's main source needs. Worked case:
-  `showcase-query-api` held `api(project(":showcase-command-api"))` only for `showcase.identifier.KSUID`; narrowing it
-  to `api(project(":showcase-identifier-extension"))` (`narrow-query-api-dependency`) broke `:showcase-query-client`'s
-  main compile, because `ShowcaseQueryClientProperties` imports `org.hibernate.validator.constraints.URL` and had been
-  receiving it through `command-api`'s `api(libs.hibernate.validator)` — that consumer now declares it. The same holds
-  for an external starter: removing `spring-boot-starter-webflux` from `showcase-query-client` silently removed the
-  `jackson-datatype-jsr310` it had provided, and `JacksonSerializer.defaultSerializer()` failed at test-class init with
-  `NoClassDefFoundError: JavaTimeModule` — name every module a removed starter was providing, declare it explicitly
-  (`jackson-databind`, `jackson-datatype-jsr310`), and run the module's tests, not only `compileJava`. captured:
-  grpc-query-transport
-- **Extracting a component that exists in a sibling service means mirroring the sibling's full wiring, not the shape you
-  copied.** The gateway's Kafka converter was lifted from the projection service without its Axon `upcasterChain`, and
-  its event receiver from `ShowcaseProjector` without the `ObservationRegistry` — both silent until review, and no gate
-  catches either. Grep the sibling for every configuration call it makes on the same component and carry each across: a
-  missing upcaster chain deserializes events un-upcast and a missing registry drops their traces. captured:
-  read-through-gateway-caches
-- `@Nested` test classes are incompatible with Spring Boot slice tests (`@WebFluxTest`/`@WebMvcTest`): nested classes
-  load the full application context instead of the slice and fail on infrastructure beans (e.g. the gateway's JGroups
-  `DistributedCommandBusProperties`). Keep slice-test classes flat (see `ShowcaseRestControllerCT`).
-- Testcontainers 2.0.5 moved `PostgreSQLContainer` from `org.testcontainers.containers` (now a deprecated shim) to the
-  non-generic `org.testcontainers.postgresql.PostgreSQLContainer` — use the new import without the `<?>`/`<>` type
-  arguments.
-- **Programmatic edits to a structured file — markdown or source — can silently drop or misplace structure; verify at
-  the granularity you edited.** Reordering the README with a Python boundary script dropped the entire "Getting Started"
-  section: the move used `lines[ends['Development Workflow']:]`, which starts at the _next_ section and skips the block
-  sitting between the two, and only a follow-up grep for `## Getting Started` caught the loss. After any script-driven
-  move/rewrite of a markdown file, grep for each expected heading (or diff the heading list before/after) before
-  reporting done; for a docs reorder, prefer the edit tool over a hand-rolled reordering script. The same class bites at
-  item granularity: the `retro-mark-captured-rules` provenance sweep derived each rule's line range with a boundary
-  heuristic that treated a top-level plain `- Text` bullet directly after a bold-lead rule as the rule's continuation.
-  Three such adjacencies exist in `AGENTS.md` (`A buildpack pin is verified…`,
-  `palantir-java-format does not manage imports`, `A dependency a module does not use…`), and the second rule's range
-  ran through the eight plain bullets behind it — so both the `git log -L` range an origin was read from and the line
-  the `captured:` marker was appended to belonged to the wrong item, and the marker landed on the following bullet.
-  Derive an item's end from the list's own structure (a wrapped continuation is indented; a `- ` at column zero starts a
-  new item) and have any script that ranges over or appends to items assert that boundary itself — the marker-placement
-  rule above states what the pre-commit guard enforces — before trusting the result. captured: retro-mark-captured-rules
-  The same range-boundary hazard bites source: removing three tasks' private comparators with a range running from the
-  first deleted member to the end of the file took each class's **closing brace** (the members were last in the body),
-  failing three compiles, and orphaned a KDoc above the deleted region — which compiled clean and only a reviewer saw.
-  Derive a deletion's end from the member boundaries, and after removing members confirm each surviving KDoc still
-  attaches to a declaration: a compile catches the lost brace, never the orphan. captured:
-  test-build-logic-rules-and-unify-version-comparison (#306) A formatter-owned file is re-wrapped, so a
-  whitespace-tolerant substitution — a normalization or `\s*`-style pattern — silently matches the wrong span or
-  rebuilds it unformatted. The edit no-opped or mangled several times across one arc: a workflow step inserted at the
-  wrong YAML indentation (a parse error), a README bullet reported as exactly one match that never landed, a `body=`
-  line left 198 characters long, and a prompt line replaced at the wrong indentation. Locate the target by line index in
-  the content you just read — or match one full line verbatim including its indentation — and re-read the result.
-  captured: notify-owner-from-the-audit-report (#327) An AST codemod is a further mode: re-printing the parsed tree
-  (`unit.toString()`) re-serializes the whole file — stripping blank lines and reflowing untouched code — so edit the
-  original text at the AST-located range (or use `LexicalPreservingPrinter`), and bound the replacement by the next
-  token's start, since JavaParser's `Range.end` is inclusive (a range ending on the type's last character leaves it,
-  `LogFileData` → `vala`). Derive a skip from the transformation's actual constraint, not a blanket proxy: only
-  `++`/`--` and assignment reassign a variable (`!x` is a `UnaryExpr` but does not), and a declaration annotation
-  (`@SuppressWarnings("unchecked")`) need not force a skip when a text edit preserves it. Verify the codemod's decisions
-  rather than trusting the compile — a `var` emitted where `val` was intended compiles, so a green build does not show
-  the sweep conformed. captured: adopt-lombok-val-convention An edit to wrapped prose can mangle the clause around the
-  insertion when its replacement reflows into the neighbouring text, and patching the damage with further span edits
-  re-mangles it each round; replace the whole unit in one edit, re-derived from the site's own subject, and re-read the
-  sentence. captured: verify-unique-review-rounds
-- **A write to an already-occupied path replaces the file silently: check the path before creating a "new" file.**
-  `ShowcaseEventStreamControllerTests.java` was assumed new, but it dated from #43 and held two tests (event wrapping;
-  REMOVED-type preservation), and the whole-file write destroyed both. Before writing a file you believe is new, check
-  the path — `test -e <path>` (or a read) proves it exists, `git ls-files <path>` whether it is tracked — and when it
-  exists, merge the addition into it rather than re-creating the class from its new-test shape. The loss happens at
-  write time, so the `git add <dir>` staging gotcha does not cover it. captured: keep-sse-stream-alive (#301)
-- **Keep em-dashes paired when inserting a clause into a sentence that already uses them.** A rework that adds an aside
-  to a dashed sentence can leave an odd number of dashes, so the reader cannot tell which dash opens the outer clause
-  and which closes it — the trailing clause's pairing is ambiguous. Count the dashes after the edit (an odd count is the
-  defect) and prefer parentheses for the inserted aside; Prettier reflows prose but never balances delimiters, so no
-  gate catches an unpaired dash — proofread it as content. captured: capture-untracked-follows-switch (#284)
+- **Testcontainers 2.0.5 moved `PostgreSQLContainer` from `org.testcontainers.containers` (now a deprecated shim) to the
+  non-generic `org.testcontainers.postgresql.PostgreSQLContainer`.** Use the new import without the `<?>`/`<>` type
+  arguments. The old import still compiles through the shim, so a green build does not confirm the migration — check the
+  import.
 
-  The same class covers a paragraph boundary: a blank line lost in an edit fuses two paragraphs (an added one splits a
-  sentence), and Prettier reflows the result without complaint — the `audit.yml` and `buildpack-updates.yml` paragraphs
-  paragraphs were fused in the README's CI section and rode `main` through `spotlessCheck` for several changes
-  (`5fc1a09` introduced the fusion) until a drive-by fix separated them — so proofread blank lines as content too.
-  captured: notify-owner-from-the-audit-report (#327)
+### Deployment, Helm & Kubernetes
 
-- **Align ASCII/Unicode diagram comments by character width, not byte length.** In the README's project-structure tree,
-  `awk`/`length()` counts UTF-8 box-drawing characters (`│`, `├`, `─`) as multiple bytes, so byte columns ≠ visual
-  columns and the `#` comments end up misaligned. Measure with a decoded string (`len(line[:idx]) + 1` in Python) and
-  align every comment to the longest entry (the tree's target column 42 is set by `showcase-resilience4j-extension/`).
-- **A diagram's geometry and content encode semantics — do not normalize a deliberate asymmetry, and re-derive a redrawn
-  diagram from the code it depicts.** The README's OpenSpec-flow diagram marks its review gates as edge labels rather
-  than bracket spans — `approve` on Propose→Apply and Apply→PR, and `spec → main` on Archive→Merge. Mermaid cannot draw
-  two overlapping brackets over one run: nested subgraphs do express the extents, but Mermaid bottom-aligns the outer
-  subgraph's title in a fixed ~20 px band so it collides with the inner subgraph's border, a dashed arrow asserts a
-  transition that does not exist, and a block diagram's bars left the terminal node under GitHub's toolbar. So the
-  graphical diagram states the gates inline (`approve`, `spec → main`) and its plain-text fallback mirrors it. That is
-  the overlapping case; a **single** range over a run is drawn as one **non-nested** labelled subgraph — its border is
-  the bracket and its title the label, because a single bracket has nothing to collide with. A cleanup pass that aligned
-  the body pipes to the full width flattened the two spans' distinction and had to be reverted by the user. When a
-  diagram (or any doc) has been hand-edited, treat an asymmetry as intentional until you verify what each element is
-  meant to start and end at — ask rather than "fixing" it, and never regenerate over a human edit without diffing
-  against it. Redrawing a diagram into a new medium makes the old diagram a starting point, not the contract — re-derive
-  its content from the code or config it depicts: the Mermaid lifecycle conversion scoped the removal annotation to one
-  edge (`SCHEDULED -.->|"REMOVED (any time)"| REMOVED`) though the ASCII bracket it replaced spanned every state and
-  `ShowcaseAggregate` accepts removal from any state (a started showcase is finished before removal). Derive the
-  diagram's plain-text `<details>` fallback edge-by-edge from the Mermaid's own node, edge, and label list in the same
-  edit — each edge with its direction and its label — rather than hand-authoring it from the picture, since nothing
-  gates that second copy: two review rounds found hand-authored fallbacks missing labels the Mermaid carried
-  (`approve`/`CI green`, `search`, the event store) and an edge whose arrowhead pointed back into its source; re-check
-  every label the fallback and the prose citing it carry after a rename. A `mermaid` fence is un-gated by Spotless, so
-  render it and have the `vision` subagent read the render — node shapes and edge-label attribution are only visible
-  there (a duplicate edge label and an SSE label on the wrong hop survived a text read of the source). GitHub renders
-  Mermaid inside a `viewscreen` iframe that caps the SVG at its natural width — a wider one is scaled down to the
-  container width — and centers it, with a control toolbar overlaid on the right edge (~100 px wide;
-  `mermaid-js/mermaid#7117`, closed, no config fix). A local `mermaid-cli` render cannot show this, so reproduce it on
-  the live GitHub render (Playwright). A diagram wider than the container fills it, and `diagramPadding` then reserves
-  only symmetric (centered) margins whose pixel width shrinks with the fluid column — so the reserve differs between the
-  wider blob view and the narrower home/tree view and cannot reliably keep the rightmost node clear. Prefer a diagram
-  whose natural width stays under the column — a vertical `TB` layout for a wide pipeline, or a compact multi-row grid
-  for a wide chain — so it renders at natural size, centered, clear of the toolbar. A single, non-nested `direction LR`
-  subgraph is honoured when its outside edge leaves the subgraph itself (`subgraph_id -.-> X` — verified against
-  `@mermaid-js/mermaid-cli@11.17.0`: a three-state subgraph lays out horizontally with the directive and stacks
-  vertically without). A **member node's** edge to outside the subgraph is what an earlier note here described: Mermaid
-  then ignores the subgraph's `direction` and inherits the parent's, so wrapping a wide flow whose members link outward
-  does not re-orient it — stay wide, go vertical, or shed nodes. captured: mermaid-event-flow-draft captured:
-  rework-readme-lifecycle-diagram captured: rework-readme-diagrams-for-github-mermaid
-- **Verify documented infrastructure/deployment numbers against the config files, not memory.** The README rewrite
-  claimed "the API gateway's two replicas" (only `commandService.replicaCount` is 2 in
-  `helm/values/axon-showcase/values-local.yaml`; the gateway defaults to 1), "36 panels" (the raw top-level count, row
-  separators included, not the real panel count), and "four services and a gateway" (double-counting a table that lists
-  four components). The quick review against repo files caught all three. Before writing a replica count, panel/section
-  count, or diagram count into a doc, read the source (`helm/values/*/values-*.yaml`, the dashboard JSON, the component
-  table — or, for an upstream chart's shipped default or a container the values do not override, the pinned chart via
-  `helm show values <chart> --version <pinned>`) and cite the real number. The same holds for _which check_ a documented
-  figure belongs to: two mechanisms can bound the same metric at the same order of magnitude, so a boundary's owner
-  cannot be inferred from the figure's size — the 2026-09-28 refresh left the below-knee profiles' floor-dominated
-  thresholds unchanged (`5 x 27 ms = 135 ms` is under their 200 ms p99 floor), while the ~1.5x boundary an annotation
-  named was the drift check's own tolerance. Read the mechanism's definition and name the one the boundary belongs to.
-  captured: re-measure-load-test-baseline (#429) A two-way split of an enumerated set can also sum to its total and
-  still be wrong when its boundary is hand-drawn: a scan of the markdown target's completeness re-listed exclusions from
-  memory and counted the vendored `axon4to5-*` and generated `openspec-*` skill files as gated, while the target's own
-  `target(...)` / `targetExclude(...)` entries put them on the excluded side (the project-authored skills stay gated) —
-  and _both_ splits summed to the same total, so the arithmetic check cannot catch it. For a gated-vs-excluded split, or
-  any enumeration or partition of a set the repository declares — the root `check` task's members, a CLI's modes, the
-  tracked executables (`git ls-files -s | awk '$1=="100755"'`) — derive the members from that declaration
-  (`build.gradle.kts`'s `check` block, its `target`/`targetExclude` entries, the `git ls-files` query), not from intent
-  or a hand-written complement, and update every doc that enumerates the set when a change adds a member; never write
-  the resulting totals into a durable artifact — they move with every change the corpus gains. A claim about what a
-  gate, task, or check _runs_ is the same class: derive it from that tool's own definition — its task registration and
-  `commandLine` — not from recall. A claim about what a chart renders is the same class: read the selector the template
-  emits, not the template's comments, which can contradict it (the netpol templates comment the same release-wide
-  `common.labels.matchLabels` selector as both "from other pods in the release" and "selected peers"/"cluster peers").
-  captured: reconcile-netpol-spec-peer-wording `workflowLint` runs `actionlint` alone (the repository installs and
-  documents no `shellcheck`; actionlint invokes it only if it happens to be on `PATH`), yet two artifacts asserted
-  "actionlint + shellcheck" — the `add-actionlint-gate` proposal that named a spec scenario, and a later change's
-  verification story. A list attached to such a set must not read as complete while naming a subset, and a claim
-  **patched at the instance is still wrong one level down**: a placement rule first drafted as "executables live in
-  `scripts/`" was corrected for the repo-root wrappers, then re-broken by the module-local pair, while the sibling
-  clauses of the same rule enumerated 2/2 and 3/3 so its `scripts/` colon-list (5 of 8) read as exhaustive — derive the
-  claim from the complete set, and either enumerate a set in full or name the location only. Name a count's referent and
-  check its arithmetic against the total it belongs to: an early draft of the `make-captured-rules-traceable` design
-  wrote "46 of them capture-class, and those 65 are concentrated in Gotchas (41) and Conventions (21)" — 41 + 21 = 62,
-  so the split could not belong to the 46; it was the 65-bullet set the same sentence also named, and the mismatch was
-  invisible until the review did the addition. Distinguish a point-in-time count from a durable one: an exact count of a
-  growing corpus (capability specs, requirements, archived changes) belongs in a change's own artifacts, where a stale
-  snapshot usually does no harm — except when the counted artifact is the change's own and grows while the change is in
-  flight (its own review-round record, its own appended rows), where a checked task certifying "the first N rows" is
-  falsified by the next row, so state the mechanism with no count — unless the count is what the artifact records as
-  evidence (a claims-table row counting a live corpus), where the deriving command names the boundary that stabilizes
-  it, excluding the unit's own rows (`$2 != "<unit>"`), or the figure moves every time the unit appends one — and never
-  in a durable artifact (a subagent definition loaded on every invocation, `AGENTS.md`, the README, a command file, a
-  main spec) — where it drifts on every archive and becomes exactly the drift the `specs-auditor` exists to catch. The
-  `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the change's own delta made the main spec
-  hold 158, and the README still stated a hard "22 capability specs". Describe the shape instead of freezing a tally —
-  the `specs-auditor` definition now says "a corpus … that grows with every archived change", and the README's "120+ and
-  counting" is the pattern to follow. A process count — elapsed time, effort — is not a durable fact either, though for
-  a different reason: no reader can verify it from the repository at all, so describe it qualitatively, not as a precise
-  number. Review rounds are the exception: `docs/review-rounds.tsv` records them per unit and
-  `scripts/experience-analysis.sh` aggregates the window, so cite the record rather than a session-only number. That
-  targets _human_ process narrative — effort, how long a session ran — which no machine-measured evidence records; a
-  _machine-measured_ figure is a different class, since the CI run log is its evidence, so an order-of-magnitude build
-  cost (the one-time-full-rebuild vs warm CI timings above) is not a process count and need not be made qualitative. A
-  named example or mechanism inside a convention is itself a claim, not decoration: the `@DirtiesContext` rule said keep
-  it on "the gateway e2e test, which pulls in JGroups", but the e2e suite drives containers and never boots JGroups in
-  the test JVM — a false example that surfaced only when ADR-0009 had to restate the same rule. When a second artifact
-  restates an existing fact, diff the two against the code rather than copying the prose. captured:
-  make-captured-rules-traceable (#279) captured: verify-tracked-ignored-files captured: state-tooling-placement-rule
-  (#458) captured: record-review-rounds captured: derive-the-change-claims
+- **Deployment investigations must include the Helm chart and values files.** When diagnosing a deployment issue, the
+  chart (`helm/chart/src/main/helm/`) and its values (`helm/values/*/values-*.yaml`) are always in scope alongside the
+  live cluster — the deployed resources are generated output of the chart, so a wrong live resource usually means a
+  wrong source (or a stale apply), not a standalone "cluster problem." The chart also introduces k8s-specific concerns
+  (namespaces, NetworkPolicies, KUBE_PING discovery) that do not exist under `bootRun`/`docker-compose`, so a bug can be
+  invisible locally and only surface once deployed. Recent deployment bugs were both chart bugs, not code bugs: the
+  `kubernetes` EndpointSlice `lookup` namespace in the network policies (`fix-kube-ping-api-egress`) and the missing
+  release-namespace declarations (`declare-axon-showcase-namespace`). Prefer rendering the chart locally with
+  `helm template` to inspect what the source produces before (or alongside) inspecting live resources — target the
+  packaged chart at `helm/chart/build/helm/charts/axon-showcase`, since the `helm/chart` module dir has no `Chart.yaml`
+  and the source at `helm/chart/src/main/helm` carries Gradle-filtered placeholders that `helm template` rejects. **A
+  deployment-only behavior is verified against the deployed signal, not the config.** Observability is Kubernetes-only
+  here, so a trace is proven by reading what the deployed system actually emitted: the `traceparent` the browser really
+  sent (`browser_network_request` with `part: request-headers`) and the exported trace from Tempo's API
+  (`kubectl port-forward -n monitoring svc/tempo 3200`, `GET /api/traces/<trace-id>`, with the root server span parented
+  at the browser's id). A green `check` and a correct chart value prove the configuration, not the behavior. An agent
+  shell has no TTY to answer `sudo`, so `./setup-hosts.sh setup` stops at the `/etc/hosts` write — it prints the ingress
+  LoadBalancer address before that, so verify a hostname with a `Host:`-header curl against that address
+  (`curl -H "Host: axon-showcase-grafana" http://<address>/api/health`) and hand the write to the owner; record which
+  half ran rather than ticking a task on the script's assumed completion. captured: propagate-ui-trace-context (#362)
+  captured: expose-grafana-by-hostname
 
-- **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
-  is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`
-  reading "OpenSearch results to entities" for a converter that maps entities → OpenSearch (the field Javadoc and its
-  `mapObject(ShowcaseEntity…)` call sites say so); the implementation quick review caught it. For converters/mappers
-  either direction reads plausibly, so read the field's Javadoc and one call site before writing the `@param`/`@return`.
-  The same change also had to add a field Javadoc the review never enumerated (`ShowcaseProjector.METER_NAME_PREFIX`,
-  caught by the user): a consistency sweep must audit every class/method/field in the touched classes, not only the
-  review's findings list. The same holds for a spec-corpus fix: an audit's finding list scopes the fix, not the pattern
-  the finding is an instance of — `apply-specs-audit-findings` normalized the stray-space coordinates in the
-  `spring-data-opensearch` requirement but left the identical `org.springdoc: springdoc-openapi-starter-webflux-ui`
-  spelling lower in the same file, deferred as "a future audit" when a grep would have caught it (it took a follow-up
-  change, `fix-springdoc-coordinate-spelling`, to sweep it). When a finding is an instance of a convention
-  (coordinate/identifier spelling, `MUST` vs `SHALL`, a stale enumeration), grep the artifact or corpus and fix every
-  instance in the same change. The same sweep applies to a corrected fact, not only a convention: after a review
-  corrects a direction, value, or magnitude, grep the artifact for that claim and fix every repetition — a
-  `reconcile-showcase-cache-default` review corrected the reversed direction in the design's Context, and the same
-  claim's residue in the Decisions section (plus a "tenfold" that was a hundredfold) was caught only in the next pass.
-  The correction's dependents are a further sweep: re-read the statements that depend on the claim without repeating it
-  — a caveat, a design rationale, a concluding sentence — which a grep for the claim does not find. A **replaced** rule
-  sweeps one degree harder still: its restatements are paraphrases rather than repetitions and live beyond the artifact
-  — in other gotchas and conventions, in file headers, and in the `.opencode/agent/*.md` / `.opencode/commands/*.md`
-  definitions that restate it — so grep every doc that describes the workflow for the _concept_, not the old wording:
-  replacing the commit discipline left four restatements (two gotchas, the docs-refresh convention, and
-  `docs/ideas.md`'s header), and the diagram bullet's `diagramPadding` rule survived in `diagrammer.md` until the quick
-  review. A widened check's describers go stale the same way, and the version-string grep does not find them: the
-  2026-10-11 audit found `toolingUpdates`' worked example stale once the smoke's `pack` pin gained its own entry, and
-  `bump-tooling-pins-2026-10-16` left `/opsx-tool-update`'s "the check detects a release from `ci.yml` alone". captured:
-  bump-tooling-pins-2026-10-16 An abandoned approach needs the same sweep: reverting an experiment's code line does not
-  remove the comment or the task/design prose that describes it, so grep the artifact for the approach's name before
-  calling the revert done. The sweep spans live copies whose sentence makes a present-tense claim:
-  `openspec/changes/archive/` is the historical record, left as recorded — the Spotless target already excludes it — so
-  a corrected command or a renamed symbol found there stays as recorded rather than being "fixed". A live artifact is no
-  different when its sentence cites the figure as a historical incident: `.opencode/agent/readme-auditor.md`'s "a '36
-  panels' that counted row separators" names the README defect the auditor exists to catch, not the dashboard's current
-  structure, so it stays too — and the change records why the match is deliberately left rather than silently skipping
-  it. captured: right-size-infra-resources captured: add-web-ui-dashboard-panels captured:
-  rework-readme-diagrams-for-github-mermaid
-- **A configuration-default change names every test assertion that pins the value and every doc that describes it, on
-  each surface it is declared.** The `reconcile-showcase-cache-default` plan initially missed that
-  `allPropertiesHaveDocumentedDefaults` asserts the Java field (so the change would fail it) and that the yml-wiring
-  test's missing `showcaseCache` assertion was the gap which let the drift pass. Grep the test sources for the field
-  accessor when changing a default, and give each pinning assertion its own task — the Java-defaults test and the
-  yml-wiring test each bind a different surface. A variable carried in a service's `bootBuildImage` `BPE_DEFAULT_*` map
-  has one surface more: the image's launch-environment default (`paketo-buildpacks/environment-variables`), which a
-  deployment's env var overrides but which in turn overrides the yml fallback. A new property the image carries joins
-  that map too, its value decided from the map's closest sibling there — the keep-alive mirrors its default, the origins
-  bake the empty fail-closed override of a local-development default — because the map is the image's declared
-  deployment environment, not a diff against the Java default. Documents that describe the value are surfaces too: grep
-  the docs for it and correct every description — but a **historical record** (a baseline, a retro, an audit) is
-  corrected by stating the values it ran under in the past tense, never by rewriting it to the new ones, since its
-  measured data is what it records. `right-size-chart-resources` changed the chart defaults; the Target bullet and the
-  Result paragraph of `docs/load-tests/2026-09-26.md` both described the old ones in the present tense, the plan
-  enumerated only the Target bullet, and review caught the Result paragraph — derive a doc's sites from a grep, not the
-  plan's list. A service URL's yml fallback is overridden by the container path (`BPE_DEFAULT_*`; in-container every
-  service listens on 8080), so it is exercised only under host `bootRun` and must equal the target service's local
-  `server.port` — a component test asserting the placeholder literally pins whatever value is there, not the right one.
-  captured: fix-gateway-cors-allowed-headers (#359) captured: right-size-chart-resources captured:
-  fix-gateway-query-service-url captured: guard-archive-spec-sync
-- **Doc claims must match their source and their strength — quote verbatim or paraphrase explicitly, and reserve
-  "enforced" for a real gate.** The self-learning README section described `AGENTS.md` rules in quotes;
-  `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an
-  overstated process claim. When a doc quotes a rule/spec/comment, copy the exact text (or drop the quote marks and
-  describe it), and check the mechanism before using words like "enforced", "always", "never", or "every" — against the
-  variants other docs define, too, since an unconditional rule must hold on every documented path, not only the default
-  one (the README's proposal-stage draft PR is such a variant). One of those paths is the rule's own text: state a
-  formal criterion — a count, a delimiter balance, a uniqueness test — with its scope where the criterion is stated, not
-  only in the rule's opening sentence, so a literal reading cannot apply it to the rule itself (the
-  `Keep em-dashes paired…` gotcha's odd-count check is scoped by its first sentence to a sentence that already uses
-  paired dashes; read per-sentence, it would flag its own lone-aside sentences). Check the claim's grammatical subject
-  too, not only its wording — a pronoun can bind a claim to the wrong actor: a README draft closed with "… and a
-  practice of reporting gaps in the libraries and tools _it_ depends on", which bound the project's upstream-report
-  practice to OpenCode (the bullet's subject) rather than to the project; naming the subject fixed it. Check a
-  qualifier's scope too: a condition or exception introduced for one variant must not swallow the rule's primary mandate
-  — strip the qualifiers and confirm the imperative verb still governs the default case (the `reshape-the-capture-loop`
-  rewrite of the capture trigger lost its lead's main verb and folded the implementation capture under the merge
-  condition; the PR's test plan records the review catching it). Check a recorded _mechanism_ against every measurement
-  the change made, not only against other docs: name the evidence points the explanation must cover and confirm the
-  wording holds for each, because a generalization one of your own runs contradicts is wrong however well it reads. The
-  blocking-execution mechanism's evidence point is the gateway's not-found test passing (its `fetchById` is stubbed, so
-  the handler maps the error directly); the query-service's mirror (`404` → `503`) went with its HTTP controller
-  (`grpc-query-transport`), so a second evidence point must be re-derived rather than cited from memory. Both the
-  surviving evidence point and the removed one are recorded in `design.md` of `extract-specd-rationale-from-agents-md`,
-  which moved the rule into the specs it belongs to. captured: record-blocking-execution-rationale (#335) captured:
-  grpc-query-transport
-- **A durable artifact may assert only what the repository can evidence — a history that lives only in the conversation
-  is not repo history.** An earlier draft of this bullet cited a `/var/folders/**` config attempt — a pattern proposed
-  in conversation but never written to a config file — and asserted an unobserved `setup-hosts.sh` outcome; a review
-  pass caught both. Before writing a historical or behavioral claim into `AGENTS.md`, `README.md`, a subagent
-  definition, or a main spec, find its evidence — a config file, a log line, a commit, or a run whose output you have.
-  Check a cited source's provenance too, not only its existence: a clause written _for_ an event cannot evidence a
-  _prior_ occurrence of it, so before a recurrence claim take a source that predates the event and was not produced by
-  it (a retrospective draft cited the `openspec archive` gotcha's parenthetical as a second lost-spec-sync occurrence,
-  but the incident's own capture #498 had added it — `git blame`/`git log -S` the clause, or grep the rule's `captured:`
-  token to find its introducing commit). captured: store-2026-10-05-retrospective A commit cited as evidence is itself a
-  claim: read what it did (`git show --stat`) and whether the path existed at `<commit>^` before attributing lines or a
-  reflow to it — an early draft of the `make-captured-rules-traceable` artifacts called `c62feda` one of "two Spotless
-  commits" that reflowed `AGENTS.md`, but `c62feda` created the file (164 insertions, and `AGENTS.md` is absent at its
-  parent); a review caught it. If the only source is the conversation, omit it or label it as the owner's account; for
-  an outcome you did not observe, state the mechanism ("a bash-script write runs under the `shell` permission") rather
-  than the observation ("it did not prompt"). Point-in-time narrative belongs in a change's archived artifacts, not in a
-  durable one. A claim about a surface **outside** the repository — a registry's contents, a repository setting, a live
-  URL — has no config file or commit behind it, so its evidence is a query whose output you have: run it before writing
-  the claim, and re-run it at review, because such a surface can change between the two and no gate reads it (`#266`'s
-  repeated review rounds caught several unverified external assertions — a GitHub docs URL written from memory, a false
-  "Docker Hub carries nothing" against five live repositories, wrong dates; the owner deleted those repositories
-  mid-session, invalidating the entry between its writing and its review). Verify a URL by requesting it, and treat the
-  review, not a gate, as the check. An evidence statement for a task that _touches_ such a surface has the same limit in
-  the other direction: do not pin a value the surface produced as the evidence the task was done — the rows of a live
-  lookup vary run to run. `helmUpdates`'s rows are a live `helm search repo` result; the same tick's evidence read "only
-  `prometheus-community-stack`" in one run and also showed `bitnami-kafka: 31.5.0 -> 32.4.3` in another, so the tick
-  rests on the run succeeding plus the parse pinned by unit tests, never on any row. captured:
-  rework-the-helm-suppression-list When a script generates many claims at once, the method that derived them is not
-  their evidence: each generated item needs its own control, applied per item rather than as a spot check, because a
-  heuristic that is right on nine of ten items writes its one error silently into the durable file and a hedge tag
-  (`approximate`, "uncertain") does not repair it. The `retro-mark-captured-rules` backfill's first attempt named 8
-  origins whose commit contained no text of the rule at all — including `ddaa51e`, claimed for the log-assertion rule
-  whose text it never mentions — because the range and the phrase were never required to be about the same rule; adding
-  the per-item control (the candidate origin's added lines must contain the rule's own opening phrase) substantiated 30+
-  origins independently. captured: retro-mark-captured-rules
+- **A containerized image build that fails in varying ways — including on the unmodified baseline — is host state until
+  proven otherwise; check the container runtime's amd64 emulation before touching a pin.** A Paketo `dockerBuildImage`
+  failure whose signature shifts between runs (a missing `io.buildpacks.buildpackage.metadata` label, an analyzer
+  `panic: could not parse '0.12' as version`, `flate: closed writer`, a Go GC fault) and that reproduces on the pre-bump
+  baseline points at the host, not the change: colima's template enables Rosetta, a macOS upgrade removed the Rosetta
+  runtime, colima silently fell back to QEMU for linux/amd64 containers, and the amd64 buildpack lifecycle crashes under
+  QEMU. With Rosetta reinstalled the same pins build — the identical nginx digest that reported "could not find label"
+  is the digest the successful build used — but a host explanation exonerates no pin: a surface that fails one run and
+  passes the next supports no causal claim in either direction, so name the failures that are host state and leave a
+  pin's fault an open question. `hold-back-nginx-buildpack` held `paketo-nginx` back at `1.2.0` because that episode's
+  arm64 architecture symptom survived every host reset and is tracked as `paketo-buildpacks/nginx#1340`. A pin decides
+  which image `pack` pulls, so a host failure mimics a pin defect exactly: confirm the runtime's configured emulation
+  (Rosetta versus its QEMU fallback) and whether the baseline fails too before changing a version.
 
-- **A comparison between two runs or files that differ in more than one dimension cannot attribute the difference to
-  either — isolate the variable before naming a cause.** Comparing `ci.yml`'s `Cache mode: write` with the `opencode`
-  workflow's read-only run attributed the difference to the latter's `permissions:` block, but the two differ in two
-  ways — the trigger (`push`/`pull_request` vs the comment triggers) and the blocks' contents (`ci.yml`: a top-level
-  `contents: read`; `opencode.yml`: a job-level `id-token: write` plus reads) — and a grep anchored to an indented
-  `permissions:` had hidden `ci.yml`'s top-level one. GitHub's dependency-caching reference names the trigger, so a fix
-  built on the misattribution (granting `actions: write`) would have widened the token for nothing. Read the
-  authoritative policy for the mechanism you are hypothesising, or vary only that dimension; a fix that enlarges a
-  privilege to explain a behavior is a signal the cause is still undiagnosed. The same rule binds a single experiment
-  that varies two dimensions at once: probing one malformed frontmatter on an agent and a different one on a command
-  read the results as kind-keyed ("command → exit 1") when the status depends on the resolved YAML shape, not the kind —
-  `guard-agent-loader-read-path` fixed the design only by re-deriving at a held-constant shape. A later review round
-  then could not reproduce the silent-drop row because it chose a different shape, and read its clean run as a
-  refutation of a true fact: a disagreement between two runs that differ in an uncontrolled dimension refutes neither,
-  so compare the inputs before concluding either wrong. The rule extends to a single observation: a token used to
-  evidence which route supplies a surface must reach it only by that route — a `commons-lang3` probe of `main`'s
-  `implementation` on a custom suite's compile classpath "confirmed" the opposite, because the coordinate arrived
-  through the suite's declared `project(":showcase-test")`; read the route the graph prints
-  (`./gradlew :<module>:dependencies --configuration <suite>CompileClasspath`, whose tree names each route's parent), or
-  pick a token with one route. captured: guard-agent-loader-read-path captured: fix-mapstruct-suite-warning
-- **A reproduction in an outward-facing artifact is itself part of the claim — write it so a reader reruns it to the
-  same output, and rerun the exact sequence before posting.** State the tool version and the starting state, and record
-  the commands in the order they ran: an order-dependent transcript can self-contradict (a `Fission-AI/OpenSpec#1892`
-  draft showed `openspec validate --all` exiting 0, but the delta-less change its own `new change` had created makes
-  `validate` exit 1), and a precondition left implicit is not reproducible elsewhere (in a directory with no planning
-  shape the same malformed config hard-errors with exit 1 instead of warning). Re-check every derived detail — line
-  numbers, exit codes — against the actual output, and capture an exit code directly, not through a pipe (`cmd | jq`
-  reports `jq`'s status, not the CLI's). The `#1892` draft took repeated review passes, each catching a different
-  mis-reproduction, because the review gate reads the artifact while no gate reruns its transcript. This is the drafting
-  counterpart to "report it upstream with a reproduction and the evidence"; the tool-behavior claim itself is verified
-  per the `--help`/read-path rules.
-- **When documenting agent tooling (MCP servers, skills, subagents), read the artifact's own definition — not the config
-  entry or the `docs/ideas.md` note that mentions it.** The README "Tooling MCP Servers" section described a
-  since-removed `codefmt` skill as running IDE _inspections_ (it runs the formatter), said the Playwright MCP "drives
-  the web-UI e2e" (the test framework runs the e2e; the MCP is only the agent's browser), and listed
-  `runInspectionsDirectly` as an MCP tool (it is an IntelliJ helper called inside `steroid_execute_code`) — every claim
-  sourced from the config entry or the parked idea note rather than the tool itself. A referencing entry summarizes; it
-  does not specify. Read `.opencode/skills/*/SKILL.md`, `.opencode/agent/*.md`, and the server's exposed tool list
-  before describing what each does, and treat an idea note's prose as a lead, not a spec.
-- **A CLI's `--help` and its docs are not its contract — a missing flag, an asserted exit code, an assumed output
-  stream, and a flag's default each have to be probed before a design keys on them.** The `setup-agent-tools` design
-  originally asserted `opencode mcp add` was interactive "with no `--command` flag for a local server, so it cannot be
-  driven by the agent"; in fact `opencode mcp add <name> -- <command…>` is non-interactive and preserves JSONC comments.
-  A quick review caught the false premise — and the correction held only for the CLI of its day: the same probe
-  concluded it "writes the global config", which 2.0.21 does not (it defaults to the **project** config; `--global`
-  writes the global one), and its `--help` does list the `-- <command>` form. A probe can also write into the
-  repository: `opencode mcp add` without `--global` dropped a server into this repo's project config — run a probe whose
-  default target is the repo from a scratch working directory (a scratch `HOME` can hang a CLI that starts a background
-  daemon) and `git status` afterwards. Before designing around a limitation ("this can't be automated"), verify it by
-  trying the command or reading its source/docs — do not infer impossibility from a help screen. The same holds for a
-  capability the docs describe only _partially_: the permissions docs name `~`/`$HOME` pattern expansion, and an
-  `AGENTS.md` bullet wrongly concluded `{env:VAR}` was unsupported. That false limitation survived the review gate and
-  was only caught by reading the source, because a tool's behavior is not repo-evidenced and no in-repo gate can check
-  it. Reproduce the _condition_, not the message: a tool error read from a log names only what it rejected in that one
-  invocation, so a limitation derived from it is about the input, not the tool. `actionlint 1.7.12` rejects
-  `runs-on: ${{ inputs.runner }}` only when the input is **undeclared**
-  (`property "runner" is not defined in object type {}`); declare the input and the bare reference passes (both
-  directions reproduced) — so the fallback that message seemed to mandate was a _runtime_ need (the scheduled trigger
-  leaves the input empty), and the false cause nearly discarded the real one. Before writing "tool X rejects Y" into a
-  design or a comment, run X on the minimal input that does and on one that does not, and quote the discriminating
-  condition rather than the message. captured: validate-the-workflows-on-ubuntu-2604 Treat a doc's account of a feature
-  as a floor, not a boundary, and verify a tool-behavior claim against the source/CLI before writing it into a durable
-  artifact — the same holds for a framework or library doc, whose snippet can be written for another version and can
-  name a mechanism that does not apply to the pinned one: Spring Boot's `buildInfo()` doc offered `time.set(null)`, a
-  no-op on the pinned 3.5.16 (which needs `excludes`), and `build-info.properties` is exposed as a `BuildProperties`
-  **bean**, not a Spring `Environment` property source, so a `@Info(version = "${build.version}")` placeholder would not
-  resolve and would serve the literal — re-derived from the pinned jar (`ProjectInfoAutoConfiguration.buildProperties`
-  is a plain `@Bean`) and from an empty run, not from the reference. Check the mechanism against the pinned version's
-  own classes before designing around the doc's form. captured: publish-github-releases Confirm too that the file you
-  read is the code path that runs: a package can hold a mock or test harness whose name matches the entry point
-  (`github/index.ts` is a local dev/test entry; the shipped handler is `github.handler.ts`), and a matching filename or
-  path is not evidence you read the implementation. The same applies to a `uses:` step's side effects: a design asserted
-  "the only step that touches Docker is `setup-gradle`'s cache service" without reading the action, whose own README
-  never mentions Docker — and the counter-claim that it _does_ use Docker, reviewed and rejected, was equally
-  unverified. Read the action's README/docs before writing what a step touches, and settle both directions of a
-  contested claim there. captured: pin-the-smoke-docker-to-overlay2 The same probe-first rule covers a compiler or
-  build-tool semantics claim: a design drafted the premise that a precompiled `.gradle.kts` cannot see an `internal`
-  declaration, and a scratch `kotlin-dsl` build disproved it — the `internal object` compiles from the script, and only
-  `private` fails — so the shared helper stayed `internal` rather than being widened to `public`. Verify a visibility or
-  build-semantics claim with a minimal scratch build before it constrains a design. A `build-logic` object is also
-  unreachable from a root script's _configuration_ path for a second reason: `settings.gradle.kts` `includeBuild`s it,
-  so its classes are not on the root script's buildscript classpath — a probe saw
-  `ClassNotFoundException: HelmUpdateRules` even from an init script, while the same object is in scope inside a task
-  _action_. Keep the rule in the `build-logic` task that applies it — pass the input file as an `@InputFile` property,
-  `@Optional` when it may be absent — and let the root script only point the task at it, rather than loading it inline
-  from `build.gradle.kts`. captured: rework-the-helm-suppression-list The web UI's npm checks asserted npm's contract
-  and took repeated review rounds to correct: `npm outdated` exits `1` both when updates exist and on error (the
-  report's content, not the exit code alone, is the discriminator), npm warns to stderr on clean runs (so stderr is not
-  the error signal), and `npm audit`'s default `--audit-level` resolves to `low`, not "moderate". `npm update`
-  reconciles the whole dependency graph rather than the packages you asked for: an in-range direct bump moved its eslint
-  cache stack (`file-entry-cache`, `flat-cache`, `keyv`) across majors, and npm 11 filled `license` fields throughout
-  the lockfile — so describe the lockfile diff by what moved (not as "patches/minors") and run the frontend `check`. The
-  frontend `check` never builds the production bundle — `vite build` is reached only by `build`/`assemble`/`e2eTest`
-  (`check` depends on lint/format-check/type-check/Vitest) — so a bump that touches a bundle-path package, `vite` most
-  of all, must also run `./gradlew :showcase-web-ui:build` and confirm the bundle emits (a `vite` patch bump can break
-  it while `check` stays green). A **dependency's last usage** takes the same sweep: remove its catalog entry and grep
-  the docs and build files for its name in the same change — after WireMock was removed from its last consumer, its dead
-  `wiremock-spring-boot` catalog entry and two `AGENTS.md` examples naming it had to follow, since an unused catalog
-  entry is resolved by no configuration and no update check reports it. captured:
-  test-build-logic-rules-and-unify-version-comparison (#306) captured: monitor-web-ui-npm-dependencies (#395) captured:
-  bump-gradle-and-web-ui-dependencies captured: bump-web-ui-npm-2026-10-05 captured: grpc-query-transport
-- **A CLI warning dismissed as noise can report a live defect — a config is unverified until its own read path is
-  probed, whoever consumes it (a tool, a hosted service, or the repository's own build), and a warning no gate reads is
-  not a check.** `openspec/config.yaml` declared per-artifact rules for four artifacts, but two items contained an
-  unquoted `: `, so YAML parsed them as mappings, the lists stopped being arrays of strings, and the CLI ignored those
-  two artifacts' rules — warning on stderr ("Rules for 'proposal' must be an array of strings, ignoring this artifact's
-  rules") wherever the rules are read (`openspec new change`, `openspec instructions`), which read as noise for as long
-  as the config existed; `openspec validate --all` emits no warning at all, which is why CI missed it. The dropped
-  `proposal` rules included `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the
-  rule the review loop kept catching missing. Quote any YAML scalar containing `: ` — the scope is any declarative
-  artifact, a project-defined definition file as much as a config: an unquoted `: ` in a `.opencode/agent/*.md`
-  frontmatter's `description` made YAML read the value as a mapping, the parse failed, and the agent silently did not
-  load (`/audit-readme` failed with `Agent readme-auditor cannot run as a subagent`) — the CI `build` gate now probes
-  that every agent/command/skill definition resolves with its metadata intact (its definition-inventory assertion), and
-  a reload does not fix it, unlike the not-registered `Unknown agent type` failure. captured:
-  fix-readme-auditor-frontmatter (#477) The CI `build` job now probes for the list-shape warning on any declared list
-  surface and the whole-file `could not parse` one (a malformed scalar) and fails on either, and `/opsx-tool-update`
-  re-verifies both with a positive control. The general rule: a config can look well-formed and pass the consumer's
-  validation while the consumer silently ignores or reinterprets part of it, and from outside a valid config and an
-  ignored one are indistinguishable — the signal may be a warning on stderr that no gate reads, **or none at all**:
-  `java.util.Properties` splits a key at its first `:`, so the dependency list's `group:module` entries collapsed to
-  group prefixes — a dead exact-coordinate branch and a whole-group over-suppression. For a config **a tool owns**, do
-  not substitute a parser of your own (it assumes a contract the tool owns): probe the consumer's read path and fail a
-  gate on its warning. For a format **the repository defines**, own the parse and unit-test it — a repository-owned line
-  parser (`DependencyUpdateRulesTests`) beats escaping a library's delimiters. captured:
-  hold-back-minor-dependency-updates Where the probe's subject is a load that either succeeds or throws, take the signal
-  from the process exit status, not from a message grepped out of the tool's output: `opencode debug config` prints the
-  whole resolved configuration, including every agent's full prompt, so a grep can match text the config merely embeds;
-  a loadable config exits 0 and a V2-only `permissions` key exits 1. Its blind spot is the definition that loads but is
-  silently degraded — an agent's or command's fields dropped, a skill absent from the inventory, all with exit 0 — which
-  is why the CI `build` gate additionally asserts every definition's resolved metadata, not the exit alone. captured:
-  probe-opencode-config-read-path Keep the guard's list-shape pattern generic (`must be an array of strings`), not one
-  surface's enumerated wording — it grew from `ignoring this artifact's rules` to
-  `ignoring this artifact's rules|could not parse`, then to the generic phrase, which is what covered every surface — so
-  a malformed `rules` or `operations.*.guidance` item drops no config list silently. The same class covers the change's
-  own `.openspec.yaml`, quieter still: OpenSpec's change-metadata schema is not strict, so an unrecognized key is
-  silently stripped with no warning at all — a `skip_design: true` marker (an inherited agent habit; a dozen archived
-  changes carry it) does nothing, and `openspec status` still reports `design` incomplete and points at
-  `openspec instructions design`. There is no artifact-skip key beyond `skip_specs`: skip `design.md` by simply not
-  writing it, never by adding a key. captured: bump-snyk-cli-pin Upstream, the reports are `Fission-AI/OpenSpec#1891`
-  (an unquoted `: ` in a rules item; closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still unmerged and in
-  no release — no released CLI has `inspectProjectConfig`, so the defect is live here) and `Fission-AI/OpenSpec#1892`
-  (an unparseable config; still open); if `validate` gains a config check that fails (an ask in each), the CI probe and
-  the `/opsx-tool-update` re-verification become redundant and can go. captured: inject-positive-control-task-rule
-  (#375) captured: widen-config-probe-to-guidance captured: record-openspec-1891-closure A hosted service is a third
-  consumer class, verified by the service itself: its own check where it has one, else the event it produces. A retired
-  key can be accepted and ignored with no local signal — `dependabot.yml`'s `reviewers` was — so probe the service's
-  read path (`gh api "repos/<owner>/<repo>/codeowners/errors?ref=<branch>"` returns `{"errors":[]}` for a valid file and
-  404s for a ref without one) or observe the event it produces (a review request on a real pull request) — GitHub
-  refuses a review request from the pull request's author (`Review cannot be requested from pull request author`, HTTP
-  422), so probe with a pull request you did not author. The general mode: an exclusion can sit on the actor's side
-  rather than the input's (the positive-control rule above), where no input choice avoids it. GitHub refuses the request
-  when the requested reviewer is the pull request's own author, so the remedy keeps the identity and changes the object
-  — `probe with a pull request you did not author` — and a probe run without that change is uninformative by
-  construction (three self-authored probes, differing only in the probe's shape, each read `reviewRequests: []`).
-  Confirm that the observable can exist for the actor before reading a negative as evidence. captured:
-  fix-dependabot-review-notification captured: record-codeowners-author-rule
-- **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
-  check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
-  changes without the repository moving: when the upstream-reference report was parked, review found two of four
-  references already closed — `ben-manes/gradle-versions-plugin#755` (2026-08-06, PR #1060) and
-  `spring-projects/spring-data-elasticsearch#3334` (2026-08-30, PR #3337) — while both constraint notes still read as
-  open. Resolve an `owner/repo#NNN` through the tracker before writing or editing such a reference, and when it has
-  closed, read the fixing PR's own diff and the release it shipped in against our pin before treating the note as
-  retirable — the issue's premise and its closure are not enough. What a reference note records about a reference (the
-  reason it is not yet retirable, or a pointer to where its re-check lives) is itself a claim a later change can
-  falsify, and no gate re-checks it (the `upstreamReferences` report resolves only the reference's open/closed state,
-  never its recorded reason) — so re-verify the note, not only the reference's state, when revisiting one. `#3334`'s
-  entry named a release that later published, and the meta-rule's own "the periodic corpus sweep is parked" pointer
-  outlived the sweep's build. `#755` closed through a change to platform-sourced constraints (`satisfiesDeclaredBound`,
-  "nothing changes by default"), so our spurious row from `checkBuildEnvironmentConstraints` remains even though the fix
-  shipped in 0.60.0, so any pin since then already contains it. An upstream reference must also document the symptom it
-  is cited for — read the body against the symptom, not the title or the release. A close-out reference must also live
-  in a file `upstreamReferences` scans (`AGENTS.md`, `README.md`, `docs/ideas.md`, `docs/adr/**`): cited only in a
-  skill, command, subagent definition, or code comment it is invisible to the report that would fire its `retires when`.
-  The first `hold-back-nginx-buildpack` draft blamed an arm64 build-extraction failure on
-  `paketo-buildpacks/nginx#1340`, whose body documents only the runtime symptom (an AArch64 `nginx` in an amd64 image)
-  and states that the `io.buildpacks.buildpackage.metadata` label is present on both slices; the draft also contradicted
-  the host-state gotcha's account of that same signature, and review caught both. When a passage already explains a
-  signature, reconcile with it rather than writing a second explanation beside it. A planned task that _posts_ to an
-  external tracker depends on that venue's mutable state — a security-advisory thread is often **locked** (comments
-  disabled): the `suppress-braces-npm-advisory` task "comment on `micromatch/braces#70`" was unachievable because #70 is
-  locked, and the actionable reference was the fix PR `micromatch/braces#72` (later closed unmerged). Check the
-  **venue** is writable before writing the posting task — a repository can disable issues and discussions outright, so
-  there may be no thread — and when the issue itself is closed or locked, cite the fix PR the close-out actually keys
-  on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
-  `upstream-references.yml` report (the fifth observational check above). captured: suppress-braces-npm-advisory
-  captured: refresh-upstream-references-2026-10-05 captured: record-gatling-report-block
-- **Work a change surfaces is parked durably — a PR body is not a record.** When a change records an external state
-  change that implies work, or names a companion change it will not deliver, park that work in `docs/ideas.md` (or
-  record it as a task) in the same change: a PR body is squashed and a change dir is archived, and no tool reads either,
-  so work named only there is lost. captured: cut-review-loop-rounds
-- **A change merged without its archive is incomplete — do not merge the implementation PR and defer the archive.** The
-  "one PR per change" rule puts the archive commit in the _same_ PR before merge; a change whose PR merged but whose
-  change dir was never archived is easy to forget (the `remove-redis-client-label` change was merged and sat unarchived
-  until the user pointed it out). When the merge completes, verify the change dir is archived; if archiving post-merge,
-  put it on its own branch and PR — never commit it to local `main` and `git push origin main`, which the branch ruleset
-  rejects and forces a branch-then-reset dance.
-- **A "the only X" claim in `AGENTS.md` goes stale the moment a change adds a second X — fix it in that change.** The
-  web UI's Playwright e2e suite was added while `AGENTS.md` still said "the only e2e suite is `showcase-api-gateway`'s",
-  and the stale claim survived until a later cleanup pass (PR #116). When a change adds a second instance of anything
-  the docs call unique (a second e2e suite, image, or workflow), grep `AGENTS.md` for `only`/`sole`/`never` claims about
-  the first and update them; when editing a section, re-verify such claims against the repo instead of trusting the
-  prose. The same applies in the negative: when a change makes a previously-true "nothing covers X" / "A and B ignore X"
-  statement false, grep `AGENTS.md`/`README.md` for the capability's absence claims and fix them in the same change —
-  including one added by a recent change (the `buildpackUpdates` check in #149 falsified the "`dependencyUpdates` and
-  `helmUpdates` ignore bare `[versions]` entries" sentence #148 had added one change earlier). The same goes for a
-  **code-symbol or file rename/removal**: docs cite class, test, config, and workflow-file names as examples and nothing
-  resolves them, so grep the whole repository for the old name in the same change — the first audit found
-  `ShowcaseApiController*` references that a rename had left behind, and the workflow-file rename `snyk.yml` →
-  `dependency-security.yml` also lived in `SECURITY.md`, ADR-0006, and `build.gradle.kts`'s `toolingUpdates` pin. A
-  plain **enumeration of a set** is the case the name-grep cannot see: neither it nor the `only`/`sole`/`never` grep
-  finds a stale sentence that names the set's _other_ members — `AGENTS.md` said the `ci.yml` and `e2e.yml` workflows
-  "additionally extend `gradle-home-cache-includes` with `nodejs`" while the npm-monitoring change added that include to
-  `dependency-updates.yml` and `dependency-security.yml` too. Adding a **member** to such a set widens every live
-  enumeration of it in the same change — and when an auditor sweeps the set, that includes its definition, its trigger
-  command, `AGENTS.md`'s summary of the auditor, and the **spec requirement that owns the sweep**, which is a main spec
-  and so needs a `MODIFIED` delta rather than a docs edit (the swept-surface set is enumerated in exactly those four
-  places). Grep the set's distinctive members across `.opencode/`, `openspec/specs/`, `AGENTS.md`, `README.md`,
-  `docs/ideas.md`, and `scripts/` before writing the addition — a tool's own module docstring and its `--help` text are
-  live enumerations of the same set too; the change's own four planning copies can be kept identical while all four live
-  sites go stale. The sweep covers non-doc artifacts too: recording that a component is deliberately _not_ used
-  (ADR-0009's "without Axon Server") must grep the whole repo for its name, because config, values, and template
-  comments carry claims no auditor reads (`helm/chart/src/main/helm/values.yaml` still called the `db-scheduler`
-  settings "Axon Server scheduler settings"). captured: monitor-web-ui-npm-dependencies (#395) captured:
-  verify-unique-review-rounds
+- **A buildpack pin is verified by running the image, not by a green build or a metadata label — a release can install a
+  binary of the wrong architecture and still build cleanly.** `bump-paketo-builder-and-buildpacks` ticked its test plan
+  on `dockerBuildImage` succeeding and on reading the built image's `io.buildpacks.build.metadata` label back (which
+  named `paketo-buildpacks/nginx 1.2.1`), and the pin it shipped exits 127 on the development machine: the image is
+  amd64 but its `nginx` is AArch64, while the build log says `Installing Nginx Server 1.31.5` on both architectures. Run
+  the image after a buildpack or builder bump — `docker run`, `GET /`, and read the binary's architecture **from the
+  buildpack's layer** (`/layers/paketo-buildpacks_nginx/nginx/sbin/nginx`), not the runtime `PATH` (a
+  `file $(which nginx)` probe returns not-found there), decoding the ELF `e_machine` (`3e 00` = x86-64, `b7 00` =
+  AArch64) — and be explicit about the platform when reasoning about a multi-arch artifact: the buildpack images are
+  multi-arch, so a bare `docker pull` on an arm64 host resolves the host's own slice and cannot evidence a claim about
+  the amd64 one (the image this pipeline produces is amd64-only, so a bare run of it is not the risk). The metadata
+  label is doubly misleading: it names the _buildpack version_ the build used (correctly the pinned version) while the
+  wrong-architecture binary comes from the resolved **buildpackage slice**, so a label reading `1.2.0` does not clear a
+  `1.2.0` pin — the `address-2026-09-21-update-checks` A/B found the pin build cleanly and exit 127 when `pack` added it
+  from the registry as an arm64 slice (`sha256:0d6fedc4…`), because the builder bundled a _different_ nginx version,
+  while the matched pair (pin = the builder's bundled version) ran. **Establish that pair before choosing the pin, not
+  after:** on a builder or buildpack bump, inspect the new builder's bundled versions
+  (`pack builder inspect paketobuildpacks/builder-jammy-base:<version>`) and pick the buildpack pins from what it lists
+  — a builder that no longer bundles the pinned version makes `pack` add it from the registry as an arm64 slice (the
+  mismatch above). captured: bump-buildpacks-2026-10-05 captured: bump-buildpacks-2026-10-12
+
 - **A buildpack's CNB id is not its Docker Hub repository — a registry lookup must target the repository, not the id.**
   The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are
   `paketobuildpacks/nginx` (no hyphen); querying the tags API with the CNB id 404s, so `BuildpackUpdatesTask`'s check
   model carries `repository` separately from the display `name`. When adding a buildpack to the check, use its Docker
-  Hub repository. The same repositories also publish alias tags (`1.3`, `5.15`) alongside the full semver (`1.3.0`),
-  which is why the buildpack check has two version operations rather than one: `Versions.isNewer` — the shared
-  comparator all three update checks use — compares numerically with zero padding, so the two spellings of one release
-  are equal and neither reports the other as an update, while `Versions.highest`, which only this check needs, keeps a
-  longer-spelling tiebreak so the _reported_ tag is the canonical form rather than the alias.
+  Hub repository. Verify a new entry as in _A lookup that yields no readable version reads as current_. The same
+  repositories also publish alias tags (`1.3`, `5.15`) alongside the full semver (`1.3.0`), which is why the buildpack
+  check has two version operations rather than one: `Versions.isNewer` — the shared comparator all three update checks
+  use — compares numerically with zero padding, so the two spellings of one release are equal and neither reports the
+  other as an update, while `Versions.highest`, which only this check needs, keeps a longer-spelling tiebreak so the
+  _reported_ tag is the canonical form rather than the alias.
+
+### CI & GitHub Actions
+
+- **The actionlint download script takes positional arguments (`version dir`), not `--dir`, and the target dir must
+  already exist.** When installing actionlint in CI with `bash <(curl .../scripts/download-actionlint.bash)`, pass
+  `latest "$RUNNER_TEMP/actionlint"` and `mkdir -p` the dir first — a `--dir` flag is rejected as an invalid version
+  (the script exits 1 with its usage).
+
+- **A changed-file check in a workflow step needs a two-dot diff, and a path-gated step must list its own definition.**
+  `actions/checkout`'s default `fetch-depth: 1` leaves the pull-request head a grafted root with no merge base, so a
+  three-dot `git diff --name-only FETCH_HEAD...HEAD -- <paths>` exits 128 (`fatal: FETCH_HEAD...HEAD: no merge base`;
+  reproduced against a depth-1 clone) while the two-dot `git diff --name-only FETCH_HEAD HEAD -- <paths>` form works; it
+  can list a file the base changed past the merge base (which merely runs the step), never fail. And a step gated on
+  changed paths must list its own definition file among them, or the pull request that edits the step skips it.
+  captured: probe-opencode-config-read-path
+
+- **`gh pr list` does not support a `--since` flag; a `gh <x> list` command silently truncates at its default `--limit`;
+  and a windowed git query is not the PR window.** Filter merged PRs by window with the search qualifier
+  `gh pr list --state merged --search "merged:>=<YYYY-MM-DD>"` (an unknown flag like `--since` is rejected outright, and
+  there is no date variant of `--merged`). This bit the `/retrospective` gather script
+  (`scripts/experience-analysis.sh`), whose first version used `--since`; the proposal/tasks that described
+  `--merged --since <window>` were corrected to the search form during implementation. A list command returns only its
+  default page with no warning when more exists (`--limit` defaults to 30 for `pr` and `issue`, 20 for `run`), so the
+  same script returned 30 rows for a window holding 249 merges until it gained an explicit `--limit 1000`. Any future
+  "what shipped since X" automation must use the `--search "merged:>=..."` form **and** an explicit `--limit` sized to
+  the corpus. Scope the window's git side with a time-explicit `since` (`--since="${SINCE}T00:00:00"`) — a bare
+  date-only `--since` excludes commits before the wall-clock time of day on that date, so the count varies run to run
+  (verified: 48 commits bare vs 65 at `T00:00:00`) — and never read a git window's start as the PR window's start: a
+  squash-merged commit's date can differ from its PR's merge date (verified: `#494` merged 2026-10-04T22:25Z, committed
+  2026-10-05), so a baseline at the raw git window's start is a PR late (`derive-retrospective-facts` first read 2672
+  lines where the window's start is 2693). The same truncation is self-inflicted by an explicit slice: `head -1` on the
+  `buildpackUpdates` report hid the second of its two lines, and the tasks file cited the first as though it were the
+  whole report. Cite a command's full captured output before recording it as evidence or scoping a change from it — read
+  the whole report file or CI run log, and take the flagged set from the tool's own findings list, not a `head`/`tail`
+  slice, a `grep` filter, or a derived/narrative section of the output. A filtered read of the 2026-09-24 Snyk run's
+  `--log-failed` output showed only four of the seven Jackson advisories, so the change was scoped Jackson 2-only and
+  would have left the three Jackson 3 ones (fix `3.2.3`) unaddressed; the full log named both lines. captured:
+  test-build-logic-rules-and-unify-version-comparison (#306) captured: bump-jackson-boms-for-snyk-findings captured:
+  derive-retrospective-facts Confirm the file is the run's output: a build directory persists a tool's previous report,
+  and `dependencyUpdates` writes per-project `partials/*.json` as each resolves and `report.txt` afterwards, so a run
+  that did not regenerate leaves a stale aggregate — reading a stale `report.txt` twice made
+  `align-dependency-report-version-authority` abandon a working change on the false conclusion that the plugin's rule
+  could not reach the row. Cite the run-scoped output, or confirm the summary is newer than the run. captured:
+  align-dependency-report-version-authority
+
+  A slice of a list of _objects_ selects a subject, not only a shorter list: `head -1` on a `docker images` list picked
+  another tag's stale build, whose `io.buildpacks.build.metadata` label named procfile `5.15.2` where the tag the run
+  produced (`aanbrn/axon-showcase-web-ui:0.2.0-SNAPSHOT`) named the pin `5.15.4` — one repository's tags each carry
+  their own build's metadata — and the false discrepancy reached the task record and returned as a review finding
+  against a true `AGENTS.md` rule. Name a built image by the tag the declared version gives
+  (`aanbrn/axon-showcase-web-ui:${project.version}`), never by list position. captured: bump-buildpacks-2026-10-16
+
+- **`gh pr create --body` with Markdown can fail under zsh with `no matches found`** — an inline body containing
+  `**bold**` (or other shell metacharacters/newlines) is subject to zsh's `nomatch` glob error
+  (`zsh: no matches found: **...`). Write the body to a file and use `--body-file <file>` instead; it also sidesteps
+  quoting and embedded-newline problems. Prefer `--body-file` for any multi-line PR or issue body. A body supplied this
+  way also bypasses the repository's pull-request template (`--template` is rejected alongside `--body`/`--body-file`),
+  so a line added to `.github/PULL_REQUEST_TEMPLATE.md` reaches an agent-opened PR only if the body file carries it —
+  write the template's sections and any new line into the body. captured: make-the-capture-visible
+
+- **An exit-code probe's status is inverted from the question it answers — run it inside an `if`, never bare under a
+  step shell's `set -e`.** `git ls-remote --tags --exit-code origin "refs/tags/v<version>"` exits `0` when the ref
+  **exists** and `2` when it does not, so a bare invocation under `set -euo pipefail` aborts the step on a **free** tag
+  and continues on an **existing** one — the guard that should reject a taken tag passes it and rejects the good case.
+  The release workflow writes `if git ls-remote --tags --exit-code … ; then echo exists; exit 1; fi`, which suppresses
+  `set -e` for the probe and inverts the status to the intent. Before gating a workflow step on a command's exit status,
+  probe that command's actual codes on both the hit and the miss (a taken ref and a free one) and place it in an `if`; a
+  bare status-checking command in a `set -e` step is the inversion bug. captured: publish-github-releases
+
+- **Checking CI status**: don't poll a PR build with an idle `sleep` loop — use `gh run watch <run-id> --exit-status`
+  (or `gh pr checks <pr> --watch`), which blocks until the check finishes and exits non-zero on failure. When the run id
+  isn't known, fetch it once via the GitHub MCP `pull_request_read` / `get_check_runs` (or `gh run list`), then
+  `gh run watch` it — one blocking call, no manual polling. A docs/build change's `build` check typically completes in
+  about a minute; check once shortly after pushing, then confirm green before archiving/merging. Verify the run itself
+  (`gh run view <run-id> --json conclusion`), never a pipeline's exit code — `gh run watch … | tail -6; echo $?` reports
+  `tail`'s, so a failed run reads as green. Idle sleep loops only waste time and add no information. captured:
+  fix-timeout-load-flakes
+
+- **A PR whose base advanced after its CI ran fails to merge with "Required status check 'build' is expected" and
+  `mergeStateStatus` BEHIND.** When two PRs merge close together (a code PR followed by a docs PR), the second PR's
+  branch is behind the new `main`; the `main-required-checks` ruleset demands the `build` check on the latest base, so
+  the merge is blocked even though the branch's own CI is green. The error message does not say "update your branch" —
+  BEHIND is the tell. Fix: `gh pr update-branch` (or `gh pr merge --update-branch`), which re-runs CI against the
+  updated base; merge only once that check is green.
+
 - **A workflow tool pin belongs in the `toolingUpdates` check's declared list — it is the only thing that detects a
   release.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates (and, through the same
   workflow, the web UI's npm dependencies), `buildLogicUpdates` / `dependency-updates.yml` the Gradle plugin pins the
@@ -3155,39 +2689,66 @@ capture-stash-stale-copy
   to a proposed _fix_ attributed to a dependency bump: verify it exists in a released version, not only on the project's
   default branch — a bump claimed to make a failure skip cleanly held on `actions/cache`'s `main` but in no release
   (latest `v6.1.0`). captured: unify-tooling-currency-checks (#304)
-- **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
-  first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
-  output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change
-  never intended. Stage explicit paths, add a `.gitignore` entry for the artifact, and check
-  `git diff --cached --name-only` (or `git status`) before committing — the `rework-idea-setup` commit swept in a
-  `scripts/__pycache__/*.pyc` that had to be removed and ignored. Staging is a snapshot, not a view of the working tree:
-  an edit made after the last `git add` sits unstaged, so `git diff --cached` can look complete while the commit ships
-  the older copy — check `git status` for a path listed under both staged and unstaged changes (or `git diff` for
-  unstaged edits) before committing, since a review caught the staged set missing corrections made after the last
-  `git add`, which would have shipped half the fix. A pre-commit guard (`scripts/git-hooks/pre-commit`, activated by
-  `scripts/install-git-hooks.sh`) enforces this inspection mechanically: it refuses a commit whose staged set fails the
-  formatter check, force-stages a generated artifact, stages a path and then edits it, carries a merge conflict marker,
-  misplaces a `captured:` marker, or stages an `openspec/changes/archive/**` change dir while leaving its
-  `openspec/specs/**` sync unstaged.
-- **Never chain an edit to a commit without reading the edit's result — gate the commit on a content check, not on the
-  edit command's exit status.** While implementing the `concise-agent-reports` change, an anchor assertion in the edit
-  script failed (Spotless had re-wrapped the text), so the edit no-opped — and the next command in the shell sequence
-  committed anyway, an unfixed state caught only by reading `git show --stat`, not the commit message or the exit codes
-  (an assertion that fails does not by itself stop a following command unless the chain is gated). Inspect the staged
-  set before committing — the `git add <dir>` gotcha above owns that files check — and read the diff's _content_, not
-  just its file list, since a names-only check cannot see an edit that no-opped. An anchor read before a formatter run
-  is stale the moment the formatter rewrites the file (`*italic*` → `_italic_`, rewrapping) — take the anchor from a
-  read that follows `spotlessApply`, or re-read the file before reusing a saved one. The same change also showed why a
-  multi-file change belongs in the apply workflow, not an ad-hoc edit script: hand-editing the six agent definitions
-  with `python` `replace` scripts left five of six files edited while `architecture-auditor.md` was untouched and still
-  reported edited, and duplicated a line in `lesson-capture.md` — the script's "edited" line is no per-file evidence,
-  while `openspec-apply-change`'s per-task edits make a skipped file visible. A script that batches its edits and writes
-  once is a third mode: an assert that aborts on a later edit discards every earlier edit in the same script, because
-  none reached the single write — a `tasks.md` script applied 11 checkbox ticks and two rewording replacements, hit a
-  stale anchor on the last and `sys.exit(1)`'d before its one `write_text`, and all 11 ticks were lost (only a later
-  review caught the file still unticked). Write each edit as it succeeds (or split the batch into per-edit scripts) and
-  verify the batch's full result afterward, rather than trusting a script that writes once at the end. captured:
-  make-captured-rules-traceable (#279)
+
+### Formatting & IDE integration
+
+- **IntelliJ's built-in formatter (its `Default` code style) disagrees with the Spotless format (palantir for Java,
+  ktfmt for `.gradle.kts`).** The auto-reformat triggers (**Actions on Save → Reformat code / Optimize imports**, **Auto
+  Import → Optimize imports on the fly**) only cause drift if the **palantir-java-format**/**ktfmt** plugins (JVM) or
+  the built-in **Prettier** (web module) are not active. The repo's IntelliJ config is **not versioned** — `.idea/` is
+  git-ignored entirely. Run `./scripts/setup-idea.sh` any time to reconcile: it **merges** the committed settings
+  (`config/idea/*.xml` and the test-tier naming inspection) into `.idea/`, replacing only our components and preserving
+  IntelliJ-managed content, so a re-run repairs a configuration that has drifted (e.g. it was never applied cleanly, or
+  IntelliJ overwrote it); it then installs the palantir-java-format and ktfmt plugins when IntelliJ is closed. The
+  configuration merge needs neither the launcher nor a closed IDE — only the plugin install does. IntelliJ reads the
+  merged files at startup (or on **File → Reload All from Disk**), so the settings take effect only after a reload or
+  restart. The `/setup-idea` agent command wraps the script (and negotiates quitting a running IDE for the plugin
+  install). For the web module it also enables IntelliJ's built-in **Prettier** (via `config/idea/prettier.xml`; free
+  from IntelliJ IDEA 2026.1, Ultimate on the earlier unified 2025.3–2026.0) and extends its file-type scope
+  (`myFilesPattern`) to CSS and HTML, which the Prettier default omits, so `Reformat Code` matches the
+  `prettier --check` gate, with the JS/TS indentation from `.editorconfig`. IDEA's Optimize Imports is gate-neutral for
+  the web module (it only removes unused/duplicate imports and reorders them, and no gate enforces import order). The
+  ktfmt config uses the plugin's **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with
+  unused-import removal, because the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the
+  line-length option (see README → Local Development → IntelliJ IDEA Setup).
+
+- **Verify an IDE formatting integration by actually reformatting — the right action and the full gate scope, neither of
+  which config review can see.** Two failure modes: a Prettier scope narrower than the gate (the web module's
+  `myFilesPattern` omitted CSS/HTML until extended) makes `Reformat Code` fall back to IDEA's built-in formatter and
+  break `prettier --check` — found only when the module was actually reformatted; and a script that called
+  `CodeStyleManager.reformat` silently did nothing (it runs IDEA's own formatter, not the external one). So enumerate
+  every extension the gate covers and reformat one file of each type before believing the setup; make a file
+  deliberately non-conforming, invoke the real `ReformatCode` action in the live IDE (`ActionManager` +
+  `AnActionEvent`), then check `prettier --check`/`git diff`. Verify a Gradle formatting task the same way — tamper a
+  file, run the task, and confirm the tree returns clean (`--dry-run` only proves the task is scheduled, not that it
+  formats). Also check `git status` after any IDE action — Optimize Imports ran project-wide and touched unrelated files
+  (noise, not a gate failure) when auditing only the web module.
+
+- **Adding a file type or path to a formatter target can rewrite content a consumer outside the build parses — verify
+  equivalence and exercise that consumer.** Bringing the `.opencode/` markdown under Spotless restyled every agent
+  definition's frontmatter (`description: <first line>` became `description:` plus an indented block), and Prettier also
+  normalized `*emphasis*` to `_emphasis_` and added missing trailing newlines; the consumer is the OpenCode agent
+  loader, not Gradle, so a passing `spotlessCheck` said nothing about the files still loading. After widening a
+  formatter target, diff the actual normalizations — do not describe the pass as "purely rewrapping" before you have —
+  and confirm the rewritten files parse to the same values and the consuming tool still works (for an agent or skill,
+  after an OpenCode reload).
+
+- **Run `spotlessApply` after the _final_ write to a Spotless-owned file — ticking a checklist task is an edit too.** A
+  `tasks.md` task was ticked ("`spotlessCheck` passes") _after_ the last `spotlessApply`; the re-wrapped prose broke
+  Prettier, so the claimed gate actually failed and only the quick review caught it. The tick that claims a gate green
+  is the edit that falsifies it — so never tick a gate task as the last act: tick it, then re-run `spotlessApply` and
+  `spotlessCheck` before the file is committed. After any last edit to a Spotless-owned file (a TODO tick, a status
+  note, `AGENTS.md` itself) re-run `spotlessApply` and `spotlessCheck` before reporting the gate green — do not trust a
+  check that ran before the final edit. captured: suppress-web-ui-npm-majors
+
+- **palantir-java-format does not manage imports**: since 2.47.0 the plugin only takes over **Reformat Code**, and
+  `Optimize Imports` is always run by IDEA's native optimizer, governed by `.editorconfig` (the import layout
+  `ij_java_imports_layout = $*,|,*` and `ij_java_use_single_class_imports=true` with the two on-demand counts at `999`).
+  This is what stops IDEA collapsing to wildcard imports; without it, `spotlessApply` cannot auto-expand a wildcard
+  (palantir never touches imports), so a wildcard must be expanded by hand or via Optimize Imports. The build gate is
+  Spotless `forbidWildcardImports()` (fails on any `import x.*;`). A change to the code-style scheme requires an IDEA
+  restart to take effect.
+
 - **IntelliJ settings-XML component names are exact and easy to transpose — take them verbatim from an IDE-written file,
   not the intuitive name.** `scripts/ensure-idea-settings.py` writes the inspection-profile skeleton with
   `<component name="InspectionProjectProfileManager">`; the script it replaced had it transposed as
@@ -3197,25 +2758,214 @@ capture-stash-stale-copy
   a plugin's config field serializes under its `@OptionTag` name (Prettier's `filesPattern` is written as
   `myFilesPattern`), so derive each `<option>`/attribute from an IDE-written file or the bundled plugin jar
   (`…/plugins/<plugin>/lib/*.jar`), not from the field name or the UI label.
-- **`./gradlew check -PskipITs` alone fails the coverage gate — the Docker-free check also passes
-  `-Pcoverage.gate.enabled=false`.** `-PskipITs` excludes `integrationTest` from the jacoco exec data, so
-  `jacocoTestCoverageVerification` verifies against a figure below the 0.80 baseline and fails; the gate is added to
-  `check` only when `coverage.gate.enabled` is not `false` (`code-coverage-conventions.gradle.kts`). The PR CI gate is
-  exactly `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (see Continuous Integration) — run that for a local
-  Docker-free check, not the bare `-PskipITs` form. That form disables the coverage gate exactly as the PR gate does, so
-  it cannot catch a coverage regression: when a change adds production code to a gated module, run that module's `check`
-  with the gate enabled before merging — Docker-free with `-PskipITs` for a module with no integration tests
-  (`./gradlew :showcase-query-proto:check -PskipITs`), or the full `./gradlew check` — since the drop otherwise merges
-  green and reddens the push-to-main full `check` (`grpc-query-transport` (#514) added
-  `QueryMessageMapper.messageToResponse`/`payloadFromResponse` with no module test, `showcase-query-proto` fell to 0.60
-  against 0.80, and every full `check` since failed until a component test covered them). captured:
-  fix-main-ci-regressions
-- **Bumping the Gradle wrapper needs two `wrapper` runs with `--distribution-type all`: the first run only rewrites
-  `distributionUrl`, and the second, executing under the new version, regenerates `gradle-wrapper.jar`/`gradlew`/
-  `gradlew.bat`.** A single run leaves the jar and scripts at the old version, and a run without the flag flips the
-  repo's `-all` distribution to `-bin` — both silently. `./gradlew --version` cannot see either (it reports the version
-  from `distributionUrl`), so verify by diffing all four wrapper files and keep `/gradle-update`'s two-step invocation.
-  captured: bump-gradle-and-web-ui-dependencies
+
+### Runtime code, libraries & Spring
+
+- **A controller-local `@ExceptionHandler(HandlerMethodValidationException.class)` fires only when method validation is
+  active for that controller — put a constraint (`@NotNull`) directly on the method parameter, not only `@Valid`.**
+  Without it a body failure arrives as a `WebExchangeBindException`, so the shared `ShowcaseApiErrorResolver`'s
+  `bodyErrors` contract is silently lost (`ShowcaseRestController` gets activation incidentally from the `@Min`/`@Max`
+  on its page-size parameter). A component test that posts a malformed body and asserts `bodyErrors` covers it.
+  captured: add-web-ui-rum-observability
+
+- **A new gateway controller package or browser-called endpoint is silent until registered in two un-gated lists.** Add
+  the package to `springdoc.packages-to-scan` (else the endpoint is absent from `/v3/api-docs`) and, for a path the
+  browser calls, add it to the Vite proxy in `showcase-web-ui/vite.config.ts` (else it never reaches `viteDev` or the
+  e2e `vite preview`); widen the live endpoint enumerations per the docs-refresh convention too. captured:
+  add-web-ui-rum-observability
+
+- **NullAway is strict on `showcase.*` packages — ensure proper `@Nullable`/`@NonNull` annotations from `jspecify`.** A
+  missing or wrong annotation fails the module's `compileJava`.
+
+- **Jackson 3 artifacts (`tools.jackson.core:*`) on the query-service and projection-service runtime classpaths are
+  dependency hygiene, not the deferred Jackson 3 backend migration.** Jackson 2 remains the serialization backend in
+  application code; the why (including the `jackson3-bom` constraint) lives in ADR-0003.
+
+- **Spring Data Elasticsearch's `DateFormat.strict_date_optional_time_nanos` truncates to microseconds despite its
+  name.** The nanosecond pattern and the reason live in the `read-side/projection-model` spec. `ShowcaseEntity` declares
+  the custom `NANOS_DATE_PATTERN` (`yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]`) with `format = {}`; do not "simplify" it back
+  to the built-in enum until the fix (PR #3337, 6.2.0-M2) reaches us through `spring-data-opensearch`; the truncation is
+  invisible on macOS (microsecond clocks) and surfaces only on nanosecond clocks (Linux CI).
+
+- **Extracting a component that exists in a sibling service means mirroring the sibling's full wiring, not the shape you
+  copied.** The gateway's Kafka converter was lifted from the projection service without its Axon `upcasterChain`, and
+  its event receiver from `ShowcaseProjector` without the `ObservationRegistry` — both silent until review, and no gate
+  catches either. Grep the sibling for every configuration call it makes on the same component and carry each across: a
+  missing upcaster chain deserializes events un-upcast and a missing registry drops their traces. captured:
+  read-through-gateway-caches
+
+- **A generic getter's inferred type can bind an overloaded call to the wrong overload — cast to the erased type, and
+  verify the binding, not the source.** `Session.get` is generic (`<T> T get(String)`), so
+  `String.valueOf(session.get(attr))` inferred `T = char[]` (the most specific applicable overload) and called
+  `String.valueOf(char[])`; the source reads correct and only the run failed
+  (`ClassCastException: class java.lang.Integer cannot be cast to class [C`). Write
+  `String.valueOf((Object) session.get(attr))` — `javap` then shows `String.valueOf:(Ljava/lang/Object;)` — or bind the
+  value to an `Object` local. A compile-valid call proves only that some overload matched; confirm the binding with
+  `javap -c` or a run. captured: anchor-the-load-test-baseline
+
+- **Caffeine's `AsyncCache` trips a Reactor bridge on two contracts — a non-null value type and an empty source — and
+  its access expiry never bounds a hot entry.** `getIfPresent` returns `null` for a future that completed exceptionally,
+  so a failed cached future is indistinguishable from a miss: the `if (present) … else …` shape takes the miss branch, a
+  `future.thenAccept(…)` callback only runs on success, and the future ErrorProne's `FutureReturnValueIgnored` flags can
+  never leave a sink hanging — so a `@SuppressWarnings("FutureReturnValueIgnored")` on such a method is **redundant**,
+  not a hidden bug (verified against Caffeine 3.3.0). Prefer `Mono.fromFuture(…)` over a raw sink-plus-`thenAccept`:
+  Reactor observes the future and the empty-vs-failed distinction stays with the cache's own contract. The reverse
+  bridge — a `Mono` fed into `AsyncCache.get`'s mapping callback — needs a helper: `Mono.toFuture()` is typed
+  `CompletableFuture<@Nullable T>`, and a fresh future completed from
+  `source.subscribe(future::complete, future::completeExceptionally)` never completes on an empty source, so guard it
+  with `switchIfEmpty(Mono.error(…))` or that entry wedges forever. The callback runs on the calling thread, so a
+  subscription created inside it does not inherit the caller's Reactor context — carry it with
+  `Mono.deferContextual(ctx -> … contextWrite(ctx) …)` or the trace link breaks. A cache's freshness bound is
+  `expiresAfterWrite`: every read resets an access expiry, so `expiresAfterAccess` never bounds a hot entry. captured:
+  read-through-gateway-caches
+
+### Agent tooling, OpenCode & permissions
+
+- **When documenting agent tooling (MCP servers, skills, subagents), read the artifact's own definition — not the config
+  entry or the `docs/ideas.md` note that mentions it.** The README "Tooling MCP Servers" section described a
+  since-removed `codefmt` skill as running IDE _inspections_ (it runs the formatter), said the Playwright MCP "drives
+  the web-UI e2e" (the test framework runs the e2e; the MCP is only the agent's browser), and listed
+  `runInspectionsDirectly` as an MCP tool (it is an IntelliJ helper called inside `steroid_execute_code`) — every claim
+  sourced from the config entry or the parked idea note rather than the tool itself. A referencing entry summarizes; it
+  does not specify. Read `.opencode/skills/*/SKILL.md`, `.opencode/agent/*.md`, and the server's exposed tool list
+  before describing what each does, and treat an idea note's prose as a lead, not a spec.
+
+- **A CLI's `--help` and its docs are not its contract — a missing flag, an asserted exit code, an assumed output
+  stream, and a flag's default each have to be probed before a design keys on them.** The `setup-agent-tools` design
+  originally asserted `opencode mcp add` was interactive "with no `--command` flag for a local server, so it cannot be
+  driven by the agent"; in fact `opencode mcp add <name> -- <command…>` is non-interactive and preserves JSONC comments.
+  A quick review caught the false premise — and the correction held only for the CLI of its day: the same probe
+  concluded it "writes the global config", which 2.0.21 does not (it defaults to the **project** config; `--global`
+  writes the global one), and its `--help` does list the `-- <command>` form. A probe can also write into the
+  repository: `opencode mcp add` without `--global` dropped a server into this repo's project config — run a probe whose
+  default target is the repo from a scratch working directory (a scratch `HOME` can hang a CLI that starts a background
+  daemon) and `git status` afterwards. Before designing around a limitation ("this can't be automated"), verify it by
+  trying the command or reading its source/docs — do not infer impossibility from a help screen. The same holds for a
+  capability the docs describe only _partially_: the permissions docs name `~`/`$HOME` pattern expansion, and an
+  `AGENTS.md` bullet wrongly concluded `{env:VAR}` was unsupported. That false limitation survived the review gate and
+  was only caught by reading the source, because a tool's behavior is not repo-evidenced and no in-repo gate can check
+  it. Reproduce the _condition_, not the message: a tool error read from a log names only what it rejected in that one
+  invocation, so a limitation derived from it is about the input, not the tool. `actionlint 1.7.12` rejects
+  `runs-on: ${{ inputs.runner }}` only when the input is **undeclared**
+  (`property "runner" is not defined in object type {}`); declare the input and the bare reference passes (both
+  directions reproduced) — so the fallback that message seemed to mandate was a _runtime_ need (the scheduled trigger
+  leaves the input empty), and the false cause nearly discarded the real one. Before writing "tool X rejects Y" into a
+  design or a comment, run X on the minimal input that does and on one that does not, and quote the discriminating
+  condition rather than the message. captured: validate-the-workflows-on-ubuntu-2604
+
+- **Treat a doc's account of a feature as a floor, not a boundary — verify a tool-behavior claim against the source/CLI
+  before writing it into a durable artifact.** The same holds for a framework or library doc, whose snippet can be
+  written for another version and can name a mechanism that does not apply to the pinned one: Spring Boot's
+  `buildInfo()` doc offered `time.set(null)`, a no-op on the pinned 3.5.16 (which needs `excludes`), and
+  `build-info.properties` is exposed as a `BuildProperties` **bean**, not a Spring `Environment` property source, so a
+  `@Info(version = "${build.version}")` placeholder would not resolve and would serve the literal — re-derived from the
+  pinned jar (`ProjectInfoAutoConfiguration.buildProperties` is a plain `@Bean`) and from an empty run, not from the
+  reference. Check the mechanism against the pinned version's own classes before designing around the doc's form.
+  captured: publish-github-releases
+
+- **Confirm the file you read is the code path that runs.** A package can hold a mock or test harness whose name matches
+  the entry point (`github/index.ts` is a local dev/test entry; the shipped handler is `github.handler.ts`), and a
+  matching filename or path is not evidence you read the implementation. The same applies to a `uses:` step's side
+  effects: a design asserted "the only step that touches Docker is `setup-gradle`'s cache service" without reading the
+  action, whose own README never mentions Docker — and the counter-claim that it _does_ use Docker, reviewed and
+  rejected, was equally unverified. Read the action's README/docs before writing what a step touches, and settle both
+  directions of a contested claim there. captured: pin-the-smoke-docker-to-overlay2
+
+- **A compiler or build-tool semantics claim needs a minimal scratch build before it constrains a design.** A design
+  drafted the premise that a precompiled `.gradle.kts` cannot see an `internal` declaration, and a scratch `kotlin-dsl`
+  build disproved it — the `internal object` compiles from the script, and only `private` fails — so the shared helper
+  stayed `internal` rather than being widened to `public`. Verify a visibility or build-semantics claim with a minimal
+  scratch build before it constrains a design. A `build-logic` object is also unreachable from a root script's
+  _configuration_ path for a second reason: `settings.gradle.kts` `includeBuild`s it, so its classes are not on the root
+  script's buildscript classpath — a probe saw `ClassNotFoundException: HelmUpdateRules` even from an init script, while
+  the same object is in scope inside a task _action_. Keep the rule in the `build-logic` task that applies it — pass the
+  input file as an `@InputFile` property, `@Optional` when it may be absent — and let the root script only point the
+  task at it, rather than loading it inline from `build.gradle.kts`. captured: rework-the-helm-suppression-list
+
+- **A tool's own contract is not the one you remember — and a bump that touches the production bundle needs the bundle
+  built, not only `check`.** The web UI's npm checks asserted npm's contract and took repeated review rounds to correct:
+  `npm outdated` exits `1` both when updates exist and on error (the report's content, not the exit code alone, is the
+  discriminator), npm warns to stderr on clean runs (so stderr is not the error signal), and `npm audit`'s default
+  `--audit-level` resolves to `low`, not "moderate". `npm update` reconciles the whole dependency graph rather than the
+  packages you asked for: an in-range direct bump moved its eslint cache stack (`file-entry-cache`, `flat-cache`,
+  `keyv`) across majors, and npm 11 filled `license` fields throughout the lockfile — so describe the lockfile diff by
+  what moved (not as "patches/minors") and run the frontend `check`. The frontend `check` never builds the production
+  bundle — `vite build` is reached only by `build`/`assemble`/`e2eTest` (`check` depends on
+  lint/format-check/type-check/Vitest) — so a bump that touches a bundle-path package, `vite` most of all, must also run
+  `./gradlew :showcase-web-ui:build` and confirm the bundle emits (a `vite` patch bump can break it while `check` stays
+  green). captured: test-build-logic-rules-and-unify-version-comparison (#306) captured: monitor-web-ui-npm-dependencies
+  (#395) captured: bump-gradle-and-web-ui-dependencies captured: bump-web-ui-npm-2026-10-05
+
+- **A dependency's last usage takes the same sweep.** Remove its catalog entry and grep the docs and build files for its
+  name in the same change — after WireMock was removed from its last consumer, its dead `wiremock-spring-boot` catalog
+  entry and two `AGENTS.md` examples naming it had to follow, since an unused catalog entry is resolved by no
+  configuration and no update check reports it. captured: grpc-query-transport
+
+- **A CLI warning dismissed as noise can report a live defect — a config is unverified until its own read path is
+  probed, whoever consumes it (a tool, a hosted service, or the repository's own build), and a warning no gate reads is
+  not a check.** `openspec/config.yaml` declared per-artifact rules for four artifacts, but two items contained an
+  unquoted `: `, so YAML parsed them as mappings, the lists stopped being arrays of strings, and the CLI ignored those
+  two artifacts' rules — warning on stderr ("Rules for 'proposal' must be an array of strings, ignoring this artifact's
+  rules") wherever the rules are read (`openspec new change`, `openspec instructions`), which read as noise for as long
+  as the config existed; `openspec validate --all` emits no warning at all, which is why CI missed it. The dropped
+  `proposal` rules included `Declare "New Capabilities" / "Modified Capabilities" using existing capability names` — the
+  rule the review loop kept catching missing. Quote any YAML scalar containing `: ` — the scope is any declarative
+  artifact, a project-defined definition file as much as a config: an unquoted `: ` in a `.opencode/agent/*.md`
+  frontmatter's `description` made YAML read the value as a mapping, the parse failed, and the agent silently did not
+  load (`/audit-readme` failed with `Agent readme-auditor cannot run as a subagent`) — the CI `build` gate now probes
+  that every agent/command/skill definition resolves with its metadata intact (its definition-inventory assertion), and
+  a reload does not fix it, unlike the not-registered `Unknown agent type` failure. captured:
+  fix-readme-auditor-frontmatter (#477)
+
+- **A config can look well-formed and pass the consumer's validation while the consumer silently ignores or reinterprets
+  part of it — from outside, a valid config and an ignored one are indistinguishable.** The CI `build` job now probes
+  for the list-shape warning on any declared list surface and the whole-file `could not parse` one (a malformed scalar)
+  and fails on either, and `/opsx-tool-update` re-verifies both with a positive control. The signal may be a warning on
+  stderr that no gate reads, **or none at all**: `java.util.Properties` splits a key at its first `:`, so the dependency
+  list's `group:module` entries collapsed to group prefixes — a dead exact-coordinate branch and a whole-group
+  over-suppression. For a config **a tool owns**, do not substitute a parser of your own (it assumes a contract the tool
+  owns): probe the consumer's read path and fail a gate on its warning. For a format **the repository defines**, own the
+  parse and unit-test it — a repository-owned line parser (`DependencyUpdateRulesTests`) beats escaping a library's
+  delimiters. captured: hold-back-minor-dependency-updates
+
+- **A load that either succeeds or throws reports through its exit status, not from a message grepped out of its
+  output.** `opencode debug config` prints the whole resolved configuration, including every agent's full prompt, so a
+  grep can match text the config merely embeds; a loadable config exits 0 and a V2-only `permissions` key exits 1. Its
+  blind spot is the definition that loads but is silently degraded — an agent's or command's fields dropped, a skill
+  absent from the inventory, all with exit 0 — which is why the CI `build` gate additionally asserts every definition's
+  resolved metadata, not the exit alone. captured: probe-opencode-config-read-path
+
+- **Keep a config guard's list-shape pattern generic (`must be an array of strings`), not one surface's enumerated
+  wording.** It grew from `ignoring this artifact's rules` to `ignoring this artifact's rules|could not parse`, then to
+  the generic phrase, which is what covered every surface — so a malformed `rules` or `operations.*.guidance` item drops
+  no config list silently. The same class covers the change's own `.openspec.yaml`, quieter still: OpenSpec's
+  change-metadata schema is not strict, so an unrecognized key is silently stripped with no warning at all — a
+  `skip_design: true` marker (an inherited agent habit; a dozen archived changes carry it) does nothing, and
+  `openspec status` still reports `design` incomplete and points at `openspec instructions design`. There is no
+  artifact-skip key beyond `skip_specs`: skip `design.md` by simply not writing it, never by adding a key. captured:
+  bump-snyk-cli-pin
+
+- **Track the upstream reports that would retire this project's config guards.** Upstream, the reports are
+  `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item; closed 2026-09-29, but its fix
+  `Fission-AI/OpenSpec#1894` is still unmerged and in no release — no released CLI has `inspectProjectConfig`, so the
+  defect is live here) and `Fission-AI/OpenSpec#1892` (an unparseable config; still open); if `validate` gains a config
+  check that fails (an ask in each), the CI probe and the `/opsx-tool-update` re-verification become redundant and can
+  go. captured: inject-positive-control-task-rule (#375) captured: widen-config-probe-to-guidance captured:
+  record-openspec-1891-closure
+
+- **A hosted service is a third consumer class, verified by the service itself — its own check where it has one, else
+  the event it produces.** A retired key can be accepted and ignored with no local signal — `dependabot.yml`'s
+  `reviewers` was — so probe the service's read path (`gh api "repos/<owner>/<repo>/codeowners/errors?ref=<branch>"`
+  returns `{"errors":[]}` for a valid file and 404s for a ref without one) or observe the event it produces (a review
+  request on a real pull request) — GitHub refuses a review request from the pull request's author
+  (`Review cannot be requested from pull request author`, HTTP 422), so probe with a pull request you did not author.
+  The general mode: an exclusion can sit on the actor's side rather than the input's (the positive-control rule above),
+  where no input choice avoids it. GitHub refuses the request when the requested reviewer is the pull request's own
+  author, so the remedy keeps the identity and changes the object — `probe with a pull request you did not author` — and
+  a probe run without that change is uninformative by construction (three self-authored probes, differing only in the
+  probe's shape, each read `reviewRequests: []`). Confirm that the observable can exist for the actor before reading a
+  negative as evidence. captured: fix-dependabot-review-notification captured: record-codeowners-author-rule
+
 - **A subagent added or edited mid-session is not registered until OpenCode reloads its agent list.** Creating
   `.opencode/agent/<name>.md` (plus its command) does not make the agent reachable in the running session — invoking it
   via the Task tool fails with `Unknown agent type: <name>`; the `add-agents-auditor-agent` smoke-run was blocked until
@@ -3245,6 +2995,7 @@ capture-stash-stale-copy
   merge, reword the task to record what is deferred, where it went, and the owner's chosen order, then **tick it** — an
   unchecked box inside `archive/` is invisible and no gate reads it. That is not the rule above: the smoke-run itself is
   never deferred, only a task the owner explicitly decouples.
+
 - **Prove a permission rule reached the configuration with `opencode debug config`; the v1 log line that proved it
   _matched_ a call is gone under v2.** v1 recorded every evaluation in `~/.local/share/opencode/log/opencode.log` as
   `message=evaluated permission=<key>`, `action.pattern=<resolved rule>` and `action.action=<action>` (the field order
@@ -3264,6 +3015,7 @@ capture-stash-stale-copy
   `./gradlew --info`/`--debug` logs each exec'd process's full environment (`with environment: {…}`, values included),
   putting `SNYK_TOKEN`, `GH_TOKEN`, and `NVD_API_KEY` into the output — never persist a verbose log into an artifact;
   read it with a targeted `grep`. captured: bump-dependencies-2026-10-12
+
 - **`external_directory` and the `shell` permission are separate actions.** `external_directory` governs the file tools
   (`read`/`edit`/`write`/`glob`/`grep`) and path-taking commands, while a script's own out-of-tree writes run under the
   `shell` action (`permission.bash` in v1) — so removing the blanket `/tmp/**` allow from `external_directory` leaves a
@@ -3289,27 +3041,394 @@ capture-stash-stale-copy
   (or fails the run on an unanswerable prompt). captured: fix-unattended-permission-hang captured:
   harden-cloud-runs-against-ask-hangs captured: record-saved-allow-override
 
-- **A generic getter's inferred type can bind an overloaded call to the wrong overload — cast to the erased type, and
-  verify the binding, not the source.** `Session.get` is generic (`<T> T get(String)`), so
-  `String.valueOf(session.get(attr))` inferred `T = char[]` (the most specific applicable overload) and called
-  `String.valueOf(char[])`; the source reads correct and only the run failed
-  (`ClassCastException: class java.lang.Integer cannot be cast to class [C`). Write
-  `String.valueOf((Object) session.get(attr))` — `javap` then shows `String.valueOf:(Ljava/lang/Object;)` — or bind the
-  value to an `Object` local. A compile-valid call proves only that some overload matched; confirm the binding with
-  `javap -c` or a run. captured: anchor-the-load-test-baseline
+### Documentation & durable claims
 
-- **Caffeine's `AsyncCache` trips a Reactor bridge on two contracts — a non-null value type and an empty source — and
-  its access expiry never bounds a hot entry.** `getIfPresent` returns `null` for a future that completed exceptionally,
-  so a failed cached future is indistinguishable from a miss: the `if (present) … else …` shape takes the miss branch, a
-  `future.thenAccept(…)` callback only runs on success, and the future ErrorProne's `FutureReturnValueIgnored` flags can
-  never leave a sink hanging — so a `@SuppressWarnings("FutureReturnValueIgnored")` on such a method is **redundant**,
-  not a hidden bug (verified against Caffeine 3.3.0). Prefer `Mono.fromFuture(…)` over a raw sink-plus-`thenAccept`:
-  Reactor observes the future and the empty-vs-failed distinction stays with the cache's own contract. The reverse
-  bridge — a `Mono` fed into `AsyncCache.get`'s mapping callback — needs a helper: `Mono.toFuture()` is typed
-  `CompletableFuture<@Nullable T>`, and a fresh future completed from
-  `source.subscribe(future::complete, future::completeExceptionally)` never completes on an empty source, so guard it
-  with `switchIfEmpty(Mono.error(…))` or that entry wedges forever. The callback runs on the calling thread, so a
-  subscription created inside it does not inherit the caller's Reactor context — carry it with
-  `Mono.deferContextual(ctx -> … contextWrite(ctx) …)` or the trace link breaks. A cache's freshness bound is
-  `expiresAfterWrite`: every read resets an access expiry, so `expiresAfterAccess` never bounds a hot entry. captured:
-  read-through-gateway-caches
+- **Keep em-dashes paired when inserting a clause into a sentence that already uses them.** A rework that adds an aside
+  to a dashed sentence can leave an odd number of dashes, so the reader cannot tell which dash opens the outer clause
+  and which closes it — the trailing clause's pairing is ambiguous. Count the dashes after the edit (an odd count is the
+  defect) and prefer parentheses for the inserted aside; Prettier reflows prose but never balances delimiters, so no
+  gate catches an unpaired dash — proofread it as content. captured: capture-untracked-follows-switch (#284)
+
+  The same class covers a paragraph boundary: a blank line lost in an edit fuses two paragraphs (an added one splits a
+  sentence), and Prettier reflows the result without complaint — the `audit.yml` and `buildpack-updates.yml` paragraphs
+  paragraphs were fused in the README's CI section and rode `main` through `spotlessCheck` for several changes
+  (`5fc1a09` introduced the fusion) until a drive-by fix separated them — so proofread blank lines as content too.
+  captured: notify-owner-from-the-audit-report (#327)
+
+- **Align ASCII/Unicode diagram comments by character width, not byte length.** In the README's project-structure tree,
+  `awk`/`length()` counts UTF-8 box-drawing characters (`│`, `├`, `─`) as multiple bytes, so byte columns ≠ visual
+  columns and the `#` comments end up misaligned. Measure with a decoded string (`len(line[:idx]) + 1` in Python) and
+  align every comment to the longest entry (the tree's target column 42 is set by `showcase-resilience4j-extension/`).
+
+- **A diagram's geometry and content encode semantics — do not normalize a deliberate asymmetry, and re-derive a redrawn
+  diagram from the code it depicts.** The README's OpenSpec-flow diagram marks its review gates as edge labels rather
+  than bracket spans — `approve` on Propose→Apply and Apply→PR, and `spec → main` on Archive→Merge. Mermaid cannot draw
+  two overlapping brackets over one run: nested subgraphs do express the extents, but Mermaid bottom-aligns the outer
+  subgraph's title in a fixed ~20 px band so it collides with the inner subgraph's border, a dashed arrow asserts a
+  transition that does not exist, and a block diagram's bars left the terminal node under GitHub's toolbar. So the
+  graphical diagram states the gates inline (`approve`, `spec → main`) and its plain-text fallback mirrors it. That is
+  the overlapping case; a **single** range over a run is drawn as one **non-nested** labelled subgraph — its border is
+  the bracket and its title the label, because a single bracket has nothing to collide with. A cleanup pass that aligned
+  the body pipes to the full width flattened the two spans' distinction and had to be reverted by the user.
+
+- **When a diagram (or any doc) has been hand-edited, treat an asymmetry as intentional until you verify what each
+  element is meant to start and end at — ask rather than "fixing" it, and never regenerate over a human edit without
+  diffing against it.**
+
+- **Redrawing a diagram into a new medium makes the old diagram a starting point, not the contract — re-derive its
+  content from the code or config it depicts:** the Mermaid lifecycle conversion scoped the removal annotation to one
+  edge (`SCHEDULED -.->|"REMOVED (any time)"| REMOVED`) though the ASCII bracket it replaced spanned every state and
+  `ShowcaseAggregate` accepts removal from any state (a started showcase is finished before removal). Derive the
+  diagram's plain-text `<details>` fallback edge-by-edge from the Mermaid's own node, edge, and label list in the same
+  edit — each edge with its direction and its label — rather than hand-authoring it from the picture, since nothing
+  gates that second copy: two review rounds found hand-authored fallbacks missing labels the Mermaid carried
+  (`approve`/`CI green`, `search`, the event store) and an edge whose arrowhead pointed back into its source; re-check
+  every label the fallback and the prose citing it carry after a rename.
+
+- **A `mermaid` fence is un-gated by Spotless, so render it and have the `vision` subagent read the render — node shapes
+  and edge-label attribution are only visible there** (a duplicate edge label and an SSE label on the wrong hop survived
+  a text read of the source). GitHub renders Mermaid inside a `viewscreen` iframe that caps the SVG at its natural width
+  — a wider one is scaled down to the container width — and centers it, with a control toolbar overlaid on the right
+  edge (~100 px wide; `mermaid-js/mermaid#7117`, closed, no config fix). A local `mermaid-cli` render cannot show this,
+  so reproduce it on the live GitHub render (Playwright). A diagram wider than the container fills it, and
+  `diagramPadding` then reserves only symmetric (centered) margins whose pixel width shrinks with the fluid column — so
+  the reserve differs between the wider blob view and the narrower home/tree view and cannot reliably keep the rightmost
+  node clear. Prefer a diagram whose natural width stays under the column — a vertical `TB` layout for a wide pipeline,
+  or a compact multi-row grid for a wide chain — so it renders at natural size, centered, clear of the toolbar. A
+  single, non-nested `direction LR` subgraph is honoured when its outside edge leaves the subgraph itself
+  (`subgraph_id -.-> X` — verified against `@mermaid-js/mermaid-cli@11.17.0`: a three-state subgraph lays out
+  horizontally with the directive and stacks vertically without). A **member node's** edge to outside the subgraph is
+  what an earlier note here described: Mermaid then ignores the subgraph's `direction` and inherits the parent's, so
+  wrapping a wide flow whose members link outward does not re-orient it — stay wide, go vertical, or shed nodes.
+  captured: mermaid-event-flow-draft captured: rework-readme-lifecycle-diagram captured:
+  rework-readme-diagrams-for-github-mermaid
+
+- **Verify documented infrastructure/deployment numbers against the config files, not memory.** The README rewrite
+  claimed "the API gateway's two replicas" (only `commandService.replicaCount` is 2 in
+  `helm/values/axon-showcase/values-local.yaml`; the gateway defaults to 1), "36 panels" (the raw top-level count, row
+  separators included, not the real panel count), and "four services and a gateway" (double-counting a table that lists
+  four components). The quick review against repo files caught all three. Before writing a replica count, panel/section
+  count, or diagram count into a doc, read the source (`helm/values/*/values-*.yaml`, the dashboard JSON, the component
+  table — or, for an upstream chart's shipped default or a container the values do not override, the pinned chart via
+  `helm show values <chart> --version <pinned>`) and cite the real number. The same holds for _which check_ a documented
+  figure belongs to: two mechanisms can bound the same metric at the same order of magnitude, so a boundary's owner
+  cannot be inferred from the figure's size — the 2026-09-28 refresh left the below-knee profiles' floor-dominated
+  thresholds unchanged (`5 x 27 ms = 135 ms` is under their 200 ms p99 floor), while the ~1.5x boundary an annotation
+  named was the drift check's own tolerance. Read the mechanism's definition and name the one the boundary belongs to.
+  captured: re-measure-load-test-baseline (#429)
+
+- **A two-way split of an enumerated set can also sum to its total and still be wrong when its boundary is hand-drawn:**
+  a scan of the markdown target's completeness re-listed exclusions from memory and counted the vendored `axon4to5-*`
+  and generated `openspec-*` skill files as gated, while the target's own `target(...)` / `targetExclude(...)` entries
+  put them on the excluded side (the project-authored skills stay gated) — and _both_ splits summed to the same total,
+  so the arithmetic check cannot catch it. For a gated-vs-excluded split, or any enumeration or partition of a set the
+  repository declares — the root `check` task's members, a CLI's modes, the tracked executables
+  (`git ls-files -s | awk '$1=="100755"'`) — derive the members from that declaration (`build.gradle.kts`'s `check`
+  block, its `target`/`targetExclude` entries, the `git ls-files` query), not from intent or a hand-written complement,
+  and update every doc that enumerates the set when a change adds a member; never write the resulting totals into a
+  durable artifact — they move with every change the corpus gains. A claim about what a gate, task, or check _runs_ is
+  the same class: derive it from that tool's own definition — its task registration and `commandLine` — not from recall.
+  A claim about what a chart renders is the same class: read the selector the template emits, not the template's
+  comments, which can contradict it (the netpol templates comment the same release-wide `common.labels.matchLabels`
+  selector as both "from other pods in the release" and "selected peers"/"cluster peers"). captured:
+  reconcile-netpol-spec-peer-wording
+
+- **`workflowLint` runs `actionlint` alone** (the repository installs and documents no `shellcheck`; actionlint invokes
+  it only if it happens to be on `PATH`), yet two artifacts asserted "actionlint + shellcheck" — the
+  `add-actionlint-gate` proposal that named a spec scenario, and a later change's verification story. A list attached to
+  such a set must not read as complete while naming a subset, and a claim **patched at the instance is still wrong one
+  level down**: a placement rule first drafted as "executables live in `scripts/`" was corrected for the repo-root
+  wrappers, then re-broken by the module-local pair, while the sibling clauses of the same rule enumerated 2/2 and 3/3
+  so its `scripts/` colon-list (5 of 8) read as exhaustive — derive the claim from the complete set, and either
+  enumerate a set in full or name the location only. Name a count's referent and check its arithmetic against the total
+  it belongs to: an early draft of the `make-captured-rules-traceable` design wrote "46 of them capture-class, and those
+  65 are concentrated in Gotchas (41) and Conventions (21)" — 41 + 21 = 62, so the split could not belong to the 46; it
+  was the 65-bullet set the same sentence also named, and the mismatch was invisible until the review did the addition.
+
+- **Distinguish a point-in-time count from a durable one:** an exact count of a growing corpus (capability specs,
+  requirements, archived changes) belongs in a change's own artifacts, where a stale snapshot usually does no harm —
+  except when the counted artifact is the change's own and grows while the change is in flight (its own review-round
+  record, its own appended rows), where a checked task certifying "the first N rows" is falsified by the next row, so
+  state the mechanism with no count — unless the count is what the artifact records as evidence (a claims-table row
+  counting a live corpus), where the deriving command names the boundary that stabilizes it, excluding the unit's own
+  rows (`$2 != "<unit>"`), or the figure moves every time the unit appends one — and never in a durable artifact (a
+  subagent definition loaded on every invocation, `AGENTS.md`, the README, a command file, a main spec) — where it
+  drifts on every archive and becomes exactly the drift the `specs-auditor` exists to catch. The
+  `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the change's own delta made the main spec
+  hold 158, and the README still stated a hard "22 capability specs". Describe the shape instead of freezing a tally —
+  the `specs-auditor` definition now says "a corpus … that grows with every archived change", and the README's "120+ and
+  counting" is the pattern to follow. A process count — elapsed time, effort — is not a durable fact either, though for
+  a different reason: no reader can verify it from the repository at all, so describe it qualitatively, not as a precise
+  number. Review rounds are the exception: `docs/review-rounds.tsv` records them per unit and
+  `scripts/experience-analysis.sh` aggregates the window, so cite the record rather than a session-only number. That
+  targets _human_ process narrative — effort, how long a session ran — which no machine-measured evidence records; a
+  _machine-measured_ figure is a different class, since the CI run log is its evidence, so an order-of-magnitude build
+  cost (the one-time-full-rebuild vs warm CI timings above) is not a process count and need not be made qualitative.
+
+- **A named example or mechanism inside a convention is itself a claim, not decoration:** the `@DirtiesContext` rule
+  said keep it on "the gateway e2e test, which pulls in JGroups", but the e2e suite drives containers and never boots
+  JGroups in the test JVM — a false example that surfaced only when ADR-0009 had to restate the same rule. When a second
+  artifact restates an existing fact, diff the two against the code rather than copying the prose. captured:
+  make-captured-rules-traceable (#279) captured: verify-tracked-ignored-files captured: state-tooling-placement-rule
+  (#458) captured: record-review-rounds captured: derive-the-change-claims
+
+- **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
+  is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`
+  reading "OpenSearch results to entities" for a converter that maps entities → OpenSearch (the field Javadoc and its
+  `mapObject(ShowcaseEntity…)` call sites say so); the implementation quick review caught it. For converters/mappers
+  either direction reads plausibly, so read the field's Javadoc and one call site before writing the `@param`/`@return`.
+  The same change also had to add a field Javadoc the review never enumerated (`ShowcaseProjector.METER_NAME_PREFIX`,
+  caught by the user): a consistency sweep must audit every class/method/field in the touched classes, not only the
+  review's findings list. The same holds for a spec-corpus fix: an audit's finding list scopes the fix, not the pattern
+  the finding is an instance of — `apply-specs-audit-findings` normalized the stray-space coordinates in the
+  `spring-data-opensearch` requirement but left the identical `org.springdoc: springdoc-openapi-starter-webflux-ui`
+  spelling lower in the same file, deferred as "a future audit" when a grep would have caught it (it took a follow-up
+  change, `fix-springdoc-coordinate-spelling`, to sweep it). When a finding is an instance of a convention
+  (coordinate/identifier spelling, `MUST` vs `SHALL`, a stale enumeration), grep the artifact or corpus and fix every
+  instance in the same change. The same sweep applies to a corrected fact, not only a convention: after a review
+  corrects a direction, value, or magnitude, grep the artifact for that claim and fix every repetition — a
+  `reconcile-showcase-cache-default` review corrected the reversed direction in the design's Context, and the same
+  claim's residue in the Decisions section (plus a "tenfold" that was a hundredfold) was caught only in the next pass.
+  The correction's dependents are a further sweep: re-read the statements that depend on the claim without repeating it
+  — a caveat, a design rationale, a concluding sentence — which a grep for the claim does not find. A **replaced** rule
+  sweeps one degree harder still: its restatements are paraphrases rather than repetitions and live beyond the artifact
+  — in other gotchas and conventions, in file headers, and in the `.opencode/agent/*.md` / `.opencode/commands/*.md`
+  definitions that restate it — so grep every doc that describes the workflow for the _concept_, not the old wording:
+  replacing the commit discipline left four restatements (two gotchas, the docs-refresh convention, and
+  `docs/ideas.md`'s header), and the diagram bullet's `diagramPadding` rule survived in `diagrammer.md` until the quick
+  review. A widened check's describers go stale the same way, and the version-string grep does not find them: the
+  2026-10-11 audit found `toolingUpdates`' worked example stale once the smoke's `pack` pin gained its own entry, and
+  `bump-tooling-pins-2026-10-16` left `/opsx-tool-update`'s "the check detects a release from `ci.yml` alone". captured:
+  bump-tooling-pins-2026-10-16
+
+- **An abandoned approach needs the same sweep:** reverting an experiment's code line does not remove the comment or the
+  task/design prose that describes it, so grep the artifact for the approach's name before calling the revert done. The
+  sweep spans live copies whose sentence makes a present-tense claim: `openspec/changes/archive/` is the historical
+  record, left as recorded — the Spotless target already excludes it — so a corrected command or a renamed symbol found
+  there stays as recorded rather than being "fixed". A live artifact is no different when its sentence cites the figure
+  as a historical incident: `.opencode/agent/readme-auditor.md`'s "a '36 panels' that counted row separators" names the
+  README defect the auditor exists to catch, not the dashboard's current structure, so it stays too — and the change
+  records why the match is deliberately left rather than silently skipping it. captured: right-size-infra-resources
+  captured: add-web-ui-dashboard-panels captured: rework-readme-diagrams-for-github-mermaid
+
+- **A configuration-default change names every test assertion that pins the value and every doc that describes it, on
+  each surface it is declared.** The `reconcile-showcase-cache-default` plan initially missed that
+  `allPropertiesHaveDocumentedDefaults` asserts the Java field (so the change would fail it) and that the yml-wiring
+  test's missing `showcaseCache` assertion was the gap which let the drift pass. Grep the test sources for the field
+  accessor when changing a default, and give each pinning assertion its own task — the Java-defaults test and the
+  yml-wiring test each bind a different surface. A variable carried in a service's `bootBuildImage` `BPE_DEFAULT_*` map
+  has one surface more: the image's launch-environment default (`paketo-buildpacks/environment-variables`), which a
+  deployment's env var overrides but which in turn overrides the yml fallback. A new property the image carries joins
+  that map too, its value decided from the map's closest sibling there — the keep-alive mirrors its default, the origins
+  bake the empty fail-closed override of a local-development default — because the map is the image's declared
+  deployment environment, not a diff against the Java default. Documents that describe the value are surfaces too: grep
+  the docs for it and correct every description — but a **historical record** (a baseline, a retro, an audit) is
+  corrected by stating the values it ran under in the past tense, never by rewriting it to the new ones, since its
+  measured data is what it records. `right-size-chart-resources` changed the chart defaults; the Target bullet and the
+  Result paragraph of `docs/load-tests/2026-09-26.md` both described the old ones in the present tense, the plan
+  enumerated only the Target bullet, and review caught the Result paragraph — derive a doc's sites from a grep, not the
+  plan's list. A service URL's yml fallback is overridden by the container path (`BPE_DEFAULT_*`; in-container every
+  service listens on 8080), so it is exercised only under host `bootRun` and must equal the target service's local
+  `server.port` — a component test asserting the placeholder literally pins whatever value is there, not the right one.
+  captured: fix-gateway-cors-allowed-headers (#359) captured: right-size-chart-resources captured:
+  fix-gateway-query-service-url captured: guard-archive-spec-sync
+
+- **Doc claims must match their source and their strength — quote verbatim or paraphrase explicitly, and reserve
+  "enforced" for a real gate.** The self-learning README section described `AGENTS.md` rules in quotes;
+  `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an
+  overstated process claim. When a doc quotes a rule/spec/comment, copy the exact text (or drop the quote marks and
+  describe it), and check the mechanism before using words like "enforced", "always", "never", or "every" — against the
+  variants other docs define, too, since an unconditional rule must hold on every documented path, not only the default
+  one (the README's proposal-stage draft PR is such a variant). One of those paths is the rule's own text: state a
+  formal criterion — a count, a delimiter balance, a uniqueness test — with its scope where the criterion is stated, not
+  only in the rule's opening sentence, so a literal reading cannot apply it to the rule itself (the
+  `Keep em-dashes paired…` gotcha's odd-count check is scoped by its first sentence to a sentence that already uses
+  paired dashes; read per-sentence, it would flag its own lone-aside sentences). Check the claim's grammatical subject
+  too, not only its wording — a pronoun can bind a claim to the wrong actor: a README draft closed with "… and a
+  practice of reporting gaps in the libraries and tools _it_ depends on", which bound the project's upstream-report
+  practice to OpenCode (the bullet's subject) rather than to the project; naming the subject fixed it. Check a
+  qualifier's scope too: a condition or exception introduced for one variant must not swallow the rule's primary mandate
+  — strip the qualifiers and confirm the imperative verb still governs the default case (the `reshape-the-capture-loop`
+  rewrite of the capture trigger lost its lead's main verb and folded the implementation capture under the merge
+  condition; the PR's test plan records the review catching it). Check a recorded _mechanism_ against every measurement
+  the change made, not only against other docs: name the evidence points the explanation must cover and confirm the
+  wording holds for each, because a generalization one of your own runs contradicts is wrong however well it reads. The
+  blocking-execution mechanism's evidence point is the gateway's not-found test passing (its `fetchById` is stubbed, so
+  the handler maps the error directly); the query-service's mirror (`404` → `503`) went with its HTTP controller
+  (`grpc-query-transport`), so a second evidence point must be re-derived rather than cited from memory. Both the
+  surviving evidence point and the removed one are recorded in `design.md` of `extract-specd-rationale-from-agents-md`,
+  which moved the rule into the specs it belongs to. captured: record-blocking-execution-rationale (#335) captured:
+  grpc-query-transport
+
+- **A durable artifact may assert only what the repository can evidence — a history that lives only in the conversation
+  is not repo history.** An earlier draft of this bullet cited a `/var/folders/**` config attempt — a pattern proposed
+  in conversation but never written to a config file — and asserted an unobserved `setup-hosts.sh` outcome; a review
+  pass caught both. Before writing a historical or behavioral claim into `AGENTS.md`, `README.md`, a subagent
+  definition, or a main spec, find its evidence — a config file, a log line, a commit, or a run whose output you have.
+  Check a cited source's provenance too, not only its existence: a clause written _for_ an event cannot evidence a
+  _prior_ occurrence of it, so before a recurrence claim take a source that predates the event and was not produced by
+  it (a retrospective draft cited the `openspec archive` gotcha's parenthetical as a second lost-spec-sync occurrence,
+  but the incident's own capture #498 had added it — `git blame`/`git log -S` the clause, or grep the rule's `captured:`
+  token to find its introducing commit). captured: store-2026-10-05-retrospective A commit cited as evidence is itself a
+  claim: read what it did (`git show --stat`) and whether the path existed at `<commit>^` before attributing lines or a
+  reflow to it — an early draft of the `make-captured-rules-traceable` artifacts called `c62feda` one of "two Spotless
+  commits" that reflowed `AGENTS.md`, but `c62feda` created the file (164 insertions, and `AGENTS.md` is absent at its
+  parent); a review caught it. If the only source is the conversation, omit it or label it as the owner's account; for
+  an outcome you did not observe, state the mechanism ("a bash-script write runs under the `shell` permission") rather
+  than the observation ("it did not prompt"). Point-in-time narrative belongs in a change's archived artifacts, not in a
+  durable one.
+
+- **A claim about a surface outside the repository — a registry's contents, a repository setting, a live URL — has no
+  config file or commit behind it, so its evidence is a query whose output you have:** run it before writing the claim,
+  and re-run it at review, because such a surface can change between the two and no gate reads it (`#266`'s repeated
+  review rounds caught several unverified external assertions — a GitHub docs URL written from memory, a false "Docker
+  Hub carries nothing" against five live repositories, wrong dates; the owner deleted those repositories mid-session,
+  invalidating the entry between its writing and its review). Verify a URL by requesting it, and treat the review, not a
+  gate, as the check. An evidence statement for a task that _touches_ such a surface has the same limit in the other
+  direction: do not pin a value the surface produced as the evidence the task was done — the rows of a live lookup vary
+  run to run. `helmUpdates`'s rows are a live `helm search repo` result; the same tick's evidence read "only
+  `prometheus-community-stack`" in one run and also showed `bitnami-kafka: 31.5.0 -> 32.4.3` in another, so the tick
+  rests on the run succeeding plus the parse pinned by unit tests, never on any row. captured:
+  rework-the-helm-suppression-list
+
+- **When a script generates many claims at once, the method that derived them is not their evidence:** each generated
+  item needs its own control, applied per item rather than as a spot check, because a heuristic that is right on nine of
+  ten items writes its one error silently into the durable file and a hedge tag (`approximate`, "uncertain") does not
+  repair it. The `retro-mark-captured-rules` backfill's first attempt named 8 origins whose commit contained no text of
+  the rule at all — including `ddaa51e`, claimed for the log-assertion rule whose text it never mentions — because the
+  range and the phrase were never required to be about the same rule; adding the per-item control (the candidate
+  origin's added lines must contain the rule's own opening phrase) substantiated 30+ origins independently. captured:
+  retro-mark-captured-rules
+
+- **A comparison between two runs or files that differ in more than one dimension cannot attribute the difference to
+  either — isolate the variable before naming a cause.** Comparing `ci.yml`'s `Cache mode: write` with the `opencode`
+  workflow's read-only run attributed the difference to the latter's `permissions:` block, but the two differ in two
+  ways — the trigger (`push`/`pull_request` vs the comment triggers) and the blocks' contents (`ci.yml`: a top-level
+  `contents: read`; `opencode.yml`: a job-level `id-token: write` plus reads) — and a grep anchored to an indented
+  `permissions:` had hidden `ci.yml`'s top-level one. GitHub's dependency-caching reference names the trigger, so a fix
+  built on the misattribution (granting `actions: write`) would have widened the token for nothing. Read the
+  authoritative policy for the mechanism you are hypothesising, or vary only that dimension; a fix that enlarges a
+  privilege to explain a behavior is a signal the cause is still undiagnosed. The same rule binds a single experiment
+  that varies two dimensions at once: probing one malformed frontmatter on an agent and a different one on a command
+  read the results as kind-keyed ("command → exit 1") when the status depends on the resolved YAML shape, not the kind —
+  `guard-agent-loader-read-path` fixed the design only by re-deriving at a held-constant shape. A later review round
+  then could not reproduce the silent-drop row because it chose a different shape, and read its clean run as a
+  refutation of a true fact: a disagreement between two runs that differ in an uncontrolled dimension refutes neither,
+  so compare the inputs before concluding either wrong. The rule extends to a single observation: a token used to
+  evidence which route supplies a surface must reach it only by that route — a `commons-lang3` probe of `main`'s
+  `implementation` on a custom suite's compile classpath "confirmed" the opposite, because the coordinate arrived
+  through the suite's declared `project(":showcase-test")`; read the route the graph prints
+  (`./gradlew :<module>:dependencies --configuration <suite>CompileClasspath`, whose tree names each route's parent), or
+  pick a token with one route. captured: guard-agent-loader-read-path captured: fix-mapstruct-suite-warning
+
+- **A reproduction in an outward-facing artifact is itself part of the claim — write it so a reader reruns it to the
+  same output, and rerun the exact sequence before posting.** State the tool version and the starting state, and record
+  the commands in the order they ran: an order-dependent transcript can self-contradict (a `Fission-AI/OpenSpec#1892`
+  draft showed `openspec validate --all` exiting 0, but the delta-less change its own `new change` had created makes
+  `validate` exit 1), and a precondition left implicit is not reproducible elsewhere (in a directory with no planning
+  shape the same malformed config hard-errors with exit 1 instead of warning). Re-check every derived detail — line
+  numbers, exit codes — against the actual output, and capture an exit code directly, not through a pipe (`cmd | jq`
+  reports `jq`'s status, not the CLI's). The `#1892` draft took repeated review passes, each catching a different
+  mis-reproduction, because the review gate reads the artifact while no gate reruns its transcript. This is the drafting
+  counterpart to "report it upstream with a reproduction and the evidence"; the tool-behavior claim itself is verified
+  per the `--help`/read-path rules.
+
+- **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
+  check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
+  changes without the repository moving: when the upstream-reference report was parked, review found two of four
+  references already closed — `ben-manes/gradle-versions-plugin#755` (2026-08-06, PR #1060) and
+  `spring-projects/spring-data-elasticsearch#3334` (2026-08-30, PR #3337) — while both constraint notes still read as
+  open. Resolve an `owner/repo#NNN` through the tracker before writing or editing such a reference, and when it has
+  closed, read the fixing PR's own diff and the release it shipped in against our pin before treating the note as
+  retirable — the issue's premise and its closure are not enough. What a reference note records about a reference (the
+  reason it is not yet retirable, or a pointer to where its re-check lives) is itself a claim a later change can
+  falsify, and no gate re-checks it (the `upstreamReferences` report resolves only the reference's open/closed state,
+  never its recorded reason) — so re-verify the note, not only the reference's state, when revisiting one. `#3334`'s
+  entry named a release that later published, and the meta-rule's own "the periodic corpus sweep is parked" pointer
+  outlived the sweep's build. `#755` closed through a change to platform-sourced constraints (`satisfiesDeclaredBound`,
+  "nothing changes by default"), so our spurious row from `checkBuildEnvironmentConstraints` remains even though the fix
+  shipped in 0.60.0, so any pin since then already contains it. An upstream reference must also document the symptom it
+  is cited for — read the body against the symptom, not the title or the release. A close-out reference must also live
+  in a file `upstreamReferences` scans (`AGENTS.md`, `README.md`, `docs/ideas.md`, `docs/adr/**`): cited only in a
+  skill, command, subagent definition, or code comment it is invisible to the report that would fire its `retires when`.
+  The first `hold-back-nginx-buildpack` draft blamed an arm64 build-extraction failure on
+  `paketo-buildpacks/nginx#1340`, whose body documents only the runtime symptom (an AArch64 `nginx` in an amd64 image)
+  and states that the `io.buildpacks.buildpackage.metadata` label is present on both slices; the draft also contradicted
+  the host-state gotcha's account of that same signature, and review caught both. When a passage already explains a
+  signature, reconcile with it rather than writing a second explanation beside it. A planned task that _posts_ to an
+  external tracker depends on that venue's mutable state — a security-advisory thread is often **locked** (comments
+  disabled): the `suppress-braces-npm-advisory` task "comment on `micromatch/braces#70`" was unachievable because #70 is
+  locked, and the actionable reference was the fix PR `micromatch/braces#72` (later closed unmerged). Check the
+  **venue** is writable before writing the posting task — a repository can disable issues and discussions outright, so
+  there may be no thread — and when the issue itself is closed or locked, cite the fix PR the close-out actually keys
+  on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
+  `upstream-references.yml` report (the fifth observational check above). captured: suppress-braces-npm-advisory
+  captured: refresh-upstream-references-2026-10-05 captured: record-gatling-report-block
+
+- **A "the only X" claim in `AGENTS.md` goes stale the moment a change adds a second X — fix it in that change.** The
+  web UI's Playwright e2e suite was added while `AGENTS.md` still said "the only e2e suite is `showcase-api-gateway`'s",
+  and the stale claim survived until a later cleanup pass (PR #116). When a change adds a second instance of anything
+  the docs call unique (a second e2e suite, image, or workflow), grep `AGENTS.md` for `only`/`sole`/`never` claims about
+  the first and update them; when editing a section, re-verify such claims against the repo instead of trusting the
+  prose. The same applies in the negative: when a change makes a previously-true "nothing covers X" / "A and B ignore X"
+  statement false, grep `AGENTS.md`/`README.md` for the capability's absence claims and fix them in the same change —
+  including one added by a recent change (the `buildpackUpdates` check in #149 falsified the "`dependencyUpdates` and
+  `helmUpdates` ignore bare `[versions]` entries" sentence #148 had added one change earlier). The same goes for a
+  **code-symbol or file rename/removal**: docs cite class, test, config, and workflow-file names as examples and nothing
+  resolves them, so grep the whole repository for the old name in the same change — the first audit found
+  `ShowcaseApiController*` references that a rename had left behind, and the workflow-file rename `snyk.yml` →
+  `dependency-security.yml` also lived in `SECURITY.md`, ADR-0006, and `build.gradle.kts`'s `toolingUpdates` pin. A
+  plain **enumeration of a set** is the case the name-grep cannot see: neither it nor the `only`/`sole`/`never` grep
+  finds a stale sentence that names the set's _other_ members — `AGENTS.md` said the `ci.yml` and `e2e.yml` workflows
+  "additionally extend `gradle-home-cache-includes` with `nodejs`" while the npm-monitoring change added that include to
+  `dependency-updates.yml` and `dependency-security.yml` too. Adding a **member** to such a set widens every live
+  enumeration of it in the same change — and when an auditor sweeps the set, that includes its definition, its trigger
+  command, `AGENTS.md`'s summary of the auditor, and the **spec requirement that owns the sweep**, which is a main spec
+  and so needs a `MODIFIED` delta rather than a docs edit (the swept-surface set is enumerated in exactly those four
+  places). Grep the set's distinctive members across `.opencode/`, `openspec/specs/`, `AGENTS.md`, `README.md`,
+  `docs/ideas.md`, and `scripts/` before writing the addition — a tool's own module docstring and its `--help` text are
+  live enumerations of the same set too; the change's own four planning copies can be kept identical while all four live
+  sites go stale. The sweep covers non-doc artifacts too: recording that a component is deliberately _not_ used
+  (ADR-0009's "without Axon Server") must grep the whole repo for its name, because config, values, and template
+  comments carry claims no auditor reads (`helm/chart/src/main/helm/values.yaml` still called the `db-scheduler`
+  settings "Axon Server scheduler settings"). captured: monitor-web-ui-npm-dependencies (#395) captured:
+  verify-unique-review-rounds
+
+### Environment & host toolchain
+
+- **Relative `date` arithmetic is not portable across macOS and Linux**: BSD `date` (macOS) uses `-v-7d`, GNU `date`
+  (Linux, incl. CI) rejects it and needs `--date='7 days ago'`. A cross-platform script computing a relative date must
+  probe first (`date -v-7d >/dev/null 2>&1 && … || date --date='…'`), as `scripts/experience-analysis.sh` does for its
+  7-days-ago default — don't hard-code one platform's form.
+
+- **Exec tasks (`docker`, `pack`, `snyk`) fail in IDEA on macOS**: an IDEA launched from Finder/Dock (or a stale Gradle
+  daemon) gives the Gradle daemon a minimal PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) without `/opt/homebrew/bin`, so
+  bare-name execs ("command 'docker' not found") fail even though the tools are installed. Root cause: Gradle applies
+  the client's environment to the daemon (`System.getenv("PATH")` is then the full shell PATH), but the JVM caches PATH
+  for native process spawning at daemon start and ignores later changes — so execs that resolve a bare command name via
+  the JVM's cached PATH fail intermittently depending on which client spawned the daemon. The build resolves this by
+  resolving the tool to its absolute path from `System.getenv("PATH")` (which is the real shell PATH) and passing that
+  in the `commandLine` (`dockerCli()` in `docker-conventions`, `packCli()` in `PackBuildImageTask`, `snykExecutable()`
+  in `dependency-security-conventions`), bypassing the JVM's cached PATH entirely. Do not revert to bare command names;
+  do not prepend tool dirs to PATH (the daemon JVM won't honor it). Launching IDEA from a terminal still helps avoid
+  stale minimal-PATH daemons in the first place.
+
+- **A repo Python script runs under whichever `python3` PATH resolves, not the documented prerequisite — verify a new
+  script under the system interpreter.** The documented Python is macOS's system `/usr/bin/python3` (3.9), where PEP 604
+  `X | Y` unions raise `TypeError` at import, while the newer `python3` on a contributor's PATH (and in CI) accepts them
+  — so the incompatibility passes every gate, none of which pins the interpreter. Keep repo Python stdlib-only and
+  compatible with the system interpreter (`typing.Optional`, not `str | None`), and run `/usr/bin/python3 <script>`
+  before reporting it done. captured: add-pre-commit-staged-set-guard (#372)
+
+- **macOS local-network privacy can leave a Warp-spawned shell unable to reach the local cluster.** Reaching a
+  local-network address is a per-app privilege macOS tracks by code-signing identity (Apple `TN3179`), and a third-party
+  terminal's child processes can be denied it while the internet works: the LAN and colima's vmnet subnet
+  (`192.168.64.0/24`, the address the kubeconfig points at) fail with `EHOSTUNREACH`, which reads as a cluster outage,
+  and neither a `colima restart` nor a `colima delete` + recreate changes it, because the fault is the host's consent
+  layer rather than the VM or k3s. Check the terminal app first: Warp can be _listed_ under System Settings → Privacy &
+  Security → Local Network with its toggle **off**, and switching it on restores access immediately
+  (`warpdotdev/warp#6320`); quit and reopen the app if its existing children keep the denied state. Fallbacks: run the
+  command from **Terminal.app** or under `sudo` (macOS auto-allows command-line tools run from Terminal or over SSH, and
+  any program running as root), or point the kubeconfig at colima's loopback forward (`https://127.0.0.1:<port>`, the
+  port changing per start), which is not a local-network operation at all. A/B against Terminal.app to confirm the
+  class.

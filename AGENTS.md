@@ -1342,41 +1342,43 @@ Key modules (libraries, not services):
   `— promoted to issue #NNN; no change yet.`, never a clause appended past the tag's sentence-final period), since the
   header fixes the sections' order and dating but not the tag, and the tag is what marks the entry as a still-unowned
   idea rather than one already routed to work. Also sweep the un-audited docs for references to the thing this change
-  shipped — `docs/ideas.md`, and a retrospective's suggestion rows and prose, which the change marks **Applied** rather
-  than removes. An open idea that still calls it "the proposed X" is itself a stale claim: update its prose in the same
-  change, including any enumeration or count it carries ("two others remain open: A, B") that the change's new instance
-  makes wrong. No auditor **owns** either file — the four auditors own `AGENTS.md`/`.opencode/`, the spec corpus,
-  `docs/adr/` plus the architectural surface, and `README.md`; the architecture-auditor's sweep reaches `docs/ideas.md`
-  for a parked entry's staleness, but the file still has no owning auditor. Docs that ARE the change (new
-  agent/command/skill documentation, README rows describing a new capability, the change's idea removal) ship with the
-  change's PR. For every other docs edit the boundary is **causation _while the change is in flight_**: an edit the
-  change causes and that exists while it can still ride a branch — a lesson from its implementation (the capture), an
-  idea its own sweep surfaced, a fact it falsified — ships in that change's PR, while an edit the change did not cause
-  (a stale fact it merely passed by, a standalone reword, a refresh of an already-completed change) and one surfaced
-  only after the change is done (a merge-time capture, caused by the change but with no branch left to ride) ships as
-  its own docs PR, forked from `main`, batched into one docs PR rather than one per item. Decide the owner before
-  committing — a docs PR forked from `main` cannot carry an edit committed on a change branch, so committing it there
-  first for a clean tree silently leaves it out of the docs PR and `main` unchanged — and verify the fix against the
-  merged PR's diff rather than the PR description, which can claim a change the diff does not contain. A parked-idea
-  docs PR owes the refresh too: fold any durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section
-  (e.g. add a newly surfaced manual pin to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a
-  fact left only there is lost once the idea is implemented or dropped. `openspec/config.yaml`'s `context:` block is a
-  second, un-gated copy of the same project facts (runtime/Spring/Gradle versions, module count, service list, Docker
-  image names) that OpenSpec shows the AI when creating artifacts — refresh it in the same change whenever one of those
-  facts moves. Some of its per-artifact `rules` restate obligations stated in `AGENTS.md` and the specs, and what is
-  un-gated is their content and currency: `ci.yml`'s probe fails on a malformed item — the list's shape, since a bad one
-  silently drops the whole artifact's rule set — but not on whether a rule's wording still matches `AGENTS.md` and the
-  spec, so refresh a rule whose obligation moves even though the gate stays green. A **removal** counts too: when a
-  sweep deletes an entry as non-durable, check these copies for the same sentence — the fact has not moved, so the move
-  rule does not fire (`disable-axoniq-console-message`'s sentence outlived #292's removal from `AGENTS.md` by four PRs
-  in `config.yaml`, until the audit noticed). `openspec validate` never checks it, so it drifts silently. The
-  repository's own GitHub description and topics are a third un-gated copy of the same facts — so refresh them in the
-  change that moves one; no gate reads them and no auditor owns a surface outside the repository. A file can also
-  _depend_ on such a surface rather than describe one: `SECURITY.md`'s private-reporting path is a dead end unless
-  private vulnerability reporting is enabled. Enable the setting as part of the change that ships the instruction — a
-  repository setting leaves no diff, so a diff-only review cannot see it — and name the enabling in the change's report.
-  captured: park-retro-marking-idea (#281) captured: re-measure-load-test-baseline (#429) captured: mark-s3-applied
-  captured: attribute-load-test-tail (#570)
+  shipped — `docs/ideas.md`, and a retrospective's suggestion rows and prose, which the change marks with the
+  suggestion's disposition (**Applied** where it applies it; its routing where it routes it: parked in `docs/ideas.md`,
+  a named change, an issue; or closed where it decides against it) rather than removes. An open idea that still calls it
+  "the proposed X" is itself a stale claim: update its prose in the same change, including any enumeration or count it
+  carries ("two others remain open: A, B") that the change's new instance makes wrong. No auditor **owns** either file —
+  the four auditors own `AGENTS.md`/`.opencode/`, the spec corpus, `docs/adr/` plus the architectural surface, and
+  `README.md`; the architecture-auditor's sweep reaches `docs/ideas.md` for a parked entry's staleness, but the file
+  still has no owning auditor. Docs that ARE the change (new agent/command/skill documentation, README rows describing a
+  new capability, the change's idea removal) ship with the change's PR. For every other docs edit the boundary is
+  **causation _while the change is in flight_**: an edit the change causes and that exists while it can still ride a
+  branch — a lesson from its implementation (the capture), an idea its own sweep surfaced, a fact it falsified — ships
+  in that change's PR, while an edit the change did not cause (a stale fact it merely passed by, a standalone reword, a
+  refresh of an already-completed change) and one surfaced only after the change is done (a merge-time capture, caused
+  by the change but with no branch left to ride) ships as its own docs PR, forked from `main`, batched into one docs PR
+  rather than one per item. Decide the owner before committing — a docs PR forked from `main` cannot carry an edit
+  committed on a change branch, so committing it there first for a clean tree silently leaves it out of the docs PR and
+  `main` unchanged — and verify the fix against the merged PR's diff rather than the PR description, which can claim a
+  change the diff does not contain. A parked-idea docs PR owes the refresh too: fold any durable fact the idea reveals
+  into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin to an existing enumeration) —
+  `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the idea is implemented or dropped.
+  `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the same project facts (runtime/Spring/Gradle
+  versions, module count, service list, Docker image names) that OpenSpec shows the AI when creating artifacts — refresh
+  it in the same change whenever one of those facts moves. Some of its per-artifact `rules` restate obligations stated
+  in `AGENTS.md` and the specs, and what is un-gated is their content and currency: `ci.yml`'s probe fails on a
+  malformed item — the list's shape, since a bad one silently drops the whole artifact's rule set — but not on whether a
+  rule's wording still matches `AGENTS.md` and the spec, so refresh a rule whose obligation moves even though the gate
+  stays green. A **removal** counts too: when a sweep deletes an entry as non-durable, check these copies for the same
+  sentence — the fact has not moved, so the move rule does not fire (`disable-axoniq-console-message`'s sentence
+  outlived #292's removal from `AGENTS.md` by four PRs in `config.yaml`, until the audit noticed). `openspec validate`
+  never checks it, so it drifts silently. The repository's own GitHub description and topics are a third un-gated copy
+  of the same facts — so refresh them in the change that moves one; no gate reads them and no auditor owns a surface
+  outside the repository. A file can also _depend_ on such a surface rather than describe one: `SECURITY.md`'s
+  private-reporting path is a dead end unless private vulnerability reporting is enabled. Enable the setting as part of
+  the change that ships the instruction — a repository setting leaves no diff, so a diff-only review cannot see it — and
+  name the enabling in the change's report. captured: park-retro-marking-idea (#281) captured:
+  re-measure-load-test-baseline (#429) captured: mark-s3-applied captured: attribute-load-test-tail (#570) captured:
+  park-review-loop-follow-ups
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the

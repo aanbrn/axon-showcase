@@ -69,9 +69,10 @@
       dismissed beside the table. **Done** — the pass ran; every scan candidate is a row or a listed dismissal.
 - [x] 4.2 Append this unit's review-round rows to `docs/review-rounds.tsv` as each round's report arrives. **Done** —
       each round's row appended as its report arrived.
-- [ ] 4.3 **Owed — for the archive commit**: the `agent-skills` `## Purpose` enumerates the auditor's reported classes
+- [x] 4.3 **Owed — for the archive commit**: the `agent-skills` `## Purpose` enumerates the auditor's reported classes
       ("the meta rules it reports with their origins, and the merge, removal, and route candidates it reports") and now
-      omits the authoring-system gap class. A delta cannot carry a Purpose, so the edit lands with the archive.
+      omits the authoring-system gap class. A delta cannot carry a Purpose, so the edit lands with the archive. **Done** —
+      the Purpose now names "the authoring-system gaps it traces to a mechanism that produces an artifact".
 
 ## Workflow follow-up
 

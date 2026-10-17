@@ -54,9 +54,11 @@
       whole `AGENTS.md` delta is `+62/−5` (`git diff --numstat AGENTS.md`). No retirements were warranted.
 - [x] 4.5 Ask the user for the manual review pass once 4.3 is clean and 4.4 is done; do not commit or archive before
       they approve. **Done** — the owner approved.
-- [ ] 4.6 Smoke-run each edited definition after a reload (`review-quick`, `review-thorough`, `agents-auditor`), each
+- [x] 4.6 Smoke-run each edited definition after a reload (`review-quick`, `review-thorough`, `agents-auditor`), each
       with a known-dense passage it must flag and a conforming one it must clear — a precondition for archiving, not
-      deferred across the merge (the `AGENTS.md` subagent-reload gotcha).
+      deferred across the merge (the `AGENTS.md` subagent-reload gotcha). **Done** — each flagged the dense control and
+      cleared the conforming one: `review-quick` returned `structured-writing`; `review-thorough` failed its
+      prose-structure check; `agents-auditor` reported it as a `structural` finding.
 
 ## 5. The change's own records
 
@@ -65,8 +67,9 @@
       or dismissed beside the table. **Done.**
 - [x] 5.2 Append each review round's row to `docs/review-rounds.tsv` as its report arrives (the ledger is the record;
       this task carries no per-round list). **Done** — rounds 1–6 appended.
-- [ ] 5.3 **Owed — for the archive commit**: refresh the `agent-skills` `## Purpose` to name the structured writing
-      standard (a delta cannot carry a Purpose), so the capability's Purpose matches what it now holds.
+- [x] 5.3 **Owed — for the archive commit**: refresh the `agent-skills` `## Purpose` to name the structured writing
+      standard (a delta cannot carry a Purpose), so the capability's Purpose matches what it now holds. **Done** — the
+      Purpose now names the structured writing standard alongside the knowledge-authoring standard.
 
 ## Workflow follow-up
 

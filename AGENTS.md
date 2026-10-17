@@ -22,6 +22,61 @@ Follow these workflows for new work, and treat the captured specs as the behavio
 them — and a module's name need not equal its spec path — the `showcase-api-gateway` module is specified as
 `gateway/rest-api`, `gateway/live-events`, and `gateway/client-telemetry`.
 
+## Structured Writing Standard
+
+Every technical artifact the agent authors or edits — this file, an OpenSpec proposal, specification, design, or task
+list, an implementation plan, a code review, or any other repository documentation — is written in scannable structure
+rather than dense prose. The standard governs **how** an artifact's content is arranged; each artifact still keeps its
+own required template and sections (an OpenSpec artifact its schema, an ADR its Status/Context/Decision/Consequences, a
+gotcha its smallest actionable shape), so it is not one document outline imposed on all of them.
+
+**The rules:**
+
+- **One independently actionable statement per unit.** Put each requirement, rule, action, condition, or decision in its
+  own bullet or numbered step. Do not combine several into one sentence joined by commas, semicolons, or "and".
+- **Numbered steps for an ordered procedure; bullets for an unordered set.** Use an ordered list when the order is part
+  of the instruction, a bullet list when the items are a set.
+- **Explicit conditional branches.** State a decision as its condition and its branch — `IF <condition>, THEN <action>`
+  (or a separate decision-table row) — rather than leaving the dependency implied by a compound sentence.
+- **Tables for comparisons, mappings, and decision criteria.** When the content is rows of like fields, a table scans
+  better than prose or nested bullets.
+- **Prose for explanation, not for rules.** Use a paragraph only for continuous explanation (rationale, background,
+  narrative); a paragraph MUST NOT carry several independently actionable statements, even when they share a topic.
+- **Separate the mandatory from the explanatory.** Keep the normative statement (what MUST/SHALL be done) apart from its
+  rationale, background, and examples, so a reader finds the obligation without reading the justification.
+- **Labeled fields for complex procedures and diagnostics.** A multi-step procedure or diagnostic guidance uses the
+  labeled fields it needs — `Trigger`, `Prerequisites`, `Procedure`, `Decision points`, `Failure handling`,
+  `Completion criteria`, `Verification` (the shape the knowledge-authoring standard states) — rather than one
+  undifferentiated block.
+- **One idea per paragraph.**
+- **Preserve precision and normative meaning.** Structure never weakens a claim: keep exact identifiers, paths,
+  versions, the strength of a `SHALL`/`MUST`/`SHOULD`/`MAY`, and the necessary context, qualifiers, and caveats. A
+  restructure reorders and splits; it never drops or alters meaning.
+
+**Applying it while drafting:**
+
+1. Identify the artifact type and its required structure (its OpenSpec schema, its ADR sections, its report contract).
+2. Organize the intended content into that structure's sections and lists before writing prose — the structure is the
+   plan, not a reformatting pass afterward.
+3. Draft to the shape above:
+   - one bullet per requirement, one numbered step per action;
+   - a condition stated with its branch, not left implied;
+   - observations and hypotheses separated from verified conclusions;
+   - rationale beside the rule it explains.
+4. Apply the artifact's own schema or template **and** this standard.
+5. Where the two require different shapes, the artifact's required sections and semantic distinctions take precedence.
+
+**Before finishing, check the artifact:**
+
+1. Re-read it specifically for a paragraph or bullet that hides several requirements, steps, conditions, or decisions.
+2. Restructure those passages — split them, or move them into a list or table — without changing their technical meaning
+   or normative strength.
+3. Confirm the result still satisfies the artifact's required format.
+
+The `review-quick` and `review-thorough` subagents check an artifact against this standard, and `agents-auditor` reports
+repo-authored prose that violates it. This section is the one authoritative definition of the standard; the OpenSpec
+configuration and the subagent definitions reference it rather than restating it.
+
 ## OpenSpec Workflow Agreement
 
 These rules govern every unit of work that will become a pull request: an OpenSpec change, a docs refresh, a standalone
@@ -304,11 +359,13 @@ final edit). captured: decide-against-pre-review
   re-running the review; `openspec validate` checks a scenario's presence, never that it still agrees with the
   description. captured: record-baseline-operating-point captured: widen-architecture-auditor-to-revisit-triggers
   captured: add-apply-audit-reductions-command captured: record-agents-md-authoring-standard
-- **Single-source a claim one source owns** — a predicate the requirement owns (a threshold, band, or formula), or a
-  scope the owning definition states via its class names: state it once there and repeat it identically (referencing it
-  by name where the site can), since a restated copy re-anchors on its own (a README copy made the matching band a tenth
-  of the _measured_ rate where the requirement and code use the _recorded_ one) and the sweep has no canonical wording
-  to sweep to.
+- **Single-source a claim, a rule set, or a record one source owns** — a predicate the requirement owns (a threshold,
+  band, or formula); a scope the owning definition states via its class names; a standard or rule set whose rules are
+  never enumerated at a referencing site (including the change's own planning artifacts); or a record another artifact
+  owns (a review round's state is `docs/review-rounds.tsv`'s, not a task's): state it once there and repeat it
+  identically (referencing it by name where the site can), since a restated copy re-anchors on its own (a README copy
+  made the matching band a tenth of the _measured_ rate where the requirement and code use the _recorded_ one) and the
+  sweep has no canonical wording to sweep to. captured: establish-structured-writing-standard
 - **A clean quick review is a precondition for asking for the manual review, not a substitute for it** — it means _ask
   the user now_, not _the implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength
   of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes, without

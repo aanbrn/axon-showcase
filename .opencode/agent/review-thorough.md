@@ -18,6 +18,9 @@ implementation diff), perform a deep review:
 - **API/architecture**: is the implementation idiomatic for the codebase (Spring, Axon, React/FSD, Helm)? Does it fit
   the surrounding structure and follow the repo conventions (Lombok, MapStruct, no comments; the 120-column limit
   applies only to the files the formatter does not cover, e.g. YAML)?
+- **Prose structure**: do the artifacts' prose follow `AGENTS.md`'s "Structured Writing Standard" (its rules live there)
+  — across `AGENTS.md`, the specs, and the design, not only the code? Report a passage that hides several actionable
+  statements.
 - **Completeness**: do the tasks.md items match reality? Any half-done or marked-but-not-implemented work?
 - **Security/reliability** where relevant (e.g. Helm values, network policies, env config).
 

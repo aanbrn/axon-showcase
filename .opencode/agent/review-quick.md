@@ -19,6 +19,9 @@ repository with no change dir, do a fast verification pass:
   not a finding — route it to `./gradlew spotlessApply` (or the web module's `./gradlew :showcase-web-ui:npmFormat`).
   The boundary is that command's own rewrite, not a category of violation, so what it leaves alone stays reportable: a
   defect inside an inline code span, or a file type no formatter owns (the 120-character recipe below covers the rest).
+- Do the artifacts the unit authored or edited follow `AGENTS.md`'s "Structured Writing Standard" (its rules live there
+  — do not restate them here)? Report a passage that hides several actionable statements, with its `file:line` and the
+  restructure; a defect the formatter owns still routes to `spotlessApply`.
 - For a unit whose diff adds `AGENTS.md` rules (a capture): does each new rule **govern a decision** a future change
   would act on, and does it extend an existing rule rather than restate one? Trivia and restatements are findings
   against the capture, not accepted rules.
@@ -37,10 +40,11 @@ repository with no change dir, do a fast verification pass:
   plan), `test-control` (a check's known-bad case is missing or unexercised), `dropped-content` (an edit dropped content
   it should keep), `premise` (the change rests on an unverified or contradicted premise), `coherence` (artifacts state
   different models of the subject), `redundant-code` (dead or duplicated code), `docs-residue` (a doc still states the
-  old behavior), `proposal-schema` (the proposal breaks its schema). A finding that fits none of these: the calling
-  agent adds a class here, in the same change, so the list stays canonical rather than drifting into a second long tail.
-  The label is the finding's substantive kind: a repeated finding keeps its class and is marked as a repeat, never
-  relabelled as a repeat.
+  old behavior), `structured-writing` (prose that violates the Structured Writing Standard — a passage hiding several
+  actionable statements, an implied condition, or the mandatory merged with its rationale), `proposal-schema` (the
+  proposal breaks its schema). A finding that fits none of these: the calling agent adds a class here, in the same
+  change, so the list stays canonical rather than drifting into a second long tail. The label is the finding's
+  substantive kind: a repeated finding keeps its class and is marked as a repeat, never relabelled as a repeat.
 - When the caller's request names the prior round's findings, compare each finding's instance (`file:line` and its
   claim) against them, not only its class: a finding whose class a prior round already raised is reported as a repeat of
   that class, naming it, and an instance the prior round named and that is still present is an **unfixed prior

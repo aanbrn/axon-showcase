@@ -2083,17 +2083,19 @@ capture-stash-stale-copy
   exists, merge the addition into it rather than re-creating the class from its new-test shape. The loss happens at
   write time, so the `git add <dir>` staging gotcha does not cover it. captured: keep-sse-stream-alive (#301)
 
-- **Work a change surfaces is parked durably — a PR body is not a record.** When a change records an external state
-  change that implies work, or names a companion change it will not deliver, park that work in `docs/ideas.md` (or
-  record it as a task) in the same change: a PR body is squashed and a change dir is archived, and no tool reads either,
-  so work named only there is lost. captured: cut-review-loop-rounds
+- **Work a change surfaces is parked durably — a PR body is not a record.** WHEN a change records an external state
+  change that implies work, or names a companion change it will not deliver, THEN park that work in `docs/ideas.md`
+  under a dated `## YYYY-MM-DD` section with its trailing status tag (the tag's wording and disposition are the
+  docs-refresh convention's), or record it as a task in the change. A PR body is squashed and a change dir is archived,
+  and no tool reads either, so work named only there is lost. Verify by grepping `docs/ideas.md` for the parked text
+  before reporting the change done. captured: cut-review-loop-rounds
 
 - **A change merged without its archive is incomplete — do not merge the implementation PR and defer the archive.** The
-  "one PR per change" rule puts the archive commit in the _same_ PR before merge; a change whose PR merged but whose
-  change dir was never archived is easy to forget (the `remove-redis-client-label` change was merged and sat unarchived
-  until the user pointed it out). When the merge completes, verify the change dir is archived; if archiving post-merge,
-  put it on its own branch and PR — never commit it to local `main` and `git push origin main`, which the branch ruleset
-  rejects and forces a branch-then-reset dance.
+  "one PR per change" rule puts the archive commit in the _same_ PR before merge. WHEN the merge completes, verify the
+  change dir is archived — the live dir is gone (`test ! -d openspec/changes/<change>`) and the dated archive exists
+  (`git ls-files 'openspec/changes/archive/**' | grep <change>`); the `remove-redis-client-label` change was merged and
+  sat unarchived until the user pointed it out. If it is not archived, fix it on its own branch and PR — never commit it
+  to local `main` and `git push origin main`, which the branch ruleset rejects and forces a branch-then-reset dance.
 
 - **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
   first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
@@ -2159,12 +2161,13 @@ capture-stash-stale-copy
   bare `onlyIf { true }` only appends a spec that is ANDed with the plugin's and leaves it in force (the helm plugin's
   chart-dependency skip is the worked case — see the Chart validation bullet above).
 
-- **The gradle-helm-plugin 3.2.0 deprecation warnings are upstream, not actionable here.** It still calls the deprecated
-  `Project.getProperties()` (a `--warning-mode all` deprecation that becomes a hard error in Gradle 10). Tracked
-  upstream as build-extensions-oss/gradle-helm-plugin#145; bump the plugin when a fix is released. Separately, the
-  Gradle `Configuration.visible` deprecation (`setVisible(boolean)`, removed in Gradle 11) is emitted across the build
-  by several third-party plugins — the helm, errorprone, SpotBugs, Spring Boot, and protobuf plugins among them — and is
-  likewise plugin-side, with no action of ours.
+- **IF a Gradle run under `--warning-mode all` emits a gradle-helm-plugin deprecation or a `Configuration.visible`
+  warning, THEN treat it as upstream and leave it: there is no repo-side fix.** gradle-helm-plugin 3.2.0 still calls the
+  deprecated `Project.getProperties()` (a hard error in Gradle 10); tracked upstream as
+  build-extensions-oss/gradle-helm-plugin#145, so bump the plugin when a fixed release lands. The
+  `Configuration.visible` deprecation (`setVisible(boolean)`, removed in Gradle 11) is emitted by several third-party
+  plugins (helm, errorprone, SpotBugs, Spring Boot, protobuf) and is likewise plugin-side. Do not add a local workaround
+  for either.
 
 - **A task whose verdict derives from wall-clock time or external state must not declare an output Gradle can re-use — a
   cached UP-TO-DATE run serves a stale verdict.** `npmAudit` first declared `outputs.file(...)`, so a re-run was
@@ -2172,7 +2175,8 @@ capture-stash-stale-copy
   a cached pass could outlive a suppression's expiry. Drop the `outputs.file` declaration (matching the sibling
   `npmOutdated` task) so the verdict re-runs every invocation; declare `inputs` (the suppression file) without declaring
   an output the task does not produce as an artifact. Any verdict task whose result changes without its inputs changing
-  — a date check, a live registry query, a remote state read — takes the same treatment. captured:
+  — a date check, a live registry query, a remote state read — takes the same treatment. Verify by running the task
+  twice with nothing changed: the second run must re-execute, not report UP-TO-DATE. captured:
   suppress-braces-npm-advisory
 
 - **A fixable npm advisory in a transitive that a dev dependency pins exactly is forced with an `overrides` entry — not
@@ -2191,7 +2195,8 @@ capture-stash-stale-copy
   tool and fails `checkstyleMain` with `ClassNotFoundException: CheckstyleAntTask` — constrain that one with
   `constraints { checkstyle(libs.guava) }`. A scan names the coordinate, not the configuration carrying it, so derive
   the owning configuration from the graph (`./gradlew :<module>:dependencies --configuration <config>`) before choosing
-  the fix. A plain `compileJava` never exercises the tool configuration — only the tool task does. captured:
+  the fix. A plain `compileJava` never exercises the tool configuration — only the tool task does — so verify the fix by
+  running the tool task (e.g. `./gradlew :<module>:checkstyleMain`), not by compiling. captured:
   fix-new-security-advisories
 
 - **Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
@@ -2235,11 +2240,13 @@ capture-stash-stale-copy
   against 0.80, and every full `check` since failed until a component test covered them). captured:
   fix-main-ci-regressions
 
-- **Bumping the Gradle wrapper needs two `wrapper` runs with `--distribution-type all`: the first run only rewrites
-  `distributionUrl`, and the second, executing under the new version, regenerates `gradle-wrapper.jar`/`gradlew`/
-  `gradlew.bat`.** A single run leaves the jar and scripts at the old version, and a run without the flag flips the
-  repo's `-all` distribution to `-bin` — both silently. `./gradlew --version` cannot see either (it reports the version
-  from `distributionUrl`), so verify by diffing all four wrapper files and keep `/gradle-update`'s two-step invocation.
+- **Bumping the Gradle wrapper needs two `wrapper` runs with `--distribution-type all`.** The first run only rewrites
+  `distributionUrl`; the second, executing under the new version, regenerates `gradle-wrapper.jar`/`gradlew`/
+  `gradlew.bat`. A single run leaves the jar and scripts at the old version, and a run without the flag flips the repo's
+  `-all` distribution to `-bin` — both silently. `./gradlew --version` cannot see either (it reports the version from
+  `distributionUrl`), so verify by diffing all four wrapper files (`gradle/wrapper/gradle-wrapper.properties`,
+  `gradle/wrapper/gradle-wrapper.jar`, `gradlew`, `gradlew.bat`) and confirming `distributionUrl` still ends `-all.zip`;
+  if only `gradle-wrapper.properties` changed, the bump is incomplete. Keep `/gradle-update`'s two-step invocation.
   captured: bump-gradle-and-web-ui-dependencies
 
 ### Writing checks and tests that can actually fail
@@ -2492,8 +2499,14 @@ capture-stash-stale-copy
   0 failed, at 385 rps). Use `doWhileDuring(Function<Session, Boolean>, …)` (the shared `differs(attribute, expected)`);
   the source reads correct either way, so only a sustained run exposes it. captured: anchor-the-load-test-baseline
 
-- **`showcase-api-gateway`'s e2e suite depends on Docker images of all other services being built (`bootBuildImage`).**
-  Run those first.
+- **The gateway e2e suite needs the four service images present in the local Docker daemon.** The Gradle
+  `:showcase-api-gateway:e2eTest` task declares the four `bootBuildImage` tasks (gateway, command, projection, query) as
+  `dependsOn`, so running it through Gradle builds them. An IDE JUnit run does not fire `dependsOn`, so before running
+  the `ShowcaseApiGatewayE2E` class directly, build them:
+  `./gradlew bootBuildImage :showcase-command-service:bootBuildImage :showcase-projection-service:bootBuildImage :showcase-query-service:bootBuildImage`.
+  Verify the images exist for the version declared in `gradle.properties`
+  (`docker images aanbrn/axon-showcase-command-service` lists the local tags); a missing image fails the suite at
+  container start.
 
 - **`@Nested` test classes are incompatible with Spring Boot slice tests (`@WebFluxTest`/`@WebMvcTest`).** Nested
   classes load the full application context instead of the slice and fail on infrastructure beans (e.g. the gateway's
@@ -2506,41 +2519,45 @@ capture-stash-stale-copy
 
 ### Deployment, Helm & Kubernetes
 
-- **Deployment investigations must include the Helm chart and values files.** When diagnosing a deployment issue, the
-  chart (`helm/chart/src/main/helm/`) and its values (`helm/values/*/values-*.yaml`) are always in scope alongside the
-  live cluster — the deployed resources are generated output of the chart, so a wrong live resource usually means a
-  wrong source (or a stale apply), not a standalone "cluster problem." The chart also introduces k8s-specific concerns
-  (namespaces, NetworkPolicies, KUBE_PING discovery) that do not exist under `bootRun`/`docker-compose`, so a bug can be
-  invisible locally and only surface once deployed. Recent deployment bugs were both chart bugs, not code bugs: the
-  `kubernetes` EndpointSlice `lookup` namespace in the network policies (`fix-kube-ping-api-egress`) and the missing
-  release-namespace declarations (`declare-axon-showcase-namespace`). Prefer rendering the chart locally with
-  `helm template` to inspect what the source produces before (or alongside) inspecting live resources — target the
-  packaged chart at `helm/chart/build/helm/charts/axon-showcase`, since the `helm/chart` module dir has no `Chart.yaml`
-  and the source at `helm/chart/src/main/helm` carries Gradle-filtered placeholders that `helm template` rejects. **A
-  deployment-only behavior is verified against the deployed signal, not the config.** Observability is Kubernetes-only
-  here, so a trace is proven by reading what the deployed system actually emitted: the `traceparent` the browser really
-  sent (`browser_network_request` with `part: request-headers`) and the exported trace from Tempo's API
-  (`kubectl port-forward -n monitoring svc/tempo 3200`, `GET /api/traces/<trace-id>`, with the root server span parented
-  at the browser's id). A green `check` and a correct chart value prove the configuration, not the behavior. An agent
-  shell has no TTY to answer `sudo`, so `./setup-hosts.sh setup` stops at the `/etc/hosts` write — it prints the ingress
-  LoadBalancer address before that, so verify a hostname with a `Host:`-header curl against that address
-  (`curl -H "Host: axon-showcase-grafana" http://<address>/api/health`) and hand the write to the owner; record which
-  half ran rather than ticking a task on the script's assumed completion. captured: propagate-ui-trace-context (#362)
-  captured: expose-grafana-by-hostname
+- **WHEN diagnosing a deployment issue, read the Helm chart and values files, not the live cluster alone.** The deployed
+  resources are generated output of the chart (`helm/chart/src/main/helm/`; values `helm/values/*/values-*.yaml`), so a
+  wrong live resource usually means a wrong source (or a stale apply), not a standalone "cluster problem." The chart
+  also introduces k8s-specific concerns (namespaces, NetworkPolicies, KUBE_PING discovery) that do not exist under
+  `bootRun`/`docker-compose`, so a bug can be invisible locally and only surface once deployed. Render what the source
+  produces before (or alongside) inspecting live resources: `helm template` against the **packaged** chart at
+  `helm/chart/build/helm/charts/axon-showcase` — the `helm/chart` module dir has no `Chart.yaml`, and the source at
+  `helm/chart/src/main/helm` carries Gradle-filtered placeholders that `helm template` rejects. Two recent deployment
+  bugs were chart bugs, not code bugs: the `kubernetes` EndpointSlice `lookup` namespace in the network policies
+  (`fix-kube-ping-api-egress`) and the missing release-namespace declarations (`declare-axon-showcase-namespace`). **A
+  deployment-only behavior is verified against the deployed signal, not the config** — a green `check` and a correct
+  chart value prove the configuration, not the behavior. Observability is Kubernetes-only here, so prove a trace by
+  reading what the deployed system emitted: the `traceparent` the browser really sent (`browser_network_request` with
+  `part: request-headers`) and the exported trace from Tempo's API (`kubectl port-forward -n monitoring svc/tempo 3200`,
+  `GET /api/traces/<trace-id>`, with the root server span parented at the browser's id). **`./setup-hosts.sh setup`
+  cannot complete under an agent shell** (no TTY to answer `sudo`), so it stops at the `/etc/hosts` write. It prints the
+  ingress LoadBalancer address before that: verify a hostname with a `Host:`-header curl against that address
+  (`curl -H "Host: axon-showcase-grafana" http://<address>/api/health`) and hand the hosts write to the owner; record
+  which half ran rather than ticking a task on the script's assumed completion. captured: propagate-ui-trace-context
+  (#362) captured: expose-grafana-by-hostname
 
-- **A containerized image build that fails in varying ways — including on the unmodified baseline — is host state until
-  proven otherwise; check the container runtime's amd64 emulation before touching a pin.** A Paketo `dockerBuildImage`
-  failure whose signature shifts between runs (a missing `io.buildpacks.buildpackage.metadata` label, an analyzer
-  `panic: could not parse '0.12' as version`, `flate: closed writer`, a Go GC fault) and that reproduces on the pre-bump
-  baseline points at the host, not the change: colima's template enables Rosetta, a macOS upgrade removed the Rosetta
-  runtime, colima silently fell back to QEMU for linux/amd64 containers, and the amd64 buildpack lifecycle crashes under
-  QEMU. With Rosetta reinstalled the same pins build — the identical nginx digest that reported "could not find label"
-  is the digest the successful build used — but a host explanation exonerates no pin: a surface that fails one run and
-  passes the next supports no causal claim in either direction, so name the failures that are host state and leave a
-  pin's fault an open question. `hold-back-nginx-buildpack` held `paketo-nginx` back at `1.2.0` because that episode's
-  arm64 architecture symptom survived every host reset and is tracked as `paketo-buildpacks/nginx#1340`. A pin decides
-  which image `pack` pulls, so a host failure mimics a pin defect exactly: confirm the runtime's configured emulation
-  (Rosetta versus its QEMU fallback) and whether the baseline fails too before changing a version.
+- **A containerized image build that fails in varying ways is host state until proven otherwise — check the container
+  runtime's amd64 emulation before touching a pin.** Paketo `dockerBuildImage` failures with shifting signatures (a
+  missing `io.buildpacks.buildpackage.metadata` label, an analyzer `panic: could not parse '0.12' as version`,
+  `flate: closed writer`, a Go GC fault) point at the host, not the change. A pin decides which image `pack` pulls, so a
+  host failure mimics a pin defect exactly; establish both before changing a version:
+  1. Does the unmodified baseline fail the same way? Reproduce with the pre-bump pins (or on `main`); if it does, the
+     change is not the cause.
+  2. Is linux/amd64 emulation working? The build runs the amd64 buildpack lifecycle, which crashes under QEMU. Check the
+     VM type and architecture (`colima status`, `colima list`) and the profile's Rosetta flag
+     (`grep '^rosetta:' ~/.colima/default/colima.yaml`), then confirm it actually functions — a config can be stale —
+     with `docker run --rm --platform linux/amd64 alpine uname -m` (must print `x86_64`). Only when the baseline passes
+     and amd64 emulation works is the pin implicated. The worked case: colima's template enabled Rosetta, a macOS
+     upgrade removed the Rosetta runtime, colima silently fell back to QEMU, and the amd64 lifecycle crashed; with
+     Rosetta reinstalled the same pins built (the identical nginx digest that reported "could not find label" is the
+     digest the successful build used). A surface that fails one run and passes the next supports no causal claim in
+     either direction, so name the failures that are host state and leave a pin's fault an open question.
+     `hold-back-nginx-buildpack` held `paketo-nginx` back at `1.2.0` because that episode's arm64 architecture symptom
+     survived every host reset and is tracked as `paketo-buildpacks/nginx#1340`.
 
 - **A buildpack pin is verified by running the image, not by a green build or a metadata label — a release can install a
   binary of the wrong architecture and still build cleanly.** `bump-paketo-builder-and-buildpacks` ticked its test plan
@@ -2778,8 +2795,9 @@ capture-stash-stale-copy
   missing or wrong annotation fails the module's `compileJava`.
 
 - **Jackson 3 artifacts (`tools.jackson.core:*`) on the query-service and projection-service runtime classpaths are
-  dependency hygiene, not the deferred Jackson 3 backend migration.** Jackson 2 remains the serialization backend in
-  application code; the why (including the `jackson3-bom` constraint) lives in ADR-0003.
+  dependency hygiene, not the deferred Jackson 3 backend migration.** IF you see `tools.jackson.core:*` on those
+  classpaths, THEN do not treat it as a migration to complete and do not switch application code to Jackson 3 — Jackson
+  2 remains the serialization backend. The why (including the `jackson3-bom` constraint) lives in ADR-0003.
 
 - **Spring Data Elasticsearch's `DateFormat.strict_date_optional_time_nanos` truncates to microseconds despite its
   name.** The nanosecond pattern and the reason live in the `read-side/projection-model` spec. `ShowcaseEntity` declares
@@ -2821,14 +2839,14 @@ capture-stash-stale-copy
 
 ### Agent tooling, OpenCode & permissions
 
-- **When documenting agent tooling (MCP servers, skills, subagents), read the artifact's own definition — not the config
-  entry or the `docs/ideas.md` note that mentions it.** The README "Tooling MCP Servers" section described a
-  since-removed `codefmt` skill as running IDE _inspections_ (it runs the formatter), said the Playwright MCP "drives
-  the web-UI e2e" (the test framework runs the e2e; the MCP is only the agent's browser), and listed
-  `runInspectionsDirectly` as an MCP tool (it is an IntelliJ helper called inside `steroid_execute_code`) — every claim
-  sourced from the config entry or the parked idea note rather than the tool itself. A referencing entry summarizes; it
-  does not specify. Read `.opencode/skills/*/SKILL.md`, `.opencode/agent/*.md`, and the server's exposed tool list
-  before describing what each does, and treat an idea note's prose as a lead, not a spec.
+- **Before describing an MCP server, skill, or subagent in a durable doc, read that artifact's own definition — not a
+  config entry, a `docs/ideas.md` note, or another doc that merely mentions it.** A referencing entry summarizes; it
+  does not specify. Read `.opencode/skills/*/SKILL.md`, `.opencode/agent/*.md`, and the server's exposed tool list, and
+  treat an idea note's prose as a lead, not a spec. The README's "Tooling MCP Servers" section once called the
+  since-removed `codefmt` skill an IDE-inspection runner (it runs the formatter), said the Playwright MCP "drives the
+  web-UI e2e" (the test framework runs it; the MCP is only the agent's browser), and listed `runInspectionsDirectly` as
+  an MCP tool (it is an IntelliJ helper called inside `steroid_execute_code`) — all sourced from the config entry or the
+  parked idea note rather than the tool.
 
 - **A CLI's `--help` and its docs are not its contract — a missing flag, an asserted exit code, an assumed output
   stream, and a flag's default each have to be probed before a design keys on them.** The `setup-agent-tools` design
@@ -2853,23 +2871,23 @@ capture-stash-stale-copy
   design or a comment, run X on the minimal input that does and on one that does not, and quote the discriminating
   condition rather than the message. captured: validate-the-workflows-on-ubuntu-2604
 
-- **Treat a doc's account of a feature as a floor, not a boundary — verify a tool-behavior claim against the source/CLI
-  before writing it into a durable artifact.** The same holds for a framework or library doc, whose snippet can be
-  written for another version and can name a mechanism that does not apply to the pinned one: Spring Boot's
-  `buildInfo()` doc offered `time.set(null)`, a no-op on the pinned 3.5.16 (which needs `excludes`), and
-  `build-info.properties` is exposed as a `BuildProperties` **bean**, not a Spring `Environment` property source, so a
-  `@Info(version = "${build.version}")` placeholder would not resolve and would serve the literal — re-derived from the
-  pinned jar (`ProjectInfoAutoConfiguration.buildProperties` is a plain `@Bean`) and from an empty run, not from the
-  reference. Check the mechanism against the pinned version's own classes before designing around the doc's form.
-  captured: publish-github-releases
+- **BEFORE writing a tool-, library-, or framework-behavior claim into a durable artifact, verify it against the source
+  or CLI — a doc's account of a feature is a floor, not a boundary.** A framework doc's snippet can be written for
+  another version and can name a mechanism that does not apply to the pinned one: Spring Boot's `buildInfo()` doc
+  offered `time.set(null)`, a no-op on the pinned 3.5.16 (which needs `excludes`), and `build-info.properties` is
+  exposed as a `BuildProperties` **bean**, not a Spring `Environment` property source, so a
+  `@Info(version = "${build.version}")` placeholder would not resolve and would serve the literal. Check the mechanism
+  against the pinned version's own classes (here `ProjectInfoAutoConfiguration.buildProperties` is a plain `@Bean`) or
+  an empty run before designing around the doc's form. captured: publish-github-releases
 
-- **Confirm the file you read is the code path that runs.** A package can hold a mock or test harness whose name matches
-  the entry point (`github/index.ts` is a local dev/test entry; the shipped handler is `github.handler.ts`), and a
-  matching filename or path is not evidence you read the implementation. The same applies to a `uses:` step's side
-  effects: a design asserted "the only step that touches Docker is `setup-gradle`'s cache service" without reading the
-  action, whose own README never mentions Docker — and the counter-claim that it _does_ use Docker, reviewed and
-  rejected, was equally unverified. Read the action's README/docs before writing what a step touches, and settle both
-  directions of a contested claim there. captured: pin-the-smoke-docker-to-overlay2
+- **Before treating a file as the implementation, confirm it is the code path that runs.** A matching filename or path
+  is not evidence: a package can hold a mock or test harness whose name matches the entry point (`github/index.ts` is a
+  local dev/test entry; the shipped handler is `github.handler.ts`). Trace the entry point — the `main`/handler
+  registration, or the `uses:` target — to the file that actually runs before describing it. The same applies to a
+  `uses:` step's side effects: read the action's README/docs before writing what a step touches, and settle both
+  directions there — a design asserted "the only step that touches Docker is `setup-gradle`'s cache service" without
+  reading the action, whose own README never mentions Docker, and the counter-claim that it _does_ use Docker, reviewed
+  and rejected, was equally unverified. captured: pin-the-smoke-docker-to-overlay2
 
 - **A compiler or build-tool semantics claim needs a minimal scratch build before it constrains a design.** A design
   drafted the premise that a precompiled `.gradle.kts` cannot see an `internal` declaration, and a scratch `kotlin-dsl`
@@ -2896,10 +2914,12 @@ capture-stash-stale-copy
   green). captured: test-build-logic-rules-and-unify-version-comparison (#306) captured: monitor-web-ui-npm-dependencies
   (#395) captured: bump-gradle-and-web-ui-dependencies captured: bump-web-ui-npm-2026-10-05
 
-- **A dependency's last usage takes the same sweep.** Remove its catalog entry and grep the docs and build files for its
-  name in the same change — after WireMock was removed from its last consumer, its dead `wiremock-spring-boot` catalog
-  entry and two `AGENTS.md` examples naming it had to follow, since an unused catalog entry is resolved by no
-  configuration and no update check reports it. captured: grpc-query-transport
+- **A dependency's last usage takes the same sweep.** WHEN you remove a dependency's last usage, in the same change
+  remove its catalog entry and grep the docs, build files, and code for its name — both the coordinate and the catalog
+  accessor form (`wiremock-spring-boot` and `libs.wiremock.spring.boot`) — and verify with a repo-wide grep before
+  reporting done. After WireMock was removed from its last consumer, its dead `wiremock-spring-boot` catalog entry and
+  two `AGENTS.md` examples naming it had to follow, since an unused catalog entry is resolved by no configuration and no
+  update check reports it. captured: grpc-query-transport
 
 - **A CLI warning dismissed as noise can report a live defect — a config is unverified until its own read path is
   probed, whoever consumes it (a tool, a hosted service, or the repository's own build), and a warning no gate reads is
@@ -3055,10 +3075,11 @@ capture-stash-stale-copy
   (`5fc1a09` introduced the fusion) until a drive-by fix separated them — so proofread blank lines as content too.
   captured: notify-owner-from-the-audit-report (#327)
 
-- **Align ASCII/Unicode diagram comments by character width, not byte length.** In the README's project-structure tree,
-  `awk`/`length()` counts UTF-8 box-drawing characters (`│`, `├`, `─`) as multiple bytes, so byte columns ≠ visual
-  columns and the `#` comments end up misaligned. Measure with a decoded string (`len(line[:idx]) + 1` in Python) and
-  align every comment to the longest entry (the tree's target column 42 is set by `showcase-resilience4j-extension/`).
+- **Align ASCII/Unicode diagram comments by character width, not byte length.** `awk`/`length()` counts UTF-8
+  box-drawing characters (`│`, `├`, `─`) as multiple bytes, so byte columns ≠ visual columns and the `#` comments end up
+  misaligned. Measure with a decoded string (`len(line[:idx]) + 1` in Python) and align every comment to the longest
+  entry (the README tree's target column 42 is set by `showcase-resilience4j-extension/`). Verify with the same decoded
+  measurement over the block — an `awk length` check cannot see the misalignment it causes.
 
 - **A diagram's geometry and content encode semantics — do not normalize a deliberate asymmetry, and re-derive a redrawn
   diagram from the code it depicts.** The README's OpenSpec-flow diagram marks its review gates as edge labels rather
@@ -3072,8 +3093,10 @@ capture-stash-stale-copy
   the body pipes to the full width flattened the two spans' distinction and had to be reverted by the user.
 
 - **When a diagram (or any doc) has been hand-edited, treat an asymmetry as intentional until you verify what each
-  element is meant to start and end at — ask rather than "fixing" it, and never regenerate over a human edit without
-  diffing against it.**
+  element is meant to start and end at.** BEFORE normalizing an asymmetry (aligning bracket spans, equalizing pipes),
+  establish the element's intended meaning — which span starts where and ends where — and confirm it with the user
+  rather than "fixing" it; never regenerate over a human edit without diffing against it. If you cannot establish the
+  meaning, leave the edit and ask.
 
 - **Redrawing a diagram into a new medium makes the old diagram a starting point, not the contract — re-derive its
   content from the code or config it depicts:** the Mermaid lifecycle conversion scoped the removal annotation to one

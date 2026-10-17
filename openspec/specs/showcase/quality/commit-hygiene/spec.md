@@ -5,9 +5,10 @@
 Defines the mechanical guards over the commit/artifact hygiene the standard quality gates cannot see — a local
 pre-commit hook that inspects the staged set, build checks that verify `captured:` marker placement, that the tracked
 set excludes ignored files, that no tracked file carries a merge conflict marker, that tracked scripts carry the
-executable bit, that no tracked file exceeds the configured size limit, and that no two workflow cron schedules collide,
-and a committed `.gitattributes` that normalizes line endings (enforced by git, not the build) — so slips that were
-caught only by a human or a review pass are blocked by construction.
+executable bit, that no tracked file exceeds the configured size limit, that no two workflow cron schedules collide,
+that the review-round ledger carries at most one row per unit and round, and a committed `.gitattributes` that
+normalizes line endings (enforced by git, not the build) — so slips that were caught only by a human or a review pass
+are blocked by construction.
 
 ## Requirements
 
@@ -333,3 +334,20 @@ like every other text file, and `text=auto` leaves a detected binary unnormalize
 
 - **WHEN** a tracked binary file (for example the Gradle wrapper JAR) is added
 - **THEN** git detects it as binary and leaves it unnormalized, so its bytes are unchanged
+
+### Requirement: Review-round ledger rows are unique
+
+The build SHALL verify that the review-round ledger (`docs/review-rounds.tsv`) carries **at most one row per unit and
+round**, failing when the same `(unit, round)` pair appears twice, so a duplicated row cannot double-count a round in
+the retrospective figures aggregated from it. The verification SHALL be a `commit-hygiene.py` mode run by a `check`
+task, reading the tracked ledger rather than the staged set.
+
+#### Scenario: A duplicated round row fails the check
+
+- **WHEN** `check` runs and the ledger carries two rows with the same unit and round
+- **THEN** the check fails, naming the unit, the round, and both line numbers
+
+#### Scenario: One row per round passes
+
+- **WHEN** every `(unit, round)` pair in the ledger appears at most once
+- **THEN** the check passes

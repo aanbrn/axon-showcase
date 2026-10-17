@@ -137,14 +137,22 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
   the pull-request checklist for a unit with no change dir — so a skipped pass is a missing box rather than looking like
   a pass that found nothing
 - **AND** the pass emits a claims table — each fact the change states about its evidence, the prior artifacts it rests
-  on, with its source or the deriving command — so the review reports a claim in the artifacts missing from the table,
-  or a claimed source that does not reproduce, rather than re-deriving the class from scratch
+  on, with its source or the deriving command — so the review reports a claim in the artifacts missing from the table, a
+  claimed source that does not reproduce, or a scan candidate neither resolved into a row nor listed as a dismissal,
+  rather than re-deriving the class from scratch
+- **AND** the pass seeds that table mechanically: a scan of the authored set's added lines (`scripts/claim-scan.py`, run
+  through `/seed-claims`) lists each claim shape it finds — a count, an absolute quantifier, a cross-artifact reference,
+  a backticked path — with its location, and the author resolves each candidate into a row or records its dismissal
+  beside the table (grouped by kind where the dismissal is uniform), with the reason, so a claim the author did not
+  notice stating is listed rather than waiting for a review round to find it, and the scan's output is accounted for;
+  the scan seeds the table and never replaces the derivation, since it enumerates shapes, not facts
 - **AND** the caller passes each prior finding's instance (`file:line` and the claim), not only its class, so a repeat
   is reported as an unfixed prior instance or as a new instance of an exhausted class
 - **AND** the caller continues the prior round's `review-quick` session — passing its session id on the next request —
-  for each round after the first, starting a fresh session only when that one has expired, so the reviewer keeps its
-  context across rounds rather than re-exploring from scratch; the reuse never substitutes for the per-round instance
-  hand-off above, which the caller supplies on every round regardless of the reviewer's session
+  for each round after the first, starting a fresh session only when that one has expired or the reviewer's definition
+  changed after it began, so the reviewer keeps its context across rounds rather than re-exploring from scratch; the
+  reuse never substitutes for the per-round instance hand-off above, which the caller supplies on every round regardless
+  of the reviewer's session
 
 #### Scenario: A skipped pre-write pass is a missing record
 

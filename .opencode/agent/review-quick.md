@@ -23,8 +23,8 @@ repository with no change dir, do a fast verification pass:
   would act on, and does it extend an existing rule rather than restate one? Trivia and restatements are findings
   against the capture, not accepted rules.
 - The pre-write pass's claims table is in the change's `design.md` (or `tasks.md`, or the pull-request line for a unit
-  with no change dir): report a claim the artifacts state that the table omits, or a row whose source does not
-  reproduce.
+  with no change dir): report a claim the artifacts state that the table omits, a row whose source does not reproduce,
+  or a scan candidate that is neither a row nor a listed dismissal.
 - Any obvious correctness problems visible at a glance?
 - Give every finding a class from this canonical list, each naming what must change, so a class is comparable across
   rounds and units: `claim-unreproducible` (a stated fact whose source does not reproduce), `claim-missing` (a stated

@@ -300,16 +300,19 @@ capture-reverted-sweep-lessons (#283)
 
 1. Run the pre-write derivation pass over the planning artifacts, deriving each of the five claim classes the loop keeps
    catching from its source: read every run-log, issue-state, or external-artifact claim from the artifact now; re-grep
-   every count against its set; single-source a model stated in more than one artifact; derive every mechanism or
-   task-check claim from the tool or the graph; and, for a change whose facts are its own measurement, computation, or
-   process record, derive each figure from the mechanism that produces it — the window or instant it spans and the
-   aggregation it applies, or for a record figure the command that emits it (a review round's row from its report's
-   record line, the capture record's net delta from `git diff --numstat AGENTS.md` after `spotlessApply`, per-hunk
-   `git diff -U0` counts when other edits share the file) — re-deriving it after that mechanism's last edit, since a
-   figure measured before the final tuning, or written from what the edits were meant to add, is the claim the next
-   round reports unreproducible (`verify-unique-review-rounds` recorded a row clean before its round reported and stated
-   a net `AGENTS.md` delta of `+2` where the diff measured `+5`; the measurement-attribution gotcha carries the series
-   rule). captured: seed-claims-from-the-diff captured: record-agents-md-authoring-standard
+   every count — and every universal claim about a corpus (`every`/`all`) — against its set; single-source a model
+   stated in more than one artifact; derive every mechanism or task-check claim from the tool or the graph, deleting a
+   term or mechanism name whose grep finds no referent in the repository (a coinage lifted from an external prompt; a
+   design carried three, each stripped by a review round); and, for a change whose facts are its own measurement,
+   computation, or process record, derive each figure from the mechanism that produces it — the window or instant it
+   spans and the aggregation it applies, or for a record figure the command that emits it (a review round's row from its
+   report's record line, the capture record's net delta from `git diff --numstat AGENTS.md` after `spotlessApply`,
+   per-hunk `git diff -U0` counts when other edits share the file) — re-deriving it after that mechanism's last edit,
+   since a figure measured before the final tuning, or written from what the edits were meant to add, is the claim the
+   next round reports unreproducible (`verify-unique-review-rounds` recorded a row clean before its round reported and
+   stated a net `AGENTS.md` delta of `+2` where the diff measured `+5`; the measurement-attribution gotcha carries the
+   series rule). captured: seed-claims-from-the-diff captured: record-agents-md-authoring-standard captured:
+   sharpen-experience-analysis
 2. Record the pass. Every unit carries it as a task — a task in a change's `tasks.md`, or a line in the pull-request
    checklist for a unit with no change dir — so a missing box is a skip, not a pass that found nothing. Its output is
    the change's **claims table** — each fact the change states about its evidence (the prior artifacts it rests on) with
@@ -1562,12 +1565,13 @@ Key modules (libraries, not services):
   `review-quick`/`lesson-capture` agents. Trigger it with the `/retrospective` OpenCode command (or run it manually):
   the command gathers the digest with `./scripts/experience-analysis.sh [since]` (merged PRs, git log, archived changes,
   AGENTS.md gotchas, docs/ideas.md, and a derived-facts block carrying the window's countable claims already resolved),
-  then the subagent returns a retrospective (shipped PRs by theme, lessons, went-well/went-wrong) and improvement
-  suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process` (→ AGENTS.md or a subagent
-  definition), which the main agent verifies and applies. Retrospectives land in `docs/retrospectives/<date>.md` as a
-  docs change. It is deliberately **not** in the scheduled `audit` workflow — unlike the three audits, a retrospective
-  is a judgment about a _period_ whose richest input is session-only, so it stays on demand (the `agent-skills` spec
-  records why).
+  then the subagent returns a retrospective (shipped PRs by theme, lessons, went-well/went-wrong, each significant
+  failure's root cause and earliest prevention stage, and the previous retrospective's recommendations evaluated) and
+  improvement suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process` (→ AGENTS.md or a subagent
+  definition), each stating the pattern it targets and how its outcome would be verified, which the main agent verifies
+  and applies. Retrospectives land in `docs/retrospectives/<date>.md` as a docs change. It is deliberately **not** in
+  the scheduled `audit` workflow — unlike the three audits, a retrospective is a judgment about a _period_ whose richest
+  input is session-only, so it stays on demand (the `agent-skills` spec records why).
 - **Agents-auditor subagent for agent-tooling maintenance**: the `agents-auditor` subagent
   (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
   `.opencode/` files — for the drift an accretion-only set produces: entries contradicted elsewhere, stale enumerations,
@@ -1659,21 +1663,23 @@ Key modules (libraries, not services):
   state a count, so a pre-widening `<n> findings` line is stale the moment an advisory section exists, becoming
   `<n> findings, <n> advisory`); the shared report-contract requirement's own bearer list, which enumerates the
   report-producing subagents and goes stale when one is added, so it needs a `MODIFIED` delta; the trigger command
-  (including its step-1 read-list); the README **slash-command table row** and its **prose** description of the auditor
-  (the Spec-Driven Development, Agentic Process, and Self-Learning Loop sentences) whenever what it reports changes —
-  the tables are not the README's only copy; a task for the capability `## Purpose` refresh (a delta cannot carry a
-  Purpose); and the proposal's `### New Capabilities`/ `### Modified Capabilities` subsections ("none" where empty).
-  Keep any enumerated list (the swept surfaces, the finding classes) verbatim-identical across proposal/design/tasks/
-  delta **and across the definition's own sections** — its class paragraph, method bullets, and verdict line are
-  separate edit passes, so a routing updated in one survives stale in another (a method bullet routed an out-of-scope
-  mechanism to the advisory class while the class paragraph carried the three-branch routing); state it once and point
-  the others at it. The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because
-  each round surfaced one of these that a prior analogous change had covered — read the archived analogous change and
-  grep for the artifact's name before hand-writing the set (for a set the change enumerates, the "the only X" bullet's
-  member grep is the sweep) — and point the proposal's site list at the tasks that name those sites rather than
-  hand-writing it, since a hand-written enumeration keeps under-matching the union it derives from. captured:
-  add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12 captured: record-review-rounds captured:
-  bound-the-review-loop captured: bump-dependencies-2026-10-16 captured: widen-audit-agents-to-authoring-gaps
+  (including its step-1 read-list); the README's **agent table row** and **slash-command table row** and every **prose**
+  bullet describing it (the Spec-Driven Development, Agentic Process, and Self-Learning Loop sentences) whenever what it
+  reports changes — the tables and the prose bullets are separate copies; a task for the capability `## Purpose` refresh
+  (a delta cannot carry a Purpose); and the proposal's `### New Capabilities`/ `### Modified Capabilities` subsections
+  ("none" where empty). Keep any enumerated list (the swept surfaces, the finding classes) verbatim-identical across
+  proposal/design/tasks/ delta **and across the definition's own sections** — its class paragraph, method bullets, and
+  verdict line are separate edit passes, so a routing updated in one survives stale in another (a method bullet routed
+  an out-of-scope mechanism to the advisory class while the class paragraph carried the three-branch routing); state it
+  once and point the others at it. The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick`
+  rounds because each round surfaced one of these that a prior analogous change had covered — read the archived
+  analogous change and grep for the artifact's **name and its trigger command** before hand-writing the set, since a
+  site may name only one (the agent table row names the agent; the prose bullets and the slash-command row name its
+  command), and for a set the change enumerates the "the only X" bullet's member grep is the sweep — and point the
+  proposal's site list at the tasks that name those sites rather than hand-writing it, since a hand-written enumeration
+  keeps under-matching the union it derives from. captured: add-readme-auditor (#315) captured:
+  bump-kps-chart-2026-10-12 captured: record-review-rounds captured: bound-the-review-loop captured:
+  bump-dependencies-2026-10-16 captured: widen-audit-agents-to-authoring-gaps captured: sharpen-experience-analysis
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
   `.opencode/opencode.json` (`model` and `small_model` — two keys), the flash-pinned subagent frontmatter

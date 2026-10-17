@@ -363,7 +363,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 
 | Agent                  | Role                                                                                                                                                                                                                                            |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `experience-analyzer`  | Periodic retrospectives + improvement suggestions (system & process) — `/retrospective`                                                                                                                                                         |
+| `experience-analyzer`  | Periodic retrospectives that root-cause failures, evaluate the previous window, and propose verified improvements (system & process) — `/retrospective`                                                                                         |
 | `agents-auditor`       | Audits AGENTS.md + project-owned `.opencode/` files, flags third-party files our usage contradicts, and reports accreted meta rules with their origins, merge, removal, and route candidates, and authoring-system gaps — `/audit-agents`       |
 | `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                                                                                                                                                |
 | `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift, unrecorded intent, and a due record — `/audit-architecture`                                                                                                         |
@@ -386,7 +386,9 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
   the file shrinks as well as grows, and a mistake is recorded where it can be prevented instead of only where it is
   read.
 - **Retrospectives**: `/retrospective` gathers the last week of PRs and the git log, plus the archived changes and
-  accumulated gotchas, and produces a sprint retrospective with improvement suggestions.
+  accumulated gotchas, and produces a sprint retrospective that root-causes each significant failure to the stage that
+  could have caught it, evaluates the previous window's recommendations, and proposes improvements with a verifiable
+  outcome.
 - **Formatting, gates, CI, PRs**: formatting and quality gates run in the build; the agent opens PRs, watches CI, and
   merges once green with your approval.
 
@@ -466,9 +468,10 @@ The process is designed to **learn from itself** — and that is the mechanic, n
   applies them as merged text, pointers, or deletions under the review gate. So the guidance and tooling stay consistent
   and concise instead of only growing.
 - **Periodic retrospectives zoom out.** `/retrospective` turns a window of merged PRs and the git log, together with the
-  archived changes and accumulated gotchas, into a sprint retrospective whose suggestions are classified `process` (→
-  `AGENTS.md` or a subagent definition) or `system` (→ an idea or a proposal), so both the process and the system keep
-  improving.
+  archived changes and accumulated gotchas, into a sprint retrospective that traces each significant failure to its root
+  cause and the stage that could have caught it and evaluates the previous retrospective's recommendations — with
+  suggestions classified `process` (→ `AGENTS.md` or a subagent definition) or `system` (→ an idea or a proposal) and
+  stating how their outcome would be verified, so both the process and the system keep improving.
 
 A mistake made once becomes a rule the agent follows thereafter — the process gets a little better with every unit.
 
@@ -515,7 +518,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/audit-readme`              | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage (pro-model auditor)                                                                                                            |
 | `/apply-audit-reductions`    | Applies an audit report's merge/removal/route reduction candidates as merged text, pointers, or deletions, under the review gate                                                                                                          |
 | `/diagram`                   | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer                                                                                                                                                                  |
-| `/retrospective`             | Periodic retrospective with improvement suggestions                                                                                                                                                                                       |
+| `/retrospective`             | Periodic retrospective that root-causes failures and proposes verified improvements                                                                                                                                                       |
 | `/dependency-updates`        | Runs and summarizes the Gradle, web-UI, and build-logic pin dependency update reports                                                                                                                                                     |
 | `/gradle-update`             | Updates the Gradle wrapper to the latest stable                                                                                                                                                                                           |
 | `/dependency-security-check` | Runs the Snyk and web-UI npm dependency security scans                                                                                                                                                                                    |

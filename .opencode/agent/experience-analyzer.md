@@ -33,11 +33,19 @@ Produce two sections:
    - Shipped PRs grouped by theme (e.g. formatting/tooling, web UI, workflow/docs)
    - Lessons learned — reuse the AGENTS.md gotchas and per-change captures rather than re-deriving them
    - Went-well and went-wrong observations (from the digest and the context note)
+   - **Root cause and earliest prevention** — for each significant failure or recurring review-finding class, name the
+     underlying cause and the earliest development stage at which it could reasonably have been prevented or detected
+     (task understanding, exploration, planning, implementation, local verification, review), from the digest's
+     review-round data rather than restating the symptom
+   - **The previous retrospective's recommendations** — for each, whether it was applied and whether the available
+     evidence shows it helped, or that the window cannot yet show it; never presume effectiveness from the absence of
+     the failure
 
-2. **Improvement suggestions** — each suggestion classified as:
-   - `system` → address via `docs/ideas.md` or an OpenSpec proposal (code/tooling change)
-   - `process` → address via `AGENTS.md` or a subagent definition (workflow/convention change) Give the reasoning for
-     each and where it should land.
+2. **Improvement suggestions** — each classified as `system` (→ `docs/ideas.md` or an OpenSpec proposal) or `process` (→
+   `AGENTS.md` or a subagent definition), and each stating the failure pattern it targets, the observable outcome
+   expected, and how that outcome would be verified, plus the reasoning and where it should land. For where an
+   improvement belongs and whether it warrants an instruction at all, follow the capture's promotion gate and the
+   auditor's route candidates rather than re-deriving that ordering here.
 
 Do NOT edit any files — return the retrospective text and the suggestion list for the calling agent to verify and apply.
 Only propose improvements that are durable and non-obvious; skip one-off trivia.

@@ -1571,20 +1571,22 @@ Key modules (libraries, not services):
 - **Agents-auditor subagent for agent-tooling maintenance**: the `agents-auditor` subagent
   (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
   `.opencode/` files — for the drift an accretion-only set produces: entries contradicted elsewhere, stale enumerations,
-  dead cross-references, near-duplicate gotchas, and `AGENTS.md` entries that violate the stated authoring standard. Its
-  finding classes (merge, removal, and route candidates, the advisory class for excluded files, the accreted meta rules
-  with their origins) and the shared report contract are specified in `showcase/quality/agent-skills` — see there rather
-  than here. The boundary is a **provenance partition**: it never _fixes_ what the repo does not author (the generated
-  OpenSpec instruction files and the vendored `axon4to5-*` skills), though it still _reads_ them and reports an advisory
-  item where one contradicts how the repo uses it — a project-authored file that shares a generated prefix, like
-  `opsx-tool-update`, stays in scope — a boundary drawn by provenance, not a filename pattern, which over-captures (the
-  same holds for any audit, ignore, or lint scope). Trigger it with the `/audit-agents` command; the main agent applies
-  the approved findings under the review gate, and one audit's findings can need different delivery routes — split the
-  output by fix type and scope each unit's artifacts and diff to its own fixes, rather than running the whole audit
-  through one unit. The scheduled variant runs unattended in the `audit` workflow; the audit itself is on demand. A
-  report's reduction candidates are drained by the standing owner-gated unit `/apply-audit-reductions` (specified in
-  `showcase/quality/agent-skills`), run per report rather than left to age; the report's other findings go through the
-  normal change workflow. captured: record-agents-md-authoring-standard
+  dead cross-references, near-duplicate gotchas, `AGENTS.md` entries that violate the stated authoring standard, and a
+  recurring structural defect it traces to the mechanism that produces the artifact. Its finding classes (merge,
+  removal, and route candidates, the advisory class for excluded files, the accreted meta rules with their origins, and
+  the authoring-system gap class for a recurring defect's mechanism) and the shared report contract are specified in
+  `showcase/quality/agent-skills` — see there rather than here. The boundary is a **provenance partition**: it never
+  _fixes_ what the repo does not author (the generated OpenSpec instruction files and the vendored `axon4to5-*` skills),
+  though it still _reads_ them and reports an advisory item where one contradicts how the repo uses it — a
+  project-authored file that shares a generated prefix, like `opsx-tool-update`, stays in scope — a boundary drawn by
+  provenance, not a filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). Trigger
+  it with the `/audit-agents` command; the main agent applies the approved findings under the review gate, and one
+  audit's findings can need different delivery routes — split the output by fix type and scope each unit's artifacts and
+  diff to its own fixes, rather than running the whole audit through one unit. The scheduled variant runs unattended in
+  the `audit` workflow; the audit itself is on demand. A report's reduction candidates are drained by the standing
+  owner-gated unit `/apply-audit-reductions` (specified in `showcase/quality/agent-skills`), run per report rather than
+  left to age; the report's other findings go through the normal change workflow. captured:
+  record-agents-md-authoring-standard
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus for the cross-spec structural consistency
   `openspec validate` does not gate — title ↔ capability-path match, Purpose ↔ requirements fit, requirement
@@ -1662,12 +1664,16 @@ Key modules (libraries, not services):
   the tables are not the README's only copy; a task for the capability `## Purpose` refresh (a delta cannot carry a
   Purpose); and the proposal's `### New Capabilities`/ `### Modified Capabilities` subsections ("none" where empty).
   Keep any enumerated list (the swept surfaces, the finding classes) verbatim-identical across proposal/design/tasks/
-  delta. The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round
-  surfaced one of these that a prior analogous change had covered — read the archived analogous change and grep for the
-  artifact's name before hand-writing the set — and point the proposal's site list at the tasks that name those sites
-  rather than hand-writing it, since a hand-written enumeration keeps under-matching the union it derives from.
-  captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12 captured: record-review-rounds captured:
-  bound-the-review-loop captured: bump-dependencies-2026-10-16
+  delta **and across the definition's own sections** — its class paragraph, method bullets, and verdict line are
+  separate edit passes, so a routing updated in one survives stale in another (a method bullet routed an out-of-scope
+  mechanism to the advisory class while the class paragraph carried the three-branch routing); state it once and point
+  the others at it. The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because
+  each round surfaced one of these that a prior analogous change had covered — read the archived analogous change and
+  grep for the artifact's name before hand-writing the set (for a set the change enumerates, the "the only X" bullet's
+  member grep is the sweep) — and point the proposal's site list at the tasks that name those sites rather than
+  hand-writing it, since a hand-written enumeration keeps under-matching the union it derives from. captured:
+  add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12 captured: record-review-rounds captured:
+  bound-the-review-loop captured: bump-dependencies-2026-10-16 captured: widen-audit-agents-to-authoring-gaps
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
   `.opencode/opencode.json` (`model` and `small_model` — two keys), the flash-pinned subagent frontmatter
@@ -3506,15 +3512,14 @@ capture-stash-stale-copy
   `dependency-updates.yml` and `dependency-security.yml` too. Adding a **member** to such a set widens every live
   enumeration of it in the same change — and when an auditor sweeps the set, that includes its definition, its trigger
   command, `AGENTS.md`'s summary of the auditor, and the **spec requirement that owns the sweep**, which is a main spec
-  and so needs a `MODIFIED` delta rather than a docs edit (the swept-surface set is enumerated in exactly those four
-  places). Grep the set's distinctive members across `.opencode/`, `openspec/specs/`, `AGENTS.md`, `README.md`,
-  `docs/ideas.md`, and `scripts/` before writing the addition — a tool's own module docstring and its `--help` text are
-  live enumerations of the same set too; the change's own four planning copies can be kept identical while all four live
-  sites go stale. The sweep covers non-doc artifacts too: recording that a component is deliberately _not_ used
-  (ADR-0009's "without Axon Server") must grep the whole repo for its name, because config, values, and template
-  comments carry claims no auditor reads (`helm/chart/src/main/helm/values.yaml` still called the `db-scheduler`
-  settings "Axon Server scheduler settings"). captured: monitor-web-ui-npm-dependencies (#395) captured:
-  verify-unique-review-rounds
+  and so needs a `MODIFIED` delta rather than a docs edit. Grep the set's distinctive members across `.opencode/`,
+  `openspec/specs/`, `AGENTS.md`, `README.md`, `docs/ideas.md`, and `scripts/` before writing the addition — a tool's
+  own module docstring and its `--help` text are live enumerations of the same set too; the change's own four planning
+  copies can be kept identical while all four live sites go stale. The sweep covers non-doc artifacts too: recording
+  that a component is deliberately _not_ used (ADR-0009's "without Axon Server") must grep the whole repo for its name,
+  because config, values, and template comments carry claims no auditor reads (`helm/chart/src/main/helm/values.yaml`
+  still called the `db-scheduler` settings "Axon Server scheduler settings"). captured: monitor-web-ui-npm-dependencies
+  (#395) captured: verify-unique-review-rounds
 
 ### Environment & host toolchain
 

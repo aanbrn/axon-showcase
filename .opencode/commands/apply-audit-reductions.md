@@ -12,7 +12,7 @@ report's reductions; it never runs automatically.
    both and ask which — do not guess an ordering.
 2. Read that report's **reduction candidates** — its findings labelled a merge, removal, or route candidate — and the
    parked reduction entries in `docs/ideas.md` they correspond to. The report's other findings go through the normal
-   change workflow, and its advisory and accretion classes are out of scope.
+   change workflow, and its advisory, accretion, and authoring-system gap classes are out of scope.
 3. Present each candidate with its suggested rewrite or target, and ask the user which to apply — do not edit files
    without their go-ahead.
 4. Apply the approved ones, following the candidate's own suggested edit and `AGENTS.md`'s capture-bullet pointer/trim

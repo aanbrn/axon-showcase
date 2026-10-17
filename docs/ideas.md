@@ -15,6 +15,14 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-17
 
+- Give `openspec/config.yaml`'s `rules.tasks` the single-sourcing clause `rules.design` carries — parked; no change yet.
+  `rules.design` states "A model stated in more than one artifact is single-sourced, the rest referencing it by name",
+  but `rules.tasks` carries none, so a count corrected in the design was left in a `tasks.md` task body
+  (`widen-audit-agents-to-authoring-gaps` round 2), and `single-sourcing` is a recurring class in the record. The
+  config's per-artifact rules surface at drafting time, where the `design`/`tasks` asymmetry bites; `rules.proposal` has
+  the same gap (its `Impact` rule names only build/tests/deployment). Complements the parked proposal-site-derivation
+  clause above — both are `openspec/config.yaml` `rules` edits.
+
 - Require a proposal to derive its touched sites from the change's tasks — parked; no change yet. This unit's round-1
   `incomplete-enumeration` under-matched the describing sites (the definition's frontmatter `description` and the README
   Self-Learning Loop prose) because the proposal's site list was hand-written, and `AGENTS.md`'s "recurring unit type"
@@ -260,8 +268,8 @@ dated when it was added (start a new section for a new day rather than appending
 - Trend the audit counts across reports — parked; no change yet. The capture rule leans on the verdict's accreted-rule
   count as the growth control, but nothing reads it back, so the only quantitative signal that consolidation is winning
   goes uncollected. A small report — or a `/retrospective` input — extracting the verdict lines from `docs/audits/*.md`
-  would show findings, merge, removal, and accreted counts over time. Five reports now exist, and one definition now
-  governs the accreted count, so reports from here on are comparable and the trend is buildable.
+  would show findings, merge, removal, accreted, and authoring-system gap counts over time. Five reports now exist, and
+  one definition now governs the accreted count, so reports from here on are comparable and the trend is buildable.
 
 - Record the lesson-capture's rejected proposals — parked; no change yet. A "nothing durable" verdict is a judgment that
   vanishes (the `widen-auditor-to-route-candidates` capture's, for instance); recording each rejected proposal with the

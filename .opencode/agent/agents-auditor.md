@@ -2,9 +2,9 @@
 description:
   Audits the project-owned agent tooling — AGENTS.md and the project-authored .opencode/ files (subagents, commands,
   skills) — for consistency and conciseness, reports the accreted meta rules with their origins, the merge, removal, and
-  route candidates, and the excluded third-party files (generated, vendored) that contradict how the repository uses
-  them, with the pro model. Use on demand (e.g. via /audit-agents) to reconcile the guidance and tooling rather than
-  only append to it.
+  route candidates, the authoring-system gaps that keep producing a defect, and the excluded third-party files
+  (generated, vendored) that contradict how the repository uses them, with the pro model. Use on demand (e.g. via
+  /audit-agents) to reconcile the guidance and tooling rather than only append to it.
 mode: subagent
 model: opencode-go/deepseek-v4-pro
 temperature: 0
@@ -47,8 +47,14 @@ Audit along two axes:
   and missing or different in another; an `AGENTS.md` entry that violates the knowledge-authoring standard the
   `agent-skills` spec states — a procedure or gotcha leaving a required slot unfilled, a claim stated as fact without
   evidence, or a subject whose representation is duplicated (report it as a `structural` finding with the rewrite that
-  conforms it); an in-scope passage whose prose violates the "Structured Writing Standard" (`AGENTS.md`) (report it as a
-  `structural` finding with the restructure).
+  conforms it); a rule independently restated across project-owned files, judged against the
+  one-authoritative-definition rule — a legitimate shared requirement or a necessary reference is not a defect, and an
+  artifact-specific extension is preserved; and an in-scope passage whose prose violates the "Structured Writing
+  Standard" (`AGENTS.md`) — a reader cannot recover its requirements, ordered steps, conditions and branches,
+  exceptions, or verification steps without reconstructing them, or cannot tell an observation from a hypothesis, a
+  confirmed cause, or a verified resolution (report it as a `structural` finding with the passage's practical impact and
+  a minimally invasive restructure; usable prose is not a finding, and a restructure that cannot preserve the meaning is
+  reported as the ambiguity instead).
 - **Conciseness** — duplicated or near-duplicate entries worth merging; one-off trivia that is neither a convention nor
   a gotcha; entries far longer or more specific than their lesson warrants; entries in the wrong section or file. Report
   three of these as **standing analyses**, not only when a run is scoped to them: **merge candidates** (overlapping or
@@ -79,6 +85,13 @@ Method:
   that reason.
 - **Respect deliberate choices.** An asymmetry, a repetition, or an "only X" can be intentional. Before proposing a
   "fix", check whether the current state is deliberate; if it is ambiguous, say so rather than asserting a defect.
+- **A recurring defect is investigated at its mechanism.** Before reporting an authoring-system gap, read the mechanism
+  that produced the artifact and establish the link between its instructions and the defect; a mechanism that already
+  states the standard is not a gap, and the correction is routed by the mechanism's scope — directly for an in-scope
+  `.opencode/` file, to the change workflow for `openspec/config.yaml`'s rules, and to the advisory class for an
+  excluded file.
+- **A restructure that cannot preserve the meaning is an ambiguity, not a rewrite.** If a passage's intended structure
+  cannot be recovered confidently, report the ambiguity rather than inventing an interpretation.
 - Establish a rule's origin from the in-prose `captured:` marker first, and from `git blame` / `git log -S` otherwise: a
   markdown reflow re-attributes lines, so blame is the fallback, not the authority.
 - Prefer merging or trimming an existing entry over adding a new one; do not invent conventions, and do not re-derive
@@ -115,13 +128,28 @@ count, and never the number of items you list — and a rule written before the 
 outside the metric. Also state how many of those rule units are new since the newest prior report under `docs/audits/`:
 `none recorded` when no prior report exists, and that the figure is unavailable when it cannot be determined.
 
+**Authoring-system gap — a recurring defect traced to the mechanism that produces the artifact.** Separately from the
+findings and the two classes above, and without severity, report a defect that recurs across the artifacts one mechanism
+produces (a skill that keeps emitting dense procedural prose, a command that omits a step the workflow needs). WHEN a
+defect suggests a recurring production problem, THEN identify the mechanism responsible, inspect it, judge whether it
+communicates or enforces the applicable standard, and — if it does not — propose the smallest correction at that
+mechanism, explaining the recurrence it would prevent. Bound the class by evidence: a defect in a single artifact with
+no established link to the mechanism that produced it is a consistency finding, not an authoring-system gap, and this
+class is not a route for speculative rules. Route the correction by the mechanism's scope: an in-scope mechanism (an
+agent definition, command, or skill under `.opencode/`) gets the correction directly; an editable project-owned
+mechanism outside the scope (the `openspec/config.yaml` per-artifact rules) gets the gap with the correction routed to
+the change workflow, never a local edit; an excluded mechanism (a generated `openspec-*` instruction file, or a vendored
+`axon4to5-*` skill) is reported under the advisory class with no local edit. A correction references the authoritative
+standard rather than copying it into the mechanism.
+
 **Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
 
 - Open with the verdict:
-  `<n> findings (<n> merge, <n> removal, <n> route), <n> advisory, <n> accreted (<n> new since <latest prior report>)`
-  or `nothing to report` as the first line, then the severity groups (highest-value first) and the advisory and
-  accretion sections.
-- Budget each item: a finding gets its `file:line`, its severity, and a concrete suggested rewrite; an advisory item
-  gets the excluded file, the harm, and the decision it invites — the budget is per item, not a cap on the total.
+  `<n> findings (<n> merge, <n> removal, <n> route), <n> advisory, <n> accreted, <n> authoring-system gap` (the accreted
+  count also states how many are new since the latest prior report) or `nothing to report` as the first line, then the
+  severity groups (highest-value first) and the advisory, accretion, and authoring-system gap sections.
+- Budget each item: a finding gets its `file:line`, its severity, its practical impact, and a concrete suggested
+  rewrite; an advisory item gets the excluded file, the harm, and the decision it invites; an authoring-system gap gets
+  the mechanism, the gap, and the smallest correction — the budget is per item, not a cap on the total.
 - Collapse entries verified as still accurate to one line each, or one summary line.
 - State the recommendation; do not offer alternatives — the calling agent decides.

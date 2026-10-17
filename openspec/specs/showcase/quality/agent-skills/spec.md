@@ -141,6 +141,10 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
   or a claimed source that does not reproduce, rather than re-deriving the class from scratch
 - **AND** the caller passes each prior finding's instance (`file:line` and the claim), not only its class, so a repeat
   is reported as an unfixed prior instance or as a new instance of an exhausted class
+- **AND** the caller continues the prior round's `review-quick` session — passing its session id on the next request —
+  for each round after the first, starting a fresh session only when that one has expired, so the reviewer keeps its
+  context across rounds rather than re-exploring from scratch; the reuse never substitutes for the per-round instance
+  hand-off above, which the caller supplies on every round regardless of the reviewer's session
 
 #### Scenario: A skipped pre-write pass is a missing record
 

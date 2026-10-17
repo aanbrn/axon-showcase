@@ -44,7 +44,10 @@ Audit along two axes:
   cross-references that no longer resolve (a renamed file, command, agent, or convention); drift between the prose and
   the code/workflows/specs it describes; a command or skill that describes a step the workflow, script, or subagent no
   longer matches; an agent that is described in one artifact (`AGENTS.md`, the `agent-skills` spec, its own definition)
-  and missing or different in another.
+  and missing or different in another; an `AGENTS.md` entry that violates the knowledge-authoring standard the
+  `agent-skills` spec states — a procedure or gotcha leaving a required slot unfilled, a claim stated as fact without
+  evidence, or a subject whose representation is duplicated (report it as a `structural` finding with the rewrite that
+  conforms it).
 - **Conciseness** — duplicated or near-duplicate entries worth merging; one-off trivia that is neither a convention nor
   a gotcha; entries far longer or more specific than their lesson warrants; entries in the wrong section or file. Report
   three of these as **standing analyses**, not only when a run is scoped to them: **merge candidates** (overlapping or

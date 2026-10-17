@@ -15,6 +15,15 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-17
 
+- Require a proposal to derive its touched sites from the change's tasks — parked; no change yet. This unit's round-1
+  `incomplete-enumeration` under-matched the describing sites (the definition's frontmatter `description` and the README
+  Self-Learning Loop prose) because the proposal's site list was hand-written, and `AGENTS.md`'s "recurring unit type"
+  bullet already prescribes deriving it — the miss has now recurred (`widen-architecture-auditor-to-intent-gaps`, this
+  unit). The fix belongs in `openspec/config.yaml`'s `proposal` rules, the text shown at drafting time, rather than in
+  another `AGENTS.md` sentence: add "A change that adds or widens a member of a set (a swept surface, a finding class,
+  an output kind, a documented enumeration) derives the sites it touches from the change's tasks, never a hand-written
+  list".
+
 - Check that every recorded class is in the reviewer's canonical list — parked; no change yet. The 2026-10-15
   retrospective's S2, the remaining enabler of the window comparison its baseline names. The label set lives as prose in
   `review-quick`'s class list, and the retrospective found it drifting across the record — which matters because the

@@ -75,7 +75,9 @@ rules:
     - Every mechanism or task-check claim is derived from the dependency graph or the tool's own definition
     - Carry the claims table — each fact the change states about its evidence (the prior artifacts it rests on) with its
       source or the command that derives it; a row about an artifact the change itself edits anchors to that artifact's
-      pre-change state (`git show HEAD:<path>`), since it stops reproducing once the change lands
+      pre-change state (`git show HEAD:<path>`), since it stops reproducing once the change lands; a source that is a
+      command's output states the reason by class, never a list of its lines; and the table is re-derived after the
+      unit's last append to its own record, which adds a scan candidate
     - Follow the "Structured Writing Standard" in AGENTS.md — one decision per entry with its alternatives as separate
       bullets, and a table for the claims table or any like-row content
   tasks:
@@ -87,8 +89,8 @@ rules:
       `*RulesTests`, an inline gate in its consuming module — instead of a task asserting the control was run, plus a
       task to read the output of any scratch command used as evidence
     - Include the per-unit `lesson-capture` step as a task in every change — run the `lesson-capture` subagent, apply
-      its durable proposals, and record the applied net `AGENTS.md` delta on the task — so an unrun capture is a missing
-      box rather than a recollection
+      its durable proposals (routing an authoring-system recommendation to the mechanism it names), and record the
+      applied net `AGENTS.md` delta on the task — so an unrun capture is a missing box rather than a recollection
     - Carry the pre-write derivation pass as a task in every change — the pass `AGENTS.md`'s review-loop bullet names,
       whose output is the claims table, never restated here — so a skipped pass is a missing box rather than looking
       like a pass that found nothing

@@ -317,16 +317,19 @@ capture-reverted-sweep-lessons (#283)
    `design.md`, or in `tasks.md` for a unit that writes no `design.md`, or on the pull-request checklist line for a unit
    with no change dir. Seed it with `scripts/claim-scan.py` (via `/seed-claims`), whose candidates for the unit's diff
    are each resolved into a row or recorded as a dismissal beside the table — one reason per kind, never an enumerating
-   clause, since a list of a kind's candidates is incomplete by construction and the artifact stating it adds candidates
-   to the scanned set — a lead list, never a gate, and it seeds the table rather than replacing the derivation
-   (`showcase/quality/agent-skills` owns the behaviour). A row about an artifact the change itself edits anchors its
-   source to that artifact's pre-change state (`git show HEAD:<path>`): it stops reproducing once the change lands. A
-   site named for a later sweep is quoted by its text or token, never by a line number — a concurrent merge moves it, so
-   the anchor is stale as committed (`AGENTS.md:NNNN` anchors were two lines out here). A task's `**Done**` note that
-   must report a figure states a relative result — the difference between two runs, which the corpus's growth leaves
-   fixed — the command's outcome, or a text-quoted site, never an absolute count its own writes move (its appended
-   ledger rows, the candidates its own artifact adds to the scan). captured: widen-architecture-auditor-to-stale-ideas
-   captured: normalize-the-review-round-digest
+   clause, governing a row's source as well as a dismissal: a source that is a command's output states the reason by
+   class, never a list of the output's lines, since a list of a kind's candidates or of an output's lines is incomplete
+   by construction and the artifact stating it adds candidates to the scanned set — a lead list, never a gate, and it
+   seeds the table rather than replacing the derivation (`showcase/quality/agent-skills` owns the behaviour). A row
+   about an artifact the change itself edits anchors its source to that artifact's pre-change state
+   (`git show HEAD:<path>`): it stops reproducing once the change lands. A site named for a later sweep is quoted by its
+   text or token, never by a line number — a concurrent merge moves it, so the anchor is stale as committed
+   (`AGENTS.md:NNNN` anchors were two lines out here). A task's `**Done**` note or a claims-table entry that must report
+   a figure states a relative result — the difference between two runs, which the corpus's growth leaves fixed — the
+   command's outcome, or a text-quoted site, never an absolute count its own writes move (its appended ledger rows, the
+   candidates its own artifact adds to the scan), so re-derive the table after the unit's last append to its own record,
+   which adds one. captured: widen-architecture-auditor-to-stale-ideas captured: normalize-the-review-round-digest
+   captured: capture-authoring-system-gaps
 3. Run `review-quick` against the change's planning artifacts — for the proposal round, the
    proposal/design/tasks/spec-delta coherence and repo fit; for the implementation round, the tasks and delta spec.
 4. Fix everything it finds; re-run. Repeat until it reports no new observations.
@@ -424,7 +427,8 @@ merge.
 
 1. Run the `lesson-capture` subagent with the diff, the review findings, the change dir when one exists, and a short
    note on what went wrong or was learned. It proposes AGENTS.md additions — gotchas and conventions worth recording —
-   and the rules the unit makes obsolete or redundant, as retirement or replacement candidates.
+   the rules the unit makes obsolete or redundant as retirement or replacement candidates, and any authoring-system
+   recommendation, whose fix belongs in a mechanism producing artifacts rather than in this file.
 2. Apply the proposals the main agent judges durable. An implementation capture is caused by the unit, so it rides the
    unit's branch and ships in its PR.
 3. A merge runs no capture: at the merge, read what the merge alone affected — its non-diff effects, such as an agent PR

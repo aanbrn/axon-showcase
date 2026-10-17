@@ -354,3 +354,10 @@
 2026-10-17	normalize-the-review-round-digest	10	-	-	0
 2026-10-17	normalize-the-review-round-digest	11	single-sourcing	-	1
 2026-10-17	normalize-the-review-round-digest	12	-	-	0
+2026-10-17	capture-authoring-system-gaps	1	claim-unreproducible,incomplete-enumeration,claim-missing,coherence	-	4
+2026-10-17	capture-authoring-system-gaps	2	claim-unreproducible,incomplete-enumeration	claim-unreproducible,incomplete-enumeration	2
+2026-10-17	capture-authoring-system-gaps	3	incomplete-enumeration	incomplete-enumeration	1
+2026-10-17	capture-authoring-system-gaps	4	-	-	0
+2026-10-17	capture-authoring-system-gaps	5	missing-scenario,single-sourcing	-	2
+2026-10-17	capture-authoring-system-gaps	6	incomplete-enumeration,claim-missing	incomplete-enumeration,claim-missing	2
+2026-10-17	capture-authoring-system-gaps	7	-	-	0

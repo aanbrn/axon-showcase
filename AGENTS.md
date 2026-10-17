@@ -752,7 +752,8 @@ line.
 ./gradlew :showcase-web-ui:e2eTest
 
 # Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
-# plus workflowLint (actionlint), verifyInfraImageVersions, verifyInstallCommands, verifyDocumentedPins,
+# plus the chart packaging (`:helm:chart:helmPackageMainChart`), workflowLint (actionlint), verifyInfraImageVersions,
+# verifyInstallCommands, verifyDocumentedPins,
 # verifyModuleDependencies,
 # verifyDashboardJson, verifyPrettierAlignment, and the commit-hygiene tasks
 # (verifyCapturedMarkers, testCommitHygiene, testClaimScan, testDoctorCharter, verifyTrackedIgnoredFiles,
@@ -1897,16 +1898,17 @@ hard-coded context name in the repo. The `ci` target declares the fixed `kind-ax
 deployment smoke's throwaway cluster is created under — a comment on each side names the other as the coupling's other
 half. Do not hard-code a machine-specific local context name (like `colima`) in the versioned build.
 
-**Chart validation**: the chart is linted as part of packaging (`helmPackageMainChart` → `helmLintMainChart`). The
-Bitnami `common` dependency is fetched by the plugin's `helmUpdateMainChartDependencies` task — which its own docs
-equate with `helm dependency update` — and that task's `onlyIf` resolves false when the configuration cache stores its
-entry before the chart sources are collected, i.e. on clean checkouts and in CI, so `helm/chart/build.gradle.kts`
-replaces the gate with `setOnlyIf { true }`: without it nothing fetches on a clean checkout, the strict lint fails with
-"chart directory is missing these dependencies: common", and the deployment smoke fails at the install with "found in
-Chart.yaml, but missing in charts/ directory: common". Measured on one commit with only the cache toggled: the task
-reports SKIPPED with the cache on and fetches with `--no-configuration-cache`. The upstream gap is parked in
-`docs/ideas.md`. Lint runs strict (warnings are errors) and lints the Bitnami `common` subchart, rendering two extra
-value sets:
+**Chart validation**: the chart is linted as part of packaging (`helmPackageMainChart` → `helmLintMainChart`), and
+`check` depends on that packaging — the members the `helm-chart` requirement names — so a chart that cannot bundle its
+declared dependency fails the pull request rather than only in the nightly deployment smoke's install. The Bitnami
+`common` dependency is fetched by the plugin's `helmUpdateMainChartDependencies` task — which its own docs equate with
+`helm dependency update` — and that task's `onlyIf` resolves false when the configuration cache stores its entry before
+the chart sources are collected, i.e. on clean checkouts and in CI, so `helm/chart/build.gradle.kts` replaces the gate
+with `setOnlyIf { true }`: without it nothing fetches on a clean checkout, the strict lint fails with "chart directory
+is missing these dependencies: common", and the deployment smoke fails at the install with "found in Chart.yaml, but
+missing in charts/ directory: common". Measured on one commit with only the cache toggled: the task reports SKIPPED with
+the cache on and fetches with `--no-configuration-cache`. The upstream gap is parked in `docs/ideas.md`. Lint runs
+strict (warnings are errors) and lints the Bitnami `common` subchart, rendering two extra value sets:
 
 ```bash
 ./gradlew :helm:chart:helmLintMainChartFull :helm:chart:helmLintMainChartMinimal
@@ -2329,6 +2331,11 @@ capture-stash-stale-copy
   lives in a rules object carries its known-bad and known-good cases in that object's `*RulesTests`, an inline gate in
   its consuming module, since a checklist task asserting the control ran can be ticked without it running.** Recurring
   incidents share this root, each with its own mode to guard against:
+
+- **A check whose bad state the task it depends on already rejects can never fire — the tool's own validation is the
+  gate, and the check is dead code that reads as coverage.** `helm package` rejects a chart whose declared dependency is
+  missing (the strict lint too), so an assertion over the packaged chart cannot fire in the real graph; confirm a new
+  check's rejected state is reachable before authoring it. captured: verify-chart-packaging
 
 - **A glob or filter that matches nothing is vacuous, not clean.** An audit command told the agent to run "a manual
   120-character check for `.opencode/*.md`" — a glob matching **no file**, since the markdown lives in

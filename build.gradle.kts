@@ -617,6 +617,9 @@ tasks.named("check") {
     dependsOn("verifyUniqueCronSchedules")
     dependsOn("verifyUniqueReviewRounds")
     dependsOn("verifyLargeFiles")
+    // The chart's packaging path (its repository setup, dependency fetch, and strict lints), so a chart that cannot
+    // bundle its declared dependency fails the pull request rather than only the nightly deployment smoke's install.
+    dependsOn(":helm:chart:helmPackageMainChart")
     // build-logic is an included build, so its tests are not reached by this project's check.
     dependsOn(gradle.includedBuild("build-logic").task(":test"))
 }

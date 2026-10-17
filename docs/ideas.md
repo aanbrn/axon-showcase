@@ -41,12 +41,16 @@ dated when it was added (start a new section for a new day rather than appending
   unticked box, exempting a task the owner deliberately decoupled from its merge; that exemption is the fiddly part, so
   the guard is worth taking only if it reads as cheaper than the silence.
 
-## 2026-10-16
+- Make the chart-packaging gate's fetches resilient — parked; no change yet. `check` now runs the chart's packaging, so
+  the plugin's repository setup (`helmAdd*Repository`, `helmUpdateRepositories`) and its dependency fetch
+  (`helmUpdateMainChartDependencies`) run on every pull request. The gate-worthy-step rule wants such a fetch made
+  resilient with a bounded retry, but these are the plugin's own task types, so no repo-side wrapper can retry another
+  task's action; `verifyInfraImageVersions`'s `AbstractHelmRepositoriesTask` + `BoundedRetry` is the model for a
+  repo-authored fetch. Verify whether the plugin can configure a retry before acting — if it cannot, the gap is an
+  upstream report on `build-extensions-oss/gradle-helm-plugin` (its issues are enabled), and the remedy is a
+  repo-authored fetch task.
 
-- Give the `build` gate a chart-packaging path — parked; no change yet. Nothing in `check` packages the chart, which is
-  why the broken chart-dependency fetch above was smoke-only for two days: a check that packages the chart and asserts
-  `charts/common-*.tgz` lands would have caught it in the pull request that broke it. The cost is one fetch of the
-  Bitnami subchart per PR, which the gate already pays in kind for `verifyInfraImageVersions`.
+## 2026-10-16
 
 - Report the plugin's cache-dependent chart-dependency skip upstream — parked; no change yet. The
   `helmUpdateMainChartDependencies` task (which the plugin's docs equate with `helm dependency update`) silently skips

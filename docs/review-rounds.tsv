@@ -327,3 +327,17 @@
 2026-10-17	park-review-loop-follow-ups	3	-	-	0
 2026-10-17	park-review-loop-follow-ups	4	incomplete-enumeration	-	1
 2026-10-17	park-review-loop-follow-ups	5	-	-	0
+2026-10-17	verify-chart-packaging	1	contradiction,claim-unreproducible,missing-task,test-control,claim-missing,incomplete-enumeration,single-sourcing,formatting	-	5
+2026-10-17	verify-chart-packaging	2	claim-unreproducible,claim-missing,test-control	claim-unreproducible,claim-missing,test-control	2
+2026-10-17	verify-chart-packaging	3	missing-task,wording	missing-task	2
+2026-10-17	verify-chart-packaging	4	incomplete-enumeration,over-claim	incomplete-enumeration	2
+2026-10-17	verify-chart-packaging	5	wording,incomplete-enumeration	wording,incomplete-enumeration	2
+2026-10-17	verify-chart-packaging	6	over-claim	over-claim	1
+2026-10-17	verify-chart-packaging	7	contradiction	contradiction	1
+2026-10-17	verify-chart-packaging	8	-	-	0
+2026-10-17	verify-chart-packaging	9	missing-task	missing-task	1
+2026-10-17	verify-chart-packaging	10	claim-unreproducible	claim-unreproducible	1
+2026-10-17	verify-chart-packaging	11	-	-	0
+2026-10-17	verify-chart-packaging	12	missing-task	missing-task	1
+2026-10-17	verify-chart-packaging	13	claim-unreproducible	claim-unreproducible	1
+2026-10-17	verify-chart-packaging	14	-	-	0

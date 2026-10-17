@@ -5,7 +5,8 @@
 Documents the current behavior of the Helm chart that deploys the showcase services — command-service, query-service,
 projection-service, api-gateway, and web-ui — their database migration and index initialization jobs, RBAC, network
 policies, autoscaling, and observability wiring, together with the Gradle Helm-release configuration the chart is
-deployed through (each release's namespace and the per-target kube context).
+deployed through (each release's namespace and the per-target kube context) and the standard `check` task's packaging of
+the chart.
 
 ## Requirements
 
@@ -615,3 +616,24 @@ a service image and SHALL keep its own registry (Docker Hub), which the empty gl
 - **WHEN** the local or `ci` values are applied
 - **THEN** each service's registry is empty and each service image is resolved from the local daemon rather than a
   registry
+
+### Requirement: The chart is packaged by the standard check
+
+The standard `check` task SHALL package the chart — the repository setup, the dependency fetch, the strict lint, and the
+package step — so a chart whose declared Bitnami `common` dependency cannot be bundled fails the pull request rather
+than only the nightly deployment smoke's install. The check SHALL require no Kubernetes cluster.
+
+#### Scenario: The standard check packages the chart
+
+- **WHEN** the standard `check` task runs
+- **THEN** the chart's packaging runs and the packaged chart carries its bundled `common` dependency
+
+#### Scenario: A chart that cannot bundle its dependency fails the check
+
+- **WHEN** the chart's declared `common` dependency cannot be bundled, as when the dependency fetch is skipped
+- **THEN** the check fails and names the missing dependency
+
+#### Scenario: The check needs no cluster
+
+- **WHEN** the check runs on a machine with the Helm CLI and no Kubernetes cluster
+- **THEN** the chart's packaging still runs

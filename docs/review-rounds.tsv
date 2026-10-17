@@ -306,3 +306,13 @@
 2026-10-17	refactor-gotchas-section	7	-	-	0
 2026-10-17	make-gotchas-operational	1	single-sourcing,dropped-content,wording,missing-task	-	2
 2026-10-17	make-gotchas-operational	2	-	-	0
+2026-10-17	record-agents-md-authoring-standard	1	single-sourcing,coherence,impact-omission,missing-task,claim-missing,wording,missing-scenario	-	5
+2026-10-17	record-agents-md-authoring-standard	2	single-sourcing,wording,claim-missing,claim-unreproducible	single-sourcing,wording,claim-missing	3
+2026-10-17	record-agents-md-authoring-standard	3	contradiction,wording,incomplete-enumeration	wording	2
+2026-10-17	record-agents-md-authoring-standard	4	-	-	0
+2026-10-17	record-agents-md-authoring-standard	5	missing-task,claim-unreproducible	claim-unreproducible	2
+2026-10-17	record-agents-md-authoring-standard	6	claim-unreproducible	claim-unreproducible	1
+2026-10-17	record-agents-md-authoring-standard	7	claim-unreproducible	claim-unreproducible	1
+2026-10-17	record-agents-md-authoring-standard	8	-	-	0
+2026-10-17	record-agents-md-authoring-standard	9	wording	-	0
+2026-10-17	record-agents-md-authoring-standard	10	-	-	0

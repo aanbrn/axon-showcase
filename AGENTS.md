@@ -246,10 +246,15 @@ capture-reverted-sweep-lessons (#283)
 1. Run the pre-write derivation pass over the planning artifacts, deriving each of the five claim classes the loop keeps
    catching from its source: read every run-log, issue-state, or external-artifact claim from the artifact now; re-grep
    every count against its set; single-source a model stated in more than one artifact; derive every mechanism or
-   task-check claim from the tool or the graph; and, for a change whose facts are its own measurement or computation,
-   derive each figure from the mechanism that produces it — the window or instant it spans and the aggregation it
-   applies — re-deriving it after that mechanism's last edit, since a figure measured before the final tuning does not
-   reproduce (the measurement-attribution gotcha carries the series rule). captured: seed-claims-from-the-diff
+   task-check claim from the tool or the graph; and, for a change whose facts are its own measurement, computation, or
+   process record, derive each figure from the mechanism that produces it — the window or instant it spans and the
+   aggregation it applies, or for a record figure the command that emits it (a review round's row from its report's
+   record line, the capture record's net delta from `git diff --numstat AGENTS.md` after `spotlessApply`, per-hunk
+   `git diff -U0` counts when other edits share the file) — re-deriving it after that mechanism's last edit, since a
+   figure measured before the final tuning, or written from what the edits were meant to add, is the claim the next
+   round reports unreproducible (`verify-unique-review-rounds` recorded a row clean before its round reported and stated
+   a net `AGENTS.md` delta of `+2` where the diff measured `+5`; the measurement-attribution gotcha carries the series
+   rule). captured: seed-claims-from-the-diff captured: record-agents-md-authoring-standard
 2. Record the pass. Every unit carries it as a task — a task in a change's `tasks.md`, or a line in the pull-request
    checklist for a unit with no change dir — so a missing box is a skip, not a pass that found nothing. Its output is
    the change's **claims table** — each fact the change states about its evidence (the prior artifacts it rests on) with
@@ -277,7 +282,10 @@ final edit). captured: decide-against-pre-review
   each prior finding's **instance** (`file:line` and the claim) from the prior round's report, so the subagent can
   report an unfixed prior instance or a new instance of an exhausted class rather than classifying each round in
   isolation. The instances live only in that report, not the class-only record line, so a loop whose **caller** is about
-  to lose its context — a new session — writes them to a handover before it is lost and resumes by running the round.
+  to lose its context — a new session — writes them to a handover before it is lost and resumes by running the round,
+  the handover written from the artifact (each `file:line` and its text), never from what the edit was meant to do: its
+  claims are the successor's premise, and one that does not reproduce costs the round it was meant to save. captured:
+  record-agents-md-authoring-standard
 - **Continue the reviewer's session** across rounds (pass its session id on the next request); start fresh only when
   that session has expired or the reviewer's definition changed (a subagent session can). Each round must not lean on
   the reviewer's memory in place of the hand-off, which is the caller's record; the session-reuse rule's rationale is in
@@ -291,9 +299,11 @@ final edit). captured: decide-against-pre-review
   the same sweep even though it adds no behavior: the artifacts the change states the model across — planning and
   shipped alike — state one model of the subject, so correcting the model in the artifacts the finding names leaves a
   sibling — often the shipped copy, not only `proposal.md` — stating the old framing, which the next round flags as
-  coherence drift. Re-read every artifact that states the corrected claim, `proposal.md` and the shipped copies
-  included, before re-running the review. captured: record-baseline-operating-point captured:
-  widen-architecture-auditor-to-revisit-triggers captured: add-apply-audit-reductions-command
+  coherence drift. Re-read every artifact that states the corrected claim, `proposal.md` and the shipped copies included
+  — and the section _inside_ an artifact, such as a delta requirement's description beside its scenarios — before
+  re-running the review; `openspec validate` checks a scenario's presence, never that it still agrees with the
+  description. captured: record-baseline-operating-point captured: widen-architecture-auditor-to-revisit-triggers
+  captured: add-apply-audit-reductions-command captured: record-agents-md-authoring-standard
 - **Single-source a claim one source owns** — a predicate the requirement owns (a threshold, band, or formula), or a
   scope the owning definition states via its class names: state it once there and repeat it identically (referencing it
   by name where the site can), since a restated copy re-anchors on its own (a README copy made the matching band a tenth
@@ -416,6 +426,9 @@ captured: bound-the-review-loop captured: make-the-p99-verdict-confirm-first
 
 **How a captured rule is recorded**
 
+- **Author each entry to the stated standard.** The knowledge-authoring standard the `agent-skills` spec states governs
+  every entry — the representation it takes, a procedure's and a gotcha's shape, the evidence its claims need, and the
+  validation before finishing — and the `agents-auditor` reconciles entries against the same standard.
 - **One capture per unit, never a chain.** Process mistakes that leave no diff trace (e.g. a git command that discarded
   work) are the most valuable thing to capture — this is what makes the capture systematic instead of memory-dependent.
 - **Each captured rule carries its origin in a `captured: <unit>` marker** — the unit at an implementation capture, the
@@ -1488,19 +1501,20 @@ Key modules (libraries, not services):
 - **Agents-auditor subagent for agent-tooling maintenance**: the `agents-auditor` subagent
   (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
   `.opencode/` files — for the drift an accretion-only set produces: entries contradicted elsewhere, stale enumerations,
-  dead cross-references, near-duplicate gotchas. Its finding classes (merge, removal, and route candidates, the advisory
-  class for excluded files, the accreted meta rules with their origins) and the shared report contract are specified in
-  `showcase/quality/agent-skills` — see there rather than here. The boundary is a **provenance partition**: it never
-  _fixes_ what the repo does not author (the generated OpenSpec instruction files and the vendored `axon4to5-*` skills),
-  though it still _reads_ them and reports an advisory item where one contradicts how the repo uses it — a
-  project-authored file that shares a generated prefix, like `opsx-tool-update`, stays in scope — a boundary drawn by
-  provenance, not a filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). Trigger
-  it with the `/audit-agents` command; the main agent applies the approved findings under the review gate, and one
-  audit's findings can need different delivery routes — split the output by fix type and scope each unit's artifacts and
-  diff to its own fixes, rather than running the whole audit through one unit. The scheduled variant runs unattended in
-  the `audit` workflow; the audit itself is on demand. A report's reduction candidates are drained by the standing
-  owner-gated unit `/apply-audit-reductions` (specified in `showcase/quality/agent-skills`), run per report rather than
-  left to age; the report's other findings go through the normal change workflow.
+  dead cross-references, near-duplicate gotchas, and `AGENTS.md` entries that violate the stated authoring standard. Its
+  finding classes (merge, removal, and route candidates, the advisory class for excluded files, the accreted meta rules
+  with their origins) and the shared report contract are specified in `showcase/quality/agent-skills` — see there rather
+  than here. The boundary is a **provenance partition**: it never _fixes_ what the repo does not author (the generated
+  OpenSpec instruction files and the vendored `axon4to5-*` skills), though it still _reads_ them and reports an advisory
+  item where one contradicts how the repo uses it — a project-authored file that shares a generated prefix, like
+  `opsx-tool-update`, stays in scope — a boundary drawn by provenance, not a filename pattern, which over-captures (the
+  same holds for any audit, ignore, or lint scope). Trigger it with the `/audit-agents` command; the main agent applies
+  the approved findings under the review gate, and one audit's findings can need different delivery routes — split the
+  output by fix type and scope each unit's artifacts and diff to its own fixes, rather than running the whole audit
+  through one unit. The scheduled variant runs unattended in the `audit` workflow; the audit itself is on demand. A
+  report's reduction candidates are drained by the standing owner-gated unit `/apply-audit-reductions` (specified in
+  `showcase/quality/agent-skills`), run per report rather than left to age; the report's other findings go through the
+  normal change workflow. captured: record-agents-md-authoring-standard
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus for the cross-spec structural consistency
   `openspec validate` does not gate — title ↔ capability-path match, Purpose ↔ requirements fit, requirement

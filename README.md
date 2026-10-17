@@ -454,13 +454,13 @@ The process is designed to **learn from itself** — and that is the mechanic, n
   reconciliation does not wait for someone to ask. The `/audit-*` commands remain the on-demand path.
 - **The guidance and tooling are audited, not just appended to.** `/audit-agents` runs an on-demand, pro-model audit of
   `AGENTS.md` and the project-owned `.opencode/` files: it verifies each claim against the repository and reports
-  consistency problems (contradictions, stale claims, dead cross-references, drift) and conciseness problems
-  (duplication, trivia, length, placement) — each with a concrete suggested rewrite, including standing merge, removal,
-  and route candidates — and, separately and without severity, a third-party file our usage contradicts and the meta
-  rules that accreted with the origin that introduced each — decisions for the owner rather than defects to fix. A
-  report's reduction candidates do not age: the standing, owner-gated `/apply-audit-reductions` unit applies them as
-  merged text, pointers, or deletions under the review gate. So the guidance and tooling stay consistent and concise
-  instead of only growing.
+  consistency problems (contradictions, stale claims, dead cross-references, drift, `AGENTS.md` entries that violate the
+  stated authoring standard) and conciseness problems (duplication, trivia, length, placement) — each with a concrete
+  suggested rewrite, including standing merge, removal, and route candidates — and, separately and without severity, a
+  third-party file our usage contradicts and the meta rules that accreted with the origin that introduced each —
+  decisions for the owner rather than defects to fix. A report's reduction candidates do not age: the standing,
+  owner-gated `/apply-audit-reductions` unit applies them as merged text, pointers, or deletions under the review gate.
+  So the guidance and tooling stay consistent and concise instead of only growing.
 - **Periodic retrospectives zoom out.** `/retrospective` turns a window of merged PRs and the git log, together with the
   archived changes and accumulated gotchas, into a sprint retrospective whose suggestions are classified `process` (→
   `AGENTS.md` or a subagent definition) or `system` (→ an idea or a proposal), so both the process and the system keep

@@ -64,10 +64,13 @@
       derived from the corpus and the three refactor commits, with the `scripts/claim-scan.py` candidates (base
       `origin/main`) each resolved into a row or dismissed beside the table. **Done** — the pass ran; one row (the
       "procedure's slots" claim) is derived from `AGENTS.md` at HEAD.
-- [ ] 5.2 Append this unit's review-round rows to `docs/review-rounds.tsv` as each round's report arrives.
-- [ ] 5.3 **Owed — for the archive commit**: the `agent-skills` `## Purpose` enumerates what the capability holds and
+- [x] 5.2 Append this unit's review-round rows to `docs/review-rounds.tsv` as each round's report arrives. **Done** —
+      ten rows (rounds 1-10) appended.
+- [x] 5.3 **Owed — for the archive commit**: the `agent-skills` `## Purpose` enumerates what the capability holds and
       now omits the authoring standard. A delta cannot carry a Purpose, so the edit lands with the archive; the
-      implementing PR's diff therefore carries no main-spec edit beyond the delta, as the report states.
+      implementing PR's diff therefore carries no main-spec edit beyond the delta, as the report states. **Done** — the
+      Purpose now names the knowledge-authoring standard the capture applies when authoring and the audit when
+      reconciling.
 
 ## Workflow follow-up
 

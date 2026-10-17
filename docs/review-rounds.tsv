@@ -2,10 +2,11 @@
 # proposal and implementation reviews), classes raised (comma-separated, or - when none), classes that repeated a prior
 # round (comma-separated, or - when none), and compliance_misses (findings that were a miss of an existing rule).
 # Appended by the main agent from the record line a review round emits; aggregated in the window by
-# scripts/experience-analysis.sh.
+# scripts/review-rounds.py, which the digest's review-rounds block prints.
 # Classes come from the canonical list the reviewer's contract carries (`.opencode/agent/review-quick.md`), which makes
-# the repeat column and the aggregation comparable; rows recorded before that list landed keep the labels
-# they were recorded with, and the mapping from them is in the archived canonical-class-list change's design.
+# the repeat column and the aggregation comparable; rows recorded before that list landed keep the labels they were
+# recorded with, and the mapping from them — recorded in the archived canonical-class-list change's design — is applied
+# by scripts/review-rounds.py.
 2026-10-13	record-review-rounds	1	contradiction,missing-delta,ambiguity	-	2
 2026-10-13	record-review-rounds	2	missing-artifact,wording	missing-artifact	1
 2026-10-13	record-review-rounds	3	missing-artifact	missing-artifact	1
@@ -341,3 +342,15 @@
 2026-10-17	verify-chart-packaging	12	missing-task	missing-task	1
 2026-10-17	verify-chart-packaging	13	claim-unreproducible	claim-unreproducible	1
 2026-10-17	verify-chart-packaging	14	-	-	0
+2026-10-17	normalize-the-review-round-digest	1	claim-unreproducible,contradiction,impact-omission,coherence,incomplete-enumeration,claim-missing	-	6
+2026-10-17	normalize-the-review-round-digest	2	claim-unreproducible,contradiction,incomplete-enumeration,claim-missing	claim-unreproducible,contradiction,incomplete-enumeration,claim-missing	4
+2026-10-17	normalize-the-review-round-digest	3	incomplete-enumeration,wording	incomplete-enumeration	1
+2026-10-17	normalize-the-review-round-digest	4	incomplete-enumeration	incomplete-enumeration	1
+2026-10-17	normalize-the-review-round-digest	5	-	-	0
+2026-10-17	normalize-the-review-round-digest	6	missing-task,coherence,incomplete-enumeration	coherence,incomplete-enumeration	3
+2026-10-17	normalize-the-review-round-digest	7	claim-unreproducible,coherence	claim-unreproducible,coherence	2
+2026-10-17	normalize-the-review-round-digest	8	claim-unreproducible,incomplete-enumeration	claim-unreproducible,incomplete-enumeration	2
+2026-10-17	normalize-the-review-round-digest	9	claim-unreproducible	claim-unreproducible	1
+2026-10-17	normalize-the-review-round-digest	10	-	-	0
+2026-10-17	normalize-the-review-round-digest	11	single-sourcing	-	1
+2026-10-17	normalize-the-review-round-digest	12	-	-	0

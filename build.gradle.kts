@@ -507,6 +507,20 @@ tasks.register<Exec>("testDoctorCharter") {
     commandLine(shExecutable, "scripts/test-doctor.sh")
 }
 
+tasks.register<Exec>("testReviewRounds") {
+    group = "verification"
+    description = "Runs the review-round digest's tests"
+    inputs.file("scripts/review-rounds.py")
+    inputs.file("scripts/test-review-rounds.py")
+    inputs.file("docs/review-rounds.tsv")
+    // The test re-derives the declared mapping from the change that recorded it, so that file is an input too.
+    inputs.file(
+        "openspec/changes/archive/2026-10-15-give-the-review-a-canonical-class-list/design.md",
+    )
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/test-review-rounds.py")
+}
+
 tasks.register<Exec>("verifyTrackedIgnoredFiles") {
     group = "verification"
     description = "Verifies no tracked file is excluded by the repository's ignore rules"
@@ -611,6 +625,7 @@ tasks.named("check") {
     dependsOn("testCommitHygiene")
     dependsOn("testClaimScan")
     dependsOn("testDoctorCharter")
+    dependsOn("testReviewRounds")
     dependsOn("verifyTrackedIgnoredFiles")
     dependsOn("verifyConflictMarkers")
     dependsOn("verifyExecutableBits")

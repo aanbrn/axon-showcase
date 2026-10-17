@@ -368,3 +368,9 @@
 2026-10-17	widen-audit-agents-to-authoring-gaps	5	single-sourcing,claim-unreproducible,missing-task,claim-missing	-	3
 2026-10-17	widen-audit-agents-to-authoring-gaps	6	missing-task,docs-residue	missing-task	2
 2026-10-17	widen-audit-agents-to-authoring-gaps	7	-	-	0
+2026-10-17	sharpen-experience-analysis	1	claim-unreproducible,over-claim,incomplete-enumeration,claim-missing	-	2
+2026-10-17	sharpen-experience-analysis	2	claim-missing	claim-missing	0
+2026-10-17	sharpen-experience-analysis	3	claim-missing	claim-missing	0
+2026-10-17	sharpen-experience-analysis	4	-	-	0
+2026-10-17	sharpen-experience-analysis	5	formatting,claim-unreproducible,coherence,claim-missing,incomplete-enumeration	claim-missing,incomplete-enumeration	3
+2026-10-17	sharpen-experience-analysis	6	-	-	0

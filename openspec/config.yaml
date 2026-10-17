@@ -57,7 +57,7 @@ rules:
     - Declare "New Capabilities" / "Modified Capabilities" using existing capability names
     - Note the "Impact" on build, tests, and deployment explicitly
     - Every claim about a run log, issue state, or external artifact is read from that artifact, not recalled
-    - Every count is re-derived by grepping the set it counts
+    - Every count — and every universal claim over a corpus — is re-derived by grepping the set it counts
     - Follow the "Structured Writing Standard" in AGENTS.md — one bullet per change in "What Changes", not a paragraph
       carrying several independent points
   specs:
@@ -72,7 +72,8 @@ rules:
     - Capture "Decisions" with the alternatives considered and why they were rejected
     - Flag "Risks / Trade-offs" with concrete mitigation
     - A model stated in more than one artifact is single-sourced, the rest referencing it by name
-    - Every mechanism or task-check claim is derived from the dependency graph or the tool's own definition
+    - Every mechanism or task-check claim is derived from the dependency graph or the tool's own definition, and a
+      term or mechanism name with no referent in the repository is deleted rather than defined
     - Carry the claims table — each fact the change states about its evidence (the prior artifacts it rests on) with its
       source or the command that derives it; a row about an artifact the change itself edits anchors to that artifact's
       pre-change state (`git show HEAD:<path>`), since it stops reproducing once the change lands; a source that is a

@@ -258,3 +258,13 @@
 2026-10-16	widen-architecture-auditor-to-stale-ideas	13	claim-unreproducible	claim-unreproducible	1
 2026-10-16	widen-architecture-auditor-to-stale-ideas	14	-	-	0
 2026-10-17	dedupe-round-14-row-2026-10-16	1	-	-	0
+2026-10-17	reuse-review-loop-session	1	claim-missing,over-claim,wording	-	2
+2026-10-17	reuse-review-loop-session	2	claim-unreproducible	-	1
+2026-10-17	reuse-review-loop-session	3	wording	wording	0
+2026-10-17	reuse-review-loop-session	4	claim-unreproducible,over-claim,claim-missing	claim-unreproducible,over-claim,claim-missing	2
+2026-10-17	reuse-review-loop-session	5	contradiction	-	0
+2026-10-17	reuse-review-loop-session	6	contradiction	contradiction	0
+2026-10-17	reuse-review-loop-session	7	-	-	0
+2026-10-17	reuse-review-loop-session	8	contradiction,missing-task,claim-unreproducible	contradiction,claim-unreproducible	2
+2026-10-17	reuse-review-loop-session	9	wording	wording	1
+2026-10-17	reuse-review-loop-session	10	-	-	0

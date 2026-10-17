@@ -26,15 +26,6 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-16
 
-- Give the persistent-reviewer-session rejection a durable home — parked; no change yet. The standing decision — a
-  persistent reviewer session may not substitute for the per-round instance hand-off (a session's prior context anchors,
-  and the class-exhaustion clause requires searching the artifact anew each round), while the session itself is the
-  caller's to reuse — is stated only for the caller, in `AGENTS.md`'s clause, and otherwise rests on a scratchpad (this
-  file's 2026-10-15 levers entry) and a retrospective that merely record it. Promote it into
-  `showcase/quality/agent-skills` (the requirement owning the quick-review scenario: a `MODIFIED` delta stating the
-  reuse permission and the caller-owned handover), as its own change — an ADR is the wrong genre, since `docs/adr/`
-  covers architecture.
-
 - Give the `build` gate a chart-packaging path — parked; no change yet. Nothing in `check` packages the chart, which is
   why the broken chart-dependency fetch above was smoke-only for two days: a check that packages the chart and asserts
   `charts/common-*.tgz` lands would have caught it in the pull request that broke it. The cost is one fetch of the

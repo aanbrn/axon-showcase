@@ -521,6 +521,15 @@ tasks.register<Exec>("testReviewRounds") {
     commandLine(pythonExecutable, "scripts/test-review-rounds.py")
 }
 
+tasks.register<Exec>("testReviewRouting") {
+    group = "verification"
+    description = "Runs the deep-review routing floor's tests"
+    inputs.file("scripts/review-routing.py")
+    inputs.file("scripts/test-review-routing.py")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/test-review-routing.py")
+}
+
 tasks.register<Exec>("verifyTrackedIgnoredFiles") {
     group = "verification"
     description = "Verifies no tracked file is excluded by the repository's ignore rules"
@@ -626,6 +635,7 @@ tasks.named("check") {
     dependsOn("testClaimScan")
     dependsOn("testDoctorCharter")
     dependsOn("testReviewRounds")
+    dependsOn("testReviewRouting")
     dependsOn("verifyTrackedIgnoredFiles")
     dependsOn("verifyConflictMarkers")
     dependsOn("verifyExecutableBits")

@@ -146,6 +146,23 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 - **WHEN** a unit's proposal (planning artifacts) or its implementation is finished
 - **THEN** the `review-quick` subagent reviews it against the unit's planning artifacts, and the loop repeats until it
   reports no new observations before a manual review is requested
+- **AND** the pass is a bounded screen over what it is given — the supplied diff and the explicitly supplied planning
+  artifacts, and nothing else — so a repository-wide search is not part of it, and a local defect does not trigger one
+- **AND** its fixed scope is: coherence between the supplied proposal, design, tasks, delta specs, and diff; a completed
+  task that visibly does not correspond to the supplied work; an obvious implementation-to-delta-spec mismatch; an
+  explicit broken reference; an obvious convention violation in a changed file; the formatting of a changed file no
+  formatter owns; and the prior-round finding instances the caller supplies
+- **AND** the pass is not required to search for every instance of a finding class, to reproduce every claims-table
+  source or inspect every scan candidate, to analyse tests mutation-style, or to analyse boundary conditions, error
+  paths, callers, configuration, or documentation exhaustively beyond the supplied scope — that depth belongs to the
+  deep review the routing decision below selects
+- **AND** its stop condition scales with what it is given rather than with the repository: the pass ends when each
+  supplied artifact and each changed file has been examined once, so a larger diff is more work and a repository the
+  change does not touch is none, and no second sweep of the same file is part of the screen
+- **AND** the pass's report states that scope and stop condition rather than implying its analysis was unlimited, so a
+  bounded screen is not read as a thorough pass
+- **AND** the governance the pass does not replace stays in force — the pre-write derivation pass, the mandatory
+  quick-review gate, the tests, the manual review, and every other check
 - **AND** for a unit whose diff adds `AGENTS.md` rules (a capture), it also challenges each new rule's durability — the
   decision the rule governs, and whether a future change would plausibly hit it — so trivia and restatements are caught
   at review time rather than by a later consolidation audit
@@ -154,9 +171,6 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
   caller's request names a prior round's findings, a finding whose class a prior round already raised is reported as a
   repeat of that class, naming it — so the loop's convergence signal comes from the review's output rather than the
   caller's recollection, and the caller re-derives the root cause on that signal rather than patching the instance
-- **AND** a class raised on any round — the first included — is **exhausted**: the review searches the artifact for
-  every instance of that class's shape and reports them as one clustered finding, so a class surfaces whole rather than
-  one instance per round
 - **AND** every round emits one machine-readable record line — the date, the unit, the round (continuous per unit across
   its proposal and implementation reviews), the classes raised (comma-separated; `-` when none), which repeated a prior
   class (comma-separated; `-` when none), and the count of findings that were a compliance miss of an existing rule —
@@ -168,16 +182,15 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
   routed to that command rather than reported as a finding; the boundary is the command's own rewrite, not a category of
   violation, so what it leaves alone — an inline code span's interior, a file type no formatter owns — stays reportable
 - **AND** for a record artifact (a retrospective, a load-test record), a later round raising only new instances of an
-  already-raised class stops and escalates to the owner rather than iterating — the class-exhaustion clause above
-  already required that class whole on the round that raised it, so the escalation names the incomplete exhaustion
-  rather than continuing
+  already-raised class stops and escalates to the owner rather than iterating — such an artifact has no shipped behavior
+  to converge on, so the escalation names the loop that cannot converge rather than continuing
 - **AND** every unit carries the pre-write derivation pass as a record — a task in the change's `tasks.md`, or a line in
   the pull-request checklist for a unit with no change dir — so a skipped pass is a missing box rather than looking like
   a pass that found nothing
 - **AND** the pass emits a claims table — each fact the change states about its evidence, the prior artifacts it rests
-  on, with its source or the deriving command — so the review reports a claim in the artifacts missing from the table, a
-  claimed source that does not reproduce, or a scan candidate neither resolved into a row nor listed as a dismissal,
-  rather than re-deriving the class from scratch
+  on, with its source or the deriving command — so the review reports a claim the supplied artifacts state that the
+  table omits, a row whose stated source plainly does not reproduce, or a scan candidate neither resolved into a row nor
+  listed as a dismissal, without re-deriving every row from scratch
 - **AND** the pass seeds that table mechanically: a scan of the authored set's added lines (`scripts/claim-scan.py`, run
   through `/seed-claims`) lists each claim shape it finds — a count, an absolute quantifier, a cross-artifact reference,
   a backticked path — with its location, and the author resolves each candidate into a row or records its dismissal
@@ -194,12 +207,13 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
   no wait resolves) — so the reviewer keeps its context across rounds rather than re-exploring from scratch; the reuse
   never substitutes for the per-round instance hand-off above, which the caller supplies on every round regardless of
   the reviewer's session
-- **AND** the review checks, in one line each, the proposal's coherence and whether every required behavior is
-  represented and its tasks cover the tests and documentation; the implementation's boundary conditions, its changed
-  semantics (defaults, failure handling, retries, ordering, concurrency), a test that would still pass with the behavior
-  broken, and the unchanged callers, configuration, and documentation it affects; and the conventions (naming, dead
-  code, missing mandated Javadoc, documentation still describing superseded behavior, and broken cross-references) — so
-  the pass names what to look at without becoming a thorough review
+- **AND** the review checks, in one line each and within the supplied scope, the proposal's coherence and whether the
+  required behavior is represented and its tasks cover the tests and documentation; the implementation's obvious
+  boundary conditions and changed semantics (defaults, failure handling, retries, ordering, concurrency), a test in the
+  diff that would still pass with the behavior broken, and the changed files' effect on callers, configuration, and
+  documentation; and the conventions visible in the changed files (naming, dead code, missing mandated Javadoc,
+  documentation still describing superseded behavior, and broken cross-references) — so the pass names what to look at
+  without becoming a thorough review
 - **AND** a finding carries the evidence its class needs — an enumeration against the corpus it summarizes, a
   contradiction against both statements, a missing scenario against the behavior and the delta that omits it, a
   `test-control` against the expected behavior and the failure it should detect, an `impact-omission` against the
@@ -221,8 +235,106 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 
 #### Scenario: Thorough review is available on demand
 
-- **WHEN** a deep review pass is wanted (drift, correctness, architecture, conventions)
-- **THEN** the `review-thorough` subagent reviews the change against its delta specs, tasks, and the surrounding code
+- **WHEN** a deep review pass is wanted (drift, correctness, architecture, conventions) — a manual `/review-thorough`
+  invocation, or an outcome the deep-review routing decision below selects
+- **THEN** the `review-thorough` subagent reviews the change against its delta specs, tasks, and the surrounding code,
+  proportionately to the risk the decision's outcome names
+- **AND** the dimensions it inspects are specification compliance and the delta-spec scenarios; correctness, state
+  transitions, failure paths, retries, timeouts, and idempotency; architecture, dependency boundaries, and deviations
+  from the approved design; concurrency, reactive behavior, ordering, transaction boundaries, persistence, and
+  distributed failure modes; the tests and the verification a concrete risk is missing; security, trust boundaries,
+  configuration, deployment, observability, and operational risk; and the applicable repository conventions and
+  structured-writing rules
+- **AND** every finding it raises identifies a concrete defect or material risk, cites repository evidence and a precise
+  location, explains the consequence, gives a corrective direction, and distinguishes a confirmed defect from an
+  uncertainty — never a preference, a speculation, or a second instance of a root cause it already reported
+- **AND** a manual `/review-thorough` invocation is an explicit run: it is never a substitute for a `REQUIRED` outcome,
+  and it does not route
+
+#### Scenario: Deep review is routed by one three-outcome decision
+
+- **WHEN** a unit's implementation is complete and its quick-review loop has run
+- **THEN** one routing decision is made before any deep-review session is created, from the completed implementation,
+  the diff, the applicable planning artifacts, and the existing review evidence, and it resolves to exactly one of
+  `REQUIRED` (a deep review must run before completion), `RECOMMENDED` (elevated risk or uncertainty requires an
+  explicit recorded resolution), or `NOT_NEEDED` (the change is clearly low risk and may bypass deep review)
+- **AND** `REQUIRED` covers a material change to a public contract, a cross-component boundary, an Axon
+  command/event/aggregate/saga/projection, persistence or a migration, a transaction, a retry, idempotency, concurrency,
+  ordering, reactive behavior, security, infrastructure, deployment, or an operational failure mode, a major
+  specification deviation, and a unit whose recorded rounds show a material defect an earlier review missed
+- **AND** `RECOMMENDED` covers credible but non-mandatory risk — a complex invariant, an ambiguous material requirement,
+  a broad interaction, substantial design uncertainty, or a plausible defect quick review and the tests are unlikely to
+  find — and it is resolved explicitly from evidence rather than escalated or skipped by default
+- **AND** `NOT_NEEDED` applies only where the change is localized, low risk, and adequately verified, and never on a
+  criterion of line count, changed-file count, or the build agent's own confidence alone — a documentation-only,
+  formatting-only, or mechanical change is an example of the class, not an unconditional exemption
+- **AND** the decision has a deterministic floor derived from the change's own facts — its changed paths and the
+  declarations in its diff, its delta spec's requirement-block kinds, and its recorded rounds — so the decision is
+  explainable and reproducible rather than an unaided judgment, and the agent's decision is at or above that floor and
+  records the signals it relied on
+- **AND** the decision is reassessed only when material new evidence changes the risk
+
+#### Scenario: A missing or failed routing decision cannot skip mandatory review
+
+- **WHEN** the routing decision is absent, malformed, or its derivation fails
+- **THEN** the outcome is `REQUIRED` rather than a silent bypass, so an unreadable or failed decision can only make
+  review run, never skip it
+
+#### Scenario: A low-risk change bypasses the deep-review lifecycle
+
+- **WHEN** the routing decision resolves to `NOT_NEEDED`
+- **THEN** no deep-review session is created, no hand-over is prepared, and no expensive-model invocation is made, while
+  the mandatory quick review, the tests, and the manual approval still run
+
+#### Scenario: A routed deep review runs in its own session with a task-relevant hand-over
+
+- **WHEN** the routing decision requires or recommends a deep review and the owner resolves to run it
+- **THEN** one dedicated `review-thorough` session is created for that change, its supported session identifier and
+  review state are preserved, and it is handed only the task-relevant context — the change identity, the current diff,
+  the applicable OpenSpec artifacts, the prior findings and their statuses, the current pass, the known limitations, and
+  whether the pass is an initial review or a fix verification
+- **AND** the build agent, the quick reviewer, and the deep reviewer stay in separate sessions
+- **AND** a follow-up pass on that change reuses the same deep-reviewer session, while a different change starts a fresh
+  one
+- **AND** the deep reviewer inspects the current state independently on every follow-up, because session continuity is
+  not proof that a fix is correct
+
+#### Scenario: A failed deep-review hand-over is detected, not reported as a review
+
+- **WHEN** creating the session, handing over, continuing it, parsing its output, or validating it fails
+- **THEN** the failure is detected and reported rather than treated as a successful review, reusing the loop's existing
+  recovery where it applies
+- **AND** where the session must be replaced, the current findings, their statuses, the diff, and the objective are
+  transferred to the replacement, the lost continuity is recorded, and the current state is reviewed independently
+- **AND** where no safe recovery is available, the unit stops and reports the blocker
+
+#### Scenario: Deep review is bounded by a two-pass budget
+
+- **WHEN** a routed deep review runs
+- **THEN** its default budget is two full passes — an initial deep review, and an independent verification after the
+  valid findings are fixed — and a further full pass requires an explicit recorded decision resting on the material
+  residual risk and the expected value of the pass
+- **AND** a targeted re-review may verify a localized fix and its impact radius, and it does not conceal an unresolved
+  material finding
+- **AND** at the budget limit an unresolved blocking finding prevents normal completion, an unresolved should-fix
+  finding requires an explicit resolution or a recorded acceptance, incomplete verification and uncertainty stay
+  visible, and the limit never accepts residual material risk by itself
+
+#### Scenario: A deep-review finding is tracked to a resolved status
+
+- **WHEN** a deep-review pass raises a finding
+- **THEN** it is tracked by a stable identifier where the reviewer supports one, or otherwise by a stable root cause,
+  description, and location mapping, and its status is distinguished as `OPEN`, `FIXED_AND_VERIFIED`, `REJECTED` with
+  the evidence for the rejection, or `ACCEPTED` only by an explicit owner decision recorded with the reason and what it
+  accepts
+- **AND** the status has one authoritative record rather than a copy in several artifacts, and the quick loop's round
+  ledger stays its own record, so a deep pass does not change the population the loop's trend is read from
+
+#### Scenario: Deep review exhausts a class it raises
+
+- **WHEN** a deep-review pass raises a finding that falls in a class
+- **THEN** it searches the change's artifacts for every instance of that class's shape and reports them as one clustered
+  finding, so a class surfaces whole in the deep pass rather than one instance per quick-review round
 
 #### Scenario: Lessons are captured after implementation
 
@@ -826,8 +938,10 @@ artifact the entry merely cites SHALL NOT establish completion.
 
 Every subagent that reports findings to the main agent — the per-unit review and lesson-capture agents and the on-demand
 auditors of the agent tooling, the spec corpus, the architecture, and the README — SHALL follow one shared output
-contract, so a report is skimmable and its verdict is read first. The contract SHALL bound the report, not the analysis:
-a subagent SHALL verify its claims as thoroughly as before and report them in the contract's shape.
+contract, so a report is skimmable and its verdict is read first. The contract SHALL bound the report's shape; the
+analysis a subagent performs is bounded by that subagent's own stated scope, not by this contract — an auditor or the
+deep reviewer verifies its claims as thoroughly as its scope requires, while a bounded screen such as the quick review
+performs only the pass its scope defines and says so.
 
 #### Scenario: A report opens with its verdict
 
@@ -849,6 +963,13 @@ a subagent SHALL verify its claims as thoroughly as before and report them in th
 
 - **WHEN** the subagent has verified a candidate and concluded it is already covered, rejected, or not a defect
 - **THEN** it reports that in one line, or collapses several into one summary line, rather than a paragraph each
+
+#### Scenario: A bounded pass does not present itself as an unbounded analysis
+
+- **WHEN** a report-producing subagent's scope bounds the analysis it performs — the quick review's fixed scope and stop
+  condition, for example
+- **THEN** its report states that bound rather than implying the analysis was unlimited, so a reader does not read a
+  bounded screen as a thorough pass
 
 #### Scenario: No alternatives are offered
 

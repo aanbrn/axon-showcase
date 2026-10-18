@@ -98,13 +98,16 @@ dated when it was added (start a new section for a new day rather than appending
   in for that search). The session itself is the caller's to reuse: the 2026-10-16 runs reused one across rounds to good
   effect, and the day's one fresh-session loop was fresh only because its sessions had expired; **diff-scoped
   follow-ups** (an unapplied fix produces no diff, so a diff-only round can report a false clean); a **fixed iteration
-  cap** (`bound-the-review-loop` explicitly rejected one, since a count would stop a productive loop); and **token,
-  elapsed-time or session-count telemetry** (a process count is not a verifiable repository fact, per the
+  cap on the quick loop** (`bound-the-review-loop` explicitly rejected one, since a count would stop a productive loop);
+  and **token, elapsed-time or session-count telemetry** (a process count is not a verifiable repository fact, per the
   documented-numbers rule). The one change the record did support — the canonical class list — has since landed. The
   companion measurement: `docs/retrospectives/2026-10-15.md` records the review loop's baseline — the figures and the
   boundary that makes them quotable live there rather than here, so the two cannot drift apart — to be compared against
   the first window whose rounds are both post-lever and canonically labelled. That comparison is what should decide any
-  further review-loop change, not a fresh proposal.
+  further **quick-loop** change, not a fresh proposal — the bound `rework-the-review-loop` adds to the quick loop is a
+  scope and a stop condition rather than a count, so it stays measurable against the baseline. The owner overrode the
+  wider reading for the **deep pass**, which that change bounds at a default of two full passes with an explicit
+  recorded extension: a deep-pass budget, not the quick loop's cap, and an owner decision rather than a re-derivation.
 
 - Measure whether the review loop's non-convergence is model-bounded — parked; no change yet. The loop's reviewer shares
   the main agent's model (the model-pin gotcha), so it cannot find what that model cannot see — plausibly why

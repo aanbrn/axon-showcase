@@ -1,0 +1,218 @@
+"""Derive the deep-review routing floor for a change from its own facts.
+
+The review gate makes one routing decision per unit -- `REQUIRED`, `RECOMMENDED`, or `NOT_NEEDED` -- and this tool
+supplies its deterministic floor, so the decision is explainable and reproducible rather than an unaided judgment. It
+reads the change's own facts, not the repository's size:
+
+  * the changed paths and the declarations in its diff;
+  * the requirement-block kinds its delta spec carries (`ADDED`, `REMOVED`, `RENAMED`);
+  * the unit's recorded rounds in `docs/review-rounds.tsv`, where a class repeated on at least two rows is evidence the
+    quick loop is not converging.
+
+The floor is a floor: the agent's decision must be at or above it, and a fact the tool cannot derive -- a major
+specification deviation, a material defect an earlier review missed -- is the agent's judgment above it.
+
+A derivation that fails -- an unreadable input, a malformed ledger row, a git error -- reports `REQUIRED` and exits
+non-zero, so a missing or failed decision can only make review run, never skip it. Stdlib only, Python 3.9-compatible.
+"""
+
+import argparse
+import re
+import subprocess
+import sys
+from pathlib import Path
+from typing import List, Optional, Sequence, Tuple
+
+REQUIRED = "REQUIRED"
+RECOMMENDED = "RECOMMENDED"
+NOT_NEEDED = "NOT_NEEDED"
+
+LEDGER_DEFAULT = "docs/review-rounds.tsv"
+CHANGE_ROOT = "openspec/changes"
+
+# The signal classes, derived from the repository's own structure (its modules, its service domain packages, and its
+# deployment surfaces), never from a hand-written guess about what is risky.
+PUBLIC_CONTRACT = (
+    "showcase-command-api/",
+    "showcase-query-api/",
+    "showcase-query-proto/",
+    "showcase-projection-model/",
+)
+DOMAIN = (
+    "showcase-command-service/src/main/java/showcase/command/",
+    "showcase-projection-service/src/main/java/showcase/projection/",
+    "showcase-query-service/src/main/java/showcase/query/",
+)
+PERSISTENCE = (re.compile(r"\.sql$"), re.compile(r"(^|/)db/"))
+INFRASTRUCTURE = (".github/", "helm/", "config/", "docker-compose.yml")
+INFRASTRUCTURE_NAME = re.compile(r"(^|/)Dockerfile$")
+SECURITY_DECLARATION = re.compile(r"\bSecurityWebFilterChain\b|\bSecurityFilterChain\b")
+# A declaration signal reads source, never prose: a document that merely quotes the token is not a changed declaration.
+CODE_EXTENSION = re.compile(r"\.(java|kt|kts)$")
+BLOCK_KIND = re.compile(r"^##\s+(ADDED|REMOVED|RENAMED)\s+Requirements\s*$", re.MULTILINE)
+
+Signal = Tuple[str, str]
+BlockKind = Tuple[str, str]
+Row = Sequence[str]
+FileText = Tuple[str, str]
+
+
+def path_signals(paths: Sequence[str]) -> List[Signal]:
+    """The `REQUIRED` signals a changed-path set carries."""
+    signals: List[Signal] = []
+    for path in paths:
+        if any(path.startswith(prefix) for prefix in PUBLIC_CONTRACT):
+            signals.append(("public-contract", path))
+        elif any(path.startswith(prefix) for prefix in DOMAIN):
+            signals.append(("domain-surface", path))
+        elif any(pattern.search(path) for pattern in PERSISTENCE):
+            signals.append(("persistence", path))
+        elif any(path.startswith(prefix) for prefix in INFRASTRUCTURE) or INFRASTRUCTURE_NAME.search(path):
+            signals.append(("infrastructure-or-deployment", path))
+    return signals
+
+
+def declaration_signals(files: Sequence[FileText]) -> List[Signal]:
+    """The `REQUIRED` signal a changed source file's declarations carry, read from source rather than prose."""
+    for path, text in files:
+        if CODE_EXTENSION.search(path) and SECURITY_DECLARATION.search(text):
+            return [("security-declaration", path + " declares a security filter chain")]
+    return []
+
+
+def block_signals(kinds: Sequence[BlockKind]) -> List[Signal]:
+    """The `REQUIRED` signals a delta spec's requirement-block kinds carry."""
+    return [("requirement-block-" + kind.lower(), source) for kind, source in kinds]
+
+
+def ledger_signal(rows: Sequence[Row], change: Optional[str]) -> List[Signal]:
+    """The `RECOMMENDED` signal a unit's recorded rounds carry when a class repeats on two or more rows."""
+    if not change:
+        return []
+    repeats = 0
+    for row in rows:
+        if len(row) < 5:
+            raise ValueError("malformed ledger row: {0}".format("\t".join(row)))
+        if row[1] == change and row[4].strip() not in ("", "-"):
+            repeats += 1
+    if repeats >= 2:
+        return [("repeated-class", "{0} rows repeat a prior class".format(repeats))]
+    return []
+
+
+def floor(
+    paths: Sequence[str],
+    files: Sequence[FileText],
+    kinds: Sequence[BlockKind],
+    rows: Sequence[Row],
+    change: Optional[str],
+) -> Tuple[str, List[Signal]]:
+    """The routing floor and the signals it matched, from the change's own facts."""
+    required = path_signals(paths) + declaration_signals(files) + block_signals(kinds)
+    if required:
+        return REQUIRED, required
+    recommended = ledger_signal(rows, change)
+    if recommended:
+        return RECOMMENDED, recommended
+    return NOT_NEEDED, []
+
+
+def _git(repo: Path, *args: str) -> str:
+    """Run git in ``repo`` and return its stdout, raising on failure."""
+    result = subprocess.run(
+        ["git", *args], cwd=str(repo), check=True, capture_output=True, text=True
+    )
+    return result.stdout
+
+
+def _added_by_file(diff_text: str) -> List[FileText]:
+    """The diff's added lines, grouped by the file they belong to."""
+    files: List[FileText] = []
+    path = None
+    buffer: List[str] = []
+    for raw in diff_text.splitlines():
+        if raw.startswith("+++"):
+            if path is not None:
+                files.append((path, "\n".join(buffer)))
+            match = re.match(r"^\+\+\+ b/(.+)$", raw)
+            path = match.group(1) if match else None
+            buffer = []
+        elif raw.startswith("+") and not raw.startswith("+++") and path is not None:
+            buffer.append(raw[1:])
+    if path is not None:
+        files.append((path, "\n".join(buffer)))
+    return files
+
+
+def gather(repo: Path, base: str, change: Optional[str], ledger: str) -> Tuple[
+    List[str], List[FileText], List[BlockKind], List[List[str]]
+]:
+    """The change's own facts: its changed paths, its changed files' added text, its delta's block kinds, its rows."""
+    paths = [path for path in _git(repo, "diff", "--name-only", base, "--").splitlines() if path.strip()]
+    untracked = [path for path in _git(repo, "ls-files", "--others", "--exclude-standard").splitlines() if path.strip()]
+    paths.extend(untracked)
+    files = _added_by_file(_git(repo, "diff", "--no-color", base, "--"))
+    for path in untracked:
+        try:
+            files.append((path, (repo / path).read_text(encoding="utf-8")))
+        except (OSError, UnicodeDecodeError):
+            raise ValueError("cannot read untracked file: {0}".format(path))
+    kinds: List[BlockKind] = []
+    if change:
+        change_root = repo / CHANGE_ROOT / change
+        if not change_root.is_dir():
+            raise ValueError("no such change: {0}".format(change))
+        delta_root = change_root / "specs"
+        for spec in sorted(delta_root.rglob("spec.md")):
+            try:
+                text = spec.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
+                raise ValueError("cannot read delta spec: {0}".format(spec))
+            kinds.extend(
+                (kind, str(spec.relative_to(repo))) for kind in sorted(set(BLOCK_KIND.findall(text)))
+            )
+    rows: List[List[str]] = []
+    ledger_path = repo / ledger
+    if not ledger_path.is_file():
+        raise ValueError("no such ledger: {0}".format(ledger))
+    try:
+        rows = [
+            line.split("\t")
+            for line in ledger_path.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.startswith("#")
+        ]
+    except (OSError, UnicodeDecodeError):
+        raise ValueError("cannot read the ledger: {0}".format(ledger))
+    return paths, files, kinds, rows
+
+
+def main(argv: Sequence[str] = ()) -> int:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Derive the deep-review routing floor (REQUIRED, RECOMMENDED, or NOT_NEEDED) for a change from its own "
+            "facts, and print the signals it matched."
+        )
+    )
+    parser.add_argument("--change", help="the change name (its delta spec and ledger rows are read from it)")
+    parser.add_argument("--base", default="origin/main", help="the ref to diff against (default: origin/main)")
+    parser.add_argument("--repo", default=".", help="the repository to read (default: the current directory)")
+    parser.add_argument(
+        "--ledger",
+        default=LEDGER_DEFAULT,
+        help="the review-round ledger (default: {0})".format(LEDGER_DEFAULT),
+    )
+    args = parser.parse_args(argv)
+    try:
+        paths, files, kinds, rows = gather(Path(args.repo), args.base, args.change, args.ledger)
+        outcome, signals = floor(paths, files, kinds, rows, args.change)
+    except (subprocess.CalledProcessError, ValueError, OSError) as failure:
+        print("{0}: the routing derivation failed ({1})".format(REQUIRED, failure))
+        return 1
+    print("ROUTING: {0}".format(outcome))
+    for kind, text in signals:
+        print("  [{0}] {1}".format(kind, text))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

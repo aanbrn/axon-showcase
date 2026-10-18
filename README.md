@@ -300,7 +300,8 @@ flowchart TB
 
 An idea becomes a **proposal** (what and why), then a **spec delta** (the new behavior, scoped to a capability), a
 **design** (how), and **tasks**. Applying writes the code and tests. Each phase ends in **two reviews**: an
-**auto-review** (the `review-quick` subagent, repeated until it finds nothing new) and your **manual review**. The
+**auto-review** (the `review-quick` subagent, repeated until it finds nothing new) and your **manual review** — and,
+after implementation, a deep `review-thorough` pass whenever the review gate's routing decision requires one. The
 change's single **PR** may be opened as a draft after the proposal review (to share the plan) and is opened for real
 after the implementation review — it's the same PR, on which CI runs. Once CI is green and you approve, the change is
 **archived** — the change dir moves to `openspec/changes/archive/` and its delta spec is folded into the main spec — as
@@ -373,8 +374,8 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift, unrecorded intent, and a due record — `/audit-architecture`                                                                                                                                      |
 | `readme-auditor`       | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage — `/audit-readme`                                                                                                                                                 |
 | `lesson-capture`       | Captures gotchas/conventions into AGENTS.md for a unit whose evidence shows a lesson, consolidating rather than accreting, retiring the rules a unit obsoletes, marking each rule with its origin, and routing an authoring-mechanism fix to that mechanism (evidence-gated) |
-| `review-quick`         | Fast review after proposal & implementation, repeated until clean (automatic)                                                                                                                                                                                                |
-| `review-thorough`      | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`                                                                                                                                                                                                |
+| `review-quick`         | Fast bounded screen after proposal & implementation, repeated until clean (automatic)                                                                                                                                                                                        |
+| `review-thorough`      | Deep risk-routed review (drift, correctness, architecture) — the review gate's routing decision, or `/review-thorough`                                                                                                                                                       |
 | `vision`               | Reads screenshots for the text-only main agent                                                                                                                                                                                                                               |
 | `diagrammer`           | Draws/fixes ASCII and Mermaid diagrams with the pro model — `/diagram`                                                                                                                                                                                                       |
 
@@ -382,8 +383,10 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 
 - **Proposing and applying changes**: the `opsx-*` commands scaffold a change (proposal, design, tasks, spec delta),
   implement it, and prepare it for review.
-- **Code review**: every unit is auto-reviewed after its proposal and after its implementation; the quick-review loop
-  repeats until it finds nothing new. A deep `/review-thorough` pass is available on demand.
+- **Code review**: every unit is auto-reviewed after its proposal and after its implementation; the quick-review loop is
+  a bounded screen that repeats until it finds nothing new. After implementation one routing decision selects a deep
+  `review-thorough` pass — required, recommended for an explicit resolution, or not needed — and a manual
+  `/review-thorough` run is always available.
 - **Lesson capture**: for a unit whose evidence shows a candidate lesson, `lesson-capture` proposes AGENTS.md gotchas
   and conventions, merging each into an existing bullet or stating that none covers it, reports the rules the unit makes
   obsolete or redundant as retirement candidates, and routes a lesson whose cause is an authoring mechanism to that
@@ -516,7 +519,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/setup-agent-tools`         | Sets up the tooling MCP servers (GitHub core, plus optional extras)                                                                                                                                                                       |
 | `/setup-idea`                | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier)                                                                                                                                                   |
 | `/check-tooling`             | Checks whether this machine has the prerequisites (Java, Docker, and the optional tools) and prints what to install                                                                                                                       |
-| `/review-thorough`           | Deep on-demand review of a change                                                                                                                                                                                                         |
+| `/review-thorough`           | Deep risk-routed review of a change (the review gate's routing decision, or this explicit run)                                                                                                                                            |
 | `/audit-agents`              | Audits AGENTS.md + project-owned .opencode/ files, flags third-party files our usage contradicts, and reports accreted meta rules with their origins, merge, removal, and route candidates, and authoring-system gaps (pro-model auditor) |
 | `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                                                                  |
 | `/audit-architecture`        | Audits the architecture for recorded-decision drift, unrecorded intent, and a due record (pro-model auditor)                                                                                                                              |

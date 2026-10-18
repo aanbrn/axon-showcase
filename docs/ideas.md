@@ -29,14 +29,6 @@ dated when it was added (start a new section for a new day rather than appending
   shape asserting a declared list of cross-artifact clauses appears verbatim in each artifact's `rules`, which the CLI
   returns byte-identical across `proposal`/`design`/`tasks`.
 
-- Add a third fresh-session trigger to the review loop's `review-quick` session rule — parked; no change yet. The
-  `agent-skills` spec's review-loop requirement and `AGENTS.md`'s "Continue the reviewer's session" bullet start a fresh
-  reviewer session only when the prior one has expired or the reviewer's definition changed; a session can also stop
-  responding mid-call — observed in `sharpen-architecture-audit` (the second reused across five rounds) and twice more
-  in `make-the-capture-selective`, each recovery needing a fresh session plus the prior findings' hand-over the sibling
-  clause already requires. The fix is a `MODIFIED` delta on that requirement plus the bullet, parked rather than folded
-  into the changes it surfaced in, because each is about another subject rather than the review loop's mechanics.
-
 - Add `verifyUniqueChangeNames` to the commit-hygiene `verifyUnique*` family — parked; no change yet. The merge-time
   capture after `fix-openspec-config-rules` (#624) found its name collides with an already-archived change
   (`2026-09-14-fix-openspec-config-rules`, #218), so `git log --grep` matches both and a reader looking for "the change

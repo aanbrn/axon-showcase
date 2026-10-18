@@ -418,3 +418,8 @@
 2026-10-18	make-the-capture-selective	7	single-sourcing	-	1
 2026-10-18	make-the-capture-selective	8	single-sourcing,docs-residue	single-sourcing	2
 2026-10-18	make-the-capture-selective	9	impact-omission,single-sourcing,proposal-schema	impact-omission,single-sourcing	3
+2026-10-18	add-a-fresh-session-trigger	1	claim-unreproducible,claim-missing	-	3
+2026-10-18	add-a-fresh-session-trigger	2	claim-unreproducible	claim-unreproducible	1
+2026-10-18	add-a-fresh-session-trigger	3	-	-	0
+2026-10-18	add-a-fresh-session-trigger	4	wording	-	0
+2026-10-18	add-a-fresh-session-trigger	5	-	-	0

@@ -142,6 +142,9 @@ analysis workflows — the per-unit review and lesson-capture agents, and the vi
 by the scenarios below or by its own requirement in this capability. Each SHALL be invocable by the main agent, with its
 purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 
+Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
+owns, not this one.
+
 #### Scenario: Quick review runs after proposal and implementation
 
 - **WHEN** a unit's proposal (planning artifacts) or its implementation is finished
@@ -487,6 +490,9 @@ merged, repeated across severity groups, or padded with a placeholder.
 The audit SHALL proceed in stages — inventory, local structure, cross-spec consistency, reference verification, report
 validation — reusing the evidence an earlier stage gathered.
 
+Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
+owns, not this one.
+
 #### Scenario: A spec-corpus audit is produced
 
 - **WHEN** the main agent invokes the `specs-auditor` subagent (e.g. via the `/audit-specs` command)
@@ -695,6 +701,9 @@ rules) it reports the gap with the correction routed to the change workflow, nev
 excluded mechanism (a generated OpenSpec instruction file, or a vendored skill) it reports the item under the advisory
 class and never proposes a local edit to it. A correction SHALL reference the authoritative standard rather than copy it
 into the mechanism.
+
+Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
+owns, not this one.
 
 #### Scenario: An agent-tooling audit is produced
 
@@ -933,6 +942,9 @@ fit); targeted verification (only the discrepancies and missing-rationale candid
 searching for exceptions, consumers, implementation evidence, and relevant external facts); and report validation
 (re-checking every item against the evidence and the exclusions).
 
+Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
+owns, not this one.
+
 #### Scenario: An architecture audit is produced
 
 - **WHEN** the main agent invokes the `architecture-auditor` subagent (e.g. via the `/audit-architecture` command)
@@ -1034,6 +1046,9 @@ inconclusive the audit SHALL state no conclusion about the condition, since an i
 expiry claim. An expired condition triggers a review, not a predetermined change. A parked entry SHALL distinguish its
 proposed work having landed, only part of it having landed, and a different mechanism achieving the same objective; an
 artifact the entry merely cites SHALL NOT establish completion.
+
+Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
+owns, not this one.
 
 #### Scenario: An unexplained deliberate choice is surfaced as a question
 
@@ -1163,6 +1178,9 @@ structure, redundancy, jargon, and flow beyond the documented shape — in a sep
 judgment, never as a defect, because the README is hand-curated by design and its intended shape is to be preserved on
 every edit. The subagent SHALL propose its findings without modifying files; the main agent verifies and applies those
 the user approves, and the report SHALL follow the shared report contract.
+
+Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
+owns, not this one.
 
 #### Scenario: A README audit is produced
 
@@ -1324,6 +1342,9 @@ The standard SHALL be applied when `AGENTS.md` knowledge is authored and when it
 subagent (and the main agent's capture workflow) applies it to each proposed entry, and the `agents-auditor` subagent
 applies it to each `AGENTS.md` entry it reads.
 
+Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
+owns, not this one.
+
 #### Scenario: An entry is recorded in the right representation, once
 
 - **WHEN** an author adds knowledge to `AGENTS.md`
@@ -1400,6 +1421,9 @@ Agent-authored technical artifacts — `AGENTS.md`, OpenSpec proposals, specific
 code reviews, and other repository documentation — SHALL follow the structured, scannable shape `AGENTS.md`'s
 "Structured Writing Standard" section states, applied while the artifact is drafted rather than only in a later cleanup
 pass, and each SHALL keep its own required template and sections.
+
+Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
+owns, not this one.
 
 #### Scenario: A requirement is stated as its own scannable unit
 

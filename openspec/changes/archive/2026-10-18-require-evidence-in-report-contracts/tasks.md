@@ -95,8 +95,10 @@
 - [x] 3.5 Carry the deep-review routing decision: derive the floor with
       `python3 scripts/review-routing.py --change require-evidence-in-report-contracts`, decide at or above it, and
       record the outcome and the signals it relied on on task 3.2.
-- [ ] 3.6 Ask the user for the manual review pass once 3.2 is clean and 3.4 is done; do not commit, push, archive, or
-      merge before they approve, and do not apply any audit finding to `README.md`.
+- [x] 3.6 Ask the user for the manual review pass once 3.2 is clean and 3.4 is done; do not commit, push, archive, or
+      merge before they approve, and do not apply any audit finding to `README.md`. **Done** — requested and approved;
+      CI ran green on the implementation commit, the change is archived, and no audit finding was applied to
+      `README.md`.
 
 ## 4. The change's own records
 

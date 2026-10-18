@@ -13,15 +13,27 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-18
+
+- Add a third fresh-session trigger to the review loop's `review-quick` session rule — parked; no change yet. The
+  `agent-skills` spec's review-loop requirement and `AGENTS.md`'s "Continue the reviewer's session" bullet start a fresh
+  reviewer session only when the prior one has expired or the reviewer's definition changed; a session can also stop
+  responding mid-call — observed twice in `sharpen-architecture-audit`, the second reused across five rounds — and
+  recovering needed a fresh session plus the prior findings' hand-over the sibling clause already requires. The fix is a
+  `MODIFIED` delta on that requirement plus the bullet, parked rather than folded into `sharpen-architecture-audit`
+  because that change is about the architecture audit, not the review loop's mechanics.
+
 ## 2026-10-17
 
 - Give `openspec/config.yaml`'s `rules.tasks` the single-sourcing clause `rules.design` carries — parked; no change yet.
   `rules.design` states "A model stated in more than one artifact is single-sourced, the rest referencing it by name",
   but `rules.tasks` carries none, so a count corrected in the design was left in a `tasks.md` task body
-  (`widen-audit-agents-to-authoring-gaps` round 2), and `single-sourcing` is a recurring class in the record. The
-  config's per-artifact rules surface at drafting time, where the `design`/`tasks` asymmetry bites; `rules.proposal` has
-  the same gap (its `Impact` rule names only build/tests/deployment). Complements the parked proposal-site-derivation
-  clause above — both are `openspec/config.yaml` `rules` edits.
+  (`widen-audit-agents-to-authoring-gaps` round 2), and `single-sourcing` is a recurring class in the record — a third
+  unit (`sharpen-architecture-audit`) spent three rounds of `incomplete-enumeration` re-glossing one widened set at each
+  describing site, so each site's members should also be taken from the owning definition verbatim. The config's
+  per-artifact rules surface at drafting time, where the `design`/`tasks` asymmetry bites; `rules.proposal` has the same
+  gap (its `Impact` rule names only build/tests/deployment). Complements the parked proposal-site-derivation clause
+  above — both are `openspec/config.yaml` `rules` edits.
 
 - Require a proposal to derive its touched sites from the change's tasks — parked; no change yet. This unit's round-1
   `incomplete-enumeration` under-matched the describing sites (the definition's frontmatter `description` and the README
@@ -125,7 +137,8 @@ dated when it was added (start a new section for a new day rather than appending
   `./gradlew --info :helm:chart:helmLintMainChart` (7 `with environment:` lines). The durable rule is in `AGENTS.md`;
   this entry tracks the upstream report.
 
-- Correct the `architecture-auditor`'s deferral check for renamed and compound ADR gates — parked; no change yet. Its
+- Correct the `architecture-auditor`'s deferral check for renamed and compound ADR gates — partly landed
+  (`sharpen-architecture-audit`): the compound-gate axis is covered, the renamed-coordinate axis is still open. Its
   definition resolves the coordinates the `Revisit when:` line names, and the `agent-skills` scenario frames the check
   as an external coordinate gate whose pinned coordinate published a newer major — so a gate whose coordinate upstream
   renamed reads as permanently unmet (it resolves a frozen artifact), and a compound gate can read as met on one axis

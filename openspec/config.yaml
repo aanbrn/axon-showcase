@@ -78,7 +78,9 @@ rules:
       source or the command that derives it; a row about an artifact the change itself edits anchors to that artifact's
       pre-change state (`git show HEAD:<path>`), since it stops reproducing once the change lands; a source that is a
       command's output states the reason by class, never a list of its lines; and the table is re-derived after the
-      unit's last append to its own record, which adds a scan candidate
+      unit's last append to its own record, which adds a scan candidate; a self-record fact about what the change did (a
+      stated delta, a `Done` note, a described edit) is derived from the diff once the edits land, and a claim whose
+      described edit is absent is deleted rather than reworded
     - Follow the "Structured Writing Standard" in AGENTS.md — one decision per entry with its alternatives as separate
       bullets, and a table for the claims table or any like-row content
   tasks:

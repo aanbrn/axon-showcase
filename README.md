@@ -342,7 +342,9 @@ the way it is. An `architecture-auditor` subagent (`/audit-architecture`, on dem
 describe the system — an ADR the code has outgrown, a boundary that drifted, or a decision made in code without an ADR —
 and surfaces design observations separately for your judgment, including where a deliberate choice's rationale was never
 written down and a record whose recorded premise now looks met — a deferral's condition, or a parked idea whose work has
-landed.
+landed, fully or partly, or whose objective a different mechanism achieves. It resolves a disagreement between records
+by authority (reporting an unresolvable one as an observation rather than a defect), judges a dependency edge only
+against a recorded rule, and states no conclusion it cannot verify.
 
 ### The Agentic Process
 

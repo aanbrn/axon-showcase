@@ -1,6 +1,10 @@
 # One row per review round. Tab-separated fields: date (YYYY-MM-DD), unit, round (continuous per unit across its
 # proposal and implementation reviews), classes raised (comma-separated, or - when none), classes that repeated a prior
-# round (comma-separated, or - when none), and compliance_misses (findings that were a miss of an existing rule).
+# round (comma-separated, or - when none), compliance_misses (findings that were a miss of an existing rule), the
+# reviewer's session identifier (compared with surrounding whitespace trimmed), the session transition (created,
+# continued, or replaced), and a replacement's reason (expired, definition-changed, or stopped-responding; - otherwise).
+# The last three fields are validated from the boundary comment below down, which marks the first row to carry them;
+# the rows above it predate the fields, so they are exempt. `commit-hygiene.py --session-continuity` is that check.
 # Appended by the main agent from the record line a review round emits; aggregated in the window by
 # scripts/review-rounds.py, which the digest's review-rounds block prints.
 # Classes come from the canonical list the reviewer's contract carries (`.opencode/agent/review-quick.md`), which makes
@@ -472,3 +476,25 @@
 2026-10-18	structure-visual-review	11	claim-unreproducible,missing-task,claim-missing	claim-unreproducible,missing-task	3
 2026-10-18	structure-visual-review	12	missing-task,claim-unreproducible,formatting	missing-task,claim-unreproducible,formatting	4
 2026-10-18	structure-visual-review	13	premise,docs-residue,claim-unreproducible,contradiction,missing-task,coherence,claim-missing	docs-residue,claim-unreproducible,contradiction,missing-task,coherence,claim-missing	6
+# --- Session continuity: from here down every row carries the reviewer's session identifier, its transition, and a
+# --- replacement's reason; commit-hygiene.py --session-continuity validates them.
+2026-10-18	track-review-session-continuity	1	missing-task,claim-unreproducible,incomplete-enumeration	-	5	ses_eb03e0bc3ffeoefevnvoZ89bEg	created	-
+2026-10-18	track-review-session-continuity	2	claim-unreproducible,test-control,single-sourcing	claim-unreproducible	6	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-18	track-review-session-continuity	3	test-control,missing-scenario	test-control	2	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-18	track-review-session-continuity	4	test-control,missing-scenario	test-control,missing-scenario	3	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-18	track-review-session-continuity	5	incomplete-enumeration	incomplete-enumeration	1	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-18	track-review-session-continuity	6	incomplete-enumeration	incomplete-enumeration	1	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-18	track-review-session-continuity	7	wording,claim-missing	-	2	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-18	track-review-session-continuity	8	claim-unreproducible	claim-unreproducible	1	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-18	track-review-session-continuity	9	incomplete-enumeration	incomplete-enumeration	1	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-18	track-review-session-continuity	10	claim-unreproducible	claim-unreproducible	1	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-18	track-review-session-continuity	11	incomplete-enumeration	incomplete-enumeration	1	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-19	track-review-session-continuity	12	incomplete-enumeration,wording	incomplete-enumeration,wording	3	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-19	track-review-session-continuity	13	incomplete-enumeration,missing-task	incomplete-enumeration,missing-task	2	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-19	track-review-session-continuity	14	-	-	0	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-19	track-review-session-continuity	15	missing-scenario,wording	missing-scenario,wording	2	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-19	track-review-session-continuity	16	claim-unreproducible,wording	claim-unreproducible,wording	2	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-19	track-review-session-continuity	17	-	-	0	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-19	track-review-session-continuity	18	claim-unreproducible	claim-unreproducible	1	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-19	track-review-session-continuity	19	over-claim	-	1	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-
+2026-10-19	track-review-session-continuity	20	-	-	0	ses_eb03e0bc3ffeoefevnvoZ89bEg	continued	-

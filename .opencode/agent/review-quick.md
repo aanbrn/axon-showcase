@@ -115,3 +115,7 @@ alone):
   raised (comma-separated, or `-` when none), which of them repeated a prior round's class (comma-separated, or `-` when
   none), and how many findings were a compliance miss of an existing rule (`AGENTS.md`, the specs, or this definition).
   The calling agent appends it to `docs/review-rounds.tsv` verbatim, so keep it one line with no wrapping.
+- The calling agent appends three further fields when it writes that row — the reviewer's session identifier, the
+  session's transition (`created`, `continued`, or `replaced`), and a replacement's reason — from the invocation it
+  performed and the identifier that invocation returned. Never invent a session identifier: you are not given your own,
+  so the caller supplies it.

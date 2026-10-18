@@ -829,5 +829,205 @@ class CliTests(unittest.TestCase):
         self.assertIn("a.txt", stderr)
 
 
+MARKER = commit_hygiene.SESSION_FIELDS_MARKER
+CREATED = commit_hygiene.SESSION_CREATED
+CONTINUED = commit_hygiene.SESSION_CONTINUED
+REPLACED = commit_hygiene.SESSION_REPLACED
+
+
+def ledger_repo(test: unittest.TestCase, lines: list[str]) -> Path:
+    """A temporary repository whose review-round ledger carries the given data lines, the boundary included."""
+    directory = tempfile.TemporaryDirectory()
+    test.addCleanup(directory.cleanup)
+    repo = Path(directory.name)
+    ledger = repo / "docs" / "review-rounds.tsv"
+    ledger.parent.mkdir(parents=True, exist_ok=True)
+    ledger.write_text("\n".join([MARKER] + lines) + "\n", encoding="utf-8")
+    return repo
+
+
+def row(
+    unit: str,
+    round_number: int,
+    session: str,
+    transition: str,
+    reason: str = "-",
+) -> str:
+    """One ledger row, its round fields filled with placeholders the continuity check does not read."""
+    return "\t".join(
+        ["2026-10-18", unit, str(round_number), "-", "-", "0", session, transition, reason]
+    )
+
+
+class SessionContinuityTests(unittest.TestCase):
+    def violations(self, lines: list[str]) -> list[str]:
+        return commit_hygiene.find_session_continuity_violations(ledger_repo(self, lines))
+
+    def test_consecutive_rounds_sharing_one_session_pass(self):
+        self.assertEqual(
+            [],
+            self.violations([row("unit-a", 1, "ses_a", CREATED), row("unit-a", 2, "ses_a", CONTINUED)]),
+        )
+
+    def test_an_allowed_replacement_passes_with_its_reason(self):
+        self.assertEqual(
+            [],
+            self.violations(
+                [
+                    row("unit-a", 1, "ses_a", CREATED),
+                    row("unit-a", 2, "ses_b", REPLACED, "expired"),
+                ]
+            ),
+        )
+
+    def test_every_allowed_reason_passes(self):
+        for reason in commit_hygiene.SESSION_REPLACEMENT_REASONS:
+            with self.subTest(reason=reason):
+                self.assertEqual(
+                    [],
+                    self.violations(
+                        [
+                            row("unit-a", 1, "ses_a", CREATED),
+                            row("unit-a", 2, "ses_b", REPLACED, reason),
+                        ]
+                    ),
+                )
+
+    def test_an_unexplained_session_change_fails(self):
+        violations = self.violations(
+            [row("unit-a", 1, "ses_a", CREATED), row("unit-a", 2, "ses_b", CONTINUED)]
+        )
+        self.assertEqual(1, len(violations))
+        self.assertIn("unit-a", violations[0])
+        self.assertIn("ses_a", violations[0])
+        self.assertIn("ses_b", violations[0])
+
+    def test_a_missing_session_identifier_fails(self):
+        violations = self.violations([row("unit-a", 1, "-", CREATED)])
+        self.assertEqual(1, len(violations))
+        self.assertIn("no session identifier", violations[0])
+
+    def test_a_row_carrying_a_tenth_field_fails(self):
+        violations = self.violations([row("unit-a", 1, "ses_a", CREATED) + "\textra"])
+        self.assertEqual(1, len(violations))
+        self.assertIn("10 field(s), not 9", violations[0])
+
+    def test_a_padded_identifier_continues_the_trimmed_one(self):
+        self.assertEqual(
+            [],
+            self.violations(
+                [
+                    row("unit-a", 1, " ses_a ", CREATED),
+                    row("unit-a", 2, "ses_a", CONTINUED),
+                ]
+            ),
+        )
+
+    def test_a_whitespace_only_identifier_fails(self):
+        violations = self.violations([row("unit-a", 1, "   ", CREATED)])
+        self.assertEqual(1, len(violations))
+        self.assertIn("no session identifier", violations[0])
+
+    def test_a_row_below_the_boundary_with_too_few_fields_fails(self):
+        violations = self.violations(["\t".join(["2026-10-18", "unit-a", "1", "-", "-", "0"])])
+        self.assertEqual(1, len(violations))
+        self.assertIn("6 field(s), not 9", violations[0])
+
+    def test_a_replacement_with_an_unlisted_reason_fails(self):
+        violations = self.violations(
+            [row("unit-a", 1, "ses_a", CREATED), row("unit-a", 2, "ses_b", REPLACED, "because")]
+        )
+        self.assertEqual(1, len(violations))
+        self.assertIn("because", violations[0])
+
+    def test_a_replacement_without_a_reason_fails(self):
+        violations = self.violations(
+            [row("unit-a", 1, "ses_a", CREATED), row("unit-a", 2, "ses_b", REPLACED)]
+        )
+        self.assertEqual(1, len(violations))
+        self.assertIn("replaces a session", violations[0])
+
+    def test_a_reason_on_a_continued_row_fails(self):
+        violations = self.violations(
+            [row("unit-a", 1, "ses_a", CREATED), row("unit-a", 2, "ses_a", CONTINUED, "expired")]
+        )
+        self.assertEqual(1, len(violations))
+        self.assertIn("not a replacement", violations[0])
+
+    def test_a_first_row_that_is_not_a_creation_fails(self):
+        violations = self.violations([row("unit-a", 1, "ses_a", CONTINUED)])
+        self.assertEqual(1, len(violations))
+        self.assertIn(CREATED, violations[0])
+
+    def test_a_repeated_identifier_without_a_continued_transition_fails(self):
+        violations = self.violations(
+            [row("unit-a", 1, "ses_a", CREATED), row("unit-a", 2, "ses_a", REPLACED, "expired")]
+        )
+        self.assertEqual(1, len(violations))
+        self.assertIn("continues session 'ses_a'", violations[0])
+
+    def test_an_unknown_transition_fails(self):
+        violations = self.violations(
+            [row("unit-a", 1, "ses_a", CREATED), row("unit-a", 2, "ses_a", "restarted")]
+        )
+        self.assertEqual(1, len(violations))
+        self.assertIn("not one of created, continued, replaced", violations[0])
+
+    def test_rows_above_the_boundary_are_exempt(self):
+        repo = ledger_repo(self, [row("unit-a", 1, "ses_a", CREATED)])
+        ledger = repo / "docs" / "review-rounds.tsv"
+        ledger.write_text(
+            "2026-01-01\tunit-old\t1\t-\t-\t0\n" + ledger.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+        self.assertEqual([], commit_hygiene.find_session_continuity_violations(repo))
+
+    def test_a_marker_moved_past_a_wider_row_fails(self):
+        repo = ledger_repo(self, [])
+        (repo / "docs" / "review-rounds.tsv").write_text(
+            row("unit-a", 1, "ses_a", CREATED) + "\n" + MARKER + "\n", encoding="utf-8"
+        )
+        violations = commit_hygiene.find_session_continuity_violations(repo)
+        self.assertEqual(1, len(violations))
+        self.assertIn("the boundary was moved past it", violations[0])
+
+    def test_a_marker_moved_past_a_narrower_row_fails(self):
+        repo = ledger_repo(self, [])
+        (repo / "docs" / "review-rounds.tsv").write_text(
+            "\t".join(["2026-01-01", "unit-old", "1", "-", "-"]) + "\n" + MARKER + "\n", encoding="utf-8"
+        )
+        violations = commit_hygiene.find_session_continuity_violations(repo)
+        self.assertEqual(1, len(violations))
+        self.assertIn("not the 6 it carried before", violations[0])
+
+    def test_a_missing_boundary_comment_fails(self):
+        repo = ledger_repo(self, [])
+        (repo / "docs" / "review-rounds.tsv").write_text(
+            row("unit-a", 1, "ses_a", CREATED) + "\n", encoding="utf-8"
+        )
+        violations = commit_hygiene.find_session_continuity_violations(repo)
+        self.assertEqual(1, len(violations))
+        self.assertIn("boundary comment", violations[0])
+
+    def test_distinct_units_may_start_with_distinct_sessions(self):
+        self.assertEqual(
+            [],
+            self.violations([row("unit-a", 1, "ses_a", CREATED), row("unit-b", 1, "ses_b", CREATED)]),
+        )
+
+    def test_the_mode_reports_and_exits_non_zero_on_a_violation(self):
+        repo = ledger_repo(self, [row("unit-a", 1, "ses_a", CONTINUED)])
+        with contextlib.redirect_stderr(io.StringIO()) as stderr:
+            code = commit_hygiene.main(["--session-continuity", "--repo", str(repo)])
+        self.assertEqual(1, code)
+        self.assertIn("unit-a", stderr.getvalue())
+
+    def test_the_mode_passes_a_continuing_ledger(self):
+        repo = ledger_repo(self, [row("unit-a", 1, "ses_a", CREATED), row("unit-a", 2, "ses_a", CONTINUED)])
+        with contextlib.redirect_stderr(io.StringIO()) as stderr:
+            code = commit_hygiene.main(["--session-continuity", "--repo", str(repo)])
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()

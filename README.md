@@ -764,8 +764,9 @@ counterpart of the force-staged-artifact check) as `verifyTrackedIgnoredFiles`, 
 `verifyConflictMarkers` — so they hold even without the hook. `verifyExecutableBits` additionally verifies the tracked
 scripts' executable bits, and the web module's own Prettier check (`npmFormatCheck`) remains part of `check`.
 `verifyUniqueCronSchedules` verifies no two workflow `cron` schedules collide, `verifyUniqueReviewRounds` verifies the
-review-round ledger carries one row per unit and round, and `verifyLargeFiles` verifies no tracked file exceeds the
-configured size limit.
+review-round ledger carries one row per unit and round, `verifyReviewSessionContinuity` verifies each of those rows
+records the reviewer session it ran in and whether that session was created, continued, or replaced, and
+`verifyLargeFiles` verifies no tracked file exceeds the configured size limit.
 
 ### Formatting and IDE Setup
 
@@ -931,24 +932,25 @@ follow-up pull request, so the next release has a base. It is not a merge gate.
 ### Dependency Updates and Security
 
 ```bash
-./gradlew dependencyUpdates            # report available dependency updates
-./gradlew :showcase-web-ui:npmOutdated # report the web UI's outdated npm dependencies
-./gradlew buildLogicUpdates            # report available updates for build-logic's plugin pins
-./gradlew dependencySecurityCheck      # Snyk dependency security scan (needs Snyk CLI, not part of check)
-./gradlew :showcase-web-ui:npmAudit    # web UI npm vulnerability audit (not part of check)
-./gradlew helmUpdates                  # report available Helm CLI/chart updates
-./gradlew buildpackUpdates             # report available Paketo builder/buildpack updates
-./gradlew toolingUpdates               # report available updates for the CLIs pinned in workflow files
-./gradlew upstreamReferences           # report the state of cited upstream references
-./gradlew verifyInfraImageVersions     # verify infra image tags match their pinned charts
-./gradlew verifyInstallCommands        # verify the AGENTS.md manual install commands match the catalog
-./gradlew verifyDocumentedPins         # verify the catalog's Paketo pins a live doc states match the catalog
-./gradlew verifyModuleDependencies     # verify the module dependency graph (ADR-0010)
-./gradlew verifyDashboardJson          # verify the bundled Grafana dashboard JSON parses
-./gradlew verifyPrettierAlignment      # verify the catalog's Prettier version is the one the web module resolves
-./gradlew verifyUniqueReviewRounds     # verify the review-round ledger carries one row per unit and round
-./gradlew verifyLargeFiles             # verify no tracked file exceeds the configured size limit
-./gradlew workflowLint                 # lint the GitHub Actions workflows with actionlint
+./gradlew dependencyUpdates             # report available dependency updates
+./gradlew :showcase-web-ui:npmOutdated  # report the web UI's outdated npm dependencies
+./gradlew buildLogicUpdates             # report available updates for build-logic's plugin pins
+./gradlew dependencySecurityCheck       # Snyk dependency security scan (needs Snyk CLI, not part of check)
+./gradlew :showcase-web-ui:npmAudit     # web UI npm vulnerability audit (not part of check)
+./gradlew helmUpdates                   # report available Helm CLI/chart updates
+./gradlew buildpackUpdates              # report available Paketo builder/buildpack updates
+./gradlew toolingUpdates                # report available updates for the CLIs pinned in workflow files
+./gradlew upstreamReferences            # report the state of cited upstream references
+./gradlew verifyInfraImageVersions      # verify infra image tags match their pinned charts
+./gradlew verifyInstallCommands         # verify the AGENTS.md manual install commands match the catalog
+./gradlew verifyDocumentedPins          # verify the catalog's Paketo pins a live doc states match the catalog
+./gradlew verifyModuleDependencies      # verify the module dependency graph (ADR-0010)
+./gradlew verifyDashboardJson           # verify the bundled Grafana dashboard JSON parses
+./gradlew verifyPrettierAlignment       # verify the catalog's Prettier version is the one the web module resolves
+./gradlew verifyUniqueReviewRounds      # verify the review-round ledger carries one row per unit and round
+./gradlew verifyReviewSessionContinuity # verify each review-round row records its reviewer session and transition
+./gradlew verifyLargeFiles              # verify no tracked file exceeds the configured size limit
+./gradlew workflowLint                  # lint the GitHub Actions workflows with actionlint
 ```
 
 `dependencyUpdates` reports newer versions of dependencies whose version is declared with an exact `version.ref` in the

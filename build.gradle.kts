@@ -572,6 +572,15 @@ tasks.register<Exec>("verifyUniqueReviewRounds") {
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--unique-rounds")
 }
 
+tasks.register<Exec>("verifyReviewSessionContinuity") {
+    group = "verification"
+    description = "Verifies the review-round ledger records each round's reviewer session and its transition"
+    inputs.file("scripts/commit-hygiene.py")
+    inputs.file("docs/review-rounds.tsv")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--session-continuity")
+}
+
 tasks.register<Exec>("verifyLargeFiles") {
     group = "verification"
     description = "Verifies no tracked file exceeds the configured size limit"
@@ -641,6 +650,7 @@ tasks.named("check") {
     dependsOn("verifyExecutableBits")
     dependsOn("verifyUniqueCronSchedules")
     dependsOn("verifyUniqueReviewRounds")
+    dependsOn("verifyReviewSessionContinuity")
     dependsOn("verifyLargeFiles")
     // The chart's packaging path (its repository setup, dependency fetch, and strict lints), so a chart that cannot
     // bundle its declared dependency fails the pull request rather than only the nightly deployment smoke's install.

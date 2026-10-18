@@ -8,7 +8,8 @@ that carries a merge conflict marker, that misplaces a `captured:` marker in `AG
 checks marker placement in the working-tree `AGENTS.md`; the `--tracked-ignored`, `--conflict-markers`, and
 `--executable-bits` modes each verify the tracked set for the build; `--unique-crons` verifies the workflow
 `cron` schedules do not collide; `--unique-rounds` verifies the review-round ledger carries one row per unit and
-round; and `--large-files` verifies no tracked file exceeds the configured size limit. Stdlib only.
+round; `--session-continuity` verifies the ledger's reviewer-session fields record each round's session and its
+transition; and `--large-files` verifies no tracked file exceeds the configured size limit. Stdlib only.
 """
 
 import argparse
@@ -31,6 +32,28 @@ ARCHIVE_PREFIX = "openspec/changes/archive/"
 SPECS_PREFIX = "openspec/specs/"
 CRON_LINE_RE = re.compile(r"^\s*-\s*cron:\s*(?P<value>.+?)\s*$")
 WORKFLOW_SUFFIXES = (".yml", ".yaml")
+
+# The ledger's own comment marking the first row that carries the reviewer-session fields; the rows above it predate
+# them, so the continuity verification exempts those. Its absence is itself a violation, so the boundary cannot be
+# dropped silently to exempt a row.
+SESSION_FIELDS_MARKER = "# --- Session continuity"
+
+# A row's session transition, one per shape the review loop's rule allows.
+SESSION_CREATED = "created"
+SESSION_CONTINUED = "continued"
+SESSION_REPLACED = "replaced"
+SESSION_TRANSITIONS = (SESSION_CREATED, SESSION_CONTINUED, SESSION_REPLACED)
+
+# The only reasons a replacement may carry, one per recovery case the review loop's rule states.
+SESSION_REPLACEMENT_REASONS = ("expired", "definition-changed", "stopped-responding")
+
+# The ledger's row width once the session fields are present: the six round fields, then the identifier, the transition,
+# and the reason.
+SESSION_ROW_FIELDS = 9
+
+# The ledger's row width before the session fields were appended. A row above the boundary whose field count is not
+# this means the boundary was moved past a row the fields apply to, which would exempt that row silently.
+SESSION_PRE_FIELDS = 6
 
 
 def git(repo: Path, *args: str) -> subprocess.CompletedProcess:
@@ -425,6 +448,117 @@ def check_unique_review_rounds(repo: Path) -> int:
     return len(duplicates)
 
 
+def session_rows(
+    repo: Path,
+) -> tuple[bool, list[tuple[int, list[str]]], list[tuple[int, list[str]]]]:
+    """The ledger's data rows split at the session-fields boundary, plus whether that boundary is present.
+
+    The return is `(present, above, below)`, each row a (line number, fields) pair. A row is in scope once the ledger's
+    own boundary comment has been read; the rows above it predate the fields, so the continuity verification exempts
+    them rather than requiring an identifier the record cannot evidence — which is only sound while those rows carry the
+    pre-fields width.
+    """
+    ledger = repo / "docs" / "review-rounds.tsv"
+    if not ledger.is_file():
+        return False, [], []
+    above: list[tuple[int, list[str]]] = []
+    below: list[tuple[int, list[str]]] = []
+    seen_boundary = False
+    for number, line in enumerate(ledger.read_text(encoding="utf-8").splitlines(), start=1):
+        if line.startswith(SESSION_FIELDS_MARKER):
+            seen_boundary = True
+            continue
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        (below if seen_boundary else above).append((number, line.split("\t")))
+    return seen_boundary, above, below
+
+
+def find_session_continuity_violations(repo: Path) -> list[str]:
+    """The reviewer-session continuity violations the ledger carries, each as a message naming its line.
+
+    The rule is per unit: the first row below the boundary creates the session, a later row whose identifier equals its
+    preceding row's continues it, and a row whose identifier differs replaces it and must name one of the allowed
+    reasons. Distinct units may name distinct sessions.
+    """
+    present, above, rows = session_rows(repo)
+    if not present:
+        return ["the review-round ledger carries no '{0}' boundary comment".format(SESSION_FIELDS_MARKER)]
+    violations: list[str] = []
+    for number, fields in above:
+        if len(fields) != SESSION_PRE_FIELDS:
+            violations.append(
+                "line {0}: a row above the session-fields boundary carries {1} field(s), not the {2} it carried before "
+                "the fields existed, so the boundary was moved past it".format(
+                    number, len(fields), SESSION_PRE_FIELDS
+                )
+            )
+    previous: dict[str, str] = {}
+    for number, fields in rows:
+        if len(fields) != SESSION_ROW_FIELDS:
+            violations.append(
+                "line {0}: a row below the session-fields boundary carries {1} field(s), not {2}".format(
+                    number, len(fields), SESSION_ROW_FIELDS
+                )
+            )
+            continue
+        unit, round_number = fields[1], fields[2]
+        session, transition, reason = fields[6], fields[7], fields[8]
+        if not session.strip() or session.strip() == "-":
+            violations.append(
+                "line {0}: unit '{1}' round {2} carries no session identifier".format(
+                    number, unit, round_number
+                )
+            )
+            continue
+        session = session.strip()
+        if transition not in SESSION_TRANSITIONS:
+            violations.append(
+                "line {0}: unit '{1}' round {2} carries transition '{3}', not one of {4}".format(
+                    number, unit, round_number, transition, ", ".join(SESSION_TRANSITIONS)
+                )
+            )
+            continue
+        if reason not in ("", "-") and transition != SESSION_REPLACED:
+            violations.append(
+                "line {0}: unit '{1}' round {2} carries reason '{3}' with the '{4}' transition, which is not a "
+                "replacement".format(number, unit, round_number, reason, transition)
+            )
+        prior = previous.get(unit)
+        if prior is None:
+            if transition != SESSION_CREATED:
+                violations.append(
+                    "line {0}: unit '{1}' round {2} is the unit's first recorded row, so its transition must be "
+                    "'{3}', not '{4}'".format(number, unit, round_number, SESSION_CREATED, transition)
+                )
+        elif session == prior:
+            if transition != SESSION_CONTINUED:
+                violations.append(
+                    "line {0}: unit '{1}' round {2} continues session '{3}', so its transition must be '{4}', not "
+                    "'{5}'".format(number, unit, round_number, session, SESSION_CONTINUED, transition)
+                )
+        elif transition != SESSION_REPLACED:
+            violations.append(
+                "line {0}: unit '{1}' round {2} names session '{3}' where its preceding row named '{4}', without a "
+                "'{5}' transition".format(number, unit, round_number, session, prior, SESSION_REPLACED)
+            )
+        elif reason in ("", "-") or reason not in SESSION_REPLACEMENT_REASONS:
+            violations.append(
+                "line {0}: unit '{1}' round {2} replaces a session with reason '{3}', not one of {4}".format(
+                    number, unit, round_number, reason, ", ".join(SESSION_REPLACEMENT_REASONS)
+                )
+            )
+        previous[unit] = session
+    return violations
+
+
+def check_session_continuity(repo: Path) -> int:
+    violations = find_session_continuity_violations(repo)
+    for violation in violations:
+        print("Review-round session continuity: {0}".format(violation), file=sys.stderr)
+    return len(violations)
+
+
 def main(argv: Sequence[str] = ()) -> int:
     parser = argparse.ArgumentParser(
         description=(
@@ -451,6 +585,11 @@ def main(argv: Sequence[str] = ()) -> int:
         "--unique-rounds", action="store_true", help="check the review-round ledger carries one row per unit and round"
     )
     mode.add_argument(
+        "--session-continuity",
+        action="store_true",
+        help="check the review-round ledger records each round's reviewer session and its transition",
+    )
+    mode.add_argument(
         "--large-files", action="store_true", help="check no tracked file exceeds the configured size limit"
     )
     parser.add_argument("--repo", default=str(REPO_ROOT), help="repository root (default: the script's parent)")
@@ -475,6 +614,8 @@ def main(argv: Sequence[str] = ()) -> int:
         return 1 if check_unique_crons(repo) else 0
     if args.unique_rounds:
         return 1 if check_unique_review_rounds(repo) else 0
+    if args.session_continuity:
+        return 1 if check_session_continuity(repo) else 0
     if args.large_files:
         return 1 if check_large_files(repo) else 0
     return 1 if check_staged(repo, args.formatter) else 0

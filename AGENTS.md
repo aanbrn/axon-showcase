@@ -358,11 +358,11 @@ final edit). captured: decide-against-pre-review
   claims are the successor's premise, and one that does not reproduce costs the round it was meant to save. captured:
   record-agents-md-authoring-standard
 - **Continue the reviewer's session** across rounds (pass its session id on the next request); start fresh only when
-  that session has expired or the reviewer's definition changed (a subagent session can). Each round must not lean on
-  the reviewer's memory in place of the hand-off, which is the caller's record; the session-reuse rule's rationale is in
-  `showcase/quality/agent-skills`, not restated here. The caller's own re-check of the handover is a recorded deviation,
-  not a passed round (a resumed round found defects the handover's self-review had passed). captured:
-  retrospective-2026-10-15
+  that session has expired, the reviewer's definition changed (a subagent session can), or it stops responding
+  mid-round. Each round must not lean on the reviewer's memory in place of the hand-off, which is the caller's record;
+  the session-reuse rule's rationale is in `showcase/quality/agent-skills`, not restated here. The caller's own re-check
+  of the handover is a recorded deviation, not a passed round (a resumed round found defects the handover's self-review
+  had passed). captured: retrospective-2026-10-15
 - **A finding that adds behavior is a scope change, not a code fix:** applying it to the code and a test alone leaves
   the change's planning artifacts — proposal, design, tasks, and delta spec — describing the old behavior, and the next
   round reports the residue as spec-/task-drift. Sweep every one of them, not only the file the finding names, as part
@@ -2174,15 +2174,18 @@ capture-stash-stale-copy
   sitting between the two, and only a follow-up grep for `## Getting Started` caught the loss. After any script-driven
   move/rewrite of a markdown file, grep for each expected heading (or diff the heading list before/after) before
   reporting done; for a docs reorder, prefer the edit tool over a hand-rolled reordering script. The same class bites at
-  item granularity: the `retro-mark-captured-rules` provenance sweep derived each rule's line range with a boundary
-  heuristic that treated a top-level plain `- Text` bullet directly after a bold-lead rule as the rule's continuation.
-  At the time, three such adjacencies existed in `AGENTS.md` (`A buildpack pin is verified…`,
-  `palantir-java-format does not manage imports`, `A dependency a module does not use…`), and the second rule's range
-  ran through the eight plain bullets behind it — so both the `git log -L` range an origin was read from and the line
-  the `captured:` marker was appended to belonged to the wrong item, and the marker landed on the following bullet.
-  Derive an item's end from the list's own structure (a wrapped continuation is indented; a `- ` at column zero starts a
-  new item) and have any script that ranges over or appends to items assert that boundary itself — the marker-placement
-  rule above states what the pre-commit guard enforces — before trusting the result. captured: retro-mark-captured-rules
+  the edit tool's anchor: an edit anchored on a neighbouring item's line is applied at the neighbour — the tool's
+  uniqueness check is satisfied by any unique line — so the replacement is written there while the item meant to change
+  keeps its old text; anchor on the text being changed. The same class bites at item granularity: the
+  `retro-mark-captured-rules` provenance sweep derived each rule's line range with a boundary heuristic that treated a
+  top-level plain `- Text` bullet directly after a bold-lead rule as the rule's continuation. At the time, three such
+  adjacencies existed in `AGENTS.md` (`A buildpack pin is verified…`, `palantir-java-format does not manage imports`,
+  `A dependency a module does not use…`), and the second rule's range ran through the eight plain bullets behind it — so
+  both the `git log -L` range an origin was read from and the line the `captured:` marker was appended to belonged to
+  the wrong item, and the marker landed on the following bullet. Derive an item's end from the list's own structure (a
+  wrapped continuation is indented; a `- ` at column zero starts a new item) and have any script that ranges over or
+  appends to items assert that boundary itself — the marker-placement rule above states what the pre-commit guard
+  enforces — before trusting the result. captured: retro-mark-captured-rules captured: add-a-fresh-session-trigger
 
 - **The same range-boundary hazard bites source:** removing three tasks' private comparators with a range running from
   the first deleted member to the end of the file took each class's **closing brace** (the members were last in the

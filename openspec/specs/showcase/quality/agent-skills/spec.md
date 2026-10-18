@@ -189,10 +189,11 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 - **AND** the caller passes each prior finding's instance (`file:line` and the claim), not only its class, so a repeat
   is reported as an unfixed prior instance or as a new instance of an exhausted class
 - **AND** the caller continues the prior round's `review-quick` session — passing its session id on the next request —
-  for each round after the first, starting a fresh session only when that one has expired or the reviewer's definition
-  changed after it began, so the reviewer keeps its context across rounds rather than re-exploring from scratch; the
-  reuse never substitutes for the per-round instance hand-off above, which the caller supplies on every round regardless
-  of the reviewer's session
+  for each round after the first, starting a fresh session only when that one has expired, the reviewer's definition
+  changed after it began, or it stops responding mid-round (the loop has observed a session stall with no reply, which
+  no wait resolves) — so the reviewer keeps its context across rounds rather than re-exploring from scratch; the reuse
+  never substitutes for the per-round instance hand-off above, which the caller supplies on every round regardless of
+  the reviewer's session
 - **AND** the review checks, in one line each, the proposal's coherence and whether every required behavior is
   represented and its tasks cover the tests and documentation; the implementation's boundary conditions, its changed
   semantics (defaults, failure handling, retries, ordering, concurrency), a test that would still pass with the behavior

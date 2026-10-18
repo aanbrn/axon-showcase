@@ -180,6 +180,10 @@ owns, not this one.
   class (comma-separated; `-` when none), and the count of findings that were a compliance miss of an existing rule —
   for the calling agent to append to `docs/review-rounds.tsv`, so the digest can trend the loop's cost and the pre-write
   pass can be evaluated
+- **AND** the calling agent appends the round's row with the reviewer-session fields the ledger's contract declares —
+  the session identifier, whether the session was created, continued, or replaced, and the replacement's reason when it
+  was replaced — supplying the identifier the invocation returned rather than inventing one, so the record evidences the
+  transition instead of leaving it to recollection
 - **AND** with no prior-round list supplied, the review still classifies each finding and states that a repetition is
   unknown rather than inferring one, since the classification cannot be compared against what it has not seen
 - **AND** a defect the applying command rewrites — `./gradlew spotlessApply`, or the web module's `npmFormat` — is
@@ -205,12 +209,21 @@ owns, not this one.
   replaces the derivation, since it enumerates shapes, not facts
 - **AND** the caller passes each prior finding's instance (`file:line` and the claim), not only its class, so a repeat
   is reported as an unfixed prior instance or as a new instance of an exhausted class
-- **AND** the caller continues the prior round's `review-quick` session — passing its session id on the next request —
-  for each round after the first, starting a fresh session only when that one has expired, the reviewer's definition
-  changed after it began, or it stops responding mid-round (the loop has observed a session stall with no reply, which
-  no wait resolves) — so the reviewer keeps its context across rounds rather than re-exploring from scratch; the reuse
-  never substitutes for the per-round instance hand-off above, which the caller supplies on every round regardless of
-  the reviewer's session
+- **AND** the caller runs a reviewer-session preflight immediately before each invocation: it creates the reviewer's
+  session on the unit's first round with a fresh invocation and retains the identifier that invocation returns; on every
+  later round it invokes the reviewer by passing that saved identifier as the invocation's session-continuation
+  parameter, never a fresh invocation labelled as a continuation; and it starts a replacement only after a continuation
+  attempt has produced one of the recovery cases below, recording the concrete reason and both identifiers — the session
+  that failed and its replacement's — before it replaces
+- **AND** after a continuation invocation the caller compares the identifier the invocation returns with the one it
+  saved, and a difference stops the round and is reported as a session-continuity failure rather than recorded as a
+  continuation — so a loop that restarted its reviewer each round is distinguishable from one that continued it, rather
+  than resting on the caller's recollection
+- **AND** the only cases that justify a replacement are: the prior session expired, the reviewer's definition changed
+  after that session began, or the reviewer stopped responding mid-round (the loop has observed a session stall with no
+  reply, which no wait resolves)
+- **AND** the reuse never substitutes for the per-round instance hand-off above, which the caller supplies on every
+  round regardless of the reviewer's session
 - **AND** the review checks, in one line each and within the supplied scope, the proposal's coherence and whether the
   required behavior is represented and its tasks cover the tests and documentation; the implementation's obvious
   boundary conditions and changed semantics (defaults, failure handling, retries, ordering, concurrency), a test in the

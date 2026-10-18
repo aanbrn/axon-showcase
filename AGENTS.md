@@ -339,8 +339,20 @@ capture-reverted-sweep-lessons (#283)
    re-derive the table after the unit's last append to its own record, which adds one. captured:
    widen-architecture-auditor-to-stale-ideas captured: normalize-the-review-round-digest captured:
    capture-authoring-system-gaps captured: sharpen-architecture-audit
-3. Run `review-quick` against the change's planning artifacts — for the proposal round, the
-   proposal/design/tasks/spec-delta coherence and repo fit; for the implementation round, the tasks and delta spec.
+3. Run the reviewer-session preflight, then `review-quick`:
+   - **Preflight** — before each invocation, the re-runs in step 4 included: create the reviewer's session on the unit's
+     first round with a fresh invocation and retain the identifier it returns; on every later round pass that saved
+     identifier as the invocation's session-continuation parameter, never a fresh invocation relabelled as a
+     continuation; compare the identifier the invocation returns with the one you saved, and stop the round reporting a
+     session-continuity failure if they differ; and start a replacement only after a continuation attempt has produced
+     one of the recovery cases the rule names, recording the concrete reason and both identifiers — the failed session
+     and its replacement's — before you replace.
+   - **Run** — `review-quick` against the change's planning artifacts: for the proposal round, the
+     proposal/design/tasks/spec-delta coherence and repo fit; for the implementation round, the tasks and delta spec.
+   - Append each round's row with the session fields `docs/review-rounds.tsv` declares — the identifier, the transition,
+     and a replacement's reason — supplying the identifier the invocation returned, never an invented one. The rule, its
+     recovery cases, and the record's contract are `showcase/quality/agent-skills`'s and the ledger's; an omission fails
+     `verifyReviewSessionContinuity`. captured: track-review-session-continuity
 4. Fix everything it finds; re-run. Repeat until it reports no new observations.
 5. Route the deep review, once, from the completed implementation, the diff, the applicable artifacts, and the existing
    review evidence: derive the floor with `python3 scripts/review-routing.py --change <name>`, decide at or above it
@@ -366,12 +378,11 @@ final edit). captured: decide-against-pre-review
   running the round, the handover written from the artifact (each `file:line` and its text), never from what the edit
   was meant to do: its claims are the successor's premise, and one that does not reproduce costs the round it was meant
   to save. captured: record-agents-md-authoring-standard
-- **Continue the reviewer's session** across rounds (pass its session id on the next request); start fresh only when
-  that session has expired, the reviewer's definition changed (a subagent session can), or it stops responding
-  mid-round. Each round must not lean on the reviewer's memory in place of the hand-off, which is the caller's record;
-  the session-reuse rule's rationale is in `showcase/quality/agent-skills`, not restated here. The caller's own re-check
-  of the handover is a recorded deviation, not a passed round (a resumed round found defects the handover's self-review
-  had passed). captured: retrospective-2026-10-15
+- **Continue the reviewer's session** — step 3's preflight is what makes that happen, and each round must not lean on
+  the reviewer's memory in place of the hand-off, which is the caller's record. The rule, its recovery cases, and the
+  ledger's session fields are `showcase/quality/agent-skills`'s and `docs/review-rounds.tsv`'s, not restated here. The
+  caller's own re-check of the handover is a recorded deviation, not a passed round (a resumed round found defects the
+  handover's self-review had passed). captured: retrospective-2026-10-15
 - **A finding that adds behavior is a scope change, not a code fix:** applying it to the code and a test alone leaves
   the change's planning artifacts — proposal, design, tasks, and delta spec — describing the old behavior, and the next
   round reports the residue as spec-/task-drift. Sweep every one of them, not only the file the finding names, as part
@@ -431,11 +442,12 @@ final edit). captured: decide-against-pre-review
   reason behind `No ## Purpose refresh is owed`, left the conclusion, and the conclusion did not reproduce). captured:
   relax-diagram-span-rule captured: sharpen-architecture-audit
 - **The change's own self-records (the claims table, the task `Done` notes, the dismissals):** a recurring
-  `claim-unreproducible` means they were drafted from what the edits were meant to do, not the diff — re-derive each
-  from the diff once the edits land, and delete a claim whose described edit has no referent. When the repeated class is
-  their completeness (a stated fact they omit, a source that does not reproduce), adding the omitted row re-triggers —
-  the rows track the facts the artifacts state — so delete the unneeded fact rather than add the row. captured:
-  dont-report-what-a-gate-covers captured: sharpen-architecture-audit
+  `claim-unreproducible` means they were drafted from what the edits were meant to do, not from the source they name —
+  so re-derive each from that source once the edits land, per the re-derivation rule above, and delete a claim whose
+  described edit has no referent. When the repeated class is their completeness (a stated fact they omit, a source that
+  does not reproduce), adding the omitted row re-triggers — the rows track the facts the artifacts state — so delete the
+  unneeded fact rather than add the row. captured: dont-report-what-a-gate-covers captured: sharpen-architecture-audit
+  captured: track-review-session-continuity
 - **A revert after a non-converging loop is a legitimate outcome** — record why in the change dir so the decision is not
   re-litigated. captured: propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured:
   check-load-test-drift captured: check-unique-cron-schedules (#436) captured: derive-retrospective-facts captured:
@@ -812,7 +824,7 @@ line.
 # verifyDashboardJson, verifyPrettierAlignment, and the commit-hygiene tasks
 # (verifyCapturedMarkers, testCommitHygiene, testClaimScan, testDoctorCharter, testReviewRounds,
 # verifyTrackedIgnoredFiles, verifyConflictMarkers, verifyExecutableBits, verifyUniqueCronSchedules,
-# verifyUniqueReviewRounds, verifyLargeFiles)
+# verifyUniqueReviewRounds, verifyReviewSessionContinuity, verifyLargeFiles)
 # (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
 # check)
 ./gradlew :showcase-command-service:check
@@ -2286,25 +2298,27 @@ capture-stash-stale-copy
   misplaces a `captured:` marker, or stages an `openspec/changes/archive/**` change dir while leaving its
   `openspec/specs/**` sync unstaged.
 
-- **Never chain an edit to a commit without reading the edit's result — gate the commit on a content check, not on the
-  edit command's exit status.** While implementing the `concise-agent-reports` change, an anchor assertion in the edit
-  script failed (Spotless had re-wrapped the text), so the edit no-opped — and the next command in the shell sequence
-  committed anyway, an unfixed state caught only by reading `git show --stat`, not the commit message or the exit codes
-  (an assertion that fails does not by itself stop a following command unless the chain is gated). Inspect the staged
-  set before committing — the `git add <dir>` gotcha above owns that files check — and read the diff's _content_, not
-  just its file list, since a names-only check cannot see an edit that no-opped. An anchor read before a formatter run
-  is stale the moment the formatter rewrites the file (`*italic*` → `_italic_`, rewrapping) — take the anchor from a
-  read that follows `spotlessApply`, or re-read the file before reusing a saved one. The same change also showed why a
-  multi-file change belongs in the apply workflow, not an ad-hoc edit script: hand-editing the six agent definitions
-  with `python` `replace` scripts left five of six files edited while `architecture-auditor.md` was untouched and still
-  reported edited, and duplicated a line in `lesson-capture.md` — the script's "edited" line is no per-file evidence,
-  while `openspec-apply-change`'s per-task edits make a skipped file visible. A script that batches its edits and writes
-  once is a third mode: an assert that aborts on a later edit discards every earlier edit in the same script, because
-  none reached the single write — a `tasks.md` script applied 11 checkbox ticks and two rewording replacements, hit a
-  stale anchor on the last and `sys.exit(1)`'d before its one `write_text`, and all 11 ticks were lost (only a later
-  review caught the file still unticked). Write each edit as it succeeds (or split the batch into per-edit scripts) and
-  verify the batch's full result afterward, rather than trusting a script that writes once at the end. captured:
-  make-captured-rules-traceable (#279)
+- **Never chain an edit to a commit — or trust an edit script's own report — without reading the edit's result: gate the
+  commit on a content check, not on the edit command's exit status.** While implementing the `concise-agent-reports`
+  change, an anchor assertion in the edit script failed (Spotless had re-wrapped the text), so the edit no-opped — and
+  the next command in the shell sequence committed anyway, an unfixed state caught only by reading `git show --stat`,
+  not the commit message or the exit codes (an assertion that fails does not by itself stop a following command unless
+  the chain is gated). Inspect the staged set before committing — the `git add <dir>` gotcha above owns that files check
+  — and read the diff's _content_, not just its file list, since a names-only check cannot see an edit that no-opped. An
+  anchor read before a formatter run is stale the moment the formatter rewrites the file (`*italic*` → `_italic_`,
+  rewrapping) — take the anchor from a read that follows `spotlessApply`, or re-read the file before reusing a saved
+  one; make a scripted replacement fail loud on a stale anchor — assert the anchor's occurrence count before replacing,
+  since `str.replace` returns the input unchanged when it does not match. The same change also showed why a multi-file
+  change belongs in the apply workflow, not an ad-hoc edit script: hand-editing the six agent definitions with `python`
+  `replace` scripts left five of six files edited while `architecture-auditor.md` was untouched and still reported
+  edited, and duplicated a line in `lesson-capture.md` — the script's "edited" line is no per-file evidence, while
+  `openspec-apply-change`'s per-task edits make a skipped file visible. A script that batches its edits and writes once
+  is a third mode: an assert that aborts on a later edit discards every earlier edit in the same script, because none
+  reached the single write — a `tasks.md` script applied 11 checkbox ticks and two rewording replacements, hit a stale
+  anchor on the last and `sys.exit(1)`'d before its one `write_text`, and all 11 ticks were lost (only a later review
+  caught the file still unticked). Write each edit as it succeeds (or split the batch into per-edit scripts) and verify
+  the batch's full result afterward, rather than trusting a script that writes once at the end. captured:
+  make-captured-rules-traceable (#279) captured: track-review-session-continuity
 
 ### Build, Gradle & dependency management
 
@@ -2603,7 +2617,10 @@ capture-stash-stale-copy
   stated where its outcome is recorded (the design, and the spec where the outcome is spec'd), and a clean run is never
   full coverage. Recording is for what cannot be closed: the cron check closes its day-of-week `7`-as-`0` miss (the
   `commit-hygiene` spec records the normalization) while recording its stdlib-only scan's unparseable YAML forms, and
-  the conflict-marker check records its lone-`=======` exclusion. captured: check-unique-cron-schedules (#436)
+  the conflict-marker check records its lone-`=======` exclusion. An exemption boundary is the same surface, and its
+  **position** is part of the check: enforce it, not only the boundary's presence, since a marker moved past a row
+  exempts the row it passes (`verifyReviewSessionContinuity` rejects a row above the marker whose field count is not the
+  pre-fields width). captured: check-unique-cron-schedules (#436) captured: track-review-session-continuity
 - **A verdict echo is not a check.** While fixing `scripts/experience-analysis.sh`, the 120-character check printed the
   offending line and the next command echoed "(script 120 clean)" regardless — the log carried the defect and the
   summary contradicted it. Let the exit status carry the verdict — wrap the `Formatting` convention's recipe so a line

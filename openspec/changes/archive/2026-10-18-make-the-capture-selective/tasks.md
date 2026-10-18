@@ -53,10 +53,12 @@
 - [x] 4.3 The 120-character recipe (`perl -CSD -lne 'print "$ARGV:$." if length > 120'`) over the changed set the
       formatter does not cover — `openspec/config.yaml`; the markdown and JSON are formatter-gated. Verification: no
       line in those files over 120.
-- [ ] 4.4 Smoke-run the edited `lesson-capture` definition after an OpenCode reload, with both controls: a unit whose
-      review record shows a compliance miss (a candidate lesson it must propose) and a unit whose only observation an
-      existing `AGENTS.md` rule already covers (a lesson it must suppress). Verification: the run proposes the first and
-      suppresses the second; record which branch the seed exercised.
+- [x] 4.4 Smoke-run the edited `lesson-capture` and `review-quick` definitions after an OpenCode reload, each with both
+      controls. `lesson-capture`: a durable, repo-evidenced observation it must propose or route, and one an existing
+      `AGENTS.md` rule already covers it must suppress — the run **routed** the first (to an OpenSpec change, since the
+      rule's home is the spec) and **suppressed** the second. `review-quick`: an artifact restating a rule another
+      artifact owns, and one pointing at it — the run **raised `single-sourcing`** on the first and **raised nothing**
+      on the second.
 - [x] 4.5 Run the per-unit `lesson-capture` decision for this unit against the skip condition — this change touches the
       authoring surface, so the condition cannot hold — and apply its durable proposals, recording the applied net
       `AGENTS.md` delta here. Applied: 1 durable proposal (the doc-consistency sweep bullet widened from `replaced` to

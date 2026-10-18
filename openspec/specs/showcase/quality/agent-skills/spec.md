@@ -226,8 +226,11 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 #### Scenario: Lessons are captured after implementation
 
 - **WHEN** a unit's implementation quick review is clean
-- **THEN** the `lesson-capture` subagent proposes `AGENTS.md` gotchas/conventions from the unit's lessons, which the
-  main agent verifies and applies
+- **THEN** the main agent decides from the unit's own evidence whether it shows a candidate lesson, and invokes the
+  `lesson-capture` subagent only when it does — otherwise the capture is skipped and the skip recorded with its reason,
+  so a skip is a recorded decision rather than a run that found nothing
+- **AND** the `lesson-capture` subagent proposes `AGENTS.md` gotchas/conventions from the unit's lessons, which the main
+  agent verifies and applies
 - **AND** each proposed addition names the existing bullet it extends, or states that no bullet covers it — a new rule
   merges into or replaces one rather than accreting
 - **AND** alongside its additions, it reports the rules this unit makes obsolete or redundant — a rule whose mechanism
@@ -271,8 +274,8 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
   a merge-time detection found the lesson rather than the implementation capture, since a capture runs once at
   implementation and a merge only detects and asks — so a reader can tell where the rule came from without consulting
   git, and a markdown reflow cannot take it
-- **AND** the unit leaves a record the merge-time read can check, so an unrun capture is a missing box rather than a
-  recollection
+- **AND** the unit leaves a record the merge-time read can check — the capture's applied net `AGENTS.md` delta, or its
+  recorded skip and reason — so neither an unrun capture nor an unrecorded skip reads as a run that found nothing
 
 #### Scenario: A change that obsoletes a rule yields a retirement candidate
 
@@ -284,9 +287,11 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
 
 #### Scenario: A skipped capture is a missing record at the merge
 
-- **WHEN** a unit is prepared for its merge and its implementation capture has not run
-- **THEN** the merge-time read reports the capture as unrun — the unit's record missing or unticked — rather than
-  reconstructing the skip from recollection
+- **WHEN** a unit is prepared for its merge
+- **THEN** the merge-time read reports an implementation capture that neither ran nor recorded a skip — the unit's
+  record missing or unticked — as unrun rather than reconstructing it from recollection
+- **AND** it re-verifies a recorded skip against the merge's own evidence, running the capture there when the skip's
+  condition no longer holds
 
 #### Scenario: A lesson whose cause is an authoring mechanism is routed to it
 

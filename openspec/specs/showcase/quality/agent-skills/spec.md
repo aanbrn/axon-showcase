@@ -193,6 +193,23 @@ purpose described in its agent definition and (where relevant) in `AGENTS.md`.
   changed after it began, so the reviewer keeps its context across rounds rather than re-exploring from scratch; the
   reuse never substitutes for the per-round instance hand-off above, which the caller supplies on every round regardless
   of the reviewer's session
+- **AND** the review checks, in one line each, the proposal's coherence and whether every required behavior is
+  represented and its tasks cover the tests and documentation; the implementation's boundary conditions, its changed
+  semantics (defaults, failure handling, retries, ordering, concurrency), a test that would still pass with the behavior
+  broken, and the unchanged callers, configuration, and documentation it affects; and the conventions (naming, dead
+  code, missing mandated Javadoc, documentation still describing superseded behavior, and broken cross-references) — so
+  the pass names what to look at without becoming a thorough review
+- **AND** a finding carries the evidence its class needs — an enumeration against the corpus it summarizes, a
+  contradiction against both statements, a missing scenario against the behavior and the delta that omits it, a
+  `test-control` against the expected behavior and the failure it should detect, an `impact-omission` against the
+  affected site — so a suspicion the evidence cannot establish is not reported as a confirmed defect
+- **AND** the report is ordered by practical importance — incorrect behavior and broken contracts; missing required
+  behavior, scenarios, or records; contradictions between the implementation, the plan, and the evidence; unsupported
+  claims and invalid premises; documentation and rule violations; formatting last — the order guiding presentation, not
+  what is reported
+- **AND** each finding names its class, its location, the issue, one line of evidence, and the required correction
+- **AND** a defect a prior round's fix only partially corrected, moved, or rewrote is still a recurrence of the same
+  problem, reported as such
 
 #### Scenario: A skipped pre-write pass is a missing record
 

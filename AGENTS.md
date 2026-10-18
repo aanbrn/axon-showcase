@@ -300,19 +300,21 @@ capture-reverted-sweep-lessons (#283)
 
 1. Run the pre-write derivation pass over the planning artifacts, deriving each of the five claim classes the loop keeps
    catching from its source: read every run-log, issue-state, or external-artifact claim from the artifact now; re-grep
-   every count — and every universal claim about a corpus (`every`/`all`) — against its set; single-source a model
-   stated in more than one artifact; derive every mechanism or task-check claim from the tool or the graph, deleting a
-   term or mechanism name whose grep finds no referent in the repository (a coinage lifted from an external prompt; a
-   design carried three, each stripped by a review round); and, for a change whose facts are its own measurement,
-   computation, or process record, derive each figure from the mechanism that produces it — the window or instant it
-   spans and the aggregation it applies, or for a record figure the command that emits it (a review round's row from its
-   report's record line, the capture record's net delta from `git diff --numstat AGENTS.md` after `spotlessApply`,
-   per-hunk `git diff -U0` counts when other edits share the file) — re-deriving it after that mechanism's last edit,
-   since a figure measured before the final tuning, or written from what the edits were meant to add, is the claim the
-   next round reports unreproducible (`verify-unique-review-rounds` recorded a row clean before its round reported and
-   stated a net `AGENTS.md` delta of `+2` where the diff measured `+5`; the measurement-attribution gotcha carries the
-   series rule). captured: seed-claims-from-the-diff captured: record-agents-md-authoring-standard captured:
-   sharpen-experience-analysis
+   every count — and every universal claim about a corpus (`every`/`all`) — against its set, naming the instances it
+   covers where the class has no greppable predicate (a count of prior changes reproduces as different totals by
+   criterion, so state the instances or the criterion, never the bare number); single-source a model stated in more than
+   one artifact; derive every mechanism or task-check claim from the tool or the graph, deleting a term or mechanism
+   name whose grep finds no referent in the repository (a coinage lifted from an external prompt; a design carried
+   three, each stripped by a review round); and, for a change whose facts are its own measurement, computation, or
+   process record, derive each figure from the mechanism that produces it — the window or instant it spans and the
+   aggregation it applies, or for a record figure the command that emits it (a review round's row from its report's
+   record line, the capture record's net delta from `git diff --numstat AGENTS.md` after `spotlessApply`, per-hunk
+   `git diff -U0` counts when other edits share the file) — re-deriving it after that mechanism's last edit, since a
+   figure measured before the final tuning, or written from what the edits were meant to add, is the claim the next
+   round reports unreproducible (`verify-unique-review-rounds` recorded a row clean before its round reported and stated
+   a net `AGENTS.md` delta of `+2` where the diff measured `+5`; the measurement-attribution gotcha carries the series
+   rule). captured: seed-claims-from-the-diff captured: record-agents-md-authoring-standard captured:
+   sharpen-experience-analysis captured: sharpen-review-quick
 2. Record the pass. Every unit carries it as a task — a task in a change's `tasks.md`, or a line in the pull-request
    checklist for a unit with no change dir — so a missing box is a skip, not a pass that found nothing. Its output is
    the change's **claims table** — each fact the change states about its evidence (the prior artifacts it rests on) with
@@ -389,10 +391,8 @@ final edit). captured: decide-against-pre-review
 - IF the review loop keeps finding the **same class** of observation round after round, it is not converging — each fix
   is treating a symptom of a root cause that is still there. Stop, re-derive the root cause by the shapes under "Failure
   handling", and do not layer another special case.
-- The `review-quick` subagent's finding classes (the canonical list its own contract carries), its repeated-class flag,
-  its class-exhaustion clause, its per-round record line, and its record-artifact loop bound are specified in
-  `showcase/quality/agent-skills`, as is the pre-write pass record — act on its verdict line rather than on your own
-  recollection of the thread.
+- The `review-quick` subagent's contract and the pre-write pass record are specified in `showcase/quality/agent-skills`
+  — act on its verdict line rather than on your own recollection of the thread.
 
 **Failure handling — re-deriving a non-converging loop**
 

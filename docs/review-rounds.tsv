@@ -397,3 +397,5 @@
 2026-10-18	sharpen-specs-audit	3	claim-missing,incomplete-enumeration	claim-missing,incomplete-enumeration	2
 2026-10-18	sharpen-specs-audit	4	incomplete-enumeration	incomplete-enumeration	1
 2026-10-18	sharpen-specs-audit	5	-	-	0
+2026-10-18	sharpen-review-quick	1	claim-missing,claim-unreproducible,incomplete-enumeration,structured-writing	-	3
+2026-10-18	sharpen-review-quick	2	-	-	0

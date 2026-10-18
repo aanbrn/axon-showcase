@@ -1391,20 +1391,21 @@ Key modules (libraries, not services):
   `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the same project facts (runtime/Spring/Gradle
   versions, module count, service list, Docker image names) that OpenSpec shows the AI when creating artifacts — refresh
   it in the same change whenever one of those facts moves. Some of its per-artifact `rules` restate obligations stated
-  in `AGENTS.md` and the specs, and what is un-gated is their content and currency: `ci.yml`'s probe fails on a
-  malformed item — the list's shape, since a bad one silently drops the whole artifact's rule set — but not on whether a
-  rule's wording still matches `AGENTS.md` and the spec, so refresh a rule whose obligation moves even though the gate
-  stays green. A **removal** counts too: when a sweep deletes an entry as non-durable, check these copies for the same
-  sentence — the fact has not moved, so the move rule does not fire (`disable-axoniq-console-message`'s sentence
-  outlived #292's removal from `AGENTS.md` by four PRs in `config.yaml`, until the audit noticed). `openspec validate`
-  never checks it, so it drifts silently. The repository's own GitHub description and topics are a third un-gated copy
-  of the same facts — so refresh them in the change that moves one; no gate reads them and no auditor owns a surface
-  outside the repository. A file can also _depend_ on such a surface rather than describe one: `SECURITY.md`'s
-  private-reporting path is a dead end unless private vulnerability reporting is enabled. Enable the setting as part of
-  the change that ships the instruction — a repository setting leaves no diff, so a diff-only review cannot see it — and
-  name the enabling in the change's report. captured: park-retro-marking-idea (#281) captured:
-  re-measure-load-test-baseline (#429) captured: mark-s3-applied captured: attribute-load-test-tail (#570) captured:
-  park-review-loop-follow-ups
+  in `AGENTS.md` and the specs — injected per artifact alone (`projectConfig.rules[artifactId]`), so a clause several
+  artifacts need lives in each list rather than in a shared one — and what is un-gated is their content and currency:
+  `ci.yml`'s probe fails on a malformed item — the list's shape, since a bad one silently drops the whole artifact's
+  rule set — but not on whether a rule's wording still matches `AGENTS.md` and the spec, so refresh a rule whose
+  obligation moves even though the gate stays green. A **removal** counts too: when a sweep deletes an entry as
+  non-durable, check these copies for the same sentence — the fact has not moved, so the move rule does not fire
+  (`disable-axoniq-console-message`'s sentence outlived #292's removal from `AGENTS.md` by four PRs in `config.yaml`,
+  until the audit noticed). `openspec validate` never checks it, so it drifts silently. The repository's own GitHub
+  description and topics are a third un-gated copy of the same facts — so refresh them in the change that moves one; no
+  gate reads them and no auditor owns a surface outside the repository. A file can also _depend_ on such a surface
+  rather than describe one: `SECURITY.md`'s private-reporting path is a dead end unless private vulnerability reporting
+  is enabled. Enable the setting as part of the change that ships the instruction — a repository setting leaves no diff,
+  so a diff-only review cannot see it — and name the enabling in the change's report. captured: park-retro-marking-idea
+  (#281) captured: re-measure-load-test-baseline (#429) captured: mark-s3-applied captured: attribute-load-test-tail
+  (#570) captured: park-review-loop-follow-ups captured: fix-openspec-config-rules
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the

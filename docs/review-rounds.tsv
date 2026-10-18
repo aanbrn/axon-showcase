@@ -399,3 +399,10 @@
 2026-10-18	sharpen-specs-audit	5	-	-	0
 2026-10-18	sharpen-review-quick	1	claim-missing,claim-unreproducible,incomplete-enumeration,structured-writing	-	3
 2026-10-18	sharpen-review-quick	2	-	-	0
+2026-10-18	fix-openspec-config-rules	1	claim-unreproducible,contradiction,incomplete-enumeration,wording	-	6
+2026-10-18	fix-openspec-config-rules	2	claim-unreproducible,wording	claim-unreproducible	2
+2026-10-18	fix-openspec-config-rules	3	-	-	0
+2026-10-18	fix-openspec-config-rules	4	single-sourcing,wording,claim-missing	wording	4
+2026-10-18	fix-openspec-config-rules	5	missing-task	-	1
+2026-10-18	fix-openspec-config-rules	6	-	-	0
+2026-10-18	fix-openspec-config-rules	7	-	-	0

@@ -55,14 +55,19 @@ rules:
     - 'Keep the "Why" section concrete: what breaks today without the change'
     - List "What Changes" at the file level, not as a rephrasing of Why
     - Declare "New Capabilities" / "Modified Capabilities" using existing capability names
-    - Note the "Impact" on build, tests, and deployment explicitly
+    - Note the "Impact" on the code, APIs, dependencies, and systems the change affects, and on build, tests, and
+      deployment where they move
     - Every claim about a run log, issue state, or external artifact is read from that artifact, not recalled
-    - Every count — and every universal claim over a corpus — is re-derived by grepping the set it counts
+    - Every count — and every universal claim over a corpus — is re-derived by grepping the set it counts, naming the
+      instances it covers where the class has no greppable predicate
+    - A model stated in more than one artifact is single-sourced, the rest referencing it by name
+    - A change that adds or widens a member of a set (a swept surface, a finding class, an output kind, a documented
+      enumeration) derives the sites it touches from the change's tasks, never a hand-written list
     - Follow the "Structured Writing Standard" in AGENTS.md — one bullet per change in "What Changes", not a paragraph
       carrying several independent points
   specs:
     - Requirements are declarative SHALL statements, testable via WHEN/THEN scenarios
-    - Delta specs use ADDED/MODIFIED/DEPRECATED/REMOVED requirement blocks
+    - 'Delta specs use ADDED/MODIFIED/REMOVED/RENAMED requirement blocks, a rename in FROM:/TO: form'
     - Keep scenario wording consistent with existing captured specs
     - A requirement whose body enumerates its subjects needs a scenario exercising each
     - Follow the "Structured Writing Standard" in AGENTS.md — one behavior per requirement and one WHEN/THEN pair per
@@ -99,6 +104,9 @@ rules:
     - Carry the pre-write derivation pass as a task in every change — the pass `AGENTS.md`'s review-loop bullet names,
       whose output is the claims table, never restated here — so a skipped pass is a missing box rather than looking
       like a pass that found nothing
+    - A model stated in more than one artifact is single-sourced, the rest referencing it by name
+    - Every count — and every universal claim over a corpus — is re-derived by grepping the set it counts, naming the
+      instances it covers where the class has no greppable predicate
     - Follow the "Structured Writing Standard" in AGENTS.md — one action per task, its verification stated in the same
       task
 

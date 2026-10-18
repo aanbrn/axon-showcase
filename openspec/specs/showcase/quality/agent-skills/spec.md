@@ -10,15 +10,16 @@ standard every agent-authored technical artifact follows (stated once in `AGENTS
 by the review and audit subagents), and the locally-defined quality-gate and analysis subagents under `.opencode/agent/`
 — the per-unit review and lesson-capture agents, the experience-analyzer, the visual and diagram agents, and the
 on-demand auditors of the project-owned agent tooling (the guidance and project-authored `.opencode/` files, plus any
-generated or vendored file that contradicts how the repository uses it, the meta rules it reports with their origins,
-the merge, removal, and route candidates it reports, and the authoring-system gaps it traces to a mechanism that
-produces an artifact), of the `openspec/specs/` corpus, of the architecture (the ADRs, the service, module, and
-spec-decomposition surface, where a deliberate decision's rationale is not recorded, and where a record's recorded
-premise appears met — a deferral's `Revisit when:` condition, or a parked `docs/ideas.md` entry whose work has landed,
-fully or partly, or whose objective a different mechanism achieves), of the human-facing `README.md` (its claims against
-the repository, its shape against the README convention, and its coverage of the human-visible capabilities), and the
-scheduled unattended run that performs the audits without a human asking, together with the standing owner-gated unit
-that applies an audit report's reduction candidates.
+generated or vendored file that contradicts how the repository uses it, the always-loaded instruction budget it measures
+with the extraction opportunities that surface where guidance has no destination yet, the meta rules it reports with
+their origins, the merge, removal, route, and extraction candidates it reports, and the authoring-system gaps it traces
+to a mechanism that produces an artifact), of the `openspec/specs/` corpus, of the architecture (the ADRs, the service,
+module, and spec-decomposition surface, where a deliberate decision's rationale is not recorded, and where a record's
+recorded premise appears met — a deferral's `Revisit when:` condition, or a parked `docs/ideas.md` entry whose work has
+landed, fully or partly, or whose objective a different mechanism achieves), of the human-facing `README.md` (its claims
+against the repository, its shape against the README convention, and its coverage of the human-visible capabilities),
+and the scheduled unattended run that performs the audits without a human asking, together with the standing owner-gated
+unit that applies an audit report's reduction candidates.
 
 ## Requirements
 
@@ -565,7 +566,7 @@ project-authored file that shares a generated file's name prefix (e.g. the `opsx
 scope. The audit SHALL cover, at least: contradictions between entries or files, stale claims and enumerations the
 repository has outgrown, dead cross-references, and drift from the code/workflows/specs the prose describes
 (consistency); and duplicated or near-duplicate entries, one-off trivia, over-long or over-specific entries, and
-misplaced entries (conciseness). Within conciseness the audit SHALL report three analyses as standing findings rather
+misplaced entries (conciseness). Within conciseness the audit SHALL report these analyses as standing findings rather
 than only under a scoped run: **merge candidates**, each naming the overlapping or complementary entries and the merged
 text that preserves every anchor and piece of evidence the originals carried — and never blending two distinct lessons
 into one — and where the merged text would only restate a rule the file already carries, the candidate is a deletion of
@@ -576,13 +577,88 @@ rule whose subject a deterministic mechanism already enforces — a build or CI 
 a deterministic workflow step such as the archive-time spec sync, but never a review, whether a human's or a review
 subagent's — and proposing to reduce the rule to a pointer at that mechanism, or move its content to the spec or ADR
 that owns it, naming the mechanism, what would be lost, and confirming the mechanism exists and covers the rule's
-subject. All are candidates for the owner, not actions. Each finding SHALL be verified against the repository rather
-than inferred from the prose alone, and SHALL be reported with its location and a concrete suggested rewrite. A merge
-candidate whose merged text delegates content to a target — a spec or an ADR it points the reader to — SHALL have that
-delegation verified against the target: its behavior **and** the identifiers, declarations, and gate conditions the
-delegated content names, not the behavior alone. A delegated item the target does not carry SHALL stay in the merged
-text, and the candidate SHALL say which items it kept for that reason. The subagent SHALL propose its findings without
-modifying files; the main agent verifies and applies those the user approves.
+subject; and **extraction candidates**, each a verified proposal to partition one `AGENTS.md` unit into a minimal
+retained root entry point, an authoritative destination that loads or is discoverable when its trigger occurs, and an
+explicit retrieval path from that trigger to that destination, as the conditions below define. All are candidates for
+the owner, not actions. Each finding SHALL be verified against the repository rather than inferred from the prose alone,
+and SHALL be reported with its location and a concrete suggested rewrite. A reduction candidate — a merge, removal,
+route, or extraction — SHALL carry seven fields: its location; the decision its rule changes; the task or condition that
+requires it; the unique content the change would otherwise lose (every imperative, warning, exception, identifier,
+rationale, provenance marker, and verification); its current loading cost; its disposition; and the repository evidence
+that the surviving guidance preserves the same obligation. A merge candidate whose merged text delegates content to a
+target — a spec or an ADR it points the reader to — SHALL have that delegation verified against the target: its behavior
+**and** the identifiers, declarations, and gate conditions the delegated content names, not the behavior alone. A
+delegated item the target does not carry SHALL stay in the merged text, and the candidate SHALL say which items it kept
+for that reason. The subagent SHALL propose its findings without modifying files; the main agent verifies and applies
+those the user approves.
+
+The audit SHALL additionally report an **instruction-budget ledger** for `AGENTS.md`, measuring the always-loaded
+instruction surface rather than judging it: the file's total size in bytes and lines; its size by top-level section; the
+effective bound on that surface together with the source establishing it, stating whether the loading mechanism applies
+a limit of its own; the first rule that falls beyond a derived effective threshold, expressed as an estimate with its
+derivation rather than as a position at which content is dropped; the growth since the newest prior report under
+`docs/audits/`; and the sections and `captured:`-marked rule units responsible for that growth. The ledger SHALL
+estimate the bytes safely removable from the always-loaded surface, SHALL list the rules that must remain loaded with
+the risk their unavailability would carry, SHALL list the rules safe to load on demand with their trigger and retained
+pointer, SHALL tabulate the extraction candidates with their destination type and retrieval-path result, SHALL carry a
+separate **extraction opportunities** subsection after the ready candidates — excluded from the verdict counts, stating
+that its items require the owner's selection and a dedicated design or implementation change, distinguishing an existing
+destination that failed retrieval from a destination that does not yet exist, and collapsing "no opportunity" to one
+line — and SHALL state the post-change verification: re-measurement, pointer-target verification, retrieval-path tests,
+a search for lost unique terms, and the review gate. The ledger SHALL NOT invent a limit the loading mechanism does not
+apply, and a bound it reports as configured SHALL cite the configuration that sets it.
+
+The audit SHALL keep root `AGENTS.md` guidance scoped to what an agent must see before safely starting work: a rule a
+narrower task scope governs, and whose destination is durable, project-authored, owned, and loaded or deterministically
+discoverable when that scope's trigger occurs, is a candidate to move out of the always-loaded surface. The audit SHALL
+NOT propose a move that would leave the reader to infer a warning, an imperative, an exception, or a target-less fact
+the retained root text does not state, and SHALL NOT report a rule as a removal candidate merely for being old,
+uncommon, or lengthy — the accretion class's rule for a meta rule governs that case. Where the passage's intended
+structure or meaning cannot be recovered confidently, the audit SHALL report the ambiguity rather than invent a rewrite.
+
+The audit SHALL propose an **extraction candidate** only where every one of these holds: the candidate governs a
+narrower task scope than root `AGENTS.md`; its destination is durable, project-authored, and owned; that destination is
+loaded or deterministically discoverable when the trigger occurs; the retained root text lets an agent identify the
+trigger and the required next action without reconstructing them; the move preserves every unique imperative, warning,
+exception, identifier, verification, and provenance marker; the destination already carries, or the proposed change to
+it will carry, the complete transferred contract; the move reduces the always-loaded surface by a material, measured
+amount; and it does not split a procedure across files such that a reader must guess an order, condition, or failure
+path. The audit SHALL derive the preferred destination type from the content's own class before selecting one: a global
+safety, branch, review, or repository-wide workflow rule stays at root `AGENTS.md`; guidance needed only while working
+below one unambiguous directory goes to a nested `AGENTS.md`; behavior that changes a capability outcome to an existing
+or proposed capability spec; a durable architecture decision, rationale, or trade-off to an existing or proposed ADR; a
+procedure invoked through a named task entry point to an existing command or skill; incident history, diagnostic
+evidence, or a large reference inventory used by several future tasks to an existing durable reference document; and a
+subject a deterministic mechanism enforces to that mechanism's authoritative configuration or test, with a concise root
+pointer. The audit SHALL NOT propose a generic "documentation" destination and SHALL NOT create a catch-all
+extracted-guidance directory, and a proposed new destination SHALL have a clear owner, a stable scope, and evidence that
+more than one future task can discover and use it. Internal control flow whose alternatives yield the same result SHALL
+stay in `AGENTS.md` even where a spec describes the same outcome; only a mechanism whose change would change the
+capability's specified behavior is a candidate. Before reporting a candidate the audit SHALL test the retrieval path —
+starting from the root instruction set, stating the task trigger, following only the retained root text and normal
+project discovery, and confirming the destination is reached before the governed decision must be made and carries every
+transferred requirement and verification step. A failed retrieval path to an **existing** destination remains a reason
+to retain the source content, and is not an extraction opportunity. For an opportunity the audit SHALL NOT claim that a
+destination which does not exist passed the test: instead it SHALL verify whether the proposed retained root entry point
+could name the trigger and the destination deterministically, record the missing target or discovery mechanism as the
+blocking precondition, and require the dedicated change to create the target, add the retained root pointer, and run the
+full test before the extraction becomes applicable.
+
+The audit SHALL additionally report, as an **extraction opportunity** kept separate from its findings, a source unit
+that is likely too narrow or too costly for root `AGENTS.md` but whose destination does not yet exist — and which
+therefore cannot yet pass the retrieval-path test. An opportunity is not a finding: it SHALL NOT be counted in the
+verdict line, SHALL NOT be reported as a removal or a route candidate, and SHALL NOT be applied by the standing
+reduction unit — it is a design recommendation for the owner, who selects it and carries it out in a dedicated change.
+The audit SHALL report an opportunity only where the source is materially costly in root guidance and the destination
+type can be justified from the content's class, and it SHALL NOT report one merely to reduce the file's size: where the
+source is global, cross-cutting, or cannot be retrieved before its decision is needed, the audit SHALL retain it at
+root. Each opportunity SHALL state that its proposed destination is a design hypothesis rather than an existing source
+of truth, and SHALL carry the source unit and its bounded content, the decision it governs and when it is needed, its
+current loading cost and why that cost is material, its content classification, its recommended destination type, the
+exact existing target or a proposed path with its owning artifact type, the missing precondition that keeps it from
+being a candidate, the content that must remain at root until a destination is created and verified, the intended
+root-to-destination retrieval path once a future change creates the target, and one recommended next action — retain,
+create the destination in a dedicated change, or reject the extraction.
 
 The audit SHALL additionally report, as an **advisory** class kept separate from its fix findings and reported without
 severity, third-party inconsistency: a file the audit excludes (a generated `openspec-*` instruction file, or a vendored
@@ -728,6 +804,94 @@ into the mechanism.
   vendored skill)
 - **THEN** the audit reports the gap under the advisory class, naming the harm and the decision it invites, and never
   proposes a local edit to the excluded mechanism
+
+#### Scenario: An instruction-budget ledger is reported
+
+- **WHEN** the `agents-auditor` subagent audits `AGENTS.md`
+- **THEN** it reports an instruction-budget ledger naming the file's total size, its size by top-level section, the
+  effective bound on the always-loaded surface and its source, the first rule beyond the derived effective threshold,
+  the growth since the newest prior report under `docs/audits/`, and the sections and `captured:`-marked rule units
+  responsible for that growth
+
+#### Scenario: The ledger states the bound's source and invents no limit
+
+- **WHEN** the loading mechanism applies no size limit of its own
+- **THEN** the ledger says so and reports the effective bound with the source that establishes it, rather than reporting
+  a configured limit that does not exist
+
+#### Scenario: A reduction candidate carries its decision and its cost
+
+- **WHEN** the auditor reports a merge, removal, route, or extraction candidate
+- **THEN** the candidate names its location, the decision its rule changes, the task or condition that requires it, the
+  unique content the change would otherwise lose, its current loading cost, its disposition, and the evidence that the
+  surviving guidance preserves the same obligation
+
+#### Scenario: An extraction candidate meets every condition
+
+- **WHEN** the auditor proposes an extraction candidate
+- **THEN** every condition the extraction analysis states holds, and the candidate names its destination type, the
+  retained root text, and the authoritative destination
+
+#### Scenario: A failed retrieval path is a reason to retain the content
+
+- **WHEN** the retrieval-path test cannot reach the destination before the governed decision must be made, or the
+  destination omits a transferred requirement or verification step
+- **THEN** the audit reports the failure and retains the content rather than proposing the extraction
+
+#### Scenario: Internal control flow is not extracted
+
+- **WHEN** a spec describes the same outcome but changing the rule's mechanism would not change the capability's
+  specified behavior
+- **THEN** the audit keeps that control flow in `AGENTS.md` and does not propose extracting it
+
+#### Scenario: A rule is not a removal candidate for being lengthy
+
+- **WHEN** a rule is old, uncommon, or lengthy but governs a decision
+- **THEN** it is not reported as a removal candidate, and the reason it stays is stated
+
+#### Scenario: Guidance is not moved where the reader would infer it
+
+- **WHEN** the retained root text would leave a warning, an imperative, an exception, or a target-less fact to be
+  inferred
+- **THEN** the audit keeps the rule at root rather than proposing the move
+
+#### Scenario: An extraction opportunity is reported where no destination exists
+
+- **WHEN** a source unit is materially costly in root guidance but no existing project-authored destination owns its
+  subject
+- **THEN** the audit reports an extraction opportunity naming its content classification, its recommended destination
+  type, the proposed destination with its owning artifact type, and the missing precondition, and states that the
+  proposed destination is a design hypothesis rather than an existing source of truth
+
+#### Scenario: An extraction opportunity is not a finding and is never applied
+
+- **WHEN** the audit reports an extraction opportunity
+- **THEN** it is excluded from the verdict line, is not reported as a removal or a route candidate, and the standing
+  reduction unit never applies it
+
+#### Scenario: A global rule is retained rather than extracted
+
+- **WHEN** the source is global, cross-cutting, or cannot be retrieved before its decision is needed
+- **THEN** the audit retains it at root and reports no extraction opportunity for it
+
+#### Scenario: A failed path to an existing destination is not an opportunity
+
+- **WHEN** a destination exists but the retrieval path to it fails
+- **THEN** the audit reports the failure as a reason to retain the source content, not as an extraction opportunity
+
+#### Scenario: A proposed new destination needs an owner and a scope
+
+- **WHEN** the audit proposes a destination that does not exist yet
+- **THEN** it names the owning artifact type, a stable scope, and evidence that more than one future task can discover
+  and use it, and it proposes no generic documentation destination and no catch-all extracted-guidance directory
+
+#### Scenario: The ledger carries the opportunities subsection
+
+- **WHEN** the audit reports its instruction-budget ledger
+- **THEN** a separate extraction-opportunities subsection follows the ready candidates, is excluded from the verdict
+  counts, states that its items need the owner's selection and a dedicated design or implementation change,
+  distinguishes an existing destination that failed retrieval from a destination that does not yet exist, and collapses
+  "no opportunity" to one line
 
 ### Requirement: The architecture is audited for drift from its recorded decisions
 
@@ -1062,9 +1226,11 @@ it surfaces the trigger while leaving the decision and the analysis to the on-de
 ### Requirement: Audit reduction candidates are applied by a standing owner-gated unit
 
 The repository SHALL provide a standing, owner-gated unit, invoked by an `/apply-audit-reductions` command, that applies
-an audit report's reduction candidates (its merge, removal, and route findings), routing a content-move to the change
-workflow, so they do not age. It SHALL present the candidates for the owner's selection, apply only the approved ones,
-and pass the per-unit review gate before the change ships; it SHALL NOT run automatically.
+an audit report's reduction candidates (its merge, removal, route, and extraction findings), routing a content-move to
+the change workflow, so they do not age. It SHALL never apply an **extraction opportunity**, which is not a candidate:
+an opportunity is a design recommendation the owner carries out in a dedicated change. It SHALL present the candidates
+for the owner's selection, apply only the approved ones, and pass the per-unit review gate before the change ships; it
+SHALL NOT run automatically.
 
 #### Scenario: A report's reduction candidates are presented and applied
 
@@ -1103,6 +1269,18 @@ and pass the per-unit review gate before the change ships; it SHALL NOT run auto
 - **WHEN** the unit applies reductions
 - **THEN** it does so only on the owner's selection, runs the `review-quick` subagent over the result until clean, and
   asks for the owner's manual review before the change ships
+
+#### Scenario: An extraction candidate's application is routed to a change
+
+- **WHEN** the owner approves an extraction candidate
+- **THEN** the unit routes the move to the normal change workflow rather than editing the destination inline, since the
+  move creates or changes a destination that the change owns
+
+#### Scenario: An extraction opportunity is never applied
+
+- **WHEN** the report carries an extraction opportunity
+- **THEN** the unit does not present or apply it, because an opportunity is a design recommendation rather than a
+  candidate
 
 ### Requirement: AGENTS.md entries follow a stated authoring standard
 

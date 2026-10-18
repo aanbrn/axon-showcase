@@ -5,7 +5,9 @@ description: Audit the openspec/specs corpus for structure and consistency with 
 Run the spec-corpus audit to check the specs for structural consistency.
 
 1. Invoke the `specs-auditor` subagent (`.opencode/agent/specs-auditor.md`) on the repository — it reads the
-   `openspec/specs/` corpus in full as part of the audit.
+   `openspec/specs/` corpus in full as part of the audit. It verifies a dead reference against its false-positive
+   classes, classifies a candidate duplication before reporting it, and leaves the corpus's capability decomposition,
+   any issue an existing gate already enforces, and a proposed change's internal quality to their owners.
 2. Present its findings in the report contract it returns (the verdict line first, then findings budgeted per item and
    grouped by severity).
 3. Ask the user which findings to apply — do not edit specs without their go-ahead. A spec edit is itself a change, so

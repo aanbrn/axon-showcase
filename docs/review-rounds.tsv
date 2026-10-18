@@ -392,3 +392,8 @@
 2026-10-18	sharpen-architecture-audit	16	contradiction	contradiction	1
 2026-10-18	sharpen-architecture-audit	17	incomplete-enumeration	incomplete-enumeration	1
 2026-10-18	sharpen-architecture-audit	18	-	-	0
+2026-10-18	sharpen-specs-audit	1	claim-missing,coherence,incomplete-enumeration,missing-scenario,missing-task,proposal-schema,structured-writing	-	6
+2026-10-18	sharpen-specs-audit	2	incomplete-enumeration,missing-scenario,wording	incomplete-enumeration,missing-scenario	2
+2026-10-18	sharpen-specs-audit	3	claim-missing,incomplete-enumeration	claim-missing,incomplete-enumeration	2
+2026-10-18	sharpen-specs-audit	4	incomplete-enumeration	incomplete-enumeration	1
+2026-10-18	sharpen-specs-audit	5	-	-	0

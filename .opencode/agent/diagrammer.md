@@ -49,12 +49,21 @@ ASCII; a Markdown host that renders fenced `mermaid` blocks (e.g. GitHub) gets M
   the SVG at its natural width (a wider one scales down to the fluid column) and centers it, with a control toolbar
   overlaid on the right edge; `diagramPadding` reserves only symmetric margins, so keep the diagram's natural width
   under the column (a vertical `TB` layout for a wide pipeline, or a compact multi-row grid for a wide chain) rather
-  than padding it. The repository's pitfalls are recorded in the `AGENTS.md` bullet "**A diagram's geometry and content
-  encode semantics…**" — read it before choosing an approach.
-- **Verify before returning**: render the source once with `mermaid-cli`
-  (`npx @mermaid-js/mermaid-cli@11 -i <file>.mmd -o <file>.svg`) and confirm it parses and lays out as intended; report
-  that check alongside the diagram.
+  than padding it. The repository's pitfalls are recorded in `AGENTS.md` — the "**A diagram's geometry and content
+  encode semantics…**" bullet for the span and asymmetry rules, and the "**A `mermaid` fence is un-gated by Spotless…**"
+  bullet for the rendering and host-toolbar mechanics — read them before choosing an approach.
+- **Verify before returning, and produce the artifact the visual review inspects**: render the source with `mermaid-cli`
+  in the two forms its two consumers need — an image at the diagram's natural size for the review
+  (`npx @mermaid-js/mermaid-cli@11 -i <file>.mmd -o <file>.png`), and an SVG beside it for a measurement
+  (`… -o <file>.svg`, what `getComputedTextLength()` runs against). Confirm the source parses and lays out, and report
+  that as what it proves: parse and layout, **never** the host renderer's toolbar clearance or a browser's layout, which
+  only a visual review of a real render can establish.
+- **Return a visual-review handoff beside the source**, so the caller can have the render inspected rather than only
+  parsed: the nodes, edges, directions, labels, and spans the render is expected to show (the semantic mapping you
+  established); the rendered artifact that must be inspected; and the visual risks a source-level check cannot establish
+  — a label colliding with a host control, an arrowhead or edge-label attribution the source alone does not make
+  obvious, clipping or overlap at the rendered size.
 
 Output the finished diagram as a fenced code block (the ASCII art, or the Mermaid source) plus the one-line verification
-(the alignment check for ASCII, the `mermaid-cli` render result for Mermaid). Do not edit files — the calling agent
-applies your output.
+(the alignment check for ASCII, the `mermaid-cli` render result for Mermaid) and, for Mermaid, the visual-review
+handoff. Do not edit files — the calling agent applies your output.

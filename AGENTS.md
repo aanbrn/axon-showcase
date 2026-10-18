@@ -1589,15 +1589,16 @@ Key modules (libraries, not services):
   unread), while `IfCanBeSwitch` warns on the `if (x instanceof …)` chain that avoids the binding — give every binding a
   use (the timeout arm logs it) rather than contorting the code for an advisory inspection. captured:
   keep-sse-stream-alive (#301) captured: grpc-query-transport
-- **Vision subagent for screenshot review**: the main agent runs on the cheap flash model (text-only); a `vision`
-  subagent (`.opencode/agent/vision.md`) is pinned to `opencode-go/deepseek-v4-flash-vision-exp` to read screenshots.
-  When a visual review is needed (e.g. styling of the web UI), delegate to the `vision` subagent — it inherits the
-  Playwright MCP, captures the screenshot into its own context, reads it, and returns a description, while the main
-  session stays on the cheap model. This auto-routes vision work without manual model switching. Treat its description
-  as a claim, not a measurement — it reported a diagram label clipped across repeated renders while a measurement found
-  no overflow, so verify a clipping claim by measuring the text against its box (`getComputedTextLength()` for SVG text;
-  a label `div`'s `scrollWidth` vs its `foreignObject` width), not the vision report. captured:
-  rework-readme-lifecycle-diagram
+- **Vision subagent for structured visual review**: the main agent runs on the cheap flash model (text-only); a `vision`
+  subagent (`.opencode/agent/vision.md`) is pinned to `opencode-go/claude-haiku-5-5` to read an image. When a visual
+  review is needed (e.g. styling of the web UI, or a rendered diagram), delegate to the `vision` subagent — it inherits
+  the Playwright MCP and returns a **structured visual review** (its shape is in its definition), while the main session
+  stays on the cheap model. This auto-routes vision work without manual model switching. It loads only an `http(s)://`
+  URL — the browser blocks `file://`, so serve a local artifact over HTTP and pass its URL. Treat an item that needs a
+  measurement as a hypothesis, not a finding — it reported a diagram label clipped across repeated renders while a
+  measurement found no overflow, so settle a clipping claim by measuring the text against its box
+  (`getComputedTextLength()` for SVG text; a label `div`'s `scrollWidth` vs its `foreignObject` width) before acting on
+  it. captured: rework-readme-lifecycle-diagram
 - **Diagrammer subagent for ASCII and Mermaid diagrams**: the main agent (the cheap flash model) is weak at diagram work
   — ASCII geometry (alignment, bracket spans) and Mermaid's constructs and rendering pitfalls (spans have no native
   `flowchart` construct; a wide diagram's rightmost node hides under GitHub's control toolbar) each repeatedly cost
@@ -1605,7 +1606,9 @@ Key modules (libraries, not services):
   `opencode-go/deepseek-v4-pro` to draw and fix diagrams in both media — ASCII for plain text (e.g. the README project
   tree or a diagram's plain-text fallback), Mermaid for a Markdown host that renders it (e.g. a README flow diagram).
   Delegate to it via the `/diagram` command: it establishes the semantic mapping (which span ends where) before
-  rendering, applies the recorded pitfalls, and verifies its output. The main agent stays on the cheap model.
+  rendering, applies the recorded pitfalls, and verifies its output; for Mermaid it also returns a **visual-review
+  handoff** (its fields are in its definition), which the caller delegates to the `vision` subagent, since a local
+  render proves only that the source parses and lays out. The main agent stays on the cheap model.
 - **Experience-analyzer subagent for retrospectives and improvements**: the `experience-analyzer` subagent
   (`.opencode/agent/experience-analyzer.md`) aggregates recent experience across many changes — above the per-unit
   `review-quick`/`lesson-capture` agents. Trigger it with the `/retrospective` OpenCode command (or run it manually):
@@ -1743,32 +1746,38 @@ Key modules (libraries, not services):
   derives from. captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12 captured: record-review-rounds
   captured: bound-the-review-loop captured: bump-dependencies-2026-10-16 captured: widen-audit-agents-to-authoring-gaps
   captured: sharpen-experience-analysis captured: sharpen-specs-audit
-- **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
-  scope.** The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
+- **An OpenCode model pin is resolved before it is set, and a bump is a multi-file sweep — grep for the old model id,
+  and keep the vision pin out of scope.** A pin naming a provider that does not serve the model fails the agent at every
+  invocation (`Model unavailable`) with no gate reading it, so resolve it first
+  (`opencode models | grep '<provider>/<model>'`) — the `vision` pin read `opencode-go/deepseek-v4-flash-vision-exp`
+  from its 2026-09-04 introduction, but that model is **retired** — its name is aliased to the latest DeepSeek Flash —
+  and its endpoint answered `Endpoint is unavailable`, so the agent could not run until the pin moved to a model that
+  reads images. The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
   `.opencode/opencode.json` (`model` and `small_model` — two keys), the flash-pinned subagent frontmatter
   (`.opencode/agent/review-quick.md`, `lesson-capture.md`, `experience-analyzer.md`), the
   `.github/workflows/opencode.yml` `model` input, and the `AGENTS.md` agent gotchas that name the model id (docs that
   ARE the change — update them in the same change). When bumping, grep for the old id across `.opencode/`,
-  `.github/workflows/`, and `AGENTS.md` (the `README.md` only names the generic `opencode-go/*` form, so it needs no
-  edit), and exclude the vision agent's `-vision-exp` pin: the vision model is a separate experimental line that may not
-  have a counterpart in the new family (the v4.1 bump left it on `deepseek-v4-flash-vision-exp`). A naive sweep that
-  flags the vision pin as stale would wrongly "fix" a deliberate asymmetry. Note the config `model` key is a default for
-  **new** sessions, not a live override: OpenCode persists the last-used model in `~/.local/state/opencode/model.json`
-  (its `recent` list), so a restarted TUI that restores a session keeps that session's model and still shows the old one
-  until you switch manually or start a new session — a correct config pin does not by itself make the running agent use
-  the new model. The pins also sit behind a **flat-rate, dollar-metered** plan (OpenCode Go), so a per-model quota is
-  consumed at the model's own rate rather than by request count, and the DeepSeek models carry peak/off-peak rate tiers,
-  so the quota a pass consumes depends on when it runs. That is a property of the plan, not of the pin: resolve the
-  current tiers and window at the provider (`opencode.ai/docs/go`) instead of pinning them here. It is also a **lever on
-  the quota**: the non-interactive passes — the four audits, `/review-thorough`, `/retrospective`, and long capture
-  chains — can be time-shifted into the off-peak window for the same metered spend; a scheduled pass's timing is encoded
-  in its workflow's `cron`, so check a schedule's slot against the current window (rather than asserting a UTC figure,
-  which rots) when adding or moving one. Check the slot's margin to the next peak block against the pass's worst-case
-  run: the window can be split into blocks, so a gap slot is off-peak only until an overrun reaches one, and the metered
-  pass belongs in the widest contiguous stretch rather than a gap. A schedule alone does not make a workflow shiftable —
-  most scheduled workflows here invoke no model at all, so check that the workflow itself spends metered quota before
+  `.github/workflows/`, and `AGENTS.md` (the `README.md` names the generic `opencode-go/*` form and the vision pin's
+  model id, so a vision-pin bump edits it too, while a flash-model bump does not), and exclude the vision agent's
+  `-vision-exp` pin: the vision model is a separate experimental line that may not have a counterpart in the new family
+  (the v4.1 bump left it on `deepseek-v4-flash-vision-exp`). A naive sweep that flags the vision pin as stale would
+  wrongly "fix" a deliberate asymmetry. Note the config `model` key is a default for **new** sessions, not a live
+  override: OpenCode persists the last-used model in `~/.local/state/opencode/model.json` (its `recent` list), so a
+  restarted TUI that restores a session keeps that session's model and still shows the old one until you switch manually
+  or start a new session — a correct config pin does not by itself make the running agent use the new model. The pins
+  also sit behind a **flat-rate, dollar-metered** plan (OpenCode Go), so a per-model quota is consumed at the model's
+  own rate rather than by request count, and the DeepSeek models carry peak/off-peak rate tiers, so the quota a pass
+  consumes depends on when it runs. That is a property of the plan, not of the pin: resolve the current tiers and window
+  at the provider (`opencode.ai/docs/go`) instead of pinning them here. It is also a **lever on the quota**: the
+  non-interactive passes — the four audits, `/review-thorough`, `/retrospective`, and long capture chains — can be
+  time-shifted into the off-peak window for the same metered spend; a scheduled pass's timing is encoded in its
+  workflow's `cron`, so check a schedule's slot against the current window (rather than asserting a UTC figure, which
+  rots) when adding or moving one. Check the slot's margin to the next peak block against the pass's worst-case run: the
+  window can be split into blocks, so a gap slot is off-peak only until an overrun reaches one, and the metered pass
+  belongs in the widest contiguous stretch rather than a gap. A schedule alone does not make a workflow shiftable — most
+  scheduled workflows here invoke no model at all, so check that the workflow itself spends metered quota before
   reasoning about its slot. The interactive loop is paced by the human and cannot be shifted. captured:
-  capture-offpeak-cost-lever (#369) captured: schedule-jobs-into-the-owners-night
+  capture-offpeak-cost-lever (#369) captured: schedule-jobs-into-the-owners-night captured: structure-visual-review
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired

@@ -1607,10 +1607,15 @@ Key modules (libraries, not services):
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus for the cross-spec structural consistency
   `openspec validate` does not gate — title ↔ capability-path match, Purpose ↔ requirements fit, requirement
   conventions, cross-spec duplication, and dead cross-references (its classes and report contract are in the
-  `agent-skills` spec; it flags a reused requirement header for judgment rather than as a defect). Trigger it with the
-  `/audit-specs` command. It deliberately does **not** check behavior against the code — the change workflow's review
-  loop and the archive-time sync own that. The main agent applies approved findings through the normal change workflow
-  (a spec edit is a change). The scheduled variant runs unattended in the `audit` workflow.
+  `agent-skills` spec). It reports a dead reference only once it is verified absent or obsolete — never for a
+  false-positive class such as a generated class, an external tool's command, or a conceptual reference — and reports a
+  duplication only where the obligations are substantially identical or their overlap is materially ambiguous, leaving a
+  related-but-distinct requirement and an intentional repetition alone. It deliberately does **not** check behavior
+  against the code (the change workflow's review loop and the archive-time sync own that), audit the corpus's capability
+  decomposition (the `architecture-auditor` owns that), re-report an issue an existing gate enforces, or audit a
+  proposed change's internal quality. Trigger it with the `/audit-specs` command. The main agent applies approved
+  findings through the normal change workflow (a spec edit is a change). The scheduled variant runs unattended in the
+  `audit` workflow.
 - **Architecture-auditor subagent for design drift, unrecorded intent, and a record whose premise is due**: the
   `architecture-auditor` subagent (`.opencode/agent/architecture-auditor.md`) audits `docs/adr/` plus the architectural
   surface (the service boundaries, the module dependency graph, and the spec corpus's capability decomposition) for
@@ -1682,19 +1687,20 @@ Key modules (libraries, not services):
   bullet describing it (the Spec-Driven Development, Agentic Process, and Self-Learning Loop sentences) whenever what it
   reports changes — the tables and the prose bullets are separate copies; a task for the capability `## Purpose` refresh
   (a delta cannot carry a Purpose); and the proposal's `### New Capabilities`/ `### Modified Capabilities` subsections
-  ("none" where empty). Keep any enumerated list (the swept surfaces, the finding classes) verbatim-identical across
-  proposal/design/tasks/ delta **and across the definition's own sections** — its class paragraph, method bullets, and
-  verdict line are separate edit passes, so a routing updated in one survives stale in another (a method bullet routed
-  an out-of-scope mechanism to the advisory class while the class paragraph carried the three-branch routing); state it
-  once and point the others at it. The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick`
-  rounds because each round surfaced one of these that a prior analogous change had covered — read the archived
-  analogous change and grep for the artifact's **name and its trigger command** before hand-writing the set, since a
-  site may name only one (the agent table row names the agent; the prose bullets and the slash-command row name its
-  command), and for a set the change enumerates the "the only X" bullet's member grep is the sweep — and point the
-  proposal's site list at the tasks that name those sites rather than hand-writing it, since a hand-written enumeration
-  keeps under-matching the union it derives from. captured: add-readme-auditor (#315) captured:
-  bump-kps-chart-2026-10-12 captured: record-review-rounds captured: bound-the-review-loop captured:
-  bump-dependencies-2026-10-16 captured: widen-audit-agents-to-authoring-gaps captured: sharpen-experience-analysis
+  ("none" where empty). Keep any enumerated list (the swept surfaces, the finding classes) in the two sites that own it
+  — the definition and the delta — and make every other site that states it, the definition's own class paragraph,
+  method bullets, and verdict line (separate edit passes) included, illustrative (`such as`) or a pointer, never a copy:
+  a copied list drifts at each site and re-surfaces as an `incomplete-enumeration` finding every round (a method bullet
+  routed an out-of-scope mechanism to the advisory class while the class paragraph carried the three-branch routing).
+  The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round
+  surfaced one of these that a prior analogous change had covered — read the archived analogous change and grep for the
+  artifact's **name and its trigger command** before hand-writing the set, since a site may name only one (the agent
+  table row names the agent; the prose bullets and the slash-command row name its command), and for a set the change
+  enumerates the "the only X" bullet's member grep is the sweep — and point the proposal's site list at the tasks that
+  name those sites rather than hand-writing it, since a hand-written enumeration keeps under-matching the union it
+  derives from. captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12 captured: record-review-rounds
+  captured: bound-the-review-loop captured: bump-dependencies-2026-10-16 captured: widen-audit-agents-to-authoring-gaps
+  captured: sharpen-experience-analysis captured: sharpen-specs-audit
 - **An OpenCode model-pin bump is a multi-file sweep — grep for the old model id, and keep the vision pin out of
   scope.** The cheap flash model (`opencode-go/deepseek-v4.1-flash`) is pinned across several places:
   `.opencode/opencode.json` (`model` and `small_model` — two keys), the flash-pinned subagent frontmatter

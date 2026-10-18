@@ -325,7 +325,9 @@ delta spec shows what a specific feature introduced.
 The corpus itself is kept well-structured and mutually consistent by the `specs-auditor` subagent (`/audit-specs`, on
 demand): it checks title ↔ capability-path match, Purpose ↔ requirements fit, requirement conventions, cross-spec
 duplication, and dead cross-references — the structural drift `openspec validate` does not catch, not behavior against
-the code. It reports findings with suggested rewrites and never edits the specs itself.
+the code. It verifies a dead reference before reporting it and classifies a duplicate before reporting it, so a
+generated class or a deliberately repeated convention is not reported. It reports findings with suggested rewrites and
+never edits the specs itself.
 
 Emerging ideas are parked in `docs/ideas.md` — a lightweight, date-grouped scratchpad (added to via `/ideas`, removed
 once implemented or decided against) rather than a backlog of planned work. A parked idea is the usual starting point

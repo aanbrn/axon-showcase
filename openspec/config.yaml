@@ -67,6 +67,8 @@ rules:
     - Follow the "Structured Writing Standard" in AGENTS.md — one bullet per change in "What Changes", not a paragraph
       carrying several independent points
   specs:
+    - A claim, a rule set, or a record stated in more than one artifact is single-sourced, the rest referencing it by
+      name
     - Requirements are declarative SHALL statements, testable via WHEN/THEN scenarios
     - 'Delta specs use ADDED/MODIFIED/REMOVED/RENAMED requirement blocks, a rename in FROM:/TO: form'
     - Keep scenario wording consistent with existing captured specs

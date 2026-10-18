@@ -445,3 +445,17 @@
 2026-10-18	optimize-agents-auditor-for-instruction-budget	9	contradiction,claim-unreproducible,impact-omission,wording	claim-unreproducible	3
 2026-10-18	optimize-agents-auditor-for-instruction-budget	10	contradiction	contradiction	1
 2026-10-18	optimize-agents-auditor-for-instruction-budget	11	-	-	0
+2026-10-18	require-evidence-in-report-contracts	1	coherence,incomplete-enumeration,premise,claim-unreproducible	-	3
+2026-10-18	require-evidence-in-report-contracts	2	coherence,premise,claim-unreproducible	coherence,premise,claim-unreproducible	4
+2026-10-18	require-evidence-in-report-contracts	3	premise,coherence,claim-unreproducible,incomplete-enumeration	premise,coherence,claim-unreproducible,incomplete-enumeration	3
+2026-10-18	require-evidence-in-report-contracts	4	incomplete-enumeration,claim-unreproducible	incomplete-enumeration,claim-unreproducible	2
+2026-10-18	require-evidence-in-report-contracts	5	claim-unreproducible,incomplete-enumeration	claim-unreproducible,incomplete-enumeration	2
+2026-10-18	require-evidence-in-report-contracts	6	incomplete-enumeration	incomplete-enumeration	1
+2026-10-18	require-evidence-in-report-contracts	7	single-sourcing,over-claim	-	1
+2026-10-18	require-evidence-in-report-contracts	8	single-sourcing,claim-unreproducible	single-sourcing,claim-unreproducible	2
+2026-10-18	require-evidence-in-report-contracts	9	claim-unreproducible,over-claim	claim-unreproducible,over-claim	2
+2026-10-18	require-evidence-in-report-contracts	10	impact-omission	-	1
+2026-10-18	require-evidence-in-report-contracts	11	missing-task	-	0
+2026-10-18	require-evidence-in-report-contracts	12	claim-unreproducible	claim-unreproducible	1
+2026-10-18	require-evidence-in-report-contracts	13	redundant-code	-	1
+2026-10-18	require-evidence-in-report-contracts	14	-	-	0

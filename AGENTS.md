@@ -386,11 +386,16 @@ final edit). captured: decide-against-pre-review
   captured: add-apply-audit-reductions-command captured: record-agents-md-authoring-standard
 - **Single-source a claim, a rule set, or a record one source owns** — a predicate the requirement owns (a threshold,
   band, or formula); a scope the owning definition states via its class names; a standard or rule set whose rules are
-  never enumerated at a referencing site (including the change's own planning artifacts); or a record another artifact
-  owns (a review round's state is `docs/review-rounds.tsv`'s, not a task's): state it once there and repeat it
-  identically (referencing it by name where the site can), since a restated copy re-anchors on its own (a README copy
-  made the matching band a tenth of the _measured_ rate where the requirement and code use the _recorded_ one) and the
-  sweep has no canonical wording to sweep to. captured: establish-structured-writing-standard
+  never enumerated at a referencing site (including the change's own planning artifacts); a field set one artifact owns
+  (a report's per-item format — the shared report contract's per-item budget); or a record another artifact owns (a
+  review round's state is `docs/review-rounds.tsv`'s, not a task's): state it once there and repeat it identically
+  (referencing it by name where the site can), since a restated copy re-anchors on its own (a README copy made the
+  matching band a tenth of the _measured_ rate where the requirement and code use the _recorded_ one) and the sweep has
+  no canonical wording to sweep to. An enumeration repeated at many sites cannot be proven complete by any grep, read,
+  or sweep — the restatement is the drift surface — so a loop that keeps finding another site of one set
+  (`incomplete-enumeration` round after round) single-sources it rather than sweeping, deriving the sites from the
+  owner's own scope (its bearers crossed with its item classes); a field-list grep is a lead, never a completeness gate.
+  captured: establish-structured-writing-standard captured: require-evidence-in-report-contracts
 - **A clean quick review is a precondition for asking for the manual review, not a substitute for it** — it means _ask
   the user now_, not _the implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength
   of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes, without
@@ -1701,8 +1706,8 @@ Key modules (libraries, not services):
   is reached by that decision (a `REQUIRED` outcome, or a `RECOMMENDED` one the owner resolves to run) or by the
   `/review-thorough` command, whose procedure carries the session, the hand-over, the pass budget, and the finding
   statuses (`showcase/quality/agent-skills` owns the outcomes); a manual invocation is an explicit run, never a
-  substitute for a `REQUIRED` outcome. Findings come back in the subagent report contract (grouped by severity with
-  file/line references); the main agent applies fixes.
+  substitute for a `REQUIRED` outcome. Findings come back grouped by severity, in the shared report contract
+  (`showcase/quality/agent-skills` owns it); the main agent applies fixes.
 - **A subagent is only invocable through a trigger, not its documentation**: documenting an `.opencode/agent/*.md`
   subagent in AGENTS.md does not make it reachable — ship a `.opencode/commands/*.md` command (e.g. the `/retrospective`
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
@@ -1726,11 +1731,11 @@ Key modules (libraries, not services):
   (a delta cannot carry a Purpose); and the proposal's `### New Capabilities`/ `### Modified Capabilities` subsections
   ("none" where empty). Keep any enumerated list (the swept surfaces, the finding classes) in the two sites that own it
   — the definition and the delta — and make every other site that states it, the definition's own class paragraph,
-  method bullets, and verdict line (separate edit passes) included, illustrative (`such as`) or a pointer, never a copy:
-  a copied list drifts at each site and re-surfaces as an `incomplete-enumeration` finding every round (a method bullet
-  routed an out-of-scope mechanism to the advisory class while the class paragraph carried the three-branch routing).
-  The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round
-  surfaced one of these that a prior analogous change had covered — read the archived analogous change and grep for the
+  method bullets, and verdict line (separate edit passes) included, illustrative (`such as`) or a pointer, never a copy
+  — the single-sourcing rule under "Workflow: The review gate" owns the drift signal (a method bullet routed an
+  out-of-scope mechanism to the advisory class while the class paragraph carried the three-branch routing). The
+  `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round surfaced
+  one of these that a prior analogous change had covered — read the archived analogous change and grep for the
   artifact's **name and its trigger command** before hand-writing the set, since a site may name only one (the agent
   table row names the agent; the prose bullets and the slash-command row name its command), and for a set the change
   enumerates the "the only X" bullet's member grep is the sweep — and point the proposal's site list at the tasks that

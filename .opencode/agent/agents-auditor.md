@@ -316,9 +316,10 @@ standard rather than copying it into the mechanism.
   `<n> findings (<n> merge, <n> removal, <n> route), <n> advisory, <n> accreted, <n> authoring-system gap` (the accreted
   count also states how many are new since the latest prior report) or `nothing to report` as the first line, then the
   severity groups (highest-value first) and the advisory, accretion, and authoring-system gap sections.
-- Budget each item: a finding gets its `file:line`, its severity, its practical impact, and a concrete suggested
-  rewrite; an advisory item gets the excluded file, the harm, and the decision it invites; an authoring-system gap gets
-  the mechanism, the gap, and the smallest correction — the budget is per item, not a cap on the total.
+- Budget each item: the shared report contract's per-item budget, and each class adds its own fields — a finding, its
+  severity, its practical impact, and a concrete suggested rewrite; an advisory item, the excluded file, the harm, and
+  the decision it invites; an accretion item, its origin and the source used; an authoring-system gap, the mechanism,
+  the gap, and the smallest correction — the budget is per item, not a cap on the total.
 - Collapse entries verified as still accurate to one line each, or one summary line.
 - State the recommendation; do not offer alternatives — the calling agent decides.
 - **`Instruction-budget ledger`** — a separate section carrying the ledger the budget pass defines: the current size and

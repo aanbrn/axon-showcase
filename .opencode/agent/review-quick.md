@@ -106,8 +106,8 @@ alone):
   count of every class the report carries (the count summarises how many findings fall in each class — the per-finding
   label above still applies to every finding). When the caller supplied a prior round, also name which of the classes
   repeats one that round already raised (or state that none does).
-- Budget each finding: its class, its `file:line`, the issue, one line of evidence, and the required correction — the
-  budget is per item, not a cap on the total.
+- Budget each finding: the shared report contract's per-item budget, plus its class, the issue, and the required
+  correction — the budget is per item, not a cap on the total.
 - Collapse checks that passed to one line each, or one summary line; state a check you could not complete.
 - State the recommendation; do not offer alternatives — the calling agent decides.
 - End with one machine-readable record line, as the report's last line — tab-separated fields: the date, the unit (its

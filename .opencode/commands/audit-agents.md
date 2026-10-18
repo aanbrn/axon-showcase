@@ -26,7 +26,8 @@ Run the agent-tooling audit to check the project's guidance and agent files for 
    severity, plus separate advisory (third-party inconsistency), accretion (meta rules with their origins), and
    authoring-system gap (a recurring defect's mechanism) classes, the merge, removal, and route candidates counted in
    the verdict line, and the separate `Instruction-budget ledger` section with its extraction candidates and its
-   `Extraction opportunities` subsection, which is excluded from the verdict counts).
+   `Extraction opportunities` subsection, which is excluded from the verdict counts), presenting each item as the shared
+   report contract requires — do not re-summarize it.
 3. Ask the user which findings to apply — do not edit files without their go-ahead.
 4. Apply the approved findings, run `./gradlew spotlessApply` for the formatter-wrapped files the audit edited
    (`AGENTS.md` and the project-authored `.opencode/` markdown — the audit's `README.md` copy is fixed by the change's

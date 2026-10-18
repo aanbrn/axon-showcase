@@ -327,8 +327,8 @@ The corpus itself is kept well-structured and mutually consistent by the `specs-
 demand): it checks title ↔ capability-path match, Purpose ↔ requirements fit, requirement conventions, cross-spec
 duplication, and dead cross-references — the structural drift `openspec validate` does not catch, not behavior against
 the code. It verifies a dead reference before reporting it and classifies a duplicate before reporting it, so a
-generated class or a deliberately repeated convention is not reported. It reports findings with suggested rewrites and
-never edits the specs itself.
+generated class or a deliberately repeated convention is not reported. It reports findings with their evidence line and
+suggested rewrites, and never edits the specs itself.
 
 Emerging ideas are parked in `docs/ideas.md` — a lightweight, date-grouped scratchpad (added to via `/ideas`, removed
 once implemented or decided against) rather than a backlog of planned work. A parked idea is the usual starting point
@@ -469,17 +469,17 @@ The process is designed to **learn from itself** — and that is the mechanic, n
   consistency problems (contradictions, stale claims, dead cross-references, drift, `AGENTS.md` entries that violate the
   stated authoring standard, prose that violates the Structured Writing Standard — with the impact of the current
   structure and a minimally invasive rewrite) and conciseness problems (duplication, trivia, length, placement) — each
-  with a concrete suggested rewrite, including standing merge, removal, route, and extraction candidates — and,
-  separately and without severity, a third-party file our usage contradicts, the meta rules that accreted with the
-  origin that introduced each, and an authoring-system gap that keeps producing a defect — decisions for the owner
-  rather than defects to fix. It also measures the always-loaded **instruction budget**: `AGENTS.md` is injected in full
-  into every session, so the audit reports the file's size and its size by section, the effective bound with its source,
-  the growth since the newest report, and the rules and extraction candidates that would move guidance out of the
-  always-loaded prefix into a destination that loads when its task triggers — and, where no such destination exists yet,
-  an **extraction opportunity**: a design recommendation for the owner, never applied by the reduction unit. A report's
-  reduction candidates do not age: the standing, owner-gated `/apply-audit-reductions` unit applies them as merged text,
-  pointers, and deletions, routing a content-move to the change workflow, under the review gate. So the guidance and
-  tooling stay consistent, concise, and affordable instead of only growing.
+  with its evidence line and a concrete suggested rewrite, including standing merge, removal, route, and extraction
+  candidates — and, separately and without severity, a third-party file our usage contradicts, the meta rules that
+  accreted with the origin that introduced each, and an authoring-system gap that keeps producing a defect — decisions
+  for the owner rather than defects to fix. It also measures the always-loaded **instruction budget**: `AGENTS.md` is
+  injected in full into every session, so the audit reports the file's size and its size by section, the effective bound
+  with its source, the growth since the newest report, and the rules and extraction candidates that would move guidance
+  out of the always-loaded prefix into a destination that loads when its task triggers — and, where no such destination
+  exists yet, an **extraction opportunity**: a design recommendation for the owner, never applied by the reduction unit.
+  A report's reduction candidates do not age: the standing, owner-gated `/apply-audit-reductions` unit applies them as
+  merged text, pointers, and deletions, routing a content-move to the change workflow, under the review gate. So the
+  guidance and tooling stay consistent, concise, and affordable instead of only growing.
 - **Periodic retrospectives zoom out.** `/retrospective` turns a window of merged PRs and the git log, together with the
   archived changes and accumulated gotchas, into a sprint retrospective that traces each significant failure to its root
   cause and the stage that could have caught it and evaluates the previous retrospective's recommendations — with

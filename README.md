@@ -361,8 +361,9 @@ opens a PR (or commits to the current one) — the remote path to the same workf
 change.
 
 The repo's `.opencode/` config pins its agents to `opencode-go/*` models, available through an **OpenCode Go**
-subscription — install OpenCode (see [Prerequisites](#prerequisites)), subscribe, and `/connect` to it to follow along
-with the worked scenarios.
+subscription — and the `vision` agent is pinned to `opencode-go/claude-haiku-5-5`, a multimodal model on that plan.
+Install OpenCode (see [Prerequisites](#prerequisites)), subscribe, and `/connect` to it to follow along with the worked
+scenarios.
 
 The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 
@@ -376,8 +377,8 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | `lesson-capture`       | Captures gotchas/conventions into AGENTS.md for a unit whose evidence shows a lesson, consolidating rather than accreting, retiring the rules a unit obsoletes, marking each rule with its origin, and routing an authoring-mechanism fix to that mechanism (evidence-gated)                                                   |
 | `review-quick`         | Fast bounded screen after proposal & implementation, repeated until clean (automatic)                                                                                                                                                                                                                                          |
 | `review-thorough`      | Deep risk-routed review (drift, correctness, architecture) — the review gate's routing decision, or `/review-thorough`                                                                                                                                                                                                         |
-| `vision`               | Reads screenshots for the text-only main agent                                                                                                                                                                                                                                                                                 |
-| `diagrammer`           | Draws/fixes ASCII and Mermaid diagrams with the pro model — `/diagram`                                                                                                                                                                                                                                                         |
+| `vision`               | Structured visual review of screenshots and diagram renders for the text-only main agent                                                                                                                                                                                                                                       |
+| `diagrammer`           | Draws/fixes ASCII and Mermaid diagrams with the pro model and returns a visual-review handoff for a Mermaid render, which `/diagram` has `vision` inspect                                                                                                                                                                      |
 
 #### What the Agent Automates
 
@@ -530,7 +531,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/audit-architecture`        | Audits the architecture for recorded-decision drift, unrecorded intent, and a due record (pro-model auditor)                                                                                                                                                                                                                   |
 | `/audit-readme`              | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage (pro-model auditor)                                                                                                                                                                                                 |
 | `/apply-audit-reductions`    | Applies an audit report's merge/removal/route/extraction reduction candidates — merged text, pointers, and deletions inline, a content-move routed to the change workflow — under the review gate                                                                                                                              |
-| `/diagram`                   | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer                                                                                                                                                                                                                                                       |
+| `/diagram`                   | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer, then visually reviews a Mermaid render with `vision`                                                                                                                                                                                                 |
 | `/retrospective`             | Periodic retrospective that root-causes failures and proposes verified improvements                                                                                                                                                                                                                                            |
 | `/dependency-updates`        | Runs and summarizes the Gradle, web-UI, and build-logic pin dependency update reports                                                                                                                                                                                                                                          |
 | `/gradle-update`             | Updates the Gradle wrapper to the latest stable                                                                                                                                                                                                                                                                                |

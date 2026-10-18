@@ -15,6 +15,17 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-18
 
+- Add the reviewer's session id to the review-round record and check its continuity — parked; no change yet. The review
+  gate requires continuing the reviewer's session across `review-quick` rounds (starting fresh only when it expired, the
+  reviewer's definition changed, or it stopped responding), but nothing in the record shows whether a loop did: a loop
+  that started a fresh session every round is indistinguishable from one that continued, and no gate reads it — the
+  record carries no session id, so the omission surfaces only as the loop's re-derivation cost, as it did for this unit
+  (the caller's account; the repository cannot evidence it). Add a `session` column to `docs/review-rounds.tsv` (the
+  loop already appends a row per round) and have `testReviewRounds` assert that consecutive rows of one unit share the
+  session id or state a restart reason, so the omission fails a check rather than relying on the executor to carry an id
+  by hand. Parked rather than folded in: it changes the record contract, its writer, and its check — a unit of its own,
+  not part of the visual-review change that surfaced it.
+
 - Sweep the two enumerations `#628` (`rework-the-review-loop`) left stale — parked; no change yet. It added
   `scripts/review-routing.py` and the `testReviewRouting` Gradle task, but `AGENTS.md`'s Build & Test `check` comment
   still lists 11 commit-hygiene members and omits `testReviewRouting`, and its Prerequisites Python list names

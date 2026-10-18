@@ -1538,23 +1538,26 @@ Key modules (libraries, not services):
     tripped this three times); the `-l` chomps the trailing newline `-ne` would otherwise count, so an
     exactly-120-character line is not false-flagged. Verify a verification command on a boundary case before recording
     it — the first recipe omitted `-l` and false-flagged every exactly-120-character line. Apply it over the change's
-    whole changed set (`git diff --name-only`), not only the files a finding named — a per-file scope leaves the rest
-    unverified and the review re-finds them. captured: add-web-ui-rum-observability Formatters cannot reflow string
-    literals (e.g. an error message in Kotlin/Gradle), so wrap an over-long string with concatenation
-    (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as natural prose and let `spotlessApply`
-    (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the wrapping and reflows on every run. A bare
-    `$` in prose (outside inline code) is parsed as inline math and blocks that reflow — the paragraph silently keeps
-    its original ragged wrapping while `spotlessCheck` still passes; escape it as `\$` (which renders as `$`). The
-    formatter also leaves the interior of an inline code span untouched — it wraps prose around the span but never
-    rewrites the code text it contains — so a defect inside one (a whitespace run) passes `spotlessCheck` and the manual
-    120-character check alike, neither of which has a rule that detects it: proofread inline-code content as content,
-    not as something the gate will fix. Never author an inline code span across a source line break — Prettier's reflow
-    joins the lines and leaves the continuation line's indentation as extra spaces inside the span (a
-    `paketo-buildpacks/procfile` split from its `5.15.0` came out as `paketo-buildpacks/procfile     5.15.0`): keep a
-    span on one source line and let the reflow move the whole span. Fenced blocks are a different story — Prettier
-    applies embedded formatting inside a fence whose info string names a language it supports (`json`, `yaml`,
-    `markdown`), so that content is gated, while an unsupported one (`bash`, `java`, `mermaid`) is not. captured:
-    fix-gateway-cors-allowed-headers (#359)
+    whole changed set, derived with `git status --porcelain --untracked-files=all` — `git diff --name-only` omits the
+    untracked change dir the workflow leaves in place, so the change's own planning artifacts go unchecked — not only
+    the files a finding named: a per-file scope leaves the rest unverified and the review re-finds them. captured:
+    add-web-ui-rum-observability Formatters cannot reflow string literals (e.g. an error message in Kotlin/Gradle), so
+    wrap an over-long string with concatenation (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as
+    natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the
+    wrapping and reflows on every run. A bare `$` in prose (outside inline code) is parsed as inline math and blocks
+    that reflow — the paragraph silently keeps its original ragged wrapping while `spotlessCheck` still passes; escape
+    it as `\$` (which renders as `$`); a bare `|` in a markdown table row splits the cell, so escape it as `\|` —
+    Prettier neither escapes nor flags it, and an inline code span is no protection. The formatter also leaves the
+    interior of an inline code span untouched — it wraps prose around the span but never rewrites the code text it
+    contains — so a defect inside one (a whitespace run) passes `spotlessCheck` and the manual 120-character check
+    alike, neither of which has a rule that detects it: proofread inline-code content as content, not as something the
+    gate will fix. Never author an inline code span across a source line break — Prettier's reflow joins the lines and
+    leaves the continuation line's indentation as extra spaces inside the span (a `paketo-buildpacks/procfile` split
+    from its `5.15.0` came out as `paketo-buildpacks/procfile     5.15.0`): keep a span on one source line and let the
+    reflow move the whole span. Fenced blocks are a different story — Prettier applies embedded formatting inside a
+    fence whose info string names a language it supports (`json`, `yaml`, `markdown`), so that content is gated, while
+    an unsupported one (`bash`, `java`, `mermaid`) is not. captured: fix-gateway-cors-allowed-headers (#359) captured:
+    optimize-agents-auditor-for-instruction-budget
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with
@@ -1614,9 +1617,14 @@ Key modules (libraries, not services):
   (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
   `.opencode/` files — for the drift an accretion-only set produces: entries contradicted elsewhere, stale enumerations,
   dead cross-references, near-duplicate gotchas, `AGENTS.md` entries that violate the stated authoring standard, and a
-  recurring structural defect it traces to the mechanism that produces the artifact. Its finding classes (merge,
-  removal, and route candidates, the advisory class for excluded files, the accreted meta rules with their origins, and
-  the authoring-system gap class for a recurring defect's mechanism) and the shared report contract are specified in
+  recurring structural defect it traces to the mechanism that produces the artifact. It also measures the always-loaded
+  instruction budget — `AGENTS.md`'s size, the effective bound with its source, the growth since the newest report under
+  `docs/audits/`, and the extraction candidates with their retrieval-path results (the ledger the
+  `showcase/quality/agent-skills` requirement specifies) — so guidance can be moved out of `AGENTS.md` into a
+  destination that loads on demand, and where no such destination exists yet it reports an extraction **opportunity** as
+  a design recommendation rather than a candidate. Its finding classes (merge, removal, route, and extraction
+  candidates, the advisory class for excluded files, the accreted meta rules with their origins, and the
+  authoring-system gap class for a recurring defect's mechanism) and the shared report contract are specified in
   `showcase/quality/agent-skills` — see there rather than here. The boundary is a **provenance partition**: it never
   _fixes_ what the repo does not author (the generated OpenSpec instruction files and the vendored `axon4to5-*` skills),
   though it still _reads_ them and reports an advisory item where one contradicts how the repo uses it — a
@@ -2195,9 +2203,11 @@ capture-stash-stale-copy
   `A dependency a module does not use…`), and the second rule's range ran through the eight plain bullets behind it — so
   both the `git log -L` range an origin was read from and the line the `captured:` marker was appended to belonged to
   the wrong item, and the marker landed on the following bullet. Derive an item's end from the list's own structure (a
-  wrapped continuation is indented; a `- ` at column zero starts a new item) and have any script that ranges over or
-  appends to items assert that boundary itself — the marker-placement rule above states what the pre-commit guard
-  enforces — before trusting the result. captured: retro-mark-captured-rules captured: add-a-fresh-session-trigger
+  wrapped continuation is indented; a `- ` at column zero starts a new item, but a heading at column zero ends the list
+  — a search for the next `- ` otherwise crosses the section boundary) and have any script that ranges over or appends
+  to items assert that boundary itself — the marker-placement rule above states what the pre-commit guard enforces —
+  before trusting the result. captured: retro-mark-captured-rules captured: add-a-fresh-session-trigger captured:
+  optimize-agents-auditor-for-instruction-budget
 
 - **The same range-boundary hazard bites source:** removing three tasks' private comparators with a range running from
   the first deleted member to the end of the file took each class's **closing brace** (the members were last in the

@@ -15,6 +15,22 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-18
 
+- Sweep the two enumerations `#628` (`rework-the-review-loop`) left stale — parked; no change yet. It added
+  `scripts/review-routing.py` and the `testReviewRouting` Gradle task, but `AGENTS.md`'s Build & Test `check` comment
+  still lists 11 commit-hygiene members and omits `testReviewRouting`, and its Prerequisites Python list names
+  `claim-scan.py` and `review-rounds.py` but not `review-routing.py` (verified: `build.gradle.kts:524` registers the
+  task and `:638` adds it to `check`). A two-line docs fix; the audit run during
+  `optimize-agents-auditor-for-instruction-budget` reported it, and a later run did not re-report it, so it is parked
+  rather than left to recall. Parked rather than folded in: the unit's subject is the auditor, and this is a stale
+  enumeration in an unrelated section.
+
+- Give the reduction unit an extraction procedure of its own if a second extraction is proposed — parked; no change yet.
+  `optimize-agents-auditor-for-instruction-budget` widened the standing `/apply-audit-reductions` unit to name an
+  `extraction` candidate, and its application is a content-move routed to the change workflow (written into the unit's
+  step 2 and its step 4 bullet), so nothing is deferred today. What is missing is a procedure for the move itself —
+  creating or changing the destination, moving the content, and adding the retained pointer — which the change workflow
+  supplies implicitly. Parked rather than written: one candidate kind with no incident, and the routing is explicit.
+
 - Widen `ci.yml`'s OpenSpec probe to fail on the CLI's "is not a delta section" warning — parked; no change yet.
   `openspec validate --all` exits 0 while warning and `openspec archive` drops the requirement, so a misnamed delta
   header is a silent trap — the config's `rules.specs` named `DEPRECATED` until `fix-openspec-config-rules`, where the
@@ -285,7 +301,11 @@ dated when it was added (start a new section for a new day rather than appending
   count as the growth control, but nothing reads it back, so the only quantitative signal that consolidation is winning
   goes uncollected. A small report — or a `/retrospective` input — extracting the verdict lines from `docs/audits/*.md`
   would show findings, merge, removal, accreted, and authoring-system gap counts over time. Five reports now exist, and
-  one definition now governs the accreted count, so reports from here on are comparable and the trend is buildable.
+  one definition now governs the accreted count, so reports from here on are comparable and the trend is buildable. The
+  same extraction would now also trend the **instruction-budget ledger** each report carries
+  (`optimize-agents-auditor-for-instruction-budget`) — `AGENTS.md`'s size, its size by section, and the growth since the
+  prior report — which is the one series that measures whether the reductions are holding the always-loaded surface
+  flat.
 
 - Record the lesson-capture's rejected proposals — parked; no change yet. A "nothing durable" verdict is a judgment that
   vanishes (the `widen-auditor-to-route-candidates` capture's, for instance); recording each rejected proposal with the

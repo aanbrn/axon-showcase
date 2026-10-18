@@ -114,6 +114,8 @@ rules:
       name
     - Every count — and every universal claim over a corpus — is re-derived by grepping the set it counts, naming the
       instances it covers where the class has no greppable predicate
+    - A task that sweeps for an enumerated set names the set's members to grep, never a phrase one enumeration uses —
+      an enumeration may list its members as bullet labels no phrase pattern reaches
     - Follow the "Structured Writing Standard" in AGENTS.md — one action per task, its verification stated in the same
       task
 

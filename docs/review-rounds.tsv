@@ -434,3 +434,14 @@
 2026-10-18	rework-the-review-loop	9	test-control,claim-unreproducible,incomplete-enumeration,structured-writing	test-control,claim-unreproducible,incomplete-enumeration,structured-writing	4
 2026-10-18	rework-the-review-loop	10	structured-writing	structured-writing	1
 2026-10-18	rework-the-review-loop	11	-	-	0
+2026-10-18	optimize-agents-auditor-for-instruction-budget	1	claim-unreproducible,coherence,incomplete-enumeration	-	3
+2026-10-18	optimize-agents-auditor-for-instruction-budget	2	claim-missing	-	1
+2026-10-18	optimize-agents-auditor-for-instruction-budget	3	formatting	-	1
+2026-10-18	optimize-agents-auditor-for-instruction-budget	4	-	-	0
+2026-10-18	optimize-agents-auditor-for-instruction-budget	5	claim-unreproducible,incomplete-enumeration,single-sourcing,coherence,structured-writing	claim-unreproducible,incomplete-enumeration,coherence	6
+2026-10-18	optimize-agents-auditor-for-instruction-budget	6	claim-unreproducible,formatting,coherence	claim-unreproducible,formatting,coherence	2
+2026-10-18	optimize-agents-auditor-for-instruction-budget	7	claim-unreproducible	claim-unreproducible	1
+2026-10-18	optimize-agents-auditor-for-instruction-budget	8	-	-	0
+2026-10-18	optimize-agents-auditor-for-instruction-budget	9	contradiction,claim-unreproducible,impact-omission,wording	claim-unreproducible	3
+2026-10-18	optimize-agents-auditor-for-instruction-budget	10	contradiction	contradiction	1
+2026-10-18	optimize-agents-auditor-for-instruction-budget	11	-	-	0

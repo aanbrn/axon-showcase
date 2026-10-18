@@ -14,7 +14,8 @@
 - [ ] `spotlessApply` run after the final edit to a Spotless-owned file
 - [ ] Behavior changes went through an OpenSpec change (with its archive commit on this PR) — or this is a docs refresh,
       a standalone fix, or a dependency bump, which need no change dir
-- [ ] The per-unit `lesson-capture` ran — recorded as a task in the change's `tasks.md` with the applied `AGENTS.md`
-      delta, or, for a unit with no change dir, by ticking this line and noting the applied delta
+- [ ] The per-unit `lesson-capture` decision is recorded — it ran with its applied `AGENTS.md` delta, or it was skipped
+      under `AGENTS.md`'s skip condition with the reason — as a task in the change's `tasks.md` or, for a unit with no
+      change dir, by ticking this line and noting the outcome
 - [ ] The pre-write derivation pass ran, its **claims table** recorded — in the change's `design.md` (or `tasks.md` for
       a unit that writes no `design.md`), or by ticking this line and noting the table for a unit with no change dir

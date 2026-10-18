@@ -46,17 +46,17 @@ rounds and units: `claim-unreproducible` (a stated fact whose source does not re
 with no source or row), `contradiction` (two statements, or a statement and its evidence, are mutually exclusive),
 `incomplete-enumeration` (a set is under-matched or under-listed), `over-claim` (a statement claims more than its
 evidence supports — a broader quantifier, a stronger cause, a wider scope), `wording` (prose that does not say what it
-means), `formatting` (a formatter-owned or manual-wrap defect), `single-sourcing` (a claim restated rather than pointed
-at), `missing-task` (required work, or a required record, is missing or unrecorded), `missing-scenario` (an implemented
-behavior is absent from the delta), `impact-omission` (a touched file or site is not named in the plan), `test-control`
-(a check's known-bad case is missing or unexercised), `dropped-content` (an edit dropped content it should keep),
-`premise` (the change rests on an unverified or contradicted premise), `coherence` (artifacts state different models of
-the subject), `redundant-code` (dead or duplicated code), `docs-residue` (a doc still states the old behavior),
-`structured-writing` (prose that violates the Structured Writing Standard — a passage hiding several actionable
-statements, an implied condition, or the mandatory merged with its rationale), `proposal-schema` (the proposal breaks
-its schema). A finding that fits none of these: the calling agent adds a class here, in the same change, so the list
-stays canonical rather than drifting into a second long tail. The label is the finding's substantive kind: a repeated
-finding keeps its class and is marked as a repeat, never relabelled as a repeat.
+means), `formatting` (a formatter-owned or manual-wrap defect), `single-sourcing` (a claim, a rule set, or a record
+restated rather than pointed at), `missing-task` (required work, or a required record, is missing or unrecorded),
+`missing-scenario` (an implemented behavior is absent from the delta), `impact-omission` (a touched file or site is not
+named in the plan), `test-control` (a check's known-bad case is missing or unexercised), `dropped-content` (an edit
+dropped content it should keep), `premise` (the change rests on an unverified or contradicted premise), `coherence`
+(artifacts state different models of the subject), `redundant-code` (dead or duplicated code), `docs-residue` (a doc
+still states the old behavior), `structured-writing` (prose that violates the Structured Writing Standard — a passage
+hiding several actionable statements, an implied condition, or the mandatory merged with its rationale),
+`proposal-schema` (the proposal breaks its schema). A finding that fits none of these: the calling agent adds a class
+here, in the same change, so the list stays canonical rather than drifting into a second long tail. The label is the
+finding's substantive kind: a repeated finding keeps its class and is marked as a repeat, never relabelled as a repeat.
 
 **Support each finding with the evidence its class needs** — an enumeration against the corpus it summarizes, a
 contradiction against both statements, a missing scenario against the behavior and the delta that omits it, a

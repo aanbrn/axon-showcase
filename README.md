@@ -365,18 +365,18 @@ with the worked scenarios.
 
 The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 
-| Agent                  | Role                                                                                                                                                                                                                                            |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `experience-analyzer`  | Periodic retrospectives that root-cause failures, evaluate the previous window, and propose verified improvements (system & process) — `/retrospective`                                                                                         |
-| `agents-auditor`       | Audits AGENTS.md + project-owned `.opencode/` files, flags third-party files our usage contradicts, and reports accreted meta rules with their origins, merge, removal, and route candidates, and authoring-system gaps — `/audit-agents`       |
-| `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                                                                                                                                                |
-| `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift, unrecorded intent, and a due record — `/audit-architecture`                                                                                                         |
-| `readme-auditor`       | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage — `/audit-readme`                                                                                                                    |
-| `lesson-capture`       | Captures gotchas/conventions into AGENTS.md after every unit, consolidating rather than accreting, retiring the rules a unit obsoletes, marking each rule with its origin, and routing an authoring-mechanism fix to that mechanism (automatic) |
-| `review-quick`         | Fast review after proposal & implementation, repeated until clean (automatic)                                                                                                                                                                   |
-| `review-thorough`      | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`                                                                                                                                                                   |
-| `vision`               | Reads screenshots for the text-only main agent                                                                                                                                                                                                  |
-| `diagrammer`           | Draws/fixes ASCII and Mermaid diagrams with the pro model — `/diagram`                                                                                                                                                                          |
+| Agent                  | Role                                                                                                                                                                                                                                                                         |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `experience-analyzer`  | Periodic retrospectives that root-cause failures, evaluate the previous window, and propose verified improvements (system & process) — `/retrospective`                                                                                                                      |
+| `agents-auditor`       | Audits AGENTS.md + project-owned `.opencode/` files, flags third-party files our usage contradicts, and reports accreted meta rules with their origins, merge, removal, and route candidates, and authoring-system gaps — `/audit-agents`                                    |
+| `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                                                                                                                                                                             |
+| `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift, unrecorded intent, and a due record — `/audit-architecture`                                                                                                                                      |
+| `readme-auditor`       | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage — `/audit-readme`                                                                                                                                                 |
+| `lesson-capture`       | Captures gotchas/conventions into AGENTS.md for a unit whose evidence shows a lesson, consolidating rather than accreting, retiring the rules a unit obsoletes, marking each rule with its origin, and routing an authoring-mechanism fix to that mechanism (evidence-gated) |
+| `review-quick`         | Fast review after proposal & implementation, repeated until clean (automatic)                                                                                                                                                                                                |
+| `review-thorough`      | Deep on-demand review (drift, correctness, architecture) — `/review-thorough`                                                                                                                                                                                                |
+| `vision`               | Reads screenshots for the text-only main agent                                                                                                                                                                                                                               |
+| `diagrammer`           | Draws/fixes ASCII and Mermaid diagrams with the pro model — `/diagram`                                                                                                                                                                                                       |
 
 #### What the Agent Automates
 
@@ -384,11 +384,11 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
   implement it, and prepare it for review.
 - **Code review**: every unit is auto-reviewed after its proposal and after its implementation; the quick-review loop
   repeats until it finds nothing new. A deep `/review-thorough` pass is available on demand.
-- **Lesson capture**: after each unit, `lesson-capture` proposes AGENTS.md gotchas and conventions, merging each into an
-  existing bullet or stating that none covers it, reports the rules the unit makes obsolete or redundant as retirement
-  candidates, and routes a lesson whose cause is an authoring mechanism to that mechanism rather than to AGENTS.md — so
-  the file shrinks as well as grows, and a mistake is recorded where it can be prevented instead of only where it is
-  read.
+- **Lesson capture**: for a unit whose evidence shows a candidate lesson, `lesson-capture` proposes AGENTS.md gotchas
+  and conventions, merging each into an existing bullet or stating that none covers it, reports the rules the unit makes
+  obsolete or redundant as retirement candidates, and routes a lesson whose cause is an authoring mechanism to that
+  mechanism rather than to AGENTS.md — so the file shrinks as well as grows, and a mistake is recorded where it can be
+  prevented instead of only where it is read.
 - **Retrospectives**: `/retrospective` gathers the last week of PRs and the git log, plus the archived changes and
   accumulated gotchas, and produces a sprint retrospective that root-causes each significant failure to the stage that
   could have caught it, evaluates the previous window's recommendations, and proposes improvements with a verifiable
@@ -445,12 +445,13 @@ The process is designed to **learn from itself** — and that is the mechanic, n
 
 - **`AGENTS.md` is the agent's persistent memory.** It is loaded as instructions at the start of every session, so a
   lesson written there does not merely document the past — it changes how the agent behaves on the next change.
-- **Every unit closes the loop.** The `lesson-capture` subagent runs after a unit's implementation, and the unit carries
-  a record of it — a task in a change's `tasks.md`, or a checklist line on the pull request — so a skipped run shows as
-  a missing box at the merge. The pre-write derivation pass, run before the review loop, is carried the same way. At a
-  merge the agent detects — reading the merge's non-diff effects and reporting any candidate — so lessons that only
-  surface once a unit is live still get captured (it asks before running one); the ones you accept land in `AGENTS.md`,
-  and a lesson whose cause is an authoring mechanism is routed to that mechanism instead.
+- **Every unit closes the loop.** The `lesson-capture` subagent runs after a unit's implementation when its evidence
+  shows a candidate lesson, and the unit carries a record of the decision — the applied `AGENTS.md` delta, or the skip
+  and its reason, as a task in a change's `tasks.md` or a checklist line on the pull request — so neither an unrun
+  capture nor an unrecorded skip hides at the merge. The pre-write derivation pass, run before the review loop, is
+  carried the same way. At a merge the agent detects — reading the merge's non-diff effects and reporting any candidate
+  — so lessons that only surface once a unit is live still get captured (it asks before running one); the ones you
+  accept land in `AGENTS.md`, and a lesson whose cause is an authoring mechanism is routed to that mechanism instead.
 - **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
   same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
   uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.

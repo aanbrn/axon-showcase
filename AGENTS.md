@@ -302,19 +302,19 @@ capture-reverted-sweep-lessons (#283)
    catching from its source: read every run-log, issue-state, or external-artifact claim from the artifact now; re-grep
    every count — and every universal claim about a corpus (`every`/`all`) — against its set, naming the instances it
    covers where the class has no greppable predicate (a count of prior changes reproduces as different totals by
-   criterion, so state the instances or the criterion, never the bare number); single-source a model stated in more than
-   one artifact; derive every mechanism or task-check claim from the tool or the graph, deleting a term or mechanism
-   name whose grep finds no referent in the repository (a coinage lifted from an external prompt; a design carried
-   three, each stripped by a review round); and, for a change whose facts are its own measurement, computation, or
-   process record, derive each figure from the mechanism that produces it — the window or instant it spans and the
-   aggregation it applies, or for a record figure the command that emits it (a review round's row from its report's
-   record line, the capture record's net delta from `git diff --numstat AGENTS.md` after `spotlessApply`, per-hunk
-   `git diff -U0` counts when other edits share the file) — re-deriving it after that mechanism's last edit, since a
-   figure measured before the final tuning, or written from what the edits were meant to add, is the claim the next
-   round reports unreproducible (`verify-unique-review-rounds` recorded a row clean before its round reported and stated
-   a net `AGENTS.md` delta of `+2` where the diff measured `+5`; the measurement-attribution gotcha carries the series
-   rule). captured: seed-claims-from-the-diff captured: record-agents-md-authoring-standard captured:
-   sharpen-experience-analysis captured: sharpen-review-quick
+   criterion, so state the instances or the criterion, never the bare number); single-source a claim, a rule set, or a
+   record stated in more than one artifact; derive every mechanism or task-check claim from the tool or the graph,
+   deleting a term or mechanism name whose grep finds no referent in the repository (a coinage lifted from an external
+   prompt; a design carried three, each stripped by a review round); and, for a change whose facts are its own
+   measurement, computation, or process record, derive each figure from the mechanism that produces it — the window or
+   instant it spans and the aggregation it applies, or for a record figure the command that emits it (a review round's
+   row from its report's record line, the capture record's net delta from `git diff --numstat AGENTS.md` after
+   `spotlessApply`, per-hunk `git diff -U0` counts when other edits share the file) — re-deriving it after that
+   mechanism's last edit, since a figure measured before the final tuning, or written from what the edits were meant to
+   add, is the claim the next round reports unreproducible (`verify-unique-review-rounds` recorded a row clean before
+   its round reported and stated a net `AGENTS.md` delta of `+2` where the diff measured `+5`; the
+   measurement-attribution gotcha carries the series rule). captured: seed-claims-from-the-diff captured:
+   record-agents-md-authoring-standard captured: sharpen-experience-analysis captured: sharpen-review-quick
 2. Record the pass. Every unit carries it as a task — a task in a change's `tasks.md`, or a line in the pull-request
    checklist for a unit with no change dir — so a missing box is a skip, not a pass that found nothing. Its output is
    the change's **claims table** — each fact the change states about its evidence (the prior artifacts it rests on) with
@@ -433,24 +433,36 @@ the user now_.
 
 ### Workflow: Capture lessons
 
-**Trigger** — once a unit's implementation quick review is clean and before you ask for the manual review pass; and at a
-merge.
+**Trigger** — once a unit's implementation quick review is clean and the skip condition below does not hold, before you
+ask for the manual review pass; and at a merge, where the detection below always runs.
 
 **Procedure**
 
-1. Run the `lesson-capture` subagent with the diff, the review findings, the change dir when one exists, and a short
+1. Decide whether the skip condition below holds — it is the only case that may go without a run — and skip the capture
+   when it does, recording the reason with the capture record (step 3).
+2. Run the `lesson-capture` subagent with the diff, the review findings, the change dir when one exists, and a short
    note on what went wrong or was learned. It proposes AGENTS.md additions — gotchas and conventions worth recording —
    the rules the unit makes obsolete or redundant as retirement or replacement candidates, and any authoring-system
    recommendation, whose fix belongs in a mechanism producing artifacts rather than in this file.
-2. Apply the proposals the main agent judges durable. An implementation capture is caused by the unit, so it rides the
+3. Apply the proposals the main agent judges durable, and record the outcome on the capture record — the applied net
+   `AGENTS.md` delta, or the skip and its reason. An implementation capture is caused by the unit, so it rides the
    unit's branch and ships in its PR.
-3. A merge runs no capture: at the merge, read what the merge alone affected — its non-diff effects, such as an agent PR
+4. A merge runs no capture: at the merge, read what the merge alone affected — its non-diff effects, such as an agent PR
    closing its own tracker — and report any candidate lesson it leaves with the bullet it would extend, then ask the
    user for explicit confirmation before running one. Apply that merge-time capture as its own docs PR (it has no
    in-flight branch to ride).
 
 **Decision points**
 
+- **The capture is owed unless the skip condition holds in full**, and that condition is the only case that may go
+  without a run: no review round whose recorded classes go beyond the local-implementation set (`wording`, `formatting`,
+  `redundant-code`, `dropped-content`); no finding recorded as a compliance miss of an existing rule; a diff touching no
+  authoring surface (`.opencode/`, `AGENTS.md`, `openspec/specs/`, `openspec/config.yaml`, a check, or a workflow); and
+  no problem the unit hit already recorded in a `captured:` rule or `docs/ideas.md`. Each clause reads a surface the
+  unit already produced — the round rows in `docs/review-rounds.tsv`, the diff, the two corpora — so the default is to
+  run it, and the skip is a derived, recorded decision rather than a judgment about whether the work felt instructive. A
+  recurrence fails the conjunction deliberately: a problem the repo already records is an instruction-following failure,
+  a reason to question the rule's wording rather than to skip.
 - **Every proposal names the existing bullet it extends**, or states that no bullet covers the lesson — a new rule
   merges into or replaces one rather than accreting.
 - **Every proposal names the decision its rule governs**, and states whether a future change would plausibly hit it and
@@ -479,12 +491,14 @@ merge.
 
 **Failure handling**
 
-- **Do not skip the subagent** or conclude "nothing to capture" on your own judgment — the subagent is the arbiter, and
-  an initial "nothing to capture" verdict is a hypothesis: a merge that closed a change was once skipped on exactly such
-  an assumption and the forgotten-archive and premise-interrogation lessons went uncaptured until the user pushed back
-  twice. A docs-fix merge has nothing further to capture only if the subagent actually reviewed it and said so — or if
-  the merge-time detection above found no candidate. captured: add-pre-commit-staged-set-guard (#372) captured:
-  re-measure-load-test-baseline (#429)
+- **Do not skip the run outside the skip condition, and never conclude "nothing to capture" in its place.** The subagent
+  is the arbiter of what a unit taught, and a skip leaves no verdict: `make-the-capture-visible` recorded three skipped
+  captures that surfaced only at the merge, and the class they lost — a process mistake that leaves no diff trace — is
+  the one no skip condition can see, which is why the skip is a closed conjunction over surfaces the unit already
+  produced rather than a judgment, and why the merge-time read re-verifies it. A docs-fix merge has nothing further to
+  capture only if the subagent actually reviewed it and said so — or if the merge-time detection above found no
+  candidate. captured: add-pre-commit-staged-set-guard (#372) captured: re-measure-load-test-baseline (#429) captured:
+  make-the-capture-selective
 - **A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not
   merely records it.** The merge-time detection is the pass that can read the merge's non-diff effects: an agent PR's
   closing reference had already closed the tracker it was triggered from (see "Workflow: Complete a cloud (`/oc`) agent
@@ -493,10 +507,11 @@ merge.
   out-of-band corrective action, such as reopening the issue) alongside the recorded rule; documenting the hazard alone
   leaves the defect live.
 
-**Completion criteria** — the capture ran (or the subagent reviewed the unit and reported nothing to capture) and its
+**Completion criteria** — the capture ran, or was skipped under the skip condition with its reason recorded, and its
 durable proposals are applied. Every unit carries a capture record — a task in `tasks.md`, or a line in the pull-request
-checklist for a unit with no change dir — so an unrun capture reads as that record missing or unticked rather than a
-skip reconstructed from recollection. A unit whose review loop runs rounds carries its per-round record rows in
+checklist for a unit with no change dir — carrying the applied net delta or the skip and its reason, so neither an unrun
+capture nor an unrecorded skip reads as a run that found nothing, and the merge-time read re-verifies a recorded skip
+against the merge's own evidence. A unit whose review loop runs rounds carries its per-round record rows in
 `docs/review-rounds.tsv` the same way — the append is the calling agent's per-round act, made when that round's report
 arrives rather than while fixing the next round's findings, so a deferred append lands late or never
 (`make-the-p99-verdict-confirm-first` appended rows a round late until the owner caught one) and leaving it to the
@@ -508,8 +523,9 @@ captured: bound-the-review-loop captured: make-the-p99-verdict-confirm-first
 - **Author each entry to the stated standard.** The knowledge-authoring standard the `agent-skills` spec states governs
   every entry — the representation it takes, a procedure's and a gotcha's shape, the evidence its claims need, and the
   validation before finishing — and the `agents-auditor` reconciles entries against the same standard.
-- **One capture per unit, never a chain.** Process mistakes that leave no diff trace (e.g. a git command that discarded
-  work) are the most valuable thing to capture — this is what makes the capture systematic instead of memory-dependent.
+- **At most one capture per unit, never a chain.** Process mistakes that leave no diff trace (e.g. a git command that
+  discarded work) are the most valuable thing to capture — this is what makes the capture systematic instead of
+  memory-dependent.
 - **Each captured rule carries its origin in a `captured: <unit>` marker** — the unit at an implementation capture, the
   unit and its PR when a merge-time detection found the lesson — so a rule's provenance is readable without git and
   survives a reflow: grep the `captured:` token, which no reflow splits even when the captured name wraps to the next
@@ -3346,16 +3362,18 @@ capture-stash-stale-copy
   `reconcile-showcase-cache-default` review corrected the reversed direction in the design's Context, and the same
   claim's residue in the Decisions section (plus a "tenfold" that was a hundredfold) was caught only in the next pass.
   The correction's dependents are a further sweep: re-read the statements that depend on the claim without repeating it
-  — a caveat, a design rationale, a concluding sentence — which a grep for the claim does not find. A **replaced** rule
-  sweeps one degree harder still: its restatements are paraphrases rather than repetitions and live beyond the artifact
-  — in other gotchas and conventions, in file headers, and in the `.opencode/agent/*.md` / `.opencode/commands/*.md`
-  definitions that restate it — so grep every doc that describes the workflow for the _concept_, not the old wording:
-  replacing the commit discipline left four restatements (two gotchas, the docs-refresh convention, and
-  `docs/ideas.md`'s header), and the diagram bullet's `diagramPadding` rule survived in `diagrammer.md` until the quick
-  review. A widened check's describers go stale the same way, and the version-string grep does not find them: the
-  2026-10-11 audit found `toolingUpdates`' worked example stale once the smoke's `pack` pin gained its own entry, and
+  — a caveat, a design rationale, a concluding sentence — which a grep for the claim does not find. A rule the change
+  **authored or replaced** sweeps one degree harder still: its restatements are paraphrases rather than repetitions and
+  live beyond the artifact — in other gotchas and conventions, in file headers, in the change's own design and tasks,
+  and in the `.opencode/agent/*.md` / `.opencode/commands/*.md` definitions that restate it — so grep every doc that
+  describes the workflow for the _concept_, not the old wording, and key that sweep on the rule's **subject** (what it
+  governs), not on the phrase family a finding names, since a paraphrase shares no phrase with it: replacing the commit
+  discipline left four restatements (two gotchas, the docs-refresh convention, and `docs/ideas.md`'s header), and the
+  diagram bullet's `diagramPadding` rule survived in `diagrammer.md` until the quick review. A widened check's
+  describers go stale the same way, and the version-string grep does not find them: the 2026-10-11 audit found
+  `toolingUpdates`' worked example stale once the smoke's `pack` pin gained its own entry, and
   `bump-tooling-pins-2026-10-16` left `/opsx-tool-update`'s "the check detects a release from `ci.yml` alone". captured:
-  bump-tooling-pins-2026-10-16
+  bump-tooling-pins-2026-10-16 captured: make-the-capture-selective
 
 - **An abandoned approach needs the same sweep:** reverting an experiment's code line does not remove the comment or the
   task/design prose that describes it, so grep the artifact for the approach's name before calling the revert done. The

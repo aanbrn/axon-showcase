@@ -409,3 +409,12 @@
 2026-10-18	capture-change-name-collision	1	single-sourcing,claim-unreproducible,structured-writing	-	3
 2026-10-18	capture-change-name-collision	2	wording	-	1
 2026-10-18	capture-change-name-collision	3	-	-	0
+2026-10-18	make-the-capture-selective	1	claim-unreproducible,incomplete-enumeration,wording,impact-omission,claim-missing	-	5
+2026-10-18	make-the-capture-selective	2	wording	wording	1
+2026-10-18	make-the-capture-selective	3	wording	wording	1
+2026-10-18	make-the-capture-selective	4	incomplete-enumeration,wording	incomplete-enumeration,wording	2
+2026-10-18	make-the-capture-selective	5	wording	wording	1
+2026-10-18	make-the-capture-selective	6	-	-	0
+2026-10-18	make-the-capture-selective	7	single-sourcing	-	1
+2026-10-18	make-the-capture-selective	8	single-sourcing,docs-residue	single-sourcing	2
+2026-10-18	make-the-capture-selective	9	impact-omission,single-sourcing,proposal-schema	impact-omission,single-sourcing	3

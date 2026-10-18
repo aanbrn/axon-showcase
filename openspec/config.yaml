@@ -60,7 +60,8 @@ rules:
     - Every claim about a run log, issue state, or external artifact is read from that artifact, not recalled
     - Every count — and every universal claim over a corpus — is re-derived by grepping the set it counts, naming the
       instances it covers where the class has no greppable predicate
-    - A model stated in more than one artifact is single-sourced, the rest referencing it by name
+    - A claim, a rule set, or a record stated in more than one artifact is single-sourced, the rest referencing it by
+      name
     - A change that adds or widens a member of a set (a swept surface, a finding class, an output kind, a documented
       enumeration) derives the sites it touches from the change's tasks, never a hand-written list
     - Follow the "Structured Writing Standard" in AGENTS.md — one bullet per change in "What Changes", not a paragraph
@@ -76,7 +77,8 @@ rules:
     - Start with "Context" referencing the proposal, then "Goals / Non-Goals"
     - Capture "Decisions" with the alternatives considered and why they were rejected
     - Flag "Risks / Trade-offs" with concrete mitigation
-    - A model stated in more than one artifact is single-sourced, the rest referencing it by name
+    - A claim, a rule set, or a record stated in more than one artifact is single-sourced, the rest referencing it by
+      name
     - Every mechanism or task-check claim is derived from the dependency graph or the tool's own definition, and a
       term or mechanism name with no referent in the repository is deleted rather than defined
     - Carry the claims table — each fact the change states about its evidence (the prior artifacts it rests on) with its
@@ -98,13 +100,15 @@ rules:
       passes on a known-good one — a gate whose logic lives in a rules object carries the case in that object's
       `*RulesTests`, an inline gate in its consuming module — instead of a task asserting the control was run, plus a
       task to read the output of any scratch command used as evidence
-    - Include the per-unit `lesson-capture` step as a task in every change — run the `lesson-capture` subagent, apply
-      its durable proposals (routing an authoring-system recommendation to the mechanism it names), and record the
-      applied net `AGENTS.md` delta on the task — so an unrun capture is a missing box rather than a recollection
+    - Include the per-unit `lesson-capture` decision as a task in every change — run the `lesson-capture` subagent when
+      the skip condition does not hold, apply its durable proposals (routing an authoring-system
+      recommendation to the mechanism it names), and record the applied net `AGENTS.md` delta or the skip and its
+      reason on the task — so neither an unrun capture nor an unrecorded skip reads as a run that found nothing
     - Carry the pre-write derivation pass as a task in every change — the pass `AGENTS.md`'s review-loop bullet names,
       whose output is the claims table, never restated here — so a skipped pass is a missing box rather than looking
       like a pass that found nothing
-    - A model stated in more than one artifact is single-sourced, the rest referencing it by name
+    - A claim, a rule set, or a record stated in more than one artifact is single-sourced, the rest referencing it by
+      name
     - Every count — and every universal claim over a corpus — is re-derived by grepping the set it counts, naming the
       instances it covers where the class has no greppable predicate
     - Follow the "Structured Writing Standard" in AGENTS.md — one action per task, its verification stated in the same

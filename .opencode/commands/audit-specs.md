@@ -9,7 +9,7 @@ Run the spec-corpus audit to check the specs for structural consistency.
    classes, classifies a candidate duplication before reporting it, and leaves the corpus's capability decomposition,
    any issue an existing gate already enforces, and a proposed change's internal quality to their owners.
 2. Present its findings in the report contract it returns (the verdict line first, then findings budgeted per item and
-   grouped by severity).
+   grouped by severity), presenting each item as the shared report contract requires — do not re-summarize it.
 3. Ask the user which findings to apply — do not edit specs without their go-ahead. A spec edit is itself a change, so
    route accepted fixes through the normal change workflow (a delta, synced to the main spec at archive), not a direct
    main-spec edit.

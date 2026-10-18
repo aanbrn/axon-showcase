@@ -34,5 +34,5 @@ invocation is an **explicit run**: it does not route, and it is never a substitu
      finding needs an explicit resolution or a recorded acceptance.
    - Incomplete verification and uncertainty stay visible, and the limit never accepts residual material risk by itself.
 7. Present its findings in the report contract it returns (the verdict line first, then findings budgeted per item and
-   grouped by severity).
+   grouped by severity), presenting each item as the shared report contract requires — do not re-summarize it.
 8. Ask the user which findings to fix. Do not edit any files without the user's go-ahead.

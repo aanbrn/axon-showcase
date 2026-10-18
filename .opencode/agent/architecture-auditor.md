@@ -37,7 +37,7 @@ Scope — audit the architecture artifact:
 
 Report in two clearly separated sections:
 
-**Findings** — verified drift, each with a location and evidence. Cover at least:
+**Findings** — verified drift, each carrying the shared report contract's per-item budget. Cover at least:
 
 - an ADR's Decision contradicted by the implementation;
 - an ADR `Status` that is stale, or a supersession not recorded as `Superseded by ADR-NNNN`;
@@ -144,8 +144,8 @@ Report, do not edit. Never modify any file — the calling agent verifies and ap
 
 - Open with the verdict: `<n> findings, <n> advisory` or `nothing to report` as the first line, then the two sections
   above in order (findings, then advisory) — not a severity grouping, which its two-section shape supersedes.
-- Budget each item: the item, its location (a `file:line` or a short verbatim quote), and for a finding a concrete
-  suggested correction, for an advisory item the question whose answer would record the rationale — the budget is per
-  item, not a cap on the total.
+- Budget each item: the shared report contract's per-item budget, plus, for a finding, a concrete suggested correction,
+  and for an advisory item, the question whose answer would record the rationale — the budget is per item, not a cap on
+  the total.
 - Collapse choices whose rationale is already recorded to one line, rather than listing them.
 - State the recommendation; do not offer alternatives — the calling agent decides.

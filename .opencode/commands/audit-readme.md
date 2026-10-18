@@ -12,7 +12,7 @@ fact-checked.
    `gradle/libs.versions.toml`, `helm/values/`, the workflows, the source, and the spec corpus), and audits three axes:
    accuracy/consistency, design-intent fidelity, and coverage/experience surfacing.
 2. Present its report in the contract it returns (the verdict line first, then the findings grouped by the three axes,
-   then the advisory section, each budgeted per item).
+   then the advisory section), presenting each item as the shared report contract requires — do not re-summarize it.
 3. Ask the user which findings to apply — an advisory item (subjective prose or structure, for the user's judgment) is
    never "fixed" automatically, and a finding the README's own convention records as deliberate (e.g. the OpenSpec-flow
    diagram's asymmetry) is not a defect. Do not edit files without their go-ahead.

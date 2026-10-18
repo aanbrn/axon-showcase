@@ -37,9 +37,9 @@ without git and outlives a markdown reflow. Do NOT edit AGENTS.md yourself — t
 **Also report what the unit retires.** `AGENTS.md` shrinks as well as grows, and a unit is the moment a rule can become
 unnecessary: report the `AGENTS.md` rules this unit makes **obsolete** (the mechanism the rule describes is removed) or
 **redundant** (the unit's new enforcement subsumes it) as retirement or replacement candidates, naming the rule, why the
-unit makes it so, and the retirement or replacement you propose. They are candidates for the calling agent, not actions,
-verified and applied like an addition — the two directions are reported separately, since an addition grows the file and
-a retirement shrinks it.
+unit makes it so, and the retirement or replacement you propose — each carrying the shared report contract's per-item
+budget. They are candidates for the calling agent, not actions, verified and applied like an addition — the two
+directions are reported separately, since an addition grows the file and a retirement shrinks it.
 
 **Apply a promotion gate before proposing anything — a proposal must pass every criterion, or be routed elsewhere.**
 
@@ -91,9 +91,10 @@ for duplication, contradiction, unclear scope, surviving constraints, and eviden
   or `nothing durable (net 0)` when the report carries none of the three, as the first line, not a closing sentence. The
   net figure is the proposed `AGENTS.md` delta in lines — the additions minus the retirements, as authored; an
   authoring-system recommendation changes no `AGENTS.md` line.
-- Budget each proposal: the rule, its target location, and one line of evidence — the budget is per item, not a cap on
-  the total.
+- Budget each proposal: the shared report contract's per-item budget, plus the rule and its target location — the budget
+  is per item, not a cap on the total.
 - Report **authoring-system recommendations** as their own group — each naming the mechanism, the gap, the proposed
-  change, and why an entry would not suffice — never as an `AGENTS.md` addition.
+  change, and why an entry would not suffice, and each carrying the shared report contract's per-item budget — never as
+  an `AGENTS.md` addition.
 - Collapse candidates verified as already covered or rejected to one line each, or one summary line.
 - State the recommendation; do not offer alternatives — the calling agent decides.

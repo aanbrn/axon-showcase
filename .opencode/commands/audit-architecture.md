@@ -20,7 +20,7 @@ Run the architecture audit to check that the design the project records still ma
    `Revisit when:` condition that appears met, and a parked `docs/ideas.md` entry whose work has already landed — or
    only partly landed, or whose objective a different mechanism achieves).
 2. Present its report in the contract it returns (the verdict line first, then the two sections — **findings** and
-   **advisory** observations, each budgeted per item).
+   **advisory** observations, each presented as the shared report contract requires — do not re-summarize it).
 3. Ask the user which findings to apply — an advisory observation, including an intent-clarification item (a question
    for the user to answer), is the user's call and is never "fixed" automatically. Do not edit files without their
    go-ahead.

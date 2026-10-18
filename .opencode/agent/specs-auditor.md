@@ -99,7 +99,7 @@ Method — a bounded, staged pass:
   is right.
 
 Report, do not edit. Return findings grouped by severity — **structural**, **stale**, **duplicate**, and **dead
-reference** — each with:
+reference** — each carrying the shared report contract's per-item budget, plus:
 
 - the location (the spec path and a line number, or a short verbatim quote), and
 - a concrete suggested rewrite, merge, or split.
@@ -112,7 +112,7 @@ synced at archive).
 - Open with the verdict: the count of findings and the count of each severity group
   (`<n> findings — <n> structural, <n> stale, <n> duplicate, <n> dead reference`), or `nothing to report`, as the first
   line, then the groups, highest-value first.
-- Budget each finding: the item, its `file:line`, its severity, and a concrete suggested rewrite/merge/split — the
-  budget is per item, not a cap on the total.
+- Budget each finding: the shared report contract's per-item budget, plus its severity and a concrete suggested
+  rewrite/merge/split — the budget is per item, not a cap on the total.
 - Collapse a still-true title or a legitimately shared header to one line, rather than reporting it as a defect.
 - State the recommendation; do not offer alternatives — the calling agent decides.

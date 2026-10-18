@@ -53,7 +53,7 @@ edit files — the calling agent handles changes.
 **Report contract** (bounds the report's shape; the analysis is bounded by the scope above, not by this contract):
 
 - Open with the verdict: `<n> findings` or `nothing remains` as the first line, then the severity groups.
-- Budget each finding: the issue, its `file:line`, and a concrete suggestion — the budget is per item, not a cap on the
-  total.
+- Budget each finding: the shared report contract's per-item budget, plus a concrete suggestion — the budget is per
+  item, not a cap on the total.
 - Collapse checks that passed to one line each, or one summary line.
 - State the recommendation; do not offer alternatives — the calling agent decides.

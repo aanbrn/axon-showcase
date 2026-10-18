@@ -25,10 +25,11 @@ them — and a module's name need not equal its spec path — the `showcase-api-
 ## Structured Writing Standard
 
 Every technical artifact the agent authors or edits — this file, an OpenSpec proposal, specification, design, or task
-list, an implementation plan, a code review, or any other repository documentation — is written in scannable structure
-rather than dense prose. The standard governs **how** an artifact's content is arranged; each artifact still keeps its
-own required template and sections (an OpenSpec artifact its schema, an ADR its Status/Context/Decision/Consequences, a
-gotcha its smallest actionable shape), so it is not one document outline imposed on all of them.
+list, an implementation plan, a code review, an agent, command, or skill definition under `.opencode/`, or any other
+repository documentation — is written in scannable structure rather than dense prose. The standard governs **how** an
+artifact's content is arranged; each artifact still keeps its own required template and sections (an OpenSpec artifact
+its schema, an ADR its Status/Context/Decision/Consequences, a gotcha its smallest actionable shape), so it is not one
+document outline imposed on all of them. captured: rework-the-review-loop
 
 **The rules:**
 
@@ -123,14 +124,14 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   quick-review-then-manual-review sequence for a docs refresh, a standalone fix, or a dependency bump as for an OpenSpec
   change. There is no proposal/implementation/archive vocabulary for those, so map the rule onto what exists: run
   `review-quick` over the diff against the repo (and the change dir when one exists), fix the findings, re-run until
-  clean, then ask the user for the manual pass — all _before_ committing, pushing, or opening the PR. Docs refreshes
-  shipped as their own PR and standalone fixes describe _where the work ships_, not a waiver (several docs-refresh PRs
-  were pushed branch → commit → push → PR with neither review, until the user rejected the tool call and asked "Why
-  again you commit and push without any quick or manual review?"). Anything published outside the repository — most of
-  all an upstream issue or comment — is reviewed the same as a diff: draft it, run it past `review-quick`, and fix the
-  findings before publishing. A false claim written into the repository is correctable in a follow-up commit; a post to
-  a public tracker is not. A comment drafted for `anomalyco/opencode#48100` was reviewed this way, and the review caught
-  a wrong premise about permission-pattern expansion before it went public.
+  clean, route the deep review, then ask the user for the manual pass — all _before_ committing, pushing, or opening the
+  PR. Docs refreshes shipped as their own PR and standalone fixes describe _where the work ships_, not a waiver (several
+  docs-refresh PRs were pushed branch → commit → push → PR with neither review, until the user rejected the tool call
+  and asked "Why again you commit and push without any quick or manual review?"). Anything published outside the
+  repository — most of all an upstream issue or comment — is reviewed the same as a diff: draft it, run it past
+  `review-quick`, and fix the findings before publishing. A false claim written into the repository is correctable in a
+  follow-up commit; a post to a public tracker is not. A comment drafted for `anomalyco/opencode#48100` was reviewed
+  this way, and the review caught a wrong premise about permission-pattern expansion before it went public.
 
 - **An owner's shorthand that appears to skip or merge a process step is not a waiver — name the conflict and ask for
   confirmation before acting on it.** The documented routing stands until the owner explicitly changes it: the shorthand
@@ -341,7 +342,15 @@ capture-reverted-sweep-lessons (#283)
 3. Run `review-quick` against the change's planning artifacts — for the proposal round, the
    proposal/design/tasks/spec-delta coherence and repo fit; for the implementation round, the tasks and delta spec.
 4. Fix everything it finds; re-run. Repeat until it reports no new observations.
-5. Only then ask the user for the manual review pass.
+5. Route the deep review, once, from the completed implementation, the diff, the applicable artifacts, and the existing
+   review evidence: derive the floor with `python3 scripts/review-routing.py --change <name>`, decide at or above it
+   (`REQUIRED`, `RECOMMENDED`, or `NOT_NEEDED`), and record the outcome and its signals on the change's review task in
+   `tasks.md` (or on the pull-request checklist line for a unit with no change dir).
+   - A `REQUIRED` outcome runs before completion; a `RECOMMENDED` one needs an explicit recorded resolution; a
+     `NOT_NEEDED` one creates no deep-review session, prepares no hand-over, and spends no expensive-model invocation.
+   - A missing, malformed, or failed derivation is `REQUIRED` — never a silent skip.
+   - The outcomes and the procedure are specified in `showcase/quality/agent-skills` and `/review-thorough`.
+6. Only then ask the user for the manual review pass.
 
 No semantic self-review precedes the loop — a re-read shares the blind spot that produced the claim — so the author owes
 only the pre-write pass above and the mechanical pre-flight (the formatter and the touched module's gates after the
@@ -351,12 +360,12 @@ final edit). captured: decide-against-pre-review
 
 - **Pass each prior finding's instance, not only its class:** IF you are re-running the review after a fix THEN pass
   each prior finding's **instance** (`file:line` and the claim) from the prior round's report, so the subagent can
-  report an unfixed prior instance or a new instance of an exhausted class rather than classifying each round in
-  isolation. The instances live only in that report, not the class-only record line, so a loop whose **caller** is about
-  to lose its context — a new session — writes them to a handover before it is lost and resumes by running the round,
-  the handover written from the artifact (each `file:line` and its text), never from what the edit was meant to do: its
-  claims are the successor's premise, and one that does not reproduce costs the round it was meant to save. captured:
-  record-agents-md-authoring-standard
+  report an unfixed prior instance, or a new instance of a class a prior round already raised, rather than classifying
+  each round in isolation. The instances live only in that report, not the class-only record line, so a loop whose
+  **caller** is about to lose its context — a new session — writes them to a handover before it is lost and resumes by
+  running the round, the handover written from the artifact (each `file:line` and its text), never from what the edit
+  was meant to do: its claims are the successor's premise, and one that does not reproduce costs the round it was meant
+  to save. captured: record-agents-md-authoring-standard
 - **Continue the reviewer's session** across rounds (pass its session id on the next request); start fresh only when
   that session has expired, the reviewer's definition changed (a subagent session can), or it stops responding
   mid-round. Each round must not lean on the reviewer's memory in place of the hand-off, which is the caller's record;
@@ -428,8 +437,8 @@ final edit). captured: decide-against-pre-review
   derive-the-change-claims
 
 **Completion criteria** — the quick review reports no new observations (the loop is clean), the pre-write pass and
-claims table are recorded as required, and the manual review pass has been requested. A clean quick review means _ask
-the user now_.
+claims table are recorded as required, the deep-review routing decision is recorded with its outcome, any `REQUIRED`
+deep review has completed, and the manual review pass has been requested. A clean quick review means _ask the user now_.
 
 ### Workflow: Capture lessons
 
@@ -1680,9 +1689,12 @@ Key modules (libraries, not services):
   rather than add.
 - **Thorough-review subagent for deep passes**: the `review-thorough` subagent (`.opencode/agent/review-thorough.md`)
   does a deep review of a change against its proposal, delta specs, design, tasks, and the implementation diff — drift,
-  correctness, architecture, and conventions. It is intentionally not auto-scheduled (the expensive pass); invoke it
-  with the `/review-thorough` OpenCode command (or ask the main agent to run it manually). Findings come back in the
-  subagent report contract (grouped by severity with file/line references); the main agent applies fixes.
+  correctness, architecture, and conventions — proportionately to the risk the review gate's routing decision names. It
+  is reached by that decision (a `REQUIRED` outcome, or a `RECOMMENDED` one the owner resolves to run) or by the
+  `/review-thorough` command, whose procedure carries the session, the hand-over, the pass budget, and the finding
+  statuses (`showcase/quality/agent-skills` owns the outcomes); a manual invocation is an explicit run, never a
+  substitute for a `REQUIRED` outcome. Findings come back in the subagent report contract (grouped by severity with
+  file/line references); the main agent applies fixes.
 - **A subagent is only invocable through a trigger, not its documentation**: documenting an `.opencode/agent/*.md`
   subagent in AGENTS.md does not make it reachable — ship a `.opencode/commands/*.md` command (e.g. the `/retrospective`
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
@@ -2452,29 +2464,29 @@ capture-stash-stale-copy
   accessor form too. captured: address-snyk-advisories-2026-10-16 captured: make-captured-rules-traceable (#279)
   captured: add-conflict-marker-and-executable-bit-checks captured: quote-safe-git-path-parsing captured:
   declare-probes-with-shape-and-behavioural-checks
-- **A lookup that yields no readable version reads as current.** `buildpackUpdates` (like `helmUpdates`) maps a failed
-  lookup to "no update", so a wrongly-built URL or renamed repository reads as current — and so does a parse pattern
-  that cannot match the provider's real body. Verify a new or changed check by temporarily pinning a known-older
-  version, confirming the report shows `<name>: <old> -> <latest>`, then reverting the pin (the `buildpackUpdates`
-  lookup was proved this way with `0.1.0`) — and unit-test the parse pattern against a **real provider response body**,
-  not a hand-written string: the GitHub releases API pretty-prints (its `tag_name` key has a space after the colon)
-  while npm compacts, so the no-space pattern never matched and left `HelmUpdatesTask`'s Helm CLI silently uncompared
-  (its pin happened to equal the live release, which is why nothing surfaced). The same silence hides in a workflow's
-  report **extraction**: `dependency-updates.yml`'s `awk` opened on `The following dependencies have newer versions:` —
-  a header the pinned `gradle-versions-plugin` never emits (its reporter labels the section from the task's `revision`
-  strategy, which the convention had left at the `milestone` default) — so the issue's catalog section was always empty
-  and 28 stable updates went unreported, reading exactly like "no updates". Ground the extraction pattern in the pinned
-  tool's emitted output (its reporter, or a real report) and re-ground it whenever the tool or its report configuration
-  (the task's `revision`, say) changes; the sibling-diff catches a diverged copy (see the `toolingUpdates` bullet),
-  while the positive control above proves the pattern matches the tool's output. A sibling task that predates your
-  change is not exempt from that positive control — grep the other update tasks for the same pattern. A GitHub-backed
-  lookup also sends `GH_TOKEN`/`GITHUB_TOKEN` when CI provides one (attached to GitHub requests only, never to the npm
-  one): an anonymous lookup is rate limited, and the throttled body lands exactly where "current" does. Filter the
-  candidates before selecting the newest: a check that takes the highest release first reports nothing when its filter
-  rejects that release, hiding the acceptable one below it (`BuildLogicPins.latestAccepted` filters with `shouldReject`
-  before `Versions.highest`, so a pin at `3.5.15` still reports `3.5.16` while `4.1.1` is a deferred major). captured:
-  unify-tooling-currency-checks (#304) captured: fix-dependency-updates-catalog-extraction captured:
-  cover-the-included-builds-pins
+- **A derivation whose failure maps onto the benign outcome reads as a clean result — never map its failure there.**
+  `buildpackUpdates` (like `helmUpdates`) maps a failed lookup to "no update", so a wrongly-built URL or renamed
+  repository reads as current — and so does a parse pattern that cannot match the provider's real body. Verify a new or
+  changed check by temporarily pinning a known-older version, confirming the report shows `<name>: <old> -> <latest>`,
+  then reverting the pin (the `buildpackUpdates` lookup was proved this way with `0.1.0`) — and unit-test the parse
+  pattern against a **real provider response body**, not a hand-written string: the GitHub releases API pretty-prints
+  (its `tag_name` key has a space after the colon) while npm compacts, so the no-space pattern never matched and left
+  `HelmUpdatesTask`'s Helm CLI silently uncompared (its pin happened to equal the live release, which is why nothing
+  surfaced). The same silence hides in a workflow's report **extraction**: `dependency-updates.yml`'s `awk` opened on
+  `The following dependencies have newer versions:` — a header the pinned `gradle-versions-plugin` never emits (its
+  reporter labels the section from the task's `revision` strategy, which the convention had left at the `milestone`
+  default) — so the issue's catalog section was always empty and 28 stable updates went unreported, reading exactly like
+  "no updates". Ground the extraction pattern in the pinned tool's emitted output (its reporter, or a real report) and
+  re-ground it whenever the tool or its report configuration (the task's `revision`, say) changes; the sibling-diff
+  catches a diverged copy (see the `toolingUpdates` bullet), while the positive control above proves the pattern matches
+  the tool's output. A sibling task that predates your change is not exempt from that positive control — grep the other
+  update tasks for the same pattern. A GitHub-backed lookup also sends `GH_TOKEN`/`GITHUB_TOKEN` when CI provides one
+  (attached to GitHub requests only, never to the npm one): an anonymous lookup is rate limited, and the throttled body
+  lands exactly where "current" does. Filter the candidates before selecting the newest: a check that takes the highest
+  release first reports nothing when its filter rejects that release, hiding the acceptable one below it
+  (`BuildLogicPins.latestAccepted` filters with `shouldReject` before `Versions.highest`, so a pin at `3.5.15` still
+  reports `3.5.16` while `4.1.1` is a deferred major). captured: unify-tooling-currency-checks (#304) captured:
+  fix-dependency-updates-catalog-extraction captured: cover-the-included-builds-pins
 - **A parser that returns "no exception" is not a gate that rejects the input class it claims to — know what your parser
   silently accepts.** `DashboardJsonRules` treated a successful `mapper.readTree(file)` as "valid JSON", but Jackson
   returns a `MissingNode` for an empty/blank file rather than throwing, so an empty dashboard passed the gate;
@@ -2736,12 +2748,12 @@ capture-stash-stale-copy
   The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are
   `paketobuildpacks/nginx` (no hyphen); querying the tags API with the CNB id 404s, so `BuildpackUpdatesTask`'s check
   model carries `repository` separately from the display `name`. When adding a buildpack to the check, use its Docker
-  Hub repository. Verify a new entry as in _A lookup that yields no readable version reads as current_. The same
-  repositories also publish alias tags (`1.3`, `5.15`) alongside the full semver (`1.3.0`), which is why the buildpack
-  check has two version operations rather than one: `Versions.isNewer` — the shared comparator all three update checks
-  use — compares numerically with zero padding, so the two spellings of one release are equal and neither reports the
-  other as an update, while `Versions.highest`, which only this check needs, keeps a longer-spelling tiebreak so the
-  _reported_ tag is the canonical form rather than the alias.
+  Hub repository. Verify a new entry as in _A derivation whose failure maps onto the benign outcome reads as a clean
+  result_. The same repositories also publish alias tags (`1.3`, `5.15`) alongside the full semver (`1.3.0`), which is
+  why the buildpack check has two version operations rather than one: `Versions.isNewer` — the shared comparator all
+  three update checks use — compares numerically with zero padding, so the two spellings of one release are equal and
+  neither reports the other as an update, while `Versions.highest`, which only this check needs, keeps a longer-spelling
+  tiebreak so the _reported_ tag is the canonical form rather than the alias.
 
 ### CI & GitHub Actions
 

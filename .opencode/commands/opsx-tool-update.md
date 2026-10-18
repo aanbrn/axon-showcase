@@ -43,8 +43,9 @@ Then inspect `git status` under `.opencode/commands/`, `.opencode/skills/`, and 
   `openspec update` wrote — the generated `opsx-*` commands and `openspec-*` skills (the vendored `axon4to5-*` skills
   are excluded by the same list, but the generator does not write them) — since a newly generated file would otherwise
   be reformatted by `spotlessApply` and then overwritten by the next `openspec update`.
-- Before committing, run the repository's review gate (the `review-quick` pass, the per-unit `lesson-capture` decision,
-  and the user's manual review pass — see `AGENTS.md`); commit only after that approval.
+- Before committing, run the repository's review gate (the `review-quick` pass, the deep-review routing decision, the
+  per-unit `lesson-capture` decision, and the user's manual review pass — see `AGENTS.md`); commit only after that
+  approval.
 - Then commit the regenerated instruction files and the pin changes across the workflows as a standalone change (e.g.
   "Regenerate openspec commands and skills with openspec update") — do not mix in unrelated changes. Do not push unless
   asked.

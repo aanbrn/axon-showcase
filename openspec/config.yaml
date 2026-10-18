@@ -104,6 +104,9 @@ rules:
       the skip condition does not hold, apply its durable proposals (routing an authoring-system
       recommendation to the mechanism it names), and record the applied net `AGENTS.md` delta or the skip and its
       reason on the task — so neither an unrun capture nor an unrecorded skip reads as a run that found nothing
+    - Carry the deep-review routing decision as a task in every change — derive the floor with
+      `scripts/review-routing.py`, decide at or above it, and record the outcome and the signals it relied on on the
+      change's review task — so a missing or failed decision reads as a missing box rather than a silent skip
     - Carry the pre-write derivation pass as a task in every change — the pass `AGENTS.md`'s review-loop bullet names,
       whose output is the claims table, never restated here — so a skipped pass is a missing box rather than looking
       like a pass that found nothing

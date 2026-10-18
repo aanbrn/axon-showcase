@@ -15,6 +15,20 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-18
 
+- Widen `ci.yml`'s OpenSpec probe to fail on the CLI's "is not a delta section" warning — parked; no change yet.
+  `openspec validate --all` exits 0 while warning and `openspec archive` drops the requirement, so a misnamed delta
+  header is a silent trap — the config's `rules.specs` named `DEPRECATED` until `fix-openspec-config-rules`, where the
+  CLI's fourth delta operation is `RENAMED`. The probe can grep `validate --all`'s output in the shape it already uses,
+  and the change that trips it can remediate its own header. This subsumes the weaker "check the config's rules against
+  the CLI's operation set" park, since a drafter following a wrong config name writes exactly this header.
+
+- Assert the config's cross-artifact clause parity in a committed check — parked; no change yet. The `rules` are
+  injected per artifact alone, so a clause several artifacts need is repeated identically, and nothing detects drift
+  between the copies or an absence where a recorded failure happened — `fix-openspec-config-rules` found both by reading
+  all four lists by hand, while `ci.yml`'s probe is shape-only. A check in the `allPropertiesHaveDocumentedDefaults`
+  shape asserting a declared list of cross-artifact clauses appears verbatim in each artifact's `rules`, which the CLI
+  returns byte-identical across `proposal`/`design`/`tasks`.
+
 - Add a third fresh-session trigger to the review loop's `review-quick` session rule — parked; no change yet. The
   `agent-skills` spec's review-loop requirement and `AGENTS.md`'s "Continue the reviewer's session" bullet start a fresh
   reviewer session only when the prior one has expired or the reviewer's definition changed; a session can also stop
@@ -24,25 +38,6 @@ dated when it was added (start a new section for a new day rather than appending
   because that change is about the architecture audit, not the review loop's mechanics.
 
 ## 2026-10-17
-
-- Give `openspec/config.yaml`'s `rules.tasks` the single-sourcing clause `rules.design` carries — parked; no change yet.
-  `rules.design` states "A model stated in more than one artifact is single-sourced, the rest referencing it by name",
-  but `rules.tasks` carries none, so a count corrected in the design was left in a `tasks.md` task body
-  (`widen-audit-agents-to-authoring-gaps` round 2), and `single-sourcing` is a recurring class in the record — a third
-  unit (`sharpen-architecture-audit`) spent three rounds of `incomplete-enumeration` re-glossing one widened set at each
-  describing site, so each site's members should also be taken from the owning definition verbatim. The config's
-  per-artifact rules surface at drafting time, where the `design`/`tasks` asymmetry bites; `rules.proposal` has the same
-  gap (its `Impact` rule names only build/tests/deployment). Complements the parked proposal-site-derivation clause
-  above — both are `openspec/config.yaml` `rules` edits.
-
-- Require a proposal to derive its touched sites from the change's tasks — parked; no change yet. This unit's round-1
-  `incomplete-enumeration` under-matched the describing sites (the definition's frontmatter `description` and the README
-  Self-Learning Loop prose) because the proposal's site list was hand-written, and `AGENTS.md`'s "recurring unit type"
-  bullet already prescribes deriving it — the miss has now recurred (`widen-architecture-auditor-to-intent-gaps`, this
-  unit). The fix belongs in `openspec/config.yaml`'s `proposal` rules, the text shown at drafting time, rather than in
-  another `AGENTS.md` sentence: add "A change that adds or widens a member of a set (a swept surface, a finding class,
-  an output kind, a documented enumeration) derives the sites it touches from the change's tasks, never a hand-written
-  list".
 
 - Check that every recorded class is in the reviewer's canonical list — parked; no change yet. The 2026-10-15
   retrospective's S2, the remaining enabler of the window comparison its baseline names. The label set lives as prose in

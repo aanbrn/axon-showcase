@@ -18,7 +18,7 @@
       requirement recording the ledger's reviewer-session continuity, with one scenario per shape the checker rejects
       and per shape it must accept. The delta is the record of what the requirement says, so this task points at it
       rather than restating its content.
-- [ ] 2.3 `openspec/specs/showcase/quality/commit-hygiene/spec.md` — refresh the capability's `## Purpose` in the
+- [x] 2.3 `openspec/specs/showcase/quality/commit-hygiene/spec.md` — refresh the capability's `## Purpose` in the
       archive commit, since it enumerates the guards the capability's `check` verifies and this change adds one. A delta
       cannot carry a Purpose, so this is the change's one direct main-spec edit.
 

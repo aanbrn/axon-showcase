@@ -323,16 +323,19 @@ capture-reverted-sweep-lessons (#283)
    clause, governing a row's source as well as a dismissal: a source that is a command's output states the reason by
    class, never a list of the output's lines, since a list of a kind's candidates or of an output's lines is incomplete
    by construction and the artifact stating it adds candidates to the scanned set — a lead list, never a gate, and it
-   seeds the table rather than replacing the derivation (`showcase/quality/agent-skills` owns the behaviour). A row
-   about an artifact the change itself edits anchors its source to that artifact's pre-change state
-   (`git show HEAD:<path>`): it stops reproducing once the change lands. A site named for a later sweep is quoted by its
-   text or token, never by a line number — a concurrent merge moves it, so the anchor is stale as committed
-   (`AGENTS.md:NNNN` anchors were two lines out here). A task's `**Done**` note or a claims-table entry that must report
-   a figure states a relative result — the difference between two runs, which the corpus's growth leaves fixed — the
-   command's outcome, or a text-quoted site, never an absolute count its own writes move (its appended ledger rows, the
-   candidates its own artifact adds to the scan), so re-derive the table after the unit's last append to its own record,
-   which adds one. captured: widen-architecture-auditor-to-stale-ideas captured: normalize-the-review-round-digest
-   captured: capture-authoring-system-gaps
+   seeds the table rather than replacing the derivation (`showcase/quality/agent-skills` owns the behaviour). A
+   dismissal's reason is itself a claim about the repository: verify it against the diff or the source it names before
+   recording it, since a dismissal is recorded, not checked (`sharpen-architecture-audit` dismissed the README table
+   rows as carrying only a formatter reflow, and the diff held no such change). A row about an artifact the change
+   itself edits anchors its source to that artifact's pre-change state (`git show HEAD:<path>`): it stops reproducing
+   once the change lands. A site named for a later sweep is quoted by its text or token, never by a line number — a
+   concurrent merge moves it, so the anchor is stale as committed (`AGENTS.md:NNNN` anchors were two lines out here). A
+   task's `**Done**` note or a claims-table entry that must report a figure states a relative result — the difference
+   between two runs, which the corpus's growth leaves fixed — the command's outcome, or a text-quoted site, never an
+   absolute count its own writes move (its appended ledger rows, the candidates its own artifact adds to the scan), so
+   re-derive the table after the unit's last append to its own record, which adds one. captured:
+   widen-architecture-auditor-to-stale-ideas captured: normalize-the-review-round-digest captured:
+   capture-authoring-system-gaps captured: sharpen-architecture-audit
 3. Run `review-quick` against the change's planning artifacts — for the proposal round, the
    proposal/design/tasks/spec-delta coherence and repo fit; for the implementation round, the tasks and delta spec.
 4. Fix everything it finds; re-run. Repeat until it reports no new observations.
@@ -406,12 +409,19 @@ final edit). captured: decide-against-pre-review
   sibling artifact's contents — a source list, a delta description, a list of the change's own edits — is the same shape
   with a moving subject: it is stale the moment that artifact changes again, so delete the description and keep the
   pointer rather than updating it.
-- **A rule's own boundary wording:** a discriminator that reads plausibly but excludes the very case it was written for
-  must be re-derived from the mechanism that distinguishes the cases — not merely re-worded — and tested against that
-  motivating case before its wording is swept across the artifact set. captured: relax-diagram-span-rule
-- **The change's own claims table:** when the repeated class is its completeness (a stated fact it omits, a source that
-  does not reproduce), adding the omitted row re-triggers — the rows track the facts the artifacts state — so delete the
-  unneeded fact rather than add the row. captured: dont-report-what-a-gate-covers
+- **A rule's own boundary wording — or a claim's supporting reason:** a discriminator, or a reason a decision rests on,
+  that reads plausibly but excludes (or no longer supports) the case it was written for must be re-derived from the
+  mechanism that distinguishes the cases — not merely re-worded — and tested against that motivating case before its
+  wording is swept across the artifact set. A review that falsifies a claim's reason falsifies the conclusion it
+  carries: re-derive the conclusion rather than substituting a truer reason (`sharpen-architecture-audit` swapped the
+  reason behind `No ## Purpose refresh is owed`, left the conclusion, and the conclusion did not reproduce). captured:
+  relax-diagram-span-rule captured: sharpen-architecture-audit
+- **The change's own self-records (the claims table, the task `Done` notes, the dismissals):** a recurring
+  `claim-unreproducible` means they were drafted from what the edits were meant to do, not the diff — re-derive each
+  from the diff once the edits land, and delete a claim whose described edit has no referent. When the repeated class is
+  their completeness (a stated fact they omit, a source that does not reproduce), adding the omitted row re-triggers —
+  the rows track the facts the artifacts state — so delete the unneeded fact rather than add the row. captured:
+  dont-report-what-a-gate-covers captured: sharpen-architecture-audit
 - **A revert after a non-converging loop is a legitimate outcome** — record why in the change dir so the decision is not
   re-litigated. captured: propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured:
   check-load-test-drift captured: check-unique-cron-schedules (#436) captured: derive-retrospective-facts captured:
@@ -593,18 +603,20 @@ captured: bound-the-review-loop captured: make-the-p99-verdict-confirm-first
   workflow) treats the main spec's Purpose as authoritative and leaves it alone; a delta `## Purpose` only seeds a
   capability whose spec does not exist yet and is otherwise ignored. IF the change alters a capability's scope (e.g.
   adding `zstd-jni` to the constrained transitives in `showcase/quality/dependency-security`) THEN record an explicit
-  task (as `address-new-snyk-findings` did in task 3.2) and apply the Purpose edit in the archive commit;
+  task (as `address-new-snyk-findings` did in task 3.2) and apply the Purpose edit in the archive commit — whether a
+  refresh is owed is the "not the trigger" bullet's determination. captured: sharpen-architecture-audit
   `openspec validate` still passes because the Purpose is not validated against the change. A standalone Purpose refresh
   is a legitimate `skip_specs` change of its own — not only a fold-in to the next change that touches the capability —
   and its implementation commit then carries **no** spec edit by design, the only real change being the archive
   commit's: **state the deferral in the report**, since the diff reads as empty of the change's substance (the owner
   asked "why do I see no touched files except ideas.md?").
 - **A capability owning a delta is not the trigger for a Purpose refresh** — read the Purpose and refresh it only where
-  the change falsifies its own text. Requirements moving _out_ of a capability can leave its Purpose untouched when the
-  Purpose never described them: `restructure-spec-corpus-findings` moved the two Helm requirements out of
+  the change falsifies its own text, a **widening** of a class the Purpose names counting as falsifying it even where
+  only the class's granularity is refined. Requirements moving _out_ of a capability can leave its Purpose untouched
+  when the Purpose never described them: `restructure-spec-corpus-findings` moved the two Helm requirements out of
   `merge-governance` and refreshed only `helm-chart`'s Purpose, because `merge-governance`'s — which describes branch
   protection and CI gates — is unchanged by requirements it never described. captured: restructure-spec-corpus-findings
-  (#332)
+  (#332) captured: sharpen-architecture-audit
 
 **Failure handling**
 
@@ -1604,24 +1616,27 @@ Key modules (libraries, not services):
   surface (the service boundaries, the module dependency graph, and the spec corpus's capability decomposition) for
   drift from its recorded decisions, and reports **where clarification of intent is missing** — a deliberate choice or
   absence whose rationale is not recorded — and **a record whose recorded premise appears met** — a deferral's
-  `Revisit when:` condition, or a parked `docs/ideas.md` entry whose work has landed (its finding classes, its advisory
-  section, and the report contract are in the `agent-skills` spec). It sweeps the surfaces a rationale must exist for
-  (dependency `exclude(...)` declarations, the major-version-suppressed, held-back, and web-UI-npm-suppressed
-  coordinates, the suppression annotations and retained deprecated APIs, the deferrals and band-aids recorded in ADRs or
-  `docs/ideas.md`, and a record whose premise is due — a deferred ADR's `Revisit when:` condition, or the work a parked
-  entry describes — held against the repository where it names a checkable fact) and searches the repository for a
-  rationale before reporting each item — an item whose rationale is already recorded is not reported. The
-  **deferred-and-parked-record** item is the inverse — its record exists, so it is reported when that record's premise
-  appears met, a different question from whether the rationale exists. It deliberately does **not** check behavior
-  against the code (the review loop and archive-time sync own that), the corpus's internal structure (`specs-auditor`
-  owns that), or any property an existing gate enforces. Trigger it with the `/audit-architecture` command. The main
-  agent applies the approved findings under the review gate: a finding whose fix is an ADR correction, a new ADR, or an
-  `AGENTS.md`/`README.md` clarification lands as a docs PR, while one whose correction is a code change — or an edit to
-  a subagent/command definition that changes its spec'd behavior (which owes that definition's spec delta, per the
-  multi-artifact-sweep bullet) — becomes its own change, parked as an idea until then; do not force the suggested
-  correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet narrowing the
-  dependency broke `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`). An advisory
-  item needs the user's decision first. The scheduled variant runs unattended in the `audit` workflow.
+  `Revisit when:` condition, or a parked `docs/ideas.md` entry whose work has landed, fully or partly, or whose
+  objective a different mechanism achieves (its finding classes, its advisory section, and the report contract are in
+  the `agent-skills` spec). It sweeps the surfaces a rationale must exist for (dependency `exclude(...)` declarations,
+  the major-version-suppressed, held-back, and web-UI-npm-suppressed coordinates, the suppression annotations and
+  retained deprecated APIs, the deferrals and band-aids recorded in ADRs or `docs/ideas.md`, and a record whose premise
+  is due — a deferred ADR's `Revisit when:` condition, or the work a parked entry describes — held against the
+  repository where it names a checkable fact) and searches the repository for a rationale before reporting each item —
+  an item whose rationale is already recorded is not reported. The **deferred-and-parked-record** item is the inverse —
+  its record exists, so it is reported when that record's premise appears met, a different question from whether the
+  rationale exists. It establishes the authoritative record before asserting a violation (a two-record contradiction, a
+  stale supersession, or a deliberate exception is an advisory, not a finding). It deliberately does **not** check
+  behavior against the code (the review loop and archive-time sync own that), the corpus's internal structure
+  (`specs-auditor` owns that), or any property an existing gate enforces. It classifies each `Revisit when:` condition
+  before reporting it, and an unverifiable condition is no expiry claim. Trigger it with the `/audit-architecture`
+  command. The main agent applies the approved findings under the review gate: a finding whose fix is an ADR correction,
+  a new ADR, or an `AGENTS.md`/`README.md` clarification lands as a docs PR, while one whose correction is a code change
+  — or an edit to a subagent/command definition that changes its spec'd behavior (which owes that definition's spec
+  delta, per the multi-artifact-sweep bullet) — becomes its own change, parked as an idea until then; do not force the
+  suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet
+  narrowing the dependency broke `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`).
+  An advisory item needs the user's decision first. The scheduled variant runs unattended in the `audit` workflow.
 - **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
   (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
   guide, whose content no gate checks — on three axes: accuracy against the repository, design-intent fidelity (the

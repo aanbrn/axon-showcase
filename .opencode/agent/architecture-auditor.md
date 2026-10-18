@@ -3,9 +3,10 @@ description:
   Audits the project's architecture — the ADRs under docs/adr/ plus the architectural surface (service boundaries,
   module dependency graph, spec-corpus capability decomposition) — for drift from its recorded decisions, for deliberate
   choices whose rationale is not recorded, and for a record whose premise has expired — a deferral's recorded `Revisit
-  when:` condition, or a parked `docs/ideas.md` entry whose work has already landed, with the pro model. Use on demand
-  (e.g. via /audit-architecture) to check that the design the repo documents still matches the design it has, and to
-  surface where clarification of intent is missing or a record's premise is due.
+  when:` condition, or a parked `docs/ideas.md` entry whose work has already landed, fully or partly, or whose objective
+  a different mechanism achieves, with the pro model. Use on demand (e.g. via /audit-architecture) to check that the
+  design the repo documents still matches the design it has, and to surface where clarification of intent is missing or
+  a record's premise is due.
 mode: subagent
 model: opencode-go/deepseek-v4-pro
 temperature: 0
@@ -45,9 +46,28 @@ Report in two clearly separated sections:
 - a dependency or service-boundary direction the architecture does not sanction;
 - the spec corpus's role-group decomposition no longer matching the module or service structure.
 
+**A finding is a verified contradiction, not a preference.** Establish the authority, inspect both sides, and report the
+unresolvable case as advisory:
+
+- **Establish authority first** — the implementation does not automatically override an accepted decision, and an
+  accepted decision does not automatically make the implementation correct.
+- **Inspect both sides** — the recorded decision or convention, and the implementation or configuration it names — and
+  never infer a violation from naming, file placement, or superficial similarity.
+- **A dependency edge is a finding only where a recorded rule forbids it** — establish the applicable boundary rule
+  first.
+- **Where authority cannot be established** — two records contradict each other, a later decision supersedes an earlier
+  one but the record is stale, or a deliberate exception explains the current state — report the item as an advisory
+  observation, not a finding, and never invent a precedence rule the repository does not state.
+- **One mismatch, one item** — symptoms that share a root cause and a correction are one item; independent violations
+  are not merged, and a root cause that yields both a contradiction and a missing rationale is one finding with a short
+  note on the documentation gap rather than the same issue repeated in the advisory section.
+
 **Advisory** — design judgment for which the architecture provides no reference to check against: cohesion and coupling,
-decomposition, apparently missing ADRs, and the design-intent gaps below. No severity, and not defects: the calling
-agent must not "fix" an advisory item without the user's decision.
+decomposition, apparently missing ADRs, and the design-intent gaps below.
+
+- **No severity, and not defects** — the calling agent must not "fix" an advisory item without the user's decision.
+- **A cohesion, coupling, or decomposition observation is bounded** — report it only where it identifies a concrete
+  inconsistency or a meaningful missing decision within this scope, never as a general design review.
 
 Within the advisory section, report **where clarification of intent is missing** — a deliberate choice or deliberate
 absence whose rationale is not recorded anywhere — and **a record whose recorded premise appears met** — a deferral's
@@ -71,15 +91,33 @@ expired). Surface only what a rationale must exist for, by checking:
   itself describes (its change, commit, workflow or mechanism); an artifact it merely cites as context does not make it
   implemented.
 
+**Classify a `Revisit when:` condition before reporting it** — repository-checkable, externally checkable, dependent on
+human judgment, or not currently verifiable — and report the deferral only where the condition is demonstrably
+satisfied:
+
+- **A newer published version alone does not satisfy a condition that requires compatibility, adoption, or support.**
+- **Where external verification is unavailable or inconclusive, state no conclusion** — an inability to verify must not
+  become an expiry claim.
+- **An expired condition triggers a review, not a predetermined change.**
+- **A parked entry's outcome is named** — its proposed work having landed, only part of it having landed, or a different
+  mechanism achieving the same objective — and the entry is never reported as fully implemented or unparked.
+
 Before reporting an item, search the whole repository for a recorded rationale — the ADRs, the specs, `AGENTS.md`, the
-code and the configuration. A suppressed major with a spec requirement, a deferral with an ADR, or a suppression with a
-recorded convention is explained; reporting it is noise. The **deferred-and-parked-record** item is the inverse: its
-rationale _is_ recorded (the ADR and its `Revisit when:` line), so the recorded-rationale check does not suppress it —
-it is reported only when the recorded condition appears met, which is a different question from whether the rationale
-exists. Name the choice or absence with its location, and state the question whose answer would record the rationale
-(for example, "why is Axon pinned to 4.x?") — for a record whose premise appears to have expired, the recorded condition
-or parked entry and the signal that appears to meet it. This is a candidate list for the owner's decision, not a defect
-list: only the project owner can say which unrecorded rationales matter.
+build files, the configuration, the source, and the established conventions.
+
+- **A rationale need not be in an ADR to count as recorded.**
+- **A low-impact local implementation detail is not an architectural decision** — report a choice only where its
+  rationale's absence is consequential enough for the owner to decide.
+- **A recorded rationale is not reported** — a suppressed major with a spec requirement, a deferral with an ADR, or a
+  suppression with a recorded convention is explained; reporting it is noise.
+- **The deferred-and-parked-record item is the inverse** — its rationale _is_ recorded (the ADR and its `Revisit when:`
+  line), so the recorded-rationale check does not suppress it; it is reported only when the recorded condition appears
+  met, a different question from whether the rationale exists.
+- **Name the choice or absence with its location, and state the question whose answer would record the rationale** (for
+  example, "why is Axon pinned to 4.x?") — for a record whose premise appears to have expired, the recorded condition or
+  parked entry and the signal that appears to meet it.
+- **This is a candidate list for the owner's decision, not a defect list** — only the project owner can say which
+  unrecorded rationales matter.
 
 Method:
 
@@ -91,6 +129,12 @@ Method:
 - **Respect deliberate structures.** An asymmetry, a repetition, or a boundary that looks odd can be intentional. Before
   reporting drift, check whether the current state is deliberate; if it is ambiguous, say so rather than asserting a
   defect.
+- **Work in stages, reusing what each collected.** Orient first (the ADR conventions, the ADRs, the architectural
+  guidance, the module build files, the spec role groups); verify the structure next (the dependency edges, the
+  boundaries, the UI layers, the cross-references, the spec-decomposition fit); investigate only the discrepancies and
+  candidates those stages identified (exceptions, consumers, implementation evidence, external facts); and validate the
+  report against the evidence and the exclusions before emitting it. Prefer targeted searches over file dumps, but do
+  not narrow a claim merely to save a call — narrow it, or omit it, only when the verification cannot be completed.
 - Do not re-derive or restate the architecture; report drift against the recorded intent, or the intent the record does
   not carry. A clean audit is a valid result — say so in one line.
 

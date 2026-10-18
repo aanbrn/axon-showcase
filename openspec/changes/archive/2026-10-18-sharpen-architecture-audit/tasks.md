@@ -62,9 +62,11 @@
       **Done** — the pass ran; every scan candidate is a row or a listed dismissal.
 - [x] 4.2 Append this unit's review-round rows to `docs/review-rounds.tsv` as each round's report arrives. **Done** —
       each round's row appended as its report arrived.
-- [ ] 4.3 **Owed — for the archive commit**: the `agent-skills` `## Purpose` names the parked-entry outcome ("a parked
+- [x] 4.3 **Applied in the archive commit**: the `agent-skills` `## Purpose` names the parked-entry outcome ("a parked
       `docs/ideas.md` entry whose work has landed"), which this change widens to fully/partly landed or a different
-      mechanism achieving the objective. A delta cannot carry a Purpose, so the edit lands with the archive.
+      mechanism achieving the objective. A delta cannot carry a Purpose, so the edit lands with the archive. **Done** —
+      the Purpose now reads "…whose work has landed, fully or partly, or whose objective a different mechanism
+      achieves".
 
 ## Workflow follow-up
 

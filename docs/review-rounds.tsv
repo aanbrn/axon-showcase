@@ -406,3 +406,6 @@
 2026-10-18	fix-openspec-config-rules	5	missing-task	-	1
 2026-10-18	fix-openspec-config-rules	6	-	-	0
 2026-10-18	fix-openspec-config-rules	7	-	-	0
+2026-10-18	capture-change-name-collision	1	single-sourcing,claim-unreproducible,structured-writing	-	3
+2026-10-18	capture-change-name-collision	2	wording	-	1
+2026-10-18	capture-change-name-collision	3	-	-	0

@@ -37,6 +37,19 @@ dated when it was added (start a new section for a new day rather than appending
   `MODIFIED` delta on that requirement plus the bullet, parked rather than folded into `sharpen-architecture-audit`
   because that change is about the architecture audit, not the review loop's mechanics.
 
+- Add `verifyUniqueChangeNames` to the commit-hygiene `verifyUnique*` family — parked; no change yet. The merge-time
+  capture after `fix-openspec-config-rules` (#624) found its name collides with an already-archived change
+  (`2026-09-14-fix-openspec-config-rules`, #218), so `git log --grep` matches both and a reader looking for "the change
+  that fixed the config rules" finds two. The lesson fails the promotion gate for a prose rule — a duplicate-name scan
+  is trivial to automate, and the evidence is one non-severe occurrence in 334 archived changes — so its home is a check
+  rather than `AGENTS.md`. The check is a `check_unique_change_names` mode in `scripts/commit-hygiene.py`: strip the
+  `YYYY-MM-DD-` prefix from `openspec/changes/archive/*` and fail on a duplicate, registered beside
+  `verifyUniqueCronSchedules` and `verifyUniqueReviewRounds` and wired into `check`. It owes a
+  `showcase/quality/commit-hygiene` delta. Parked rather than built because those siblings guard data integrity while
+  this one guards naming hygiene. The generated `openspec-propose` skill already guards against a collision with
+  **active** changes — "If a change with that name already exists, ask if user wants to continue it or create a new one"
+  — and the archive, being date-prefixed, is invisible to it.
+
 ## 2026-10-17
 
 - Check that every recorded class is in the reviewer's canonical list — parked; no change yet. The 2026-10-15

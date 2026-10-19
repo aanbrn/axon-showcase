@@ -545,3 +545,7 @@
 2026-10-19	apply-2026-10-19-audit-findings	3	claim-unreproducible,claim-missing	claim-unreproducible,claim-missing	2	ses_eaceea27affeCHcibBzhMTUwz6	continued	-
 2026-10-19	apply-2026-10-19-audit-findings	4	claim-unreproducible	claim-unreproducible	1	ses_eaceea27affeCHcibBzhMTUwz6	continued	-
 2026-10-19	apply-2026-10-19-audit-findings	5	-	-	0	ses_eaceea27affeCHcibBzhMTUwz6	continued	-
+2026-10-19	correct-adr-0017-spring-grpc-gate	1	wording,over-claim,formatting	-	2	ses_eacb8c106ffehXZtQF7FyMh4IS	created	-
+2026-10-19	correct-adr-0017-spring-grpc-gate	2	wording,over-claim	wording,over-claim	2	ses_eacb8c106ffehXZtQF7FyMh4IS	continued	-
+2026-10-19	correct-adr-0017-spring-grpc-gate	3	claim-unreproducible	-	1	ses_eacb8c106ffehXZtQF7FyMh4IS	continued	-
+2026-10-19	correct-adr-0017-spring-grpc-gate	4	-	-	0	ses_eacb8c106ffehXZtQF7FyMh4IS	continued	-

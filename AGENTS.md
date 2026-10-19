@@ -453,6 +453,11 @@ final edit). captured: decide-against-pre-review
   sibling artifact's contents — a source list, a delta description, a list of the change's own edits — is the same shape
   with a moving subject: it is stale the moment that artifact changes again, so delete the description and keep the
   pointer rather than updating it.
+- **A class the loop reports round after round whose instances share a confirmed cause:** rewrite the affected section
+  once from its intended content — correct verified errors, remove verified duplication, preserve every valid
+  requirement, exception, warning, and identifier — and verify with the growth-bound bullet's trim sweep. Do not infer
+  the shared cause from the class label: a class whose instances have different causes takes the cause-specific shape
+  instead. captured: add-extraction-procedure
 - **A rule's own boundary wording — or a claim's supporting reason:** a discriminator, or a reason a decision rests on,
   that reads plausibly but excludes (or no longer supports) the case it was written for must be re-derived from the
   mechanism that distinguishes the cases — not merely re-worded — and tested against that motivating case before its
@@ -709,6 +714,36 @@ captured: bound-the-review-loop captured: make-the-p99-verdict-confirm-first
 **Completion criteria** — `openspec validate --all` passes; the delta is at the mirrored path; and, at archive,
 `openspec archive <change> --yes` completes with both the change-dir move and the main-spec sync staged (see the archive
 gotcha).
+
+### Workflow: Extract an `AGENTS.md` section
+
+**Trigger** — an audit's extraction candidate or opportunity is approved, and a dedicated change will move the section
+to its destination.
+
+**Procedure**
+
+1. Verify the retrieval path: the destination carries the section's complete contract, or — for a destination that does
+   not yet exist — the retained pointer can name the trigger and the destination the change will create, using the
+   audit's conditions (`showcase/quality/agent-skills`) and the growth-bound bullet's trim verification.
+2. Check the build for a gate that reads `AGENTS.md` as its input, such as `verifyInstallCommands` and
+   `verifyDocumentedPins`.
+3. Create the destination if it does not exist — a new spec or ADR.
+4. Land the content in the destination before the root text is deleted.
+5. Replace the section with the retained pointer: the destination, the trigger, and every imperative, warning, or
+   identifier the destination does not carry.
+6. Retarget each live cross-reference to the section at its new home.
+7. Re-run the retrieval path from the trigger.
+8. Re-measure the section.
+
+**Decision points**
+
+- IF an existing destination does not carry the section's complete contract, THEN retain the source at root.
+- IF a gate reads the block, THEN retarget the task in the same change or keep the block, since removing a block it
+  scans empties the check rather than moving it.
+- IF a removed term has no surviving home, THEN return it to root or reject the move.
+
+**Completion criteria** — the destination carries the contract, the retained pointer resolves from the trigger, and no
+removed identifier survives only in the deleted prose.
 
 ### Workflow: Ship a change (CI → archive → merge)
 

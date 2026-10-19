@@ -38,6 +38,23 @@ dated when it was added (start a new section for a new day rather than appending
   delta and a control, and its set is derived from the workflows' own `./gradlew` invocations, so a newly added
   workflow-invoked task joins it by construction.
 
+- Carry a closed reference's disposition in the `upstreamReferences` report — parked; no change yet.
+  `UpstreamReferencesTask` renders a row as `open` / `closed YYYY-MM-DD` / `unresolved`, so a closure's _kind_ is
+  invisible: `warpdotdev/warp#6320` closed as a duplicate of the still-open `#5550`, yet its row reads exactly like a
+  fix closure. The API already returns `state_reason`, so the detection costs one field in the task's `--jq` and one in
+  the rendered row (`closed (duplicate) 2026-03-27`) — surfacing the disposition for the reader rather than leaving it
+  to be re-derived per reference. Parked rather than built: it needs a `MODIFIED` delta on the `merge-governance`
+  requirement that owns the report's state vocabulary, and the _action_ half (what a duplicate closure means for a note)
+  is a rule, not a report — the two are not duplicates of each other.
+
+- Draft the pull-request body before the pre-write derivation pass — parked; no change yet. A unit with no change dir
+  carries its claims table and capture record "on the pull-request checklist line", but that line exists only once the
+  body is drafted — so the pass is stated before its record has a home, and the quick review reports the missing record
+  (`claim-missing`) before the checklist exists to hold it. State in the requirement that owns the destination (and in
+  the `/seed-claims` step the pass runs) that the body is drafted from the template first. Parked rather than built: the
+  destination is stated in the requirement, the command, and the pull-request template, so correcting only `AGENTS.md`
+  would leave the two sites the pass actually executes designating a home created later.
+
 - Enforce the command lifecycle preflight with a check rather than prose in seventeen files — parked; no change yet.
   `harden-command-definitions` added the requirement that a project-authored command starting a mutating unit states the
   lifecycle its unit owes, and wrote it into ten command definitions, but nothing enforces it: the drift it repairs

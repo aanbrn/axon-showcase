@@ -23,11 +23,18 @@
 
 ## 3. Validation
 
-- [ ] 3.1 Restart OpenCode (or start a new session) before smoke-testing the **edited** `lesson-capture` definition,
+- [x] 3.1 Restart OpenCode (or start a new session) before smoke-testing the **edited** `lesson-capture` definition,
       since an edited subagent is served its pre-change body in-session, then smoke-run it against a seeded unit whose
       lesson **restates an obligation the target bullet already carries** (it must report it `already covered`, not as
       an addition) and one whose lesson **changes the decision** (it must report the before/after pair and propose the
-      replacement). This gates the archive.
+      replacement). This gates the archive. **Done** — run after an OpenCode restart (session `ses_eacfc8167ffe3BXgnI7VxvGCos`), the registered body
+      confirmed first (`opencode debug agents` carries all four new tokens), against a seeded unit. The run applied the
+      decision-difference test: **Lesson A** (a restatement) reported `already covered` with the before/after pair, noting
+      the pre-commit guard enforces it mechanically; **Lesson B** was rejected on the gate's **True** criterion after the run
+      checked the seed's premise against the repository — `package.json`'s e2e script installs chromium itself, so the
+      proposed lesson asserted a cause the task cannot produce. The re-seed replaced a first B whose premise the previous
+      unit's capture had already covered. Branch exercised: `already covered` and a gate rejection; the **apply** branch
+      was not, because both seeds resolved to a no-addition disposition.
 - [x] 3.2 Re-run the historical validation cases against the applied instruction and confirm each disposition holds.
 - [x] 3.3 `openspec validate --all` and the touched files' gates.
 

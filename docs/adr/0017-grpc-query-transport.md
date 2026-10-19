@@ -4,9 +4,12 @@ Date: 2026-10-06
 
 Status: Accepted
 
-Revisit when: `org.springframework.grpc` publishes a release supporting a Spring Boot line this project runs (the
-project tracks Boot 3.x; ADR-0004 defers Boot 4, which its 1.0 line targets) — the signal is a first-party Spring gRPC
-release targeting Boot 3.x, at which point the community starter this decision depends on can be replaced.
+Revisit when: `org.springframework.grpc` publishes a **maintained** release supporting a Spring Boot line this project
+runs (an external coordinate; the project tracks Boot 3.x, and ADR-0004 defers Boot 4, which its 1.0 line targets) — the
+signal is a maintained first-party Spring gRPC line targeting Boot 3.x, at which point the community starter this
+decision depends on can be replaced. Its `0.x` line targets Boot 3 but is end-of-life — `0.12.0` (2025-10-24) is its
+last Boot-3 release and no updates are planned — so it does not meet the condition; the owner resolved the reading
+(maintained, not any) on 2026-10-19.
 
 ## Context
 
@@ -45,8 +48,9 @@ Move the generic query dispatch onto **gRPC**, with a single method carrying any
 
 _Alternatives considered:_ **Typed RPCs** (one method per query) — rejected: that is a client-server API, not a bus, and
 abandons the generic name-routed dispatch the transport exists to provide. **Spring gRPC** (`org.springframework.grpc`)
-— rejected: its 1.0 line targets Spring Boot 4, which ADR-0004 defers. **Axon Server** — rejected for the same reason as
-ADR-0009: its commercial licensing is a cost the project deliberately avoids.
+— rejected: its 1.0 line targets Spring Boot 4, which ADR-0004 defers, and its Boot-3 `0.x` line is end-of-life (see
+`Revisit when:`). **Axon Server** — rejected for the same reason as ADR-0009: its commercial licensing is a cost the
+project deliberately avoids.
 
 ## Consequences
 

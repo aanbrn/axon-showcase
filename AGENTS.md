@@ -1412,11 +1412,12 @@ Key modules (libraries, not services):
   not a permanent gap to write down (ADR-0009 declared its no-Axon-Server rationale "not recorded anywhere in the
   repository" until asking the owner recovered it: avoiding Axon Server's commercial licensing). captured:
   apply-2026-09-28-audit-docs-findings captured: remove-unrecorded-redgate-repository A deferral's `Revisit when:` gate
-  names each clause's artifact at that artifact's **current** coordinate and labels the clause's type (external
-  coordinate vs internal trigger), because upstream renames a coordinate (`axon-bom` → `axon-framework-bom`) and a gate
-  naming the old name then resolves to a frozen artifact that never fires; and a compound gate is a conjunction, met
-  only when every clause is, so a check names the clauses still open rather than reading one axis as met. captured:
-  correct-adr-0011-axon5-gate
+  names each clause's artifact at that artifact's **current** coordinate and labels its type (external coordinate vs
+  internal trigger); states the qualifier that narrows the condition in the gate's own line (a _maintained_ release, not
+  any); and a compound gate is a conjunction, met only when every clause is, so a check names the clauses still open. A
+  check reads the gate literally: a renamed coordinate (`axon-bom` → `axon-framework-bom`) resolves to a frozen artifact
+  that never fires, and an implicit qualifier reads as met by a release the owner's intent excludes. captured:
+  correct-adr-0011-axon5-gate captured: correct-adr-0017-spring-grpc-gate
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md`, `README.md`, and `docs/adr/` need to be
   refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
   a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on

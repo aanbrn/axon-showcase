@@ -513,3 +513,17 @@
 2026-10-19	capture-merge-time-verification-tick	3	-	-	0	ses_eae3067e9ffewoi1YPydISSz2m	continued	-
 2026-10-19	capture-merge-time-verification-tick	4	claim-unreproducible,single-sourcing,claim-missing	claim-missing	3	ses_eae3067e9ffewoi1YPydISSz2m	continued	-
 2026-10-19	capture-merge-time-verification-tick	5	-	-	0	ses_eae3067e9ffewoi1YPydISSz2m	continued	-
+2026-10-19	make-reviews-predictable-and-recoverable	1	premise,claim-unreproducible,incomplete-enumeration,contradiction,formatting	-	3	ses_eae086e92ffek8nGoNFE460IGK	created	-
+2026-10-19	make-reviews-predictable-and-recoverable	2	premise,formatting,incomplete-enumeration,claim-unreproducible,missing-task	premise,formatting,incomplete-enumeration,claim-unreproducible	4	ses_eae086e92ffek8nGoNFE460IGK	continued	-
+2026-10-19	make-reviews-predictable-and-recoverable	3	premise,formatting,incomplete-enumeration,claim-unreproducible,missing-task	premise,formatting,incomplete-enumeration,claim-unreproducible,missing-task	5	ses_eae086e92ffek8nGoNFE460IGK	continued	-
+2026-10-19	make-reviews-predictable-and-recoverable	4	contradiction,claim-unreproducible,incomplete-enumeration,wording	contradiction,claim-unreproducible,incomplete-enumeration	2	ses_eade1f82bffehGX0PzQRwV4TwG	replaced	definition-changed
+2026-10-19	make-reviews-predictable-and-recoverable	5	wording,incomplete-enumeration	wording,incomplete-enumeration	1	ses_eade1f82bffehGX0PzQRwV4TwG	continued	-
+2026-10-19	make-reviews-predictable-and-recoverable	6	incomplete-enumeration	incomplete-enumeration	1	ses_eade1f82bffehGX0PzQRwV4TwG	continued	-
+2026-10-19	make-reviews-predictable-and-recoverable	7	incomplete-enumeration	incomplete-enumeration	1	ses_eade1f82bffehGX0PzQRwV4TwG	continued	-
+2026-10-19	make-reviews-predictable-and-recoverable	8	missing-task,claim-unreproducible,formatting	missing-task,claim-unreproducible,formatting	3	ses_eade1f82bffehGX0PzQRwV4TwG	continued	-
+2026-10-19	make-reviews-predictable-and-recoverable	9	claim-unreproducible	claim-unreproducible	1	ses_eade1f82bffehGX0PzQRwV4TwG	continued	-
+2026-10-19	make-reviews-predictable-and-recoverable	10	missing-task,claim-unreproducible,formatting	missing-task,claim-unreproducible,formatting	1	ses_eade1f82bffehGX0PzQRwV4TwG	continued	-
+2026-10-19	make-reviews-predictable-and-recoverable	11	missing-task	missing-task	1	ses_eade1f82bffehGX0PzQRwV4TwG	continued	-
+2026-10-19	make-reviews-predictable-and-recoverable	12	dropped-content	-	1	ses_eade1f82bffehGX0PzQRwV4TwG	continued	-
+2026-10-19	make-reviews-predictable-and-recoverable	13	formatting	formatting	1	ses_eade1f82bffehGX0PzQRwV4TwG	continued	-
+2026-10-19	make-reviews-predictable-and-recoverable	14	-	-	0	ses_eade1f82bffehGX0PzQRwV4TwG	continued	-

@@ -36,7 +36,8 @@ context: |
       (bootBuildImage) and runs after that module's own integrationTest
     - org.gradle.configuration-cache=true is enabled; a task action must not reference anything belonging to the Gradle
       script (project, gradle, rootProject, providers, a script-level val/fun) — compute what it needs into a val local
-      to the configuration lambda; a task a workflow invokes but `check` does not is never executed by a local sweep — run
+      to the configuration lambda; a task a workflow invokes but `check` does not is never executed by a local sweep —
+      run
       it with the cache enabled and require a stored entry; the gradle-helm-plugin is configuration-cache compatible at
       its pinned 3.2.0 except
       for its chart-dependency task, whose `onlyIf` resolves false when the cache entry is stored before the chart
@@ -87,8 +88,9 @@ rules:
       term or mechanism name with no referent in the repository is deleted rather than defined
     - Carry the claims table — each fact the change states about its evidence (the prior artifacts it rests on) with its
       source or the command that derives it; a row about an artifact the change itself edits anchors to that artifact's
-      pre-change state (`git show HEAD:<path>`), since it stops reproducing once the change lands; a source that is a
-      command's output states the reason by class, never a list of its lines; and the table is re-derived after the
+      pre-change state (`git show HEAD:<path>`), since it stops reproducing once the change lands; a source that
+      is a command's output states the reason by class, never a list of its lines; and each
+      dismissal states its reason by kind, never as an enumerating clause; and the table is re-derived after the
       unit's last append to its own record, which adds a scan candidate; a self-record fact about what the change did (a
       stated delta, a `Done` note, a described edit) is derived from the source it names once the edits land — the diff
       for a stated delta or a described edit, the ledger or the command's own output for a process record — and a claim

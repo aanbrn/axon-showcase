@@ -85,8 +85,11 @@
 
 - [x] 7.1 The owner's manual review pass was requested after the loop was clean and the capture ran. **Done** —
       requested after the loop was clean and the capture ran; the owner approved and resolved the routing question.
-- [ ] 7.2 The change was archived with `openspec archive apply-2026-10-19-audit-findings --yes`, the change-dir move and
-      the `openspec/specs` sync staged together, and the archive commit ridden on this unit's PR.
+- [x] 7.2 The change was archived with `openspec archive apply-2026-10-19-audit-findings --yes`, the change-dir move and
+      the `openspec/specs` sync staged together, and the archive commit ridden on this unit's PR. **Done** — archived as
+      `2026-10-19-apply-2026-10-19-audit-findings` in this commit, the change-dir move and the (empty) `openspec/specs`
+      sync staged together. `skip_specs: true` held: no capability spec names the corrected identifiers (claims row 8),
+      so the archive wrote no delta into the main spec.
 
 ## Workflow follow-up
 

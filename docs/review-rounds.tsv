@@ -549,3 +549,9 @@
 2026-10-19	correct-adr-0017-spring-grpc-gate	2	wording,over-claim	wording,over-claim	2	ses_eacb8c106ffehXZtQF7FyMh4IS	continued	-
 2026-10-19	correct-adr-0017-spring-grpc-gate	3	claim-unreproducible	-	1	ses_eacb8c106ffehXZtQF7FyMh4IS	continued	-
 2026-10-19	correct-adr-0017-spring-grpc-gate	4	-	-	0	ses_eacb8c106ffehXZtQF7FyMh4IS	continued	-
+2026-10-19	extract-load-test-commands	1	contradiction,over-claim,claim-missing,dropped-content,claim-unreproducible,incomplete-enumeration	-	6	ses_eac844c92ffeKdWC3o7QPzkA7Z	created	-
+2026-10-19	extract-load-test-commands	2	claim-unreproducible,over-claim,contradiction	claim-unreproducible,over-claim,contradiction	5	ses_eac844c92ffeKdWC3o7QPzkA7Z	continued	-
+2026-10-19	extract-load-test-commands	3	over-claim,claim-unreproducible,missing-task,formatting	over-claim,claim-unreproducible	3	ses_eac844c92ffeKdWC3o7QPzkA7Z	continued	-
+2026-10-19	extract-load-test-commands	4	over-claim	over-claim	1	ses_eac844c92ffeKdWC3o7QPzkA7Z	continued	-
+2026-10-19	extract-load-test-commands	5	over-claim	over-claim	1	ses_eac844c92ffeKdWC3o7QPzkA7Z	continued	-
+2026-10-19	extract-load-test-commands	6	-	-	0	ses_eac844c92ffeKdWC3o7QPzkA7Z	continued	-

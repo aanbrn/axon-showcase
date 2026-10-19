@@ -25,14 +25,23 @@ ASCII; a Markdown host that renders fenced `mermaid` blocks (e.g. GitHub) gets M
   UTF-8. Measure visual columns with a decoded string (`len(line[:idx]) + 1` in Python), never `awk`/byte `length()`.
 - **Align box edges**: every `│` in a bracket's body must sit on the same column as the `┌`/`┐` corners above and the
   `└`/`┘` below.
+- **Align comments to one column**: place each `#` comment at the same column, set by the longest entry — in the README
+  project tree that column is 42, set by `showcase-resilience4j-extension/`.
 - **Center annotations under their nodes**: place each label so its midpoint aligns with its node's midpoint, unless
   that would cross a box edge (then keep it inside the box).
 - **Preserve deliberate asymmetry**: two brackets with different right edges are often intentional (e.g. one span ends
   at Archive, another at Merge). Do not "normalize" different-width brackets to the same width — that flattens the
-  meaning. Treat an existing asymmetry as meaningful until proven otherwise.
+  meaning. Treat an existing asymmetry as meaningful until proven otherwise — a cleanup pass that aligned the body pipes
+  to the full width flattened the two spans' distinction and had to be reverted.
 - **Derive a fallback from its Mermaid**: when the ASCII is a plain-text fallback for a Mermaid diagram, enumerate that
   Mermaid's node, edge, and label list and carry every edge — direction and label — before drawing, rather than
-  hand-authoring from the picture; a hand-authored fallback silently drops labels nothing gates.
+  hand-authoring from the picture; a hand-authored fallback silently drops labels nothing gates. Re-check every label
+  the fallback and the prose citing it carry after a rename — two review rounds found labels the Mermaid carried
+  (`approve`/`CI green`, `search`, the event store) and an edge whose arrowhead pointed back into its source.
+- **Treat the diagram you are converting as a starting point, not the contract**: re-derive its content from the code or
+  config it depicts. The Mermaid lifecycle conversion scoped a removal annotation to one edge
+  (`SCHEDULED -.->|"REMOVED (any time)"| REMOVED`) although the ASCII bracket it replaced spanned every state and
+  `ShowcaseAggregate` accepts removal from any state (a started showcase is finished before removal).
 - **Verify before returning**: re-measure every line's left/right box characters and the annotation-vs-node alignment,
   and report the alignment check alongside the diagram.
 
@@ -47,11 +56,14 @@ ASCII; a Markdown host that renders fenced `mermaid` blocks (e.g. GitHub) gets M
   inline as edge labels, never faked with a transition or a **nested** subgraph.
 - **Keep the content clear of the host renderer's controls.** GitHub renders Mermaid in a `viewscreen` iframe that caps
   the SVG at its natural width (a wider one scales down to the fluid column) and centers it, with a control toolbar
-  overlaid on the right edge; `diagramPadding` reserves only symmetric margins, so keep the diagram's natural width
-  under the column (a vertical `TB` layout for a wide pipeline, or a compact multi-row grid for a wide chain) rather
-  than padding it. The repository's pitfalls are recorded in `AGENTS.md` — the "**A diagram's geometry and content
-  encode semantics…**" bullet for the span and asymmetry rules, and the "**A `mermaid` fence is un-gated by Spotless…**"
-  bullet for the rendering and host-toolbar mechanics — read them before choosing an approach.
+  overlaid on the right edge (about 100 px wide; `mermaid-js/mermaid#7117`, closed, no config fix). `diagramPadding`
+  reserves only symmetric (centered) margins whose pixel width shrinks with the fluid column, so the reserve differs
+  between the wider blob view and the narrower home/tree view and cannot reliably keep the rightmost node clear — keep
+  the diagram's natural width under the column (a vertical `TB` layout for a wide pipeline, or a compact multi-row grid
+  for a wide chain) rather than padding it. The failure modes are recorded here rather than in `AGENTS.md`, which
+  carries only the caller's rules: a wide diagram's rightmost node hides under the toolbar, and a block diagram's bars
+  left the terminal node under it. captured: mermaid-event-flow-draft captured: rework-readme-lifecycle-diagram
+  captured: rework-readme-diagrams-for-github-mermaid
 - **Verify before returning, and produce the artifact the visual review inspects**: render the source with `mermaid-cli`
   in the two forms its two consumers need — an image at the diagram's natural size for the review
   (`npx @mermaid-js/mermaid-cli@11 -i <file>.mmd -o <file>.png`), and an SVG beside it for a measurement

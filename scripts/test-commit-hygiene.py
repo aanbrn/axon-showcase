@@ -252,6 +252,33 @@ class ForceStagedArtifactTests(unittest.TestCase):
         self.assertEqual(["café.pyc"], commit_hygiene.find_force_staged_artifacts(repo))
 
 
+class MarkerFileScopeTests(unittest.TestCase):
+    def test_the_project_guidance_files_are_scanned_with_agents_md(self):
+        repo = make_repo(self)
+        skill = repo / ".opencode/skills/check-and-test-authoring/SKILL.md"
+        skill.parent.mkdir(parents=True)
+        skill.write_text("- **Rule.** Some text. captured: unit-a\n", encoding="utf-8")
+        (repo / "AGENTS.md").write_text("- **Rule.** Some text. captured: unit-a\n", encoding="utf-8")
+
+        self.assertEqual(
+            ["AGENTS.md", ".opencode/skills/check-and-test-authoring/SKILL.md"],
+            commit_hygiene.marker_paths(repo),
+        )
+
+    def test_a_misplaced_marker_in_a_skill_file_fails_and_names_the_file(self):
+        repo = make_repo(self)
+        skill = repo / ".opencode/skills/check-and-test-authoring/SKILL.md"
+        skill.parent.mkdir(parents=True)
+        skill.write_text("- **Rule.** Some text.\n- Plain text. captured: unit-a\n", encoding="utf-8")
+        (repo / "AGENTS.md").write_text("- **Rule.** Some text. captured: unit-a\n", encoding="utf-8")
+
+        with contextlib.redirect_stderr(io.StringIO()) as stderr:
+            failures = commit_hygiene.check_markers(repo)
+
+        self.assertEqual(1, failures)
+        self.assertIn(".opencode/skills/check-and-test-authoring/SKILL.md:2", stderr.getvalue())
+
+
 class MisplacedMarkerTests(unittest.TestCase):
     def test_a_marker_on_a_bold_lead_bullet_passes(self):
         text = "- **Rule.** Some text. captured: some-change\n"

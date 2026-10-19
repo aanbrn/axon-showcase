@@ -3,9 +3,10 @@
 
 The `--staged` mode is the pre-commit guard. It refuses a commit whose staged set the project's formatter would
 rewrite, that force-stages a generated artifact, that stages a path and then edits it again (leaving the index stale),
-that carries a merge conflict marker, that misplaces a `captured:` marker in `AGENTS.md`, or that stages an
-`openspec/changes/archive/**` change dir while leaving its `openspec/specs/**` sync unstaged. The `--markers` mode
-checks marker placement in the working-tree `AGENTS.md`; the `--tracked-ignored`, `--conflict-markers`, and
+that carries a merge conflict marker, that misplaces a `captured:` marker in the project's guidance files, or that
+stages an `openspec/changes/archive/**` change dir while leaving its `openspec/specs/**` sync unstaged. The
+`--markers` mode checks marker placement in the working-tree guidance files; the `--tracked-ignored`,
+`--conflict-markers`, and
 `--executable-bits` modes each verify the tracked set for the build; `--unique-crons` verifies the workflow
 `cron` schedules do not collide; `--unique-rounds` verifies the review-round ledger carries one row per unit and
 round; `--session-continuity` verifies the ledger's reviewer-session fields record each round's session and its
@@ -21,6 +22,7 @@ from typing import Optional, Sequence
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 AGENTS = "AGENTS.md"
+MARKER_GLOBS = (".opencode/agent/*.md", ".opencode/skills/*/SKILL.md")
 FORMATTER_OWNED = (".java", ".kt", ".kts", ".md", ".json")
 DEFAULT_FORMATTER = ("./gradlew", "spotlessCheck")
 MARKER = "captured:"
@@ -271,6 +273,18 @@ def find_cron_collisions(repo: Path) -> list[tuple[str, str, str, str]]:
     return collisions
 
 
+def marker_paths(repo: Path) -> list[str]:
+    """The guidance files whose `captured:` markers must lie inside a rule block, relative to the repository."""
+    paths = [AGENTS]
+    for pattern in MARKER_GLOBS:
+        paths.extend(str(path.relative_to(repo)) for path in sorted(repo.glob(pattern)))
+    return [
+        path
+        for path in paths
+        if (repo / path).is_file() and not path.startswith(VENDORED_SKILL_PREFIXES)
+    ]
+
+
 def find_misplaced_markers(text: str) -> list[tuple[int, str]]:
     lines = text.split("\n")
     leads = [i for i, line in enumerate(lines) if LEAD_RE.match(line)]
@@ -327,12 +341,13 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
         failures += 1
         print(f"A merge conflict marker is staged: {entry}", file=sys.stderr)
 
-    if AGENTS in paths:
-        text = staged_file_text(repo, AGENTS)
-        if text is not None:
-            for line, content in find_misplaced_markers(text):
-                failures += 1
-                print(f"Misplaced captured: marker in {AGENTS}:{line}: {content}", file=sys.stderr)
+    for marker_file in marker_paths(repo):
+        if marker_file in paths:
+            text = staged_file_text(repo, marker_file)
+            if text is not None:
+                for line, content in find_misplaced_markers(text):
+                    failures += 1
+                    print(f"Misplaced captured: marker in {marker_file}:{line}: {content}", file=sys.stderr)
 
     for change_dir, spec_paths in find_unpaired_archive_sync(repo):
         failures += 1
@@ -348,14 +363,16 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
 
 
 def check_markers(repo: Path) -> int:
-    agents = repo / AGENTS
-    if not agents.exists():
-        print(f"error: {agents} not found", file=sys.stderr)
+    paths = marker_paths(repo)
+    if AGENTS not in paths:
+        print(f"error: {repo / AGENTS} not found", file=sys.stderr)
         return 1
-    offenders = find_misplaced_markers(agents.read_text(encoding="utf-8"))
-    for line, content in offenders:
-        print(f"Misplaced captured: marker in {AGENTS}:{line}: {content}", file=sys.stderr)
-    return len(offenders)
+    failures = 0
+    for path in paths:
+        for line, content in find_misplaced_markers((repo / path).read_text(encoding="utf-8")):
+            failures += 1
+            print(f"Misplaced captured: marker in {path}:{line}: {content}", file=sys.stderr)
+    return failures
 
 
 def check_tracked_ignored(repo: Path) -> int:
@@ -568,7 +585,7 @@ def main(argv: Sequence[str] = ()) -> int:
     )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--staged", action="store_true", help="check the staged set (the pre-commit guard)")
-    mode.add_argument("--markers", action="store_true", help="check captured: marker placement in AGENTS.md")
+    mode.add_argument("--markers", action="store_true", help="check captured: marker placement in the guidance files")
     mode.add_argument(
         "--tracked-ignored", action="store_true", help="check the tracked set excludes every ignored path"
     )

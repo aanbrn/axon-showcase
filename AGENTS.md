@@ -494,10 +494,11 @@ ask for the manual review pass; and at a merge, where the detection below always
 
 1. Decide whether the skip condition below holds — it is the only case that may go without a run — and skip the capture
    when it does, recording the reason with the capture record (step 3).
-2. Run the `lesson-capture` subagent with the diff, the review findings, the change dir when one exists, and a short
-   note on what went wrong or was learned. It proposes AGENTS.md additions — gotchas and conventions worth recording —
-   the rules the unit makes obsolete or redundant as retirement or replacement candidates, and any authoring-system
-   recommendation, whose fix belongs in a mechanism producing artifacts rather than in this file.
+2. Run the `lesson-capture` subagent with the diff, the review findings and round rows, the change dir when one exists,
+   the existing guidance a candidate would extend, and a short note on what went wrong or was learned. It proposes
+   AGENTS.md additions — gotchas and conventions worth recording — the rules the unit makes obsolete or redundant as
+   retirement or replacement candidates, and any authoring-system recommendation, whose fix belongs in a mechanism
+   producing artifacts rather than in this file.
 3. Apply the proposals the main agent judges durable, and record the outcome on the capture record — the applied net
    `AGENTS.md` delta, or the skip and its reason. An implementation capture is caused by the unit, so it rides the
    unit's branch and ships in its PR.

@@ -358,6 +358,8 @@ capture-reverted-sweep-lessons (#283)
      `showcase/quality/agent-skills`'s and `docs/review-rounds.tsv`'s, not restated here.
    - **Run** — `review-quick` against the change's planning artifacts: for the proposal round, the
      proposal/design/tasks/spec-delta coherence and repo fit; for the implementation round, the tasks and delta spec.
+     For a capture, supply the existing rules each proposal names (or its statement that none covers it), the round rows
+     and the change record, and the `lesson-capture` definition where its gate is checked.
    - Append each round's row with the session fields `docs/review-rounds.tsv` declares — the identifier, the transition,
      and a replacement's reason — supplying the identifier the invocation returned, never an invented one; an omission
      fails `verifyReviewSessionContinuity`. captured: track-review-session-continuity

@@ -15,6 +15,15 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-19
 
+- Seed a smoke-run's suppression control with a distinct action, not a verbatim existing rule — parked; no change yet.
+  `sharpen-capture-review`'s first suppression seed was the existing conditioned failure-handling bullet copied
+  verbatim, which the reloaded screen correctly flagged as a restatement (`single-sourcing`) rather than leaving
+  unflagged; the valid seed (the change's own new `AGENTS.md` clause) was then left unflagged. The recovery is already
+  prescribed — the subagent/smoke-run gotcha says to re-seed and record which branch the run exercised, which the unit
+  did — and the occurrence is single and non-severe, so it is below the capture gate for `AGENTS.md`. Parked as a
+  convention candidate: if a second suppression seed repeats the mistake, add one clause to that gotcha ("seed a
+  distinct action; a verbatim existing rule is a must-report control").
+
 - Carry the retrieval-path result in the audit ledger's "safe to load on demand" class — parked; no change yet. The
   ledger contract (`showcase/quality/agent-skills`) requires each entry to state its trigger and retained pointer, but
   not whether a destination can carry the rule, so the 2026-10-19 report lists five such rules while its own candidates

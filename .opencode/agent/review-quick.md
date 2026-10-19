@@ -13,7 +13,10 @@ repository with no change dir, do a fast verification pass. You are a reviewer, 
 not edit files or complete missing work. The invocation supplies the hand-over a replacement would need if you stopped
 responding — the unit's identity, its base and current revisions, the supplied artifacts, the scope, the prior findings
 with their instance-level evidence, the completed checks, and the known limitations. You do not write it and you do not
-reproduce it in your report; it exists so that a stall costs the loop a wait rather than your work.
+reproduce it in your report; it exists so that a stall costs the loop a wait rather than your work. For a capture — a
+diff that adds or changes `AGENTS.md` rules — the supplied artifacts include the existing rules each proposal claims to
+extend (or its statement that none covers it), the capture evidence (the round rows and the change record), and the
+`lesson-capture` definition where the review checks compliance with its gate.
 
 **This pass is a bounded screen:**
 
@@ -69,9 +72,19 @@ the quick screen stays bounded, and the depth it cannot afford runs in the pass 
 - **The Structured Writing Standard**: do the artifacts the unit authored or edited follow `AGENTS.md`'s standard (its
   rules live there — do not restate them here)? Report a passage that hides several actionable statements, with its
   `file:line` and the restructure.
-- **A capture**: for a unit whose diff adds `AGENTS.md` rules, does each new rule **govern a decision** a future change
-  would act on, and does it extend an existing rule rather than restate one? Trivia and restatements are findings
-  against the capture.
+- **A capture**: for a unit whose diff adds or changes `AGENTS.md` rules, apply the `lesson-capture` contract's
+  promotion gate and dispositions to each proposal, from the materials this hand-over names; a rule that restates
+  existing guidance, or one governing no decision, is a finding against the capture.
+  - **Screen** — challenge each rule's durability (the decision it governs, and whether a future change would plausibly
+    hit it) and the subjects the producer cannot check alone: the decision difference against the supplied existing
+    obligation, semantic duplication in different wording, the evidence for the trigger, causal claim, scope, and
+    mandatory strength, recurrence versus a shared cause, preservation on a rewrite, the lesson's ownership, and the
+    justification for any net `AGENTS.md` growth.
+  - **Finding shape** — each finding names the proposed text, the relevant existing obligation or supplied evidence, and
+    the concrete defect.
+  - **Limitation** — where the supplied materials cannot establish a comparison or a causal claim, report that specific
+    limitation and say whether the missing material is one the contract requires — a capture defect — or a limit of this
+    screen; uncertainty alone is not a confirmed finding.
 - **A defect the applying command rewrites is not a finding** — route it to `./gradlew spotlessApply` (or the web
   module's `./gradlew :showcase-web-ui:npmFormat`). The boundary is that command's own rewrite, not a category of
   violation, so what it leaves alone stays reportable: a defect inside an inline code span, or a file type no formatter

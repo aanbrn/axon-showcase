@@ -430,6 +430,17 @@ owns, not this one.
 - **AND** applying a capture should leave `AGENTS.md` no larger than it was, preferring a merge or a replacement over an
   addition, and any net growth is a justified decision stated with the proposal — not a side effect of accumulating
   prose
+- **AND** each proposed addition demonstrates the **decision difference** it makes — the action a future agent takes
+  under the existing guidance, and the action the proposed text requires or prohibits under an explicit condition
+- **AND** that difference carries a repository-backed example of why it matters
+- **AND** an addition whose action the existing guidance already determines is reported as **already covered** and does
+  not expand `AGENTS.md`
+- **AND** an additional incident, example, citation, or provenance marker alone is not a decision difference
+- **AND** a partial restatement takes the **split** disposition — the new clause is kept, the restatement dropped
+- **AND** it prefers an exact replacement of the existing rule over appending qualifications
+- **AND** a replacement preserves the established scope, exceptions, and normative strength
+- **AND** the incident evidence a rule rests on stays recoverable behind its `captured:` marker rather than in the
+  rule's text
 - **AND** the capture's verdict states the proposed net `AGENTS.md` delta in lines (additions minus retirements) and its
   authoring-system recommendation count, and the applying agent records the applied delta, so net growth is stated when
   it is decided, alongside the periodic audit's accreted-rule count

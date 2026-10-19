@@ -161,6 +161,10 @@ owns, not this one.
 - **AND** the caller supplies the screen's inputs as a list it can state and a reader can check — the artifacts to
   screen and the checks to run over them — and the pass's report names that list, so which surfaces were screened is
   verifiable from the report rather than inferred from its prose
+- **AND** for a capture, the supplied list includes the existing rules each proposal claims to extend (or its statement
+  that none covers it), the capture evidence (the round rows and the change record), and the `lesson-capture` definition
+  where compliance with its gate is checked, so the comparison rests on materials the caller supplied rather than a
+  search the screen would have to run
 - **AND** the risk focuses are the caller's, stated with the invocation, and they widen which of the supplied surfaces
   the screen looks at closely rather than adding surfaces to screen — so a focus is a direction of attention within the
   bounded set, not a second scope
@@ -186,9 +190,18 @@ owns, not this one.
   bounded screen is not read as a thorough pass
 - **AND** the governance the pass does not replace stays in force — the pre-write derivation pass, the mandatory
   quick-review gate, the tests, the manual review, and every other check
-- **AND** for a unit whose diff adds `AGENTS.md` rules (a capture), it also challenges each new rule's durability — the
-  decision the rule governs, and whether a future change would plausibly hit it — so trivia and restatements are caught
+- **AND** for a unit whose diff adds or changes `AGENTS.md` rules (a capture), it also challenges each new rule's
+  durability — the decision the rule governs, and whether a future change would plausibly hit it — so trivia is caught
   at review time rather than by a later consolidation audit
+- **AND** it applies the capture scenario's promotion gate and dispositions to each proposal, from the supplied list
+  above, so the reviewer compares the proposal with the existing obligation and its evidence rather than the gate's
+  criteria being restated a second time, and a proposal the gate disposes of as `already covered`, or one governing no
+  decision, is a finding against the capture
+- **AND** each capture finding names the proposed text, the relevant existing obligation or supplied evidence, and the
+  concrete defect
+- **AND** where the supplied materials cannot establish a comparison or a causal claim, the review reports that specific
+  limitation and whether the missing material is one the capture contract requires — a capture defect — or a limit of
+  the bounded screen, and an uncertainty alone is not reported as a confirmed finding
 - **AND** each finding is classified from the canonical list the reviewer's contract carries — each class naming what
   must change, and the calling agent extending the list in the same change when a finding fits none — and when the
   caller's request names a prior round's findings, a finding whose class a prior round already raised is reported as a

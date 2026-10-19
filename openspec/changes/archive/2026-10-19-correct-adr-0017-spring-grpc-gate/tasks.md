@@ -59,9 +59,11 @@
 
 - [x] 5.1 The owner's manual review pass was requested after the loop was clean and the capture ran. **Done** —
       requested after the loop was clean and the capture ran; the owner approved.
-- [ ] 5.2 The change was archived with `openspec archive correct-adr-0017-spring-grpc-gate --yes`, the change-dir move
+- [x] 5.2 The change was archived with `openspec archive correct-adr-0017-spring-grpc-gate --yes`, the change-dir move
       staged with any `openspec/specs` sync, and the archive commit ridden on this unit's PR.
-
+ **Done** — archived as `2026-10-19-correct-adr-0017-spring-grpc-gate` in this commit, the change-dir move staged with
+      the `openspec/specs` sync (empty: `skip_specs: true` held, since no capability spec names the ADR or its
+      coordinate).
 ## Workflow follow-up
 
 - Nothing committed, pushed, or archived before the owner approves the implementation.

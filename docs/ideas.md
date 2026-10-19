@@ -15,6 +15,17 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-19
 
+- Refuse a commit that stages an archived change dir with an unchecked task — parked; no change yet.
+  `openspec archive --yes` continues past incomplete tasks with a warning line rather than failing, and a merge-time
+  verification (a workflow dispatch, which needs the pushed branch) can only be ticked _after_ the change dir is
+  committed, so the tick lands in the archive commit's own edit and nothing re-reads the warning afterwards. The outcome
+  "an archived task is not left unchecked" is mechanically checkable, and the machinery exists: `commit-hygiene.py`'s
+  `find_unpaired_archive_sync` already inspects staged archived change dirs, so a sibling check would read a staged
+  `openspec/changes/archive/**/tasks.md` and refuse a commit carrying an unchecked item. It must be scoped to the
+  **staged set** rather than the whole archive, because archived change dirs already carry unchecked tasks that are
+  historical and would all be flagged. Parked rather than built: it overrides `openspec archive --yes`'s deliberate
+  non-blocking design by policy, so it needs its own `commit-hygiene` delta and a `*RulesTests` control.
+
 - Run a configuration-cache store sweep over the tasks the workflows invoke — parked; no change yet.
   `fix-upstream-references-config-cache` restored `upstreamReferences`'s cache compatibility, but the class it belongs
   to is unreachable by anything the build runs locally: `./gradlew tasks --all` realizes the graph without executing a

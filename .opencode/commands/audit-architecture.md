@@ -5,25 +5,50 @@ description:
   subagent
 ---
 
-Run the architecture audit to check that the design the project records still matches the design it has.
+Run the architecture audit, which reports only — it never edits a file.
 
-1. Invoke the `architecture-auditor` subagent (`.opencode/agent/architecture-auditor.md`) on the repository — it reads
-   `docs/adr/` in full plus the architectural surface (the service boundaries, the module dependency graph, and the spec
-   corpus's capability decomposition); it establishes the authoritative record before asserting a violation (an
-   unresolved disagreement is an advisory, not a finding), inspects both sides of a claimed mismatch, and reports a
-   dependency edge only where a recorded rule forbids it; it bounds its cohesion/coupling advisory to a concrete
-   inconsistency or a meaningful missing decision, works in stages, and classifies each `Revisit when:` condition before
-   reporting it. It sweeps the intent-clarification surfaces (dependency `exclude(...)` declarations, the suppressed
-   coordinates, held-back coordinates, and npm-suppressed packages in `config/dependency-updates/major-disabled.txt`,
-   `config/dependency-updates/hold-back.txt`, and `config/web-ui-updates/major-disabled.txt`, the suppression
-   annotations and retained deprecated APIs, the deferrals and band-aids recorded in ADRs or `docs/ideas.md`, an ADR's
-   `Revisit when:` condition that appears met, and a parked `docs/ideas.md` entry whose work has already landed — or
-   only partly landed, or whose objective a different mechanism achieves).
-2. Present its report in the contract it returns (the verdict line first, then the two sections — **findings** and
-   **advisory** observations, each presented as the shared report contract requires — do not re-summarize it).
-3. Ask the user which findings to apply — an advisory observation, including an intent-clarification item (a question
-   for the user to answer), is the user's call and is never "fixed" automatically. Do not edit files without their
-   go-ahead.
-4. Apply the approved changes, run `./gradlew spotlessApply` for the formatter-wrapped files (`AGENTS.md`, `README.md`,
-   `docs/adr/`, the specs/change dirs, and the project-authored `.opencode/` markdown the audit edited), then re-run the
-   `review-quick` subagent over the resulting diff before reporting the audit done.
+**Trigger** — the owner invokes `/audit-architecture`, or the scheduled `audit` workflow runs it report-only.
+
+**Procedure**
+
+1. Invoke the `architecture-auditor` subagent (`.opencode/agent/architecture-auditor.md`) on the repository. Its
+   definition owns the surfaces it sweeps, how it establishes the authoritative record, how it classifies a
+   `Revisit when:` condition, and its report contract.
+2. Present its report in the contract it returns — the verdict line first, then its findings and advisory sections, each
+   item as the shared report contract requires. Do not re-summarize it.
+3. Ask the owner which findings to apply.
+
+**Decision points**
+
+- IF the report carries nothing actionable, or the owner approves nothing, THEN report that and stop — create no unit.
+- IF the approved findings differ in delivery route or in scope, THEN split them into separate units, each scoped to its
+  own artifacts and diff.
+- Do not batch unrelated fixes merely because this report carried them together.
+- An advisory observation, an intent-clarification item included, is a question for the owner: it is the owner's call
+  and is never "fixed" automatically.
+- A reduction candidate is drained by the standing `/apply-audit-reductions` unit, not applied here.
+
+**Applying approved findings**
+
+- Report generation and applying are separate: the applying is a unit of its own.
+- Route each finding by its kind — a docs correction (an ADR, `AGENTS.md`, `README.md`) is a docs unit; a code change,
+  or a command or subagent-definition change altering spec-covered behavior, goes through the normal change workflow
+  with that capability's delta; a spec change follows `AGENTS.md`'s "Workflow: Author a spec delta and archive". Never
+  edit a main spec outside archive.
+- Run the full per-unit review gate over the result. `AGENTS.md`'s "Workflow: The review gate" owns its steps, including
+  the reviewer-session preflight; this command points at it rather than restating it.
+
+**Verification** — `./gradlew spotlessApply` for the formatter-wrapped files the unit edited.
+
+**Completion criteria** — the owner has the report and has chosen; or, for an approved selection, every unit is applied
+and has completed the review gate with the manual pass requested.
+
+**Repository lifecycle**
+
+- The unit starts on its own branch, created from a freshly fetched `origin/main`.
+- Unrelated dirty-worktree changes are preserved.
+- The work stays uncommitted until the manual approval pass.
+- Nothing is committed, pushed, turned into a pull request, archived, or merged without that explicit approval.
+- The full per-unit review gate runs over the result. `AGENTS.md`'s "Workflow: Change lifecycle" and "Workflow: The
+  review gate" own the branch, uncommitted-work, approval, and review steps, including the reviewer-session preflight;
+  this command points at them rather than restating them.

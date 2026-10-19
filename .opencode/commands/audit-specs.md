@@ -2,14 +2,46 @@
 description: Audit the openspec/specs corpus for structure and consistency with the pro-model specs-auditor subagent
 ---
 
-Run the spec-corpus audit to check the specs for structural consistency.
+Run the spec-corpus audit, which reports only — it never edits a file.
 
-1. Invoke the `specs-auditor` subagent (`.opencode/agent/specs-auditor.md`) on the repository — it reads the
-   `openspec/specs/` corpus in full as part of the audit. It verifies a dead reference against its false-positive
-   classes, classifies a candidate duplication before reporting it, and leaves the corpus's capability decomposition,
-   any issue an existing gate already enforces, and a proposed change's internal quality to their owners.
-2. Present its findings in the report contract it returns (the verdict line first, then findings budgeted per item and
-   grouped by severity), presenting each item as the shared report contract requires — do not re-summarize it.
-3. Ask the user which findings to apply — do not edit specs without their go-ahead. A spec edit is itself a change, so
-   route accepted fixes through the normal change workflow (a delta, synced to the main spec at archive), not a direct
-   main-spec edit.
+**Trigger** — the owner invokes `/audit-specs`, or the scheduled `audit` workflow runs it report-only.
+
+**Procedure**
+
+1. Invoke the `specs-auditor` subagent (`.opencode/agent/specs-auditor.md`) on the repository. Its definition owns the
+   corpus it reads, its finding classes, the false-positive classes it verifies a dead reference against, and its report
+   contract.
+2. Present its findings in the contract it returns — the verdict line first, then findings budgeted per item and grouped
+   by severity. Do not re-summarize it.
+3. Ask the owner which findings to apply.
+
+**Decision points**
+
+- IF the report carries nothing actionable, or the owner approves nothing, THEN report that and stop — create no unit.
+- IF the approved findings differ in delivery route or in scope, THEN split them into separate units, each scoped to its
+  own artifacts and diff.
+- Do not batch unrelated fixes merely because this report carried them together.
+
+**Applying approved findings**
+
+- Report generation and applying are separate: the applying is a unit of its own.
+- A spec edit is itself a change, so every accepted fix routes through an OpenSpec change carrying a delta spec, with
+  the main spec synced only at archive — never as a direct main-spec edit. `AGENTS.md`'s "Workflow: Author a spec delta
+  and archive" owns the procedure.
+- Run the full per-unit review gate over the result. `AGENTS.md`'s "Workflow: The review gate" owns its steps, including
+  the reviewer-session preflight; this command points at it rather than restating it.
+
+**Verification** — `openspec validate --all` and `openspec validate --changes`, plus `./gradlew spotlessApply`.
+
+**Completion criteria** — the owner has the report and has chosen; or, for an approved selection, every unit is applied
+and has completed the review gate with the manual pass requested.
+
+**Repository lifecycle**
+
+- The unit starts on its own branch, created from a freshly fetched `origin/main`.
+- Unrelated dirty-worktree changes are preserved.
+- The work stays uncommitted until the manual approval pass.
+- Nothing is committed, pushed, turned into a pull request, archived, or merged without that explicit approval.
+- The full per-unit review gate runs over the result. `AGENTS.md`'s "Workflow: Change lifecycle" and "Workflow: The
+  review gate" own the branch, uncommitted-work, approval, and review steps, including the reviewer-session preflight;
+  this command points at them rather than restating them.

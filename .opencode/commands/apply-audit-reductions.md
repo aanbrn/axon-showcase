@@ -1,21 +1,25 @@
 ---
 description:
   Apply an audit report's reduction candidates (merge/removal/route/extraction) — merged text, pointers, and deletions
-  inline, a content-move routed to the change workflow — under the review gate
+  inline, a content-move routed to the change workflow — under the full review gate
 ---
 
 Apply the reduction candidates an audit report names, so they do not age. This is the standing, owner-gated unit for a
-report's reductions; it never runs automatically.
+report's reductions; it never runs automatically, and the scheduled `audit` workflow only reports.
 
-1. Identify the source report: the newest under `docs/audits/` by date, or the one the caller names. When a date carries
-   more than one report (a dispatch and a scheduled run, e.g. `2026-10-04.md` and `2026-10-04-scheduled.md`), present
-   both and ask which — do not guess an ordering.
+**Trigger** — the owner invokes `/apply-audit-reductions`, naming a report or accepting the newest one.
+
+**Prerequisites** — none beyond the repository; the report is under `docs/audits/`.
+
+**Procedure**
+
+1. Identify the source report: the newest under `docs/audits/` by date, or the one the owner names. IF a date carries
+   more than one report (a dispatch and a scheduled run, e.g. `2026-10-04.md` and `2026-10-04-scheduled.md`), THEN
+   present both and ask which — do not guess an ordering.
 2. Read that report's **reduction candidates** — its findings labelled a merge, removal, route, or extraction candidate
-   — and the parked reduction entries in `docs/ideas.md` they correspond to. An extraction candidate's application is a
-   content-move, so it routes to the change workflow rather than being applied inline. The report's other findings go
-   through the normal change workflow, and its advisory, accretion, and authoring-system gap classes are out of scope.
-3. Present each candidate with its suggested rewrite or target, and ask the user which to apply — do not edit files
-   without their go-ahead.
+   — and the parked reduction entries in `docs/ideas.md` they correspond to. The report's other findings go through the
+   normal change workflow, and its advisory, accretion, and authoring-system-gap classes are out of scope.
+3. Present each candidate with its suggested rewrite or target, and ask the owner which to apply.
 4. Apply the approved ones, following the candidate's own suggested edit and `AGENTS.md`'s capture-bullet pointer/trim
    rule (referenced, not restated here):
    - **merge**: apply the candidate's merged text, or delete the duplicate it flags.
@@ -26,11 +30,33 @@ report's reductions; it never runs automatically.
    - **extraction**: apply the retained root text, the pointer, and the destination change the candidate names. The move
      creates or changes a destination the change owns, so route it through the normal change workflow rather than
      editing the destination inline.
-   - An **extraction opportunity** is not a candidate: never present or apply one, since it is a design recommendation
-     the owner carries out in a dedicated change.
 5. Remove the applied entries from `docs/ideas.md`.
-6. Run `./gradlew spotlessApply` for the formatter-wrapped files the unit edited.
-7. Run the `review-quick` subagent over the resulting diff, repeating until clean, then ask for the manual review before
-   the change ships.
 
-The scheduled `audit` workflow only reports; it never applies. This unit runs only when the owner invokes it.
+**Decision points**
+
+- IF the report carries no reduction candidate, or the owner approves none, THEN report that and stop — create no unit.
+- IF the approved candidates differ in delivery route or in scope, THEN split them into separate units, each scoped to
+  its own artifacts and diff.
+- An **extraction opportunity** is not a candidate: never present or apply one, since it is a design recommendation the
+  owner carries out in a dedicated change.
+- A candidate whose suggested edit is not reproducible against the artifact it names is reported as a claim to verify,
+  not applied on the report's word.
+
+**Failure handling** — a candidate whose target no longer exists is reported rather than forced; the parked entry it
+corresponds to is left in place.
+
+**Verification** — `./gradlew spotlessApply` for the formatter-wrapped files the unit edited, then the review gate's own
+checks.
+
+**Completion criteria** — the owner has the candidates and has chosen; or, for an approved selection, every unit is
+applied and has completed the review gate with the manual pass requested.
+
+**Repository lifecycle**
+
+- The unit starts on its own branch, created from a freshly fetched `origin/main`.
+- Unrelated dirty-worktree changes are preserved.
+- The work stays uncommitted until the manual approval pass.
+- Nothing is committed, pushed, turned into a pull request, archived, or merged without that explicit approval.
+- The full per-unit review gate runs over the result — not the formatter and a quick review alone. `AGENTS.md`'s
+  "Workflow: Change lifecycle" and "Workflow: The review gate" own the branch, uncommitted-work, approval, and review
+  steps, including the reviewer-session preflight; this command points at them rather than restating them.

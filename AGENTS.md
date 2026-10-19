@@ -3592,31 +3592,34 @@ capture-stash-stale-copy
   references already closed — `ben-manes/gradle-versions-plugin#755` (2026-08-06, PR #1060) and
   `spring-projects/spring-data-elasticsearch#3334` (2026-08-30, PR #3337) — while both constraint notes still read as
   open. Resolve an `owner/repo#NNN` through the tracker before writing or editing such a reference, and when it has
-  closed, read the fixing PR's own diff and the release it shipped in against our pin before treating the note as
-  retirable — the issue's premise and its closure are not enough. What a reference note records about a reference (the
-  reason it is not yet retirable, or a pointer to where its re-check lives) is itself a claim a later change can
-  falsify, and no gate re-checks it (the `upstreamReferences` report resolves only the reference's open/closed state,
-  never its recorded reason) — so re-verify the note, not only the reference's state, when revisiting one. `#3334`'s
-  entry named a release that later published, and the meta-rule's own "the periodic corpus sweep is parked" pointer
-  outlived the sweep's build. `#755` closed through a change to platform-sourced constraints (`satisfiesDeclaredBound`,
-  "nothing changes by default"), so our spurious row from `checkBuildEnvironmentConstraints` remains even though the fix
-  shipped in 0.60.0, so any pin since then already contains it. An upstream reference must also document the symptom it
-  is cited for — read the body against the symptom, not the title or the release. A close-out reference must also live
-  in a file `upstreamReferences` scans (`AGENTS.md`, `README.md`, `docs/ideas.md`, `docs/adr/**`): cited only in a
-  skill, command, subagent definition, or code comment it is invisible to the report that would fire its `retires when`.
-  The first `hold-back-nginx-buildpack` draft blamed an arm64 build-extraction failure on
-  `paketo-buildpacks/nginx#1340`, whose body documents only the runtime symptom (an AArch64 `nginx` in an amd64 image)
-  and states that the `io.buildpacks.buildpackage.metadata` label is present on both slices; the draft also contradicted
-  the host-state gotcha's account of that same signature, and review caught both. When a passage already explains a
-  signature, reconcile with it rather than writing a second explanation beside it. A planned task that _posts_ to an
-  external tracker depends on that venue's mutable state — a security-advisory thread is often **locked** (comments
-  disabled): the `suppress-braces-npm-advisory` task "comment on `micromatch/braces#70`" was unachievable because #70 is
-  locked, and the actionable reference was the fix PR `micromatch/braces#72` (later closed unmerged). Check the
-  **venue** is writable before writing the posting task — a repository can disable issues and discussions outright, so
-  there may be no thread — and when the issue itself is closed or locked, cite the fix PR the close-out actually keys
-  on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
+  closed, read the closing comment for its disposition (a duplicate's live thread is elsewhere, so the closed issue is
+  not its authority) and read the fixing PR's own diff and the release it shipped in against our pin before treating the
+  note as retirable — the issue's premise and its closure are not enough. What a reference note records about a
+  reference (the reason it is not yet retirable, or a pointer to where its re-check lives) is itself a claim a later
+  change can falsify, and no gate re-checks it (the `upstreamReferences` report resolves only the reference's
+  open/closed state, never its recorded reason) — so re-verify the note, not only the reference's state, when revisiting
+  one. `#3334`'s entry named a release that later published, and the meta-rule's own "the periodic corpus sweep is
+  parked" pointer outlived the sweep's build. `#755` closed through a change to platform-sourced constraints
+  (`satisfiesDeclaredBound`, "nothing changes by default"), so our spurious row from `checkBuildEnvironmentConstraints`
+  remains even though the fix shipped in 0.60.0, so any pin since then already contains it. An upstream reference must
+  also document the claim it is cited for and sit on the clause it supports — read the surface that carries the claim
+  (the body for what the issue reports, the closing comment for its disposition), never the title or the release alone.
+  A close-out reference must also live in a file `upstreamReferences` scans (`AGENTS.md`, `README.md`, `docs/ideas.md`,
+  `docs/adr/**`): cited only in a skill, command, subagent definition, or code comment it is invisible to the report
+  that would fire its `retires when`. The first `hold-back-nginx-buildpack` draft blamed an arm64 build-extraction
+  failure on `paketo-buildpacks/nginx#1340`, whose body documents only the runtime symptom (an AArch64 `nginx` in an
+  amd64 image) and states that the `io.buildpacks.buildpackage.metadata` label is present on both slices; the draft also
+  contradicted the host-state gotcha's account of that same signature, and review caught both. When a passage already
+  explains a signature, reconcile with it rather than writing a second explanation beside it. A planned task that
+  _posts_ to an external tracker depends on that venue's mutable state — a security-advisory thread is often **locked**
+  (comments disabled): the `suppress-braces-npm-advisory` task "comment on `micromatch/braces#70`" was unachievable
+  because #70 is locked, and the actionable reference was the fix PR `micromatch/braces#72` (later closed unmerged).
+  Check the **venue** is writable before writing the posting task — a repository can disable issues and discussions
+  outright, so there may be no thread — and when the issue itself is closed or locked, cite the fix PR the close-out
+  actually keys on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
   `upstream-references.yml` report (the fifth observational check above). captured: suppress-braces-npm-advisory
-  captured: refresh-upstream-references-2026-10-05 captured: record-gatling-report-block
+  captured: refresh-upstream-references-2026-10-05 captured: record-gatling-report-block captured:
+  refresh-upstream-references-2026-10-19
 
 - **A "the only X" claim in `AGENTS.md` goes stale the moment a change adds a second X — fix it in that change.** The
   web UI's Playwright e2e suite was added while `AGENTS.md` still said "the only e2e suite is `showcase-api-gateway`'s",
@@ -3678,9 +3681,11 @@ capture-stash-stale-copy
   (`192.168.64.0/24`, the address the kubeconfig points at) fail with `EHOSTUNREACH`, which reads as a cluster outage,
   and neither a `colima restart` nor a `colima delete` + recreate changes it, because the fault is the host's consent
   layer rather than the VM or k3s. Check the terminal app first: Warp can be _listed_ under System Settings → Privacy &
-  Security → Local Network with its toggle **off**, and switching it on restores access immediately
-  (`warpdotdev/warp#6320`); quit and reopen the app if its existing children keep the denied state. Fallbacks: run the
-  command from **Terminal.app** or under `sudo` (macOS auto-allows command-line tools run from Terminal or over SSH, and
-  any program running as root), or point the kubeconfig at colima's loopback forward (`https://127.0.0.1:<port>`, the
-  port changing per start), which is not a local-network operation at all. A/B against Terminal.app to confirm the
-  class.
+  Security → Local Network with its toggle **off**, and switching it on restores access immediately; quit and reopen the
+  app if its existing children keep the denied state. `warpdotdev/warp#6320` documents the symptom (the same command
+  succeeds from Terminal.app) but was closed as a duplicate of the canonical, still-open `warpdotdev/warp#5550`, whose
+  thread shows the toggle already enabled for reporters who still failed: this is the first check, not the only one.
+  Fallbacks: run the command from **Terminal.app** or under `sudo` (macOS auto-allows command-line tools run from
+  Terminal or over SSH, and any program running as root), or point the kubeconfig at colima's loopback forward
+  (`https://127.0.0.1:<port>`, the port changing per start), which is not a local-network operation at all. A/B against
+  Terminal.app to confirm the class.

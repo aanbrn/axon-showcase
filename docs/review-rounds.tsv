@@ -527,3 +527,8 @@
 2026-10-19	make-reviews-predictable-and-recoverable	12	dropped-content	-	1	ses_eade1f82bffehGX0PzQRwV4TwG	continued	-
 2026-10-19	make-reviews-predictable-and-recoverable	13	formatting	formatting	1	ses_eade1f82bffehGX0PzQRwV4TwG	continued	-
 2026-10-19	make-reviews-predictable-and-recoverable	14	-	-	0	ses_eade1f82bffehGX0PzQRwV4TwG	continued	-
+2026-10-19	refresh-upstream-references-2026-10-19	1	claim-missing	-	1	ses_ead95ecd5ffeIAQ8rnv1xf0EOb	created	-
+2026-10-19	refresh-upstream-references-2026-10-19	2	missing-task,coherence,claim-unreproducible,incomplete-enumeration	-	4	ses_ead95ecd5ffeIAQ8rnv1xf0EOb	continued	-
+2026-10-19	refresh-upstream-references-2026-10-19	3	claim-unreproducible,contradiction,incomplete-enumeration	claim-unreproducible,incomplete-enumeration	4	ses_ead95ecd5ffeIAQ8rnv1xf0EOb	continued	-
+2026-10-19	refresh-upstream-references-2026-10-19	4	incomplete-enumeration	incomplete-enumeration	1	ses_ead95ecd5ffeIAQ8rnv1xf0EOb	continued	-
+2026-10-19	refresh-upstream-references-2026-10-19	5	-	-	0	ses_ead95ecd5ffeIAQ8rnv1xf0EOb	continued	-

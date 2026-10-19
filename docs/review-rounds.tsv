@@ -532,3 +532,8 @@
 2026-10-19	refresh-upstream-references-2026-10-19	3	claim-unreproducible,contradiction,incomplete-enumeration	claim-unreproducible,incomplete-enumeration	4	ses_ead95ecd5ffeIAQ8rnv1xf0EOb	continued	-
 2026-10-19	refresh-upstream-references-2026-10-19	4	incomplete-enumeration	incomplete-enumeration	1	ses_ead95ecd5ffeIAQ8rnv1xf0EOb	continued	-
 2026-10-19	refresh-upstream-references-2026-10-19	5	-	-	0	ses_ead95ecd5ffeIAQ8rnv1xf0EOb	continued	-
+2026-10-19	remove-unrecorded-redgate-repository	1	over-claim,missing-task,claim-unreproducible,claim-missing	-	5	ses_ead5cc47fffejKz5zBJdtGSDHW	created	-
+2026-10-19	remove-unrecorded-redgate-repository	2	claim-unreproducible,claim-missing,wording	claim-unreproducible	2	ses_ead5cc47fffejKz5zBJdtGSDHW	continued	-
+2026-10-19	remove-unrecorded-redgate-repository	3	contradiction,wording	wording	2	ses_ead5cc47fffejKz5zBJdtGSDHW	continued	-
+2026-10-19	remove-unrecorded-redgate-repository	4	wording	wording	0	ses_ead5cc47fffejKz5zBJdtGSDHW	continued	-
+2026-10-19	remove-unrecorded-redgate-repository	5	-	-	0	ses_ead5cc47fffejKz5zBJdtGSDHW	continued	-

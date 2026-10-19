@@ -309,6 +309,17 @@ dated when it was added (start a new section for a new day rather than appending
   Routes to `.github/workflows/audit.yml`'s prompt (name a same-day second run distinctly, e.g. by including the run's
   trigger) and the `merge-governance` spec requirement that owns that workflow's report behavior.
 
+- Let `claim-scan.py` seed a no-change-dir unit's claims from its records — parked; no change yet. The pre-write pass is
+  seeded by `scripts/claim-scan.py`, which reads "the added lines of an authored set (the diff against a base ref, plus
+  the untracked, non-ignored files)" — its own docstring. A unit with no change dir keeps its claims table and capture
+  record on the pull-request checklist, which is neither, and its code diff may be deletion-only, so the **mandated**
+  seed returns an empty candidate list while the unit's real claims — a prior artifact it rests on, its greps, its
+  probes — go unseeded, and that empty list reads exactly like the pass's "nothing to resolve" outcome.
+  `remove-unrecorded-redgate-repository`'s five round-1 record findings arose under precisely those conditions. Extend
+  the scan (and `/seed-claims`) to accept the unit's record text as an input, so the seed reaches those claims. Parked
+  rather than built: the seed is already mandated by the spec and `AGENTS.md`, so what fails is the tool's input, not an
+  agent's knowledge.
+
 ## 2026-09-30
 
 - Retire the OpenSpec config probe and the `/opsx-tool-update` re-verification once `validate` checks the config —

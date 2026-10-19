@@ -1392,23 +1392,26 @@ Key modules (libraries, not services):
   generated-class excludes via `coverage.generatedClassExcludes`. The **web UI's** coverage is a separate Vitest/V8
   gate: `npmTestCoverage` (in the frontend `check`) enforces the statement minimum in
   `config/web-ui-coverage/coverage-baseline.properties` (fraction form, scaled to Vitest's percentage thresholds)
-- **Architecture Decision Records**: record cross-cutting architecture decisions as numbered ADRs under `docs/adr/`
-  (Nygard format — Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture the
-  _why_ behind structural choices. Capture a decision as an ADR when it is made, not after the fact. A decision that
-  only surfaces after the fact (an auditor or review finds it unrecorded) is dated to the day the decision was made —
-  derived from git history (the shipping commit), never from the record's own `Date:` field or a reviewing audit's
-  suggested date, which transpose a retrospective record's shipped, recorded, and amended dates — with a Context line
-  stating it was recorded retrospectively and when; if the decision predates the ADR practice and no date can be
-  established, date the recording and say so (the first architecture audit produced two such ADRs, dated the two ways).
-  A retrospective ADR that cannot state _why_ the decision was made should ask the project owner before recording the
-  rationale as unrecorded — the repository's silence is not evidence the rationale does not exist, and a missing _why_
-  is a question for the human, not a permanent gap to write down (ADR-0009 declared its no-Axon-Server rationale "not
-  recorded anywhere in the repository" until asking the owner recovered it: avoiding Axon Server's commercial
-  licensing). captured: apply-2026-09-28-audit-docs-findings A deferral's `Revisit when:` gate names each clause's
-  artifact at that artifact's **current** coordinate and labels the clause's type (external coordinate vs internal
-  trigger), because upstream renames a coordinate (`axon-bom` → `axon-framework-bom`) and a gate naming the old name
-  then resolves to a frozen artifact that never fires; and a compound gate is a conjunction, met only when every clause
-  is, so a check names the clauses still open rather than reading one axis as met. captured: correct-adr-0011-axon5-gate
+- **Architecture Decision Records**: record cross-cutting decisions as numbered ADRs (architecture and supply-chain
+  alike, such as a build's third-party artifact source) under `docs/adr/` (Nygard format —
+  Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture the _why_ behind
+  structural choices. Capture a decision as an ADR when it is made, not after the fact. A decision that only surfaces
+  after the fact (an auditor or review finds it unrecorded) is dated to the day the decision was made — derived from git
+  history (the shipping commit), never from the record's own `Date:` field or a reviewing audit's suggested date, which
+  transpose a retrospective record's shipped, recorded, and amended dates — with a Context line stating it was recorded
+  retrospectively and when; if the decision predates the ADR practice and no date can be established, date the recording
+  and say so (the first architecture audit produced two such ADRs, dated the two ways). A retrospective ADR (or the note
+  for any other unrecorded cross-cutting declaration whose rationale the repository does not state) that cannot state
+  _why_ the decision was made should ask the project owner before recording the rationale as unrecorded — the
+  repository's silence is not evidence the rationale does not exist, and a missing _why_ is a question for the human,
+  not a permanent gap to write down (ADR-0009 declared its no-Axon-Server rationale "not recorded anywhere in the
+  repository" until asking the owner recovered it: avoiding Axon Server's commercial licensing). captured:
+  apply-2026-09-28-audit-docs-findings captured: remove-unrecorded-redgate-repository A deferral's `Revisit when:` gate
+  names each clause's artifact at that artifact's **current** coordinate and labels the clause's type (external
+  coordinate vs internal trigger), because upstream renames a coordinate (`axon-bom` → `axon-framework-bom`) and a gate
+  naming the old name then resolves to a frozen artifact that never fires; and a compound gate is a conjunction, met
+  only when every clause is, so a check names the clauses still open rather than reading one axis as met. captured:
+  correct-adr-0011-axon5-gate
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md`, `README.md`, and `docs/adr/` need to be
   refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
   a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on
@@ -2448,8 +2451,12 @@ capture-stash-stale-copy
   (`./gradlew :showcase-query-proto:check -PskipITs`), or the full `./gradlew check` — since the drop otherwise merges
   green and reddens the push-to-main full `check` (`grpc-query-transport` (#514) added
   `QueryMessageMapper.messageToResponse`/`payloadFromResponse` with no module test, `showcase-query-proto` fell to 0.60
-  against 0.80, and every full `check` since failed until a component test covered them). captured:
-  fix-main-ci-regressions
+  against 0.80, and every full `check` since failed until a component test covered them). The same Docker-free form also
+  drops the `integrationTest` and `e2eTest` classpaths (`check` never includes `e2eTest`), so a resolution-affecting
+  change — a dependency, repository, or plugin declaration, or a BOM — compiles them explicitly
+  (`./gradlew compileIntegrationTestJava compileE2eTestJava --refresh-dependencies`) and names the tiers its resolution
+  claim covers, rather than resting that claim on the Docker-free check. captured: fix-main-ci-regressions captured:
+  remove-unrecorded-redgate-repository
 
 - **Bumping the Gradle wrapper needs two `wrapper` runs with `--distribution-type all`.** The first run only rewrites
   `distributionUrl`; the second, executing under the new version, regenerates `gradle-wrapper.jar`/`gradlew`/

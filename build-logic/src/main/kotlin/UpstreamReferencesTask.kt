@@ -1,8 +1,10 @@
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
@@ -27,13 +29,16 @@ abstract class UpstreamReferencesTask : DefaultTask() {
     /** The report file listing each reference with its state and citations. */
     @get:OutputFile abstract val reportFile: RegularFileProperty
 
+    /** The directory the citations' file labels are relative to; captured at configuration time. */
+    @get:Internal abstract val rootDirectory: DirectoryProperty
+
     /** Executes `gh` for the API lookups; captured at configuration time. */
     @get:Inject abstract val execOperations: ExecOperations
 
     /** Extracts the references, resolves each, and writes the report. */
     @TaskAction
     fun report() {
-        val root = project.rootDir.toPath()
+        val root = rootDirectory.get().asFile.toPath()
         val refs = mutableMapOf<String, MutableList<String>>()
         sourceFiles.files
             .sortedBy { it.path }

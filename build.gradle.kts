@@ -400,6 +400,8 @@ tasks.register("upstreamReferences", UpstreamReferencesTask::class.java) {
         },
     )
 
+    rootDirectory.set(rootProject.layout.projectDirectory)
+
     reportFile.set(layout.buildDirectory.file("upstream-references/report.txt"))
 
     outputs.upToDateWhen { false }

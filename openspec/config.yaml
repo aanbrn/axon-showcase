@@ -87,14 +87,14 @@ rules:
     - Every mechanism or task-check claim is derived from the dependency graph or the tool's own definition, and a
       term or mechanism name with no referent in the repository is deleted rather than defined
     - Carry the claims table — each fact the change states about its evidence (the prior artifacts it rests on) with its
-      source or the command that derives it; a row about an artifact the change itself edits anchors to that artifact's
-      pre-change state (`git show HEAD:<path>`), since it stops reproducing once the change lands; a source that
-      is a command's output states the reason by class, never a list of its lines; and each
-      dismissal states its reason by kind, never as an enumerating clause; and the table is re-derived after the
-      unit's last append to its own record, which adds a scan candidate; a self-record fact about what the change did (a
-      stated delta, a `Done` note, a described edit) is derived from the source it names once the edits land — the diff
-      for a stated delta or a described edit, the ledger or the command's own output for a process record — and a claim
-      whose described edit is absent is deleted rather than reworded
+      source or the command that derives it, re-run so it reproduces the figure the row records; a row about an artifact
+      the change itself edits anchors to that artifact's pre-change state (`git show HEAD:<path>`), since it stops
+      reproducing once the change lands; a source that is a command's output states the reason by class, never a list of
+      its lines; and each dismissal states its reason by kind, never as an enumerating clause; and the table is
+      re-derived after the unit's last append to its own record, which adds a scan candidate; a self-record fact about
+      what the change did (a stated delta, a `Done` note, a described edit) is derived from the source it names once
+      the edits land — the diff for a stated delta or a described edit, the ledger or the command's own output for a
+      process record — and a claim whose described edit is absent is deleted rather than reworded
     - Every count — and every universal claim over a corpus — is re-derived by grepping the set it counts, naming the
       instances it covers where the class has no greppable predicate
     - Follow the "Structured Writing Standard" in AGENTS.md — one decision per entry with its alternatives as separate

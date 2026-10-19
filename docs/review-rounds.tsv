@@ -555,3 +555,11 @@
 2026-10-19	extract-load-test-commands	4	over-claim	over-claim	1	ses_eac844c92ffeKdWC3o7QPzkA7Z	continued	-
 2026-10-19	extract-load-test-commands	5	over-claim	over-claim	1	ses_eac844c92ffeKdWC3o7QPzkA7Z	continued	-
 2026-10-19	extract-load-test-commands	6	-	-	0	ses_eac844c92ffeKdWC3o7QPzkA7Z	continued	-
+2026-10-19	extract-ci-narrative	1	premise,contradiction,wording	-	2	ses_eac357de4ffe8XgTh2ZRIUbJBM	created	-
+2026-10-19	extract-ci-narrative	2	contradiction,claim-unreproducible	contradiction	2	ses_eac357de4ffe8XgTh2ZRIUbJBM	continued	-
+2026-10-19	extract-ci-narrative	3	claim-unreproducible	claim-unreproducible	1	ses_eac357de4ffe8XgTh2ZRIUbJBM	continued	-
+2026-10-19	extract-ci-narrative	4	-	-	0	ses_eac357de4ffe8XgTh2ZRIUbJBM	continued	-
+2026-10-19	extract-ci-narrative	5	missing-task,dropped-content,wording	wording	3	ses_eac357de4ffe8XgTh2ZRIUbJBM	continued	-
+2026-10-19	extract-ci-narrative	6	formatting	-	1	ses_eac357de4ffe8XgTh2ZRIUbJBM	continued	-
+2026-10-19	extract-ci-narrative	7	formatting	formatting	1	ses_eac357de4ffe8XgTh2ZRIUbJBM	continued	-
+2026-10-19	extract-ci-narrative	8	-	-	0	ses_eac357de4ffe8XgTh2ZRIUbJBM	continued	-

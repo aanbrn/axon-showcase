@@ -5,9 +5,6 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
         gradlePluginPortal()
-        maven {
-            setUrl("https://download.red-gate.com/maven/release")
-        }
     }
 }
 

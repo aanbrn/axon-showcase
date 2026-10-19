@@ -69,15 +69,6 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-18
 
-- Sweep the two enumerations `#628` (`rework-the-review-loop`) left stale — parked; no change yet. It added
-  `scripts/review-routing.py` and the `testReviewRouting` Gradle task, but `AGENTS.md`'s Build & Test `check` comment
-  still omits `testReviewRouting`, and its Prerequisites Python list names `claim-scan.py` and `review-rounds.py` but
-  not `review-routing.py` (verified: `build.gradle.kts` registers the task, and its `check` block's
-  `dependsOn("testReviewRouting")` adds it). A two-line docs fix; the audit run during
-  `optimize-agents-auditor-for-instruction-budget` reported it, and a later run did not re-report it, so it is parked
-  rather than left to recall. Parked rather than folded in: the unit's subject is the auditor, and this is a stale
-  enumeration in an unrelated section.
-
 - Give the reduction unit an extraction procedure of its own if a second extraction is proposed — parked; no change yet.
   `optimize-agents-auditor-for-instruction-budget` widened the standing `/apply-audit-reductions` unit to name an
   `extraction` candidate, and its application is a content-move routed to the change workflow (written into the unit's

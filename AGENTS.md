@@ -457,14 +457,15 @@ final edit). captured: decide-against-pre-review
   relax-diagram-span-rule captured: sharpen-architecture-audit
 - **The change's own self-records (the claims table, the task `Done` notes, the dismissals):** a recurring
   `claim-unreproducible` means they were drafted from what the edits were meant to do, not from the source they name —
-  so re-derive each from that source once the edits land, per the re-derivation rule above, and delete a claim whose
-  described edit has no referent. When the repeated class is their completeness (a stated fact they omit, a source that
-  does not reproduce), adding the omitted row re-triggers — the rows track the facts the artifacts state — so delete the
-  unneeded fact rather than add the row. A dismissal's completeness finding is re-derived rather than repaired by
-  deletion: re-derive it from the scan's whole candidate list grouped by kind, in one edit — appending the candidate a
-  round named is the enumerating clause the claims-table step forbids, and the clause's own growth is the incompleteness
-  the round reports. captured: dont-report-what-a-gate-covers captured: make-reviews-predictable-and-recoverable
-  captured: sharpen-architecture-audit captured: track-review-session-continuity
+  so re-derive each **clause** from that source once the edits land, writing it from the named command's output and
+  deleting a clause you cannot so source, and delete a claim whose described edit has no referent. When the repeated
+  class is their completeness (a stated fact they omit, a source that does not reproduce), adding the omitted row
+  re-triggers — the rows track the facts the artifacts state — so delete the unneeded fact rather than add the row. A
+  dismissal's completeness finding is re-derived rather than repaired by deletion: re-derive it from the scan's whole
+  candidate list grouped by kind, in one edit — appending the candidate a round named is the enumerating clause the
+  claims-table step forbids, and the clause's own growth is the incompleteness the round reports. captured:
+  dont-report-what-a-gate-covers captured: make-reviews-predictable-and-recoverable captured:
+  apply-2026-10-19-audit-findings captured: sharpen-architecture-audit captured: track-review-session-continuity
 - **A revert after a non-converging loop is a legitimate outcome** — record why in the change dir so the decision is not
   re-litigated. captured: propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured:
   check-load-test-drift captured: check-unique-cron-schedules (#436) captured: derive-retrospective-facts captured:
@@ -796,8 +797,8 @@ line.
 - `pack` CLI (for the web UI `dockerBuildImage` image build; see
   https://buildpacks.io/docs/for-platform-operators/how-to/integrate-ci/pack/, e.g. `brew install buildpacks/tap/pack`
   on macOS)
-- Python 3 (for `./scripts/setup-idea.sh`'s IDE-settings merge, the commit-hygiene guard/check, `claim-scan.py`, and
-  `review-rounds.py`; macOS ships it via Command Line Tools)
+- Python 3 (for `./scripts/setup-idea.sh`'s IDE-settings merge, the commit-hygiene guard/check, `claim-scan.py`,
+  `review-rounds.py`, and `review-routing.py`; macOS ships it via Command Line Tools)
 - Git hooks: run `./scripts/install-git-hooks.sh` once per clone to activate the pre-commit guard (the checks the
   `git add <dir>` gotcha enumerates); bypass a deliberate exception with `git commit --no-verify`
 - Toolchain doctor: `./scripts/doctor.sh` (or `/check-tooling`) probes this list — presence, version floors, and repo
@@ -841,9 +842,9 @@ line.
 # Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
 # plus the chart packaging (`:helm:chart:helmPackageMainChart`), workflowLint (actionlint), verifyInfraImageVersions,
 # verifyInstallCommands, verifyDocumentedPins,
-# verifyModuleDependencies,
+# verifyModuleDependencies, the `build-logic` tests (an included build),
 # verifyDashboardJson, verifyPrettierAlignment, and the commit-hygiene tasks
-# (verifyCapturedMarkers, testCommitHygiene, testClaimScan, testDoctorCharter, testReviewRounds,
+# (verifyCapturedMarkers, testCommitHygiene, testClaimScan, testDoctorCharter, testReviewRounds, testReviewRouting,
 # verifyTrackedIgnoredFiles, verifyConflictMarkers, verifyExecutableBits, verifyUniqueCronSchedules,
 # verifyUniqueReviewRounds, verifyReviewSessionContinuity, verifyLargeFiles)
 # (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
@@ -1797,26 +1798,26 @@ Key modules (libraries, not services):
   `.github/workflows/opencode.yml` `model` input, and the `AGENTS.md` agent gotchas that name the model id (docs that
   ARE the change — update them in the same change). When bumping, grep for the old id across `.opencode/`,
   `.github/workflows/`, and `AGENTS.md` (the `README.md` names the generic `opencode-go/*` form and the vision pin's
-  model id, so a vision-pin bump edits it too, while a flash-model bump does not), and exclude the vision agent's
-  `-vision-exp` pin: the vision model is a separate experimental line that may not have a counterpart in the new family
-  (the v4.1 bump left it on `deepseek-v4-flash-vision-exp`). A naive sweep that flags the vision pin as stale would
-  wrongly "fix" a deliberate asymmetry. Note the config `model` key is a default for **new** sessions, not a live
-  override: OpenCode persists the last-used model in `~/.local/state/opencode/model.json` (its `recent` list), so a
-  restarted TUI that restores a session keeps that session's model and still shows the old one until you switch manually
-  or start a new session — a correct config pin does not by itself make the running agent use the new model. The pins
-  also sit behind a **flat-rate, dollar-metered** plan (OpenCode Go), so a per-model quota is consumed at the model's
-  own rate rather than by request count, and the DeepSeek models carry peak/off-peak rate tiers, so the quota a pass
-  consumes depends on when it runs. That is a property of the plan, not of the pin: resolve the current tiers and window
-  at the provider (`opencode.ai/docs/go`) instead of pinning them here. It is also a **lever on the quota**: the
-  non-interactive passes — the four audits, `/review-thorough`, `/retrospective`, and long capture chains — can be
-  time-shifted into the off-peak window for the same metered spend; a scheduled pass's timing is encoded in its
-  workflow's `cron`, so check a schedule's slot against the current window (rather than asserting a UTC figure, which
-  rots) when adding or moving one. Check the slot's margin to the next peak block against the pass's worst-case run: the
-  window can be split into blocks, so a gap slot is off-peak only until an overrun reaches one, and the metered pass
-  belongs in the widest contiguous stretch rather than a gap. A schedule alone does not make a workflow shiftable — most
-  scheduled workflows here invoke no model at all, so check that the workflow itself spends metered quota before
-  reasoning about its slot. The interactive loop is paced by the human and cannot be shifted. captured:
-  capture-offpeak-cost-lever (#369) captured: schedule-jobs-into-the-owners-night captured: structure-visual-review
+  model id, so a vision-pin bump edits it too, while a flash-model bump does not), and exclude the vision agent's pin
+  (`opencode-go/claude-haiku-5-5`): the vision model is a separate multimodal model that is not part of the flash/pro
+  line being bumped, so a naive sweep that flags it as stale would wrongly "fix" a deliberate asymmetry. Note the config
+  `model` key is a default for **new** sessions, not a live override: OpenCode persists the last-used model in
+  `~/.local/state/opencode/model.json` (its `recent` list), so a restarted TUI that restores a session keeps that
+  session's model and still shows the old one until you switch manually or start a new session — a correct config pin
+  does not by itself make the running agent use the new model. The pins also sit behind a **flat-rate, dollar-metered**
+  plan (OpenCode Go), so a per-model quota is consumed at the model's own rate rather than by request count, and the
+  DeepSeek models carry peak/off-peak rate tiers, so the quota a pass consumes depends on when it runs. That is a
+  property of the plan, not of the pin: resolve the current tiers and window at the provider (`opencode.ai/docs/go`)
+  instead of pinning them here. It is also a **lever on the quota**: the non-interactive passes — the four audits,
+  `/review-thorough`, `/retrospective`, and long capture chains — can be time-shifted into the off-peak window for the
+  same metered spend; a scheduled pass's timing is encoded in its workflow's `cron`, so check a schedule's slot against
+  the current window (rather than asserting a UTC figure, which rots) when adding or moving one. Check the slot's margin
+  to the next peak block against the pass's worst-case run: the window can be split into blocks, so a gap slot is
+  off-peak only until an overrun reaches one, and the metered pass belongs in the widest contiguous stretch rather than
+  a gap. A schedule alone does not make a workflow shiftable — most scheduled workflows here invoke no model at all, so
+  check that the workflow itself spends metered quota before reasoning about its slot. The interactive loop is paced by
+  the human and cannot be shifted. captured: capture-offpeak-cost-lever (#369) captured:
+  schedule-jobs-into-the-owners-night captured: structure-visual-review
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
   `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired
@@ -1831,10 +1832,11 @@ Key modules (libraries, not services):
   agent drives gets its own command trigger, and the tool keeps the implementation (`doctor.sh` ↔ `/check-tooling`,
   `setup-idea.sh` ↔ `/setup-idea`, `experience-analysis.sh` ↔ `/retrospective`, `claim-scan.py` ↔ `/seed-claims`); a
   tool with no agent caller stays untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`, `review-rounds.py`), and
-  `commit-hygiene.py` is driven by the tracked `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks. The
-  generated OpenSpec command/skill files and the vendored `axon4to5-*` skills are not the repository's to place. Derive
-  any claim about placement from the complete set (`git ls-files -s | awk '$1=="100755"'`), not from the location in
-  hand. captured: state-tooling-placement-rule (#458)
+  `commit-hygiene.py` is driven by the tracked `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks, and
+  `review-routing.py` by the review gate's own procedure and by its `testReviewRouting` task. The generated OpenSpec
+  command/skill files and the vendored `axon4to5-*` skills are not the repository's to place. Derive any claim about
+  placement from the complete set (`git ls-files -s | awk '$1=="100755"'`), not from the location in hand. captured:
+  state-tooling-placement-rule (#458)
 - **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
   `.opencode/commands/setup-agent-tools.md` (project-local, **not** one of the vendored `axon4to5-*` skills) let a
   contributor ask the agent to wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only,

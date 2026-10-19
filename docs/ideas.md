@@ -15,6 +15,18 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-19
 
+- Run a configuration-cache store sweep over the tasks the workflows invoke — parked; no change yet.
+  `fix-upstream-references-config-cache` restored `upstreamReferences`'s cache compatibility, but the class it belongs
+  to is unreachable by anything the build runs locally: `./gradlew tasks --all` realizes the graph without executing a
+  task action, so a task no `check` graph requests — one invoked only by its own workflow — is never executed by any
+  sweep the build itself can perform, and its store defect surfaces only in CI, on a schedule, with no gate and no actor
+  to notice it (#581 missed `upstreamReferences` for a week). A job that runs each workflow-invoked task with the cache
+  enabled and requires a stored entry, then a reused one, would close it — in the scheduled pattern rather than `check`,
+  since the set is credentialed and networked (`dependencySecurityCheck` needs `SNYK_TOKEN`, `upstreamReferences` needs
+  `gh`, `helmInstallToCi` needs a cluster) and cannot be a pull-request gate. Parked rather than built: it needs its own
+  delta and a control, and its set is derived from the workflows' own `./gradlew` invocations, so a newly added
+  workflow-invoked task joins it by construction.
+
 - Enforce the command lifecycle preflight with a check rather than prose in seventeen files — parked; no change yet.
   `harden-command-definitions` added the requirement that a project-authored command starting a mutating unit states the
   lifecycle its unit owes, and wrote it into ten command definitions, but nothing enforces it: the drift it repairs

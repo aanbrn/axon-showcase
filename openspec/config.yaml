@@ -36,7 +36,9 @@ context: |
       (bootBuildImage) and runs after that module's own integrationTest
     - org.gradle.configuration-cache=true is enabled; a task action must not reference anything belonging to the Gradle
       script (project, gradle, rootProject, providers, a script-level val/fun) — compute what it needs into a val local
-      to the configuration lambda; the gradle-helm-plugin is configuration-cache compatible at its pinned 3.2.0 except
+      to the configuration lambda; a task a workflow invokes but `check` does not is never executed by a local sweep — run
+      it with the cache enabled and require a stored entry; the gradle-helm-plugin is configuration-cache compatible at
+      its pinned 3.2.0 except
       for its chart-dependency task, whose `onlyIf` resolves false when the cache entry is stored before the chart
       sources are collected — `helm/chart/build.gradle.kts` replaces it with `setOnlyIf { true }` — and
       :load-tests:gatlingRecorder is marked notCompatibleWithConfigurationCache

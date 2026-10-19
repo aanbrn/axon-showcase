@@ -80,4 +80,6 @@
 
 - [x] 5.1 Ask the owner for the manual review pass. **Done** — requested in the unit's report; the work stays
       uncommitted until the owner answers.
-- [ ] 5.2 Archive only after the owner approves; not part of this unit's uncommitted state.
+- [x] 5.2 Archive only after the owner approves; not part of this unit's uncommitted state. **Done** — approved and
+      archived as `2026-10-19-sharpen-lesson-capture-gate`; the delta's sync to
+      `openspec/specs/showcase/quality/agent-skills/spec.md` is staged in the archive commit on PR #646.

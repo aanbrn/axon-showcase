@@ -414,6 +414,12 @@ owns, not this one.
   cost, material (it prevents real breakage, risk, wasted work, or review churn), general enough for a class of future
   tasks rather than one file or incident, and high-confidence with a known scope — and a rule that fails the gate is
   routed to a check, a spec, an ADR, or the change dir instead of the always-loaded file
+- **AND** the gate separates a repeated observation from its cause — a repeated review-class label establishes that
+  label's recurrence, not a shared drafting defect, and a remedy resting on a class's recurrence (a section rewrite, or
+  a rule generalized from that class) requires the shared cause confirmed from the evidence, with a class whose
+  instances have different causes taking the cause-specific shape instead
+- **AND** the caller supplies the existing guidance a candidate would extend and the review evidence for a claimed
+  recurrence, and where either is unavailable the capture states the limitation and withholds the unsupported candidate
 - **AND** before proposing an entry, it traces the lesson to its origin — where the cause is a mechanism that produces
   the artifact (an OpenSpec template or schema, an `openspec/config.yaml` rule, a skill or command that shapes drafting,
   or the authoring standard itself), it proposes the smallest correction at that mechanism and reports it as an
@@ -432,13 +438,20 @@ owns, not this one.
   prose
 - **AND** each proposed addition demonstrates the **decision difference** it makes — the action a future agent takes
   under the existing guidance, and the action the proposed text requires or prohibits under an explicit condition
+- **AND** that comparison names the existing obligation, its explicit condition, and the different action, so different
+  phrasing does not establish a difference
 - **AND** that difference carries a repository-backed example of why it matters
 - **AND** an addition whose action the existing guidance already determines is reported as **already covered** and does
   not expand `AGENTS.md`
-- **AND** an additional incident, example, citation, or provenance marker alone is not a decision difference
+- **AND** an additional incident, example, citation, or provenance marker alone is `already covered`, and the capture
+  records that evidence in the unit's change record rather than expanding the rule's text
 - **AND** a partial restatement takes the **split** disposition — the new clause is kept, the restatement dropped
 - **AND** it prefers an exact replacement of the existing rule over appending qualifications
-- **AND** a replacement preserves the established scope, exceptions, and normative strength
+- **AND** a replacement or rewrite preserves every valid obligation, warning, exception, and identifier, the established
+  scope, and the normative strength, and may correct verified errors or remove established duplication and obsolete
+  content
+- **AND** the proposed action and its scope are derived from the verified evidence, so a remedy that worked in one place
+  is not stated as a universal instruction
 - **AND** the incident evidence a rule rests on stays recoverable behind its `captured:` marker rather than in the
   rule's text
 - **AND** the capture's verdict states the proposed net `AGENTS.md` delta in lines (additions minus retirements) and its

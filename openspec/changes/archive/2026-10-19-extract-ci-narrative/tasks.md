@@ -111,8 +111,10 @@
 - [x] 7.1 The owner's manual review pass was requested after the loop was clean and the capture ran. **Done** —
       requested on 2026-10-19 once round 8 was clean and the capture applied; the work stays uncommitted until the owner
       answers.
-- [ ] 7.2 The change was archived with `openspec archive extract-ci-narrative --yes`, the change-dir move and the
-      `openspec/specs` sync staged together, and the archive commit ridden on this unit's PR.
+- [x] 7.2 The change was archived with `openspec archive extract-ci-narrative --yes`, the change-dir move and the
+      `openspec/specs` sync staged together, and the archive commit ridden on this unit's PR. **Done** — archived as
+      `2026-10-19-extract-ci-narrative`; the move is staged with no spec sync, since the change declares
+      `skip_specs: true` and modifies no capability spec, and the archive commit rides PR #644.
 
 ## Workflow follow-up
 

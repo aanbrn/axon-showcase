@@ -17,12 +17,12 @@ slips that were caught only by a human or a review pass are blocked by construct
 The repository SHALL provide a tracked git `pre-commit` hook that inspects the staged set before a commit is created and
 refuses the commit when it detects a mechanically defective state: the project's formatter check fails; a staged path is
 a generated artifact that must not be committed; a path is staged and then modified again so the index no longer matches
-the working tree; a staged file carries a merge conflict marker; a `captured:` marker is misplaced in a staged
-`AGENTS.md`; or a change dir under `openspec/changes/archive/**` is staged while the spec sync `openspec archive` wrote
-under `openspec/specs/**` is left unstaged or untracked. The hook SHALL name each offending path and the reason and
-SHALL exit non-zero. The hook's path parsing SHALL be quote-safe: every path it reads from git SHALL be the real path
-rather than git's C-quoted rendering, so a path containing non-ASCII bytes is inspected exactly like any other and no
-check is silently skipped for it.
+the working tree; a staged file carries a merge conflict marker; a `captured:` marker is misplaced in a staged guidance
+file (`AGENTS.md`, or a project-authored `.opencode/agent/*.md` or `.opencode/skills/*/SKILL.md`); or a change dir under
+`openspec/changes/archive/**` is staged while the spec sync `openspec archive` wrote under `openspec/specs/**` is left
+unstaged or untracked. The hook SHALL name each offending path and the reason and SHALL exit non-zero. The hook's path
+parsing SHALL be quote-safe: every path it reads from git SHALL be the real path rather than git's C-quoted rendering,
+so a path containing non-ASCII bytes is inspected exactly like any other and no check is silently skipped for it.
 
 #### Scenario: A failing formatter check refuses the commit
 
@@ -53,8 +53,9 @@ check is silently skipped for it.
 
 #### Scenario: A misplaced captured marker refuses the commit
 
-- **WHEN** a staged `AGENTS.md` carries a `captured:` marker that is not inside a rule block (for example one sitting on
-  a plain `- Text` bullet)
+- **WHEN** a staged guidance file — `AGENTS.md`, or a project-authored `.opencode/agent/*.md` or
+  `.opencode/skills/*/SKILL.md` — carries a `captured:` marker that is not inside a rule block (for example one sitting
+  on a plain `- Text` bullet)
 - **THEN** the guard refuses the commit and names the offending marker's location
 
 #### Scenario: A clean staged set proceeds
@@ -118,8 +119,9 @@ directory, and SHALL provide an install step that applies it. The guard SHALL be
 
 ### Requirement: Captured marker placement is verified by the build
 
-The standard `check` task SHALL verify that each `captured:` provenance marker in `AGENTS.md` lies within a rule block —
-a bold-lead bullet or a bold-lead paragraph — and never on a plain `- Text` bullet, so a misplaced marker fails the CI
+The standard `check` task SHALL verify that each `captured:` provenance marker in `AGENTS.md` and in the
+project-authored guidance files (`.opencode/agent/*.md` and `.opencode/skills/*/SKILL.md`) lies within a rule block — a
+bold-lead bullet or a bold-lead paragraph — and never on a plain `- Text` bullet, so a misplaced marker fails the CI
 `build` gate even when no local hook is installed or the hook was bypassed. A backticked mention of the token in prose
 (`` `captured:` ``) is not a marker and SHALL NOT be treated as one. The marker's existence rule (each captured rule
 carries a greppable `captured: <unit>` origin) is specified in `showcase/quality/agent-skills`.
@@ -127,22 +129,30 @@ carries a greppable `captured: <unit>` origin) is specified in `showcase/quality
 #### Scenario: The standard check verifies marker placement
 
 - **WHEN** the standard `check` task runs
-- **THEN** it includes the `captured:` marker-placement verification for `AGENTS.md`
+- **THEN** it includes the `captured:` marker-placement verification for `AGENTS.md` and each project-authored guidance
+  file
 
 #### Scenario: A marker outside a rule block fails the build
 
-- **WHEN** a `captured:` marker in `AGENTS.md` sits on a plain `- Text` bullet rather than inside a rule block
+- **WHEN** a `captured:` marker in `AGENTS.md` or a project-authored guidance file sits on a plain `- Text` bullet
+  rather than inside a rule block
 - **THEN** the marker-placement verification fails and reports the offending location
 
 #### Scenario: A backticked prose mention is not a marker
 
-- **WHEN** `AGENTS.md` mentions the token in prose as a backticked `` `captured:` ``
+- **WHEN** a guidance file mentions the token in prose as a backticked `` `captured:` ``
 - **THEN** the marker-placement verification does not treat that mention as a marker
 
 #### Scenario: Correctly placed markers pass
 
-- **WHEN** every `captured:` marker in `AGENTS.md` lies within a rule block
+- **WHEN** every `captured:` marker in `AGENTS.md` and the project-authored guidance files lies within a rule block
 - **THEN** the marker-placement verification passes
+
+#### Scenario: A misplaced marker in a project guidance file fails the build
+
+- **WHEN** a `captured:` marker in a project-authored `.opencode/agent/*.md` or `.opencode/skills/*/SKILL.md` file sits
+  on a plain `- Text` bullet rather than inside a rule block
+- **THEN** the marker-placement verification fails and names that file and the offending location
 
 ### Requirement: The guard's checks are covered by tests run in the build
 

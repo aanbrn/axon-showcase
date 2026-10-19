@@ -3,25 +3,27 @@
 ## Purpose
 
 Provides the repository's agent capabilities: curated, vendored skill sets under `.opencode/skills/` (so agents can run
-the AxonIQ Axon 4→5 migration recipes against this codebase), the knowledge-authoring standard `AGENTS.md` entries
-follow (representation, one authoritative definition per subject, the procedure and gotcha shapes, the evidence rules,
-and the validation pass — applied by the capture when authoring and the audit when reconciling), the structured writing
-standard every agent-authored technical artifact follows (stated once in `AGENTS.md`, applied while drafting and checked
-by the review and audit subagents), and the locally-defined quality-gate and analysis subagents under `.opencode/agent/`
-— the per-unit review and lesson-capture agents, the experience-analyzer, the visual and diagram agents, and the
-on-demand auditors of the project-owned agent tooling (the guidance and project-authored `.opencode/` files, plus any
-generated or vendored file that contradicts how the repository uses it, the always-loaded instruction budget it measures
-with the extraction opportunities that surface where guidance has no destination yet, the meta rules it reports with
-their origins, the merge, removal, route, and extraction candidates it reports, and the authoring-system gaps it traces
-to a mechanism that produces an artifact), of the `openspec/specs/` corpus, of the architecture (the ADRs, the service,
-module, and spec-decomposition surface, where a deliberate decision's rationale is not recorded, and where a record's
-recorded premise appears met — a deferral's `Revisit when:` condition, or a parked `docs/ideas.md` entry whose work has
-landed, fully or partly, or whose objective a different mechanism achieves), of the human-facing `README.md` (its claims
-against the repository, its shape against the README convention, and its coverage of the human-visible capabilities),
-and the scheduled unattended run that performs the audits without a human asking, together with the standing owner-gated
-unit that applies an audit report's reduction candidates, and the project-authored command definitions under
-`.opencode/commands/` — their authoring shape, the repository lifecycle a mutating unit owes, and how an audit's
-approved findings are delivered as separate units by the route each finding's kind requires.
+the AxonIQ Axon 4→5 migration recipes against this codebase), the project-authored guidance skills there beside them
+(the `check-and-test-authoring` reference and the `setup-*` skills, loaded on demand at the trigger `AGENTS.md` names),
+the knowledge-authoring standard `AGENTS.md` entries follow (representation, one authoritative definition per subject,
+the procedure and gotcha shapes, the evidence rules, and the validation pass — applied by the capture when authoring and
+the audit when reconciling), the structured writing standard every agent-authored technical artifact follows (stated
+once in `AGENTS.md`, applied while drafting and checked by the review and audit subagents), and the locally-defined
+quality-gate and analysis subagents under `.opencode/agent/` — the per-unit review and lesson-capture agents, the
+experience-analyzer, the visual and diagram agents, and the on-demand auditors of the project-owned agent tooling (the
+guidance and project-authored `.opencode/` files, plus any generated or vendored file that contradicts how the
+repository uses it, the always-loaded instruction budget it measures with the extraction opportunities that surface
+where guidance has no destination yet, the meta rules it reports with their origins, the merge, removal, route, and
+extraction candidates it reports, and the authoring-system gaps it traces to a mechanism that produces an artifact), of
+the `openspec/specs/` corpus, of the architecture (the ADRs, the service, module, and spec-decomposition surface, where
+a deliberate decision's rationale is not recorded, and where a record's recorded premise appears met — a deferral's
+`Revisit when:` condition, or a parked `docs/ideas.md` entry whose work has landed, fully or partly, or whose objective
+a different mechanism achieves), of the human-facing `README.md` (its claims against the repository, its shape against
+the README convention, and its coverage of the human-visible capabilities), and the scheduled unattended run that
+performs the audits without a human asking, together with the standing owner-gated unit that applies an audit report's
+reduction candidates, and the project-authored command definitions under `.opencode/commands/` — their authoring shape,
+the repository lifecycle a mutating unit owes, and how an audit's approved findings are delivered as separate units by
+the route each finding's kind requires.
 
 ## Requirements
 
@@ -413,10 +415,12 @@ owns, not this one.
 - **THEN** the main agent decides from the unit's own evidence whether it shows a candidate lesson, and invokes the
   `lesson-capture` subagent only when it does — otherwise the capture is skipped and the skip recorded with its reason,
   so a skip is a recorded decision rather than a run that found nothing
-- **AND** the `lesson-capture` subagent proposes `AGENTS.md` gotchas/conventions from the unit's lessons, which the main
-  agent verifies and applies
-- **AND** each proposed addition names the existing bullet it extends, or states that no bullet covers it — a new rule
-  merges into or replaces one rather than accreting
+- **AND** the `lesson-capture` subagent proposes each lesson as an addition to the artifact that owns it — an
+  `AGENTS.md` gotcha or convention, or a check/test authoring mode in the `check-and-test-authoring` skill, or a pair of
+  additions when the lesson has both halves — which the main agent verifies and applies
+- **AND** each proposed addition names the existing rule it extends — an `AGENTS.md` bullet, or a check/test authoring
+  mode already in the skill — or states that none covers it, so a new rule merges into or replaces one rather than
+  accreting
 - **AND** alongside its additions, it reports the rules this unit makes obsolete or redundant — a rule whose mechanism
   the unit removed, or one the unit's new enforcement subsumes — as retirement or replacement candidates, each naming
   the rule, why the unit makes it so, and the retirement or replacement it proposes, as candidates for the main agent
@@ -1677,3 +1681,56 @@ session-continuity preflight.
 
 - **WHEN** a mutating command invokes `review-quick`
 - **THEN** the invocation carries the session-continuity preflight the review gate's procedure owns
+
+### Requirement: Check and test authoring guidance is maintained in its project skill
+
+A check-and-test authoring reference SHALL exist as the project skill
+`.opencode/skills/check-and-test-authoring/SKILL.md`, not as a section of the always-loaded `AGENTS.md`. Each mode the
+skill records — how a check, test, or gate can fail, what it must read, and where its control is injected — SHALL carry
+its required action, the confirmation that established it, the incident evidence behind it, and, where the rule has one,
+its `captured:` provenance. `AGENTS.md` SHALL carry, at the point where a check, a test, or a gate is authored, the
+instruction to load that skill before acting; it MAY name a mode as an example of what the skill holds, and SHALL NOT
+restate a mode's rule.
+
+A lesson SHALL be routed by the decision it governs, not by its label — authoring, correction, evidence, or both — as
+the scenarios below define, and the skill SHALL never restate an evidence rule that lives at root.
+
+#### Scenario: The skill records each mode with its evidence
+
+- **WHEN** a maintainer inspects how a check or a test that can actually fail is authored
+- **THEN** `.opencode/skills/check-and-test-authoring/SKILL.md` records each mode with its required action, the
+  confirmation that established it, and its incident evidence, and preserves the `captured:` provenance a rule it holds
+  carries
+
+#### Scenario: Root guidance names the skill at the trigger
+
+- **WHEN** an agent is about to write or change a test, a check, or a gate
+- **THEN** `AGENTS.md`'s root guidance instructs it to load the `check-and-test-authoring` skill before acting
+
+#### Scenario: A mode's rule is not restated at root
+
+- **WHEN** a mode's rule is recorded in the skill body
+- **THEN** `AGENTS.md`'s root guidance does not restate the rule — it may name the mode as an example — so the skill
+  body is where that mode is maintained and corrected
+
+#### Scenario: A new authoring mode is recorded in the skill
+
+- **WHEN** a lesson's decision is how to author or verify a check, test, or gate
+- **THEN** it is recorded as a section of the skill body, naming the mode it extends or stating that none covers it
+
+#### Scenario: A correction updates the mode in place
+
+- **WHEN** a recorded mode turns out to be incomplete or wrong
+- **THEN** its section in the skill body is corrected, rather than a second rule being added to `AGENTS.md` or beside it
+
+#### Scenario: An evidence rule stays at root and is not duplicated in the skill
+
+- **WHEN** a lesson changes how evidence is interpreted — a search's completeness, a glob's vacuity, a reproduction's
+  validity, or a report's "nothing to report" — and it is needed without authoring a check
+- **THEN** it is recorded in `AGENTS.md`'s evidence rules, and the skill body does not repeat it
+
+#### Scenario: A mixed lesson is split by decision
+
+- **WHEN** a lesson carries an authoring half and an evidence half
+- **THEN** the authoring half is recorded in the skill and the evidence half at root, so neither destination restates
+  the other's rule

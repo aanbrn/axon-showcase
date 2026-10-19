@@ -126,6 +126,6 @@
       rule, the file-scoped-gate rule, the capture-destination rule, and the widened marker-guard sentence; +11 lines
       against a 245-line deletion.
 - [x] 4.6 Request the owner's manual review pass; do not commit, push, open a PR, archive, or merge before it.
-- [ ] 4.7 At archive, refresh the `agent-skills` Purpose to name the project-authored guidance skills (the
+- [x] 4.7 At archive, refresh the `agent-skills` Purpose to name the project-authored guidance skills (the
       `check-and-test-authoring` skill, and the existing `setup-*` skills) alongside the vendored set — a delta cannot
       carry a Purpose.

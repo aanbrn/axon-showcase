@@ -51,6 +51,17 @@ directions are reported separately, since an addition grows the file and a retir
 - **General enough** — it applies across a recognizable class of future tasks, not one file or one incident.
 - **High-confidence** — its scope, exceptions, and evidence are known, so it will not mislead outside its domain.
 
+**Then demonstrate the decision difference the addition makes — a proposal that only restates an obligation the target
+bullet already carries is `already covered`, not an addition.** State the action a future agent takes under the existing
+guidance (permitted, required, or insufficiently specified) and the action the proposed text requires or prohibits under
+an explicit condition, and back the difference with a repository-backed example of why it matters. An additional
+incident, example, citation, or provenance marker alone is not a difference: the rule's text carries the rule, and the
+evidence behind it stays recoverable through the `captured:` marker and git history. Prefer an exact replacement of the
+existing rule over appending qualifications, preserving the established scope, exceptions, and normative strength —
+brevity must not weaken guidance. A partial restatement takes the **split** disposition: keep the new clause, drop the
+restatement. The workflow's own branch for a restated remedy (the capture Decision points in `AGENTS.md`) is the site
+that applies this test there.
+
 The default evidence threshold is **two independent occurrences, or one severe verified incident with a clear preventive
 action**. A rule that fails the gate is not a proposal: route it to a check, a spec, an ADR, or the change dir instead
 of `AGENTS.md`. State the decision each proposed rule governs, and whether a future change would plausibly hit it and
@@ -92,7 +103,8 @@ for duplication, contradiction, unclear scope, surviving constraints, and eviden
   net figure is the proposed `AGENTS.md` delta in lines — the additions minus the retirements, as authored; an
   authoring-system recommendation changes no `AGENTS.md` line.
 - Budget each proposal: the shared report contract's per-item budget, plus the rule and its target location — the budget
-  is per item, not a cap on the total.
+  is per item, not a cap on the total. A proposal also states its decision difference — the before/after pair — so a
+  reviewer can see the increment without re-deriving it from the rule.
 - Report **authoring-system recommendations** as their own group — each naming the mechanism, the gap, the proposed
   change, and why an entry would not suffice, and each carrying the shared report contract's per-item budget — never as
   an `AGENTS.md` addition.

@@ -13,6 +13,20 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-19
+
+- Enforce the command lifecycle preflight with a check rather than prose in seventeen files — parked; no change yet.
+  `harden-command-definitions` added the requirement that a project-authored command starting a mutating unit states the
+  lifecycle its unit owes, and wrote it into ten command definitions, but nothing enforces it: the drift it repairs
+  (four of five apply-finding commands running the formatter and a quick review instead of the full review gate) was
+  invisible to every gate for many changes, and a rule copied into N files is the drift surface the single-sourcing
+  bullet names. A `verifyCommandLifecycle` task in `check`, in the `VerifyDocumentedPinsTask` shape, would declare the
+  mutating command set beside the check and fail when a declared command's text lacks the lifecycle anchors the
+  requirement names (the freshly-fetched `origin/main` branch rule and the approval clause, matched as tokens) or when a
+  declared entry names no file, so the list cannot go stale by deletion. Parked rather than built: it needs its own
+  `commit-hygiene` or `agent-skills` delta and a `*RulesTests` control, and the judgment of _which_ commands are
+  mutating stays human.
+
 ## 2026-10-18
 
 - Sweep the two enumerations `#628` (`rework-the-review-loop`) left stale — parked; no change yet. It added

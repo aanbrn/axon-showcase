@@ -5,31 +5,50 @@ description:
   producing a defect
 ---
 
-Run the agent-tooling audit to check the project's guidance and agent files for consistency and conciseness.
+Run the agent-tooling audit, which reports only — it never edits a file.
 
-1. Invoke the `agents-auditor` subagent (`.opencode/agent/agents-auditor.md`) on the repository — it reads `AGENTS.md`
-   and the project-authored `.opencode/` files in full, and also reads the generated (OpenSpec instruction files) and
-   vendored (`axon4to5-*`) ones to report any that contradict how the repository uses them; it checks each `AGENTS.md`
-   entry against the knowledge-authoring standard (the `agent-skills` spec), reports a passage that violates the
-   Structured Writing Standard with its practical impact and a minimally invasive restructure, and traces a recurring
-   defect to the mechanism that produced it (an authoring-system gap, or an advisory item where that mechanism is
-   excluded); it measures the always-loaded instruction budget — the file's size and its size by section, the effective
-   bound with its source, the first rule beyond the derived threshold, the growth since the newest report under
-   `docs/audits/`, the bytes safely removable, the rules that must stay loaded and the rules safe to load on demand, and
-   the extraction candidates with their retrieval-path results; it reports the accreted meta rules with their origins
-   (the `captured:` marker, or `git blame` / `git log -S`), and its verdict counts the accreted rules as distinct meta
-   rule units carrying a `captured:` marker and states how many are new since the newest report under `docs/audits/`;
-   and it reports an **extraction opportunity** — a source unit whose destination does not exist yet, and which
-   therefore cannot yet pass the retrieval-path test — as a design recommendation excluded from the verdict, in the
-   ledger's own subsection. It never edits an excluded file.
-2. Present its report in the contract it returns (the verdict line first, then findings budgeted per item and grouped by
-   severity, plus separate advisory (third-party inconsistency), accretion (meta rules with their origins), and
-   authoring-system gap (a recurring defect's mechanism) classes, the merge, removal, and route candidates counted in
-   the verdict line, and the separate `Instruction-budget ledger` section with its extraction candidates and its
-   `Extraction opportunities` subsection, which is excluded from the verdict counts), presenting each item as the shared
-   report contract requires — do not re-summarize it.
-3. Ask the user which findings to apply — do not edit files without their go-ahead.
-4. Apply the approved findings, run `./gradlew spotlessApply` for the formatter-wrapped files the audit edited
-   (`AGENTS.md` and the project-authored `.opencode/` markdown — the audit's `README.md` copy is fixed by the change's
-   docs sweep, and its spec-side copy routes to the corpus owner), then re-run the `review-quick` subagent over the
-   resulting diff before reporting the audit done.
+**Trigger** — the owner invokes `/audit-agents`, or the scheduled `audit` workflow runs it report-only.
+
+**Procedure**
+
+1. Invoke the `agents-auditor` subagent (`.opencode/agent/agents-auditor.md`) on the repository. Its definition owns
+   what it reads, the surfaces it sweeps, its finding classes, its exclusion boundary, and its report contract.
+2. Present its report in the contract it returns — the verdict line first, then its findings, advisory, accretion, and
+   authoring-system-gap classes, its instruction-budget ledger, and its candidate classes, each as the shared report
+   contract requires. Do not re-summarize it.
+3. Ask the owner which findings to apply.
+
+**Decision points**
+
+- IF the report carries nothing actionable, or the owner approves nothing, THEN report that and stop — create no unit.
+- IF the approved findings differ in delivery route or in scope, THEN split them into separate units, each scoped to its
+  own artifacts and diff.
+- Do not batch unrelated fixes merely because this report carried them together.
+- An advisory observation — including one about a generated or vendored file — is the owner's decision, never an
+  automatic fix.
+- A reduction candidate is drained by the standing `/apply-audit-reductions` unit, not applied here.
+
+**Applying approved findings**
+
+- Report generation and applying are separate: the applying is a unit of its own, never a continuation of this run.
+- Route each finding by its kind. `AGENTS.md`'s "Workflow: Author a spec delta and archive" owns the spec route (a delta
+  now, the main spec only at archive); a docs correction is a docs unit; and a command or subagent-definition change
+  that alters spec-covered behavior goes through the normal change workflow with that capability's delta — the route
+  this audit's definition findings take, never a docs edit.
+- Run the full per-unit review gate over the result. `AGENTS.md`'s "Workflow: The review gate" owns its steps, including
+  the reviewer-session preflight; this command points at it rather than restating it.
+
+**Verification** — `./gradlew spotlessApply` for the formatter-wrapped files the unit edited.
+
+**Completion criteria** — the owner has the report and has chosen; or, for an approved selection, every unit is applied
+and has completed the review gate with the manual pass requested.
+
+**Repository lifecycle**
+
+- The unit starts on its own branch, created from a freshly fetched `origin/main`.
+- Unrelated dirty-worktree changes are preserved.
+- The work stays uncommitted until the manual approval pass.
+- Nothing is committed, pushed, turned into a pull request, archived, or merged without that explicit approval.
+- The full per-unit review gate runs over the result. `AGENTS.md`'s "Workflow: Change lifecycle" and "Workflow: The
+  review gate" own the branch, uncommitted-work, approval, and review steps, including the reviewer-session preflight;
+  this command points at them rather than restating them.

@@ -19,7 +19,9 @@ recorded premise appears met — a deferral's `Revisit when:` condition, or a pa
 landed, fully or partly, or whose objective a different mechanism achieves), of the human-facing `README.md` (its claims
 against the repository, its shape against the README convention, and its coverage of the human-visible capabilities),
 and the scheduled unattended run that performs the audits without a human asking, together with the standing owner-gated
-unit that applies an audit report's reduction candidates.
+unit that applies an audit report's reduction candidates, and the project-authored command definitions under
+`.opencode/commands/` — their authoring shape, the repository lifecycle a mutating unit owes, and how an audit's
+approved findings are delivered as separate units by the route each finding's kind requires.
 
 ## Requirements
 
@@ -1330,8 +1332,10 @@ SHALL NOT run automatically.
 #### Scenario: Application is owner-gated and reviewed
 
 - **WHEN** the unit applies reductions
-- **THEN** it does so only on the owner's selection, runs the `review-quick` subagent over the result until clean, and
-  asks for the owner's manual review before the change ships
+- **THEN** it does so only on the owner's selection, and it runs the full per-unit review gate over the result — the
+  pre-write pass and its claims table, the formatter and mechanical checks, the `review-quick` loop with the
+  session-continuity preflight, the deep-review routing decision, a required deep review, the capture decision, and the
+  owner's manual review pass — before the change ships
 
 #### Scenario: An extraction candidate's application is routed to a change
 
@@ -1509,3 +1513,91 @@ owns, not this one.
 - **THEN** it is reported as a finding, with its location, the practical impact of the current structure, and a
   minimally invasive restructure, without changing the passage's technical meaning, normative strength, or required
   format, and without introducing a requirement the passage did not state
+
+### Requirement: An audit's approved findings are delivered as separate units
+
+An audit command SHALL separate report generation from applying findings: the report is presented and the owner selects,
+and the applying is a unit of its own. A run with nothing actionable or approved SHALL report that and stop, creating no
+unit. Approved findings whose routes or scopes differ SHALL be split into separate units, and unrelated fixes SHALL NOT
+be batched because one report carried them.
+
+#### Scenario: Report generation is separated from applying findings
+
+- **WHEN** an audit command has presented its findings and the owner has selected from them
+- **THEN** applying the selection is a unit of its own, not a continuation of the reporting run
+
+#### Scenario: A run with nothing actionable stops without a unit
+
+- **WHEN** an audit reports no finding the owner approves, or none that is actionable
+- **THEN** the command reports that and stops, creating no unit
+
+#### Scenario: Findings with different routes are separate units
+
+- **WHEN** approved findings differ in delivery route or in scope
+- **THEN** they are split into separate units, each scoped to its own artifacts and diff
+
+#### Scenario: Unrelated fixes are not batched
+
+- **WHEN** one report carries findings of unrelated subjects
+- **THEN** they are not batched into one unit merely because the same report carried them
+
+#### Scenario: An applying unit runs the full review gate
+
+- **WHEN** a unit applies approved audit findings
+- **THEN** it runs the full per-unit review gate, not the formatter and a quick review alone
+
+### Requirement: An audit finding's delivery route follows its kind
+
+An approved audit finding SHALL be delivered by the route its kind requires. The main specs SHALL stay immutable outside
+archive: a spec change routes through an OpenSpec change with a delta spec, and a code change, or a command or
+subagent-definition change altering spec-covered behavior, through the normal change workflow. An advisory observation
+is the owner's decision, never applied automatically.
+
+#### Scenario: A spec change routes through a change with a delta
+
+- **WHEN** an approved finding changes a capability's behavior
+- **THEN** it routes through an OpenSpec change carrying a delta spec, and the main spec is edited only at archive
+
+#### Scenario: A definition change altering spec-covered behavior routes through a change
+
+- **WHEN** an approved finding edits a command or subagent definition whose behavior a capability spec describes
+- **THEN** it routes through the normal change workflow with that capability's delta, not a docs edit
+
+#### Scenario: An advisory observation is the owner's decision
+
+- **WHEN** a report carries an advisory observation
+- **THEN** it is presented for the owner's decision and is never applied automatically
+
+#### Scenario: A reduction candidate keeps its own route
+
+- **WHEN** an approved finding is a merge, removal, route, or extraction candidate
+- **THEN** it is applied by that kind's route, and an extraction opportunity is never applied at all
+
+### Requirement: Project-authored command definitions that start a mutating unit carry the lifecycle preflight
+
+A project-authored command that starts a mutating unit that ships SHALL state the lifecycle its unit owes: its own
+branch from a freshly fetched `origin/main`; unrelated dirty changes preserved; work uncommitted until the manual
+approval pass; and no commit, push, pull request, archive, or merge without that approval. It SHALL point at the
+workflow owning the lifecycle and the review gate, and every `review-quick` invocation SHALL carry the
+session-continuity preflight.
+
+#### Scenario: A mutating command states the branch rule
+
+- **WHEN** a project-authored command starts a mutating unit that ships
+- **THEN** it states that the unit starts on its own branch from a freshly fetched `origin/main`
+
+#### Scenario: A mutating command preserves unrelated work
+
+- **WHEN** a unit the command starts finds unrelated dirty-worktree changes
+- **THEN** the command preserves them rather than reverting or committing them
+
+#### Scenario: Work stays uncommitted until approval
+
+- **WHEN** a mutating command's unit has finished its edits
+- **THEN** the work stays uncommitted until the owner's explicit approval, and no commit, push, pull request, archive,
+  or merge happens before it
+
+#### Scenario: A review invocation carries the session preflight
+
+- **WHEN** a mutating command invokes `review-quick`
+- **THEN** the invocation carries the session-continuity preflight the review gate's procedure owns

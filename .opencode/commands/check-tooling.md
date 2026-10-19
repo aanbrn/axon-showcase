@@ -4,23 +4,28 @@ description: Check whether this machine has everything the build, tests, and dep
 
 Check this machine's toolchain against the project's prerequisites.
 
-Follow the project's `scripts/doctor.sh`: run it from the repo root. It detects the platform, probes each prerequisite
-for presence and its version floor, checks the repo state (git hooks installed, Docker daemon reachable), and prints one
-line per prerequisite with the platform-appropriate install command for anything missing or too old. The README's
-Prerequisites table is the documented list; run the script rather than reciting it.
+**Trigger** — the owner invokes `/check-tooling`.
 
-Report the result to the user as what to do, not as a raw dump:
+**Procedure**
 
-- If every required prerequisite is satisfied, say so in one line and list only the optional ones that are missing.
-- For each unsatisfied or too-old prerequisite, give the user the exact command the doctor printed — that is the install
-  hint for their platform, which the README's Prerequisites table also carries.
+1. Run `./scripts/doctor.sh` from the repository root — the script is the authority for what it probes, its
+   required/optional classification, and the install command it prints for anything missing or too old.
+2. Report the result to the owner as what to do, not as a raw dump: for each unsatisfied or too-old prerequisite, give
+   the exact command the doctor printed.
+
+**Decision points**
+
+- IF every required prerequisite is satisfied, THEN say so in one line and list only the optional ones that are missing.
 - Report the doctor's own required/optional classification rather than reciting one: its default run exits non-zero only
-  when a required prerequisite is unsatisfied (under `--all`, any missing prerequisite fails the run), so a tool the
-  doctor lists as optional must not be presented as blocking.
+  when a required prerequisite is unsatisfied, so a prerequisite the doctor lists as optional is not blocking.
+- IF the doctor reports a prerequisite as `unknown` (its version could not be read), THEN say that explicitly rather
+  than treating it as satisfied.
+- `./scripts/doctor.sh --all` also fails on a missing optional prerequisite; use the default invocation unless the owner
+  wants the stricter verdict.
 
-Do not restate the tool list or the install commands from memory — the doctor's output is the source. If the doctor
-reports a prerequisite as `unknown` (its version could not be read), say that explicitly rather than treating it as
-satisfied.
+**Failure handling** — a doctor run that cannot complete is reported with its output.
 
-`./scripts/doctor.sh --all` exits non-zero when an optional prerequisite is missing too; use the default invocation
-unless the user wants the stricter verdict.
+**Completion criteria** — the owner has the verdict, with an install command for each unsatisfied prerequisite.
+
+Do not restate the tool list or the install commands from memory — the doctor's output is the source, and the README's
+Prerequisites table is the documented list.

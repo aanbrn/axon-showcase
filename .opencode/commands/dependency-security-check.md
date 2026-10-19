@@ -2,28 +2,42 @@
 description: Run the JVM Snyk scan and the web UI npm audit
 ---
 
-Run `./gradlew dependencySecurityCheck` (JVM, Snyk) and `./gradlew :showcase-web-ui:npmAudit` (web UI, `npm audit`) from
-the repository root and report the results.
+Report the dependency-security scan results. This command reports only — it never fixes a finding unless asked.
 
-Report any vulnerabilities found, grouped by project and severity, and note any errors. Do not attempt to fix findings
-unless asked.
+**Trigger** — the owner invokes `/dependency-security-check`, or the weekly `dependency-security` workflow runs the same
+scan tasks.
 
-The web UI's npm dependencies are audited separately by `:showcase-web-ui:npmAudit`, which fails on high-severity
-findings and needs no Snyk token or policy file (see ADR-0014).
+**Procedure**
 
-The scan passes `--policy-path=.snyk` (the root Snyk policy), which version-pins the ignored findings
-(`* > pkg@version`) so only the exact assessed vulnerable versions are suppressed, each with a short-term `expires` so
-it re-surfaces if not resolved in time. The currently-suppressed findings and their rationale live in the `.snyk` header
-comment and each ignore's `reason` field — see those rather than restating them here.
+1. Run both scans from the repository root: `./gradlew dependencySecurityCheck` (JVM, Snyk) and
+   `./gradlew :showcase-web-ui:npmAudit` (web UI, `npm audit`).
+2. Report the two outcomes **separately** — a clean JVM scan says nothing about the web UI, and the reverse.
+3. Report the vulnerabilities found, grouped by project and severity.
 
-**Snyk rate limit:** the free org plan allows **200 Open Source tests per billing period** (monthly; confirmed by the
-plans-page FAQ and the CLI's own "monthly limit of 200 private tests" message — note the docs.snyk.io usage-settings
-page's "400" is stale). A test is counted **only for a manifest file where vulnerabilities are identified**, so the
-quota is consumed by scans that _find_ issues, not by clean ones. Because `--policy-path=.snyk` suppresses every
-finding, `dependencySecurityCheck` reports zero identified vulnerabilities and effectively does not consume quota — a
-policy-passing scan works even after the quota has been exhausted by unfiltered scans. The rate-limit failure ("You have
-reached your monthly limit of 200 private tests") therefore only bites when a scan actually identifies findings, which
-is the case to expect on the raw `snyk test --all-sub-projects --json` verification runs. If the quota is exhausted,
-wait for the monthly reset (start of the next calendar month in practice; see `app.snyk.io → Settings → Usage`) rather
-than retrying repeatedly, and do not treat the rate-limit failure as a real vulnerability finding. A full unfiltered
-report is a large response; cache it to a temp file if it will be queried more than once.
+**Decision points**
+
+- IF a scan fails, THEN report the failure as a scan outcome, separately from any finding.
+- IF the npm-audit task reports suppressions, THEN surface the outcomes it distinguishes: the suppressions it applied,
+  each violation it reports (a malformed suppression entry, or one matching no finding), and the unsuppressed findings —
+  an expired entry suppresses nothing, so its finding appears among the unsuppressed ones. The task fails on
+  high-severity findings and needs no Snyk token or policy file (ADR-0014).
+- IF a high-severity finding is unsuppressed, THEN report it as a finding rather than as a task failure.
+- IF the Snyk output carries a rate-limit message, THEN report it as an operational condition, not as a vulnerability
+  finding.
+
+**Suppressions** — the Snyk scan passes `--policy-path=.snyk` (the root policy), which version-pins each ignored finding
+(`* > pkg@version`) with a short-term `expires` so it re-surfaces if unresolved. The suppressed findings and their
+rationale live in `.snyk`'s header comment and each ignore's `reason` — read them there rather than restating them here.
+The web UI's suppressions are `showcase-web-ui/npm-audit-ignores.json`, whose staleness `npmAudit` fails on.
+
+**Operational guidance for the Snyk service** — a plan's quota, its billing rule, and its reset schedule are properties
+of an external service that change without this repository moving, so this command states none of them: IF a run reports
+a quota or rate-limit condition, THEN read the provider's own usage page (or the CLI's message) at that moment and act
+on what it says. Do not treat such a condition as a vulnerability finding, and do not retry a rate-limited scan in a
+loop.
+
+**Failure handling** — a scan that cannot run (a missing `SNYK_TOKEN`, no network) is reported as an unrun scan, never
+as a clean one.
+
+**Completion criteria** — the owner has both scans' outcomes separately, with every suppression outcome and finding the
+tasks reported.

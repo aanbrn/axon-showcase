@@ -406,7 +406,15 @@ final edit). captured: decide-against-pre-review
   or sweep — the restatement is the drift surface — so a loop that keeps finding another site of one set
   (`incomplete-enumeration` round after round) single-sources it rather than sweeping, deriving the sites from the
   owner's own scope (its bearers crossed with its item classes); a field-list grep is a lead, never a completeness gate.
-  captured: establish-structured-writing-standard captured: require-evidence-in-report-contracts
+  The boundary deciding whether a site states an item or points at it is the imperative-versus-procedure split: an
+  imperative a reader must act on before the step that would touch it — a warning, a safety condition, a lifecycle
+  requirement, a confirmation — is stated at every site where that step appears, so N definitions carrying the same four
+  imperatives is this rule working rather than the restatement it warns against, and a sweep over such a set corrects
+  all N (correcting the one a finding named and leaving its siblings is the `incomplete-enumeration` recurrence); only
+  the owner's procedure steps, field set, or record are pointed at, since those are what a copy drifts from.
+  Over-statement is the mirror defect: a site that restates a procedure, a skill's steps, or a script's semantics
+  instead of naming the owner has taken the copy this rule forbids. captured: establish-structured-writing-standard
+  captured: require-evidence-in-report-contracts captured: harden-command-definitions
 - **A clean quick review is a precondition for asking for the manual review, not a substitute for it** — it means _ask
   the user now_, not _the implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength
   of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes, without
@@ -868,8 +876,9 @@ line.
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
 ./gradlew dependencySecurityCheck
 # The scan passes --policy-path=.snyk (the root Snyk policy). The currently-suppressed findings, their expiry
-# rationale, and the rate-limit nuance live in `.snyk` (its header comment and each ignore's `reason`) and the
-# /dependency-security-check command — see those rather than restating them here. A version-pinned ignore goes dead
+# rationale live in `.snyk` (its header comment and each ignore's `reason`) — see those rather than restating them here.
+# A Snyk plan's quota and reset schedule are the provider's to state, so the command reads them from the provider at the
+# time it matters rather than pinning them. A version-pinned ignore goes dead
 # silently once a constraint or bump moves the coordinate past its pinned version — unlike the web UI's
 # `npm-audit-ignores.json`, which `npmAudit` fails on when an entry matches no finding, the `.snyk` policy has no
 # staleness guard — so sweep the ignore and its rationale comment in the change that moves past it.
@@ -1650,13 +1659,12 @@ Key modules (libraries, not services):
   though it still _reads_ them and reports an advisory item where one contradicts how the repo uses it — a
   project-authored file that shares a generated prefix, like `opsx-tool-update`, stays in scope — a boundary drawn by
   provenance, not a filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). Trigger
-  it with the `/audit-agents` command; the main agent applies the approved findings under the review gate, and one
-  audit's findings can need different delivery routes — split the output by fix type and scope each unit's artifacts and
-  diff to its own fixes, rather than running the whole audit through one unit. The scheduled variant runs unattended in
-  the `audit` workflow; the audit itself is on demand. A report's reduction candidates are drained by the standing
-  owner-gated unit `/apply-audit-reductions` (specified in `showcase/quality/agent-skills`), run per report rather than
-  left to age; the report's other findings go through the normal change workflow. captured:
-  record-agents-md-authoring-standard
+  it with the `/audit-agents` command; the main agent applies the approved findings under the review gate, whose
+  delivery routes — each unit scoped to its own artifacts and diff, split by fix type rather than run through one unit —
+  are the `showcase/quality/agent-skills` requirement's. The scheduled variant runs unattended in the `audit` workflow;
+  the audit itself is on demand. A report's reduction candidates are drained by the standing owner-gated unit
+  `/apply-audit-reductions` (specified in `showcase/quality/agent-skills`), run per report rather than left to age; the
+  report's other findings go through the normal change workflow. captured: record-agents-md-authoring-standard
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus for the cross-spec structural consistency
   `openspec validate` does not gate — title ↔ capability-path match, Purpose ↔ requirements fit, requirement
@@ -1668,8 +1676,8 @@ Key modules (libraries, not services):
   against the code (the change workflow's review loop and the archive-time sync own that), audit the corpus's capability
   decomposition (the `architecture-auditor` owns that), re-report an issue an existing gate enforces, or audit a
   proposed change's internal quality. Trigger it with the `/audit-specs` command. The main agent applies approved
-  findings through the normal change workflow (a spec edit is a change). The scheduled variant runs unattended in the
-  `audit` workflow.
+  findings through the delivery routes the `showcase/quality/agent-skills` requirement states. The scheduled variant
+  runs unattended in the `audit` workflow.
 - **Architecture-auditor subagent for design drift, unrecorded intent, and a record whose premise is due**: the
   `architecture-auditor` subagent (`.opencode/agent/architecture-auditor.md`) audits `docs/adr/` plus the architectural
   surface (the service boundaries, the module dependency graph, and the spec corpus's capability decomposition) for
@@ -1689,13 +1697,12 @@ Key modules (libraries, not services):
   behavior against the code (the review loop and archive-time sync own that), the corpus's internal structure
   (`specs-auditor` owns that), or any property an existing gate enforces. It classifies each `Revisit when:` condition
   before reporting it, and an unverifiable condition is no expiry claim. Trigger it with the `/audit-architecture`
-  command. The main agent applies the approved findings under the review gate: a finding whose fix is an ADR correction,
-  a new ADR, or an `AGENTS.md`/`README.md` clarification lands as a docs PR, while one whose correction is a code change
-  — or an edit to a subagent/command definition that changes its spec'd behavior (which owes that definition's spec
-  delta, per the multi-artifact-sweep bullet) — becomes its own change, parked as an idea until then; do not force the
-  suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet
-  narrowing the dependency broke `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`).
-  An advisory item needs the user's decision first. The scheduled variant runs unattended in the `audit` workflow.
+  command. The main agent applies the approved findings under the review gate: the route each finding takes is the
+  `showcase/quality/agent-skills` requirement's, with one addition it does not carry: a correction that becomes its own
+  change is parked as an idea until then; do not force the suggested correction into the audit-fix PR (the first audit's
+  `query-api` boundary finding was verified drift, yet narrowing the dependency broke
+  `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`). An advisory item needs the
+  user's decision first. The scheduled variant runs unattended in the `audit` workflow.
 - **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
   (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
   guide, whose content no gate checks — on three axes: accuracy against the repository, design-intent fidelity (the

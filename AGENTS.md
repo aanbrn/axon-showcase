@@ -355,9 +355,13 @@ capture-reverted-sweep-lessons (#283)
      `verifyReviewSessionContinuity`. captured: track-review-session-continuity
 4. Fix everything it finds; re-run. Repeat until it reports no new observations.
 5. Route the deep review, once, from the completed implementation, the diff, the applicable artifacts, and the existing
-   review evidence: derive the floor with `python3 scripts/review-routing.py --change <name>`, decide at or above it
-   (`REQUIRED`, `RECOMMENDED`, or `NOT_NEEDED`), and record the outcome and its signals on the change's review task in
-   `tasks.md` (or on the pull-request checklist line for a unit with no change dir).
+   review evidence: derive the floor with `python3 scripts/review-routing.py`, passing `--change <name>` when the unit
+   has a change dir and omitting it for a unit that has none; decide at or above it (`REQUIRED`, `RECOMMENDED`, or
+   `NOT_NEEDED`), and record the outcome and its signals on the change's review task in `tasks.md` (or on the
+   pull-request checklist line for a unit with no change dir).
+   - A unit with no change dir omits `--change <name>`; naming a directory that does not exist fails the derivation,
+     which the rule below reads as `REQUIRED`, so the omission is not a lower floor. What the flag supplies is the
+     tool's own contract — its docstring and its `--change` help — not a rule restated here.
    - A `REQUIRED` outcome runs before completion; a `RECOMMENDED` one needs an explicit recorded resolution; a
      `NOT_NEEDED` one creates no deep-review session, prepares no hand-over, and spends no expensive-model invocation.
    - A missing, malformed, or failed derivation is `REQUIRED` — never a silent skip.
@@ -1132,17 +1136,21 @@ invisible and no gate reads it, so an unchecked task is silently lost — a disp
 (`fix-audit-workflow-report-formatting` and `notify-owner-from-the-audit-report` deferred theirs and archived them
 unchecked) and a cluster-gated live check alike. Run the check as part of the merge (for a dispatch,
 `gh workflow run <file> --ref <branch>` against the pushed branch, so it completes inside the change's PR before the
-archive commit — only a workflow not yet on the default branch must land on `main` first), or park the follow-up in
-`docs/ideas.md` and name it in the change's report. captured: bump-snyk-cli-2026-09-29 A workflow whose run is the only
-verification must also leave the evidence a failure needs: it deletes its own environment — the deployment smoke's
-throwaway cluster goes even when a step fails — so a failed run must print the deployed signal (the pods with their
-restart counts, the recent events, each pod's log tail, and the previous log for a restarted container) in a step that
-runs before teardown, or the failure names no cause. Scope that evidence to every namespace a load-bearing component
-occupies, not just the application's: the smoke's load travels through the `ingress-nginx` controller, so a diagnostics
-step reading only `axon-showcase` leaves the hop that carries it unexamined — the step prints the `ingress-nginx` pods,
-events, and controller logs alongside the application's. A component that changes namespace takes the failure
-diagnostics with it. captured: route-the-smoke-through-the-ingress captured: fix-the-deployment-smoke-503s captured:
-notify-owner-from-the-audit-report (#327) captured: expose-grafana-by-hostname
+archive commit — only a workflow not yet on the default branch must land on `main` first), and tick its task in the
+archive commit's own edit of the archived `tasks.md`, or in a commit before the archive. The change dir's `tasks.md` is
+committed before the verification runs, so the tick is a second edit. `openspec archive --yes` continues past an
+incomplete task with a warning line rather than failing, so that line is the only signal the tick is missing. Or park
+the follow-up in `docs/ideas.md` and name it in the change's report. captured: bump-snyk-cli-2026-09-29 captured:
+fix-upstream-references-config-cache (#634) A workflow whose run is the only verification must also leave the evidence a
+failure needs: it deletes its own environment — the deployment smoke's throwaway cluster goes even when a step fails —
+so a failed run must print the deployed signal (the pods with their restart counts, the recent events, each pod's log
+tail, and the previous log for a restarted container) in a step that runs before teardown, or the failure names no
+cause. Scope that evidence to every namespace a load-bearing component occupies, not just the application's: the smoke's
+load travels through the `ingress-nginx` controller, so a diagnostics step reading only `axon-showcase` leaves the hop
+that carries it unexamined — the step prints the `ingress-nginx` pods, events, and controller logs alongside the
+application's. A component that changes namespace takes the failure diagnostics with it. captured:
+route-the-smoke-through-the-ingress captured: fix-the-deployment-smoke-503s captured: notify-owner-from-the-audit-report
+(#327) captured: expose-grafana-by-hostname
 
 `.github/workflows/audit.yml` runs the three repository audits (agent tooling, spec corpus, architecture) on a weekly
 schedule and via `workflow_dispatch`, through the OpenCode GitHub action's scheduled path (a `prompt` input, OIDC auth,

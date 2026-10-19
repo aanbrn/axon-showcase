@@ -27,9 +27,9 @@ report's reductions; it never runs automatically, and the scheduled `audit` work
      the rule's content into the spec or ADR that owns it, route that through the normal change workflow (a spec edit
      carries its archive-time sync) — do not edit a spec or ADR inline.
    - **removal**: delete the rule the candidate names, recording what the deletion loses and whether git preserves it.
-   - **extraction**: apply the retained root text, the pointer, and the destination change the candidate names. The move
-     creates or changes a destination the change owns, so route it through the normal change workflow rather than
-     editing the destination inline.
+   - **extraction**: route the move through the normal change workflow rather than editing the destination inline, since
+     it creates or changes a destination the change owns; the change follows `AGENTS.md`'s "Workflow: Extract an
+     `AGENTS.md` section" procedure.
 5. Remove the applied entries from `docs/ideas.md`.
 
 **Decision points**

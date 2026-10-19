@@ -15,6 +15,15 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-19
 
+- Carry the retrieval-path result in the audit ledger's "safe to load on demand" class — parked; no change yet. The
+  ledger contract (`showcase/quality/agent-skills`) requires each entry to state its trigger and retained pointer, but
+  not whether a destination can carry the rule, so the 2026-10-19 report lists five such rules while its own candidates
+  section says no destination was verified — a reader inherits an untested pointer (the three remaining entries were
+  verified to fail the retrieval path while implementing `add-extraction-procedure`). The fix is to the mechanism that
+  emits the report — the spec requirement and the `agents-auditor` definition — so each entry carries the retrieval-path
+  result or states that it is untested, not to how an agent reads it; an `AGENTS.md` warning would not close it. Parked
+  rather than built: it needs an `agent-skills` delta and the auditor definition's refresh.
+
 - Refuse a commit that stages an archived change dir with an unchecked task — parked; no change yet.
   `openspec archive --yes` continues past incomplete tasks with a warning line rather than failing, and a merge-time
   verification (a workflow dispatch, which needs the pushed branch) can only be ticked _after_ the change dir is
@@ -68,13 +77,6 @@ dated when it was added (start a new section for a new day rather than appending
   mutating stays human.
 
 ## 2026-10-18
-
-- Give the reduction unit an extraction procedure of its own if a second extraction is proposed — parked; no change yet.
-  `optimize-agents-auditor-for-instruction-budget` widened the standing `/apply-audit-reductions` unit to name an
-  `extraction` candidate, and its application is a content-move routed to the change workflow (written into the unit's
-  step 2 and its step 4 bullet), so nothing is deferred today. What is missing is a procedure for the move itself —
-  creating or changing the destination, moving the content, and adding the retained pointer — which the change workflow
-  supplies implicitly. Parked rather than written: one candidate kind with no incident, and the routing is explicit.
 
 - Widen `ci.yml`'s OpenSpec probe to fail on the CLI's "is not a delta section" warning — parked; no change yet.
   `openspec validate --all` exits 0 while warning and `openspec archive` drops the requirement, so a misnamed delta

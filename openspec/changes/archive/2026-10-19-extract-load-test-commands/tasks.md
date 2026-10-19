@@ -95,9 +95,11 @@
 
 - [x] 7.1 The owner's manual review pass was requested after the loop was clean and the capture ran. **Done** —
       requested after the loop was clean and the capture ran; the owner approved and resolved the routing question.
-- [ ] 7.2 The change was archived with `openspec archive extract-load-test-commands --yes`, the change-dir move and the
+- [x] 7.2 The change was archived with `openspec archive extract-load-test-commands --yes`, the change-dir move and the
       `openspec/specs` sync staged together, and the archive commit ridden on this unit's PR.
-
+ **Done** — archived as `2026-10-19-extract-load-test-commands` in this commit, the change-dir move and the
+      `openspec/specs` sync staged together; the sync writes the delta into
+      `openspec/specs/showcase/quality/load-tests/spec.md`.
 ## Workflow follow-up
 
 - Nothing committed, pushed, or archived before the owner approves the implementation.

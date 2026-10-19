@@ -474,8 +474,15 @@ val shExecutable: String =
 
 tasks.register<Exec>("verifyCapturedMarkers") {
     group = "verification"
-    description = "Verifies captured: marker placement in AGENTS.md"
+    description = "Verifies captured: marker placement in AGENTS.md and the project guidance files"
     inputs.file("AGENTS.md")
+    inputs.files(
+        fileTree(".opencode/agent") { include("*.md") },
+        fileTree(".opencode/skills") {
+            include("*/SKILL.md")
+            exclude("axon4to5-*/**", "openspec-*/**")
+        },
+    )
     inputs.file("scripts/commit-hygiene.py")
     outputs.upToDateWhen { false }
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--markers")

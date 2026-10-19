@@ -344,15 +344,18 @@ capture-reverted-sweep-lessons (#283)
      first round with a fresh invocation and retain the identifier it returns; on every later round pass that saved
      identifier as the invocation's session-continuation parameter, never a fresh invocation relabelled as a
      continuation; compare the identifier the invocation returns with the one you saved, and stop the round reporting a
-     session-continuity failure if they differ; and start a replacement only after a continuation attempt has produced
-     one of the recovery cases the rule names, recording the concrete reason and both identifiers — the failed session
-     and its replacement's — before you replace.
+     session-continuity failure if they differ; start a replacement only after the invocation you are replacing has
+     produced one of the recovery cases the rule names, recording the concrete reason and both identifiers — the failed
+     session and its replacement's — before you replace; and bound each invocation with a deadline your policy supplies,
+     recording the invocation's hand-over **before** you wait on it. A reviewer invocation cannot be cancelled and
+     reports nothing while it runs, so a stall is recovered from that record rather than from the stalled session. The
+     rule, its recovery cases, the record's contract, the deadline's source, and the hand-over's fields are
+     `showcase/quality/agent-skills`'s and `docs/review-rounds.tsv`'s, not restated here.
    - **Run** — `review-quick` against the change's planning artifacts: for the proposal round, the
      proposal/design/tasks/spec-delta coherence and repo fit; for the implementation round, the tasks and delta spec.
    - Append each round's row with the session fields `docs/review-rounds.tsv` declares — the identifier, the transition,
-     and a replacement's reason — supplying the identifier the invocation returned, never an invented one. The rule, its
-     recovery cases, and the record's contract are `showcase/quality/agent-skills`'s and the ledger's; an omission fails
-     `verifyReviewSessionContinuity`. captured: track-review-session-continuity
+     and a replacement's reason — supplying the identifier the invocation returned, never an invented one; an omission
+     fails `verifyReviewSessionContinuity`. captured: track-review-session-continuity
 4. Fix everything it finds; re-run. Repeat until it reports no new observations.
 5. Route the deep review, once, from the completed implementation, the diff, the applicable artifacts, and the existing
    review evidence: derive the floor with `python3 scripts/review-routing.py`, passing `--change <name>` when the unit
@@ -383,10 +386,9 @@ final edit). captured: decide-against-pre-review
   was meant to do: its claims are the successor's premise, and one that does not reproduce costs the round it was meant
   to save. captured: record-agents-md-authoring-standard
 - **Continue the reviewer's session** — step 3's preflight is what makes that happen, and each round must not lean on
-  the reviewer's memory in place of the hand-off, which is the caller's record. The rule, its recovery cases, and the
-  ledger's session fields are `showcase/quality/agent-skills`'s and `docs/review-rounds.tsv`'s, not restated here. The
-  caller's own re-check of the handover is a recorded deviation, not a passed round (a resumed round found defects the
-  handover's self-review had passed). captured: retrospective-2026-10-15
+  the reviewer's memory in place of the hand-off, which is the caller's record. The caller's own re-check of the
+  handover is a recorded deviation, not a passed round (a resumed round found defects the handover's self-review had
+  passed). captured: retrospective-2026-10-15
 - **A finding that adds behavior is a scope change, not a code fix:** applying it to the code and a test alone leaves
   the change's planning artifacts — proposal, design, tasks, and delta spec — describing the old behavior, and the next
   round reports the residue as spec-/task-drift. Sweep every one of them, not only the file the finding names, as part
@@ -458,8 +460,11 @@ final edit). captured: decide-against-pre-review
   so re-derive each from that source once the edits land, per the re-derivation rule above, and delete a claim whose
   described edit has no referent. When the repeated class is their completeness (a stated fact they omit, a source that
   does not reproduce), adding the omitted row re-triggers — the rows track the facts the artifacts state — so delete the
-  unneeded fact rather than add the row. captured: dont-report-what-a-gate-covers captured: sharpen-architecture-audit
-  captured: track-review-session-continuity
+  unneeded fact rather than add the row. A dismissal's completeness finding is re-derived rather than repaired by
+  deletion: re-derive it from the scan's whole candidate list grouped by kind, in one edit — appending the candidate a
+  round named is the enumerating clause the claims-table step forbids, and the clause's own growth is the incompleteness
+  the round reports. captured: dont-report-what-a-gate-covers captured: make-reviews-predictable-and-recoverable
+  captured: sharpen-architecture-audit captured: track-review-session-continuity
 - **A revert after a non-converging loop is a legitimate outcome** — record why in the change dir so the decision is not
   re-litigated. captured: propagate-ui-trace-context (#362) captured: realistic-load-test-profiles captured:
   check-load-test-drift captured: check-unique-cron-schedules (#436) captured: derive-retrospective-facts captured:

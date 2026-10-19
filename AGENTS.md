@@ -322,26 +322,28 @@ capture-reverted-sweep-lessons (#283)
 2. Record the pass. Every unit carries it as a task — a task in a change's `tasks.md`, or a line in the pull-request
    checklist for a unit with no change dir — so a missing box is a skip, not a pass that found nothing. Its output is
    the change's **claims table** — each fact the change states about its evidence (the prior artifacts it rests on) with
-   its source or the deriving command, its rows seeded from the recurring classes `docs/review-rounds.tsv` records — in
-   `design.md`, or in `tasks.md` for a unit that writes no `design.md`, or on the pull-request checklist line for a unit
-   with no change dir. Seed it with `scripts/claim-scan.py` (via `/seed-claims`), whose candidates for the unit's diff
-   are each resolved into a row or recorded as a dismissal beside the table — one reason per kind, never an enumerating
-   clause, governing a row's source as well as a dismissal: a source that is a command's output states the reason by
-   class, never a list of the output's lines, since a list of a kind's candidates or of an output's lines is incomplete
-   by construction and the artifact stating it adds candidates to the scanned set — a lead list, never a gate, and it
-   seeds the table rather than replacing the derivation (`showcase/quality/agent-skills` owns the behaviour). A
-   dismissal's reason is itself a claim about the repository: verify it against the diff or the source it names before
-   recording it, since a dismissal is recorded, not checked (`sharpen-architecture-audit` dismissed the README table
-   rows as carrying only a formatter reflow, and the diff held no such change). A row about an artifact the change
-   itself edits anchors its source to that artifact's pre-change state (`git show HEAD:<path>`): it stops reproducing
-   once the change lands. A site named for a later sweep is quoted by its text or token, never by a line number — a
-   concurrent merge moves it, so the anchor is stale as committed (`AGENTS.md:NNNN` anchors were two lines out here). A
-   task's `**Done**` note or a claims-table entry that must report a figure states a relative result — the difference
-   between two runs, which the corpus's growth leaves fixed — the command's outcome, or a text-quoted site, never an
-   absolute count its own writes move (its appended ledger rows, the candidates its own artifact adds to the scan), so
-   re-derive the table after the unit's last append to its own record, which adds one. captured:
-   widen-architecture-auditor-to-stale-ideas captured: normalize-the-review-round-digest captured:
-   capture-authoring-system-gaps captured: sharpen-architecture-audit
+   its source or the command that derives it, re-run so it reproduces the figure the row records, since a figure an
+   earlier, broader scan produced beside a narrower command is the claim the next round reports unreproducible, its rows
+   seeded from the recurring classes `docs/review-rounds.tsv` records — in `design.md`, or in `tasks.md` for a unit that
+   writes no `design.md`, or on the pull-request checklist line for a unit with no change dir. Seed it with
+   `scripts/claim-scan.py` (via `/seed-claims`), whose candidates for the unit's diff are each resolved into a row or
+   recorded as a dismissal beside the table — one reason per kind, never an enumerating clause, governing a row's source
+   as well as a dismissal: a source that is a command's output states the reason by class, never a list of the output's
+   lines, since a list of a kind's candidates or of an output's lines is incomplete by construction and the artifact
+   stating it adds candidates to the scanned set — a lead list, never a gate, and it seeds the table rather than
+   replacing the derivation (`showcase/quality/agent-skills` owns the behaviour). A dismissal's reason is itself a claim
+   about the repository: verify it against the diff or the source it names before recording it, since a dismissal is
+   recorded, not checked (`sharpen-architecture-audit` dismissed the README table rows as carrying only a formatter
+   reflow, and the diff held no such change). A row about an artifact the change itself edits anchors its source to that
+   artifact's pre-change state (`git show HEAD:<path>`): it stops reproducing once the change lands. A site named for a
+   later sweep is quoted by its text or token, never by a line number — a concurrent merge moves it, so the anchor is
+   stale as committed (`AGENTS.md:NNNN` anchors were two lines out here). A task's `**Done**` note or a claims-table
+   entry that must report a figure states a relative result — the difference between two runs, which the corpus's growth
+   leaves fixed — the command's outcome, or a text-quoted site, never an absolute count its own writes move (its
+   appended ledger rows, the candidates its own artifact adds to the scan), so re-derive the table after the unit's last
+   append to its own record, which adds one. captured: widen-architecture-auditor-to-stale-ideas captured:
+   normalize-the-review-round-digest captured: capture-authoring-system-gaps captured: sharpen-architecture-audit
+   captured: extract-ci-narrative
 3. Run the reviewer-session preflight, then `review-quick`:
    - **Preflight** — before each invocation, the re-runs in step 4 included: create the reviewer's session on the unit's
      first round with a fresh invocation and retain the identifier it returns; on every later round pass that saved
@@ -613,7 +615,10 @@ captured: bound-the-review-loop captured: make-the-p99-verdict-confirm-first
 1. Decide whether a delta is owed. Grep `openspec/specs/` for the behavior's **name as well as its file** — a
    requirement may name no file at all (`.github/workflows/audit.yml` appears in none, yet `merge-governance`'s audit
    requirement owns that workflow's report-body behavior, so a prompt edit there owes a `MODIFIED` delta that
-   `openspec validate` cannot flag as missing). captured: notify-owner-from-the-audit-report (#327)
+   `openspec validate` cannot flag as missing). An outcome's owning capability is not the section's heading or a
+   report's proposed destination: one section can span several capabilities (the CI section's workflows are owned by
+   `merge-governance` _and_ `releases`), so grep each outcome's own subject across the corpus before adding a
+   requirement for it. captured: notify-owner-from-the-audit-report (#327) captured: extract-ci-narrative
 2. Write the delta at a path that mirrors the main spec's: the delta for `showcase/clients/web-ui` is
    `openspec/changes/<change>/specs/showcase/clients/web-ui/spec.md`. Omitting the `showcase/` segment does not collapse
    to the same capability — OpenSpec reads `clients/web-ui` and `showcase/clients/web-ui` as two capability ids — so the
@@ -973,79 +978,42 @@ initialized:
 
 ## Continuous Integration
 
-`.github/workflows/ci.yml` runs a single `build` job on every pull request and every push to `main`:
+The CI gates and the observational scheduled workflows — what each runs, on which trigger, and what it reports — are
+specified in `showcase/quality/merge-governance`, and the release workflow's in `showcase/quality/releases`; each
+workflow's YAML is its mechanism's authoritative configuration. This section keeps the rules that bind a workflow edit
+or a CI-failure diagnosis.
 
-- **Pull requests** run the Docker-free fast gate: `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` plus
-  `openspec validate --all`, a probe that the OpenSpec config's declared list surfaces (its artifact rules and its
-  operation guidance) are readable by the CLI, a source-secret scan with gitleaks over the pull request's files, and,
-  when the pull request changes any `.opencode/` path or `.github/workflows/ci.yml`, a probe that the config loads under
-  the consumer the `opencode` action installs (the v1 binary) and that every agent, command, and skill definition
-  resolves with its metadata intact — so a definition the loader silently degrades fails the gate, not only a config the
-  consumer rejects. The coverage gate is disabled because the 0.80 baseline is calibrated on integration-test coverage,
-  which PRs skip by design.
-- **Pushes to `main`** run the full gate: `./gradlew check` (with integration tests and the coverage gate) plus the same
-  OpenSpec validation and OpenSpec config probe as the pull-request path; the OpenCode probe is PR-scoped.
 - **A check belongs in the pull-request gate only when the change that trips it can remediate it.** Drift in state no
-  pull request causes would fail every unrelated PR, so it belongs in the observational scheduled pattern instead (the
-  observational workflows listed below, and the out-of-repository surfaces the Docs-refresh bullet names), never
-  `build`. Its complement is a gate-worthy step whose own fetch can fail transiently (such as the actionlint install or
-  the Helm chart-repository setup): it stays in the gate and is made resilient instead, with a bounded retry (a few
-  attempts and a short pause) that leaves each failure visible and still fails once the attempts are exhausted — never
-  toleration (`tolerateFailures`, `continue-on-error`), which makes the check pass falsely, or the `check -x <task>`
-  interim, which verifies the gate with a member removed. Each instance's outcome is in its capability requirement.
-  captured: retry-verify-infra-image-versions-2026-10-16
+  pull request causes would fail every unrelated PR, so it belongs in the observational scheduled pattern instead (and
+  the out-of-repository surfaces the Docs-refresh bullet names), never `build`. Its complement is a gate-worthy step
+  whose own fetch can fail transiently (such as the actionlint install or the Helm chart-repository setup): it stays in
+  the gate and is made resilient instead, with a bounded retry (a few attempts and a short pause) that leaves each
+  failure visible and still fails once the attempts are exhausted — never toleration (`tolerateFailures`,
+  `continue-on-error`), which makes the check pass falsely, or the `check -x <task>` interim, which verifies the gate
+  with a member removed. Each instance's outcome is in its capability requirement. captured:
+  retry-verify-infra-image-versions-2026-10-16
 
-The `check` task's members are listed in the Build & Test `check` note; `workflowLint` lints the GitHub Actions
-workflows with actionlint (installed on the runner via the official download script; see the Prerequisites),
-`verifyModuleDependencies` enforces the module dependency graph ADR-0010 records, and `check` additionally runs
-`build-logic`'s tests, since that is an included build.
+**A build-file or dependency change costs a one-time full rebuild (~9 min vs ~1 min warm).** The cache configuration —
+which Gradle caches are restored, the `nodejs` include the web UI workflows add, and the npm cache step — is the
+workflow YAML's: the caches are partitioned by a hash of the build/dependency configuration and Gradle build-cache
+entries are keyed on task inputs, and PR runs are `cache-read-only` and re-warm on the next push-to-main run. The setup
+never restores workspace `build/` directories, since stale `jacoco` exec data would corrupt the coverage gate.
 
-The job uses `gradle/actions/setup-gradle` to restore the Gradle User Home (dependencies, wrapper, and local build
-cache) across runs — it never caches workspace `build/` directories, since stale `jacoco` exec data would corrupt the
-coverage gate. The workflows that build or use the web UI — `.github/workflows/ci.yml`, `.github/workflows/e2e.yml`,
-`.github/workflows/deployment-smoke.yml`, `.github/workflows/dependency-updates.yml`,
-`.github/workflows/dependency-security.yml`, and `.github/workflows/release.yml` — additionally extend
-`gradle-home-cache-includes` with `nodejs` (the node-gradle plugin's Node download in `~/.gradle/nodejs`) and add an
-`actions/cache` step for the npm package cache (`~/.npm`, keyed on `showcase-web-ui/package-lock.json`), so the web UI
-build does not re-download the Node runtime or the dependency tree on every run. The `main-required-checks` branch
-ruleset requires the `build` check for every merge into `main`, with no bypass actors.
-
-**A build-file or dependency change costs a one-time full rebuild (~9 min vs ~1 min warm).** `setup-gradle` partitions
-its caches by a hash of the build/dependency configuration (log keys like `gradle-home-v2|Linux-X64|build[<hash>]` and
-`gradle-build-cache-v2-<hash>`), and Gradle build-cache entries are keyed on task inputs — so changing
-`libs.versions.toml` or a `build.gradle.kts` invalidates the compile/test/static-analysis entries for every module, and
-editing a `build-logic` convention plugin is colder still: `build-logic` is an `includeBuild`, so the plugin jar changes
-and every module's tasks re-execute. PR runs are `cache-read-only: true` (they restore from `main` but never write), so
-a PR cannot re-warm the cache itself and waits for the next push-to-main run; a docs or tiny PR that branches off the
-updated `main` and builds before that re-warm lands pays the full rebuild once (the docs-only #138 raced #137's
-10-minute re-warm and took ~9 min instead of ~1). On the 4-vCPU runner (`org.gradle.parallel=true`, workers = cores) the
-concurrent load can starve a time-sensitive test past its framework-default timeout: `grpc-query-transport` (#514),
-which edited the `protobuf`/`code-check` conventions, saw `ShowcaseRestControllerCT` fail 38 of its 76 cases at the
-default 5s `WebTestClient` timeout, while the same suite passed locally with `--rerun`, the runner's `--max-workers=4`,
-full CPU saturation, and the four component-test tasks concurrent. A suite whose subject the change did not change, a
-stable failure count, and one framework-default timeout at the same call point point to load timing rather than a code
-defect: a test whose own cost is a one-time load — the web UI's `eslint-rules.test.ts` pays its ESLint flat-config load
-inside the first case, measured at ~0.9s locally — is given a budget that fits it rather than changing what the test
-covers. The controller slice's 30s raise did not hold: a Docker-free PR gate failed the same way at 30s on 2026-10-15,
-so its mechanism stays an open question — `docs/ideas.md` (2026-10-06) records it, the slice now autodetects a
-thread-dump extension for the next occurrence, and the rebuild cost self-heals as soon as `main` re-warms, but the
-test-timing assumption the cold build exposes needs a real fix. An intermittent CI-only failure that does not reproduce
-locally owes that diagnostic in place of another speculative mitigation — its output must reach the stream the runner
-prints (`testLogging { showStandardStreams = true }`; verified: without it the dump is absent from the console) — and a
-clean local probe of a candidate cause leaves it **unconfirmed, not refuted**. captured: grpc-query-transport (#514)
-captured: fix-main-ci-regressions captured: diagnose-rest-controller-ct-hang captured: fix-timeout-load-flakes
-
-`.github/workflows/deployment-smoke.yml` runs a **deployment smoke** on a nightly schedule and via `workflow_dispatch`:
-it creates a throwaway `kind` cluster in the runner, builds the five images and loads them into it (kind's nodes cannot
-see the host daemon's images), installs the application, infrastructure, and ingress releases — not the observability —
-through the `ci` release target (`./gradlew helmInstallToCi`), whose values fit the runner's 4 vCPU and whose
-`remoteTimeout` waits past Helm's default for the slow OpenSearch and ingress start, and drives the smoke profile at the
-deployed gateway through that ingress — a failed request fails the run, no performance numbers are recorded (a shared
-runner's timings are host state, not the system's, so a check that runs there asserts availability, not a latency
-threshold), and the cluster is deleted even when a step fails — after a failed run has printed the pods, their restart
-counts, and the service logs, so a failure names its cause. It exercises the chart's values, probes, and resource
-wiring, which neither e2e suite does (one boots the pipeline through Testcontainers, the other from compose, and neither
-installs the chart). It is observational — never a merge gate. captured: fix-the-deployment-smoke-503s (#424)
+**On the 4-vCPU runner a cold build's concurrent load can starve a time-sensitive test past its framework-default
+timeout.** `grpc-query-transport` (#514), which edited the `protobuf`/`code-check` conventions, saw
+`ShowcaseRestControllerCT` fail 38 of its 76 cases at the default 5s `WebTestClient` timeout, while the same suite
+passed locally with `--rerun`, the runner's `--max-workers=4`, full CPU saturation, and the four component-test tasks
+concurrent. A suite whose subject the change did not change, a stable failure count, and one framework-default timeout
+at the same call point point to load timing rather than a code defect: a test whose own cost is a one-time load — the
+web UI's `eslint-rules.test.ts` pays its ESLint flat-config load inside the first case, measured at ~0.9s locally — is
+given a budget that fits it rather than changing what the test covers. The controller slice's 30s raise did not hold: a
+Docker-free PR gate failed the same way at 30s on 2026-10-15, so its mechanism stays an open question — `docs/ideas.md`
+(2026-10-06) records it, the slice now autodetects a thread-dump extension for the next occurrence, but the test-timing
+assumption the cold build exposes needs a real fix. An intermittent CI-only failure that does not reproduce locally owes
+that diagnostic in place of another speculative mitigation — its output must reach the stream the runner prints
+(`testLogging { showStandardStreams = true }`; verified: without it the dump is absent from the console) — and a clean
+local probe of a candidate cause leaves it **unconfirmed, not refuted**. captured: grpc-query-transport (#514) captured:
+fix-main-ci-regressions captured: diagnose-rest-controller-ct-hang captured: fix-timeout-load-flakes
 
 **The workflows track `ubuntu-latest` deliberately; validate a newer image before the label moves.** GitHub migrates the
 label to Ubuntu 26.04 over a rollout from 2026-10-19 to 2026-11-19 (`actions/runner-images#14748`), whose impact is the
@@ -1060,32 +1028,9 @@ at `:showcase-web-ui:dockerBuildImage` (the `pack`-built Paketo image), reproduc
 attributed to the Docker 28 → 29 difference (the store alone is not the trigger — see the buildpack note), and addressed
 by the smoke's own `overlay2` step, which a re-dispatch on `ubuntu-26.04` is what confirms.
 
-`.github/workflows/e2e.yml` runs the heavy end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four
-service images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same
-pipeline with Playwright) on a nightly schedule and via `workflow_dispatch`. It installs the `pack` CLI explicitly
-(`buildpacks/github-actions/setup-pack`, pinned to the same version as local development — the GitHub runner image does
-not guarantee it), and uses `actions/cache@v6` for the npm cache. It is observational — never a merge gate, and no
-repository secret is passed to it — and it shares the same `gradle/actions/setup-gradle` caching rules as
-`.github/workflows/ci.yml`. The PR gate's `check` never builds the web UI bundle (the frontend `check` composes lint,
-format-check, the TypeScript type-check, and Vitest; only `vite build` — the bundle — lives in `build`/`assemble`), so a
-change that alters the built bundle or its runtime — a React/Vite major — must run `./gradlew :showcase-web-ui:e2eTest`
-deliberately before it is reported done. captured: migrate-web-ui-frontend-majors
-
-`.github/workflows/dependency-security.yml` runs the credentialed dependency security scans — the Snyk scan
-(`./gradlew dependencySecurityCheck`, all sub-projects with the root `.snyk` policy, authenticated with the `SNYK_TOKEN`
-secret) and the web-UI npm audit (`./gradlew :showcase-web-ui:npmAudit`) — on a weekly schedule and via
-`workflow_dispatch`. It is observational — never a merge gate.
-
-The four update-check workflows — `.github/workflows/dependency-updates.yml`, `.github/workflows/helm-updates.yml`,
-`.github/workflows/buildpack-updates.yml`, and `.github/workflows/tooling-updates.yml` — each run a Gradle report on a
-weekly schedule and via `workflow_dispatch`, open or update their tracker issue from that report's file with the
-`GITHUB_TOKEN` (`issues: write`), post a comment mentioning the repository owner when there are actionable updates (so
-they are notified), and update the issue silently when there are none. They are observational — never a merge gate.
-`dependency-updates.yml` additionally runs the web UI npm update report (`./gradlew :showcase-web-ui:npmOutdated`) and
-the build-logic pin check (`./gradlew buildLogicUpdates`) and includes their sections in the same issue.
-`upstream-references.yml` follows the same shape for a different question — the state of the upstream references the
-durable artifacts cite, rather than a version comparison — so it is a fifth observational check, not a fifth _update_
-check, and it is listed below.
+The merge gate's `check` never builds the web UI bundle (`vite build` lives in `build`/`assemble`), so a change that
+alters the built bundle or its runtime — a React/Vite major — must run `./gradlew :showcase-web-ui:e2eTest` deliberately
+before it is reported done. captured: migrate-web-ui-frontend-majors
 
 **Workflow: Add or edit a workflow**
 
@@ -1144,62 +1089,14 @@ application's. A component that changes namespace takes the failure diagnostics 
 route-the-smoke-through-the-ingress captured: fix-the-deployment-smoke-503s captured: notify-owner-from-the-audit-report
 (#327) captured: expose-grafana-by-hostname
 
-`.github/workflows/audit.yml` runs the three repository audits (agent tooling, spec corpus, architecture) on a weekly
-schedule and via `workflow_dispatch`, through the OpenCode GitHub action's scheduled path (a `prompt` input, OIDC auth,
-`contents: write` + `pull-requests: write`), and opens a pull request with their findings, mentioning the repository
-owner so the report is not left unread — or commits nothing when they report nothing. It is observational — never a
-merge gate.
-
-`.github/workflows/release.yml` cuts a release on `workflow_dispatch` (the only trigger — not a schedule, not a merge
-gate): on a release dispatch it requires the `main` ref, a dispatched version matching `gradle.properties`'s declaration
-without its `-SNAPSHOT` suffix, and a tag that does not already exist, then builds the five images, publishes them to
-the GitHub Container Registry (`ghcr.io/<owner>/axon-showcase-*`, tagged `<version>` and `latest`, `linux/amd64`, with
-the run's `GITHUB_TOKEN` granted `packages: write`), packages the Helm chart and pushes it to
-`oci://ghcr.io/<owner>/charts/axon-showcase` (`-Pversion=<version>`; see ADR-0019), and only then creates the tag
-`v<version>` at the head of `main` and a GitHub Release with `--generate-notes`. A `dry_run` dispatch runs the same
-build and push under a throwaway tag (and pushes the chart under a throwaway version) without creating a tag or release,
-and may run from a ref other than `main`. A `publish_tag` dispatch backfills an existing release: it checks out that
-tag, builds its images, and pushes only the `<version>` tag (no `latest`, no chart, no tag or release), and may run from
-any ref; a dispatch supplies exactly one of `version` or `publish_tag`. The version declaration lives in
-`gradle.properties` (added by this workflow's change; the root `build.gradle.kts` no longer sets `version`), and the
-gateway's OpenAPI `info.version` reads the build info. A release is followed by a bump of `gradle.properties` to the
-next development version (a normal pull request); the ADR-0016 `Revisit when:` records that automating that bump is
-deferred. GitHub exposes `workflow_dispatch` a workflow only once it is on the default branch, so a newly added release
-workflow's first run is a dispatch from `main` after its PR merges.
-
-**What each covers:**
-
-- `dependency-updates.yml` — `./gradlew dependencyUpdates`, `./gradlew :showcase-web-ui:npmOutdated`, and
-  `./gradlew buildLogicUpdates`; the actionable sections of `build/dependencyUpdates/report.txt` (stable catalog
-  updates, the Gradle wrapper status), the web UI npm report, and the build-logic pin report
-  (`build/build-logic-updates/report.txt`), in the "Dependency updates" issue.
-- `helm-updates.yml` — `./gradlew helmUpdates`; the actionable coordinates from `build/helm-updates/report.txt` (the
-  Helm CLI and pinned chart versions that have a newer version), in the "Helm updates" issue.
-- `buildpack-updates.yml` — `./gradlew buildpackUpdates`; the pinned builder and buildpack coordinates from
-  `build/buildpack-updates/report.txt` that have a newer version, in the "Buildpack updates" issue.
-- `tooling-updates.yml` — `./gradlew toolingUpdates`; the actionable lines from `build/tooling-updates/report.txt` (the
-  tool versions pinned in workflow files — the OpenSpec, Snyk, `pack`, and gitleaks CLIs), in the "Tooling updates"
-  issue.
-- `upstream-references.yml` — `./gradlew upstreamReferences`; the `owner/repo#NNN` references the durable artifacts
-  cite, each with its state (open / closed / unresolved) and citation sites, in the "Upstream references" issue. A
-  closure is surfaced as a trigger to check, not declared actionable.
-
-`.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so an action whose
-major bump targets a newer Node runtime (e.g. the Node 20 → Node 24 migration) surfaces as a reviewable PR instead of a
-silent CI deprecation warning. **The review request that notifies the owner of an opened Dependabot PR comes from
-`.github/CODEOWNERS`, not from `dependabot.yml`** — GitHub retired that file's `reviewers` option on 2025-05-20 (its
-2025-04-29 changelog,
-`https://github.blog/changelog/2025-04-29-dependabot-reviewers-configuration-option-being-replaced-by-code-owners`) and
-now silently ignores it, so the key `#91` had added requested no review, and so raised no notification, on any
-Dependabot PR; keep the notification path in `CODEOWNERS`. GitHub reads that file from the pull request's base branch
-and skips drafts, so the requests begin once the file is on `main` — and are observable only on a pull request the code
-owner did not author, so a self-authored probe PR showing none is expected and the confirmation here takes a
-bot-authored PR (Dependabot's, or the `opencode` action's); the refusal is recorded with the config-read-path gotcha
-below. The `opencode` workflow's `anomalyco/opencode/github@latest` and the Snyk workflow's `snyk/actions/setup@master`
-are deliberate floating refs that Dependabot does not manage. The `opencode` workflow's runs also log a benign
-`Cache reservation failed: cache write denied` warning — the action's own `actions/cache@v4` step cannot save on the
-comment triggers (`issue_comment`, `pull_request_review_comment`), low-trust events GitHub gives read-only cache access
-— while the run itself succeeds; do not chase it. Reported upstream as `anomalyco/opencode#49127`; retires when the
+`.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so a major bump
+that targets a newer Node runtime surfaces as a reviewable PR instead of a silent CI deprecation warning. **The owner
+notification for those PRs comes from `.github/CODEOWNERS`, never a `reviewers` key in `dependabot.yml`** — GitHub
+retired that key and silently ignores it, so keep the notification path in `CODEOWNERS`; the gotcha below carries the
+probe with its base-branch and author caveats. The `opencode` workflow's `anomalyco/opencode/github@latest` and the Snyk
+workflow's `snyk/actions/setup@master` are deliberate floating refs Dependabot does not manage. The `opencode` workflow
+also logs a benign `Cache reservation failed: cache write denied` warning from the action's own cache step on the
+comment triggers; the run succeeds — do not chase it. Reported upstream as `anomalyco/opencode#49127`; retires when the
 action's cache step skips cleanly (or drops to restore-only).
 
 **Workflow: Action an update-check issue**
@@ -1997,10 +1894,10 @@ builds, `helmInstallToLocal` is whole-stack — it builds all five images and in
 runs locally (the ingress controller is `ci`-only). The `ci` target is the deliberate exception for the deployment
 smoke: it selects the application, infrastructure, and ingress releases (no observability), points at the runner's fixed
 kube context, and the releases it installs carry the trimmed `values-ci.yaml` files the smoke needs to fit its runner
-(see the deployment-smoke note above); the local path stays the one the docs give a person. Fitting a runner is a
-**requests** concern — the scheduler places on requests — so a trim lowers the requests and leaves the memory **limits**
-alone: a JVM's heap is a fraction of its limit, and cutting the limit toward the runner starves the heap under load.
-captured: add-deployment-smoke captured: fix-the-deployment-smoke-503s
+(`merge-governance`'s deployment-smoke requirement); the local path stays the one the docs give a person. Fitting a
+runner is a **requests** concern — the scheduler places on requests — so a trim lowers the requests and leaves the
+memory **limits** alone: a JVM's heap is a fraction of its limit, and cutting the limit toward the runner starves the
+heap under load. captured: add-deployment-smoke captured: fix-the-deployment-smoke-503s
 
 **Helm release namespaces**: declared in `build.gradle.kts` — the observability releases (kps, tempo) deploy into the
 `monitoring` namespace, the ingress controller (`ingress-nginx`, selected only by `ci`) into its own `ingress-nginx`
@@ -3201,7 +3098,8 @@ capture-stash-stale-copy
   the event it produces.** A retired key can be accepted and ignored with no local signal — `dependabot.yml`'s
   `reviewers` was — so probe the service's read path (`gh api "repos/<owner>/<repo>/codeowners/errors?ref=<branch>"`
   returns `{"errors":[]}` for a valid file and 404s for a ref without one) or observe the event it produces (a review
-  request on a real pull request) — GitHub refuses a review request from the pull request's author
+  request on a real pull request, which begins only once `CODEOWNERS` is on that pull request's base branch, since
+  GitHub reads the file from there and skips drafts) — GitHub refuses a review request from the pull request's author
   (`Review cannot be requested from pull request author`, HTTP 422), so probe with a pull request you did not author.
   The general mode: an exclusion can sit on the actor's side rather than the input's (the positive-control rule above),
   where no input choice avoids it. GitHub refuses the request when the requested reviewer is the pull request's own
@@ -3613,9 +3511,9 @@ capture-stash-stale-copy
   Check the **venue** is writable before writing the posting task — a repository can disable issues and discussions
   outright, so there may be no thread — and when the issue itself is closed or locked, cite the fix PR the close-out
   actually keys on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
-  `upstream-references.yml` report (the fifth observational check above). captured: suppress-braces-npm-advisory
-  captured: refresh-upstream-references-2026-10-05 captured: record-gatling-report-block captured:
-  refresh-upstream-references-2026-10-19
+  `upstream-references.yml` report (`showcase/quality/merge-governance` specifies it with the other observational
+  checks). captured: suppress-braces-npm-advisory captured: refresh-upstream-references-2026-10-05 captured:
+  record-gatling-report-block captured: refresh-upstream-references-2026-10-19
 
 - **A "the only X" claim in `AGENTS.md` goes stale the moment a change adds a second X — fix it in that change.** The
   web UI's Playwright e2e suite was added while `AGENTS.md` still said "the only e2e suite is `showcase-api-gateway`'s",

@@ -65,8 +65,10 @@
 - [x] 5.1 The owner's manual review pass was requested after the loop was clean and the capture ran. **Done** —
       requested on 2026-10-19 once round 6 was clean and the capture applied; the work stays uncommitted until the owner
       answers.
-- [ ] 5.2 The change was archived with `openspec archive add-extraction-procedure --yes`, and the archive commit rode
-      this unit's PR.
+- [x] 5.2 The change was archived with `openspec archive add-extraction-procedure --yes`, and the archive commit rode
+      this unit's PR. **Done** — archived as `2026-10-19-add-extraction-procedure`; the move is staged with no spec
+      sync, since the change declares `skip_specs: true` and modifies no capability spec, and the archive commit rides
+      PR #645.
 
 ## Workflow follow-up
 

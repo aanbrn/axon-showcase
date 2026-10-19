@@ -301,21 +301,24 @@ capture-reverted-sweep-lessons (#283)
 
 1. Run the pre-write derivation pass over the planning artifacts, deriving each of the five claim classes the loop keeps
    catching from its source: read every run-log, issue-state, or external-artifact claim from the artifact now; re-grep
-   every count — and every universal claim about a corpus (`every`/`all`) — against its set, naming the instances it
-   covers where the class has no greppable predicate (a count of prior changes reproduces as different totals by
-   criterion, so state the instances or the criterion, never the bare number); single-source a claim, a rule set, or a
-   record stated in more than one artifact; derive every mechanism or task-check claim from the tool or the graph,
-   deleting a term or mechanism name whose grep finds no referent in the repository (a coinage lifted from an external
-   prompt; a design carried three, each stripped by a review round); and, for a change whose facts are its own
-   measurement, computation, or process record, derive each figure from the mechanism that produces it — the window or
-   instant it spans and the aggregation it applies, or for a record figure the command that emits it (a review round's
-   row from its report's record line, the capture record's net delta from `git diff --numstat AGENTS.md` after
-   `spotlessApply`, per-hunk `git diff -U0` counts when other edits share the file) — re-deriving it after that
-   mechanism's last edit, since a figure measured before the final tuning, or written from what the edits were meant to
-   add, is the claim the next round reports unreproducible (`verify-unique-review-rounds` recorded a row clean before
-   its round reported and stated a net `AGENTS.md` delta of `+2` where the diff measured `+5`; the
-   measurement-attribution gotcha carries the series rule). captured: seed-claims-from-the-diff captured:
-   record-agents-md-authoring-standard captured: sharpen-experience-analysis captured: sharpen-review-quick
+   every count — and every universal claim (`every`/`all`/`each`) over a corpus or an enumerated list — against its set,
+   naming the instances it covers where the class has no greppable predicate, and splitting a claim whose list carries
+   an exception — the members that carry the attribute, and the excepted item with its own coverage — rather than
+   qualifying the exception, since the quantifier asserts the attribute of it (a count of prior changes reproduces as
+   different totals by criterion, so state the instances or the criterion, never the bare number); captured:
+   extract-load-test-commands; single-source a claim, a rule set, or a record stated in more than one artifact; derive
+   every mechanism or task-check claim from the tool or the graph, deleting a term or mechanism name whose grep finds no
+   referent in the repository (a coinage lifted from an external prompt; a design carried three, each stripped by a
+   review round); and, for a change whose facts are its own measurement, computation, or process record, derive each
+   figure from the mechanism that produces it — the window or instant it spans and the aggregation it applies, or for a
+   record figure the command that emits it (a review round's row from its report's record line, the capture record's net
+   delta from `git diff --numstat AGENTS.md` after `spotlessApply`, per-hunk `git diff -U0` counts when other edits
+   share the file) — re-deriving it after that mechanism's last edit, since a figure measured before the final tuning,
+   or written from what the edits were meant to add, is the claim the next round reports unreproducible
+   (`verify-unique-review-rounds` recorded a row clean before its round reported and stated a net `AGENTS.md` delta of
+   `+2` where the diff measured `+5`; the measurement-attribution gotcha carries the series rule). captured:
+   seed-claims-from-the-diff captured: record-agents-md-authoring-standard captured: sharpen-experience-analysis
+   captured: sharpen-review-quick
 2. Record the pass. Every unit carries it as a task — a task in a change's `tasks.md`, or a line in the pull-request
    checklist for a unit with no change dir — so a missing box is a skip, not a pass that found nothing. Its output is
    the change's **claims table** — each fact the change states about its evidence (the prior artifacts it rests on) with
@@ -853,38 +856,17 @@ line.
 
 # Load tests (Gatling; opt-in, targets the local Helm cluster via its gateway ingress hostname)
 ./gradlew :load-tests:gatlingRun -Pprofile=smoke
-# `gatlingRun` is the task that runs the simulation; `:load-tests:test` starts nothing. Configuration is passed as
-# Gradle properties forwarded to the simulation: -PbaseUrl (default http://axon-showcase-api), -Pprofile, -Prate,
-# -Pratio, -Pduration, -PsseConnections, -PkneeRate, -PthinkTime, -PdetailShare, -PstartShare, -PfinishShare, -Phold,
-# and -PbaselineFile for the baseline reference. The below-knee profiles (average/soak/stress) derive their thresholds
-# from it and fall back to absolute ones where it is missing, does not cover a request, or records another target — so a
-# reference is never another environment's numbers (the derivation and the fallback values are the load-tests spec's).
-# Profiles: smoke, average, soak, stress, spike, breakpoint,
-# calibrate, baseline — the performance profiles scale from kneeRate, spike/breakpoint carry no assertions, and an
-# unsupported profile name fails the run. The measurement run is ./scripts/load-test-baseline.sh: it raises the ceiling
-# (up to CALIBRATE_MAX_RATE) until a knee is measured, runs a baseline plateau, compares the plateau's per read/write
-# request mean, 95th, and 99th percentile response times against the reference recorded for the target and a matching
-# operating point — reporting each figure's delta — and records the plateau's operating point and response times as the
-# committed reference (load-tests/src/gatling/resources/baseline.properties, or baseline-<slug>.properties for a target
-# other than the default). A figure beyond max(floor, round(recorded x (1 + TOLERANCE/100))) — floors 5/10/20 ms —
-# withholds the reference: a mean or 95th-percentile figure beyond it fails the run, naming the regressed figures, while
-# a 99th-percentile excursion withholds without failing and names the re-run that confirms it, since the client-side
-# p99's own run-to-run spread exceeds the tolerance (see docs/load-tests/2026-10-14.md); REFRESH_BASELINE=1 accepts
-# either; with nothing recorded for the target, or a reference recorded at an operating point more than a tenth of
-# the recorded rate away or with no operating point, it records the measurement; a measurement that recorded no figures
-# is withheld, refreshed or not. TOLERANCE defaults to 50 (percent). The run writes a ready-to-annotate record
-# under docs/load-tests/ and load-tests/build/load-tests/report.md either way, and — with PROFILE=<name> — runs that
-# performance profile at the derived knee. The calibration deliberately ramps past the knee
-# and the resource sampling follows the current kube context (kubectl top pods -A), so point a run at an environment you
-# own. The CI deployment smoke (.github/workflows/deployment-smoke.yml) installs the chart and an ingress controller on
-# a throwaway kind cluster and drives the smoke profile at the deployed gateway through its ingress.
+# `gatlingRun` runs the simulation and `:load-tests:test` starts nothing; the property set (each passed as `-P<name>`),
+# the profile set and their assertions, the threshold derivation and its fallback values, and the baseline mechanics are
+# `showcase/quality/load-tests`'s. The measurement run is `./scripts/load-test-baseline.sh`, whose docstring states the
+# run's tolerance and refresh variables and the floors they are compared against. The calibration deliberately ramps
+# past the knee and the resource sampling follows the current kube context (`kubectl top pods -A`), so point a run at an
+# environment you own.
 
-# Trend the dated records as a chronological series (each record's date, target, knee, operating point, plateau
-# duration, and plateau mean/95th/99th percentile response time and throughput)
+# Trend the dated records as a chronological series
 ./gradlew :load-tests:baselineTrend
-# reads docs/load-tests/*.md by default (-Precords=<dir> overrides it); a record whose figures cannot be read is
-# reported as unreadable rather than failing the view. The dated records carry only aggregate figures; the per-request
-# figures live in the committed reference, so a per-request series across recorded runs comes from git
+# reads docs/load-tests/*.md by default (-Precords=<dir> overrides it); the record's fields are the load-tests spec's,
+# and a per-request series across recorded runs comes from git
 # (git show <commit>:load-tests/src/gatling/resources/baseline.properties).
 
 # Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)

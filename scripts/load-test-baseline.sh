@@ -6,7 +6,9 @@
 # knee.properties, the assembled measurement to report.md under load-tests/build/load-tests/, a ready-to-annotate record
 # under docs/load-tests/, and the plateau's operating point and per-request response times to the baseline reference the
 # profiles assert against — unless a figure exceeds TOLERANCE, which leaves the reference unchanged unless
-# REFRESH_BASELINE=1. A mean or 95th-percentile figure beyond the tolerance fails the run; a 99th-percentile excursion
+# REFRESH_BASELINE=1. A figure is compared against max(floor, round(recorded x (1 + TOLERANCE/100))), the floors
+# being the reference's floorMeanMs, floorP95Ms, and floorP99Ms (50, 100, and 200 ms as recorded). A mean or
+# 95th-percentile figure beyond the tolerance fails the run; a 99th-percentile excursion
 # withholds the reference without failing it, since one run cannot tell a tail regression from the measurement
 # environment and a re-run at the same operating point is what does.
 # Exits non-zero when the calibration, the baseline, the comparison, or a requested profile run fails.

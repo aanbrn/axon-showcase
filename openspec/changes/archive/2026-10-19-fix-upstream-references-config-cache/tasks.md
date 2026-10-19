@@ -25,9 +25,11 @@
       unique-round, review-rounds, and commit-hygiene checks green; the 120-character recipe clean over the changed set.
       One earlier `check` run failed on an unrelated transient — `helmUpdateMainChartDependencies` could not fetch the
       Bitnami `common` subchart from Docker Hub — and passed on every later run.
-- [ ] 2.3 Dispatch the `upstream-references` workflow from the change's pushed branch and confirm it succeeds end to
+- [x] 2.3 Dispatch the `upstream-references` workflow from the change's pushed branch and confirm it succeeds end to
       end, which also refreshes the stale issue. Verify: `gh run view <run-id> --json conclusion` reports `success`.
-      **This is the only end-to-end verification and it runs as part of the merge, before the archive commit.**
+      **Done** — dispatched from the pushed branch as run `39184066349` and reported `success` end to end, which
+      also refreshed the stale "Upstream references" issue (#343, `updatedAt` 2026-10-19T01:11Z, unchanged since
+      2026-10-10). This was the only verification that exercises the workflow.
 
 ## 3. The change's own records
 

@@ -142,7 +142,10 @@ whether it worked.
 The repository SHALL provide locally-defined agent subagents under `.opencode/agent/` for the per-unit quality gates and
 analysis workflows — the per-unit review and lesson-capture agents, and the visual and diagram agents — each described
 by the scenarios below or by its own requirement in this capability. Each SHALL be invocable by the main agent, with its
-purpose described in its agent definition and (where relevant) in `AGENTS.md`.
+purpose described in its agent definition and (where relevant) in `AGENTS.md`. A reviewer invocation SHALL be bounded
+and recoverable: the pass it runs stops when what it was given has been examined, and an invocation that stops
+responding is replaced from the caller's own record — so a reviewer's duration is bounded by what it was given rather
+than by the repository, and a stall costs the caller a wait rather than the review.
 
 Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
 owns, not this one.
@@ -153,7 +156,14 @@ owns, not this one.
 - **THEN** the `review-quick` subagent reviews it against the unit's planning artifacts, and the loop repeats until it
   reports no new observations before a manual review is requested
 - **AND** the pass is a bounded screen over what it is given — the supplied diff and the explicitly supplied planning
-  artifacts, and nothing else — so a repository-wide search is not part of it, and a local defect does not trigger one
+  artifacts, and the risk focuses the caller supplies, and nothing else — so a repository-wide search is not part of it,
+  and a local defect does not trigger one
+- **AND** the caller supplies the screen's inputs as a list it can state and a reader can check — the artifacts to
+  screen and the checks to run over them — and the pass's report names that list, so which surfaces were screened is
+  verifiable from the report rather than inferred from its prose
+- **AND** the risk focuses are the caller's, stated with the invocation, and they widen which of the supplied surfaces
+  the screen looks at closely rather than adding surfaces to screen — so a focus is a direction of attention within the
+  bounded set, not a second scope
 - **AND** its fixed scope is: coherence between the supplied proposal, design, tasks, delta specs, and diff; a completed
   task that visibly does not correspond to the supplied work; an obvious implementation-to-delta-spec mismatch; an
   explicit broken reference; an obvious convention violation in a changed file; the formatting of a changed file no
@@ -162,9 +172,16 @@ owns, not this one.
   source or inspect every scan candidate, to analyse tests mutation-style, or to analyse boundary conditions, error
   paths, callers, configuration, or documentation exhaustively beyond the supplied scope — that depth belongs to the
   deep review the routing decision below selects
+- **AND** a risk the supplied scope cannot settle is escalated to `review-thorough` — through the routing decision below
+  or by the caller raising it — rather than absorbed by widening this pass, so the quick screen stays bounded and the
+  depth it cannot afford runs in the pass that has the budget for it
 - **AND** its stop condition scales with what it is given rather than with the repository: the pass ends when each
   supplied artifact and each changed file has been examined once, so a larger diff is more work and a repository the
   change does not touch is none, and no second sweep of the same file is part of the screen
+- **AND** it does not expand its own scope: it adds no surface beyond the supplied list and the checks its own contract
+  names, and where a check cannot establish its evidence within that scope it reports the limitation rather than
+  searching for more — so an unresolvable question narrows the report instead of extending the pass, and the pass
+  returns its best completed report rather than treating uncertainty as a reason for unbounded investigation
 - **AND** the pass's report states that scope and stop condition rather than implying its analysis was unlimited, so a
   bounded screen is not read as a thorough pass
 - **AND** the governance the pass does not replace stays in force — the pre-write derivation pass, the mandatory
@@ -214,9 +231,10 @@ owns, not this one.
 - **AND** the caller runs a reviewer-session preflight immediately before each invocation: it creates the reviewer's
   session on the unit's first round with a fresh invocation and retains the identifier that invocation returns; on every
   later round it invokes the reviewer by passing that saved identifier as the invocation's session-continuation
-  parameter, never a fresh invocation labelled as a continuation; and it starts a replacement only after a continuation
-  attempt has produced one of the recovery cases below, recording the concrete reason and both identifiers — the session
-  that failed and its replacement's — before it replaces
+  parameter, never a fresh invocation labelled as a continuation; and it starts a replacement only after the invocation
+  it replaces — a continuation attempt, or the unit's first round's fresh invocation — has produced one of the recovery
+  cases below, recording the concrete reason and both identifiers — the session that failed and its replacement's —
+  before it replaces
 - **AND** after a continuation invocation the caller compares the identifier the invocation returns with the one it
   saved, and a difference stops the round and is reported as a session-continuity failure rather than recorded as a
   continuation — so a loop that restarted its reviewer each round is distinguishable from one that continued it, rather
@@ -244,6 +262,23 @@ owns, not this one.
 - **AND** each finding names its class, its location, the issue, one line of evidence, and the required correction
 - **AND** a defect a prior round's fix only partially corrected, moved, or rewrote is still a recurrence of the same
   problem, reported as such
+
+#### Scenario: A stalled reviewer is replaced from a recorded handover
+
+- **WHEN** a reviewer invocation has not responded by the deadline the caller's policy supplies
+- **THEN** the caller records the failure as `stopped-responding`, naming the stalled session's identifier and its
+  replacement's, and creates the replacement session only after that record
+- **AND** the handover it gives the replacement is the record it wrote **before** waiting — the unit's identity, its
+  base and current revisions, the supplied artifacts, the scope, the prior findings with their instance-level evidence,
+  the completed checks, and the known limitations — so the context a replacement needs never depends on the stalled
+  invocation reporting, and cancelling it loses no progress that record does not already hold
+- **AND** the deadline comes from the invocation or the caller's policy, never a universal figure stated as a measured
+  fact, because no measurement of a reviewer's duration is reproducible from the repository
+- **AND** the replacement reviews the current state independently, treating the handover as context rather than as proof
+  that a result is correct, and re-derives what it reports from the state it inspects
+- **AND** the record keeps only facts the caller can verify — the replacement's reason, both session identifiers, the
+  handover, and the round's outcome — and never a duration, a token count, or a session count asserted as a measurement,
+  so the ledger trends what a gate can re-derive rather than a figure it cannot
 
 #### Scenario: A skipped pre-write pass is a missing record
 
@@ -317,6 +352,10 @@ owns, not this one.
   one
 - **AND** the deep reviewer inspects the current state independently on every follow-up, because session continuity is
   not proof that a fix is correct
+- **AND** its scope is the change's artifacts and the checks its own contract names rather than the repository at large,
+  and a question its evidence cannot settle within that scope is reported as a limitation rather than pursued
+  indefinitely — so a deep pass returns its best completed report rather than treating uncertainty as a reason for
+  unbounded investigation
 
 #### Scenario: A failed deep-review hand-over is detected, not reported as a review
 

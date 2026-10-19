@@ -14,10 +14,14 @@ what the work taught and propose additions to the repo's AGENTS.md so future cha
 You are given:
 
 - The unit's diff and/or commit history
-- The quick-review findings (if any)
+- The quick-review findings and the unit's round rows in `docs/review-rounds.tsv` (if any)
 - The change dir (proposal/design/tasks/delta spec)
+- The existing guidance a candidate would extend — the `AGENTS.md` bullet and any spec, ADR, or definition it points at
 - A short note from the main agent describing what went wrong or was learned during the work (process mistakes often
   leave no trace in a diff, so this note is essential)
+
+IF the review evidence for a claimed recurrence, or the existing guidance a candidate would extend, is unavailable, THEN
+state the limitation and withhold that candidate rather than inferring the missing text or cause.
 
 Capture two kinds of lessons:
 
@@ -51,16 +55,33 @@ directions are reported separately, since an addition grows the file and a retir
 - **General enough** — it applies across a recognizable class of future tasks, not one file or one incident.
 - **High-confidence** — its scope, exceptions, and evidence are known, so it will not mislead outside its domain.
 
-**Then demonstrate the decision difference the addition makes — a proposal that only restates an obligation the target
-bullet already carries is `already covered`, not an addition.** State the action a future agent takes under the existing
-guidance (permitted, required, or insufficiently specified) and the action the proposed text requires or prohibits under
-an explicit condition, and back the difference with a repository-backed example of why it matters. An additional
-incident, example, citation, or provenance marker alone is not a difference: the rule's text carries the rule, and the
-evidence behind it stays recoverable through the `captured:` marker and git history. Prefer an exact replacement of the
-existing rule over appending qualifications, preserving the established scope, exceptions, and normative strength —
-brevity must not weaken guidance. A partial restatement takes the **split** disposition: keep the new clause, drop the
-restatement. The workflow's own branch for a restated remedy (the capture Decision points in `AGENTS.md`) is the site
-that applies this test there.
+**Separate the observation from its cause.**
+
+- A repeated review-class label establishes that label's recurrence, not a shared drafting defect.
+- IF a candidate's remedy rests on a class's recurrence — a section rewrite, or a rule generalized from that class —
+  THEN require the shared cause confirmed from the evidence.
+- IF the class's instances have different causes, THEN take the cause-specific shape instead of prescribing the rewrite.
+
+**Compare decisions, not wording, and propose only the increment.** For each candidate:
+
+- State the existing obligation, its explicit condition, and the different action the proposal would require or
+  prohibit; different phrasing does not establish novelty.
+- IF the existing guidance already determines that action, THEN report `already covered` and propose nothing — a
+  completed capture need not produce an `AGENTS.md` edit.
+- A candidate that adds only an incident, example, citation, or provenance marker is `already covered` too; record that
+  evidence in the change record rather than expanding the rule's text.
+- Back a genuine difference with a repository-backed example of why it matters.
+- IF only part of the candidate restates an obligation, THEN take the **split** disposition: keep the new clause, drop
+  the restatement.
+- Prefer an exact replacement of the existing rule over appended qualifications.
+- A replacement or rewrite preserves every valid obligation, warning, exception, and identifier, the established scope,
+  and the normative strength, and may correct verified errors or remove established duplication and obsolete content —
+  brevity must not weaken guidance.
+- Derive the proposed action and its scope from the verified evidence; a remedy that worked in one place is not a
+  universal instruction.
+
+The workflow's own branch for a restated remedy (the capture Decision points in `AGENTS.md`) is the site that applies
+this test there.
 
 The default evidence threshold is **two independent occurrences, or one severe verified incident with a clear preventive
 action**. A rule that fails the gate is not a proposal: route it to a check, a spec, an ADR, or the change dir instead

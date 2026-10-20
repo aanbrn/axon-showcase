@@ -340,15 +340,17 @@ capture-reverted-sweep-lessons (#283)
    about the repository: verify it against the diff or the source it names before recording it, since a dismissal is
    recorded, not checked (`sharpen-architecture-audit` dismissed the README table rows as carrying only a formatter
    reflow, and the diff held no such change). A row about an artifact the change itself edits anchors its source to that
-   artifact's pre-change state (`git show HEAD:<path>`): it stops reproducing once the change lands. A site named for a
-   later sweep is quoted by its text or token, never by a line number — a concurrent merge moves it, so the anchor is
-   stale as committed (`AGENTS.md:NNNN` anchors were two lines out here). A task's `**Done**` note or a claims-table
-   entry that must report a figure states a relative result — the difference between two runs, which the corpus's growth
-   leaves fixed — the command's outcome, or a text-quoted site, never an absolute count its own writes move (its
-   appended ledger rows, the candidates its own artifact adds to the scan), so re-derive the table after the unit's last
-   append to its own record, which adds one. captured: widen-architecture-auditor-to-stale-ideas captured:
+   artifact's pre-change state (`git show HEAD:<path>`) — its embedded commands included, since a script that opens the
+   working-tree file reports the implemented result while the row reads as anchored
+   (`git show <rev>:<path> | python3 …`): it stops reproducing once the change lands. A site named for a later sweep is
+   quoted by its text or token, never by a line number — a concurrent merge moves it, so the anchor is stale as
+   committed (`AGENTS.md:NNNN` anchors were two lines out here). A task's `**Done**` note or a claims-table entry that
+   must report a figure states a relative result — the difference between two runs, which the corpus's growth leaves
+   fixed — the command's outcome, or a text-quoted site, never an absolute count its own writes move (its appended
+   ledger rows, the candidates its own artifact adds to the scan), so re-derive the table after the unit's last append
+   to its own record, which adds one. captured: widen-architecture-auditor-to-stale-ideas captured:
    normalize-the-review-round-digest captured: capture-authoring-system-gaps captured: sharpen-architecture-audit
-   captured: extract-ci-narrative
+   captured: extract-ci-narrative captured: convert-remaining-gotchas-rules
 3. Run the reviewer-session preflight, then `review-quick`:
    - **Preflight** — before each invocation, the re-runs in step 4 included: create the reviewer's session on the unit's
      first round with a fresh invocation and retain the identifier it returns; on every later round pass that saved
@@ -2127,18 +2129,22 @@ capture-stash-stale-copy
   reporting done; for a docs reorder, prefer the edit tool over a hand-rolled reordering script. The same class bites at
   the edit tool's anchor: an edit anchored on a neighbouring item's line is applied at the neighbour — the tool's
   uniqueness check is satisfied by any unique line — so the replacement is written there while the item meant to change
-  keeps its old text; anchor on the text being changed. The same class bites at item granularity: the
-  `retro-mark-captured-rules` provenance sweep derived each rule's line range with a boundary heuristic that treated a
-  top-level plain `- Text` bullet directly after a bold-lead rule as the rule's continuation. At the time, three such
-  adjacencies existed in `AGENTS.md` (`A buildpack pin is verified…`, `palantir-java-format does not manage imports`,
-  `A dependency a module does not use…`), and the second rule's range ran through the eight plain bullets behind it — so
-  both the `git log -L` range an origin was read from and the line the `captured:` marker was appended to belonged to
-  the wrong item, and the marker landed on the following bullet. Derive an item's end from the list's own structure (a
-  wrapped continuation is indented; a `- ` at column zero starts a new item, but a heading at column zero ends the list
-  — a search for the next `- ` otherwise crosses the section boundary) and have any script that ranges over or appends
-  to items assert that boundary itself — the marker-placement rule above states what the pre-commit guard enforces —
-  before trusting the result. captured: retro-mark-captured-rules captured: add-a-fresh-session-trigger captured:
-  optimize-agents-auditor-for-instruction-budget
+  keeps its old text; anchor on the text being changed. Token and table granularity bite the same way: a file-wide
+  substring replacement rewrites every occurrence that legitimately shares the value, so scope it to the block that owns
+  the value or assert its exact intended match count first, and a row keyed on its table's column (pipe) count lands in
+  any sibling table sharing that count, so key it on its identifying cell and re-check every edited table's column
+  count. The same class bites at item granularity: the `retro-mark-captured-rules` provenance sweep derived each rule's
+  line range with a boundary heuristic that treated a top-level plain `- Text` bullet directly after a bold-lead rule as
+  the rule's continuation. At the time, three such adjacencies existed in `AGENTS.md` (`A buildpack pin is verified…`,
+  `palantir-java-format does not manage imports`, `A dependency a module does not use…`), and the second rule's range
+  ran through the eight plain bullets behind it — so both the `git log -L` range an origin was read from and the line
+  the `captured:` marker was appended to belonged to the wrong item, and the marker landed on the following bullet.
+  Derive an item's end from the list's own structure (a wrapped continuation is indented; a `- ` at column zero starts a
+  new item, but a heading at column zero ends the list — a search for the next `- ` otherwise crosses the section
+  boundary) and have any script that ranges over or appends to items assert that boundary itself — the marker-placement
+  rule above states what the pre-commit guard enforces — before trusting the result. captured: retro-mark-captured-rules
+  captured: add-a-fresh-session-trigger captured: optimize-agents-auditor-for-instruction-budget captured:
+  convert-remaining-gotchas-rules
 
 - **The same range-boundary hazard bites source:** removing three tasks' private comparators with a range running from
   the first deleted member to the end of the file took each class's **closing brace** (the members were last in the
@@ -3112,52 +3118,41 @@ capture-stash-stale-copy
   evidence: documentation-and-durable-claims
 
 - **A two-way split of an enumerated set can also sum to its total and still be wrong when its boundary is hand-drawn:**
-  a scan of the markdown target's completeness re-listed exclusions from memory and counted the vendored `axon4to5-*`
-  and generated `openspec-*` skill files as gated, while the target's own `target(...)` / `targetExclude(...)` entries
-  put them on the excluded side (the project-authored skills stay gated) — and _both_ splits summed to the same total,
-  so the arithmetic check cannot catch it. For a gated-vs-excluded split, or any enumeration or partition of a set the
-  repository declares — the root `check` task's members, a CLI's modes, the tracked executables
-  (`git ls-files -s | awk '$1=="100755"'`) — derive the members from that declaration (`build.gradle.kts`'s `check`
-  block, its `target`/`targetExclude` entries, the `git ls-files` query), not from intent or a hand-written complement,
-  and update every doc that enumerates the set when a change adds a member; never write the resulting totals into a
-  durable artifact — they move with every change the corpus gains. A claim about what a gate, task, or check _runs_ is
-  the same class: derive it from that tool's own definition — its task registration and `commandLine` — not from recall.
-  A claim about what a chart renders is the same class: read the selector the template emits, not the template's
-  comments, which can contradict it (the netpol templates comment the same release-wide `common.labels.matchLabels`
-  selector as both "from other pods in the release" and "selected peers"/"cluster peers"). captured:
+  for a gated-versus-excluded split, or any enumeration or partition of a set the repository declares — the root `check`
+  task's members, a CLI's modes, the tracked executables (`git ls-files -s | awk '$1=="100755"'`) — derive the members
+  from that declaration (`build.gradle.kts`'s `check` block, its `target`/`targetExclude` entries, the `git ls-files`
+  query), never from intent or a hand-written complement, and update every doc that enumerates the set when a change
+  adds a member. A claim about what a gate, task, or check _runs_ is the same class: derive it from that tool's own
+  definition — its task registration and `commandLine` — not from recall, and a claim about what a chart renders
+  likewise from the selector the template emits rather than its comments, which can contradict it. Never write the
+  resulting totals into a durable artifact — they move with every change the corpus gains. captured:
   reconcile-netpol-spec-peer-wording
 
+  evidence: documentation-and-durable-claims
+
 - **`workflowLint` runs `actionlint` alone** (the repository installs and documents no `shellcheck`; actionlint invokes
-  it only if it happens to be on `PATH`), yet two artifacts asserted "actionlint + shellcheck" — the
-  `add-actionlint-gate` proposal that named a spec scenario, and a later change's verification story. A list attached to
-  such a set must not read as complete while naming a subset, and a claim **patched at the instance is still wrong one
-  level down**: a placement rule first drafted as "executables live in `scripts/`" was corrected for the repo-root
-  wrappers, then re-broken by the module-local pair, while the sibling clauses of the same rule enumerated 2/2 and 3/3
-  so its `scripts/` colon-list (5 of 8) read as exhaustive — derive the claim from the complete set, and either
-  enumerate a set in full or name the location only. Name a count's referent and check its arithmetic against the total
-  it belongs to: an early draft of the `make-captured-rules-traceable` design wrote "46 of them capture-class, and those
-  65 are concentrated in Gotchas (41) and Conventions (21)" — 41 + 21 = 62, so the split could not belong to the 46; it
-  was the 65-bullet set the same sentence also named, and the mismatch was invisible until the review did the addition.
+  it only if it happens to be on `PATH`). **A list naming a tool or check set must not read as complete while naming a
+  subset, and a claim patched at the instance is still wrong one level down:** derive the claim from the complete set,
+  and either enumerate a set in full or name the location only. Name a count's referent too, and check its arithmetic
+  against the total it belongs to.
+
+  evidence: documentation-and-durable-claims
 
 - **Distinguish a point-in-time count from a durable one:** an exact count of a growing corpus (capability specs,
-  requirements, archived changes) belongs in a change's own artifacts, where a stale snapshot usually does no harm —
-  except when the counted artifact is the change's own and grows while the change is in flight (its own review-round
-  record, its own appended rows), where a checked task certifying "the first N rows" is falsified by the next row, so
-  state the mechanism with no count — unless the count is what the artifact records as evidence (a claims-table row
-  counting a live corpus), where the deriving command names the boundary that stabilizes it, excluding the unit's own
-  rows (`$2 != "<unit>"`), or the figure moves every time the unit appends one — and never in a durable artifact (a
-  subagent definition loaded on every invocation, `AGENTS.md`, the README, a command file, a main spec) — where it
-  drifts on every archive and becomes exactly the drift the `specs-auditor` exists to catch. The
-  `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the change's own delta made the main spec
-  hold 158, and the README still stated a hard "22 capability specs". Describe the shape instead of freezing a tally —
-  the `specs-auditor` definition now says "a corpus … that grows with every archived change", and the README's "120+ and
-  counting" is the pattern to follow. A process count — elapsed time, effort — is not a durable fact either, though for
-  a different reason: no reader can verify it from the repository at all, so describe it qualitatively, not as a precise
-  number. Review rounds are the exception: `docs/review-rounds.tsv` records them per unit and `scripts/review-rounds.py`
-  aggregates the window for the digest, so cite the record rather than a session-only number. That targets _human_
-  process narrative — effort, how long a session ran — which no machine-measured evidence records; a _machine-measured_
-  figure is a different class, since the CI run log is its evidence, so an order-of-magnitude build cost (the
-  one-time-full-rebuild vs warm CI timings above) is not a process count and need not be made qualitative.
+  requirements, archived changes) belongs in a change's own artifacts — except when the counted artifact is the change's
+  own and grows while it is in flight (its review-round record, its appended rows), where a checked task certifying "the
+  first N rows" is falsified by the next row, so state the mechanism with no count — unless the count is the artifact's
+  evidence (a claims-table row counting a live corpus), where the deriving command names the boundary that stabilizes
+  it, excluding the unit's own rows (`$2 != "<unit>"`), or the figure moves every time the unit appends one. Never put a
+  corpus count in a durable artifact (a subagent definition, `AGENTS.md`, the README, a command file, a main spec): it
+  drifts on every archive, exactly the drift the `specs-auditor` exists to catch, so describe the shape instead of
+  freezing a tally. A process count — elapsed time, effort — is not durable either, since no reader can verify it from
+  the repository, so describe it qualitatively; review rounds are the exception, cited from `docs/review-rounds.tsv`
+  (aggregated by `scripts/review-rounds.py`) rather than from a session-only number. A _machine-measured_ figure is a
+  different class, evidenced by its CI run log, so an order-of-magnitude build cost is not a process count and need not
+  be made qualitative.
+
+  evidence: documentation-and-durable-claims
 
 - **A named example or mechanism inside a convention is itself a claim, not decoration:** the `@DirtiesContext` rule
   said keep it on "the gateway e2e test, which pulls in JGroups", but the e2e suite drives containers and never boots
@@ -3197,127 +3192,92 @@ capture-stash-stale-copy
   captured: add-web-ui-dashboard-panels captured: rework-readme-diagrams-for-github-mermaid
 
 - **A configuration-default change names every test assertion that pins the value and every doc that describes it, on
-  each surface it is declared.** The `reconcile-showcase-cache-default` plan initially missed that
-  `allPropertiesHaveDocumentedDefaults` asserts the Java field (so the change would fail it) and that the yml-wiring
-  test's missing `showcaseCache` assertion was the gap which let the drift pass. Grep the test sources for the field
-  accessor when changing a default, and give each pinning assertion its own task — the Java-defaults test and the
-  yml-wiring test each bind a different surface. A variable carried in a service's `bootBuildImage` `BPE_DEFAULT_*` map
-  has one surface more: the image's launch-environment default (`paketo-buildpacks/environment-variables`), which a
-  deployment's env var overrides but which in turn overrides the yml fallback. A new property the image carries joins
-  that map too, its value decided from the map's closest sibling there — the keep-alive mirrors its default, the origins
-  bake the empty fail-closed override of a local-development default — because the map is the image's declared
-  deployment environment, not a diff against the Java default. Documents that describe the value are surfaces too: grep
-  the docs for it and correct every description — but a **historical record** (a baseline, a retro, an audit) is
-  corrected by stating the values it ran under in the past tense, never by rewriting it to the new ones, since its
-  measured data is what it records. `right-size-chart-resources` changed the chart defaults; the Target bullet and the
-  Result paragraph of `docs/load-tests/2026-09-26.md` both described the old ones in the present tense, the plan
-  enumerated only the Target bullet, and review caught the Result paragraph — derive a doc's sites from a grep, not the
-  plan's list. A service URL's yml fallback is overridden by the container path (`BPE_DEFAULT_*`; in-container every
-  service listens on 8080), so it is exercised only under host `bootRun` and must equal the target service's local
-  `server.port` — a component test asserting the placeholder literally pins whatever value is there, not the right one.
-  captured: fix-gateway-cors-allowed-headers (#359) captured: right-size-chart-resources captured:
-  fix-gateway-query-service-url captured: guard-archive-spec-sync
+  each surface it is declared.** Grep the test sources for the field accessor when changing a default, and give each
+  pinning assertion its own task — the Java-defaults test and the yml-wiring test each bind a different surface. A
+  variable carried in a service's `bootBuildImage` `BPE_DEFAULT_*` map has one surface more: the image's
+  launch-environment default (`paketo-buildpacks/environment-variables`), which a deployment's env var overrides but
+  which in turn overrides the yml fallback. A new property the image carries joins that map too, its value decided from
+  the map's closest sibling there — not as a diff against the Java default — because the map is the image's declared
+  deployment environment. Documents that describe the value are surfaces too: grep the docs for it and correct every
+  description — a doc's sites come from that grep, not from the plan's list — but state the values a **historical
+  record** (a baseline, a retro, an audit) ran under in the past tense rather than rewriting it to the new ones, since
+  its measured data is what it records. A service URL's yml fallback is overridden by the container path
+  (`BPE_DEFAULT_*`; in-container every service listens on 8080), so it is exercised only under host `bootRun` and must
+  equal the target service's local `server.port` — a component test asserting the placeholder literally pins whatever
+  value is there, not the right one. captured: fix-gateway-cors-allowed-headers (#359) captured:
+  right-size-chart-resources captured: fix-gateway-query-service-url captured: guard-archive-spec-sync
+
+  evidence: documentation-and-durable-claims
 
 - **Doc claims must match their source and their strength — quote verbatim or paraphrase explicitly, and reserve
-  "enforced" for a real gate.** The self-learning README section described `AGENTS.md` rules in quotes;
-  `/review-thorough` caught a reworded rule rendered as a verbatim quote, an "enforced" that no gate backs, and an
-  overstated process claim. When a doc quotes a rule/spec/comment, copy the exact text (or drop the quote marks and
-  describe it), and check the mechanism before using words like "enforced", "always", "never", or "every" — against the
-  variants other docs define, too, since an unconditional rule must hold on every documented path, not only the default
-  one (the README's proposal-stage draft PR is such a variant). One of those paths is the rule's own text: state a
-  formal criterion — a count, a delimiter balance, a uniqueness test — with its scope where the criterion is stated, not
-  only in the rule's opening sentence, so a literal reading cannot apply it to the rule itself (the
-  `Keep em-dashes paired…` gotcha's odd-count check is scoped by its first sentence to a sentence that already uses
-  paired dashes; read per-sentence, it would flag its own lone-aside sentences). Check the claim's grammatical subject
-  too, not only its wording — a pronoun can bind a claim to the wrong actor: a README draft closed with "… and a
-  practice of reporting gaps in the libraries and tools _it_ depends on", which bound the project's upstream-report
-  practice to OpenCode (the bullet's subject) rather than to the project; naming the subject fixed it. Check a
-  qualifier's scope too: a condition or exception introduced for one variant must not swallow the rule's primary mandate
-  — strip the qualifiers and confirm the imperative verb still governs the default case (the `reshape-the-capture-loop`
-  rewrite of the capture trigger lost its lead's main verb and folded the implementation capture under the merge
-  condition; the PR's test plan records the review catching it). Check a recorded _mechanism_ against every measurement
-  the change made, not only against other docs: name the evidence points the explanation must cover and confirm the
-  wording holds for each, because a generalization one of your own runs contradicts is wrong however well it reads. The
-  blocking-execution mechanism's evidence point is the gateway's not-found test passing (its `fetchById` is stubbed, so
-  the handler maps the error directly); the query-service's mirror (`404` → `503`) went with its HTTP controller
-  (`grpc-query-transport`), so a second evidence point must be re-derived rather than cited from memory. Both the
-  surviving evidence point and the removed one are recorded in `design.md` of `extract-specd-rationale-from-agents-md`,
-  which moved the rule into the specs it belongs to. captured: record-blocking-execution-rationale (#335) captured:
+  "enforced" for a real gate.** When a doc quotes a rule, spec, or comment, copy the exact text (or drop the quote marks
+  and describe it), and check the mechanism before using words like "enforced", "always", "never", or "every" — against
+  the variants other docs define too, since an unconditional rule must hold on every documented path, not only the
+  default one. One of those paths is the rule's own text: state a formal criterion — a count, a delimiter balance, a
+  uniqueness test — with its scope where the criterion is stated, not only in the rule's opening sentence, so a literal
+  reading cannot apply it to the rule itself (the `Keep em-dashes paired…` rule scopes its odd-count check to a sentence
+  that already uses paired dashes). Check the claim's grammatical subject too, not only its wording, since a pronoun can
+  bind a claim to the wrong actor; and check a qualifier's scope, because a condition or exception introduced for one
+  variant must not swallow the rule's primary mandate — strip the qualifiers and confirm the imperative verb still
+  governs the default case. Check a recorded _mechanism_ against every measurement the change made, naming the evidence
+  points the explanation must cover and confirming the wording holds for each, because a generalization one of your own
+  runs contradicts is wrong however well it reads. captured: record-blocking-execution-rationale (#335) captured:
   grpc-query-transport
 
+  evidence: documentation-and-durable-claims
+
 - **A durable artifact may assert only what the repository can evidence — a history that lives only in the conversation
-  is not repo history.** An earlier draft of this bullet cited a `/var/folders/**` config attempt — a pattern proposed
-  in conversation but never written to a config file — and asserted an unobserved `setup-hosts.sh` outcome; a review
-  pass caught both. Before writing a historical or behavioral claim into `AGENTS.md`, `README.md`, a subagent
+  is not repo history.** Before writing a historical or behavioral claim into `AGENTS.md`, `README.md`, a subagent
   definition, or a main spec, find its evidence — a config file, a log line, a commit, or a run whose output you have.
   Check a cited source's provenance too, not only its existence: a clause written _for_ an event cannot evidence a
   _prior_ occurrence of it, so before a recurrence claim take a source that predates the event and was not produced by
-  it (a retrospective draft cited the `openspec archive` gotcha's parenthetical as a second lost-spec-sync occurrence,
-  but the incident's own capture #498 had added it — `git blame`/`git log -S` the clause, or grep the rule's `captured:`
-  token to find its introducing commit). captured: store-2026-10-05-retrospective A commit cited as evidence is itself a
-  claim: read what it did (`git show --stat`) and whether the path existed at `<commit>^` before attributing lines or a
-  reflow to it — an early draft of the `make-captured-rules-traceable` artifacts called `c62feda` one of "two Spotless
-  commits" that reflowed `AGENTS.md`, but `c62feda` created the file (164 insertions, and `AGENTS.md` is absent at its
-  parent); a review caught it. If the only source is the conversation, omit it or label it as the owner's account; for
-  an outcome you did not observe, state the mechanism ("a bash-script write runs under the `shell` permission") rather
-  than the observation ("it did not prompt"). Point-in-time narrative belongs in a dated record — the change archive, a
-  retrospective, an audit report, a load-test record, or a rule's `docs/guidance-evidence/` entry — never in the
-  guidance itself.
+  it (`git blame`/`git log -S` the clause, or grep the rule's `captured:` token to find its introducing commit). A
+  commit cited as evidence is itself a claim: read what it did (`git show --stat`) and whether the path existed at
+  `<commit>^` before attributing lines or a reflow to it. If the only source is the conversation, omit it or label it as
+  the owner's account; for an outcome you did not observe, state the mechanism ("a bash-script write runs under the
+  `shell` permission") rather than the observation ("it did not prompt"). Point-in-time narrative belongs in a dated
+  record — the change archive, a retrospective, an audit report, a load-test record, or a rule's
+  `docs/guidance-evidence/` entry — never in the guidance itself. captured: store-2026-10-05-retrospective
+
+  evidence: documentation-and-durable-claims
 
 - **A claim about a surface outside the repository — a registry's contents, a repository setting, a live URL — has no
   config file or commit behind it, so its evidence is a query whose output you have:** run it before writing the claim,
-  and re-run it at review, because such a surface can change between the two and no gate reads it (`#266`'s repeated
-  review rounds caught several unverified external assertions — a GitHub docs URL written from memory, a false "Docker
-  Hub carries nothing" against five live repositories, wrong dates; the owner deleted those repositories mid-session,
-  invalidating the entry between its writing and its review). Verify a URL by requesting it, and treat the review, not a
-  gate, as the check. An evidence statement for a task that _touches_ such a surface has the same limit in the other
-  direction: do not pin a value the surface produced as the evidence the task was done — the rows of a live lookup vary
-  run to run. `helmUpdates`'s rows are a live `helm search repo` result; the same tick's evidence read "only
-  `prometheus-community-stack`" in one run and also showed `bitnami-kafka: 31.5.0 -> 32.4.3` in another, so the tick
-  rests on the run succeeding plus the parse pinned by unit tests, never on any row. captured:
-  rework-the-helm-suppression-list
+  and re-run it at review, because such a surface can change between the two and no gate reads it. Verify a URL by
+  requesting it, and treat the review, not a gate, as the check. An evidence statement for a task that _touches_ such a
+  surface has the same limit in the other direction: do not pin a value the surface produced as the evidence the task
+  was done, since the rows of a live lookup vary run to run. captured: rework-the-helm-suppression-list
+
+  evidence: documentation-and-durable-claims
 
 - **When a script generates many claims at once, the method that derived them is not their evidence:** each generated
   item needs its own control, applied per item rather than as a spot check, because a heuristic that is right on nine of
   ten items writes its one error silently into the durable file and a hedge tag (`approximate`, "uncertain") does not
-  repair it. The `retro-mark-captured-rules` backfill's first attempt named 8 origins whose commit contained no text of
-  the rule at all — including `ddaa51e`, claimed for the log-assertion rule whose text it never mentions — because the
-  range and the phrase were never required to be about the same rule; adding the per-item control (the candidate
-  origin's added lines must contain the rule's own opening phrase) substantiated 30+ origins independently. captured:
-  retro-mark-captured-rules
+  repair it. captured: retro-mark-captured-rules
+
+  evidence: documentation-and-durable-claims
 
 - **A comparison between two runs or files that differ in more than one dimension cannot attribute the difference to
-  either — isolate the variable before naming a cause.** Comparing `ci.yml`'s `Cache mode: write` with the `opencode`
-  workflow's read-only run attributed the difference to the latter's `permissions:` block, but the two differ in two
-  ways — the trigger (`push`/`pull_request` vs the comment triggers) and the blocks' contents (`ci.yml`: a top-level
-  `contents: read`; `opencode.yml`: a job-level `id-token: write` plus reads) — and a grep anchored to an indented
-  `permissions:` had hidden `ci.yml`'s top-level one. GitHub's dependency-caching reference names the trigger, so a fix
-  built on the misattribution (granting `actions: write`) would have widened the token for nothing. Read the
-  authoritative policy for the mechanism you are hypothesising, or vary only that dimension; a fix that enlarges a
-  privilege to explain a behavior is a signal the cause is still undiagnosed. The same rule binds a single experiment
-  that varies two dimensions at once: probing one malformed frontmatter on an agent and a different one on a command
-  read the results as kind-keyed ("command → exit 1") when the status depends on the resolved YAML shape, not the kind —
-  `guard-agent-loader-read-path` fixed the design only by re-deriving at a held-constant shape. A later review round
-  then could not reproduce the silent-drop row because it chose a different shape, and read its clean run as a
-  refutation of a true fact: a disagreement between two runs that differ in an uncontrolled dimension refutes neither,
-  so compare the inputs before concluding either wrong. The rule extends to a single observation: a token used to
-  evidence which route supplies a surface must reach it only by that route — a `commons-lang3` probe of `main`'s
-  `implementation` on a custom suite's compile classpath "confirmed" the opposite, because the coordinate arrived
-  through the suite's declared `project(":showcase-test")`; read the route the graph prints
+  either — isolate the variable before naming a cause.** Read the authoritative policy for the mechanism you are
+  hypothesising, or vary only that dimension; a fix that enlarges a privilege to explain a behavior is a signal the
+  cause is still undiagnosed. The same rule binds a single experiment that varies two dimensions at once, and a
+  disagreement between two runs that differ in an uncontrolled dimension refutes neither — compare the inputs before
+  concluding either wrong. It extends to a single observation: a token used to evidence which route supplies a surface
+  must reach it only by that route — read the route the graph prints
   (`./gradlew :<module>:dependencies --configuration <suite>CompileClasspath`, whose tree names each route's parent), or
   pick a token with one route. captured: guard-agent-loader-read-path captured: fix-mapstruct-suite-warning
 
+  evidence: documentation-and-durable-claims
+
 - **A reproduction in an outward-facing artifact is itself part of the claim — write it so a reader reruns it to the
   same output, and rerun the exact sequence before posting.** State the tool version and the starting state, and record
-  the commands in the order they ran: an order-dependent transcript can self-contradict (a `Fission-AI/OpenSpec#1892`
-  draft showed `openspec validate --all` exiting 0, but the delta-less change its own `new change` had created makes
-  `validate` exit 1), and a precondition left implicit is not reproducible elsewhere (in a directory with no planning
-  shape the same malformed config hard-errors with exit 1 instead of warning). Re-check every derived detail — line
-  numbers, exit codes — against the actual output, and capture an exit code directly, not through a pipe (`cmd | jq`
-  reports `jq`'s status, not the CLI's). The `#1892` draft took repeated review passes, each catching a different
-  mis-reproduction, because the review gate reads the artifact while no gate reruns its transcript. This is the drafting
-  counterpart to "report it upstream with a reproduction and the evidence"; the tool-behavior claim itself is verified
-  per the `--help`/read-path rules.
+  the commands in the order they ran, since an order-dependent transcript can self-contradict and a precondition left
+  implicit is not reproducible elsewhere. Re-check every derived detail — line numbers, exit codes — against the actual
+  output, and capture an exit code directly, not through a pipe (`cmd | jq` reports `jq`'s status, not the CLI's). This
+  is the drafting counterpart to "report it upstream with a reproduction and the evidence"; the tool-behavior claim
+  itself is verified per the `--help`/read-path rules.
+
+  evidence: documentation-and-durable-claims
 
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
   check rather than an answer.** Resolve an `owner/repo#NNN` through the tracker before writing or editing such a
@@ -3339,33 +3299,25 @@ capture-stash-stale-copy
 
   evidence: documentation-and-durable-claims
 
-- **A "the only X" claim in `AGENTS.md` goes stale the moment a change adds a second X — fix it in that change.** The
-  web UI's Playwright e2e suite was added while `AGENTS.md` still said "the only e2e suite is `showcase-api-gateway`'s",
-  and the stale claim survived until a later cleanup pass (PR #116). When a change adds a second instance of anything
-  the docs call unique (a second e2e suite, image, or workflow), grep `AGENTS.md` for `only`/`sole`/`never` claims about
-  the first and update them; when editing a section, re-verify such claims against the repo instead of trusting the
-  prose. The same applies in the negative: when a change makes a previously-true "nothing covers X" / "A and B ignore X"
-  statement false, grep `AGENTS.md`/`README.md` for the capability's absence claims and fix them in the same change —
-  including one added by a recent change (the `buildpackUpdates` check in #149 falsified the "`dependencyUpdates` and
-  `helmUpdates` ignore bare `[versions]` entries" sentence #148 had added one change earlier). The same goes for a
-  **code-symbol or file rename/removal**: docs cite class, test, config, and workflow-file names as examples and nothing
-  resolves them, so grep the whole repository for the old name in the same change — the first audit found
-  `ShowcaseApiController*` references that a rename had left behind, and the workflow-file rename `snyk.yml` →
-  `dependency-security.yml` also lived in `SECURITY.md`, ADR-0006, and `build.gradle.kts`'s `toolingUpdates` pin. A
-  plain **enumeration of a set** is the case the name-grep cannot see: neither it nor the `only`/`sole`/`never` grep
-  finds a stale sentence that names the set's _other_ members — `AGENTS.md` said the `ci.yml` and `e2e.yml` workflows
-  "additionally extend `gradle-home-cache-includes` with `nodejs`" while the npm-monitoring change added that include to
-  `dependency-updates.yml` and `dependency-security.yml` too. Adding a **member** to such a set widens every live
-  enumeration of it in the same change — and when an auditor sweeps the set, that includes its definition, its trigger
-  command, `AGENTS.md`'s summary of the auditor, and the **spec requirement that owns the sweep**, which is a main spec
-  and so needs a `MODIFIED` delta rather than a docs edit. Grep the set's distinctive members across `.opencode/`,
-  `openspec/specs/`, `AGENTS.md`, `README.md`, `docs/ideas.md`, and `scripts/` before writing the addition — a tool's
-  own module docstring and its `--help` text are live enumerations of the same set too; the change's own four planning
-  copies can be kept identical while all four live sites go stale. The sweep covers non-doc artifacts too: recording
-  that a component is deliberately _not_ used (ADR-0009's "without Axon Server") must grep the whole repo for its name,
-  because config, values, and template comments carry claims no auditor reads (`helm/chart/src/main/helm/values.yaml`
-  still called the `db-scheduler` settings "Axon Server scheduler settings"). captured: monitor-web-ui-npm-dependencies
-  (#395) captured: verify-unique-review-rounds
+- **A "the only X" claim in `AGENTS.md` goes stale the moment a change adds a second X — fix it in that change.** When a
+  change adds a second instance of anything the docs call unique (a second e2e suite, image, or workflow), grep
+  `AGENTS.md` for `only`/`sole`/`never` claims about the first and update them, and when editing a section, re-verify
+  such claims against the repo instead of trusting the prose. The negative case takes the same sweep: when a change
+  makes a previously-true "nothing covers X" / "A and B ignore X" statement false, grep `AGENTS.md`/`README.md` for the
+  capability's absence claims and fix them in the same change, including one a recent change added. A **code-symbol or
+  file rename or removal** does too — docs cite class, test, config, and workflow-file names as examples and nothing
+  resolves them — so grep the whole repository for the old name in the same change. A plain **enumeration of a set** is
+  the case the name-grep cannot see: adding a **member** widens every live enumeration of it in the same change, and
+  when an auditor sweeps the set that includes its definition, its trigger command, `AGENTS.md`'s summary of the
+  auditor, and the **spec requirement that owns the sweep**, which is a main spec and so needs a `MODIFIED` delta rather
+  than a docs edit. Grep the set's distinctive members across `.opencode/`, `openspec/specs/`, `AGENTS.md`, `README.md`,
+  `docs/ideas.md`, and `scripts/` before writing the addition — a tool's own module docstring and its `--help` text are
+  live enumerations of the same set too, and the change's own planning copies can be kept identical while every live
+  site goes stale. The sweep covers non-doc artifacts too: recording that a component is deliberately _not_ used must
+  grep the whole repo for its name, because config, values, and template comments carry claims no auditor reads.
+  captured: monitor-web-ui-npm-dependencies (#395) captured: verify-unique-review-rounds
+
+  evidence: documentation-and-durable-claims
 
 ### Environment & host toolchain
 

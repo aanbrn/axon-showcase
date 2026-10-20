@@ -15,14 +15,19 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-20
 
-- Convert the remaining Gotchas rules in the two piloted subsections — parked; no change yet.
-  `separate-agents-md-operational-from-evidence` converted seven rules and drafted a third (`formatter-owned-file`, R3,
-  net −69 B with a token, so it stayed at root). What remains in `### Git & repository workflow` and
-  `### Documentation & durable claims`: R3 (drafted, unconverted), 16 undrafted rewrites, and 1 undrafted evidence
-  relocation, each needing its own draft, measurement, operational-identifier inventory, and the five validation
-  conditions; four rules have no separable material and one was rejected, so nothing is owed for those five. The
-  per-rule dispositions and their estimates are in the archived change's `design.md` ("Rule-by-rule dispositions" and
-  "Recommendation"); re-measure before acting on an estimate.
+- Convert the remaining Git-tranche Gotchas rules — parked; no change yet. `convert-remaining-gotchas-rules` completed
+  the `### Documentation & durable claims` tranche: all eleven remaining eligible rules there converted. The conversion
+  alone was **−8,269 bytes (2.49%)** of root text for 10,861 bytes of record; with the implementation capture's two
+  clauses (**+701 B**) the delivered unit is **−7,568 bytes (2.28%)** at 324,296 B / 3,361 lines, the record 16,608 B,
+  and total maintained content **+3,293 bytes**. Its `design.md` drafts all six `### Git & repository workflow`
+  candidates as well, each measured against `AGENTS.md` at `e07f5f8f`: C1 `git stash pop` −692, C2 `git reset --hard`
+  −461, C3 `openspec archive` −256, C4 programmatic edits −1,039, C5 the source range-boundary −270, C6 never chain an
+  edit −1,004 — **−3,722 bytes (1.12%)** of root for **5,812 bytes** of record (ratio 0.64, against the shipped
+  tranche's 0.76). The tranche is a candidate for one unit of its own; a mixed per-rule selection was measured (−9,006 B
+  root, +2,171 B maintained) and set aside in favour of a single-subsection boundary. R3 (`formatter-owned-file`, net
+  −69 B with a token) stays deferred: its provenance is already carried by the em-dash record, so nothing beyond the
+  byte saving argues for it. The four rules with no separable material and the one rejected on a retrieval failure
+  remain settled. Re-measure against the file before acting.
 
 - Extend the extraction conditions so the retained pointer identifies each converted unit — parked; no change yet.
   `separate-agents-md-operational-from-evidence` found that a destination-level pointer satisfies every extraction

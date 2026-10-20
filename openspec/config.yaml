@@ -91,7 +91,8 @@ rules:
       term or mechanism name with no referent in the repository is deleted rather than defined
     - Carry the claims table — each fact the change states about its evidence (the prior artifacts it rests on) with its
       source or the command that derives it, re-run so it reproduces the figure the row records; a row about an artifact
-      the change itself edits anchors to that artifact's pre-change state (`git show HEAD:<path>`), since it stops
+      the change itself edits anchors to that artifact's pre-change state (`git show HEAD:<path>`) — its embedded
+      commands included, since a script opening the working-tree file reports the implemented result — since it stops
       reproducing once the change lands; a source that is a command's output states the reason by class, never a list of
       its lines; and each dismissal states its reason by kind, never as an enumerating clause; and the table is
       re-derived after the unit's last append to its own record, which adds a scan candidate; a self-record fact about

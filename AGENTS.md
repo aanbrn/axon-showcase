@@ -1306,18 +1306,17 @@ Key modules (libraries, not services):
   version — including a coordinate version an ADR or idea quotes as the catalog's current value — so grep the old string
   across `AGENTS.md`, `README.md`, `openspec/config.yaml`, `docs/adr/`, and `docs/ideas.md` and fix each, since no gate
   reads any of them. captured: bump-dependencies-2026-10-12 Update them before reporting the change done; also remove
-  the change's idea from `docs/ideas.md` **in the same PR**, so it rides the change branch and commits with its push
-  rather than landing as a separate docs PR. An idea is removed once implemented (captured by a change) or once explored
-  and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open ideas remain (see the
-  file's header). Promotion to a GitHub issue is a **link, not a removal** — annotate the idea with the issue number
-  when you promote it, since the file's header names only the issue's link to the change, not the scratchpad's back-link
-  to the issue, so the two drift apart — and prefer promoting a unit's idea at that unit's merge: while its PR is open,
-  citing an artifact the unit ships is a contingent claim that must say so (`open as #NNN; not yet merged`) and the
-  clause drops at the merge — the merge-time read owns that drop, and where the claim was already published outside the
-  repository it means editing the published artifact, not only omitting it from new prose — because the issue is a
-  permanent record outside the repository and cannot cite what the default branch does not have. Give every parked entry
-  a trailing status tag stating its disposition (`— parked; no change yet.` is the common form; a promoted or
-  explored-and-set-aside idea says so instead: the promotion _replaces_ the parked tag,
+  the change's idea from `docs/ideas.md` in this PR, not as a separate docs PR. An idea is removed once implemented
+  (captured by a change) or once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR
+  instead); only open ideas remain (see the file's header). Promotion to a GitHub issue is a **link, not a removal** —
+  annotate the idea with the issue number when you promote it, since the file's header names only the issue's link to
+  the change, not the scratchpad's back-link to the issue, so the two drift apart — and prefer promoting a unit's idea
+  at that unit's merge: while its PR is open, citing an artifact the unit ships is a contingent claim that must say so
+  (`open as #NNN; not yet merged`) and the clause drops at the merge — the merge-time read owns that drop, and where the
+  claim was already published outside the repository it means editing the published artifact, not only omitting it from
+  new prose — because the issue is a permanent record outside the repository and cannot cite what the default branch
+  does not have. Give every parked entry a trailing status tag stating its disposition (`— parked; no change yet.` is
+  the common form; a promoted or explored-and-set-aside idea says so instead: the promotion _replaces_ the parked tag,
   `— promoted to issue #NNN; no change yet.`, never a clause appended past the tag's sentence-final period), since the
   header fixes the sections' order and dating but not the tag, and the tag is what marks the entry as a still-unowned
   idea rather than one already routed to work. Also sweep the un-audited docs for references to the thing this change
@@ -1325,40 +1324,38 @@ Key modules (libraries, not services):
   suggestion's disposition (**Applied** where it applies it; its routing where it routes it: parked in `docs/ideas.md`,
   a named change, an issue; or closed where it decides against it) rather than removes. An open idea that still calls it
   "the proposed X" is itself a stale claim: update its prose in the same change, including any enumeration or count it
-  carries ("two others remain open: A, B") that the change's new instance makes wrong. No auditor **owns** either file —
-  the four auditors own `AGENTS.md`/`.opencode/`, the spec corpus, `docs/adr/` plus the architectural surface, and
-  `README.md`; the architecture-auditor's sweep reaches `docs/ideas.md` for a parked entry's staleness, but the file
-  still has no owning auditor. Docs that ARE the change (new agent/command/skill documentation, README rows describing a
-  new capability, the change's idea removal) ship with the change's PR. For every other docs edit the boundary is
-  **causation _while the change is in flight_**: an edit the change causes and that exists while it can still ride a
-  branch — a lesson from its implementation (the capture), an idea its own sweep surfaced, a fact it falsified — ships
-  in that change's PR, while an edit the change did not cause (a stale fact it merely passed by, a standalone reword, a
-  refresh of an already-completed change) and one surfaced only after the change is done (a merge-time capture, caused
-  by the change but with no branch left to ride) ships as its own docs PR, forked from `main`, batched into one docs PR
-  rather than one per item. Decide the owner before committing — a docs PR forked from `main` cannot carry an edit
-  committed on a change branch, so committing it there first for a clean tree silently leaves it out of the docs PR and
-  `main` unchanged — and verify the fix against the merged PR's diff rather than the PR description, which can claim a
-  change the diff does not contain. A parked-idea docs PR owes the refresh too: fold any durable fact the idea reveals
-  into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin to an existing enumeration) —
+  carries ("two others remain open: A, B") that the change's new instance makes wrong. No auditor **owns** either file
+  (each auditor's bullet states its own scope; the architecture-auditor's sweep reaches `docs/ideas.md` for a parked
+  entry's staleness). For every docs edit the boundary is **causation _while the change is in flight_**: docs that ARE
+  the change (new agent/command/skill documentation, README rows describing a new capability, the change's idea
+  removal), and any edit the change causes that exists while it can still ride a branch — a lesson from its
+  implementation (the capture), an idea its own sweep surfaced, a fact it falsified — ship with the change's PR, while
+  an edit the change did not cause (a stale fact it merely passed by, a standalone reword, a refresh of an
+  already-completed change) and one surfaced only after the change is done (a merge-time capture, caused by the change
+  but with no branch left to ride) ships as its own docs PR, forked from `main`, batched into one docs PR rather than
+  one per item. Decide the owner before committing — a docs PR forked from `main` cannot carry an edit committed on a
+  change branch, so committing it there first for a clean tree silently leaves it out of the docs PR and `main`
+  unchanged — and verify the fix against the merged PR's diff rather than the PR description, which can claim a change
+  the diff does not contain. A parked-idea docs PR owes the refresh too: fold any durable fact the idea reveals into the
+  relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin to an existing enumeration) —
   `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the idea is implemented or dropped.
-  `openspec/config.yaml`'s `context:` block is a second, un-gated copy of the same project facts (runtime/Spring/Gradle
-  versions, module count, service list, Docker image names) that OpenSpec shows the AI when creating artifacts — refresh
-  it in the same change whenever one of those facts moves. Some of its per-artifact `rules` restate obligations stated
-  in `AGENTS.md` and the specs — injected per artifact alone (`projectConfig.rules[artifactId]`), so a clause several
-  artifacts need lives in each list rather than in a shared one — and what is un-gated is their content and currency:
-  `ci.yml`'s probe fails on a malformed item — the list's shape, since a bad one silently drops the whole artifact's
-  rule set — but not on whether a rule's wording still matches `AGENTS.md` and the spec, so refresh a rule whose
-  obligation moves even though the gate stays green. A **removal** counts too: when a sweep deletes an entry as
-  non-durable, check these copies for the same sentence — the fact has not moved, so the move rule does not fire
-  (`disable-axoniq-console-message`'s sentence outlived #292's removal from `AGENTS.md` by four PRs in `config.yaml`,
-  until the audit noticed). `openspec validate` never checks it, so it drifts silently. The repository's own GitHub
-  description and topics are a third un-gated copy of the same facts — so refresh them in the change that moves one; no
-  gate reads them and no auditor owns a surface outside the repository. A file can also _depend_ on such a surface
-  rather than describe one: `SECURITY.md`'s private-reporting path is a dead end unless private vulnerability reporting
-  is enabled. Enable the setting as part of the change that ships the instruction — a repository setting leaves no diff,
-  so a diff-only review cannot see it — and name the enabling in the change's report. captured: park-retro-marking-idea
-  (#281) captured: re-measure-load-test-baseline (#429) captured: mark-s3-applied captured: attribute-load-test-tail
-  (#570) captured: park-review-loop-follow-ups captured: fix-openspec-config-rules
+  The un-gated copies of what this file and the specs state take the same sweep, refreshed in the change that moves one:
+  the `openspec/config.yaml` `context:` block (the runtime/Spring/Gradle versions, module count, service list, and
+  Docker image names that OpenSpec shows the AI when creating artifacts), that file's per-artifact `rules` (which
+  restate obligations stated here and in the specs, injected per artifact alone — `projectConfig.rules[artifactId]` — so
+  a clause several artifacts need lives in each list rather than in a shared one), and the repository's GitHub
+  description and topics. What is un-gated is their content and currency: `ci.yml`'s probe fails on a malformed item —
+  the list's shape, since a bad one silently drops the whole artifact's rule set — but not on whether a rule's wording
+  still matches `AGENTS.md` and the spec, so refresh a rule whose obligation moves even though the gate stays green, and
+  `openspec validate` never checks the rest, so it drifts silently. A **removal** counts too: when a sweep deletes an
+  entry as non-durable, check these copies for the same sentence — the fact has not moved, so the move rule does not
+  fire (`disable-axoniq-console-message`'s sentence outlived #292's removal from `AGENTS.md` by four PRs in
+  `config.yaml`, until the audit noticed). No auditor owns a surface outside the repository. A file can also _depend_ on
+  such a surface rather than describe one: `SECURITY.md`'s private-reporting path is a dead end unless private
+  vulnerability reporting is enabled. Enable the setting as part of the change that ships the instruction — a repository
+  setting leaves no diff, so a diff-only review cannot see it — and name the enabling in the change's report. captured:
+  park-retro-marking-idea (#281) captured: re-measure-load-test-baseline (#429) captured: mark-s3-applied captured:
+  attribute-load-test-tail (#570) captured: park-review-loop-follow-ups captured: fix-openspec-config-rules
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
@@ -1416,11 +1413,19 @@ Key modules (libraries, not services):
   arguments that diamond inference or target typing resolve, or repeated boilerplate that Lombok covers. Use the
   simplest construct that compiles and stays readable. The same applies to prose: when a bullet needs a set another
   `AGENTS.md` bullet already enumerates, cross-reference that bullet instead of re-listing it — a copied enumeration is
-  a second copy that drifts. Condensing near-duplicate guidance is the same trade in reverse — merge the repetition, not
-  the evidence: enumerate the concrete anchors each entry carries (an exact warning string, an exit code, a
-  parenthetical qualifier, an upstream issue link) and confirm the merged text still carries every one, and grep for the
-  shorthands that named a bullet a merge retitles so they can be repointed. (Whether an already-restated fact is still
-  accurate is a separate check: diff it against the code — see the documented-numbers gotcha.)
+  a second copy that drifts. Merging guidance entries, near-duplicate or complementary, is the same trade in reverse:
+  merge the repetition, not the evidence.
+  1. Enumerate the concrete anchors each entry carries (an exact warning string, an exit code, a parenthetical
+     qualifier, an upstream issue link).
+  2. Confirm each still appears attached to the entry that carried it — a shared arrow, preposition, or target list
+     after an `or` applies one entry's operand to the other, widening it while every anchor still appears.
+  3. Resolve each unit of the merged text back to the entry it came from; reading the entries into the merged text finds
+     a dropped obligation and never an added one.
+  4. Grep the shorthands that named a bullet a merge retitles so they can be repointed.
+
+  (Whether an already-restated fact is still accurate is a separate check: diff it against the code — see the
+  documented-numbers gotcha.) captured: consolidate-docs-update-obligations
+
 - **Formatting**: format Java sources, Gradle Kotlin DSL (`*.gradle.kts`), and build-logic Kotlin
   (`build-logic/src/**/*.kt`) files with `./gradlew spotlessApply` (Spotless: palantir-java-format for Java, ktfmt for
   `.gradle.kts` and build-logic `.kt`, both fixed 120 columns) — the canonical format step, enforced by `spotlessCheck`
@@ -1659,11 +1664,11 @@ Key modules (libraries, not services):
   one of these that a prior analogous change had covered — read the archived analogous change and grep for the
   artifact's **name and its trigger command** before hand-writing the set, since a site may name only one (the agent
   table row names the agent; the prose bullets and the slash-command row name its command), and for a set the change
-  enumerates the "the only X" bullet's member grep is the sweep — and point the proposal's site list at the tasks that
-  name those sites rather than hand-writing it, since a hand-written enumeration keeps under-matching the union it
-  derives from. captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12 captured: record-review-rounds
-  captured: bound-the-review-loop captured: bump-dependencies-2026-10-16 captured: widen-audit-agents-to-authoring-gaps
-  captured: sharpen-experience-analysis captured: sharpen-specs-audit
+  enumerates the sweep rule's member grep is the sweep — and point the proposal's site list at the tasks that name those
+  sites rather than hand-writing it, since a hand-written enumeration keeps under-matching the union it derives from.
+  captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12 captured: record-review-rounds captured:
+  bound-the-review-loop captured: bump-dependencies-2026-10-16 captured: widen-audit-agents-to-authoring-gaps captured:
+  sharpen-experience-analysis captured: sharpen-specs-audit
 - **An OpenCode model pin is resolved before it is set, and a bump is a multi-file sweep — grep for the old model id,
   and keep the vision pin out of scope.** A pin naming a provider that does not serve the model fails the agent at every
   invocation (`Model unavailable`) with no gate reading it, so resolve it first
@@ -3163,7 +3168,7 @@ capture-stash-stale-copy
 
 - **A doc-consistency sweep is scoped by the convention or the claim, not by the review's findings list — and a claim
   about the code is verified against the code.** Derive the sites by grepping the artifact or corpus, never from the
-  plan's list, and sweep each of these pairs together:
+  plan's list, and sweep the pair for each kind of change the unit made:
 
   - a convention (a coordinate or identifier spelling, `MUST` vs `SHALL`, an enumeration) → every instance in the
     artifact or corpus;
@@ -3174,10 +3179,26 @@ capture-stash-stale-copy
     change's own artifacts;
   - an audit finding → the pattern the finding is an instance of, not the finding alone;
   - a widened or narrowed check → its describers, including a worked example in a definition;
-  - a javadoc or field-doc pass → every declaration in the touched classes, not only the ones a review named.
+  - a javadoc or field-doc pass → every declaration in the touched classes, not only the ones a review named;
+  - a set that gained a member, or an enumeration of one → every live enumeration of the set, since a plain enumeration
+    is the case a name-grep cannot see: grep its distinctive members across `.opencode/`, `openspec/specs/`,
+    `AGENTS.md`, `README.md`, `docs/ideas.md`, and `scripts/` before writing the addition — a tool's module docstring
+    and `--help` text are live enumerations too, and the change's own planning copies can stay identical while every
+    live site goes stale — and when the set is an auditor's, sweep its definition, its trigger command, `AGENTS.md`'s
+    summary of it, and the spec requirement that owns the sweep, which is a main spec and so needs a `MODIFIED` delta
+    rather than a docs edit;
+  - a code symbol or file renamed or removed → the whole repository for the old name, config, values, and template
+    comments included, since docs cite these names as examples and nothing resolves them;
+  - a second instance of something the docs call unique (an `only`/`sole`/`never` claim) → `AGENTS.md`, for the claim
+    about the first instance; fix it in the same change, and re-verify such a claim against the repository whenever you
+    edit its section rather than trusting the prose;
+  - a capability the change makes no longer absent (`nothing covers X`, `A and B ignore X`) → `AGENTS.md` and
+    `README.md`, including a claim a recent change added;
+  - a component you record as deliberately _not_ used → the whole repository for its name.
 
   Two directions read plausibly for a converter or mapper, so read the field's Javadoc and one call site before writing
-  its `@param`/`@return`. captured: bump-tooling-pins-2026-10-16 captured: make-the-capture-selective
+  its `@param`/`@return`. captured: bump-tooling-pins-2026-10-16 captured: make-the-capture-selective captured:
+  monitor-web-ui-npm-dependencies (#395) captured: verify-unique-review-rounds
 
   evidence: documentation-and-durable-claims
 
@@ -3296,26 +3317,6 @@ capture-stash-stale-copy
   (`showcase/quality/merge-governance` specifies it with the other observational checks). captured:
   suppress-braces-npm-advisory captured: refresh-upstream-references-2026-10-05 captured: record-gatling-report-block
   captured: refresh-upstream-references-2026-10-19
-
-  evidence: documentation-and-durable-claims
-
-- **A "the only X" claim in `AGENTS.md` goes stale the moment a change adds a second X — fix it in that change.** When a
-  change adds a second instance of anything the docs call unique (a second e2e suite, image, or workflow), grep
-  `AGENTS.md` for `only`/`sole`/`never` claims about the first and update them, and when editing a section, re-verify
-  such claims against the repo instead of trusting the prose. The negative case takes the same sweep: when a change
-  makes a previously-true "nothing covers X" / "A and B ignore X" statement false, grep `AGENTS.md`/`README.md` for the
-  capability's absence claims and fix them in the same change, including one a recent change added. A **code-symbol or
-  file rename or removal** does too — docs cite class, test, config, and workflow-file names as examples and nothing
-  resolves them — so grep the whole repository for the old name in the same change. A plain **enumeration of a set** is
-  the case the name-grep cannot see: adding a **member** widens every live enumeration of it in the same change, and
-  when an auditor sweeps the set that includes its definition, its trigger command, `AGENTS.md`'s summary of the
-  auditor, and the **spec requirement that owns the sweep**, which is a main spec and so needs a `MODIFIED` delta rather
-  than a docs edit. Grep the set's distinctive members across `.opencode/`, `openspec/specs/`, `AGENTS.md`, `README.md`,
-  `docs/ideas.md`, and `scripts/` before writing the addition — a tool's own module docstring and its `--help` text are
-  live enumerations of the same set too, and the change's own planning copies can be kept identical while every live
-  site goes stale. The sweep covers non-doc artifacts too: recording that a component is deliberately _not_ used must
-  grep the whole repo for its name, because config, values, and template comments carry claims no auditor reads.
-  captured: monitor-web-ui-npm-dependencies (#395) captured: verify-unique-review-rounds
 
   evidence: documentation-and-durable-claims
 

@@ -68,12 +68,12 @@ spec hold 158, and the README still stated a hard "22 capability specs". The `sp
 that grows with every archived change" and the README's "120+ and counting" are the shape-describing form the rule asks
 for.
 
-## consistency-sweep
+## claim-site-sweep
 
 Rule: **A doc-consistency sweep is scoped by the convention or the claim, not by the review's findings list — and a
 claim about the code is verified against the code.**
 
-Each of the rule's six scopes comes from an episode. `fix-javadoc-consistency` wrote a `@param elasticsearchConverter`
+The sweep scopes below come from these episodes. `fix-javadoc-consistency` wrote a `@param elasticsearchConverter`
 reading "OpenSearch results to entities" for a converter that maps entities → OpenSearch; the field's Javadoc and its
 `mapObject(ShowcaseEntity…)` call sites said so, and the implementation quick review caught it. The same change had to
 add a field Javadoc the review never enumerated (`ShowcaseProjector.METER_NAME_PREFIX`), caught by the owner.
@@ -90,7 +90,19 @@ describers went stale: the 2026-10-11 audit found `toolingUpdates`' worked examp
 gained its own entry, and `bump-tooling-pins-2026-10-16` left `/opsx-tool-update`'s "the check detects a release from
 `ci.yml` alone" in place.
 
-`captured: bump-tooling-pins-2026-10-16`, `captured: make-the-capture-selective`
+The web UI's Playwright e2e suite was added while `AGENTS.md` still said "the only e2e suite is
+`showcase-api-gateway`'s", and the stale claim survived until a later cleanup pass (PR #116). The absence mode: the
+`buildpackUpdates` check in #149 falsified the "`dependencyUpdates` and `helmUpdates` ignore bare `[versions]` entries"
+sentence #148 had added one change earlier. The rename mode: the first audit found `ShowcaseApiController*` references a
+rename had left behind, and the workflow-file rename `snyk.yml` → `dependency-security.yml` also lived in `SECURITY.md`,
+ADR-0006, and `build.gradle.kts`'s `toolingUpdates` pin. The enumeration mode: `AGENTS.md` said the `ci.yml` and
+`e2e.yml` workflows "additionally extend `gradle-home-cache-includes` with `nodejs`" while the npm-monitoring change
+added that include to `dependency-updates.yml` and `dependency-security.yml` too. The non-doc mode: ADR-0009's "without
+Axon Server" left `helm/chart/src/main/helm/values.yaml` still calling the `db-scheduler` settings "Axon Server
+scheduler settings".
+
+`captured: bump-tooling-pins-2026-10-16`, `captured: make-the-capture-selective`,
+`captured: monitor-web-ui-npm-dependencies (#395)`, `captured: verify-unique-review-rounds`
 
 ## config-default-surfaces
 
@@ -230,20 +242,3 @@ npm-advisory suppression's own expiry, so it carries no live retirement conditio
 
 `captured: suppress-braces-npm-advisory`, `captured: refresh-upstream-references-2026-10-05`,
 `captured: record-gatling-report-block`, `captured: refresh-upstream-references-2026-10-19`
-
-## uniqueness-claims
-
-Rule: **A "the only X" claim in `AGENTS.md` goes stale the moment a change adds a second X — fix it in that change.**
-
-The web UI's Playwright e2e suite was added while `AGENTS.md` still said "the only e2e suite is
-`showcase-api-gateway`'s", and the stale claim survived until a later cleanup pass (PR #116). The absence mode: the
-`buildpackUpdates` check in #149 falsified the "`dependencyUpdates` and `helmUpdates` ignore bare `[versions]` entries"
-sentence #148 had added one change earlier. The rename mode: the first audit found `ShowcaseApiController*` references a
-rename had left behind, and the workflow-file rename `snyk.yml` → `dependency-security.yml` also lived in `SECURITY.md`,
-ADR-0006, and `build.gradle.kts`'s `toolingUpdates` pin. The enumeration mode: `AGENTS.md` said the `ci.yml` and
-`e2e.yml` workflows "additionally extend `gradle-home-cache-includes` with `nodejs`" while the npm-monitoring change
-added that include to `dependency-updates.yml` and `dependency-security.yml` too. The non-doc mode: ADR-0009's "without
-Axon Server" left `helm/chart/src/main/helm/values.yaml` still calling the `db-scheduler` settings "Axon Server
-scheduler settings".
-
-`captured: monitor-web-ui-npm-dependencies (#395)`, `captured: verify-unique-review-rounds`

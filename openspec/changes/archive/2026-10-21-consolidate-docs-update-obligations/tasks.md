@@ -88,5 +88,6 @@
       capture's net delta, and the record's −148; report them separately in the change's report. **Done** —
       consolidation `−776` / `−7`; capture `+418`; whole unit `−358` / `+1` (`324,296` → `323,938`; `3,361` → `3,362`,
       `git diff --numstat AGENTS.md` → `79 78`); record `−148` / `−5`; total maintained `−506`.
-- [ ] 3.6 Stop and request the owner's manual review pass. Do not commit, push, open a PR, archive, or merge until the
+- [x] 3.6 Stop and request the owner's manual review pass. Do not commit, push, open a PR, archive, or merge until the
       owner approves.
+      **Done** — the owner approved the implementation in the session and the change ships in PR #653.

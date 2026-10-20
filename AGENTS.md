@@ -751,9 +751,11 @@ to its destination.
   a check-authoring trigger; the owner caught it, not the review loop. captured: reduce-agents-md-loaded-surface
 - **IF a gate reads the block, or reads the file for a property of the content being moved** (the `captured:` markers
   `verifyCapturedMarkers` scans), **THEN retarget the gate to the new destination in the same change**, with a case that
-  fails on a misplaced item there, or keep the block: a block-scoped check is emptied by the move, while a file-scoped
-  scan keeps passing over what it no longer sees. `reduce-agents-md-loaded-surface` moved 19 markers out of `AGENTS.md`
-  and left that scan green until the deep review caught it. captured: reduce-agents-md-loaded-surface
+  fails on a misplaced item there, or keep each item the scan would stop seeing: a block-scoped check is emptied by the
+  move, while a file-scoped scan keeps passing over what it no longer sees. An item nothing live depends on may leave,
+  with its reason recorded. `reduce-agents-md-loaded-surface` moved 19 markers out of `AGENTS.md` and left that scan
+  green until the deep review caught it. captured: reduce-agents-md-loaded-surface captured:
+  separate-agents-md-operational-from-evidence
 - **IF the new destination should own future captures, retarget the capture's destination list in the same change** —
   `.opencode/agent/lesson-capture.md` and the `agent-skills` capture requirement — or the next capture proposes the rule
   back at root. captured: reduce-agents-md-loaded-surface
@@ -2201,11 +2203,12 @@ capture-stash-stale-copy
   one edit, re-derived from the site's own subject, and re-read the sentence.** captured: verify-unique-review-rounds
 
 - **A write to an already-occupied path replaces the file silently: check the path before creating a "new" file.**
-  `ShowcaseEventStreamControllerTests.java` was assumed new, but it dated from #43 and held two tests (event wrapping;
-  REMOVED-type preservation), and the whole-file write destroyed both. Before writing a file you believe is new, check
-  the path — `test -e <path>` (or a read) proves it exists, `git ls-files <path>` whether it is tracked — and when it
-  exists, merge the addition into it rather than re-creating the class from its new-test shape. The loss happens at
-  write time, so the `git add <dir>` staging gotcha does not cover it. captured: keep-sse-stream-alive (#301)
+  Before writing a file you believe is new, check the path — `test -e <path>` (or a read) proves it exists,
+  `git ls-files <path>` whether it is tracked — and when it exists, merge the addition into it rather than re-creating
+  the file from its new-test shape. The loss happens at write time, so the `git add <dir>` staging gotcha does not cover
+  it. captured: keep-sse-stream-alive (#301)
+
+  evidence: git-and-repository-workflow
 
 - **Work a change surfaces is parked durably — a PR body is not a record.** WHEN a change records an external state
   change that implies work, or names a companion change it will not deliver, THEN park that work in `docs/ideas.md`
@@ -2217,24 +2220,26 @@ capture-stash-stale-copy
 - **A change merged without its archive is incomplete — do not merge the implementation PR and defer the archive.** The
   "one PR per change" rule puts the archive commit in the _same_ PR before merge. WHEN the merge completes, verify the
   change dir is archived — the live dir is gone (`test ! -d openspec/changes/<change>`) and the dated archive exists
-  (`git ls-files 'openspec/changes/archive/**' | grep <change>`); the `remove-redis-client-label` change was merged and
-  sat unarchived until the user pointed it out. If it is not archived, fix it on its own branch and PR — never commit it
-  to local `main` and `git push origin main`, which the branch ruleset rejects and forces a branch-then-reset dance.
+  (`git ls-files 'openspec/changes/archive/**' | grep <change>`). If it is not archived, fix it on its own branch and PR
+  — never commit it to local `main` and `git push origin main`, which the branch ruleset rejects and forces a
+  branch-then-reset dance.
+
+  evidence: git-and-repository-workflow
 
 - **`git add <dir>` / `git add -A` can sweep untracked generated artifacts into the commit — inspect the staged set
   first.** A tool that emits files beside sources (a Python script's `scripts/__pycache__/*.pyc`, a test/build run's
   output) leaves them untracked; a directory-wide `git add` stages them silently, so the commit carries files the change
   never intended. Stage explicit paths, add a `.gitignore` entry for the artifact, and check
-  `git diff --cached --name-only` (or `git status`) before committing — the `rework-idea-setup` commit swept in a
-  `scripts/__pycache__/*.pyc` that had to be removed and ignored. Staging is a snapshot, not a view of the working tree:
-  an edit made after the last `git add` sits unstaged, so `git diff --cached` can look complete while the commit ships
-  the older copy — check `git status` for a path listed under both staged and unstaged changes (or `git diff` for
-  unstaged edits) before committing, since a review caught the staged set missing corrections made after the last
-  `git add`, which would have shipped half the fix. A pre-commit guard (`scripts/git-hooks/pre-commit`, activated by
+  `git diff --cached --name-only` (or `git status`) before committing. Staging is a snapshot, not a view of the working
+  tree: an edit made after the last `git add` sits unstaged, so `git diff --cached` can look complete while the commit
+  ships the older copy — check `git status` for a path listed under both staged and unstaged changes (or `git diff` for
+  unstaged edits) before committing. A pre-commit guard (`scripts/git-hooks/pre-commit`, activated by
   `scripts/install-git-hooks.sh`) enforces this inspection mechanically: it refuses a commit whose staged set fails the
   formatter check, force-stages a generated artifact, stages a path and then edits it, carries a merge conflict marker,
   misplaces a `captured:` marker, or stages an `openspec/changes/archive/**` change dir while leaving its
   `openspec/specs/**` sync unstaged.
+
+  evidence: git-and-repository-workflow
 
 - **Never chain an edit to a commit — or trust an edit script's own report — without reading the edit's result: gate the
   commit on a content check, not on the edit command's exit status.** While implementing the `concise-agent-reports`
@@ -3121,24 +3126,22 @@ capture-stash-stale-copy
   gate catches an unpaired dash — proofread it as content. captured: capture-untracked-follows-switch (#284)
 
   The same class covers a paragraph boundary: a blank line lost in an edit fuses two paragraphs (an added one splits a
-  sentence), and Prettier reflows the result without complaint — the `audit.yml` and `buildpack-updates.yml` paragraphs
-  paragraphs were fused in the README's CI section and rode `main` through `spotlessCheck` for several changes
-  (`5fc1a09` introduced the fusion) until a drive-by fix separated them — so proofread blank lines as content too.
-  captured: notify-owner-from-the-audit-report (#327)
+  sentence), and Prettier reflows the result without complaint — so proofread blank lines as content too. captured:
+  notify-owner-from-the-audit-report (#327)
 
-- **Verify documented infrastructure/deployment numbers against the config files, not memory.** The README rewrite
-  claimed "the API gateway's two replicas" (only `commandService.replicaCount` is 2 in
-  `helm/values/axon-showcase/values-local.yaml`; the gateway defaults to 1), "36 panels" (the raw top-level count, row
-  separators included, not the real panel count), and "four services and a gateway" (double-counting a table that lists
-  four components). The quick review against repo files caught all three. Before writing a replica count, panel/section
-  count, or diagram count into a doc, read the source (`helm/values/*/values-*.yaml`, the dashboard JSON, the component
-  table — or, for an upstream chart's shipped default or a container the values do not override, the pinned chart via
-  `helm show values <chart> --version <pinned>`) and cite the real number. The same holds for _which check_ a documented
-  figure belongs to: two mechanisms can bound the same metric at the same order of magnitude, so a boundary's owner
-  cannot be inferred from the figure's size — the 2026-09-28 refresh left the below-knee profiles' floor-dominated
-  thresholds unchanged (`5 x 27 ms = 135 ms` is under their 200 ms p99 floor), while the ~1.5x boundary an annotation
-  named was the drift check's own tolerance. Read the mechanism's definition and name the one the boundary belongs to.
-  captured: re-measure-load-test-baseline (#429)
+  evidence: documentation-and-durable-claims
+
+- **Verify documented infrastructure/deployment numbers against the config files, not memory.** Before writing a replica
+  count, panel/section count, or diagram count into a doc, read the source (`helm/values/*/values-*.yaml`, the dashboard
+  JSON, the component table — or, for an upstream chart's shipped default or a container the values do not override, the
+  pinned chart via `helm show values <chart> --version <pinned>`) and cite the real number. The same holds for _which
+  check_ a documented figure belongs to: two mechanisms can bound the same metric at the same order of magnitude, so a
+  boundary's owner cannot be inferred from the figure's size — the 2026-09-28 refresh left the below-knee profiles'
+  floor-dominated thresholds unchanged (`5 x 27 ms = 135 ms` is under their 200 ms p99 floor), while the ~1.5x boundary
+  an annotation named was the drift check's own tolerance. Read the mechanism's definition and name the one the boundary
+  belongs to. captured: re-measure-load-test-baseline (#429)
+
+  evidence: documentation-and-durable-claims
 
 - **A two-way split of an enumerated set can also sum to its total and still be wrong when its boundary is hand-drawn:**
   a scan of the markdown target's completeness re-listed exclusions from memory and counted the vendored `axon4to5-*`
@@ -3195,36 +3198,25 @@ capture-stash-stale-copy
   make-captured-rules-traceable (#279) captured: verify-tracked-ignored-files captured: state-tooling-placement-rule
   (#458) captured: record-review-rounds captured: derive-the-change-claims
 
-- **A doc-consistency sweep is scoped by the convention, not by the review's findings list — and a claim about the code
-  is verified against the code.** The `fix-javadoc-consistency` change introduced a `@param elasticsearchConverter`
-  reading "OpenSearch results to entities" for a converter that maps entities → OpenSearch (the field Javadoc and its
-  `mapObject(ShowcaseEntity…)` call sites say so); the implementation quick review caught it. For converters/mappers
-  either direction reads plausibly, so read the field's Javadoc and one call site before writing the `@param`/`@return`.
-  The same change also had to add a field Javadoc the review never enumerated (`ShowcaseProjector.METER_NAME_PREFIX`,
-  caught by the user): a consistency sweep must audit every class/method/field in the touched classes, not only the
-  review's findings list. The same holds for a spec-corpus fix: an audit's finding list scopes the fix, not the pattern
-  the finding is an instance of — `apply-specs-audit-findings` normalized the stray-space coordinates in the
-  `spring-data-opensearch` requirement but left the identical `org.springdoc: springdoc-openapi-starter-webflux-ui`
-  spelling lower in the same file, deferred as "a future audit" when a grep would have caught it (it took a follow-up
-  change, `fix-springdoc-coordinate-spelling`, to sweep it). When a finding is an instance of a convention
-  (coordinate/identifier spelling, `MUST` vs `SHALL`, a stale enumeration), grep the artifact or corpus and fix every
-  instance in the same change. The same sweep applies to a corrected fact, not only a convention: after a review
-  corrects a direction, value, or magnitude, grep the artifact for that claim and fix every repetition — a
-  `reconcile-showcase-cache-default` review corrected the reversed direction in the design's Context, and the same
-  claim's residue in the Decisions section (plus a "tenfold" that was a hundredfold) was caught only in the next pass.
-  The correction's dependents are a further sweep: re-read the statements that depend on the claim without repeating it
-  — a caveat, a design rationale, a concluding sentence — which a grep for the claim does not find. A rule the change
-  **authored or replaced** sweeps one degree harder still: its restatements are paraphrases rather than repetitions and
-  live beyond the artifact — in other gotchas and conventions, in file headers, in the change's own design and tasks,
-  and in the `.opencode/agent/*.md` / `.opencode/commands/*.md` definitions that restate it — so grep every doc that
-  describes the workflow for the _concept_, not the old wording, and key that sweep on the rule's **subject** (what it
-  governs), not on the phrase family a finding names, since a paraphrase shares no phrase with it: replacing the commit
-  discipline left four restatements (two gotchas, the docs-refresh convention, and `docs/ideas.md`'s header), and the
-  diagram bullet's `diagramPadding` rule survived in `diagrammer.md` (now its home) until the quick review. A widened
-  check's describers go stale the same way, and the version-string grep does not find them: the 2026-10-11 audit found
-  `toolingUpdates`' worked example stale once the smoke's `pack` pin gained its own entry, and
-  `bump-tooling-pins-2026-10-16` left `/opsx-tool-update`'s "the check detects a release from `ci.yml` alone". captured:
-  bump-tooling-pins-2026-10-16 captured: make-the-capture-selective
+- **A doc-consistency sweep is scoped by the convention or the claim, not by the review's findings list — and a claim
+  about the code is verified against the code.** Derive the sites by grepping the artifact or corpus, never from the
+  plan's list, and sweep each of these pairs together:
+
+  - a convention (a coordinate or identifier spelling, `MUST` vs `SHALL`, an enumeration) → every instance in the
+    artifact or corpus;
+  - a corrected fact (a direction, a value, a magnitude) → every repetition, plus the statements that depend on it
+    without repeating it (a caveat, a rationale, a concluding sentence);
+  - a rule the change authored or replaced → its paraphrases by the rule's **subject**, in every document that describes
+    the workflow: `AGENTS.md`, file headers (e.g. `docs/ideas.md`'s), the `.opencode/` definitions, the specs, and the
+    change's own artifacts;
+  - an audit finding → the pattern the finding is an instance of, not the finding alone;
+  - a widened or narrowed check → its describers, including a worked example in a definition;
+  - a javadoc or field-doc pass → every declaration in the touched classes, not only the ones a review named.
+
+  Two directions read plausibly for a converter or mapper, so read the field's Javadoc and one call site before writing
+  its `@param`/`@return`. captured: bump-tooling-pins-2026-10-16 captured: make-the-capture-selective
+
+  evidence: documentation-and-durable-claims
 
 - **An abandoned approach needs the same sweep:** reverting an experiment's code line does not remove the comment or the
   task/design prose that describes it, so grep the artifact for the approach's name before calling the revert done. The
@@ -3300,8 +3292,9 @@ capture-stash-stale-copy
   commits" that reflowed `AGENTS.md`, but `c62feda` created the file (164 insertions, and `AGENTS.md` is absent at its
   parent); a review caught it. If the only source is the conversation, omit it or label it as the owner's account; for
   an outcome you did not observe, state the mechanism ("a bash-script write runs under the `shell` permission") rather
-  than the observation ("it did not prompt"). Point-in-time narrative belongs in a change's archived artifacts, not in a
-  durable one.
+  than the observation ("it did not prompt"). Point-in-time narrative belongs in a dated record — the change archive, a
+  retrospective, an audit report, a load-test record, or a rule's `docs/guidance-evidence/` entry — never in the
+  guidance itself.
 
 - **A claim about a surface outside the repository — a registry's contents, a repository setting, a live URL — has no
   config file or commit behind it, so its evidence is a query whose output you have:** run it before writing the claim,
@@ -3359,39 +3352,24 @@ capture-stash-stale-copy
   per the `--help`/read-path rules.
 
 - **An upstream issue reference is a status claim, not a citation — resolve it, and treat a closure as a trigger to
-  check rather than an answer.** A note saying an issue is "tracked upstream" asserts something no gate reads and that
-  changes without the repository moving: when the upstream-reference report was parked, review found two of four
-  references already closed — `ben-manes/gradle-versions-plugin#755` (2026-08-06, PR #1060) and
-  `spring-projects/spring-data-elasticsearch#3334` (2026-08-30, PR #3337) — while both constraint notes still read as
-  open. Resolve an `owner/repo#NNN` through the tracker before writing or editing such a reference, and when it has
-  closed, read the closing comment for its disposition (a duplicate's live thread is elsewhere, so the closed issue is
-  not its authority) and read the fixing PR's own diff and the release it shipped in against our pin before treating the
-  note as retirable — the issue's premise and its closure are not enough. What a reference note records about a
-  reference (the reason it is not yet retirable, or a pointer to where its re-check lives) is itself a claim a later
-  change can falsify, and no gate re-checks it (the `upstreamReferences` report resolves only the reference's
-  open/closed state, never its recorded reason) — so re-verify the note, not only the reference's state, when revisiting
-  one. `#3334`'s entry named a release that later published, and the meta-rule's own "the periodic corpus sweep is
-  parked" pointer outlived the sweep's build. `#755` closed through a change to platform-sourced constraints
-  (`satisfiesDeclaredBound`, "nothing changes by default"), so our spurious row from `checkBuildEnvironmentConstraints`
-  remains even though the fix shipped in 0.60.0, so any pin since then already contains it. An upstream reference must
-  also document the claim it is cited for and sit on the clause it supports — read the surface that carries the claim
-  (the body for what the issue reports, the closing comment for its disposition), never the title or the release alone.
-  A close-out reference must also live in a file `upstreamReferences` scans (`AGENTS.md`, `README.md`, `docs/ideas.md`,
-  `docs/adr/**`): cited only in a skill, command, subagent definition, or code comment it is invisible to the report
-  that would fire its `retires when`. The first `hold-back-nginx-buildpack` draft blamed an arm64 build-extraction
-  failure on `paketo-buildpacks/nginx#1340`, whose body documents only the runtime symptom (an AArch64 `nginx` in an
-  amd64 image) and states that the `io.buildpacks.buildpackage.metadata` label is present on both slices; the draft also
-  contradicted the host-state gotcha's account of that same signature, and review caught both. When a passage already
-  explains a signature, reconcile with it rather than writing a second explanation beside it. A planned task that
-  _posts_ to an external tracker depends on that venue's mutable state — a security-advisory thread is often **locked**
-  (comments disabled): the `suppress-braces-npm-advisory` task "comment on `micromatch/braces#70`" was unachievable
-  because #70 is locked, and the actionable reference was the fix PR `micromatch/braces#72` (later closed unmerged).
-  Check the **venue** is writable before writing the posting task — a repository can disable issues and discussions
-  outright, so there may be no thread — and when the issue itself is closed or locked, cite the fix PR the close-out
-  actually keys on. This is the write-time check for the reference you are touching; the periodic corpus sweep is the
-  `upstream-references.yml` report (`showcase/quality/merge-governance` specifies it with the other observational
-  checks). captured: suppress-braces-npm-advisory captured: refresh-upstream-references-2026-10-05 captured:
-  record-gatling-report-block captured: refresh-upstream-references-2026-10-19
+  check rather than an answer.** Resolve an `owner/repo#NNN` through the tracker before writing or editing such a
+  reference. When it has closed, read the closing comment for its disposition (a duplicate's live thread is elsewhere,
+  so the closed issue is not its authority) and read the fixing PR's own diff and the release it shipped in against our
+  pin before treating the note as retirable. The note itself is a claim: re-verify its recorded reason, not only the
+  open/closed state. An upstream reference must state the claim it is cited for and sit on the clause it supports; read
+  the surface that carries the claim — the body for what the issue reports, the closing comment for its disposition —
+  never the title or the release alone. A close-out reference must live in a file `upstreamReferences` scans
+  (`AGENTS.md`, `README.md`, `docs/ideas.md`, `docs/adr/**`); cited only in a skill, command, subagent definition, or
+  code comment it is invisible to the report that would fire its `retires when`. When a passage already explains a
+  signature, reconcile with it rather than writing a second explanation beside it. A planned task that posts to an
+  external tracker depends on that venue's mutable state: check the venue is writable before writing the posting task —
+  a repository can disable issues and discussions outright, and a thread can be locked — and when the issue is closed or
+  locked, cite the fixing PR the close-out keys on. The periodic corpus sweep is the `upstream-references.yml` report
+  (`showcase/quality/merge-governance` specifies it with the other observational checks). captured:
+  suppress-braces-npm-advisory captured: refresh-upstream-references-2026-10-05 captured: record-gatling-report-block
+  captured: refresh-upstream-references-2026-10-19
+
+  evidence: documentation-and-durable-claims
 
 - **A "the only X" claim in `AGENTS.md` goes stale the moment a change adds a second X — fix it in that change.** The
   web UI's Playwright e2e suite was added while `AGENTS.md` still said "the only e2e suite is `showcase-api-gateway`'s",

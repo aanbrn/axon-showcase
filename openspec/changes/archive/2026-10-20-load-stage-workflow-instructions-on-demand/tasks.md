@@ -144,11 +144,12 @@
 
 ## 7. Retention fallback (only if the owner rejects the extraction)
 
-- [ ] 7.1 **Leave both procedures at root**, revert groups 2 and 3 (including the capture-contract edits, which exist
+- [x] 7.1 **Leave both procedures at root**, revert groups 2 and 3 (including the capture-contract edits, which exist
       only to route lessons to the new skill), and set `skip_specs: true` — verification: `git diff` against those paths
-      is empty and `openspec validate --change --strict` passes with the marker.
-- [ ] 7.2 **Record the retention decision durably**, naming the measured figures and the parked idea that stays open —
-      verification: the change report names both.
+      is empty and `openspec validate --change --strict` passes with the marker. **Not applicable:** the owner approved the
+extraction on 2026-10-20, so group 7 was not applied.
+- [x] 7.2 **Record the retention decision durably**, naming the measured figures and the parked idea that stays open —
+      verification: the change report names both. **Not applicable** for the same reason.
 
 ## Workflow follow-up
 

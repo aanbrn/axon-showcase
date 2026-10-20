@@ -82,6 +82,9 @@ rules:
     - Start with "Context" referencing the proposal, then "Goals / Non-Goals"
     - Capture "Decisions" with the alternatives considered and why they were rejected
     - Flag "Risks / Trade-offs" with concrete mitigation
+    - A change that amends an existing requirement's obligation or permission quotes each amended clause beside its
+      replacement and states why, since a `MODIFIED` block replaces the whole requirement and `openspec validate`
+      checks only scenario preservation
     - A claim, a rule set, or a record stated in more than one artifact is single-sourced, the rest referencing it by
       name
     - Every mechanism or task-check claim is derived from the dependency graph or the tool's own definition, and a

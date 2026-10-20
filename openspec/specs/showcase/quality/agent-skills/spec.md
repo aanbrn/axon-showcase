@@ -4,26 +4,26 @@
 
 Provides the repository's agent capabilities: curated, vendored skill sets under `.opencode/skills/` (so agents can run
 the AxonIQ Axon 4→5 migration recipes against this codebase), the project-authored guidance skills there beside them
-(the `check-and-test-authoring` reference and the `setup-*` skills, loaded on demand at the trigger `AGENTS.md` names),
-the knowledge-authoring standard `AGENTS.md` entries follow (representation, one authoritative definition per subject,
-the procedure and gotcha shapes, the evidence rules, and the validation pass — applied by the capture when authoring and
-the audit when reconciling), the structured writing standard every agent-authored technical artifact follows (stated
-once in `AGENTS.md`, applied while drafting and checked by the review and audit subagents), and the locally-defined
-quality-gate and analysis subagents under `.opencode/agent/` — the per-unit review and lesson-capture agents, the
-experience-analyzer, the visual and diagram agents, and the on-demand auditors of the project-owned agent tooling (the
-guidance and project-authored `.opencode/` files, plus any generated or vendored file that contradicts how the
-repository uses it, the always-loaded instruction budget it measures with the extraction opportunities that surface
-where guidance has no destination yet, the meta rules it reports with their origins, the merge, removal, route, and
-extraction candidates it reports, and the authoring-system gaps it traces to a mechanism that produces an artifact), of
-the `openspec/specs/` corpus, of the architecture (the ADRs, the service, module, and spec-decomposition surface, where
-a deliberate decision's rationale is not recorded, and where a record's recorded premise appears met — a deferral's
-`Revisit when:` condition, or a parked `docs/ideas.md` entry whose work has landed, fully or partly, or whose objective
-a different mechanism achieves), of the human-facing `README.md` (its claims against the repository, its shape against
-the README convention, and its coverage of the human-visible capabilities), and the scheduled unattended run that
-performs the audits without a human asking, together with the standing owner-gated unit that applies an audit report's
-reduction candidates, and the project-authored command definitions under `.opencode/commands/` — their authoring shape,
-the repository lifecycle a mutating unit owes, and how an audit's approved findings are delivered as separate units by
-the route each finding's kind requires.
+(the `check-and-test-authoring` reference, the `ship-change` procedure, and the `setup-*` skills, loaded on demand at
+the trigger `AGENTS.md` names), the knowledge-authoring standard `AGENTS.md` entries follow (representation, one
+authoritative definition per subject, the procedure and gotcha shapes, the evidence rules, and the validation pass —
+applied by the capture when authoring and the audit when reconciling), the structured writing standard every
+agent-authored technical artifact follows (stated once in `AGENTS.md`, applied while drafting and checked by the review
+and audit subagents), and the locally-defined quality-gate and analysis subagents under `.opencode/agent/` — the
+per-unit review and lesson-capture agents, the experience-analyzer, the visual and diagram agents, and the on-demand
+auditors of the project-owned agent tooling (the guidance and project-authored `.opencode/` files, plus any generated or
+vendored file that contradicts how the repository uses it, the always-loaded instruction budget it measures with the
+extraction opportunities that surface where guidance has no destination yet, the meta rules it reports with their
+origins, the merge, removal, route, and extraction candidates it reports, and the authoring-system gaps it traces to a
+mechanism that produces an artifact), of the `openspec/specs/` corpus, of the architecture (the ADRs, the service,
+module, and spec-decomposition surface, where a deliberate decision's rationale is not recorded, and where a record's
+recorded premise appears met — a deferral's `Revisit when:` condition, or a parked `docs/ideas.md` entry whose work has
+landed, fully or partly, or whose objective a different mechanism achieves), of the human-facing `README.md` (its claims
+against the repository, its shape against the README convention, and its coverage of the human-visible capabilities),
+and the scheduled unattended run that performs the audits without a human asking, together with the standing owner-gated
+unit that applies an audit report's reduction candidates, and the project-authored command definitions under
+`.opencode/commands/` — their authoring shape, the repository lifecycle a mutating unit owes, and how an audit's
+approved findings are delivered as separate units by the route each finding's kind requires.
 
 ## Requirements
 
@@ -416,11 +416,12 @@ owns, not this one.
   `lesson-capture` subagent only when it does — otherwise the capture is skipped and the skip recorded with its reason,
   so a skip is a recorded decision rather than a run that found nothing
 - **AND** the `lesson-capture` subagent proposes each lesson as an addition to the artifact that owns it — an
-  `AGENTS.md` gotcha or convention, or a check/test authoring mode in the `check-and-test-authoring` skill, or a pair of
-  additions when the lesson has both halves — which the main agent verifies and applies
-- **AND** each proposed addition names the existing rule it extends — an `AGENTS.md` bullet, or a check/test authoring
-  mode already in the skill — or states that none covers it, so a new rule merges into or replaces one rather than
-  accreting
+  `AGENTS.md` gotcha or convention, a check/test authoring mode in the `check-and-test-authoring` skill, or a
+  shipping-procedure correction in the `ship-change` skill — or a pair of additions when the lesson has both halves —
+  which the main agent verifies and applies
+- **AND** each proposed addition names the existing rule it extends — an `AGENTS.md` bullet, a check/test authoring mode
+  already in the skill, or a `ship-change` procedure — or states that none covers it, so a new rule merges into or
+  replaces one rather than accreting
 - **AND** alongside its additions, it reports the rules this unit makes obsolete or redundant — a rule whose mechanism
   the unit removed, or one the unit's new enforcement subsumes — as retirement or replacement candidates, each naming
   the rule, why the unit makes it so, and the retirement or replacement it proposes, as candidates for the main agent
@@ -754,28 +755,39 @@ narrower task scope than root `AGENTS.md`; its destination is durable, project-a
 loaded or deterministically discoverable when the trigger occurs; the retained root text lets an agent identify the
 trigger and the required next action without reconstructing them; the move preserves every unique imperative, warning,
 exception, identifier, verification, and provenance marker; the destination already carries, or the proposed change to
-it will carry, the complete transferred contract; the move reduces the always-loaded surface by a material, measured
-amount; and it does not split a procedure across files such that a reader must guess an order, condition, or failure
-path. The audit SHALL derive the preferred destination type from the content's own class before selecting one: a global
-safety, branch, review, or repository-wide workflow rule stays at root `AGENTS.md`; guidance needed only while working
-below one unambiguous directory goes to a nested `AGENTS.md`; behavior that changes a capability outcome to an existing
-or proposed capability spec; a durable architecture decision, rationale, or trade-off to an existing or proposed ADR; a
-procedure invoked through a named task entry point to an existing command or skill; incident history, diagnostic
-evidence, or a large reference inventory used by several future tasks to an existing durable reference document; and a
-subject a deterministic mechanism enforces to that mechanism's authoritative configuration or test, with a concise root
-pointer. The audit SHALL NOT propose a generic "documentation" destination and SHALL NOT create a catch-all
-extracted-guidance directory, and a proposed new destination SHALL have a clear owner, a stable scope, and evidence that
-more than one future task can discover and use it. Internal control flow whose alternatives yield the same result SHALL
-stay in `AGENTS.md` even where a spec describes the same outcome; only a mechanism whose change would change the
-capability's specified behavior is a candidate. Before reporting a candidate the audit SHALL test the retrieval path —
-starting from the root instruction set, stating the task trigger, following only the retained root text and normal
-project discovery, and confirming the destination is reached before the governed decision must be made and carries every
-transferred requirement and verification step. A failed retrieval path to an **existing** destination remains a reason
-to retain the source content, and is not an extraction opportunity. For an opportunity the audit SHALL NOT claim that a
-destination which does not exist passed the test: instead it SHALL verify whether the proposed retained root entry point
-could name the trigger and the destination deterministically, record the missing target or discovery mechanism as the
-blocking precondition, and require the dedicated change to create the target, add the retained root pointer, and run the
-full test before the extraction becomes applicable.
+it will carry, the complete transferred contract; the move reduces the always-loaded surface by a material, measured net
+amount — the removed span less the retained root text and any always-loaded destination metadata, with the destination's
+on-demand load and the frequency of its trigger stated, and the total maintained content before and after; and it does
+not split a procedure across files such that a reader must guess an order, condition, or failure path. The audit SHALL
+derive the preferred destination type from the content's own class before selecting one: a global safety, branch,
+review, or repository-wide workflow **invariant** — its authorization boundary, its entry trigger, any ordering that
+binds across the stage, and the missing-destination handling — stays at root `AGENTS.md`, while that workflow's
+stage-specific execution mechanics (its ordered steps, commands, decision branches, and recovery handling) MAY move to a
+project-owned destination only where the retained root entry point requires reading that destination completely before
+the governed decision. This permission is limited to a stage whose trigger is that decision: it does not extend to
+guidance needed across more than one stage or before a stage can be identified, to a mechanism whose change would change
+a capability's specified behavior, or to a warning, imperative, or exception the retained root text leaves to be
+inferred; guidance needed only while working below one unambiguous directory goes to a nested `AGENTS.md`; behavior that
+changes a capability outcome to an existing or proposed capability spec; a durable architecture decision, rationale, or
+trade-off to an existing or proposed ADR; a procedure invoked through a named task entry point to an existing command or
+skill; incident history, diagnostic evidence, or a large reference inventory used by several future tasks to an existing
+durable reference document; and a subject a deterministic mechanism enforces to that mechanism's authoritative
+configuration or test, with a concise root pointer. The audit SHALL NOT propose a generic "documentation" destination
+and SHALL NOT create a catch-all extracted-guidance directory, and a proposed new destination SHALL have a clear owner,
+a stable scope, and evidence that more than one future task can discover and use it. Internal control flow whose
+alternatives yield the same result SHALL stay in `AGENTS.md`, except where it is a workflow's stage-specific execution
+mechanics that satisfy the permission above, in which case it MAY move to that workflow's project-owned procedure
+destination; it SHALL NOT move into a capability spec even where the spec describes the same outcome, and only a
+mechanism whose change would change the capability's specified behavior is a candidate for a capability-spec
+destination. Before reporting a candidate the audit SHALL test the retrieval path — starting from the root instruction
+set, stating the task trigger, following only the retained root text and normal project discovery, and confirming the
+destination is reached before the governed decision must be made and carries every transferred requirement and
+verification step. A failed retrieval path to an **existing** destination remains a reason to retain the source content,
+and is not an extraction opportunity. For an opportunity the audit SHALL NOT claim that a destination which does not
+exist passed the test: instead it SHALL verify whether the proposed retained root entry point could name the trigger and
+the destination deterministically, record the missing target or discovery mechanism as the blocking precondition, and
+require the dedicated change to create the target, add the retained root pointer, and run the full test before the
+extraction becomes applicable.
 
 The audit SHALL additionally report, as an **extraction opportunity** kept separate from its findings, a source unit
 that is likely too narrow or too costly for root `AGENTS.md` but whose destination does not yet exist — and which
@@ -784,14 +796,15 @@ verdict line, SHALL NOT be reported as a removal or a route candidate, and SHALL
 reduction unit — it is a design recommendation for the owner, who selects it and carries it out in a dedicated change.
 The audit SHALL report an opportunity only where the source is materially costly in root guidance and the destination
 type can be justified from the content's class, and it SHALL NOT report one merely to reduce the file's size: where the
-source is global, cross-cutting, or cannot be retrieved before its decision is needed, the audit SHALL retain it at
-root. Each opportunity SHALL state that its proposed destination is a design hypothesis rather than an existing source
-of truth, and SHALL carry the source unit and its bounded content, the decision it governs and when it is needed, its
-current loading cost and why that cost is material, its content classification, its recommended destination type, the
-exact existing target or a proposed path with its owning artifact type, the missing precondition that keeps it from
-being a candidate, the content that must remain at root until a destination is created and verified, the intended
-root-to-destination retrieval path once a future change creates the target, and one recommended next action — retain,
-create the destination in a dedicated change, or reject the extraction.
+source is global or cross-cutting — guidance needed across more than one stage, or before a stage can be identified — or
+cannot be retrieved before its decision is needed, the audit SHALL retain it at root. Each opportunity SHALL state that
+its proposed destination is a design hypothesis rather than an existing source of truth, and SHALL carry the source unit
+and its bounded content, the decision it governs and when it is needed, its current loading cost and why that cost is
+material, its content classification, its recommended destination type, the exact existing target or a proposed path
+with its owning artifact type, the missing precondition that keeps it from being a candidate, the content that must
+remain at root until a destination is created and verified, the intended root-to-destination retrieval path once a
+future change creates the target, and one recommended next action — retain, create the destination in a dedicated
+change, or reject the extraction.
 
 The audit SHALL additionally report, as an **advisory** class kept separate from its fix findings and reported without
 severity, third-party inconsistency: a file the audit excludes (a generated `openspec-*` instruction file, or a vendored
@@ -979,7 +992,8 @@ owns, not this one.
 
 - **WHEN** a spec describes the same outcome but changing the rule's mechanism would not change the capability's
   specified behavior
-- **THEN** the audit keeps that control flow in `AGENTS.md` and does not propose extracting it
+- **THEN** the audit keeps that control flow out of the capability spec; it stays in `AGENTS.md` unless it is
+  stage-specific execution mechanics that satisfy the complete-read permission
 
 #### Scenario: A rule is not a removal candidate for being lengthy
 
@@ -1008,7 +1022,8 @@ owns, not this one.
 
 #### Scenario: A global rule is retained rather than extracted
 
-- **WHEN** the source is global, cross-cutting, or cannot be retrieved before its decision is needed
+- **WHEN** the source is needed across more than one stage, before a stage can be identified, or cannot be retrieved
+  before its decision is needed
 - **THEN** the audit retains it at root and reports no extraction opportunity for it
 
 #### Scenario: A failed path to an existing destination is not an opportunity
@@ -1046,6 +1061,14 @@ owns, not this one.
 
 - **WHEN** a record section's `Rule:` paragraph matches a live `AGENTS.md` rule that carries no `evidence:` token
 - **THEN** the audit reports it as a pairing finding, naming the section and the rule
+
+#### Scenario: A stage procedure's mechanics move behind a named entry point
+
+- **WHEN** the auditor weighs an extraction whose source is a workflow stage triggered by a request
+- **THEN** the candidate keeps the stage trigger, the authorization boundary, the cross-stage ordering, and the
+  missing-destination handling at root, names the project-owned destination the entry point requires reading completely
+  before the governed decision, and reports the removed span, the retained root text, the added always-loaded metadata,
+  the on-demand load, the trigger's frequency, and the total maintained content
 
 ### Requirement: The architecture is audited for drift from its recorded decisions
 
@@ -1824,3 +1847,59 @@ text dropped it.
 
 - **WHEN** a rule's evidence moves and its text drops an identifier that named the episode
 - **THEN** that identifier is present in the record section for that rule
+
+### Requirement: The shipping procedures are maintained in their project skill
+
+The procedures for shipping a local change and for completing a cloud agent's pull request SHALL live in the project
+skill `.opencode/skills/ship-change/SKILL.md`, not as procedure bodies in the always-loaded `AGENTS.md`. The skill SHALL
+carry each procedure's ordered steps, decision branches, failure handling, completion criteria, and the identifiers
+those steps name.
+
+#### Scenario: The skill carries the full procedure
+
+- **WHEN** an agent follows the root entry point for either stage
+- **THEN** the skill carries the ordered steps, decision branches, failure handling, completion criteria, and
+  identifiers the procedure needs
+
+#### Scenario: The root does not carry the procedure body
+
+- **WHEN** a reader inspects either procedure's steps, branches, or failure handling
+- **THEN** they are in the skill body, and `AGENTS.md` carries only the stage entry point that names it
+
+### Requirement: The root carries the shipping stage entry point
+
+`AGENTS.md` SHALL carry the retained root entry point the extraction conditions define, together with the instruction to
+load the skill before the governed decision and the stop-and-report rule for a missing or unreadable skill. It SHALL
+name the skill and its path.
+
+#### Scenario: The root carries the stage entry point
+
+- **WHEN** an agent is about to push, open a pull request, archive a change, or merge a pull request
+- **THEN** `AGENTS.md` names the `ship-change` skill and its path and instructs the agent to load it before that action
+
+#### Scenario: A missing destination stops the governed action
+
+- **WHEN** the skill file is missing or unreadable at a stage entry
+- **THEN** the agent stops and reports it rather than shipping from the root text
+
+#### Scenario: Loading the skill grants no permission
+
+- **WHEN** an agent has loaded the skill but the owner's approval is not established
+- **THEN** no governed action follows, because the authorization boundary stays in `AGENTS.md` and the skill adds none
+
+### Requirement: A shipped procedure names its source and takes its corrections in the skill
+
+Each procedure in the skill SHALL carry its own `Source:` line quoting the `AGENTS.md` heading it replaced, so a missing
+destination, a renamed source, or an orphaned section is detectable. A correction to either procedure SHALL be made in
+the skill, not recreated in `AGENTS.md`.
+
+#### Scenario: The source is identifiable in the destination
+
+- **WHEN** a reader or the agent-tooling audit looks for a procedure's source
+- **THEN** the skill's `Source:` line quotes the replaced `AGENTS.md` heading verbatim, so a renamed source or an
+  orphaned section fails to pair
+
+#### Scenario: A correction lands in the skill
+
+- **WHEN** a procedure step, branch, or failure rule is wrong or incomplete
+- **THEN** it is corrected in the skill rather than recreated in `AGENTS.md`

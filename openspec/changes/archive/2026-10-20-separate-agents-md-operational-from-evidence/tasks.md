@@ -99,8 +99,9 @@
       planning evidence in design.md "Upstream references the relocation moves").
 - [x] 4.3 Rewrite the seven converted rules in `AGENTS.md` (D1–D5, R1, R2) to the drafted text and append each rule's
       `evidence:` token as its own paragraph. Do not convert R3.
-- [ ] 4.4 Add the `agent-skills` delta to the main spec at archive: the `MODIFIED` audit-scope requirement and the four
-      `ADDED` requirements, with every scenario carried.
+- [x] 4.4 Add the `agent-skills` delta to the main spec at archive: the `MODIFIED` audit-scope requirement and the four
+      `ADDED` requirements, with every scenario carried. Archived as `2026-10-20-separate-agents-md-operational-from-evidence`:
+      `openspec archive` reported `+4 added, ~1 modified`, and the main spec's audit requirement now carries 32 scenarios.
 - [x] 4.5 Extend `agents-auditor`'s scope to `docs/guidance-evidence/**` and add its pairing check, with the delta's
       requirement as the authority.
 - [x] 4.6 Record the follow-up set in `docs/ideas.md` under a dated section: R3's drafted-but-unconverted status, and

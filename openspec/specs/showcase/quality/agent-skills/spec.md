@@ -691,39 +691,39 @@ owns, not this one.
 ### Requirement: Project-owned agent tooling is audited for consistency and conciseness
 
 The repository SHALL provide an `agents-auditor` agent subagent that audits the project-owned agent tooling —
-`AGENTS.md` and the project-authored files under `.opencode/agent/`, `.opencode/commands/`, and `.opencode/skills/` —
-for **consistency** and **conciseness**, and reports its findings without editing files. The audit SHALL exclude files
-the repository does not author: the generator-owned OpenSpec instruction files (the commands and skills written by
-`openspec update`) and the vendored `axon4to5-*` skills (copied verbatim from the upstream AxonIQ repository); a
-project-authored file that shares a generated file's name prefix (e.g. the `opsx-tool-update` command) SHALL remain in
-scope. The audit SHALL cover, at least: contradictions between entries or files, stale claims and enumerations the
-repository has outgrown, dead cross-references, and drift from the code/workflows/specs the prose describes
-(consistency); and duplicated or near-duplicate entries, one-off trivia, over-long or over-specific entries, and
-misplaced entries (conciseness). Within conciseness the audit SHALL report these analyses as standing findings rather
-than only under a scoped run: **merge candidates**, each naming the overlapping or complementary entries and the merged
-text that preserves every anchor and piece of evidence the originals carried — and never blending two distinct lessons
-into one — and where the merged text would only restate a rule the file already carries, the candidate is a deletion of
-the duplicate rather than a merge, reported as a `remove` so the verdict's count includes it, and the audit SHALL say
-which it is; **removal candidates**, each naming a rule that governs no decision (trivia, not a rule — the same test the
-capture's filter applies), what would be lost, and whether git preserves it; and **route candidates**, each naming a
-rule whose subject a deterministic mechanism already enforces — a build or CI gate, a lint or test, a CLI validation, or
-a deterministic workflow step such as the archive-time spec sync, but never a review, whether a human's or a review
-subagent's — and proposing to reduce the rule to a pointer at that mechanism, or move its content to the spec or ADR
-that owns it, naming the mechanism, what would be lost, and confirming the mechanism exists and covers the rule's
-subject; and **extraction candidates**, each a verified proposal to partition one `AGENTS.md` unit into a minimal
-retained root entry point, an authoritative destination that loads or is discoverable when its trigger occurs, and an
-explicit retrieval path from that trigger to that destination, as the conditions below define. All are candidates for
-the owner, not actions. Each finding SHALL be verified against the repository rather than inferred from the prose alone,
-and SHALL be reported with its location and a concrete suggested rewrite. A reduction candidate — a merge, removal,
-route, or extraction — SHALL carry seven fields: its location; the decision its rule changes; the task or condition that
-requires it; the unique content the change would otherwise lose (every imperative, warning, exception, identifier,
-rationale, provenance marker, and verification); its current loading cost; its disposition; and the repository evidence
-that the surviving guidance preserves the same obligation. A merge candidate whose merged text delegates content to a
-target — a spec or an ADR it points the reader to — SHALL have that delegation verified against the target: its behavior
-**and** the identifiers, declarations, and gate conditions the delegated content names, not the behavior alone. A
-delegated item the target does not carry SHALL stay in the merged text, and the candidate SHALL say which items it kept
-for that reason. The subagent SHALL propose its findings without modifying files; the main agent verifies and applies
-those the user approves.
+`AGENTS.md`, the project-authored files under `.opencode/agent/`, `.opencode/commands/`, and `.opencode/skills/`, and
+the guidance evidence records under `docs/guidance-evidence/` — for **consistency** and **conciseness**, and reports its
+findings without editing files. The audit SHALL exclude files the repository does not author: the generator-owned
+OpenSpec instruction files (the commands and skills written by `openspec update`) and the vendored `axon4to5-*` skills
+(copied verbatim from the upstream AxonIQ repository); a project-authored file that shares a generated file's name
+prefix (e.g. the `opsx-tool-update` command) SHALL remain in scope. The audit SHALL cover, at least: contradictions
+between entries or files, stale claims and enumerations the repository has outgrown, dead cross-references, and drift
+from the code/workflows/specs the prose describes (consistency); and duplicated or near-duplicate entries, one-off
+trivia, over-long or over-specific entries, and misplaced entries (conciseness). Within conciseness the audit SHALL
+report these analyses as standing findings rather than only under a scoped run: **merge candidates**, each naming the
+overlapping or complementary entries and the merged text that preserves every anchor and piece of evidence the originals
+carried — and never blending two distinct lessons into one — and where the merged text would only restate a rule the
+file already carries, the candidate is a deletion of the duplicate rather than a merge, reported as a `remove` so the
+verdict's count includes it, and the audit SHALL say which it is; **removal candidates**, each naming a rule that
+governs no decision (trivia, not a rule — the same test the capture's filter applies), what would be lost, and whether
+git preserves it; and **route candidates**, each naming a rule whose subject a deterministic mechanism already enforces
+— a build or CI gate, a lint or test, a CLI validation, or a deterministic workflow step such as the archive-time spec
+sync, but never a review, whether a human's or a review subagent's — and proposing to reduce the rule to a pointer at
+that mechanism, or move its content to the spec or ADR that owns it, naming the mechanism, what would be lost, and
+confirming the mechanism exists and covers the rule's subject; and **extraction candidates**, each a verified proposal
+to partition one `AGENTS.md` unit into a minimal retained root entry point, an authoritative destination that loads or
+is discoverable when its trigger occurs, and an explicit retrieval path from that trigger to that destination, as the
+conditions below define. All are candidates for the owner, not actions. Each finding SHALL be verified against the
+repository rather than inferred from the prose alone, and SHALL be reported with its location and a concrete suggested
+rewrite. A reduction candidate — a merge, removal, route, or extraction — SHALL carry seven fields: its location; the
+decision its rule changes; the task or condition that requires it; the unique content the change would otherwise lose
+(every imperative, warning, exception, identifier, rationale, provenance marker, and verification); its current loading
+cost; its disposition; and the repository evidence that the surviving guidance preserves the same obligation. A merge
+candidate whose merged text delegates content to a target — a spec or an ADR it points the reader to — SHALL have that
+delegation verified against the target: its behavior **and** the identifiers, declarations, and gate conditions the
+delegated content names, not the behavior alone. A delegated item the target does not carry SHALL stay in the merged
+text, and the candidate SHALL say which items it kept for that reason. The subagent SHALL propose its findings without
+modifying files; the main agent verifies and applies those the user approves.
 
 The audit SHALL additionally report an **instruction-budget ledger** for `AGENTS.md`, measuring the always-loaded
 instruction surface rather than judging it: the file's total size in bytes and lines; its size by top-level section; the
@@ -836,10 +836,11 @@ owns, not this one.
 
 - **WHEN** the main agent invokes the `agents-auditor` subagent (e.g. via the `/audit-agents` command)
 - **THEN** it returns findings grouped by severity, covering consistency (contradictions, stale claims, dead
-  cross-references, drift) and conciseness (duplication, trivia, length, placement) across `AGENTS.md` and the
-  project-authored `.opencode/` files, each with a location and a suggested rewrite — plus, separately, any advisory
-  third-party inconsistency, the accreted meta rules with their origins, and any authoring-system gap, with the merge,
-  removal, and route candidate counts named in the verdict line
+  cross-references, drift) and conciseness (duplication, trivia, length, placement) across the audited project-owned
+  tooling — `AGENTS.md`, the project-authored `.opencode/` files, and the `docs/guidance-evidence/` records, each with a
+  location and a suggested rewrite — plus, separately, any advisory third-party inconsistency, the accreted meta rules
+  with their origins, and any authoring-system gap, with the merge, removal, and route candidate counts named in the
+  verdict line
 
 #### Scenario: Generated and vendored files are excluded
 
@@ -1028,6 +1029,23 @@ owns, not this one.
   counts, states that its items need the owner's selection and a dedicated design or implementation change,
   distinguishes an existing destination that failed retrieval from a destination that does not yet exist, and collapses
   "no opportunity" to one line
+
+#### Scenario: An evidence section whose rule is gone is a pairing finding
+
+- **WHEN** a section of a `docs/guidance-evidence/` record carries a `Rule:` paragraph that matches no live `AGENTS.md`
+  rule
+- **THEN** the audit reports it as a pairing finding, naming the record's path and the section's heading
+
+#### Scenario: A converted rule whose evidence section is missing is a pairing finding
+
+- **WHEN** a rule carries an `evidence:` token naming a record that holds no section whose `Rule:` paragraph matches
+  that rule
+- **THEN** the audit reports it as a pairing finding, naming the rule and the record
+
+#### Scenario: A section matching a rule that carries no token is a pairing finding
+
+- **WHEN** a record section's `Rule:` paragraph matches a live `AGENTS.md` rule that carries no `evidence:` token
+- **THEN** the audit reports it as a pairing finding, naming the section and the rule
 
 ### Requirement: The architecture is audited for drift from its recorded decisions
 
@@ -1734,3 +1752,75 @@ the scenarios below define, and the skill SHALL never restate an evidence rule t
 - **WHEN** a lesson carries an authoring half and an evidence half
 - **THEN** the authoring half is recorded in the skill and the evidence half at root, so neither destination restates
   the other's rule
+
+### Requirement: Relocated guidance evidence is kept in a scoped record
+
+Evidence moved out of an `AGENTS.md` entry SHALL be kept under `docs/guidance-evidence/`, one file per `## Gotchas`
+subsection, with one section per converted rule. A section SHALL have a single-line `##` heading of lowercase words
+joined by hyphens and a `Rule:` paragraph repeating the root rule's leading text verbatim. The heading is an address;
+the `Rule:` paragraph is the pairing key. The record SHALL hold only sections paired with a live root rule.
+
+#### Scenario: A converted rule's evidence is recoverable from an owned record
+
+- **WHEN** an `AGENTS.md` entry's incident, diagnostic, or verification evidence is moved out of the entry
+- **THEN** it is kept in a section of the subsection's `docs/guidance-evidence/` record, whose `Rule:` paragraph repeats
+  the entry's leading text verbatim, and the record is within the `agents-auditor`'s scope
+
+#### Scenario: A section heading is a single-line slug
+
+- **WHEN** an author adds a section to an evidence record
+- **THEN** its `##` heading is one line of lowercase words joined by hyphens, and the rule's leading text is in the
+  `Rule:` paragraph rather than in the heading
+
+#### Scenario: The record does not become a general dump
+
+- **WHEN** an author considers adding guidance, a rule with no root text, or a second copy of a rule to an evidence
+  record
+- **THEN** it is not added there, and the record holds only sections paired with a live root rule
+
+### Requirement: A record section states the episode and not a second rule
+
+A record section SHALL state what the rule assumes and what happened. Its `Rule:` paragraph is the identification key
+the previous requirement defines and is exempt from this prohibition. The body MAY describe the episode's conditions,
+actions, commands, and identifiers; it SHALL NOT carry a second operational instruction that a reader could follow in
+place of the root rule.
+
+#### Scenario: The `Rule:` key identifies without becoming a second rule
+
+- **WHEN** an author writes a record section
+- **THEN** its `Rule:` paragraph repeats the root rule's leading text verbatim as an identifier, and its body describes
+  the episode — the conditions that held, what was done, the commands and identifiers involved, and the verification —
+  without stating an instruction a reader could follow instead of the root entry
+
+### Requirement: A root entry whose evidence moved states every operational element
+
+A root entry whose evidence moved SHALL state the condition under which it applies, the required action, its material
+exceptions, the identifiers needed to perform or verify the action, and its `captured:` provenance markers. It SHALL
+carry an `evidence:` token naming its record, and the governed action SHALL NOT require reading that record.
+
+#### Scenario: An agent acts without reading the record
+
+- **WHEN** an agent applies a rule whose evidence moved
+- **THEN** the root text states the condition, the action, the exceptions, and the identifiers needed, so the action is
+  taken without opening the record
+
+#### Scenario: A reviewer verifies or challenges the rule
+
+- **WHEN** a reader needs the incident, its historical identifiers, or the verification behind a rule
+- **THEN** the rule's `evidence:` token names the record and the section whose `Rule:` paragraph matches the rule
+  carries them
+
+#### Scenario: A condition stated only by the incident stays at root
+
+- **WHEN** an incident's narrative is the only place a condition, an exception, or a scope limit appears
+- **THEN** that element is restated in the root text and does not move with the narrative
+
+### Requirement: A historical identifier survives in the evidence record
+
+An identifier that names the episode rather than the action SHALL be present in the record section for the rule whose
+text dropped it.
+
+#### Scenario: A historical identifier survives in the record
+
+- **WHEN** a rule's evidence moves and its text drops an identifier that named the episode
+- **THEN** that identifier is present in the record section for that rule

@@ -177,37 +177,41 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   deliberate, and whether the mechanism already exists. Grep `docs/ideas.md` for a parked design, the spec corpus and
   archived changes for an existing requirement **or a recorded decision about it — including a `skip_specs` decision not
   to spec it and a recent change's Non-Goal**, and `docs/adr/` for an Accepted decision the design would implement or
-  contradict — an ADR's Decision is normative, so designing a relaxation past it is a premise error, not a design choice
-  — and the artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier the same
-  session may already have added it. A parked idea, a spec'd capability, or an Accepted ADR is the design to adopt, not
-  re-derive; a false absence claim runs a whole propose cycle on the wrong premise and duplicates what exists
-  (`add-readme-auditor`'s planning proposed widening `agents-auditor` past the parked `readme-auditor` idea the repo
-  already had, caught by the owner rather than a gate; an `enforce-web-ui-import-boundaries` design proposed two
-  relaxations of the one-way import rule ADR-0013's Accepted Decision already forbade, caught by a reviewer). Verify the
-  current state's rationale against the repo — grep for consumers, read the values and their comments, check `git log`
-  for the introducing change — and record it in the design's Context; treat "this looks redundant" as a hypothesis to
-  verify, not a justification to remove, and a falsified example narrows a rule rather than deleting its remedy (the
-  rule governs a class, the example is evidence — `fix-timeout-load-flakes` restored a load-timing remedy #584 had
-  deleted when the controller slice's 30s raise failed). A third-party capability claim is established from the
-  dependency's own sources (its documented DSL, its jar, the task's resolved configuration read back by a scratch init
-  script), never from one interface cargo-culted into a search — grepping the Helm plugin's `HelmInstallationOptions`
-  missed the `remoteTimeout` it inherits from `ConfigurableHelmServerOperationOptions`, and a whole change was designed
-  around "the plugin exposes no install timeout" until its docs showed `helm.remoteTimeout` → `--timeout`, while the
-  blanket `extraArgs` that _was_ read is the worse tool (it reaches every command, `helm repo search` included) — and a
-  setting a build script does add is read back from the task that resolves it, not asserted from the declaring script. A
-  shared helper's **precedence** is part of that claim too: read its own template, since a non-empty global can override
-  every per-component value (defaulting the Bitnami `common.images.image` global would have misrouted the Docker-Hub
-  metrics-exporter sidecar). A claim about a dependency's mechanism — what a coordinate pulls, what a jar contains, what
-  a POM excludes — is derived from the resolved graph or the artifact's own contents, never hand-enumerated from memory:
-  a remembered inventory standing in for an absence claim is wrong on the members beside the ones you listed. A cost,
-  effort, or performance claim is a hypothesis of the same kind and has no source in the repo but a deliberate
-  measurement, so probe it before it drives a proceed-or-skip decision: the parked `git worktree` idea carried an
-  assumed build cost behind a conclusion that worktrees were not worth it for a docs-only or single-file fix, and a
-  throwaway probe (a detached worktree from `main`, shared caches warm) measured the first build at a one-time ~1 minute
-  (its Docker-free `check` ran 78s) and ~628M per tree, partly falsifying the premise. Before treating a spec change as
-  owed, read the spec's **existing** wording for the behavior the code implements — the contract may already state it,
-  in which case the fix is code→spec alignment, not a spec rewrite (`#455`'s `scripts/doctor.sh` classified the
-  repo-state checks as `required` while `showcase/quality/toolchain-check` already carried the exit contract
+  contradict — an ADR's Decision and a spec requirement are both normative, so a relaxation past either is a premise
+  error, not a design choice: a requirement the design needs relaxed is amended in the delta and the design names the
+  amendment, never re-read as permitting what its text does not state (an ADR is superseded, not edited) — and the
+  artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier the same session may
+  already have added it. A parked idea, a spec'd capability, or an Accepted ADR is the design to adopt, not re-derive; a
+  false absence claim runs a whole propose cycle on the wrong premise and duplicates what exists (`add-readme-auditor`'s
+  planning proposed widening `agents-auditor` past the parked `readme-auditor` idea the repo already had, caught by the
+  owner rather than a gate; an `enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import
+  rule ADR-0013's Accepted Decision already forbade, caught by a reviewer). Verify the current state's rationale against
+  the repo — grep for consumers, read the values and their comments, check `git log` for the introducing change — and
+  record it in the design's Context; treat "this looks redundant" as a hypothesis to verify, not a justification to
+  remove, and a falsified example narrows a rule rather than deleting its remedy (the rule governs a class, the example
+  is evidence — `fix-timeout-load-flakes` restored a load-timing remedy #584 had deleted when the controller slice's 30s
+  raise failed). A third-party capability claim is established from the dependency's own sources (its documented DSL,
+  its jar, the task's resolved configuration read back by a scratch init script), never from one interface cargo-culted
+  into a search — grepping the Helm plugin's `HelmInstallationOptions` missed the `remoteTimeout` it inherits from
+  `ConfigurableHelmServerOperationOptions`, and a whole change was designed around "the plugin exposes no install
+  timeout" until its docs showed `helm.remoteTimeout` → `--timeout`, while the blanket `extraArgs` that _was_ read is
+  the worse tool (it reaches every command, `helm repo search` included) — and a setting a build script does add is read
+  back from the task that resolves it, not asserted from the declaring script. A shared helper's **precedence** is part
+  of that claim too: read its own template, since a non-empty global can override every per-component value (defaulting
+  the Bitnami `common.images.image` global would have misrouted the Docker-Hub metrics-exporter sidecar). A claim about
+  a dependency's mechanism — what a coordinate pulls, what a jar contains, what a POM excludes — is derived from the
+  resolved graph or the artifact's own contents, never hand-enumerated from memory: a remembered inventory standing in
+  for an absence claim is wrong on the members beside the ones you listed. A cost, effort, or performance claim is a
+  hypothesis of the same kind and has no source in the repo but a deliberate measurement, so probe it before it drives a
+  proceed-or-skip decision: the parked `git worktree` idea carried an assumed build cost behind a conclusion that
+  worktrees were not worth it for a docs-only or single-file fix, and a throwaway probe (a detached worktree from
+  `main`, shared caches warm) measured the first build at a one-time ~1 minute (its Docker-free `check` ran 78s) and
+  ~628M per tree, partly falsifying the premise. A cost the repository cannot yet measure is a model, not a measurement:
+  state each operand as measured or assumed, derive only what the measured ones determine, and leave the aggregate
+  unestablished rather than computing it from a proxy (a review-round tally for fresh sessions). Before treating a spec
+  change as owed, read the spec's **existing** wording for the behavior the code implements — the contract may already
+  state it, in which case the fix is code→spec alignment, not a spec rewrite (`#455`'s `scripts/doctor.sh` classified
+  the repo-state checks as `required` while `showcase/quality/toolchain-check` already carried the exit contract
   ("unsatisfied prerequisites for the **default build-and-test path**") and only ever had the hooks _reported_, so the
   defect was a classification chosen in the code and never written into the spec). The worked case is the
   `remove-redis-client-label` detour — a full propose→apply→verify cycle for a chart-default its labels must not have,
@@ -215,7 +219,8 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   collapses, are in the `*-client` pod-labels bullet below. captured: publish-helm-chart captured:
   record-remaining-architecture-advisories captured: fix-timeout-load-flakes captured: record-worktree-cost-measurement
   captured: spec-cache-fallback-failed-fetch-contract captured: enforce-web-ui-import-boundaries captured:
-  classify-repo-state-checks captured: rework-readme-lifecycle-diagram
+  classify-repo-state-checks captured: rework-readme-lifecycle-diagram captured:
+  load-stage-workflow-instructions-on-demand
 
 - **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's
   own prior reconciliation.** ADR-0002 makes the Java `@ConfigurationProperties` the surface that owns a property's
@@ -498,17 +503,18 @@ ask for the manual review pass; and at a merge, where the detection below always
    when it does, recording the reason with the capture record (step 3).
 2. Run the `lesson-capture` subagent with the diff, the review findings and round rows, the change dir when one exists,
    the existing guidance a candidate would extend, and a short note on what went wrong or was learned. It proposes
-   additions to the artifact that owns each lesson — an `AGENTS.md` gotcha or convention, or a check/test authoring mode
-   in the `check-and-test-authoring` skill — the rules the unit makes obsolete or redundant as retirement or replacement
-   candidates, and any authoring-system recommendation, whose fix belongs in a mechanism producing artifacts rather than
-   in this file.
+   additions to the artifact that owns each lesson — an `AGENTS.md` gotcha or convention, a check/test authoring mode in
+   the `check-and-test-authoring` skill, or a shipping-procedure correction in the `ship-change` skill — the rules the
+   unit makes obsolete or redundant as retirement or replacement candidates, and any authoring-system recommendation,
+   whose fix belongs in a mechanism producing artifacts rather than in this file.
 3. Apply the proposals the main agent judges durable, and record the outcome on the capture record — the applied net
    `AGENTS.md` delta, or the skip and its reason. An implementation capture is caused by the unit, so it rides the
    unit's branch and ships in its PR.
 4. A merge runs no capture: at the merge, read what the merge alone affected — its non-diff effects, such as an agent PR
    closing its own tracker — and report any candidate lesson it leaves with the rule it would extend (an `AGENTS.md`
-   bullet, or a mode in the skill), then ask the user for explicit confirmation before running one. Apply that
-   merge-time capture as its own docs PR (it has no in-flight branch to ride).
+   bullet, a mode in `check-and-test-authoring`, or a `ship-change` procedure), then ask the user for explicit
+   confirmation before running one. Apply that merge-time capture as its own docs PR (it has no in-flight branch to
+   ride).
 
 **Decision points**
 
@@ -521,9 +527,9 @@ ask for the manual review pass; and at a merge, where the detection below always
   run it, and the skip is a derived, recorded decision rather than a judgment about whether the work felt instructive. A
   recurrence fails the conjunction deliberately: a problem the repo already records is an instruction-following failure,
   a reason to question the rule's wording rather than to skip.
-- **Every proposal names the existing rule it extends** — an `AGENTS.md` bullet, or a check/test authoring mode already
-  in the `check-and-test-authoring` skill — or states that none covers the lesson, so a new rule merges into or replaces
-  one rather than accreting.
+- **Every proposal names the existing rule it extends** — an `AGENTS.md` bullet, a check/test authoring mode already in
+  the `check-and-test-authoring` skill, or a `ship-change` procedure — or states that none covers the lesson, so a new
+  rule merges into or replaces one rather than accreting.
 - **Every proposal names the decision its rule governs**, and states whether a future change would plausibly hit it and
   whether the cost of not knowing it is material — a proposal that governs no decision is trivia, not a rule, and is not
   proposed (the `disable-axoniq-console-message` sentence this repo deleted stated a fact governing no decision).
@@ -766,86 +772,45 @@ removed identifier survives only in the deleted prose.
 
 ### Workflow: Ship a change (CI → archive → merge)
 
-**Trigger** — the user approved the implementation.
+**Trigger** — any request that moves a unit towards delivery: a push, a pull request, an archive, or a merge, however it
+is worded ("push this branch", "commit and push", "archive this change", "merge this PR", "CI is green; finish it").
 
-**Procedure**
+**Load** — read `.opencode/skills/ship-change/SKILL.md` (the `ship-change` skill) in full before the governed decision:
+before deciding to publish commits to the remote (`git push`, or an API or connector equivalent), to create a pull
+request, to archive the change (`openspec archive` or moving its directory), or to merge (`gh pr merge`, the GitHub UI,
+or auto-merge). The skill owns the ordered steps, the merge-authority mechanics, the BEHIND recovery, the refspec
+remedy, and the archive step's placement.
 
-1. Push the implementation branch and open a PR with the code and the active change dir.
-2. Wait for the `build` check to be green.
-3. Archive the change (move the change dir and sync the main spec) as an additional commit in the _same_ PR.
-4. Merge once. The archive — the declaration that a change is done — always follows CI, never precedes it.
+**Boundary**
 
-**Decision points**
+- Loading grants no permission; the invariants above govern push and archive authorization.
+- A request that does not establish the owner's approval is not clearance.
+- Merge only after the `build` check is green and the owner has approved.
+- A user who is not a repository administrator requests a reviewer rather than merging.
 
-- IF the active GitHub user **is** the repo owner/admin THEN merge directly with
-  `gh pr merge --squash --delete-branch --admin` once CI is green — do not first attempt a plain merge (the
-  `main-require-pr-on-merge` ruleset requires an approving review, `required_approving_review_count: 1`, but the owner
-  `aanbrn` is a bypass actor on that ruleset, `bypass_mode: always`) and do not wait on a Copilot review (it never
-  approves).
-- IF the active user is **not** an admin (e.g. a team member) THEN `--admin` is meaningless and the normal
-  review-required flow applies: request a reviewer and wait for approval before merging.
-- IF the PR's base advanced after CI ran (a `mergeStateStatus` of BEHIND) THEN run `gh pr update-branch` (or
-  `gh pr merge --update-branch`) and merge once the re-run is green (see the BEHIND gotcha).
-- **Docs the change causes while it is in flight** — a capture from its implementation, an idea its own work surfaced, a
-  fact it falsified — ship with the change's PR; a docs refresh it did not cause, or one surfaced only after it is done
-  (a merge-time capture), ships as its own docs PR, per the docs-refresh convention.
+**Ordering** — the archive is a commit in the **same** pull request, after the `build` check is green and before the
+merge.
 
-**Failure handling**
-
-- IF the local branch is not named after the remote branch it must update THEN push with an explicit refspec (see the
-  "Fork every new branch" invariant).
-- GitHub never merges on an approval — an approval alone leaves the PR open.
-
-**Completion criteria** — CI green, the change archived (change dir moved and main spec synced), and the PR merged.
+**Failure handling** — IF the skill is missing or unreadable, THEN stop and report it; never ship from memory. A push
+that needs an explicit refspec is still a publication and still loads the skill; the "Fork every new branch" invariant
+owns the refspec itself.
 
 ### Workflow: Complete a cloud (`/oc`) agent PR
 
-**Trigger** — a `/oc` (or `/opencode`) timeline comment or inline diff comment created or updated a PR you are asked to
-complete. A `/oc` in a _review body_ (Submit review → Comment/Request changes/Approve) does nothing, because the action
-does not support `pull_request_review` (filed upstream as `anomalyco/opencode#50247`, retires when the action gains that
-trigger) — a reviewer who wants to instruct the agent leaves the review and posts the comment.
+**Trigger** — a `/oc` or `/opencode` comment created or updated a PR you are asked to complete, or a request to continue
+or finish an agent-opened PR. A `/oc` in a review body does nothing (`anomalyco/opencode#50247`, retires when the action
+gains that trigger).
 
-**Procedure**
+**Load** — read `.opencode/skills/ship-change/SKILL.md` in full before the governed decision in this stage: deciding to
+publish the archive commit, archive, or merge.
 
-1. The action runs OpenCode on a GitHub-hosted runner; it implements the work on its own `opencode/…` branch, commits,
-   and opens the PR (on an existing PR the same comment commits to that PR instead). It follows the same rules a local
-   agent does — an OpenSpec change with a change dir, `skip_specs: true` for a pure dependency bump, and the change left
-   unarchived, since archiving follows the owner's approval — but it does not archive or merge.
-2. Verify the self-report against the repository and the run log (a self-report is a claim to verify, like a review
-   finding).
-3. Check out the agent's branch.
+**Outcome**
 
-**Decision points**
+- A **change** PR is archived and then merged.
+- A **report** PR is merged with nothing applied.
+- The cloud agent cannot merge — the merge is the human's.
 
-- **An approval comment (`/oc looks good. let's proceed.`) maps to _its_ implementation.** On a **change** PR that is
-  the commit → push → archive sequence: run `openspec archive <change> --yes`, commit and push it there, and merge once
-  CI is green (see "Workflow: Ship a change"). On a **report** PR (the `audit` workflow's findings) there is no change
-  to archive and no finding to apply — the report is the artifact, so the instruction means **merge the report** (it
-  lands under `docs/audits/` as the run's record) and apply nothing from it. Say so explicitly, rather than leaving the
-  agent to infer a change it cannot find, or to close a PR whose file the workflow exists to keep.
-- IF a PR was opened from a tracker issue THEN it carries a closing reference to its trigger (`Closes #<issue>`), so
-  merging it closes that issue — right for a one-shot work item, wrong for a long-lived tracker like the update-check
-  issues, whose workflows look them up with `is:issue is:open` and open a fresh one when none is open, so the merge
-  orphans its history and the next weekly run opens a duplicate. Strip the closing keyword before merging, or reopen the
-  tracker.
-
-**Failure handling**
-
-- The cloud agent **cannot merge** — the action has no merge step — so on a report PR it must not attempt one; the merge
-  is the human's.
-
-**Completion criteria** — the PR is merged: a change PR archived and merged per "Workflow: Ship a change", a report PR
-merged with nothing applied, and any tracker preserved.
-
-**How the action derives the PR** — the action uses the agent's final response as the PR **body** and derives the PR
-**title** by asking a model to summarise that response in under 40 characters (`summarize` →
-`createPR(base, branch, title, body)` in the action's `github.handler.ts`), so the title is a _summary of the whole
-response_, not a line copied from it. Two consequences: a prompt cannot pin the title by dictating the response's first
-line, and a response that opens with a mention tends to summarise into a title about the mention (the `audit` workflow's
-prompt asked for the owner mention at the start of the response, and report PR #333 carried it in the title). Put the
-mention on a body line and keep the response's substance about the report, so the generated title names it. When a
-workflow prompt relies on the action's PR-building behaviour, state the title's derivation rather than assuming a copied
-line.
+**Failure handling** — IF the skill is missing or unreadable, THEN stop and report it.
 
 ## Prerequisites
 
@@ -2465,13 +2430,13 @@ capture-stash-stale-copy
   derive from that run. The wrapper still fails open on a missing file, which is why the check must be seen to hit a
   known positive before its clean run means anything.
 
-- **A clean run from the wrong resolution context — a directory, or a point in the lifecycle — is not a reproduction.**
-  TypeScript's automatic inclusion of `@types` packages walks up from the tsconfig's directory (the
-  then-`.opencode/tsconfig.json`, retired with the plugin below) — or the current working directory when no tsconfig is
-  used — not from the directory of the file being checked, so a check can pass from inside the package while failing
-  from the root its consumer resolves from (here, the editor's project root). A `review-quick` round proposed the
-  simpler fix ("add `@types/node`; a tsconfig isn't needed"), which held only in the passing directory. Run a
-  reproduction from the context that fails — the directory whose config the failing tool reads, not the artifact's own
+- **A clean run from the wrong resolution context — a directory, a point in the lifecycle, or a stand-in for the
+  artifact — is not a reproduction.** TypeScript's automatic inclusion of `@types` packages walks up from the tsconfig's
+  directory (the then-`.opencode/tsconfig.json`, retired with the plugin below) — or the current working directory when
+  no tsconfig is used — not from the directory of the file being checked, so a check can pass from inside the package
+  while failing from the root its consumer resolves from (here, the editor's project root). A `review-quick` round
+  proposed the simpler fix ("add `@types/node`; a tsconfig isn't needed"), which held only in the passing directory. Run
+  a reproduction from the context that fails — the directory whose config the failing tool reads, not the artifact's own
   directory — and treat a different error as its own signal. The binary is part of that context: a control that installs
   one major and then invokes it by a bare command name runs whatever the host has instead — the host's V2 `opencode`
   accepts the V2-only key the V1 probe rejects (exit 0), so the control would prove the opposite — so run the installed
@@ -2486,7 +2451,10 @@ capture-stash-stale-copy
   `build/` is not the clean-checkout condition, because a tool's own cache and the project's `.gradle/` survive it —
   `rm -rf helm/chart/build` alone still let the chart-dependency task run, and only clearing the plugin's cache under
   `.gradle/` reproduced the skip CI saw — so clear the caches outside `build/` before concluding a failure does not
-  reproduce. captured: fix-chart-dependency-fetch captured: grant-openspec-global-access-in-cloud (#325)
+  reproduce. The context is also the input's own content: a probe against a stand-in evidences the stand-in, so state
+  the fixture's measured size beside the claim and defer the untested remainder to a task. captured:
+  fix-chart-dependency-fetch captured: grant-openspec-global-access-in-cloud (#325) captured:
+  load-stage-workflow-instructions-on-demand
 
 ### Writing checks and tests that can actually fail
 
@@ -2727,8 +2695,8 @@ capture-stash-stale-copy
   `mergeStateStatus` BEHIND.** When two PRs merge close together (a code PR followed by a docs PR), the second PR's
   branch is behind the new `main`; the `main-required-checks` ruleset demands the `build` check on the latest base, so
   the merge is blocked even though the branch's own CI is green. The error message does not say "update your branch" —
-  BEHIND is the tell. Fix: `gh pr update-branch` (or `gh pr merge --update-branch`), which re-runs CI against the
-  updated base; merge only once that check is green.
+  BEHIND is the tell. Fix: `gh pr update-branch`, which re-runs CI against the updated base; merge only once that check
+  is green.
 
 - **A workflow tool pin belongs in the `toolingUpdates` check's declared list — it is the only thing that detects a
   release.** `dependencyUpdates` / `dependency-updates.yml` cover Gradle catalog coordinates (and, through the same

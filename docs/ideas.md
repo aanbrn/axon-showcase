@@ -13,6 +13,25 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-20
+
+- Convert the remaining Gotchas rules in the two piloted subsections — parked; no change yet.
+  `separate-agents-md-operational-from-evidence` converted seven rules and drafted a third (`formatter-owned-file`, R3,
+  net −69 B with a token, so it stayed at root). What remains in `### Git & repository workflow` and
+  `### Documentation & durable claims`: R3 (drafted, unconverted), 16 undrafted rewrites, and 1 undrafted evidence
+  relocation, each needing its own draft, measurement, operational-identifier inventory, and the five validation
+  conditions; four rules have no separable material and one was rejected, so nothing is owed for those five. The
+  per-rule dispositions and their estimates are in the archived change's `design.md` ("Rule-by-rule dispositions" and
+  "Recommendation"); re-measure before acting on an estimate.
+
+- Extend the extraction conditions so the retained pointer identifies each converted unit — parked; no change yet.
+  `separate-agents-md-operational-from-evidence` found that a destination-level pointer satisfies every extraction
+  condition while leaving one direction of the pairing unverifiable: an unconverted unit and a unit whose destination
+  entry was deleted look alike. Its own destination solved this with a per-rule `evidence:` token, but the general
+  condition in `showcase/quality/agent-skills` still permits a bare pointer, so the next destination class inherits the
+  gap. The fix is one added condition in that requirement's extraction-candidate paragraph, with a scenario; route it as
+  its own change with the delta.
+
 ## 2026-10-19
 
 - Seed a smoke-run's suppression control with a distinct action, not a verbatim existing rule — parked; no change yet.

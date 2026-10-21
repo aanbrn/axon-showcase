@@ -192,9 +192,9 @@ owns, not this one.
   bounded screen is not read as a thorough pass
 - **AND** the governance the pass does not replace stays in force — the pre-write derivation pass, the mandatory
   quick-review gate, the tests, the manual review, and every other check
-- **AND** for a unit whose diff adds or changes `AGENTS.md` rules (a capture), it also challenges each new rule's
-  durability — the decision the rule governs, and whether a future change would plausibly hit it — so trivia is caught
-  at review time rather than by a later consolidation audit
+- **AND** for a unit whose diff adds or changes guidance in `AGENTS.md` or a subject pack (a capture), it also
+  challenges each new rule's durability — the decision the rule governs, and whether a future change would plausibly hit
+  it — so trivia is caught at review time rather than by a later consolidation audit
 - **AND** it applies the capture scenario's promotion gate and dispositions to each proposal, from the supplied list
   above, so the reviewer compares the proposal with the existing obligation and its evidence rather than the gate's
   criteria being restated a second time, and a proposal the gate disposes of as `already covered`, or one governing no
@@ -416,12 +416,13 @@ owns, not this one.
   `lesson-capture` subagent only when it does — otherwise the capture is skipped and the skip recorded with its reason,
   so a skip is a recorded decision rather than a run that found nothing
 - **AND** the `lesson-capture` subagent proposes each lesson as an addition to the artifact that owns it — an
-  `AGENTS.md` gotcha or convention, a check/test authoring mode in the `check-and-test-authoring` skill, or a
-  shipping-procedure correction in the `ship-change` skill — or a pair of additions when the lesson has both halves —
-  which the main agent verifies and applies
+  `AGENTS.md` gotcha or convention, a check/test authoring mode in the `check-and-test-authoring` skill, a
+  shipping-procedure correction in the `ship-change` skill, or a section of the subject pack (`jvm-development`,
+  `jvm-testing`, or `gradle-build`) whose subject owns the lesson's decision — or a pair of additions when the lesson
+  has both halves — which the main agent verifies and applies
 - **AND** each proposed addition names the existing rule it extends — an `AGENTS.md` bullet, a check/test authoring mode
-  already in the skill, or a `ship-change` procedure — or states that none covers it, so a new rule merges into or
-  replaces one rather than accreting
+  already in the skill, a `ship-change` procedure, or a subject-pack section — or states that none covers it, so a new
+  rule merges into or replaces one rather than accreting
 - **AND** alongside its additions, it reports the rules this unit makes obsolete or redundant — a rule whose mechanism
   the unit removed, or one the unit's new enforcement subsumes — as retirement or replacement candidates, each naming
   the rule, why the unit makes it so, and the retirement or replacement it proposes, as candidates for the main agent
@@ -472,9 +473,9 @@ owns, not this one.
   is not stated as a universal instruction
 - **AND** the incident evidence a rule rests on stays recoverable behind its `captured:` marker rather than in the
   rule's text
-- **AND** the capture's verdict states the proposed net `AGENTS.md` delta in lines (additions minus retirements) and its
-  authoring-system recommendation count, and the applying agent records the applied delta, so net growth is stated when
-  it is decided, alongside the periodic audit's accreted-rule count
+- **AND** the capture's verdict states the proposed net guidance delta in lines (`AGENTS.md` and the packs; additions
+  minus retirements) and its authoring-system recommendation count, and the applying agent records the applied delta, so
+  net growth is stated when it is decided, alongside the periodic audit's accreted-rule count
 - **AND** when a rule's rationale is normative in a spec, the bullet keeps only what a reader needs to act and points at
   the spec — a pointer, not a condensed copy, since `AGENTS.md` is loaded on every invocation while a spec is loaded
   only when its capability is worked on
@@ -487,8 +488,9 @@ owns, not this one.
   a merge-time detection found the lesson rather than the implementation capture, since a capture runs once at
   implementation and a merge only detects and asks — so a reader can tell where the rule came from without consulting
   git, and a markdown reflow cannot take it
-- **AND** the unit leaves a record the merge-time read can check — the capture's applied net `AGENTS.md` delta, or its
-  recorded skip and reason — so neither an unrun capture nor an unrecorded skip reads as a run that found nothing
+- **AND** the unit leaves a record the merge-time read can check — the capture's applied net guidance delta (`AGENTS.md`
+  and the packs), or its recorded skip and reason — so neither an unrun capture nor an unrecorded skip reads as a run
+  that found nothing
 
 #### Scenario: A change that obsoletes a rule yields a retirement candidate
 
@@ -779,15 +781,33 @@ alternatives yield the same result SHALL stay in `AGENTS.md`, except where it is
 mechanics that satisfy the permission above, in which case it MAY move to that workflow's project-owned procedure
 destination; it SHALL NOT move into a capability spec even where the spec describes the same outcome, and only a
 mechanism whose change would change the capability's specified behavior is a candidate for a capability-spec
-destination. Before reporting a candidate the audit SHALL test the retrieval path — starting from the root instruction
-set, stating the task trigger, following only the retained root text and normal project discovery, and confirming the
-destination is reached before the governed decision must be made and carries every transferred requirement and
-verification step. A failed retrieval path to an **existing** destination remains a reason to retain the source content,
-and is not an extraction opportunity. For an opportunity the audit SHALL NOT claim that a destination which does not
-exist passed the test: instead it SHALL verify whether the proposed retained root entry point could name the trigger and
-the destination deterministically, record the missing target or discovery mechanism as the blocking precondition, and
-require the dedicated change to create the target, add the retained root pointer, and run the full test before the
-extraction becomes applicable.
+destination.
+
+A technical subject whose decisions recur across the proposal, implementation, review, and diagnosis stages — a
+language's production conventions, its test conventions, a build system — MAY move to a project-owned **subject pack**.
+The permission holds only where all of these conditions do:
+
+- the subject is narrower than the repository;
+- the root `AGENTS.md` carries a classification table naming the subject's decision trigger, the pack's path, and the
+  missing-pack stop;
+- the pack loads in full before the first governed decision in the subject;
+- a task outside the subject can complete without it;
+- every extraction condition above holds;
+- the moved content is not a cross-cutting safety, branch, review, git, evidence, or documentation rule.
+
+The subject-scope permission is the only exception to the multi-stage limit; the capability-mechanism limit and the
+warning-inference limit apply to it unchanged. It does not create a catch-all guidance directory, does not permit a
+nested file for a subject spanning several directories, and does not permit an `instructions` entry. The classification
+table's row is the retained root entry point, and the pack's `Source:` line is the source↔destination association.
+Before reporting a candidate the audit SHALL test the retrieval path — starting from the root instruction set, stating
+the task trigger, following only the retained root text and normal project discovery, and confirming the destination is
+reached before the governed decision must be made and carries every transferred requirement and verification step. A
+failed retrieval path to an **existing** destination remains a reason to retain the source content, and is not an
+extraction opportunity. For an opportunity the audit SHALL NOT claim that a destination which does not exist passed the
+test: instead it SHALL verify whether the proposed retained root entry point could name the trigger and the destination
+deterministically, record the missing target or discovery mechanism as the blocking precondition, and require the
+dedicated change to create the target, add the retained root pointer, and run the full test before the extraction
+becomes applicable.
 
 The audit SHALL additionally report, as an **extraction opportunity** kept separate from its findings, a source unit
 that is likely too narrow or too costly for root `AGENTS.md` but whose destination does not yet exist — and which
@@ -981,6 +1001,13 @@ owns, not this one.
 - **WHEN** the auditor proposes an extraction candidate
 - **THEN** every condition the extraction analysis states holds, and the candidate names its destination type, the
   retained root text, and the authoritative destination
+
+#### Scenario: A subject pack is a valid extraction destination
+
+- **WHEN** the auditor considers a source unit whose decisions all belong to one technical subject named by the root
+  classification table
+- **THEN** it reports an extraction candidate with the subject pack as the destination only where the table names the
+  trigger and the pack path, the missing-pack stop is stated, and every preservation and retrieval condition holds
 
 #### Scenario: A failed retrieval path is a reason to retain the content
 
@@ -1903,3 +1930,138 @@ the skill, not recreated in `AGENTS.md`.
 
 - **WHEN** a procedure step, branch, or failure rule is wrong or incomplete
 - **THEN** it is corrected in the skill rather than recreated in `AGENTS.md`
+
+### Requirement: The root classifies subject guidance and requires its packs
+
+`AGENTS.md` SHALL carry a classification table naming each project subject pack, the decision trigger that selects it,
+and its path. A decision trigger SHALL cover execution and interpretation in its subject, not only authoring and
+editing. The table SHALL distinguish a routine verification command from a decision in its subject, so a check run does
+not by itself load a pack. The table SHALL state the missing-pack stop and the rule that applies when several rows
+match.
+
+#### Scenario: A diagnosis loads its pack before the first hypothesis
+
+- **WHEN** a task diagnoses a runtime, test, or build failure
+- **THEN** it loads the pack owning that subject before forming the first hypothesis or running the first diagnostic
+  experiment, because the moved rules choose the experiment
+
+#### Scenario: A routine verification command loads no pack
+
+- **WHEN** a task runs `spotlessApply` or the minimal `check` only to verify its change, and the run passes
+- **THEN** no subject pack loads and `Packs:` names none
+
+#### Scenario: A task in one subject loads only that pack
+
+- **WHEN** a task chooses, changes, judges, or diagnoses something in one subject and nothing in another
+- **THEN** it loads that subject's pack in full before the decision and no other pack
+
+#### Scenario: A task outside every subject loads no pack
+
+- **WHEN** a task's decisions fall outside every row of the classification table
+- **THEN** it loads no pack and states `Packs: none` with the reason before its first edit
+
+#### Scenario: A missing pack stops the governed decision
+
+- **WHEN** a required pack is missing or unreadable
+- **THEN** the agent stops and reports it rather than acting from memory, the root pointers, or the pack's description
+
+### Requirement: A subject pack loads before the first governed decision in its subject
+
+A subject pack SHALL load in full before the first governed decision in its subject — a choice, an edit, an execution, a
+review judgment, a report interpretation, or a diagnosis — and SHALL NOT be required for a task outside its subject.
+Before its first edit, an agent SHALL state one `Packs:` line naming every pack it loaded in full, or `Packs: none` with
+the reason. A session resumed after context compaction SHALL reclassify and reload before its next governed decision.
+
+#### Scenario: A task that runs or interprets a subject's artifact loads its pack
+
+- **WHEN** a task runs an existing test suite, checks coverage, or reads a dependency, security, or build report
+- **THEN** it loads the pack owning that subject before selecting the command or the experiment, not after concluding
+  the result
+
+#### Scenario: The classification is stated before the first edit
+
+- **WHEN** an agent is about to make its first edit in a task
+- **THEN** it has stated one `Packs:` line naming every pack it loaded in full, or `Packs: none` with the reason
+
+#### Scenario: A resumed session reclassifies
+
+- **WHEN** a session resumes after context compaction
+- **THEN** it reclassifies the task and reloads every applicable pack before its next governed decision
+
+### Requirement: A delegation loads every applicable pack
+
+A delegation SHALL name every applicable pack, because a delegated agent does not inherit a pack the caller loaded.
+
+#### Scenario: A delegated agent is given its packs
+
+- **WHEN** an agent delegates work whose subject matches a pack
+- **THEN** the delegation prompt names every applicable pack
+
+### Requirement: A review classifies the decisions and claims it is supplied
+
+A reviewer SHALL classify the decisions and claims in the artifacts it is supplied, using changed paths as evidence
+rather than the sole predicate, and SHALL load every matching pack. The caller SHALL name the applicable packs in the
+reviewer's hand-over and instruct the reviewer to follow its definition's input contract; a subject evident in the
+supplied artifacts but absent from that list SHALL be reported as a missing input rather than searched for.
+
+#### Scenario: A reviewer classifies the decisions and claims under review
+
+- **WHEN** a reviewer judges a change whose supplied artifacts choose a technical approach, state a technical behavior,
+  or cite a technical rule, whether or not a changed file of that subject is present
+- **THEN** it loads the pack owning that subject in full before judging it, from its own definition rather than from the
+  implementer's session
+
+#### Scenario: A Markdown-only proposal loads its subject's pack
+
+- **WHEN** a review receives a proposal whose text chooses a JVM or Gradle implementation and whose diff changes no
+  technical file
+- **THEN** the owning pack is named in the hand-over and loaded before the judgment
+
+#### Scenario: An unlisted subject is a missing input, not a search
+
+- **WHEN** the supplied artifacts turn on a subject no named pack covers, or the hand-over names no pack for a subject
+  the artifacts decide
+- **THEN** the reviewer reports the missing input rather than searching the repository for a rule
+
+### Requirement: A review stops on a missing pack
+
+A reviewer SHALL apply its subject classification before any other read. It SHALL classify every subject the supplied
+artifacts decide, not only the packs the hand-over names; naming one matching pack does not cover a second subject. IF a
+matching pack is not named in the hand-over, THEN it SHALL report the missing pack and stop before judging the artifact,
+without searching the repository, reading another file, or producing a finding; that report SHALL be its only output.
+
+#### Scenario: A missing pack stops the review
+
+- **WHEN** the supplied artifacts decide a subject whose pack the hand-over does not name
+- **THEN** the reviewer reports the missing pack as a missing input before any finding and makes no repository search
+
+### Requirement: A proposal premise is not verified by a search
+
+A proposal review SHALL NOT verify the proposal's premise against the repository; a premise it cannot check from the
+supplied artifacts SHALL be reported as a finding or a stated limitation.
+
+#### Scenario: A proposal premise is not verified by a search
+
+- **WHEN** a proposal's premise cannot be checked from the supplied artifacts
+- **THEN** it is reported as a finding or a stated limitation, not pursued by searching the repository
+
+### Requirement: A subject pack holds one copy of its obligations and names its source
+
+An obligation SHALL live in exactly one pack, and a pack that needs another's rule SHALL name it rather than restate it.
+Each pack SHALL carry a `Source:` line naming the `AGENTS.md` headings it replaced.
+
+#### Scenario: An obligation is not duplicated across packs
+
+- **WHEN** a pack needs a rule another pack or the root owns
+- **THEN** it names that rule rather than restating it, so the obligation has one authoritative copy
+
+#### Scenario: The source is identifiable in the destination
+
+- **WHEN** a reader or the agent-tooling audit looks for a pack's source
+- **THEN** the pack's `Source:` line names the replaced `AGENTS.md` headings, so a renamed heading or an orphaned pack
+  fails to pair
+
+#### Scenario: A captured lesson lands in the owning pack
+
+- **WHEN** a lesson's decision belongs to a subject a pack owns
+- **THEN** the capture proposes it for that pack's section rather than for an `AGENTS.md` bullet

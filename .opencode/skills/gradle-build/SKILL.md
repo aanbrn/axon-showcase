@@ -2,8 +2,9 @@
 name: gradle-build
 description:
   The Gradle build for this repository — convention plugins, the version catalog, dependency and tool pins, the check
-  gates, the command surface, the dependency-update and security reports, and the build failures that read like
-  application defects (a test run and its coverage rule are `jvm-testing`'s).
+  gates, the build command surface, the dependency-update and security reports, and the build failures that read like
+  application defects (a test run and its coverage rule are `jvm-testing`'s, and the deployment and local-stack commands
+  are `deployment-operations`'s).
 ---
 
 # Gradle build
@@ -36,7 +37,9 @@ spec's; this pack carries the operational rules a change needs, not a second cop
   bare `[versions]` entry is not resolved as a dependency, so `dependencyUpdates` ignores it — but `helmUpdates` reads
   the Helm CLI and chart pins, `buildpackUpdates` the Paketo builder and buildpack pins, `toolingUpdates` the CLI
   versions pinned in workflow files, and `buildLogicUpdates` the plugin pins the included `build-logic` build resolves
-  (which the main build's own report cannot see), so only the entries none of them reads must be audited by hand.
+  (which the main build's own report cannot see), so only the entries none of them reads must be audited by hand. The
+  buildpack/builder pin mechanics — the pair the pins must form, the run-the-image verification, and the CNB id versus
+  Docker Hub repository — are the `deployment-operations` pack's.
 - **A `build-logic` convention plugin's effect is verified through a consuming module, not unit-tested.** `build-logic`
   has no `gradleTestKit()`, so its `src/test` holds unit tests of plain helper objects (`Versions`, the `*Rules`
   classes) and a plugin's Gradle DSL — e.g. `spring-boot-conventions`' `springBoot { buildInfo { … } }` — cannot be
@@ -137,7 +140,7 @@ leading-integer major comparison.
   captured at store time. Compare each such task's _outcome_ (ran / skipped) with and without the cache on a clean
   checkout, not only that the graph stores; and neutralize such a gate with `setOnlyIf { true }`, since a bare
   `onlyIf { true }` only appends a spec that is ANDed with the plugin's and leaves it in force (the helm plugin's
-  chart-dependency skip is the worked case — see `AGENTS.md`'s `## Kubernetes Deployment` → Chart validation). captured:
+  chart-dependency skip is the worked case — see the `deployment-operations` pack's Chart validation). captured:
   fix-upstream-references-config-cache
 
 - **IF a Gradle run under `--warning-mode all` emits a gradle-helm-plugin deprecation or a `Configuration.visible`

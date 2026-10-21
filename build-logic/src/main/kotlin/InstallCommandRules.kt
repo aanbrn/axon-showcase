@@ -1,8 +1,8 @@
 /**
- * The rules the `AGENTS.md` install-command gate applies to the manual `helm install` block.
+ * The rules the install-command gate applies to the guidance document that quotes the manual `helm install` block.
  *
- * The logic is pure so it is testable without Gradle: [VerifyInstallCommandsTask] reads the file, calls these rules,
- * and turns a message into a failure.
+ * The logic is pure so it is testable without Gradle: [VerifyInstallCommandsTask] reads the document, passes its
+ * project-relative path as the source label, calls these rules, and turns a message into a failure.
  */
 internal object InstallCommandRules {
 
@@ -20,16 +20,27 @@ internal object InstallCommandRules {
     }
 
     /**
-     * The reason the documented [chartRef] at [documentedVersion] disagrees with its [pinnedVersion], or null when they
-     * agree. A null [pinnedVersion] means the catalog pins no version for the chart.
+     * The reason [source], which states [commandCount] install commands, cannot be checked at all — a document the gate
+     * scans that holds no `helm install … --version` line would otherwise pass vacuously — or null when it can.
      */
-    fun mismatchReason(chartRef: String, documentedVersion: String, pinnedVersion: String?): String? {
+    fun noCommandsReason(source: String, commandCount: Int): String? =
+        if (commandCount == 0) {
+            "$source states no 'helm install … --version' command, so the gate would pass vacuously."
+        } else {
+            null
+        }
+
+    /**
+     * The reason [source] documents [chartRef] at [documentedVersion] when the catalog pins [pinnedVersion], or null
+     * when they agree. A null [pinnedVersion] means the catalog pins no version for the chart.
+     */
+    fun mismatchReason(source: String, chartRef: String, documentedVersion: String, pinnedVersion: String?): String? {
         if (pinnedVersion == null) {
-            return "AGENTS.md installs chart '$chartRef' at '$documentedVersion', but the catalog pins no " +
+            return "$source installs chart '$chartRef' at '$documentedVersion', but the catalog pins no " +
                 "version for it."
         }
         if (documentedVersion != pinnedVersion) {
-            return "AGENTS.md installs chart '$chartRef' at '$documentedVersion', but the catalog pins " +
+            return "$source installs chart '$chartRef' at '$documentedVersion', but the catalog pins " +
                 "'$pinnedVersion'."
         }
         return null

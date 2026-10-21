@@ -978,7 +978,7 @@ follow-up pull request, so the next release has a base. It is not a merge gate.
 ./gradlew toolingUpdates                # report available updates for the CLIs pinned in workflow files
 ./gradlew upstreamReferences            # report the state of cited upstream references
 ./gradlew verifyInfraImageVersions      # verify infra image tags match their pinned charts
-./gradlew verifyInstallCommands         # verify the AGENTS.md manual install commands match the catalog
+./gradlew verifyInstallCommands         # verify the deployment guidance's manual install commands match the catalog
 ./gradlew verifyDocumentedPins          # verify the catalog's Paketo pins a live doc states match the catalog
 ./gradlew verifyModuleDependencies      # verify the module dependency graph (ADR-0010)
 ./gradlew verifyDashboardJson           # verify the bundled Grafana dashboard JSON parses

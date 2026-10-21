@@ -419,8 +419,8 @@ owns, not this one.
 - **AND** the `lesson-capture` subagent proposes each lesson as an addition to the artifact that owns it — an
   `AGENTS.md` gotcha or convention, a check/test authoring mode in the `check-and-test-authoring` skill, a
   shipping-procedure correction in the `ship-change` skill, or a section of the subject pack (`jvm-development`,
-  `jvm-testing`, or `gradle-build`) whose subject owns the lesson's decision — or a pair of additions when the lesson
-  has both halves — which the main agent verifies and applies
+  `jvm-testing`, `gradle-build`, or `deployment-operations`) whose subject owns the lesson's decision — or a pair of
+  additions when the lesson has both halves — which the main agent verifies and applies
 - **AND** each proposed addition names the existing rule it extends — an `AGENTS.md` bullet, a check/test authoring mode
   already in the skill, a `ship-change` procedure, or a subject-pack section — or states that none covers it, so a new
   rule merges into or replaces one rather than accreting

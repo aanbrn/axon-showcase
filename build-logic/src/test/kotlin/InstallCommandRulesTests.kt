@@ -2,7 +2,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
-@DisplayName("AGENTS.md install command rules")
+@DisplayName("Install-command rules")
 class InstallCommandRulesTests {
 
     @Test
@@ -37,13 +37,14 @@ class InstallCommandRulesTests {
     @Test
     @DisplayName("A documented version that matches its catalog pin has no mismatch")
     fun matchingVersionHasNoMismatch() {
-        assertThat(InstallCommandRules.mismatchReason("bitnami/kafka", "31.5.0", "31.5.0")).isNull()
+        assertThat(InstallCommandRules.mismatchReason("pack/SKILL.md", "bitnami/kafka", "31.5.0", "31.5.0")).isNull()
     }
 
     @Test
     @DisplayName("A documented version that differs from its catalog pin is reported")
     fun mismatchedVersionIsReported() {
-        assertThat(InstallCommandRules.mismatchReason("bitnami/kafka", "31.4.0", "31.5.0"))
+        assertThat(InstallCommandRules.mismatchReason("pack/SKILL.md", "bitnami/kafka", "31.4.0", "31.5.0"))
+            .contains("pack/SKILL.md")
             .contains("bitnami/kafka")
             .contains("31.4.0")
             .contains("31.5.0")
@@ -52,8 +53,18 @@ class InstallCommandRulesTests {
     @Test
     @DisplayName("A chart the catalog does not pin is reported")
     fun chartWithoutAPinIsReported() {
-        assertThat(InstallCommandRules.mismatchReason("example/unknown", "1.0.0", null))
+        assertThat(InstallCommandRules.mismatchReason("pack/SKILL.md", "example/unknown", "1.0.0", null))
+            .contains("pack/SKILL.md")
             .contains("example/unknown")
             .contains("no version")
+    }
+
+    @Test
+    @DisplayName("A document with no install command is reported instead of passing vacuously")
+    fun emptyDocumentReported() {
+        assertThat(InstallCommandRules.noCommandsReason("pack/SKILL.md", 0))
+            .contains("pack/SKILL.md")
+            .contains("vacuously")
+        assertThat(InstallCommandRules.noCommandsReason("pack/SKILL.md", 1)).isNull()
     }
 }

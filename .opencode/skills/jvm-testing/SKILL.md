@@ -12,8 +12,8 @@ and states this pack's trigger.
 
 Source: `AGENTS.md` `## Conventions` (test display names, Spring bean mocks, test tier placement, nested resilience
 groups, BlockHound, asserting log output, `@DirtiesContext`, code coverage), `## Build & Test` (test commands, test
-suite order, test tiers), and `## Gotchas` → `### Testing, measurement & load verification` (the gateway e2e images,
-`@Nested` with slice tests, Testcontainers).
+suite order, test tiers), `## Gotchas` → `### Testing, measurement & load verification` (the gateway e2e images,
+`@Nested` with slice tests, Testcontainers), and `## Local Development` (the Kafka 3.9.0 `KAFKA_LISTENERS` note).
 
 For how to author a check or a test that can actually fail — the bad state, the control, the input set, the assertion —
 load the `check-and-test-authoring` skill; this pack does not restate its modes.
@@ -149,3 +149,8 @@ run:
   non-generic `org.testcontainers.postgresql.PostgreSQLContainer`.** Use the new import without the `<?>`/`<>` type
   arguments. The old import still compiles through the shim, so a green build does not confirm the migration — check the
   import.
+
+**Kafka 3.9.0 Testcontainers note**: Kafka 3.9.0 has a validation bug (KAFKA-18281) that rejects Testcontainers' default
+listener config (`0.0.0.0` binds). The `KafkaContainer` usages in the IT/e2e suites override `KAFKA_LISTENERS` to
+`PLAINTEXT://:9092,BROKER://:9093,CONTROLLER://:9094` (empty hosts make the listeners implicit) so 3.9.0 starts; keep
+that override when bumping the Kafka image tag.

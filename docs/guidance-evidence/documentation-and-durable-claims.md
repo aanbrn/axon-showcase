@@ -235,10 +235,11 @@ is locked (comments disabled); the actionable reference was the fix PR `micromat
 unmerged.
 
 **Closure tracking for the references moved here.** `#755` stays cited in ADR-0007, `README.md`, and `## Build & Test`;
-`#3334` in `docs/ideas.md` and the `projection-model` spec; `#1340` in `## Docker Images` and the deployment gotcha,
-where its close-out clause lives; `micromatch/braces#72` in ADR-0014. `micromatch/braces#70` is cited only here: it is
-locked, its disposition is the unmerged fix PR, and the acceptance it produced is dated in ADR-0014 and bounded by the
-npm-advisory suppression's own expiry, so it carries no live retirement condition.
+`#3334` in `docs/ideas.md` and the `projection-model` spec; `#1340` in the `deployment-operations` pack's
+`## Docker images` and `## Deployment, Helm & Kubernetes` sections, where its close-out clause lives;
+`micromatch/braces#72` in ADR-0014. `micromatch/braces#70` is cited only here: it is locked, its disposition is the
+unmerged fix PR, and the acceptance it produced is dated in ADR-0014 and bounded by the npm-advisory suppression's own
+expiry, so it carries no live retirement condition.
 
 `captured: suppress-braces-npm-advisory`, `captured: refresh-upstream-references-2026-10-05`,
 `captured: record-gatling-report-block`, `captured: refresh-upstream-references-2026-10-19`

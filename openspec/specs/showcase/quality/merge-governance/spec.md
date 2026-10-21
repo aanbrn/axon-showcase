@@ -476,14 +476,15 @@ request), and SHALL NOT be part of the merge-gate `build` check or a required ch
 
 The upstream-reference report SHALL run automatically on a schedule and be manually triggerable, as its own
 `upstream-references` job in a dedicated workflow separate from the merge gate. It SHALL run a Gradle check that scans
-the repository's durable artifacts (`AGENTS.md`, `README.md`, `docs/adr/`, and `docs/ideas.md`) for each
-`owner/repo#NNN` reference, resolves its state through the GitHub API, and reports every reference with that state and
-the file and line it is cited at. Because a reference is cited for several reasons — a gap awaiting an upstream fix, a
-documentation pointer, or a counter-example — a closed reference is surfaced as a _trigger to check_ rather than
-declared actionable: the report lists the state, and the run SHALL surface it by opening or updating a GitHub issue,
-mentioning the repository owner when any reference has closed or failed to resolve and updating the issue silently when
-every reference is open. It SHALL run on `ubuntu-latest` with the `GITHUB_TOKEN` granted `issues: write` and
-`contents: read`, and SHALL NOT be part of the merge-gate `build` check or a required check for merging into `main`.
+the repository's durable artifacts (`AGENTS.md`, `README.md`, `docs/adr/`, `docs/ideas.md`, and every project-authored
+skill under `.opencode/skills/`, excluding generated and vendored skills) for each `owner/repo#NNN` reference, resolves
+its state through the GitHub API, and reports every reference with that state and the file and line it is cited at.
+Because a reference is cited for several reasons — a gap awaiting an upstream fix, a documentation pointer, or a
+counter-example — a closed reference is surfaced as a _trigger to check_ rather than declared actionable: the report
+lists the state, and the run SHALL surface it by opening or updating a GitHub issue, mentioning the repository owner
+when any reference has closed or failed to resolve and updating the issue silently when every reference is open. It
+SHALL run on `ubuntu-latest` with the `GITHUB_TOKEN` granted `issues: write` and `contents: read`, and SHALL NOT be part
+of the merge-gate `build` check or a required check for merging into `main`.
 
 #### Scenario: Scheduled trigger runs the upstream-reference report
 
@@ -510,6 +511,17 @@ every reference is open. It SHALL run on `ubuntu-latest` with the `GITHUB_TOKEN`
 
 - **WHEN** the corpus cites a reference as a documentation pointer or a counter-example rather than a gap awaiting a fix
 - **THEN** the report lists it with its state, so its closure is visible for the owner to judge rather than suppressed
+
+#### Scenario: A reference in a project-authored skill is reported
+
+- **WHEN** a subject pack carries an `owner/repo#NNN` reference
+- **THEN** the report lists it with its state and the pack path, so moving a reference out of `AGENTS.md` does not drop
+  it from the report
+
+#### Scenario: A vendored skill is not scanned
+
+- **WHEN** a vendored or generated skill under `.opencode/skills/` carries an `owner/repo#NNN` reference
+- **THEN** the report does not list it, because the repository does not author that file
 
 #### Scenario: The upstream-reference report is not a merge gate
 

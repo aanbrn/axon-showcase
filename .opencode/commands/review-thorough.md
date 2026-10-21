@@ -20,8 +20,9 @@ does not route, and it is never a substitute for a `REQUIRED` outcome.
 2. Create or reuse the change's dedicated `review-thorough` session: create one on the first pass, and on a follow-up
    pass continue the same session by passing its recorded session id — a different change starts a fresh one.
 3. Gather the change identity, its planning artifacts (proposal, design, tasks, delta specs), the current diff, the
-   prior findings with their statuses, the current pass, the known limitations, and whether this pass is the initial
-   review or a fix verification — and hand over only that.
+   prior findings with their statuses, the current pass, the known limitations, whether this pass is the initial review
+   or a fix verification, and the applicable subject packs classified from the change's decisions and claims rather than
+   the changed paths alone — instruct it to follow its definition's input contract, and hand over only that.
 4. Invoke the `review-thorough` subagent (`.opencode/agent/review-thorough.md`) with that context.
 5. Present its findings in the report contract it returns — the verdict line first, then findings budgeted per item and
    grouped by severity. Do not re-summarize it.

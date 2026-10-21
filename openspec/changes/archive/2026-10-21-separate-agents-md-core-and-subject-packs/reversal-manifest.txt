@@ -1,0 +1,57 @@
+# Reversal manifest — separate-agents-md-core-and-subject-packs
+# A modified path records its pre- and post-image SHA-256; a created path records
+# no pre-image, its post-image, and `delete` as its reversal. Post-images are the final
+# freeze state after the acceptance-gap and partial-handover corrections.
+modified AGENTS.md
+  pre  1ef312d6be0a450b38107eb06264c50148ad2a17b59d6084e92daa9c053eaa83
+  post 7363e67fc135c28a2939e9fbd421b79f7ec92508757f56a62036e293c89a982a
+modified .opencode/agent/lesson-capture.md
+  pre  5e90b8e8631002e7f48e61bf93c89f467fee019986c8f7516c6bb3ed4256336a
+  post 1e90b0ce59a8c337ff57d939afe2934be41a2c90e5da52392ee82af5b6ec6a33
+modified .opencode/agent/review-quick.md
+  pre  215f0b6c8c659d6b686dcd84da1c1e9c4bec5bbbed1672afc2a8fb70302d2ffe
+  post 2afef675b6910c1fb3ecb984a72ac1ff454dab31a7518a7476b81bdfdf0f3d04
+modified .opencode/agent/review-thorough.md
+  pre  1376b241460cec203d4d752cb51db0b2543a2b78555698aea7192e8e39e2e7c7
+  post 03e58d0a1ea18ec0e9f367fbd21a9b2e6b9363f41ff88a45fb705b9ee7c571cf
+modified .opencode/commands/review-thorough.md
+  pre  bb3d558b81d8b2541750e0bc14924e17307c1f9b735fa8f235dfdd1c7bdc7ead
+  post a4a5b3a3d7a06916c951d1a91913fc2963a331eb51896b62c171a990223fd2e2
+modified .opencode/agent/agents-auditor.md
+  pre  fd552e729c29919433c23dbd56fc47a9406fa1389917e3ba6f32aaa26a964987
+  post 16143b1d2764c714db1e526db5b820baa84aedb546922d912039900568cce930
+modified build.gradle.kts
+  pre  cd4586572ab8ff332cc517acd2051b0448237d1771af90903d03bdb683658085
+  post d9f923e32d2b0664bf19fe5e6e0a973746067d1c4469af8126ea6b1c57a387a3
+modified build-logic/src/main/kotlin/UpstreamReferencesTask.kt
+  pre  f9dee0db381f6b6a4477732e3cfb8fa5cc1abeccb8d7ab59df9ca35d90dcbfa1
+  post cf96b6232ff64a653bc3ff129aca10f5249a2732b8f079bd160611784d544f98
+modified openspec/config.yaml
+  pre  a1d1df162824572878db69b57956f82d440e22a7b28aea23175582956beeb149
+  post bf2b9fc9f33c747a5ad7ece79122db7b917a189ca70d6d677c81a3ff618bb250
+modified README.md
+  pre  cad0ec4107db6fb73dc9791201065da937190b1dd23193d8af9a3d46daa5bbf6
+  post c75e6f15c6d2df45f95ac16b13fbc38a00d7ff8c3335649312f1db0745036f8b
+modified docs/ideas.md
+  pre  bea50ac112fc5d3e155c13bea54132759079dc90355ccd11f7baf99a69c7ff00
+  post d93f15ad5982ad77a88c1ff1e448b6909b0279e04bb709e20247c33974409de0
+created .opencode/skills/jvm-development/SKILL.md
+  pre  none
+  post e2e75287afb398ea9530522f198883e32b906e49a9e6305d7781063266bf8ff9
+  reversal delete
+created .opencode/skills/jvm-testing/SKILL.md
+  pre  none
+  post 05bba82ce66aa58367466c93f8b4642c4f2988a94ba926f5ee9942fe46f01e01
+  reversal delete
+created .opencode/skills/gradle-build/SKILL.md
+  pre  none
+  post 408a44c5d224c7ce629351ee3c42c8e1d540612e0b1677c8f37e570a1f15556e
+  reversal delete
+created build-logic/src/main/kotlin/UpstreamReferenceScope.kt
+  pre  none
+  post dee9f0c316e1c533f2c8317e769fb8a2811a4198f780db811812812f85e53bbc
+  reversal delete
+created build-logic/src/test/kotlin/UpstreamReferenceScopeTests.kt
+  pre  none
+  post 9ab201a9daed15dae2d6bba54d92d247ca183749faab9f1825c61f6b305ad04a
+  reversal delete

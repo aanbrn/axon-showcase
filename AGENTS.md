@@ -385,12 +385,13 @@ capture-reverted-sweep-lessons (#283)
    (`git show <rev>:<path> | python3 …`): it stops reproducing once the change lands. A site named for a later sweep is
    quoted by its text or token, never by a line number — a concurrent merge moves it, so the anchor is stale as
    committed (`AGENTS.md:NNNN` anchors were two lines out here). A task's `**Done**` note or a claims-table entry that
-   must report a figure states a relative result — the difference between two runs, which the corpus's growth leaves
-   fixed — the command's outcome, or a text-quoted site, never an absolute count its own writes move (its appended
-   ledger rows, the candidates its own artifact adds to the scan), so re-derive the table after the unit's last append
-   to its own record, which adds one. captured: widen-architecture-auditor-to-stale-ideas captured:
+   must report a figure or a status states a relative result — the difference between two runs, which the corpus's
+   growth leaves fixed — the command's outcome, a text-quoted site, or the record's own mechanism, never an absolute
+   count its own writes move (its appended ledger rows, the candidates its own artifact adds to the scan) and never a
+   status its own remaining steps move (a review round named "the final clean one"). Re-derive the table after the
+   unit's last append to its own record, which adds one. captured: widen-architecture-auditor-to-stale-ideas captured:
    normalize-the-review-round-digest captured: capture-authoring-system-gaps captured: sharpen-architecture-audit
-   captured: extract-ci-narrative captured: convert-remaining-gotchas-rules
+   captured: extract-ci-narrative captured: convert-remaining-gotchas-rules captured: add-technical-advisor
 3. Run the reviewer-session preflight, then `review-quick`:
    - **Preflight** — before each invocation, the re-runs in step 4 included: create the reviewer's session on the unit's
      first round with a fresh invocation and retain the identifier it returns; on every later round pass that saved
@@ -693,6 +694,11 @@ captured: bound-the-review-loop captured: make-the-p99-verdict-confirm-first
 4. **A `MODIFIED` requirement block replaces the whole requirement:** copy the current spec's full requirement block
    (description + all scenarios) into the delta, then edit it, preserving the existing scenarios' relative order — never
    hand-write a MODIFIED block from memory. A scenario cannot be renamed.
+5. **Trace every normative clause of a requirement the delta adds or modifies to its implementation site, and give each
+   its own task.** A mechanism that enforces one clause (a permission, a gate, a build rule) does not implement a
+   behavioral clause beside it; the behavioral half reads as satisfied while shipping unimplemented
+   (`add-technical-advisor`'s "Credentials are not exposed" had only a `permissions` deny until the deep review found
+   the missing instruction). captured: add-technical-advisor
 
 **Decision points**
 
@@ -1467,6 +1473,11 @@ Key modules (libraries, not services):
   statuses (`showcase/quality/agent-skills` owns the outcomes); a manual invocation is an explicit run, never a
   substitute for a `REQUIRED` outcome. Findings come back grouped by severity, in the shared report contract
   (`showcase/quality/agent-skills` owns it); the main agent applies fixes.
+- **Technical-advisor subagent for independent consultation**: the `technical-advisor` subagent
+  (`.opencode/agent/technical-advisor.md`) answers one concrete decision question from repository evidence and
+  recommends a direction; it does not edit, approve, or gate. Invoke `/consult <question>`, or delegate directly with
+  the same focused handoff, when a proposal, implementation, disagreement, or next step needs an independent check; the
+  definition owns the handoff, boundary, and report contract. It is not an automatic review step and adds no gate.
 - **A subagent is only invocable through a trigger, not its documentation**: documenting an `.opencode/agent/*.md`
   subagent in AGENTS.md does not make it reachable — ship a `.opencode/commands/*.md` command (e.g. the `/retrospective`
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
@@ -1515,24 +1526,25 @@ Key modules (libraries, not services):
   ARE the change — update them in the same change). When bumping, grep for the old id across `.opencode/`,
   `.github/workflows/`, and `AGENTS.md` (the `README.md` names the generic `opencode-go/*` form and the vision pin's
   model id, so a vision-pin bump edits it too, while a flash-model bump does not), and exclude the vision agent's pin
-  (`opencode-go/claude-haiku-5-5`): the vision model is a separate multimodal model that is not part of the flash/pro
-  line being bumped, so a naive sweep that flags it as stale would wrongly "fix" a deliberate asymmetry. Note the config
-  `model` key is a default for **new** sessions, not a live override: OpenCode persists the last-used model in
-  `~/.local/state/opencode/model.json` (its `recent` list), so a restarted TUI that restores a session keeps that
+  (`opencode-go/claude-haiku-5-5`) and the technical advisor's `openai/gpt-6.1-sol#high` pin: the vision model is a
+  separate multimodal model that is not part of the flash/pro line being bumped, and the advisor uses a directly
+  provided OpenAI model, so a naive sweep that flags either as stale would wrongly "fix" a deliberate asymmetry. Note
+  the config `model` key is a default for **new** sessions, not a live override: OpenCode persists the last-used model
+  in `~/.local/state/opencode/model.json` (its `recent` list), so a restarted TUI that restores a session keeps that
   session's model and still shows the old one until you switch manually or start a new session — a correct config pin
-  does not by itself make the running agent use the new model. The pins also sit behind a **flat-rate, dollar-metered**
-  plan (OpenCode Go), so a per-model quota is consumed at the model's own rate rather than by request count, and the
-  DeepSeek models carry peak/off-peak rate tiers, so the quota a pass consumes depends on when it runs. That is a
-  property of the plan, not of the pin: resolve the current tiers and window at the provider (`opencode.ai/docs/go`)
-  instead of pinning them here. It is also a **lever on the quota**: the non-interactive passes — the four audits,
-  `/review-thorough`, `/retrospective`, and long capture chains — can be time-shifted into the off-peak window for the
-  same metered spend; a scheduled pass's timing is encoded in its workflow's `cron`, so check a schedule's slot against
-  the current window (rather than asserting a UTC figure, which rots) when adding or moving one. Check the slot's margin
-  to the next peak block against the pass's worst-case run: the window can be split into blocks, so a gap slot is
-  off-peak only until an overrun reaches one, and the metered pass belongs in the widest contiguous stretch rather than
-  a gap. A schedule alone does not make a workflow shiftable — most scheduled workflows here invoke no model at all, so
-  check that the workflow itself spends metered quota before reasoning about its slot. The interactive loop is paced by
-  the human and cannot be shifted. captured: capture-offpeak-cost-lever (#369) captured:
+  does not by itself make the running agent use the new model. The `opencode-go/*` pins also sit behind a **flat-rate,
+  dollar-metered** plan (OpenCode Go), so a per-model quota is consumed at the model's own rate rather than by request
+  count, and the DeepSeek models carry peak/off-peak rate tiers, so the quota a pass consumes depends on when it runs.
+  That is a property of the plan, not of the pin: resolve the current tiers and window at the provider
+  (`opencode.ai/docs/go`) instead of pinning them here. It is also a **lever on the quota**: the non-interactive passes
+  — the four audits, `/review-thorough`, `/retrospective`, and long capture chains — can be time-shifted into the
+  off-peak window for the same metered spend; a scheduled pass's timing is encoded in its workflow's `cron`, so check a
+  schedule's slot against the current window (rather than asserting a UTC figure, which rots) when adding or moving one.
+  Check the slot's margin to the next peak block against the pass's worst-case run: the window can be split into blocks,
+  so a gap slot is off-peak only until an overrun reaches one, and the metered pass belongs in the widest contiguous
+  stretch rather than a gap. A schedule alone does not make a workflow shiftable — most scheduled workflows here invoke
+  no model at all, so check that the workflow itself spends metered quota before reasoning about its slot. The
+  interactive loop is paced by the human and cannot be shifted. captured: capture-offpeak-cost-lever (#369) captured:
   schedule-jobs-into-the-owners-night captured: structure-visual-review
 - **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
   `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from

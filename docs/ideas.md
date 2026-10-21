@@ -286,11 +286,11 @@ dated when it was added (start a new section for a new day rather than appending
 
 - Confirm the vendored migration skills' model pins resolve — parked; no change yet. The vendored `axon4to5-*` skills
   carry frontmatter model pins (`axon4to5-isolatedtest` → `haiku`, `axon4to5-openrewrite` → `sonnet`, Anthropic aliases)
-  while every project-authored model pin is `opencode-go/deepseek-*`. Surfaced by the 2026-10-10 `agents-auditor`
-  smoke-run as a low-confidence advisory: the harm is a hypothesis until it is established whether OpenCode applies (or
-  how it resolves) a skill's frontmatter `model` — a triggered skill may ignore it. Confirm that before acting; if it
-  applies, the fix is a re-vendor decision (the skills are copied verbatim from `AxonIQ/agent-skills`), not a local
-  edit.
+  while most project-authored model pins are `opencode-go/deepseek-*` (the vision and technical-advisor pins are
+  deliberate exceptions). Surfaced by the 2026-10-10 `agents-auditor` smoke-run as a low-confidence advisory: the harm
+  is a hypothesis until it is established whether OpenCode applies (or how it resolves) a skill's frontmatter `model` —
+  a triggered skill may ignore it. Confirm that before acting; if it applies, the fix is a re-vendor decision (the
+  skills are copied verbatim from `AxonIQ/agent-skills`), not a local edit.
 
 ## 2026-10-08
 

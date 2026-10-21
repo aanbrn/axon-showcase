@@ -360,10 +360,11 @@ It also runs on GitHub: commenting `/oc …` on an issue or pull request runs th
 opens a PR (or commits to the current one) — the remote path to the same workflow, so a phone comment can start a
 change.
 
-The repo's `.opencode/` config pins its agents to `opencode-go/*` models, available through an **OpenCode Go**
-subscription — and the `vision` agent is pinned to `opencode-go/claude-haiku-5-5`, a multimodal model on that plan.
-Install OpenCode (see [Prerequisites](#prerequisites)), subscribe, and `/connect` to it to follow along with the worked
-scenarios.
+The repo's `.opencode/` config pins most agents to `opencode-go/*` models, available through an **OpenCode Go**
+subscription — and the `vision` agent is pinned to `opencode-go/claude-haiku-5-5`, a multimodal model on that plan. The
+`technical-advisor` is the exception: it is pinned to `openai/gpt-6.1-sol#high` (see
+[OpenAI sign-in for `/consult`](#openai-sign-in-for-consult)). Install OpenCode (see [Prerequisites](#prerequisites)),
+subscribe, and `/connect` to it to follow along with the worked scenarios.
 
 The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 
@@ -377,8 +378,41 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | `lesson-capture`       | Captures gotchas/conventions into AGENTS.md or the owning subject pack for a unit whose evidence shows a lesson, consolidating rather than accreting, retiring the rules a unit obsoletes, marking each rule with its origin, and routing an authoring-mechanism fix to that mechanism (evidence-gated)                        |
 | `review-quick`         | Fast bounded screen after proposal & implementation, repeated until clean (automatic)                                                                                                                                                                                                                                          |
 | `review-thorough`      | Deep risk-routed review (drift, correctness, architecture) — the review gate's routing decision, or `/review-thorough`                                                                                                                                                                                                         |
+| `technical-advisor`    | Independent technical consultation on a decision question — read-only, advisory, and on demand via `/consult`                                                                                                                                                                                                                  |
 | `vision`               | Structured visual review of screenshots and diagram renders for the text-only main agent                                                                                                                                                                                                                                       |
 | `diagrammer`           | Draws/fixes ASCII and Mermaid diagrams with the pro model and returns a visual-review handoff for a Mermaid render, which `/diagram` has `vision` inspect                                                                                                                                                                      |
+
+**Independent consultation.** The `technical-advisor` evaluates a proposal, implementation, disagreement, or next step
+and recommends a direction — for example,
+`/consult should the projection service batch writes or write one event at a time?`. It runs read-only in a fresh child
+session with a focused handoff; a follow-up on the same decision continues that session. Its default reasoning effort is
+`high`; ask for `xhigh` explicitly to raise it. Owner-facing reports use the language of your request, while
+agent-facing reports and handoffs stay English. This advisor configuration is supported on OpenCode V2; V1 does not
+enforce its `permissions` field or interpret the `provider/model#variant` effort selection equivalently. The invocation
+contract is [`.opencode/commands/consult.md`](.opencode/commands/consult.md).
+
+#### OpenAI sign-in for `/consult`
+
+The technical advisor uses the `openai` provider, which is separate from the OpenCode Go plan the other agents use.
+OpenCode supports two OpenAI sign-in routes; connect one with `/connect` (or `opencode auth login openai`) and choose
+the ChatGPT sign-in or API-key method your installed version lists.
+
+| Route                   | What it uses                                                                                                                                                | When to choose it                                                                      |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| ChatGPT sign-in (OAuth) | Included ChatGPT plan usage; additional ChatGPT credits where your plan offers them and connected-app credit use is enabled, after the included usage limit | First if you already have an eligible ChatGPT plan and it includes the advisor's model |
+| OpenAI API key          | Separately billed OpenAI API usage at standard API rates; a ChatGPT subscription does not include API-key usage                                             | If you do not have an eligible ChatGPT plan, or it does not include the model          |
+
+Additional ChatGPT credits are separate from OpenAI API-key billing. If your plan offers credits, ChatGPT's "Allow other
+apps to use credits after reaching your usage limit" setting controls whether connected applications may use them;
+enabling it lets a request draw on credits rather than only included usage.
+
+The method labels are version-specific. After connecting, `/models` lists the catalog, but a model's presence does not
+by itself prove your plan includes it; a successful call confirms access for that request, but does not establish
+whether it consumed included usage or additional credits. See
+[Sign in with ChatGPT](https://learn.chatgpt.com/docs/sign-in-with-chatgpt),
+[OpenCode providers — OpenAI](https://opencode.ai/docs/providers/#openai),
+[OpenCode v2 provider connections](https://opencode.ai/v2/docs/cli/providers), and
+[OpenAI authentication](https://learn.chatgpt.com/docs/auth).
 
 #### What the Agent Automates
 
@@ -527,6 +561,7 @@ MCP config is read at startup, so restart OpenCode after adding one.
 | `/setup-idea`                | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier)                                                                                                                                                                                                                                        |
 | `/check-tooling`             | Checks whether this machine has the prerequisites (Java, Docker, and the optional tools) and prints what to install                                                                                                                                                                                                            |
 | `/review-thorough`           | Deep risk-routed review of a change (the review gate's routing decision, or this explicit run)                                                                                                                                                                                                                                 |
+| `/consult`                   | Asks the technical advisor for an independent recommendation on a question, the current objective, or the next step                                                                                                                                                                                                            |
 | `/audit-agents`              | Audits AGENTS.md + project-owned .opencode/ files, measures the always-loaded instruction budget, flags third-party files our usage contradicts, and reports accreted meta rules with their origins, merge, removal, route, and extraction candidates, extraction opportunities, and authoring-system gaps (pro-model auditor) |
 | `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                                                                                                                                                       |
 | `/audit-architecture`        | Audits the architecture for recorded-decision drift, unrecorded intent, and a due record (pro-model auditor)                                                                                                                                                                                                                   |

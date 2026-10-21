@@ -13,6 +13,15 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-21
+
+- Make the review-round ledger's round numbers contiguous — parked; no change yet.
+  `separate-agents-md-core-and-subject-packs` held 25 rows for 27 rounds before its capture appended the two missing
+  ones (rounds 25 and 27), so the ledger's "continuous per unit" contract is unenforced. Extend
+  `scripts/commit-hygiene.py`'s `--unique-rounds` mode to assert each unit's rounds are `1..max` with no gap, update
+  `verifyUniqueReviewRounds`'s description and the script docstring, and add the gap, contiguous, two-unit, and
+  starts-at-2 cases to `scripts/test-commit-hygiene.py`.
+
 ## 2026-10-20
 
 - Convert the remaining Git-tranche Gotchas rules — parked; no change yet. `convert-remaining-gotchas-rules` completed
@@ -29,13 +38,14 @@ dated when it was added (start a new section for a new day rather than appending
   byte saving argues for it. The four rules with no separable material and the one rejected on a retrieval failure
   remain settled. Re-measure against the file before acting.
 
-- Extend the extraction conditions so the retained pointer identifies each converted unit — parked; no change yet.
-  `separate-agents-md-operational-from-evidence` found that a destination-level pointer satisfies every extraction
-  condition while leaving one direction of the pairing unverifiable: an unconverted unit and a unit whose destination
-  entry was deleted look alike. Its own destination solved this with a per-rule `evidence:` token, but the general
-  condition in `showcase/quality/agent-skills` still permits a bare pointer, so the next destination class inherits the
-  gap. The fix is one added condition in that requirement's extraction-candidate paragraph, with a scenario; route it as
-  its own change with the delta.
+- Extend the extraction conditions so the retained pointer identifies each converted unit — parked; the subject-scope
+  class now carries the association, other classes still do not. `separate-agents-md-operational-from-evidence` found
+  that a destination-level pointer satisfies every extraction condition while leaving one direction of the pairing
+  unverifiable: an unconverted unit and a unit whose destination entry was deleted look alike. Its own destination
+  solved this with a per-rule `evidence:` token, and the subject-scope class applies a per-pack `Source:` line; the
+  general condition in `showcase/quality/agent-skills` still permits a bare pointer, so the other destination classes
+  inherit the gap. The fix is one added condition in that requirement's extraction-candidate paragraph, with a scenario;
+  route it as its own change with the delta.
 
 ## 2026-10-19
 

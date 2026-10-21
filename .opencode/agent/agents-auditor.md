@@ -169,18 +169,22 @@ Propose a candidate only where every one of these holds:
 7. The extraction reduces the always-loaded context by a material, measured amount.
 8. The extraction does not split a procedure across files such that a reader must guess an order, condition, or failure
    path.
+9. A subject-pack destination additionally meets the subject-scope permission: the subject is narrower than the
+   repository; the root table names its trigger, path, and missing-pack stop; the pack loads before the first governed
+   decision; and the content is not a cross-cutting safety, workflow, git, evidence, or documentation rule.
 
 Derive the destination from the content's class:
 
-| Content class                                                                                      | Preferred destination                                                            |
-| -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Global safety, branch, review, or repository-wide workflow rule                                    | Root `AGENTS.md` — retained, never extracted                                     |
-| Guidance needed only while working below one unambiguous directory                                 | Nested `AGENTS.md`                                                               |
-| Behavior that changes a capability outcome                                                         | Existing or proposed capability spec                                             |
-| Durable architecture decision, rationale, or trade-off                                             | Existing or proposed ADR                                                         |
-| Procedure invoked through a named task entry point                                                 | Existing command or skill                                                        |
-| Incident history, diagnostic evidence, or a large reference inventory used by several future tasks | Existing durable reference document                                              |
-| Subject enforced by a deterministic mechanism                                                      | The mechanism's authoritative configuration or test, with a concise root pointer |
+| Content class                                                                                      | Preferred destination                                                                      |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Global safety, branch, review, or repository-wide workflow rule                                    | Root `AGENTS.md` — retained, never extracted                                               |
+| Guidance needed only while working below one unambiguous directory                                 | Nested `AGENTS.md`                                                                         |
+| Behavior that changes a capability outcome                                                         | Existing or proposed capability spec                                                       |
+| Durable architecture decision, rationale, or trade-off                                             | Existing or proposed ADR                                                                   |
+| Procedure invoked through a named task entry point                                                 | Existing command or skill                                                                  |
+| Incident history, diagnostic evidence, or a large reference inventory used by several future tasks | Existing durable reference document                                                        |
+| Subject enforced by a deterministic mechanism                                                      | The mechanism's authoritative configuration or test, with a concise root pointer           |
+| Technical subject guidance whose decisions recur across stages                                     | Project-owned subject pack under `.opencode/skills/`, named by the root classification row |
 
 Do not propose a generic "documentation" destination, and do not create a catch-all extracted-guidance directory. A
 proposed new destination needs a clear owner, a stable scope, and evidence that more than one future task can discover
@@ -191,18 +195,18 @@ extend it.
 
 Every extraction candidate carries, beside the fields above:
 
-| Field                    | Content                                                                                                      |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| Source unit              | The exact source rule, or the bounded part of it                                                             |
-| Retained root text       | The short instruction, warning, or pointer that remains in `AGENTS.md`                                       |
-| Extracted content        | The exact facts, rationale, examples, or procedure proposed for relocation                                   |
-| Destination              | The exact target file and section, or a new proposed file with its owner                                     |
-| Destination type         | Nested `AGENTS.md`, capability spec, ADR, command, skill, deterministic check, or durable reference document |
-| Retrieval path           | How an agent performing the trigger reliably discovers and reads the destination                             |
-| Authority rationale      | Why this destination owns the content better than root `AGENTS.md`                                           |
-| Preserved provenance     | Where every relevant `captured:` marker and historical anchor survives                                       |
-| Non-transferable content | Every sentence that must remain at root, with the reason                                                     |
-| Verification             | Checks proving the source action, destination content, and retrieval path remain executable                  |
+| Field                    | Content                                                                                                                    |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Source unit              | The exact source rule, or the bounded part of it                                                                           |
+| Retained root text       | The short instruction, warning, or pointer that remains in `AGENTS.md`                                                     |
+| Extracted content        | The exact facts, rationale, examples, or procedure proposed for relocation                                                 |
+| Destination              | The exact target file and section, or a new proposed file with its owner                                                   |
+| Destination type         | Nested `AGENTS.md`, subject pack, capability spec, ADR, command, skill, deterministic check, or durable reference document |
+| Retrieval path           | How an agent performing the trigger reliably discovers and reads the destination                                           |
+| Authority rationale      | Why this destination owns the content better than root `AGENTS.md`                                                         |
+| Preserved provenance     | Where every relevant `captured:` marker and historical anchor survives                                                     |
+| Non-transferable content | Every sentence that must remain at root, with the reason                                                                   |
+| Verification             | Checks proving the source action, destination content, and retrieval path remain executable                                |
 
 Before reporting a candidate, test the retrieval path:
 

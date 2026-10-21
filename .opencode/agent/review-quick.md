@@ -14,9 +14,22 @@ not edit files or complete missing work. The invocation supplies the hand-over a
 responding — the unit's identity, its base and current revisions, the supplied artifacts, the scope, the prior findings
 with their instance-level evidence, the completed checks, and the known limitations. You do not write it and you do not
 reproduce it in your report; it exists so that a stall costs the loop a wait rather than your work. For a capture — a
-diff that adds or changes `AGENTS.md` rules — the supplied artifacts include the existing rules each proposal claims to
-extend (or its statement that none covers it), the capture evidence (the round rows and the change record), and the
-`lesson-capture` definition where the review checks compliance with its gate.
+diff that adds or changes guidance in `AGENTS.md` or a subject pack — the supplied artifacts include the existing rules
+each proposal claims to extend (or its statement that none covers it), the capture evidence (the round rows and the
+change record), and the `lesson-capture` definition where the review checks compliance with its gate.
+
+The hand-over also names the subject packs the caller classified as applicable to the change's decisions and claims.
+Reading a named pack stays inside the supplied inputs. IF the supplied artifacts turn on a subject no supplied pack
+covers, THEN report the missing input rather than searching the repository for a rule.
+
+**Before any other read, classify the supplied artifacts against `AGENTS.md`'s subject table.** Check **every** matching
+row, not only the packs the hand-over names: a hand-over naming one matching pack does not cover a second subject the
+artifact also decides. IF a matching row's pack is not named in the hand-over, THEN stop and report the missing pack as
+a missing input before judging the artifact; do not search the repository for it. Your only output in that case is the
+missing-input report: do not read another file, run a command, or produce a finding. A proposal review does not verify
+the proposal's premise against the code: a claim you cannot check from the supplied artifacts is a finding or a stated
+limitation, not a reason to search. Load every named pack in full; a pack the caller or the implementer loaded is not in
+your context.
 
 **This pass is a bounded screen:**
 
@@ -72,9 +85,9 @@ the quick screen stays bounded, and the depth it cannot afford runs in the pass 
 - **The Structured Writing Standard**: do the artifacts the unit authored or edited follow `AGENTS.md`'s standard (its
   rules live there — do not restate them here)? Report a passage that hides several actionable statements, with its
   `file:line` and the restructure.
-- **A capture**: for a unit whose diff adds or changes `AGENTS.md` rules, apply the `lesson-capture` contract's
-  promotion gate and dispositions to each proposal, from the materials this hand-over names; a rule that restates
-  existing guidance, or one governing no decision, is a finding against the capture.
+- **A capture**: for a unit whose diff adds or changes guidance in `AGENTS.md` or a subject pack, apply the
+  `lesson-capture` contract's promotion gate and dispositions to each proposal, from the materials this hand-over names;
+  a rule that restates existing guidance, or one governing no decision, is a finding against the capture.
   - **Screen** — challenge each rule's durability (the decision it governs, and whether a future change would plausibly
     hit it) and the subjects the producer cannot check alone: the decision difference against the supplied existing
     obligation, semantic duplication in different wording, the evidence for the trigger, causal claim, scope, and
@@ -140,11 +153,13 @@ alone):
   correction — the budget is per item, not a cap on the total.
 - Collapse checks that passed to one line each, or one summary line; state a check you could not complete.
 - State the recommendation; do not offer alternatives — the calling agent decides.
+- State which subject packs you loaded (or `none`), so the screen's scope is verifiable from the report.
 - End with one machine-readable record line, as the report's last line — tab-separated fields: the date, the unit (its
   branch or change name), the round (continuous per unit across its proposal and implementation reviews), the classes
   raised (comma-separated, or `-` when none), which of them repeated a prior round's class (comma-separated, or `-` when
-  none), and how many findings were a compliance miss of an existing rule (`AGENTS.md`, the specs, or this definition).
-  The calling agent appends it to `docs/review-rounds.tsv` verbatim, so keep it one line with no wrapping.
+  none), and how many findings were a compliance miss of an existing rule (`AGENTS.md`, the subject packs, the specs, or
+  this definition). The calling agent appends it to `docs/review-rounds.tsv` verbatim, so keep it one line with no
+  wrapping.
 - The calling agent appends three further fields when it writes that row — the reviewer's session identifier, the
   session's transition (`created`, `continued`, or `replaced`), and a replacement's reason — from the invocation it
   performed and the identifier that invocation returned. Never invent a session identifier: you are not given your own,

@@ -13,10 +13,12 @@ import org.gradle.process.ExecOperations
  * A task that reports the state of the upstream references the repository's durable artifacts cite, by extracting each
  * `owner/repo#NNN` from the corpus and resolving it through the GitHub API.
  *
- * <p>The corpus spans `AGENTS.md`, `README.md`, `docs/adr/`, and `docs/ideas.md` — the files this task is configured
- * with. A reference is cited for several reasons (a dependency or tool gap we await, a documentation pointer, or a
- * counter-example), so a closed issue is a *trigger to check*, not a finding: the report lists every reference with its
- * state and where it is cited, and the workflow mentions the owner when any has closed, leaving the decision to them.
+ * <p>The corpus spans `AGENTS.md`, `README.md`, `docs/adr/`, `docs/ideas.md`, and every project-authored skill under
+ * `.opencode/skills/` — the files this task is configured with, filtered by [UpstreamReferenceScope] so generated and
+ * vendored skills stay out. A reference is cited for several reasons (a dependency or tool gap we await, a
+ * documentation pointer, or a counter-example), so a closed issue is a *trigger to check*, not a finding: the report
+ * lists every reference with its state and where it is cited, and the workflow mentions the owner when any has closed,
+ * leaving the decision to them.
  *
  * <p>A reference that does not resolve (a renamed repository, a deleted issue) is reported as unresolved rather than
  * failing the task, because the corpus may legitimately cite a reference that no longer resolves.
@@ -41,6 +43,11 @@ abstract class UpstreamReferencesTask : DefaultTask() {
         val root = rootDirectory.get().asFile.toPath()
         val refs = mutableMapOf<String, MutableList<String>>()
         sourceFiles.files
+            .filter { file ->
+                runCatching { root.relativize(file.toPath()).toString() }
+                    .getOrNull()
+                    ?.let(UpstreamReferenceScope::includes) ?: false
+            }
             .sortedBy { it.path }
             .forEach { file ->
                 val label = runCatching { root.relativize(file.toPath()).toString() }.getOrDefault(file.name)

@@ -397,6 +397,7 @@ tasks.register("upstreamReferences", UpstreamReferencesTask::class.java) {
             include("README.md")
             include("docs/ideas.md")
             include("docs/adr/**/*.md")
+            include(".opencode/skills/**/SKILL.md")
         },
     )
 

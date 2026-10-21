@@ -22,6 +22,46 @@ Follow these workflows for new work, and treat the captured specs as the behavio
 them — and a module's name need not equal its spec path — the `showcase-api-gateway` module is specified as
 `gateway/rest-api`, `gateway/live-events`, and `gateway/client-telemetry`.
 
+## Subject guidance packs
+
+Most of this file is guidance every task needs. Three packs hold technical guidance whose decision belongs to one
+subject, and they load in full before the first decision in that subject.
+
+| Pack              | Load it before you                                                                                                                                                                                                                                    | Path                                        |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `jvm-development` | choosing, writing, or reviewing JVM production code, or forming the first hypothesis or running the first diagnostic experiment in a JVM runtime diagnosis                                                                                            | `.opencode/skills/jvm-development/SKILL.md` |
+| `jvm-testing`     | choosing, writing, running, or interpreting a JVM test or its coverage, or forming the first hypothesis or running the first diagnostic experiment for a test failure                                                                                 | `.opencode/skills/jvm-testing/SKILL.md`     |
+| `gradle-build`    | changing a Gradle build decision; running or interpreting a Gradle task or an update or security report **when its result decides a build question**; or forming the first hypothesis or running the first diagnostic experiment for a Gradle failure | `.opencode/skills/gradle-build/SKILL.md`    |
+
+A **governed decision** is a choice, an edit, an execution, a review judgment, a report interpretation, or a diagnosis —
+not only an edit. A request that runs an existing test or reads a dependency report is a governed decision: load the
+pack before selecting the command or the experiment, not after concluding its result. For a change proposal, classify by
+what the change will decide, not by whether it touches a file yet.
+
+- A diagnosis loads its pack **before the first hypothesis or the first diagnostic experiment**, not after the
+  conclusion: the moved rules choose the experiment (which rerun, which probe, which cast), so a probe they govern must
+  not run first.
+- The root's `spotlessApply` and minimal `check` are verification commands: running them does not fire a pack. A failure
+  whose cause is a build question loads `gradle-build` before the cause is concluded. `jvm-testing` owns a coverage run
+  and its rule; a coverage-gate failure that turns on the build's own configuration loads `gradle-build` at that point.
+- Load every pack whose row matches the task; a JVM change that writes production code and tests loads both
+  `jvm-development` and `jvm-testing`. A test run is `jvm-testing`'s; a build question it raises — a missing image, a
+  suite misconfiguration — loads `gradle-build` when that decision is reached.
+- IF no row matches, THEN load none.
+- Before your first edit, state one `Packs:` line naming every pack you loaded in full, or `Packs: none` with the
+  reason. The line reports the classification; it does not prove the content was loaded.
+- IF a pack is missing or unreadable, THEN stop and report it; do not proceed from memory or from the root pointers.
+- IF investigation reveals a second subject, THEN load its pack before the next decision in that subject.
+- A delegated agent does not inherit a pack its caller loaded: name every applicable pack in its prompt.
+- A reviewer classifies the decisions and claims in the artifacts it is given — the proposal, design, delta specs, and
+  diff, with changed paths as evidence rather than the only predicate — and loads every pack they turn on. The caller
+  names the applicable packs in the reviewer's hand-over and instructs it to follow its definition's input contract; a
+  subject evident only in those artifacts is reported as a missing input, never searched for.
+- After context compaction or a resumed session, re-classify and reload before the next governed decision.
+
+An obligation lives in exactly one pack; where a pack needs another's rule it names it. Each pack carries a `Source:`
+line naming the `AGENTS.md` headings it replaced.
+
 ## Structured Writing Standard
 
 Every technical artifact the agent authors or edits — this file, an OpenSpec proposal, specification, design, or task
@@ -29,7 +69,7 @@ list, an implementation plan, a code review, an agent, command, or skill definit
 repository documentation — is written in scannable structure rather than dense prose. The standard governs **how** an
 artifact's content is arranged; each artifact still keeps its own required template and sections (an OpenSpec artifact
 its schema, an ADR its Status/Context/Decision/Consequences, a gotcha its smallest actionable shape), so it is not one
-document outline imposed on all of them. captured: rework-the-review-loop
+document outline imposed on all of them.
 
 **The rules:**
 
@@ -52,7 +92,7 @@ document outline imposed on all of them. captured: rework-the-review-loop
 - **One idea per paragraph.**
 - **Preserve precision and normative meaning.** Structure never weakens a claim: keep exact identifiers, paths,
   versions, the strength of a `SHALL`/`MUST`/`SHOULD`/`MAY`, and the necessary context, qualifiers, and caveats. A
-  restructure reorders and splits; it never drops or alters meaning.
+  restructure reorders and splits; it never drops or alters meaning. captured: rework-the-review-loop
 
 **Applying it while drafting:**
 
@@ -506,17 +546,18 @@ ask for the manual review pass; and at a merge, where the detection below always
 2. Run the `lesson-capture` subagent with the diff, the review findings and round rows, the change dir when one exists,
    the existing guidance a candidate would extend, and a short note on what went wrong or was learned. It proposes
    additions to the artifact that owns each lesson — an `AGENTS.md` gotcha or convention, a check/test authoring mode in
-   the `check-and-test-authoring` skill, or a shipping-procedure correction in the `ship-change` skill — the rules the
-   unit makes obsolete or redundant as retirement or replacement candidates, and any authoring-system recommendation,
-   whose fix belongs in a mechanism producing artifacts rather than in this file.
+   the `check-and-test-authoring` skill, a shipping-procedure correction in the `ship-change` skill, or a section of the
+   subject pack (`jvm-development`, `jvm-testing`, or `gradle-build`) whose subject owns the lesson's decision — the
+   rules the unit makes obsolete or redundant as retirement or replacement candidates, and any authoring-system
+   recommendation, whose fix belongs in a mechanism producing artifacts rather than in this file.
 3. Apply the proposals the main agent judges durable, and record the outcome on the capture record — the applied net
-   `AGENTS.md` delta, or the skip and its reason. An implementation capture is caused by the unit, so it rides the
-   unit's branch and ships in its PR.
+   `AGENTS.md` delta (or the pack's delta when the lesson landed there), or the skip and its reason. An implementation
+   capture is caused by the unit, so it rides the unit's branch and ships in its PR.
 4. A merge runs no capture: at the merge, read what the merge alone affected — its non-diff effects, such as an agent PR
    closing its own tracker — and report any candidate lesson it leaves with the rule it would extend (an `AGENTS.md`
-   bullet, a mode in `check-and-test-authoring`, or a `ship-change` procedure), then ask the user for explicit
-   confirmation before running one. Apply that merge-time capture as its own docs PR (it has no in-flight branch to
-   ride).
+   bullet, a mode in `check-and-test-authoring`, a `ship-change` procedure, or a subject-pack section), then ask the
+   user for explicit confirmation before running one. Apply that merge-time capture as its own docs PR (it has no
+   in-flight branch to ride).
 
 **Decision points**
 
@@ -530,8 +571,8 @@ ask for the manual review pass; and at a merge, where the detection below always
   recurrence fails the conjunction deliberately: a problem the repo already records is an instruction-following failure,
   a reason to question the rule's wording rather than to skip.
 - **Every proposal names the existing rule it extends** — an `AGENTS.md` bullet, a check/test authoring mode already in
-  the `check-and-test-authoring` skill, or a `ship-change` procedure — or states that none covers the lesson, so a new
-  rule merges into or replaces one rather than accreting.
+  the `check-and-test-authoring` skill, a `ship-change` procedure, or a subject-pack section — or states that none
+  covers the lesson, so a new rule merges into or replaces one rather than accreting.
 - **Every proposal names the decision its rule governs**, and states whether a future change would plausibly hit it and
   whether the cost of not knowing it is material — a proposal that governs no decision is trivia, not a rule, and is not
   proposed (the `disable-axoniq-console-message` sentence this repo deleted stated a fact governing no decision).
@@ -830,35 +871,21 @@ publish the archive commit, archive, or merge.
 
 ## Build & Test
 
+Every implementation change runs the touched module's gates before it is reported done. The Docker-free form keeps the
+coverage gate green without integration data:
+
 ```bash
-# Full build (all modules)
-./gradlew build
+./gradlew :showcase-command-service:check -PskipITs -Pcoverage.gate.enabled=false
+```
 
-# Build a single service (also produces Docker image via bootBuildImage)
-./gradlew :showcase-command-service:bootBuildImage
+`check` runs the gates the `check` block in `build.gradle.kts` enumerates. The full Gradle command surface, the
+dependency-update reports, and the build-failure gotchas are in the `gradle-build` pack; the test commands, tiers, and
+execution prerequisites are in `jvm-testing`. `e2eTest` is never part of `check` and is a separate opt-in task.
 
-# Run tests for a single module
-./gradlew :showcase-command-service:test
-
-# Run component tests (faster, no containers)
-./gradlew :showcase-command-service:componentTest
-
-# Run integration tests (requires Docker, spins up Testcontainers)
-./gradlew :showcase-command-service:integrationTest
-
-# Run end-to-end tests (separate opt-in task; boots services + infra via Testcontainers, builds service images)
-./gradlew :showcase-api-gateway:e2eTest
-
+```bash
 # Run web UI end-to-end tests (separate opt-in task; builds service images + boots infra via docker compose,
 # serves the built UI via vite preview, drives it with Playwright, then tears the stack down)
 ./gradlew :showcase-web-ui:e2eTest
-
-# Check runs: compile → spotless/checkstyle/spotbugs/errorprone → test → componentTest → integrationTest,
-# plus the chart packaging, the workflow lint, and the repository's verification tasks — the `check` block in
-# `build.gradle.kts` enumerates them.
-# (a Docker-free check is -PskipITs -Pcoverage.gate.enabled=false — see the coverage-gate gotcha; e2e is never part of
-# check)
-./gradlew :showcase-command-service:check
 
 # Load tests (Gatling; opt-in, targets the local Helm cluster via its gateway ingress hostname)
 ./gradlew :load-tests:gatlingRun -Pprofile=smoke
@@ -875,54 +902,19 @@ publish the archive commit, archive, or merge.
 # and a per-request series across recorded runs comes from git
 # (git show <commit>:load-tests/src/gatling/resources/baseline.properties).
 
-# Dependency security scan (Snyk; requires the Snyk CLI on PATH, not part of check)
-./gradlew dependencySecurityCheck
-# The scan passes --policy-path=.snyk (the root Snyk policy). The currently-suppressed findings, their expiry
-# rationale live in `.snyk` (its header comment and each ignore's `reason`) — see those rather than restating them here.
-# A Snyk plan's quota and reset schedule are the provider's to state, so the command reads them from the provider at the
-# time it matters rather than pinning them. A version-pinned ignore goes dead
-# silently once a constraint or bump moves the coordinate past its pinned version — unlike the web UI's
-# `npm-audit-ignores.json`, which `npmAudit` fails on when an entry matches no finding, the `.snyk` policy has no
-# staleness guard — so sweep the ignore and its rationale comment in the change that moves past it.
 # Web UI npm vulnerability audit (fails on high-severity findings; not part of check)
 ./gradlew :showcase-web-ui:npmAudit
 
-# Dependency update report (only catalog-owned coordinates; majors suppressed per
-# config/dependency-updates/major-disabled.txt and same-major updates held back per
-# config/dependency-updates/hold-back.txt)
-./gradlew dependencyUpdates
 # Web UI npm update report (not part of check)
 ./gradlew :showcase-web-ui:npmOutdated
-# Build-logic plugin pin update report — the pins only the included build resolves (not part of check)
-./gradlew buildLogicUpdates
 
 # Frontend (showcase-web-ui): install, lint, format-check, type-check, tests (verification; the production bundle
 # is built by `build`/`assemble`, like the JVM modules' bootJar)
 ./gradlew :showcase-web-ui:check
 ```
 
-The `/dependency-updates` OpenCode command runs these reports and summarizes the available updates; the `/gradle-update`
-command updates the Gradle wrapper to the latest stable version when one is available, and the `/opsx-tool-update`
-command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI release.
-
-Build-environment constraints can surface as spurious "current version" rows in the report: the build tooling itself
-publishes module constraints that `checkBuildEnvironmentConstraints` reads and reports as the current version. For
-example, `dependencyUpdates` reported `log4j-core [2.17.1 -> 2.26.1]` although `log4j-core` resolves to `2.26.1`
-everywhere — `2.17.1` is the floor of the Log4Shell ban **Gradle itself** applies to every classpath it builds
-(`Log4jBannedVersion` in the distribution's `gradle-logging` jar). Such a row is not a real update (upstream
-`ben-manes/gradle-versions-plugin#755`), and ADR-0021 filters it in the report's own rules: the plugin consults
-`rejectVersionIf` for this path, so a candidate no newer than the version the catalog declares is rejected **when the
-plugin's reported current differs from that version**. Keep both halves of that condition — the plugin treats a
-coordinate whose every candidate is rejected as unresolved, so a rule that also rejects an up-to-date coordinate's own
-version moves every catalog-owned entry out of the report's up-to-date section. When documenting such an external
-constraint, name the coordinate and the mechanism, not the constraint's version: that version is the _tool's_ guard, not
-a version this repository pins, so a pinned version rots on the next tool bump.
-
-Major-blocking entries in `config/dependency-updates/major-disabled.txt` and held-back entries in
-`config/dependency-updates/hold-back.txt` carry a pointer comment naming the coordinate and its rationale; the
-authoritative reasoning for each suppressed or held-back coordinate lives in the
-`showcase/quality/dependency-management` spec. Both files are line lists parsed on the first `=`, so a `group:module`
-coordinate keeps its colon (see the config-read-path gotcha for the `Properties` mis-parse this avoids).
+The `/opsx-tool-update` command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI
+release.
 
 The Helm update check has its own suppression file, `config/helm-updates/major-disabled.txt`: major bumps of the bitnami
 infra charts (postgres, kafka, opensearch) are suppressed there because a major chart ships a new preconfigured
@@ -934,40 +926,6 @@ datasources wired), since `verifyInfraImageVersions` covers only the bitnami inf
 The web UI's npm report has a third suppression list, `config/web-ui-updates/major-disabled.txt`: its listed packages'
 major-only rows are filtered out of `npmOutdated` (`NpmOutdatedRules`), while their same-major updates stay reported —
 `npm outdated` has no `rejectVersionIf` equivalent, so the filter runs on the report's text.
-
-For calendar-versioned coordinates (leading segment is a 4-digit year, e.g. Spring `YYYY.MINOR.MICRO` such as
-`reactor-bom 2025.0.7`), the report treats a change in the `YYYY.TRAIN` pair (the first two version segments) as a major
-update — matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains — while a change
-only in the service-release (third) segment within the same train is a minor/patch update. Semver coordinates keep the
-leading-integer major comparison.
-
-**Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. `check` runs the first three by
-default (`-PskipITs` drops integration for Docker-free runs — add `-Pcoverage.gate.enabled=false` to keep the coverage
-gate green, see Gotchas); `e2eTest` is a separate opt-in task (two suites — the gateway's and the web UI's; see Test
-tiers).
-
-**Test tiers** — a test's tier is decided by its collaborators (what is real vs. faked), not by how long it takes to
-run:
-
-- **Unit** (`src/test/java`, suffix `Tests`): the subject under test is isolated — its collaborators are mocks/fakes, no
-  Spring context. Verifies single-class logic (e.g. `KsuidIdentifierFactoryTests`).
-- **Component** (`src/componentTest/java`, suffix `CT`): the subject is composed with real, in-process collaborators —
-  real serializers, Axon `AggregateTestFixture`/`SagaTestFixture`, or a Spring context with a stubbed remote call — but
-  external infrastructure is never started. Verifies a component behaves correctly against its real neighbors (e.g.
-  `QueryMessageMapperCT`, `ShowcaseAggregateCT`, `ShowcaseQueryClientCT`).
-- **Integration** (`src/integrationTest/java`, suffix `IT`): real external infrastructure via Testcontainers
-  (PostgreSQL, Kafka, OpenSearch). Verifies services against the real things they talk to. A dependency bump of a
-  runtime-path library is verified **here**: a same-major release can be binary-incompatible with another pinned library
-  while compilation, the unit/component tests, and the Docker-free check all pass — `opensearch-java` `3.9.0`→`3.10.0`
-  changed `Hit.matchedQueries()`'s return type, which `spring-data-opensearch` 2.x's `DocumentAdapters.from` calls — so
-  run the full `check` with integration tests before reporting such a bump done. captured: bump-dependencies-2026-09-25
-- **End-to-end** (`src/e2eTest/java`, suffix `E2E`): a real deployed system is booted and exercised against all-real
-  collaborators, transport-independent — HTTP for the gateway's client-facing API, gRPC for the gateway → query-service
-  read path, the distributed command bus (JGroups) for the command-service. The gateway e2e boots the full four-service
-  pipeline and verifies cross-service propagation over the full command → Kafka → projection → query pipeline (e.g.
-  `ShowcaseApiGatewayE2E`). The web UI e2e (`showcase-web-ui/e2e`, Playwright) boots the same pipeline via docker
-  compose and drives the browser against it: create → appears, start → STARTED, saga auto-start reflected over SSE, live
-  events appended to the timeline, and a duplicate title surfacing the gateway validation error.
 
 **DB scripts** — before running the command-service standalone (outside Docker), ensure the PostgreSQL event store is
 initialized:
@@ -1152,131 +1110,6 @@ Key modules (libraries, not services):
 
 ## Conventions
 
-- **Lombok**: use Lombok where possible (e.g., `@RequiredArgsConstructor`, `@Data`, `@Builder`, `@Value`) instead of
-  writing boilerplate manually; `addNullAnnotations = jspecify`; copyable annotations include `@Qualifier` and `@Value`.
-  The command/event/query/DTO value types are Lombok `@Value` classes carrying `@Builder` (`toBuilder = true` on the
-  three types whose variants tests derive — `ScheduleShowcaseCommand`, `Showcase`, `ShowcaseEntity`) rather than Java
-  records, and the builder is the reason: the aggregate and saga construct events and commands through `builder()`
-  (`ShowcaseScheduledEvent.builder()`, `StartShowcaseCommand.builder()`), and tests derive variants via `toBuilder()` —
-  a record's canonical constructor cannot express that. The value classes carry `@SuppressWarnings("ClassCanBeRecord")`
-  to encode the choice; delete one only if the type genuinely needs no builder, and omit it where the class is already
-  not record-convertible (an initialized `@Builder.Default` field is one such case — IntelliJ flags the suppression as
-  redundant there). A `@Builder.Default` on a `@Jacksonized` value class guards only an omitted JSON key: an explicit
-  `null` sets the field to `null` (`@Size` ignores a `null`), so a builder-defaulted collection also carries `@NotNull`
-  or the request NPEs to a 500; a collection that should instead _tolerate_ an omitted or `null` list uses
-  `@Singular(ignoreNullCollections = true)`, which makes both empty (as `FetchShowcaseListQuery` does). Whether records
-  would be faster is **untested** — the suppression records intent, not a measured result, so do not read it as a
-  performance claim. Declare local variables with Lombok's `val` when the initializer infers the type and the local is
-  not reassigned, and with the language's `var` when it is reassigned (Lombok's `var` cannot be imported on Java 10+ —
-  the compiler rejects `import lombok.var;` as a restricted type); keep an explicit type where inference is impossible
-  or would change the type — fields, method parameters and returns, a diamond initializer with no target type
-  (`new TreeMap<>()`), a declaration with no initializer or more than one declarator, a
-  `null`/lambda/method-reference/array initializer, a declared boxed type the initializer would unbox, or a declared
-  primitive wider than the initializer. captured: add-web-ui-rum-observability
-- **MapStruct**: default component model is `spring` (`-Amapstruct.defaultComponentModel=spring`)
-- **ErrorProne**: NullAway on `showcase.*` packages; disabled in `TestJava` tasks. Every package in a NullAway-compiled
-  source set (`main`, `testFixtures`, and `load-tests`' `gatling`) carries a `package-info.java` with `@NullMarked`
-  (`org.jspecify.annotations.NullMarked`), so the nullness contract is declared for the whole package.
-  `UnrecognisedJavadocTag` is suppressed where it fires (`@SuppressWarnings("UnrecognisedJavadocTag")` on the
-  Lombok-processed class): it is a false positive from Lombok's copy of a field Javadoc carrying an inline tag, so the
-  Javadoc's wording is not the defect — only removing the tag or suppressing the check clears it. Tracked upstream as
-  `google/error-prone#5855` (open, the pinned 2.50.0); retires when an ErrorProne bump past the fix lands. captured:
-  suppress-lombok-javadoc-false-positive
-- **Checkstyle**: style gate wired into `check` via `code-check-conventions.gradle.kts`; ruleset at
-  `config/checkstyle/checkstyle.xml`, generated sources excluded via `config/checkstyle/suppressions.xml`
-- **SpotBugs**: finds bugs with findsecbugs and fbContrib plugins; uses `spotbugs-include.xml` and
-  `spotbugs-exclude.xml` filters in `config/spotbugs/` if present (see `code-check-conventions.gradle.kts`)
-- **LZ4 relocation**: root build forces `org.lz4:lz4-java` substitution (an unmaintained, CVE-affected line; see
-  ADR-0020 and `build.gradle.kts`)
-- **Build-tool versions live in the version catalog**: a `build-logic` convention plugin never hard-codes a tool version
-  — it declares it in `gradle/libs.versions.toml` and reads it via `val libs = the<LibrariesForLibs>()` /
-  `libs.versions.<name>.get()` (runtime `node`/`java`, plugin `toolVersion` `checkstyle`/`spotbugs`/`jacoco`, the
-  ErrorProne/NullAway and protobuf artifacts, buildpack ids, image tags); see ADR-0015 for the rationale and the
-  rejected alternatives. A version that is not a `group:name` dependency (a buildpack id, a builder tag, `node`) is a
-  `[versions]`-only entry with no `[libraries]` module. Catalog ownership is single-sourcing, not update tracking: a
-  bare `[versions]` entry is not resolved as a dependency, so `dependencyUpdates` ignores it — but `helmUpdates` reads
-  the Helm CLI and chart pins, `buildpackUpdates` the Paketo builder and buildpack pins, `toolingUpdates` the CLI
-  versions pinned in workflow files, and `buildLogicUpdates` the plugin pins the included `build-logic` build resolves
-  (which the main build's own report cannot see), so only the entries none of them reads must be audited by hand.
-- **A `build-logic` convention plugin's effect is verified through a consuming module, not unit-tested.** `build-logic`
-  has no `gradleTestKit()`, so its `src/test` holds unit tests of plain helper objects (`Versions`, the `*Rules`
-  classes) and a plugin's Gradle DSL — e.g. `spring-boot-conventions`' `springBoot { buildInfo { … } }` — cannot be
-  exercised there. Assert the effect in a module that applies the plugin (the four JVM services' ITs assert the baked
-  `BuildProperties`) rather than writing a test that cannot reach it. captured: expose-service-build-info
-- **All JavaCompile tasks** add `-parameters` flag
-- **Test display names**: every test class and every `@Test`/`@ParameterizedTest` method (plus `@Nested` groups) carries
-  a static-sentence `@DisplayName` (e.g., `@DisplayName("Showcase aggregate component tests")`,
-  `@DisplayName("Finishing a showcase with a valid command succeeds")`). Do not use `{0}`-style placeholders — named
-  `argumentSet("...", ...)` invocations already render their own detail. A display name that enumerates several cases
-  must have the body assert every one of them — an enumerated name with one asserted case is an unverified claim. A
-  contract-module test named "may not depend on a client or a service application" asserted only the client case, so the
-  rule's second clause was dead and survived repeated review passes; IntelliJ's always-false warning caught it, not a
-  test or a review. A test must also assert a decision the production code encodes, not a language operator or a case
-  another test already covers: a helper that was only `name in set` (the real suppression policy lives at the call site)
-  and a `BuildpackUpdatesTaskTests` case that duplicated a `VersionsTests` case verbatim both passed while verifying
-  nothing — a reviewer caught both, and they were deleted rather than kept for the count. When a rule is a one-line
-  wrapper of a language construct, test the caller's decision; before adding a case, check no existing test asserts it.
-  A test written to guard a refactor must fail against the pre-refactor code — run it before the change (or with the old
-  path temporarily restored) and confirm it goes red, since a test green on both sides verifies nothing and is deleted
-  rather than kept for the count. The `ShowcaseRestController` cache-fallback refactor shipped under the existing 76
-  scenario tests for this reason. An assertion whose shape must change — a matcher can no longer match exactly because
-  the value it compares gained a member — must keep every subject the old matcher pinned: rewriting
-  `expect(fetchMock).toHaveBeenCalledWith('<url>', { method: 'PUT' })` into field reads because the added `traceparent`
-  header broke the exact match dropped the call's URL check at every rewritten site, and only the quick review caught
-  it; assert the URL alongside the new field (`fetchMock.mock.calls[0][0]`), since a silently dropped subject leaves a
-  test that still passes. A refactor can silently stop a test from exercising its subject: a function moved into a new
-  module needs its tests moved with it (deleting the old test file left a re-created four-case event→predicate mapping
-  with two cases covered), and a negative test driving a captured mock callback must assert the callback was captured —
-  `callback?.()` no-ops when the wiring is absent, so the assertion passes vacuously. An error-translation chain must be
-  tested by driving the whole method, not only its branches: `ShowcaseQueryTransportService.translate` re-mapped its own
-  `INVALID_ARGUMENT` output to `INTERNAL` because the default arm caught the `StatusRuntimeException` the chain had just
-  produced, and the per-branch cases were all green — only the component test exercising `dispatch` end to end saw it.
-  captured: propagate-ui-trace-context (#362) captured: rethink-web-ui-reconciliation captured: grpc-query-transport
-- **Spring bean mocks in tests**: use `@MockitoBean` (from `org.springframework.test.context.bean.override.mockito`),
-  not the deprecated-for-removal `@MockBean` (`org.springframework.boot.test.mock.mockito`), which has been deprecated
-  since Spring Boot 3.4
-- **Test tier placement**: a test's tier is decided by its collaborators (see Test tiers). Verify the application's bean
-  wiring (`@SpringBootApplication` config) at the **integration** tier via a real context boot — do not write component
-  tests that mock the app's own collaborators. Component tests compose real in-process collaborators (e.g. a real
-  mapper) with only external infrastructure faked. A test that subscribes to a stream which never completes (an SSE
-  endpoint's `Flux`) is a **unit** test with a bounded subscription (`take(1)`, `blockFirst(timeout)`) — inside a
-  `@WebFluxTest`/slice test the open exchange leaks and breaks unrelated cases in the same run (the keep-alive slice
-  version failed 15 of 76 `ShowcaseRestControllerCT` cases; all 108 passed without it). captured: keep-sse-stream-alive
-  (#301)
-- **Nested test groups for resilience features**: a `@Nested` class that groups Resilience4j scenarios is named
-  `<Feature>Behavior` (e.g., `TimeLimiterBehavior`, `RetryBehavior`, `CircuitBreakerBehavior`), both for uniformity and
-  to avoid shadowing the library's `CircuitBreaker` type
-- **BlockHound jvmArgs**: only suites whose tests call `BlockHound.install()` need
-  `-XX:+AllowRedefinitionToAddDeleteMethods` and `-XX:+EnableDynamicAgentLoading` (e.g. the query-client `componentTest`
-  and the gateway `e2eTest` suites); leave them off suites that don't (e.g. a `componentTest` with only an
-  `ApplicationContextRunner` test)
-- **The WebFlux blocking-execution routing in the gateway is load-bearing — do not remove it as a BlockHound band-aid.**
-  Every controller method routes to the bounded-elastic scheduler; removing it reddens the error and validation paths
-  (the gateway's invalid payloads become `500` instead of `400`) with zero BlockHound hits either way. The rules and the
-  measured evidence live in the spec that owns the outcome — `gateway/rest-api` (`Command error translation`,
-  `Query error translation`) — and in `design.md` of the change that moved them there
-  (`extract-specd-rationale-from-agents-md`). Do not read the `@WebFluxTest` component-scan the routing forces as
-  removable complexity. The query service carried the same routing until its HTTP controller was replaced by the generic
-  gRPC transport (`grpc-query-transport`), which is why its error and validation outcomes are gRPC statuses now rather
-  than HTTP problem details.
-- **Asserting log output**: use `OutputCaptureExtension` (`CapturedOutput`) when the code under test runs **in the test
-  JVM** (e.g. `ShowcaseProjectorIT`'s projector logging). It cannot capture a separate process's output — to assert a
-  **containerized** service's logs (the code-under-test runs in a different JVM), collect them via `withLogConsumer`
-  into a `static StringBuilder` and poll it, as the command-client e2e did before the suite was consolidated (see
-  `69f2811`). When an integration test fails with an opaque timeout, read the service-side log the runner captured into
-  the test report's XML (`system-out`) before diagnosing the assertion — a 5s `TimeoutException` on a `WebTestClient`
-  exchange hid the real `NoSuchMethodError`. captured: bump-dependencies-2026-09-25
-- **`@DirtiesContext`**: add it only where a full-context boot leaks global JVM state — JGroups (ports and system
-  properties) and JCache (a JVM-global cache manager). Contexts that are safely cacheable don't need it: service slices,
-  and `@Nested` classes with distinct `@ActiveProfiles` (which already get separate cached contexts). Keep it on the
-  gateway/command-service full-context ITs (each boots a JGroups-enabled service); drop it elsewhere
-- **Code coverage**: JVM modules opt in via `code-coverage-conventions`. Coverage is measured per module with
-  `jacocoTestReport` (unit + component + integration exec data) and aggregated with the root `jacocoRootReport`. The
-  `jacocoTestCoverageVerification` gate is wired into `check` at the baseline in
-  `config/jacoco/coverage-baseline.properties` and requires Docker (integration tests). A module can extend the
-  generated-class excludes via `coverage.generatedClassExcludes`. The **web UI's** coverage is a separate Vitest/V8
-  gate: `npmTestCoverage` (in the frontend `check`) enforces the statement minimum in
-  `config/web-ui-coverage/coverage-baseline.properties` (fraction form, scaled to Vitest's percentage thresholds)
 - **Architecture Decision Records**: record cross-cutting decisions as numbered ADRs (architecture and supply-chain
   alike, such as a build's third-party artifact source) under `docs/adr/` (Nygard format —
   Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture the _why_ behind
@@ -1369,11 +1202,11 @@ Key modules (libraries, not services):
   implements, the human approves); observability is Kubernetes-deployment-only via Helm (custom Axon Showcase Grafana
   dashboard, not in the local compose stack); slash commands render as a table; a worked scenario shows the interactive
   loop. Keep the two files' division of labour as it stands rather than extracting one into the other or into a task
-  runner: `AGENTS.md` carries the agent's full command surface and its environment/port reference, while the README
-  carries the human onboarding path. The shared commands are too short and too thinly repeated to alias, and copying the
-  environment or port reference into the README would give it a second un-gated copy of facts the Java
-  `@ConfigurationProperties`, the yml placeholders, the chart values, and the `BPE_DEFAULT_*` map (ADR-0002's four
-  surfaces) already own.
+  runner: the root `AGENTS.md` carries the verification command every task needs and the environment/port reference,
+  each subject pack carries its subject's full command surface, while the README carries the human onboarding path. The
+  shared commands are too short and too thinly repeated to alias, and copying the environment or port reference into the
+  README would give it a second un-gated copy of facts the Java `@ConfigurationProperties`, the yml placeholders, the
+  chart values, and the `BPE_DEFAULT_*` map (ADR-0002's four surfaces) already own.
 - **Surface human-visible capabilities in the README on every change**: while working on a change, actively look for
   behavior a person can _see or experience_ — a cool story moment, a watcher's flow, a demo-able feature, an access
   path, a dashboard — and make sure it is mentioned in the README before the change is reported done (the docs-refresh
@@ -1774,6 +1607,12 @@ Key modules (libraries, not services):
   the workflow starts. captured: migrate-opencode-config-to-v2 captured: retire-opencode-permission-plugin (#388)
   captured: fix-cloud-agent-config-for-v1 (#438)
 
+- **JVM and Gradle conventions live in the subject packs.** `jvm-development` carries the value-type, nullness,
+  MapStruct, gateway-routing, and runtime-library rules; `jvm-testing` the test naming, tier, slice, logging, container,
+  coverage, and execution rules; `gradle-build` the catalog, convention-plugin, gate, command, and report rules. Load
+  the pack the classification table names before the decision it governs. captured:
+  separate-agents-md-core-and-subject-packs
+
 ## Docker Images
 
 Each boot service builds a Docker image:
@@ -2147,9 +1986,13 @@ capture-stash-stale-copy
   Derive an item's end from the list's own structure (a wrapped continuation is indented; a `- ` at column zero starts a
   new item, but a heading at column zero ends the list — a search for the next `- ` otherwise crosses the section
   boundary) and have any script that ranges over or appends to items assert that boundary itself — the marker-placement
-  rule above states what the pre-commit guard enforces — before trusting the result. captured: retro-mark-captured-rules
-  captured: add-a-fresh-session-trigger captured: optimize-agents-auditor-for-instruction-budget captured:
-  convert-remaining-gotchas-rules
+  rule above states what the pre-commit guard enforces — before trusting the result. A line range is a coordinate in the
+  content it was measured on, not a label on the text: an insert or delete applied earlier in the same file shifts every
+  later range, so run a batch of range-based moves against the state its ranges were measured on — or recompute every
+  range after the last prior edit — and verify every moved span by absence at its source and presence in its
+  destination, since neither a green edit script nor the diff's size shows a shift. captured:
+  separate-agents-md-core-and-subject-packs captured: retro-mark-captured-rules captured: add-a-fresh-session-trigger
+  captured: optimize-agents-auditor-for-instruction-budget captured: convert-remaining-gotchas-rules
 
 - **The same range-boundary hazard bites source:** removing three tasks' private comparators with a range running from
   the first deleted member to the end of the file took each class's **closing brace** (the members were last in the
@@ -2241,127 +2084,9 @@ capture-stash-stale-copy
 
 ### Build, Gradle & dependency management
 
-- **A build property's name is shared across the module's tasks — grep the plugin's existing `gradleProperty(...)`
-  consumers before forwarding a new `-P<name>`.** `load-tests/build.gradle.kts` forwards its whitelisted properties into
-  the Gatling task's `systemProperties`, but the same module's `kneeFinder` task reads `-Pknee` as its **output-file
-  path** — so the knee-rate property had to be `kneeRate`, since a reused `knee` would forward a path where the
-  simulation parses an integer. A JavaExec task runs with the module's project directory as its working directory, so a
-  relative `-Plog`/`-Precords` resolves under `load-tests/`, not the repository root — hand-run one with the absolute
-  path the wrapper passes (`$ROOT/...`). captured: check-load-test-drift
-
-- **The configuration cache is enabled (`org.gradle.configuration-cache=true`); a task action must not reference
-  anything belonging to the Gradle script** — `project`, `gradle`, `rootProject`, `providers`, a script-level
-  `val`/`fun`, the script's own `this` — because serializing the captured **script object** fails the store; compute
-  what the action needs into a `val` local to the configuration lambda (a class/object reference is safe). It needed the
-  gradle-helm-plugin at **3.2.0** (its tasks captured a `Task`/`Project` through 3.1.2 —
-  build-extensions-oss/gradle-helm-plugin#140, closed), that hoist at each task action that had it (the workflow-lint,
-  dependency-security, frontend npm, load-tests, and compose tasks — whose `onlyIf` also read `gradle.startParameter`
-  and a `rootProject.extra` handshake, now `composeScheduleState`), and `notCompatibleWithConfigurationCache` on
-  `:load-tests:gatlingRecorder`, whose third-party task type holds a `Configuration`/`SourceSet` no hoist can fix (the
-  plugin repository disables issues and discussions, so an upstream fix must arrive as a PR). Sweep such a change by
-  **executing** every task a workflow invokes, not by realizing the graph: `./gradlew tasks --all`'s set never runs a
-  task action, so a task no `check` graph requests — `upstreamReferences`, invoked only by its own workflow — escapes
-  every sweep the build itself can run, and its store defect surfaces only in CI, on a schedule, where no gate sees it
-  (#581 missed it for a week). Run each such task with the cache enabled and require a stored entry, then a reused one.
-  A plugin task type is one failure shape (it cannot store); a third-party task whose `onlyIf` reads build state is
-  another: it stores cleanly and then silently skips, because the cache resolves the predicate against the state
-  captured at store time. Compare each such task's _outcome_ (ran / skipped) with and without the cache on a clean
-  checkout, not only that the graph stores; and neutralize such a gate with `setOnlyIf { true }`, since a bare
-  `onlyIf { true }` only appends a spec that is ANDed with the plugin's and leaves it in force (the helm plugin's
-  chart-dependency skip is the worked case — see the Chart validation bullet above). captured:
-  fix-upstream-references-config-cache
-
-- **IF a Gradle run under `--warning-mode all` emits a gradle-helm-plugin deprecation or a `Configuration.visible`
-  warning, THEN treat it as upstream and leave it: there is no repo-side fix.** gradle-helm-plugin 3.2.0 still calls the
-  deprecated `Project.getProperties()` (a hard error in Gradle 10); tracked upstream as
-  build-extensions-oss/gradle-helm-plugin#145, so bump the plugin when a fixed release lands. The
-  `Configuration.visible` deprecation (`setVisible(boolean)`, removed in Gradle 11) is emitted by several third-party
-  plugins (helm, errorprone, SpotBugs, Spring Boot, protobuf) and is likewise plugin-side. Do not add a local workaround
-  for either.
-
-- **A task whose verdict derives from wall-clock time or external state must not declare an output Gradle can re-use — a
-  cached UP-TO-DATE run serves a stale verdict.** `npmAudit` first declared `outputs.file(...)`, so a re-run was
-  UP-TO-DATE and its `doLast` verdict — including the `LocalDate.now()` suppression-expiry check — was never re-derived:
-  a cached pass could outlive a suppression's expiry. Drop the `outputs.file` declaration (matching the sibling
-  `npmOutdated` task) so the verdict re-runs every invocation; declare `inputs` (the suppression file) without declaring
-  an output the task does not produce as an artifact. Any verdict task whose result changes without its inputs changing
-  — a date check, a live registry query, a remote state read — takes the same treatment. Verify by running the task
-  twice with nothing changed: the second run must re-execute, not report UP-TO-DATE. captured:
-  suppress-braces-npm-advisory
-
-- **A fixable npm advisory in a transitive that a dev dependency pins exactly is forced with an `overrides` entry — not
-  npm's suggested fix.** npm's offered fix is a _breaking_ downgrade of the pinning package (`eslint-plugin-boundaries`
-  7.2.0 → 5.4.0, breaking the FSD boundary lint), because the plugin and `@boundaries/elements` pin
-  `handlebars: "4.7.9"` exactly; `overrides` forces the patched `4.7.10` under them instead. A suppression
-  (`npm-audit-ignores.json`) is for an advisory with no fix — the `dependency-security` spec owns that policy — and
-  unlike one the override carries no expiry, so park its re-check in `docs/ideas.md` and derive the retrigger from the
-  resolved graph: every package that pins the vulnerable version must bump before it is dropped. Verify the override
-  took effect with `npm ls <pkg>` (the patched version resolves). captured: fix-dependency-security-findings
-
-- **A build tool's own vulnerable transitive does not reach the platform BOM, and a tool configuration that rejects a
-  platform project is aligned with a dependency constraint instead.** The platform's `constraints` reach the
-  compile/runtime classpaths, not Gradle's tool configurations: `errorprone(platform(project(":platform")))` works (its
-  `annotationProcessor` classpath extends it), while `checkstyle(platform(project(":platform")))` drops the checkstyle
-  tool and fails `checkstyleMain` with `ClassNotFoundException: CheckstyleAntTask` — constrain that one with
-  `constraints { checkstyle(libs.guava) }`. A scan names the coordinate, not the configuration carrying it, so derive
-  the owning configuration from the graph (`./gradlew :<module>:dependencies --configuration <config>`) before choosing
-  the fix. A plain `compileJava` never exercises the tool configuration — only the tool task does — so verify the fix by
-  running the tool task (e.g. `./gradlew :<module>:checkstyleMain`), not by compiling. captured:
-  fix-new-security-advisories
-
-- **Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
-  `implementation`-only dependencies on their compile classpath** — the default `test` suite does, since its classpath
-  extends `main`'s, while a custom suite receives them only at runtime through its `project()` dependency — so each
-  suite re-declares what it needs to compile (client component suites duplicate axon/opensearch/resilience4j deps,
-  `showcase-query-proto` must be listed explicitly, and a suite compiling against a `@Mapper`-annotated main class needs
-  `libs.mapstruct`, or javac warns that the annotation's `ReportingPolicy` constant is unknown). A suite can be
-  referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g.
-  `val integrationTest = suites.register<JvmTestSuite>("integrationTest")`). Source sets are siblings — `src/test/java`
-  cannot see a type declared in `src/gatling/java`, while both see `main` — so a pure-logic type a unit test and a
-  custom source set both need belongs in the module's `main` source set. Verify a suite's classpath by compiling its
-  source set, which surfaces a missing dependency directly. captured: check-load-test-drift captured:
-  fix-mapstruct-suite-warning
-
-- **A dependency a module does not use can still be load-bearing — narrowing a `project(...)` dependency can break a
-  downstream `compileJava`, and removing a starter drops the modules it transitively provided.** Before removing or
-  narrowing a dependency, grep the consumers' sources for what they actually import and compile the affected modules; an
-  unused direct dependency may be carrying the transitive one a consumer's main source needs. Worked case:
-  `showcase-query-api` held `api(project(":showcase-command-api"))` only for `showcase.identifier.KSUID`; narrowing it
-  to `api(project(":showcase-identifier-extension"))` (`narrow-query-api-dependency`) broke `:showcase-query-client`'s
-  main compile, because `ShowcaseQueryClientProperties` imports `org.hibernate.validator.constraints.URL` and had been
-  receiving it through `command-api`'s `api(libs.hibernate.validator)` — that consumer now declares it. The same holds
-  for an external starter: removing `spring-boot-starter-webflux` from `showcase-query-client` silently removed the
-  `jackson-datatype-jsr310` it had provided, and `JacksonSerializer.defaultSerializer()` failed at test-class init with
-  `NoClassDefFoundError: JavaTimeModule` — name every module a removed starter was providing, declare it explicitly
-  (`jackson-databind`, `jackson-datatype-jsr310`), and run the module's tests, not only `compileJava`. captured:
-  grpc-query-transport
-
-- **`./gradlew check -PskipITs` alone fails the coverage gate — the Docker-free check also passes
-  `-Pcoverage.gate.enabled=false`.** `-PskipITs` excludes `integrationTest` from the jacoco exec data, so
-  `jacocoTestCoverageVerification` verifies against a figure below the 0.80 baseline and fails; the gate is added to
-  `check` only when `coverage.gate.enabled` is not `false` (`code-coverage-conventions.gradle.kts`). The PR CI gate is
-  exactly `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (see Continuous Integration) — run that for a local
-  Docker-free check, not the bare `-PskipITs` form. That form disables the coverage gate exactly as the PR gate does, so
-  it cannot catch a coverage regression: when a change adds production code to a gated module, run that module's `check`
-  with the gate enabled before merging — Docker-free with `-PskipITs` for a module with no integration tests
-  (`./gradlew :showcase-query-proto:check -PskipITs`), or the full `./gradlew check` — since the drop otherwise merges
-  green and reddens the push-to-main full `check` (`grpc-query-transport` (#514) added
-  `QueryMessageMapper.messageToResponse`/`payloadFromResponse` with no module test, `showcase-query-proto` fell to 0.60
-  against 0.80, and every full `check` since failed until a component test covered them). The same Docker-free form also
-  drops the `integrationTest` and `e2eTest` classpaths (`check` never includes `e2eTest`), so a resolution-affecting
-  change — a dependency, repository, or plugin declaration, or a BOM — compiles them explicitly
-  (`./gradlew compileIntegrationTestJava compileE2eTestJava --refresh-dependencies`) and names the tiers its resolution
-  claim covers, rather than resting that claim on the Docker-free check. captured: fix-main-ci-regressions captured:
-  remove-unrecorded-redgate-repository
-
-- **Bumping the Gradle wrapper needs two `wrapper` runs with `--distribution-type all`.** The first run only rewrites
-  `distributionUrl`; the second, executing under the new version, regenerates `gradle-wrapper.jar`/`gradlew`/
-  `gradlew.bat`. A single run leaves the jar and scripts at the old version, and a run without the flag flips the repo's
-  `-all` distribution to `-bin` — both silently. `./gradlew --version` cannot see either (it reports the version from
-  `distributionUrl`), so verify by diffing all four wrapper files (`gradle/wrapper/gradle-wrapper.properties`,
-  `gradle/wrapper/gradle-wrapper.jar`, `gradlew`, `gradlew.bat`) and confirming `distributionUrl` still ends `-all.zip`;
-  if only `gradle-wrapper.properties` changed, the bump is incomplete. Keep `/gradle-update`'s two-step invocation.
-  captured: bump-gradle-and-web-ui-dependencies
+**Moved:** the build and dependency-management gotchas are in the `gradle-build` pack
+(`.opencode/skills/gradle-build/SKILL.md`). Load it before changing a build decision, running or interpreting a Gradle
+task or report, or concluding the cause of a Gradle failure.
 
 ### Evidence and search
 
@@ -2463,7 +2188,11 @@ capture-stash-stale-copy
   `rm -rf helm/chart/build` alone still let the chart-dependency task run, and only clearing the plugin's cache under
   `.gradle/` reproduced the skip CI saw — so clear the caches outside `build/` before concluding a failure does not
   reproduce. The context is also the input's own content: a probe against a stand-in evidences the stand-in, so state
-  the fixture's measured size beside the claim and defer the untested remainder to a task. captured:
+  the fixture's measured size beside the claim and defer the untested remainder to a task. **A probe's sandbox is state
+  too: give each fixture a fresh clone and assert nothing escaped.** A run given a clone can create a worktree or a
+  session on a real path, and a clone reused across fixtures carries the earlier one's edits — deny `git worktree`, the
+  worktree tools, and session-move in the sandbox's own config, then check before and after the run that no worktree
+  exists and the sandbox has no remote. captured: separate-agents-md-core-and-subject-packs captured:
   fix-chart-dependency-fetch captured: grant-openspec-global-access-in-cloud (#325) captured:
   load-stage-workflow-instructions-on-demand
 
@@ -2533,23 +2262,9 @@ capture-stash-stale-copy
   0 failed, at 385 rps). Use `doWhileDuring(Function<Session, Boolean>, …)` (the shared `differs(attribute, expected)`);
   the source reads correct either way, so only a sustained run exposes it. captured: anchor-the-load-test-baseline
 
-- **The gateway e2e suite needs the four service images present in the local Docker daemon.** The Gradle
-  `:showcase-api-gateway:e2eTest` task declares the four `bootBuildImage` tasks (gateway, command, projection, query) as
-  `dependsOn`, so running it through Gradle builds them. An IDE JUnit run does not fire `dependsOn`, so before running
-  the `ShowcaseApiGatewayE2E` class directly, build them:
-  `./gradlew bootBuildImage :showcase-command-service:bootBuildImage :showcase-projection-service:bootBuildImage :showcase-query-service:bootBuildImage`.
-  Verify the images exist for the version declared in `gradle.properties`
-  (`docker images aanbrn/axon-showcase-command-service` lists the local tags); a missing image fails the suite at
-  container start.
-
-- **`@Nested` test classes are incompatible with Spring Boot slice tests (`@WebFluxTest`/`@WebMvcTest`).** Nested
-  classes load the full application context instead of the slice and fail on infrastructure beans (e.g. the gateway's
-  JGroups `DistributedCommandBusProperties`). Keep slice-test classes flat (see `ShowcaseRestControllerCT`).
-
-- **Testcontainers 2.0.5 moved `PostgreSQLContainer` from `org.testcontainers.containers` (now a deprecated shim) to the
-  non-generic `org.testcontainers.postgresql.PostgreSQLContainer`.** Use the new import without the `<?>`/`<>` type
-  arguments. The old import still compiles through the shim, so a green build does not confirm the migration — check the
-  import.
+**Moved:** the JVM test authoring, execution, and coverage rules are in the `jvm-testing` pack
+(`.opencode/skills/jvm-testing/SKILL.md`). The measurement and load-test rules stay below; load `jvm-testing` before
+choosing a test's tier, writing or running a JVM test, or interpreting its result.
 
 ### Deployment, Helm & Kubernetes
 
@@ -2812,64 +2527,8 @@ capture-stash-stale-copy
 
 ### Runtime code, libraries & Spring
 
-- **A controller-local `@ExceptionHandler(HandlerMethodValidationException.class)` fires only when method validation is
-  active for that controller — put a constraint (`@NotNull`) directly on the method parameter, not only `@Valid`.**
-  Without it a body failure arrives as a `WebExchangeBindException`, so the shared `ShowcaseApiErrorResolver`'s
-  `bodyErrors` contract is silently lost (`ShowcaseRestController` gets activation incidentally from the `@Min`/`@Max`
-  on its page-size parameter). A component test that posts a malformed body and asserts `bodyErrors` covers it.
-  captured: add-web-ui-rum-observability
-
-- **A new gateway controller package or browser-called endpoint is silent until registered in two un-gated lists.** Add
-  the package to `springdoc.packages-to-scan` (else the endpoint is absent from `/v3/api-docs`) and, for a path the
-  browser calls, add it to the Vite proxy in `showcase-web-ui/vite.config.ts` (else it never reaches `viteDev` or the
-  e2e `vite preview`); widen the live endpoint enumerations per the docs-refresh convention too. captured:
-  add-web-ui-rum-observability
-
-- **NullAway is strict on `showcase.*` packages — ensure proper `@Nullable`/`@NonNull` annotations from `jspecify`.** A
-  missing or wrong annotation fails the module's `compileJava`.
-
-- **Jackson 3 artifacts (`tools.jackson.core:*`) on the query-service and projection-service runtime classpaths are
-  dependency hygiene, not the deferred Jackson 3 backend migration.** IF you see `tools.jackson.core:*` on those
-  classpaths, THEN do not treat it as a migration to complete and do not switch application code to Jackson 3 — Jackson
-  2 remains the serialization backend. The why (including the `jackson3-bom` constraint) lives in ADR-0003.
-
-- **Spring Data Elasticsearch's `DateFormat.strict_date_optional_time_nanos` truncates to microseconds despite its
-  name.** The nanosecond pattern and the reason live in the `read-side/projection-model` spec. `ShowcaseEntity` declares
-  the custom `NANOS_DATE_PATTERN` (`yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]`) with `format = {}`; do not "simplify" it back
-  to the built-in enum until the fix (PR #3337, 6.2.0-M2) reaches us through `spring-data-opensearch`; the truncation is
-  invisible on macOS (microsecond clocks) and surfaces only on nanosecond clocks (Linux CI).
-
-- **Extracting a component that exists in a sibling service means mirroring the sibling's full wiring, not the shape you
-  copied.** The gateway's Kafka converter was lifted from the projection service without its Axon `upcasterChain`, and
-  its event receiver from `ShowcaseProjector` without the `ObservationRegistry` — both silent until review, and no gate
-  catches either. Grep the sibling for every configuration call it makes on the same component and carry each across: a
-  missing upcaster chain deserializes events un-upcast and a missing registry drops their traces. captured:
-  read-through-gateway-caches
-
-- **A generic getter's inferred type can bind an overloaded call to the wrong overload — cast to the erased type, and
-  verify the binding, not the source.** `Session.get` is generic (`<T> T get(String)`), so
-  `String.valueOf(session.get(attr))` inferred `T = char[]` (the most specific applicable overload) and called
-  `String.valueOf(char[])`; the source reads correct and only the run failed
-  (`ClassCastException: class java.lang.Integer cannot be cast to class [C`). Write
-  `String.valueOf((Object) session.get(attr))` — `javap` then shows `String.valueOf:(Ljava/lang/Object;)` — or bind the
-  value to an `Object` local. A compile-valid call proves only that some overload matched; confirm the binding with
-  `javap -c` or a run. captured: anchor-the-load-test-baseline
-
-- **Caffeine's `AsyncCache` trips a Reactor bridge on two contracts — a non-null value type and an empty source — and
-  its access expiry never bounds a hot entry.** `getIfPresent` returns `null` for a future that completed exceptionally,
-  so a failed cached future is indistinguishable from a miss: the `if (present) … else …` shape takes the miss branch, a
-  `future.thenAccept(…)` callback only runs on success, and the future ErrorProne's `FutureReturnValueIgnored` flags can
-  never leave a sink hanging — so a `@SuppressWarnings("FutureReturnValueIgnored")` on such a method is **redundant**,
-  not a hidden bug (verified against Caffeine 3.3.0). Prefer `Mono.fromFuture(…)` over a raw sink-plus-`thenAccept`:
-  Reactor observes the future and the empty-vs-failed distinction stays with the cache's own contract. The reverse
-  bridge — a `Mono` fed into `AsyncCache.get`'s mapping callback — needs a helper: `Mono.toFuture()` is typed
-  `CompletableFuture<@Nullable T>`, and a fresh future completed from
-  `source.subscribe(future::complete, future::completeExceptionally)` never completes on an empty source, so guard it
-  with `switchIfEmpty(Mono.error(…))` or that entry wedges forever. The callback runs on the calling thread, so a
-  subscription created inside it does not inherit the caller's Reactor context — carry it with
-  `Mono.deferContextual(ctx -> … contextWrite(ctx) …)` or the trace link breaks. A cache's freshness bound is
-  `expiresAfterWrite`: every read resets an access expiry, so `expiresAfterAccess` never bounds a hot entry. captured:
-  read-through-gateway-caches
+**Moved:** the runtime-library and Spring semantics gotchas are in the `jvm-development` pack
+(`.opencode/skills/jvm-development/SKILL.md`). Load it before concluding a runtime diagnosis.
 
 ### Agent tooling, OpenCode & permissions
 
@@ -3028,28 +2687,31 @@ capture-stash-stale-copy
   cannot see it. Restart OpenCode (or start a new session) before smoke-testing a newly added, renamed, or **edited**
   subagent — a changed definition body, like a changed `model` pin, is served from the pre-change copy until then, so an
   in-session smoke-run exercises the old instructions, and a run echoing the new text is no proof of pickup (the
-  subagent can read its own definition from disk, so the registered body is the evidence). captured:
-  name-review-finding-classes (#367) Treat that smoke-run as a precondition for **archiving**, not a task to defer
-  across the merge: it is the only verification that exercises the subagent (CI runs none), and an unchecked task inside
-  `openspec/changes/archive/` is invisible — the archive tree is outside Spotless and no gate surfaces it — so the check
-  is silently lost (`add-architecture-auditor-agent` archived with its `/audit-architecture` smoke-run unchecked for
-  exactly this reason). Seed the smoke-run with positive controls — a known-missing rationale it **must** report and a
-  known-explained surface (a spec requirement, an ADR, an `AGENTS.md` convention) it must **not**: a run that reports
-  everything or nothing has not exercised the suppression rule. **A smoke-run verifies the subagent's behavior, not the
-  facts of its output — the seed is synthetic, so verify both separately:** check the seed's premise against the
-  repository before reading the run (a seeded incident the repo does not exhibit leaves the targeted branch unexercised
-  — the subject working, not a failed test — so re-seed and record which branch the run exercised), and never promote a
-  proposal resting on the seed's invented details (the repo-evidence rule's "a run whose output you have" counts a
-  smoke-run for the subject's behavior, not for a claim about the code, so re-verify the proposal's factual basis first
-  — `make-lesson-capture-consolidate`'s smoke-run proposed a rule resting on a fabricated incident the repository never
-  evidenced). A run against a real artifact also surfaces genuine defects beyond the seed: verify each against the
-  repository and fix those the user approves in the introducing change, since the archived run's note is never swept
-  again — the `add-readme-auditor` smoke-run reported three real README defects beyond its seed (a missing
-  `-Pcoverage.gate.enabled=false` at two sites, a merge-narrative contradiction, and a stray table cell), all fixed in
-  that change. captured: add-readme-auditor (#315) When the owner deliberately decouples a follow-up task from the
-  merge, reword the task to record what is deferred, where it went, and the owner's chosen order, then **tick it** — an
-  unchecked box inside `archive/` is invisible and no gate reads it. That is not the rule above: the smoke-run itself is
-  never deferred, only a task the owner explicitly decouples.
+  subagent can read its own definition from disk, so the registered body is the evidence). **A definition whose behavior
+  a probe established is copied from the probe, position included, and diffed against the shipped file:** an
+  instruction's place in the prompt is part of what was probed, so a retyped, reordered, or duplicated copy carries
+  behavior nothing validated, and the build gate proves a definition loads rather than that its text is the one probed.
+  captured: separate-agents-md-core-and-subject-packs captured: name-review-finding-classes (#367) Treat that smoke-run
+  as a precondition for **archiving**, not a task to defer across the merge: it is the only verification that exercises
+  the subagent (CI runs none), and an unchecked task inside `openspec/changes/archive/` is invisible — the archive tree
+  is outside Spotless and no gate surfaces it — so the check is silently lost (`add-architecture-auditor-agent` archived
+  with its `/audit-architecture` smoke-run unchecked for exactly this reason). Seed the smoke-run with positive controls
+  — a known-missing rationale it **must** report and a known-explained surface (a spec requirement, an ADR, an
+  `AGENTS.md` convention) it must **not**: a run that reports everything or nothing has not exercised the suppression
+  rule. **A smoke-run verifies the subagent's behavior, not the facts of its output — the seed is synthetic, so verify
+  both separately:** check the seed's premise against the repository before reading the run (a seeded incident the repo
+  does not exhibit leaves the targeted branch unexercised — the subject working, not a failed test — so re-seed and
+  record which branch the run exercised), and never promote a proposal resting on the seed's invented details (the
+  repo-evidence rule's "a run whose output you have" counts a smoke-run for the subject's behavior, not for a claim
+  about the code, so re-verify the proposal's factual basis first — `make-lesson-capture-consolidate`'s smoke-run
+  proposed a rule resting on a fabricated incident the repository never evidenced). A run against a real artifact also
+  surfaces genuine defects beyond the seed: verify each against the repository and fix those the user approves in the
+  introducing change, since the archived run's note is never swept again — the `add-readme-auditor` smoke-run reported
+  three real README defects beyond its seed (a missing `-Pcoverage.gate.enabled=false` at two sites, a merge-narrative
+  contradiction, and a stray table cell), all fixed in that change. captured: add-readme-auditor (#315) When the owner
+  deliberately decouples a follow-up task from the merge, reword the task to record what is deferred, where it went, and
+  the owner's chosen order, then **tick it** — an unchecked box inside `archive/` is invisible and no gate reads it.
+  That is not the rule above: the smoke-run itself is never deferred, only a task the owner explicitly decouples.
 
 - **Prove a permission rule reached the configuration with `opencode debug config`; the v1 log line that proved it
   _matched_ a call is gone under v2.** v1 recorded every evaluation in `~/.local/share/opencode/log/opencode.log` as

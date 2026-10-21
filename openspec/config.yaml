@@ -23,22 +23,21 @@ context: |
     - No comments in source code
     - Wrap code and text at 120 characters
     - Load the owning subject pack before a decision in its subject:
-      `.opencode/skills/jvm-development/SKILL.md`, `.opencode/skills/jvm-testing/SKILL.md`, or
-      `.opencode/skills/gradle-build/SKILL.md` — the root `AGENTS.md` table states the triggers
+      `.opencode/skills/jvm-development/SKILL.md`, `.opencode/skills/jvm-testing/SKILL.md`,
+      `.opencode/skills/gradle-build/SKILL.md`, or `.opencode/skills/deployment-operations/SKILL.md` — the root
+      `AGENTS.md` table states the triggers
 
   Build & test (./gradlew):
     - The root's verification entry point is
       `./gradlew :<module>:check -PskipITs -Pcoverage.gate.enabled=false`
     - The command surface, test tiers and execution prerequisites, build gates, and failure diagnosis are in
       `.opencode/skills/jvm-testing/SKILL.md` and `.opencode/skills/gradle-build/SKILL.md`
-    - ./db.sh init creates user `showcase` and database `showcase-events` before running
-      the command-service standalone
+    - `./db.sh init` creates user `showcase` and database `showcase-events` before running
+      the command-service standalone; the DB-scripts block is in `.opencode/skills/deployment-operations/SKILL.md`
 
-  Docker images: aanbrn/axon-showcase-{command-service,api-gateway,query-service,projection-service,web-ui};
-  a release publishes them to the GitHub Container Registry (ghcr.io/<owner>/axon-showcase-*,
-  tagged <version> and latest) and publishes the Helm chart to oci://ghcr.io/<owner>/charts/axon-showcase;
-  a publish_tag dispatch backfills an existing release's <version> image
-  Deployment: Helm chart in helm/chart (use ./gradlew helmInstallToLocal)
+  Docker images and deployment: the five `aanbrn/axon-showcase-*` images, their release publishing to the GitHub
+  Container Registry, and the Helm chart (`helm/chart`, `./gradlew helmInstallToLocal`) are documented in
+  `.opencode/skills/deployment-operations/SKILL.md`
 
 # Per-artifact rules
 rules:

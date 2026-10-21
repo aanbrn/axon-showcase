@@ -602,9 +602,10 @@ tasks.register<Exec>("verifyLargeFiles") {
 
 tasks.register("verifyInstallCommands", VerifyInstallCommandsTask::class.java) {
     group = "verification"
-    description = "Verifies the AGENTS.md manual helm install commands quote the catalog chart versions"
+    description = "Verifies the deployment guidance's manual helm install commands quote the catalog chart versions"
 
-    agentsFile.set(layout.projectDirectory.file("AGENTS.md"))
+    sourceFile.set(layout.projectDirectory.file(".opencode/skills/deployment-operations/SKILL.md"))
+    repoRoot.set(layout.projectDirectory)
 
     chartPins.set(helmChartChecks.associate { it.chartRef to it.pinnedVersion })
 
@@ -615,8 +616,13 @@ tasks.register("verifyDocumentedPins", VerifyDocumentedPinsTask::class.java) {
     group = "verification"
     description = "Verifies the catalog's Paketo pins a live doc states match the catalog"
 
-    docs.from(layout.projectDirectory.file("AGENTS.md"), layout.projectDirectory.file("README.md"))
+    docs.from(
+        layout.projectDirectory.file("AGENTS.md"),
+        layout.projectDirectory.file("README.md"),
+        layout.projectDirectory.file(".opencode/skills/deployment-operations/SKILL.md"),
+    )
 
+    repoRoot.set(layout.projectDirectory)
     paketoPins.set(buildpackChecks.associate { it.name to it.pinnedVersion })
 
     resultFile.set(layout.buildDirectory.file("verification/documented-pins.txt"))

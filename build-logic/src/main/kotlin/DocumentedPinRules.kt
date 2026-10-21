@@ -8,6 +8,39 @@
  */
 internal object DocumentedPinRules {
 
+    /** The document the `infra-image-versions` requirement names as the site that states the Paketo pins. */
+    const val PACK_DOC = ".opencode/skills/deployment-operations/SKILL.md"
+
+    /**
+     * The repo-relative documents the gate scans for a stated pin: the root guidance, the README, and the
+     * deployment-operations pack the pins moved into. Declared here so the set is testable and a document the gate
+     * should read cannot silently drop out of the build script.
+     */
+    val LIVE_DOCS =
+        listOf(
+            "AGENTS.md",
+            "README.md",
+            PACK_DOC,
+        )
+
+    /**
+     * The docs' text keyed by project-relative path. A path key, not a file name: every subject pack is a `SKILL.md`,
+     * so a name key would silently drop one pack's pins once a second pack states them.
+     */
+    fun relativeLabels(root: java.nio.file.Path, files: Iterable<java.io.File>): Map<String, String> = files.associate {
+        root.relativize(it.toPath()).toString() to it.readText()
+    }
+
+    /**
+     * The catalog keys [doc] does not state. The requirement names [doc] as the site that states the pins, so a
+     * document that states none — or misses one key — is a failure rather than an empty finding list.
+     */
+    fun unstated(doc: String, stated: List<StatedPin>, pins: Map<String, String>): List<String> =
+        pins.keys.filterNot { key -> stated.any { it.doc == doc && it.catalogKey == key } }
+
+    /** The declared [liveDocs] the [scanned] set does not cover; empty when the gate reads every declared doc. */
+    fun absent(liveDocs: List<String>, scanned: Set<String>): List<String> = liveDocs.filterNot { it in scanned }
+
     /** A pin a live doc states: the doc it appears in, the pin as written, its catalog key, and its version. */
     data class StatedPin(val doc: String, val written: String, val catalogKey: String, val version: String)
 

@@ -126,6 +126,23 @@ nothing.
   reads one file; split it with `${(f)files}` or loop the substitution directly. captured:
   enforce-web-ui-import-boundaries captured: guard-archive-spec-sync captured: diagnose-rest-controller-ct-hang
 
+## A zero-item extraction fails only where the contract requires the subject
+
+- **A gate that extracts items from its input passes vacuously when the extraction yields none — reject the zero-item
+  case in the rules and test it, but only where the owning contract requires the extracted subject to exist.** The
+  condition is the contract, not the gate: `verifyInstallCommands` parses `helm install … --version` lines from the one
+  guidance document the requirement names as the manual install block, so deleting that block must fail
+  (`InstallCommandRules.noCommandsReason`) — it left the task green, and only the deep review found it. Its collected
+  sibling had the same hole from the other side: `verifyDocumentedPins` reported no findings when no scanned document
+  stated a pin, so the declared document's pins could vanish green (`DocumentedPinRules.unstated`, requiring every
+  catalog pin in the document the requirement names). Where the contract only says "a doc that states a pin must state
+  it correctly", an empty result is legitimate and must stay legitimate: `DocumentedPinRulesTests.noPins` is that
+  allowed case, and asserting presence there would be the over-wide input-set error in the other direction. Prove both
+  by removing the block or the pin the required document carries and requiring a named failure; mutating a value proves
+  the parse, not the presence. The search-side form — a glob or filter that matches nothing is vacuous, not clean — is
+  `AGENTS.md`'s `### Evidence and search` bullet; this is the authoring half. captured:
+  extract-deployment-operations-guidance
+
 ## Assert what the subject emits, not only what it declares
 
 - **An assertion about a declaration's content cannot see a value that never reaches the code — assert what the subject

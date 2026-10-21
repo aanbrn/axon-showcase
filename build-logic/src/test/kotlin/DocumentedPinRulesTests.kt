@@ -1,6 +1,9 @@
+import java.nio.file.Files
+import java.nio.file.Path
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 
 @DisplayName("Documented-pin rules")
 class DocumentedPinRulesTests {
@@ -118,5 +121,49 @@ class DocumentedPinRulesTests {
     @DisplayName("A doc stating no pin is clean")
     fun noPins() {
         assertThat(DocumentedPinRules.findings(mapOf("README.md" to "no pins here"), pins)).isEmpty()
+    }
+
+    @Test
+    @DisplayName("Two docs with the same file name are keyed by their project-relative path")
+    fun sameFileNameBothScanned(@TempDir root: Path) {
+        val first = Files.createDirectories(root.resolve("one")).resolve("SKILL.md")
+        val second = Files.createDirectories(root.resolve("two")).resolve("SKILL.md")
+        Files.writeString(first, "`paketo-buildpacks/nginx@1.3.0`")
+        Files.writeString(second, "`paketo-buildpacks/procfile@5.15.3`")
+
+        val docs = DocumentedPinRules.relativeLabels(root, listOf(first.toFile(), second.toFile()))
+
+        assertThat(docs.keys).containsExactly("one/SKILL.md", "two/SKILL.md")
+        assertThat(DocumentedPinRules.statedPins(docs).map { it.doc to it.catalogKey })
+            .containsExactly("one/SKILL.md" to "paketo-nginx", "two/SKILL.md" to "paketo-procfile")
+    }
+
+    @Test
+    @DisplayName("A declared document the gate does not scan is reported")
+    fun absentDocReported() {
+        val scanned = setOf("AGENTS.md", "README.md")
+
+        assertThat(DocumentedPinRules.absent(DocumentedPinRules.LIVE_DOCS, scanned))
+            .containsExactly(".opencode/skills/deployment-operations/SKILL.md")
+        assertThat(DocumentedPinRules.absent(DocumentedPinRules.LIVE_DOCS, DocumentedPinRules.LIVE_DOCS.toSet()))
+            .isEmpty()
+    }
+
+    @Test
+    @DisplayName("The declared pin document must state every catalog pin")
+    fun unstatedPinsReported() {
+        val docs = mapOf(".opencode/skills/deployment-operations/SKILL.md" to "`paketo-buildpacks/nginx@1.3.0`")
+        val stated = DocumentedPinRules.statedPins(docs)
+
+        assertThat(DocumentedPinRules.unstated(DocumentedPinRules.PACK_DOC, stated, pins))
+            .containsExactly("paketo-procfile", "paketo-builder-jammy-base")
+        val all =
+            DocumentedPinRules.statedPins(
+                mapOf(
+                    DocumentedPinRules.PACK_DOC to
+                        "`paketo-buildpacks/nginx@1.3.0` `paketo-buildpacks/procfile@5.15.3` `builder-jammy-base:0.4.659`",
+                ),
+            )
+        assertThat(DocumentedPinRules.unstated(DocumentedPinRules.PACK_DOC, all, pins)).isEmpty()
     }
 }

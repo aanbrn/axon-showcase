@@ -13,6 +13,14 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-22
+
+- Retarget the guidance-evidence record's stale `#755` location — parked; no change yet.
+  `docs/guidance-evidence/documentation-and-durable-claims.md` says `#755` "stays cited in ADR-0007, `README.md`, and
+  `## Build & Test`", but the citation moved to `.opencode/skills/gradle-build/SKILL.md` in `6518d081`; `AGENTS.md`
+  holds no `#755` (only `100755`). `extract-deployment-operations-guidance` edits the adjacent `#1340` clause and
+  deliberately leaves this one, so the fix is its own docs unit: name the `gradle-build` pack.
+
 ## 2026-10-21
 
 - Make the review-round ledger's round numbers contiguous — parked; no change yet.

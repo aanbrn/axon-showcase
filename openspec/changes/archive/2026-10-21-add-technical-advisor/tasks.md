@@ -30,9 +30,9 @@
 - [x] 2.2 Confirm the `MODIFIED` block copies the whole shared report-contract requirement and preserves all five
       scenarios; `openspec validate --changes` is the check, and read the block against
       `git show HEAD:openspec/specs/showcase/quality/agent-skills/spec.md | sed -n '1311,1352p'`.
-- [ ] 2.3 Refresh the capability's `## Purpose` in the archive commit to name the independent technical advisor among
+- [x] 2.3 Refresh the capability's `## Purpose` in the archive commit to name the independent technical advisor among
       the on-demand subagents. A delta cannot carry a Purpose, so the edit is made in the archive commit and recorded
-      there.
+      there. Done — the capability Purpose now names the on-demand technical advisor.
 
 ## 3. Documentation
 
@@ -143,4 +143,4 @@ the `/consult` slash-command row; and the parked model-pin note in `docs/ideas.m
 `ChatGPT Plus`, `auto-replenishment`, or `allowlist` string; the three Mermaid diagrams do not depict the agent
 inventory.
 
-**Deferred (2.3):** the capability `## Purpose` refresh is made in the archive commit; a delta cannot carry a Purpose.
+**Purpose (2.3):** refreshed in the archive commit; the capability `## Purpose` now names the on-demand technical advisor.

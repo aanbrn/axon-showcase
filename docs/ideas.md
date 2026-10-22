@@ -336,19 +336,24 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-06
 
-- Explain or eliminate the gateway controller CT's load-sensitive hang — parked; diagnostics shipped, mechanism open.
-  `ShowcaseRestControllerCT` fails with a `TimeoutException` at the `WebTestClient` `.exchange()`: 38 of its 76 cases at
-  the default 5s timeout, and the same shape at the 30s the slice now configures — a Docker-free PR gate failed that way
-  on 2026-10-15, so the raise no longer holds there. The mechanism is unproven and does not reproduce locally: shrinking
-  the JVM-wide `Schedulers.boundedElastic()` pool to 4 and running the suite six times all passed, which leaves
-  boundedElastic starvation unconfirmed rather than refuted — a local pass is no evidence against a CI-only cause. The
-  failed CI attempt ran the suite concurrently with the web UI's `check` and spotbugs on a 4-vCPU runner (the #514
-  starvation shape), and the suite's CT classes share one JVM (the #301 interference shape); JUnit kept dispatching
+- Explain or eliminate the gateway controller CT's load-sensitive hang — parked; the diagnostic is armed and has not
+  fired. `ShowcaseRestControllerCT` fails with a `TimeoutException` at the `WebTestClient` `.exchange()`: 38 of its 76
+  cases at the default 5s timeout (while #514 was in flight, 2026-10-06), and once on the Docker-free PR gate at the 30s
+  the slice configures (2026-10-15), so that raise did not hold there. The mechanism is unproven and does not reproduce
+  locally: shrinking the JVM-wide `Schedulers.boundedElastic()` pool to 4 and running the suite six times all passed,
+  which leaves boundedElastic starvation unconfirmed rather than refuted — a local pass is no evidence against a CI-only
+  cause. The failed CI attempt ran the suite concurrently with the web UI's `check` and spotbugs on a 4-vCPU runner (the
+  #514 starvation shape), and the suite's CT classes share one JVM (the #301 interference shape); JUnit kept dispatching
   distinct tests, each new one timing out on a 30s cadence for four minutes, so the stall is in the request path's
-  threads rather than the JVM. The diagnostics this entry asked for are shipped: JUnit's extension autodetection
-  registers `ThreadDumpOnFailure`, which dumps every thread's stack trace to the test output on a test failure — with
-  the suite's `showStandardStreams`, which prints its standard output and error, a deliberate cost to remove with the
-  extension once the mechanism is found.
+  threads rather than the JVM. The diagnostics are armed: `ThreadDumpOnFailure` (since `e3e6475e`, 2026-10-15) prints
+  every thread's stack trace on a failure, and the suite's `showStandardStreams` carries it to the console — that
+  setting also prints every test's standard output and error, a deliberate cost to remove with the extension once the
+  mechanism is found. As of 2026-10-22 `ci.yml` had completed 221 runs since that commit with no failure (the one
+  cancelled run is a duplicate `push` event on a single merge commit), so no dump exists to read and nothing here is
+  diagnosable yet; whether the failure is simply rare or the runner's load changed is unknown, and the zero is not
+  evidence of a fix. Revisit on the first CI failure of `ShowcaseRestControllerCT`: the log's
+  `=== thread dump after failure: … ===` marker is the material to read, and a failure carrying no such marker is itself
+  the finding that the diagnostic did not fire.
 
 ## 2026-10-05
 

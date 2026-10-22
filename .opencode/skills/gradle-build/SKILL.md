@@ -163,12 +163,12 @@ leading-integer major comparison.
 
 - **A fixable npm advisory in a transitive that a dev dependency pins exactly is forced with an `overrides` entry — not
   npm's suggested fix.** npm's offered fix is a _breaking_ downgrade of the pinning package (`eslint-plugin-boundaries`
-  7.2.0 → 5.4.0, breaking the FSD boundary lint), because the plugin and `@boundaries/elements` pin
-  `handlebars: "4.7.9"` exactly; `overrides` forces the patched `4.7.10` under them instead. A suppression
+  7.2.0 → 5.4.0, breaking the FSD boundary lint), because the plugin and `@boundaries/elements` then pinned
+  `handlebars: "4.7.9"` exactly; `overrides` forced the patched `4.7.10` under them instead. A suppression
   (`npm-audit-ignores.json`) is for an advisory with no fix — the `dependency-security` spec owns that policy — and
   unlike one the override carries no expiry, so park its re-check in `docs/ideas.md` and derive the retrigger from the
   resolved graph: every package that pins the vulnerable version must bump before it is dropped. Verify the override
-  took effect with `npm ls <pkg>` (the patched version resolves). captured: fix-dependency-security-findings
+  took effect with `npm ls <pkg>` (the patched version resolves). captured: bump-web-ui-npm-2026-10-22
 
 - **A build tool's own vulnerable transitive does not reach the platform BOM, and a tool configuration that rejects a
   platform project is aligned with a dependency constraint instead.** The platform's `constraints` reach the

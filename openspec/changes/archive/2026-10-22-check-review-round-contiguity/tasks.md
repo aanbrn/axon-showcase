@@ -32,10 +32,11 @@
       `all` in both runtimes, v1's hard failure on a missing session versus v2's silent creation, the unverified model
       pin and cloud path, and the revisit trigger). **Done**: the idea is removed, the wrapper entry is under
       2026-10-22.
-- [ ] 2.5 Refresh `showcase/quality/commit-hygiene`'s `## Purpose` at archive: it enumerates the ledger guard as
+- [x] 2.5 Refresh `showcase/quality/commit-hygiene`'s `## Purpose` at archive: it enumerates the ledger guard as
       "carries at most one row per unit and round and records each round's reviewer session and its continuity", and
       this change widens that class with contiguity, the expected round, and the acknowledgement. A delta cannot carry a
-      Purpose, so the edit rides the archive commit. Verify the Purpose names the widened guard after archiving.
+      Purpose, so the edit rides the archive commit. Verify the Purpose names the widened guard after archiving. **Done**: the archived Purpose now names contiguity from `1`, the explicitly
+      acknowledged gap, and the expected round.
 
 ## 3. Verify
 
@@ -80,4 +81,5 @@
       the old text excluded the loss case. The other four notes were judged already covered — the framing sweep, the
       universal re-derivation, the substituted-reason branch, and the row-from-its-report rule — and are recorded as
       recurrences of recorded rules rather than new ones. No rule retired.
-- [ ] 3.6 Ask the owner for the manual review pass; commit, push, archive, and merge only after approval.
+- [x] 3.6 Ask the owner for the manual review pass; commit, push, archive, and merge only after approval. **Done**: the owner approved the implementation on 2026-10-22 after the
+      manual review request, and the change shipped on PR #658.

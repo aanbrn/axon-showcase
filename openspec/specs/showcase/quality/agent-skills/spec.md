@@ -219,6 +219,10 @@ owns, not this one.
   the session identifier, whether the session was created, continued, or replaced, and the replacement's reason when it
   was replaced — supplying the identifier the invocation returned rather than inventing one, so the record evidences the
   transition instead of leaving it to recollection
+- **AND** the calling agent runs the ledger's verification after appending a round's row, again before the next reviewer
+  invocation, and once more before the manual pass — `commit-hygiene.py --unique-rounds --expect <unit>:<round>` — so a
+  deferred append fails in the same turn, before the fixes, rather than being reported as a missing record by the next
+  round
 - **AND** with no prior-round list supplied, the review still classifies each finding and states that a repetition is
   unknown rather than inferring one, since the classification cannot be compared against what it has not seen
 - **AND** a defect the applying command rewrites — `./gradlew spotlessApply`, or the web module's `npmFormat` — is

@@ -1854,7 +1854,10 @@ task or report, or concluding the cause of a Gradle failure.
   known file from each directory level before trusting its total. A content search is the same scope question in another
   tool: `grep -r` reads the working tree, so untracked, generated state (the `.gradle` Helm chart index a chart check
   writes, a `build/` report) counts as live, while `git grep` reads the tracked set — name the scope the claim covers
-  (`git grep`, or explicit paths). captured: reconcile-readme-agents-architecture captured: bump-kps-chart-2026-10-22
+  (`git grep`, or explicit paths) and keep the claim's own subject outside the exclusion: `-- ':!openspec/changes'`
+  hides the archive a row calls "the dated records", so the row states the command's output as written, never a result
+  its own pathspec makes unreachable. captured: reconcile-readme-agents-architecture captured: bump-kps-chart-2026-10-22
+  captured: bump-buildpacks-2026-10-22
 
 - **A search that under-matches returns a plausible empty or partial result.** A grep for `permissions:` matched one
   job-level block while the six top-level ones went unreported — a real result that looked complete, so nothing flags it

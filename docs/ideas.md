@@ -15,6 +15,19 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-22
 
+- Gate the formatter-blind inline-code interior — parked; no change yet. Prettier never rewrites an inline span's
+  interior, and neither `spotlessCheck`, the 120-character recipe, nor the pre-commit guard looks inside one, so a
+  whitespace run there passes every gate (the `Formatting` convention says so and it has now recurred across units). The
+  fix is a check over the Spotless markdown scope with its known-bad/known-good cases in a `*RulesTests`, after which
+  the convention's "proofread inline-code content" clause trims to a pointer. Revisit as its own change; it is a
+  build-logic addition, not a copy edit.
+
+- Take `paketo-nginx` 1.3.3 once a pinned builder bundles it — parked; no change yet. `bump-buildpacks-2026-10-22` moved
+  the builder to `0.4.667` and held the nginx pin at `1.3.0`, because that builder carries only `1.3.0`
+  (`pack builder inspect`) and the pair rule makes a pin the builder does not bundle resolve to an arm64 slice. The
+  update check keeps reporting `1.3.0 -> 1.3.3` until then. Revisit when `pack builder inspect` on the pinned builder
+  lists `nginx 1.3.3`, or if `pack` changes how it resolves an added buildpackage's slice.
+
 - Guarantee the ledger row is written before the fixes with a reviewer wrapper — parked; no change yet. A `/consult`
   report's closing prompt was once applied before the owner decided, and the round's ledger row is repeatedly deferred
   (five misses in two units), which costs extra review work when the next reviewer reports it.

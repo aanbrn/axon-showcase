@@ -38,7 +38,7 @@ commands and identifiers involved — is what the record is for.
 - **Generated**: the OpenSpec instruction files written by `openspec update` (the `opsx-apply`, `opsx-archive`,
   `opsx-explore`, `opsx-propose`, `opsx-sync`, and `opsx-update` commands, and the `openspec-*` skills). Their correct
   state is "matches the installed CLI".
-- **Vendored**: the `axon4to5-*` skills, copied verbatim from the upstream `AxonIQ/agent-skills` repository.
+- **Vendored**: the `axon4to5-*` and `ast-grep` skill trees, each copied verbatim from its upstream repository.
 
 The boundary is **provenance, not a name**: a project-authored file that shares a generated prefix stays in scope — the
 `opsx-tool-update` command is hand-written (it regenerates the OpenSpec files and syncs the CI pin), so audit it.
@@ -286,14 +286,14 @@ visible in the ledger rather than counted in the verdict line. Each with:
 - a concrete suggested rewrite or merge (exact replacement text where practical).
 
 **Advisory — third-party inconsistency.** Separately from the findings above, and without severity, report a file the
-audit excludes (a generated `openspec-*` instruction file, or a vendored `axon4to5-*` skill) that contradicts how this
-repository uses it — for example a vendored migration skill instructing a pattern our code no longer follows, or a
-generated command naming an artifact the workflow no longer has. Bound it by a **harm test**: report only where the
-contradiction would mislead a workflow driven by that file, or instruct a pattern the repository's code or conventions
-contradict — never a mere textual difference from our own prose, which is expected by design. For each item, name the
-harm and the one decision it invites — **report it upstream** (this repo has a convention for that, with a
-reproduction), **re-vendor** at a newer upstream version, or **change our usage** — and never propose a local edit to
-the excluded file. This is a candidate for the owner's decision, not a defect to fix.
+audit excludes (a generated `openspec-*` instruction file, or a vendored skill) that contradicts how this repository
+uses it — for example a vendored migration skill instructing a pattern our code no longer follows, or a generated
+command naming an artifact the workflow no longer has. Bound it by a **harm test**: report only where the contradiction
+would mislead a workflow driven by that file, or instruct a pattern the repository's code or conventions contradict —
+never a mere textual difference from our own prose, which is expected by design. For each item, name the harm and the
+one decision it invites — **report it upstream** (this repo has a convention for that, with a reproduction),
+**re-vendor** at a newer upstream version, or **change our usage** — and never propose a local edit to the excluded
+file. This is a candidate for the owner's decision, not a defect to fix.
 
 **Accretion — meta rules with their origin.** Separately from both classes above, and without severity, report the
 in-scope rules that are meta rather than product: a rule about the agent, its tooling, the per-change workflow, or the
@@ -320,8 +320,8 @@ class is not a route for speculative rules. Route the correction by the mechanis
 agent definition, command, or skill under `.opencode/`) gets the correction directly; an editable project-owned
 mechanism outside the scope (the `openspec/config.yaml` per-artifact rules) gets the gap with the correction routed to
 the change workflow, never a local edit; an excluded mechanism (a generated `openspec-*` instruction file, or a vendored
-`axon4to5-*` skill) is reported under the advisory class with no local edit. A correction references the authoritative
-standard rather than copying it into the mechanism.
+skill) is reported under the advisory class with no local edit. A correction references the authoritative standard
+rather than copying it into the mechanism.
 
 **Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
 

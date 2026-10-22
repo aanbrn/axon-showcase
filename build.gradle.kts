@@ -34,6 +34,7 @@ spotless {
             ".opencode/commands/opsx-propose.md",
             ".opencode/commands/opsx-sync.md",
             ".opencode/commands/opsx-update.md",
+            ".opencode/skills/ast-grep/**",
             ".opencode/skills/axon4to5-*/**",
             ".opencode/skills/openspec-*/**",
         )
@@ -481,7 +482,7 @@ tasks.register<Exec>("verifyCapturedMarkers") {
         fileTree(".opencode/agent") { include("*.md") },
         fileTree(".opencode/skills") {
             include("*/SKILL.md")
-            exclude("axon4to5-*/**", "openspec-*/**")
+            exclude("ast-grep/**", "axon4to5-*/**", "openspec-*/**")
         },
     )
     inputs.file("scripts/commit-hygiene.py")

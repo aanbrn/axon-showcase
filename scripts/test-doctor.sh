@@ -93,6 +93,7 @@ readme_to_probe() {
     "Python 3") echo "python3" ;;
     "Kubernetes cluster") echo "kubectl" ;;
     "OpenCode" | "OpenCode (v2 recommended)") echo "opencode" ;;
+    "ast-grep") echo "ast-grep" ;;
     *) echo "" ;;
     esac
 }

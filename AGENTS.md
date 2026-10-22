@@ -1294,35 +1294,35 @@ Key modules (libraries, not services):
     check — the alignment removes this repository's known trigger for such a skip, but the gap remains upstream).
     captured: make-the-p99-verdict-confirm-first The markdown scope is `docs/`, `AGENTS.md`, `README.md`,
     `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`, the `.github/` markdown, and the project-authored
-    `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files and the vendored `axon4to5-*` skills are excluded,
-    while the project-authored `opsx-tool-update.md` stays in scope despite the shared prefix — and
-    `.opencode/opencode.json` has its own `json` format. A target's generated-file exclusions must track what the
-    generator writes — `/opsx-tool-update` checks the list when the generated inventory changes, since a newly generated
-    `opsx-*` command would otherwise be reformatted by `spotlessApply` and then overwritten by the next
-    `openspec update`. Verify with a character count (`perl -CSD -lne 'print if length > 120'`), not
-    `awk 'length > 120'` — `awk` counts bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow
-    tripped this three times); the `-l` chomps the trailing newline `-ne` would otherwise count, so an
-    exactly-120-character line is not false-flagged. Verify a verification command on a boundary case before recording
-    it — the first recipe omitted `-l` and false-flagged every exactly-120-character line. Apply it over the change's
-    whole changed set, derived with `git status --porcelain --untracked-files=all` — `git diff --name-only` omits the
-    untracked change dir the workflow leaves in place, so the change's own planning artifacts go unchecked — not only
-    the files a finding named: a per-file scope leaves the rest unverified and the review re-finds them. captured:
-    add-web-ui-rum-observability Formatters cannot reflow string literals (e.g. an error message in Kotlin/Gradle), so
-    wrap an over-long string with concatenation (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as
-    natural prose and let `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the
-    wrapping and reflows on every run. A bare `$` in prose (outside inline code) is parsed as inline math and blocks
-    that reflow — the paragraph silently keeps its original ragged wrapping while `spotlessCheck` still passes; escape
-    it as `\$` (which renders as `$`); a bare `|` in a markdown table row splits the cell, so escape it as `\|` —
-    Prettier neither escapes nor flags it, and an inline code span is no protection. The formatter also leaves the
-    interior of an inline code span untouched — it wraps prose around the span but never rewrites the code text it
-    contains — so a defect inside one (a whitespace run) passes `spotlessCheck` and the manual 120-character check
-    alike, neither of which has a rule that detects it: proofread inline-code content as content, not as something the
-    gate will fix. Never author an inline code span across a source line break — Prettier's reflow joins the lines and
-    leaves the continuation line's indentation as extra spaces inside the span (a `paketo-buildpacks/procfile` split
-    from its `5.15.0` came out as `paketo-buildpacks/procfile     5.15.0`): keep a span on one source line and let the
-    reflow move the whole span. Fenced blocks are a different story — Prettier applies embedded formatting inside a
-    fence whose info string names a language it supports (`json`, `yaml`, `markdown`), so that content is gated, while
-    an unsupported one (`bash`, `java`, `mermaid`) is not. captured: fix-gateway-cors-allowed-headers (#359) captured:
+    `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files and the vendored skill trees are excluded, while
+    the project-authored `opsx-tool-update.md` stays in scope despite the shared prefix — and `.opencode/opencode.json`
+    has its own `json` format. A target's generated-file exclusions must track what the generator writes —
+    `/opsx-tool-update` checks the list when the generated inventory changes, since a newly generated `opsx-*` command
+    would otherwise be reformatted by `spotlessApply` and then overwritten by the next `openspec update`. Verify with a
+    character count (`perl -CSD -lne 'print if length > 120'`), not `awk 'length > 120'` — `awk` counts bytes and
+    false-flags a ≤120-character line containing non-ASCII (the `→` arrow tripped this three times); the `-l` chomps the
+    trailing newline `-ne` would otherwise count, so an exactly-120-character line is not false-flagged. Verify a
+    verification command on a boundary case before recording it — the first recipe omitted `-l` and false-flagged every
+    exactly-120-character line. Apply it over the change's whole changed set, derived with
+    `git status --porcelain --untracked-files=all` — `git diff --name-only` omits the untracked change dir the workflow
+    leaves in place, so the change's own planning artifacts go unchecked — not only the files a finding named: a
+    per-file scope leaves the rest unverified and the review re-finds them. captured: add-web-ui-rum-observability
+    Formatters cannot reflow string literals (e.g. an error message in Kotlin/Gradle), so wrap an over-long string with
+    concatenation (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as natural prose and let
+    `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the wrapping and reflows on
+    every run. A bare `$` in prose (outside inline code) is parsed as inline math and blocks that reflow — the paragraph
+    silently keeps its original ragged wrapping while `spotlessCheck` still passes; escape it as `\$` (which renders as
+    `$`); a bare `|` in a markdown table row splits the cell, so escape it as `\|` — Prettier neither escapes nor flags
+    it, and an inline code span is no protection. The formatter also leaves the interior of an inline code span
+    untouched — it wraps prose around the span but never rewrites the code text it contains — so a defect inside one (a
+    whitespace run) passes `spotlessCheck` and the manual 120-character check alike, neither of which has a rule that
+    detects it: proofread inline-code content as content, not as something the gate will fix. Never author an inline
+    code span across a source line break — Prettier's reflow joins the lines and leaves the continuation line's
+    indentation as extra spaces inside the span (a `paketo-buildpacks/procfile` split from its `5.15.0` came out as
+    `paketo-buildpacks/procfile     5.15.0`): keep a span on one source line and let the reflow move the whole span.
+    Fenced blocks are a different story — Prettier applies embedded formatting inside a fence whose info string names a
+    language it supports (`json`, `yaml`, `markdown`), so that content is gated, while an unsupported one (`bash`,
+    `java`, `mermaid`) is not. captured: fix-gateway-cors-allowed-headers (#359) captured:
     optimize-agents-auditor-for-instruction-budget
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
@@ -1398,14 +1398,14 @@ Key modules (libraries, not services):
   candidates, the advisory class for excluded files, the accreted meta rules with their origins, and the
   authoring-system gap class for a recurring defect's mechanism) and the shared report contract are specified in
   `showcase/quality/agent-skills` — see there rather than here. The boundary is a **provenance partition**: it never
-  _fixes_ what the repo does not author (the generated OpenSpec instruction files and the vendored `axon4to5-*` skills),
-  though it still _reads_ them and reports an advisory item where one contradicts how the repo uses it — a
-  project-authored file that shares a generated prefix, like `opsx-tool-update`, stays in scope — a boundary drawn by
-  provenance, not a filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). Trigger
-  it with the `/audit-agents` command; the main agent applies the approved findings under the review gate, whose
-  delivery routes — each unit scoped to its own artifacts and diff, split by fix type rather than run through one unit —
-  are the `showcase/quality/agent-skills` requirement's. The scheduled variant runs unattended in the `audit` workflow;
-  the audit itself is on demand. A report's reduction candidates are drained by the standing owner-gated unit
+  _fixes_ what the repo does not author (the generated OpenSpec instruction files and the vendored skill trees), though
+  it still _reads_ them and reports an advisory item where one contradicts how the repo uses it — a project-authored
+  file that shares a generated prefix, like `opsx-tool-update`, stays in scope — a boundary drawn by provenance, not a
+  filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). Trigger it with the
+  `/audit-agents` command; the main agent applies the approved findings under the review gate, whose delivery routes —
+  each unit scoped to its own artifacts and diff, split by fix type rather than run through one unit — are the
+  `showcase/quality/agent-skills` requirement's. The scheduled variant runs unattended in the `audit` workflow; the
+  audit itself is on demand. A report's reduction candidates are drained by the standing owner-gated unit
   `/apply-audit-reductions` (specified in `showcase/quality/agent-skills`), run per report rather than left to age; the
   report's other findings go through the normal change workflow. captured: record-agents-md-authoring-standard
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
@@ -1546,11 +1546,26 @@ Key modules (libraries, not services):
   no model at all, so check that the workflow itself spends metered quota before reasoning about its slot. The
   interactive loop is paced by the human and cannot be shifted. captured: capture-offpeak-cost-lever (#369) captured:
   schedule-jobs-into-the-owners-night captured: structure-visual-review
-- **Vendored agent skills**: the three `axon4to5-*` skills under `.opencode/skills/` are vendored from the
-  `AxonIQ/agent-skills` repository, plugin `axoniq-migration` version 0.2.2 (Apache-2.0), copied verbatim from
-  `plugins/axoniq-migration/skills/`. To refresh, re-copy the skill directories from that upstream tree at the desired
-  plugin version and update the recorded version here and in the `showcase/quality/agent-skills` spec — a deliberate,
-  reviewed change, not silent drift.
+- **Vendored agent skills**: two upstream skill sets are copied verbatim under `.opencode/skills/`, each with its own
+  provenance below and in the `showcase/quality/agent-skills` spec. To refresh either set, re-copy its skill directories
+  from that upstream tree at the desired plugin version and update the recorded version, commit, and any recorded blob
+  hashes here and in the spec — a deliberate, reviewed change, not silent drift. A vendored tree is never reformatted,
+  marker-checked, held to the executable-bit rule, or scanned for upstream references, so a new set's glob joins every
+  declaration of the set: the Spotless markdown target's `targetExclude` and the marker task's input file tree in
+  `build.gradle.kts`, `VENDORED_SKILL_PREFIXES` in `scripts/commit-hygiene.py`, and `EXCLUDED_SKILL_PREFIXES` in
+  `build-logic/src/main/kotlin/UpstreamReferenceScope.kt`.
+  - **AxonIQ migration** — the three `axon4to5-*` skills from the `AxonIQ/agent-skills` repository, plugin
+    `axoniq-migration` version 0.2.2 (Apache-2.0), copied from `plugins/axoniq-migration/skills/` at commit
+    `518acd865a`, whose tree every vendored file matches (compare per file with `git hash-object` against
+    `gh api …/git/trees/<commit>?recursive=1`).
+  - **ast-grep** — the `ast-grep` skill from the `ast-grep/agent-skill` repository, plugin `ast-grep` version 1.0.0
+    (MIT, declared in `ast-grep/.claude-plugin/plugin.json`; the upstream tree carries no `LICENSE` file), copied from
+    `ast-grep/skills/ast-grep/` at commit `f2175af`. That repository publishes no release tag to name, and the copy is
+    pinned by that commit together with both files' blob hashes — `SKILL.md` `1c6e3afd2887aba4f24317c03f776c013086abc2`,
+    `references/rule_reference.md` `9821e35ff253f6a0d709918af20215165e9b1adf` — so checking the copy against the record
+    is a `git hash-object` comparison with them, without the upstream tree. `SKILL.md` is the entry point and
+    `references/rule_reference.md` the rule syntax; it drives the `ast-grep` CLI, which the doctor probes and the
+    README's Prerequisites table documents.
 - **Tooling lives in a stated place, in four kinds of location — state it here, not per script.** Repository-wide
   tooling goes in `scripts/`; a module's own tooling stays beside that module
   (`showcase-web-ui/scripts/outdated-report.sh`, `showcase-web-ui/scripts/audit-report.sh`, `showcase-web-ui/start.sh`);
@@ -1562,17 +1577,17 @@ Key modules (libraries, not services):
   tool with no agent caller stays untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`, `review-rounds.py`), and
   `commit-hygiene.py` is driven by the tracked `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks, and
   `review-routing.py` by the review gate's own procedure and by its `testReviewRouting` task. The generated OpenSpec
-  command/skill files and the vendored `axon4to5-*` skills are not the repository's to place. Derive any claim about
-  placement from the complete set (`git ls-files -s | awk '$1=="100755"'`), not from the location in hand. captured:
+  command/skill files and the vendored skill trees are not the repository's to place. Derive any claim about placement
+  from the complete set (`git ls-files -s | awk '$1=="100755"'`), not from the location in hand. captured:
   state-tooling-placement-rule (#458)
 - **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
-  `.opencode/commands/setup-agent-tools.md` (project-local, **not** one of the vendored `axon4to5-*` skills) let a
-  contributor ask the agent to wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only,
-  the Steroid MCP — into the flat `mcp` map of their global `~/.config/opencode/opencode.jsonc` (not the `mcp.servers`
-  nesting: `opencode mcp add` needs `--global`, and Gotchas carries the shape rationale and the upstream reference).
-  Playwright is project-configured. The README deliberately documents only GitHub (and the project-configured
-  Playwright): Steroid is optional, IDEA-only, and nothing in the repo requires it (formatting is Spotless), so it is
-  surfaced on demand via `/setup-agent-tools` rather than advertised — do not re-add it to the README's server list.
+  `.opencode/commands/setup-agent-tools.md` (project-local, **not** a vendored skill) let a contributor ask the agent to
+  wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only, the Steroid MCP — into the
+  flat `mcp` map of their global `~/.config/opencode/opencode.jsonc` (not the `mcp.servers` nesting: `opencode mcp add`
+  needs `--global`, and Gotchas carries the shape rationale and the upstream reference). Playwright is
+  project-configured. The README deliberately documents only GitHub (and the project-configured Playwright): Steroid is
+  optional, IDEA-only, and nothing in the repo requires it (formatting is Spotless), so it is surfaced on demand via
+  `/setup-agent-tools` rather than advertised — do not re-add it to the README's server list.
 - **Agent scratch files go in `$TMPDIR/opencode`, which OpenCode v2 allows by default.** v2's managed temporary
   directory _is_ `<tmpdir>/opencode` (`opencode debug paths`), and its permissions docs say v2 allows
   `external_directory` access to that directory, so no rule is needed; put PR-body files and similar there — including a
@@ -1837,12 +1852,27 @@ task or report, or concluding the cause of a Gradle failure.
 
 ### Evidence and search
 
+- **A search whose answer depends on code structure is a structural search, not a text search.** IF the question is
+  about a construct's shape, a call inside a context, or a pattern around a node — a method annotated `@Test` that calls
+  `block()`, a class annotated `@ConfigurationProperties`, a `useQuery` call with its options object — THEN load the
+  `ast-grep` skill and run `ast-grep run -p '<pattern>' --lang <id>` (or `scan --inline-rules` for the relational and
+  composite rules).
+  - `rg` stays the tool for text, identifiers, and paths: it needs no parser and answers across every file type, so a
+    structure-independent search does not pay for one.
+  - A pattern matches whole AST nodes, so the qualified and the bare form of a call are different patterns —
+    `assertThat($X)` matches the statically imported call, never `Assertions.assertThat($X)` — and the form to write is
+    the one the code uses.
+  - A zero-match run is not absence: prove the pattern on a snippet that contains the construct (`--stdin`, or
+    `--debug-query=pattern`) before reading the zero.
+  - ast-grep parses syntax only — it resolves no types, follows no call graph, and says nothing about behavior — so a
+    question about what the code _does_ is answered by reading it, a test, or a debugger, never by a pattern.
+
 - **A glob or filter that matches nothing is vacuous, not clean.** An audit command told the agent to run "a manual
   120-character check for `.opencode/*.md`" — a glob matching **no file**, since the markdown lives in
   `.opencode/agent/` and `.opencode/commands/`; it shipped that way because no gate reads a glob written in prose. The
   first fix over-corrected to `.opencode/**/*.md`, which also matches `node_modules/`, the generator-written `opsx-*`
-  commands and `openspec-*` skills, and the vendored `axon4to5-*` skills — so "clean" was unachievable. Expand a glob
-  once (`ls <glob>`) before trusting it: a vacuous match fails silently and a recursive one over-matches generated or
+  commands and `openspec-*` skills, and the vendored skill trees — so "clean" was unachievable. Expand a glob once
+  (`ls <glob>`) before trusting it: a vacuous match fails silently and a recursive one over-matches generated or
   vendored files. The same failure comes from a name pattern that truncates: a module-inventory diff written
   `showcase-[a-z-]+` dropped the digit in `showcase-resilience4j-extension`, so the module read as _absent_ and the
   audit nearly opened a change to "restore" an entry that was present all along — a pattern that silently under-matches
@@ -2528,12 +2558,12 @@ changing an image or buildpack pin.
   - a widened or narrowed check → its describers, including a worked example in a definition;
   - a javadoc or field-doc pass → every declaration in the touched classes, not only the ones a review named;
   - a set that gained a member, or an enumeration of one → every live enumeration of the set, since a plain enumeration
-    is the case a name-grep cannot see: grep its distinctive members across `.opencode/`, `openspec/specs/`,
-    `AGENTS.md`, `README.md`, `docs/ideas.md`, and `scripts/` before writing the addition — a tool's module docstring
-    and `--help` text are live enumerations too, and the change's own planning copies can stay identical while every
-    live site goes stale — and when the set is an auditor's, sweep its definition, its trigger command, `AGENTS.md`'s
-    summary of it, and the spec requirement that owns the sweep, which is a main spec and so needs a `MODIFIED` delta
-    rather than a docs edit;
+    is the case a name-grep cannot see: grep its distinctive members over the whole working tree, untracked files
+    included, before writing the addition — never a hand-picked directory list, since a build script or `build-logic/`
+    declares the set as often as prose does — a tool's module docstring and `--help` text are live enumerations too, and
+    the change's own planning copies can stay identical while every live site goes stale — and when the set is an
+    auditor's, sweep its definition, its trigger command, `AGENTS.md`'s summary of it, and the spec requirement that
+    owns the sweep, which is a main spec and so needs a `MODIFIED` delta rather than a docs edit;
   - a code symbol or file renamed or removed → the whole repository for the old name, config, values, and template
     comments included, since docs cite these names as examples and nothing resolves them;
   - a second instance of something the docs call unique (an `only`/`sole`/`never` claim) → `AGENTS.md`, for the claim
@@ -2545,7 +2575,7 @@ changing an image or buildpack pin.
 
   Two directions read plausibly for a converter or mapper, so read the field's Javadoc and one call site before writing
   its `@param`/`@return`. captured: bump-tooling-pins-2026-10-16 captured: make-the-capture-selective captured:
-  monitor-web-ui-npm-dependencies (#395) captured: verify-unique-review-rounds
+  monitor-web-ui-npm-dependencies (#395) captured: verify-unique-review-rounds captured: vendor-ast-grep-skill
 
   evidence: documentation-and-durable-claims
 

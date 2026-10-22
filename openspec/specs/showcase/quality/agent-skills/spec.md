@@ -3,37 +3,42 @@
 ## Purpose
 
 Provides the repository's agent capabilities: curated, vendored skill sets under `.opencode/skills/` (so agents can run
-the AxonIQ Axon 4→5 migration recipes against this codebase), the project-authored guidance skills there beside them
-(the `check-and-test-authoring` reference, the `ship-change` procedure, and the `setup-*` skills, loaded on demand at
-the trigger `AGENTS.md` names), the knowledge-authoring standard `AGENTS.md` entries follow (representation, one
-authoritative definition per subject, the procedure and gotcha shapes, the evidence rules, and the validation pass —
-applied by the capture when authoring and the audit when reconciling), the structured writing standard every
-agent-authored technical artifact follows (stated once in `AGENTS.md`, applied while drafting and checked by the review
-and audit subagents), and the locally-defined quality-gate and analysis subagents under `.opencode/agent/` — the
-per-unit review and lesson-capture agents, the experience-analyzer, the visual and diagram agents, the on-demand
-technical advisor, and the on-demand auditors of the project-owned agent tooling (the guidance and project-authored
-`.opencode/` files, plus any generated or vendored file that contradicts how the repository uses it, the always-loaded
-instruction budget it measures with the extraction opportunities that surface where guidance has no destination yet, the
-meta rules it reports with their origins, the merge, removal, route, and extraction candidates it reports, and the
-authoring-system gaps it traces to a mechanism that produces an artifact), of the `openspec/specs/` corpus, of the
-architecture (the ADRs, the service, module, and spec-decomposition surface, where a deliberate decision's rationale is
-not recorded, and where a record's recorded premise appears met — a deferral's `Revisit when:` condition, or a parked
-`docs/ideas.md` entry whose work has landed, fully or partly, or whose objective a different mechanism achieves), of the
-human-facing `README.md` (its claims against the repository, its shape against the README convention, and its coverage
-of the human-visible capabilities), and the scheduled unattended run that performs the audits without a human asking,
-together with the standing owner-gated unit that applies an audit report's reduction candidates, and the
-project-authored command definitions under `.opencode/commands/` — their authoring shape, the repository lifecycle a
-mutating unit owes, and how an audit's approved findings are delivered as separate units by the route each finding's
-kind requires.
+the AxonIQ Axon 4→5 migration recipes against this codebase, and search it by code structure through the `ast-grep`
+skill), the project-authored guidance skills there beside them (the `check-and-test-authoring` reference, the
+`ship-change` procedure, and the `setup-*` skills, loaded on demand at the trigger `AGENTS.md` names), the
+knowledge-authoring standard `AGENTS.md` entries follow (representation, one authoritative definition per subject, the
+procedure and gotcha shapes, the evidence rules, and the validation pass — applied by the capture when authoring and the
+audit when reconciling), the structured writing standard every agent-authored technical artifact follows (stated once in
+`AGENTS.md`, applied while drafting and checked by the review and audit subagents), and the locally-defined quality-gate
+and analysis subagents under `.opencode/agent/` — the per-unit review and lesson-capture agents, the
+experience-analyzer, the visual and diagram agents, the on-demand technical advisor, and the on-demand auditors of the
+project-owned agent tooling (the guidance and project-authored `.opencode/` files, plus any generated or vendored file
+that contradicts how the repository uses it, the always-loaded instruction budget it measures with the extraction
+opportunities that surface where guidance has no destination yet, the meta rules it reports with their origins, the
+merge, removal, route, and extraction candidates it reports, and the authoring-system gaps it traces to a mechanism that
+produces an artifact), of the `openspec/specs/` corpus, of the architecture (the ADRs, the service, module, and
+spec-decomposition surface, where a deliberate decision's rationale is not recorded, and where a record's recorded
+premise appears met — a deferral's `Revisit when:` condition, or a parked `docs/ideas.md` entry whose work has landed,
+fully or partly, or whose objective a different mechanism achieves), of the human-facing `README.md` (its claims against
+the repository, its shape against the README convention, and its coverage of the human-visible capabilities), and the
+scheduled unattended run that performs the audits without a human asking, together with the standing owner-gated unit
+that applies an audit report's reduction candidates, and the project-authored command definitions under
+`.opencode/commands/` — their authoring shape, the repository lifecycle a mutating unit owes, and how an audit's
+approved findings are delivered as separate units by the route each finding's kind requires.
 
 ## Requirements
 
 ### Requirement: Vendored agent skills are available to agents
 
-The repository SHALL vendor the AxonIQ `axoniq-migration` plugin skills (version 0.2.2) from the `AxonIQ/agent-skills`
-repository under `.opencode/skills/`, so that opencode discovers them as project skills. The vendored set SHALL include
-`axon4to5-migrate-code`, `axon4to5-openrewrite`, and `axon4to5-isolatedtest`. Vendoring SHALL NOT add the skill files to
-any Gradle module's classpath or to any built Docker image.
+The repository SHALL vendor two upstream skill sets under `.opencode/skills/`, so that opencode discovers them as
+project skills, and each set's provenance SHALL name it separately (see "Vendored skills carry version provenance"). The
+AxonIQ set SHALL be the `axoniq-migration` plugin skills (version 0.2.2) from the `AxonIQ/agent-skills` repository, and
+SHALL include `axon4to5-migrate-code`, `axon4to5-openrewrite`, and `axon4to5-isolatedtest`. The structural-search set
+SHALL be the `ast-grep` skill (version 1.0.0) from the `ast-grep/agent-skill` repository, whose `SKILL.md` entry point
+names its `references/rule_reference.md`. The structural-search skill SHALL remain discoverable without its CLI being
+installed — discovery is file-based, and the missing CLI is reported as an unsatisfied optional prerequisite rather than
+an unavailable skill. Vendoring SHALL NOT add the skill files to any Gradle module's classpath or to any built Docker
+image.
 
 #### Scenario: Migration skills are discoverable by agents
 
@@ -47,21 +52,47 @@ any Gradle module's classpath or to any built Docker image.
 - **THEN** the vendored skill files under `.opencode/skills/` are not part of any module's source set, classpath, or
   Docker image
 
+#### Scenario: The structural-search skill is discoverable by agents
+
+- **WHEN** an agent lists the project's skills in `.opencode/skills/`
+- **THEN** it finds `ast-grep`, with its `SKILL.md` entry point and the `references/rule_reference.md` its entry point
+  names, and the reference is readable at that relative path from the skill's directory
+
+#### Scenario: The structural-search skill is available while its CLI is missing
+
+- **WHEN** the `ast-grep` CLI is not installed on the machine
+- **THEN** the skill is still discovered, and the toolchain diagnostic reports the missing CLI as an unsatisfied
+  optional prerequisite with its install command, rather than the skill being unavailable
+
 ### Requirement: Vendored skills carry version provenance
 
-The vendored skills SHALL record their upstream source repository and the exact plugin version they were copied from, so
-that an upstream update is a deliberate, reviewable change rather than silent drift.
+The vendored skills SHALL record, per set, their upstream source repository, the exact plugin version taken from the
+upstream plugin manifest, the upstream path the copy came from, the license, and the upstream commit whose tree the
+vendored files correspond to. An entry MAY also record the vendored files' git blob hashes. Checking the current copy
+SHALL compare it with the recorded commit — or with those hashes where the entry records them — and an update SHALL
+compare the new copy with the upstream snapshot it is taken from and refresh the recorded provenance; neither check
+constrains how the upstream content is obtained. A vendored tree SHALL be copied verbatim: it SHALL NOT be reformatted
+by the build, and no project-owned gate SHALL require its own markers in it.
 
 #### Scenario: Provenance is recorded
 
 - **WHEN** a maintainer inspects the vendored skills or the `agent-skills` capability spec
-- **THEN** the upstream source (`AxonIQ/agent-skills`), plugin (`axoniq-migration`), and version (0.2.2) are documented
+- **THEN** each set's upstream source, plugin, version, upstream path, license, and commit are documented —
+  `AxonIQ/agent-skills` `axoniq-migration` 0.2.2 at `518acd865a`, and `ast-grep/agent-skill` `ast-grep` 1.0.0 at
+  `f2175af` — and the `ast-grep` entry also records its files' blob hashes, so that copy is checkable with
+  `git hash-object` alone
 
 #### Scenario: Updating to a new plugin version is an explicit change
 
-- **WHEN** a new `axoniq-migration` plugin version is published upstream
-- **THEN** refreshing the vendored skills is performed as a reviewed change that updates the recorded version, rather
-  than applied silently
+- **WHEN** a new plugin version is published upstream for either vendored set
+- **THEN** refreshing that set is performed as a reviewed change that updates the recorded version, commit, and every
+  recorded blob hash, rather than applied silently
+
+#### Scenario: A vendored tree stays byte-identical to upstream
+
+- **WHEN** the build's formatter or a project-owned gate runs over the repository
+- **THEN** the vendored trees are excluded from both, so a vendored file differs from its upstream copy only when a
+  refresh change replaces it
 
 ### Requirement: Experience analysis is available to agents
 
@@ -702,36 +733,36 @@ The repository SHALL provide an `agents-auditor` agent subagent that audits the 
 `AGENTS.md`, the project-authored files under `.opencode/agent/`, `.opencode/commands/`, and `.opencode/skills/`, and
 the guidance evidence records under `docs/guidance-evidence/` — for **consistency** and **conciseness**, and reports its
 findings without editing files. The audit SHALL exclude files the repository does not author: the generator-owned
-OpenSpec instruction files (the commands and skills written by `openspec update`) and the vendored `axon4to5-*` skills
-(copied verbatim from the upstream AxonIQ repository); a project-authored file that shares a generated file's name
-prefix (e.g. the `opsx-tool-update` command) SHALL remain in scope. The audit SHALL cover, at least: contradictions
-between entries or files, stale claims and enumerations the repository has outgrown, dead cross-references, and drift
-from the code/workflows/specs the prose describes (consistency); and duplicated or near-duplicate entries, one-off
-trivia, over-long or over-specific entries, and misplaced entries (conciseness). Within conciseness the audit SHALL
-report these analyses as standing findings rather than only under a scoped run: **merge candidates**, each naming the
-overlapping or complementary entries and the merged text that preserves every anchor and piece of evidence the originals
-carried — and never blending two distinct lessons into one — and where the merged text would only restate a rule the
-file already carries, the candidate is a deletion of the duplicate rather than a merge, reported as a `remove` so the
-verdict's count includes it, and the audit SHALL say which it is; **removal candidates**, each naming a rule that
-governs no decision (trivia, not a rule — the same test the capture's filter applies), what would be lost, and whether
-git preserves it; and **route candidates**, each naming a rule whose subject a deterministic mechanism already enforces
-— a build or CI gate, a lint or test, a CLI validation, or a deterministic workflow step such as the archive-time spec
-sync, but never a review, whether a human's or a review subagent's — and proposing to reduce the rule to a pointer at
-that mechanism, or move its content to the spec or ADR that owns it, naming the mechanism, what would be lost, and
-confirming the mechanism exists and covers the rule's subject; and **extraction candidates**, each a verified proposal
-to partition one `AGENTS.md` unit into a minimal retained root entry point, an authoritative destination that loads or
-is discoverable when its trigger occurs, and an explicit retrieval path from that trigger to that destination, as the
-conditions below define. All are candidates for the owner, not actions. Each finding SHALL be verified against the
-repository rather than inferred from the prose alone, and SHALL be reported with its location and a concrete suggested
-rewrite. A reduction candidate — a merge, removal, route, or extraction — SHALL carry seven fields: its location; the
-decision its rule changes; the task or condition that requires it; the unique content the change would otherwise lose
-(every imperative, warning, exception, identifier, rationale, provenance marker, and verification); its current loading
-cost; its disposition; and the repository evidence that the surviving guidance preserves the same obligation. A merge
-candidate whose merged text delegates content to a target — a spec or an ADR it points the reader to — SHALL have that
-delegation verified against the target: its behavior **and** the identifiers, declarations, and gate conditions the
-delegated content names, not the behavior alone. A delegated item the target does not carry SHALL stay in the merged
-text, and the candidate SHALL say which items it kept for that reason. The subagent SHALL propose its findings without
-modifying files; the main agent verifies and applies those the user approves.
+OpenSpec instruction files (the commands and skills written by `openspec update`) and the vendored skill trees
+(`axon4to5-*` and `ast-grep`) (each copied verbatim from its upstream repository); a project-authored file that shares a
+generated file's name prefix (e.g. the `opsx-tool-update` command) SHALL remain in scope. The audit SHALL cover, at
+least: contradictions between entries or files, stale claims and enumerations the repository has outgrown, dead
+cross-references, and drift from the code/workflows/specs the prose describes (consistency); and duplicated or
+near-duplicate entries, one-off trivia, over-long or over-specific entries, and misplaced entries (conciseness). Within
+conciseness the audit SHALL report these analyses as standing findings rather than only under a scoped run: **merge
+candidates**, each naming the overlapping or complementary entries and the merged text that preserves every anchor and
+piece of evidence the originals carried — and never blending two distinct lessons into one — and where the merged text
+would only restate a rule the file already carries, the candidate is a deletion of the duplicate rather than a merge,
+reported as a `remove` so the verdict's count includes it, and the audit SHALL say which it is; **removal candidates**,
+each naming a rule that governs no decision (trivia, not a rule — the same test the capture's filter applies), what
+would be lost, and whether git preserves it; and **route candidates**, each naming a rule whose subject a deterministic
+mechanism already enforces — a build or CI gate, a lint or test, a CLI validation, or a deterministic workflow step such
+as the archive-time spec sync, but never a review, whether a human's or a review subagent's — and proposing to reduce
+the rule to a pointer at that mechanism, or move its content to the spec or ADR that owns it, naming the mechanism, what
+would be lost, and confirming the mechanism exists and covers the rule's subject; and **extraction candidates**, each a
+verified proposal to partition one `AGENTS.md` unit into a minimal retained root entry point, an authoritative
+destination that loads or is discoverable when its trigger occurs, and an explicit retrieval path from that trigger to
+that destination, as the conditions below define. All are candidates for the owner, not actions. Each finding SHALL be
+verified against the repository rather than inferred from the prose alone, and SHALL be reported with its location and a
+concrete suggested rewrite. A reduction candidate — a merge, removal, route, or extraction — SHALL carry seven fields:
+its location; the decision its rule changes; the task or condition that requires it; the unique content the change would
+otherwise lose (every imperative, warning, exception, identifier, rationale, provenance marker, and verification); its
+current loading cost; its disposition; and the repository evidence that the surviving guidance preserves the same
+obligation. A merge candidate whose merged text delegates content to a target — a spec or an ADR it points the reader to
+— SHALL have that delegation verified against the target: its behavior **and** the identifiers, declarations, and gate
+conditions the delegated content names, not the behavior alone. A delegated item the target does not carry SHALL stay in
+the merged text, and the candidate SHALL say which items it kept for that reason. The subagent SHALL propose its
+findings without modifying files; the main agent verifies and applies those the user approves.
 
 The audit SHALL additionally report an **instruction-budget ledger** for `AGENTS.md`, measuring the always-loaded
 instruction surface rather than judging it: the file's total size in bytes and lines; its size by top-level section; the
@@ -833,11 +864,11 @@ change, or reject the extraction.
 
 The audit SHALL additionally report, as an **advisory** class kept separate from its fix findings and reported without
 severity, third-party inconsistency: a file the audit excludes (a generated `openspec-*` instruction file, or a vendored
-`axon4to5-*` skill) that contradicts how this repository uses it. The class SHALL be bounded by a harm test — reported
-only where the contradiction would mislead a workflow driven by the file, or instruct a pattern the repository's code or
-conventions contradict, never a mere textual difference from the repository's own prose. Each item SHALL name the harm
-and the decision it invites (report it upstream, re-vendor at a newer version, or change the repository's usage) and
-SHALL NOT propose a local edit to the excluded file, which the exclusion rule forbids.
+skill) that contradicts how this repository uses it. The class SHALL be bounded by a harm test — reported only where the
+contradiction would mislead a workflow driven by the file, or instruct a pattern the repository's code or conventions
+contradict, never a mere textual difference from the repository's own prose. Each item SHALL name the harm and the
+decision it invites (report it upstream, re-vendor at a newer version, or change the repository's usage) and SHALL NOT
+propose a local edit to the excluded file, which the exclusion rule forbids.
 
 The audit SHALL additionally report, as an **accretion** class kept separate from both its fix findings and its advisory
 class, the in-scope rules that are meta rather than product — a rule about the agent, its tooling, the per-change
@@ -883,9 +914,9 @@ owns, not this one.
 #### Scenario: Generated and vendored files are excluded
 
 - **WHEN** the `agents-auditor` subagent selects what to audit
-- **THEN** it excludes the OpenSpec instruction files written by `openspec update` and the vendored `axon4to5-*` skills,
-  whose correct state is defined by their generator or upstream rather than by this repository — while a
-  project-authored file with a similar name (the `opsx-tool-update` command) stays in scope
+- **THEN** it excludes the OpenSpec instruction files written by `openspec update` and the vendored skill trees
+  (`axon4to5-*` and `ast-grep`), whose correct state is defined by their generator or upstream rather than by this
+  repository — while a project-authored file with a similar name (the `opsx-tool-update` command) stays in scope
 
 #### Scenario: Findings are verified against the repository
 

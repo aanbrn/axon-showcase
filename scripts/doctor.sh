@@ -74,6 +74,7 @@ install_hint() {
     macos:python3) echo "ships with macOS Command Line Tools" ;;
     macos:gh) echo "brew install gh" ;;
     macos:opencode) echo "brew install anomalyco/tap/opencode-v2, or https://opencode.ai/v2" ;;
+    macos:ast-grep) echo "brew install ast-grep" ;;
     debian:java) echo "sudo apt install openjdk-21-jdk, or SDKMAN" ;;
     debian:docker) echo "sudo apt install docker.io docker-compose-v2" ;;
     debian:compose) echo "sudo apt install docker-compose-v2" ;;
@@ -85,6 +86,7 @@ install_hint() {
     debian:python3) echo "sudo apt install python3" ;;
     debian:gh) echo "sudo apt install gh, or a release binary from cli/cli" ;;
     debian:opencode) echo "curl -fsSL https://opencode.ai/install | bash, or https://opencode.ai/v2" ;;
+    debian:ast-grep) echo "npm install -g @ast-grep/cli, or a release binary from ast-grep/ast-grep" ;;
     *) echo "" ;;
     esac
 }
@@ -124,6 +126,7 @@ snyk|optional|tool|yes|snyk|--version|
 python3|optional|tool|yes|python3|--version|3
 gh|optional|tool|no|gh|--version|
 opencode|optional|tool|yes|opencode|--version|
+ast-grep|optional|tool|yes|ast-grep|--version|
 git-hooks|optional|state|no|||
 docker-daemon|required|state|no|||
 '

@@ -70,7 +70,8 @@ catalog's Prettier version, which the root's formatting uses, SHALL be the versi
 build SHALL verify that agreement in `check`, since two formatter versions can disagree on whether a file converges at
 all. The `openspec/changes/archive/` historical record is not reformatted, and neither are the generated OpenSpec
 instruction files (the six `opsx-*` commands — the project-authored `opsx-tool-update.md` is in scope — and the
-`openspec-*` skills) nor the vendored `axon4to5-*` skills, which are copied verbatim from upstream.
+`openspec-*` skills) nor the vendored skill trees — the AxonIQ `axon4to5-*` set and the `ast-grep` skill — which are
+copied verbatim from upstream.
 
 #### Scenario: Formatting check runs in the standard check
 
@@ -125,7 +126,7 @@ instruction files (the six `opsx-*` commands — the project-authored `opsx-tool
 
 - **WHEN** the markdown formatting check runs
 - **THEN** it does not check the generated `opsx-*` commands (except the project-authored `opsx-tool-update.md`), the
-  generated `openspec-*` skills, or the vendored `axon4to5-*` skills
+  generated `openspec-*` skills, or the vendored skill trees (`axon4to5-*` and `ast-grep`)
 
 #### Scenario: The .opencode configuration JSON is format-gated
 

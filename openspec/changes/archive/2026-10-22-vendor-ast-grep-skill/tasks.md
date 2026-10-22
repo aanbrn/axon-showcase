@@ -52,8 +52,9 @@
 - [x] 4.3 Write the deltas the sweep owes. **Done**: `showcase/quality/code-quality` (the formatter's exclusion) and
       `showcase/quality/commit-hygiene` (the executable-bit scan's exclusion) carry `MODIFIED` blocks whose descriptions
       name the skill trees rather than one set, and `agent-skills` gains a third block for the auditor's exclusion.
-- [ ] 4.4 Refresh the capability's `## Purpose` at archive time, in the archive commit: it currently frames the vendored
-      sets as the Axon 4→5 recipes alone, which the second set falsifies. A delta cannot carry a Purpose.
+- [x] 4.4 Refresh the capability's `## Purpose` at archive time, in the archive commit: it currently frames the vendored
+      sets as the Axon 4→5 recipes alone, which the second set falsifies. A delta cannot carry a Purpose. **Done**: the
+      parenthetical now names structural search through the `ast-grep` skill, in this archive commit.
 
 ## 5. Verification
 

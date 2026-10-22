@@ -33,6 +33,12 @@ dated when it was added (start a new section for a new day rather than appending
   The retrieval gap is a hypothesis rather than a finding: the remedy is explicit and unconditional, so it cannot be
   confirmed as the cause of the recurrence.
 
+- Confirm the `pack 0.40.10` pin on its first scheduled image build — parked; no change yet.
+  `bump-tooling-pins-2026-10-22` bumped it in `e2e.yml`, `release.yml` and `deployment-smoke.yml` without dispatching a
+  run that installs it, because a whole-cluster smoke to prove one CLI tag is not a proportionate pre-merge cost; the
+  first scheduled run that installs it is the verification, and a red one there is this pin's to answer for. Revisit if
+  that run does not install the tag, or if the web UI image build regresses after the bump.
+
 - Retarget the guidance-evidence record's stale `#755` location — parked; no change yet.
   `docs/guidance-evidence/documentation-and-durable-claims.md` says `#755` "stays cited in ADR-0007, `README.md`, and
   `## Build & Test`", but the citation moved to `.opencode/skills/gradle-build/SKILL.md` in `6518d081`; `AGENTS.md`

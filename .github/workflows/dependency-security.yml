@@ -27,7 +27,7 @@ jobs:
       - name: Set up Snyk CLI
         uses: snyk/actions/setup@master
         with:
-          snyk-version: v1.1308.1
+          snyk-version: v1.1308.2
 
       - name: Run dependency security check
         run: ./gradlew dependencySecurityCheck

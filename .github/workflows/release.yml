@@ -148,7 +148,7 @@ jobs:
       - name: Set up pack CLI
         uses: buildpacks/github-actions/setup-pack@v6.2.0
         with:
-          pack-version: 0.40.9
+          pack-version: 0.40.10
 
       # The pack-built web UI image needs the overlay2 storage driver on the runner's Docker (see the Docker Images note
       # in AGENTS.md). Retire this step when buildpacks/pack#2527 fixes the store.

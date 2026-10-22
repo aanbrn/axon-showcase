@@ -60,7 +60,7 @@ jobs:
       - name: Set up pack CLI
         uses: buildpacks/github-actions/setup-pack@v6.2.0
         with:
-          pack-version: 0.40.9
+          pack-version: 0.40.10
 
       # The `pack`-built web UI image fails on the runner's Docker 29 setup (`ubuntu-26.04` ships 29.4.2): its `imgutil`
       # local store cannot read the layers `docker image save` produces on the new containerd/overlayfs store. The

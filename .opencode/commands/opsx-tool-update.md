@@ -28,7 +28,9 @@ templates.
    itself — each `ToolingUpdateCheck` in `build.gradle.kts`'s `toolingUpdates` registration names its `workflowFile`,
    and the task's report names only the checks with an available update — and never from a hand-written list, which a
    fourth workflow gaining the pin would leave stale.
-5. Inspect `git status` under `.opencode/commands/`, `.opencode/skills/`, and the workflow files the check declared.
+5. Inspect the regeneration's diff rather than its file list: `git diff -- .opencode/` alongside `git status` for the
+   workflow files, classifying each changed file as a `generatedBy` stamp or a template content change, and reading what
+   a changed template now instructs.
 6. IF the command or skill inventory changed (not only the bodies), THEN check whether `AGENTS.md` and `README.md` still
    describe the available commands accurately, and whether the root `build.gradle.kts` markdown target's exclusions
    still match what `openspec update` wrote — a newly generated file would otherwise be reformatted by `spotlessApply`
@@ -37,7 +39,8 @@ templates.
 **Decision points**
 
 - IF nothing changed, THEN report that the instruction files are already current for the installed CLI and stop.
-- IF files changed, THEN list which commands and skills were added, removed, or modified, plus the pin changes.
+- IF files changed, THEN list which commands and skills were added, removed, or modified — naming each template content
+  change, a stamp-only file saying so — plus the pin changes.
 - The probe change is this invocation's: remove exactly that change when done, and never a change the invocation did not
   create.
 

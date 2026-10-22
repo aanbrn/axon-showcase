@@ -56,10 +56,13 @@
       body change is invisible to `git status`. The four notes the unit raised were judged already covered — the
       claims-table dismissal rule and the rewrite-once branch, the command-verification rule, the durable-count rule,
       and the inline-span rule — and are recorded as instruction-following failures.
-- [ ] 3.5 Ask the owner for the manual review pass; commit and push only after approval.
-- [ ] 3.6 After the push and before the archive commit, dispatch `dependency-security.yml` from the branch and read the
+- [x] 3.5 Ask the owner for the manual review pass; commit and push only after approval. **Done**: the owner approved on
+      2026-10-22 after the manual review request; the change ships on PR #659.
+- [x] 3.6 After the push and before the archive commit, dispatch `dependency-security.yml` from the branch and read the
       result: it must install the pinned Snyk CLI and run the scan. A red run attributed to the pin means the tag does
-      not install; one attributed to a finding means the policy, not the pin.
+      not install; one attributed to a finding means the policy, not the pin. **Done**: run `39747682382`, success —
+      `snyk/actions/setup` installed `snyk-version: v1.1308.2`, `dependencySecurityCheck` ran, and the scan reported
+      "Tested 8 dependencies for known issues, no vulnerable paths found." So the tag installs and the scan clears.
 - [x] 3.7 Park the `pack` pin's verification follow-up durably: the next scheduled image build installs it. No dispatch
       — a whole-cluster smoke to prove one CLI tag installs is not a proportionate pre-merge cost, and `workflowLint`
       plus the release's existence are the pre-merge evidence. **Done**: parked in `docs/ideas.md` (2026-10-22) with its
@@ -67,5 +70,7 @@
 
 ## 4. The change's own records
 
-- [ ] 4.1 Record what the dispatched Snyk scan observed, so that pin's verification state is readable from the merge
-      rather than inferred from a green `build`; the `pack` pin's is the parked follow-up's to record.
+- [x] 4.1 Record what the dispatched Snyk scan observed, so that pin's verification state is readable from the merge
+      rather than inferred from a green `build`; the `pack` pin's is the parked follow-up's to record. **Done**: the
+      observation is on 3.6 (run `39747682382`: the pin installed, the scan found no vulnerable paths), so the archived
+      `tasks.md` carries it.

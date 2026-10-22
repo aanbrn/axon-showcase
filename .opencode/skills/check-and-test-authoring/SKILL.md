@@ -145,19 +145,22 @@ nothing.
 
 ## Assert what the subject emits, not only what it declares
 
-- **An assertion about a declaration's content cannot see a value that never reaches the code — assert what the subject
-  _emits_, not only what it declares.** Both abandoned fixes of `scripts/test-doctor.sh` (five and seven review rounds)
-  read the doctor's probe declaration and asserted things about the data; each round found another way a probe could
-  slip out of the reported set, the last being a `kind` flipped `tool`→`state` that made the probe **vanish from the
-  doctor's output while the check still reported "13 probes" and "required probes match"** — the declaration was
-  unchanged, so a content assertion saw nothing wrong. Run the subject and require every declared item in its output;
-  keep a host-dependent exit code out of the assertion (capture with `set +e`, assert the output only), since a gate
-  that depends on it fails PRs for causes they cannot remediate. captured:
-  declare-probes-with-shape-and-behavioural-checks Require the whole of what it emits, not only the part a change
-  targets: a consumer that classifies its input has states beyond row-present/row-absent, so a filter's removal test
-  stays green while it reclassifies its neighbours — the first `DependencyUpdateRules` clause emptied
-  `dependencyUpdates`' up-to-date section of all 83 catalog-owned entries, since the plugin reads a coordinate whose
-  every candidate is rejected as unresolved. captured: align-dependency-report-version-authority
+- **An assertion about an intermediate — a declaration's content, or an internal helper's behaviour — cannot see what
+  the consumer sees; assert what the subject _emits_ at the entry point the gate invokes, not only what it declares or
+  what a helper raises.** Both abandoned fixes of `scripts/test-doctor.sh` (five and seven review rounds) read the
+  doctor's probe declaration and asserted things about the data; each round found another way a probe could slip out of
+  the reported set, the last being a `kind` flipped `tool`→`state` that made the probe **vanish from the doctor's output
+  while the check still reported "13 probes" and "required probes match"** — the declaration was unchanged, so a content
+  assertion saw nothing wrong. Run the subject and require every declared item in its output, and drive the entry point
+  the gate runs (`main([...])`) asserting its exit status and message, since a fixture on an internal helper leaves the
+  entry point's error handling untested — a malformed `--expect` raised an unhandled `ValueError` traceback while the
+  fixture asserted the helper raised. captured: check-review-round-contiguity Keep a host-dependent exit code out of the
+  assertion (capture with `set +e`, assert the output only), since a gate that depends on it fails PRs for causes they
+  cannot remediate. captured: declare-probes-with-shape-and-behavioural-checks Require the whole of what it emits, not
+  only the part a change targets: a consumer that classifies its input has states beyond row-present/row-absent, so a
+  filter's removal test stays green while it reclassifies its neighbours — the first `DependencyUpdateRules` clause
+  emptied `dependencyUpdates`' up-to-date section of all 83 catalog-owned entries, since the plugin reads a coordinate
+  whose every candidate is rejected as unresolved. captured: align-dependency-report-version-authority
 
 ## A conservative check owes the false negatives it accepts
 

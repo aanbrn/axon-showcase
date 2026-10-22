@@ -6,9 +6,11 @@ Defines the mechanical guards over the commit/artifact hygiene the standard qual
 pre-commit hook that inspects the staged set, build checks that verify `captured:` marker placement, that the tracked
 set excludes ignored files, that no tracked file carries a merge conflict marker, that tracked scripts carry the
 executable bit, that no tracked file exceeds the configured size limit, that no two workflow cron schedules collide,
-that the review-round ledger carries at most one row per unit and round and records each round's reviewer session and
-its continuity, and a committed `.gitattributes` that normalizes line endings (enforced by git, not the build) — so
-slips that were caught only by a human or a review pass are blocked by construction.
+that the review-round ledger carries at most one row per unit and round, that each unit's rounds are contiguous from `1`
+apart from an explicitly acknowledged gap, that a round the caller names with `--expect` is recorded, and that each
+round's reviewer session and its continuity are recorded, and a committed `.gitattributes` that normalizes line endings
+(enforced by git, not the build) — so slips that were caught only by a human or a review pass are blocked by
+construction.
 
 ## Requirements
 
@@ -349,8 +351,14 @@ like every other text file, and `text=auto` leaves a detected binary unnormalize
 
 The build SHALL verify that the review-round ledger (`docs/review-rounds.tsv`) carries **at most one row per unit and
 round**, failing when the same `(unit, round)` pair appears twice, so a duplicated row cannot double-count a round in
-the retrospective figures aggregated from it. The verification SHALL be a `commit-hygiene.py` mode run by a `check`
-task, reading the tracked ledger rather than the staged set.
+the retrospective figures aggregated from it. The same verification SHALL also fail when a unit's rounds are not
+contiguous from `1` to its highest round, and — when the caller names a round whose report has just arrived
+(`--expect <unit>:<round>`, repeatable) — when that row is absent, so a deferred append is caught in the same turn
+rather than by the next reviewer; a gap whose record is unrecoverable SHALL be acknowledged by a comment line in the
+ledger naming the unit and the round, and only an acknowledged gap SHALL pass. An expectation the mode cannot parse, an
+expectation given without the mode, and a ledger row whose round column is not a number SHALL each fail rather than
+skip. The verification SHALL be a `commit-hygiene.py` mode run by a `check` task, reading the tracked ledger rather than
+the staged set.
 
 #### Scenario: A duplicated round row fails the check
 
@@ -359,8 +367,36 @@ task, reading the tracked ledger rather than the staged set.
 
 #### Scenario: One row per round passes
 
-- **WHEN** every `(unit, round)` pair in the ledger appears at most once
+- **WHEN** every `(unit, round)` pair appears at most once, each unit's rounds are contiguous from `1` apart from
+  acknowledged gaps, and every round the caller passed with `--expect` is recorded
 - **THEN** the check passes
+
+#### Scenario: A gap in a unit's rounds fails the check
+
+- **WHEN** `check` runs and a unit's recorded rounds are `1, 2, 4`
+- **THEN** the check fails, naming the unit and the missing round `3`
+
+#### Scenario: The round whose report arrived is not recorded
+
+- **WHEN** the caller runs the verification expecting `<unit>:3` and the ledger records that unit only through round `2`
+- **THEN** the check fails, naming the unit and the expected round, even though its recorded rounds are contiguous
+
+#### Scenario: An acknowledged gap passes
+
+- **WHEN** a gap's record is unrecoverable and the ledger carries an acknowledgement comment naming the unit and the
+  round
+- **THEN** the check passes, and a gap without such an acknowledgement still fails
+
+#### Scenario: An unparseable or mode-less expectation fails rather than skips
+
+- **WHEN** the verification is run with an expectation that is not `<unit>:<round>`, or with an expectation and no
+  `--unique-rounds`
+- **THEN** it fails with a message naming what was wrong, rather than skipping the assertion
+
+#### Scenario: A non-numeric round fails rather than being skipped
+
+- **WHEN** a ledger row's round column is present but not a number
+- **THEN** the check fails, naming the unit and the value, rather than ignoring the row
 
 ### Requirement: Review-round rows record the reviewer session's continuity
 

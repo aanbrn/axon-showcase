@@ -5,6 +5,9 @@
 # continued, or replaced), and a replacement's reason (expired, definition-changed, or stopped-responding; - otherwise).
 # The last three fields are validated from the boundary comment below down, which marks the first row to carry them;
 # the rows above it predate the fields, so they are exempt. `commit-hygiene.py --session-continuity` is that check.
+# A gap whose report was never reconstructed is acknowledged by a comment line of the form
+# `# --- Acknowledged gap: <unit> round <N> - <reason>`, which `commit-hygiene.py --unique-rounds` exempts —
+# and only that pair.
 # Appended by the main agent from the record line a review round emits; aggregated in the window by
 # scripts/review-rounds.py, which the digest's review-rounds block prints.
 # Classes come from the canonical list the reviewer's contract carries (`.opencode/agent/review-quick.md`), which makes
@@ -476,6 +479,8 @@
 2026-10-18	structure-visual-review	11	claim-unreproducible,missing-task,claim-missing	claim-unreproducible,missing-task	3
 2026-10-18	structure-visual-review	12	missing-task,claim-unreproducible,formatting	missing-task,claim-unreproducible,formatting	4
 2026-10-18	structure-visual-review	13	premise,docs-residue,claim-unreproducible,contradiction,missing-task,coherence,claim-missing	docs-residue,claim-unreproducible,contradiction,missing-task,coherence,claim-missing	6
+# --- Acknowledged gap: separate-agents-md-core-and-subject-packs round 42 — the round's report was never
+#     reconstructed, so the row cannot be written; `commit-hygiene.py --unique-rounds` exempts only this pair.
 # --- Session continuity: from here down every row carries the reviewer's session identifier, its transition, and a
 # --- replacement's reason; commit-hygiene.py --session-continuity validates them.
 2026-10-18	track-review-session-continuity	1	missing-task,claim-unreproducible,incomplete-enumeration	-	5	ses_eb03e0bc3ffeoefevnvoZ89bEg	created	-
@@ -809,3 +814,17 @@
 2026-10-22	consult-terminal-handover	8	over-claim,dropped-content	over-claim,dropped-content	2	ses_e9f0eae04ffe0Vg1hFQnEnBm42	continued	-
 2026-10-22	consult-terminal-handover	9	missing-task,claim-unreproducible	missing-task,claim-unreproducible	2	ses_e9f0eae04ffe0Vg1hFQnEnBm42	continued	-
 2026-10-22	consult-terminal-handover	10	-	-	0	ses_e9f0eae04ffe0Vg1hFQnEnBm42	continued	-
+2026-10-22	check-review-round-contiguity	1	contradiction,missing-scenario,docs-residue,missing-task,test-control,claim-unreproducible,claim-missing,coherence,formatting,redundant-code	-	6	ses_e9e333c73ffeaR2gBojPq2KIFL	created	-
+2026-10-22	check-review-round-contiguity	2	contradiction,docs-residue,formatting,claim-unreproducible,claim-missing,incomplete-enumeration	contradiction,docs-residue,formatting,claim-unreproducible,claim-missing	6	ses_e9e333c73ffeaR2gBojPq2KIFL	continued	-
+2026-10-22	check-review-round-contiguity	3	dropped-content,claim-missing,wording	claim-missing	5	ses_e9e333c73ffeaR2gBojPq2KIFL	continued	-
+2026-10-22	check-review-round-contiguity	4	dropped-content	dropped-content	1	ses_e9e333c73ffeaR2gBojPq2KIFL	continued	-
+2026-10-22	check-review-round-contiguity	5	-	-	0	ses_e9e333c73ffeaR2gBojPq2KIFL	continued	-
+2026-10-22	check-review-round-contiguity	6	-	-	0	ses_e9e333c73ffeaR2gBojPq2KIFL	continued	-
+2026-10-22	check-review-round-contiguity	7	over-claim,formatting	formatting	2	ses_e9e333c73ffeaR2gBojPq2KIFL	continued	-
+2026-10-22	check-review-round-contiguity	8	over-claim	over-claim	1	ses_e9e333c73ffeaR2gBojPq2KIFL	continued	-
+2026-10-22	check-review-round-contiguity	9	-	-	0	ses_e9e333c73ffeaR2gBojPq2KIFL	continued	-
+2026-10-22	check-review-round-contiguity	10	contradiction,over-claim	contradiction,over-claim	2	ses_e9e333c73ffeaR2gBojPq2KIFL	continued	-
+2026-10-22	check-review-round-contiguity	11	contradiction	contradiction	2	ses_e9e333c73ffeaR2gBojPq2KIFL	continued	-
+2026-10-22	check-review-round-contiguity	12	-	-	0	ses_e9e333c73ffeaR2gBojPq2KIFL	continued	-
+2026-10-22	check-review-round-contiguity	13	missing-task	missing-task	1	ses_e9e333c73ffeaR2gBojPq2KIFL	continued	-
+2026-10-22	check-review-round-contiguity	14	-	-	0	ses_e9e333c73ffeaR2gBojPq2KIFL	continued	-

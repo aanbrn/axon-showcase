@@ -9,8 +9,9 @@ stages an `openspec/changes/archive/**` change dir while leaving its `openspec/s
 `--conflict-markers`, and
 `--executable-bits` modes each verify the tracked set for the build; `--unique-crons` verifies the workflow
 `cron` schedules do not collide; `--unique-rounds` verifies the review-round ledger carries one row per unit and
-round; `--session-continuity` verifies the ledger's reviewer-session fields record each round's session and its
-transition; and `--large-files` verifies no tracked file exceeds the configured size limit. Stdlib only.
+round, that each unit's rounds are contiguous from 1, and that a round named with `--expect` is recorded (which
+needs that mode); `--session-continuity` verifies the ledger's reviewer-session fields record each round's session
+and its transition; and `--large-files` verifies no tracked file exceeds the configured size limit. Stdlib only.
 """
 
 import argparse
@@ -39,6 +40,9 @@ WORKFLOW_SUFFIXES = (".yml", ".yaml")
 # them, so the continuity verification exempts those. Its absence is itself a violation, so the boundary cannot be
 # dropped silently to exempt a row.
 SESSION_FIELDS_MARKER = "# --- Session continuity"
+# A gap whose record is unrecoverable is acknowledged by a comment naming the unit and the round, so the
+# contiguity check stays strict for every other row rather than exempting a unit.
+ACKNOWLEDGED_GAP_RE = re.compile(r"^#\s*---\s*Acknowledged gap:\s*(?P<unit>\S+)\s+round\s+(?P<round>\d+)\b")
 
 # A row's session transition, one per shape the review loop's rule allows.
 SESSION_CREATED = "created"
@@ -465,6 +469,91 @@ def check_unique_review_rounds(repo: Path) -> int:
     return len(duplicates)
 
 
+def ledger_rounds(repo: Path) -> dict[str, set[int]]:
+    """The recorded round numbers per unit, from the ledger's data rows."""
+    ledger = repo / "docs" / "review-rounds.tsv"
+    if not ledger.is_file():
+        return {}
+    rounds: dict[str, set[int]] = {}
+    for line in ledger.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        fields = line.split("\t")
+        if len(fields) < 3:
+            continue
+        if not fields[2].isdigit():
+            raise ValueError(
+                "unit '{0}' has a non-numeric round '{1}': the ledger's round column must be a number".format(
+                    fields[1], fields[2]
+                )
+            )
+        rounds.setdefault(fields[1], set()).add(int(fields[2]))
+    return rounds
+
+
+def acknowledged_gaps(repo: Path) -> set[tuple[str, int]]:
+    """The (unit, round) gaps the ledger acknowledges as unrecoverable."""
+    ledger = repo / "docs" / "review-rounds.tsv"
+    if not ledger.is_file():
+        return set()
+    gaps: set[tuple[str, int]] = set()
+    for line in ledger.read_text(encoding="utf-8").splitlines():
+        match = ACKNOWLEDGED_GAP_RE.match(line.strip())
+        if match:
+            gaps.add((match.group("unit"), int(match.group("round"))))
+    return gaps
+
+
+def find_round_gaps(repo: Path) -> list[tuple[str, int]]:
+    """The (unit, missing round) pairs that break a unit's contiguity from 1, unacknowledged ones only."""
+    acknowledged = acknowledged_gaps(repo)
+    gaps: list[tuple[str, int]] = []
+    for unit, recorded in sorted(ledger_rounds(repo).items()):
+        for number in range(1, max(recorded) + 1):
+            if number not in recorded and (unit, number) not in acknowledged:
+                gaps.append((unit, number))
+    return gaps
+
+
+def find_unrecorded_expected(repo: Path, expected: Sequence[str]) -> list[tuple[str, int]]:
+    """The (unit, round) pairs named by the caller whose row the ledger does not carry."""
+    recorded = ledger_rounds(repo)
+    missing: list[tuple[str, int]] = []
+    for pair in expected:
+        unit, _, number = pair.rpartition(":")
+        if not unit or not number.isdigit():
+            raise ValueError("expected round must be <unit>:<round>, got {0!r}".format(pair))
+        if int(number) not in recorded.get(unit, set()):
+            missing.append((unit, int(number)))
+    return missing
+
+
+def check_unique_review_rounds(repo: Path, expected: Sequence[str] = ()) -> int:
+    """The ledger's duplicate pairs, contiguity gaps, and expected-but-unrecorded rounds, reported to stderr."""
+    failures = 0
+    for unit, round_number, first, second in find_duplicate_review_rounds(repo):
+        print(
+            "Two review-round rows share unit '{0}' round {1}: lines {2} and {3}".format(
+                unit, round_number, first, second
+            ),
+            file=sys.stderr,
+        )
+        failures += 1
+    for unit, number in find_round_gaps(repo):
+        print(
+            "Unit '{0}' is missing round {1}: its rounds must be contiguous from 1".format(unit, number),
+            file=sys.stderr,
+        )
+        failures += 1
+    for unit, number in find_unrecorded_expected(repo, expected):
+        print(
+            "Unit '{0}' has no row for round {1}, the round whose report arrived".format(unit, number),
+            file=sys.stderr,
+        )
+        failures += 1
+    return failures
+
+
 def session_rows(
     repo: Path,
 ) -> tuple[bool, list[tuple[int, list[str]]], list[tuple[int, list[str]]]]:
@@ -576,7 +665,23 @@ def check_session_continuity(repo: Path) -> int:
     return len(violations)
 
 
-def main(argv: Sequence[str] = ()) -> int:
+# The mode group's flags, declared beside their registration so the mode-combination control can derive its
+# forms from this list rather than repeating them.
+MODE_FLAGS = (
+    "--staged",
+    "--markers",
+    "--tracked-ignored",
+    "--conflict-markers",
+    "--executable-bits",
+    "--unique-crons",
+    "--unique-rounds",
+    "--session-continuity",
+    "--large-files",
+)
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """The script's argument parser, so a test can read the mode group it declares."""
     parser = argparse.ArgumentParser(
         description=(
             "Check commit hygiene over the staged set, AGENTS.md markers, the tracked set, the workflow cron "
@@ -601,6 +706,13 @@ def main(argv: Sequence[str] = ()) -> int:
     mode.add_argument(
         "--unique-rounds", action="store_true", help="check the review-round ledger carries one row per unit and round"
     )
+    parser.add_argument(
+        "--expect",
+        action="append",
+        default=[],
+        metavar="UNIT:ROUND",
+        help="a round whose row must be recorded, as <unit>:<round> (repeatable, with --unique-rounds)",
+    )
     mode.add_argument(
         "--session-continuity",
         action="store_true",
@@ -610,6 +722,11 @@ def main(argv: Sequence[str] = ()) -> int:
         "--large-files", action="store_true", help="check no tracked file exceeds the configured size limit"
     )
     parser.add_argument("--repo", default=str(REPO_ROOT), help="repository root (default: the script's parent)")
+    return parser
+
+
+def main(argv: Sequence[str] = ()) -> int:
+    parser = build_parser()
     parser.add_argument(
         "--formatter",
         nargs="+",
@@ -619,6 +736,9 @@ def main(argv: Sequence[str] = ()) -> int:
     args = parser.parse_args(list(argv) or None)
 
     repo = Path(args.repo)
+    if args.expect and not args.unique_rounds:
+        print("--expect needs --unique-rounds: it names a round the ledger must carry", file=sys.stderr)
+        return 1
     if args.markers:
         return 1 if check_markers(repo) else 0
     if args.tracked_ignored:
@@ -630,7 +750,11 @@ def main(argv: Sequence[str] = ()) -> int:
     if args.unique_crons:
         return 1 if check_unique_crons(repo) else 0
     if args.unique_rounds:
-        return 1 if check_unique_review_rounds(repo) else 0
+        try:
+            return 1 if check_unique_review_rounds(repo, args.expect) else 0
+        except ValueError as error:
+            print(str(error), file=sys.stderr)
+            return 1
     if args.session_continuity:
         return 1 if check_session_continuity(repo) else 0
     if args.large_files:

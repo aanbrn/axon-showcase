@@ -817,6 +817,151 @@ class UniqueReviewRoundTests(unittest.TestCase):
             self.assertEqual(commit_hygiene.main(["--unique-rounds", "--repo", str(repo)]), 1)
         self.assertIn("share unit 'unit-a' round 1", stderr.getvalue())
 
+    def test_a_gap_in_a_units_rounds_is_reported(self):
+        repo = make_repo(self)
+        self._write_ledger(
+            repo,
+            "2026-10-16\tunit-a\t1\twording\t-\t1\n"
+            "2026-10-16\tunit-a\t2\t-\t-\t0\n"
+            "2026-10-16\tunit-a\t4\t-\t-\t0\n",
+        )
+
+        self.assertEqual(commit_hygiene.find_round_gaps(repo), [("unit-a", 3)])
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(commit_hygiene.check_unique_review_rounds(repo), 1)
+
+    def test_an_acknowledged_gap_passes_and_an_unacknowledged_one_does_not(self):
+        repo = make_repo(self)
+        body = (
+            "2026-10-16\tunit-a\t1\twording\t-\t1\n"
+            "2026-10-16\tunit-a\t3\t-\t-\t0\n"
+        )
+        self._write_ledger(repo, body)
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(commit_hygiene.check_unique_review_rounds(repo), 1)
+
+        self._write_ledger(
+            repo,
+            "# --- Acknowledged gap: unit-a round 2 - the report was never reconstructed\n" + body,
+        )
+
+        self.assertEqual(commit_hygiene.acknowledged_gaps(repo), {("unit-a", 2)})
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(commit_hygiene.check_unique_review_rounds(repo), 0)
+
+    def test_rounds_starting_at_two_are_reported(self):
+        repo = make_repo(self)
+        self._write_ledger(repo, "2026-10-16\tunit-a\t2\t-\t-\t0\n")
+
+        self.assertEqual(commit_hygiene.find_round_gaps(repo), [("unit-a", 1)])
+
+    def test_two_units_are_checked_independently(self):
+        repo = make_repo(self)
+        self._write_ledger(
+            repo,
+            "2026-10-16\tunit-a\t1\twording\t-\t1\n"
+            "2026-10-16\tunit-a\t2\t-\t-\t0\n"
+            "2026-10-16\tunit-b\t2\t-\t-\t0\n",
+        )
+
+        # unit-b starts at 2, so pooling both units' rounds into one set would hide its gap.
+        self.assertEqual(commit_hygiene.find_round_gaps(repo), [("unit-b", 1)])
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(commit_hygiene.check_unique_review_rounds(repo), 1)
+
+    def test_an_expected_round_that_is_not_recorded_is_reported(self):
+        repo = make_repo(self)
+        self._write_ledger(
+            repo,
+            "2026-10-16\tunit-a\t1\twording\t-\t1\n"
+            "2026-10-16\tunit-a\t2\t-\t-\t0\n",
+        )
+
+        self.assertEqual(commit_hygiene.find_unrecorded_expected(repo, ["unit-a:2"]), [])
+        self.assertEqual(commit_hygiene.find_unrecorded_expected(repo, ["unit-a:3"]), [("unit-a", 3)])
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(commit_hygiene.check_unique_review_rounds(repo, ["unit-a:3"]), 1)
+        self.assertIn("has no row for round 3", stderr.getvalue())
+
+    def test_a_malformed_expectation_fails_the_cli_cleanly(self):
+        repo = make_repo(self)
+        self._write_ledger(repo, "2026-10-16\tunit-a\t1\twording\t-\t1\n")
+
+        with self.assertRaises(ValueError):
+            commit_hygiene.find_unrecorded_expected(repo, ["unit-a"])
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(
+                commit_hygiene.main(["--unique-rounds", "--expect", "unit-a", "--repo", str(repo)]), 1
+            )
+        self.assertIn("expected round must be <unit>:<round>", stderr.getvalue())
+
+    def test_a_non_numeric_round_fails_rather_than_being_skipped(self):
+        repo = make_repo(self)
+        self._write_ledger(repo, "2026-10-16\tunit-a\tnine\twording\t-\t1\n")
+
+        with self.assertRaises(ValueError):
+            commit_hygiene.ledger_rounds(repo)
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(commit_hygiene.main(["--unique-rounds", "--repo", str(repo)]), 1)
+        self.assertIn("non-numeric round 'nine'", stderr.getvalue())
+
+    def test_the_expected_round_is_reachable_through_main(self):
+        repo = make_repo(self)
+        self._write_ledger(repo, "2026-10-16\tunit-a\t1\twording\t-\t1\n")
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(
+                commit_hygiene.main(["--unique-rounds", "--expect", "unit-a:1", "--repo", str(repo)]), 0
+            )
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(
+                commit_hygiene.main(["--unique-rounds", "--expect", "unit-a:2", "--repo", str(repo)]), 1
+            )
+        self.assertIn("has no row for round 2", stderr.getvalue())
+
+    def test_an_acknowledgement_for_another_pair_does_not_exempt_the_gap(self):
+        repo = make_repo(self)
+        self._write_ledger(
+            repo,
+            "# --- Acknowledged gap: unit-b round 2 - unrelated\n"
+            "# --- Acknowledged gap: unit-a round 5 - unrelated\n"
+            "2026-10-16\tunit-a\t1\twording\t-\t1\n"
+            "2026-10-16\tunit-a\t3\t-\t-\t0\n",
+        )
+
+        self.assertEqual(commit_hygiene.find_round_gaps(repo), [("unit-a", 2)])
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(commit_hygiene.check_unique_review_rounds(repo), 1)
+
+    def test_expect_without_the_mode_is_an_error_for_every_mode(self):
+        repo = make_repo(self)
+        self._write_ledger(repo, "2026-10-16\tunit-a\t1\twording\t-\t1\n")
+
+        # The forms are derived from the script's own mode list, so a new mode joins the control rather than being
+        # forgotten, and the list is checked against the parser's group so it cannot drift.
+        parser = commit_hygiene.build_parser()
+        declared = sorted(action.option_strings[0] for action in parser._mutually_exclusive_groups[0]._group_actions)
+        self.assertEqual(sorted(commit_hygiene.MODE_FLAGS), declared)
+
+        for flag in commit_hygiene.MODE_FLAGS:
+            if flag == "--unique-rounds":
+                continue
+            stderr = io.StringIO()
+            with contextlib.redirect_stderr(stderr):
+                self.assertEqual(commit_hygiene.main([flag, "--expect", "unit-a:1", "--repo", str(repo)]), 1)
+            self.assertIn("--expect needs --unique-rounds", stderr.getvalue())
+
+        # The bare form, with no mode flag at all.
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(commit_hygiene.main(["--expect", "unit-a:1", "--repo", str(repo)]), 1)
+        self.assertIn("--expect needs --unique-rounds", stderr.getvalue())
 
 class CliTests(unittest.TestCase):
     @staticmethod

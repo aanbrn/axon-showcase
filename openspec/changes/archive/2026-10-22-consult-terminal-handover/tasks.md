@@ -53,4 +53,4 @@
       reduces the failure, which stays an unverified hypothesis. Neither the neutral nor the review-gate-loop fixture
       reached the bad state; reproducing it would need a fixture carrying a prior owner go-ahead for the work and a
       finding-shaped report arriving inside that same turn, which these runs did not build.
-- [ ] 2.6 Ask the owner for the manual review pass; commit, push, archive, and merge only after approval.
+- [x] 2.6 Ask the owner for the manual review pass; commit, push, archive, and merge only after approval. **Done**: the owner approved on 2026-10-22 ("Одобряю").

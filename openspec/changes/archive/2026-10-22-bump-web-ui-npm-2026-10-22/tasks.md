@@ -51,4 +51,5 @@
       present-tense text claimed a pin and an override that no longer exist (`+3/-3` lines in the pack — the tense
       correction and the marker, net 0 — `AGENTS.md` unchanged). The incident clause the first draft added was dropped
       in review as a restatement of the rule's own obligation.
-- [ ] 3.5 Ask the owner for the manual review pass; commit, push, archive and merge only after approval.
+- [x] 3.5 Ask the owner for the manual review pass; commit, push, archive and merge only after approval. **Done**: the
+      owner approved on 2026-10-22 after the manual review request; the change ships on PR #660.

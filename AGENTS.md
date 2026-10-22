@@ -1851,7 +1851,10 @@ task or report, or concluding the cause of a Gradle failure.
   `git ls-files '<dir>/**/*.md'` requires at least one and silently omits a file directly under `<dir>`
   (`.github/PULL_REQUEST_TEMPLATE.md`) — reproduced, 1 file vs 2 — because git treats `**` specially only under
   `:(glob)`. Reproduce a target's file set with `:(glob)` magic or a Gradle-native listing, and prove the scan returns a
-  known file from each directory level before trusting its total. captured: reconcile-readme-agents-architecture
+  known file from each directory level before trusting its total. A content search is the same scope question in another
+  tool: `grep -r` reads the working tree, so untracked, generated state (the `.gradle` Helm chart index a chart check
+  writes, a `build/` report) counts as live, while `git grep` reads the tracked set — name the scope the claim covers
+  (`git grep`, or explicit paths). captured: reconcile-readme-agents-architecture captured: bump-kps-chart-2026-10-22
 
 - **A search that under-matches returns a plausible empty or partial result.** A grep for `permissions:` matched one
   job-level block while the six top-level ones went unreported — a real result that looked complete, so nothing flags it

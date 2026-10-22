@@ -15,20 +15,29 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-22
 
+- Guarantee the ledger row is written before the fixes with a reviewer wrapper — parked; no change yet. A `/consult`
+  report's closing prompt was once applied before the owner decided, and the round's ledger row is repeatedly deferred
+  (five misses in two units), which costs extra review work when the next reviewer reports it.
+  `extract-deployment-operations-guidance` recorded the cause as the fix competing with a separate bookkeeping act. The
+  feasibility pass for a wrapper (`opencode run --agent review-quick`, withholding findings until the row is written)
+  found: `mode: all` makes the same definition directly runnable in v1.19.3 and v2 (the refusal is `mode: subagent`'s
+  entry point, not the runtime); v1 continues a session by id and fails hard on a missing one (`Session not found`)
+  while v2 silently creates; the reviewer's model pin and the cloud action's own path remain unverified.
+  `check-review-round-contiguity` ships the cheap net instead (contiguity + an expected-round checkpoint). Revisit on a
+  repeat where both the append and the checkpoint were skipped, or if a technical barrier against the Task path is
+  required.
+
+- Route the wrapped-prose gotcha to where prose edits retrieve it — parked; no change yet. The rule sits under
+  `### Git & repository workflow`, but the edits that keep failing it are prose edits in `docs/` and a change dir; a
+  pointer from the `Formatting` convention or a move into a prose-editing section is an `/audit-agents` route candidate.
+  The retrieval gap is a hypothesis rather than a finding: the remedy is explicit and unconditional, so it cannot be
+  confirmed as the cause of the recurrence.
+
 - Retarget the guidance-evidence record's stale `#755` location — parked; no change yet.
   `docs/guidance-evidence/documentation-and-durable-claims.md` says `#755` "stays cited in ADR-0007, `README.md`, and
   `## Build & Test`", but the citation moved to `.opencode/skills/gradle-build/SKILL.md` in `6518d081`; `AGENTS.md`
   holds no `#755` (only `100755`). `extract-deployment-operations-guidance` edits the adjacent `#1340` clause and
   deliberately leaves this one, so the fix is its own docs unit: name the `gradle-build` pack.
-
-## 2026-10-21
-
-- Make the review-round ledger's round numbers contiguous — parked; no change yet.
-  `separate-agents-md-core-and-subject-packs` held 25 rows for 27 rounds before its capture appended the two missing
-  ones (rounds 25 and 27), so the ledger's "continuous per unit" contract is unenforced. Extend
-  `scripts/commit-hygiene.py`'s `--unique-rounds` mode to assert each unit's rounds are `1..max` with no gap, update
-  `verifyUniqueReviewRounds`'s description and the script docstring, and add the gap, contiguous, two-unit, and
-  starts-at-2 cases to `scripts/test-commit-hygiene.py`.
 
 ## 2026-10-20
 

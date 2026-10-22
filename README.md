@@ -800,8 +800,8 @@ counterpart of the force-staged-artifact check) as `verifyTrackedIgnoredFiles`, 
 `verifyConflictMarkers` — so they hold even without the hook. `verifyExecutableBits` additionally verifies the tracked
 scripts' executable bits, and the web module's own Prettier check (`npmFormatCheck`) remains part of `check`.
 `verifyUniqueCronSchedules` verifies no two workflow `cron` schedules collide, `verifyUniqueReviewRounds` verifies the
-review-round ledger carries one row per unit and round, `verifyReviewSessionContinuity` verifies each of those rows
-records the reviewer session it ran in and whether that session was created, continued, or replaced, and
+review-round ledger carries one row per unit and round, contiguous from 1, `verifyReviewSessionContinuity` verifies each
+of those rows records the reviewer session it ran in and whether that session was created, continued, or replaced, and
 `verifyLargeFiles` verifies no tracked file exceeds the configured size limit.
 
 ### Formatting and IDE Setup
@@ -983,7 +983,7 @@ follow-up pull request, so the next release has a base. It is not a merge gate.
 ./gradlew verifyModuleDependencies      # verify the module dependency graph (ADR-0010)
 ./gradlew verifyDashboardJson           # verify the bundled Grafana dashboard JSON parses
 ./gradlew verifyPrettierAlignment       # verify the catalog's Prettier version is the one the web module resolves
-./gradlew verifyUniqueReviewRounds      # verify the review-round ledger carries one row per unit and round
+./gradlew verifyUniqueReviewRounds      # verify the review-round ledger carries one row per unit and round, contiguous from 1
 ./gradlew verifyReviewSessionContinuity # verify each review-round row records its reviewer session and transition
 ./gradlew verifyLargeFiles              # verify no tracked file exceeds the configured size limit
 ./gradlew workflowLint                  # lint the GitHub Actions workflows with actionlint

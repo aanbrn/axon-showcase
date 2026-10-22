@@ -575,7 +575,7 @@ tasks.register<Exec>("verifyUniqueCronSchedules") {
 
 tasks.register<Exec>("verifyUniqueReviewRounds") {
     group = "verification"
-    description = "Verifies the review-round ledger carries one row per unit and round"
+    description = "Verifies the review-round ledger carries one row per unit and round, contiguous from 1"
     inputs.file("scripts/commit-hygiene.py")
     inputs.file("docs/review-rounds.tsv")
     outputs.upToDateWhen { false }

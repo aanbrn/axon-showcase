@@ -415,6 +415,10 @@ capture-reverted-sweep-lessons (#283)
    - Append each round's row with the session fields `docs/review-rounds.tsv` declares — the identifier, the transition,
      and a replacement's reason — supplying the identifier the invocation returned, never an invented one; an omission
      fails `verifyReviewSessionContinuity`. captured: track-review-session-continuity
+   - Run the ledger's checkpoint immediately after the append, and again before the next reviewer invocation and before
+     the manual pass: `python3 scripts/commit-hygiene.py --unique-rounds --expect <unit>:<round>`, naming the round
+     whose report just arrived. Contiguity alone cannot see a missing last row — the round's own row is what `--expect`
+     asserts — so a deferred append fails here, in the same turn, instead of being reported by the next round.
 4. Fix everything it finds; re-run. Repeat until it reports no new observations.
 5. Route the deep review, once, from the completed implementation, the diff, the applicable artifacts, and the existing
    review evidence: derive the floor with `python3 scripts/review-routing.py`, passing `--change <name>` when the unit
@@ -1760,9 +1764,9 @@ capture-stash-stale-copy
   a text edit preserves it. Verify the codemod's decisions rather than trusting the compile — a `var` emitted where
   `val` was intended compiles, so a green build does not show the sweep conformed. captured: adopt-lombok-val-convention
 
-- **An edit to wrapped prose can mangle the clause around the insertion when its replacement reflows into the
-  neighbouring text, and patching the damage with further span edits re-mangles it each round; replace the whole unit in
-  one edit, re-derived from the site's own subject, and re-read the sentence.** captured: verify-unique-review-rounds
+- **A span edit to wrapped prose can lose a fact the unit carried or mangle the clause its replacement reflows into, and
+  patching it with further span edits re-mangles it each round; replace the whole unit in one edit, re-derived from the
+  site's own subject, and re-read it against the pre-edit unit's facts.** captured: check-review-round-contiguity
 
 - **A write to an already-occupied path replaces the file silently: check the path before creating a "new" file.**
   Before writing a file you believe is new, check the path — `test -e <path>` (or a read) proves it exists,

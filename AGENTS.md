@@ -77,7 +77,10 @@ document outline imposed on all of them.
 - **One independently actionable statement per unit.** Put each requirement, rule, action, condition, or decision in its
   own bullet or numbered step. Do not combine several into one sentence joined by commas, semicolons, or "and".
 - **Numbered steps for an ordered procedure; bullets for an unordered set.** Use an ordered list when the order is part
-  of the instruction, a bullet list when the items are a set.
+  of the instruction, a bullet list when the items are a set. A procedure's step that hands a decision back to the owner
+  — presenting a recommendation, an approval request, or findings to choose — ends the turn: state it as the step that
+  stops, not only as a condition on acting, and leave the next step to the owner's reply. captured:
+  consult-terminal-handover
 - **Explicit conditional branches.** State a decision as its condition and its branch — `IF <condition>, THEN <action>`
   (or a separate decision-table row) — rather than leaving the dependency implied by a compound sentence.
 - **Tables for comparisons, mappings, and decision criteria.** When the content is rows of like fields, a table scans
@@ -284,8 +287,8 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
    so the user's review pass runs against the visible `git status`/`git diff`; the change's `docs/ideas.md` removal
    rides the branch like the rest.
 3. Run the review gate (see "Workflow: The review gate") and fix every finding until it is clean.
-4. Ask the user for the manual review pass. Do not commit, push, open a PR, archive, or merge before the user approves
-   the implementation — except a commit the user explicitly asks for.
+4. Ask the user for the manual review pass, and end the turn there. Do not commit, push, open a PR, archive, or merge
+   before the user approves the implementation — except a commit the user explicitly asks for.
 5. After the user approves: run CI, archive, and merge per "Workflow: Ship a change". The change dir and all subsequent
    work live on that branch.
 
@@ -425,7 +428,7 @@ capture-reverted-sweep-lessons (#283)
      `NOT_NEEDED` one creates no deep-review session, prepares no hand-over, and spends no expensive-model invocation.
    - A missing, malformed, or failed derivation is `REQUIRED` — never a silent skip.
    - The outcomes and the procedure are specified in `showcase/quality/agent-skills` and `/review-thorough`.
-6. Only then ask the user for the manual review pass.
+6. Only then ask the user for the manual review pass, and end the turn there.
 
 No semantic self-review precedes the loop — a re-read shares the blind spot that produced the claim — so the author owes
 only the pre-write pass above and the mechanical pre-flight (the formatter and the touched module's gates after the

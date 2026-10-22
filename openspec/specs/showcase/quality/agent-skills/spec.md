@@ -2091,7 +2091,9 @@ approve delivery, or gate a change. It SHALL be distinct from `review-quick`, `r
 
 - **WHEN** the advisor returns a recommendation
 - **THEN** it does not implement the change, approve delivery, or gate the change, and the invoking agent presents it
-  without treating it as approval
+  without treating it as approval, ends its turn after presenting it, and starts any work the report proposes —
+  including work a closing prompt or a named correction describes — only after a subsequent owner decision about that
+  report
 
 ### Requirement: The consult command resolves the question
 
@@ -2261,7 +2263,9 @@ alternatives.
 #### Scenario: One next action is recommended
 
 - **WHEN** the report recommends a next action
-- **THEN** it states one action, including retaining or stopping when justified, rather than a menu of alternatives
+- **THEN** it states one action, including retaining or stopping when justified, rather than a menu of alternatives; a
+  prompt the caller requested is delivered as a proposal to the owner, never as an instruction the invoking agent may
+  run on the spot
 
 #### Scenario: An existing review finding is referenced, not reproduced
 

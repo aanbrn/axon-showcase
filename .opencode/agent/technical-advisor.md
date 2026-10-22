@@ -115,7 +115,9 @@ decision needs rather than asking for a command to be run for you.
 - **Confirmed problems** — each with the evidence that establishes it.
 - **Hypotheses** — each labeled as unverified, with the evidence that would settle it.
 - **Open questions** — what the available evidence cannot settle, and why it matters.
-- **Next action** — exactly one action, with its first step.
+- **Next action** — exactly one action, with its first step. A prompt the caller requested is delivered as a proposal to
+  the owner, not as an instruction the invoking agent may run on the spot: the caller presents it and waits for the
+  owner's decision.
 - State which subject packs you loaded (or `none`), and state that the pass was bounded by the question rather than a
   repository-wide audit.
 - Reference an existing review finding when it affects the direction; do not reproduce the review.

@@ -278,6 +278,19 @@ class MarkerFileScopeTests(unittest.TestCase):
         self.assertEqual(1, failures)
         self.assertIn(".opencode/skills/check-and-test-authoring/SKILL.md:2", stderr.getvalue())
 
+    def test_a_vendored_skill_file_is_out_of_the_marker_scope(self):
+        repo = make_repo(self)
+        (repo / "AGENTS.md").write_text("- **Rule.** Some text. captured: unit-a\n", encoding="utf-8")
+        for name in ("ast-grep", "check-and-test-authoring"):
+            skill = repo / f".opencode/skills/{name}/SKILL.md"
+            skill.parent.mkdir(parents=True, exist_ok=True)
+            skill.write_text("- **Rule.** Some text. captured: unit-a\n", encoding="utf-8")
+
+        self.assertEqual(
+            ["AGENTS.md", ".opencode/skills/check-and-test-authoring/SKILL.md"],
+            commit_hygiene.marker_paths(repo),
+        )
+
 
 class MisplacedMarkerTests(unittest.TestCase):
     def test_a_marker_on_a_bold_lead_bullet_passes(self):

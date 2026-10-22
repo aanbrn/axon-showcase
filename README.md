@@ -366,6 +366,11 @@ subscription — and the `vision` agent is pinned to `opencode-go/claude-haiku-5
 [OpenAI sign-in for `/consult`](#openai-sign-in-for-consult)). Install OpenCode (see [Prerequisites](#prerequisites)),
 subscribe, and `/connect` to it to follow along with the worked scenarios.
 
+Two upstream skill sets are vendored under `.opencode/skills/` and load on demand: the AxonIQ Axon 4→5 migration
+recipes, and [`ast-grep`](https://github.com/ast-grep/agent-skill)'s structural-search skill, which the agent reaches
+for when a question is about code _shape_ — a method annotated `@Test` that also calls `block()`, a class annotated
+`@ConfigurationProperties` — while `rg` keeps answering searches for text, identifiers, and paths.
+
 The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 
 | Agent                  | Role                                                                                                                                                                                                                                                                                                                           |
@@ -598,11 +603,12 @@ asserts each probe's required/optional class against the spec's build-and-test p
 | **Kubernetes cluster**        | The `helmInstallToLocal` target                                                                                       | kind, minikube, or colima with k3s                                  | kind or minikube                                                                      |
 | **OpenCode** (v2 recommended) | The agentic development workflow (TUI or Desktop)                                                                     | `brew install anomalyco/tap/opencode-v2`, or https://opencode.ai/v2 | `curl -fsSL https://opencode.ai/install \| bash`, or https://opencode.ai/v2           |
 | **Snyk CLI**                  | `dependencySecurityCheck`                                                                                             | `brew install snyk/tap/snyk`                                        | `npm install -g snyk`, or `curl https://static.snyk.io/cli/latest/snyk-linux -o snyk` |
+| **ast-grep**                  | The agent's structural code search (`ast-grep` skill)                                                                 | `brew install ast-grep`                                             | `npm install -g @ast-grep/cli`, or a release binary from ast-grep/ast-grep            |
 | **Python 3**                  | `scripts/setup-idea.sh`, the commit-hygiene guard/check, `claim-scan.py`, `review-rounds.py`, and `review-routing.py` | Ships with macOS Command Line Tools                                 | `sudo apt install python3`                                                            |
 
 Only **Java and Docker** are required to run the application. actionlint is needed for the full `check`; `pack` only
-when building the web-UI image; Helm, a cluster, and Snyk are only for deployment and security scanning; OpenCode is
-only for the agentic development workflow.
+when building the web-UI image; Helm, a cluster, and Snyk are only for deployment and security scanning; OpenCode and
+ast-grep are only for the agentic development workflow.
 
 ### Get the Sources
 

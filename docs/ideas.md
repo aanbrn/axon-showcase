@@ -15,6 +15,13 @@ dated when it was added (start a new section for a new day rather than appending
 
 ## 2026-10-22
 
+- Single-source the vendored-skill set — parked; no change yet. Which trees under `.opencode/skills/` are vendored is
+  declared four times: the Spotless `targetExclude` and the marker task's input file tree in `build.gradle.kts`,
+  `VENDORED_SKILL_PREFIXES` in `scripts/commit-hygiene.py`, and `EXCLUDED_SKILL_PREFIXES` in
+  `build-logic/src/main/kotlin/UpstreamReferenceScope.kt`. `vendor-ast-grep-skill` updated every one of them and named
+  them in `AGENTS.md`, but the next vendored set repeats the sweep. The fix is one declaration the build, the checker,
+  and the Kotlin scope each read. Revisit when a third set is vendored, or when one of the four drifts.
+
 - Gate the formatter-blind inline-code interior — parked; no change yet. Prettier never rewrites an inline span's
   interior, and neither `spotlessCheck`, the 120-character recipe, nor the pre-commit guard looks inside one, so a
   whitespace run there passes every gate (the `Formatting` convention says so and it has now recurred across units). The

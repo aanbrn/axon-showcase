@@ -25,6 +25,7 @@ class UpstreamReferenceScopeTests {
     @DisplayName("Vendored and generated skills are out of scope")
     fun vendoredAndGeneratedSkillsAreOutOfScope() {
         assertThat(UpstreamReferenceScope.includes(".opencode/skills/axon4to5-migrate-code/SKILL.md")).isFalse()
+        assertThat(UpstreamReferenceScope.includes(".opencode/skills/ast-grep/SKILL.md")).isFalse()
         assertThat(UpstreamReferenceScope.includes(".opencode/skills/opsx-probe/SKILL.md")).isFalse()
         assertThat(UpstreamReferenceScope.includes(".opencode/skills/openspec-propose/SKILL.md")).isFalse()
     }

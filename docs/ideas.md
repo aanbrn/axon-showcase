@@ -277,16 +277,6 @@ dated when it was added (start a new section for a new day rather than appending
   while a sibling clause is open. The 2026-10-11 advisory read ADR-0011's gate that way. Routes to
   `.opencode/agent/architecture-auditor.md` and the scenario, which owes that capability's delta.
 
-## 2026-10-11
-
-- Re-check the web UI's `handlebars` override when the lint plugin bumps it — parked; no change yet.
-  `showcase-web-ui/package.json` forces `handlebars` to `4.7.10` via `overrides`, because
-  `eslint-plugin-boundaries@7.2.0` and `@boundaries/elements@3.1.1` pin `handlebars: "4.7.9"` exactly while npm's only
-  offered fix is a breaking downgrade of the plugin. Unlike the `npm-audit-ignores.json` suppressions beside it, the
-  override carries no expiry, so it can silently hold `handlebars` back; re-check when no package in the tree still
-  requests `handlebars 4.7.9` — both `eslint-plugin-boundaries` and `@boundaries/elements` pin it exactly, so both must
-  bump before the override is dropped, or the vulnerable copy returns through the one that has not.
-
 ## 2026-10-10
 
 - Adopt `git worktree` for the per-change branch workflow — parked; no change yet. The workflow keeps a change

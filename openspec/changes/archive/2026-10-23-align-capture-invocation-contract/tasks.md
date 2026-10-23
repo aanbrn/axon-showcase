@@ -91,7 +91,9 @@ Four prose sites state the same defect; the planning artifacts are `proposal.md`
       committed, pushed, archived, or merged before the owner answers. **Done**: the pass was requested with the
       implementation, the review trail, the gates, the capture record, and the two fixture records; nothing was
       committed, pushed, archived, or merged.
-- [ ] 2.10 After approval: archive (`openspec archive align-capture-invocation-contract --yes`), stage the move and the
+- [x] 2.10 After approval: archive (`openspec archive align-capture-invocation-contract --yes`), stage the move and the
       main-spec sync, and ship per `ship-change`. No capability `Purpose` refresh is owed — the Purpose does not
       describe the invocation contract. Verification: the archived change and the synced spec are in the same pull
-      request.
+      request. **Done**: the owner approved on 2026-10-23; the change is archived as
+      `2026-10-23-align-capture-invocation-contract` with the main spec synced in the same commit, and no `Purpose`
+      refresh was owed.

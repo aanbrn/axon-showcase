@@ -2131,16 +2131,17 @@ is recorded on the change's review task.
 ### Requirement: Lessons are captured after implementation
 
 The repository SHALL capture a unit's durable lessons into the artifact that owns each one after the implementation's
-quick review is clean, and SHALL record either the applied capture or the skip and its reason on the unit's record. The
-owning destinations and their routing are `AGENTS.md`'s capture workflow; the scenarios below are carried unchanged
-except as the Migration records, and the capture stage's own consolidation is a later unit.
+quick review is clean: the main agent invokes the `lesson-capture` subagent unless the skip condition defined by
+`AGENTS.md`'s capture workflow holds in full, and SHALL record on the unit's record either the applied capture or the
+skip with its reason. The owning destinations and their routing are that workflow's; the capture stage's own
+consolidation is a later unit.
 
 #### Scenario: Lessons are captured after implementation
 
 - **WHEN** a unit's implementation quick review is clean
-- **THEN** the main agent decides from the unit's own evidence whether it shows a candidate lesson, and invokes the
-  `lesson-capture` subagent only when it does — otherwise the capture is skipped and the skip recorded with its reason,
-  so a skip is a recorded decision rather than a run that found nothing
+- **THEN** the main agent invokes the `lesson-capture` subagent unless the skip condition defined by `AGENTS.md`'s
+  capture workflow holds in full, and a skipped capture records its reason on the unit's record, so a skip is a recorded
+  decision rather than a run that found nothing
 - **AND** the `lesson-capture` subagent proposes each lesson as an addition to the artifact that owns it — an
   `AGENTS.md` gotcha or convention, a check/test authoring mode in the `check-and-test-authoring` skill, a
   shipping-procedure correction in the `ship-change` skill, a stage-procedure correction in the `review-gate` skill, or

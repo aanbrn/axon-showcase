@@ -66,9 +66,10 @@ load before any root text is deleted, and the references must be retargeted befo
       two ownership requirements add. Verification: the `HEAD`-only set is empty, the delta-only set is those six, and
       `openspec validate consolidate-review-gate-ownership --strict` passes. The name check is mechanical only;
       obligation preservation is the design's per-obligation trace, which the implementation review verifies.
-- [ ] 4.2 Record the capability `## Purpose` refresh as close-out work for the archive commit: the Purpose enumerates
+- [x] 4.2 Record the capability `## Purpose` refresh as close-out work for the archive commit: the Purpose enumerates
       the project-authored guidance skills, which the new one widens. Verification: the task is named in this change's
-      close-out and the edit lands with the archive commit.
+      close-out and the edit lands with the archive commit. **Done**: the Purpose now names "the `review-gate` procedure"
+      beside the `check-and-test-authoring` and `ship-change` skills, in this archive commit.
 
 ## 5. Docs the change causes
 
@@ -165,6 +166,7 @@ load before any root text is deleted, and the references must be retargeted befo
       returned `already covered` with no proposal, citing the stage-4 clause and the completion criteria. Archive gate
       closed.
 
-- [ ] 7.6 After the owner's approval, refresh the capability Purpose in the archive commit, then archive and ship per
+- [x] 7.6 After the owner's approval, refresh the capability Purpose in the archive commit, then archive and ship per
       the `ship-change` skill. Verification: the archived change carries the Purpose edit, and the pull request shows
-      both.
+      both. **Done**: the owner approved on 2026-10-23; the capability Purpose is refreshed in this archive commit; the
+      change is archived as `2026-10-23-consolidate-review-gate-ownership` and ships on the same pull request.

@@ -13,6 +13,33 @@ idea graduates into a concrete candidate for work, it may be promoted to a GitHu
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
 dated when it was added (start a new section for a new day rather than appending to the most recent one).
 
+## 2026-10-23
+
+The audit findings carry-forward work remains parked under the 2026-09-24 section; this change does not re-enter it.
+
+- Consolidate the capture requirement's scenarios into their definition — parked; no change yet.
+  `consolidate-review-gate-ownership` split the requirement and carried the four capture scenarios, three verbatim and
+  the first with the narrow `review-gate` retarget (a destination and an existing-rule entry); the first still restates
+  the promotion gate, the evidence threshold, the decision-difference test, and the growth bound that
+  `lesson-capture.md` owns. Route: the ownership model the review gate pilot established — the procedure in the
+  definition, the spec stating outcomes — with the same per-obligation trace before any clause is removed. The retarget
+  the extraction rule required is done: the destinations and the existing-rule enumeration both name the `review-gate`
+  skill, so a gate-procedure lesson has a listed destination. The capture record's own hand-listed enumeration stays
+  here.
+
+- Give an unparseable quick-review report an explicit recovery in the review-gate skill's stage 2 — parked; no change
+  yet. The registered-definition probe for `consolidate-review-gate-ownership` verified the narrow gap:
+  `review-quick.md` requires a verdict line and a machine-readable record line, while the skill's stage 2 states no
+  explicit recovery for output that arrives without them. Whether that gap can produce a false pass is untested — the
+  stage still requires a round row, its checkpoint, and the reviewer's own report of no new observations, so this pilot
+  asserts no such outcome. Route: the `review-gate` skill's stage 2, extending its preflight; the probe's proposed text
+  is a starting point, not an accepted rule.
+
+- Consolidate the diagram and vision scenarios into their definitions — parked; no change yet. The four diagram
+  scenarios carried verbatim by the same change restate the `vision` definition's review groups and measurement rule,
+  and the `diagrammer` definition's mapping, hand-off, and render rule. Same route: one owner per obligation, the spec
+  pointing at the definition.
+
 ## 2026-10-22
 
 - Single-source the vendored-skill set — parked; no change yet. Which trees under `.opencode/skills/` are vendored is

@@ -32,8 +32,8 @@ Run the README audit, which reports only — it never edits a file.
 - Report generation and applying are separate: the applying is a unit of its own.
 - `README.md` alone is a docs unit under `AGENTS.md`'s "Workflow: Change lifecycle". A finding that also needs a spec or
   code change splits into its own unit by that route, and never rides the docs unit.
-- Run the full per-unit review gate over the result. `AGENTS.md`'s "Workflow: The review gate" owns its steps, including
-  the reviewer-session preflight; this command points at it rather than restating it.
+- Run the full per-unit review gate over the result. The `review-gate` skill owns its steps, including the
+  reviewer-session preflight; this command points at it rather than restating it.
 
 **Verification** — `./gradlew spotlessApply` for the formatter-wrapped markdown the unit edited.
 
@@ -46,6 +46,6 @@ and has completed the review gate with the manual pass requested.
 - Unrelated dirty-worktree changes are preserved.
 - The work stays uncommitted until the manual approval pass.
 - Nothing is committed, pushed, turned into a pull request, archived, or merged without that explicit approval.
-- The full per-unit review gate runs over the result. `AGENTS.md`'s "Workflow: Change lifecycle" and "Workflow: The
-  review gate" own the branch, uncommitted-work, approval, and review steps, including the reviewer-session preflight;
-  this command points at them rather than restating them.
+- The full per-unit review gate runs over the result. `AGENTS.md`'s "Workflow: Change lifecycle" owns the branch,
+  uncommitted-work, and approval steps; the `review-gate` skill owns the review steps, including the reviewer-session
+  preflight; this command points at them rather than restating them.

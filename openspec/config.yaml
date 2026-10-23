@@ -71,7 +71,9 @@ rules:
     - Flag "Risks / Trade-offs" with concrete mitigation
     - A change that amends an existing requirement's obligation or permission quotes each amended clause beside its
       replacement and states why, since a `MODIFIED` block replaces the whole requirement and `openspec validate`
-      checks only scenario preservation
+      checks only scenario preservation; a change that removes, splits, or moves a block of obligations carries the
+      per-obligation destination trace its `AGENTS.md` route requires, as a table, since a group-level mapping has no
+      row for a clause that moved inside a group
     - A claim, a rule set, or a record stated in more than one artifact is single-sourced, the rest referencing it by
       name
     - Every mechanism or task-check claim is derived from the dependency graph or the tool's own definition, and a
@@ -105,9 +107,9 @@ rules:
     - Carry the deep-review routing decision as a task in every change — derive the floor with
       `scripts/review-routing.py`, decide at or above it, and record the outcome and the signals it relied on on the
       change's review task — so a missing or failed decision reads as a missing box rather than a silent skip
-    - Carry the pre-write derivation pass as a task in every change — the pass `AGENTS.md`'s review-loop bullet names,
-      whose output is the claims table, never restated here — so a skipped pass is a missing box rather than looking
-      like a pass that found nothing
+    - Carry the pre-write derivation pass as a task in every change — the pass the `review-gate` skill's first stage
+      names, whose output is the claims table, never restated here — so a skipped pass is a missing box rather than
+      looking like a pass that found nothing
     - A claim, a rule set, or a record stated in more than one artifact is single-sourced, the rest referencing it by
       name
     - Every count — and every universal claim over a corpus — is re-derived by grepping the set it counts, naming the

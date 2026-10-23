@@ -40,6 +40,29 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   and the `diagrammer` definition's mapping, hand-off, and render rule. Same route: one owner per obligation, the spec
   pointing at the definition.
 
+- Decide what a retrospective may state when the evidence cannot establish a cause — parked; no change yet.
+  - **Gap:** the `agent-skills` requirement asks the retrospective to trace each significant failure to a root cause,
+    drawing on the digest's review-round data, and does not say what to state when that data — class and round counts —
+    cannot establish one. The report can then state a cause the evidence does not support.
+  - **Evidence:** the first draft's over-claims were rejected before review, and round 1 recorded three `over-claim`
+    findings. That shows the risk is real; it does **not** establish that the requirement produced it — the instruction
+    → wrong decision → different action link is missing, and `lesson-capture.md` requires that link before an
+    authoring-system gap is called established.
+  - **Rejected in this unit:** the same capture proposed replacing the "the digest is authoritative, read its figures
+    rather than re-derive them" clauses, and a conditional `AGENTS.md` replacement. The first is rejected: using an
+    authoritative source and verifying its derivation and resolving its declared boundaries are compatible, the 63/59
+    difference is a boundary the digest already asks the author to resolve, and recomputing every figure per report
+    would replace the single fact producer without a demonstrated need. The second was not applied: it would contradict
+    the requirement without that spec change.
+  - **Route (if the gap is confirmed):** a `MODIFIED` delta on `showcase/quality/agent-skills` plus the
+    `experience-analyzer` definition, in one change. No change now.
+  - **Revisit when:** a concrete instance supplies the link `lesson-capture.md` requires — the requirement's root-cause
+    clause (the instruction), the draft's decision to state a cause the counts cannot support (the wrong decision), and
+    the action the proposed wording would change, stating a hypothesis with what would settle it (the different action)
+    — with that instance named in `docs/review-rounds.tsv`'s rows for the unit or in the pull-request checklist line
+    carrying its capture record (internal trigger, at that coordinate) **and** the 2026-10-23 pause lifted (external
+    coordinate: the P1 acceptance in `docs/retrospectives/2026-10-23.md`).
+
 ## 2026-10-22
 
 - Single-source the vendored-skill set — parked; no change yet. Which trees under `.opencode/skills/` are vendored is

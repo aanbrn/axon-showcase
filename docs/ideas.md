@@ -2,7 +2,8 @@
 
 Short notes to remember emerging development ideas. An idea becomes an OpenSpec change only when acted on — this file is
 a scratchpad, not a backlog of planned work. An idea is removed from the list once implemented (captured by a change) or
-once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR instead); only open,
+once explored and decided against (the durable lesson is captured in `AGENTS.md`, an ADR, or a dated retrospective where
+the decision is a program direction with a revisit condition rather than a rule an agent applies); only open,
 not-yet-implemented ideas remain.
 
 Changes to this file travel with the change that owns them: an idea's **removal** ships in the implementing change's PR
@@ -11,7 +12,10 @@ in-flight change's own work surfaced rides that branch too; only a docs edit the
 after it is done (a merge-time capture), ships as its own docs PR (like an `AGENTS.md`/`README.md` refresh PR). When an
 idea graduates into a concrete candidate for work, it may be promoted to a GitHub issue that links to the eventual
 OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
-dated when it was added (start a new section for a new day rather than appending to the most recent one).
+dated when it was added (start a new section for a new day rather than appending to the most recent one). Search the
+file for the idea before adding it: the same work already parked — however differently worded — is extended in place in
+its existing section, since the day-section rule otherwise files a re-park as a second entry and splits one idea's
+detail across two sections.
 
 ## 2026-10-23
 
@@ -160,16 +164,22 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   result or states that it is untested, not to how an agent reads it; an `AGENTS.md` warning would not close it. Parked
   rather than built: it needs an `agent-skills` delta and the auditor definition's refresh.
 
-- Refuse a commit that stages an archived change dir with an unchecked task — parked; no change yet.
-  `openspec archive --yes` continues past incomplete tasks with a warning line rather than failing, and a merge-time
-  verification (a workflow dispatch, which needs the pushed branch) can only be ticked _after_ the change dir is
-  committed, so the tick lands in the archive commit's own edit and nothing re-reads the warning afterwards. The outcome
-  "an archived task is not left unchecked" is mechanically checkable, and the machinery exists: `commit-hygiene.py`'s
-  `find_unpaired_archive_sync` already inspects staged archived change dirs, so a sibling check would read a staged
-  `openspec/changes/archive/**/tasks.md` and refuse a commit carrying an unchecked item. It must be scoped to the
-  **staged set** rather than the whole archive, because archived change dirs already carry unchecked tasks that are
-  historical and would all be flagged. Parked rather than built: it overrides `openspec archive --yes`'s deliberate
-  non-blocking design by policy, so it needs its own `commit-hygiene` delta and a `*RulesTests` control.
+- Refuse a commit that stages an archived change dir with an unchecked task — parked; no change yet. This is the
+  2026-10-15 retrospective's S4, restated with the machinery named, and the retrospective proposed it at lower
+  confidence: `openspec archive --yes` continues past incomplete tasks with a warning line rather than failing, and a
+  merge-time verification (a workflow dispatch, which needs the pushed branch) can only be ticked _after_ the change dir
+  is committed, so the tick lands in the archive commit's own edit and nothing re-reads the warning afterwards. The
+  outcome "an archived task is not left unchecked" is mechanically checkable, and the machinery exists:
+  `commit-hygiene.py`'s `find_unpaired_archive_sync` already inspects staged archived change dirs, so a sibling check
+  would read a staged `openspec/changes/archive/**/tasks.md` and refuse a commit carrying an unchecked item. It must be
+  scoped to the **staged set** rather than the whole archive, because archived change dirs already carry unchecked tasks
+  that are historical and would all be flagged. The exemption the 2026-10-17 entry asked for — for a task the owner
+  deliberately decoupled from its merge — is unnecessary: `AGENTS.md`'s deferred-task clause (the smoke-run bullet)
+  requires such a task to be reworded to record the deferral and then **ticked**, so it does not trip the guard. Which
+  other boxes, such as a bookkeeping box whose edit landed or a completed control run, are exempt is the design question
+  the 2026-10-23 retrospective's P2 leaves open, and until that list is settled the guard trips any unchecked box.
+  Parked rather than built: it overrides `openspec archive --yes`'s deliberate non-blocking design by policy, so it
+  needs its own `commit-hygiene` delta and a `*RulesTests` control.
 
 - Run a configuration-cache store sweep over the tasks the workflows invoke — parked; no change yet.
   `fix-upstream-references-config-cache` restored `upstreamReferences`'s cache compatibility, but the class it belongs
@@ -250,13 +260,6 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   (the `*RulesTests` shape) asserting that every class in a `docs/review-rounds.tsv` row recorded on or after the
   canonical boundary is in that list, so a genuinely new class is added to the contract before it is recorded. Routes to
   a `code-quality` requirement plus an `agent-skills` delta.
-
-- Guard against unticked tasks in an archived change dir — parked; no change yet. The 2026-10-15 retrospective's S4,
-  proposed at lower confidence. Archived change dirs carry unticked review-gate boxes (the count and the window-proper
-  instances are the retrospective's), and an unticked box inside `openspec/changes/archive/` is invisible — no gate
-  reads one. A `check` member or a pre-commit arm would refuse to stage an archived change dir still carrying an
-  unticked box, exempting a task the owner deliberately decoupled from its merge; that exemption is the fiddly part, so
-  the guard is worth taking only if it reads as cheaper than the silence.
 
 - Make the chart-packaging gate's fetches resilient — parked; no change yet. `check` now runs the chart's packaging, so
   the plugin's repository setup (`helmAdd*Repository`, `helmUpdateRepositories`) and its dependency fetch
@@ -490,9 +493,13 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 - Trend the audit counts across reports — parked; no change yet. The capture rule leans on the verdict's accreted-rule
   count as the growth control, but nothing reads it back, so the only quantitative signal that consolidation is winning
   goes uncollected. A small report — or a `/retrospective` input — extracting the verdict lines from `docs/audits/*.md`
-  would show findings, merge, removal, accreted, and authoring-system gap counts over time. Five reports now exist, and
-  one definition now governs the accreted count, so reports from here on are comparable and the trend is buildable. The
-  same extraction would now also trend the **instruction-budget ledger** each report carries
+  would show findings, merge, removal, accreted, and authoring-system gap counts over time. Each meta rule counted once
+  however many `captured:` markers it carries gives the three reports from `docs/audits/2026-10-04-scheduled.md` (71
+  units) through `2026-10-11` (~95, ~24 new) to `2026-10-19` (~141, ~46 new) a buildable trend — reported approximate
+  counts, with the counting rule stated in full only from `2026-10-11.md` on. The reports before `2026-10-04-scheduled`,
+  and the on-demand `2026-10-04` report (118 raw markers, no distinct-unit count), record figures that predate the
+  metric — raw marker counts, or no stated unit basis — so none is comparable with the three. The same extraction would
+  now also trend the **instruction-budget ledger** the reports from `docs/audits/2026-10-19.md` on carry
   (`optimize-agents-auditor-for-instruction-budget`) — `AGENTS.md`'s size, its size by section, and the growth since the
   prior report — which is the one series that measures whether the reductions are holding the always-loaded surface
   flat.
@@ -554,11 +561,6 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   PR's title names the report rather than the mention.
 
 ## 2026-09-16
-
-- Make the next phase a product phase — parked; no change yet. The first retrospective's recommended direction (see
-  `docs/retrospectives/2026-09-16.md`). The tooling is mature enough to be used rather than extended: the architecture's
-  missing _enforce_ layer now exists (ADR-0010), and the highest-value candidate it named — web-UI trace propagation —
-  has since shipped.
 
 - GitHub Discussions are disabled — parked; no change yet. Enabling them would give the project a second support surface
   beside issues, but it needs moderation, so it is a decision rather than a toggle.

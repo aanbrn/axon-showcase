@@ -3,8 +3,8 @@ description:
   Captures lessons learned from a unit into the repo's guidance — AGENTS.md, a subject pack (jvm-development,
   jvm-testing, gradle-build, or deployment-operations), the check-and-test-authoring skill, the ship-change skill, or
   the review-gate skill — reports the rules the unit retires, and routes a lesson whose cause is an authoring mechanism
-  to that mechanism. Use for a unit whose implementation (and its quick review) shows evidence of a reusable lesson, so
-  mistakes and conventions get recorded instead of relying on memory.
+  to that mechanism. Use after a unit's implementation quick review unless the skip condition defined by `AGENTS.md`'s
+  capture workflow holds in full, so mistakes and conventions get recorded instead of relying on memory.
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash
 temperature: 0

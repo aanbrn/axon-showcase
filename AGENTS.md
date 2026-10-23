@@ -1349,22 +1349,23 @@ Key modules (libraries, not services):
   report-producing subagents and goes stale when one is added, so it needs a `MODIFIED` delta; the trigger command
   (including its step-1 read-list); the README's **agent table row** and **slash-command table row** and every **prose**
   bullet describing it (the Spec-Driven Development, Agentic Process, and Self-Learning Loop sentences) whenever what it
-  reports changes — the tables and the prose bullets are separate copies; a task for the capability `## Purpose` refresh
-  (a delta cannot carry a Purpose); and the proposal's `### New Capabilities`/ `### Modified Capabilities` subsections
-  ("none" where empty). Keep any enumerated list (the swept surfaces, the finding classes) in the two sites that own it
-  — the definition and the delta — and make every other site that states it, the definition's own class paragraph,
-  method bullets, and verdict line (separate edit passes) included, illustrative (`such as`) or a pointer, never a copy
-  — the single-sourcing rule under "Invariants" owns the drift signal (a method bullet routed an out-of-scope mechanism
-  to the advisory class while the class paragraph carried the three-branch routing). The
-  `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds because each round surfaced
-  one of these that a prior analogous change had covered — read the archived analogous change and grep for the
-  artifact's **name and its trigger command** before hand-writing the set, since a site may name only one (the agent
-  table row names the agent; the prose bullets and the slash-command row name its command), and for a set the change
-  enumerates the sweep rule's member grep is the sweep — and point the proposal's site list at the tasks that name those
-  sites rather than hand-writing it, since a hand-written enumeration keeps under-matching the union it derives from.
-  captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12 captured: record-review-rounds captured:
-  bound-the-review-loop captured: bump-dependencies-2026-10-16 captured: widen-audit-agents-to-authoring-gaps captured:
-  sharpen-experience-analysis captured: sharpen-specs-audit
+  reports or how it is invoked changes — the tables and the prose bullets are separate copies; a task for the capability
+  `## Purpose` refresh (a delta cannot carry a Purpose); and the proposal's `### New Capabilities`/
+  `### Modified Capabilities` subsections ("none" where empty). Keep any enumerated list (the swept surfaces, the
+  finding classes) in the two sites that own it — the definition and the delta — and make every other site that states
+  it, the definition's own class paragraph, method bullets, and verdict line (separate edit passes) included,
+  illustrative (`such as`) or a pointer, never a copy — the single-sourcing rule under "Invariants" owns the drift
+  signal (a method bullet routed an out-of-scope mechanism to the advisory class while the class paragraph carried the
+  three-branch routing). The `widen-architecture-auditor-to-intent-gaps` proposal took repeated `review-quick` rounds
+  because each round surfaced one of these that a prior analogous change had covered — read the archived analogous
+  change and grep for the artifact's **name and its trigger command** before hand-writing the set, since a site may name
+  only one (the agent table row names the agent; the prose bullets and the slash-command row name its command), and for
+  a set the change enumerates the sweep rule's member grep is the sweep — and point the proposal's site list at the
+  tasks that name those sites rather than hand-writing it, since a hand-written enumeration keeps under-matching the
+  union it derives from. captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12 captured:
+  record-review-rounds captured: bound-the-review-loop captured: bump-dependencies-2026-10-16 captured:
+  widen-audit-agents-to-authoring-gaps captured: sharpen-experience-analysis captured: sharpen-specs-audit captured:
+  align-capture-invocation-contract
 - **An OpenCode model pin is resolved before it is set, and a bump is a multi-file sweep — grep for the old model id,
   and keep the vision pin out of scope.** A pin naming a provider that does not serve the model fails the agent at every
   invocation (`Model unavailable`) with no gate reading it, so resolve it first

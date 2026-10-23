@@ -998,16 +998,16 @@ Key modules (libraries, not services):
   across `AGENTS.md`, `README.md`, `openspec/config.yaml`, `docs/adr/`, and `docs/ideas.md` and fix each, since no gate
   reads any of them. captured: bump-dependencies-2026-10-12 Update them before reporting the change done; also remove
   the change's idea from `docs/ideas.md` in this PR, not as a separate docs PR. An idea is removed once implemented
-  (captured by a change) or once explored and decided against (the durable lesson is captured in `AGENTS.md`/an ADR
-  instead); only open ideas remain (see the file's header). Promotion to a GitHub issue is a **link, not a removal** —
-  annotate the idea with the issue number when you promote it, since the file's header names only the issue's link to
-  the change, not the scratchpad's back-link to the issue, so the two drift apart — and prefer promoting a unit's idea
-  at that unit's merge: while its PR is open, citing an artifact the unit ships is a contingent claim that must say so
-  (`open as #NNN; not yet merged`) and the clause drops at the merge — the merge-time read owns that drop, and where the
-  claim was already published outside the repository it means editing the published artifact, not only omitting it from
-  new prose — because the issue is a permanent record outside the repository and cannot cite what the default branch
-  does not have. Give every parked entry a trailing status tag stating its disposition (`— parked; no change yet.` is
-  the common form; a promoted or explored-and-set-aside idea says so instead: the promotion _replaces_ the parked tag,
+  (captured by a change) or once explored and decided against — the file's header owns where its durable lesson goes and
+  what remains. Promotion to a GitHub issue is a **link, not a removal** — annotate the idea with the issue number when
+  you promote it, since the file's header names only the issue's link to the change, not the scratchpad's back-link to
+  the issue, so the two drift apart — and prefer promoting a unit's idea at that unit's merge: while its PR is open,
+  citing an artifact the unit ships is a contingent claim that must say so (`open as #NNN; not yet merged`) and the
+  clause drops at the merge — the merge-time read owns that drop, and where the claim was already published outside the
+  repository it means editing the published artifact, not only omitting it from new prose — because the issue is a
+  permanent record outside the repository and cannot cite what the default branch does not have. Give every parked entry
+  a trailing status tag stating its disposition (`— parked; no change yet.` is the common form; a promoted or
+  explored-and-set-aside idea says so instead: the promotion _replaces_ the parked tag,
   `— promoted to issue #NNN; no change yet.`, never a clause appended past the tag's sentence-final period), since the
   header fixes the sections' order and dating but not the tag, and the tag is what marks the entry as a still-unowned
   idea rather than one already routed to work. Also sweep the un-audited docs for references to the thing this change
@@ -1584,20 +1584,22 @@ capture-stash-stale-copy
   the granularity you edited.** Reordering the README with a Python boundary script dropped the entire "Getting Started"
   section: the move used `lines[ends['Development Workflow']:]`, which starts at the _next_ section and skips the block
   sitting between the two, and only a follow-up grep for `## Getting Started` caught the loss. After any script-driven
-  move/rewrite of a markdown file, grep for each expected heading (or diff the heading list before/after) before
-  reporting done; for a docs reorder, prefer the edit tool over a hand-rolled reordering script. The same class bites at
-  the edit tool's anchor: an edit anchored on a neighbouring item's line is applied at the neighbour — the tool's
-  uniqueness check is satisfied by any unique line — so the replacement is written there while the item meant to change
-  keeps its old text; anchor on the text being changed. Token and table granularity bite the same way: a file-wide
-  substring replacement rewrites every occurrence that legitimately shares the value, so scope it to the block that owns
-  the value or assert its exact intended match count first, and a row keyed on its table's column (pipe) count lands in
-  any sibling table sharing that count, so key it on its identifying cell, re-check every edited table's column count,
-  and confirm the row landed **inside** the block — the header, the delimiter row, and the row contiguous — since a row
-  appended below a blank line, or under no delimiter row, is a paragraph `spotlessCheck` reflows and passes: insert the
-  rows into the block programmatically and assert those three parts in the same step. The same class bites at item
-  granularity: the `retro-mark-captured-rules` provenance sweep derived each rule's line range with a boundary heuristic
-  that treated a top-level plain `- Text` bullet directly after a bold-lead rule as the rule's continuation. At the
-  time, three such adjacencies existed in `AGENTS.md` (`A buildpack pin is verified…`,
+  move, rewrite, or deletion in a markdown file, diff the level you edited before/after — the heading list for a section
+  move, the `- ` item starts or the entry count for an edit inside a list, since a heading diff passes while an entry
+  between two siblings drops out — and reconcile the diff's deletion count against the span you meant to remove; make a
+  single known unit's change — a reorder, deletion, or insertion — with the edit tool on that unit's own text, not a
+  script. The same class bites at the edit tool's anchor: an edit anchored on a neighbouring item's line is applied at
+  the neighbour — the tool's uniqueness check is satisfied by any unique line — so the replacement is written there
+  while the item meant to change keeps its old text; anchor on the text being changed. Token and table granularity bite
+  the same way: a file-wide substring replacement rewrites every occurrence that legitimately shares the value, so scope
+  it to the block that owns the value or assert its exact intended match count first, and a row keyed on its table's
+  column (pipe) count lands in any sibling table sharing that count, so key it on its identifying cell, re-check every
+  edited table's column count, and confirm the row landed **inside** the block — the header, the delimiter row, and the
+  row contiguous — since a row appended below a blank line, or under no delimiter row, is a paragraph `spotlessCheck`
+  reflows and passes: insert the rows into the block programmatically and assert those three parts in the same step. The
+  same class bites at item granularity: the `retro-mark-captured-rules` provenance sweep derived each rule's line range
+  with a boundary heuristic that treated a top-level plain `- Text` bullet directly after a bold-lead rule as the rule's
+  continuation. At the time, three such adjacencies existed in `AGENTS.md` (`A buildpack pin is verified…`,
   `palantir-java-format does not manage imports`, `A dependency a module does not use…`), and the second rule's range
   ran through the eight plain bullets behind it — so both the `git log -L` range an origin was read from and the line
   the `captured:` marker was appended to belonged to the wrong item, and the marker landed on the following bullet.
@@ -1611,7 +1613,7 @@ capture-stash-stale-copy
   destination, since neither a green edit script nor the diff's size shows a shift. captured:
   separate-agents-md-core-and-subject-packs captured: retro-mark-captured-rules captured: add-a-fresh-session-trigger
   captured: optimize-agents-auditor-for-instruction-budget captured: convert-remaining-gotchas-rules captured:
-  consolidate-review-gate-ownership
+  consolidate-review-gate-ownership captured: clean-up-ideas
 
 - **The same range-boundary hazard bites source:** removing three tasks' private comparators with a range running from
   the first deleted member to the end of the file took each class's **closing brace** (the members were last in the

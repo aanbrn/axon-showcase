@@ -35,8 +35,8 @@ Run the architecture audit, which reports only — it never edits a file.
   or a command or subagent-definition change altering spec-covered behavior, goes through the normal change workflow
   with that capability's delta; a spec change follows `AGENTS.md`'s "Workflow: Author a spec delta and archive". Never
   edit a main spec outside archive.
-- Run the full per-unit review gate over the result. `AGENTS.md`'s "Workflow: The review gate" owns its steps, including
-  the reviewer-session preflight; this command points at it rather than restating it.
+- Run the full per-unit review gate over the result. The `review-gate` skill owns its steps, including the
+  reviewer-session preflight; this command points at it rather than restating it.
 
 **Verification** — `./gradlew spotlessApply` for the formatter-wrapped files the unit edited.
 
@@ -49,6 +49,6 @@ and has completed the review gate with the manual pass requested.
 - Unrelated dirty-worktree changes are preserved.
 - The work stays uncommitted until the manual approval pass.
 - Nothing is committed, pushed, turned into a pull request, archived, or merged without that explicit approval.
-- The full per-unit review gate runs over the result. `AGENTS.md`'s "Workflow: Change lifecycle" and "Workflow: The
-  review gate" own the branch, uncommitted-work, approval, and review steps, including the reviewer-session preflight;
-  this command points at them rather than restating them.
+- The full per-unit review gate runs over the result. `AGENTS.md`'s "Workflow: Change lifecycle" owns the branch,
+  uncommitted-work, and approval steps; the `review-gate` skill owns the review steps, including the reviewer-session
+  preflight; this command points at them rather than restating them.

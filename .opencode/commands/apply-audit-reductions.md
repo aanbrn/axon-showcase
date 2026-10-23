@@ -58,5 +58,5 @@ applied and has completed the review gate with the manual pass requested.
 - The work stays uncommitted until the manual approval pass.
 - Nothing is committed, pushed, turned into a pull request, archived, or merged without that explicit approval.
 - The full per-unit review gate runs over the result — not the formatter and a quick review alone. `AGENTS.md`'s
-  "Workflow: Change lifecycle" and "Workflow: The review gate" own the branch, uncommitted-work, approval, and review
-  steps, including the reviewer-session preflight; this command points at them rather than restating them.
+  "Workflow: Change lifecycle" owns the branch, uncommitted-work, and approval steps; the `review-gate` skill owns the
+  review steps, including the reviewer-session preflight; this command points at them rather than restating them.

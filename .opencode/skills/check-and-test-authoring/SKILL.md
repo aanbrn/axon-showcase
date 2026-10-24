@@ -90,6 +90,20 @@ nothing.
   captured: widen-config-probe-to-guidance captured: enforce-web-ui-naming-conventions captured:
   check-toolchain-prerequisites captured: retry-the-actionlint-download
 
+## The fixture must reach the state the assertion claims
+
+- **A fixture that reaches the subject by a neighbouring path proves nothing about the path under test: drive the
+  operation the branch belongs to, and confirm by neutering that one mechanism.** `idempotent-projection-writes`'
+  integration case claimed the guard script's false branch (an older event must not regress the document) but replayed a
+  _create_, and the script runs only on an update: OpenSearch rejected the duplicate create before any script executed,
+  the document was unchanged for the conflict reason, and the case passed with the guard never run. Drive the branch's
+  own operation (the fix replays a lower-sequence _started_ event through the update path), then delete or invert that
+  one mechanism and confirm the case goes red: a fixture on a neighbouring path still passes with the mechanism removed.
+  Where the tier cannot produce the state, move that half to the tier that can and state which half each covers: the
+  unit recorded that a real OpenSearch container cannot be made to reject one item on demand, so the ordering half runs
+  at the component tier over a stubbed response while the integration case asserts only the merged document. captured:
+  idempotent-projection-writes
+
 ## A positive control must not use an input the subject excludes
 
 - **A positive control's input must be one the subject does not itself exclude — plant a value the check's own config

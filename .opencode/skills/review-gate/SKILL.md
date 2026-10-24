@@ -143,18 +143,23 @@ the ask: nothing is committed, pushed, opened as a PR, archived, or merged befor
   lean on the reviewer's memory in place of the hand-off, which is the caller's record. The caller's own re-check of the
   handover is a recorded deviation, not a passed round (a resumed round found defects the handover's self-review had
   passed). captured: retrospective-2026-10-15
-- **A finding that adds behavior is a scope change, not a code fix:** applying it to the code and a test alone leaves
-  the change's planning artifacts — proposal, design, tasks, and delta spec — describing the old behavior, and the next
-  round reports the residue as spec-/task-drift. Sweep every one of them, not only the file the finding names, as part
-  of applying the finding (and the docs, per the docs-refresh convention). A **framing or coherence** correction takes
-  the same sweep even though it adds no behavior: the artifacts the change states the model across — planning and
+- **A behavior added after the plan is drafted — by a finding or by the implementation — is a scope change, not a code
+  fix:** applying it to the code and a test alone leaves the change's planning artifacts — proposal, design, tasks, and
+  delta spec — describing the old behavior, and the next round reports the residue as spec-/task-drift. Sweep every one
+  of them, not only the file the finding names, as part of applying the finding (and the docs, per the docs-refresh
+  convention); the implementation's own additions take the same sweep, so run it once more after its last edit:
+  `idempotent-projection-writes` implemented a `ShowcaseEvent`-without-aggregate-headers branch its design recorded and
+  its delta spec did not, and capped its item backoff at `2^10` where the design still said only "doubling"; the sweep
+  that followed the implementation is what put both into the planning artifacts. A **framing or coherence** correction
+  takes the same sweep even though it adds no behavior: the artifacts the change states the model across — planning and
   shipped alike — state one model of the subject, so correcting the model in the artifacts the finding names leaves a
   sibling — often the shipped copy, not only `proposal.md` — stating the old framing, which the next round flags as
   coherence drift. Re-read every artifact that states the corrected claim, `proposal.md` and the shipped copies included
   — and the section _inside_ an artifact, such as a delta requirement's description beside its scenarios — before
   re-running the review; `openspec validate` checks a scenario's presence, never that it still agrees with the
   description. captured: record-baseline-operating-point captured: widen-architecture-auditor-to-revisit-triggers
-  captured: add-apply-audit-reductions-command captured: record-agents-md-authoring-standard
+  captured: add-apply-audit-reductions-command captured: record-agents-md-authoring-standard captured:
+  idempotent-projection-writes
 - IF the review loop keeps finding the **same class** of observation round after round, it is not converging — each fix
   is treating a symptom of a root cause that is still there. Stop, re-derive the root cause by the shapes under "Failure
   handling", and do not layer another special case.

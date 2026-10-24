@@ -13,9 +13,24 @@ import static showcase.command.RandomCommandTestUtils.aShowcaseStartedAt;
 import static showcase.command.RandomCommandTestUtils.aShowcaseTitle;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.val;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.OffsetSpec;
+import org.apache.kafka.common.TopicPartition;
+import org.axonframework.eventhandling.EventMessage;
+import org.axonframework.eventhandling.GenericDomainEventMessage;
+import org.axonframework.eventhandling.GenericEventMessage;
 import org.axonframework.extensions.kafka.eventhandling.producer.KafkaPublisher;
+import org.axonframework.messaging.unitofwork.DefaultUnitOfWork;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +66,8 @@ import showcase.test.KafkaTestPublisher;
 @Testcontainers(parallel = true)
 @DisplayName("Showcase projector integration tests")
 class ShowcaseProjectorIT {
+
+    private static final String EVENTS_TOPIC = "axon-showcase-events";
 
     @Container
     static final KafkaContainer kafka = new KafkaContainer("apache/kafka:" + System.getProperty("kafka.image.version"))
@@ -107,6 +124,68 @@ class ShowcaseProjectorIT {
         assertThat(showcaseIndexOperations.exists()).isTrue();
     }
 
+    private void publishMessage(EventMessage<?> message) {
+        new DefaultUnitOfWork<>(message).execute(() -> {
+            @SuppressWarnings("unchecked")
+            val publisher = (KafkaPublisher<String, byte[]>) kafkaPublisher;
+            publisher.send(message);
+        });
+    }
+
+    private AdminClient adminClient() {
+        val properties = new Properties();
+        properties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        properties.put(AdminClientConfig.CLIENT_ID_CONFIG, "showcase-projector-it");
+        return AdminClient.create(properties);
+    }
+
+    private List<TopicPartition> topicPartitions(AdminClient admin) throws Exception {
+        return admin
+                .describeTopics(List.of(EVENTS_TOPIC))
+                .allTopicNames()
+                .get(10, TimeUnit.SECONDS)
+                .get(EVENTS_TOPIC)
+                .partitions()
+                .stream()
+                .map(partition -> new TopicPartition(EVENTS_TOPIC, partition.partition()))
+                .toList();
+    }
+
+    private Map<TopicPartition, Long> logEndOffsets() throws Exception {
+        try (val admin = adminClient()) {
+            val partitions = topicPartitions(admin);
+            val specs = partitions.stream().collect(Collectors.toMap(Function.identity(), __ -> OffsetSpec.latest()));
+            return admin.listOffsets(specs).all().get(10, TimeUnit.SECONDS).entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Entry::getKey, entry -> entry.getValue().offset()));
+        }
+    }
+
+    private Map<TopicPartition, Long> committedOffsets() throws Exception {
+        try (val admin = adminClient()) {
+            return admin
+                    .listConsumerGroupOffsets("showcase-projector")
+                    .partitionsToOffsetAndMetadata()
+                    .get(10, TimeUnit.SECONDS)
+                    .entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            Entry::getKey, entry -> entry.getValue().offset()));
+        }
+    }
+
+    private void awaitConsumed(TopicPartition partition, long endOffset) {
+        await().untilAsserted(() ->
+                assertThat(committedOffsets().getOrDefault(partition, 0L)).isGreaterThanOrEqualTo(endOffset));
+    }
+
+    private TopicPartition advancedPartition(Map<TopicPartition, Long> before, Map<TopicPartition, Long> after) {
+        return after.keySet().stream()
+                .filter(partition -> after.get(partition) - before.getOrDefault(partition, 0L) == 2L)
+                .findFirst()
+                .orElseThrow();
+    }
+
     @AfterEach
     void tearDown() {
         assertThat(showcaseIndexOperations.exists()).isTrue();
@@ -135,25 +214,31 @@ class ShowcaseProjectorIT {
 
     @Test
     @ExtendWith(OutputCaptureExtension.class)
-    @DisplayName("Publishing the same scheduled event twice logs an error")
-    void showcaseScheduledEvent_sameEventTwice_logsError(CapturedOutput output) {
+    @DisplayName("A redelivered scheduled event converges without an error and the stream continues")
+    void showcaseScheduledEvent_sameEventTwice_convergesWithoutError(CapturedOutput output) {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
+        val startTime = aShowcaseStartTime(scheduleTime);
+        val duration = aShowcaseDuration();
 
         kafkaTestPublisher.publishEventTwice(ShowcaseScheduledEvent.builder()
                 .showcaseId(showcaseId)
                 .title(aShowcaseTitle())
-                .startTime(aShowcaseStartTime(scheduleTime))
-                .duration(aShowcaseDuration())
+                .startTime(startTime)
+                .duration(duration)
                 .scheduledAt(aShowcaseScheduledAt(scheduleTime))
                 .build());
+        kafkaTestPublisher.publishEvent(ShowcaseStartedEvent.builder()
+                .showcaseId(showcaseId)
+                .duration(duration)
+                .startedAt(aShowcaseStartedAt(startTime))
+                .build());
 
-        await().until(() -> output.getOut()
-                .lines()
-                .anyMatch(line -> line.matches(
-                        (".+(ERROR).+(On ShowcaseScheduledEvent, \\[Create\\] \\[version_conflict_engine_exception\\] "
-                                        + "\\[%s\\]: version conflict, document already exists).+")
-                                .formatted(showcaseId))));
+        await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
+                .filter(showcase -> showcase.status() == ShowcaseStatus.STARTED)
+                .isPresent());
+
+        assertThat(output.getOut()).doesNotContain("ERROR");
     }
 
     @Test
@@ -163,10 +248,11 @@ class ShowcaseProjectorIT {
         val scheduleTime = Instant.now();
         val startTime = aShowcaseStartTime(scheduleTime);
         val duration = aShowcaseDuration();
+        val title = aShowcaseTitle();
 
         kafkaTestPublisher.publishEvent(ShowcaseScheduledEvent.builder()
                 .showcaseId(showcaseId)
-                .title(aShowcaseTitle())
+                .title(title)
                 .startTime(startTime)
                 .duration(duration)
                 .scheduledAt(aShowcaseScheduledAt(scheduleTime))
@@ -183,6 +269,10 @@ class ShowcaseProjectorIT {
         await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
                 .filter(showcase -> showcase.status() == ShowcaseStatus.STARTED)
                 .isPresent());
+        assertThat(openSearchTemplate.get(showcaseId, ShowcaseEntity.class)).satisfies(showcase -> {
+            assertThat(showcase.title()).isEqualTo(title);
+            assertThat(showcase.startedAt()).isEqualTo(startedAt);
+        });
     }
 
     @Test
@@ -203,8 +293,7 @@ class ShowcaseProjectorIT {
         await().until(() -> output.getOut()
                 .lines()
                 .anyMatch(line -> line.matches(
-                        (".+(ERROR).+(On ShowcaseStartedEvent, \\[Update\\] \\[document_missing_exception\\] \\[%s\\]: "
-                                        + "document missing)")
+                        ".+(ERROR).+Bulk item failed: \\[Update] \\[%s] document_missing_exception: .+document missing"
                                 .formatted(showcaseId))));
     }
 
@@ -242,6 +331,11 @@ class ShowcaseProjectorIT {
         await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
                 .filter(showcase -> showcase.status() == ShowcaseStatus.FINISHED)
                 .isPresent());
+        assertThat(openSearchTemplate.get(showcaseId, ShowcaseEntity.class)).satisfies(showcase -> {
+            assertThat(showcase.startedAt()).isEqualTo(startedAt);
+            assertThat(showcase.duration()).isEqualTo(duration);
+            assertThat(showcase.finishedAt()).isEqualTo(finishedAt);
+        });
     }
 
     @Test
@@ -262,9 +356,130 @@ class ShowcaseProjectorIT {
         await().until(() -> output.getOut()
                 .lines()
                 .anyMatch(line -> line.matches(
-                        (".+(ERROR).+(On ShowcaseFinishedEvent, \\[Update\\] \\[document_missing_exception\\]"
-                                        + " \\[%s\\]: document missing)")
+                        ".+(ERROR).+Bulk item failed: \\[Update] \\[%s] document_missing_exception: .+document missing"
                                 .formatted(showcaseId))));
+    }
+
+    @Test
+    @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("A message with a non-showcase payload is reported as ignored")
+    void nonShowcasePayload_isReportedAsIgnored(CapturedOutput output) {
+        val message = new GenericDomainEventMessage<>("OtherAggregate", "other-1", 0L, "not-a-showcase-event");
+
+        publishMessage(message);
+
+        await().until(() -> output.getOut().contains("Skipped event message with payload type"));
+    }
+
+    @Test
+    @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("A showcase event without aggregate headers is reported as a failure")
+    void showcaseEventWithoutSequence_isReportedAsFailure(CapturedOutput output) {
+        val message = GenericEventMessage.asEventMessage(ShowcaseScheduledEvent.builder()
+                .showcaseId(aShowcaseId())
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(Instant.now()))
+                .duration(aShowcaseDuration())
+                .scheduledAt(Instant.now())
+                .build());
+
+        publishMessage(message);
+
+        await().until(() -> output.getOut().contains("Skipped event message without an aggregate sequence"));
+    }
+
+    @Test
+    @DisplayName("A created document carries its aggregate sequence")
+    void showcaseScheduledEvent_singleEvent_storesTheAggregateSequence() {
+        val showcaseId = aShowcaseId();
+        val scheduleTime = Instant.now();
+
+        kafkaTestPublisher.publishEvent(ShowcaseScheduledEvent.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(scheduleTime))
+                .duration(aShowcaseDuration())
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                .build());
+
+        await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
+                .map(ShowcaseEntity::sequence)
+                .filter(sequence -> sequence == 0L)
+                .isPresent());
+    }
+
+    @Test
+    @DisplayName("A replayed older event does not regress the document")
+    void showcaseScheduledEvent_replayedOlderEvent_doesNotRegressTheDocument() {
+        val showcaseId = aShowcaseId();
+        val scheduleTime = Instant.now();
+        val startTime = aShowcaseStartTime(scheduleTime);
+        val duration = aShowcaseDuration();
+        val scheduledEvent = ShowcaseScheduledEvent.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(startTime)
+                .duration(duration)
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                .build();
+
+        val startedAt = aShowcaseStartedAt(startTime);
+
+        kafkaTestPublisher.publishEvent(scheduledEvent);
+        kafkaTestPublisher.publishEvent(ShowcaseStartedEvent.builder()
+                .showcaseId(showcaseId)
+                .duration(duration)
+                .startedAt(startedAt)
+                .build());
+
+        await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
+                .filter(showcase -> showcase.status() == ShowcaseStatus.STARTED)
+                .isPresent());
+
+        kafkaTestPublisher.publishEventWithSequence(
+                ShowcaseStartedEvent.builder()
+                        .showcaseId(showcaseId)
+                        .duration(duration.plusMinutes(30))
+                        .startedAt(startedAt.minusSeconds(60))
+                        .build(),
+                0L);
+        val finishedEvent = ShowcaseFinishedEvent.builder()
+                .showcaseId(showcaseId)
+                .finishedAt(aShowcaseFinishedAt(startedAt, duration))
+                .build();
+        kafkaTestPublisher.publishEvent(finishedEvent);
+
+        await().until(() -> Optional.ofNullable(openSearchTemplate.get(showcaseId, ShowcaseEntity.class))
+                .filter(showcase -> showcase.status() == ShowcaseStatus.FINISHED)
+                .isPresent());
+        assertThat(openSearchTemplate.get(showcaseId, ShowcaseEntity.class)).satisfies(showcase -> {
+            assertThat(showcase.sequence()).isEqualTo(2L);
+            assertThat(showcase.duration()).isEqualTo(duration);
+            assertThat(showcase.startedAt()).isEqualTo(startedAt);
+        });
+    }
+
+    @Test
+    @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("An identically redelivered record converges without an error")
+    void showcaseScheduledEvent_identicalRecordTwice_convergesWithoutError(CapturedOutput output) throws Exception {
+        val showcaseId = aShowcaseId();
+        val scheduleTime = Instant.now();
+        val before = logEndOffsets();
+
+        kafkaTestPublisher.publishSameMessageTwice(ShowcaseScheduledEvent.builder()
+                .showcaseId(showcaseId)
+                .title(aShowcaseTitle())
+                .startTime(aShowcaseStartTime(scheduleTime))
+                .duration(aShowcaseDuration())
+                .scheduledAt(aShowcaseScheduledAt(scheduleTime))
+                .build());
+
+        await().until(() -> openSearchTemplate.exists(showcaseId, ShowcaseEntity.class));
+        val after = logEndOffsets();
+        val partition = advancedPartition(before, after);
+        awaitConsumed(partition, after.get(partition));
+        assertThat(output.getOut()).doesNotContain("ERROR");
     }
 
     @Test
@@ -295,8 +510,8 @@ class ShowcaseProjectorIT {
 
     @Test
     @ExtendWith(OutputCaptureExtension.class)
-    @DisplayName("Publishing the same removed event twice logs a warning")
-    void showcaseRemovedEvent_sameEventTwice_logsWarning(CapturedOutput output) {
+    @DisplayName("A redelivered removed event converges without a warning or an error")
+    void showcaseRemovedEvent_sameEventTwice_convergesWithoutWarningOrError(CapturedOutput output) throws Exception {
         val showcaseId = aShowcaseId();
         val scheduleTime = Instant.now();
 
@@ -312,15 +527,16 @@ class ShowcaseProjectorIT {
                 .filter(showcase -> showcase.status() == ShowcaseStatus.SCHEDULED)
                 .isPresent());
 
+        val before = logEndOffsets();
         kafkaTestPublisher.publishEventTwice(ShowcaseRemovedEvent.builder()
                 .showcaseId(showcaseId)
                 .removedAt(Instant.now())
                 .build());
 
-        await().until(() -> output.getOut()
-                .lines()
-                .anyMatch(line -> line.matches(
-                        ".+(WARN).+(On ShowcaseRemovedEvent, \\[Delete\\] \\[not_found\\] \\[%s\\]: document missing)"
-                                .formatted(showcaseId))));
+        await().until(() -> !openSearchTemplate.exists(showcaseId, ShowcaseEntity.class));
+        val after = logEndOffsets();
+        val partition = advancedPartition(before, after);
+        awaitConsumed(partition, after.get(partition));
+        assertThat(output.getOut()).doesNotContain("WARN", "ERROR");
     }
 }

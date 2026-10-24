@@ -15,7 +15,6 @@ import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -27,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.axonframework.eventhandling.DomainEventMessage;
 import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.extensions.kafka.KafkaProperties;
 import org.axonframework.extensions.kafka.eventhandling.KafkaMessageConverter;
@@ -40,16 +40,7 @@ import org.axonframework.monitoring.NoOpMessageMonitorCallback;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
-import org.opensearch.client.opensearch._types.Refresh;
-import org.opensearch.client.opensearch._types.Result;
-import org.opensearch.client.opensearch.core.BulkRequest;
-import org.opensearch.client.opensearch.core.BulkResponse;
-import org.opensearch.client.opensearch.core.bulk.BulkOperation;
-import org.opensearch.data.client.osc.ReactiveOpenSearchTemplate;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.dao.TransientDataAccessException;
-import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
-import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.stereotype.Component;
 import reactor.core.Disposable;
 import reactor.core.observability.micrometer.Micrometer;
@@ -58,12 +49,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-import reactor.function.TupleUtils;
 import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOffset;
 import reactor.kafka.receiver.ReceiverOptions;
 import reactor.kafka.receiver.ReceiverRecord;
-import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 import reactor.util.retry.Retry;
 import showcase.command.ShowcaseEvent;
@@ -71,12 +60,13 @@ import showcase.command.ShowcaseFinishedEvent;
 import showcase.command.ShowcaseRemovedEvent;
 import showcase.command.ShowcaseScheduledEvent;
 import showcase.command.ShowcaseStartedEvent;
+import showcase.projection.ShowcaseBatchWriter.ProjectionItem;
 
 /**
- * Consumes showcase events from Kafka and upserts the corresponding projections into OpenSearch.
+ * Consumes showcase events from Kafka and hands each batch to the {@link ShowcaseBatchWriter}.
  *
  * <p>Messages are started and stopped via {@link SmartLifecycle}. Events are processed in batches per partition,
- * acknowledged after a successful write, and monitored with Micrometer metrics.
+ * acknowledged after the batch's writes resolve, and monitored with Micrometer metrics.
  */
 @Component
 @Slf4j
@@ -87,12 +77,12 @@ class ShowcaseProjector implements SmartLifecycle {
     private static final String METER_NAME_PREFIX = "showcaseProjector";
 
     /**
-     * Message monitor recording the projection lag for {@link ShowcaseEvent} messages.
+     * Message monitor recording the age of a {@link ShowcaseEvent} message when it is ingested for projection.
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     @Builder
     @NullUnmarked
-    private static class ProjectionLagMonitor implements MessageMonitor<EventMessage<?>> {
+    private static class EventAgeMonitor implements MessageMonitor<EventMessage<?>> {
         /**
          * The prefix for the recorded metric names.
          */
@@ -112,13 +102,13 @@ class ShowcaseProjector implements SmartLifecycle {
         private final Function<Message<?>, Iterable<Tag>> tagsBuilder = message -> Tags.empty();
 
         /**
-         * The clock used to measure the lag, defaults to the system clock.
+         * The clock used to measure the event's age, defaults to the system clock.
          */
         @Builder.Default
         private final Clock clock = Clock.SYSTEM;
 
         /**
-         * Records the projection lag for a showcase event and returns a no-op callback.
+         * Records the age of a showcase event at ingest and returns a no-op callback.
          *
          * @param message the ingested event message
          * @return the message monitor callback
@@ -139,7 +129,7 @@ class ShowcaseProjector implements SmartLifecycle {
                                 removedEvent.removedAt().toEpochMilli();
                         };
                 if (lag >= 0) {
-                    Timer.builder(meterNamePrefix + ".projectionLag")
+                    Timer.builder(meterNamePrefix + ".eventAge")
                             .distributionStatisticExpiry(Duration.of(10, ChronoUnit.MINUTES))
                             .publishPercentiles(0.5, 0.75, 0.95, 0.98, 0.99, 0.999)
                             .tags(tagsBuilder.apply(message))
@@ -167,19 +157,9 @@ class ShowcaseProjector implements SmartLifecycle {
     private final KafkaMessageConverter<String, byte[]> kafkaMessageConverter;
 
     /**
-     * The OpenSearch template used to write projections.
+     * The writer draining each batch into OpenSearch.
      */
-    private final ReactiveOpenSearchTemplate openSearchTemplate;
-
-    /**
-     * The converter used to map entities to their OpenSearch representation.
-     */
-    private final ElasticsearchConverter elasticsearchConverter;
-
-    /**
-     * The coordinates of the showcase index.
-     */
-    private final IndexCoordinates showcaseIndex;
+    private final ShowcaseBatchWriter batchWriter;
 
     /**
      * The composite monitor tracking message processing metrics.
@@ -207,8 +187,7 @@ class ShowcaseProjector implements SmartLifecycle {
      * @param projectionProperties the projector processing settings
      * @param kafkaProperties the Kafka connection settings (consumer properties and default topic)
      * @param kafkaMessageConverter the converter from Kafka records to domain events
-     * @param openSearchTemplate the reactive OpenSearch client
-     * @param elasticsearchConverter the converter used to map entities to their OpenSearch representation
+     * @param batchWriter the writer draining each batch into OpenSearch
      * @param meterRegistry the registry for projection metrics
      * @param observationRegistry the registry for tracing the projection flow
      */
@@ -216,8 +195,7 @@ class ShowcaseProjector implements SmartLifecycle {
             ShowcaseProjectorProperties projectionProperties,
             KafkaProperties kafkaProperties,
             KafkaMessageConverter<String, byte[]> kafkaMessageConverter,
-            ReactiveOpenSearchTemplate openSearchTemplate,
-            ElasticsearchConverter elasticsearchConverter,
+            ShowcaseBatchWriter batchWriter,
             MeterRegistry meterRegistry,
             ObservationRegistry observationRegistry) {
         this.projectionProperties = projectionProperties;
@@ -226,9 +204,7 @@ class ShowcaseProjector implements SmartLifecycle {
                         .withObservation(observationRegistry)
                         .subscription(List.of(kafkaProperties.getDefaultTopic())));
         this.kafkaMessageConverter = kafkaMessageConverter;
-        this.openSearchTemplate = openSearchTemplate;
-        this.elasticsearchConverter = elasticsearchConverter;
-        this.showcaseIndex = openSearchTemplate.getIndexCoordinatesFor(ShowcaseEntity.class);
+        this.batchWriter = batchWriter;
         this.messageMonitor = new MultiMessageMonitor<>(
                 MessageTimerMonitor.builder()
                         .meterNamePrefix(METER_NAME_PREFIX)
@@ -237,7 +213,7 @@ class ShowcaseProjector implements SmartLifecycle {
                         .timerCustomization(timerBuilder -> timerBuilder.publishPercentileHistogram(true))
                         .build(),
                 MessageCountingMonitor.buildMonitor(METER_NAME_PREFIX, meterRegistry, PAYLOAD_TYPE_TAGGER_FUNCTION),
-                ProjectionLagMonitor.builder()
+                EventAgeMonitor.builder()
                         .meterNamePrefix(METER_NAME_PREFIX)
                         .meterRegistry(meterRegistry)
                         .tagsBuilder(PAYLOAD_TYPE_TAGGER_FUNCTION)
@@ -349,39 +325,18 @@ class ShowcaseProjector implements SmartLifecycle {
     }
 
     /**
-     * Converts the given Kafka records into showcase events.
+     * Converts the given Kafka records into projection events and writes them.
      *
      * @param messages the consumed Kafka records
-     * @return a {@link Mono} completing once the messages are converted
+     * @return a {@link Mono} completing once every event has a resolved outcome
      */
     private Mono<Void> processMessages(List<? extends ConsumerRecord<String, byte[]>> messages) {
         return Flux.fromIterable(messages)
                 .map(kafkaMessageConverter::readKafkaMessage)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .collectList()
-                .filter(eventMessages -> {
-                    if (eventMessages.isEmpty()) {
-                        log.trace("No event messages");
-                        return false;
-                    } else {
-                        log.trace("Extracted {} event message(s)", eventMessages.size());
-                        return true;
-                    }
-                })
-                .flatMapIterable(Function.identity())
                 .map(eventMessage -> Tuples.of(eventMessage, messageMonitor.onMessageIngested(eventMessage)))
-                .filter(TupleUtils.predicate((eventMessage, monitorCallback) -> {
-                    if (eventMessage.getPayload() instanceof ShowcaseEvent) {
-                        return true;
-                    } else {
-                        monitorCallback.reportIgnored();
-                        log.warn("Skipped event message with payload type: {}", eventMessage.getPayloadType());
-                        return false;
-                    }
-                }))
-                .map(it -> it.mapT1(EventMessage::getPayload))
-                .map(it -> it.mapT1(ShowcaseEvent.class::cast))
+                .flatMap(tuple -> Mono.justOrEmpty(toProjectionItem(tuple.getT1(), tuple.getT2())))
                 .collectList()
                 .filter(events -> {
                     if (events.isEmpty()) {
@@ -393,122 +348,28 @@ class ShowcaseProjector implements SmartLifecycle {
                         return true;
                     }
                 })
-                .flatMap(this::processEvents);
+                .flatMap(batchWriter::write);
     }
 
     /**
-     * Writes the given events to OpenSearch as a bulk operation and reports their outcome.
+     * Converts a consumed message to a projection event, reporting a message that cannot be projected.
      *
-     * @param events the events paired with their monitor callbacks
-     * @return a {@link Mono} completing once the batch is processed
+     * @param message the consumed event message
+     * @param callback the message monitor callback
+     * @return the projection event, or empty when the message is skipped
      */
-    private Mono<Void> processEvents(List<Tuple2<ShowcaseEvent, MonitorCallback>> events) {
-        return Flux.zip(
-                        Flux.fromIterable(events).map(Tuple2::getT1),
-                        Flux.fromIterable(events).map(Tuple2::getT2),
-                        Flux.fromIterable(events)
-                                .map(Tuple2::getT1)
-                                .map(this::eventToBulkOperation)
-                                .collectList()
-                                .map(ShowcaseProjector::bulkRequest)
-                                .flatMap(this::execute)
-                                .map(BulkResponse::items)
-                                .flatMapIterable(Function.identity()))
-                .doOnNext(TupleUtils.consumer((event, monitorCallback, responseItem) -> {
-                    if (responseItem.error() == null) {
-                        monitorCallback.reportSuccess();
-
-                        if (Result.NotFound.jsonValue().equals(responseItem.result())) {
-                            log.warn(
-                                    "On {}, [{}] [{}] [{}]: document missing",
-                                    event.getClass().getSimpleName(),
-                                    responseItem.operationType(),
-                                    Result.NotFound.jsonValue(),
-                                    responseItem.id());
-                        } else {
-                            log.trace("On {}, [{}]: succeeded", event.getClass().getSimpleName(), event.showcaseId());
-                        }
-                    } else {
-                        monitorCallback.reportFailure(null);
-
-                        log.error(
-                                "On {}, [{}] [{}] {}",
-                                event.getClass().getSimpleName(),
-                                responseItem.operationType(),
-                                responseItem.error().type(),
-                                Objects.toString(responseItem.error().reason(), ""));
-                    }
-                }))
-                .then();
-    }
-
-    /**
-     * Builds the bulk request for the given operations, forcing an immediate refresh so a projected write is
-     * searchable when the request completes.
-     *
-     * @param operations the bulk operations to apply
-     * @return the bulk request, refreshing on completion
-     */
-    static BulkRequest bulkRequest(List<BulkOperation> operations) {
-        return BulkRequest.of(request -> request.operations(operations).refresh(Refresh.True));
-    }
-
-    /**
-     * Maps a showcase event to the corresponding OpenSearch bulk operation.
-     *
-     * @param event the event to map
-     * @return the bulk operation applying the event to the showcase index
-     */
-    private BulkOperation eventToBulkOperation(ShowcaseEvent event) {
-        return switch (event) {
-            case ShowcaseScheduledEvent scheduledEvent ->
-                BulkOperation.of(operation -> operation.create(request -> request.id(scheduledEvent.showcaseId())
-                        .document(elasticsearchConverter.mapObject(ShowcaseEntity.builder()
-                                .showcaseId(scheduledEvent.showcaseId())
-                                .title(scheduledEvent.title())
-                                .startTime(scheduledEvent.startTime())
-                                .duration(scheduledEvent.duration())
-                                .status(ShowcaseStatus.SCHEDULED)
-                                .scheduledAt(scheduledEvent.scheduledAt())
-                                .build()))
-                        .index(showcaseIndex.getIndexName())
-                        .routing(scheduledEvent.showcaseId())));
-            case ShowcaseStartedEvent startedEvent ->
-                BulkOperation.of(operation -> operation.update(request -> request.id(startedEvent.showcaseId())
-                        .document(elasticsearchConverter.mapObject(ShowcaseEntity.builder()
-                                .duration(startedEvent.duration())
-                                .status(ShowcaseStatus.STARTED)
-                                .startedAt(startedEvent.startedAt())
-                                .build()))
-                        .index(showcaseIndex.getIndexName())
-                        .routing(startedEvent.showcaseId())));
-            case ShowcaseFinishedEvent finishedEvent ->
-                BulkOperation.of(operation -> operation.update(request -> request.id(finishedEvent.showcaseId())
-                        .document(elasticsearchConverter.mapObject(ShowcaseEntity.builder()
-                                .status(ShowcaseStatus.FINISHED)
-                                .finishedAt(finishedEvent.finishedAt())
-                                .build()))
-                        .index(showcaseIndex.getIndexName())
-                        .routing(finishedEvent.showcaseId())));
-            case ShowcaseRemovedEvent removedEvent ->
-                BulkOperation.of(operation -> operation.delete(request -> request.id(removedEvent.showcaseId())
-                        .index(showcaseIndex.getIndexName())
-                        .routing(removedEvent.showcaseId())));
-        };
-    }
-
-    /**
-     * Executes the given bulk request against OpenSearch with retry on transient failures.
-     *
-     * @param request the bulk request to execute
-     * @return the bulk response
-     */
-    private Mono<BulkResponse> execute(BulkRequest request) {
-        return Mono.from(openSearchTemplate.execute(client -> client.bulk(request)))
-                .retryWhen(Retry.backoff(
-                                projectionProperties.getRetry().getMaxAttempts(),
-                                projectionProperties.getRetry().getMinBackoff())
-                        .filter(TransientDataAccessException.class::isInstance)
-                        .onRetryExhaustedThrow((__, signal) -> signal.failure()));
+    private Optional<ProjectionItem> toProjectionItem(EventMessage<?> message, MonitorCallback callback) {
+        if (!(message.getPayload() instanceof ShowcaseEvent)) {
+            callback.reportIgnored();
+            log.warn("Skipped event message with payload type: {}", message.getPayloadType());
+            return Optional.empty();
+        }
+        if (!(message instanceof DomainEventMessage<?> domainMessage)) {
+            callback.reportFailure(null);
+            log.error("Skipped event message without an aggregate sequence: {}", message.getPayloadType());
+            return Optional.empty();
+        }
+        return Optional.of(
+                new ProjectionItem(domainMessage.getSequenceNumber(), (ShowcaseEvent) message.getPayload(), callback));
     }
 }

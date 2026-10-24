@@ -30,13 +30,14 @@ import org.springframework.data.elasticsearch.annotations.Setting.SortOrder;
 @EqualsAndHashCode(cacheStrategy = CacheStrategy.LAZY)
 @Builder(toBuilder = true)
 @Jacksonized
+@SuppressWarnings("UnrecognisedJavadocTag")
 public class ShowcaseEntity {
     /**
      * The mapping contract for nanosecond-precision {@code date_nanos} fields: it drives both the OpenSearch index
      * {@code format} and the Spring Data read/write converter. Spring Data's built-in
      * {@code DateFormat.strict_date_optional_time_nanos} cannot be used because it truncates to microseconds
-     * (see upstream spring-data-elasticsearch issue #3334:
-     * https://github.com/spring-projects/spring-data-elasticsearch/issues/3334).
+     * (see upstream spring-data-elasticsearch issue
+     * <a href="https://github.com/spring-projects/spring-data-elasticsearch/issues/3334">#3334</a>).
      */
     private static final String NANOS_DATE_PATTERN = "yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]";
 
@@ -47,6 +48,17 @@ public class ShowcaseEntity {
     @Field(type = FieldType.Keyword)
     @Nullable
     String showcaseId;
+
+    /**
+     * The aggregate sequence of the last event applied to the document.
+     *
+     * <p>{@code null} means the document carries no sequence yet — one written before the versioned writes, or the
+     * partial document of an update, whose guard script reads {@code null} as {@code -1}; a write whose event has a
+     * lower or equal sequence is a no-op either way.
+     */
+    @Field(type = FieldType.Long)
+    @Nullable
+    Long sequence;
 
     /**
      * The unique title of the showcase.

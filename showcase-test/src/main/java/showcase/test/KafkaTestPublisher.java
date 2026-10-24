@@ -61,9 +61,37 @@ public final class KafkaTestPublisher<E> {
         val aggregateIdentifier =
                 requireNonNull(aggregateIdentifierExtractor.apply(event), "Aggregate identifier is required");
         val lastSequenceNumber = sequenceNumbers.computeIfAbsent(aggregateIdentifier, __ -> new AtomicLong(-1));
+        send(new GenericDomainEventMessage<>(
+                aggregateType, aggregateIdentifier, lastSequenceNumber.incrementAndGet(), event));
+    }
+
+    /**
+     * Publishes the given event with an explicit sequence number, without advancing the aggregate's counter.
+     *
+     * @param event the event to publish
+     * @param sequence the sequence number to carry
+     */
+    @NullMarked
+    public void publishEventWithSequence(E event, long sequence) {
+        val aggregateIdentifier =
+                requireNonNull(aggregateIdentifierExtractor.apply(event), "Aggregate identifier is required");
+        send(new GenericDomainEventMessage<>(aggregateType, aggregateIdentifier, sequence, event));
+    }
+
+    /**
+     * Publishes the given event as the same domain event message twice, so the second record is an exact redelivery.
+     *
+     * @param event the event to publish
+     */
+    @NullMarked
+    public void publishSameMessageTwice(E event) {
+        val aggregateIdentifier =
+                requireNonNull(aggregateIdentifierExtractor.apply(event), "Aggregate identifier is required");
+        val lastSequenceNumber = sequenceNumbers.computeIfAbsent(aggregateIdentifier, __ -> new AtomicLong(-1));
         val eventMessage = new GenericDomainEventMessage<>(
                 aggregateType, aggregateIdentifier, lastSequenceNumber.incrementAndGet(), event);
-        new DefaultUnitOfWork<>(eventMessage).execute(() -> kafkaPublisher.send(eventMessage));
+        send(eventMessage);
+        send(eventMessage);
     }
 
     /**
@@ -84,5 +112,14 @@ public final class KafkaTestPublisher<E> {
     @NullMarked
     public void publishEvents(List<? extends E> events) {
         events.forEach(this::publishEvent);
+    }
+
+    /**
+     * Sends the given message through the Kafka publisher inside a unit of work.
+     *
+     * @param eventMessage the message to send
+     */
+    private void send(GenericDomainEventMessage<E> eventMessage) {
+        new DefaultUnitOfWork<>(eventMessage).execute(() -> kafkaPublisher.send(eventMessage));
     }
 }

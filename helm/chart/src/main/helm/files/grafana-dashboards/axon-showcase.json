@@ -2923,7 +2923,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(showcaseProjector_projectionLag_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(showcaseProjector_eventAge_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
           "legendFormat": "P95",
           "range": true,
           "refId": "P95"
@@ -2934,7 +2934,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(showcaseProjector_projectionLag_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(showcaseProjector_eventAge_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -2946,14 +2946,14 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(payloadType) (rate(showcaseProjector_projectionLag_seconds_sum{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])) / sum by(payloadType) (rate(showcaseProjector_projectionLag_seconds_count{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
+          "expr": "sum by(payloadType) (rate(showcaseProjector_eventAge_seconds_sum{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])) / sum by(payloadType) (rate(showcaseProjector_eventAge_seconds_count{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
           "hide": false,
           "legendFormat": "__auto",
           "range": true,
           "refId": "By PayloadType"
         }
       ],
-      "title": "Projection Lag",
+      "title": "Event Age",
       "type": "timeseries"
     },
     {

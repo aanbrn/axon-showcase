@@ -46,6 +46,7 @@ class ShowcaseEntityMappingCT {
                 .isEqualTo("yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]");
         assertThat(mapping.at("/properties/status/type").asText()).isEqualTo("keyword");
         assertThat(mapping.at("/properties/duration/type").asText()).isEqualTo("keyword");
+        assertThat(mapping.at("/properties/sequence/type").asText()).isEqualTo("long");
         assertThat(mapping.at("/properties/scheduledAt/type").asText()).isEqualTo("date_nanos");
         assertThat(mapping.at("/properties/scheduledAt/format").asText())
                 .isEqualTo("yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]");
@@ -65,7 +66,7 @@ class ShowcaseEntityMappingCT {
                 .readTree(new MappingBuilder(converter).buildPropertyMapping(ShowcaseEntity.class))
                 .path("properties");
 
-        assertThat(properties.size()).isEqualTo(9);
+        assertThat(properties.size()).isEqualTo(10);
         assertThat(properties.has("_class")).isTrue();
         assertThat(properties.has("duration")).isTrue();
     }

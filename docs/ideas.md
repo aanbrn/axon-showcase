@@ -32,6 +32,11 @@ detail across two sections.
   docs. A `check`-time assertion over the catalog's `paketo-*` keys closes it; parked rather than folded into
   `pin-jvm-buildpack-builder`, whose tasks and delta specs cover no new gate.
 
+- Remove the shadowed `check_unique_review_rounds` definition — parked; no change yet. `scripts/commit-hygiene.py`
+  defines it twice (the earlier without `expected`), so Python keeps only the later definition and the earlier is dead;
+  the review of the ledger-checkpoint capture surfaced it. Deleting the dead definition needs the `commit-hygiene`
+  spec's verification control to stay green.
+
 - Guard every Deployment template's `Recreate` strategy the way the projection service's now is — parked; no change yet.
   The other four Deployments render `strategy` from their `updateStrategy` values without the `rollingUpdate: null` the
   projection service gained: a target that sets `type: Recreate` on any of them hits the same server-side-apply

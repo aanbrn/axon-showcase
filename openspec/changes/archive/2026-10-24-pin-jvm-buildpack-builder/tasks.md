@@ -86,4 +86,5 @@
 
 - Ask the owner for the manual review pass and stop there; do not commit, push, or archive before it is given.
 - After approval: push, dispatch `gh workflow run e2e.yml --ref pin-jvm-buildpack-builder` and read the run before the
-  archive commit, then archive per `ship-change`.
+  archive commit, then archive per `ship-change`. Dispatched as run 40054913083: success, builder `0.0.200` at index
+  `7c62dd7e…`, run image `ubuntu-noble-run-tiny:0.0.150` for `linux/amd64`, `Running creator`.

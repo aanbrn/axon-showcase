@@ -357,8 +357,8 @@ SHALL NOT be part of the merge-gate `build` check or a required check for mergin
 
 The Paketo buildpack update report SHALL run automatically on a schedule and be manually triggerable, as the same
 `buildpack-updates` job in a dedicated workflow separate from the merge gate. It SHALL run the `buildpackUpdates` Gradle
-check that reports, for the pinned Paketo builder and each pinned buildpack in the version catalog, the latest available
-version from the registry, and SHALL surface the result by opening or updating a GitHub issue, SHALL run on
+check that reports, for each pinned Paketo builder and each pinned buildpack in the version catalog, the latest
+available version from the registry, and SHALL surface the result by opening or updating a GitHub issue, SHALL run on
 `ubuntu-latest` with the `GITHUB_TOKEN` granted `issues: write`, and SHALL NOT be part of the merge-gate `build` check
 or a required check for merging into `main`.
 

@@ -19,9 +19,9 @@ an independent version. Every Helm chart coordinate in the version catalog — i
 concrete version (e.g. `77.14.0`), never a floating major-line pin such as `77.x.x`, so the Helm deployment is
 reproducible at a reviewable version. The `deployment-operations` pack's Kubernetes Deployment block's manual
 `helm install … --version` commands SHALL quote each chart's catalog version, so a chart bump cannot leave the
-documented command stale. That pack SHALL state the catalog's Paketo pins — the buildpack builder and the buildpacks —
-at their catalog versions, so a buildpack bump cannot leave the documented pin stale. `check` SHALL verify every stated
-pin in that pack, `AGENTS.md`, and `README.md`, keeping the coverage the root's pins had before the move.
+documented command stale. That pack SHALL state the catalog's Paketo pins — every pinned builder and buildpack — at
+their catalog versions, so a builder or buildpack bump cannot leave the documented pin stale. `check` SHALL verify every
+stated pin in that pack, `AGENTS.md`, and `README.md`, keeping the coverage the root's pins had before the move.
 
 #### Scenario: All surfaces resolve from the catalog
 
@@ -67,12 +67,12 @@ pin in that pack, `AGENTS.md`, and `README.md`, keeping the coverage the root's 
 #### Scenario: The Paketo pins a live doc states match the catalog
 
 - **WHEN** `check` runs
-- **THEN** each Paketo pin the `deployment-operations` pack, `AGENTS.md`, or `README.md` states in the declared adjacent
-  forms (`paketo-buildpacks/<name>@<version>`, `builder-jammy-base:<version>`) is verified against its catalog
-  coordinate, and a pin whose version differs fails `check`, naming the doc site, the pin as written, and the catalog
-  version — so a buildpack bump cannot leave the documented pin stale; a stated pin whose key the catalog does not pin
-  fails `check` too, naming the key; and a catalog key the pack does not state fails `check`, naming the key and the
-  pack, so a pin cannot vanish from the document the requirement names
+- **THEN** each Paketo pin the `deployment-operations` pack, `AGENTS.md`, or `README.md` states in the declared forms
+  (`paketo-buildpacks/<name>@<version>`, `builder-<name>:<version>`, `docker://<repository>/<name>:<version>`) is
+  verified against its catalog coordinate, and a pin whose version differs fails `check`, naming the doc site, the pin
+  as written, and the catalog version — so a builder or buildpack bump cannot leave the documented pin stale; a stated
+  pin whose key the catalog does not pin fails `check` too, naming the key; and a catalog key the pack does not state
+  fails `check`, naming the key and the pack, so a pin cannot vanish from the document the requirement names
 
 ### Requirement: The deployed Bitnami image tag is the chart's preconfigured tag
 

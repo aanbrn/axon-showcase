@@ -58,6 +58,7 @@ testing {
                 implementation(testFixtures(project(":showcase-command-api")))
                 implementation(libs.mockito.junit.jupiter)
                 implementation(libs.reactor.test)
+                implementation(libs.spring.boot.starter.actuator)
             }
         }
 

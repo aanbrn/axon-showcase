@@ -1078,6 +1078,26 @@ class SessionContinuityTests(unittest.TestCase):
                     ),
                 )
 
+    def test_the_caller_restarted_violation_token_is_accepted_on_a_replacement(self):
+        self.assertEqual(
+            [],
+            self.violations(
+                [
+                    row("unit-a", 1, "ses_a", CREATED),
+                    row("unit-a", 2, "ses_b", REPLACED, "caller-restarted"),
+                ]
+            ),
+        )
+
+    def test_the_caller_restarted_violation_token_is_rejected_on_a_continued_row(self):
+        violations = self.violations(
+            [
+                row("unit-a", 1, "ses_a", CREATED),
+                row("unit-a", 2, "ses_a", CONTINUED, "caller-restarted"),
+            ]
+        )
+        self.assertIn("not a replacement", violations[0])
+
     def test_an_unexplained_session_change_fails(self):
         violations = self.violations(
             [row("unit-a", 1, "ses_a", CREATED), row("unit-a", 2, "ses_b", CONTINUED)]

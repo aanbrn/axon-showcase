@@ -41,18 +41,28 @@ WORKFLOW_SUFFIXES = (".yml", ".yaml")
 # dropped silently to exempt a row.
 SESSION_FIELDS_MARKER = "# --- Session continuity"
 # A gap whose record is unrecoverable is acknowledged by a comment naming the unit and the round, so the
-# contiguity check stays strict for every other row rather than exempting a unit.
+# contiguity check stays strict for every other row rather than exempting a unit. The same form acknowledges a number
+# assigned incorrectly to a deep-review pass whose authoritative record moved to the change's review task.
 ACKNOWLEDGED_GAP_RE = re.compile(r"^#\s*---\s*Acknowledged gap:\s*(?P<unit>\S+)\s+round\s+(?P<round>\d+)\b")
 
-# A row's session transition, one per shape the review loop's rule allows.
+# A row's session transition, one per shape the review loop's rule allows; a replacement's reason is a recorded
+# field, never evidence that the stated cause occurred.
 SESSION_CREATED = "created"
 SESSION_CONTINUED = "continued"
 SESSION_REPLACED = "replaced"
 SESSION_TRANSITIONS = (SESSION_CREATED, SESSION_CONTINUED, SESSION_REPLACED)
 
-# The only reasons a replacement may carry, one per recovery case the review loop's rule states.
-SESSION_REPLACEMENT_REASONS = ("expired", "definition-changed", "stopped-responding")
+# The reasons a replacement may carry: the review loop's recovery cases, plus `caller-restarted`, which records
+# a continuity violation already committed rather than a recovery case.
+SESSION_REPLACEMENT_REASONS = (
+    "expired",
+    "definition-changed",
+    "stopped-responding",
+    "caller-restarted",
+)
 
+# A gap's acknowledgement exempts the named (unit, round) pair only; a misfiled deep pass uses the same form and
+# names its destination, without a data row.
 # The ledger's row width once the session fields are present: the six round fields, then the identifier, the transition,
 # and the reason.
 SESSION_ROW_FIELDS = 9
@@ -492,7 +502,7 @@ def ledger_rounds(repo: Path) -> dict[str, set[int]]:
 
 
 def acknowledged_gaps(repo: Path) -> set[tuple[str, int]]:
-    """The (unit, round) gaps the ledger acknowledges as unrecoverable."""
+    """The (unit, round) gaps the ledger acknowledges as unrecoverable or as a misfiled deep pass."""
     ledger = repo / "docs" / "review-rounds.tsv"
     if not ledger.is_file():
         return set()
@@ -584,8 +594,9 @@ def find_session_continuity_violations(repo: Path) -> list[str]:
     """The reviewer-session continuity violations the ledger carries, each as a message naming its line.
 
     The rule is per unit: the first row below the boundary creates the session, a later row whose identifier equals its
-    preceding row's continues it, and a row whose identifier differs replaces it and must name one of the allowed
-    reasons. Distinct units may name distinct sessions.
+    preceding row's continues it, and a row whose identifier differs replaces it and must name one of the recorded
+    reasons. Distinct units may name distinct sessions. The verification validates the recorded fields; it does not
+    attest that a replacement's reason occurred.
     """
     present, above, rows = session_rows(repo)
     if not present:

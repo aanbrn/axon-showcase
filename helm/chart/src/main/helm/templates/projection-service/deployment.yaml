@@ -184,7 +184,7 @@ spec:
           {{- if .Values.projectionService.startupProbe.enabled }}
           startupProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/liveness
               port: {{ .Values.projectionService.containerPorts.managementServer }}
             {{- include "common.tplvalues.render" (dict "value" (omit .Values.projectionService.startupProbe "enabled") "context" $) | nindent 12 }}
           {{- end }}

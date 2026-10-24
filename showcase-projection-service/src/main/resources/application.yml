@@ -3,13 +3,6 @@ spring:
     name: axon-showcase-projection-service
   main:
     banner-mode: off
-  kafka:
-    client-id: ${spring.application.name}
-    properties:
-      security.protocol: PLAINTEXT
-    consumer:
-      group-id: showcase-projector
-      partition.assignment.strategy: org.apache.kafka.clients.consumer.CooperativeStickyAssignor
   data:
     elasticsearch:
       repositories:
@@ -74,40 +67,6 @@ showcase:
     restart:
       delay: ${PROJECTOR_RESTART_DELAY:PT10S}
 
-resilience4j:
-  enabled: ${RESILIENCE_ENABLED:true}
-  circuitbreaker:
-    enabled: ${CIRCUITBREAKER_ENABLED:true}
-    configs:
-      default:
-        sliding-window-type: ${CIRCUITBREAKER_DEFAULT_SLIDING_WINDOW_TYPE:COUNT_BASED}
-        sliding-window-size: ${CIRCUITBREAKER_DEFAULT_SLIDING_WINDOW_SIZE:100}
-        minimum-number-of-calls: ${CIRCUITBREAKER_DEFAULT_MIN_REQUIRED_CALLS:50}
-        failure-rate-threshold: ${CIRCUITBREAKER_DEFAULT_FAILURE_RATE_THRESHOLD:50}
-        slow-call-rate-threshold: ${CIRCUITBREAKER_DEFAULT_SLOW_CALL_RATE_THRESHOLD:90}
-        slow-call-duration-threshold: ${CIRCUITBREAKER_DEFAULT_SLOW_CALL_DURATION_THRESHOLD:PT5S}
-        wait-duration-in-open-state: ${CIRCUITBREAKER_DEFAULT_WAIT_DURATION_IN_OPEN_STATE:PT10S}
-        enable-exponential-backoff: true
-        exponential-backoff-multiplier: ${CIRCUITBREAKER_DEFAULT_BACKOFF_MULTIPLIER_IN_OPEN_STATE:1.5}
-        exponential-max-wait-duration-in-open-state: ${CIRCUITBREAKER_DEFAULT_MAX_WAIT_DURATION_IN_OPEN_STATE:}
-        permitted-number-of-calls-in-half-open-state: ${CIRCUITBREAKER_DEFAULT_PERMITTED_CALLS_IN_HALF_OPEN_STATE:10}
-        max-wait-duration-in-half-open-state: ${CIRCUITBREAKER_DEFAULT_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE:PT0S}
-        register-health-indicator: true
-    instances:
-      opensearch:
-        base-config: default
-        sliding-window-type: ${CIRCUITBREAKER_OPENSEARCH_SLIDING_WINDOW_TYPE:}
-        sliding-window-size: ${CIRCUITBREAKER_OPENSEARCH_SLIDING_WINDOW_SIZE:}
-        minimum-number-of-calls: ${CIRCUITBREAKER_OPENSEARCH_MIN_REQUIRED_CALLS:}
-        failure-rate-threshold: ${CIRCUITBREAKER_OPENSEARCH_FAILURE_RATE_THRESHOLD:}
-        slow-call-rate-threshold: ${CIRCUITBREAKER_OPENSEARCH_SLOW_CALL_RATE_THRESHOLD:}
-        slow-call-duration-threshold: ${CIRCUITBREAKER_OPENSEARCH_SLOW_CALL_DURATION_THRESHOLD:}
-        wait-duration-in-open-state: ${CIRCUITBREAKER_OPENSEARCH_WAIT_DURATION_IN_OPEN_STATE:}
-        exponential-backoff-multiplier: ${CIRCUITBREAKER_OPENSEARCH_BACKOFF_MULTIPLIER_IN_OPEN_STATE:}
-        exponential-max-wait-duration-in-open-state: ${CIRCUITBREAKER_OPENSEARCH_MAX_WAIT_DURATION_IN_OPEN_STATE:}
-        permitted-number-of-calls-in-half-open-state: ${CIRCUITBREAKER_OPENSEARCH_PERMITTED_CALLS_IN_HALF_OPEN_STATE:}
-        max-wait-duration-in-half-open-state: ${CIRCUITBREAKER_OPENSEARCH_MAX_WAIT_DURATION_IN_HALF_OPEN_STATE:}
-
 server:
   port: 8082
   error:
@@ -125,6 +84,9 @@ management:
       probes:
         enabled: true
         add-additional-paths: true
+      group:
+        readiness:
+          include: readinessState,projector
   metrics:
     distribution:
       percentiles-histogram:

@@ -967,7 +967,7 @@
 2026-10-24	idempotent-projection-writes	31	-	-	0	ses_e971d7700ffeBNyizayy7QFeYq	continued	-
 2026-10-24	idempotent-projection-writes	32	wording	wording	0	ses_e971d7700ffeBNyizayy7QFeYq	continued	-
 2026-10-24	idempotent-projection-writes	33	claim-unreproducible	claim-unreproducible	1	ses_e971d7700ffeBNyizayy7QFeYq	continued	-
-2026-10-24	idempotent-projection-writes	34	test-control,claim-unreproducible,contradiction,impact-omission	test-control,claim-unreproducible,contradiction,impact-omission	5	ses_e94598a44ffergo7m2buhYD6v7	fresh	-
+2026-10-24	idempotent-projection-writes	34	test-control,claim-unreproducible,contradiction,impact-omission	test-control,claim-unreproducible,contradiction,impact-omission	5	ses_e94598a44ffergo7m2buhYD6v7	replaced	expired
 2026-10-24	idempotent-projection-writes	35	-	-	0	ses_e94598a44ffergo7m2buhYD6v7	continued	-
 2026-10-24	idempotent-projection-writes	36	test-control,incomplete-enumeration,missing-task	test-control,incomplete-enumeration,missing-task	3	ses_e94598a44ffergo7m2buhYD6v7	continued	-
 2026-10-24	idempotent-projection-writes	37	incomplete-enumeration	incomplete-enumeration	1	ses_e94598a44ffergo7m2buhYD6v7	continued	-

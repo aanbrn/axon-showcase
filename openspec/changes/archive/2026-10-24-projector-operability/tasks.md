@@ -126,7 +126,8 @@ committed controls; (b) the garbled sentence in `design.md` — FIXED_AND_VERIFI
 
 ## Workflow follow-up
 
-- Run the deployment smoke against the branch before the archive commit: the readiness group changes what a successful
-  rollout means, so a fresh-cluster install must reach ready with the projector consuming.
+- The deployment smoke ran against the branch (`gh workflow run deployment-smoke.yml --ref projector-operability`,
+  run 40108736397) and passed: the fresh-cluster install reached ready with the projector consuming, so the readiness
+  group's rollout meaning is verified on a clean cluster.
 - If the smoke's `--wait` fails while the projector is starting, read the projector's readiness detail first and record
   which half failed rather than loosening the group.

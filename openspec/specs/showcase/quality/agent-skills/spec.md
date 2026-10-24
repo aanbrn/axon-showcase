@@ -1975,6 +1975,10 @@ challenge are its definition's; the caller's steps — the pre-write record, the
 ledger row and its checkpoint — are the review-gate skill's; the ledger row's format and verification are
 `showcase/quality/commit-hygiene`'s.
 
+A replacement reviewer session SHALL be started only after one of the recovery cases the review gate's rule names is
+evidenced; an independent screen is not a recovery case, and a session change without an evidenced case is recorded as a
+continuity violation rather than as a permitted replacement.
+
 #### Scenario: Quick review runs after proposal and implementation
 
 - **WHEN** a unit's proposal (planning artifacts) or its implementation is finished

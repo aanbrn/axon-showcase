@@ -398,12 +398,20 @@ the staged set.
 - **WHEN** a ledger row's round column is present but not a number
 - **THEN** the check fails, naming the unit and the value, rather than ignoring the row
 
+#### Scenario: A misfiled deep pass is acknowledged without a data row
+
+- **WHEN** a historical number was assigned incorrectly to a deep-review pass whose authoritative record moved to the
+  change's review task
+- **THEN** an `# --- Acknowledged gap:` comment names the unit, the original number, and the destination
+- **AND** no quick-review data row is created for that number
+
 ### Requirement: Review-round rows record the reviewer session's continuity
 
 The build SHALL verify that the review-round ledger records, for every row below the boundary its own contract marks,
 the reviewer session the round ran in — its identifier, its transition, and, for a replacement, a reason the review
-loop's recovery cases allow — and that no row above it carries a field count other than the ledger's pre-fields width.
-The verification SHALL be a `commit-hygiene.py` mode run by a `check` task over the tracked ledger.
+loop's recovery cases allow or `caller-restarted` for a restart already performed without an evidenced recovery case (a
+violation record, not a recovery case) — and that no row above it carries a field count other than the ledger's
+pre-fields width. The verification SHALL be a `commit-hygiene.py` mode run by a `check` task over the tracked ledger.
 
 #### Scenario: The standard check verifies reviewer-session continuity
 
@@ -434,7 +442,7 @@ The verification SHALL be a `commit-hygiene.py` mode run by a `check` task over 
 #### Scenario: An allowed replacement passes with its reason
 
 - **WHEN** a unit's row records a different session identifier from its preceding row, with the `replaced` transition
-  and one of the three allowed reasons — `expired`, `definition-changed`, or `stopped-responding`
+  and one of the three recovery reasons — `expired`, `definition-changed`, or `stopped-responding`
 - **THEN** the continuity verification passes for that unit
 
 #### Scenario: An unexplained session change fails the check
@@ -444,7 +452,7 @@ The verification SHALL be a `commit-hygiene.py` mode run by a `check` task over 
 
 #### Scenario: A replacement without an allowed reason fails the check
 
-- **WHEN** a row records the `replaced` transition whose reason is absent or is not one of the three allowed reasons
+- **WHEN** a row records the `replaced` transition whose reason is absent or is not one of the recorded reasons
 - **THEN** the continuity verification fails, naming the unit, the round, and the reason
 
 #### Scenario: A reason on a non-replacement row fails the check
@@ -492,3 +500,14 @@ The verification SHALL be a `commit-hygiene.py` mode run by a `check` task over 
 
 - **WHEN** two units' first rows record different session identifiers, each with the `created` transition
 - **THEN** the continuity verification passes for both
+
+#### Scenario: An already-performed caller restart is recorded without inventing a recovery cause
+
+- **WHEN** a different reviewer session was already started without an evidenced recovery case
+- **THEN** its row records `replaced` with `caller-restarted`
+- **AND** the record identifies the continuity violation and its correction
+- **AND** accepting that record does not authorize another restart
+
+`caller-restarted` SHALL record a continuity violation, not an additional permitted recovery case; the verification
+SHALL validate the recorded fields, and passing it SHALL NOT attest that the stated cause occurred or authorize the
+review gate to continue.

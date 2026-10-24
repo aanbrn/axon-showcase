@@ -20,11 +20,13 @@ tasks.named<JavaCompile>("compileJava") {
 }
 
 tasks.named<BootBuildImage>("bootBuildImage") {
+    builder.set("paketobuildpacks/builder-noble-java-tiny:" + libs.versions.paketo.builder.noble.java.tiny.get())
+
     buildpacks.addAll(
         listOf(
             "paketo-buildpacks/java",
             "paketo-buildpacks/spring-boot",
-            "paketobuildpacks/health-checker",
+            "docker://paketobuildpacks/health-checker:" + libs.versions.paketo.health.checker.get(),
         ),
     )
 

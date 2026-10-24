@@ -161,9 +161,53 @@ class DocumentedPinRulesTests {
             DocumentedPinRules.statedPins(
                 mapOf(
                     DocumentedPinRules.PACK_DOC to
-                        "`paketo-buildpacks/nginx@1.3.0` `paketo-buildpacks/procfile@5.15.3` `builder-jammy-base:0.4.659`",
+                        "`paketo-buildpacks/nginx@1.3.0` `paketo-buildpacks/procfile@5.15.3` " +
+                            "`builder-jammy-base:0.4.659`",
                 ),
             )
         assertThat(DocumentedPinRules.unstated(DocumentedPinRules.PACK_DOC, all, pins)).isEmpty()
+    }
+
+    @Test
+    @DisplayName("A second builder's stated pin maps to its catalog key and compares")
+    fun nobleBuilderPin() {
+        val docs = mapOf("SKILL.md" to "(`builder-noble-java-tiny:0.0.200`)")
+        val withBuilder = pins + ("paketo-builder-noble-java-tiny" to "0.0.200")
+
+        assertThat(DocumentedPinRules.statedPins(docs).map { it.catalogKey to it.version })
+            .containsExactly("paketo-builder-noble-java-tiny" to "0.0.200")
+        assertThat(DocumentedPinRules.findings(docs, withBuilder)).isEmpty()
+    }
+
+    @Test
+    @DisplayName("An image buildpack's stated pin maps to its catalog key and compares")
+    fun imageBuildpackPin() {
+        val docs = mapOf("SKILL.md" to "`docker://paketobuildpacks/health-checker:2.14.0`")
+        val withHealthChecker = pins + ("paketo-health-checker" to "2.14.0")
+
+        assertThat(DocumentedPinRules.statedPins(docs).map { it.catalogKey to it.version })
+            .containsExactly("paketo-health-checker" to "2.14.0")
+        assertThat(DocumentedPinRules.findings(docs, withHealthChecker)).isEmpty()
+    }
+
+    @Test
+    @DisplayName("An image buildpack's pin at another version names the site and both versions")
+    fun imageBuildpackMismatch() {
+        val docs = mapOf("SKILL.md" to "`docker://paketobuildpacks/health-checker:2.13.7`")
+        val withHealthChecker = pins + ("paketo-health-checker" to "2.14.0")
+
+        assertThat(DocumentedPinRules.findings(docs, withHealthChecker))
+            .containsExactly(
+                "SKILL.md: states 'docker://paketobuildpacks/health-checker:2.13.7', but the catalog pins " +
+                    "'paketo-health-checker' at '2.14.0'.",
+            )
+    }
+
+    @Test
+    @DisplayName("A builder stated with a floating tag is not read as a pin")
+    fun floatingBuilderNotMatched() {
+        val docs = mapOf("SKILL.md" to "`builder-noble-java-tiny:latest`")
+
+        assertThat(DocumentedPinRules.findings(docs, pins)).isEmpty()
     }
 }

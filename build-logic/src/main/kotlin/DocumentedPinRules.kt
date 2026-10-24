@@ -1,10 +1,11 @@
 /**
  * The rules the documented-pin `check` gate applies to the live docs.
  *
- * The docs state the catalog's Paketo pins in prose, in two adjacent forms — `` `paketo-buildpacks/<name>@<version>` ``
- * and `` `builder-jammy-base:<version>` `` — and this object maps each to its catalog key and compares the version. The
- * logic is pure so it is testable without Gradle: [VerifyDocumentedPinsTask] reads the docs, calls these rules, and
- * turns a message into a failure.
+ * The docs state the catalog's Paketo pins in prose, in adjacent forms: a buildpack as ``
+ * `paketo-buildpacks/<name>@<version>` ``, a builder as `` `builder-<name>:<version>` `` (e.g.
+ * `builder-jammy-base:0.4.667`), and a buildpack referenced as an image as `` `docker://<repository>/<name>:<version>`
+ * ``. This object maps each to its catalog key and compares the version. The logic is pure so it is testable without
+ * Gradle: [VerifyDocumentedPinsTask] reads the docs, calls these rules, and turns a message into a failure.
  */
 internal object DocumentedPinRules {
 
@@ -48,7 +49,9 @@ internal object DocumentedPinRules {
 
     private val BUILDPACK = Regex("""paketo-buildpacks/([a-z0-9-]+)@($VERSION)""")
 
-    private val BUILDER = Regex("""builder-jammy-base:($VERSION)""")
+    private val BUILDER = Regex("""builder-([a-z0-9-]+):($VERSION)""")
+
+    private val IMAGE_BUILDPACK = Regex("""docker://[a-z0-9-]+/([a-z0-9-]+):($VERSION)""")
 
     /** The pins [docs] (path → text) state, each mapped to its catalog key. */
     fun statedPins(docs: Map<String, String>): List<StatedPin> = docs.flatMap { (path, text) ->
@@ -58,9 +61,13 @@ internal object DocumentedPinRules {
             }
         val builder =
             BUILDER.findAll(text).map {
-                StatedPin(path, it.value, "paketo-builder-jammy-base", it.groupValues[1])
+                StatedPin(path, it.value, "paketo-builder-${it.groupValues[1]}", it.groupValues[2])
             }
-        buildpacks + builder
+        val imageBuildpacks =
+            IMAGE_BUILDPACK.findAll(text).map {
+                StatedPin(path, it.value, "paketo-${it.groupValues[1]}", it.groupValues[2])
+            }
+        buildpacks + builder + imageBuildpacks
     }
 
     /**

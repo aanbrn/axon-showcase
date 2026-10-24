@@ -251,6 +251,16 @@ val buildpackChecks =
             pinnedVersion = libs.versions.paketo.builder.jammy.base.get(),
         ),
         BuildpackUpdateCheck(
+            name = "paketo-builder-noble-java-tiny",
+            repository = "paketobuildpacks/builder-noble-java-tiny",
+            pinnedVersion = libs.versions.paketo.builder.noble.java.tiny.get(),
+        ),
+        BuildpackUpdateCheck(
+            name = "paketo-health-checker",
+            repository = "paketobuildpacks/health-checker",
+            pinnedVersion = libs.versions.paketo.health.checker.get(),
+        ),
+        BuildpackUpdateCheck(
             name = "paketo-nginx",
             repository = "paketobuildpacks/nginx",
             pinnedVersion = libs.versions.paketo.nginx.get(),

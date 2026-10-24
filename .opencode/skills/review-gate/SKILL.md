@@ -89,10 +89,12 @@ Source: `AGENTS.md` "Workflow: The review gate".
    - Append each round's row with the session fields `docs/review-rounds.tsv` declares — the identifier, the transition,
      and a replacement's reason — supplying the identifier the invocation returned, never an invented one; an omission
      fails `verifyReviewSessionContinuity`. captured: track-review-session-continuity
-   - Run the ledger's checkpoint immediately after the append, and again before the next reviewer invocation and before
-     the manual pass: `python3 scripts/commit-hygiene.py --unique-rounds --expect <unit>:<round>`, naming the round
-     whose report just arrived. Contiguity alone cannot see a missing last row — the round's own row is what `--expect`
-     asserts — so a deferred append fails here, in the same turn, instead of being reported by the next round.
+   - **IF a review-round row is appended or edited, THEN immediately run both ledger checks:**
+     `python3 scripts/commit-hygiene.py --unique-rounds --expect <unit>:<round>` and, as a separate invocation,
+     `python3 scripts/commit-hygiene.py --session-continuity`. Repeat both before the next reviewer invocation and
+     before the manual pass; stop on either failure. `<unit>:<round>` names the round whose report just arrived, so
+     `--expect` detects a missing final row that contiguity alone cannot see. captured: idempotent-projection-writes
+     (#670)
 2. Fix everything it finds; re-run. Repeat until it reports no new observations.
 
 No semantic self-review precedes the loop — a re-read shares the blind spot that produced the claim — so the author owes

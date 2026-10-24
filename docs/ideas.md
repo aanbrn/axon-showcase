@@ -17,6 +17,21 @@ file for the idea before adding it: the same work already parked — however dif
 its existing section, since the day-section rule otherwise files a re-park as a second entry and splits one idea's
 detail across two sections.
 
+## 2026-10-24
+
+- Correct the documented platform override for the image builds — parked; no change yet. The `deployment-operations`
+  pack's Docker Images section gives `-PimagePlatform=linux/amd64`, but `-P` sets a Gradle project property and no build
+  script forwards it to the task, while Spring Boot's `BootBuildImage` reads the value from a `--imagePlatform` task
+  option (`@Option(option = "imagePlatform")` in 3.5.16). Surfaced while pinning the JVM builder
+  (`pin-jvm-buildpack-builder`), which touched the same section for an unrelated reason; verifying the correct form
+  needs a real build on each platform, so it ships as its own docs change.
+
+- Assert that every catalog `paketo-*` pin has a `buildpackChecks` entry — parked; no change yet. `verifyDocumentedPins`
+  derives its key set from `buildpackChecks`, and `buildpackUpdates` is the only check that reads a bare Paketo
+  `[versions]` pin, so a new catalog Paketo pin added without an entry is neither reported stale nor required in the
+  docs. A `check`-time assertion over the catalog's `paketo-*` keys closes it; parked rather than folded into
+  `pin-jvm-buildpack-builder`, whose tasks and delta specs cover no new gate.
+
 ## 2026-10-23
 
 The audit findings carry-forward work remains parked under the 2026-09-24 section; this change does not re-enter it.

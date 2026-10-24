@@ -33,6 +33,27 @@ Image names are set in each service's `bootBuildImage` task configuration. To bu
 ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64`), which Gradle maps to the
 `bootBuildImage`/`dockerBuildImage` task's `imagePlatform` `@Option`.
 
+The four JVM services build against a catalog-pinned builder, `builder-noble-java-tiny:0.0.200`; Spring Boot's default
+is the floating `paketobuildpacks/builder-noble-java-tiny:latest`. `spring-boot-conventions` sets the builder and the
+health-checker buildpack from the catalog, and `buildpackUpdates` reports newer versions.
+
+**A buildpack the builder does not bundle and that is published as an image is pinned by its image reference.**
+`bootBuildImage` resolves a `buildpacks` entry as a builder-bundled id (or `id@version`), a local directory or `.tgz`,
+or an OCI image reference, so a buildpack the builder does not bundle and that is published as an image — the
+health-checker — is pinned `docker://paketobuildpacks/health-checker:2.14.0`. For a buildpack the builder does not
+bundle, the `id@version` spelling matches no bundled buildpack and fails the build with
+`Invalid buildpack reference '<value>'`; the web UI's `@version` pin is therefore not transferable unless the builder
+bundles the same id and version. captured: pin-jvm-buildpack-builder
+
+**The builder must stay pinned.** With no `imagePlatform` requested, Spring Boot derives the build platform from the
+pulled builder image, so a `latest` retagged to a single platform silently flips the build's platform and the lifecycle
+dies with `exec /cnb/lifecycle/creator: exec format error` on the other one (upstream
+`paketo-buildpacks/builder-noble-java-tiny#344`, which retagged `latest` to arm64 on 2026-10-23). The builder also fixes
+the run image (Spring Boot takes the builder metadata's run image), so a base-OS patch arrives with a builder bump.
+
+The builder's bundled `java` and `spring-boot` buildpacks are resolved from the builder image and are not pinned
+separately.
+
 The web UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
 `PackBuildImageTask`) that runs the `pack` CLI with the **version-pinned** Paketo NGINX + Procfile buildpacks
 (`paketo-buildpacks/nginx@1.3.0`, `paketo-buildpacks/procfile@5.15.5`; the versions are catalog-owned as `paketo-nginx`
@@ -51,30 +72,31 @@ An earlier record held `paketo-nginx` back at `1.2.0` because `1.2.1` "does not 
 a comment on `paketo-buildpacks/nginx#1340` (2026-09-22): whether the added buildpackage should resolve to the target
 platform's slice is open upstream. Close-out: re-take a mismatched pairing only once that upstream resolution lands
 (then re-test the built image), or if `pack` changes how it resolves an added buildpackage's slice — the rule above
-(bump the builder and its bundled buildpacks together) stays the default either way. Unlike the builder, the run image
-(`paketobuildpacks/run-jammy-base:latest`) is deliberately left floating so base-OS security — do not "complete" the pin
-by freezing it. The image serves the bundle via nginx on `8080` and exposes nginx `stub_status` metrics on `9090`
-(`BP_NGINX_STUB_STATUS_PORT`); the Helm deployment's gated `nginx-prometheus-exporter` sidecar (`webUi.metricsExporter`,
-on by default when observability metrics export and the web UI ServiceMonitor are enabled) converts stub_status to
-Prometheus `/metrics` on port `9113`, which the Service's `http-metrics` port and the ServiceMonitor scrape — the chain
-is specified in the `deployment/web-ui` spec. A `PackBuildImageTask` convention defaults the image name to
-`${project.name}:${project.version}`, which the web UI module overrides with the deployable
-`aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`. **A Docker 29 daemon's store is
-not by itself the trigger for this build's failure — do not read the driver as the cause:** the failure
-(`failed to fetch base layers: open /tmp/imgutil.local.image.*: no such file or directory`) reproduced on the GitHub
-runner's Docker 29.4.2 (`ubuntu-26.04`) while **the same build succeeds on Docker 29.5.2 with the containerd `overlayfs`
-snapshotter locally** (`io.containerd.snapshotter.v1`), so the driver alone does not explain it and the runner's Docker
-setup is part of the trigger. The `daemon.json` `{"storage-driver":"overlay2"}` step is a documented workaround the
-runner needs — the deployment smoke sets it for that reason, and that step is retired when `buildpacks/pack#2527` (the
-owning venue; `spring-projects/spring-boot#49251` is the downstream thread) fixes the store. `SHOWCASE_API_BASE_URL` —
-**no baked default** (compose sets `http://localhost:8080`; the chart's `webUi.apiBaseUrl` defaults to empty) — has no
-ConfigMap or volume mount. The runtime contract (the `start.sh` render into `/workspace/config.js` and the fail-fast on
-an unset value) is specified in the `deployment/web-ui` spec. The `dockerBuildImage` run prints two informational
-warnings from the toolchain, not defects: "Exporting to docker daemon (building without --publish) and daemon uses
-containerd storage" (pack exports to the local daemon's containerd store, losing the fast publish path) and "deprecated
-usage of stack" (an upstream Paketo buildpack still declares the deprecated `stacks` key instead of `targets`). Neither
-is actionable in the build — ignore them. (The first warning names the store the runner's Docker 29 reports, the context
-the constraint above is scoped to — so it is a signal about the daemon, not a defect to chase in the repo.)
+(bump the builder and its bundled buildpacks together) stays the default either way. Unlike the builder, the web UI's
+run image (`paketobuildpacks/run-jammy-base:latest`, the one its builder metadata names) is deliberately left floating
+so base-OS security — do not "complete" the pin by freezing it. The image serves the bundle via nginx on `8080` and
+exposes nginx `stub_status` metrics on `9090` (`BP_NGINX_STUB_STATUS_PORT`); the Helm deployment's gated
+`nginx-prometheus-exporter` sidecar (`webUi.metricsExporter`, on by default when observability metrics export and the
+web UI ServiceMonitor are enabled) converts stub_status to Prometheus `/metrics` on port `9113`, which the Service's
+`http-metrics` port and the ServiceMonitor scrape — the chain is specified in the `deployment/web-ui` spec. A
+`PackBuildImageTask` convention defaults the image name to `${project.name}:${project.version}`, which the web UI module
+overrides with the deployable `aanbrn/axon-showcase-web-ui:${project.version}` in `showcase-web-ui/build.gradle.kts`.
+**A Docker 29 daemon's store is not by itself the trigger for this build's failure — do not read the driver as the
+cause:** the failure (`failed to fetch base layers: open /tmp/imgutil.local.image.*: no such file or directory`)
+reproduced on the GitHub runner's Docker 29.4.2 (`ubuntu-26.04`) while **the same build succeeds on Docker 29.5.2 with
+the containerd `overlayfs` snapshotter locally** (`io.containerd.snapshotter.v1`), so the driver alone does not explain
+it and the runner's Docker setup is part of the trigger. The `daemon.json` `{"storage-driver":"overlay2"}` step is a
+documented workaround the runner needs — the deployment smoke sets it for that reason, and that step is retired when
+`buildpacks/pack#2527` (the owning venue; `spring-projects/spring-boot#49251` is the downstream thread) fixes the store.
+`SHOWCASE_API_BASE_URL` — **no baked default** (compose sets `http://localhost:8080`; the chart's `webUi.apiBaseUrl`
+defaults to empty) — has no ConfigMap or volume mount. The runtime contract (the `start.sh` render into
+`/workspace/config.js` and the fail-fast on an unset value) is specified in the `deployment/web-ui` spec. The
+`dockerBuildImage` run prints two informational warnings from the toolchain, not defects: "Exporting to docker daemon
+(building without --publish) and daemon uses containerd storage" (pack exports to the local daemon's containerd store,
+losing the fast publish path) and "deprecated usage of stack" (an upstream Paketo buildpack still declares the
+deprecated `stacks` key instead of `targets`). Neither is actionable in the build — ignore them. (The first warning
+names the store the runner's Docker 29 reports, the context the constraint above is scoped to — so it is a signal about
+the daemon, not a defect to chase in the repo.)
 
 Similarly, a CNB-built image's timestamps are not host state: Cloud Native Buildpacks stamp buildpack layers with a
 fixed past date — they list as `Jan 1 1980` — so builds are reproducible and layer caching stays stable, and this build
@@ -259,8 +281,8 @@ deploy as-is — no `image.tag` override in build logic or values files. To bump
 `*-image-tag` and/or its `bitnami-*` chart version together. The `verifyInstallCommands` task (also part of `check`)
 verifies the manual `helm install … --version` commands in this file's Kubernetes Deployment section against the catalog
 chart pins, so a chart bump cannot leave the documented command stale. The `verifyDocumentedPins` task (also part of
-`check`) verifies the catalog's Paketo pins — the buildpack builder and the buildpacks — wherever `AGENTS.md`,
-`README.md`, or this pack states them, so a buildpack bump cannot leave a documented pin stale. The
+`check`) verifies the catalog's Paketo pins — every pinned builder and buildpack — wherever `AGENTS.md`, `README.md`, or
+this pack states them, so a builder or buildpack bump cannot leave a documented pin stale. The
 `verifyInfraImageVersions` task (part of `check`) derives its checks from the actual `helm.releases` container, resolves
 each pinned chart's preconfigured `image.tag` via the Helm CLI (`helm show values bitnami/<chart> --version <pinned>`,
 using the plugin-managed client; the task adds and updates the declared chart repositories itself), fails the build if

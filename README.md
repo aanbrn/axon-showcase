@@ -950,8 +950,8 @@ schedule and via manual dispatch, opening a pull request with their combined fin
 owner — or committing nothing when they report nothing.
 
 `.github/workflows/buildpack-updates.yml` runs the Paketo buildpack update check (`buildpackUpdates`) on a weekly
-schedule and via `workflow_dispatch`, opening or updating the "Buildpack updates" issue with the pinned Paketo builder
-and buildpack coordinates that have a newer version — observational, never a merge gate.
+schedule and via `workflow_dispatch`, opening or updating the "Buildpack updates" issue with each pinned Paketo builder
+and buildpack coordinate that has a newer version — observational, never a merge gate.
 
 `.github/workflows/upstream-references.yml` runs the upstream-reference check (`upstreamReferences`) on a weekly
 schedule and via `workflow_dispatch`, opening or updating the "Upstream references" issue with each `owner/repo#NNN`

@@ -1886,15 +1886,15 @@ task or report, or concluding the cause of a Gradle failure.
   run against the committed reference conflates every merge since that reference — and read the timer of the operation
   under test, not an upstream queue metric.** The `refresh-projection-writes` measurement toggled `Refresh.True` /
   `Refresh.False` on the projector's bulk, rebuilt and redeployed, and ran `./scripts/load-test-baseline.sh` once each:
-  the read/write and `showcaseProjector.projectionLag` figures were flat while the projector's bulk-write latency rose
-  4× (`showcaseProjector_successTimer_seconds`, mean 4.4 → 18.4 ms). `projectionLag` is recorded at Kafka ingest, before
-  the write, so it cannot show write cost. Window-scope a retained series from **counter or histogram deltas over the
-  measurement's own window** (`histogram_quantile` over `_bucket` for a percentile) — never from a `*_max` **gauge**,
-  which a Micrometer `TimeWindowMax` decays over its own ring buffer (configured here by `METRICS_EXPIRY_ALL`), so its
-  value can be a pre-window excursion and `increase()`/`rate()` over it is invalid; a bucket's `le` is the cumulative
-  _below_ count, and `histogram_quantile` needs `le` series (on an in-flight gauge it returns nonsense). Take the window
-  from the measurement itself — the profile's own injection span, not a reference's `recordedAt`. captured:
-  refresh-projection-writes captured: attribute-load-test-tail
+  the read/write and `showcaseProjector.projectionLag` (now `eventAge`) figures were flat while the projector's
+  bulk-write latency rose 4× (`showcaseProjector_successTimer_seconds`, mean 4.4 → 18.4 ms). `eventAge` is recorded at
+  Kafka ingest, before the write, so it cannot show write cost. Window-scope a retained series from **counter or
+  histogram deltas over the measurement's own window** (`histogram_quantile` over `_bucket` for a percentile) — never
+  from a `*_max` **gauge**, which a Micrometer `TimeWindowMax` decays over its own ring buffer (configured here by
+  `METRICS_EXPIRY_ALL`), so its value can be a pre-window excursion and `increase()`/`rate()` over it is invalid; a
+  bucket's `le` is the cumulative _below_ count, and `histogram_quantile` needs `le` series (on an in-flight gauge it
+  returns nonsense). Take the window from the measurement itself — the profile's own injection span, not a reference's
+  `recordedAt`. captured: refresh-projection-writes captured: attribute-load-test-tail
 
 - **Do not write a Gatling stream's loop or retry condition as an EL string — use the typed session predicate; an EL
   condition can crash on the substituted value and KO the whole stream.** The write stream's

@@ -56,6 +56,8 @@ testing {
                 implementation(project())
                 implementation(project(":showcase-test"))
                 implementation(testFixtures(project(":showcase-command-api")))
+                implementation(libs.mockito.junit.jupiter)
+                implementation(libs.reactor.test)
             }
         }
 
@@ -64,10 +66,12 @@ testing {
         val componentTest =
             suites.register<JvmTestSuite>("componentTest") {
                 dependencies {
+                    implementation(project(":showcase-projection-model"))
                     implementation(libs.axon.test)
                     implementation(libs.hamcrest)
-                    implementation(libs.mockito.junit.jupiter)
+                    implementation(libs.opensearch.client.java)
                     implementation(libs.spring.boot.starter.test)
+                    implementation(libs.spring.data.opensearch)
                 }
 
                 targets {
@@ -131,7 +135,6 @@ tasks.named<BootBuildImage>("bootBuildImage") {
     environment.putAll(
         mapOf(
             "BPE_DEFAULT_SERVER_PORT" to "8080",
-            "BPE_DEFAULT_DB_HOSTS" to "axon-showcase-db-events",
             "BPE_DEFAULT_KAFKA_BOOTSTRAP_SERVERS" to "axon-showcase-kafka:9092",
             "BPE_DEFAULT_OS_URIS" to "http://axon-showcase-os-views:9200",
         ),

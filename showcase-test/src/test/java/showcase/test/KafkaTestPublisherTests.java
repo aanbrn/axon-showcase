@@ -103,10 +103,41 @@ class KafkaTestPublisherTests {
     }
 
     @Test
+    @DisplayName("An explicit sequence number reaches the published message without advancing the counter")
+    void publishEventWithSequence_carriesTheExplicitSequence() {
+        val kafkaPublisher = mock(KafkaPublisher.class);
+        val publisher = publisher(kafkaPublisher, AGGREGATE_ID);
+        val event = new Object();
+
+        publisher.publishEventWithSequence(event, 42L);
+        publisher.publishEvent(event);
+
+        val messages = sentMessages(kafkaPublisher);
+        assertThat(messages)
+                .extracting(GenericDomainEventMessage::getSequenceNumber)
+                .containsExactly(42L, 0L);
+    }
+
+    @Test
+    @DisplayName("Publishing an identical event twice sends the same message twice")
+    void publishSameMessageTwice_sendsTheSameMessage() {
+        val kafkaPublisher = mock(KafkaPublisher.class);
+        val publisher = publisher(kafkaPublisher, AGGREGATE_ID);
+        val event = new Object();
+
+        publisher.publishSameMessageTwice(event);
+
+        val messages = sentMessages(kafkaPublisher);
+        assertThat(messages).hasSize(2);
+        assertThat(messages.get(0)).isSameAs(messages.get(1));
+        assertThat(messages.get(0).getSequenceNumber()).isEqualTo(0L);
+    }
+
+    @Test
     @DisplayName("A null aggregate identifier from the extractor is rejected")
     void publishEvent_nullAggregateIdentifier_throwsNullPointerException() {
         val kafkaPublisher = mock(KafkaPublisher.class);
-        val publisher = KafkaTestPublisher.<Object>builder()
+        val publisher = KafkaTestPublisher.builder()
                 .kafkaPublisher(kafkaPublisher)
                 .aggregateType(AGGREGATE_TYPE)
                 .aggregateIdentifierExtractor(__ -> null)
@@ -116,7 +147,7 @@ class KafkaTestPublisherTests {
     }
 
     private KafkaTestPublisher<Object> publisher(KafkaPublisher<?, ?> kafkaPublisher, String aggregateIdentifier) {
-        return KafkaTestPublisher.<Object>builder()
+        return KafkaTestPublisher.builder()
                 .kafkaPublisher(kafkaPublisher)
                 .aggregateType(AGGREGATE_TYPE)
                 .aggregateIdentifierExtractor(__ -> aggregateIdentifier)

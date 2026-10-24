@@ -53,6 +53,7 @@ class ShowcaseEntityJacksonCT {
                                 .duration(duration)
                                 .status(ShowcaseStatus.SCHEDULED)
                                 .scheduledAt(scheduledAt)
+                                .sequence(0L)
                                 .build()),
                 argumentSet(
                         "Started showcase",
@@ -64,6 +65,7 @@ class ShowcaseEntityJacksonCT {
                                 .status(ShowcaseStatus.STARTED)
                                 .scheduledAt(scheduledAt)
                                 .startedAt(startedAt)
+                                .sequence(1L)
                                 .build()),
                 argumentSet(
                         "Finished showcase",
@@ -76,6 +78,7 @@ class ShowcaseEntityJacksonCT {
                                 .scheduledAt(scheduledAt)
                                 .startedAt(startedAt)
                                 .finishedAt(finishedAt)
+                                .sequence(2L)
                                 .build()));
     }
 

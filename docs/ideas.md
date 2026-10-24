@@ -32,9 +32,45 @@ detail across two sections.
   docs. A `check`-time assertion over the catalog's `paketo-*` keys closes it; parked rather than folded into
   `pin-jvm-buildpack-builder`, whose tasks and delta specs cover no new gate.
 
+- Guard every Deployment template's `Recreate` strategy the way the projection service's now is — parked; no change yet.
+  The other four Deployments render `strategy` from their `updateStrategy` values without the `rollingUpdate: null` the
+  projection service gained: a target that sets `type: Recreate` on any of them hits the same server-side-apply
+  rejection on an upgrade (the live release's `rollingUpdate` block survives the apply and the API refuses the pair).
+  `idempotent-projection-writes` only needed the projection service; the chart-wide guard is its own change.
+
+- Rehearse the snapshot-repository upgrade path and a multi-node projection rebuild — parked; no change yet. The
+  populated legacy upgrade and its rollback ran on the local cluster in `idempotent-projection-writes`, but that path
+  used the clone checkpoint on a single-node OpenSearch; a deployment with a snapshot repository and several nodes
+  exercises the snapshot restore and the shard allocation the clone path never touches.
+
 ## 2026-10-23
 
 The audit findings carry-forward work remains parked under the 2026-09-24 section; this change does not re-enter it.
+
+- Dead-letter queue with re-drive for terminal projection failures — parked; no change yet.
+  `idempotent-projection-writes` classifies a bulk item's failure and retries only load rejections; a terminal failure
+  is logged and its record acknowledged with the event's fields missing. A dead-letter topic with a re-drive command
+  would surface each skipped event to an operator instead of a log line, but it needs the queue's retention and
+  monitoring, the producer, and a re-drive that respects the aggregate's sequence — see the re-park below.
+
+- Gap-aware repair of a superseded partial event — parked; no change yet. `idempotent-projection-writes` drains a batch
+  one event per aggregate per round, so a retry cannot be suppressed by a later event; a terminal failure, however,
+  still leaves the failed event's fields missing, and replaying that event through the guard is a no-op once a later
+  event has advanced the document. Repairing it needs the aggregate's state reconstructed (from its event stream or the
+  event store) rather than the single event replayed; this is the piece a dead-letter re-drive alone cannot provide.
+
+- Read-model rebuild with its runbook — parked; no change yet. The upgrade path in ADR-0022 deletes the index and
+  replays the topic only when the retained history is complete, and aborts otherwise. A rebuild facility would make the
+  read model reconstructible without that precondition (from the PostgreSQL event store or a retained topic), with a
+  documented runbook and a way to verify completeness.
+
+- Projector operability, buffer bounds, and dead configuration — parked; no change yet. The projector exposes no
+  workload state: a stream restarting forever on a permanent failure looks healthy to the actuator. Its backpressure
+  buffer is also configured in batches while documented as events (`onBackpressureBuffer` sits after `bufferTimeout`),
+  so the effective limit is the buffer size times the batch size. Both belong to one operability unit, with a measured
+  burst and rebalance case. The same unit sweeps the service's dead configuration: the `resilience4j.*` block (no
+  Resilience4j jars on the runtime classpath), `spring.kafka.*` (the consumer reads Axon's `axon.kafka.*` properties),
+  and `spring.webflux.problemdetails` (the service exposes no controllers).
 
 - Consolidate the capture requirement's scenarios into their definition — parked; no change yet.
   `consolidate-review-gate-ownership` split the requirement and carried the four capture scenarios, three verbatim and

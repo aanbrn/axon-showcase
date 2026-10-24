@@ -682,7 +682,7 @@ projectionService:
   revisionHistoryLimit: 10
 
   updateStrategy:
-    type: RollingUpdate
+    type: Recreate
 
   # OpenSearch HTTP client settings.
   # @param projectionService.osViews.connectionTimeout Connection timeout

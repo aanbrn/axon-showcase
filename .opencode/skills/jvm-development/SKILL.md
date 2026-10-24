@@ -88,12 +88,15 @@ the formatting convention stay in `AGENTS.md` and apply here.
   to the built-in enum until the fix (PR #3337, 6.2.0-M2) reaches us through `spring-data-opensearch`; the truncation is
   invisible on macOS (microsecond clocks) and surfaces only on nanosecond clocks (Linux CI).
 
-- **Extracting a component that exists in a sibling service means mirroring the sibling's full wiring, not the shape you
-  copied.** The gateway's Kafka converter was lifted from the projection service without its Axon `upcasterChain`, and
-  its event receiver from `ShowcaseProjector` without the `ObservationRegistry` — both silent until review, and no gate
-  catches either. Grep the sibling for every configuration call it makes on the same component and carry each across: a
-  missing upcaster chain deserializes events un-upcast and a missing registry drops their traces. captured:
-  read-through-gateway-caches
+- **Extracting or rewriting a component means carrying its full wiring, not the shape you copied.** The gateway's Kafka
+  converter was lifted from the projection service without its Axon `upcasterChain`, and its event receiver from
+  `ShowcaseProjector` without the `ObservationRegistry` — both silent until review, and no gate catches either. Grep the
+  source for every configuration call it makes on the same component and carry each across: the sibling service for an
+  extraction, the pre-change file (`git show HEAD:<path>`) for a rewrite of the same class. A missing upcaster chain
+  deserializes events un-upcast, a missing registry drops their traces, and `idempotent-projection-writes`' rewrite of
+  `ShowcaseProjector` dropped one `.tagsBuilder(PAYLOAD_TYPE_TAGGER_FUNCTION)` from the monitor wiring, leaving the
+  meters the Grafana dashboard's `sum by(payloadType)` panel groups by untagged while every test stayed green. captured:
+  idempotent-projection-writes
 
 - **A generic getter's inferred type can bind an overloaded call to the wrong overload — cast to the erased type, and
   verify the binding, not the source.** `Session.get` is generic (`<T> T get(String)`), so

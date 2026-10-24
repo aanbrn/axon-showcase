@@ -974,3 +974,4 @@
 2026-10-24	idempotent-projection-writes	38	-	-	0	ses_e94598a44ffergo7m2buhYD6v7	continued	-
 2026-10-24	idempotent-projection-writes	39	missing-task,contradiction	missing-task,contradiction	2	ses_e94598a44ffergo7m2buhYD6v7	continued	-
 2026-10-24	idempotent-projection-writes	40	-	-	0	ses_e94598a44ffergo7m2buhYD6v7	continued	-
+2026-10-24	capture-review-ledger-session-check	1	-	-	0	ses_e93947de7ffeLqJHVGEo4VHNqk	created	-

@@ -11,6 +11,8 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.val;
@@ -37,6 +39,7 @@ class ShowcaseProjectorTests {
 
     private final ShowcaseBatchWriter batchWriter = mock(ShowcaseBatchWriter.class);
 
+    @SuppressWarnings("unchecked")
     private final KafkaMessageConverter<String, byte[]> converter = mock(KafkaMessageConverter.class);
 
     private final ShowcaseProjectorStateMonitor stateMonitor = new ShowcaseProjectorStateMonitor(meterRegistry);
@@ -144,18 +147,24 @@ class ShowcaseProjectorTests {
 
     @Test
     @DisplayName("A partial batch flushes when its window expires")
-    void project_partialBatch_flushesOnTheTimer() {
-        when(batchWriter.write(anyList())).thenReturn(Mono.empty());
+    void project_partialBatch_flushesOnTheTimer() throws InterruptedException {
+        val flushed = new CountDownLatch(1);
+        when(batchWriter.write(anyList())).thenAnswer(invocation -> {
+            flushed.countDown();
+            return Mono.empty();
+        });
         val emitted = new AtomicInteger();
-        val source =
-                Flux.concat(push(1, emitted), Mono.delay(Duration.ofMillis(300)).thenMany(Flux.empty()));
+        val source = Flux.concat(push(1, emitted), Mono.never());
 
-        StepVerifier.create(projector.projectPartition(source))
-                .thenAwait(Duration.ofMillis(150))
-                .thenCancel()
-                .verify(Duration.ofSeconds(5));
+        val subscription = projector.projectPartition(source).subscribe();
 
-        assertThat(stateMonitor.lastProgressEpochSecond()).isPositive();
+        try {
+            assertThat(flushed.await(5, TimeUnit.SECONDS))
+                    .as("the window flushes the partial batch while the source is still open")
+                    .isTrue();
+        } finally {
+            subscription.dispose();
+        }
     }
 
     private Flux<ReceiverRecord<String, byte[]>> push(int count, AtomicInteger emitted) {
@@ -180,6 +189,7 @@ class ShowcaseProjectorTests {
         });
     }
 
+    @SuppressWarnings("unchecked")
     private ReceiverRecord<String, byte[]> record() {
         val offset = mock(ReceiverOffset.class);
         when(offset.topicPartition()).thenReturn(new TopicPartition("axon-showcase-events", 0));

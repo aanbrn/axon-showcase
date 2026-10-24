@@ -104,6 +104,16 @@ nothing.
   at the component tier over a stubbed response while the integration case asserts only the merged document. captured:
   idempotent-projection-writes
 
+## A fixture that bypasses the production contract measures a different subject
+
+- **A control whose stand-in ignores the production source's contract measures the operator's occupancy, not the
+  pipeline's bound.** The projector's buffer control feeds a demand-ignoring publisher, so it measures the buffer
+  operator's occupancy; that equals the pipeline's effective bound only because the requirement counts every downstream
+  stage's demand — the batch window and the write prefetch — and a second, demand-respecting control feeds a source
+  below the capacity and completes without overflowing. Reproduce the production source's contract (demand, ordering,
+  delivery guarantees) in a steady-state control, and name every downstream stage whose demand joins the bound, since
+  the configured value alone is not the bound the operator experiences. captured: projector-operability
+
 ## A positive control must not use an input the subject excludes
 
 - **A positive control's input must be one the subject does not itself exclude — plant a value the check's own config

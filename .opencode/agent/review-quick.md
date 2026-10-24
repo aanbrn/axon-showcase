@@ -116,7 +116,8 @@ dropped content it should keep), `premise` (the change rests on an unverified or
 (artifacts state different models of the subject), `redundant-code` (dead or duplicated code), `docs-residue` (a doc
 still states the old behavior), `structured-writing` (prose that violates the Structured Writing Standard — a passage
 hiding several actionable statements, an implied condition, or the mandatory merged with its rationale),
-`proposal-schema` (the proposal breaks its schema). A finding that fits none of these: the calling agent adds a class
+`proposal-schema` (the proposal breaks its schema), `concurrency` (a race or unsafe ordering between concurrent
+operations, callbacks, or lifecycle transitions). A finding that fits none of these: the calling agent adds a class
 here, in the same change, so the list stays canonical rather than drifting into a second long tail. The label is the
 finding's substantive kind: a repeated finding keeps its class and is marked as a repeat, never relabelled as a repeat.
 

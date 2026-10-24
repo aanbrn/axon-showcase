@@ -2,12 +2,16 @@
 # proposal and implementation reviews), classes raised (comma-separated, or - when none), classes that repeated a prior
 # round (comma-separated, or - when none), compliance_misses (findings that were a miss of an existing rule), the
 # reviewer's session identifier (compared with surrounding whitespace trimmed), the session transition (created,
-# continued, or replaced), and a replacement's reason (expired, definition-changed, or stopped-responding; - otherwise).
+# continued, or replaced), and a replacement's reason (expired, definition-changed, stopped-responding, or
+# caller-restarted; - otherwise). `caller-restarted` records a continuity violation already committed — the caller
+# started a different session without an evidenced recovery case — not a permitted recovery case; the three recovery
+# reasons stay unchanged.
 # The last three fields are validated from the boundary comment below down, which marks the first row to carry them;
 # the rows above it predate the fields, so they are exempt. `commit-hygiene.py --session-continuity` is that check.
 # A gap whose report was never reconstructed is acknowledged by a comment line of the form
 # `# --- Acknowledged gap: <unit> round <N> - <reason>`, which `commit-hygiene.py --unique-rounds` exempts —
-# and only that pair.
+# and only that pair. The same form acknowledges a historical number assigned incorrectly to a deep-review pass whose
+# authoritative record moved to the change's review task; it then also names that destination and creates no data row.
 # Appended by the main agent from the record line a review round emits; aggregated in the window by
 # scripts/review-rounds.py, which the digest's review-rounds block prints.
 # Classes come from the canonical list the reviewer's contract carries (`.opencode/agent/review-quick.md`), which makes
@@ -975,3 +979,24 @@
 2026-10-24	idempotent-projection-writes	39	missing-task,contradiction	missing-task,contradiction	2	ses_e94598a44ffergo7m2buhYD6v7	continued	-
 2026-10-24	idempotent-projection-writes	40	-	-	0	ses_e94598a44ffergo7m2buhYD6v7	continued	-
 2026-10-24	capture-review-ledger-session-check	1	-	-	0	ses_e93947de7ffeLqJHVGEo4VHNqk	created	-
+2026-10-24	projector-operability	1	contradiction,impact-omission,claim-unreproducible,missing-task,missing-scenario,test-control,coherence,structured-writing	-	3	ses_e9373e88fffejPPqX4w8Qwj0ti	created	-
+2026-10-24	projector-operability	2	impact-omission,test-control,contradiction,missing-task	contradiction,impact-omission,test-control,missing-task	3	ses_e9373e88fffejPPqX4w8Qwj0ti	continued	-
+2026-10-24	projector-operability	3	wording,incomplete-enumeration,contradiction	contradiction	3	ses_e9373e88fffejPPqX4w8Qwj0ti	continued	-
+2026-10-24	projector-operability	4	wording	wording	0	ses_e9373e88fffejPPqX4w8Qwj0ti	continued	-
+2026-10-24	projector-operability	5	-	-	0	ses_e9373e88fffejPPqX4w8Qwj0ti	continued	-
+2026-10-24	projector-operability	6	premise,contradiction,missing-scenario,wording,coherence	contradiction,missing-scenario,wording,coherence	1	ses_e9373e88fffejPPqX4w8Qwj0ti	continued	-
+2026-10-24	projector-operability	7	coherence	coherence	1	ses_e9373e88fffejPPqX4w8Qwj0ti	continued	-
+2026-10-24	projector-operability	8	-	-	0	ses_e9373e88fffejPPqX4w8Qwj0ti	continued	-
+2026-10-24	projector-operability	9	contradiction,missing-task,missing-scenario,test-control,coherence	contradiction,missing-task,missing-scenario,test-control,coherence	1	ses_e92eb2315ffe3QqxqUI5oXkew1	replaced	caller-restarted
+2026-10-24	projector-operability	10	contradiction,wording	contradiction,wording	0	ses_e92eb2315ffe3QqxqUI5oXkew1	continued	-
+# --- Acknowledged gap: projector-operability round 11 - misfiled deep pass 1; see tasks.md, review-record-restoration.
+2026-10-24	projector-operability	12	contradiction,missing-task,claim-unreproducible,docs-residue,test-control,single-sourcing	contradiction,missing-task,test-control,claim-unreproducible	3	ses_e91ff0088ffe2T9o0CbLvhv3ve	replaced	caller-restarted
+2026-10-24	projector-operability	13	contradiction,claim-unreproducible,impact-omission,missing-scenario,over-claim,wording	contradiction,claim-unreproducible	5	ses_e91e9260effe3gboFrrzRL2Iip	replaced	caller-restarted
+# --- Acknowledged gap: projector-operability round 14 - misfiled deep pass 2; see tasks.md, review-record-restoration.
+2026-10-24	projector-operability	15	missing-task,claim-unreproducible,single-sourcing	missing-task,claim-unreproducible,single-sourcing	2	ses_e91b4d247ffehwDevBk4vDyybe	replaced	caller-restarted
+# Correction: projector-operability rounds 9,12,13,15 were labelled expired incorrectly; reasons corrected to
+# caller-restarted from the caller's account. See tasks.md, review-record-restoration.
+2026-10-24	projector-operability	16	contradiction,wording	contradiction,wording	1	ses_e919ebf00fferreW4hkEQKO7JZ	replaced	caller-restarted
+2026-10-24	projector-operability	17	contradiction,claim-unreproducible,impact-omission,wording,formatting	contradiction,claim-unreproducible,impact-omission,wording,formatting	4	ses_e919ebf00fferreW4hkEQKO7JZ	continued	-
+2026-10-24	projector-operability	18	contradiction,wording,formatting	contradiction,wording,formatting	3	ses_e919ebf00fferreW4hkEQKO7JZ	continued	-
+2026-10-24	projector-operability	19	-	-	0	ses_e919ebf00fferreW4hkEQKO7JZ	continued	-

@@ -44,7 +44,10 @@ class ShowcaseProjectorProperties {
         private Duration maxTime;
 
         /**
-         * The maximum number of buffered events before backpressure is applied.
+         * The maximum number of buffered events per partition before the stream fails with an overflow error.
+         *
+         * <p>The effective bound is per partition: this value plus the batch window and the write prefetch, one batch
+         * each. The total across partitions scales with {@code max-concurrency}.
          */
         @Min(1_000)
         @Max(100_000)

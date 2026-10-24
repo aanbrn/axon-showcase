@@ -63,10 +63,12 @@ Source: `AGENTS.md` "Workflow: The review gate".
    must report a figure or a status states a relative result — the difference between two runs, which the corpus's
    growth leaves fixed — the command's outcome, a text-quoted site, or the record's own mechanism, never an absolute
    count its own writes move (its appended ledger rows, the candidates its own artifact adds to the scan) and never a
-   status its own remaining steps move (a review round named "the final clean one"). Re-derive the table after the
-   unit's last append to its own record, which adds one. captured: widen-architecture-auditor-to-stale-ideas captured:
-   normalize-the-review-round-digest captured: capture-authoring-system-gaps captured: sharpen-architecture-audit
-   captured: extract-ci-narrative captured: convert-remaining-gotchas-rules captured: add-technical-advisor
+   status its own remaining steps move (a review round named "the final clean one"), and state the verification as of
+   its own step and the resulting state separately, since a later step can destroy what it recorded. Re-derive the table
+   after the unit's last append to its own record, which adds one. captured: widen-architecture-auditor-to-stale-ideas
+   captured: normalize-the-review-round-digest captured: capture-authoring-system-gaps captured:
+   sharpen-architecture-audit captured: extract-ci-narrative captured: convert-remaining-gotchas-rules captured:
+   add-technical-advisor captured: projector-operability
 
 ## 2. Quick review loop
 
@@ -81,7 +83,12 @@ Source: `AGENTS.md` "Workflow: The review gate".
      recording the invocation's hand-over **before** you wait on it. A reviewer invocation cannot be cancelled and
      reports nothing while it runs, so a stall is recovered from that record rather than from the stalled session. The
      rule, its recovery cases, the record's contract, the deadline's source, and the hand-over's fields are
-     `showcase/quality/agent-skills`'s and `docs/review-rounds.tsv`'s, not restated here.
+     `showcase/quality/agent-skills`'s and `docs/review-rounds.tsv`'s, not restated here. Do not restart the quick
+     reviewer to obtain an independent screen, including at the proposal-to-implementation boundary: independence is not
+     a recovery case. IF no permitted recovery case is evidenced, THEN stop before starting a replacement and report the
+     blocker — never select an allowed reason merely to satisfy the ledger checker; IF an unsupported restart has
+     already occurred, THEN preserve the invocation evidence, record the continuity violation, and stop the gate for the
+     owner's recovery decision.
    - **Run** — `review-quick` against the change's planning artifacts: for the proposal round, the
      proposal/design/tasks/spec-delta coherence and repo fit; for the implementation round, the tasks and delta spec.
      For a capture, supply the existing rules each proposal names (or its statement that none covers it), the round rows

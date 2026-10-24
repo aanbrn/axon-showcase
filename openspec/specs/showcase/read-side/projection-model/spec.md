@@ -26,9 +26,9 @@ The system SHALL store the read-model document in the OpenSearch index named `sh
 ### Requirement: Field mapping
 
 The system SHALL map the document fields with the following OpenSearch types and formats: `showcaseId`, `status`, and
-`duration` as `keyword`, `title` as `text`, and `startTime`, `scheduledAt`, `startedAt`, and `finishedAt` as
-`date_nanos` with the custom nanosecond pattern `yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]` (Spring Data's built-in
-`strict_date_optional_time_nanos` truncates to microseconds — see upstream spring-data-elasticsearch#3334).
+`duration` as `keyword`, `title` as `text`, `sequence` as `long`, and `startTime`, `scheduledAt`, `startedAt`, and
+`finishedAt` as `date_nanos` with the custom nanosecond pattern `yyyy-MM-dd['T'HH:mm:ss.SSSSSSSSSXXX]` (Spring Data's
+built-in `strict_date_optional_time_nanos` truncates to microseconds — see upstream spring-data-elasticsearch#3334).
 
 #### Scenario: Identifier, status, and duration map as keyword
 
@@ -39,6 +39,11 @@ The system SHALL map the document fields with the following OpenSearch types and
 
 - **WHEN** the mapping of the `title` field is inspected
 - **THEN** it is mapped with type `text`
+
+#### Scenario: Aggregate sequence maps as a long
+
+- **WHEN** the mapping of the `sequence` field is inspected
+- **THEN** it is mapped with type `long`
 
 #### Scenario: Timestamps map as nanosecond dates
 

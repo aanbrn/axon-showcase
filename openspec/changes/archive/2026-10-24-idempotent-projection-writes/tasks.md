@@ -170,8 +170,9 @@
 
 ## Workflow follow-up
 
-- Dispatch the deployment smoke against the branch
-  (`gh workflow run deployment-smoke.yml --ref idempotent-projection-writes`) as part of the merge.
+- The deployment smoke ran against the branch
+  (`gh workflow run deployment-smoke.yml --ref idempotent-projection-writes`, run 40064082017) and passed, covering the
+  fresh-cluster install of the chart.
 - On an upgrade install, read the signals separately: the upgrade's completion (`helm upgrade --wait` fails when the
   hook fails, and the Job is deleted on success so no log survives), the mapping's presence with
   `GET showcases/_mapping`, a replayed document's `sequence` with `GET showcases/_search?size=1`, the absence of

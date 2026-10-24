@@ -29,26 +29,32 @@ an Axon `EventMessage` stream, using consumer group `showcase-projector`.
 - **WHEN** a record is received whose payload is not a `ShowcaseEvent`
 - **THEN** the record is logged as a warning, counted as ignored, and not projected
 
+#### Scenario: Showcase event without aggregate headers is counted as a failure
+
+- **WHEN** a record carries a `ShowcaseEvent` payload but not the aggregate headers the converter needs
+- **THEN** the record is counted as a failure and not projected, because it carries no aggregate sequence to order it by
+
 ### Requirement: Projection to the showcases index
 
 The system SHALL maintain the `showcases` document for each showcase, using the showcase ID as the document ID, applying
-one write operation per event.
+one write operation per event and storing the aggregate sequence of the last applied event on the document.
 
 #### Scenario: Scheduled event creates the document
 
 - **WHEN** a `ShowcaseScheduledEvent` is consumed
 - **THEN** the system creates a document with ID equal to the showcase ID if it does not already exist, containing
-  `showcaseId`, `title`, `startTime`, `duration`, `status` = SCHEDULED, and `scheduledAt`
+  `showcaseId`, `title`, `startTime`, `duration`, `status` = SCHEDULED, `scheduledAt`, and its aggregate sequence
 
 #### Scenario: Started event updates the document
 
 - **WHEN** a `ShowcaseStartedEvent` is consumed
-- **THEN** the system updates the existing document with `duration`, `status` = STARTED, and `startedAt`
+- **THEN** the system updates the existing document with `duration`, `status` = STARTED, `startedAt`, and its aggregate
+  sequence
 
 #### Scenario: Finished event updates the document
 
 - **WHEN** a `ShowcaseFinishedEvent` is consumed
-- **THEN** the system updates the existing document with `status` = FINISHED and `finishedAt`
+- **THEN** the system updates the existing document with `status` = FINISHED, `finishedAt`, and its aggregate sequence
 
 #### Scenario: Removed event deletes the document
 
@@ -63,17 +69,26 @@ one write operation per event.
 #### Scenario: Duplicate create is surfaced
 
 - **WHEN** a `ShowcaseScheduledEvent` is consumed for a showcase whose document already exists
-- **THEN** the item failure is logged (version conflict) and does not prevent further records from being processed
+- **THEN** the conflict is recognized as a redelivery of an already-applied event, the existing document is left
+  unchanged, and processing continues
 
 #### Scenario: Delete of a missing document is surfaced
 
 - **WHEN** a `ShowcaseRemovedEvent` is consumed for a showcase whose document does not exist
-- **THEN** the not-found outcome is logged as a warning and does not prevent further records from being processed
+- **THEN** the not-found outcome is recognized as the delete's intended end state and does not prevent further records
+  from being processed
+
+#### Scenario: Older replayed event does not regress the document
+
+- **WHEN** a `ShowcaseScheduledEvent`, `ShowcaseStartedEvent`, or `ShowcaseFinishedEvent` is consumed whose aggregate
+  sequence is lower than the sequence stored on the document
+- **THEN** the write is a no-op, the newer document state is preserved, and processing continues
 
 ### Requirement: Batch processing and ordering
 
-The system SHALL process consumed events in batches per partition, preserving per-partition order, and SHALL acknowledge
-record offsets only after the batch's OpenSearch writes complete.
+The system SHALL process consumed events in batches per partition, preserving per-aggregate order — independent
+aggregates may interleave across a batch's dispatch rounds — and SHALL acknowledge record offsets only after every item
+of the batch has a resolved outcome.
 
 #### Scenario: Events for the same showcase are processed in order
 
@@ -82,17 +97,24 @@ record offsets only after the batch's OpenSearch writes complete.
 
 #### Scenario: Offsets are acknowledged after the batch writes
 
-- **WHEN** a batch's OpenSearch bulk write completes successfully
+- **WHEN** every item of a batch has a resolved outcome — success, convergence, or a logged skip — across all of the
+  batch's dispatch rounds
 - **THEN** the records in the batch are acknowledged so their offsets are committed
+
+#### Scenario: A later event is not dispatched while its predecessor is unresolved
+
+- **WHEN** a bulk item for an aggregate fails with a retryable outcome
+- **THEN** that aggregate's next event is not written until the failed item is applied or its retry budget is exhausted
 
 #### Scenario: Failed writes are retried with backoff
 
-- **WHEN** an OpenSearch write fails with a transient error
-- **THEN** the write is retried with exponential backoff up to a maximum attempt count before the stream is restarted
+- **WHEN** a bulk item fails with a retryable outcome, such as a rejection under load
+- **THEN** the unresolved items of that round are re-sent with backoff up to the configured maximum attempt count, and
+  when that budget is exhausted the item failure is logged
 
 #### Scenario: Stream failures restart the consumer
 
-- **WHEN** the consumption stream fails or the OpenSearch write exhausts its retries
+- **WHEN** the consumption stream fails or a bulk call fails with a transient error after its retries
 - **THEN** the stream is restarted after a fixed delay, re-subscribing to the topic and re-delivering unacknowledged
   records
 
@@ -104,4 +126,5 @@ system SHALL handle such duplicates without failing the stream.
 #### Scenario: Redelivered duplicate event does not halt processing
 
 - **WHEN** an already-applied event is redelivered after a restart
-- **THEN** the resulting duplicate write is logged as an error but the stream continues processing subsequent records
+- **THEN** the redelivered write converges on the document's current state and the stream continues processing
+  subsequent records

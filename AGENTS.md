@@ -2208,14 +2208,15 @@ changing an image or buildpack pin.
   design or a comment, run X on the minimal input that does and on one that does not, and quote the discriminating
   condition rather than the message. captured: validate-the-workflows-on-ubuntu-2604
 
-- **BEFORE writing a tool-, library-, or framework-behavior claim into a durable artifact, verify it against the source
-  or CLI — a doc's account of a feature is a floor, not a boundary.** A framework doc's snippet can be written for
-  another version and can name a mechanism that does not apply to the pinned one: Spring Boot's `buildInfo()` doc
-  offered `time.set(null)`, a no-op on the pinned 3.5.16 (which needs `excludes`), and `build-info.properties` is
-  exposed as a `BuildProperties` **bean**, not a Spring `Environment` property source, so a
-  `@Info(version = "${build.version}")` placeholder would not resolve and would serve the literal. Check the mechanism
-  against the pinned version's own classes (here `ProjectInfoAutoConfiguration.buildProperties` is a plain `@Bean`) or
-  an empty run before designing around the doc's form. captured: publish-github-releases
+- **BEFORE writing a tool-, library-, or framework-behavior claim into a durable artifact — or stating one to the owner
+  as the basis for a decision — verify it against the source or CLI, or label it an unverified hypothesis; a doc's
+  account of a feature is a floor, not a boundary.** A framework doc's snippet can be written for another version and
+  can name a mechanism that does not apply to the pinned one: Spring Boot's `buildInfo()` doc offered `time.set(null)`,
+  a no-op on the pinned 3.5.16 (which needs `excludes`), and `build-info.properties` is exposed as a `BuildProperties`
+  **bean**, not a Spring `Environment` property source, so a `@Info(version = "${build.version}")` placeholder would not
+  resolve and would serve the literal. Check the mechanism against the pinned version's own classes (here
+  `ProjectInfoAutoConfiguration.buildProperties` is a plain `@Bean`) or an empty run before designing around the doc's
+  form. captured: publish-github-releases captured: document-java-version-selector
 
 - **Before treating a file as the implementation, confirm it is the code path that runs.** A matching filename or path
   is not evidence: a package can hold a mock or test harness whose name matches the entry point (`github/index.ts` is a

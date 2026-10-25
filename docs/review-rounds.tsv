@@ -1101,3 +1101,9 @@
 2026-10-25	adopt-python-3-12-minimum	12	contradiction,formatting,wording,docs-residue	formatting,wording,docs-residue	5	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
 2026-10-25	adopt-python-3-12-minimum	13	docs-residue	docs-residue	1	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
 2026-10-25	adopt-python-3-12-minimum	14	-	-	0	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
+2026-10-25	document-java-version-selector	1	claim-missing,claim-unreproducible	-	3	ses_e8d7320d3ffeWR6KG3fm89zVAV	created	-
+2026-10-25	document-java-version-selector	2	claim-unreproducible	claim-unreproducible	1	ses_e8d7320d3ffeWR6KG3fm89zVAV	continued	-
+2026-10-25	document-java-version-selector	3	-	-	0	ses_e8d7320d3ffeWR6KG3fm89zVAV	continued	-
+2026-10-25	document-java-version-selector	4	docs-residue,missing-task,claim-unreproducible	claim-unreproducible	3	ses_e8d7320d3ffeWR6KG3fm89zVAV	continued	-
+2026-10-25	document-java-version-selector	5	formatting	-	1	ses_e8d7320d3ffeWR6KG3fm89zVAV	continued	-
+2026-10-25	document-java-version-selector	6	-	-	0	ses_e8d7320d3ffeWR6KG3fm89zVAV	continued	-

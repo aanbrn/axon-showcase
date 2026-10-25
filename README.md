@@ -640,6 +640,16 @@ also runs in `./gradlew check`.
 
 ### Build the Project
 
+The tracked `.java-version` is an optional version-manager convention for local JDK selection. Support depends on the
+manager and its configuration; the file alone does not switch Java.
+
+- If your manager exports its selection as `JAVA_HOME`, `./gradlew` uses that JDK for its launcher JVM.
+- The compile/test toolchain is configured separately through `gradle/libs.versions.toml`.
+- CI selects its JDK independently through `actions/setup-java`.
+- Check `java -version` and `./gradlew --version` in the shell running the build.
+
+`JAVA_HOME` and `PATH` can select different JDKs, so the two commands need not report the same Java version.
+
 ```bash
 ./gradlew build
 ```

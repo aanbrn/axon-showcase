@@ -106,11 +106,11 @@ the formatting convention stay in `AGENTS.md` and apply here.
   converter was lifted from the projection service without its Axon `upcasterChain`, and its event receiver from
   `ShowcaseProjector` without the `ObservationRegistry` — both silent until review, and no gate catches either. Grep the
   source for every configuration call it makes on the same component and carry each across: the sibling service for an
-  extraction, the pre-change file (`git show HEAD:<path>`) for a rewrite of the same class. A missing upcaster chain
-  deserializes events un-upcast, a missing registry drops their traces, and `idempotent-projection-writes`' rewrite of
-  `ShowcaseProjector` dropped one `.tagsBuilder(PAYLOAD_TYPE_TAGGER_FUNCTION)` from the monitor wiring, leaving the
-  meters the Grafana dashboard's `sum by(payloadType)` panel groups by untagged while every test stayed green. captured:
-  idempotent-projection-writes
+  extraction, the pre-change file (`git show <base-revision>:<path>`) for a rewrite of the same class. A missing
+  upcaster chain deserializes events un-upcast, a missing registry drops their traces, and
+  `idempotent-projection-writes`' rewrite of `ShowcaseProjector` dropped one
+  `.tagsBuilder(PAYLOAD_TYPE_TAGGER_FUNCTION)` from the monitor wiring, leaving the meters the Grafana dashboard's
+  `sum by(payloadType)` panel groups by untagged while every test stayed green. captured: idempotent-projection-writes
 
 - **A generic getter's inferred type can bind an overloaded call to the wrong overload — cast to the erased type, and
   verify the binding, not the source.** `Session.get` is generic (`<T> T get(String)`), so

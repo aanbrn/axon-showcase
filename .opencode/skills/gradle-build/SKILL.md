@@ -71,7 +71,10 @@ spec's; this pack carries the operational rules a change needs, not a second cop
 # time it matters rather than pinning them. A version-pinned ignore goes dead silently once a constraint or bump moves
 # the coordinate past its pinned version — unlike the web UI's `npm-audit-ignores.json`, which `npmAudit` fails on when
 # an entry matches no finding, the `.snyk` policy has no staleness guard — so sweep the ignore and its rationale
-# comment in the change that moves past it.
+# comment in the change that moves past it. Removing one rests on "no consumer remains", a claim over every module and
+# configuration that resolves the coordinate, not the one classpath the change touched (a custom suite re-declares its
+# edges) — run the credentialed `dependencySecurityCheck` in that change rather than leaving it to the weekly run.
+# captured: address-scan-findings-2026-10-25
 
 # Dependency update report (only catalog-owned coordinates; majors suppressed per
 # config/dependency-updates/major-disabled.txt and same-major updates held back per
@@ -186,8 +189,13 @@ leading-integer major comparison.
   extends `main`'s, while a custom suite receives them only at runtime through its `project()` dependency — so each
   suite re-declares what it needs to compile (client component suites duplicate axon/opensearch/resilience4j deps,
   `showcase-query-proto` must be listed explicitly, and a suite compiling against a `@Mapper`-annotated main class needs
-  `libs.mapstruct`, or javac warns that the annotation's `ReportingPolicy` constant is unknown). A suite can be
-  referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g.
+  `libs.mapstruct`, or javac warns that the annotation's `ReportingPolicy` constant is unknown). A re-declared edge
+  either carries its sibling edges' `exclude(...)` blocks or is dropped — an exclusion is per-edge, so a duplicated
+  declaration silently restores the tree it removed, and a suite that already depends on the module exporting the
+  dependency has no second declaration to maintain (a `componentTest` edge re-declared `libs.spring.data.opensearch`
+  without the `opensearch-rest-high-level-client` exclusion `project(":showcase-projection-model")`'s `api` edge
+  applies, putting a vulnerable server tree back on the test classpath; deleting the duplicate cleared it). captured:
+  address-scan-findings-2026-10-25 A suite can be referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g.
   `val integrationTest = suites.register<JvmTestSuite>("integrationTest")`). Source sets are siblings — `src/test/java`
   cannot see a type declared in `src/gatling/java`, while both see `main` — so a pure-logic type a unit test and a
   custom source set both need belongs in the module's `main` source set. Verify a suite's classpath by compiling its

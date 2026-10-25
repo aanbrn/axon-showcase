@@ -81,4 +81,6 @@ branch=standardize-pr-conventions; writer=ses_e8f05c061ffeVdZniQbS3yuTHk.
       consultation's later correction (rounds 7–9) changed three hunks the two passes had verified; a third deep pass is
       outside the budget and its expected value did not warrant the recorded decision one needs, so those hunks rest on
       the quick rounds and the manual pass.
-- [ ] 4.4 Ask the owner for the manual review pass; commit, push, archive, and merge only after approval.
+- [x] 4.4 Ask the owner for the manual review pass; commit, push, archive, and merge only after approval. **Done**: the
+      owner approved on 2026-10-25 after the consultation's third review recommended presenting the corrected state; the
+      unit shipped as pull request #680, archived in this same change dir.

@@ -748,8 +748,8 @@ owns the refspec itself.
 ### Workflow: Complete a cloud (`/oc`) agent PR
 
 **Trigger** — a `/oc` or `/opencode` comment created or updated a PR you are asked to complete, or a request to continue
-or finish an agent-opened PR. A `/oc` in a review body does nothing (`anomalyco/opencode#50247`, retires when the action
-gains that trigger).
+or finish an agent-opened PR. A `/oc` in a review body does nothing (`anomalyco/opencode#50247`, which closed
+`not_planned` with its community fix `#50277` closed unmerged; retires when the action gains that trigger).
 
 **Load** — read `.opencode/skills/ship-change/SKILL.md` in full before the governed decision in this stage: deciding to
 publish the archive commit, archive, or merge.
@@ -964,8 +964,9 @@ retired that key and silently ignores it, so keep the notification path in `CODE
 probe with its base-branch and author caveats. The `opencode` workflow's `anomalyco/opencode/github@latest` and the Snyk
 workflow's `snyk/actions/setup@master` are deliberate floating refs Dependabot does not manage. The `opencode` workflow
 also logs a benign `Cache reservation failed: cache write denied` warning from the action's own cache step on the
-comment triggers; the run succeeds — do not chase it. Reported upstream as `anomalyco/opencode#49127`; retires when the
-action's cache step skips cleanly (or drops to restore-only).
+comment triggers; the run succeeds — do not chase it. Reported upstream as `anomalyco/opencode#49127`, which closed
+`not_planned`, so no fix is coming from it; the note retires when the action's cache step skips cleanly (or drops to
+restore-only).
 
 **Workflow: Action an update-check issue**
 
@@ -1543,11 +1544,12 @@ Key modules (libraries, not services):
   config: the ACP agent IntelliJ IDEA's AI launches is a 1.x binary, and it exits on `permissions`
   (`Unrecognized key: permissions`) and on an `mcp.servers` key (`Missing key mcp.servers.enabled`) — so the global
   config is kept in the flat `mcp` shape too, and the setup guidance leads there. `opencode mcp add` writes that nesting
-  upstream (`anomalyco/opencode#49904`); the guidance retires its caveat when the command emits the flat shape. Keep
-  this file loadable by both majors; the local workflow still runs v2, per the README's row. Verify a behavioural change
-  to it — a new grant, model, or server — by dispatching the cloud workflow that loads it (`gh workflow run audit.yml`):
-  the `build` gate probes the config's load under the action's v1 binary when a pull request changes it, but only a
-  dispatch (or the next scheduled run) proves the workflow starts. captured: migrate-opencode-config-to-v2 captured:
+  upstream (`anomalyco/opencode#49904`, which closed `not_planned`, so the caveat rides the command's behaviour rather
+  than a fix); the guidance retires its caveat when the command emits the flat shape. Keep this file loadable by both
+  majors; the local workflow still runs v2, per the README's row. Verify a behavioural change to it — a new grant,
+  model, or server — by dispatching the cloud workflow that loads it (`gh workflow run audit.yml`): the `build` gate
+  probes the config's load under the action's v1 binary when a pull request changes it, but only a dispatch (or the next
+  scheduled run) proves the workflow starts. captured: migrate-opencode-config-to-v2 captured:
   retire-opencode-permission-plugin (#388) captured: fix-cloud-agent-config-for-v1 (#438)
 
 - **JVM, Gradle, and deployment conventions live in the subject packs.** `jvm-development` carries the value-type,
@@ -2616,19 +2618,22 @@ changing an image or buildpack pin.
   check rather than an answer.** Resolve an `owner/repo#NNN` through the tracker before writing or editing such a
   reference. When it has closed, read the closing comment for its disposition (a duplicate's live thread is elsewhere,
   so the closed issue is not its authority) and read the fixing PR's own diff and the release it shipped in against our
-  pin before treating the note as retirable. The note itself is a claim: re-verify its recorded reason, not only the
-  open/closed state. An upstream reference must state the claim it is cited for and sit on the clause it supports; read
-  the surface that carries the claim — the body for what the issue reports, the closing comment for its disposition —
-  never the title or the release alone. A close-out reference must live in a file `upstreamReferences` scans; cited only
-  in a command, subagent definition, or code comment it is invisible to the report that would fire its `retires when`.
-  When a passage already explains a signature, reconcile with it rather than writing a second explanation beside it. A
-  planned task that posts to an external tracker depends on that venue's mutable state: check the venue is writable and
-  what it accepts before writing the posting task — a repository can disable issues and discussions outright, a thread
-  can be locked, and a contribution policy can ban a class of content with a penalty attached — and when the issue is
-  closed or locked, cite the fixing PR the close-out keys on. The periodic corpus sweep is the `upstream-references.yml`
-  report (`showcase/quality/merge-governance` specifies it with the other observational checks). captured:
-  suppress-braces-npm-advisory captured: refresh-upstream-references-2026-10-05 captured: record-gatling-report-block
-  captured: refresh-upstream-references-2026-10-19 captured: override-opencode-plugin-transitives
+  pin before treating the note as retirable. A `not_planned` disposition means that closure brought no fix, so state
+  that beside the note and re-derive its retirement condition to one that can fire. The note itself is a claim:
+  re-verify its recorded reason, not only the open/closed state. An upstream reference must state the claim it is cited
+  for and sit on the clause it supports; read the surface that carries the claim — the body for what the issue reports,
+  the closing comment for its disposition — never the title or the release alone. A close-out reference must live in a
+  file `upstreamReferences` scans; cited only in a command, subagent definition, or code comment it is invisible to the
+  report that would fire its `retires when`. When a passage already explains a signature, reconcile with it rather than
+  writing a second explanation beside it. A planned task that posts to an external tracker depends on that venue's
+  mutable state: check the venue is writable and what it accepts before writing the posting task — a repository can
+  disable issues and discussions outright, a thread can be locked, and a contribution policy can ban a class of content
+  with a penalty attached — and when the issue is closed or locked, cite the fixing PR the close-out keys on. The
+  periodic corpus sweep is the `upstream-references.yml` report (`showcase/quality/merge-governance` specifies it with
+  the other observational checks). captured: suppress-braces-npm-advisory captured:
+  refresh-upstream-references-2026-10-05 captured: record-gatling-report-block captured:
+  refresh-upstream-references-2026-10-19 captured: override-opencode-plugin-transitives captured:
+  carry-closure-disposition-in-upstream-report
 
   evidence: documentation-and-durable-claims
 

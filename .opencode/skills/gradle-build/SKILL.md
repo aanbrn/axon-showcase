@@ -220,19 +220,19 @@ leading-integer major comparison.
   `-Pcoverage.gate.enabled=false`.** `-PskipITs` excludes `integrationTest` from the jacoco exec data, so
   `jacocoTestCoverageVerification` verifies against a figure below the 0.80 baseline and fails; the gate is added to
   `check` only when `coverage.gate.enabled` is not `false` (`code-coverage-conventions.gradle.kts`). The PR CI gate is
-  exactly `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (see `AGENTS.md`'s `## Continuous Integration`) —
-  run that for a local Docker-free check, not the bare `-PskipITs` form. That form disables the coverage gate exactly as
-  the PR gate does, so it cannot catch a coverage regression: when a change adds production code to a gated module, run
-  that module's `check` with the gate enabled before merging — Docker-free with `-PskipITs` for a module with no
-  integration tests (`./gradlew :showcase-query-proto:check -PskipITs`), or the full `./gradlew check` — since the drop
-  otherwise merges green and reddens the push-to-main full `check` (`grpc-query-transport` (#514) added
-  `QueryMessageMapper.messageToResponse`/`payloadFromResponse` with no module test, `showcase-query-proto` fell to 0.60
-  against 0.80, and every full `check` since failed until a component test covered them). The same Docker-free form also
-  drops the `integrationTest` and `e2eTest` classpaths (`check` never includes `e2eTest`), so a resolution-affecting
-  change — a dependency, repository, or plugin declaration, or a BOM — compiles them explicitly
-  (`./gradlew compileIntegrationTestJava compileE2eTestJava --refresh-dependencies`) and names the tiers its resolution
-  claim covers, rather than resting that claim on the Docker-free check. captured: fix-main-ci-regressions captured:
-  remove-unrecorded-redgate-repository
+  exactly `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` (see `AGENTS.md`'s `## Build & Test` for the
+  Docker-free form) — run that for a local Docker-free check, not the bare `-PskipITs` form. That form disables the
+  coverage gate exactly as the PR gate does, so it cannot catch a coverage regression: when a change adds production
+  code to a gated module, run that module's `check` with the gate enabled before merging — Docker-free with `-PskipITs`
+  for a module with no integration tests (`./gradlew :showcase-query-proto:check -PskipITs`), or the full
+  `./gradlew check` — since the drop otherwise merges green and reddens the push-to-main full `check`
+  (`grpc-query-transport` (#514) added `QueryMessageMapper.messageToResponse`/`payloadFromResponse` with no module test,
+  `showcase-query-proto` fell to 0.60 against 0.80, and every full `check` since failed until a component test covered
+  them). The same Docker-free form also drops the `integrationTest` and `e2eTest` classpaths (`check` never includes
+  `e2eTest`), so a resolution-affecting change — a dependency, repository, or plugin declaration, or a BOM — compiles
+  them explicitly (`./gradlew compileIntegrationTestJava compileE2eTestJava --refresh-dependencies`) and names the tiers
+  its resolution claim covers, rather than resting that claim on the Docker-free check. captured:
+  fix-main-ci-regressions captured: remove-unrecorded-redgate-repository
 
 - **Bumping the Gradle wrapper needs two `wrapper` runs with `--distribution-type all`.** The first run only rewrites
   `distributionUrl`; the second, executing under the new version, regenerates `gradle-wrapper.jar`/`gradlew`/

@@ -1029,3 +1029,15 @@
 2026-10-25	adopt-worktree-isolation	10	contradiction,coherence,structured-writing,redundant-code	contradiction,coherence,structured-writing	3	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-
 2026-10-25	adopt-worktree-isolation	11	claim-unreproducible,coherence,redundant-code,single-sourcing	claim-unreproducible,coherence,redundant-code,single-sourcing	4	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-
 2026-10-25	adopt-worktree-isolation	12	-	-	0	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-
+2026-10-25	refresh-stale-spec-purposes	1	dropped-content,missing-task,claim-unreproducible,wording,incomplete-enumeration	-	4	ses_e8efbeff9ffenenOXA0hQqniNp	created	-
+2026-10-25	refresh-stale-spec-purposes	2	dropped-content,claim-missing,claim-unreproducible	dropped-content,claim-unreproducible	2	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-
+2026-10-25	refresh-stale-spec-purposes	3	wording,incomplete-enumeration	incomplete-enumeration	2	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-
+2026-10-25	refresh-stale-spec-purposes	4	over-claim	-	1	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-
+2026-10-25	refresh-stale-spec-purposes	5	-	-	0	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-
+2026-10-25	refresh-stale-spec-purposes	6	claim-unreproducible,over-claim,claim-missing	claim-unreproducible,over-claim,claim-missing	3	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-
+2026-10-25	refresh-stale-spec-purposes	7	claim-unreproducible,single-sourcing	claim-unreproducible	2	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-
+2026-10-25	refresh-stale-spec-purposes	8	claim-unreproducible	claim-unreproducible	1	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-
+2026-10-25	refresh-stale-spec-purposes	9	-	-	0	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-
+2026-10-25	refresh-stale-spec-purposes	10	contradiction	-	1	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-
+2026-10-25	refresh-stale-spec-purposes	11	-	-	0	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-
+2026-10-25	refresh-stale-spec-purposes	12	-	-	0	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-

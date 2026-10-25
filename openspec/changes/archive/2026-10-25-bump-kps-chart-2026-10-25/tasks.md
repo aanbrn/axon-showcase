@@ -74,7 +74,8 @@ branch=bump-kps-chart-2026-10-25; writer=ses_e8d43c99fffei7m5iah18dlGpp.
       Routed to a check rather than prose: the inline-code-span whitespace mode, added to `docs/ideas.md`'s 2026-10-25
       markdown-integrity entry (+8). No rule was retired; the capture's own finding — the claims table's dismissal
       listing the scan's output lines instead of its four shapes — is corrected in `design.md`.
-- [ ] 3.5 Ask the owner for the manual review pass; commit, push, archive and merge only after approval.
+- [x] 3.5 Ask the owner for the manual review pass; commit, push, archive and merge only after approval. **Done**: the
+      owner approved on 2026-10-25, after the clean quick loop and the closed two-pass deep review.
 
 ## Workflow follow-up
 

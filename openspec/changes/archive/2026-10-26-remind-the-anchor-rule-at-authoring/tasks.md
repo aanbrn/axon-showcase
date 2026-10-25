@@ -52,8 +52,9 @@ branch=remind-the-anchor-rule-at-authoring; writer=ses_e8d34533fffeyvibaCv54L62x
       delivered rule string.
 - [x] 4.4 Judge the capture's second candidate as `already covered` (see 4.3) and leave `AGENTS.md` untouched. Verify:
       `git diff efbe072c -- AGENTS.md` is empty and `check` is green.
-- [ ] 4.5 Stage the unit's new files (explicit paths), ask the owner for the manual review pass, and end the turn —
-      nothing committed, pushed, opened as a PR, or archived before the approval.
+- [x] 4.5 Stage the unit's new files (explicit paths), ask the owner for the manual review pass, and end the turn —
+      nothing committed, pushed, opened as a PR, or archived before the approval. Result: the owner approved on
+      2026-10-26; shipped as PR #694 (commit `4bccceba`), archived in that pull request.
 
 ## Workflow follow-up
 

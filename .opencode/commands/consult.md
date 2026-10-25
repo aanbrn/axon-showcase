@@ -25,7 +25,7 @@ features; V1 does not enforce or interpret them, and this command adds no V1 fal
    - the question and the proposed next action;
    - the change identity and stage, when one applies;
    - artifact references, the diff base, and the relevant diff hunks with their changed paths and revision context;
-   - any pre-change or history excerpts the advisor needs, because it has no shell;
+   - any pre-change or history excerpts the advisor needs — its definition states what it reads itself;
    - relevant findings, their dispositions, and unresolved disagreements;
    - the subject packs applicable to the decision;
    - whether the report is owner-facing or agent-facing;
@@ -39,7 +39,8 @@ features; V1 does not enforce or interpret them, and this command adds no V1 fal
 4. Choose the session.
    - A new decision uses a fresh child session: invoke `technical-advisor` without a `sessionID`.
    - A follow-up about the same decision MAY continue the advisor session by passing the `sessionID` the first
-     invocation returned.
+     invocation returned. A continued session keeps the workspace it was created in rather than following this session's
+     directory.
    - IF the identifier is unavailable or does not belong to this decision, THEN start a fresh consultation and say that
      it is fresh.
 5. Choose the effort.

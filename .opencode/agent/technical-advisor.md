@@ -50,7 +50,7 @@ instead of answering it as if it were yours. You do not approve delivery, and a 
 - the question, and the next action that is being considered;
 - the change identity and current stage, when one applies;
 - artifact references, the diff base, and the relevant diff hunks with their changed paths and revision context;
-- any pre-change or history excerpts the decision needs, because you have no shell under OpenCode V2;
+- any pre-change or history excerpts the decision needs;
 - the relevant findings, their dispositions, and unresolved disagreements;
 - the subject packs the caller classified as applicable;
 - whether the report is owner-facing or agent-facing;
@@ -84,9 +84,16 @@ no pack covers, say so rather than searching for a rule.
 6. Recommend one concrete next action — including retaining the current state or stopping when that is the right call —
    and the condition under which you would change the recommendation.
 
-**Under OpenCode V2, you have no shell.** Inspect the working tree with the `read`, `glob`, and `grep` tools; the caller
-supplies git history and diff excerpts. Do not claim a command's output you were not given, and name the excerpt the
-decision needs rather than asking for a command to be run for you.
+**Under OpenCode V2 your evidence comes from two limited sources: no shell, and file tools that stop at your session's
+workspace — the directory the consultation was created in.** A fresh consultation inherits the caller's directory, so it
+usually shares the tree the work lives in; a continued session keeps the workspace it started in, which can be another
+one. A path outside that workspace is refused as `external_directory` unless a configured grant allows it, and the
+caller supplies whatever lies beyond the two limits.
+
+- Inspect your session's workspace yourself with `read`, `glob`, and `grep` before judging a claim it holds.
+- Treat git history, diffs, and any earlier revision of a file as the caller's excerpts, since you cannot run git.
+- Do not claim a command's output you were not given.
+- Name the excerpt the decision needs rather than asking for a command to be run for you.
 
 **Boundaries.**
 

@@ -21,17 +21,17 @@ Source: `AGENTS.md` "Workflow: The review gate".
 
 1. Run the pre-write derivation pass over the planning artifacts, deriving each of the five claim classes the loop keeps
    catching from its source: read every run-log, issue-state, or external-artifact claim from the artifact now; re-grep
-   every count — and every universal claim (`every`/`all`/`each`, and the absence form `no`/`none`/`nothing`) over a
-   corpus or an enumerated list — against its set, naming the instances it covers where the class has no greppable
-   predicate, and splitting a claim whose quantifier spans more than one part — a list carrying an exception (the
-   members that carry the attribute, and the excepted item with its own coverage), or a subject with two halves (a title
-   **or** a body format, over the corpora the claim names) — rather than qualifying the exception or letting one part's
-   command stand for the whole, since the quantifier asserts the attribute of each (a count of prior changes reproduces
-   as different totals by criterion, so state the instances or the criterion, never the bare number); captured:
-   extract-load-test-commands; single-source a claim, a rule set, or a record stated in more than one artifact (the rule
-   is `AGENTS.md`'s, under "Invariants"); derive every mechanism or task-check claim from the tool or the graph,
-   deleting a term or mechanism name whose grep finds no referent in the repository (a coinage lifted from an external
-   prompt; a design carried three, each stripped by a review round); and, for a change whose facts are its own
+   every count — and every universal or absolute claim (`scripts/claim-scan.py`'s `absolute` class is a floor, not the
+   full set) over a corpus or an enumerated list — against its set, naming the instances it covers where the class has
+   no greppable predicate, and splitting a claim whose quantifier spans more than one part — a list carrying an
+   exception (the members that carry the attribute, and the excepted item with its own coverage), or a subject with two
+   halves (a title **or** a body format, over the corpora the claim names) — rather than qualifying the exception or
+   letting one part's command stand for the whole, since the quantifier asserts the attribute of each (a count of prior
+   changes reproduces as different totals by criterion, so state the instances or the criterion, never the bare number);
+   captured: extract-load-test-commands; single-source a claim, a rule set, or a record stated in more than one artifact
+   (the rule is `AGENTS.md`'s, under "Invariants"); derive every mechanism or task-check claim from the tool or the
+   graph, deleting a term or mechanism name whose grep finds no referent in the repository (a coinage lifted from an
+   external prompt; a design carried three, each stripped by a review round); and, for a change whose facts are its own
    measurement, computation, or process record, derive each figure from the mechanism that produces it — the window or
    instant it spans and the aggregation it applies, or for a record figure the command that emits it (a review round's
    row from its report's record line, the capture record's net delta from `git diff --numstat AGENTS.md` after
@@ -41,7 +41,7 @@ Source: `AGENTS.md` "Workflow: The review gate".
    its round reported and stated a net `AGENTS.md` delta of `+2` where the diff measured `+5`; the
    measurement-attribution gotcha carries the series rule). captured: seed-claims-from-the-diff captured:
    record-agents-md-authoring-standard captured: sharpen-experience-analysis captured: sharpen-review-quick captured:
-   standardize-pr-conventions
+   standardize-pr-conventions captured: fix-advisor-worktree-read
 2. Record the pass. Every unit carries it as a task — a task in a change's `tasks.md`, or a line in the pull-request
    checklist for a unit with no change dir — so a missing box is a skip, not a pass that found nothing. Its output is
    the change's **claims table** — each fact the change states about its evidence (the prior artifacts it rests on) with

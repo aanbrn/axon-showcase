@@ -1,8 +1,18 @@
-<!-- Keep the two sections below: they mirror the shape recent pull requests in this repository follow. -->
+<!-- This file is the repository's pull-request standard, and it governs every pull request. A human, or the agent's
+     `gh pr create`, supplies the body directly — and `--body-file` bypasses this template, so that path carries these
+     sections and the title rule itself. A pull request the cloud action opens takes its body and title from the agent's
+     response: the response carries the sections, and the title is checked and renamed before the merge when it deviates
+     from the rule. A report pull request's body is the report, which its capability requirement owns.
+
+     Title — one imperative English phrase naming the change, with no prefix: not `<change-name>: …`, not `docs: …`,
+     not a Conventional Commits type. The OpenSpec change name and the issue link belong in Summary, where they are
+     clickable. Merged titles become the release notes, so aim at one commit subject.
+
+     Body — `## Summary` then `## Test plan` are required, in that order; further sections may follow them. -->
 
 ## Summary
 
-<!-- What changes, and why. Link the issue or OpenSpec change this implements. -->
+<!-- What changes, and why. Name the OpenSpec change or link the issue this implements. -->
 
 ## Test plan
 

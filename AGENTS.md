@@ -2008,7 +2008,8 @@ changing an image or buildpack pin.
   quoting and embedded-newline problems. Prefer `--body-file` for any multi-line PR or issue body. A body supplied this
   way also bypasses the repository's pull-request template (`--template` is rejected alongside `--body`/`--body-file`),
   so a line added to `.github/PULL_REQUEST_TEMPLATE.md` reaches an agent-opened PR only if the body file carries it —
-  write the template's sections and any new line into the body. captured: make-the-capture-visible
+  write the template's sections and any new line into the body, and pass its title rule through `--title`. captured:
+  make-the-capture-visible
 
 - **An exit-code probe's status is inverted from the question it answers — run it inside an `if`, never bare under a
   step shell's `set -e`.** `git ls-remote --tags --exit-code origin "refs/tags/v<version>"` exits `0` when the ref

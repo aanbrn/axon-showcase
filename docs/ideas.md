@@ -19,6 +19,13 @@ detail across two sections.
 
 ## 2026-10-25
 
+- Revisit a pull-request title check when merged titles drift from the standard — parked; no change yet.
+  `standardize-pr-conventions` wrote the title and body standard into `.github/PULL_REQUEST_TEMPLATE.md` with no gate,
+  so a deviation reaches `main` unless a review catches it. The check is cheap — a `pull_request`-triggered step reads
+  the title from the event payload — and its justification is drift rather than the rule's absence: add it when merged
+  titles repeatedly leave the shape, where the pull-request list, the squash subject, and the generated release notes
+  are the surfaces that would show it.
+
 - Add a markdown table-integrity check to `commit-hygiene.py` — parked; no change yet. A table row wrapped onto a second
   line becomes a spurious row, and Prettier treats that as its fixpoint, so `spotlessCheck` stays green: reproduced with
   the build's Prettier 3.9.10 under this repo's config during `adopt-worktree-isolation`'s review (a `--table-rows` mode
@@ -626,7 +633,9 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   GitHub action derives the PR title by summarising the response in under 40 characters. The prompt change's effect on
   the generated title cannot be checked by any gate — no CI job runs the workflow and `workflowLint` reads only the YAML
   — so a `gh workflow run audit.yml` dispatch (or the next scheduled run) is the check: confirm the resulting report
-  PR's title names the report rather than the mention.
+  PR's title names the report rather than the mention. `standardize-pr-conventions` now checks an action-derived title
+  against the standard and renames it when it deviates, so the dispatch verifies the prompt's effect rather than the
+  merged title.
 
 ## 2026-09-16
 

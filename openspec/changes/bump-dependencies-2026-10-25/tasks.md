@@ -5,14 +5,14 @@ branch=bump-dependencies-2026-10-25; writer=ses_e8d4a9bbeffeOGf9vlyJH9zD70.
 
 ## 1. The bumps
 
-- [x] 1.1 Bump the fourteen catalog keys in `gradle/libs.versions.toml` to the versions the re-resolved
-      `dependencyUpdates` report names: `lz4-java` `1.12.0`→`1.12.1`, `jackson2-bom` `2.22.3`→`2.22.4`, `jackson3-bom`
-      `3.2.3`→`3.2.4`, `handlebars` `4.5.5`→`4.5.6`, `zstd-jni` `1.5.7-23`→`1.5.7-24`, `errorprone` `2.50.0`→`2.51.0`,
-      `nullaway` `0.14.2`→`0.14.3`, `grpc` `1.85.0`→`1.85.1`, `micrometer-bom` `1.17.1`→`1.17.2`,
-      `micrometer-tracing-bom` `1.7.1`→`1.7.2`, `reactor-bom` `2025.0.7`→`2025.0.8`, `reactor-blockhound`
-      `1.0.17.RELEASE`→`1.0.18.RELEASE`, `springdoc-openapi-starter` `2.9.1`→`2.10.0`, `swagger-ui` `5.33.2`→`5.34.0`.
-      `reactor-bom` moves only in its service-release segment, so it stays inside the `2025.0` train and is a minor by
-      the report's calendar-version rule. **Done**: fourteen `[versions]` lines changed, nothing else in the file.
+- [x] 1.1 Bump thirteen of the fourteen catalog keys in `gradle/libs.versions.toml` to the versions the re-resolved
+      `dependencyUpdates` report names (`reactor-blockhound` excepted — task 2.9): `lz4-java` `1.12.0`→`1.12.1`,
+      `jackson2-bom` `2.22.3`→`2.22.4`, `jackson3-bom` `3.2.3`→`3.2.4`, `handlebars` `4.5.5`→`4.5.6`, `zstd-jni`
+      `1.5.7-23`→`1.5.7-24`, `errorprone` `2.50.0`→`2.51.0`, `nullaway` `0.14.2`→`0.14.3`, `grpc` `1.85.0`→`1.85.1`,
+      `micrometer-bom` `1.17.1`→`1.17.2`, `micrometer-tracing-bom` `1.7.1`→`1.7.2`, `reactor-bom` `2025.0.7`→`2025.0.8`,
+      `springdoc-openapi-starter` `2.9.1`→`2.10.0`, `swagger-ui` `5.33.2`→`5.34.0`. `reactor-bom` moves only in its
+      service-release segment, so it stays inside the `2025.0` train and is a minor by the report's calendar-version
+      rule. **Done**: thirteen `[versions]` lines changed, nothing else in the file.
 - [x] 1.2 Run the web UI's npm update (`./gradlew :showcase-web-ui:npm_update`) and describe the lockfile diff by what
       moved; the report's in-range rows are `react-hook-form` and `eslint-plugin-boundaries`, while
       `@hookform/resolvers` `6.0.0` is a manifest major and stays out (it is a migration with its own decision, as the
@@ -75,6 +75,17 @@ branch=bump-dependencies-2026-10-25; writer=ses_e8d4a9bbeffeOGf9vlyJH9zD70.
       because nothing failed). This closes the residual question the technical advisor left open — whether the
       cross-service chain works on the new versions — and covers the bundle path the moved `react-hook-form` reaches.
 
+- [x] 2.9 Isolate the CI-only wedge the bumped tree hit in the gateway's two `@WebFluxTest` slices, and hold the
+      coordinate it implicates. **Done**: the bumped tree failed twice in three CI runs (38 `ShowcaseRestControllerCT`
+      plus 7 `TelemetryControllerCT` `TimeoutException`s, 45 thread dumps, none with a thread in the request path) while
+      the same suites are green locally six times and three more under CPU saturation. The CI bisect isolated
+      `reactor-blockhound` `1.0.18.RELEASE`: `reactor-bom` 2025.0.8 with `blockhound` back at `1.0.17.RELEASE` was green
+      where the bumped pair failed, so `1.0.18.RELEASE` is held back. The deferral is recorded in the proposal, the
+      design's Decisions and claims rows, and `docs/ideas.md`, with an upstream report drafted for `reactor/BlockHound`.
+      The held configuration's own control CI run is task 2.10.
+- [ ] 2.10 Run the control CI run of the final held configuration before the unit finishes, and stop on a repeat. The
+      run must execute the gateway component tests rather than restore them from cache, and a failure there ends the
+      green-chasing: the unit stops and the mechanism gets diagnosed (the watchdog dump) instead of another re-run.
 - [x] 2.8 Refresh the branch onto the advanced `origin/main` and re-run the gates. **Done**: `origin/main` had moved
       four commits (`7f76216b`: buildpack pins, the kube-prometheus-stack bump, the closure-disposition report, the
       tooling pins), so the work was stashed, the branch fast-forwarded `837aaa52`→`7f76216b`, and the stash re-applied
@@ -165,12 +176,13 @@ Recorded before each reviewer invocation and updated per round; a replacement us
   Prone A/B with its NullAway control, `check` green under `9.8.2` on the original and both refreshed bases, the web UI
   `build` and `npmAudit`, `:showcase-api-gateway:e2eTest` (29 tests, 0 failures) and `:showcase-web-ui:e2eTest` both
   green, `spotlessCheck` after the last edit, `openspec validate --all` (27 items), and both ledger checks.
-- **Known limitations**: the diff is uncommitted. The two e2e runs predate the two refreshes: this unit's own product
-  diff is unchanged since they ran, while the base they now sit on brought other units' build changes this unit did not
-  author — the builder/nginx and kube-prometheus-stack pins in the catalog and the `build-logic` edits (task 2.8) — so
-  "only docs moved" would be the wrong reason to carry their results forward. What makes them still applicable is the
-  scope they cover: the API and browser paths this unit touches are unchanged, the web UI suite runs against
-  `vite preview` rather than the rebuilt nginx image, and the builder/nginx pair the refresh brought was verified by its
-  own change. The cold-run `:helm:chart:helmUpdateMainChartDependencies` fetch failure recurs and passes on a bare retry
-  (recorded in 2.1/2.8).
+- **Known limitations**: the diff is uncommitted. The full `check` and both e2e tiers ran **before** the hold, i.e. with
+  `reactor-blockhound` `1.0.18.RELEASE`; what covers the held state so far is the two gateway suites locally (green six
+  times, plus three runs under CPU saturation) and the bisect's CI `check` on the held configuration, with one more
+  control run of the final held tree pending. The two refreshes also brought other units' build changes this unit did
+  not author (the builder/nginx and kube-prometheus-stack pins, the `build-logic` edits), so "only docs moved" would be
+  the wrong reason to carry earlier results forward: they still apply because the API and browser paths this unit
+  touches are unchanged, the web UI suite runs against `vite preview` rather than the rebuilt nginx image, and the
+  builder/nginx pair was verified by its own change. The cold-run `:helm:chart:helmUpdateMainChartDependencies` fetch
+  failure recurs and passes on a bare retry (recorded in 2.1/2.8).
 - **Subject packs**: `gradle-build`, `deployment-operations`, `jvm-development`, `jvm-testing`.

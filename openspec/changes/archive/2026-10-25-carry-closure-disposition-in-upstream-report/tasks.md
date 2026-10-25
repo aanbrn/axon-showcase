@@ -147,7 +147,13 @@ branch=carry-closure-disposition-in-upstream-report; writer=ses_e8d42f936ffeP47y
   (`UpstreamReferenceState.QUERY`, built from its separator) instead of being duplicated in the task, and the degenerate
   closed-without-date branch gained a case. Net `AGENTS.md` change for the unit: +27/-22 against the base revision.
 
-- [ ] 2.10 At ship time, dispatch the workflow against the pushed branch
+- [x] 2.10 At ship time, dispatch the workflow against the pushed branch
       (`gh workflow run upstream-references.yml --ref carry-closure-disposition-in-upstream-report`) and read the run
       log: the job runs the report and posts the rows with the disposition. Tick this task in the archive commit's edit,
       per `AGENTS.md`'s rule for a verification the local environment cannot run.
+
+  **Done**: dispatch run 40192588336 succeeded against the branch, and the "Upstream references" issue (#343) it updated
+  carries the new vocabulary end to end — `closed (not_planned) 2026-10-11` on four `anomalyco/opencode` references,
+  `closed (duplicate) 2026-03-27` on `warpdotdev/warp#6320`, `closed 2026-10-05` on `micromatch/braces#72` for its
+  absent reason, and `closed (completed)` on the rest — so the workflow's `^closed` prefix filter accepts the longer
+  rows unchanged.

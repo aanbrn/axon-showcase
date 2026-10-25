@@ -76,7 +76,9 @@ branch=bump-buildpacks-2026-10-25; writer=ses_e8d435a9cffeBge2yMpx234ioj.
       a `scripts/claim-scan.py` change with its own tests, so it is recorded in `docs/ideas.md` rather than built here —
       by extending the entry that already parks that change (the owner-requested advisor consultation caught the
       duplicate a new entry would have created; see 5.5).
-- [ ] 5.4 Ask the owner for the manual review pass, after 5.1 is clean and 5.3 is done.
+- [x] 5.4 Ask the owner for the manual review pass, after 5.1 is clean and 5.3 is done. **Done**: the owner approved on
+      2026-10-25 after the manual review pass; the work shipped as PR #687, with the archive commit on the same pull
+      request after CI.
 - [x] 5.5 Owner-requested independent advisor consultation before the manual pass. **Done**: the advisor confirmed the
       matched set, the verification path and the scope, and found one confirmed problem — 5.3's capture had parked the
       claim-scan change as a second entry although `docs/ideas.md` already carried it. Verified against the file and

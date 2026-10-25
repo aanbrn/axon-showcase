@@ -57,4 +57,6 @@ branch=document-java-version-selector; writer=ses_e8ede802cffeqJu3lPJfhdQyis
 ## 6. After approval
 
 - [ ] 6.1 Commit, push, open the pull request with the template's sections, and wait for a green `build`.
+      Done: PR #686; run 40186454370 concluded `success` before the archive commit.
 - [ ] 6.2 Archive the change in the same pull request and merge.
+      Done: the archive is staged in this same pull request, whose squash merge completes the unit.

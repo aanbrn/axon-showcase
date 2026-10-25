@@ -96,6 +96,8 @@ rules:
       predicate
     - Follow the "Structured Writing Standard" in AGENTS.md — one decision per entry with its alternatives as separate
       bullets, and a table for the claims table or any like-row content
+    - 'Before naming a site for a later sweep, read and apply the rule identified by "quoted by its text or token"
+      in `.opencode/skills/review-gate/SKILL.md` §1 step 2.'
   tasks:
     - Break tasks into chunks of max 2 hours
     - Reference exact file paths and commands so each task is verifiable
@@ -123,6 +125,8 @@ rules:
       an enumeration may list its members as bullet labels no phrase pattern reaches
     - Follow the "Structured Writing Standard" in AGENTS.md — one action per task, its verification stated in the same
       task
+    - 'Before naming a site for a later sweep, read and apply the rule identified by "quoted by its text or token"
+      in `.opencode/skills/review-gate/SKILL.md` §1 step 2.'
 
 # Per-operation guidance
 operations:

@@ -83,7 +83,18 @@ detail across two sections.
   fact that made the word "optional" true — "Nothing in the repository reads `.java-version`" — had no claims-table row,
   and the scan surfaced no candidate for it. A third (`bump-buildpacks-2026-10-25`): a design risk bullet's "Nothing
   else in this image is pinned independently" shipped false and cost a review round, while its sibling "Only the web UI
-  consumes …" was seeded — the author verified the claim the scan surfaced and not the one it did not.
+  consumes …" was seeded — the author verified the claim the scan surfaced and not the one it did not. A fourth
+  (`stage-new-files-before-manual-review`): "`git clean -fd` is the one loss vector" — an absolute its own evidence
+  falsified, caught only by a deep review — sat on an added line of the diff and produced no candidate, so the
+  definite-singular form (`the (?:only|one|sole|single)`) is a form to add beside the absence forms, with its own
+  positive-control test.
+
+- Bold-lead the plain rules a `captured:` marker has to land on — parked; no change yet. `scripts/commit-hygiene.py`'s
+  marker check requires a lead starting `- **` or `**`, so the two plain `- Text` bullets a capture may need to annotate
+  — the "Work done while awaiting the approval pass" bullet and the failure-handling bullet below it — cannot carry a
+  marker at all; the fix is to bold-lead those bullets when a capture next merges into them, never to widen the guard,
+  since accepting plain leads is what the check exists to prevent (`stage-new-files-before-manual-review`'s capture hit
+  this).
 
 ## 2026-10-24
 

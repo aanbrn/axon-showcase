@@ -302,12 +302,13 @@ flowchart TB
 
 An idea becomes a **proposal** (what and why), then a **spec delta** (the new behavior, scoped to a capability), a
 **design** (how), and **tasks**. Applying writes the code and tests. Each phase ends in **two reviews**: an
-**auto-review** (the `review-quick` subagent, repeated until it finds nothing new) and your **manual review** — and,
-after implementation, a deep `review-thorough` pass whenever the review gate's routing decision requires one. The
-change's single **PR** may be opened as a draft after the proposal review (to share the plan) and is opened for real
-after the implementation review — it's the same PR, on which CI runs. Once CI is green and you approve, the change is
-**archived** — the change dir moves to `openspec/changes/archive/` and its delta spec is folded into the main spec — as
-a commit in the same PR, then merged. So the main spec always describes behavior the code has been verified against.
+**auto-review** (the `review-quick` subagent, repeated until it finds nothing new) and your **manual review** — the
+agent stages the unit's new files first, so the pass shows them in your IDE's Changes panel — and, after implementation,
+a deep `review-thorough` pass whenever the review gate's routing decision requires one. The change's single **PR** may
+be opened as a draft after the proposal review (to share the plan) and is opened for real after the implementation
+review — it's the same PR, on which CI runs. Once CI is green and you approve, the change is **archived** — the change
+dir moves to `openspec/changes/archive/` and its delta spec is folded into the main spec — as a commit in the same PR,
+then merged. So the main spec always describes behavior the code has been verified against.
 
 A vague idea is usually sharpened first in **explore mode** (`/opsx-explore`) — a thinking stance that investigates the
 codebase and clarifies what to build, without writing code. Only when the idea is concrete enough does it become a

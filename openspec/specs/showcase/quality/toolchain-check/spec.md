@@ -94,12 +94,13 @@ failing on them by default.
 #### Scenario: A missing required tool fails the diagnosis
 
 - **WHEN** the diagnostic runs on a machine missing a tool the default build-and-test path requires (Java, Docker with
-  Compose)
+  Compose, or the Python 3.12+ interpreter the build's Python tooling runs under)
 - **THEN** the diagnostic reports it and exits non-zero
 
 #### Scenario: A required tool below its floor fails the diagnosis
 
-- **WHEN** a required prerequisite is present but below its minimum version (e.g. Java 17 where Java 21 is required)
+- **WHEN** a required prerequisite is present but below its minimum version (e.g. Java 17 where Java 21 is required, or
+  Python 3.11 where the build's Python tooling requires 3.12)
 - **THEN** the diagnostic reports it as too old and exits non-zero, so a present-but-too-old required tool is a failure
   rather than a satisfied prerequisite
 
@@ -125,7 +126,7 @@ exception — the integration tests require a live daemon, so an unreachable dae
 #### Scenario: Missing Git hooks do not fail the default diagnosis
 
 - **WHEN** the diagnostic runs on a clone whose Git hooks are not installed while every required prerequisite (Java,
-  Docker with a live daemon, Compose v2) is satisfied
+  Docker with a live daemon, Compose v2, Python 3.12+) is satisfied
 - **THEN** the hooks are reported as not installed and the default run exits successfully, because the hooks are not on
   the default build-and-test path
 

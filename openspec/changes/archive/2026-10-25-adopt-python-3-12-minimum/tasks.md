@@ -219,6 +219,10 @@ branch=adopt-python-3-12-minimum; writer=ses_e8ede802cffeqJu3lPJfhdQyis
 
 ## 12. After approval
 
-- [ ] 12.1 Verify the change's own pull-request `build` run: the provisioning step reports 3.12, the assertion step
-      prints the resolved interpreter, and the four Python suites run in it.
+- [x] 12.1 Verify the change's own pull-request `build` run: the provisioning step reports 3.12, the assertion step
+      prints the resolved interpreter, and the four Python suites run in it. Done: run 40181175866 —
+      `Successfully     set up CPython (3.12.15)`,
+      `python3 resolved to /opt/hostedtoolcache/Python/3.12.15/x64/bin/python3`, `python3 is 3.12.15, at least 3.12.15`,
+      and `testClaimScan`/`testCommitHygiene`/`testReviewRounds`/ `testReviewRouting` plus `testDoctorCharter` all
+      executed.
 - [ ] 12.2 Archive the change and confirm the delta sync is staged with the change-dir move.

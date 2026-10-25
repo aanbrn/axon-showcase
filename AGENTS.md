@@ -483,6 +483,11 @@ ask for the manual review pass; and at a merge, where the detection below always
 - **Every proposal names the existing rule it extends** — an `AGENTS.md` bullet, a check/test authoring mode already in
   the `check-and-test-authoring` skill, a `ship-change` or `review-gate` procedure, or a subject-pack section — or
   states that none covers the lesson, so a new rule merges into or replaces one rather than accreting.
+- **A rule lives under the trigger that fires before every case it governs.** IF its cases span several sections because
+  they turn on a property of the subject, THEN place it where every such case passes, not where its incident was read —
+  a narrower trigger leaves the rest ungoverned with nothing reporting the gap.
+  - WHEN a rule moves, THEN its completion check moves with it: the deciding procedure's criteria state the outcome and
+    the vacated one's point at it. captured: move-tracker-guard-to-shipping-path
 - **Every proposal names the decision its rule governs**, and states whether a future change would plausibly hit it and
   whether the cost of not knowing it is material — a proposal that governs no decision is trivia, not a rule, and is not
   proposed (the `disable-axoniq-console-message` sentence this repo deleted stated a fact governing no decision).
@@ -523,11 +528,11 @@ ask for the manual review pass; and at a merge, where the detection below always
   make-the-capture-selective
 - **A capture verifies the live state the merge left, not only the diff — and corrects a defect it finds there, not
   merely records it.** The merge-time detection is the pass that can read the merge's non-diff effects: an agent PR's
-  closing reference had already closed the tracker it was triggered from (see "Workflow: Complete a cloud (`/oc`) agent
-  PR" below), a defect no gate reads — and the earlier capture that recorded the stale-target rule had quoted that
-  issue's body without noticing its closure. When the verification finds shipped work broken, fix the live instance (an
-  out-of-band corrective action, such as reopening the issue) alongside the recorded rule; documenting the hazard alone
-  leaves the defect live.
+  closing reference had already closed the tracker it was triggered from (see the `ship-change` skill's cloud decision
+  point for that closing reference and its shipping decision points for the rule), a defect no gate reads — and the
+  earlier capture that recorded the stale-target rule had quoted that issue's body without noticing its closure. When
+  the verification finds shipped work broken, fix the live instance (an out-of-band corrective action, such as reopening
+  the issue) alongside the recorded rule; documenting the hazard alone leaves the defect live.
 
 **Completion criteria** — the capture ran, or was skipped under the skip condition with its reason recorded, and its
 durable proposals are applied. Every unit carries a capture record — a task in `tasks.md`, or a line in the pull-request
@@ -713,9 +718,9 @@ to its destination.
 **Decision points**
 
 - IF an existing destination does not carry the section's complete contract, THEN retain the source at root.
-- **IF the section's rules answer to different triggers, THEN split the source unit:** move the rules whose trigger
-  fires before the decision each governs, and keep the rest at root under their own heading instead of broadening the
-  trigger to reach them — one that fires on most turns reloads the body more often than the root text it replaced.
+- **IF the section's rules answer to different triggers, THEN split the source unit:** place each rule by the placement
+  rule above, and keep the rest at root under their own heading instead of broadening the trigger to reach them — one
+  that fires on most turns reloads the body more often than the root text it replaced.
   `reduce-agents-md-loaded-surface`'s first design would have put five search, audit, review, and debugging rules behind
   a check-authoring trigger; the owner caught it, not the review loop. captured: reduce-agents-md-loaded-surface
 - **IF a gate reads the block, or reads the file for a property of the content being moved** (the `captured:` markers

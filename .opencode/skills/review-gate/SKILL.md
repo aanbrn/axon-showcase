@@ -57,21 +57,24 @@ Source: `AGENTS.md` "Workflow: The review gate".
    replacing the derivation (`showcase/quality/agent-skills` owns the behaviour). A dismissal's reason is itself a claim
    about the repository: verify it against the diff or the source it names before recording it, since a dismissal is
    recorded, not checked (`sharpen-architecture-audit` dismissed the README table rows as carrying only a formatter
-   reflow, and the diff held no such change). A row about an artifact the change itself edits anchors its source to that
-   artifact's pre-change state (`git show HEAD:<path>`) — its embedded commands included, since a script that opens the
-   working-tree file reports the implemented result while the row reads as anchored
-   (`git show <rev>:<path> | python3 …`): it stops reproducing once the change lands. A site named for a later sweep is
-   quoted by its text or token, never by a line number — a concurrent merge moves it, so the anchor is stale as
-   committed (`AGENTS.md:NNNN` anchors were two lines out here). A task's `**Done**` note or a claims-table entry that
-   must report a figure or a status states a relative result — the difference between two runs, which the corpus's
-   growth leaves fixed — the command's outcome, a text-quoted site, or the record's own mechanism, never an absolute
-   count its own writes move (its appended ledger rows, the candidates its own artifact adds to the scan) and never a
-   status its own remaining steps move (a review round named "the final clean one"), and state the verification as of
-   its own step and the resulting state separately, since a later step can destroy what it recorded. Re-derive the table
-   after the unit's last append to its own record, which adds one. captured: widen-architecture-auditor-to-stale-ideas
-   captured: normalize-the-review-round-digest captured: capture-authoring-system-gaps captured:
-   sharpen-architecture-audit captured: extract-ci-narrative captured: convert-remaining-gotchas-rules captured:
-   add-technical-advisor captured: projector-operability
+   reflow, and the diff held no such change). A row whose claim is about the state before the change anchors its source
+   to the unit's base revision (`git merge-base HEAD origin/main`), recorded as the SHA, never to `HEAD` or
+   `origin/main`: `HEAD` moves at the unit's first commit and `origin/main` at every merge — the unit's own included,
+   which changes what a corpus-wide grep returns there — so a ref-keyed row stops reproducing while still reading as
+   anchored. Use `git show <sha>:<path>` for the change's own artifact and for any command it embeds (a script that
+   opens the working-tree file reports the implemented result), and `git grep … <sha>` for a historical claim over a
+   corpus ("no document mentioned it before this change"). captured: document-java-version-selector A site named for a
+   later sweep is quoted by its text or token, never by a line number — a concurrent merge moves it, so the anchor is
+   stale as committed (`AGENTS.md:NNNN` anchors were two lines out here). A task's `**Done**` note or a claims-table
+   entry that must report a figure or a status states a relative result — the difference between two runs, which the
+   corpus's growth leaves fixed — the command's outcome, a text-quoted site, or the record's own mechanism, never an
+   absolute count its own writes move (its appended ledger rows, the candidates its own artifact adds to the scan) and
+   never a status its own remaining steps move (a review round named "the final clean one"), and state the verification
+   as of its own step and the resulting state separately, since a later step can destroy what it recorded. Re-derive the
+   table after the unit's last append to its own record, which adds one. captured:
+   widen-architecture-auditor-to-stale-ideas captured: normalize-the-review-round-digest captured:
+   capture-authoring-system-gaps captured: sharpen-architecture-audit captured: extract-ci-narrative captured:
+   convert-remaining-gotchas-rules captured: add-technical-advisor captured: projector-operability
 
 ## 2. Quick review loop
 

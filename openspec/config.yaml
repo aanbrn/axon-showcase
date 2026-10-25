@@ -80,10 +80,12 @@ rules:
     - Every mechanism or task-check claim is derived from the dependency graph or the tool's own definition, and a
       term or mechanism name with no referent in the repository is deleted rather than defined
     - Carry the claims table — each fact the change states about its evidence (the prior artifacts it rests on) with its
-      source or the command that derives it, re-run so it reproduces the figure the row records; a row about an artifact
-      the change itself edits anchors to that artifact's pre-change state (`git show HEAD:<path>`) — its embedded
-      commands included, since a script opening the working-tree file reports the implemented result — since it stops
-      reproducing once the change lands; a source that is a command's output states the reason by class, never a list of
+      source or the command that derives it, re-run so it reproduces the figure the row records; a row whose claim is
+      about the state before the change anchors to the unit's base revision (`git merge-base HEAD origin/main`),
+      recorded as the SHA, never to `HEAD` or `origin/main`, which move — `git show <sha>:<path>` for the change's own
+      artifact and its embedded commands, since a script opening the working-tree file reports the implemented result;
+      `git grep … <sha>` for a historical claim over a corpus;
+      a source that is a command's output states the reason by class, never a list of
       its lines; and each dismissal states its reason by kind, never as an enumerating clause; and the table is
       re-derived after the unit's last append to its own record, which adds a scan candidate; a self-record fact about
       what the change did (a stated delta, a `Done` note, a described edit) is derived from the source it names once

@@ -71,7 +71,9 @@ detail across two sections.
   candidate at all, and "no finding reduced `AGENTS.md`" yields only its `[path] AGENTS.md` — no absolute — so each such
   claim row needs the author to notice it unaided. Widen the pattern with one test per added form beside
   `test_an_absolute_quantifier_is_reported` (`scripts/test-claim-scan.py`) and re-measure the noise a widened pattern
-  adds to a real guidance diff before committing it.
+  adds to a real guidance diff before committing it. A second instance (`document-java-version-selector`, round 1): the
+  fact that made the word "optional" true — "Nothing in the repository reads `.java-version`" — had no claims-table row,
+  and the scan surfaced no candidate for it.
 
 ## 2026-10-24
 

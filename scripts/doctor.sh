@@ -71,7 +71,7 @@ install_hint() {
     macos:helm) echo "brew install helm" ;;
     macos:kubectl) echo "kind, minikube, or colima with k3s" ;;
     macos:snyk) echo "brew install snyk/tap/snyk" ;;
-    macos:python3) echo "ships with macOS Command Line Tools" ;;
+    macos:python3) echo "brew install python3" ;;
     macos:gh) echo "brew install gh" ;;
     macos:opencode) echo "brew install anomalyco/tap/opencode-v2, or https://opencode.ai/v2" ;;
     macos:ast-grep) echo "brew install ast-grep" ;;
@@ -83,7 +83,7 @@ install_hint() {
     debian:helm) echo "sudo snap install helm --classic, or a release binary" ;;
     debian:kubectl) echo "kind or minikube" ;;
     debian:snyk) echo "npm install -g snyk, or curl https://static.snyk.io/cli/latest/snyk-linux -o snyk" ;;
-    debian:python3) echo "sudo apt install python3" ;;
+    debian:python3) echo "sudo apt install python3 on Ubuntu 24.04+, or a 3.12 build for your release" ;;
     debian:gh) echo "sudo apt install gh, or a release binary from cli/cli" ;;
     debian:opencode) echo "curl -fsSL https://opencode.ai/install | bash, or https://opencode.ai/v2" ;;
     debian:ast-grep) echo "npm install -g @ast-grep/cli, or a release binary from ast-grep/ast-grep" ;;
@@ -102,12 +102,42 @@ raw_version() {
     "$bin" $vargs 2>&1 | tr -d '\r' | grep -oE '[0-9]+(\.[0-9]+)+' | head -n 1
 }
 
+# Returns 0 when version $1 is at least floor $2. Both are dotted numbers; the floor may be a bare major, read as
+# `major.0`. A version whose leading components are not numeric is "not at least" — the caller reports those as unknown
+# rather than too old, so a missing reading never reads as satisfied.
+version_at_least() {
+    got=${1%%[!0-9.]*}
+    want=${2%%[!0-9.]*}
+    case "$got" in
+    '' | *[!0-9.]*) return 1 ;;
+    esac
+    old_ifs=$IFS
+    IFS=.
+    set -- $got
+    got_major=$1
+    got_minor=${2:-0}
+    set -- $want
+    want_major=$1
+    want_minor=${2:-0}
+    IFS=$old_ifs
+    case "$got_major$got_minor$want_major$want_minor" in
+    '' | *[!0-9]*) return 1 ;;
+    esac
+    if [ "$got_major" -gt "$want_major" ]; then
+        return 0
+    fi
+    if [ "$got_major" -lt "$want_major" ]; then
+        return 1
+    fi
+    [ "$got_minor" -ge "$want_minor" ]
+}
+
 # --- the probe declaration ------------------------------------------------------------------------------------------
 # Every probe is DECLARED here, one row per probe, and this is the single owner of the probe set: the diagnostic drives
 # each probe by key from its row, and scripts/test-doctor.sh reads the table rather than inferring the set from this
 # file's source text — so a probe cannot exist without a row, and none can be invisible to that check.
 #
-# Columns, pipe-separated:  key | class | kind | readme | binary | version-args | minimum-major
+# Columns, pipe-separated:  key | class | kind | readme | binary | version-args | minimum-version
 #   class  — required | optional: what an unsatisfied probe does to the default run's exit code
 #   kind   — tool | state: a probe's documentation and install-hint needs (a tool is documented and hinted, a state
 #            step is neither) — never how it is implemented, so `compose` is a tool with no binary of its own
@@ -123,7 +153,7 @@ pack|optional|tool|yes|pack|--version|
 helm|optional|tool|yes|helm|version --short|4
 kubectl|optional|tool|yes|kubectl|version --client|
 snyk|optional|tool|yes|snyk|--version|
-python3|optional|tool|yes|python3|--version|3
+python3|required|tool|yes|python3|--version|3.12
 gh|optional|tool|no|gh|--version|
 opencode|optional|tool|yes|opencode|--version|
 ast-grep|optional|tool|yes|ast-grep|--version|
@@ -156,10 +186,10 @@ validate_probe_table() {
         $3 == "state" && ($5 != "" || $6 != "" || $7 != "") {
             printf "probe %s is a state step but carries tool facts\n", $1; bad = 1
         }
-        # A floor must be a number when present: an unset floor means "presence only", and a non-numeric one would make
-        # the version comparison error rather than compare.
-        $7 != "" && $7 !~ /^[0-9]+$/ {
-            printf "probe %s has minimum-major %s, expected a number or empty\n", $1, $7; bad = 1
+        # A floor must be a number when present (`major` or `major.minor`): an unset floor means "presence only", and a
+        # non-numeric one would make the version comparison error rather than compare.
+        $7 != "" && $7 !~ /^[0-9]+(\.[0-9]+)?$/ {
+            printf "probe %s has minimum-version %s, expected major[.minor] or empty\n", $1, $7; bad = 1
         }
         # A binary implies the probe is version-checked; a tool row with a binary but no version arguments would run the
         # binary with no arguments, which is not a version read.
@@ -259,13 +289,13 @@ report() {
 }
 
 # Checks a tool with an optional version floor.
-# $1 name, $2 class, $3 binary, $4 version-args, $5 minimum major (empty = presence only)
+# $1 name, $2 class, $3 binary, $4 version-args, $5 minimum version (empty = presence only, else `major[.minor]`)
 check_tool() {
     name=$1
     class=$2
     bin=$3
     vargs=$4
-    min_major=$5
+    min_version=$5
     remedy=$(install_hint "$name")
 
     if ! command -v "$bin" >/dev/null 2>&1; then
@@ -276,7 +306,7 @@ check_tool() {
     fi
 
     version=$(raw_version "$bin" "$vargs") || version=""
-    if [ -z "$min_major" ]; then
+    if [ -z "$min_version" ]; then
         if [ -n "$version" ]; then
             report "$name" "$class" "$status_ok" "$version" ""
         else
@@ -293,11 +323,11 @@ check_tool() {
         report "$name" "$class" "$status_unknown" "version unreadable" ""
         return
     fi
-    if [ "$major" -ge "$min_major" ]; then
+    if version_at_least "$version" "$min_version"; then
         report "$name" "$class" "$status_ok" "$version" ""
     else
-        [ -n "$remedy" ] || remedy="upgrade $bin to >= $min_major"
-        report "$name" "$class" "$status_old" "$version (needs >= $min_major)" "$remedy"
+        [ -n "$remedy" ] || remedy="upgrade $bin to >= $min_version"
+        report "$name" "$class" "$status_old" "$version (needs >= $min_version)" "$remedy"
     fi
 }
 

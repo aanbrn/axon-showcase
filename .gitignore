@@ -9,6 +9,7 @@ out/
 ### Python ###
 __pycache__/
 *.pyc
+.python-version
 
 ### IntelliJ IDEA ###
 .idea/

@@ -13,7 +13,8 @@ The floor is a floor: the agent's decision must be at or above it, and a fact th
 specification deviation, a material defect an earlier review missed -- is the agent's judgment above it.
 
 A derivation that fails -- an unreadable input, a malformed ledger row, a git error -- reports `REQUIRED` and exits
-non-zero, so a missing or failed decision can only make review run, never skip it. Stdlib only, Python 3.9-compatible.
+non-zero, so a missing or failed decision can only make review run, never skip it. Stdlib only, compatible with the
+build's declared Python 3.12 minimum.
 """
 
 import argparse

@@ -764,13 +764,16 @@ publish the archive commit, archive, or merge.
 
 ## Prerequisites
 
-- **Toolchain**: `./scripts/doctor.sh` (or `/check-tooling`) probes every prerequisite — presence, version floors, and
-  repo state — and prints the platform-appropriate install command for anything missing.
-- **The README owns the documented list and the install columns**; the doctor owns the probe, and `testDoctorCharter`
-  keeps the two in step.
-- **Only Java and Docker with Compose are needed for the default build-and-test path.** The optional tools gate optional
-  paths: `Helm`/`kubectl` for deployment, `Snyk` for `dependencySecurityCheck`, `pack` for the web UI image,
-  `actionlint` for `workflowLint` (part of `check`), `Python 3` for the `scripts/*.py` tools.
+- **Toolchain**: `./scripts/doctor.sh` (or `/check-tooling`) probes every prerequisite and prints the
+  platform-appropriate install command for anything missing; the README owns the documented list and the install
+  columns, and `testDoctorCharter` keeps the two in step. An install hint or column is a claim that following it
+  satisfies the probe: raising a floor re-derives both, since the platform default that stood in for an install may now
+  be below it, and the hint names the command that leaves the probed binary's own name on `PATH` (a versioned formula
+  installs `python3.12`, not the `python3` the probe runs). captured: adopt-python-3-12-minimum
+- **Only Java, Docker with Compose, Python 3.12+ and `actionlint` are needed for the default build-and-test path.**
+  Python runs the `scripts/*.py` suites `check` executes, and `actionlint` runs `workflowLint`, also part of `check`.
+  The optional tools gate optional paths: `Helm`/`kubectl` for deployment, `Snyk` for `dependencySecurityCheck`, `pack`
+  for the web UI image.
 - **Git hooks**: run `./scripts/install-git-hooks.sh` once per clone to activate the pre-commit guard (the checks the
   `git add <dir>` gotcha enumerates); bypass a deliberate exception with `git commit --no-verify`.
 - **The doctor is not part of `check`**: the host is not a build input, so gating it would fail pull requests for causes
@@ -884,7 +887,10 @@ the requested label, and `/etc/os-release`'s name and version — so a failure d
 to the image rather than to the change under test. **That check has already earned its keep:** the 26.04 dispatch failed
 at `:showcase-web-ui:dockerBuildImage` (the `pack`-built Paketo image), reproducibly, while the four JVM images built —
 attributed to the Docker 28 → 29 difference (the store alone is not the trigger — see the buildpack note), and addressed
-by the smoke's own `overlay2` step, which a re-dispatch on `ubuntu-26.04` is what confirms.
+by the smoke's own `overlay2` step, which a re-dispatch on `ubuntu-26.04` is what confirms. The same rule covers a tool
+whose **default version** the image supplies rather than the repository: the gate pins `setup-python` to the declared
+Python minimum (asserting the interpreter resolves from the setup step's own output), so the image's own `python3` —
+which moves when the label does — cannot silently change what the Python tooling is verified against.
 
 The merge gate's `check` never builds the web UI bundle (`vite build` lives in `build`/`assemble`), so a change that
 alters the built bundle or its runtime — a React/Vite major — must run `./gradlew :showcase-web-ui:e2eTest` deliberately
@@ -896,11 +902,12 @@ before it is reported done. captured: migrate-web-ui-frontend-majors
 
 **Procedure**
 
-1. Verify it by dispatch, not by its schedule (no CI job exercises a workflow body, and `workflowLint` checks only the
-   YAML). GitHub exposes `workflow_dispatch` only once the file is on the default branch, so a newly added workflow is
-   dispatched from `main` (`gh workflow run <file>`), while an edit to one already on the default branch is dispatched
-   from the change's own pushed branch (`gh workflow run <file> --ref <branch>`) — for an update check, exercising its
-   report path, jq filter, and tracker-issue lookup end to end.
+1. Verify it by dispatch when it has a `workflow_dispatch` trigger, not by its schedule (`workflowLint` checks only the
+   YAML, and no other job runs a dispatch-only body). GitHub exposes `workflow_dispatch` only once the file is on the
+   default branch, so a newly added workflow is dispatched from `main` (`gh workflow run <file>`), while an edit to one
+   already on the default branch is dispatched from the change's own pushed branch
+   (`gh workflow run <file> --ref <branch>`) — for an update check, exercising its report path, jq filter, and
+   tracker-issue lookup end to end.
 2. For the `release` workflow — the one added workflow whose _only_ trigger is `workflow_dispatch` — accept that its
    tag-and-release path first runs after merge, and exercise its build-and-push path pre-merge through a `dry_run` input
    or a `publish_tag` backfill, each of which bypasses the `main`-ref guard and creates no tag or release (the bypass a
@@ -923,8 +930,11 @@ before it is reported done. captured: migrate-web-ui-frontend-majors
 **Failure handling** — a dispatch that fails still exercises the workflow body: read its run log
 (`gh run view <run-id> --log-failed`), fix the workflow, and re-dispatch.
 
-**Completion criteria** — the workflow's body has run end to end: a dispatch for an added or edited workflow, or its
-first scheduled fire for a schedule-only edit (a schedule change is never ticked off on a dispatch).
+**Completion criteria** — the workflow's body has run end to end: a dispatch for an added or edited dispatchable
+workflow, its first scheduled fire for a schedule-only edit (a schedule change is never ticked off on a dispatch), or
+the change's own run for a workflow only repository events trigger (`ci.yml`'s pull request), whose log shows the added
+step's output — such a run gains no `workflow_dispatch` trigger to become dispatchable. captured:
+adopt-python-3-12-minimum
 
 A verification the local environment cannot run cannot live as a task in the change dir: `openspec/changes/archive/` is
 invisible and no gate reads it, so an unchecked task is silently lost — a dispatch
@@ -2640,12 +2650,13 @@ changing an image or buildpack pin.
   do not prepend tool dirs to PATH (the daemon JVM won't honor it). Launching IDEA from a terminal still helps avoid
   stale minimal-PATH daemons in the first place.
 
-- **A repo Python script runs under whichever `python3` PATH resolves, not the documented prerequisite — verify a new
-  script under the system interpreter.** The documented Python is macOS's system `/usr/bin/python3` (3.9), where PEP 604
-  `X | Y` unions raise `TypeError` at import, while the newer `python3` on a contributor's PATH (and in CI) accepts them
-  — so the incompatibility passes every gate, none of which pins the interpreter. Keep repo Python stdlib-only and
-  compatible with the system interpreter (`typing.Optional`, not `str | None`), and run `/usr/bin/python3 <script>`
-  before reporting it done. captured: add-pre-commit-staged-set-guard (#372)
+- **A repo Python script runs under whichever `python3` PATH resolves, not under the declared minimum — the CI gate pins
+  that interpreter, nothing local does.** The build's declared minimum is Python 3.12 (the doctor's `python3` probe
+  carries the floor, and the CI gate provisions it), where an older interpreter raises on what a newer one accepts — a
+  PEP 604 `X | Y` union is a `TypeError` at import on 3.9 — so a script verified only under a newer PATH interpreter
+  fails for whoever runs the declared one. Keep repo Python stdlib-only and compatible with the declared minimum, and
+  run the suite under an interpreter at that floor before reporting it done. captured: add-pre-commit-staged-set-guard
+  (#372) captured: adopt-python-3-12-minimum
 
 - **macOS local-network privacy can leave a Warp-spawned shell unable to reach the local cluster.** Reaching a
   local-network address is a per-app privilege macOS tracks by code-signing identity (Apple `TN3179`), and a third-party

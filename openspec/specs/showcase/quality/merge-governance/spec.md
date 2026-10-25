@@ -88,7 +88,9 @@ with each definition's metadata intact, so a V2-only setting the action's V1 bin
 silently degrades, fails the check instead of silently killing the cloud workflows, and a source-secret scan with
 gitleaks over the pull request's files, so a committed secret fails the check. The coverage gate SHALL NOT run on the
 pull-request path, because it is calibrated on integration-test coverage that only the `main` gate provides. The check
-SHALL run on `ubuntu-latest` with a Temurin JDK 21 and SHALL NOT require Docker.
+SHALL run on `ubuntu-latest` with a Temurin JDK 21 and SHALL NOT require Docker. Before running `check`, the gate SHALL
+provision the Python interpreter at the minimum the toolchain diagnosis declares, so the build's Python tooling runs
+under the declared floor rather than whichever interpreter the runner image supplies.
 
 #### Scenario: Pull request triggers the fast gate
 
@@ -97,6 +99,13 @@ SHALL run on `ubuntu-latest` with a Temurin JDK 21 and SHALL NOT require Docker.
   and `openspec validate --all` against the pull request head, followed by the OpenSpec configuration check and — when
   the pull request changes any `.opencode/` path or `.github/workflows/ci.yml` — the OpenCode configuration and
   definition-inventory check, and the source-secret scan
+
+#### Scenario: The gate runs under the declared Python minimum
+
+- **WHEN** the `build` check runs on its runner
+- **THEN** the check provisions the Python minimum the toolchain diagnosis declares and asserts the interpreter it
+  resolved reports at least that version, so the Python tooling is verified against the floor rather than against an
+  interpreter the runner image happens to supply
 
 #### Scenario: Fast gate failure blocks merging
 
@@ -151,7 +160,9 @@ SHALL run on `ubuntu-latest` with a Temurin JDK 21 and SHALL NOT require Docker.
 A push to `main` SHALL run the full quality gate as the same `build` check: the complete `check` task including the
 integration tier (Testcontainers — PostgreSQL, Kafka, OpenSearch) and the JaCoCo coverage gate, plus an OpenSpec
 validation and the same verification that the OpenSpec configuration's declared list surfaces — its per-artifact rules
-and its operation guidance — are readable by the CLI. The full gate SHALL require Docker.
+and its operation guidance — are readable by the CLI. The full gate SHALL require Docker. It SHALL provision the Python
+minimum the toolchain diagnosis declares, as the pull-request gate does, so the integration path runs the Python tooling
+under the same floor.
 
 #### Scenario: Push to main triggers the full gate
 

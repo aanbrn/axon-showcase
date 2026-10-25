@@ -83,9 +83,18 @@ branch=bump-dependencies-2026-10-25; writer=ses_e8d4a9bbeffeOGf9vlyJH9zD70.
       where the bumped pair failed, so `1.0.18.RELEASE` is held back. The deferral is recorded in the proposal, the
       design's Decisions and claims rows, and `docs/ideas.md`, with an upstream report drafted for `reactor/BlockHound`.
       The held configuration's own control CI run is task 2.10.
-- [ ] 2.10 Run the control CI run of the final held configuration before the unit finishes, and stop on a repeat. The
-      run must execute the gateway component tests rather than restore them from cache, and a failure there ends the
-      green-chasing: the unit stops and the mechanism gets diagnosed (the watchdog dump) instead of another re-run.
+- [x] 2.10 Run the control CI run of the final held configuration before the unit finishes, and stop on a repeat.
+      **Done**: `51dad975` green in 12m29s with the gateway component tests executed, the held configuration's second
+      green run and the evidence the hold's Decision rests on. The stop condition did not fire.
+- [x] 2.11 Land the diagnostic the next occurrence needs, since the failure-time dump shows only the aftermath.
+      **Done**: `ThreadDumpWatchdog` (component-test source set, registered by autodetection beside
+      `ThreadDumpOnFailure`) snapshots every thread while a test runs — at 3 s, then every 7 — and emits nothing for a
+      test that finishes sooner, so the suites stay quiet on green. The next failing CI run's
+      `=== thread dump while running: … ===` marker is the data that names what the request waited for; reading it stays
+      with the parked defect, which this unit leaves open. **Controls**: a temporary probe (not committed) emitted one
+      marker for a 5 s plain `@Test` and one for a 5 s `@ParameterizedTest` case, and none for a 20 ms case; the three
+      suites run with the watchdog registered emit no marker and stay green — the passing-run case; cancellation rests
+      on the code read (`cancel` + `shutdownNow` in a `finally`), not on an assertion.
 - [x] 2.8 Refresh the branch onto the advanced `origin/main` and re-run the gates. **Done**: `origin/main` had moved
       four commits (`7f76216b`: buildpack pins, the kube-prometheus-stack bump, the closure-disposition report, the
       tooling pins), so the work was stashed, the branch fast-forwarded `837aaa52`→`7f76216b`, and the stash re-applied
@@ -158,8 +167,9 @@ Recorded before each reviewer invocation and updated per round; a replacement us
   `bump-dependencies-2026-10-25`.
 - **Working tree**: `/Users/afanasyev/Development/axon-showcase` (primary; writer `ses_e8d4a9bbeffeOGf9vlyJH9zD70`).
 - **Artifacts**: the five change files — `proposal.md`, `design.md`, `tasks.md`, `.openspec.yaml`, and the `MODIFIED`
-  delta at `specs/showcase/quality/dependency-management/spec.md` — all staged (`A`) per the review gate's §5; plus the
-  unstaged tracked diff (catalog, wrapper properties, lockfile, five Java sources, the doc edits, the ledger row set).
+  delta at `specs/showcase/quality/dependency-management/spec.md`; plus the delivered diff — the catalog, the wrapper
+  properties, the lockfile, five Java sources losing an annotation, the new `ThreadDumpWatchdog` component-test
+  extension and its service-file registration, the doc edits, and the ledger row set.
 - **Scope**: the planning artifacts (the first round) and the implementation with every later round's residue, refreshed
   onto `origin/main` twice. The per-round class lists are the ledger's rows for this unit; this block does not restate
   them, so it stays current as the loop advances.
@@ -175,14 +185,16 @@ Recorded before each reviewer invocation and updated per round; a replacement us
 - **Completed checks**: the two reports re-resolved and re-run clean, each version confirmed at its registry, the Error
   Prone A/B with its NullAway control, `check` green under `9.8.2` on the original and both refreshed bases, the web UI
   `build` and `npmAudit`, `:showcase-api-gateway:e2eTest` (29 tests, 0 failures) and `:showcase-web-ui:e2eTest` both
-  green, `spotlessCheck` after the last edit, `openspec validate --all` (27 items), and both ledger checks.
+  green, `spotlessCheck` after the last edit, `openspec validate --all` (27 items), both ledger checks, and the held
+  configuration's control CI run (2.10) plus the CI bisect in 2.9.
 - **Known limitations**: the diff is uncommitted. The full `check` and both e2e tiers ran **before** the hold, i.e. with
   `reactor-blockhound` `1.0.18.RELEASE`; what covers the held state so far is the two gateway suites locally (green six
-  times, plus three runs under CPU saturation) and the bisect's CI `check` on the held configuration, with one more
-  control run of the final held tree pending. The two refreshes also brought other units' build changes this unit did
-  not author (the builder/nginx and kube-prometheus-stack pins, the `build-logic` edits), so "only docs moved" would be
-  the wrong reason to carry earlier results forward: they still apply because the API and browser paths this unit
-  touches are unchanged, the web UI suite runs against `vite preview` rather than the rebuilt nginx image, and the
-  builder/nginx pair was verified by its own change. The cold-run `:helm:chart:helmUpdateMainChartDependencies` fetch
-  failure recurs and passes on a bare retry (recorded in 2.1/2.8).
+  times, plus three runs under CPU saturation) and the bisect's CI `check` on the held configuration; the control run of
+  the final held tree (`51dad975`) is green at 12m29s. The full `check` has **not** been re-run since the watchdog and
+  the registration control were added — CI is their first run. The two refreshes also brought other units' build changes
+  this unit did not author (the builder/nginx and kube-prometheus-stack pins, the `build-logic` edits), so "only docs
+  moved" would be the wrong reason to carry earlier results forward: they still apply because the API and browser paths
+  this unit touches are unchanged, the web UI suite runs against `vite preview` rather than the rebuilt nginx image, and
+  the builder/nginx pair was verified by its own change. The cold-run `:helm:chart:helmUpdateMainChartDependencies`
+  fetch failure recurs and passes on a bare retry (recorded in 2.1/2.8).
 - **Subject packs**: `gradle-build`, `deployment-operations`, `jvm-development`, `jvm-testing`.

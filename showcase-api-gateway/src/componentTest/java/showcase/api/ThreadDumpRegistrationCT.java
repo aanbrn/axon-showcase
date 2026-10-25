@@ -14,9 +14,12 @@ import org.junit.jupiter.api.extension.Extension;
 class ThreadDumpRegistrationCT {
 
     @Test
-    @DisplayName("The extension is on the service path and autodetection is enabled")
-    void theDiagnosticIsRegistered() throws Exception {
-        assertThat(ServiceLoader.load(Extension.class)).anyMatch(ThreadDumpOnFailure.class::isInstance);
+    @DisplayName("Both extensions are on the service path and autodetection is enabled")
+    void bothDiagnosticsAreRegistered() throws Exception {
+        assertThat(ServiceLoader.load(Extension.class))
+                .as("the failure-time dump and the during-run watchdog are both on the service path")
+                .anyMatch(ThreadDumpOnFailure.class::isInstance)
+                .anyMatch(ThreadDumpWatchdog.class::isInstance);
 
         Properties platformProperties = new Properties();
         try (InputStream properties = getClass().getClassLoader().getResourceAsStream("junit-platform.properties")) {

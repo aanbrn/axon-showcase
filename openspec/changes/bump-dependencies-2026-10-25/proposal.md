@@ -21,9 +21,10 @@ on 2026-10-24, so the report is the authority for this unit's set.
   `TelemetryControllerCT` cases timed out at `.exchange()` in two of three runs of the bumped tree, with 45 thread dumps
   whose content shows an idle JVM and no thread in the request path; the same tree passed on a re-run and every local
   run, six of them plus three under CPU saturation. A CI bisect isolated the coordinate: `reactor-core` 3.8.8 with
-  `blockhound` held at `1.0.17.RELEASE` was green where the bumped pair failed twice. The mechanism is unproven, so this
-  is a recorded deferral, not a fix: `design.md` carries the probe, `docs/ideas.md` the diagnosis and its next step, and
-  the upstream report is cited there.
+  `blockhound` held at `1.0.17.RELEASE` was green twice — once in the bisect and once in the control run of the final
+  held configuration (12m29s) — where the bumped pair failed twice. The mechanism is unproven, so this is a recorded
+  deferral, not a fix: `design.md` carries the probe, `docs/ideas.md` the diagnosis and its next step, and the upstream
+  report is cited there.
 - **`gradle/wrapper/gradle-wrapper.properties`** — `9.8.1`→`9.8.2`. The wrapper jar and the two scripts regenerate
   byte-identical, so only the properties file changes; the jar still matches the one the 9.8.2 distribution ships.
 - **`showcase-web-ui/package-lock.json`** — `react-hook-form` `7.90.0`→`7.91.0` and `eslint-plugin-boundaries`
@@ -32,6 +33,11 @@ on 2026-10-24, so the report is the authority for this unit's set.
   boundaries packages dropped at their new versions; two entries flip from `dev` to `devOptional` (`fast-deep-equal`,
   `require-from-string`), and `@napi-rs/wasm-runtime`'s bump narrows its two `@emnapi` peer ranges to
   `^1.7.1 || 2.0.0-beta.2`. `package.json` is unchanged: every moved release already satisfies its caret range.
+- **`showcase-api-gateway` component tests** — a `ThreadDumpWatchdog` extension that snapshots every thread while a test
+  is still running (at 3 s, then every 7). The gateway's two controller suites stall intermittently on CI; the existing
+  `ThreadDumpOnFailure` snapshots only after the timeout and shows an idle JVM, so it cannot name what the request
+  waited for. This is the diagnostic the parked defect (`docs/ideas.md`, 2026-10-06) names as its next step, and it is
+  inert on a passing run.
 - **Five Error Prone suppressions removed** — `UnrecognisedJavadocTag` no longer fires at `2.51.0` on the
   Lombok-processed classes that carried `@SuppressWarnings("UnrecognisedJavadocTag")` (`ShowcaseApiProperties`,
   `ShowcaseEntity`, and the three telemetry classes), so the suppression and its upstream reference are retired rather

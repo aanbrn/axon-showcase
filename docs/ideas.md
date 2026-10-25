@@ -550,12 +550,15 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 
   **A CI bisect narrowed it to `reactor-blockhound` `1.0.18.RELEASE`** — a separate catalogue coordinate bumped in the
   same update set as `reactor-bom` 2025.0.8 (not a member of that BOM), and the one row of the 2026-10-25 bump unit's
-  report that unit holds back. Two failures in three runs of the bumped pair, against green for `reactor-bom` 2025.0.8
-  with `blockhound` at `1.0.17.RELEASE` and for the both-old pair; `blockhound` 1.0.18 with `reactor-core` 3.8.7 was not
-  tried, so the interaction with 3.8.8 is untested. The mechanism stays unproven and the failure probabilistic, so the
-  hold is a recorded deferral: a reproduction is _drafted_ for `reactor/BlockHound` and filed once its wording passes
-  review. The next step is a control CI run of the final held configuration — one failure there ends the green-chasing
-  and the mechanism gets diagnosed — followed by the in-flight watchdog dump.
+  report that unit holds back. Two failures in three runs of the bumped pair, against three green runs with `blockhound`
+  at `1.0.17.RELEASE` — two at the same `reactor-core` 3.8.8 (the bisect run and the control run, 12m29s), one at 3.8.7;
+  `blockhound` 1.0.18 with `reactor-core` 3.8.7 was not tried, so the interaction with 3.8.8 is untested, and each cell
+  of that table is one to three runs — enough to justify a recorded hold, not to call the cause proven. The mechanism
+  stays unproven and the failure probabilistic, so the hold is a recorded deferral: a reproduction is _drafted_ for
+  `reactor/BlockHound` and filed once its wording passes review. The control run of the held configuration passed, so
+  the hold ships, and the unit also lands `ThreadDumpWatchdog`, which snapshots every thread _while_ a test runs: the
+  next failing CI run names what the request waited for instead of showing an idle JVM after the timeout. Reading that
+  dump is the next step here.
 
 ## 2026-10-05
 

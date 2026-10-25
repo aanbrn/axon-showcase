@@ -515,22 +515,23 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 ## 2026-10-06
 
 - Explain or eliminate the gateway controller CT's load-sensitive hang — parked; the diagnostic fired on 2026-10-25
-  (below), the failure is now reproducible often enough on CI to bisect, and one coordinate is held back while the
-  mechanism stays open. `ShowcaseRestControllerCT` fails with a `TimeoutException` at the `WebTestClient` `.exchange()`:
-  38 of its 76 cases at the default 5s timeout (while #514 was in flight, 2026-10-06), and once on the Docker-free PR
-  gate at the 30s the slice configures (2026-10-15), so that raise did not hold there. The mechanism is unproven and
-  does not reproduce locally: shrinking the JVM-wide `Schedulers.boundedElastic()` pool to 4 and running the suite six
-  times all passed, which leaves boundedElastic starvation unconfirmed rather than refuted — a local pass is no evidence
-  against a CI-only cause. The failed CI attempt ran the suite concurrently with the web UI's `check` and spotbugs on a
-  4-vCPU runner (the #514 starvation shape), and the suite's CT classes share one JVM (the #301 interference shape);
-  JUnit kept dispatching distinct tests, each new one timing out on a 30s cadence for four minutes, so the stall is in
-  the request path's threads rather than the JVM. The diagnostics are armed: `ThreadDumpOnFailure` (since `e3e6475e`,
-  2026-10-15) prints every thread's stack trace on a failure, and the suite's `showStandardStreams` carries it to the
-  console — that setting also prints every test's standard output and error, a deliberate cost to remove with the
-  extension once the mechanism is found. As of 2026-10-22 `ci.yml` had completed 221 runs since that commit with no
-  failure (the one cancelled run is a duplicate `push` event on a single merge commit), so no dump exists to read and
-  nothing here is diagnosable yet; whether the failure is simply rare or the runner's load changed is unknown, and the
-  zero is not evidence of a fix. Revisit on the first CI failure of `ShowcaseRestControllerCT`: the log's
+  (below), the failure is now frequent enough on CI to bisect, and the unit that hit it withdrew its candidate hold and
+  shipped an in-flight dump instead, so the mechanism stays open with the next stall's data as the next step.
+  `ShowcaseRestControllerCT` fails with a `TimeoutException` at the `WebTestClient` `.exchange()`: 38 of its 76 cases at
+  the default 5s timeout (while #514 was in flight, 2026-10-06), and once on the Docker-free PR gate at the 30s the
+  slice configures (2026-10-15), so that raise did not hold there. The mechanism is unproven and does not reproduce
+  locally: shrinking the JVM-wide `Schedulers.boundedElastic()` pool to 4 and running the suite six times all passed,
+  which leaves boundedElastic starvation unconfirmed rather than refuted — a local pass is no evidence against a CI-only
+  cause. The failed CI attempt ran the suite concurrently with the web UI's `check` and spotbugs on a 4-vCPU runner (the
+  #514 starvation shape), and the suite's CT classes share one JVM (the #301 interference shape); JUnit kept dispatching
+  distinct tests, each new one timing out on a 30s cadence for four minutes, so the stall is in the request path's
+  threads rather than the JVM. The diagnostics are armed: `ThreadDumpOnFailure` (since `e3e6475e`, 2026-10-15) prints
+  every thread's stack trace on a failure, and the suite's `showStandardStreams` carries it to the console — that
+  setting also prints every test's standard output and error, a deliberate cost to remove with the extension once the
+  mechanism is found. As of 2026-10-22 `ci.yml` had completed 221 runs since that commit with no failure (the one
+  cancelled run is a duplicate `push` event on a single merge commit), so no dump exists to read and nothing here is
+  diagnosable yet; whether the failure is simply rare or the runner's load changed is unknown, and the zero is not
+  evidence of a fix. Revisit on the first CI failure of `ShowcaseRestControllerCT`: the log's
   `=== thread dump after failure: … ===` marker is the material to read, and a failure carrying no such marker is itself
   the finding that the diagnostic did not fire.
 
@@ -554,11 +555,12 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   at `1.0.17.RELEASE` — two at the same `reactor-core` 3.8.8 (the bisect run and the control run, 12m29s), one at 3.8.7;
   `blockhound` 1.0.18 with `reactor-core` 3.8.7 was not tried, so the interaction with 3.8.8 is untested, and each cell
   of that table is one to three runs — enough to justify a recorded hold, not to call the cause proven. The mechanism
-  stays unproven and the failure probabilistic, so the hold is a recorded deferral: a reproduction is _drafted_ for
-  `reactor/BlockHound` and filed once its wording passes review. The control run of the held configuration passed, so
-  the hold ships, and the unit also lands `ThreadDumpWatchdog`, which snapshots every thread _while_ a test runs: the
-  next failing CI run names what the request waited for instead of showing an idle JVM after the timeout. Reading that
-  dump is the next step here.
+  stays unproven and the failure probabilistic, so the hold was a precaution — and the 2026-10-26 bump unit then
+  **withdrew it by owner decision**, shipping `reactor-blockhound` `1.0.18.RELEASE` together with a new
+  `ThreadDumpWatchdog` that snapshots every thread _while_ a test runs. The reasoning: each bisect cell is one to three
+  runs, so a pin bought against it hides the mechanism, while the in-flight dump now names it on the next stall. Reading
+  that dump is the next step here, and the reproduction drafted for `reactor/BlockHound` is filed with the correlation
+  stated as observed rather than as a proven cause.
 
 ## 2026-10-05
 

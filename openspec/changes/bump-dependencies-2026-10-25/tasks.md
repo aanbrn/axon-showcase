@@ -5,14 +5,14 @@ branch=bump-dependencies-2026-10-25; writer=ses_e8d4a9bbeffeOGf9vlyJH9zD70.
 
 ## 1. The bumps
 
-- [x] 1.1 Bump thirteen of the fourteen catalog keys in `gradle/libs.versions.toml` to the versions the re-resolved
-      `dependencyUpdates` report names (`reactor-blockhound` excepted — task 2.9): `lz4-java` `1.12.0`→`1.12.1`,
-      `jackson2-bom` `2.22.3`→`2.22.4`, `jackson3-bom` `3.2.3`→`3.2.4`, `handlebars` `4.5.5`→`4.5.6`, `zstd-jni`
-      `1.5.7-23`→`1.5.7-24`, `errorprone` `2.50.0`→`2.51.0`, `nullaway` `0.14.2`→`0.14.3`, `grpc` `1.85.0`→`1.85.1`,
-      `micrometer-bom` `1.17.1`→`1.17.2`, `micrometer-tracing-bom` `1.7.1`→`1.7.2`, `reactor-bom` `2025.0.7`→`2025.0.8`,
-      `springdoc-openapi-starter` `2.9.1`→`2.10.0`, `swagger-ui` `5.33.2`→`5.34.0`. `reactor-bom` moves only in its
-      service-release segment, so it stays inside the `2025.0` train and is a minor by the report's calendar-version
-      rule. **Done**: thirteen `[versions]` lines changed, nothing else in the file.
+- [x] 1.1 Bump the fourteen catalog keys in `gradle/libs.versions.toml` to the versions the re-resolved
+      `dependencyUpdates` report names: `lz4-java` `1.12.0`→`1.12.1`, `jackson2-bom` `2.22.3`→`2.22.4`, `jackson3-bom`
+      `3.2.3`→`3.2.4`, `handlebars` `4.5.5`→`4.5.6`, `zstd-jni` `1.5.7-23`→`1.5.7-24`, `errorprone` `2.50.0`→`2.51.0`,
+      `nullaway` `0.14.2`→`0.14.3`, `grpc` `1.85.0`→`1.85.1`, `micrometer-bom` `1.17.1`→`1.17.2`,
+      `micrometer-tracing-bom` `1.7.1`→`1.7.2`, `reactor-bom` `2025.0.7`→`2025.0.8`, `reactor-blockhound`
+      `1.0.17.RELEASE`→`1.0.18.RELEASE`, `springdoc-openapi-starter` `2.9.1`→`2.10.0`, `swagger-ui` `5.33.2`→`5.34.0`.
+      `reactor-bom` moves only in its service-release segment, so it stays inside the `2025.0` train and is a minor by
+      the report's calendar-version rule. **Done**: fourteen `[versions]` lines changed, nothing else in the file.
 - [x] 1.2 Run the web UI's npm update (`./gradlew :showcase-web-ui:npm_update`) and describe the lockfile diff by what
       moved; the report's in-range rows are `react-hook-form` and `eslint-plugin-boundaries`, while
       `@hookform/resolvers` `6.0.0` is a manifest major and stays out (it is a migration with its own decision, as the
@@ -75,17 +75,16 @@ branch=bump-dependencies-2026-10-25; writer=ses_e8d4a9bbeffeOGf9vlyJH9zD70.
       because nothing failed). This closes the residual question the technical advisor left open — whether the
       cross-service chain works on the new versions — and covers the bundle path the moved `react-hook-form` reaches.
 
-- [x] 2.9 Isolate the CI-only wedge the bumped tree hit in the gateway's two `@WebFluxTest` slices, and hold the
-      coordinate it implicates. **Done**: the bumped tree failed twice in three CI runs (38 `ShowcaseRestControllerCT`
-      plus 7 `TelemetryControllerCT` `TimeoutException`s, 45 thread dumps, none with a thread in the request path) while
-      the same suites are green locally six times and three more under CPU saturation. The CI bisect isolated
-      `reactor-blockhound` `1.0.18.RELEASE`: `reactor-bom` 2025.0.8 with `blockhound` back at `1.0.17.RELEASE` was green
-      where the bumped pair failed, so `1.0.18.RELEASE` is held back. The deferral is recorded in the proposal, the
-      design's Decisions and claims rows, and `docs/ideas.md`, with an upstream report drafted for `reactor/BlockHound`.
-      The held configuration's own control CI run is task 2.10.
-- [x] 2.10 Run the control CI run of the final held configuration before the unit finishes, and stop on a repeat.
-      **Done**: `51dad975` green in 12m29s with the gateway component tests executed, the held configuration's second
-      green run and the evidence the hold's Decision rests on. The stop condition did not fire.
+- [x] 2.9 Investigate the CI-only wedge the bumped tree hit in the gateway's two `@WebFluxTest` slices. **Done**: the
+      bumped tree failed twice in three CI runs (38 `ShowcaseRestControllerCT` plus 7 `TelemetryControllerCT`
+      `TimeoutException`s, 45 dumps, none with a thread in the request path) while the same suites are green locally six
+      times and three more under CPU saturation. A CI bisect put `reactor-blockhound` `1.0.18.RELEASE` under suspicion
+      and a hold was applied and carried through a green control run (2.10); the owner then withdrew the hold: each cell
+      is one to three runs, and the unit lands the in-flight dump (2.11) instead, so the latest BlockHound ships and the
+      next stall names its own mechanism.
+- [x] 2.10 Run the control CI run of the then-held configuration before the unit finished, and stop on a repeat.
+      **Done**: `51dad975` (with `reactor-blockhound` at 1.0.17) green in 12m29s with the gateway component tests
+      executed — the run the hold rested on before the owner withdrew it in 2.9.
 - [x] 2.11 Land the diagnostic the next occurrence needs, since the failure-time dump shows only the aftermath.
       **Done**: `ThreadDumpWatchdog` (component-test source set, registered by autodetection beside
       `ThreadDumpOnFailure`) snapshots every thread while a test runs — at 3 s, then every 7 — and emits nothing for a
@@ -185,16 +184,16 @@ Recorded before each reviewer invocation and updated per round; a replacement us
 - **Completed checks**: the two reports re-resolved and re-run clean, each version confirmed at its registry, the Error
   Prone A/B with its NullAway control, `check` green under `9.8.2` on the original and both refreshed bases, the web UI
   `build` and `npmAudit`, `:showcase-api-gateway:e2eTest` (29 tests, 0 failures) and `:showcase-web-ui:e2eTest` both
-  green, `spotlessCheck` after the last edit, `openspec validate --all` (27 items), both ledger checks, and the held
-  configuration's control CI run (2.10) plus the CI bisect in 2.9.
-- **Known limitations**: the diff is uncommitted. The full `check` and both e2e tiers ran **before** the hold, i.e. with
-  `reactor-blockhound` `1.0.18.RELEASE`; what covers the held state so far is the two gateway suites locally (green six
-  times, plus three runs under CPU saturation) and the bisect's CI `check` on the held configuration; the control run of
-  the final held tree (`51dad975`) is green at 12m29s. The full `check` has **not** been re-run since the watchdog and
-  the registration control were added — CI is their first run. The two refreshes also brought other units' build changes
-  this unit did not author (the builder/nginx and kube-prometheus-stack pins, the `build-logic` edits), so "only docs
-  moved" would be the wrong reason to carry earlier results forward: they still apply because the API and browser paths
-  this unit touches are unchanged, the web UI suite runs against `vite preview` rather than the rebuilt nginx image, and
-  the builder/nginx pair was verified by its own change. The cold-run `:helm:chart:helmUpdateMainChartDependencies`
-  fetch failure recurs and passes on a bare retry (recorded in 2.1/2.8).
+  green, `spotlessCheck` after the last edit, `openspec validate --all` (27 items), both ledger checks, and the CI
+  bisect with its control run (2.9/2.10).
+- **Known limitations**: the diff is uncommitted. The full `check` and both e2e tiers ran at the delivered versions
+  (`reactor-blockhound` `1.0.18.RELEASE`) but **before** the watchdog and the registration control existed; those two
+  are covered by the three gateway suites locally (green with the watchdog registered) and by the probe controls in
+  2.11, and CI is their first full run. The bisect's held configuration (`51dad975`) is green but is not the delivered
+  one. The two refreshes also brought other units' build changes this unit did not author (the builder/nginx and
+  kube-prometheus-stack pins, the `build-logic` edits), so "only docs moved" would be the wrong reason to carry earlier
+  results forward: they still apply because the API and browser paths this unit touches are unchanged, the web UI suite
+  runs against `vite preview` rather than the rebuilt nginx image, and the builder/nginx pair was verified by its own
+  change. The cold-run `:helm:chart:helmUpdateMainChartDependencies` fetch failure recurs and passes on a bare retry
+  (recorded in 2.1/2.8).
 - **Subject packs**: `gradle-build`, `deployment-operations`, `jvm-development`, `jvm-testing`.

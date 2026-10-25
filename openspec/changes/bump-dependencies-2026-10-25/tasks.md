@@ -94,6 +94,9 @@ branch=bump-dependencies-2026-10-25; writer=ses_e8d4a9bbeffeOGf9vlyJH9zD70.
       marker for a 5 s plain `@Test` and one for a 5 s `@ParameterizedTest` case, and none for a 20 ms case; the three
       suites run with the watchdog registered emit no marker and stay green — the passing-run case; cancellation rests
       on the code read (`cancel` + `shutdownNow` in a `finally`), not on an assertion.
+- [ ] 2.12 Publish the upstream report only on the technical advisor's verdict. The draft is complete and its
+      attribution corrected, but publication is an outward-facing act: the owner requires the advisor's final verdict
+      (publish or not) before the issue is filed, and the issue number is then cited here and in `docs/ideas.md`.
 - [x] 2.8 Refresh the branch onto the advanced `origin/main` and re-run the gates. **Done**: `origin/main` had moved
       four commits (`7f76216b`: buildpack pins, the kube-prometheus-stack bump, the closure-disposition report, the
       tooling pins), so the work was stashed, the branch fast-forwarded `837aaa52`→`7f76216b`, and the stash re-applied

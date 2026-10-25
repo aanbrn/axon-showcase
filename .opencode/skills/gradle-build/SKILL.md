@@ -99,7 +99,7 @@ plugin's reported current differs from that version**. Keep both halves of that 
 coordinate whose every candidate is rejected as unresolved, so a rule that also rejects an up-to-date coordinate's own
 version moves every catalog-owned entry out of the report's up-to-date section. When documenting such an external
 constraint, name the coordinate and the mechanism, not the constraint's version: that version is the _tool's_ guard, not
-a version this repository pins, so a pinned version rots on the next tool bump.
+a version this repository pins, so the `AGENTS.md` docs-refresh de-versioning clause applies.
 
 Major-blocking entries in `config/dependency-updates/major-disabled.txt` and held-back entries in
 `config/dependency-updates/hold-back.txt` carry a pointer comment naming the coordinate and its rationale; the
@@ -109,10 +109,10 @@ coordinate keeps its colon (see `AGENTS.md`'s `### Agent tooling, OpenCode & per
 for the `Properties` mis-parse this avoids).
 
 For calendar-versioned coordinates (leading segment is a 4-digit year, e.g. Spring `YYYY.MINOR.MICRO` such as
-`reactor-bom 2025.0.7`), the report treats a change in the `YYYY.TRAIN` pair (the first two version segments) as a major
-update — matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains — while a change
-only in the service-release (third) segment within the same train is a minor/patch update. Semver coordinates keep the
-leading-integer major comparison.
+`reactor-bom` on the `2025.0` train), the report treats a change in the `YYYY.TRAIN` pair (the first two version
+segments) as a major update — matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains
+— while a change only in the service-release (third) segment within the same train is a minor/patch update. Semver
+coordinates keep the leading-integer major comparison.
 
 ## Build, Gradle & dependency management
 

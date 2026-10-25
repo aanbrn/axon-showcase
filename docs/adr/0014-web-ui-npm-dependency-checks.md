@@ -47,5 +47,7 @@ the supply chain).
   2026-10-05 (the advisory thread `#70` is open and locked). The advisory was **withdrawn** upstream on 2026-10-23
   (GitHub's advisory record reads "Withdrawn Advisory"), so `npm audit` stopped reporting it, the entry then matched no
   finding and `npmAudit`'s staleness rule failed, and the entry was removed on 2026-10-25 — the list is now empty.
-  `braces@3.0.3` still resolves as a dev-only transitive of `eslint-plugin-boundaries`, and a future advisory against it
-  would surface as an unsuppressed finding, since no entry covers the package.
+  `braces` then left the lockfile entirely on 2026-10-25: `eslint-plugin-boundaries` 7.3.0 and `@boundaries/elements`
+  3.2.0 dropped `micromatch` and with it the `braces`/`fill-range`/`is-number`/`to-regex-range` chain. A future advisory
+  against any of those packages would surface as an unsuppressed finding if a dependency reintroduced it, since no entry
+  covers it.

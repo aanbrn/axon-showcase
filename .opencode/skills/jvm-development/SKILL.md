@@ -57,11 +57,13 @@ the formatting convention stay in `AGENTS.md` and apply here.
 - **ErrorProne**: NullAway on `showcase.*` packages; disabled in `TestJava` tasks. Every package in a NullAway-compiled
   source set (`main`, `testFixtures`, and `load-tests`' `gatling`) carries a `package-info.java` with `@NullMarked`
   (`org.jspecify.annotations.NullMarked`), so the nullness contract is declared for the whole package.
-  `UnrecognisedJavadocTag` is suppressed where it fires (`@SuppressWarnings("UnrecognisedJavadocTag")` on the
-  Lombok-processed class): it is a false positive from Lombok's copy of a field Javadoc carrying an inline tag, so the
-  Javadoc's wording is not the defect — only removing the tag or suppressing the check clears it. Tracked upstream as
-  `google/error-prone#5855` (open, the pinned 2.50.0); retires when an ErrorProne bump past the fix lands. captured:
-  suppress-lombok-javadoc-false-positive
+- **A suppression's redundancy is probed at the diagnostic's own severity — an error-severity one fails the compile that
+  omits it, a warning-severity one is invisible to a green build.** Gradle's `UnstableApiUsage` is the error case (drop
+  the `@Suppress` and the build answers); `UnrecognisedJavadocTag` was the warning case, green either way. For a
+  warning, compile the same tree with the suppression removed under both tool versions and diff the diagnostic's own
+  lines (18 at Error Prone `2.50.0`, 0 at `2.51.0`), proving the analysis ran with a deliberate **error** in the same
+  module (a `@Nullable` dereference failing `[NullAway]`), never with another warning. captured:
+  bump-dependencies-2026-10-25
 
 - **The WebFlux blocking-execution routing in the gateway is load-bearing — do not remove it as a BlockHound band-aid.**
   Every controller method routes to the bounded-elastic scheduler; removing it reddens the error and validation paths

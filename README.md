@@ -598,7 +598,7 @@ removed.
 ### Prerequisites
 
 Most verification runs entirely in the Gradle build, so the tool list is small. Gradle itself is not on it — the wrapper
-pins Gradle 9.8.1 and downloads it on first use.
+pins Gradle 9.8.2 and downloads it on first use.
 
 Run `./scripts/doctor.sh` (or the agent's `/check-tooling` command) to check your machine: it probes each tool below,
 the version floors, and the repo state, and prints the install command for anything missing on your platform. The table
@@ -1058,10 +1058,10 @@ update: it rejects a candidate no newer than the version the catalog declares wh
 with it. See ADR-0021, and upstream ben-manes/gradle-versions-plugin#755 for the plugin behaviour.
 
 For calendar-versioned coordinates (leading segment is a 4-digit year, e.g. Spring `YYYY.MINOR.MICRO` such as
-`reactor-bom 2025.0.7`), a change in the `YYYY.TRAIN` pair (the first two version segments) is treated as a major update
-— matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains — while a change only in
-the service-release (third) segment within the same train is a minor/patch update. Semver coordinates keep the
-leading-integer major comparison.
+`reactor-bom` on the `2025.0` train), a change in the `YYYY.TRAIN` pair (the first two version segments) is treated as a
+major update — matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains — while a
+change only in the service-release (third) segment within the same train is a minor/patch update. Semver coordinates
+keep the leading-integer major comparison.
 
 ### Load Testing
 

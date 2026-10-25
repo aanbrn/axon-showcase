@@ -19,6 +19,15 @@ detail across two sections.
 
 ## 2026-10-25
 
+- Decide the dead `handlebars` constraint on `:platform` — parked; no change yet. `platform/build.gradle.kts` declares
+  `api(libs.handlebars)` in its `constraints` block, the catalog pins `com.github.jknack:handlebars`, and no main-build
+  JVM subproject resolves the coordinate: `dependencies` across those sixteen (the four services and twelve others;
+  `build-logic` and `helm` excluded) names it nowhere, so the constraint and its catalog entry are its only two
+  references (`git log -S` shows one "dependencies updated" commit and no rationale). The npm graph's own `handlebars`
+  is a different package, not this one. Surfaced by the 2026-10-25 dependency bump, which bumped it with the rest rather
+  than deciding its removal — a constraint's rationale is the owner's to state, and the report would otherwise keep
+  naming a coordinate nothing consumes.
+
 - Revisit a pull-request title check when merged titles drift from the standard — parked; no change yet.
   `standardize-pr-conventions` wrote the title and body standard into `.github/PULL_REQUEST_TEMPLATE.md` with no gate,
   so a deviation reaches `main` unless a review catches it. The check is cheap — a `pull_request`-triggered step reads
@@ -496,7 +505,7 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 
 ## 2026-10-08
 
-- Gate the `@NullMarked` package-info convention — parked; no change yet. NullAway 0.14.2 (the pinned version) ships the
+- Gate the `@NullMarked` package-info convention — parked; no change yet. NullAway 0.14.3 (the pinned version) ships the
   `RequireExplicitNullMarking` Error Prone checker, which reports a top-level class unless it or its package is
   explicitly `@NullMarked`/`@NullUnmarked`, so enabling it (`-Xep:RequireExplicitNullMarking:ERROR`) would enforce the
   convention mechanically. It needs its own change: it is a separate Error Prone check from `NullAway`, so the existing

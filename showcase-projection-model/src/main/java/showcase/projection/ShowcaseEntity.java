@@ -30,7 +30,6 @@ import org.springframework.data.elasticsearch.annotations.Setting.SortOrder;
 @EqualsAndHashCode(cacheStrategy = CacheStrategy.LAZY)
 @Builder(toBuilder = true)
 @Jacksonized
-@SuppressWarnings("UnrecognisedJavadocTag")
 public class ShowcaseEntity {
     /**
      * The mapping contract for nanosecond-precision {@code date_nanos} fields: it drives both the OpenSearch index

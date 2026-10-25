@@ -1156,3 +1156,14 @@
 2026-10-25	stage-new-files-before-manual-review	16	-	-	0	ses_e8d257b96ffeqIW5cF35H3AX6B	continued	-
 2026-10-25	stage-new-files-before-manual-review	17	claim-unreproducible	claim-unreproducible	1	ses_e8d257b96ffeqIW5cF35H3AX6B	continued	-
 2026-10-25	stage-new-files-before-manual-review	18	-	-	0	ses_e8d257b96ffeqIW5cF35H3AX6B	continued	-
+2026-10-25	bump-dependencies-2026-10-25	1	contradiction,claim-unreproducible,premise,over-claim,incomplete-enumeration	-	4	ses_e8d2bb84dffelBDIswIoFqxBuU	created	-
+2026-10-25	bump-dependencies-2026-10-25	2	claim-unreproducible,docs-residue,claim-missing,incomplete-enumeration,coherence	claim-unreproducible,incomplete-enumeration	4	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
+2026-10-25	bump-dependencies-2026-10-25	3	coherence,claim-missing	coherence,claim-missing	1	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
+2026-10-25	bump-dependencies-2026-10-25	4	incomplete-enumeration	incomplete-enumeration	1	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
+2026-10-25	bump-dependencies-2026-10-25	5	single-sourcing	-	1	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
+2026-10-25	bump-dependencies-2026-10-25	6	-	-	0	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
+2026-10-25	bump-dependencies-2026-10-25	7	contradiction,docs-residue,claim-unreproducible,wording	contradiction,docs-residue,claim-unreproducible	5	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
+2026-10-25	bump-dependencies-2026-10-25	8	wording,docs-residue	wording,docs-residue	2	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
+2026-10-25	bump-dependencies-2026-10-25	9	docs-residue	docs-residue	1	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
+2026-10-25	bump-dependencies-2026-10-25	10	-	-	0	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
+2026-10-25	bump-dependencies-2026-10-25	11	-	-	0	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-

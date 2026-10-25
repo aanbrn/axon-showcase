@@ -45,6 +45,12 @@ Source: `AGENTS.md` "Workflow: Ship a change (CI → archive → merge)".
 - **Docs the change causes while it is in flight** — a capture from its implementation, an idea its own work surfaced, a
   fact it falsified — ship with the change's pull request; a docs refresh it did not cause, or one surfaced only after
   it is done (a merge-time capture), ships as its own docs pull request, per the docs-refresh convention.
+- IF a pull request implements a tracker issue, THEN decide by the tracker's lifetime whether it may close.
+  - A long-lived tracker — the update-check and upstream-reference issues, which their weekly workflow looks up with
+    `is:issue is:open` and opens a fresh one when none is open — must not close: strip the closing keyword from the body
+    before merging, or reopen the tracker after it. A closed tracker orphans its history, and the next run opens a
+    duplicate.
+  - An issue the pull request completes closes as intended.
 
 ### Failure handling
 
@@ -54,8 +60,9 @@ Source: `AGENTS.md` "Workflow: Ship a change (CI → archive → merge)".
 
 ### Completion criteria
 
-CI green, the change archived (change directory moved and main spec synced), the pull request merged, and the unit's
-tree settled: a linked worktree removed, or the primary released to the next unit.
+CI green, the change archived (change directory moved and main spec synced), the pull request merged, any tracker it
+implements preserved when that tracker outlives it, and the unit's tree settled: a linked worktree removed, or the
+primary released to the next unit.
 
 ## Complete a cloud (`/oc`) agent pull request
 
@@ -84,11 +91,9 @@ comment. The root entry point carries the upstream reference and its close-out.
   the report** (it lands under `docs/audits/` as the run's record) and apply nothing from it. Say so explicitly, rather
   than leaving the agent to infer a change it cannot find, or to close a pull request whose file the workflow exists to
   keep.
-- IF a pull request was opened from a tracker issue THEN it carries a closing reference to its trigger
-  (`Closes #<issue>`), so merging it closes that issue — right for a one-shot work item, wrong for a long-lived tracker
-  like the update-check issues, whose workflows look them up with `is:issue is:open` and open a fresh one when none is
-  open, so the merge orphans its history and the next weekly run opens a duplicate. Strip the closing keyword before
-  merging, or reopen the tracker.
+- A pull request the action opens from a tracker issue carries a closing reference to that trigger (`Closes #<issue>`).
+  Whether the tracker may close is the shipping procedure's decision above, taken on the tracker's lifetime rather than
+  on the pull request's origin.
 - IF a pull request the action opened carries a title that does not follow the standard THEN rename it before merging —
   `gh pr edit <pr> --title <title>` — since the action summarises the response, so the result may paraphrase a mention
   rather than name the change (see "How the action derives the pull request").
@@ -101,7 +106,7 @@ comment. The root entry point carries the upstream reference and its close-out.
 ### Completion criteria
 
 The pull request is merged: a change pull request archived and merged per "Ship a change", a report pull request merged
-with nothing applied, and any tracker preserved.
+with nothing applied, and its tracker's outcome the one that procedure's completion criteria names.
 
 ## How the action derives the pull request
 

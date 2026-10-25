@@ -38,6 +38,14 @@ detail across two sections.
   and controls for a wrapped row, Prettier's output, an escaped `\|`, a fenced diagram and a clean table; a prototype
   over the 113 gated markdown files found no false positive).
 
+- Extend that markdown-integrity check with an inline-code-span whitespace mode — parked; no change yet. A run of two or
+  more spaces inside a single-line inline code span passes `spotlessCheck` (Prettier never rewrites a span's interior)
+  and the 120-character check measures length only; reproduced twice, by `fix-gateway-cors-allowed-headers` (#359) and
+  by `bump-kps-chart-2026-10-25`'s five-space `kubectl get pods -n monitoring` span. Scope it to the Spotless markdown
+  target (active `openspec/changes/*/` included, `archive/**` excluded), with those two spans as the known-bad cases and
+  fenced blocks, delimiter rows and an escaped `\|` as the known-good ones; prototype over the gated set first, since
+  one false-positive class would block it.
+
 - Verify the worktree workspace rule on the first two real parallel units — parked; verification pending.
   `adopt-worktree-isolation` adds the rule and its recorded preflight, but the practical test needs two parallel units,
   which exist only after it lands. Completion:

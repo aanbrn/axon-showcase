@@ -304,10 +304,11 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
 
 **Workspace** — one active unit per working tree; the primary checkout is a unit's tree like any linked worktree.
 
-- Establish the unit's workspace before its first write and record it as
-  `Workspace: unit=<unit>; path=<absolute-path>; branch=<branch>; writer=<session>`. The record is evidence of the
-  assignment, not its source, and it lives with the unit's own record: its `tasks.md` when it has a change dir,
-  otherwise its hand-off or report and then the pull-request checklist.
+- **Establish the unit's workspace before its first write.** Record it as
+  `Workspace: unit=<unit>; path=<absolute-path>; branch=<branch>; writer=<ses_…>` — the writing session's own
+  identifier, never a description of it and never the reviewer's identifier the ledger records. The record is evidence
+  of the assignment, not its source, and it lives with the unit's own record: its `tasks.md` when it has a change dir,
+  otherwise its hand-off or report and then the pull-request checklist. captured: bump-kps-chart-2026-10-25
 - The primary checkout carries the sequential unit. A **new** unit that finds the primary assigned to another unit — or
   whose ownership it cannot establish — works in a sibling worktree, `../axon-showcase-<unit>`, created from a freshly
   fetched `origin/main` with `--no-track`, and the session moves there (`session_move`) before the first write. Create

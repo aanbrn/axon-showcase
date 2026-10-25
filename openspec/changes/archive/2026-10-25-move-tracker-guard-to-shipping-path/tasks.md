@@ -69,8 +69,9 @@ branch=move-tracker-guard-to-shipping-path; writer=ses_e8d476658ffep4lI2e5U7jH5g
       action's closing reference" to a section that does not carry it) — `FIXED_AND_VERIFIED`: the record now cites the
       threshold per addition, the review-gate addition is declined and reverted byte-identically, and the pointer names
       the skill's two decision points. Pass 2 verified both fixes independently and found nothing further.
-- [ ] 3.6 Stage the unit's own new files, then ask the owner for the manual review pass; commit and push only after
-      approval. The staging is the review gate's §5: `git add -- openspec/changes/move-tracker-guard-to-shipping-path`
+- [x] 3.6 Stage the unit's own new files, then ask the owner for the manual review pass; commit and push only after
+      approval. **Done**: the change dir was staged with an explicit `git add -- <paths>` and the add re-run after a
+      later edit, the ask named the review surface, and the owner approved on 2026-10-25; the unit ships as PR #693. The staging is the review gate's §5: `git add -- openspec/changes/move-tracker-guard-to-shipping-path`
       and the explicit paths of any other new file, re-run after a later edit, never `git add -A`/`.`/`-N`. The ask
       names the review surface (this tree and its Changes panel, `git diff --cached` for new files and `git diff` for
       modifications).

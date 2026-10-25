@@ -1074,3 +1074,16 @@
 2026-10-25	record-2026-10-24-audit-disposition	3	-	-	0	ses_e8e8471b0ffephD2ZnFexnFsYs	continued	-
 2026-10-25	record-2026-10-24-audit-disposition	4	claim-unreproducible	-	1	ses_e8e8471b0ffephD2ZnFexnFsYs	continued	-
 2026-10-25	record-2026-10-24-audit-disposition	5	-	-	0	ses_e8e8471b0ffephD2ZnFexnFsYs	continued	-
+2026-10-25	fix-advisor-worktree-read	1	wording,single-sourcing,claim-missing,contradiction,claim-unreproducible,over-claim,structured-writing	-	4	ses_e8e90251cffeqBwS1q7n8IjDLP	created	-
+2026-10-25	fix-advisor-worktree-read	2	dropped-content,contradiction,over-claim,claim-unreproducible	contradiction,over-claim,claim-unreproducible	4	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
+2026-10-25	fix-advisor-worktree-read	3	over-claim	over-claim	1	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
+2026-10-25	fix-advisor-worktree-read	4	claim-unreproducible	claim-unreproducible	1	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
+2026-10-25	fix-advisor-worktree-read	5	-	-	0	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
+2026-10-25	fix-advisor-worktree-read	6	wording,contradiction,missing-task	wording,contradiction	3	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
+2026-10-25	fix-advisor-worktree-read	7	-	-	0	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
+2026-10-25	fix-advisor-worktree-read	8	single-sourcing,claim-unreproducible	single-sourcing,claim-unreproducible	2	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
+2026-10-25	fix-advisor-worktree-read	9	premise,claim-unreproducible,single-sourcing	claim-unreproducible,single-sourcing	3	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
+2026-10-25	fix-advisor-worktree-read	10	premise,single-sourcing	premise,single-sourcing	2	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
+2026-10-25	fix-advisor-worktree-read	11	-	-	0	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
+2026-10-25	fix-advisor-worktree-read	12	-	-	0	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
+2026-10-25	fix-advisor-worktree-read	13	-	-	0	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-

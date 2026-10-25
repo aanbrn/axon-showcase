@@ -383,12 +383,17 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   route-the-smoke-through-the-ingress
 - Until the first commit the change dir is untracked, which is safe against `git reset --hard` and `git checkout --`
   (verified); `git clean -fd` is the one loss vector, so never run it on a branch holding unfinished work.
-- **Refreshing a committed branch:** a branch that has been committed (so it can fall behind `main`) is refreshed from
-  `origin/main` — recreate it when it holds no work, otherwise rebase it — rather than continued on stale; once a PR is
-  open, the mechanism is `gh pr update-branch` instead (see the BEHIND gotcha). Resolve that rebase for both sides
-  rather than picking one: a conflict marks where the two sides overlap textually, so a wholesale side-pick drops the
-  other's fact, and a file both sides changed in separate hunks merges silently and needs the same check — verify every
-  file both sides touched still carries both facts after the rebase. captured: route-the-smoke-through-the-ingress
+- **Refreshing a branch:** a branch is refreshed from `origin/main` rather than continued on stale, and the mechanism
+  follows what it holds — recreate one with no work at all, fast-forward one whose work is uncommitted
+  (`git merge --ff-only origin/main`, which keeps your uncommitted changes and refuses rather than overwrite a file you
+  changed that the update touches), otherwise rebase it; once a PR is open, the mechanism is `gh pr update-branch`
+  instead (see the BEHIND gotcha). An uncommitted tree falls behind too: until it is refreshed, its diff against
+  `origin/main` deletes whatever merged since — the reset gotcha below states the mechanism — so refresh it before the
+  review round and confirm `git diff --stat origin/main` deletes nothing the unit did not change. Resolve that rebase
+  for both sides rather than picking one: a conflict marks where the two sides overlap textually, so a wholesale
+  side-pick drops the other's fact, and a file both sides changed in separate hunks merges silently and needs the same
+  check — verify every file both sides touched still carries both facts after the rebase. captured:
+  route-the-smoke-through-the-ingress captured: fix-advisor-worktree-read
 
 **Completion criteria** — the user has approved the implementation and the change is committed, pushed, and archived per
 "Workflow: Ship a change". Review findings are edited in the working tree, never committed as an "Address review

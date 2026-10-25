@@ -89,8 +89,10 @@ most candidates are pre-existing text this change does not modify:
 - [x] 6.1 The owner's manual review pass was requested after the loop was clean and the capture ran. **Done** —
       requested with this unit's report after the ledger's closing round, with the routing resolution recorded on 4.2;
       the working tree is left uncommitted for the pass.
-- [ ] 6.2 After the owner's approval: push the branch, open the pull request, confirm `build` is green, archive the
-      change in the same pull request, and merge once approved.
+- [x] 6.2 After the owner's approval: push the branch, open the pull request, confirm `build` is green, archive the
+      change in the same pull request, and merge once approved. **Done** — pushed, PR #681 opened, `build` green, the
+      change archived as `2026-10-25-fix-gradle-build-pack-cross-reference` in this commit, and the PR merged (squash)
+      with the branch deleted.
 
 ## Workflow follow-up
 

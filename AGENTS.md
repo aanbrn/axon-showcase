@@ -337,8 +337,9 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
    edits) and put them on a branch named after the change, created per the "Fork every new branch" invariant. Commit
    nothing.
 2. Leave the work uncommitted. The proposal, the review findings, and the implementation all stay in the working tree,
-   so the user's review pass runs against the visible `git status`/`git diff` of the tree the workspace record names;
-   the change's `docs/ideas.md` removal rides the branch like the rest.
+   and the unit's new files are staged so the user's review pass shows them in the Changes panel of the tree the
+   workspace record names (the staging step is the review gate's §5); the change's `docs/ideas.md` removal rides the
+   branch like the rest.
 3. Run the review gate (see "Workflow: The review gate") and fix every finding until it is clean.
 4. Ask the user for the manual review pass, and end the turn there. Do not commit, push, open a PR, archive, or merge
    before the user approves the implementation — except a commit the user explicitly asks for.
@@ -350,9 +351,10 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
 - IF a commit is forced — a push is requested, or a `git switch` inside one tree would carry unfinished changes (tracked
   or untracked) onto another branch — THEN commit (or `git stash`) that unit before switching. Starting a sibling unit
   never forces it: the sibling takes its own tree and the in-flight unit stays uncommitted where it is. An untracked
-  unit survives a reset but rides a `git switch` onto whichever branch you land on, where a directory-scoped `git add`
-  can stage it into the wrong unit's commit, so commit each unit on its own branch before switching that tree to another
-  unit's branch.
+  unit survives a reset only when the target lacks its paths, and a staged one does not survive it — the
+  failure-handling bullet states the preserve → reset → restore ordering — yet either rides a `git switch` onto
+  whichever branch you land on, where a directory-scoped `git add` can stage it into the wrong unit's commit, so commit
+  each unit on its own branch before switching that tree to another unit's branch.
 - IF you open a proposal-stage draft PR (see the README) THEN the branch's first push carries the proposal alone; on the
   default path it carries proposal and implementation together. A push is the moment a change commits; the archive adds
   a commit before the final push.
@@ -382,8 +384,18 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   re-litigating the dead premise. The rejected unit's tree follows its branch: delete the branch per that rule, remove a
   sibling worktree only after verifying nothing unique remains in it, and release the primary. captured:
   route-the-smoke-through-the-ingress
-- Until the first commit the change dir is untracked, which is safe against `git reset --hard` and `git checkout --`
-  (verified); `git clean -fd` is the one loss vector, so never run it on a branch holding unfinished work.
+- Until the first commit the change dir's fate under a destructive command depends on whether it is staged, and a hard
+  reset is allowed only once the work is preserved. An untracked change dir survives `git reset --hard` only when the
+  target revision does not contain its paths — otherwise the reset overwrites it — and a `git checkout --` of it fails
+  (`pathspec … did not match`). A staged new file is deleted by a hard reset, and a checkout of it silently restores the
+  index copy. Preserve, then reset, then restore: a plain `git stash` keeps a staged new file and `git stash -u` an
+  untracked one, and the restore is a `git stash pop` after a stash or a return to the preserved commit after a commit.
+  When the branch already holds local commits the route is a rebase instead — `git stash` → `git rebase` →
+  `git stash pop`, or a rebase alone when the work is committed — because a hard reset there would drop the commits the
+  route exists to keep. Never unstage the unit's new files before a hard reset, because an untracked file is not stashed
+  (`No local changes to save`) and the reset then loses it; the rule that forbids a hard reset on the only copy of the
+  work stands first. `git clean -fd` is another way to lose an untracked file, so never run it on a branch holding
+  unfinished work.
 - **Refreshing a branch:** a branch is refreshed from `origin/main` rather than continued on stale, and the mechanism
   follows what it holds — recreate one with no work at all, fast-forward one whose work is uncommitted
   (`git merge --ff-only origin/main`, which keeps your uncommitted changes and refuses rather than overwrite a file you
@@ -488,9 +500,9 @@ ask for the manual review pass; and at a merge, where the detection below always
   wording being the gap rather than a missing mode: re-read the rule the incident should have caught by and ask whether
   one word excludes it — a drafted third `git add <dir>` mode restated the staged-set inspection that bullet already
   states, while the real gap was the commit-discipline clause saying "tracked" where the change dir is deliberately left
-  untracked; the owner's "would following the existing discipline already have prevented this?" is the test, verified
-  against the text before a bullet is added. This branch is where the decision-difference test meets a restated
-  _remedy_; the test itself, and the dispositions it names, are `lesson-capture.md`'s.
+  untracked until the manual pass stages it; the owner's "would following the existing discipline already have prevented
+  this?" is the test, verified against the text before a bullet is added. This branch is where the decision-difference
+  test meets a restated _remedy_; the test itself, and the dispositions it names, are `lesson-capture.md`'s.
 - **IF a docs-only merge fixes stale facts or removes duplication** THEN the fix is the lesson — do not re-capture it as
   a new gotcha; capture only what the merge left unaddressed. That bars a gotcha that _restates the fix_, not a general
   rule the fix exemplifies: a durable rule absent from `main` is one of the things the merge left unaddressed. Before
@@ -1618,20 +1630,22 @@ capture-stash-stale-copy captured: override-opencode-plugin-transitives
   reverts every tracked-file modification (`build.gradle.kts`, workflows, docs) **and deletes the files a commit on that
   branch added** — the change dir included, once it has been committed at a push or a branch-switch checkpoint —
   silently losing the implementation's edits, and the proposal too if it was committed. A still-untracked change dir
-  survives (verified): under the commit-only-at-push rule the whole change is untracked until the first commit, so a
-  pre-push reset loses only tracked-file edits. This bit the actionlint change when rebasing onto a main that had
-  advanced. Never `reset --hard` a branch whose working tree is the only copy of its work. With no local commits,
+  survives only when the target revision does not contain its paths (verified), and the unit's new files are staged
+  before its manual pass while still uncommitted, so a pre-push reset can lose them — the failure-handling bullet states
+  the preserve → reset → restore ordering. This bit the actionlint change when rebasing onto a main that had advanced.
+  Never `reset --hard` a branch whose working tree is the only copy of its work. With no local commits,
   `git reset --soft`/`--mixed` to `origin/main` keeps the working tree, but leaves your diff against the **old** base:
   safe only when the advance touched none of your files, since on a both-sides change the commit records the base's new
   lines as deletions with no conflict to notice. When the advance did touch a file you changed, re-apply the diff as a
   3-way merge instead (`git stash` → `git reset --hard origin/main` → `git stash pop`, which conflicts visibly and keeps
   the stash). With local commits, `git rebase` (or stash → rebase → stash pop, per the stash-pop gotcha above) is the
   way. Verify `git status` after to confirm the diff survived. The same class of mistake occurs outside a rebase:
-  `git checkout -- <file>` (or `git restore <file>`) reverts just that file to `HEAD`, discarding its uncommitted edits
-  — a README change was lost this way to a `git checkout -- README.md` run inside an unrelated verification step
-  (recovered only from a backup). While a work branch holds uncommitted edits, inspect committed content with
-  `git diff`/`git show HEAD:<file>` rather than `checkout --`/`restore`/`reset`. captured:
-  override-opencode-plugin-transitives
+  `git checkout -- <file>` (or `git restore <file>`) reverts a tracked file to its index copy, discarding uncommitted
+  edits, and a new file has no `HEAD` entry, so for a staged new file it restores the index copy instead — the re-stage
+  rule in the review gate's §5 is what keeps that copy current. A README change was lost this way to a
+  `git checkout -- README.md` run inside an unrelated verification step (recovered only from a backup). While a work
+  branch holds uncommitted edits, inspect committed content with `git diff`/`git show HEAD:<file>` rather than
+  `checkout --`/`restore`/`reset`. captured: override-opencode-plugin-transitives
 
 - **`openspec archive` relocates the change dir with a filesystem move, not `git mv` — nothing is staged, so stage both
   sides — and the archived tree is outside Spotless, so a post-move `spotlessApply` will not normalize it.** The tool

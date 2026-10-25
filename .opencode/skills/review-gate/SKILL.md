@@ -48,7 +48,10 @@ Source: `AGENTS.md` "Workflow: The review gate".
    its source or the command that derives it, re-run so it reproduces the figure the row records, since a figure an
    earlier, broader scan produced beside a narrower command is the claim the next round reports unreproducible, its rows
    seeded from the recurring classes `docs/review-rounds.tsv` records — in `design.md`, or in `tasks.md` for a unit that
-   writes no `design.md`, or on the pull-request checklist line for a unit with no change dir. Seed it with
+   writes no `design.md`, or on the pull-request checklist line for a unit with no change dir. A command sequence the
+   change prescribes is itself one fact, reproduced whole in a scratch tree rather than per step: a step's local
+   property can hold while the composition loses the safeguard a later step relies on (a drafted "unstage, then hard
+   reset", where a plain `git stash` saves a staged new file and nothing for an untracked one). Seed it with
    `scripts/claim-scan.py` (via `/seed-claims`), whose candidates for the unit's diff are each resolved into a row or
    recorded as a dismissal beside the table — one reason per kind, never an enumerating clause, governing a row's source
    as well as a dismissal: a source that is a command's output states the reason by class, never a list of the output's
@@ -74,7 +77,8 @@ Source: `AGENTS.md` "Workflow: The review gate".
    table after the unit's last append to its own record, which adds one. captured:
    widen-architecture-auditor-to-stale-ideas captured: normalize-the-review-round-digest captured:
    capture-authoring-system-gaps captured: sharpen-architecture-audit captured: extract-ci-narrative captured:
-   convert-remaining-gotchas-rules captured: add-technical-advisor captured: projector-operability
+   convert-remaining-gotchas-rules captured: add-technical-advisor captured: projector-operability captured:
+   stage-new-files-before-manual-review
 
 ## 2. Quick review loop
 
@@ -144,6 +148,17 @@ Only after the quick review reports no new observations and any required deep re
 the manual review pass, and end the turn there. A clean quick review is a precondition for asking, not a substitute for
 the ask: nothing is committed, pushed, opened as a PR, archived, or merged before the owner approves (the stops are
 `AGENTS.md`'s).
+
+Before the ask, stage the unit's own new files so the pass shows them:
+
+- Run `git add -- <explicit paths>` for the unit's new files, its planning artifacts included.
+- Re-run that add for any of those files edited after the previous add.
+- Never use `git add -A`, `git add .`, or `git add -N` for this.
+- A unit with no new files adds no step.
+
+The ask names the review surface: the unit's workspace tree and its IDE Changes panel, where staged new files show as
+Added and the remaining modifications as Modified — `git diff --cached` for the new files and `git diff` for the
+modifications as the CLI equivalent. Staging is not committing: the approval stop is unchanged.
 
 **Decision points**
 

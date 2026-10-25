@@ -42,6 +42,16 @@ detail across two sections.
   - a sibling carries no `origin/main` upstream;
   - the first unit's cleanup leaves the second untouched.
 
+- Require an audit finding's report item to carry evidence per proposition, and name the search that found a drift
+  attribution — parked; no change yet. `docs/audits/2026-10-24.md`'s agent-tooling finding attributed the drift to two
+  AGENTS.md changes when `extract-ci-narrative` (#644) removed it, and said the CI section points at the `gradle-build`
+  pack when that pointer is in `## Build & Test`; the report contract asks for one line of evidence per item, so the
+  finding satisfied it with evidence for the cross-reference while both causal clauses travelled unevidenced into the
+  applying change's proposal. Proposed mechanism: an item states evidence per proposition it carries, and a drift
+  attribution names the commit or change with the search that found it (`git log -S`), or is marked a hypothesis. The
+  route is a change with a `MODIFIED` delta on `showcase/quality/agent-skills`' report-item requirement and the auditor
+  definitions; surfaced during `fix-gradle-build-pack-cross-reference`.
+
 ## 2026-10-24
 
 - Add a pre-commit ledger guard for the review-round checks — parked; no change yet. `commit-hygiene.py --staged` runs

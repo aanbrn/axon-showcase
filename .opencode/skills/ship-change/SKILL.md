@@ -16,7 +16,9 @@ Source: `AGENTS.md` "Workflow: Ship a change (CI → archive → merge)".
 
 **Trigger** — the user approved the implementation.
 
-1. Push the implementation branch and open a pull request with the code and the active change directory.
+1. Push the implementation branch and open a pull request with the code and the active change directory, titled and
+   described per the standard `.github/PULL_REQUEST_TEMPLATE.md` states — a `--body-file` body bypasses that template,
+   so carry its sections and its title rule yourself.
 2. Wait for the `build` check to be green.
 3. Archive the change (move the change directory and sync the main spec) as an additional commit in the _same_ pull
    request.
@@ -87,6 +89,9 @@ comment. The root entry point carries the upstream reference and its close-out.
   like the update-check issues, whose workflows look them up with `is:issue is:open` and open a fresh one when none is
   open, so the merge orphans its history and the next weekly run opens a duplicate. Strip the closing keyword before
   merging, or reopen the tracker.
+- IF a pull request the action opened carries a title that does not follow the standard THEN rename it before merging —
+  `gh pr edit <pr> --title <title>` — since the action summarises the response, so the result may paraphrase a mention
+  rather than name the change (see "How the action derives the pull request").
 
 ### Failure handling
 
@@ -108,6 +113,10 @@ summarise into a title about the mention (the `audit` workflow's prompt asked fo
 response, and report pull request #333 carried it in the title). Put the mention on a body line and keep the response's
 substance about the report, so the generated title names it. When a workflow prompt relies on the action's
 pull-request-building behaviour, state the title's derivation rather than assuming a copied line.
+
+The generated title may not follow the standard — a summary of the whole response can paraphrase rather than name the
+change — so it is checked before the merge and renamed when it deviates, as the cloud pull request's decision points
+state.
 
 ## Maintenance
 

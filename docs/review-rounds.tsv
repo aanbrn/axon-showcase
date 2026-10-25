@@ -1041,3 +1041,12 @@
 2026-10-25	refresh-stale-spec-purposes	10	contradiction	-	1	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-
 2026-10-25	refresh-stale-spec-purposes	11	-	-	0	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-
 2026-10-25	refresh-stale-spec-purposes	12	-	-	0	ses_e8efbeff9ffenenOXA0hQqniNp	continued	-
+2026-10-25	standardize-pr-conventions	1	impact-omission,claim-unreproducible,claim-missing,over-claim	-	6	ses_e8ef303feffeMQgv4FM5Ui155t	created	-
+2026-10-25	standardize-pr-conventions	2	coherence,over-claim,claim-unreproducible	over-claim,claim-unreproducible	2	ses_e8ef303feffeMQgv4FM5Ui155t	continued	-
+2026-10-25	standardize-pr-conventions	3	over-claim,claim-unreproducible	over-claim,claim-unreproducible	2	ses_e8ef303feffeMQgv4FM5Ui155t	continued	-
+2026-10-25	standardize-pr-conventions	4	claim-unreproducible,over-claim	claim-unreproducible,over-claim	2	ses_e8ef303feffeMQgv4FM5Ui155t	continued	-
+2026-10-25	standardize-pr-conventions	5	claim-unreproducible	claim-unreproducible	1	ses_e8ef303feffeMQgv4FM5Ui155t	continued	-
+2026-10-25	standardize-pr-conventions	6	-	-	0	ses_e8ef303feffeMQgv4FM5Ui155t	continued	-
+2026-10-25	standardize-pr-conventions	7	coherence,claim-missing	coherence,claim-missing	1	ses_e8ef303feffeMQgv4FM5Ui155t	continued	-
+2026-10-25	standardize-pr-conventions	8	claim-missing	claim-missing	1	ses_e8ef303feffeMQgv4FM5Ui155t	continued	-
+2026-10-25	standardize-pr-conventions	9	-	-	0	ses_e8ef303feffeMQgv4FM5Ui155t	continued	-

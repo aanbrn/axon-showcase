@@ -5,14 +5,14 @@ branch=refresh-stale-spec-purposes; writer=ses_e8f026f7dffeGSlwOe26i6eZUF
 
 ## 1. Refresh the two stale Purposes
 
-- [ ] 1.1 In the **archive commit**, rewrite the `clients/query-client` Purpose's "Contract source" sentence to this
+- [x] 1.1 In the **archive commit**, rewrite the `clients/query-client` Purpose's "Contract source" sentence to this
       text, re-derived from the requirement's own clauses (`query-client/spec.md:9-11` and the "Query error translation"
       requirement at `:93-98`), so the audit's clause-by-clause form is not reproduced a piece at a time: "**Contract
       source:** the RPC, query types, and error codes this client uses are owned by the `read-side/query-service` spec —
       the generic `Dispatch` RPC, the queries `FetchShowcaseListQuery` and `FetchShowcaseByIdQuery`, and the error codes
       `INVALID_ARGUMENT` (which this client maps to its own `INVALID_QUERY` when the status carries field errors) and
       `NOT_FOUND`." No requirement or scenario changes.
-- [ ] 1.2 In the **archive commit**, rewrite the `quality/infra-image-versions` Purpose to this paragraph, covering both
+- [x] 1.2 In the **archive commit**, rewrite the `quality/infra-image-versions` Purpose to this paragraph, covering both
       `check` gates the requirement holds (`infra-image-versions/spec.md:14-24`): "Keeps the repository's pinned
       versions single-sourced: the version catalog holds the infrastructure components' (PostgreSQL, Kafka, OpenSearch)
       official image tags for the test surfaces (docker-compose, Testcontainers) and the Helm chart versions, every
@@ -21,8 +21,9 @@ branch=refresh-stale-spec-purposes; writer=ses_e8f026f7dffeGSlwOe26i6eZUF
       `helm install` commands and the catalog's Paketo builder/buildpack pins, and a build gate verifies each documented
       pin against its catalog coordinate, and each infrastructure component's chart-preconfigured `image.tag` against
       the official image tag used in tests." No requirement or scenario changes.
-- [ ] 1.3 Confirm both edits are confined to their `## Purpose` paragraphs, that the main spec stays unedited before the
-      archive, and that `openspec validate --all` still passes after they land.
+- [x] 1.3 Confirm both edits are confined to their `## Purpose` paragraphs, that the main spec stays unedited before the
+      archive, and that `openspec validate --all` still passes after they land. **Done** — `git diff` before the archive
+      showed only the two `## Purpose` paragraphs, and `openspec validate --all` reported 27 passed, 0 failed after them.
 
 ## 2. Pre-write derivation pass
 
@@ -134,9 +135,12 @@ script it names; the audit report's own line numbers are not quoted.
 - [x] 6.1 The owner's manual review pass was requested after the loop was clean and the capture ran. **Done** —
       requested with the unit's report after round 12 (clean) and task 5.1's capture record; the working tree is left
       uncommitted for the pass.
-- [ ] 6.2 After the owner's approval: push the branch, open the pull request, confirm `build` is green, then apply the
+- [x] 6.2 After the owner's approval: push the branch, open the pull request, confirm `build` is green, then apply the
       two Purpose edits, run `openspec archive refresh-stale-spec-purposes --yes`, stage the change-dir move and the
-      main spec edits together, and merge once approved.
+      main spec edits together, and merge once approved. **Done** — pushed, PR #679 opened, `build` green, the two
+      Purpose texts applied as quoted, the change archived as
+      `2026-10-25-refresh-stale-spec-purposes` in the archive commit, and the PR merged (squash) with the branch
+      deleted.
 
 ## Workflow follow-up
 

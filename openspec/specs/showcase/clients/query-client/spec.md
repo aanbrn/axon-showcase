@@ -6,9 +6,10 @@ Documents the behavior of the showcase query client: a reactive consumer fetchin
 its generic gRPC query RPC, translating gRPC status errors, and protecting the service with Resilience4j time limiter,
 circuit breaker, and conditional retry over retryable gRPC statuses and operation timeouts.
 
-**Contract source:** the RPC, query types, and error codes this client calls are owned by the `read-side/query-service`
+**Contract source:** the RPC, query types, and error codes this client uses are owned by the `read-side/query-service`
 spec — the generic `Dispatch` RPC, the queries `FetchShowcaseListQuery` and `FetchShowcaseByIdQuery`, and the error
-codes `INVALID_QUERY`, `NOT_FOUND`.
+codes `INVALID_ARGUMENT` (which this client maps to its own `INVALID_QUERY` when the status carries field errors) and
+`NOT_FOUND`.
 
 ## Requirements
 

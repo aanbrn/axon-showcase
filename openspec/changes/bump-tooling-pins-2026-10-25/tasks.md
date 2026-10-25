@@ -94,11 +94,13 @@ writer=ses_e8d476658ffep4lI2e5U7jH5gj.
 
 ## 4. The change's own records
 
-- [ ] 4.1 After the push and before the archive commit, dispatch `dependency-security.yml` from the branch and read the
+- [x] 4.1 After the push and before the archive commit, dispatch `dependency-security.yml` from the branch and read the
       result: it must install the pinned Snyk CLI and run the scan. A red run attributed to the pin means the tag does
-      not install; one attributed to a finding means the policy, not the pin.
-- [ ] 4.2 Record what the dispatched Snyk scan observed, so that pin's verification state is readable from the merge
-      rather than inferred from a green `build`.
+      not install; one attributed to a finding means the policy, not the pin. **Done**: run `40196207458` on `5c244526`,
+      success — the setup step logged `Installed Snyk v1.1308.3`, and `dependencySecurityCheck` ran.
+- [x] 4.2 Record what the dispatched Snyk scan observed, so that pin's verification state is readable from the merge
+      rather than inferred from a green `build`. **Done**: the scan reported "Tested 8 dependencies for known issues, no
+      vulnerable paths found.", so the pin installs and the policy clears on it.
 - [x] 4.3 Park the `pack` pin's verification follow-up durably if a `pack` row appears in the report; this unit's report
       names only the OpenSpec and Snyk pins. **Done**: no `pack` row appeared, so this unit parks nothing; the
       2026-10-22 entry at `docs/ideas.md` ("Confirm the `pack 0.40.10` pin on its first scheduled image build") stands.

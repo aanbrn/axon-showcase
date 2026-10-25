@@ -35,6 +35,10 @@ templates.
    describe the available commands accurately, and whether the root `build.gradle.kts` markdown target's exclusions
    still match what `openspec update` wrote — a newly generated file would otherwise be reformatted by `spotlessApply`
    and then overwritten by the next `openspec update`.
+7. Check the standing parked record this bump activates, before reporting done: `docs/ideas.md`'s 2026-09-30 entry names
+   the CLI bump as its own check point, so read its watch condition (a release carrying the config-guard fix) and record
+   the outcome on the change's task, or on the pull-request checklist when the unit has no change dir. The step retires
+   with that entry, and the change that retires the entry sweeps this step.
 
 **Decision points**
 

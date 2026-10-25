@@ -56,11 +56,11 @@ separately.
 
 The web UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
 `PackBuildImageTask`) that runs the `pack` CLI with the **version-pinned** Paketo NGINX + Procfile buildpacks
-(`paketo-buildpacks/nginx@1.3.0`, `paketo-buildpacks/procfile@5.15.5`; the versions are catalog-owned as `paketo-nginx`
+(`paketo-buildpacks/nginx@1.3.3`, `paketo-buildpacks/procfile@5.15.5`; the versions are catalog-owned as `paketo-nginx`
 and `paketo-procfile`) over `build/dist` (the `pack` CLI is a build prerequisite like Helm/Snyk). The pins are explicit
 because an unversioned buildpack reference becomes ambiguous — `pack` fails with "multiple versions … must specify an
 explicit version" — once the builder bundles two versions of a buildpack (the intermittent `e2e`/`helmInstallToLocal`
-failure). The builder itself is also pinned (`builder-jammy-base:0.4.667`, catalog-owned as `paketo-builder-jammy-base`)
+failure). The builder itself is also pinned (`builder-jammy-base:0.4.669`, catalog-owned as `paketo-builder-jammy-base`)
 rather than floating, and the `buildpackUpdates` task / `buildpack-updates` workflow reports newer builder and buildpack
 versions — no other update check covers Paketo. **The builder and the buildpacks it bundles must be bumped together:** a
 `paketo-nginx` pin that is _absent_ from the builder (e.g. holding a buildpack one line behind the builder) makes `pack`
@@ -391,7 +391,12 @@ note.
   after:** on a builder or buildpack bump, inspect the new builder's bundled versions
   (`pack builder inspect paketobuildpacks/builder-jammy-base:<version>`) and pick the buildpack pins from what it lists
   — a builder that no longer bundles the pinned version makes `pack` add it from the registry as an arm64 slice (the
-  mismatch above). captured: bump-buildpacks-2026-10-05 captured: bump-buildpacks-2026-10-12
+  mismatch above). **Re-run the inspect before reading its failure as an absent builder.** The same command on the same
+  tag printed `ERROR: unable to find builder '…' locally or remotely` (exit 1) between two successful listings, so a
+  failed lookup establishes no absence (that run's cause was not diagnosed). Re-run it, confirm with a `docker pull` of
+  the tag if it persists, and only then conclude the builder is absent — the conclusion parks a hold or drops the bump,
+  and no later gate reads a false absence. captured: bump-buildpacks-2026-10-05 captured: bump-buildpacks-2026-10-12
+  captured: bump-buildpacks-2026-10-25
 
 - **A buildpack's CNB id is not its Docker Hub repository — a registry lookup must target the repository, not the id.**
   The buildpacks are passed to `pack` as `paketo-buildpacks/nginx` (hyphen), but their Docker Hub repositories are

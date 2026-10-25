@@ -86,6 +86,34 @@ load the `check-and-test-authoring` skill; this pack does not restate its modes.
   gate: `npmTestCoverage` (in the frontend `check`) enforces the statement minimum in
   `config/web-ui-coverage/coverage-baseline.properties` (fraction form, scaled to Vitest's percentage thresholds)
 
+## Awaiting a timer-driven outcome
+
+The outcomes this section covers: a batch window expiring, a retry's backoff, a debounce, an emission another thread
+delivers.
+
+- **Never rely on a fixed pause expiring.** A `StepVerifier` over real time whose `.thenAwait(<fixed>)` is meant to
+  cover the mechanism — and a sleep loop with no condition to decide its exit — budget the runner's speed rather than
+  the mechanism: a red run cannot be told apart from a genuine defect, since a slow outcome and one that will never
+  arrive fail identically. A bounded wait that ends when the observed outcome appears is the opposite shape, and is what
+  the next bullets prescribe.
+- **Drive the timer, or await a signal it emits — decided by what the timer runs on.** IF `StepVerifier.withVirtualTime`
+  reaches the timer (a bare `Mono.delay`, `Flux.interval`, a default scheduler), THEN drive it with
+  `withVirtualTime(...).thenAwait(...)`, which advances virtual time deterministically — the shape
+  `ShowcaseQueryClientCT`'s retry cases use. IF the subject creates its own real scheduler (the projector's
+  `Flux.using`-owned `Schedulers.fromExecutorService(newScheduledThreadPool(…))`, which virtual time cannot reach), THEN
+  await a signal the subject emits rather than a fixed pause. Awaitility's `await().atMost(…)` is the same shape where
+  the suite has it — `spring-boot-starter-test` brings it to the component and integration suites, while a module's
+  `test` suite need not declare that starter and so not have it.
+- **Release the signal at the checkpoint the assertion reads.** A latch counted down inside a stubbed collaborator's
+  answer proves the collaborator was invoked, not that the work the assertion reads completed: count it where the
+  asserted effect is produced — at the write for a flush, after the returned `Mono` resolves for an effect that write
+  produces — or the wait returns before the outcome exists and the assertion races it.
+- **A source that completes keeps a rival flush route alive.** A long `Mono.delay` after the single record still lets
+  the completion flush the buffer, so the window is isolated only by a timing margin; `check-and-test-authoring`'s
+  fixture-reach mode owns that fixture shape.
+- **Prove the wait reads the outcome it claims** by perturbing the mechanism's window against the budget;
+  `check-and-test-authoring` owns the control rule. captured: stabilize-projector-flush-test
+
 ## Tiers and suite order
 
 **Test suite order matters:** `test` → `componentTest` → `integrationTest` → `e2eTest`. `check` runs the first three by

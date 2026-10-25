@@ -40,6 +40,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.opensearch.data.client.osc.OpenSearchTemplate;
 import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.health.HealthEndpointGroups;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -66,6 +67,11 @@ import showcase.test.KafkaTestPublisher;
 @Testcontainers(parallel = true)
 @DisplayName("Showcase projector integration tests")
 class ShowcaseProjectorIT {
+    /**
+     * The health endpoint's groups, to assert which probes see the projector indicator.
+     */
+    @Autowired
+    private HealthEndpointGroups healthEndpointGroups;
 
     private static final String EVENTS_TOPIC = "axon-showcase-events";
 
@@ -538,5 +544,12 @@ class ShowcaseProjectorIT {
         val partition = advancedPartition(before, after);
         awaitConsumed(partition, after.get(partition));
         assertThat(output.getOut()).doesNotContain("WARN", "ERROR");
+    }
+
+    @Test
+    @DisplayName("The projector indicator joins readiness and never liveness")
+    void healthGroups_gateReadinessOnly() {
+        assertThat(healthEndpointGroups.get("readiness").isMember("projector")).isTrue();
+        assertThat(healthEndpointGroups.get("liveness").isMember("projector")).isFalse();
     }
 }

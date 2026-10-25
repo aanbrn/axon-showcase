@@ -58,6 +58,7 @@ testing {
                 implementation(testFixtures(project(":showcase-command-api")))
                 implementation(libs.mockito.junit.jupiter)
                 implementation(libs.reactor.test)
+                implementation(libs.spring.boot.starter.actuator)
             }
         }
 
@@ -71,7 +72,6 @@ testing {
                     implementation(libs.hamcrest)
                     implementation(libs.opensearch.client.java)
                     implementation(libs.spring.boot.starter.test)
-                    implementation(libs.spring.data.opensearch)
                 }
 
                 targets {

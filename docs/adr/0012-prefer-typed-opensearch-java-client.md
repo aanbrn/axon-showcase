@@ -63,8 +63,11 @@ the swap is from the _high-level_ client only, not from the REST transport.
 - The read side issues OpenSearch requests through the typed client's request/response model, which is the surface
   upstream maintains; the deprecated high-level client is not a dependency any module's code compiles against.
 - A future `spring-data-opensearch` bump that changes which client it drags in transitively is absorbed by the existing
-  `exclude` blocks rather than silently altering the runtime classpath — but the exclusions are declared per module and
-  per configuration (main and test suite), so a **new** module that pulls the starter must repeat them.
+  `exclude` blocks rather than silently altering the runtime classpath. An exclusion is declared on every edge that
+  pulls the starter, so a **new** module or a new edge that pulls it must repeat one — while a configuration that
+  receives the dependency through `showcase-projection-model`'s `api` export inherits that edge's exclusion and needs no
+  declaration of its own. A second declaration is what put the excluded tree back on the projection service's
+  `componentTest` classpath once (`address-scan-findings-2026-10-25`), so prefer the inherited edge over a duplicate.
 - The version-alignment half is invisible in the four modules: bumping `opensearch-client-rest` in the catalog moves the
   high-level coordinate for anything that resolves it, independently of the exclusions, so the two must be read together
   when reasoning about the OpenSearch dependency graph.

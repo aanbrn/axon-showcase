@@ -345,6 +345,14 @@ note.
   which half ran rather than ticking a task on the script's assumed completion. captured: propagate-ui-trace-context
   (#362) captured: expose-grafana-by-hostname
 
+- **A probe path names a health group, and the root endpoint aggregates every indicator — adding a `HealthIndicator`
+  changes what every probe pointed at the root means.** Wire the indicator into its group explicitly
+  (`management.endpoint.health.group.readiness.include`) and assert the membership in a test, then re-check every probe
+  path: a startup probe on the root restarts a container whose indicator reports `DOWN` before the component can be
+  ready, so the projection service's startup probe targets `/actuator/health/liveness` while compose keeps
+  `THC_PATH=/actuator/health` deliberately. The contributor-id mechanism is `jvm-development`'s `## Naming`. captured:
+  projector-operability
+
 - **A containerized image build that fails in varying ways is host state until proven otherwise — check the container
   runtime's amd64 emulation before touching a pin.** Paketo `dockerBuildImage` failures with shifting signatures (a
   missing `io.buildpacks.buildpackage.metadata` label, an analyzer `panic: could not parse '0.12' as version`,

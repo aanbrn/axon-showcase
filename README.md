@@ -121,9 +121,11 @@ You can also drive the lifecycle by hand — start or finish a showcase before t
 - **Resilience is built in.** The command and query clients apply **Resilience4j** circuit breakers, time limiters, and
   retries, and the gateway serves repeated reads from a read-through cache.
 - **It is observable.** Tempo traces, Prometheus metrics (including web-UI nginx metrics), a dedicated Grafana
-  dashboard, health checks, and Gatling load tests are wired in — the same observability a production service needs.
-  Observability is available in the **Kubernetes deployment** (Prometheus, Grafana, and Tempo run in the `monitoring`
-  namespace); the local docker-compose stack runs without it.
+  dashboard, health checks, and Gatling load tests are wired in — the same observability a production service needs. The
+  projection service exposes its observed lifecycle state and last resolved batch time (`showcaseProjector.state` and
+  the readiness detail); readiness reports `DOWN` before initial assignment and during stream-restart waits, and can
+  remain `UP` while Kafka is unreachable after assignment. Observability is available in the **Kubernetes deployment**
+  (Prometheus, Grafana, and Tempo run in the `monitoring` namespace); the local docker-compose stack runs without it.
 - **Identifiers are KSUIDs** (sortable, collision-resistant), enforced through a custom identifier extension.
 
 ## Architecture
@@ -552,6 +554,14 @@ map (not the `mcp.servers` nesting) is what both OpenCode lines load: the 1.x ag
   `"github": { "type": "local", "command": ["gh", "mcp"] }`.
 
 MCP config is read at startup, so restart OpenCode after adding one.
+
+### Parallel Units
+
+Units running side by side work in separate checkouts: the **primary checkout** carries the sequential unit, and a
+parallel unit runs in a sibling worktree beside it — `../axon-showcase-<unit>`, created from `origin/main` — so the two
+never write into the same tree. The rule is procedural: a unit records the tree it owns before its first write. A
+parallel unit's tree is removed after its pull request merges, while the primary is handed to the next unit and never
+removed.
 
 ### Slash Commands
 

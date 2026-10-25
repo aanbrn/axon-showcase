@@ -100,8 +100,8 @@ Alternatives considered and rejected:
    previous version ignores.
 
 - The parked units own the remaining gap: a dead-letter queue with re-drive, gap-aware repair of a superseded partial
-  event, a read-model rebuild with its runbook, and the projector's operability state and buffer-unit correction
-  (`docs/ideas.md`, 2026-10-23).
+  event, and a read-model rebuild with its runbook (`docs/ideas.md`, 2026-10-23). The projector's operability state and
+  buffer-unit correction are implemented by `projector-operability` (issue #673); its probe posture is ADR-0023.
 - A terminal item failure still loses the fields that event carried; that is the best-effort boundary the owner
   accepted, recorded here rather than implied by the code.
 - The upgrade procedure is destructive and conditional on the retention check; a deployment whose retained history is

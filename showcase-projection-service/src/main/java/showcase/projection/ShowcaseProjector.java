@@ -47,6 +47,7 @@ import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.BufferOverflowStrategy;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.SignalType;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import reactor.kafka.receiver.KafkaReceiver;
@@ -177,6 +178,11 @@ class ShowcaseProjector implements SmartLifecycle {
     private final ObservationRegistry observationRegistry;
 
     /**
+     * The monitor recording the projector's operating state and progress.
+     */
+    private final ShowcaseProjectorStateMonitor projectorStateMonitor;
+
+    /**
      * The current stream subscription, if the projector is running.
      */
     private final AtomicReference<@Nullable Disposable> subscription = new AtomicReference<>();
@@ -190,6 +196,7 @@ class ShowcaseProjector implements SmartLifecycle {
      * @param batchWriter the writer draining each batch into OpenSearch
      * @param meterRegistry the registry for projection metrics
      * @param observationRegistry the registry for tracing the projection flow
+     * @param projectorStateMonitor the monitor recording the projector's operating state
      */
     ShowcaseProjector(
             ShowcaseProjectorProperties projectionProperties,
@@ -197,11 +204,13 @@ class ShowcaseProjector implements SmartLifecycle {
             KafkaMessageConverter<String, byte[]> kafkaMessageConverter,
             ShowcaseBatchWriter batchWriter,
             MeterRegistry meterRegistry,
-            ObservationRegistry observationRegistry) {
+            ObservationRegistry observationRegistry,
+            ShowcaseProjectorStateMonitor projectorStateMonitor) {
         this.projectionProperties = projectionProperties;
         this.kafkaReceiver =
                 KafkaReceiver.create(ReceiverOptions.<String, byte[]>create(kafkaProperties.buildConsumerProperties())
                         .withObservation(observationRegistry)
+                        .addAssignListener(partitions -> projectorStateMonitor.running())
                         .subscription(List.of(kafkaProperties.getDefaultTopic())));
         this.kafkaMessageConverter = kafkaMessageConverter;
         this.batchWriter = batchWriter;
@@ -227,6 +236,7 @@ class ShowcaseProjector implements SmartLifecycle {
                 .maximumExpectedValue((double) projectionProperties.getBatch().getMaxSize())
                 .register(meterRegistry);
         this.observationRegistry = observationRegistry;
+        this.projectorStateMonitor = projectorStateMonitor;
     }
 
     /**
@@ -255,56 +265,24 @@ class ShowcaseProjector implements SmartLifecycle {
                     .name("project-showcase")
                     .doOnSubscribe(subscription -> log.info("Projector has started"))
                     .doOnCancel(() -> log.info("Projector has stopped"))
-                    .groupBy(
-                            record -> record.receiverOffset().topicPartition(),
-                            projectionProperties.getMaxConcurrency())
-                    .flatMap(
-                            records -> Flux.using(
-                                    () -> Schedulers.fromExecutorService(
-                                            newScheduledThreadPool(
-                                                    projectionProperties.getMinConcurrency(),
-                                                    Thread.ofVirtual()
-                                                            .name("showcase-projector", 0)
-                                                            .factory()),
-                                            "showcase-projector"),
-                                    scheduler -> records.bufferTimeout(
-                                                    projectionProperties
-                                                            .getBatch()
-                                                            .getMaxSize(),
-                                                    projectionProperties
-                                                            .getBatch()
-                                                            .getMaxTime(),
-                                                    scheduler)
-                                            .onBackpressureBuffer(
-                                                    projectionProperties
-                                                            .getBatch()
-                                                            .getBufferMaxSize(),
-                                                    BufferOverflowStrategy.ERROR)
-                                            .concatMap(messages -> {
-                                                log.trace("Received {} message(s)", messages.size());
-                                                return processMessages(messages)
-                                                        .then(Flux.fromIterable(messages)
-                                                                .map(ReceiverRecord::receiverOffset)
-                                                                .doOnNext(ReceiverOffset::acknowledge)
-                                                                .then());
-                                            }),
-                                    Scheduler::dispose),
-                            projectionProperties.getMaxConcurrency(),
-                            projectionProperties.getBatch().getMaxSize())
+                    .transform(this::project)
                     .tap(Micrometer.observation(observationRegistry))
                     .retryWhen(Retry.fixedDelay(
                                     Long.MAX_VALUE,
                                     projectionProperties.getRestart().getDelay())
-                            .doBeforeRetry(signal -> log.warn(
-                                    "Projector has failed and will restart in {}...",
-                                    formatDurationWords(
-                                            projectionProperties
-                                                    .getRestart()
-                                                    .getDelay()
-                                                    .toMillis(),
-                                            true,
-                                            true),
-                                    signal.failure())))
+                            .doBeforeRetry(signal -> {
+                                log.warn(
+                                        "Projector has failed and will restart in {}...",
+                                        formatDurationWords(
+                                                projectionProperties
+                                                        .getRestart()
+                                                        .getDelay()
+                                                        .toMillis(),
+                                                true,
+                                                true),
+                                        signal.failure());
+                                projectorStateMonitor.retrying(signal.failure());
+                            }))
                     .subscribe();
         });
     }
@@ -322,6 +300,77 @@ class ShowcaseProjector implements SmartLifecycle {
         log.info("Projector is stopping...");
 
         subscription.dispose();
+        projectorStateMonitor.stopped();
+    }
+
+    /**
+     * Groups the consumed records by partition, batches them, and writes each batch.
+     *
+     * <p>The backpressure buffer sits before the batch window, so the configured value bounds records rather than
+     * batches; the window requests {@code requested × maxSize} from its upstream, so the buffer can fill while a write is
+     * outstanding.
+     *
+     * @param records the consumed records
+     * @return a flux completing once every batch's writes resolved
+     */
+    Flux<Void> project(Flux<ReceiverRecord<String, byte[]>> records) {
+        return records.groupBy(
+                        record -> record.receiverOffset().topicPartition(), projectionProperties.getMaxConcurrency())
+                .flatMap(
+                        this::projectPartition,
+                        projectionProperties.getMaxConcurrency(),
+                        projectionProperties.getBatch().getMaxSize());
+    }
+
+    /**
+     * Batches and writes one partition's records, bounding the buffer in events.
+     *
+     * <p>{@code limitRate} bounds the batch window's demand to one batch, so the backpressure buffer holds records rather
+     * than the batches a window placed after it would hold.
+     *
+     * @param partition the partition's records
+     * @return a flux completing once every batch's writes resolved
+     */
+    Flux<Void> projectPartition(Flux<ReceiverRecord<String, byte[]>> partition) {
+        return Flux.using(
+                () -> Schedulers.fromExecutorService(
+                        newScheduledThreadPool(
+                                projectionProperties.getMinConcurrency(),
+                                Thread.ofVirtual().name("showcase-projector", 0).factory()),
+                        "showcase-projector"),
+                scheduler -> partition
+                        .limitRate(projectionProperties.getBatch().getMaxSize())
+                        .onBackpressureBuffer(
+                                projectionProperties.getBatch().getBufferMaxSize(), BufferOverflowStrategy.ERROR)
+                        .bufferTimeout(
+                                projectionProperties.getBatch().getMaxSize(),
+                                projectionProperties.getBatch().getMaxTime(),
+                                scheduler)
+                        .concatMap(this::writeBatch, 1),
+                Scheduler::dispose);
+    }
+
+    /**
+     * Writes one batch and acknowledges its records once every item resolved.
+     *
+     * @param messages the batch's consumed records
+     * @return a mono completing after the batch's writes and acknowledgements
+     */
+    private Mono<Void> writeBatch(List<? extends ReceiverRecord<String, byte[]>> messages) {
+        log.trace("Received {} message(s)", messages.size());
+        projectorStateMonitor.batchStarted();
+        return processMessages(messages)
+                .doFinally(signal -> {
+                    if (signal == SignalType.ON_COMPLETE) {
+                        projectorStateMonitor.batchResolved();
+                    } else {
+                        projectorStateMonitor.batchFailed();
+                    }
+                })
+                .then(Flux.fromIterable(messages)
+                        .map(ReceiverRecord::receiverOffset)
+                        .doOnNext(ReceiverOffset::acknowledge)
+                        .then());
     }
 
     /**

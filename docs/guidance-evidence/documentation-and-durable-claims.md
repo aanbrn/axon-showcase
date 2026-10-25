@@ -158,6 +158,12 @@ lost-spec-sync occurrence, but the incident's own capture #498 had added it. The
 
 `captured: store-2026-10-05-retrospective`
 
+The record-home clause: `adopt-worktree-isolation`'s `Workspace:` line was cited by four rules with no stated home, so
+no later session could establish that the primary had been released and every tree read as occupied; the deep review's
+first pass caught it, and the fix made the Git registry the source and the record evidence with a home.
+
+`captured: adopt-worktree-isolation`
+
 ## external-surface
 
 Rule: **A claim about a surface outside the repository — a registry's contents, a repository setting, a live URL — has
@@ -238,8 +244,9 @@ unmerged.
 `#3334` in `docs/ideas.md` and the `projection-model` spec; `#1340` in the `deployment-operations` pack's
 `## Docker images` and `## Deployment, Helm & Kubernetes` sections, where its close-out clause lives;
 `micromatch/braces#72` in ADR-0014. `micromatch/braces#70` is cited only here: it is locked, its disposition is the
-unmerged fix PR, and the acceptance it produced is dated in ADR-0014 and bounded by the npm-advisory suppression's own
-expiry, so it carries no live retirement condition.
+unmerged fix PR. The acceptance that PR was meant to fix is **closed**: the advisory was withdrawn upstream on
+2026-10-23, the suppression entry was then removed (the list is empty), and ADR-0014 records both — no retirement
+condition remains live for either reference.
 
 `captured: suppress-braces-npm-advisory`, `captured: refresh-upstream-references-2026-10-05`,
 `captured: record-gatling-report-block`, `captured: refresh-upstream-references-2026-10-19`

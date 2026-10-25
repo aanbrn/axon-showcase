@@ -16,6 +16,20 @@ Source: `AGENTS.md` `## Conventions` (Lombok, MapStruct, ErrorProne, the WebFlux
 Root guidance this pack does not restate: the no-comments rule, the Javadoc/JSDoc convention, the redundancy rule, and
 the formatting convention stay in `AGENTS.md` and apply here.
 
+## Naming
+
+- Name a domain-specific top-level type by its domain subject and responsibility: `ShowcaseProjector`,
+  `ShowcaseBatchWriter`, `ShowcaseProjectorStateMonitor`.
+- Use a technology qualifier where it distinguishes an infrastructure adapter from the domain component:
+  `OpenSearchProjectionWriter`.
+- Let the enclosing type supply context for a nested type: `ShowcaseBatchWriter.RoundExecutor`,
+  `ShowcaseProjectorProperties.Batch`.
+- A class added beside an existing subject takes that subject's prefix: the projector's state monitor and health
+  indicator are `ShowcaseProjectorStateMonitor` and `ShowcaseProjectorHealthIndicator`, not `Projector*`.
+- A framework-facing identifier is not the class name: a `HealthIndicator` bean's contributor id is its bean name with
+  the `HealthIndicator` suffix stripped, so a class whose id must stay `projector` (the readiness group lists it) is
+  declared `@Component("projectorHealthIndicator")`; metric names are literals, not derived.
+
 ## Conventions
 
 - **Lombok**: use Lombok where possible (e.g., `@RequiredArgsConstructor`, `@Data`, `@Builder`, `@Value`) instead of

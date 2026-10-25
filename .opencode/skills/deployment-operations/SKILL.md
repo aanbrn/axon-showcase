@@ -107,7 +107,7 @@ the image's age, as evidence about when it was built, which host built it, or wh
 
 ```bash
 # Deploy to local cluster (must be ordered)
-helm install kps prometheus-community/kube-prometheus-stack --version 92.11.0 \
+helm install kps prometheus-community/kube-prometheus-stack --version 92.13.1 \
   --namespace monitoring --create-namespace --wait
 helm install tempo grafana/tempo --version 1.24.4 --namespace monitoring --create-namespace --wait
 helm install axon-showcase-db-events bitnami/postgresql --version 16.7.27 \
@@ -417,6 +417,15 @@ infra charts (postgres, kafka, opensearch) are suppressed there because a major 
 migration, not an automatic update. The observability charts (kps, tempo) carry no `*-image-tag`, so their major bumps
 surface as actionable; verify them with a live install + smoke test (pods ready, Prometheus targets up, Grafana
 datasources wired), since `verifyInfraImageVersions` covers only the bitnami infra charts.
+
+- **The install path's chart-repository fetch has no bounded retry — retry a failed `helmInstall<Release>ToLocal` by
+  hand instead of re-reading the pin.** Only the tasks built on `AbstractHelmRepositoriesTask` (`helmUpdates`,
+  `verifyInfraImageVersions`) retry the repository update; the install targets run the plugin's own
+  `HelmAddRepository`/`HelmUpdateRepositories`, whose sources carry no retry, so a transient fetch failure ends the
+  install before the chart resolves. Retry it, confirming first that the repository's `index.yaml` answers a `curl`,
+  rather than re-resolving or reverting the chart version: the retried install succeeded while `curl` reached the same
+  index, so the failure was a transient fetch rather than a version gap, and its cause stays unestablished. Making these
+  plugin tasks resilient is parked in `docs/ideas.md` (2026-10-17). captured: bump-kps-chart-2026-10-25
 
 ## DB scripts
 

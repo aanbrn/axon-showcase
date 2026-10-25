@@ -158,6 +158,12 @@ lost-spec-sync occurrence, but the incident's own capture #498 had added it. The
 
 `captured: store-2026-10-05-retrospective`
 
+The record-home clause: `adopt-worktree-isolation`'s `Workspace:` line was cited by four rules with no stated home, so
+no later session could establish that the primary had been released and every tree read as occupied; the deep review's
+first pass caught it, and the fix made the Git registry the source and the record evidence with a home.
+
+`captured: adopt-worktree-isolation`
+
 ## external-surface
 
 Rule: **A claim about a surface outside the repository — a registry's contents, a repository setting, a live URL — has

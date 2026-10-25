@@ -17,6 +17,24 @@ file for the idea before adding it: the same work already parked — however dif
 its existing section, since the day-section rule otherwise files a re-park as a second entry and splits one idea's
 detail across two sections.
 
+## 2026-10-25
+
+- Add a markdown table-integrity check to `commit-hygiene.py` — parked; no change yet. A table row wrapped onto a second
+  line becomes a spurious row, and Prettier treats that as its fixpoint, so `spotlessCheck` stays green: reproduced with
+  the build's Prettier 3.9.10 under this repo's config during `adopt-worktree-isolation`'s review (a `--table-rows` mode
+  counting unescaped pipes per row against the delimiter row, a `verifyTableRows` task beside `verifyConflictMarkers`,
+  and controls for a wrapped row, Prettier's output, an escaped `\|`, a fenced diagram and a clean table; a prototype
+  over the 113 gated markdown files found no false positive).
+
+- Verify the worktree workspace rule on the first two real parallel units — parked; verification pending.
+  `adopt-worktree-isolation` adds the rule and its recorded preflight, but the practical test needs two parallel units,
+  which exist only after it lands. Completion:
+  - each unit's tracked and untracked files stay in its own tree;
+  - the primary stays the other unit's workspace;
+  - the recorded preflight names the right tree and branch;
+  - a sibling carries no `origin/main` upstream;
+  - the first unit's cleanup leaves the second untouched.
+
 ## 2026-10-24
 
 - Add a pre-commit ledger guard for the review-round checks — parked; no change yet. `commit-hygiene.py --staged` runs
@@ -419,24 +437,6 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   `.opencode/agent/architecture-auditor.md` and the scenario, which owes that capability's delta.
 
 ## 2026-10-10
-
-- Adopt `git worktree` for the per-change branch workflow — parked; no change yet. The workflow keeps a change
-  uncommitted until a push forces a commit and forbids carrying unfinished work (tracked or untracked) across a branch
-  switch, so a worktree per change would remove the stash/switch seam entirely: no `git stash pop` conflict-marker
-  hazard, and `main`'s working tree stays free of in-progress diffs. It fits this repo well because the git hooks are
-  shared — `core.hooksPath = scripts/git-hooks` lives in the common `.git/config`, so the pre-commit guard runs in every
-  worktree with no per-worktree setup. Costs: the per-tree disk, measured (2026-10-12, a throwaway worktree from `main`
-  with the shared caches warm) at ~628M after a fresh worktree's first Docker-free `check` — dominated by `.gradle`
-  (129M), `showcase-web-ui/node_modules` (225M), and the per-module `build/` directories, over a 12M checkout — and the
-  IDE, since `.idea/` is git-ignored so each worktree needs `./scripts/setup-idea.sh` (or one tree stays the IDE tree).
-  The first build is a one-time ~1 minute, not a cold rebuild: the shared `~/.gradle`/`~/.npm` caches and the Gradle
-  build cache restored 251 of 374 tasks, so that Docker-free gate ran in 78 seconds against ~16 seconds warm on the same
-  machine — not the re-resolve and re-install the entry first assumed. A harness note too: the OpenCode session's cwd is
-  per-session, so making a worktree the primary directory needs a session move. Suggested shape: primary clone on
-  `main`, `git worktree add --no-track -b <change> ../axon-showcase-<change> origin/main` per change (`--no-track`, or a
-  first push with `-u origin <branch>`, avoids the silent `origin/main` upstream), `git worktree remove` after merge.
-  The remaining trade is the ~628M/worktree and the IDE setup rather than build time, so the choice turns on whether the
-  isolation is wanted for the change at hand.
 
 - Confirm the vendored migration skills' model pins resolve — parked; no change yet. The vendored `axon4to5-*` skills
   carry frontmatter model pins (`axon4to5-isolatedtest` → `haiku`, `axon4to5-openrewrite` → `sonnet`, Anthropic aliases)

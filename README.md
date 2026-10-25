@@ -555,6 +555,14 @@ map (not the `mcp.servers` nesting) is what both OpenCode lines load: the 1.x ag
 
 MCP config is read at startup, so restart OpenCode after adding one.
 
+### Parallel Units
+
+Units running side by side work in separate checkouts: the **primary checkout** carries the sequential unit, and a
+parallel unit runs in a sibling worktree beside it — `../axon-showcase-<unit>`, created from `origin/main` — so the two
+never write into the same tree. The rule is procedural: a unit records the tree it owns before its first write. A
+parallel unit's tree is removed after its pull request merges, while the primary is handed to the next unit and never
+removed.
+
 ### Slash Commands
 
 | Command                      | What it does                                                                                                                                                                                                                                                                                                                   |

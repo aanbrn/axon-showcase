@@ -1323,16 +1323,19 @@ is the owner's decision, never applied automatically.
 
 ### Requirement: Project-authored command definitions that start a mutating unit carry the lifecycle preflight
 
-A project-authored command that starts a mutating unit that ships SHALL state the lifecycle its unit owes: its own
-branch from a freshly fetched `origin/main`; unrelated dirty changes preserved; work uncommitted until the manual
-approval pass; and no commit, push, pull request, archive, or merge without that approval. It SHALL point at the
-workflow owning the lifecycle and the review gate, and every `review-quick` invocation SHALL carry the
-session-continuity preflight.
+A project-authored command that starts a mutating unit that ships SHALL state the lifecycle its unit owes: its workspace
+— the working tree assigned to the unit, the primary checkout when no other unit holds it and a sibling
+`../axon-showcase-<unit>` worktree otherwise, established before its first write, with an ownership it cannot establish
+treated as occupied; its own branch from a freshly fetched `origin/main` for a new unit, or the existing branch for a
+unit continuing one; unrelated dirty changes preserved; work uncommitted until the manual approval pass; and no commit,
+push, pull request, archive, or merge without that approval. It SHALL point at the workflow owning the lifecycle and the
+review gate, and every `review-quick` invocation SHALL carry the session-continuity preflight.
 
 #### Scenario: A mutating command states the branch rule
 
 - **WHEN** a project-authored command starts a mutating unit that ships
-- **THEN** it states that the unit starts on its own branch from a freshly fetched `origin/main`
+- **THEN** it states that a new unit starts on its own branch from a freshly fetched `origin/main`, and that a unit
+  continuing an existing branch or pull request works on that branch
 
 #### Scenario: A mutating command preserves unrelated work
 
@@ -1349,6 +1352,12 @@ session-continuity preflight.
 
 - **WHEN** a mutating command invokes `review-quick`
 - **THEN** the invocation carries the session-continuity preflight the review gate's procedure owns
+
+#### Scenario: A mutating command states the workspace preflight
+
+- **WHEN** a project-authored command starts a mutating unit that ships
+- **THEN** it requires the unit's working tree to be established before its first write, naming a sibling worktree when
+  the primary checkout already belongs to another unit, and treats an ownership it cannot establish as occupied
 
 ### Requirement: Check and test authoring guidance is maintained in its project skill
 
@@ -2011,9 +2020,10 @@ continuity violation rather than as a permitted replacement.
   after that session began, or the reviewer stopped responding mid-round (the loop has observed a session stall with no
   reply, which no wait resolves)
 - **AND** the handover it gives the replacement is the record it wrote **before** waiting — the unit's identity, its
-  base and current revisions, the supplied artifacts, the scope, the prior findings with their instance-level evidence,
-  the completed checks, and the known limitations — so the context a replacement needs never depends on the stalled
-  invocation reporting, and cancelling it loses no progress that record does not already hold
+  base and current revisions, the unit's assigned working tree and branch, the supplied artifacts, the scope, the prior
+  findings with their instance-level evidence, the completed checks, and the known limitations — so the context a
+  replacement needs never depends on the stalled invocation reporting, and cancelling it loses no progress that record
+  does not already hold
 - **AND** the deadline comes from the invocation or the caller's policy, never a universal figure stated as a measured
   fact, because no measurement of a reviewer's duration is reproducible from the repository
 - **AND** the replacement reviews the current state independently, treating the handover as context rather than as proof

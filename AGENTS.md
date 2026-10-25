@@ -198,12 +198,14 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
 
 - **Report an upstream gap we identify, not only the workaround around it.** When a gap is identified — a spurious
   update row, a deprecation with no fix, a limitation that forces a workaround — report it upstream with a reproduction
-  and the evidence, and keep the reference where the constraint bites and in a file the closure report scans
-  (`upstreamReferences` reads `AGENTS.md`, `README.md`, `docs/ideas.md`, and `docs/adr/**`), so its `retires when` can
-  fire (see the upstream-reference bullet), with the close-out clause for when it lands. The workaround is ours to keep;
-  the fix belongs where the defect is, and an upstream project improves only if its users say what is wrong. Post it
-  through the review gate like any outward-facing artifact. Resolve the tool's owning repository from its own metadata
-  before searching or filing (`npm view <pkg> repository.url`, the `homepage` field, or the CLI's docs) — a tool is not
+  and the evidence, and keep the reference where the constraint bites and in a file `upstreamReferences` scans, so its
+  `retires when` can fire (see the upstream-reference bullet), with the close-out clause for when it lands. The
+  workaround is ours to keep; the fix belongs where the defect is, and an upstream project improves only if its users
+  say what is wrong. Post it through the review gate like any outward-facing artifact. **`anomalyco/opencode` bans
+  AI-generated security reports** — do not submit one there, public or private: its `SECURITY.md` rejects them outright
+  and warns of an automatic ban, so file one only on an explicit maintainer permission or a published exemption; a
+  non-security bug report there is unaffected. Resolve the tool's owning repository from its own metadata before
+  searching or filing (`npm view <pkg> repository.url`, the `homepage` field, or the CLI's docs) — a tool is not
   necessarily hosted where it is configured: the `openspec` CLI is `@fission-ai/openspec` on npm, tracked at
   `Fission-AI/OpenSpec`, not the repo it configures. When it is an **error string** you are triaging, the owner is the
   project that emits it, not the project whose issue text matches it: follow the string to its source (the package or
@@ -1504,25 +1506,34 @@ Key modules (libraries, not services):
   `permission.bash` onto v2's `shell`, which did not vouch for that sibling plugin, whose load failed with
   `Plugin must export a default definition with an id and an effect or setup function`. v2 pre-approves the
   machine-specific `<tmpdir>/opencode`, which is enough for this repo; `anomalyco/opencode#48100` asks for a portable
-  default and remains open upstream. `.opencode/package.json` (tracked) holds the dependencies OpenCode installs at
-  startup — the `@opencode-ai/plugin` package stays because the v2 binary installs it into each `.opencode/`, rewriting
-  the tracked pin to its own version, so a cloud run's PR can carry the bump (report PR #543 carried
-  `1.18.34`→`1.19.0`): read it as the startup install, not a deliberate dependency change, and decide whether to keep or
-  revert it. captured: capture-cloud-plugin-pin-bump (#545) `.opencode/.gitignore` keeps only `node_modules` and the
-  lockfiles out of the repo. The config is written in the **V1 shape** — the `permission` block, the flat `mcp` map, and
-  `small_model` — which v2 lowers into its own `permissions` array and `mcp.servers` envelope rather than the v2
-  spellings: the GitHub action the cloud workflows run installs `releases/latest` — the v1 line — and a v2-only
-  `permissions` array makes v1 exit at startup (`V2 permissions are not supported by OpenCode V1`), which silently broke
-  both cloud workflows until a dispatch exposed it. The same applies to a contributor's **global** config: the ACP agent
-  IntelliJ IDEA's AI launches is a 1.x binary, and it exits on `permissions` (`Unrecognized key: permissions`) and on an
-  `mcp.servers` key (`Missing key mcp.servers.enabled`) — so the global config is kept in the flat `mcp` shape too, and
-  the setup guidance leads there. `opencode mcp add` writes that nesting upstream (`anomalyco/opencode#49904`); the
-  guidance retires its caveat when the command emits the flat shape. Keep this file loadable by both majors; the local
-  workflow still runs v2, per the README's row. Verify a behavioural change to it — a new grant, model, or server — by
-  dispatching the cloud workflow that loads it (`gh workflow run audit.yml`): the `build` gate probes the config's load
-  under the action's v1 binary when a pull request changes it, but only a dispatch (or the next scheduled run) proves
-  the workflow starts. captured: migrate-opencode-config-to-v2 captured: retire-opencode-permission-plugin (#388)
-  captured: fix-cloud-agent-config-for-v1 (#438)
+  default and remains open upstream.
+
+- **`.opencode/package.json` is installer state; only its `overrides` block is ours.** It holds the dependencies
+  OpenCode installs at startup — the `@opencode-ai/plugin` package stays because the v2 binary installs it into each
+  `.opencode/`, rewriting the tracked pin to the plugin version it installs, which need not equal its own `--version`
+  (never "correct" the pin to match it). The rewrite is not cloud-only — any working tree whose session runs OpenCode
+  can carry it silently, even while the unit edits this file for its `overrides` block — so diff the pin against `HEAD`
+  before staging and decide whether to keep or revert it, reading it as the startup install rather than a deliberate
+  dependency change (report PR #543 carried `1.18.34`→`1.19.0`). captured: capture-cloud-plugin-pin-bump (#545) The
+  plugin's exact pins keep `toml` (through `effect`) and `zod` below their patched releases, which the `overrides`
+  forces; `docs/ideas.md` carries their re-check. captured: override-opencode-plugin-transitives
+
+- **`.opencode/.gitignore` keeps only `node_modules` and the lockfiles out of the repo.**
+
+- **The OpenCode config stays loadable by both majors, so it is written in the V1 shape.** It carries the `permission`
+  block, the flat `mcp` map, and `small_model`, which v2 lowers into its own `permissions` array and `mcp.servers`
+  envelope rather than the v2 spellings: the GitHub action the cloud workflows run installs `releases/latest` — the v1
+  line — and a v2-only `permissions` array makes v1 exit at startup (`V2 permissions are not supported by OpenCode V1`),
+  which silently broke both cloud workflows until a dispatch exposed it. The same applies to a contributor's **global**
+  config: the ACP agent IntelliJ IDEA's AI launches is a 1.x binary, and it exits on `permissions`
+  (`Unrecognized key: permissions`) and on an `mcp.servers` key (`Missing key mcp.servers.enabled`) — so the global
+  config is kept in the flat `mcp` shape too, and the setup guidance leads there. `opencode mcp add` writes that nesting
+  upstream (`anomalyco/opencode#49904`); the guidance retires its caveat when the command emits the flat shape. Keep
+  this file loadable by both majors; the local workflow still runs v2, per the README's row. Verify a behavioural change
+  to it — a new grant, model, or server — by dispatching the cloud workflow that loads it (`gh workflow run audit.yml`):
+  the `build` gate probes the config's load under the action's v1 binary when a pull request changes it, but only a
+  dispatch (or the next scheduled run) proves the workflow starts. captured: migrate-opencode-config-to-v2 captured:
+  retire-opencode-permission-plugin (#388) captured: fix-cloud-agent-config-for-v1 (#438)
 
 - **JVM, Gradle, and deployment conventions live in the subject packs.** `jvm-development` carries the value-type,
   nullness, MapStruct, gateway-routing, and runtime-library rules; `jvm-testing` the test naming, tier, slice, logging,
@@ -1568,8 +1579,9 @@ health path, and the container JVM options — is in the `deployment-operations`
   mid-rebase. Resolve by reconciling the file — take `main`'s copy and re-apply the change's idea removal — rather than
   resolving the markers by hand; a change branch carries its own `docs/ideas.md` removal (see the docs-refresh
   convention), so it can no longer simply be reset to `origin/main`. Under the commit-only-at-push rule the branch has
-  no commits to rebase before its first push, so the stash path arises only after a commit; refresh a pushed branch with
-  `gh pr update-branch` rather than a local stash-rebase.
+  no commits to rebase before its first push, though its stash is still the route when the advance touched a file it
+  changed (see the `git reset --hard` gotcha below); refresh a pushed branch with `gh pr update-branch` rather than a
+  local stash-rebase.
 
 The same stale-stash hazard has a second, quieter failure mode: a stash taken while the working tree holds a **stale
 copy** — a pre-pull version of a file whose `HEAD` already carries the pull — records a diff that _deletes_ the pull's
@@ -1581,7 +1593,7 @@ and only the staged diff's size (`+31/-409`, PR #336, closed unmerged) revealed 
 So check a staged diff's insertions/deletions ratio (`git diff --cached --numstat`) before committing, and treat a large
 deletion count on a file the change only appends to as a truncation, not a tidy-up. The workspace's own capture-branch
 rule exists to keep this from arising at all: start the capture on its branch, not in `main`'s working tree. captured:
-capture-stash-stale-copy
+capture-stash-stale-copy captured: override-opencode-plugin-transitives
 
 - **`git reset --hard` on a branch with uncommitted work discards tracked-file edits and deletes branch-added files.** A
   change branch holds the work uncommitted (per the workflow); a `git reset --hard origin/main` to "rebase" the branch
@@ -1590,13 +1602,18 @@ capture-stash-stale-copy
   silently losing the implementation's edits, and the proposal too if it was committed. A still-untracked change dir
   survives (verified): under the commit-only-at-push rule the whole change is untracked until the first commit, so a
   pre-push reset loses only tracked-file edits. This bit the actionlint change when rebasing onto a main that had
-  advanced. Never `reset --hard` a branch carrying uncommitted work: with no local commits, `git reset --soft`/`--mixed`
-  to `origin/main` keeps the working tree; with local commits, `git rebase` (or stash → rebase → stash pop, per the
-  stash-pop gotcha above) is the way. Verify `git status` after to confirm the diff survived. The same class of mistake
-  occurs outside a rebase: `git checkout -- <file>` (or `git restore <file>`) reverts just that file to `HEAD`,
-  discarding its uncommitted edits — a README change was lost this way to a `git checkout -- README.md` run inside an
-  unrelated verification step (recovered only from a backup). While a work branch holds uncommitted edits, inspect
-  committed content with `git diff`/`git show HEAD:<file>` rather than `checkout --`/`restore`/`reset`.
+  advanced. Never `reset --hard` a branch whose working tree is the only copy of its work. With no local commits,
+  `git reset --soft`/`--mixed` to `origin/main` keeps the working tree, but leaves your diff against the **old** base:
+  safe only when the advance touched none of your files, since on a both-sides change the commit records the base's new
+  lines as deletions with no conflict to notice. When the advance did touch a file you changed, re-apply the diff as a
+  3-way merge instead (`git stash` → `git reset --hard origin/main` → `git stash pop`, which conflicts visibly and keeps
+  the stash). With local commits, `git rebase` (or stash → rebase → stash pop, per the stash-pop gotcha above) is the
+  way. Verify `git status` after to confirm the diff survived. The same class of mistake occurs outside a rebase:
+  `git checkout -- <file>` (or `git restore <file>`) reverts just that file to `HEAD`, discarding its uncommitted edits
+  — a README change was lost this way to a `git checkout -- README.md` run inside an unrelated verification step
+  (recovered only from a backup). While a work branch holds uncommitted edits, inspect committed content with
+  `git diff`/`git show HEAD:<file>` rather than `checkout --`/`restore`/`reset`. captured:
+  override-opencode-plugin-transitives
 
 - **`openspec archive` relocates the change dir with a filesystem move, not `git mv` — nothing is staged, so stage both
   sides — and the archived tree is outside Spotless, so a post-move `spotlessApply` will not normalize it.** The tool
@@ -2586,16 +2603,16 @@ changing an image or buildpack pin.
   pin before treating the note as retirable. The note itself is a claim: re-verify its recorded reason, not only the
   open/closed state. An upstream reference must state the claim it is cited for and sit on the clause it supports; read
   the surface that carries the claim — the body for what the issue reports, the closing comment for its disposition —
-  never the title or the release alone. A close-out reference must live in a file `upstreamReferences` scans
-  (`AGENTS.md`, `README.md`, `docs/ideas.md`, `docs/adr/**`); cited only in a skill, command, subagent definition, or
-  code comment it is invisible to the report that would fire its `retires when`. When a passage already explains a
-  signature, reconcile with it rather than writing a second explanation beside it. A planned task that posts to an
-  external tracker depends on that venue's mutable state: check the venue is writable before writing the posting task —
-  a repository can disable issues and discussions outright, and a thread can be locked — and when the issue is closed or
-  locked, cite the fixing PR the close-out keys on. The periodic corpus sweep is the `upstream-references.yml` report
-  (`showcase/quality/merge-governance` specifies it with the other observational checks). captured:
+  never the title or the release alone. A close-out reference must live in a file `upstreamReferences` scans; cited only
+  in a command, subagent definition, or code comment it is invisible to the report that would fire its `retires when`.
+  When a passage already explains a signature, reconcile with it rather than writing a second explanation beside it. A
+  planned task that posts to an external tracker depends on that venue's mutable state: check the venue is writable and
+  what it accepts before writing the posting task — a repository can disable issues and discussions outright, a thread
+  can be locked, and a contribution policy can ban a class of content with a penalty attached — and when the issue is
+  closed or locked, cite the fixing PR the close-out keys on. The periodic corpus sweep is the `upstream-references.yml`
+  report (`showcase/quality/merge-governance` specifies it with the other observational checks). captured:
   suppress-braces-npm-advisory captured: refresh-upstream-references-2026-10-05 captured: record-gatling-report-block
-  captured: refresh-upstream-references-2026-10-19
+  captured: refresh-upstream-references-2026-10-19 captured: override-opencode-plugin-transitives
 
   evidence: documentation-and-durable-claims
 

@@ -2,10 +2,13 @@
 
 ## Purpose
 
-Keeps the infrastructure components (PostgreSQL, Kafka, OpenSearch) single-sourced: the test surfaces (docker-compose,
-Testcontainers) pin the official image tags in the version catalog, the deployment pins the Bitnami Helm chart versions,
-and a build gate ensures the Bitnami image tag preconfigured in each pinned chart agrees with the image version used in
-tests.
+Keeps the repository's pinned versions single-sourced: the version catalog holds the infrastructure components'
+(PostgreSQL, Kafka, OpenSearch) official image tags for the test surfaces (docker-compose, Testcontainers) and the Helm
+chart versions, every chart coordinate being concrete — the Bitnami infrastructure charts, the observability charts, and
+the application chart's `common` subchart. The `deployment-operations` pack states those chart versions in its manual
+`helm install` commands and the catalog's Paketo builder/buildpack pins, and a build gate verifies each documented pin
+against its catalog coordinate, and each infrastructure component's chart-preconfigured `image.tag` against the official
+image tag used in tests.
 
 ## Requirements
 

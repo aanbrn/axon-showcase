@@ -62,8 +62,8 @@ user before reading or editing files outside this repo.
 
 - Prefer editing the flat `mcp` map directly. `opencode mcp add` also works, but it defaults to the **project** config —
   pass `--global` — and it writes the `servers` nesting, which 1.x consumers reject; if you use it, move the entry out
-  of `servers` into the flat map afterwards. (`anomalyco/opencode#49904`; retire this caveat when `mcp add` emits the
-  flat shape.)
+  of `servers` into the flat map afterwards. (`anomalyco/opencode#49904`, which closed `not_planned`; retire this caveat
+  when `mcp add` emits the flat shape.)
 - If a `github` or `steroid` server already exists as a flat `mcp` entry, leave it and say so; do not duplicate it. If
   it sits under an `mcp.servers` nesting (a config written before this change), offer to move it into the flat map —
   that nesting is what makes the 1.x consumers refuse the file.

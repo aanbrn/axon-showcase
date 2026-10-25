@@ -489,13 +489,15 @@ The upstream-reference report SHALL run automatically on a schedule and be manua
 `upstream-references` job in a dedicated workflow separate from the merge gate. It SHALL run a Gradle check that scans
 the repository's durable artifacts (`AGENTS.md`, `README.md`, `docs/adr/`, `docs/ideas.md`, and every project-authored
 skill under `.opencode/skills/`, excluding generated and vendored skills) for each `owner/repo#NNN` reference, resolves
-its state through the GitHub API, and reports every reference with that state and the file and line it is cited at.
-Because a reference is cited for several reasons — a gap awaiting an upstream fix, a documentation pointer, or a
-counter-example — a closed reference is surfaced as a _trigger to check_ rather than declared actionable: the report
-lists the state, and the run SHALL surface it by opening or updating a GitHub issue, mentioning the repository owner
-when any reference has closed or failed to resolve and updating the issue silently when every reference is open. It
-SHALL run on `ubuntu-latest` with the `GITHUB_TOKEN` granted `issues: write` and `contents: read`, and SHALL NOT be part
-of the merge-gate `build` check or a required check for merging into `main`.
+its state through the GitHub API, and reports every reference with that state and the file and line it is cited at. A
+closed reference's reported state SHALL carry the closure's disposition — the `state_reason` the API returns, such as
+`completed`, `not_planned`, or `duplicate` — beside its closed date, so a duplicate or a declined closure is
+distinguishable from a completed one. Because a reference is cited for several reasons — a gap awaiting an upstream fix,
+a documentation pointer, or a counter-example — a closed reference is surfaced as a _trigger to check_ rather than
+declared actionable: the report lists the state, and the run SHALL surface it by opening or updating a GitHub issue,
+mentioning the repository owner when any reference has closed or failed to resolve and updating the issue silently when
+every reference is open. It SHALL run on `ubuntu-latest` with the `GITHUB_TOKEN` granted `issues: write` and
+`contents: read`, and SHALL NOT be part of the merge-gate `build` check or a required check for merging into `main`.
 
 #### Scenario: Scheduled trigger runs the upstream-reference report
 
@@ -522,6 +524,17 @@ of the merge-gate `build` check or a required check for merging into `main`.
 
 - **WHEN** the corpus cites a reference as a documentation pointer or a counter-example rather than a gap awaiting a fix
 - **THEN** the report lists it with its state, so its closure is visible for the owner to judge rather than suppressed
+
+#### Scenario: A closed reference reports its closure's disposition
+
+- **WHEN** a cited reference has closed and the GitHub API reports a closure reason
+- **THEN** the report states that reason beside the closed date, so a duplicate or a declined closure is distinguishable
+  from a completed one
+
+#### Scenario: A closure with no reported reason states the date alone
+
+- **WHEN** a cited reference has closed and the GitHub API reports no closure reason
+- **THEN** the report states the closed date without a disposition, rather than inventing one
 
 #### Scenario: A reference in a project-authored skill is reported
 

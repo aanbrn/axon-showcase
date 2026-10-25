@@ -22,6 +22,9 @@ import org.gradle.process.ExecOperations
  *
  * <p>A reference that does not resolve (a renamed repository, a deleted issue) is reported as unresolved rather than
  * failing the task, because the corpus may legitimately cite a reference that no longer resolves.
+ *
+ * <p>A closed reference is reported with the disposition the GitHub API returns beside its closed date, so a duplicate
+ * or a declined closure reads differently from a completed one.
  */
 abstract class UpstreamReferencesTask : DefaultTask() {
 
@@ -76,7 +79,7 @@ abstract class UpstreamReferencesTask : DefaultTask() {
         }
     }
 
-    /** Resolves one reference's state (`open`, `closed YYYY-MM-DD`, or `unresolved`). */
+    /** Resolves one reference's state; the rendered vocabulary is [UpstreamReferenceState]'s. */
     private fun resolveState(repo: String, number: String): String {
         val gh = ghCli()
         if (gh.isEmpty()) {
@@ -85,22 +88,13 @@ abstract class UpstreamReferencesTask : DefaultTask() {
         val output = java.io.ByteArrayOutputStream()
         runCatching {
             execOperations.exec {
-                commandLine(gh, "api", "repos/$repo/issues/$number", "--jq", ".state + \" \" + (.closed_at // \"\")")
+                commandLine(gh, "api", "repos/$repo/issues/$number", "--jq", UpstreamReferenceState.QUERY)
                 standardOutput = output
                 errorOutput = java.io.ByteArrayOutputStream()
                 isIgnoreExitValue = true
             }
         }
-        val text = output.toString().trim()
-        if (text.isBlank()) {
-            return "unresolved"
-        }
-        val parts = text.split(" ", limit = 2)
-        return when (parts[0]) {
-            "open" -> "open"
-            "closed" -> "closed ${parts.getOrElse(1) { "" }.take(10)}".trim()
-            else -> "unresolved"
-        }
+        return UpstreamReferenceState.parse(output.toString())
     }
 
     /**

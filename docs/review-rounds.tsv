@@ -1109,3 +1109,12 @@
 2026-10-25	document-java-version-selector	6	-	-	0	ses_e8d7320d3ffeWR6KG3fm89zVAV	continued	-
 2026-10-25	bump-buildpacks-2026-10-25	1	wording,missing-task	-	1	ses_e8d33ab12ffeubAsC734n98rUo	created	-
 2026-10-25	bump-buildpacks-2026-10-25	2	-	-	0	ses_e8d33ab12ffeubAsC734n98rUo	continued	-
+2026-10-25	carry-closure-disposition-in-upstream-report	1	over-claim,claim-missing,claim-unreproducible,formatting,missing-task	-	4	ses_e8d311a73ffeB2w7Zo9vwX6rch	created	-
+2026-10-25	carry-closure-disposition-in-upstream-report	2	claim-missing,claim-unreproducible	claim-missing,claim-unreproducible	2	ses_e8d311a73ffeB2w7Zo9vwX6rch	continued	-
+2026-10-25	carry-closure-disposition-in-upstream-report	3	formatting	formatting	1	ses_e8d311a73ffeB2w7Zo9vwX6rch	continued	-
+2026-10-25	carry-closure-disposition-in-upstream-report	4	-	-	0	ses_e8d311a73ffeB2w7Zo9vwX6rch	continued	-
+2026-10-25	carry-closure-disposition-in-upstream-report	5	claim-unreproducible,over-claim,wording	claim-unreproducible,over-claim	2	ses_e8d311a73ffeB2w7Zo9vwX6rch	continued	-
+2026-10-25	carry-closure-disposition-in-upstream-report	6	claim-unreproducible	claim-unreproducible	1	ses_e8d311a73ffeB2w7Zo9vwX6rch	continued	-
+2026-10-25	carry-closure-disposition-in-upstream-report	7	-	-	0	ses_e8d311a73ffeB2w7Zo9vwX6rch	continued	-
+2026-10-25	carry-closure-disposition-in-upstream-report	8	claim-unreproducible	claim-unreproducible	1	ses_e8d311a73ffeB2w7Zo9vwX6rch	continued	-
+2026-10-25	carry-closure-disposition-in-upstream-report	9	-	-	0	ses_e8d311a73ffeB2w7Zo9vwX6rch	continued	-

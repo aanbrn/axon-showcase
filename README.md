@@ -984,8 +984,9 @@ and buildpack coordinate that has a newer version — observational, never a mer
 
 `.github/workflows/upstream-references.yml` runs the upstream-reference check (`upstreamReferences`) on a weekly
 schedule and via `workflow_dispatch`, opening or updating the "Upstream references" issue with each `owner/repo#NNN`
-reference the durable artifacts cite, its state (open / closed / unresolved), and where it is cited — so a closure is
-surfaced as a trigger to check rather than declared actionable — observational, never a merge gate.
+reference the durable artifacts cite, its state (open / closed with the closure reason the API reports / unresolved),
+and where it is cited — so a closure is surfaced as a trigger to check rather than declared actionable, and a duplicate
+or a declined closure reads differently from a completed one — observational, never a merge gate.
 
 `.github/workflows/release.yml` cuts a release: dispatch it from `main` with a version (e.g. `0.1.0`), and it builds the
 five service images, publishes them to the GitHub Container Registry (`ghcr.io/aanbrn/axon-showcase-*`, tagged with the

@@ -317,15 +317,6 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   delta and a control, and its set is derived from the workflows' own `./gradlew` invocations, so a newly added
   workflow-invoked task joins it by construction.
 
-- Carry a closed reference's disposition in the `upstreamReferences` report — parked; no change yet.
-  `UpstreamReferencesTask` renders a row as `open` / `closed YYYY-MM-DD` / `unresolved`, so a closure's _kind_ is
-  invisible: `warpdotdev/warp#6320` closed as a duplicate of the still-open `#5550`, yet its row reads exactly like a
-  fix closure. The API already returns `state_reason`, so the detection costs one field in the task's `--jq` and one in
-  the rendered row (`closed (duplicate) 2026-03-27`) — surfacing the disposition for the reader rather than leaving it
-  to be re-derived per reference. Parked rather than built: it needs a `MODIFIED` delta on the `merge-governance`
-  requirement that owns the report's state vocabulary, and the _action_ half (what a duplicate closure means for a note)
-  is a rule, not a report — the two are not duplicates of each other.
-
 - Draft the pull-request body before the pre-write derivation pass — parked; no change yet. A unit with no change dir
   carries its claims table and capture record "on the pull-request checklist line", but that line exists only once the
   body is drafted — so the pass is stated before its record has a home, and the quick review reports the missing record

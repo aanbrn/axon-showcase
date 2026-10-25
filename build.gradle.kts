@@ -520,10 +520,13 @@ tasks.register<Exec>("testClaimScan") {
 
 tasks.register<Exec>("testDoctorCharter") {
     group = "verification"
-    description = "Asserts the doctor's declared probes, their shape, and that the doctor reports each one"
+    description =
+        "Asserts the doctor's declared probes, their shape, the reported set, the floor grammar and comparison, and " +
+            "the README and workflow agreements"
     inputs.file("scripts/doctor.sh")
     inputs.file("scripts/test-doctor.sh")
     inputs.file("README.md")
+    inputs.file(".github/workflows/ci.yml")
     outputs.upToDateWhen { false }
     commandLine(shExecutable, "scripts/test-doctor.sh")
 }

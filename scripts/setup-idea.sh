@@ -7,7 +7,7 @@ set -euo pipefail
 # drifted (never applied cleanly, or IntelliJ overwrote it). Applying the configuration needs neither the launcher
 # nor a closed IDE — only the plugin install does, so a running (or missing) IDE skips just that step.
 # Usage: ./scripts/setup-idea.sh [path/to/idea-launcher]
-# Requires Python 3 (for the settings merge) and a Gradle-compatible JDK on PATH.
+# Requires Python 3.12+ (the build's declared minimum, for the settings merge) and a Gradle-compatible JDK on PATH.
 
 PLUGIN_IDS=("palantir-java-format" "com.facebook.ktfmt_idea_plugin")
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -50,13 +50,16 @@ nothing.
   initial tests (valid / truncated / two-malformed / no-files) never covered either class, so both gaps passed the suite
   and surfaced only from the live known-bad control (zeroing the file, then appending a trailing byte) — caught and
   fixed before the gate shipped, not by the tests. Before trusting a parse-as-validation gate, enumerate the input
-  classes it must reject (empty, blank, trailing content, a second document) and exercise each. For a regex-based gate,
-  find those classes with a **mutation battery** over the pattern's branches — mutate each branch (a character class, a
-  quantifier, a trailing delimiter) and read which fixtures flip verdict: a branch whose mutation flips no fixture is
-  unexercised, so add the discriminating fixture rather than one fixture per review round. A surviving branch no live
-  input can reach is not a gap but an accepted surface (see the deliberately conservative check bullet) — record the
-  equivalence and the inputs that make it unreachable, rather than closing it, since the fixture would test the
-  pattern's grammar, not the check's behaviour. captured: validate-dashboard-json captured: verify-documented-pins
+  classes it must reject (empty, blank, trailing content, a second document) and exercise each. For a rule-based gate —
+  a regex, a shell `case` glob, or a numeric comparison — find those classes with a **mutation battery** over the rule's
+  branches (a character class, a quantifier, a trailing delimiter, a comparison operator) and read which fixtures flip
+  verdict: a branch whose mutation flips no fixture is unexercised, so add the discriminating fixture rather than one
+  fixture per review round. Enumerate the fixtures at the rule's boundaries — the longest accepted form and one
+  component past it (`3.12.0`, `3.12.` for a `major[.minor]` grammar) — and name, per case, the mutation that flips it.
+  A surviving branch no live input can reach is not a gap but an accepted surface (see the deliberately conservative
+  check bullet) — record the equivalence and the inputs that make it unreachable, rather than closing it, since the
+  fixture would test the rule's grammar, not the check's behaviour. captured: validate-dashboard-json captured:
+  verify-documented-pins captured: adopt-python-3-12-minimum
 
 ## The control must perturb the surface the check actually reads
 

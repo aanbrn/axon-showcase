@@ -1087,3 +1087,17 @@
 2026-10-25	fix-advisor-worktree-read	11	-	-	0	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
 2026-10-25	fix-advisor-worktree-read	12	-	-	0	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
 2026-10-25	fix-advisor-worktree-read	13	-	-	0	ses_e8e90251cffeqBwS1q7n8IjDLP	continued	-
+2026-10-25	adopt-python-3-12-minimum	1	premise,over-claim,impact-omission,missing-task,claim-missing,wording	-	6	ses_e8ea7e4afffe2mbXd8M5YomDvN	created	-
+2026-10-25	adopt-python-3-12-minimum	2	premise,claim-unreproducible	premise	4	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
+2026-10-25	adopt-python-3-12-minimum	3	claim-unreproducible,claim-missing,premise,wording	claim-unreproducible,claim-missing,premise,wording	3	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
+2026-10-25	adopt-python-3-12-minimum	4	incomplete-enumeration,claim-missing,formatting	claim-missing	5	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
+2026-10-25	adopt-python-3-12-minimum	5	claim-missing,claim-unreproducible	claim-missing,claim-unreproducible	2	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
+2026-10-25	adopt-python-3-12-minimum	6	formatting	formatting	1	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
+2026-10-25	adopt-python-3-12-minimum	7	-	-	0	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
+2026-10-25	adopt-python-3-12-minimum	8	test-control,docs-residue,incomplete-enumeration,formatting	formatting,incomplete-enumeration	3	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
+2026-10-25	adopt-python-3-12-minimum	9	test-control	test-control	1	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
+2026-10-25	adopt-python-3-12-minimum	10	test-control	test-control	1	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
+2026-10-25	adopt-python-3-12-minimum	11	-	-	0	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
+2026-10-25	adopt-python-3-12-minimum	12	contradiction,formatting,wording,docs-residue	formatting,wording,docs-residue	5	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
+2026-10-25	adopt-python-3-12-minimum	13	docs-residue	docs-residue	1	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-
+2026-10-25	adopt-python-3-12-minimum	14	-	-	0	ses_e8ea7e4afffe2mbXd8M5YomDvN	continued	-

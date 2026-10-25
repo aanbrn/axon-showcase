@@ -25,6 +25,11 @@ detail across two sections.
   the title from the event payload — and its justification is drift rather than the rule's absence: add it when merged
   titles repeatedly leave the shape, where the pull-request list, the squash subject, and the generated release notes
   are the surfaces that would show it.
+- Assert per platform that the doctor's install hint agrees with the README's Prerequisites column: the spec already
+  requires the agreement and `test-doctor.sh` asserts only that a hint exists, so the check plus the wording
+  reconciliation across the probe set — parked; no change yet.
+- Classify `actionlint` as a required probe in the doctor, with its required-set assertion and the spec example: it is
+  optional today although `check`'s `workflowLint` needs it — parked; no change yet.
 
 - Add a markdown table-integrity check to `commit-hygiene.py` — parked; no change yet. A table row wrapped onto a second
   line becomes a spurious row, and Prettier treats that as its fixpoint, so `spotlessCheck` stays green: reproduced with

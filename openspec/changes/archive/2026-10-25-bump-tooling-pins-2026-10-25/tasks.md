@@ -76,7 +76,8 @@ writer=ses_e8d476658ffep4lI2e5U7jH5gj.
       review (3.6): `AGENTS.md` is back at `HEAD` (net 0), and only the command's step 7 ships, pointing at the standing
       2026-09-30 `docs/ideas.md` condition. Applied net delta: `git diff --numstat AGENTS.md` has no entry, and the
       command gains 4 lines. No retirement: the config-guard entry stays live, which 1.5 records.
-- [ ] 3.5 Ask the owner for the manual review pass; commit and push only after approval.
+- [x] 3.5 Ask the owner for the manual review pass; commit and push only after approval. **Done**: the owner
+      approved on 2026-10-25, and the change ships as PR #690, whose dispatched Snyk run is recorded on 4.1/4.2.
 - [x] 3.6 Consult the `technical-advisor` on the shipping scope and apply its recommendation. **Done**: its report
       recommended keeping one PR but narrowing the capture: it measured the promotion threshold against both gate
       branches and found it unestablished on the available materials (one record silent while the one before it ran the

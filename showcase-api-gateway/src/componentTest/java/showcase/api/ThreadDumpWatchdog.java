@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 package showcase.api;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.concurrent.ScheduledFuture;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import lombok.val;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
@@ -19,7 +21,12 @@ import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
  * request was waiting for. This extension takes bounded snapshots during the test instead — at 3 seconds and then every
  * 7 seconds — so the next occurrence of the gateway controller suites' CI-only stall names the thread that lost the
  * completion while it is still parked. A test that finishes inside 3 seconds emits nothing, so a green run pays only
- * the scheduled task's creation.
+ * the scheduled task's creation, and the watchdog thread is a daemon so a stuck test can never keep the test JVM alive.
+ *
+ * <p>The snapshot comes from `jcmd Thread.dump_to_file` because this application enables virtual threads
+ * (`spring.threads.virtual.enabled`), which `Thread.getAllStackTraces()` does not return at all — a snapshot built from
+ * it reports an idle JVM while the request sits on a virtual thread. The platform-thread dump stays as the fallback for
+ * a JVM without a `jcmd` next to its `java` binary.
  *
  * <p>Registered by JUnit's extension autodetection (the `Extension` service file in this source set beside
  * `ThreadDumpOnFailure`), so it observes every test in the suite rather than only the classes that name it. Both hooks
@@ -33,6 +40,9 @@ public class ThreadDumpWatchdog implements InvocationInterceptor {
 
     /** Seconds between the snapshots that follow the first one. */
     private static final long FOLLOW_UP_SECONDS = 7;
+
+    /** Seconds the external dump command may take before it is abandoned. */
+    private static final long DUMP_COMMAND_TIMEOUT_SECONDS = 15;
 
     @Override
     public void interceptTestMethod(
@@ -61,31 +71,105 @@ public class ThreadDumpWatchdog implements InvocationInterceptor {
      */
     private static void runWithWatchdog(Invocation<Void> invocation, ExtensionContext extensionContext)
             throws Throwable {
-        ScheduledThreadPoolExecutor watchdog =
-                new ScheduledThreadPoolExecutor(1, runnable -> new Thread(runnable, "thread-dump-watchdog"));
-        watchdog.setRemoveOnCancelPolicy(true);
-        String testName = extensionContext.getDisplayName();
-        ScheduledFuture<?> snapshots = watchdog.scheduleAtFixedRate(
-                () -> dumpThreads(testName), FIRST_DUMP_SECONDS, FOLLOW_UP_SECONDS, TimeUnit.SECONDS);
-        try {
-            invocation.proceed();
-        } finally {
-            snapshots.cancel(true);
-            watchdog.shutdownNow();
+        try (val watchdog = new ScheduledThreadPoolExecutor(1, runnable -> {
+            val thread = new Thread(runnable, "thread-dump-watchdog");
+            thread.setDaemon(true);
+            return thread;
+        })) {
+            watchdog.setRemoveOnCancelPolicy(true);
+            val testName = extensionContext.getDisplayName();
+            val snapshots = watchdog.scheduleAtFixedRate(
+                    () -> dumpThreads(testName), FIRST_DUMP_SECONDS, FOLLOW_UP_SECONDS, TimeUnit.SECONDS);
+            try {
+                invocation.proceed();
+            } finally {
+                snapshots.cancel(true);
+                watchdog.shutdownNow();
+            }
         }
     }
 
     /**
-     * Prints every thread's state and stack trace, tagged with the test it was observed in.
+     * Prints a snapshot of every thread, preferring the external dump that also covers virtual threads.
      *
      * @param testName the display name of the test that is still running
      */
     private static void dumpThreads(String testName) {
-        System.err.println("=== thread dump while running: " + testName + " ===");
-        Map<Thread, StackTraceElement[]> threads = Thread.getAllStackTraces();
+        val degradation = printVirtualThreadAwareDump();
+        if (degradation == null) {
+            System.err.println("=== thread dump while running (virtual threads included): " + testName + " ===");
+        } else {
+            System.err.println("=== thread dump while running (platform threads only, the snapshot is INCOMPLETE: "
+                    + degradation + "): " + testName + " ===");
+            printPlatformThreadDump();
+        }
+    }
+
+    /**
+     * Prints the JVM's own thread dump, which includes virtual threads, by running this JDK's `jcmd`.
+     *
+     * @return {@code null} when the dump was printed, otherwise why the snapshot is incomplete
+     */
+    private static String printVirtualThreadAwareDump() {
+        val jcmd = Path.of(System.getProperty("java.home"), "bin", "jcmd");
+        if (!Files.isExecutable(jcmd)) {
+            return "no jcmd at " + jcmd;
+        }
+        Path dumpDirectory = null;
+        Process process = null;
+        try {
+            dumpDirectory = Files.createTempDirectory("thread-dump-watchdog-");
+            // jcmd refuses to overwrite an existing file, so the path is named inside a fresh directory.
+            val dumpFile = dumpDirectory.resolve("dump.txt");
+            process = new ProcessBuilder(
+                            jcmd.toString(),
+                            Long.toString(ProcessHandle.current().pid()),
+                            "Thread.dump_to_file",
+                            "-format=text",
+                            dumpFile.toString())
+                    .redirectErrorStream(true)
+                    .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                    .start();
+            if (!process.waitFor(DUMP_COMMAND_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                return "jcmd produced no dump within " + DUMP_COMMAND_TIMEOUT_SECONDS + "s";
+            }
+            if (process.exitValue() != 0) {
+                return "jcmd exited " + process.exitValue();
+            }
+            val dump = Files.readString(dumpFile);
+            if (dump.isBlank()) {
+                return "jcmd wrote an empty dump";
+            }
+            System.err.print(dump);
+            return null;
+        } catch (InterruptedException cancelled) {
+            // A slow test's snapshot must not outlive it: the child is killed, then the interrupt is restored.
+            if (process != null) {
+                process.destroyForcibly();
+            }
+            Thread.currentThread().interrupt();
+            return "the snapshot was cancelled";
+        } catch (IOException failure) {
+            return "jcmd failed: " + failure;
+        } finally {
+            if (dumpDirectory != null) {
+                try {
+                    Files.deleteIfExists(dumpDirectory.resolve("dump.txt"));
+                    Files.deleteIfExists(dumpDirectory);
+                } catch (IOException ignored) {
+                    // A leftover temp directory is not worth failing a diagnostic over.
+                }
+            }
+        }
+    }
+
+    /** Prints the platform threads, the only threads `Thread.getAllStackTraces()` exposes. */
+    private static void printPlatformThreadDump() {
+        val threads = Thread.getAllStackTraces();
         threads.forEach((thread, stack) -> {
             System.err.println(thread.getName() + " [" + thread.getState() + "]");
-            for (StackTraceElement element : stack) {
+            for (val element : stack) {
                 System.err.println("    at " + element);
             }
         });

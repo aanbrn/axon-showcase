@@ -1060,3 +1060,12 @@
 2026-10-25	fix-gradle-build-pack-cross-reference	8	missing-task	-	1	ses_e8eb854b1ffe1o01r9SIoeNyjZ	continued	-
 2026-10-25	fix-gradle-build-pack-cross-reference	9	-	-	0	ses_e8eb854b1ffe1o01r9SIoeNyjZ	continued	-
 2026-10-25	fix-gradle-build-pack-cross-reference	10	-	-	0	ses_e8eb854b1ffe1o01r9SIoeNyjZ	continued	-
+2026-10-25	override-opencode-plugin-transitives	1	over-claim,premise,contradiction,missing-task,structured-writing	-	4	ses_e8ed4328cffegR0VJr60aK6X7T	created	-
+2026-10-25	override-opencode-plugin-transitives	2	missing-task,over-claim,incomplete-enumeration,coherence,structured-writing	missing-task,structured-writing	5	ses_e8ed4328cffegR0VJr60aK6X7T	continued	-
+2026-10-25	override-opencode-plugin-transitives	3	missing-task,premise	missing-task,premise	2	ses_e8ed4328cffegR0VJr60aK6X7T	continued	-
+2026-10-25	override-opencode-plugin-transitives	4	missing-task,wording	missing-task	1	ses_e8ed4328cffegR0VJr60aK6X7T	continued	-
+2026-10-25	override-opencode-plugin-transitives	5	wording	wording	0	ses_e8ed4328cffegR0VJr60aK6X7T	continued	-
+2026-10-25	override-opencode-plugin-transitives	6	-	-	0	ses_e8ed4328cffegR0VJr60aK6X7T	continued	-
+2026-10-25	override-opencode-plugin-transitives	7	wording,missing-task	wording,missing-task	1	ses_e8ed4328cffegR0VJr60aK6X7T	continued	-
+2026-10-25	override-opencode-plugin-transitives	8	missing-task	missing-task	1	ses_e8ed4328cffegR0VJr60aK6X7T	continued	-
+2026-10-25	override-opencode-plugin-transitives	9	-	-	0	ses_e8ed4328cffegR0VJr60aK6X7T	continued	-

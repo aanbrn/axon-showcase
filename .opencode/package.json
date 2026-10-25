@@ -4,5 +4,9 @@
   },
   "allowScripts": {
     "msgpackr-extract@3.0.4": true
+  },
+  "overrides": {
+    "toml": "5.0.1",
+    "zod": "4.6.7"
   }
 }

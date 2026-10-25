@@ -51,13 +51,22 @@ detail across two sections.
   attribution names the commit or change with the search that found it (`git log -S`), or is marked a hypothesis. The
   route is a change with a `MODIFIED` delta on `showcase/quality/agent-skills`' report-item requirement and the auditor
   definitions; surfaced during `fix-gradle-build-pack-cross-reference`.
+- Re-check `.opencode/package.json`'s `toml`/`zod` overrides once `@opencode-ai/plugin` publishes a graph with no
+  vulnerable `toml` (resolved at ≥ 5.0.1, or dropped) and `zod` ≥ 4.6.6 — parked; no change yet. The plugin pins
+  `effect` 4.0.0-beta.83 (which declares `toml: ^4.1.1`) and `zod` 4.1.8 exactly, so the overrides force patched
+  releases, and the gap is not reported upstream (the `AGENTS.md` venue rule records why). Decide with a probe:
+  1. install the current plugin **without** the overrides in a throwaway directory;
+  2. run `npm ls toml zod` and `npm audit` there;
+  3. if that graph is clean and the condition holds, drop the `toml`/`zod` entries from `.opencode/package.json`.
 
 ## 2026-10-24
 
 - Add a pre-commit ledger guard for the review-round checks — parked; no change yet. `commit-hygiene.py --staged` runs
   the staged-set checks but not `--unique-rounds`/`--session-continuity`, so a mis-transitioned ledger row reaches CI
   (it happened twice: #670 and `projector-operability`). The guard is the natural hook; the rule lives in the
-  review-gate checkpoint.
+  review-gate checkpoint. It should also refuse a staged `docs/review-rounds.tsv` diff that **removes** a data row: the
+  ledger is append-only by contract, and contiguity passes over a silent deletion of another unit's rows — the shape a
+  base refresh produces when the diff is re-applied against the wrong base.
 
 - Harden the `Recreate` upgrade against a foreign-owned `rollingUpdate` — parked; no change yet. The chart's
   `rollingUpdate: null` converts a Deployment the Helm release itself owns, but a live Deployment whose

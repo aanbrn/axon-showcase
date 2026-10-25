@@ -95,7 +95,8 @@ Source: `AGENTS.md` "Workflow: The review gate".
    - **Run** — `review-quick` against the change's planning artifacts: for the proposal round, the
      proposal/design/tasks/spec-delta coherence and repo fit; for the implementation round, the tasks and delta spec.
      For a capture, supply the existing rules each proposal names (or its statement that none covers it), the round rows
-     and the change record, and the `lesson-capture` definition where its gate is checked.
+     and each round's findings — a row's class label cannot show a recurrence's shared cause — and the change record,
+     and the `lesson-capture` definition where its gate is checked. captured: override-opencode-plugin-transitives
    - Append each round's row with the session fields `docs/review-rounds.tsv` declares — the identifier, the transition,
      and a replacement's reason — supplying the identifier the invocation returned, never an invented one; an omission
      fails `verifyReviewSessionContinuity`. captured: track-review-session-continuity

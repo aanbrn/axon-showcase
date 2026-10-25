@@ -169,9 +169,13 @@ leading-integer major comparison.
   7.2.0 → 5.4.0, breaking the FSD boundary lint), because the plugin and `@boundaries/elements` then pinned
   `handlebars: "4.7.9"` exactly; `overrides` forced the patched `4.7.10` under them instead. A suppression
   (`npm-audit-ignores.json`) is for an advisory with no fix — the `dependency-security` spec owns that policy — and
-  unlike one the override carries no expiry, so park its re-check in `docs/ideas.md` and derive the retrigger from the
-  resolved graph: every package that pins the vulnerable version must bump before it is dropped. Verify the override
-  took effect with `npm ls <pkg>` (the patched version resolves). captured: bump-web-ui-npm-2026-10-22
+  unlike one the override carries no expiry, so record its re-check where a sweep reads it: with an upstream report, a
+  `retires when` clause beside its `owner/repo#NNN` reference in a file `upstreamReferences` scans (that report fires on
+  the reference, not on the clause); without one, a parked entry in `docs/ideas.md`. Either way derive the retrigger
+  from the resolved graph, since a pinning package may raise its range or drop the dependency outright (`effect` dropped
+  `toml`, never bumped it), so state it as no resolution reaching a vulnerable range. Verify the override took effect
+  with `npm ls <pkg>` (the patched version resolves). captured: bump-web-ui-npm-2026-10-22 captured:
+  override-opencode-plugin-transitives
 
 - **A build tool's own vulnerable transitive does not reach the platform BOM, and a tool configuration that rejects a
   platform project is aligned with a dependency constraint instead.** The platform's `constraints` reach the

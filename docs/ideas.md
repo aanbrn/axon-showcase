@@ -59,6 +59,15 @@ detail across two sections.
   2. run `npm ls toml zod` and `npm audit` there;
   3. if that graph is clean and the condition holds, drop the `toml`/`zod` entries from `.opencode/package.json`.
 
+- Extend `scripts/claim-scan.py`'s absolute-quantifier pattern to the absence forms the rule names — parked; no change
+  yet. Review-gate stage 1 names the absence form `no`/`none`/`nothing`, while `ABSOLUTE` matches
+  `only|every|all|never|always|none` (`scripts/claim-scan.py:37`), so `no` and `nothing` never surface. Reproduced
+  during `record-2026-10-24-audit-disposition` on its appended section: the line "nothing is parked for it" yields no
+  candidate at all, and "no finding reduced `AGENTS.md`" yields only its `[path] AGENTS.md` — no absolute — so each such
+  claim row needs the author to notice it unaided. Widen the pattern with one test per added form beside
+  `test_an_absolute_quantifier_is_reported` (`scripts/test-claim-scan.py`) and re-measure the noise a widened pattern
+  adds to a real guidance diff before committing it.
+
 ## 2026-10-24
 
 - Add a pre-commit ledger guard for the review-round checks — parked; no change yet. `commit-hygiene.py --staged` runs
@@ -570,11 +579,14 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   test-coverage clause; widening it needs a REMOVED+ADDED retitle, since a `MODIFIED` block cannot rename a requirement
   header.
 
-- Carry findings forward across audit reports — parked; no change yet. The reports under `docs/audits/` are write-only:
-  a finding recurs run after run with nothing to say it is the same unapplied item, and the recorded smoke-run lesson is
-  that "the archived run's note is never swept again". Have the verdict name which items also appear in the newest prior
-  report and remain unapplied, so the report ages into a backlog. Routes to the `agents-auditor` definition, its report
-  contract, and the `/audit-agents` command's read-list.
+- Carry findings forward across audit reports — parked; no change yet. The reports under `docs/audits/` have been
+  write-only: a finding recurs run after run with nothing to say it is the same unapplied item, and the recorded
+  smoke-run lesson is that "the archived run's note is never swept again". Have the verdict name which items also appear
+  in the newest prior report and remain unapplied, so the report ages into a backlog. Routes to the `agents-auditor`
+  definition, its report contract, and the `/audit-agents` command's read-list. `docs/audits/2026-10-24.md` now ends
+  with a manual `## Disposition` section — each finding's applying PR, and the extraction opportunity rejected with its
+  reason — so that report no longer reads as write-only; the mechanism stays wanted because the check is still the
+  author's manual look-back, and a later report can regress to write-only silently.
 
 - Sharpen route-candidate verification the way merge candidates were sharpened — parked; no change yet. Merge candidates
   got the target-verification rule (#366) only after a false delegation dropped identifiers; route candidates (added

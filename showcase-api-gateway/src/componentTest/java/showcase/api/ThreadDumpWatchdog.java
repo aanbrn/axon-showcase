@@ -95,25 +95,28 @@ public class ThreadDumpWatchdog implements InvocationInterceptor {
      * @param testName the display name of the test that is still running
      */
     private static void dumpThreads(String testName) {
-        val degradation = printVirtualThreadAwareDump();
-        if (degradation == null) {
+        val snapshot = renderVirtualThreadAwareDump();
+        if (snapshot.cancelled()) {
+            return;
+        }
+        if (snapshot.incomplete() == null) {
             System.err.println("=== thread dump while running (virtual threads included): " + testName + " ===");
         } else {
             System.err.println("=== thread dump while running (platform threads only, the snapshot is INCOMPLETE: "
-                    + degradation + "): " + testName + " ===");
-            printPlatformThreadDump();
+                    + snapshot.incomplete() + "): " + testName + " ===");
         }
+        System.err.print(snapshot.dump());
     }
 
     /**
-     * Prints the JVM's own thread dump, which includes virtual threads, by running this JDK's `jcmd`.
+     * Renders the JVM's own thread dump, which includes virtual threads, by running this JDK's `jcmd`.
      *
-     * @return {@code null} when the dump was printed, otherwise why the snapshot is incomplete
+     * @return the dump and, when it is incomplete, why — or a cancelled result when the test ended mid-snapshot
      */
-    private static String printVirtualThreadAwareDump() {
+    private static Snapshot renderVirtualThreadAwareDump() {
         val jcmd = Path.of(System.getProperty("java.home"), "bin", "jcmd");
         if (!Files.isExecutable(jcmd)) {
-            return "no jcmd at " + jcmd;
+            return Snapshot.platformOnly("no jcmd at " + jcmd);
         }
         Path dumpDirectory = null;
         Process process = null;
@@ -132,26 +135,25 @@ public class ThreadDumpWatchdog implements InvocationInterceptor {
                     .start();
             if (!process.waitFor(DUMP_COMMAND_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
                 process.destroyForcibly();
-                return "jcmd produced no dump within " + DUMP_COMMAND_TIMEOUT_SECONDS + "s";
+                return Snapshot.platformOnly("jcmd produced no dump within " + DUMP_COMMAND_TIMEOUT_SECONDS + "s");
             }
             if (process.exitValue() != 0) {
-                return "jcmd exited " + process.exitValue();
+                return Snapshot.platformOnly("jcmd exited " + process.exitValue());
             }
             val dump = Files.readString(dumpFile);
             if (dump.isBlank()) {
-                return "jcmd wrote an empty dump";
+                return Snapshot.platformOnly("jcmd wrote an empty dump");
             }
-            System.err.print(dump);
-            return null;
+            return Snapshot.complete(dump);
         } catch (InterruptedException cancelled) {
             // A slow test's snapshot must not outlive it: the child is killed, then the interrupt is restored.
             if (process != null) {
                 process.destroyForcibly();
             }
             Thread.currentThread().interrupt();
-            return "the snapshot was cancelled";
+            return Snapshot.cancelledSnapshot();
         } catch (IOException failure) {
-            return "jcmd failed: " + failure;
+            return Snapshot.platformOnly("jcmd failed: " + failure);
         } finally {
             if (dumpDirectory != null) {
                 try {
@@ -164,14 +166,41 @@ public class ThreadDumpWatchdog implements InvocationInterceptor {
         }
     }
 
-    /** Prints the platform threads, the only threads `Thread.getAllStackTraces()` exposes. */
-    private static void printPlatformThreadDump() {
+    /** Renders the platform threads, the only threads `Thread.getAllStackTraces()` exposes. */
+    private static String renderPlatformThreadDump() {
+        val rendered = new StringBuilder();
         val threads = Thread.getAllStackTraces();
         threads.forEach((thread, stack) -> {
-            System.err.println(thread.getName() + " [" + thread.getState() + "]");
+            rendered.append(thread.getName())
+                    .append(" [")
+                    .append(thread.getState())
+                    .append("]\n");
             for (val element : stack) {
-                System.err.println("    at " + element);
+                rendered.append("    at ").append(element).append('\n');
             }
         });
+        return rendered.toString();
+    }
+
+    /**
+     * One snapshot outcome: the rendered threads, why it is incomplete when it is, and whether it was cancelled.
+     *
+     * @param dump the rendered thread dump
+     * @param incomplete the reason the dump lacks virtual threads, or {@code null} when it is complete
+     * @param cancelled whether the test ended before the snapshot could be taken, in which case nothing is printed
+     */
+    private record Snapshot(String dump, String incomplete, boolean cancelled) {
+
+        static Snapshot complete(String dump) {
+            return new Snapshot(dump, null, false);
+        }
+
+        static Snapshot platformOnly(String reason) {
+            return new Snapshot(renderPlatformThreadDump(), reason, false);
+        }
+
+        static Snapshot cancelledSnapshot() {
+            return new Snapshot("", null, true);
+        }
     }
 }

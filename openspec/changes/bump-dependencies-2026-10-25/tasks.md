@@ -89,11 +89,12 @@ branch=bump-dependencies-2026-10-25; writer=ses_e8d4a9bbeffeOGf9vlyJH9zD70.
       **Done**: `ThreadDumpWatchdog` (component-test source set, registered by autodetection beside
       `ThreadDumpOnFailure`) snapshots every thread while a test runs — at 3 s, then every 7 — and emits nothing for a
       test that finishes sooner, so the suites stay quiet on green. The next failing CI run's
-      `=== thread dump while running: … ===` marker is the data that names what the request waited for; reading it stays
-      with the parked defect, which this unit leaves open. **Controls**: a temporary probe (not committed) emitted one
-      marker for a 5 s plain `@Test` and one for a 5 s `@ParameterizedTest` case, and none for a 20 ms case; the three
-      suites run with the watchdog registered emit no marker and stay green — the passing-run case; cancellation rests
-      on the code read (`cancel` + `shutdownNow` in a `finally`), not on an assertion.
+      `=== thread dump while running (virtual threads included): … ===` marker is the data that names what the request
+      waited for, and a `(platform threads only, the snapshot is INCOMPLETE: …)` header says the snapshot degraded and
+      why; reading it stays with the parked defect, which this unit leaves open. **Controls**: a temporary probe (not
+      committed) emitted one marker for a 5 s plain `@Test` and one for a 5 s `@ParameterizedTest` case, and none for a
+      20 ms case; the three suites run with the watchdog registered emit no marker and stay green — the passing-run
+      case; cancellation rests on the code read (`cancel` + `shutdownNow` in a `finally`), not on an assertion.
 - [ ] 2.12 Publish the upstream report only on the technical advisor's verdict. The draft is complete and its
       attribution corrected, but publication is an outward-facing act: the owner requires the advisor's final verdict
       (publish or not) before the issue is filed, and the issue number is then cited here and in `docs/ideas.md`.

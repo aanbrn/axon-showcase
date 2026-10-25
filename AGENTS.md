@@ -143,14 +143,15 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   branch, a standalone fix, and a docs PR alike. Branching from a work branch silently carries its commits into the new
   PR (a fix PR ended up shipping a change's commit history); recover by rebasing `--onto origin/main` and force-pushing,
   then verify the PR's changed-file set is the intended one. Create the branch with `--no-track`
-  (`git switch -c <name> --no-track origin/main`; `git worktree add -b <name> <path> origin/main` takes the same flag),
-  or push its first time with `git push -u origin <branch>`. A plain `git checkout -b <name> origin/main` silently makes
-  `origin/main` the new branch's upstream (`branch.autoSetupMerge`), so a later bare `git push` refuses with "The
-  upstream branch of your current branch does not match the name of your current branch" — fix it with
-  `git push -u origin <branch>`, which repoints it, or `git branch --unset-upstream`. When the local branch is not named
-  after the remote branch it must update — completing an agent's `opencode/…` PR from a differently-named checkout —
-  push with an explicit refspec (`git push origin HEAD:<remote-branch>`); the `git push -u origin <branch>` remedy would
-  open a second branch and leave the PR without the commit. captured: park-git-worktree-idea
+  (`git switch -c <name> --no-track origin/main`; a worktree creation takes the same flag, and its command is the
+  **Workspace** rule's in "Workflow: Change lifecycle"), or push its first time with `git push -u origin <branch>`. A
+  plain `git checkout -b <name> origin/main` silently makes `origin/main` the new branch's upstream
+  (`branch.autoSetupMerge`), so a later bare `git push` refuses with "The upstream branch of your current branch does
+  not match the name of your current branch" — fix it with `git push -u origin <branch>`, which repoints it, or
+  `git branch --unset-upstream`. When the local branch is not named after the remote branch it must update — completing
+  an agent's `opencode/…` PR from a differently-named checkout — push with an explicit refspec
+  (`git push origin HEAD:<remote-branch>`); the `git push -u origin <branch>` remedy would open a second branch and
+  leave the PR without the commit. captured: park-git-worktree-idea
 
 - **Sync the main spec only at archive.** Edit the code and the change dir's _delta_ spec; never edit the main spec
   under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the
@@ -247,7 +248,7 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   resolved graph or the artifact's own contents, never hand-enumerated from memory: a remembered inventory standing in
   for an absence claim is wrong on the members beside the ones you listed. A cost, effort, or performance claim is a
   hypothesis of the same kind and has no source in the repo but a deliberate measurement, so probe it before it drives a
-  proceed-or-skip decision: the parked `git worktree` idea carried an assumed build cost behind a conclusion that
+  proceed-or-skip decision: the then-parked `git worktree` idea carried an assumed build cost behind a conclusion that
   worktrees were not worth it for a docs-only or single-file fix, and a throwaway probe (a detached worktree from
   `main`, shared caches warm) measured the first build at a one-time ~1 minute (its Docker-free `check` ran 78s) and
   ~628M per tree, partly falsifying the premise. A cost the repository cannot yet measure is a model, not a measurement:
@@ -299,13 +300,42 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
 
 **Trigger** — you are starting, implementing, or shipping any unit of work that will become a PR.
 
+**Workspace** — one active unit per working tree; the primary checkout is a unit's tree like any linked worktree.
+
+- Establish the unit's workspace before its first write and record it as
+  `Workspace: unit=<unit>; path=<absolute-path>; branch=<branch>; writer=<session>`. The record is evidence of the
+  assignment, not its source, and it lives with the unit's own record: its `tasks.md` when it has a change dir,
+  otherwise its hand-off or report and then the pull-request checklist.
+- The primary checkout carries the sequential unit. A **new** unit that finds the primary assigned to another unit — or
+  whose ownership it cannot establish — works in a sibling worktree, `../axon-showcase-<unit>`, created from a freshly
+  fetched `origin/main` with `--no-track`, and the session moves there (`session_move`) before the first write. Create
+  it against the primary explicitly
+  (`git -C <primary> worktree add --no-track -b <unit> <primary-parent>/axon-showcase-<unit> origin/main`), not relative
+  to whatever tree the session happens to be in.
+- A unit that **continues** an existing branch or pull request — a cloud agent's `opencode/…` branch, a head pushed from
+  elsewhere — takes a tree on that existing branch (`git -C <primary> worktree add <path> <branch>`; git's DWIM creates
+  the local tracking branch when only `origin/<branch>` exists), never a new branch from `origin/main`, and never by
+  switching a primary that belongs to another unit.
+- Occupancy is read from the registry: a tree with a unit branch checked out belongs to that unit whether the tree is
+  clean or dirty and whether the branch is merged or awaiting review, and a tree with an unknown branch, a detached
+  HEAD, or evidence contradicting the registry is occupied until the owner resolves it. A clean `git status` never
+  releases a tree; no unit takes an unowned tree over or removes it, and the record gains the resolved owner.
+- The primary is released to the next sequential unit only after its unit completed (merged, or rejected by the owner),
+  no work of it remains (extra commits and unique local data included), and no writer continues; returning the tree to a
+  clean `main` is the release's last step, and a clean `git status` alone neither releases it nor proves it safe.
+- The record is how the owner reaches a sibling tree's diff, since the review pass otherwise runs against the primary
+  checkout the IDE project is attached to.
+- The session's cwd follows the workspace: after a creation or a `session_move`, verify the absolute path and branch
+  before writing. `git worktree list --porcelain` is the registry; a directory name is a hint, never the identification.
+
 **Procedure**
 
-1. Propose the change: create its artifacts (or the unit's edits) and put them on a branch named after the change,
-   created per the "Fork every new branch" invariant. Commit nothing.
+1. Propose the change in the unit's assigned working tree (see **Workspace** above): create its artifacts (or the unit's
+   edits) and put them on a branch named after the change, created per the "Fork every new branch" invariant. Commit
+   nothing.
 2. Leave the work uncommitted. The proposal, the review findings, and the implementation all stay in the working tree,
-   so the user's review pass runs against the visible `git status`/`git diff`; the change's `docs/ideas.md` removal
-   rides the branch like the rest.
+   so the user's review pass runs against the visible `git status`/`git diff` of the tree the workspace record names;
+   the change's `docs/ideas.md` removal rides the branch like the rest.
 3. Run the review gate (see "Workflow: The review gate") and fix every finding until it is clean.
 4. Ask the user for the manual review pass, and end the turn there. Do not commit, push, open a PR, archive, or merge
    before the user approves the implementation — except a commit the user explicitly asks for.
@@ -314,10 +344,12 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
 
 **Decision points**
 
-- IF a commit is forced — a push is requested, or a `git switch` would carry unfinished changes (tracked or untracked)
-  onto another branch — THEN commit (or `git stash`) that unit before switching. An untracked unit survives a reset but
-  rides a `git switch` onto whichever branch you land on, where a directory-scoped `git add` can stage it into the wrong
-  unit's commit, so commit each unit on its own branch before starting the next.
+- IF a commit is forced — a push is requested, or a `git switch` inside one tree would carry unfinished changes (tracked
+  or untracked) onto another branch — THEN commit (or `git stash`) that unit before switching. Starting a sibling unit
+  never forces it: the sibling takes its own tree and the in-flight unit stays uncommitted where it is. An untracked
+  unit survives a reset but rides a `git switch` onto whichever branch you land on, where a directory-scoped `git add`
+  can stage it into the wrong unit's commit, so commit each unit on its own branch before switching that tree to another
+  unit's branch.
 - IF you open a proposal-stage draft PR (see the README) THEN the branch's first push carries the proposal alone; on the
   default path it carries proposal and implementation together. A push is the moment a change commits; the archive adds
   a commit before the final push.
@@ -327,12 +359,12 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
 - IF the reply moves the thread to the next unit THEN re-ask before starting that unit; the new branch forked from
   `main` excludes the unmerged one, so its edits read pre-change there (expected, not a revert).
 - **No in-flight branch:** IF a unit's work begins with no in-flight branch (a merge-time capture, a docs unit applying
-  audit findings, a standalone fix) THEN it is itself a change-sized unit: start it on its own branch, forked from the
-  just-merged `main`, as soon as you begin, so `main` never carries an in-progress diff. The capture after the
-  upstream-report PR (#212) was applied directly on `main` and sat there as an uncommitted two-file diff until a review
-  pass flagged it, and the branch was created only then; a docs unit applying audit findings repeated the sequence,
-  branching only when the review flagged it. The leave-work-uncommitted rule presumes a branch — an uncommitted unit
-  belongs on its branch, not on `main`. captured: apply-2026-09-28-audit-docs-findings
+  audit findings, a standalone fix) THEN it is itself a change-sized unit: start it on its own branch in its own working
+  tree, forked from the just-merged `main`, as soon as you begin, so `main` never carries an in-progress diff. The
+  capture after the upstream-report PR (#212) was applied directly on `main` and sat there as an uncommitted two-file
+  diff until a review pass flagged it, and the branch was created only then; a docs unit applying audit findings
+  repeated the sequence, branching only when the review flagged it. The leave-work-uncommitted rule presumes a branch —
+  an uncommitted unit belongs on its branch, not on `main`. captured: apply-2026-09-28-audit-docs-findings
 
 **Failure handling**
 
@@ -344,7 +376,9 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   neither a rejection nor a merge: deleting it loses work the premise did not touch, and merging it ships a fix for a
   failure that is not there. Record what survives beside why the premise died — the code can outlive the rationale — and
   answer a later "does this still make sense?" by re-deriving the artifacts to that surviving capability rather than
-  re-litigating the dead premise. captured: route-the-smoke-through-the-ingress
+  re-litigating the dead premise. The rejected unit's tree follows its branch: delete the branch per that rule, remove a
+  sibling worktree only after verifying nothing unique remains in it, and release the primary. captured:
+  route-the-smoke-through-the-ingress
 - Until the first commit the change dir is untracked, which is safe against `git reset --hard` and `git checkout --`
   (verified); `git clean -fd` is the one loss vector, so never run it on a branch holding unfinished work.
 - **Refreshing a committed branch:** a branch that has been committed (so it can fall behind `main`) is refreshed from
@@ -2498,6 +2532,11 @@ changing an image or buildpack pin.
   `shell` permission") rather than the observation ("it did not prompt"). Point-in-time narrative belongs in a dated
   record — the change archive, a retrospective, an audit report, a load-test record, or a rule's
   `docs/guidance-evidence/` entry — never in the guidance itself. captured: store-2026-10-05-retrospective
+
+  IF a rule, step, or gate depends on a recorded fact, the record's owner and home follow the single-sourcing invariant
+  and its verification follows the external-claim rule; where the record is itself the source of truth, read the record
+  directly, and a record that cannot be read leaves the fact unestablished, not permanently unestablishable. captured:
+  adopt-worktree-isolation
 
   evidence: documentation-and-durable-claims
 

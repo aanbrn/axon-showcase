@@ -21,6 +21,13 @@ Source: `AGENTS.md` "Workflow: Ship a change (CI → archive → merge)".
 3. Archive the change (move the change directory and sync the main spec) as an additional commit in the _same_ pull
    request.
 4. Merge once. The archive — the declaration that a change is done — always follows CI, never precedes it.
+5. Remove the unit's linked worktree, if it had one: verify no unique work remains (ignored files included), move the
+   session out of the tree, run `git worktree remove <path>` without `--force`, then `git branch -D <branch>` only after
+   confirming the pull request merged and no unshipped commits remain.
+6. Settle the tree the unit used, and only that one: IF it ran in a linked worktree, step 5 removed it and the primary
+   is left alone; IF it ran in the primary, release it — confirm the unit completed (merged, or rejected by the owner),
+   no work of it remains (extra commits and unique local data included), and no writer continues, then return the tree
+   to a clean `main` as the release's last step, and hand the directory to the next unit.
 
 ### Decision points
 
@@ -45,7 +52,8 @@ Source: `AGENTS.md` "Workflow: Ship a change (CI → archive → merge)".
 
 ### Completion criteria
 
-CI green, the change archived (change directory moved and main spec synced), and the pull request merged.
+CI green, the change archived (change directory moved and main spec synced), the pull request merged, and the unit's
+tree settled: a linked worktree removed, or the primary released to the next unit.
 
 ## Complete a cloud (`/oc`) agent pull request
 

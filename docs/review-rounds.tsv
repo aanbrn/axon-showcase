@@ -1017,3 +1017,15 @@
 2026-10-25	address-scan-findings-2026-10-25	7	claim-unreproducible,docs-residue	docs-residue	2	ses_e8fd79f38ffem1MUyzgcTvlP7p	continued	-
 2026-10-25	address-scan-findings-2026-10-25	8	claim-missing	claim-missing	1	ses_e8fd79f38ffem1MUyzgcTvlP7p	continued	-
 2026-10-25	address-scan-findings-2026-10-25	9	-	-	0	ses_e8fd79f38ffem1MUyzgcTvlP7p	continued	-
+2026-10-25	adopt-worktree-isolation	1	single-sourcing,impact-omission,incomplete-enumeration,contradiction,missing-task,claim-missing,structured-writing,formatting	-	7	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	created	-
+2026-10-25	adopt-worktree-isolation	2	missing-task,coherence,wording,claim-missing	missing-task,claim-missing	1	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-
+2026-10-25	adopt-worktree-isolation	3	coherence,claim-missing,missing-task	coherence,claim-missing,missing-task	1	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-
+2026-10-25	adopt-worktree-isolation	4	formatting,over-claim	formatting	2	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-
+2026-10-25	adopt-worktree-isolation	5	over-claim	over-claim	1	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-
+2026-10-25	adopt-worktree-isolation	6	-	-	0	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-
+2026-10-25	adopt-worktree-isolation	7	over-claim,incomplete-enumeration,coherence,claim-unreproducible,missing-task	over-claim,incomplete-enumeration,coherence,missing-task	4	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-
+2026-10-25	adopt-worktree-isolation	8	coherence	coherence	1	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-
+2026-10-25	adopt-worktree-isolation	9	-	-	0	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-
+2026-10-25	adopt-worktree-isolation	10	contradiction,coherence,structured-writing,redundant-code	contradiction,coherence,structured-writing	3	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-
+2026-10-25	adopt-worktree-isolation	11	claim-unreproducible,coherence,redundant-code,single-sourcing	claim-unreproducible,coherence,redundant-code,single-sourcing	4	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-
+2026-10-25	adopt-worktree-isolation	12	-	-	0	ses_e8f6c7eb8ffeVDtyR84Oc1UyNj	continued	-

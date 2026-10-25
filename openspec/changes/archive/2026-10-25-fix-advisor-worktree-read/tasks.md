@@ -83,4 +83,6 @@ branch=fix-advisor-worktree-read; writer=ses_e8f05c061ffeVdZniQbS3yuTHk.
       passes is used. The independent consultant's third review then found one evidence claim — the design inferred a
       check order from a permission error ("the sandbox answers first") — fixed in the same bullet and the Risks and
       confirmed by round 13.
-- [ ] 4.4 Ask the owner for the manual review pass; commit, push, archive, and merge only after approval.
+- [x] 4.4 Ask the owner for the manual review pass; commit, push, archive, and merge only after approval. **Done**: the
+      owner approved on 2026-10-25 after three independent consultations, the last of which found nothing left to
+      correct; the unit shipped as pull request #684 and is archived in this same change dir.

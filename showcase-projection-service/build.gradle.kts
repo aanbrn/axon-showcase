@@ -72,7 +72,6 @@ testing {
                     implementation(libs.hamcrest)
                     implementation(libs.opensearch.client.java)
                     implementation(libs.spring.boot.starter.test)
-                    implementation(libs.spring.data.opensearch)
                 }
 
                 targets {

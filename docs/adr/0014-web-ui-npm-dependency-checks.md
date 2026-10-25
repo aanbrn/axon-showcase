@@ -42,7 +42,10 @@ the supply chain).
 - Both checks query a registry-served endpoint and so need network access, unlike `dependencyUpdates`' lock-file-free
   scans; the Snyk-free npm audit needs no token.
 - Renaming the workflow moves its dispatch reference to `gh workflow run dependency-security.yml`.
-- `braces <= 3.0.3` (GHSA-vfj7-8cjw-p6xm, CVE-2026-93687) has no patched **release** upstream, so its suppression entry
-  is a dated acceptance, not a fix. The first fix attempt, `micromatch/braces#72`, closed **unmerged** on 2026-10-05
-  (the advisory thread `#70` is open and locked), so the entry retires when a `braces` release carrying a fix
-  **resolves** — not on that PR — and the expiry re-surfaces the finding for re-assessment until then.
+- `braces <= 3.0.3` (GHSA-vfj7-8cjw-p6xm, CVE-2026-93687) carried no patched **release** upstream, so its suppression
+  entry was a dated acceptance, not a fix; the first fix attempt, `micromatch/braces#72`, closed **unmerged** on
+  2026-10-05 (the advisory thread `#70` is open and locked). The advisory was **withdrawn** upstream on 2026-10-23
+  (GitHub's advisory record reads "Withdrawn Advisory"), so `npm audit` stopped reporting it, the entry then matched no
+  finding and `npmAudit`'s staleness rule failed, and the entry was removed on 2026-10-25 — the list is now empty.
+  `braces@3.0.3` still resolves as a dev-only transitive of `eslint-plugin-boundaries`, and a future advisory against it
+  would surface as an unsuppressed finding, since no entry covers the package.

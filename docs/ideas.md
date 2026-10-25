@@ -73,7 +73,9 @@ detail across two sections.
   `test_an_absolute_quantifier_is_reported` (`scripts/test-claim-scan.py`) and re-measure the noise a widened pattern
   adds to a real guidance diff before committing it. A second instance (`document-java-version-selector`, round 1): the
   fact that made the word "optional" true — "Nothing in the repository reads `.java-version`" — had no claims-table row,
-  and the scan surfaced no candidate for it.
+  and the scan surfaced no candidate for it. A third (`bump-buildpacks-2026-10-25`): a design risk bullet's "Nothing
+  else in this image is pinned independently" shipped false and cost a review round, while its sibling "Only the web UI
+  consumes …" was seeded — the author verified the claim the scan surfaced and not the one it did not.
 
 ## 2026-10-24
 
@@ -210,12 +212,6 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   fix is a check over the Spotless markdown scope with its known-bad/known-good cases in a `*RulesTests`, after which
   the convention's "proofread inline-code content" clause trims to a pointer. Revisit as its own change; it is a
   build-logic addition, not a copy edit.
-
-- Take `paketo-nginx` 1.3.3 once a pinned builder bundles it — parked; no change yet. `bump-buildpacks-2026-10-22` moved
-  the builder to `0.4.667` and held the nginx pin at `1.3.0`, because that builder carries only `1.3.0`
-  (`pack builder inspect`) and the pair rule makes a pin the builder does not bundle resolve to an arm64 slice. The
-  update check keeps reporting `1.3.0 -> 1.3.3` until then. Revisit when `pack builder inspect` on the pinned builder
-  lists `nginx 1.3.3`, or if `pack` changes how it resolves an added buildpackage's slice.
 
 - Guarantee the ledger row is written before the fixes with a reviewer wrapper — parked; no change yet. A `/consult`
   report's closing prompt was once applied before the owner decided, and the round's ledger row is repeatedly deferred

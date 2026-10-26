@@ -34,6 +34,12 @@ detail across two sections.
   capture's review as a stale fact the change passed by rather than caused, so its correction belongs to a docs change
   of its own.
 
+- Require the unit's capture record before the manual-pass request — parked; no change yet. `AGENTS.md`'s capture
+  workflow already says the capture runs "before you ask for the manual review pass", but `review-gate`'s §5 lists only
+  a clean quick review and any required deep review as that step's preconditions, so a unit can reach the ask with the
+  capture unrecorded — which happened on `narrow-the-v1-config-probe-claim` (round-2 `missing-task`). The fix belongs to
+  its own change rather than a docs unit, because it edits the `review-gate` skill.
+
 ## 2026-10-25
 
 - Decide the dead `handlebars` constraint on `:platform` — parked; no change yet. `platform/build.gradle.kts` declares

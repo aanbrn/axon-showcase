@@ -2311,11 +2311,11 @@ changing an image or buildpack pin.
   delimiters. captured: hold-back-minor-dependency-updates
 
 - **A load that either succeeds or throws reports through its exit status, not from a message grepped out of its
-  output.** `opencode debug config` prints the whole resolved configuration, including every agent's full prompt, so a
-  grep can match text the config merely embeds; a loadable config exits 0 and a V2-only `permissions` key exits 1. Its
-  blind spot is the definition that loads but is silently degraded — an agent's or command's fields dropped, a skill
-  absent from the inventory, all with exit 0 — which is why the CI `build` gate additionally asserts every definition's
-  resolved metadata, not the exit alone. captured: probe-opencode-config-read-path
+  output.** In the V1 probe, `opencode debug config`'s resolved output embeds agent and command prompts, so matching
+  embedded text does not establish a load diagnostic. A loadable config exits 0, and under V1 a config carrying a
+  `permissions` array (a V2-only key) exits 1. A definition the loader silently degrades has its own metadata assertion
+  in the `build` gate (`showcase/quality/merge-governance`). captured: probe-opencode-config-read-path captured:
+  narrow-the-v1-config-probe-claim
 
 - **Keep a config guard's list-shape pattern generic (`must be an array of strings`), not one surface's enumerated
   wording.** It grew from `ignoring this artifact's rules` to `ignoring this artifact's rules|could not parse`, then to

@@ -1209,3 +1209,10 @@
 2026-10-26	capture-dump-vs-execution-model	4	-	-	0	ses_e89e5d603ffeL5KwgM74PlPiVH	continued	-
 2026-10-26	capture-dump-vs-execution-model	5	-	-	0	ses_e89e5d603ffeL5KwgM74PlPiVH	continued	-
 2026-10-26	capture-dump-vs-execution-model	6	-	-	0	ses_e89e5d603ffeL5KwgM74PlPiVH	continued	-
+2026-10-26	narrow-the-v1-config-probe-claim	1	wording	-	1	ses_e89a6052cffeYL6mos6WFr49Oi	created	-
+2026-10-26	narrow-the-v1-config-probe-claim	2	missing-task	-	1	ses_e89a6052cffeYL6mos6WFr49Oi	continued	-
+2026-10-26	narrow-the-v1-config-probe-claim	3	claim-unreproducible	-	1	ses_e89a6052cffeYL6mos6WFr49Oi	continued	-
+2026-10-26	narrow-the-v1-config-probe-claim	4	claim-unreproducible	claim-unreproducible	1	ses_e89a6052cffeYL6mos6WFr49Oi	continued	-
+2026-10-26	narrow-the-v1-config-probe-claim	5	dropped-content	-	1	ses_e89a6052cffeYL6mos6WFr49Oi	continued	-
+2026-10-26	narrow-the-v1-config-probe-claim	6	missing-task	missing-task	1	ses_e89a6052cffeYL6mos6WFr49Oi	continued	-
+2026-10-26	narrow-the-v1-config-probe-claim	7	-	-	0	ses_e89a6052cffeYL6mos6WFr49Oi	continued	-

@@ -46,7 +46,8 @@ the evidence half in `AGENTS.md`'s `### Evidence and search`. **Name the existin
 `review-gate` procedure — or state that none covers it**: a durable rule merges into or replaces an existing one rather
 than accreting, since this subagent is the guidance corpus's growth engine. Carry each proposal's origin in a greppable
 `captured: <unit>` marker — the unit name — and its PR when a merge-time detection found the lesson rather than the
-implementation capture — so a rule's provenance is readable without git and outlives a markdown reflow. Do NOT edit
+implementation capture — so a rule's provenance is readable without git and outlives a markdown reflow. The incident
+evidence a rule rests on stays recoverable behind its `captured:` marker rather than in the rule's text. Do NOT edit
 `AGENTS.md`, either skill, or a subject pack yourself — the calling agent verifies and merges.
 
 **Also report what the unit retires.** `AGENTS.md` shrinks as well as grows, and a unit is the moment a rule can become

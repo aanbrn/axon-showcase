@@ -28,6 +28,12 @@ detail across two sections.
   consecutive snapshots and asserts each is a fresh, complete render. Surfaced by the 2026-10-25 capture, which routed
   this hazard to a check rather than to a rule in prose.
 
+- Fix the definition's stale skill enumeration — parked; no change yet. `.opencode/agent/lesson-capture.md` says "Do NOT
+  edit `AGENTS.md`, **either skill**, or a subject pack" while it names three skills (`check-and-test-authoring`,
+  `ship-change`, `review-gate`), so the count predates one of them. The correction is a word; it surfaced in this
+  capture's review as a stale fact the change passed by rather than caused, so its correction belongs to a docs change
+  of its own.
+
 ## 2026-10-25
 
 - Decide the dead `handlebars` constraint on `:platform` — parked; no change yet. `platform/build.gradle.kts` declares

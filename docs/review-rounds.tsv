@@ -1235,3 +1235,11 @@
 2026-10-26	close-the-manual-pass-preconditions	17	claim-unreproducible	claim-unreproducible	1	ses_e897a0f69ffe4wsMvifcM7o7u6	continued	-
 2026-10-26	close-the-manual-pass-preconditions	18	claim-unreproducible	claim-unreproducible	1	ses_e897a0f69ffe4wsMvifcM7o7u6	continued	-
 2026-10-26	close-the-manual-pass-preconditions	19	-	-	0	ses_e897a0f69ffe4wsMvifcM7o7u6	continued	-
+2026-10-26	probe-write-exclusivity	1	missing-task,contradiction,incomplete-enumeration,wording,single-sourcing,structured-writing,claim-unreproducible	-	5	ses_e8889d503ffeiVNIHZVH9v6P6U	created	-
+2026-10-26	probe-write-exclusivity	2	contradiction,claim-unreproducible,claim-missing,wording	contradiction,claim-unreproducible,wording	3	ses_e8889d503ffeiVNIHZVH9v6P6U	continued	-
+2026-10-26	probe-write-exclusivity	3	claim-unreproducible,over-claim,missing-task,incomplete-enumeration,claim-missing	claim-unreproducible,missing-task,incomplete-enumeration,claim-missing	5	ses_e8889d503ffeiVNIHZVH9v6P6U	continued	-
+2026-10-26	probe-write-exclusivity	4	incomplete-enumeration	incomplete-enumeration	1	ses_e8889d503ffeiVNIHZVH9v6P6U	continued	-
+2026-10-26	probe-write-exclusivity	5	-	-	0	ses_e8889d503ffeiVNIHZVH9v6P6U	continued	-
+2026-10-26	probe-write-exclusivity	6	dropped-content	-	1	ses_e8889d503ffeiVNIHZVH9v6P6U	continued	-
+2026-10-26	probe-write-exclusivity	7	-	-	0	ses_e8889d503ffeiVNIHZVH9v6P6U	continued	-
+2026-10-26	probe-write-exclusivity	8	-	-	0	ses_e8889d503ffeiVNIHZVH9v6P6U	continued	-

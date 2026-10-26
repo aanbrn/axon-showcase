@@ -17,7 +17,9 @@ Date: YYYY-MM-DD
 
 Status: Proposed | Accepted | Superseded by ADR-NNNN
 
-Revisit when: <the condition that would reopen this decision, and the signal that shows it met>
+Revisit when: <whether any one clause reopens the decision or only all of them together, then one clause per line — each
+naming its artifact at its current coordinate, labelling its type (external coordinate vs internal trigger), and stating
+the signal that shows the clause met>
 
 ## Context
 
@@ -37,7 +39,10 @@ What becomes easier or harder, what this enables and what it forecloses. Update 
 - Copy the template, pick the next `NNNN`, and fill it in.
 - One decision per ADR. Keep it short; the decision and its rationale matter, not ceremony.
 - Record the decision at the time it is made — do not leave decisions implicit in commit history.
-- The `Revisit when:` line is **required for a deferral** — a decision deliberately not acted on now, to be revisited
-  when a stated condition is met — and omitted for a settled decision. Name the condition and the signal that shows it
-  met (an external coordinate that would publish a newer major, a third-party adoption, or an internal trigger), so the
-  `architecture-auditor` can surface it once due.
+- The `Revisit when:` field is **required for a deferral** — a decision deliberately not acted on now, to be revisited
+  when a stated condition is met — and omitted for a settled decision. Give each clause its own line, naming its
+  artifact at its current coordinate and labelling its type (external coordinate vs internal trigger — a newer major
+  release and a third-party adoption are the external kind), and stating the signal that shows the clause met; then
+  state the clauses' relation — a conjunction fires only when every clause is met, a disjunction when any one is.
+- A compound gate states that relation because the `architecture-auditor` reads it literally: an unstated relation makes
+  it guess, and a clause bundling two events delays the reopen when either alone would have satisfied it.

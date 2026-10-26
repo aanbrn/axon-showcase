@@ -2317,8 +2317,7 @@ changing an image or buildpack pin.
   frontmatter's `description` made YAML read the value as a mapping, the parse failed, and the agent silently did not
   load (`/audit-readme` failed with `Agent readme-auditor cannot run as a subagent`) — the CI `build` gate now probes
   that every agent/command/skill definition resolves with its metadata intact (its definition-inventory assertion), and
-  a reload does not fix it, unlike the not-registered `Unknown agent type` failure. captured:
-  fix-readme-auditor-frontmatter (#477)
+  a reload does not fix it. captured: fix-readme-auditor-frontmatter (#477)
 
 - **A config can look well-formed and pass the consumer's validation while the consumer silently ignores or reinterprets
   part of it — from outside, a valid config and an ignored one are indistinguishable.** The CI `build` job now probes
@@ -2370,38 +2369,50 @@ changing an image or buildpack pin.
   probe's shape, each read `reviewRequests: []`). Confirm that the observable can exist for the actor before reading a
   negative as evidence. captured: fix-dependabot-review-notification captured: record-codeowners-author-rule
 
-- **A subagent added or edited mid-session is not registered until OpenCode reloads its agent list.** Creating
-  `.opencode/agent/<name>.md` (plus its command) does not make the agent reachable in the running session — invoking it
-  via the Task tool fails with `Unknown agent type: <name>`; the `add-agents-auditor-agent` smoke-run was blocked until
-  OpenCode was restarted. A presence check (file exists, `mode: subagent`, model pin set) passes while the session still
-  cannot see it. Restart OpenCode (or start a new session) before smoke-testing a newly added, renamed, or **edited**
-  subagent — a changed definition body, like a changed `model` pin, is served from the pre-change copy until then, so an
-  in-session smoke-run exercises the old instructions, and a run echoing the new text is no proof of pickup (the
-  subagent can read its own definition from disk, so the registered body is the evidence). **A definition whose behavior
-  a probe established is copied from the probe, position included, and diffed against the shipped file:** an
-  instruction's place in the prompt is part of what was probed, so a retyped, reordered, or duplicated copy carries
-  behavior nothing validated, and the build gate proves a definition loads rather than that its text is the one probed.
-  captured: separate-agents-md-core-and-subject-packs captured: name-review-finding-classes (#367) Treat that smoke-run
-  as a precondition for **archiving**, not a task to defer across the merge: it is the only verification that exercises
-  the subagent (CI runs none), and an unchecked task inside `openspec/changes/archive/` is invisible — the archive tree
-  is outside Spotless and no gate surfaces it — so the check is silently lost (`add-architecture-auditor-agent` archived
-  with its `/audit-architecture` smoke-run unchecked for exactly this reason). Seed the smoke-run with positive controls
-  — a known-missing rationale it **must** report and a known-explained surface (a spec requirement, an ADR, an
-  `AGENTS.md` convention) it must **not**: a run that reports everything or nothing has not exercised the suppression
-  rule. **A smoke-run verifies the subagent's behavior, not the facts of its output — the seed is synthetic, so verify
-  both separately:** check the seed's premise against the repository before reading the run (a seeded incident the repo
-  does not exhibit leaves the targeted branch unexercised — the subject working, not a failed test — so re-seed and
-  record which branch the run exercised), and never promote a proposal resting on the seed's invented details (the
-  repo-evidence rule's "a run whose output you have" counts a smoke-run for the subject's behavior, not for a claim
-  about the code, so re-verify the proposal's factual basis first — `make-lesson-capture-consolidate`'s smoke-run
-  proposed a rule resting on a fabricated incident the repository never evidenced). A run against a real artifact also
-  surfaces genuine defects beyond the seed: verify each against the repository and fix those the user approves in the
-  introducing change, since the archived run's note is never swept again — the `add-readme-auditor` smoke-run reported
-  three real README defects beyond its seed (a missing `-Pcoverage.gate.enabled=false` at two sites, a merge-narrative
-  contradiction, and a stray table cell), all fixed in that change. captured: add-readme-auditor (#315) When the owner
-  deliberately decouples a follow-up task from the merge, reword the task to record what is deferred, where it went, and
-  the owner's chosen order, then **tick it** — an unchecked box inside `archive/` is invisible and no gate reads it.
-  That is not the rule above: the smoke-run itself is never deferred, only a task the owner explicitly decouples.
+- **OpenCode V2 applies a project definition edit mid-session.** V2 watches the project config directories and reloads
+  the agent, command, and skill documents on change, so an edited or new project definition is invocable in the running
+  session and serves its new body — probed on v2.1.4 (a project subagent, interactive session); the global config
+  directory, `opencode run`, the desktop/web server, and the advertised agent list are unverified. IF
+  `OPENCODE_FILEWATCHER_DISABLE` — or, unset, `OPENCODE_DISABLE_FILEWATCHER` — is `1`/`true`, or the watch fails
+  (`live-reload disabled`), THEN the watcher is off: a later edit may not apply, so confirm it as below before trusting
+  the definition.
+- **Confirm the registered body before a smoke-run; an echo of the new text proves nothing**, since the subagent can
+  read its own definition from disk. The registered body is the evidence:
+  1. Run the probe task — it forbids tools and file reads and asks for a marker — before the edit: it must answer that
+     no marker is defined, so a marker arriving from anywhere else fails the probe. A definition that does not exist yet
+     has no baseline: its first invocation is the confirmation.
+  2. Save a marker line in the definition.
+  3. Invoke the subagent with the same task and require the marker in the reply.
+  4. Restart only if the definition is still not applied — recovery, never the evidence.
+- **A definition whose behavior a probe established is copied from the probe, position included, and diffed against the
+  shipped file:** an instruction's place in the prompt is part of what was probed, so a retyped, reordered, or
+  duplicated copy carries behavior nothing validated, and the build gate proves a definition loads rather than that its
+  text is the one probed. captured: separate-agents-md-core-and-subject-packs captured: name-review-finding-classes
+  (#367)
+- **Treat the smoke-run as a precondition for archiving, not a task to defer across the merge:** it is the only
+  verification that exercises the subagent (CI runs none), and an unchecked task inside `openspec/changes/archive/` is
+  invisible — the archive tree is outside Spotless and no gate surfaces it — so the check is silently lost
+  (`add-architecture-auditor-agent` archived with its `/audit-architecture` smoke-run unchecked for exactly this
+  reason).
+- **Seed the smoke-run with positive controls** — a known-missing rationale it **must** report and a known-explained
+  surface (a spec requirement, an ADR, an `AGENTS.md` convention) it must **not**: a run that reports everything or
+  nothing has not exercised the suppression rule.
+- **A smoke-run verifies the subagent's behavior, not the facts of its output — the seed is synthetic, so verify both
+  separately:** check the seed's premise against the repository before reading the run — a seeded incident the repo does
+  not exhibit leaves the targeted branch unexercised, which is the subject working rather than a failed test, so re-seed
+  and record which branch the run exercised.
+- **Never promote a proposal resting on the seed's invented details:** the repo-evidence rule's "a run whose output you
+  have" counts a smoke-run for the subject's behavior, not for a claim about the code, so re-verify the proposal's
+  factual basis first — `make-lesson-capture-consolidate`'s smoke-run proposed a rule resting on a fabricated incident
+  the repository never evidenced.
+- **A run against a real artifact surfaces genuine defects beyond the seed:** verify each against the repository and fix
+  those the user approves in the introducing change, since the archived run's note is never swept again — the
+  `add-readme-auditor` smoke-run reported three real README defects beyond its seed (a missing
+  `-Pcoverage.gate.enabled=false` at two sites, a merge-narrative contradiction, and a stray table cell), all fixed in
+  that change. captured: add-readme-auditor (#315)
+- **Only a task the owner explicitly decouples may be deferred, never the smoke-run itself:** reword it to record what
+  is deferred, where it went, and the owner's chosen order, then **tick it** — an unchecked box inside `archive/` is
+  invisible and no gate reads it.
 
 - **Prove a permission rule reached the configuration with `opencode debug config`; the v1 log line that proved it
   _matched_ a call is gone under v2.** v1 recorded every evaluation in `~/.local/share/opencode/log/opencode.log` as
@@ -2626,7 +2637,9 @@ changing an image or buildpack pin.
   surface has the same limit in the other direction: do not pin a value the surface produced as the evidence the task
   was done, since the rows of a live lookup vary run to run. A **negative** claim about such a surface — a capability
   absent, a hook missing — names the versions and variants examined, each one's result, and what would have counted as
-  success. captured: rework-the-helm-suppression-list captured: probe-write-exclusivity
+  success. A durable rule that records a tool's behavior names the version it was probed on and the surfaces it did not
+  establish, since a rule naming neither is invisible to the sweep that re-checks a moved version. captured:
+  rework-the-helm-suppression-list captured: probe-write-exclusivity captured: correct-subagent-reload-rule
 
   evidence: documentation-and-durable-claims
 

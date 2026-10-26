@@ -426,6 +426,10 @@ whether it consumed included usage or additional credits. See
 
 - **Proposing and applying changes**: the `opsx-*` commands scaffold a change (proposal, design, tasks, spec delta),
   implement it, and prepare it for review.
+- **Pausing and resuming a unit**: `/pause-unit` records the unit's `Resume checkpoint` and ends the turn — nothing is
+  committed, stashed, or torn down, so a laptop can close mid-unit; `/resume-unit` continues it later, from that session
+  or a new one, verifying the recorded and live state, handing the writer role over, and restoring whatever the unit was
+  waiting on.
 - **Code review**: every unit is auto-reviewed after its proposal and after its implementation; the quick-review loop is
   a bounded screen that repeats until it finds nothing new. After implementation one routing decision selects a deep
   `review-thorough` pass — required, recommended for an explicit resolution, or not needed — and a manual
@@ -578,6 +582,8 @@ removed.
 | `/setup-idea`                | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier)                                                                                                                                                                                                                                        |
 | `/check-tooling`             | Checks whether this machine has the prerequisites (Java, Docker, Python, and the optional tools)                                                                                                                                                                                                                               |
 | `/review-thorough`           | Deep risk-routed review of a change (the review gate's routing decision, or this explicit run)                                                                                                                                                                                                                                 |
+| `/pause-unit`                | Records the current unit's `Resume checkpoint` and ends the turn: no commit, stash, push, or teardown                                                                                                                                                                                                                          |
+| `/resume-unit`               | Continues an unfinished unit: verifies the available state, hands the writer role over, restores what it awaited                                                                                                                                                                                                               |
 | `/consult`                   | Asks the technical advisor for an independent recommendation on a question, the current objective, or the next step                                                                                                                                                                                                            |
 | `/audit-agents`              | Audits AGENTS.md + project-owned .opencode/ files, measures the always-loaded instruction budget, flags third-party files our usage contradicts, and reports accreted meta rules with their origins, merge, removal, route, and extraction candidates, extraction opportunities, and authoring-system gaps (pro-model auditor) |
 | `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                                                                                                                                                       |

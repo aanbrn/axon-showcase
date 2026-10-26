@@ -17,6 +17,28 @@ file for the idea before adding it: the same work already parked — however dif
 its existing section, since the day-section rule otherwise files a re-park as a second entry and splits one idea's
 detail across two sections.
 
+## 2026-10-27
+
+- Read a parked idea's own `Revisit when:` condition, not only whether its work landed — parked; no change yet.
+  `architecture-auditor` classifies a `Revisit when:` condition for a deferred ADR, but for a `docs/ideas.md` entry it
+  tests whether the work has landed, only partly landed, or is achieved by a different mechanism — not the entry's own
+  recorded condition — and the parked entries carrying one (any entry stating one, in whatever form; the vendored-skill
+  set's under `## 2026-10-22`, the retrospective-evidence one's under `## 2026-10-23`, and the pull-request title
+  check's under `## 2026-10-25` are examples) are swept by nothing. Add a sibling branch — "a parked entry whose own
+  recorded condition appears met" — classified by the same four-way rule as an ADR condition and not reported when the
+  condition names no checkable repository fact, with a `MODIFIED` delta on the `agent-skills` requirement, one clause in
+  `AGENTS.md`'s auditor summary, and the capture bullet's own closing reason — "no other reader tests a parked entry's
+  condition" — which this branch would falsify. The event-time half is in this unit's capture (an incident that meets a
+  parked entry's condition reopens it); this is the periodic sweep. Surfaced by the
+  `annotate-the-reviewer-wrapper-recurrence` capture.
+
+- Make `--markers` require that a marker ends its rule, not only that it sits inside one — parked; no change yet.
+  `commit-hygiene.py`'s `_marker_is_in_rule_block` accepts a `captured:` marker anywhere within a bold-lead block, so a
+  marker inserted mid-rule passes green while reading as part of the sentence around it; this unit introduced one that
+  way and its round 2 caught it, not the gate. The check could require the marker chain to be the last text before the
+  rule's next sibling, or that no prose follows a marker inside the block. Surfaced by the
+  `annotate-the-reviewer-wrapper-recurrence` unit's round 2.
+
 ## 2026-10-26
 
 - Freeze a unit's resume checkpoint at the resume — parked; no change yet. `.opencode/skills/pause-resume-unit/SKILL.md`
@@ -337,9 +359,26 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   found: `mode: all` makes the same definition directly runnable in v1.19.3 and v2 (the refusal is `mode: subagent`'s
   entry point, not the runtime); v1 continues a session by id and fails hard on a missing one (`Session not found`)
   while v2 silently creates; the reviewer's model pin and the cloud action's own path remain unverified.
-  `check-review-round-contiguity` ships the cheap net instead (contiguity + an expected-round checkpoint). Revisit on a
-  repeat where both the append and the checkpoint were skipped, or if a technical barrier against the Task path is
-  required.
+  `check-review-round-contiguity` ships the cheap net instead (contiguity + an expected-round checkpoint). This idea's
+  revisit condition is superseded by the reconsideration below.
+
+  **Reconsidered 2026-10-27**, on the `clarify-the-refresh-recovery-route` unit's review:
+
+  - **Evidence:** according to the caller, that unit's round-14 report arrived without its row being appended, and its
+    closing boundary ran only `--expect-clean`, which reads the highest recorded round and so passed. The repaired
+    ledger carries the rows but no append times or command transcript, so it does not evidence the sequence itself.
+  - **Disposition:** deferred, not rejected. The checkpoint obligation already exists — the review gate requires "repeat
+    both" before the manual pass — and `check-review-round-contiguity`'s design records that a wrapper buys ordering
+    only within its own route and cannot prevent the Task-tool path.
+  - **Revisit when:** either internal trigger is recorded:
+    - `docs/review-rounds.tsv` carries an `Acknowledged gap` for a report received after `check-review-round-contiguity`
+      landed, whose reason names where that unit recorded the recovery attempt — its `tasks.md`, or its pull-request
+      checklist when it has no change dir — and that record states the row fields that could not be recovered and the
+      report or hand-over sources it checked.
+    - The owner explicitly requires technical prevention of the Task-tool bypass, recorded in a unit's `tasks.md` or
+      pull-request checklist.
+
+  Either trigger reopens the design decision; neither commits to implementing the wrapper.
 
 - Route the wrapped-prose gotcha to where prose edits retrieve it — parked; no change yet. The rule sits under
   `### Git & repository workflow`, but the edits that keep failing it are prose edits in `docs/` and a change dir; a

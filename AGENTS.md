@@ -493,8 +493,13 @@ ask for the manual review pass; and at a merge, where the detection below always
   no problem the unit hit already recorded in a `captured:` rule or `docs/ideas.md`. Each clause reads a surface the
   unit already produced — the round rows in `docs/review-rounds.tsv`, the diff, the two corpora — so the default is to
   run it, and the skip is a derived, recorded decision rather than a judgment about whether the work felt instructive. A
-  recurrence fails the conjunction deliberately: a problem the repo already records is an instruction-following failure,
-  a reason to question the rule's wording rather than to skip.
+  recurrence fails the conjunction deliberately: where the repo already records it decides the capture's disposition —
+  - in a `captured:` rule, an instruction-following failure and a reason to question the rule's wording rather than to
+    skip;
+  - in a `docs/ideas.md` entry whose own `Revisit when:` condition the incident meets, a reopened entry: report the
+    trigger fired, with the evidence the condition names, since no other reader tests a parked entry's condition;
+  - in one whose condition is not met or which records none, an already-parked problem, recorded as that rather than as
+    a proposed rule. captured: annotate-the-reviewer-wrapper-recurrence
 - **Every proposal names the existing rule it extends** — an `AGENTS.md` bullet, a check/test authoring mode already in
   the `check-and-test-authoring` skill, a `ship-change` or `review-gate` procedure, or a subject-pack section — or
   states that none covers the lesson, so a new rule merges into or replaces one rather than accreting.

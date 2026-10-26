@@ -107,7 +107,7 @@ nothing.
   at the component tier over a stubbed response while the integration case asserts only the merged document. captured:
   idempotent-projection-writes
 
-## A fixture that bypasses the production contract measures a different subject
+## A stand-in that does not hold the contract it replaces measures a different subject
 
 - **A control whose stand-in ignores the production source's contract measures the operator's occupancy, not the
   pipeline's bound.** The projector's buffer control feeds a demand-ignoring publisher, so it measures the buffer
@@ -116,6 +116,15 @@ nothing.
   below the capacity and completes without overflowing. Reproduce the production source's contract (demand, ordering,
   delivery guarantees) in a steady-state control, and name every downstream stage whose demand joins the bound, since
   the configured value alone is not the bound the operator experiences. captured: projector-operability
+
+- **A stand-in that accepts a call missing a parameter the operation's effect depends on hides the omission from every
+  case using it — require that parameter in the stand-in, not only in the assertion.** `reconnect-mcp`'s fixture
+  accepted `experimental.mcp.connect` without `location[directory]`, so the suite stayed green while a later edit could
+  have dropped the argument that decides _which_ workspace's server is mutated (the client's own default is `$HOME`);
+  the fixture now rejects a connect missing either `server` or `location[directory]`, and one case asserts both, so
+  control C (the call without the location) goes red across five cases. Enumerate the parameters whose absence changes
+  the effect — the target, scope, destination, or identity a call acts on — and require each; a parameter that only
+  refines a message can stay unenforced. captured: reconnect-failed-mcp
 
 ## A positive control must not use an input the subject excludes
 

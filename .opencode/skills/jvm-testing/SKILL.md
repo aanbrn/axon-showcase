@@ -74,6 +74,9 @@ load the `check-and-test-authoring` skill; this pack does not restate its modes.
   `69f2811`). When an integration test fails with an opaque timeout, read the service-side log the runner captured into
   the test report's XML (`system-out`) before diagnosing the assertion — a 5s `TimeoutException` on a `WebTestClient`
   exchange hid the real `NoSuchMethodError`. captured: bump-dependencies-2026-09-25
+- **A thread dump is evidence only for the threads it can see: establish a dump's coverage before reading an absence
+  from it.** The mechanism and the `jcmd` replacement are the `jvm-development` pack's ("Runtime code, libraries &
+  Spring"). captured: bump-dependencies-2026-10-25 (#692)
 - **`@DirtiesContext`**: add it only where a full-context boot leaks global JVM state — JGroups (ports and system
   properties) and JCache (a JVM-global cache manager). Contexts that are safely cacheable don't need it: service slices,
   and `@Nested` classes with distinct `@ActiveProfiles` (which already get separate cached contexts). Keep it on the

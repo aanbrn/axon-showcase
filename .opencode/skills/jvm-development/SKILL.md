@@ -138,3 +138,18 @@ the formatting convention stay in `AGENTS.md` and apply here.
   `Mono.deferContextual(ctx -> … contextWrite(ctx) …)` or the trace link breaks. A cache's freshness bound is
   `expiresAfterWrite`: every read resets an access expiry, so `expiresAfterAccess` never bounds a hot entry. captured:
   read-through-gateway-caches
+
+- **A thread dump is evidence only for the threads it can see — establish that the snapshot covers the application's
+  execution model before reading an absent thread as an idle JVM.**
+  - Every service here enables virtual threads (`spring.threads.virtual.enabled: true`), and Reactor's bounded-elastic
+    scheduler runs on them too, while the gateway's `ThreadDumpOnFailure` still dumps through
+    `Thread.getAllStackTraces()`, which returns platform threads only, so an absent thread in such a dump is not
+    evidence that nothing was running.
+  - Snapshot with `jcmd <pid> Thread.dump_to_file -format=text <path>`, which includes them (verified on this
+    repository's JDK 21: a parked virtual thread is absent from `getAllStackTraces()` and present in the `jcmd` dump).
+  - Label a degraded snapshot with its reason instead of passing it off as complete (`ThreadDumpWatchdog`).
+  - Prove the coverage before trusting an absence — park a named virtual thread and find its stack, since the
+    `virtual threads included` header is printed whenever the dump succeeded, not because a virtual thread is in it.
+  - Coverage is necessary, not sufficient: a periodic snapshot cannot tell a task that finished from one not yet run, so
+    a complete dump with no virtual thread still does not place the request. captured: bump-dependencies-2026-10-25
+    (#692)

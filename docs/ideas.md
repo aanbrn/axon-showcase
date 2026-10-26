@@ -19,6 +19,15 @@ detail across two sections.
 
 ## 2026-10-25
 
+- Decide the dead `handlebars` constraint on `:platform` — parked; no change yet. `platform/build.gradle.kts` declares
+  `api(libs.handlebars)` in its `constraints` block, the catalog pins `com.github.jknack:handlebars`, and no main-build
+  JVM subproject resolves the coordinate: `dependencies` across those sixteen (the four services and twelve others;
+  `build-logic` and `helm` excluded) names it nowhere, so the constraint and its catalog entry are its only two
+  references (`git log -S` shows one "dependencies updated" commit and no rationale). The npm graph's own `handlebars`
+  is a different package, not this one. Surfaced by the 2026-10-25 dependency bump, which bumped it with the rest rather
+  than deciding its removal — a constraint's rationale is the owner's to state, and the report would otherwise keep
+  naming a coordinate nothing consumes.
+
 - Revisit a pull-request title check when merged titles drift from the standard — parked; no change yet.
   `standardize-pr-conventions` wrote the title and body standard into `.github/PULL_REQUEST_TEMPLATE.md` with no gate,
   so a deviation reaches `main` unless a review catches it. The check is cheap — a `pull_request`-triggered step reads
@@ -496,7 +505,7 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 
 ## 2026-10-08
 
-- Gate the `@NullMarked` package-info convention — parked; no change yet. NullAway 0.14.2 (the pinned version) ships the
+- Gate the `@NullMarked` package-info convention — parked; no change yet. NullAway 0.14.3 (the pinned version) ships the
   `RequireExplicitNullMarking` Error Prone checker, which reports a top-level class unless it or its package is
   explicitly `@NullMarked`/`@NullUnmarked`, so enabling it (`-Xep:RequireExplicitNullMarking:ERROR`) would enforce the
   convention mechanically. It needs its own change: it is a separate Error Prone check from `NullAway`, so the existing
@@ -505,10 +514,12 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 
 ## 2026-10-06
 
-- Explain or eliminate the gateway controller CT's load-sensitive hang — parked; the diagnostic is armed and has not
-  fired. `ShowcaseRestControllerCT` fails with a `TimeoutException` at the `WebTestClient` `.exchange()`: 38 of its 76
-  cases at the default 5s timeout (while #514 was in flight, 2026-10-06), and once on the Docker-free PR gate at the 30s
-  the slice configures (2026-10-15), so that raise did not hold there. The mechanism is unproven and does not reproduce
+- Explain or eliminate the gateway controller CT's load-sensitive hang — parked; the diagnostic fired on 2026-10-25
+  (below), the failure is now frequent enough on CI to bisect, and the unit that hit it withdrew its candidate hold and
+  shipped an in-flight dump instead, so the mechanism stays open with the next stall's data as the next step.
+  `ShowcaseRestControllerCT` fails with a `TimeoutException` at the `WebTestClient` `.exchange()`: 38 of its 76 cases at
+  the default 5s timeout (while #514 was in flight, 2026-10-06), and once on the Docker-free PR gate at the 30s the
+  slice configures (2026-10-15), so that raise did not hold there. The mechanism is unproven and does not reproduce
   locally: shrinking the JVM-wide `Schedulers.boundedElastic()` pool to 4 and running the suite six times all passed,
   which leaves boundedElastic starvation unconfirmed rather than refuted — a local pass is no evidence against a CI-only
   cause. The failed CI attempt ran the suite concurrently with the web UI's `check` and spotbugs on a 4-vCPU runner (the
@@ -523,6 +534,49 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   evidence of a fix. Revisit on the first CI failure of `ShowcaseRestControllerCT`: the log's
   `=== thread dump after failure: … ===` marker is the material to read, and a failure carrying no such marker is itself
   the finding that the diagnostic did not fire.
+
+  **The revisit fired on 2026-10-25** (`bump-dependencies-2026-10-25`'s first CI run, `1dd4f1ce`): 38 of its cases and 7
+  of `TelemetryControllerCT`'s failed, all with the same `TimeoutException` at `.exchange()`, one 30s cadence apart, and
+  45 dumps were captured. The dumps looked like the finding — 17 threads, none in the request path — but they cannot be:
+  this application enables virtual threads, Reactor's `boundedElastic` therefore runs on them (measured in the failing
+  slice as `loomBoundedElastic-1`, `virtual=true`), and `Thread.getAllStackTraces()` omits virtual threads. So the "idle
+  JVM" reading is an artefact of the instrument, and the boundedElastic-starvation question is untouched by it (the pool
+  does exist, on virtual threads). **Neither the mechanism nor the frequency is established**: three failures in six
+  attempts of the delivered configuration, then six consecutive green runs of the same tree once the diagnostic's dump
+  changed — which touches no test behaviour. Next diagnostic: a snapshot taken _while_ a request is in flight, from a
+  source that includes virtual threads (`jcmd Thread.dump_to_file`); the failure-time dump can only show what remains
+  after the timeout, and it cannot see them at all.
+
+  **A CI bisect raised a suspicion about `reactor-blockhound` `1.0.18.RELEASE`** — a separate catalogue coordinate
+  bumped in the same update set as `reactor-bom` 2025.0.8 (not a member of that BOM), and the row the 2026-10-25 bump
+  unit briefly held back and then shipped. Two failures in three runs of the bumped pair, against three green runs with
+  `blockhound` at `1.0.17.RELEASE` — two at the same `reactor-core` 3.8.8 (the bisect run and the control run, 12m29s),
+  one at 3.8.7; `blockhound` 1.0.18 with `reactor-core` 3.8.7 was not tried, so the interaction with 3.8.8 is untested,
+  and each cell of that table is one to three runs. A local A/B then left the version unmoved: with platform threads the
+  validation path fails identically on 1.0.17 and 1.0.18 (15 cases, all
+  `BlockingOperationError: Blocking call! java.io.RandomAccessFile#readBytes`), and with virtual threads neither version
+  flags it. The hold was therefore a precaution, and the 2026-10-26 bump unit **withdrew it by owner decision**,
+  shipping `reactor-blockhound` `1.0.18.RELEASE` with a `ThreadDumpWatchdog` whose snapshot comes from
+  `jcmd Thread.dump_to_file`; that control **passed on the runner** — a temporary probe parked `vt-runner-control`, and
+  the CI log carried one `(virtual threads included)` snapshot with its `VirtualThread.parkNanos` stack and no
+  `INCOMPLETE` header. `reactor-core` 3.8.8's own discriminator has not been run. The reproduction drafted for
+  `reactor/BlockHound` stays unpublished: no evidence of a defect in a specific version has been established.
+
+  **Reopening rule:** the next stall — of either gateway controller suite — is read from its in-flight snapshot; an
+  `INCOMPLETE` header or a missing snapshot is a separate observability problem, not evidence about the stall.
+
+  **First red run under the proven diagnostic** (2026-10-26, the archive commit's run `40255154046`, head `99592fb7`;
+  the build job 25m34s, the run 25m38s; the gateway component-test task 124 tests, 42 failed): 157 in-flight snapshots
+  and **all of them complete** — the `jcmd` path never degraded — yet **no virtual thread appears in any snapshot**. The
+  JVM shows its platform threads (`Test worker` parked in `Mono.block()`, `parallel-N`, `ForkJoinPool-1-worker`,
+  Gradle's IPC workers, the watchdog) and nothing in the request path. Read narrowly, that is what the snapshots
+  contain, not what happened between them: a snapshot cannot tell a task that finished from one not yet run, nor whether
+  the request reached the elastic scheduler at all — and the two failing slices are configured differently (the REST
+  suite scans `showcase.api.rest`, the telemetry suite includes only its own controller), so one slice's execution path
+  does not carry over to the other. What the run establishes is that the diagnostic works where it matters (157 of 157
+  complete) and that these states show no worker to blame. The open question is where a request stops progressing, and
+  answering it needs a correlated per-request event sequence (subscribe, scheduling, execution, terminal or cancel)
+  rather than more snapshots.
 
 ## 2026-10-05
 

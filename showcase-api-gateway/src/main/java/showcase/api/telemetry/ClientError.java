@@ -23,7 +23,7 @@ import org.jspecify.annotations.Nullable;
 @Builder
 @Jacksonized
 @Schema(description = "An uncaught JavaScript error or unhandled rejection observed in the browser.")
-@SuppressWarnings({"ClassCanBeRecord", "UnrecognisedJavadocTag"})
+@SuppressWarnings("ClassCanBeRecord")
 public class ClientError {
     /**
      * The error's name (e.g. {@code TypeError}), when known.

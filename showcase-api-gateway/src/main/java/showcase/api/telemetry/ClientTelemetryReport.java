@@ -28,7 +28,7 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 @Schema(description = "A batch of browser-side Core Web Vitals and JavaScript errors reported by the web UI.")
-@SuppressWarnings({"ClassCanBeRecord", "UnrecognisedJavadocTag"})
+@SuppressWarnings("ClassCanBeRecord")
 public class ClientTelemetryReport {
     /**
      * The route the report was produced on.

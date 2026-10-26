@@ -10,7 +10,7 @@
 ## Project Overview
 
 **axon-showcase** — a CQRS/Event Sourcing reference app using the Axon Framework. Java 21, Spring Boot 3.5.16, Gradle
-9.8.1 (Kotlin DSL), monorepo with 19 modules (18 JVM + `showcase-web-ui`).
+9.8.2 (Kotlin DSL), monorepo with 19 modules (18 JVM + `showcase-web-ui`).
 
 This repo uses **spec-driven development**: behavior is captured as OpenSpec specs in `openspec/specs/showcase/`
 (organized by architectural role: `gateway`, `write-side`, `read-side`, `clients`, `extensions`, `deployment`,
@@ -1064,20 +1064,22 @@ Key modules (libraries, not services):
   a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on
   concern for weeks after the Snyk workflow landed, until the first architecture audit caught it). A **version bump** (a
   dependency, tool, or wrapper version) is the mechanical case: it makes stale every live doc that names the bumped
-  version — including a coordinate version an ADR or idea quotes as the catalog's current value — so grep the old string
-  across `AGENTS.md`, `README.md`, `openspec/config.yaml`, `docs/adr/`, and `docs/ideas.md` and fix each, since no gate
-  reads any of them. captured: bump-dependencies-2026-10-12 Update them before reporting the change done; also remove
-  the change's idea from `docs/ideas.md` in this PR, not as a separate docs PR. An idea is removed once implemented
-  (captured by a change) or once explored and decided against — the file's header owns where its durable lesson goes and
-  what remains. Promotion to a GitHub issue is a **link, not a removal** — annotate the idea with the issue number when
-  you promote it, since the file's header names only the issue's link to the change, not the scratchpad's back-link to
-  the issue, so the two drift apart — and prefer promoting a unit's idea at that unit's merge: while its PR is open,
-  citing an artifact the unit ships is a contingent claim that must say so (`open as #NNN; not yet merged`) and the
-  clause drops at the merge — the merge-time read owns that drop, and where the claim was already published outside the
-  repository it means editing the published artifact, not only omitting it from new prose — because the issue is a
-  permanent record outside the repository and cannot cite what the default branch does not have. Give every parked entry
-  a trailing status tag stating its disposition (`— parked; no change yet.` is the common form; a promoted or
-  explored-and-set-aside idea says so instead: the promotion _replaces_ the parked tag,
+  version — including a coordinate an ADR or idea quotes as the catalog's current value, and an example in
+  `openspec/specs/` or a subject pack — so grep the old string across the whole working tree, the change's untracked
+  artifacts included, and fix each live mention, since no gate reads them; de-version an illustrative example (the
+  `2025.0` train, "a later `2025.0.x`") rather than re-version it, which re-stales at that line's next release.
+  captured: bump-dependencies-2026-10-12 captured: bump-dependencies-2026-10-25 Update them before reporting the change
+  done; also remove the change's idea from `docs/ideas.md` in this PR, not as a separate docs PR. An idea is removed
+  once implemented (captured by a change) or once explored and decided against — the file's header owns where its
+  durable lesson goes and what remains. Promotion to a GitHub issue is a **link, not a removal** — annotate the idea
+  with the issue number when you promote it, since the file's header names only the issue's link to the change, not the
+  scratchpad's back-link to the issue, so the two drift apart — and prefer promoting a unit's idea at that unit's merge:
+  while its PR is open, citing an artifact the unit ships is a contingent claim that must say so
+  (`open as #NNN; not yet merged`) and the clause drops at the merge — the merge-time read owns that drop, and where the
+  claim was already published outside the repository it means editing the published artifact, not only omitting it from
+  new prose — because the issue is a permanent record outside the repository and cannot cite what the default branch
+  does not have. Give every parked entry a trailing status tag stating its disposition (`— parked; no change yet.` is
+  the common form; a promoted or explored-and-set-aside idea says so instead: the promotion _replaces_ the parked tag,
   `— promoted to issue #NNN; no change yet.`, never a clause appended past the tag's sentence-final period), since the
   header fixes the sections' order and dating but not the tag, and the tag is what marks the entry as a still-unowned
   idea rather than one already routed to work. Also sweep the un-audited docs for references to the thing this change

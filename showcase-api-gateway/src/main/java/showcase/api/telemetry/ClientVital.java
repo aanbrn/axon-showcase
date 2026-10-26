@@ -24,7 +24,7 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 @Schema(description = "A Core Web Vital measured in the browser.")
-@SuppressWarnings({"ClassCanBeRecord", "UnrecognisedJavadocTag"})
+@SuppressWarnings("ClassCanBeRecord")
 public class ClientVital {
     /**
      * The vital's name, one of {@code LCP}, {@code INP}, {@code CLS}, {@code FCP}, or {@code TTFB}.

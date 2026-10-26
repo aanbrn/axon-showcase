@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
 
 /**
- * Dumps every thread's stack trace to standard error when a test fails.
+ * Dumps the platform threads' stack traces to standard error when a test fails.
  *
  * <p>`ShowcaseRestControllerCT` intermittently fails with a `TimeoutException` at the `WebTestClient` response timeout
  * on a loaded CI runner — a whole-slice stall the failure text does not explain, and which does not reproduce locally

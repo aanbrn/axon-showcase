@@ -38,6 +38,29 @@ detail across two sections.
   way and its round 2 caught it, not the gate. The check could require the marker chain to be the last text before the
   rule's next sibling, or that no prose follows a marker inside the block. Surfaced by the
   `annotate-the-reviewer-wrapper-recurrence` unit's round 2.
+- Record that a `PATH` interception sees only the calls resolving through it — parked; no change yet. A wrapper placed
+  first on `PATH` records the calls that resolve through it; a tool that launches its own child by an internal exec-path
+  escapes it, so a record evidences the calls and never the effect. A `git` wrapper was designed to capture a
+  `post-merge` hook's subcommand and a probe showed git puts its own exec-path ahead of `PATH` for hooks, so the
+  assertion could never fire. Run the fixture once and read the record for a known instance before asserting through it,
+  and assert the outcome for an effect produced outside the wrapper's path. The evidence came from the
+  `add-sync-branch-command` script draft, whose suite was dropped; the lesson is independent of it. A
+  `check-and-test-authoring` mode is where it belongs.
+
+- Record that an assertion the sibling outcomes share cannot see which one ran — parked; no change yet. When a subject
+  emits one of a closed set of outcome tokens, assert the token that distinguishes the outcome: a failed fetch had to
+  report `unknown` where a skipped fetch reports `unconfirmed`, and the case asserted `unconfirmed` — the word both
+  carry — so the wrong state could ship with the suite green. Read the outcome set off the rule that defines it, pin one
+  case per member on its own token, and assert a sibling's token absent where the set is closed. Evidence from the same
+  dropped suite; a `check-and-test-authoring` mode is where it belongs.
+
+- Correct `pause-resume-unit`'s `Stage` field so it stops inviting the ledger's state — parked; no change yet. The field
+  says "Where the unit is: the proposal, a review round, the implementation, …", so a writer naturally renders the
+  review stage as a narrative — how many rounds, whether the loop is clean — which is exactly the copy `AGENTS.md`'s
+  single-sourcing invariant forbids (a review round's state is `docs/review-rounds.tsv`'s). Three drifts in one
+  checkpoint (`add-sync-branch-command`'s) came from that pressure, each fixed by pointing at the ledger. The correction
+  belongs in the skill's field set and a decision point (state only what the artifact owns; point at the ledger), not in
+  `AGENTS.md`, whose invariant already states the obligation. A definition edit of that skill owes its own change.
 
 ## 2026-10-26
 

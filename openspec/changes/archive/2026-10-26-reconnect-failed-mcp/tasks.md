@@ -79,7 +79,7 @@ again.
 - [x] 6.3 Run the suite under Python 3.12 and the repository's `testReconnectMcp`.
 - [x] 6.4 Live verification against the running service: disconnect Playwright through the API, then recover it with
       `python3 scripts/reconnect-mcp.py playwright` and confirm `connected` plus the tool inventory.
-- [ ] 6.5 Record the `showcase/quality/agent-skills` `## Purpose` refresh for the archive commit: the Purpose enumerates
+- [x] 6.5 Record the `showcase/quality/agent-skills` `## Purpose` refresh for the archive commit: the Purpose enumerates
       the capability's subjects and does not name runtime recovery of a failed MCP server, so its sentence gains that
       subject. Verify: `git grep -c 'MCP' -- openspec/specs/showcase/quality/agent-skills/spec.md` before and after, and
       the Purpose names the recovery tooling.

@@ -117,7 +117,11 @@ Source: `AGENTS.md` "Workflow: The review gate".
      `python3 scripts/commit-hygiene.py --unique-rounds --expect-clean <unit>`, which fails while the unit's highest
      recorded round still carries a finding class. That invocation belongs to the boundary alone: a round in flight is
      unclean by design, so it is not part of the repeat rule above.
-2. Fix everything it finds; re-run. Repeat until it reports no new observations.
+2. Fix everything it finds; re-run. Repeat until it reports no new observations. Verify each fix against the finding's
+   own claim — re-read the text the finding named, or assert the replacement's match count — before the next round and
+   before any record reports it fixed: a replacement aimed at re-wrapped prose matches nothing and leaves the finding
+   live, and a grep hit for the replacement token is not that check (`AGENTS.md`'s edit-verification gotcha owns the
+   mechanism). captured: correct-subagent-reload-rule
 
 No semantic self-review precedes the loop — a re-read shares the blind spot that produced the claim — so the author owes
 only the pre-write pass above and the mechanical pre-flight (the formatter and the touched module's gates after the

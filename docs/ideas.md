@@ -19,6 +19,13 @@ detail across two sections.
 
 ## 2026-10-26
 
+- Freeze a unit's resume checkpoint at the resume — parked; no change yet. `.opencode/skills/pause-resume-unit/SKILL.md`
+  defines the checkpoint's field set but never says it stops being maintained once the unit resumes, so a checkpoint
+  written for a pause stays live afterwards, restates state that `docs/review-rounds.tsv` and the task list own, and
+  drifts: `correct-subagent-reload-rule`'s drifted twice before it was frozen as a dated snapshot pointing at the live
+  records. The contract should say that resuming is the act that freezes it, and that each field names the artifact
+  owning its state rather than restating it. Surfaced by that unit's capture.
+
 - Gate the guidance-evidence pairing instead of leaving it to the audit — parked; no change yet. A rule can lose its
   `evidence:` token, or a record section its rule, with no gate failing: `verifyCapturedMarkers` enforces marker
   placement, while the three pairing scenarios live only in `agents-auditor`, which runs on demand or on the schedule. A
@@ -27,6 +34,12 @@ detail across two sections.
   existing record — with a `MODIFIED` delta on `showcase/quality/agent-skills`, since the pairing finding is currently
   the auditor's alone. Surfaced by the `capture-colima-local-network` capture, where the token was dropped to keep
   `AGENTS.md` flat and only a review round caught it.
+- Extract the smoke-run obligations from `AGENTS.md` into their owner — parked; no change yet. The obligations are one
+  bullet each after `correct-subagent-reload-rule` split them in place (its `design.md` Decision 5), so what remains
+  here is the move, not the split. They belong with the review gate that runs the smoke-run —
+  `.opencode/skills/review-gate/SKILL.md` or a `showcase/quality/agent-skills` requirement — so the move owes a spec
+  delta, a destination carrying the complete contract, and a retarget of the `captured:` markers those obligations
+  carry.
 
 - Pin the thread-dump helper's fresh-path behaviour with a control — parked; no change yet. `ThreadDumpWatchdog` names
   each snapshot's file inside a fresh `Files.createTempDirectory` because `jcmd Thread.dump_to_file` refuses to write

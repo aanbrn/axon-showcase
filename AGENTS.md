@@ -410,17 +410,17 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   (`No local changes to save`) and the reset then loses it; the rule that forbids a hard reset on the only copy of the
   work stands first. `git clean -fd` is another way to lose an untracked file, so never run it on a branch holding
   unfinished work.
-- **Refreshing a branch:** a branch is refreshed from `origin/main` rather than continued on stale, and the mechanism
-  follows what it holds — recreate one with no work at all, fast-forward one whose work is uncommitted
-  (`git merge --ff-only origin/main`, which keeps your uncommitted changes and refuses rather than overwrite a file you
-  changed that the update touches), otherwise rebase it; once a PR is open, the mechanism is `gh pr update-branch`
-  instead (see the BEHIND gotcha). An uncommitted tree falls behind too: until it is refreshed, its diff against
-  `origin/main` deletes whatever merged since — the reset gotcha below states the mechanism — so refresh it before the
-  review round and confirm `git diff --stat origin/main` deletes nothing the unit did not change. Resolve that rebase
-  for both sides rather than picking one: a conflict marks where the two sides overlap textually, so a wholesale
-  side-pick drops the other's fact, and a file both sides changed in separate hunks merges silently and needs the same
-  check — verify every file both sides touched still carries both facts after the rebase. captured:
-  route-the-smoke-through-the-ingress captured: fix-advisor-worktree-read
+- **Refreshing a branch:** a branch is refreshed from `origin/main` rather than continued on stale: recreate one with no
+  work at all, fast-forward one whose work is uncommitted (`git merge --ff-only origin/main`, which keeps your
+  uncommitted changes), otherwise rebase it; once a PR is open, `gh pr update-branch` instead (see the BEHIND gotcha).
+  IF a fast-forward refuses because the update touches a file you changed, THEN stash first and re-apply after it — the
+  reset gotcha's stash route with a fast-forward in place of the reset. An uncommitted tree falls behind too — its diff
+  deletes whatever merged since until refreshed — so refresh before the review round and confirm
+  `git diff --stat origin/main` deletes nothing you did not change. Whichever mechanism ran, reconcile for both sides
+  rather than picking one: a conflict marks where the two sides overlap, so a wholesale side-pick drops the other's
+  fact, and a file both sides changed in separate hunks merges silently too — verify both facts survive in every file
+  both touched. captured: route-the-smoke-through-the-ingress captured: fix-advisor-worktree-read captured:
+  reject-a-foreign-change-dir-at-commit (#700)
 
 **Completion criteria** — the user has approved the implementation and the change is committed, pushed, and archived per
 "Workflow: Ship a change". Review findings are edited in the working tree, never committed as an "Address review

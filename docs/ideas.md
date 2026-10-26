@@ -565,6 +565,19 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   **Reopening rule:** the next stall — of either gateway controller suite — is read from its in-flight snapshot; an
   `INCOMPLETE` header or a missing snapshot is a separate observability problem, not evidence about the stall.
 
+  **First red run under the proven diagnostic** (2026-10-26, the archive commit's run `40255154046`, head `99592fb7`;
+  the build job 25m34s, the run 25m38s; the gateway component-test task 124 tests, 42 failed): 157 in-flight snapshots
+  and **all of them complete** — the `jcmd` path never degraded — yet **no virtual thread appears in any snapshot**. The
+  JVM shows its platform threads (`Test worker` parked in `Mono.block()`, `parallel-N`, `ForkJoinPool-1-worker`,
+  Gradle's IPC workers, the watchdog) and nothing in the request path. Read narrowly, that is what the snapshots
+  contain, not what happened between them: a snapshot cannot tell a task that finished from one not yet run, nor whether
+  the request reached the elastic scheduler at all — and the two failing slices are configured differently (the REST
+  suite scans `showcase.api.rest`, the telemetry suite includes only its own controller), so one slice's execution path
+  does not carry over to the other. What the run establishes is that the diagnostic works where it matters (157 of 157
+  complete) and that these states show no worker to blame. The open question is where a request stops progressing, and
+  answering it needs a correlated per-request event sequence (subscribe, scheduling, execution, terminal or cancel)
+  rather than more snapshots.
+
 ## 2026-10-05
 
 - Guarantee the weekly reports against a dropped or delayed `schedule` — parked; no change yet. The `schedule:` trigger

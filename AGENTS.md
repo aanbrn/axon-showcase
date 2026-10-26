@@ -226,48 +226,50 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   to spec it and a recent change's Non-Goal**, and `docs/adr/` for an Accepted decision the design would implement or
   contradict — an ADR's Decision and a spec requirement are both normative, so a relaxation past either is a premise
   error, not a design choice: a requirement the design needs relaxed is amended in the delta and the design names the
-  amendment, never re-read as permitting what its text does not state (an ADR is superseded, not edited) — and the
-  artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier the same session may
-  already have added it. A parked idea, a spec'd capability, or an Accepted ADR is the design to adopt, not re-derive; a
-  false absence claim runs a whole propose cycle on the wrong premise and duplicates what exists (`add-readme-auditor`'s
-  planning proposed widening `agents-auditor` past the parked `readme-auditor` idea the repo already had, caught by the
-  owner rather than a gate; an `enforce-web-ui-import-boundaries` design proposed two relaxations of the one-way import
-  rule ADR-0013's Accepted Decision already forbade, caught by a reviewer). Verify the current state's rationale against
-  the repo — grep for consumers, read the values and their comments, check `git log` for the introducing change — and
-  record it in the design's Context; treat "this looks redundant" as a hypothesis to verify, not a justification to
-  remove, and a falsified example narrows a rule rather than deleting its remedy (the rule governs a class, the example
-  is evidence — `fix-timeout-load-flakes` restored a load-timing remedy #584 had deleted when the controller slice's 30s
-  raise failed). A third-party capability claim is established from the dependency's own sources (its documented DSL,
-  its jar, the task's resolved configuration read back by a scratch init script), never from one interface cargo-culted
-  into a search — grepping the Helm plugin's `HelmInstallationOptions` missed the `remoteTimeout` it inherits from
-  `ConfigurableHelmServerOperationOptions`, and a whole change was designed around "the plugin exposes no install
-  timeout" until its docs showed `helm.remoteTimeout` → `--timeout`, while the blanket `extraArgs` that _was_ read is
-  the worse tool (it reaches every command, `helm repo search` included) — and a setting a build script does add is read
-  back from the task that resolves it, not asserted from the declaring script. A shared helper's **precedence** is part
-  of that claim too: read its own template, since a non-empty global can override every per-component value (defaulting
-  the Bitnami `common.images.image` global would have misrouted the Docker-Hub metrics-exporter sidecar). A claim about
-  a dependency's mechanism — what a coordinate pulls, what a jar contains, what a POM excludes — is derived from the
-  resolved graph or the artifact's own contents, never hand-enumerated from memory: a remembered inventory standing in
-  for an absence claim is wrong on the members beside the ones you listed. A cost, effort, or performance claim is a
-  hypothesis of the same kind and has no source in the repo but a deliberate measurement, so probe it before it drives a
-  proceed-or-skip decision: the then-parked `git worktree` idea carried an assumed build cost behind a conclusion that
-  worktrees were not worth it for a docs-only or single-file fix, and a throwaway probe (a detached worktree from
-  `main`, shared caches warm) measured the first build at a one-time ~1 minute (its Docker-free `check` ran 78s) and
-  ~628M per tree, partly falsifying the premise. A cost the repository cannot yet measure is a model, not a measurement:
-  state each operand as measured or assumed, derive only what the measured ones determine, and leave the aggregate
-  unestablished rather than computing it from a proxy (a review-round tally for fresh sessions). Before treating a spec
-  change as owed, read the spec's **existing** wording for the behavior the code implements — the contract may already
-  state it, in which case the fix is code→spec alignment, not a spec rewrite (`#455`'s `scripts/doctor.sh` classified
-  the repo-state checks as `required` while `showcase/quality/toolchain-check` already carried the exit contract
-  ("unsatisfied prerequisites for the **default build-and-test path**") and only ever had the hooks _reported_, so the
-  defect was a classification chosen in the code and never written into the spec). The worked case is the
-  `remove-redis-client-label` detour — a full propose→apply→verify cycle for a chart-default its labels must not have,
-  with the design weighing implementation alternatives but never questioning the premise; the premise, and why it
-  collapses, are in the `*-client` pod-labels bullet below. captured: publish-helm-chart captured:
+  amendment, never re-read as permitting what its text does not state (an ADR's Decision is superseded, never edited
+  past: a Context or Consequences statement a later change falsifies while that Decision stands is recorded as a dated
+  `## Amendment` naming what changed, with a pointer at the falsified sentence, and the Status stays `Accepted`) — and
+  the artifact you are editing at `HEAD`, `AGENTS.md` included, since a sibling change merged earlier the same session
+  may already have added it. A parked idea, a spec'd capability, or an Accepted ADR is the design to adopt, not
+  re-derive; a false absence claim runs a whole propose cycle on the wrong premise and duplicates what exists
+  (`add-readme-auditor`'s planning proposed widening `agents-auditor` past the parked `readme-auditor` idea the repo
+  already had, caught by the owner rather than a gate; an `enforce-web-ui-import-boundaries` design proposed two
+  relaxations of the one-way import rule ADR-0013's Accepted Decision already forbade, caught by a reviewer). Verify the
+  current state's rationale against the repo — grep for consumers, read the values and their comments, check `git log`
+  for the introducing change — and record it in the design's Context; treat "this looks redundant" as a hypothesis to
+  verify, not a justification to remove, and a falsified example narrows a rule rather than deleting its remedy (the
+  rule governs a class, the example is evidence — `fix-timeout-load-flakes` restored a load-timing remedy #584 had
+  deleted when the controller slice's 30s raise failed). A third-party capability claim is established from the
+  dependency's own sources (its documented DSL, its jar, the task's resolved configuration read back by a scratch init
+  script), never from one interface cargo-culted into a search — grepping the Helm plugin's `HelmInstallationOptions`
+  missed the `remoteTimeout` it inherits from `ConfigurableHelmServerOperationOptions`, and a whole change was designed
+  around "the plugin exposes no install timeout" until its docs showed `helm.remoteTimeout` → `--timeout`, while the
+  blanket `extraArgs` that _was_ read is the worse tool (it reaches every command, `helm repo search` included) — and a
+  setting a build script does add is read back from the task that resolves it, not asserted from the declaring script. A
+  shared helper's **precedence** is part of that claim too: read its own template, since a non-empty global can override
+  every per-component value (defaulting the Bitnami `common.images.image` global would have misrouted the Docker-Hub
+  metrics-exporter sidecar). A claim about a dependency's mechanism — what a coordinate pulls, what a jar contains, what
+  a POM excludes — is derived from the resolved graph or the artifact's own contents, never hand-enumerated from memory:
+  a remembered inventory standing in for an absence claim is wrong on the members beside the ones you listed. A cost,
+  effort, or performance claim is a hypothesis of the same kind and has no source in the repo but a deliberate
+  measurement, so probe it before it drives a proceed-or-skip decision: the then-parked `git worktree` idea carried an
+  assumed build cost behind a conclusion that worktrees were not worth it for a docs-only or single-file fix, and a
+  throwaway probe (a detached worktree from `main`, shared caches warm) measured the first build at a one-time ~1 minute
+  (its Docker-free `check` ran 78s) and ~628M per tree, partly falsifying the premise. A cost the repository cannot yet
+  measure is a model, not a measurement: state each operand as measured or assumed, derive only what the measured ones
+  determine, and leave the aggregate unestablished rather than computing it from a proxy (a review-round tally for fresh
+  sessions). Before treating a spec change as owed, read the spec's **existing** wording for the behavior the code
+  implements — the contract may already state it, in which case the fix is code→spec alignment, not a spec rewrite
+  (`#455`'s `scripts/doctor.sh` classified the repo-state checks as `required` while `showcase/quality/toolchain-check`
+  already carried the exit contract ("unsatisfied prerequisites for the **default build-and-test path**") and only ever
+  had the hooks _reported_, so the defect was a classification chosen in the code and never written into the spec). The
+  worked case is the `remove-redis-client-label` detour — a full propose→apply→verify cycle for a chart-default its
+  labels must not have, with the design weighing implementation alternatives but never questioning the premise; the
+  premise, and why it collapses, are in the `*-client` pod-labels bullet below. captured: publish-helm-chart captured:
   record-remaining-architecture-advisories captured: fix-timeout-load-flakes captured: record-worktree-cost-measurement
   captured: spec-cache-fallback-failed-fetch-contract captured: enforce-web-ui-import-boundaries captured:
   classify-repo-state-checks captured: rework-readme-lifecycle-diagram captured:
-  load-stage-workflow-instructions-on-demand
+  load-stage-workflow-instructions-on-demand captured: reject-a-foreign-change-dir-at-commit
 
 - **An authority rule names the source of truth, not the winning value — resolve a value disagreement from the repo's
   own prior reconciliation.** ADR-0002 makes the Java `@ConfigurationProperties` the surface that owns a property's
@@ -308,7 +310,12 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   `Workspace: unit=<unit>; path=<absolute-path>; branch=<branch>; writer=<ses_…>` — the writing session's own
   identifier, never a description of it and never the reviewer's identifier the ledger records. The record is evidence
   of the assignment, not its source, and it lives with the unit's own record: its `tasks.md` when it has a change dir,
-  otherwise its hand-off or report and then the pull-request checklist. captured: bump-kps-chart-2026-10-25
+  otherwise its hand-off or report and then the pull-request checklist. The commit guard reads a machine-readable
+  sibling of that record: the claim at `git rev-parse --git-path axon-showcase-change`, one line holding the change name
+  or `none` for a unit with no change dir. It may be omitted when the branch's name is a change name — a live
+  `openspec/changes/<name>/` directory or an archived `openspec/changes/archive/<date>-<name>/` one — and every other
+  branch records it before its first commit, which is how a **continued** unit (an `opencode/…` branch or a head pushed
+  from elsewhere) is assigned. captured: bump-kps-chart-2026-10-25 captured: reject-a-foreign-change-dir-at-commit
 - The primary checkout carries the sequential unit. A **new** unit that finds the primary assigned to another unit — or
   whose ownership it cannot establish — works in a sibling worktree, `../axon-showcase-<unit>`, created from a freshly
   fetched `origin/main` with `--no-track`, and the session moves there (`session_move`) before the first write. Create
@@ -325,7 +332,9 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   releases a tree; no unit takes an unowned tree over or removes it, and the record gains the resolved owner.
 - The primary is released to the next sequential unit only after its unit completed (merged, or rejected by the owner),
   no work of it remains (extra commits and unique local data included), and no writer continues; returning the tree to a
-  clean `main` is the release's last step, and a clean `git status` alone neither releases it nor proves it safe.
+  clean `main` is the release's last step, and a clean `git status` alone neither releases it nor proves it safe. The
+  claim is part of that state: `ship-change`'s settle step removes the primary's, and a removed sibling worktree takes
+  its own with it.
 - The record is how the owner reaches a sibling tree's diff, since the review pass otherwise runs against the primary
   checkout the IDE project is attached to.
 - The session's cwd follows the workspace: after a creation or a `session_move`, verify the absolute path and branch
@@ -1776,8 +1785,8 @@ capture-stash-stale-copy captured: override-opencode-plugin-transitives
   unstaged edits) before committing. A pre-commit guard (`scripts/git-hooks/pre-commit`, activated by
   `scripts/install-git-hooks.sh`) enforces this inspection mechanically: it refuses a commit whose staged set fails the
   formatter check, force-stages a generated artifact, stages a path and then edits it, carries a merge conflict marker,
-  misplaces a `captured:` marker, or stages an `openspec/changes/archive/**` change dir while leaving its
-  `openspec/specs/**` sync unstaged.
+  misplaces a `captured:` marker, stages an `openspec/changes/archive/**` change dir while leaving its
+  `openspec/specs/**` sync unstaged, or carries a change directory that is not the commit's assigned one.
 
   evidence: git-and-repository-workflow
 

@@ -220,9 +220,14 @@ modifications as the CLI equivalent. Staging is not committing: the approval sto
   pointer rather than updating it.
 - **A class the loop reports round after round whose instances share a confirmed cause:** rewrite the affected section
   once from its intended content — correct verified errors, remove verified duplication, preserve every valid
-  requirement, exception, warning, and identifier — and verify with the growth-bound bullet's trim sweep. Do not infer
-  the shared cause from the class label: a class whose instances have different causes takes the cause-specific shape
-  instead. captured: add-extraction-procedure
+  requirement, exception, warning, and identifier — and verify with the growth-bound bullet's trim sweep. Re-derive the
+  **model**, not the passage, when the instances are inconsistencies inside one decision model — a precedence, a
+  fallback, an input combination's outcome: its paragraph, its code branches and its fixtures are copies, so enumerate
+  the model's input states and outcomes once, in one table in the artifact that owns the decision, and re-emit each copy
+  from it, since rewriting the paragraph alone re-finds the inconsistency in the branch beside it, and an exception
+  added to the branch a round names moves the defect to the neighbouring state. Do not infer the shared cause from the
+  class label: a class whose instances have different causes takes the cause-specific shape instead. captured:
+  add-extraction-procedure captured: reject-a-foreign-change-dir-at-commit
 - **A rule's own boundary wording — or a claim's supporting reason:** a discriminator, or a reason a decision rests on,
   that reads plausibly but excludes (or no longer supports) the case it was written for must be re-derived from the
   mechanism that distinguishes the cases — not merely re-worded — and tested against that motivating case before its

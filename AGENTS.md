@@ -1056,10 +1056,11 @@ Key modules (libraries, not services):
   apply-2026-09-28-audit-docs-findings captured: remove-unrecorded-redgate-repository A deferral's `Revisit when:` gate
   names each clause's artifact at that artifact's **current** coordinate and labels its type (external coordinate vs
   internal trigger); states the qualifier that narrows the condition in the gate's own line (a _maintained_ release, not
-  any); and a compound gate is a conjunction, met only when every clause is, so a check names the clauses still open. A
-  check reads the gate literally: a renamed coordinate (`axon-bom` → `axon-framework-bom`) resolves to a frozen artifact
-  that never fires, and an implicit qualifier reads as met by a release the owner's intent excludes. captured:
-  correct-adr-0011-axon5-gate captured: correct-adr-0017-spring-grpc-gate
+  any); and a compound gate states its clauses' relation — a conjunction, met only when every clause is, or a
+  disjunction, any one of which reopens the decision — so a check reads that relation literally and names the clauses
+  still open. A check reads the gate literally: a renamed coordinate (`axon-bom` → `axon-framework-bom`) resolves to a
+  frozen artifact that never fires, and an implicit qualifier reads as met by a release the owner's intent excludes.
+  captured: correct-adr-0011-axon5-gate captured: correct-adr-0017-spring-grpc-gate captured: probe-write-exclusivity
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md`, `README.md`, and `docs/adr/` need to be
   refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
   a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on
@@ -1538,8 +1539,8 @@ Key modules (libraries, not services):
   agent/command/skill definitions (asserting each resolves with its metadata) and never invokes `openspec`, and
   `workflowLint` checks only the YAML — so a green `check` does not validate it. This replaced a v1 plugin
   (`.opencode/plugin/grant-cli-config-dirs.ts`) whose `config` hook injected the grants: OpenCode v2 changed the plugin
-  contract and its typed plugin API has no permission hook, so the plugin no longer loaded and was retired. A tool's
-  major-version migration has to treat each v1 surface separately: v2's normalizer auto-mapped the config's
+  contract and its typed plugin API has no permission hook (ADR-0024), so the plugin no longer loaded and was retired. A
+  tool's major-version migration has to treat each v1 surface separately: v2's normalizer auto-mapped the config's
   `permission.bash` onto v2's `shell`, which did not vouch for that sibling plugin, whose load failed with
   `Plugin must export a default definition with an id and an effect or setup function`. v2 pre-approves the
   machine-specific `<tmpdir>/opencode`, which is enough for this repo; `anomalyco/opencode#48100` asks for a portable
@@ -2604,7 +2605,9 @@ changing an image or buildpack pin.
   and re-run it at review, because such a surface can change between the two and no gate reads it. Verify a URL by
   requesting it, and treat the review, not a gate, as the check. An evidence statement for a task that _touches_ such a
   surface has the same limit in the other direction: do not pin a value the surface produced as the evidence the task
-  was done, since the rows of a live lookup vary run to run. captured: rework-the-helm-suppression-list
+  was done, since the rows of a live lookup vary run to run. A **negative** claim about such a surface — a capability
+  absent, a hook missing — names the versions and variants examined, each one's result, and what would have counted as
+  success. captured: rework-the-helm-suppression-list captured: probe-write-exclusivity
 
   evidence: documentation-and-durable-claims
 

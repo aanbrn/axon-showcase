@@ -34,6 +34,14 @@ detail across two sections.
   capture's review as a stale fact the change passed by rather than caused, so its correction belongs to a docs change
   of its own.
 
+- Probe whether v1's `permission.ask` denies a write before it happens — parked; no change yet. ADR-0024 records that
+  the property "one owning session per tree" is not ensured: the v2 plugin surface has no tool or permission hook, the
+  static config carries no session dimension, and the v1 legacy `Hooks` — `permission.ask` (output settable to `deny`)
+  and `tool.execute.before` with `sessionID` — are plausible but unverified. Establishing that leg needs an isolated v1
+  install, a plugin that denies, a session, and a control that detects a write undone before the filesystem is compared;
+  only then can a change touch the gate's procedure. This entry closes when both `.github/workflows/opencode.yml` and
+  `.github/workflows/audit.yml` leave the v1 line, which drops the legacy `Hooks` surface that carries `permission.ask`.
+
 ## 2026-10-25
 
 - Decide the dead `handlebars` constraint on `:platform` — parked; no change yet. `platform/build.gradle.kts` declares

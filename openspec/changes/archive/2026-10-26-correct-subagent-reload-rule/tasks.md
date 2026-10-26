@@ -87,10 +87,10 @@ writer=ses_e880ee8c5ffeSMHo0aBStdezbm
       with this unit's refresh, so the correction is parked in `docs/ideas.md` (2026-10-26) rather than folded into a
       closed loop. The `review-gate` edit owes no spec delta: the `agent-skills` requirement delegates the caller's
       steps to it.
-- [ ] 4.4 Stage the unit's new files (explicit paths), ask the owner for the manual review pass, and end the turn —
-      nothing committed, pushed, opened as a PR, or archived before the approval. Before staging, diff
-      `.opencode/package.json` against `HEAD`: the running v2 binary rewrites its `@opencode-ai/plugin` pin, and round 1
-      caught such a rewrite (`1.19.4` → `1.19.3`), reverted here.
+- [x] 4.4 Staged the unit's new files (explicit paths) and asked for the manual review pass; the owner approved on
+      2026-10-26, and the unit shipped as PR #703 with this archive commit in the same pull request. Before staging,
+      `.opencode/package.json` was diffed against `HEAD`: the running v2 binary rewrites its `@opencode-ai/plugin` pin, and
+      round 1 caught such a rewrite (`1.19.4` → `1.19.3`), reverted here.
 
 ## Resume checkpoint
 

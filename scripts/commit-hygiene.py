@@ -9,9 +9,10 @@ stages an `openspec/changes/archive/**` change dir while leaving its `openspec/s
 `--conflict-markers`, and
 `--executable-bits` modes each verify the tracked set for the build; `--unique-crons` verifies the workflow
 `cron` schedules do not collide; `--unique-rounds` verifies the review-round ledger carries one row per unit and
-round, that each unit's rounds are contiguous from 1, and that a round named with `--expect` is recorded (which
-needs that mode); `--session-continuity` verifies the ledger's reviewer-session fields record each round's session
-and its transition; and `--large-files` verifies no tracked file exceeds the configured size limit. Stdlib only.
+round, that each unit's rounds are contiguous from 1, that a round named with `--expect` is recorded, and that a unit
+named with `--expect-clean` closes on a round carrying no finding class (both need that mode); `--session-continuity`
+verifies the ledger's reviewer-session fields record each round's session and its transition; and `--large-files`
+verifies no tracked file exceeds the configured size limit. Stdlib only.
 """
 
 import argparse
@@ -479,12 +480,12 @@ def check_unique_review_rounds(repo: Path) -> int:
     return len(duplicates)
 
 
-def ledger_rounds(repo: Path) -> dict[str, set[int]]:
-    """The recorded round numbers per unit, from the ledger's data rows."""
+def ledger_data_rows(repo: Path) -> list[list[str]]:
+    """The ledger's data rows, comment and blank lines dropped, so every reader parses and validates it once."""
     ledger = repo / "docs" / "review-rounds.tsv"
     if not ledger.is_file():
-        return {}
-    rounds: dict[str, set[int]] = {}
+        return []
+    rows: list[list[str]] = []
     for line in ledger.read_text(encoding="utf-8").splitlines():
         if not line.strip() or line.lstrip().startswith("#"):
             continue
@@ -497,6 +498,14 @@ def ledger_rounds(repo: Path) -> dict[str, set[int]]:
                     fields[1], fields[2]
                 )
             )
+        rows.append(fields)
+    return rows
+
+
+def ledger_rounds(repo: Path) -> dict[str, set[int]]:
+    """The recorded round numbers per unit, from the ledger's data rows."""
+    rounds: dict[str, set[int]] = {}
+    for fields in ledger_data_rows(repo):
         rounds.setdefault(fields[1], set()).add(int(fields[2]))
     return rounds
 
@@ -538,8 +547,39 @@ def find_unrecorded_expected(repo: Path, expected: Sequence[str]) -> list[tuple[
     return missing
 
 
-def check_unique_review_rounds(repo: Path, expected: Sequence[str] = ()) -> int:
-    """The ledger's duplicate pairs, contiguity gaps, and expected-but-unrecorded rounds, reported to stderr."""
+def parse_expected_clean(units: Sequence[str]) -> list[str]:
+    """The named units, validated, so a malformed name fails rather than matching nothing."""
+    names: list[str] = []
+    for unit in units:
+        if not unit or any(character.isspace() for character in unit):
+            raise ValueError("--expect-clean must name a non-empty unit without whitespace, got {0!r}".format(unit))
+        names.append(unit)
+    return names
+
+
+def find_unclean_closing_rounds(repo: Path, units: Sequence[str]) -> list[tuple[str, str]]:
+    """The (unit, reason) pairs for named units whose closing round is not recorded as clean."""
+    rows: dict[str, list[list[str]]] = {}
+    for fields in ledger_data_rows(repo):
+        rows.setdefault(fields[1], []).append(fields)
+    failures: list[tuple[str, str]] = []
+    for unit in parse_expected_clean(units):
+        unit_rows = rows.get(unit, [])
+        if not unit_rows:
+            failures.append((unit, "the ledger records no round for it"))
+            continue
+        closing = max(unit_rows, key=lambda fields: int(fields[2]))
+        if len(closing) < 4 or not closing[3].strip():
+            failures.append((unit, "round {0} carries no readable classes field".format(closing[2])))
+        elif closing[3] != "-":
+            failures.append((unit, "round {0} carries {1}".format(closing[2], closing[3])))
+    return failures
+
+
+def check_unique_review_rounds(
+    repo: Path, expected: Sequence[str] = (), expect_clean: Sequence[str] = ()
+) -> int:
+    """The ledger's duplicate pairs, contiguity gaps, expected-but-unrecorded rounds, and unclean closing rounds."""
     failures = 0
     for unit, round_number, first, second in find_duplicate_review_rounds(repo):
         print(
@@ -558,6 +598,12 @@ def check_unique_review_rounds(repo: Path, expected: Sequence[str] = ()) -> int:
     for unit, number in find_unrecorded_expected(repo, expected):
         print(
             "Unit '{0}' has no row for round {1}, the round whose report arrived".format(unit, number),
+            file=sys.stderr,
+        )
+        failures += 1
+    for unit, reason in find_unclean_closing_rounds(repo, expect_clean):
+        print(
+            "Unit '{0}' is named with --expect-clean, but {1}".format(unit, reason),
             file=sys.stderr,
         )
         failures += 1
@@ -724,6 +770,13 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="UNIT:ROUND",
         help="a round whose row must be recorded, as <unit>:<round> (repeatable, with --unique-rounds)",
     )
+    parser.add_argument(
+        "--expect-clean",
+        action="append",
+        default=[],
+        metavar="UNIT",
+        help="a unit whose highest recorded round must carry no finding class (repeatable, with --unique-rounds)",
+    )
     mode.add_argument(
         "--session-continuity",
         action="store_true",
@@ -750,6 +803,11 @@ def main(argv: Sequence[str] = ()) -> int:
     if args.expect and not args.unique_rounds:
         print("--expect needs --unique-rounds: it names a round the ledger must carry", file=sys.stderr)
         return 1
+    if args.expect_clean and not args.unique_rounds:
+        print(
+            "--expect-clean needs --unique-rounds: it reads the ledger the same mode parses", file=sys.stderr
+        )
+        return 1
     if args.markers:
         return 1 if check_markers(repo) else 0
     if args.tracked_ignored:
@@ -762,7 +820,7 @@ def main(argv: Sequence[str] = ()) -> int:
         return 1 if check_unique_crons(repo) else 0
     if args.unique_rounds:
         try:
-            return 1 if check_unique_review_rounds(repo, args.expect) else 0
+            return 1 if check_unique_review_rounds(repo, args.expect, args.expect_clean) else 0
         except ValueError as error:
             print(str(error), file=sys.stderr)
             return 1

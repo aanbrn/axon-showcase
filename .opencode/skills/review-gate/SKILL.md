@@ -113,6 +113,10 @@ Source: `AGENTS.md` "Workflow: The review gate".
      before the manual pass; stop on either failure. `<unit>:<round>` names the round whose report just arrived, so
      `--expect` detects a missing final row that contiguity alone cannot see. captured: idempotent-projection-writes
      (#670)
+   - **Both of those attest the record's shape, never that the loop converged.** Before the manual pass, also run
+     `python3 scripts/commit-hygiene.py --unique-rounds --expect-clean <unit>`, which fails while the unit's highest
+     recorded round still carries a finding class. That invocation belongs to the boundary alone: a round in flight is
+     unclean by design, so it is not part of the repeat rule above.
 2. Fix everything it finds; re-run. Repeat until it reports no new observations.
 
 No semantic self-review precedes the loop — a re-read shares the blind spot that produced the claim — so the author owes
@@ -144,10 +148,12 @@ continuity is not proof that a fix is correct.
 
 ## 5. Manual review pass
 
-Only after the quick review reports no new observations and any required deep review has completed, ask the owner for
-the manual review pass, and end the turn there. A clean quick review is a precondition for asking, not a substitute for
-the ask: nothing is committed, pushed, opened as a PR, archived, or merged before the owner approves (the stops are
-`AGENTS.md`'s).
+Only after the quick review reports no new observations, any required deep review has completed, the pre-write
+derivation pass and its claims table are recorded, the unit's highest recorded round carries no finding class (§2's
+`--expect-clean`), and — at the implementation stage, where a capture follows the implementation's quick review — the
+unit's capture record exists (`AGENTS.md`'s `### Workflow: Capture lessons`), ask the owner for the manual review pass,
+and end the turn there. None of those preconditions substitutes for the ask, and none is the approval: nothing is
+committed, pushed, opened as a PR, archived, or merged before the owner approves (the stops are `AGENTS.md`'s).
 
 Before the ask, stage the unit's own new files so the pass shows them:
 
@@ -240,6 +246,8 @@ modifications as the CLI equivalent. Staging is not committing: the approval sto
   check-load-test-drift captured: check-unique-cron-schedules (#436) captured: derive-retrospective-facts captured:
   derive-the-change-claims
 
-**Completion criteria** — the quick review reports no new observations (the loop is clean), the pre-write pass and
-claims table are recorded as required, the deep-review routing decision is recorded with its outcome, any `REQUIRED`
-deep review has completed, and the manual review pass has been requested. A clean quick review means _ask the user now_.
+**Completion criteria** — the quick review reports no new observations (the loop is clean, and the closing round is
+recorded with no class), the pre-write pass and claims table are recorded as required, the deep-review routing decision
+is recorded with its outcome, any `REQUIRED` deep review has completed, and the manual review pass has been requested. A
+clean closing round, the recorded pre-write pass, any required deep review, and — at the implementation stage — the
+capture record mean _ask the user now_; none of them is the owner's approval.

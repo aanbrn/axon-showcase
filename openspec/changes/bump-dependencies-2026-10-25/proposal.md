@@ -62,10 +62,10 @@ normative clause.
 - **Runtime path, so the integration tier verifies it**: the moved BOMs, Kafka codecs (`lz4-java`, `zstd-jni`), Jackson,
   Reactor and Micrometer reach every service; `grpc` reaches the gateway and the query side; `springdoc`/`swagger-ui`
   reach the gateway only. `design.md` states the reach derived from the resolved classpaths.
-- **Test-tooling path**: `reactor-blockhound` stays at `1.0.17.RELEASE` (above), and it is installed by the projection
-  service's integration suite, both clients' component suites, and the gateway's component and e2e suites — `check` runs
-  four of the five (all but the gateway e2e suite, which is the opt-in task); `errorprone`/`nullaway` gate every
-  non-test compile.
+- **Test-tooling path**: `reactor-blockhound` moves to `1.0.18.RELEASE` (the candidate hold was withdrawn above), and it
+  is installed by the projection service's integration suite, both clients' component suites, and the gateway's
+  component and e2e suites — `check` runs four of the five (all but the gateway e2e suite, which is the opt-in task);
+  `errorprone`/`nullaway` gate every non-test compile.
 - **Bundle path**: `react-hook-form` and the ESLint stack are web-UI sources, so the frontend `check` and the production
   bundle `build` run.
 - **Build path**: the wrapper bump makes the whole `check` run under `9.8.2`.

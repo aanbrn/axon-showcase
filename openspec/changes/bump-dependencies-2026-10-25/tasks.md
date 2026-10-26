@@ -98,9 +98,10 @@ branch=bump-dependencies-2026-10-25; writer=ses_e8d4a9bbeffeOGf9vlyJH9zD70.
       control** (temporary probe, reverted): a test parking a virtual thread named `vt-runner-control` produced, in the
       CI log of `2b7ea466`, one `(virtual threads included)` header, zero `INCOMPLETE` headers, and that thread's
       `VirtualThread.parkNanos` stack — so the `jcmd` snapshot works where it matters, not only locally.
-- [ ] 2.12 Publish the upstream report only on the technical advisor's verdict. The draft is complete and its
-      attribution corrected, but publication is an outward-facing act: the owner requires the advisor's final verdict
-      (publish or not) before the issue is filed, and the issue number is then cited here and in `docs/ideas.md`.
+- [x] 2.12 Publish the upstream report only on the technical advisor's verdict. **Done — not published**: the advisor's
+      verdict is `NO-PUBLISH` (no evidence of a defect in a specific version; the correlation is observed, the mechanism
+      is not established), so the draft and its evidence stay in `docs/ideas.md` for a decision made on new data.
+      Publication is therefore parked rather than pending, and nothing is filed on `reactor/BlockHound`.
 - [x] 2.8 Refresh the branch onto the advanced `origin/main` and re-run the gates. **Done**: `origin/main` had moved
       four commits (`7f76216b`: buildpack pins, the kube-prometheus-stack bump, the closure-disposition report, the
       tooling pins), so the work was stashed, the branch fast-forwarded `837aaa52`→`7f76216b`, and the stash re-applied

@@ -547,13 +547,13 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   source that includes virtual threads (`jcmd Thread.dump_to_file`); the failure-time dump can only show what remains
   after the timeout, and it cannot see them at all.
 
-  **A CI bisect narrowed it to `reactor-blockhound` `1.0.18.RELEASE`** — a separate catalogue coordinate bumped in the
-  same update set as `reactor-bom` 2025.0.8 (not a member of that BOM), and the one row of the 2026-10-25 bump unit's
-  report that unit holds back. Two failures in three runs of the bumped pair, against three green runs with `blockhound`
-  at `1.0.17.RELEASE` — two at the same `reactor-core` 3.8.8 (the bisect run and the control run, 12m29s), one at 3.8.7;
-  `blockhound` 1.0.18 with `reactor-core` 3.8.7 was not tried, so the interaction with 3.8.8 is untested, and each cell
-  of that table is one to three runs. A local A/B then left the version unmoved: with platform threads the validation
-  path fails identically on 1.0.17 and 1.0.18 (15 cases, all
+  **A CI bisect raised a suspicion about `reactor-blockhound` `1.0.18.RELEASE`** — a separate catalogue coordinate
+  bumped in the same update set as `reactor-bom` 2025.0.8 (not a member of that BOM), and the row the 2026-10-25 bump
+  unit briefly held back and then shipped. Two failures in three runs of the bumped pair, against three green runs with
+  `blockhound` at `1.0.17.RELEASE` — two at the same `reactor-core` 3.8.8 (the bisect run and the control run, 12m29s),
+  one at 3.8.7; `blockhound` 1.0.18 with `reactor-core` 3.8.7 was not tried, so the interaction with 3.8.8 is untested,
+  and each cell of that table is one to three runs. A local A/B then left the version unmoved: with platform threads the
+  validation path fails identically on 1.0.17 and 1.0.18 (15 cases, all
   `BlockingOperationError: Blocking call! java.io.RandomAccessFile#readBytes`), and with virtual threads neither version
   flags it. The hold was therefore a precaution, and the 2026-10-26 bump unit **withdrew it by owner decision**,
   shipping `reactor-blockhound` `1.0.18.RELEASE` with a `ThreadDumpWatchdog` whose snapshot comes from
@@ -561,6 +561,9 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   the CI log carried one `(virtual threads included)` snapshot with its `VirtualThread.parkNanos` stack and no
   `INCOMPLETE` header. `reactor-core` 3.8.8's own discriminator has not been run. The reproduction drafted for
   `reactor/BlockHound` stays unpublished: no evidence of a defect in a specific version has been established.
+
+  **Reopening rule:** the next stall — of either gateway controller suite — is read from its in-flight snapshot; an
+  `INCOMPLETE` header or a missing snapshot is a separate observability problem, not evidence about the stall.
 
 ## 2026-10-05
 

@@ -80,8 +80,8 @@ branch=bump-dependencies-2026-10-25; writer=ses_e8d4a9bbeffeOGf9vlyJH9zD70.
       `TimeoutException`s, 45 dumps, none with a thread in the request path) while the same suites are green locally six
       times and three more under CPU saturation. A CI bisect put `reactor-blockhound` `1.0.18.RELEASE` under suspicion
       and a hold was applied and carried through a green control run (2.10); the owner then withdrew the hold: each cell
-      is one to three runs, and the unit lands the in-flight dump (2.11) instead, so the latest BlockHound ships and the
-      next stall names its own mechanism.
+      is one to three runs, and the unit lands the in-flight snapshot (2.11) instead, so the latest BlockHound ships and
+      the next stall can be analysed — the mechanism itself remains unestablished.
 - [x] 2.10 Run the control CI run of the then-held configuration before the unit finished, and stop on a repeat.
       **Done**: `51dad975` (with `reactor-blockhound` at 1.0.17) green in 12m29s with the gateway component tests
       executed — the run the hold rested on before the owner withdrew it in 2.9.

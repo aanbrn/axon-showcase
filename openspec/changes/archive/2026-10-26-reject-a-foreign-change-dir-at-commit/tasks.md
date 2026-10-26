@@ -101,5 +101,5 @@
       is not a false statement. The premise that "a resumed unit is exactly the case the claim exists for" was too
       narrow: the resolver reads branch identity and the claim without asking whether work was paused, so a fresh
       non-change-named branch needs it too. Reopen only if a continuation shows resume step 1 failing to reach the rule.
-- [ ] 5.5 Archive the change after the owner's approval, with the delta synced into the main spec in the same pull
+- [x] 5.5 Archive the change after the owner's approval, with the delta synced into the main spec in the same pull
       request.

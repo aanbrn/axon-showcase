@@ -414,13 +414,15 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   work at all, fast-forward one whose work is uncommitted (`git merge --ff-only origin/main`, which keeps your
   uncommitted changes), otherwise rebase it; once a PR is open, `gh pr update-branch` instead (see the BEHIND gotcha).
   IF a fast-forward refuses because the update touches a file you changed, THEN stash first and re-apply after it — the
-  reset gotcha's stash route with a fast-forward in place of the reset. An uncommitted tree falls behind too — its diff
-  deletes whatever merged since until refreshed — so refresh before the review round and confirm
-  `git diff --stat origin/main` deletes nothing you did not change. Whichever mechanism ran, reconcile for both sides
-  rather than picking one: a conflict marks where the two sides overlap, so a wholesale side-pick drops the other's
-  fact, and a file both sides changed in separate hunks merges silently too — verify both facts survive in every file
-  both touched. captured: route-the-smoke-through-the-ingress captured: fix-advisor-worktree-read captured:
-  reject-a-foreign-change-dir-at-commit (#700)
+  reset gotcha's stash route with a fast-forward in place of the reset. `/sync-branch` reports the state and its
+  mechanism and runs this procedure on the owner's request, resolving a conflict for both sides; a branch holding both
+  its own commits and uncommitted work stops until that work is resolved — never stash or reset to make room there. An
+  uncommitted tree falls behind too — its diff deletes whatever merged since until refreshed — so refresh it before the
+  review round and confirm `git diff --stat origin/main` deletes nothing you did not change. Whichever mechanism ran,
+  reconcile for both sides rather than picking one: a conflict marks where the two sides overlap, so a wholesale
+  side-pick drops the other's fact, and a file both sides changed in separate hunks merges silently too — verify both
+  facts survive in every file both touched. captured: route-the-smoke-through-the-ingress captured:
+  fix-advisor-worktree-read captured: reject-a-foreign-change-dir-at-commit (#700)
 
 **Completion criteria** — the user has approved the implementation and the change is committed, pushed, and archived per
 "Workflow: Ship a change". Review findings are edited in the working tree, never committed as an "Address review
@@ -658,6 +660,9 @@ captured: bound-the-review-loop captured: make-the-p99-verdict-confirm-first
   restructure-spec-corpus-findings (#332)
 - **To change a scenario's subject** keep the existing scenario (narrowing its body) and add a sibling — a `MODIFIED`
   block may add a scenario, never rename one.
+- **IF the requirement's subject reports the first condition that holds in an ordered list, THEN derive its scenarios
+  from that list and negate, in each `WHEN`, the higher-precedence conditions it leaves open — a missing predecessor
+  describes a state the subject never reaches.** captured: add-sync-branch-command
 - **A capability spec covers a human-facing artifact's outcome** — that it exists and what it is for — not its
   presentation content (an inventory of its parts, their layout, or their count, which the documented-numbers gotcha
   owns): `add-web-ui-dashboard-panels` added dashboard panels and owed no delta (the requirement's outcome was
@@ -1527,8 +1532,9 @@ Key modules (libraries, not services):
   `load-test-baseline.sh`, `review-rounds.py`), and `commit-hygiene.py` is driven by the tracked
   `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks, and `review-routing.py` by the review gate's own
   procedure and by its `testReviewRouting` task. The generated OpenSpec command/skill files and the vendored skill trees
-  are not the repository's to place. Derive any claim about placement from the complete set
-  (`git ls-files -s | awk '$1=="100755"'`), not from the location in hand. captured: state-tooling-placement-rule (#458)
+  are not the repository's to place. Derive any claim about placement from the complete set — `git ls-files -s` for the
+  executable bit, and `git ls-files scripts showcase-web-ui/scripts '*.sh' ':!:.opencode/*'` for the tools — not from
+  the location in hand. captured: state-tooling-placement-rule (#458)
 - **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
   `.opencode/commands/setup-agent-tools.md` (project-local, **not** a vendored skill) let a contributor ask the agent to
   wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only, the Steroid MCP — into the

@@ -96,14 +96,19 @@ initial plus five consecutive — and three more under CPU saturation. A CI bise
 | `reactor-bom` 2025.0.7 + `blockhound` 1.0.17 | 1       | passed                                                |
 | `reactor-bom` 2025.0.8 + `blockhound` 1.0.17 | 2       | passed (`ee0f6f42`, control run `51dad975` at 12m29s) |
 
-The hold was built on that table and then **withdrawn by an explicit owner decision**: the cells are one to three runs
-each, so the evidence is statistical rather than a deterministic reproduction, and the stall is a pre-existing defect
-(`docs/ideas.md`, 2026-10-06) whose frequency, not existence, the bump changed. What makes taking the latest the better
-trade is that the diagnosis is now instrumented — `ThreadDumpWatchdog`, landing in this unit, snapshots every thread
-_while_ a test runs (3 s, then every 7; both the plain and the template hook, so `@ParameterizedTest` cases count too),
-where `ThreadDumpOnFailure` can only show the aftermath. A pin bought against a one-to-three-run signal costs the update
-and still hides the mechanism; the next stall's in-flight dump names it. `blockhound` 1.0.18 with `reactor-core` 3.8.7
-remains untried.
+The hold was built on that table and then **withdrawn by an explicit owner decision**: each cell is one to three runs,
+so the table is a precaution's justification, not an isolation. The unit states less than it first appeared to. The
+stall's **frequency is not established** — three failures in six attempts on the delivered configuration, then six
+consecutive green runs of the same tree once the diagnostic's dump changed, which touches no test behaviour — and the 45
+failure-time dumps **could not describe the request path at all**: the gateway enables virtual threads, Reactor's
+`boundedElastic` therefore runs on them (measured in the failing slice as `loomBoundedElastic-1`, `virtual=true`), and
+`Thread.getAllStackTraces()` omits virtual threads, so the "idle JVM" they showed is an artefact of the instrument.
+`ThreadDumpWatchdog` therefore shells out to `jcmd Thread.dump_to_file`, which does include them (3 s, then every 7;
+both the plain and the template hook, so `@ParameterizedTest` cases count too) and marks a degraded snapshot with its
+reason instead of passing it off as complete. Its positive control on the runner passed: a temporary probe parked a
+virtual thread, and the CI log carried one `(virtual threads included)` snapshot with that thread's
+`VirtualThread.parkNanos` stack and no `INCOMPLETE` header (commit `2b7ea466`, probe reverted afterwards). `blockhound`
+1.0.18 with `reactor-core` 3.8.7 remains untried, and so does every discriminator for `reactor-core` 3.8.8 itself.
 
 **Leave the dated records alone.** `docs/audits/2026-10-19.md` and `docs/audits/2026-10-24.md` name the wrapper
 `9.8.1-all` as the state they verified, and `AGENTS.md`'s Snyk sentence names the Jackson `3.2.3` fix a past scan

@@ -537,30 +537,30 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 
   **The revisit fired on 2026-10-25** (`bump-dependencies-2026-10-25`'s first CI run, `1dd4f1ce`): 38 of its cases and 7
   of `TelemetryControllerCT`'s failed, all with the same `TimeoutException` at `.exchange()`, one 30s cadence apart, and
-  45 dumps were captured. The dumps are the finding: the test JVM holds **17 threads and none is in the request path** —
-  four BlockHound-instrumented `parallel-N` threads parked in `ScheduledThreadPoolExecutor.take`, the test worker,
-  ForkJoinPool-1 workers and Gradle's IPC threads — so this sample is a request whose completion never arrives while the
-  JVM is otherwise idle, not a thread blocked in the request path, and it does not support the boundedElastic-starvation
-  hypothesis (that pool had not even been created). The failure is probabilistic, not deterministic: the same commit's
-  re-run was green (12m9s) and the suite is green locally (77/77 in 6.8s — six runs, one initial plus five consecutive),
-  and the failure mode predates this unit's bumped coordinates: what the bump changed is its frequency, not its
-  existence (the bisect below), so the earlier "rare or the runner's load changed" question stands as answered by
-  _frequency_. Next diagnostic: dump on a watchdog timer while a request is in flight (the failure-time dump shows only
-  what remains after the timeout), so the next occurrence names the thread that lost the completion rather than only
-  that nothing was running.
+  45 dumps were captured. The dumps looked like the finding — 17 threads, none in the request path — but they cannot be:
+  this application enables virtual threads, Reactor's `boundedElastic` therefore runs on them (measured in the failing
+  slice as `loomBoundedElastic-1`, `virtual=true`), and `Thread.getAllStackTraces()` omits virtual threads. So the "idle
+  JVM" reading is an artefact of the instrument, and the boundedElastic-starvation question is untouched by it (the pool
+  does exist, on virtual threads). **Neither the mechanism nor the frequency is established**: three failures in six
+  attempts of the delivered configuration, then six consecutive green runs of the same tree once the diagnostic's dump
+  changed — which touches no test behaviour. Next diagnostic: a snapshot taken _while_ a request is in flight, from a
+  source that includes virtual threads (`jcmd Thread.dump_to_file`); the failure-time dump can only show what remains
+  after the timeout, and it cannot see them at all.
 
   **A CI bisect narrowed it to `reactor-blockhound` `1.0.18.RELEASE`** — a separate catalogue coordinate bumped in the
   same update set as `reactor-bom` 2025.0.8 (not a member of that BOM), and the one row of the 2026-10-25 bump unit's
   report that unit holds back. Two failures in three runs of the bumped pair, against three green runs with `blockhound`
   at `1.0.17.RELEASE` — two at the same `reactor-core` 3.8.8 (the bisect run and the control run, 12m29s), one at 3.8.7;
   `blockhound` 1.0.18 with `reactor-core` 3.8.7 was not tried, so the interaction with 3.8.8 is untested, and each cell
-  of that table is one to three runs — enough to justify a recorded hold, not to call the cause proven. The mechanism
-  stays unproven and the failure probabilistic, so the hold was a precaution — and the 2026-10-26 bump unit then
-  **withdrew it by owner decision**, shipping `reactor-blockhound` `1.0.18.RELEASE` together with a new
-  `ThreadDumpWatchdog` that snapshots every thread _while_ a test runs. The reasoning: each bisect cell is one to three
-  runs, so a pin bought against it hides the mechanism, while the in-flight dump now names it on the next stall. Reading
-  that dump is the next step here, and the reproduction drafted for `reactor/BlockHound` is filed with the correlation
-  stated as observed rather than as a proven cause.
+  of that table is one to three runs. A local A/B then left the version unmoved: with platform threads the validation
+  path fails identically on 1.0.17 and 1.0.18 (15 cases, all
+  `BlockingOperationError: Blocking call! java.io.RandomAccessFile#readBytes`), and with virtual threads neither version
+  flags it. The hold was therefore a precaution, and the 2026-10-26 bump unit **withdrew it by owner decision**,
+  shipping `reactor-blockhound` `1.0.18.RELEASE` with a `ThreadDumpWatchdog` whose snapshot comes from
+  `jcmd Thread.dump_to_file`; that control **passed on the runner** — a temporary probe parked `vt-runner-control`, and
+  the CI log carried one `(virtual threads included)` snapshot with its `VirtualThread.parkNanos` stack and no
+  `INCOMPLETE` header. `reactor-core` 3.8.8's own discriminator has not been run. The reproduction drafted for
+  `reactor/BlockHound` stays unpublished: no evidence of a defect in a specific version has been established.
 
 ## 2026-10-05
 

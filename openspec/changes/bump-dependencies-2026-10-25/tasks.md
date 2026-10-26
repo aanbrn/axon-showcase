@@ -94,7 +94,10 @@ branch=bump-dependencies-2026-10-25; writer=ses_e8d4a9bbeffeOGf9vlyJH9zD70.
       why; reading it stays with the parked defect, which this unit leaves open. **Controls**: a temporary probe (not
       committed) emitted one marker for a 5 s plain `@Test` and one for a 5 s `@ParameterizedTest` case, and none for a
       20 ms case; the three suites run with the watchdog registered emit no marker and stay green — the passing-run
-      case; cancellation rests on the code read (`cancel` + `shutdownNow` in a `finally`), not on an assertion.
+      case; cancellation rests on the code read (`cancel` + `shutdownNow` in a `finally`), not on an assertion. **Runner
+      control** (temporary probe, reverted): a test parking a virtual thread named `vt-runner-control` produced, in the
+      CI log of `2b7ea466`, one `(virtual threads included)` header, zero `INCOMPLETE` headers, and that thread's
+      `VirtualThread.parkNanos` stack — so the `jcmd` snapshot works where it matters, not only locally.
 - [ ] 2.12 Publish the upstream report only on the technical advisor's verdict. The draft is complete and its
       attribution corrected, but publication is an outward-facing act: the owner requires the advisor's final verdict
       (publish or not) before the issue is filed, and the issue number is then cited here and in `docs/ideas.md`.

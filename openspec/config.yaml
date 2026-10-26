@@ -123,6 +123,9 @@ rules:
       predicate
     - A task that sweeps for an enumerated set names the set's members to grep, never a phrase one enumeration uses —
       an enumeration may list its members as bullet labels no phrase pattern reaches
+    - A normative clause that prohibits content — the root, a command, or a spec SHALL NOT restate a procedure's steps,
+      a field set, or a record — carries its own task, reading every artifact the change creates for the prohibited
+      content, since a prohibition has no implementation site and nothing else verifies it
     - Follow the "Structured Writing Standard" in AGENTS.md — one action per task, its verification stated in the same
       task
     - 'Before naming a site for a later sweep, read and apply the rule identified by "quoted by its text or token"

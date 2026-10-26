@@ -58,8 +58,10 @@ The `pause-resume-unit` skill owns this field set; this is the unit's one record
       recipe over the changed files the formatter does not own. Verify: both exit `0` and the check prints nothing
       outside table rows. **Run:** `spotlessApply`/`spotlessCheck` → exit 0; the 120-character recipe over the changed
       Python-free set prints nothing outside table rows.
-- [ ] 3.3 Run the review gate's quick loop over the reduced diff to a clean round. Verify: the closing round reports
+- [x] 3.3 Run the review gate's quick loop over the reduced diff to a clean round. Verify: the closing round reports
       `nothing remains`, and its row is appended to `docs/review-rounds.tsv`.
+      **Run:** rounds 45–52 covered the reduced diff; round 52 reports `nothing remains`, and its row is in
+      `docs/review-rounds.tsv`.
 - [x] 3.4 Record the capture decision for the reduced scope: the durable lessons that ship (the spec-delta ordered-guard
       rule and the tooling derivation correction), the three parked in 2.4, and the net `AGENTS.md` delta. Verify: the
       record is on this task and `git diff --numstat AGENTS.md` reproduces the figure. **Record:** the durable lessons

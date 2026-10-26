@@ -434,12 +434,13 @@ point.
 - the routed deep review — `/review-thorough` and `review-thorough.md`;
 - the manual review pass — the owner.
 
-- **A clean quick review is a precondition for asking for the manual review, not a substitute for it** — it means _ask
-  the user now_, not _the implementation is approved_. Never commit, push, open a PR, archive, or merge on the strength
-  of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) within minutes, without
-  ever requesting the manual pass. The commit → push → PR → CI → archive sequence starts only after the user approves
-  the implementation — the "Run CI before archiving" convention does not authorize committing earlier. captured:
-  bump-snyk-cli-2026-10-12 captured: require-check-controls-as-tests
+- **A clean closing quick-review round is a precondition for asking for the manual review, not a substitute for it** —
+  with the recorded pre-write pass, any required deep review, and — at the implementation stage — the capture record, it
+  means _ask the user now_, not _the implementation is approved_. Never commit, push, open a PR, archive, or merge on
+  the strength of a clean `review-quick` alone; the `rework-idea-setup` session reached a merged PR (#152) within
+  minutes, without ever requesting the manual pass. The commit → push → PR → CI → archive sequence starts only after the
+  user approves the implementation — the "Run CI before archiving" convention does not authorize committing earlier.
+  captured: bump-snyk-cli-2026-10-12 captured: require-check-controls-as-tests
 
 **Completion criteria** — the gate is complete when the `review-gate` skill's completion criteria hold.
 

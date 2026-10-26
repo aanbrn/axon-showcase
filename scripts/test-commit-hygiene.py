@@ -976,6 +976,141 @@ class UniqueReviewRoundTests(unittest.TestCase):
             self.assertEqual(commit_hygiene.main(["--expect", "unit-a:1", "--repo", str(repo)]), 1)
         self.assertIn("--expect needs --unique-rounds", stderr.getvalue())
 
+    def test_a_clean_closing_round_passes_over_earlier_unclean_rounds(self):
+        repo = make_repo(self)
+        self._write_ledger(
+            repo,
+            "2026-10-16\tunit-a\t1\twording\t-\t1\n"
+            "2026-10-16\tunit-a\t2\tclaim-unreproducible\t-\t1\n"
+            "2026-10-16\tunit-a\t3\t-\t-\t0\n",
+        )
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(
+                commit_hygiene.main(["--unique-rounds", "--expect-clean", "unit-a", "--repo", str(repo)]), 0
+            )
+        self.assertEqual(stderr.getvalue(), "")
+
+    def test_an_unclean_closing_round_is_reported_with_its_classes(self):
+        repo = make_repo(self)
+        self._write_ledger(
+            repo,
+            "2026-10-16\tunit-a\t1\t-\t-\t0\n"
+            "2026-10-16\tunit-a\t2\twording,test-control\t-\t2\n",
+        )
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(
+                commit_hygiene.main(["--unique-rounds", "--expect-clean", "unit-a", "--repo", str(repo)]), 1
+            )
+        self.assertIn("Unit 'unit-a' is named with --expect-clean", stderr.getvalue())
+        self.assertIn("round 2 carries wording,test-control", stderr.getvalue())
+
+    def test_an_unclean_unit_the_caller_does_not_name_is_not_evaluated(self):
+        repo = make_repo(self)
+        self._write_ledger(
+            repo,
+            "2026-10-16\tunit-a\t1\t-\t-\t0\n"
+            "2026-10-16\tunit-b\t1\tclaim-unreproducible\t-\t1\n",
+        )
+
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(
+                commit_hygiene.main(["--unique-rounds", "--expect-clean", "unit-a", "--repo", str(repo)]), 0
+            )
+
+    def test_a_repeated_expectation_fails_when_any_named_unit_is_unclean(self):
+        repo = make_repo(self)
+        self._write_ledger(
+            repo,
+            "2026-10-16\tunit-a\t1\t-\t-\t0\n"
+            "2026-10-16\tunit-b\t1\twording\t-\t1\n",
+        )
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(
+                commit_hygiene.main(
+                    ["--unique-rounds", "--expect-clean", "unit-a", "--expect-clean", "unit-b", "--repo", str(repo)]
+                ),
+                1,
+            )
+        self.assertNotIn("Unit 'unit-a'", stderr.getvalue())
+        self.assertIn("Unit 'unit-b'", stderr.getvalue())
+
+    def test_a_named_unit_with_no_rows_fails_rather_than_passing_vacuously(self):
+        repo = make_repo(self)
+        self._write_ledger(repo, "2026-10-16\tunit-a\t1\t-\t-\t0\n")
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(
+                commit_hygiene.main(["--unique-rounds", "--expect-clean", "unit-missing", "--repo", str(repo)]), 1
+            )
+        self.assertIn("the ledger records no round for it", stderr.getvalue())
+
+    def test_an_unreadable_or_short_classes_field_fails_rather_than_reading_as_clean(self):
+        repo = make_repo(self)
+        self._write_ledger(
+            repo,
+            "2026-10-16\tunit-a\t1\t-\t-\t0\n"
+            "2026-10-16\tunit-a\t2\t\t-\t0\n"
+            "2026-10-16\tunit-b\t1\n",
+        )
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(
+                commit_hygiene.main(["--unique-rounds", "--expect-clean", "unit-a", "--repo", str(repo)]), 1
+            )
+        self.assertIn("round 2 carries no readable classes field", stderr.getvalue())
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(
+                commit_hygiene.main(["--unique-rounds", "--expect-clean", "unit-b", "--repo", str(repo)]), 1
+            )
+        self.assertIn("unit-b", stderr.getvalue())
+
+    def test_the_numerically_highest_round_is_the_one_checked(self):
+        repo = make_repo(self)
+        # Round 10 sorts below round 9 as a string, and its row is not the file's last one.
+        self._write_ledger(
+            repo,
+            "2026-10-16\tunit-a\t10\twording\t-\t1\n"
+            "2026-10-16\tunit-a\t9\t-\t-\t0\n",
+        )
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(
+                commit_hygiene.main(["--unique-rounds", "--expect-clean", "unit-a", "--repo", str(repo)]), 1
+            )
+        self.assertIn("round 10 carries wording", stderr.getvalue())
+
+    def test_expect_clean_without_the_mode_fails(self):
+        repo = make_repo(self)
+        self._write_ledger(repo, "2026-10-16\tunit-a\t1\t-\t-\t0\n")
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(commit_hygiene.main(["--expect-clean", "unit-a", "--repo", str(repo)]), 1)
+        self.assertIn("--expect-clean needs --unique-rounds", stderr.getvalue())
+
+    def test_a_malformed_unit_name_fails(self):
+        repo = make_repo(self)
+        self._write_ledger(repo, "2026-10-16\tunit-a\t1\t-\t-\t0\n")
+
+        for name in ("", "unit a", " unit-a"):
+            stderr = io.StringIO()
+            with contextlib.redirect_stderr(stderr):
+                self.assertEqual(
+                    commit_hygiene.main(["--unique-rounds", "--expect-clean", name, "--repo", str(repo)]), 1
+                )
+            self.assertIn("must name a non-empty unit without whitespace", stderr.getvalue())
+
 class CliTests(unittest.TestCase):
     @staticmethod
     def _run(argv):

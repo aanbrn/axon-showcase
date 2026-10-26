@@ -1152,6 +1152,16 @@ Key modules (libraries, not services):
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
   README already follows this.
+- **Output language follows the output's audience, not the language of the turn that triggered it** — the
+  output-language convention:
+  - a reply the owner reads uses the language of the owner's current request, unless they explicitly requested another,
+    and follows a later switch;
+  - an agent-facing report is English, and so is the prompt or handoff an agent sends another agent — including the
+    prompt the main agent composes for a `subagent` invocation, whatever language the owner's request used;
+  - a durable artifact is English, a chat-composed draft included;
+  - identifiers, paths, commands, exact quotations, and machine-readable fields stay untranslated;
+  - a relayed report keeps the structure, evidence, and uncertainty of the report it presents;
+  - IF the owner's language cannot be established, THEN ask rather than guess.
 - **README design intent**: the README is a human-facing showcase and onboarding guide, not a reference dump. Preserve
   its intended shape on every edit: section order (intro → Project Structure → Cool Story → Architecture → Technologies
   → Development Workflow → Getting Started → Development Practices → Deployment and Operations → License/Author);

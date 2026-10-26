@@ -93,6 +93,19 @@ nothing.
   captured: widen-config-probe-to-guidance captured: enforce-web-ui-naming-conventions captured:
   check-toolchain-prerequisites captured: retry-the-actionlint-download
 
+## A verification step must discriminate the edit from its absence
+
+- **A verification command recorded in a task or checklist is a check: its result must differ between the unedited and
+  the edited artifact, so run it before the edit and record that result, then require the changed one.** A presence grep
+  for a token the subject already carries succeeds in both states and the task ticks with its edit absent (round 1's
+  recorded `test-control` named two such commands; `pull request body` was already at `.github/workflows/audit.yml:56`
+  before any edit). State the expected result in both states — no match becoming a hit, the old value becoming the new
+  one, a count that changes — and treat an expectation identical in both as not a check. Choose a token the subject does
+  not carry yet, and one the formatter cannot split: a reflowed phrase returns nothing and reads as a failed edit
+  (`AGENTS.md`'s `### Evidence and search` rule owns that half; this section owns the state range the command must tell
+  apart). A documentation edit has no committed control behind it — a gate's control is a committed test — so the
+  before-run is the only control it gets. captured: unify-agent-language-policy
+
 ## The fixture must reach the state the assertion claims
 
 - **A fixture that reaches the subject by a neighbouring path proves nothing about the path under test: drive the

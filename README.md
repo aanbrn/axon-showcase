@@ -359,6 +359,9 @@ This repository is developed through a **spec-first, agent-assisted workflow** p
 app. You describe what you want in plain language, and the agent does the work: it proposes a plan, writes the code,
 runs the gates, reviews itself, and opens the PR. You steer and approve; the agent implements.
 
+Talk to the agents in your own language and receive replies in it, while repository artifacts stay in English (see the
+output-language convention in [`AGENTS.md`](AGENTS.md#conventions)).
+
 It also runs on GitHub: commenting `/oc …` on an issue or pull request runs the same agent in GitHub Actions, where it
 opens a PR (or commits to the current one) — the remote path to the same workflow, so a phone comment can start a
 change.
@@ -394,8 +397,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 and recommends a direction — for example,
 `/consult should the projection service batch writes or write one event at a time?`. It runs read-only in a fresh child
 session with a focused handoff; a follow-up on the same decision continues that session. Its default reasoning effort is
-`high`; ask for `xhigh` explicitly to raise it. Owner-facing reports use the language of your request, while
-agent-facing reports and handoffs stay English. This advisor configuration is supported on OpenCode V2; V1 does not
+`high`; ask for `xhigh` explicitly to raise it. This advisor configuration is supported on OpenCode V2; V1 does not
 enforce its `permissions` field or interpret the `provider/model#variant` effort selection equivalently. The invocation
 contract is [`.opencode/commands/consult.md`](.opencode/commands/consult.md).
 

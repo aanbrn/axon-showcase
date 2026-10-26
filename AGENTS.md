@@ -1517,13 +1517,13 @@ Key modules (libraries, not services):
   `setup-hosts.sh`; and `.opencode/` holds the OpenCode-runtime surface — agents, commands, skills — with **no
   executable**, so a command may trigger a `scripts/` tool but never hosts its implementation. A `scripts/` tool an
   agent drives gets its own command trigger, and the tool keeps the implementation (`doctor.sh` ↔ `/check-tooling`,
-  `setup-idea.sh` ↔ `/setup-idea`, `experience-analysis.sh` ↔ `/retrospective`, `claim-scan.py` ↔ `/seed-claims`); a
-  tool with no agent caller stays untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`, `review-rounds.py`), and
-  `commit-hygiene.py` is driven by the tracked `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks, and
-  `review-routing.py` by the review gate's own procedure and by its `testReviewRouting` task. The generated OpenSpec
-  command/skill files and the vendored skill trees are not the repository's to place. Derive any claim about placement
-  from the complete set (`git ls-files -s | awk '$1=="100755"'`), not from the location in hand. captured:
-  state-tooling-placement-rule (#458)
+  `setup-idea.sh` ↔ `/setup-idea`, `experience-analysis.sh` ↔ `/retrospective`, `claim-scan.py` ↔ `/seed-claims`,
+  `reconnect-mcp.py` ↔ `/reconnect-mcp`); a tool with no agent caller stays untriggered (`install-git-hooks.sh`,
+  `load-test-baseline.sh`, `review-rounds.py`), and `commit-hygiene.py` is driven by the tracked
+  `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks, and `review-routing.py` by the review gate's own
+  procedure and by its `testReviewRouting` task. The generated OpenSpec command/skill files and the vendored skill trees
+  are not the repository's to place. Derive any claim about placement from the complete set
+  (`git ls-files -s | awk '$1=="100755"'`), not from the location in hand. captured: state-tooling-placement-rule (#458)
 - **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
   `.opencode/commands/setup-agent-tools.md` (project-local, **not** a vendored skill) let a contributor ask the agent to
   wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only, the Steroid MCP — into the
@@ -2225,6 +2225,11 @@ changing an image or buildpack pin.
   an MCP tool (it is an IntelliJ helper called inside `steroid_execute_code`) — all sourced from the config entry or the
   parked idea note rather than the tool.
 
+- **A failed MCP server is recovered on demand, not by restarting OpenCode.** WHEN a configured MCP server's tools are
+  missing and that server's status reads `failed`, THEN run `/reconnect-mcp <server>`: the tool reconnects that one
+  server and verifies it reached `connected`, and it owns the deadline and the exit contract. A configuration change is
+  a different condition, which the README's Tooling MCP Servers section covers.
+
 - **A CLI's `--help` and its docs are not its contract — a missing flag, an asserted exit code, an assumed output
   stream, and a flag's default each have to be probed before a design keys on them.** The `setup-agent-tools` design
   originally asserted `opencode mcp add` was interactive "with no `--command` flag for a local server, so it cannot be
@@ -2718,3 +2723,9 @@ changing an image or buildpack pin.
   Terminal or over SSH, and any program running as root), or point the kubeconfig at colima's loopback forward
   (`https://127.0.0.1:<port>`, the port changing per start), which is not a local-network operation at all. A/B against
   Terminal.app to confirm the class.
+
+- **Never signal a PID you picked by pattern-matching a process list: a step's own `sh -c` line carries its whole
+  script, so a filter hunting a name also matches the shell running it — an `awk` selecting a `playwright-mcp` match
+  SIGTERMed that shell, and the step reported only `Killed by SIGTERM`.** Capture the child's own `$!`, or exclude `$$`,
+  `$PPID`, and every ancestor from the match, and confirm `ps -p <pid> -o command=` names the intended process before
+  killing it. captured: reconnect-failed-mcp

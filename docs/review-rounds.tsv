@@ -1280,3 +1280,16 @@
 2026-10-26	reject-a-foreign-change-dir-at-commit	17	-	-	0	ses_e883e4597ffe4gMCnRucl6bsmd	continued	-
 2026-10-26	reject-a-foreign-change-dir-at-commit	18	-	-	0	ses_e883e4597ffe4gMCnRucl6bsmd	continued	-
 2026-10-26	reject-a-foreign-change-dir-at-commit	19	-	-	0	ses_e883e4597ffe4gMCnRucl6bsmd	continued	-
+2026-10-26	reconnect-failed-mcp	1	claim-missing,claim-unreproducible,contradiction,formatting,impact-omission,incomplete-enumeration,missing-scenario,missing-task,single-sourcing,test-control,wording	-	10	ses_e881e590effe6NGupk197io5E0	created	-
+2026-10-26	reconnect-failed-mcp	2	claim-missing,single-sourcing,wording	claim-missing,single-sourcing,wording	3	ses_e881e590effe6NGupk197io5E0	continued	-
+2026-10-26	reconnect-failed-mcp	3	claim-missing	claim-missing	1	ses_e881e590effe6NGupk197io5E0	continued	-
+2026-10-26	reconnect-failed-mcp	4	claim-unreproducible,wording	claim-unreproducible,wording	1	ses_e881e590effe6NGupk197io5E0	continued	-
+2026-10-26	reconnect-failed-mcp	5	-	-	0	ses_e881e590effe6NGupk197io5E0	continued	-
+2026-10-26	reconnect-failed-mcp	6	test-control	test-control	1	ses_e881e590effe6NGupk197io5E0	continued	-
+2026-10-26	reconnect-failed-mcp	7	-	-	0	ses_e881e590effe6NGupk197io5E0	continued	-
+2026-10-26	reconnect-failed-mcp	8	coherence,contradiction,docs-residue,formatting,incomplete-enumeration,missing-scenario,test-control	contradiction,formatting,incomplete-enumeration,missing-scenario,test-control	4	ses_e881e590effe6NGupk197io5E0	continued	-
+2026-10-26	reconnect-failed-mcp	9	docs-residue,incomplete-enumeration,missing-scenario,test-control	docs-residue,incomplete-enumeration,missing-scenario,test-control	2	ses_e881e590effe6NGupk197io5E0	continued	-
+2026-10-26	reconnect-failed-mcp	10	test-control	test-control	1	ses_e881e590effe6NGupk197io5E0	continued	-
+2026-10-26	reconnect-failed-mcp	11	-	-	0	ses_e881e590effe6NGupk197io5E0	continued	-
+2026-10-26	reconnect-failed-mcp	12	claim-unreproducible	claim-unreproducible	1	ses_e881e590effe6NGupk197io5E0	continued	-
+2026-10-26	reconnect-failed-mcp	13	-	-	0	ses_e881e590effe6NGupk197io5E0	continued	-

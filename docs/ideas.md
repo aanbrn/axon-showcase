@@ -42,6 +42,24 @@ detail across two sections.
   only then can a change touch the gate's procedure. This entry closes when both `.github/workflows/opencode.yml` and
   `.github/workflows/audit.yml` leave the v1 line, which drops the legacy `Hooks` surface that carries `permission.ask`.
 
+- Report OpenCode's missing MCP reconnect upstream — parked; no change yet. On 2026-10-26 a laptop wake left the network
+  down while the Playwright server started: `npx` could not reach the registry, the connect stalled 346 s, and the
+  server stayed `failed` for that workspace for ~2.5 h across new sessions, with no automatic retry.
+  `POST /api/experimental/mcp/{server}/connect` repaired it in 1.4 s, and `opencode mcp` (2.1.4) exposes no connect
+  subcommand, so the reproducer and measurements are the ones recorded in the `reconnect-failed-mcp` change and its
+  `scripts/reconnect-mcp.py`. The report asks for bounded automatic recovery or a documented retry policy, plus the CLI
+  surface. It retires when a released version retries a failed connect on its own (or exposes the operation in the CLI),
+  not when an issue closes.
+
+- Settle the README's "MCP config is read at startup, so restart OpenCode after adding one" against OpenCode 2.x's
+  reload behaviour — parked; no change yet. The `opencode` skill describes configuration watching and a `/reload`, while
+  `README.md`'s Tooling MCP Servers section (with `.opencode/commands/setup-agent-tools.md` and its skill) tells a
+  contributor to restart. Neither side is verified here, and `reconnect-failed-mcp` deliberately narrowed its own
+  wording to avoid asserting either (a configuration change is "a different condition" it points at the README for)
+  rather than propagate an unverified mechanism. Settling it: on the installed 2.1.4 build (`opencode --version`), add a
+  throwaway server entry, run `/reload`, and check whether `opencode mcp list` or the session's tools show it; if a
+  reload suffices, the three sites are one docs PR. It retires when those sites state the behaviour the probe shows.
+
 ## 2026-10-25
 
 - Decide the dead `handlebars` constraint on `:platform` — parked; no change yet. `platform/build.gradle.kts` declares

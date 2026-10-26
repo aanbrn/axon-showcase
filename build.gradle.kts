@@ -554,6 +554,15 @@ tasks.register<Exec>("testReviewRouting") {
     commandLine(pythonExecutable, "scripts/test-review-routing.py")
 }
 
+tasks.register<Exec>("testReconnectMcp") {
+    group = "verification"
+    description = "Runs the MCP reconnect tool's tests"
+    inputs.file("scripts/reconnect-mcp.py")
+    inputs.file("scripts/test-reconnect-mcp.py")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/test-reconnect-mcp.py")
+}
+
 tasks.register<Exec>("verifyTrackedIgnoredFiles") {
     group = "verification"
     description = "Verifies no tracked file is excluded by the repository's ignore rules"
@@ -675,6 +684,7 @@ tasks.named("check") {
     dependsOn("testDoctorCharter")
     dependsOn("testReviewRounds")
     dependsOn("testReviewRouting")
+    dependsOn("testReconnectMcp")
     dependsOn("verifyTrackedIgnoredFiles")
     dependsOn("verifyConflictMarkers")
     dependsOn("verifyExecutableBits")

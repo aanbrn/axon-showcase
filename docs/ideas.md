@@ -19,6 +19,15 @@ detail across two sections.
 
 ## 2026-10-26
 
+- Gate the guidance-evidence pairing instead of leaving it to the audit — parked; no change yet. A rule can lose its
+  `evidence:` token, or a record section its rule, with no gate failing: `verifyCapturedMarkers` enforces marker
+  placement, while the three pairing scenarios live only in `agents-auditor`, which runs on demand or on the schedule. A
+  `verifyGuidanceEvidence` rules task on that pattern would assert, per `docs/guidance-evidence/` section, that the rule
+  whose bold lead matches its `Rule:` paragraph carries `evidence: <record>`, and that every such token names an
+  existing record — with a `MODIFIED` delta on `showcase/quality/agent-skills`, since the pairing finding is currently
+  the auditor's alone. Surfaced by the `capture-colima-local-network` capture, where the token was dropped to keep
+  `AGENTS.md` flat and only a review round caught it.
+
 - Pin the thread-dump helper's fresh-path behaviour with a control — parked; no change yet. `ThreadDumpWatchdog` names
   each snapshot's file inside a fresh `Files.createTempDirectory` because `jcmd Thread.dump_to_file` refuses to write
   over an existing path: the repeat call prints `… exists, use -overwrite to overwrite` and exits **0**, leaving the

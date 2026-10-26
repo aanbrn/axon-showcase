@@ -87,14 +87,14 @@ non-calendar (semver) coordinates, the existing leading-integer major comparison
 
 #### Scenario: Calendar-train change is classified as a major update
 
-- **WHEN** a calendar-versioned coordinate (e.g. `io.projectreactor:reactor-bom` at `2025.0.7`) has a candidate whose
-  `YYYY.TRAIN` pair differs from the current pair (e.g. `2025.1.x` or `2026.0.x`) is available
+- **WHEN** a calendar-versioned coordinate (e.g. `io.projectreactor:reactor-bom` on the `2025.0` train) has a candidate
+  whose `YYYY.TRAIN` pair differs from the current pair (e.g. `2025.1.x` or `2026.0.x`) is available
 - **THEN** the report treats that train change as a major update for the coordinate
 
 #### Scenario: Same-train service release is classified as a non-major update
 
 - **WHEN** a calendar-versioned coordinate has a candidate with the same `YYYY.TRAIN` pair but a newer service release
-  (e.g. `2025.0.8` vs `2025.0.7`) is available
+  (e.g. a later `2025.0.x`) is available
 - **THEN** the report treats that service-release change as a non-major update for the coordinate
 
 #### Scenario: Semver coordinates keep the leading-integer major comparison

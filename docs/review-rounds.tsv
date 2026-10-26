@@ -1293,3 +1293,14 @@
 2026-10-26	reconnect-failed-mcp	11	-	-	0	ses_e881e590effe6NGupk197io5E0	continued	-
 2026-10-26	reconnect-failed-mcp	12	claim-unreproducible	claim-unreproducible	1	ses_e881e590effe6NGupk197io5E0	continued	-
 2026-10-26	reconnect-failed-mcp	13	-	-	0	ses_e881e590effe6NGupk197io5E0	continued	-
+2026-10-26	capture-colima-local-network	1	dropped-content,contradiction,missing-task,over-claim,single-sourcing,wording,formatting,structured-writing	-	6	ses_e877c1810ffe0hiT5mefMpwQug	created	-
+2026-10-26	capture-colima-local-network	2	contradiction,over-claim,wording,formatting	contradiction,over-claim,wording,formatting	3	ses_e877c1810ffe0hiT5mefMpwQug	continued	-
+2026-10-26	capture-colima-local-network	3	claim-unreproducible,over-claim,redundant-code	over-claim	2	ses_e877c1810ffe0hiT5mefMpwQug	continued	-
+2026-10-26	capture-colima-local-network	4	-	-	0	ses_e877c1810ffe0hiT5mefMpwQug	continued	-
+2026-10-26	capture-colima-local-network	5	missing-task,claim-unreproducible	missing-task,claim-unreproducible	2	ses_e877c1810ffe0hiT5mefMpwQug	continued	-
+2026-10-26	capture-colima-local-network	6	wording	wording	0	ses_e877c1810ffe0hiT5mefMpwQug	continued	-
+2026-10-26	capture-colima-local-network	7	-	-	0	ses_e877c1810ffe0hiT5mefMpwQug	continued	-
+2026-10-26	capture-colima-local-network	8	-	-	0	ses_e877c1810ffe0hiT5mefMpwQug	continued	-
+2026-10-26	capture-colima-local-network	9	-	-	0	ses_e877c1810ffe0hiT5mefMpwQug	continued	-
+2026-10-26	capture-colima-local-network	10	-	-	0	ses_e877c1810ffe0hiT5mefMpwQug	continued	-
+2026-10-26	capture-colima-local-network	11	-	-	0	ses_e877c1810ffe0hiT5mefMpwQug	continued	-

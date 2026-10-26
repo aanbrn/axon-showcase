@@ -409,6 +409,50 @@ note.
   neither reports the other as an update, while `Versions.highest`, which only this check needs, keeps a longer-spelling
   tiebreak so the _reported_ tag is the canonical form rather than the alias.
 
+- **A local-cluster command that fails with `no route to host` is diagnosed from the process that fails, and fixed with
+  a loopback kube context when that process cannot hold the host's Local Network grant.** The `AGENTS.md` rule under
+  `### Environment & host toolchain` owns the macOS mechanism and the first checks; this rule owns the procedure and the
+  fallback.
+
+  **Procedure**
+
+  1. Reproduce in the failing process and keep its exact error: re-run the failing Gradle task, or trigger the service's
+     own action. A daemon cannot be probed from outside — the failing task is its probe.
+  2. Run the same command in **Terminal.app** and compare. If it succeeds where the tool failed, the difference points
+     at the execution context rather than the cluster — a distinguishing observation, not proof of the cause; a cluster
+     fault would be expected to fail there too, so a success there shifts the suspicion without settling it.
+  3. Compare a non-entitled client with a platform binary against a LAN address:
+     `python3 -c 'import socket;s=socket.socket();s.settimeout(3);s.connect(("<lan-ip>",80))'` reports `errno 65` where
+     `curl -sS -o /dev/null http://<lan-ip>/` reaches the address — a client-dependent split the denial explanation fits
+     better than a routing fault, though a process-specific filter would look the same.
+  4. Read the class, not the message alone: `errno 65` on a LAN address while the internet works points at a
+     local-network denial rather than a fault in the cluster or its routing; `errno 61` (connection refused) means the
+     packet reached a stack, and a timeout proves nothing about reachability — diagnose either as its own fault.
+  5. Grant Local Network to the app that owns the failing process tree, then restart that app: macOS may not apply a
+     grant to children already running.
+
+  IF the failing process cannot hold a grant at all, THEN run the command from **Terminal.app** or under `sudo` (macOS
+  auto-allows command-line tools run from Terminal or over SSH, and any program running as root), or take the loopback
+  fallback below.
+
+  **Fallback that does not depend on the grant** — reach the API over loopback through colima's host-side port
+  forwarder, which is not local-network traffic.
+
+  1. Add a second cluster/context whose server is `https://127.0.0.1:<k3s-port>`, the port read from the guest with
+     `colima ssh -- sudo grep -m1 'server:' /etc/rancher/k3s/k3s.yaml`, carrying the CA and user of the existing
+     `colima` cluster/context.
+  2. Select it per machine with `helm.local.kubeContext` in `~/.gradle/gradle.properties`: the `local` target reads that
+     property, and no machine-specific context name belongs in the versioned build.
+  3. Refresh that context after every `colima start`/`restart` and after any cluster recreation: the API port is chosen
+     when the cluster is created (changing `--k3s-listen-port` does not move an existing cluster), and the CA belongs to
+     the cluster. Rewrite endpoint and CA together — a stale CA fails with an x509 error, which reads nothing like the
+     routing failure it replaced.
+  4. Verify through the path the build uses: `helm list -A --kube-context <context>`, then one Gradle Helm task, which
+     proves the daemon reaches the API too.
+
+  The fallback covers the API only. Ingress is a separate path: `setup-hosts.sh` maps the LoadBalancer address into
+  `/etc/hosts`, and a loopback API context leaves that mapping unchanged. captured: capture-colima-local-network
+
 ## Helm update checks
 
 The Helm update check has its own suppression file, `config/helm-updates/major-disabled.txt`: major bumps of the bitnami

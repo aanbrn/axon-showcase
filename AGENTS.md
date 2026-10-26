@@ -2709,20 +2709,20 @@ changing an image or buildpack pin.
   run the suite under an interpreter at that floor before reporting it done. captured: add-pre-commit-staged-set-guard
   (#372) captured: adopt-python-3-12-minimum
 
-- **macOS local-network privacy can leave a Warp-spawned shell unable to reach the local cluster.** Reaching a
-  local-network address is a per-app privilege macOS tracks by code-signing identity (Apple `TN3179`), and a third-party
-  terminal's child processes can be denied it while the internet works: the LAN and colima's vmnet subnet
-  (`192.168.64.0/24`, the address the kubeconfig points at) fail with `EHOSTUNREACH`, which reads as a cluster outage,
-  and neither a `colima restart` nor a `colima delete` + recreate changes it, because the fault is the host's consent
-  layer rather than the VM or k3s. Check the terminal app first: Warp can be _listed_ under System Settings → Privacy &
-  Security → Local Network with its toggle **off**, and switching it on restores access immediately; quit and reopen the
-  app if its existing children keep the denied state. `warpdotdev/warp#6320` documents the symptom (the same command
-  succeeds from Terminal.app) but was closed as a duplicate of the canonical, still-open `warpdotdev/warp#5550`, whose
-  thread shows the toggle already enabled for reporters who still failed: this is the first check, not the only one.
-  Fallbacks: run the command from **Terminal.app** or under `sudo` (macOS auto-allows command-line tools run from
-  Terminal or over SSH, and any program running as root), or point the kubeconfig at colima's loopback forward
-  (`https://127.0.0.1:<port>`, the port changing per start), which is not a local-network operation at all. A/B against
-  Terminal.app to confirm the class.
+- **macOS local-network privacy can deny a daemonised tool its cluster access while the terminal that launched it
+  works.** Reaching a local-network address is a privilege macOS grants the **responsible app** (Apple `TN3179`); a tool
+  that detaches from it — a background service reparented to `launchd`, a Gradle daemon launched from an IDE panel — can
+  be judged on its own, the observed difference here, with the exact attribution uninspected. A working command in the
+  launching shell proves nothing for it, and connections to the LAN and colima's vmnet subnet (`192.168.64.0/24`, the
+  kubeconfig's address) fail with `EHOSTUNREACH`; neither a `colima restart` nor a `colima delete` + recreate changes
+  it, because the fault is the host's consent layer. Check the app first: Warp can be _listed_ under System Settings →
+  Privacy & Security → Local Network with its toggle **off**; switching it on restores access immediately. Quit and
+  reopen the app if its existing children keep the denied state. `warpdotdev/warp#6320` documents the symptom, closed as
+  a duplicate of the still-open `warpdotdev/warp#5550`, whose thread shows the toggle enabled yet still failing: this is
+  the first check, not the only one. The diagnosis, the A/B, and the fallbacks (Terminal.app, `sudo`, the loopback kube
+  context) are the `deployment-operations` pack's. captured: capture-colima-local-network
+
+  evidence: environment-and-host-toolchain
 
 - **Never signal a PID you picked by pattern-matching a process list: a step's own `sh -c` line carries its whole
   script, so a filter hunting a name also matches the shell running it — an `awk` selecting a `playwright-mcp` match

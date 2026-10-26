@@ -1203,3 +1203,7 @@
 2026-10-26	bump-dependencies-2026-10-25	16	output-ordering,claim-unreproducible	claim-unreproducible	1	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
 2026-10-26	bump-dependencies-2026-10-25	17	claim-unreproducible,missing-task	claim-unreproducible,missing-task	3	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
 2026-10-26	bump-dependencies-2026-10-25	18	claim-unreproducible	claim-unreproducible	1	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
+2026-10-26	capture-dump-vs-execution-model	1	over-claim,test-control,single-sourcing,structured-writing	-	4	ses_e89e5d603ffeL5KwgM74PlPiVH	created	-
+2026-10-26	capture-dump-vs-execution-model	2	-	-	0	ses_e89e5d603ffeL5KwgM74PlPiVH	continued	-
+2026-10-26	capture-dump-vs-execution-model	3	claim-unreproducible,wording	-	1	ses_e89e5d603ffeL5KwgM74PlPiVH	continued	-
+2026-10-26	capture-dump-vs-execution-model	4	-	-	0	ses_e89e5d603ffeL5KwgM74PlPiVH	continued	-

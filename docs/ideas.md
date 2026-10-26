@@ -17,6 +17,17 @@ file for the idea before adding it: the same work already parked — however dif
 its existing section, since the day-section rule otherwise files a re-park as a second entry and splits one idea's
 detail across two sections.
 
+## 2026-10-26
+
+- Pin the thread-dump helper's fresh-path behaviour with a control — parked; no change yet. `ThreadDumpWatchdog` names
+  each snapshot's file inside a fresh `Files.createTempDirectory` because `jcmd Thread.dump_to_file` refuses to write
+  over an existing path: the repeat call prints `… exists, use -overwrite to overwrite` and exits **0**, leaving the
+  previous dump in place. The helper discards the child's output and treats exit `0` as a complete snapshot, so a
+  regression to a fixed path would serve a stale dump marked complete, silently. Nothing pins the naming —
+  `ThreadDumpRegistrationCT` asserts the service-path registration and autodetection only. The control drives two
+  consecutive snapshots and asserts each is a fresh, complete render. Surfaced by the 2026-10-25 capture, which routed
+  this hazard to a check rather than to a rule in prose.
+
 ## 2026-10-25
 
 - Decide the dead `handlebars` constraint on `:platform` — parked; no change yet. `platform/build.gradle.kts` declares

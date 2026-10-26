@@ -8,7 +8,9 @@ set excludes ignored files, that no tracked file carries a merge conflict marker
 executable bit, that no tracked file exceeds the configured size limit, that no two workflow cron schedules collide,
 that the review-round ledger carries at most one row per unit and round, that each unit's rounds are contiguous from `1`
 apart from an explicitly acknowledged gap, that a round the caller names with `--expect` is recorded, and that each
-round's reviewer session and its continuity are recorded, and a committed `.gitattributes` that normalizes line endings
+round's reviewer session and its continuity are recorded — and, asserted at the review gate's manual-pass boundary
+rather than by a build check, that a unit the caller names with `--expect-clean` closes on a round carrying no finding
+class, since a round in flight is unclean by design — and a committed `.gitattributes` that normalizes line endings
 (enforced by git, not the build) — so slips that were caught only by a human or a review pass are blocked by
 construction.
 
@@ -360,6 +362,13 @@ expectation given without the mode, and a ledger row whose round column is not a
 skip. The verification SHALL be a `commit-hygiene.py` mode run by a `check` task, reading the tracked ledger rather than
 the staged set.
 
+When the caller also names the units whose loops must have converged (`--expect-clean <unit>`, repeatable, and valid
+only with `--unique-rounds`), the same verification SHALL fail unless each named unit's numerically highest recorded
+round carries no finding class, and SHALL fail when a named unit has no rows or its `classes` field is unreadable,
+naming the unit, the round, and the classes found. The assertion SHALL be invoked by the review gate's manual-pass step,
+and SHALL evaluate only the units the caller names, so the `check` task's invocation — which names none — never fails on
+a unit's history, where a round in flight is unclean by design.
+
 #### Scenario: A duplicated round row fails the check
 
 - **WHEN** `check` runs and the ledger carries two rows with the same unit and round
@@ -404,6 +413,32 @@ the staged set.
   change's review task
 - **THEN** an `# --- Acknowledged gap:` comment names the unit, the original number, and the destination
 - **AND** no quick-review data row is created for that number
+
+#### Scenario: A named unit's unclean highest round fails the verification
+
+- **WHEN** the caller names a unit with `--expect-clean` and that unit's numerically highest recorded round carries one
+  or more finding classes
+- **THEN** the verification fails, naming the unit, the round, and the classes it found
+
+#### Scenario: A named unit's clean highest round passes over earlier unclean rounds
+
+- **WHEN** the named unit's highest recorded round carries `-` and earlier rounds carry classes
+- **THEN** the verification passes, since the loop's convergence is recorded by the highest round
+
+#### Scenario: A named unit with no rows fails rather than passing vacuously
+
+- **WHEN** the caller names a unit the ledger does not record
+- **THEN** the verification fails, naming the unit, rather than passing because no row contradicts it
+
+#### Scenario: An unreadable classes field fails rather than reading as clean
+
+- **WHEN** the caller names a unit whose highest row carries no classes field at all
+- **THEN** the verification fails, naming the unit and the round, rather than treating the truncated row as clean
+
+#### Scenario: A unit the caller does not name is not evaluated
+
+- **WHEN** the ledger holds units whose highest round carries a finding class and the caller names none of them
+- **THEN** the verification passes, so `check` stays green on the ledger's history
 
 ### Requirement: Review-round rows record the reviewer session's continuity
 

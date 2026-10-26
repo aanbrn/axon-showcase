@@ -51,8 +51,8 @@
       the user now_" so the preconditions the skill now states — the recorded clean closing round, the recorded
       pre-write pass, any required deep review, and the capture record at the implementation stage — are carried at the
       root sentence a reader acts on, without restating the procedure.
-- [ ] 3.4 `openspec/specs/showcase/quality/commit-hygiene` — record a Purpose refresh and apply it in the archive
-      commit: the Purpose enumerates the ledger verifications, and a delta cannot carry one.
+- [x] 3.4 `openspec/specs/showcase/quality/commit-hygiene` — record a Purpose refresh and apply it in the archive
+      commit: the Purpose enumerates the ledger verifications, and a delta cannot carry one. Done: the Purpose now separates this assertion — invoked by the gate at the manual-pass boundary — from the build checks.
 
 ## 4. Verification
 
@@ -94,5 +94,5 @@
       planning artifacts as the tasks state.
 - [x] 5.4 The pre-write derivation pass recorded as its own task here, with the claims table re-derived in `design.md`
       after the final edit; the table does not stand in for the pass's record.
-- [ ] 5.5 Archive the change after the owner's approval, with the delta synced into the main spec in the same pull
-      request.
+- [x] 5.5 Archive the change after the owner's approval, with the delta synced into the main spec in the same pull
+      request. Done: archived as `2026-10-26-close-the-manual-pass-preconditions`, the delta synced into the main spec, and the Purpose refreshed in the same commit.

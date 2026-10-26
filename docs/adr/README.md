@@ -31,7 +31,8 @@ What was decided, and the alternatives considered and rejected.
 
 ## Consequences
 
-What becomes easier or harder, what this enables and what it forecloses. Update this section if the trade-offs change.
+What becomes easier or harder, what this enables and what it forecloses. Update this section if the trade-offs change; a
+statement a later change falsifies while the Decision stands takes an amendment (see below).
 ```
 
 ## Writing a new ADR
@@ -46,3 +47,7 @@ What becomes easier or harder, what this enables and what it forecloses. Update 
   state the clauses' relation — a conjunction fires only when every clause is met, a disjunction when any one is.
 - A compound gate states that relation because the `architecture-auditor` reads it literally: an unstated relation makes
   it guess, and a clause bundling two events delays the reopen when either alone would have satisfied it.
+- A Context or Consequences statement a later change falsifies while the ADR's **Decision** stands is recorded as a
+  dated `## Amendment` naming what changed, with a pointer at the falsified sentence; the Status stays `Accepted` and
+  the sentence is not rewritten. A superseded Decision is a new ADR that supersedes this one (`AGENTS.md`'s premise
+  rule).

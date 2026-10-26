@@ -27,9 +27,10 @@ Source: `AGENTS.md` "Workflow: Ship a change (CI → archive → merge)".
    session out of the tree, run `git worktree remove <path>` without `--force`, then `git branch -D <branch>` only after
    confirming the pull request merged and no unshipped commits remain.
 6. Settle the tree the unit used, and only that one: IF it ran in a linked worktree, step 5 removed it and the primary
-   is left alone; IF it ran in the primary, release it — confirm the unit completed (merged, or rejected by the owner),
-   no work of it remains (extra commits and unique local data included), and no writer continues, then return the tree
-   to a clean `main` as the release's last step, and hand the directory to the next unit.
+   is left alone — the worktree's own claim goes with the tree; IF it ran in the primary, release it — confirm the unit
+   completed (merged, or rejected by the owner), no work of it remains (extra commits and unique local data included),
+   and no writer continues, remove the claim the commit guard reads (`git rev-parse --git-path axon-showcase-change`),
+   then return the tree to a clean `main` as the release's last step, and hand the directory to the next unit.
 
 ### Decision points
 

@@ -28,6 +28,22 @@ unstaged or untracked. The hook SHALL name each offending path and the reason an
 parsing SHALL be quote-safe: every path it reads from git SHALL be the real path rather than git's C-quoted rendering,
 so a path containing non-ASCII bytes is inspected exactly like any other and no check is silently skipped for it.
 
+The hook SHALL also refuse a staged set that carries another change's directory. Before it reads the staged set it SHALL
+establish the commit's **assigned change**: the branch's name when that name is a change name, and otherwise the single
+line of the claim at the worktree's git path `axon-showcase-change`, which holds a change name or the literal `none`. A
+branch name SHALL be resolved by identity: it is a change name when `openspec/changes/<name>/` exists, or when an
+archived `openspec/changes/archive/<YYYY-MM-DD>-<name>/` carries that same name after exactly one leading date segment
+is stripped. A missing source — no claim, and a branch whose name is not a change name — and a claim and a branch that
+name two different changes SHALL each fail, naming what is wrong and how the assignment is recorded, rather than passing
+or choosing the single directory found; a `none` claim contradicted by a change-named branch names no change, so the
+branch's assignment stands. A path under `openspec/changes/<name>/` or `openspec/changes/archive/<date>-<name>/` SHALL
+pass only when `<name>` is the assigned change: an added or modified path under the assigned change's live directory
+passes, and so does a deletion under it — whether it removes a file the change no longer needs or carries the change
+into `openspec/changes/archive/`; and a foreign change's path, added, modified, or deleted, SHALL fail. When the
+assignment is `none`, any path under `openspec/changes/` SHALL fail. Except under a `none` assignment, a path that names
+no change directory — one outside `openspec/changes/`, a file directly under it, or an `archive/` entry without the
+`YYYY-MM-DD-` prefix — SHALL NOT be judged by this check.
+
 #### Scenario: A failing formatter check refuses the commit
 
 - **WHEN** the project's formatter check fails while a formatter-owned file is staged
@@ -99,6 +115,60 @@ so a path containing non-ASCII bytes is inspected exactly like any other and no 
 
 - **WHEN** a change dir under `openspec/changes/archive/**` with no delta specs (a `skip_specs` change) is staged
 - **THEN** the guard does not require a spec sync and does not report the archive move
+
+#### Scenario: The assigned change's own directory is committed
+
+- **WHEN** the assignment names a change and the staged set adds or modifies paths under that change's
+  `openspec/changes/<name>/`
+- **THEN** the guard accepts them and the commit proceeds
+
+#### Scenario: Another change's directory is refused
+
+- **WHEN** the assignment names one change and the staged set carries paths under a different change's
+  `openspec/changes/<name>/`, including when that is the only change directory staged
+- **THEN** the guard refuses the commit and names both the staged directory and the assigned change
+
+#### Scenario: The assigned change's archive move is accepted
+
+- **WHEN** the assignment names a change and the staged set deletes `openspec/changes/<name>/` while adding
+  `openspec/changes/archive/<date>-<name>/`
+- **THEN** the guard accepts the transition, whether or not git reports it as a rename
+
+#### Scenario: Another change's archive move is refused
+
+- **WHEN** the staged set archives a change the assignment does not name
+- **THEN** the guard refuses the commit and names the archived change and the assignment
+
+#### Scenario: An unestablished assignment stops the commit
+
+- **WHEN** the guard finds no claim and a branch whose name is not a change name, or finds a claim and a branch naming
+  different changes
+- **THEN** it refuses the commit, reports which source was missing or contradictory, and states how the assignment is
+  recorded
+
+#### Scenario: A unit that declares no change directory stages none
+
+- **WHEN** the assignment declares that the unit works without a change dir and the staged set carries a path under
+  `openspec/changes/`
+- **THEN** the guard refuses the commit and names the path and the declaration
+
+#### Scenario: Another change's directory deleted without archiving is refused
+
+- **WHEN** the staged set deletes paths under another change's `openspec/changes/<name>/` — or renames them away from it
+  — and adds nothing under `openspec/changes/archive/`
+- **THEN** the guard refuses the commit and names the deleted change and the assignment
+
+#### Scenario: The assigned change's own deletion passes
+
+- **WHEN** the staged set deletes a file under the assigned change's `openspec/changes/<name>/`, whether that file is
+  one the change no longer needs or the change is moving into `openspec/changes/archive/`
+- **THEN** the guard accepts the deletion, since the assignment check judges whose directory the path belongs to rather
+  than whether the change's lifecycle keeps the artifact
+
+#### Scenario: Non-change paths are not judged by the assignment
+
+- **WHEN** the staged set carries paths outside `openspec/changes/`, alongside the assigned change's own directory
+- **THEN** the ownership check reports nothing for them, and the guard's other checks apply as before
 
 ### Requirement: The guard is activated per clone and does not alter state
 

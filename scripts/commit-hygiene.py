@@ -7,7 +7,9 @@ that carries a merge conflict marker, that misplaces a `captured:` marker in the
 stages an `openspec/changes/archive/**` change dir while leaving its `openspec/specs/**` sync unstaged. The
 `--markers` mode checks marker placement in the working-tree guidance files; the `--tracked-ignored`,
 `--conflict-markers`, and
-`--executable-bits` modes each verify the tracked set for the build; `--unique-crons` verifies the workflow
+`--executable-bits` modes each verify the tracked set for the build; `--staged` also refuses a staged change directory
+that is not the commit's assigned one, read from the worktree's claim or a change-named branch; `--unique-crons`
+verifies the workflow
 `cron` schedules do not collide; `--unique-rounds` verifies the review-round ledger carries one row per unit and
 round, that each unit's rounds are contiguous from 1, that a round named with `--expect` is recorded, and that a unit
 named with `--expect-clean` closes on a round carrying no finding class (both need that mode); `--session-continuity`
@@ -33,7 +35,12 @@ LEAD_RE = re.compile(r"^(- |\*\*)")
 CONFLICT_MARKER_RE = r"^(<<<<<<< |>>>>>>> )"
 VENDORED_SKILL_PREFIXES = (".opencode/skills/ast-grep/", ".opencode/skills/axon4to5-", ".opencode/skills/openspec-")
 ARCHIVE_PREFIX = "openspec/changes/archive/"
+CHANGES_PREFIX = "openspec/changes/"
 SPECS_PREFIX = "openspec/specs/"
+# The per-worktree record of the unit's assigned change, read at commit time so a staged path can be judged against it.
+CLAIM_NAME = "axon-showcase-change"
+CLAIM_NONE = "none"
+ARCHIVED_CHANGE_RE = re.compile(r"^(?P<date>\d{4}-\d{2}-\d{2})-(?P<name>.+)$")
 CRON_LINE_RE = re.compile(r"^\s*-\s*cron:\s*(?P<value>.+?)\s*$")
 WORKFLOW_SUFFIXES = (".yml", ".yaml")
 
@@ -331,8 +338,124 @@ def run_formatter(repo: Path, command: list[str]) -> subprocess.CompletedProcess
         return subprocess.CompletedProcess(command, 1, "", f"error: formatter command cannot be run: {error}")
 
 
+def claim_file(repo: Path) -> Path:
+    """The per-worktree claim file, resolved through git so a linked worktree reads its own git directory."""
+    resolved = Path(git(repo, "rev-parse", "--git-path", CLAIM_NAME).stdout.strip())
+    return resolved if resolved.is_absolute() else repo / resolved
+
+
+def change_names(repo: Path) -> set[str]:
+    """Every change name the repository knows: a live directory, or an archived one with one date segment stripped."""
+    names: set[str] = set()
+    changes = repo / "openspec" / "changes"
+    if changes.is_dir():
+        names.update(entry.name for entry in changes.iterdir() if entry.is_dir() and entry.name != "archive")
+    archived = changes / "archive"
+    if archived.is_dir():
+        for entry in archived.iterdir():
+            match = ARCHIVED_CHANGE_RE.match(entry.name)
+            if entry.is_dir() and match:
+                names.add(match.group("name"))
+    return names
+
+
+def resolve_assignment(repo: Path) -> tuple[str | None, list[str]]:
+    """The commit's assigned change and the reasons the assignment fails."""
+    branch = git(repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+    branch_change = branch if branch in change_names(repo) else None
+    claim = claim_file(repo)
+    lines: list[str] = []
+    if claim.is_file():
+        lines = [line.strip() for line in claim.read_text(encoding="utf-8").splitlines() if line.strip()]
+    recorded = lines[0] if len(lines) == 1 else None
+    failures: list[str] = []
+    claim_change = recorded if recorded and recorded != CLAIM_NONE else None
+    if branch_change is not None:
+        if claim_change and claim_change != branch_change:
+            failures.append(
+                "The claim at {0} names '{1}' while the branch names '{2}': the commit's assigned change is "
+                "contradictory. Correct the claim to one of them, or remove it so the branch's assignment "
+                "stands".format(claim, claim_change, branch_change)
+            )
+        return branch_change, failures
+    if claim.is_file() and len(lines) != 1:
+        failures.append(
+            "The claim at {0} must hold exactly one line — a change name or '{1}' — but holds {2}. Write the unit's "
+            "assigned change there".format(claim, CLAIM_NONE, len(lines))
+        )
+        return None, failures
+    if recorded is None:
+        if branch == "HEAD":
+            where = "HEAD is detached or unborn"
+        else:
+            where = "the branch '{0}' is not a change name".format(branch)
+        failures.append(
+            "No commit assignment: {0} and {1} does not exist. Record the change there, or '{2}' for a unit with no "
+            "change dir".format(where, claim, CLAIM_NONE)
+        )
+    return claim_change, failures
+
+
+def change_path_name(path: str) -> str | None:
+    """The change a path belongs to, live or archived, or None for a path outside a change directory."""
+    if path.startswith(ARCHIVE_PREFIX):
+        match = ARCHIVED_CHANGE_RE.match(path[len(ARCHIVE_PREFIX):].split("/", 1)[0])
+        return match.group("name") if match else None
+    if path.startswith(CHANGES_PREFIX):
+        name, _, inner = path[len(CHANGES_PREFIX):].partition("/")
+        return name if inner else None
+    return None
+
+
+def rename_sources(repo: Path) -> list[str]:
+    """The paths a staged rename moved away from, which a rename report hides behind its new name."""
+    result = git(repo, "diff", "--cached", "--name-status", "-z", "--diff-filter=R", "--", CHANGES_PREFIX)
+    fields = [field for field in result.stdout.split("\0") if field]
+    return [
+        fields[index + 1] for index in range(0, len(fields) - 2, 3) if fields[index].startswith("R")
+    ]
+
+
+def staged_change_paths(repo: Path) -> list[str]:
+    """Every staged path under a change directory — added, modified, deleted, or renamed away from — each once."""
+    deleted = git(repo, "diff", "--cached", "--name-only", "-z", "--diff-filter=D", "--", CHANGES_PREFIX)
+    paths = staged_paths(repo) + [path for path in deleted.stdout.split("\0") if path] + rename_sources(repo)
+    return list(dict.fromkeys(path for path in paths if path.startswith(CHANGES_PREFIX)))
+
+
+def find_foreign_change_paths(repo: Path, assignment: str | None) -> list[tuple[str, str | None]]:
+    """The (path, change) pairs the commit may not carry; with no assignment, every change-directory path."""
+    foreign: list[tuple[str, str | None]] = []
+    for path in staged_change_paths(repo):
+        name = change_path_name(path)
+        if assignment is None or (name is not None and name != assignment):
+            foreign.append((path, name))
+    return foreign
+
+
 def check_staged(repo: Path, formatter: list[str]) -> int:
     failures = 0
+
+    assignment, assignment_failures = resolve_assignment(repo)
+    for message in assignment_failures:
+        failures += 1
+        print(message, file=sys.stderr)
+    if not assignment_failures:
+        for path, change in find_foreign_change_paths(repo, assignment):
+            failures += 1
+            if assignment is None:
+                print(
+                    "Path staged under a change directory, but the workspace declares none ({0} records '{1}'): "
+                    "{2}".format(claim_file(repo), CLAIM_NONE, path),
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    "Path belongs to change '{0}', not the commit's assigned change '{1}': {2}".format(
+                        change, assignment, path
+                    ),
+                    file=sys.stderr,
+                )
 
     paths = staged_paths(repo)
     owned = formatter_owned(paths)

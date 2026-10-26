@@ -26,7 +26,24 @@ def make_repo(test: unittest.TestCase) -> Path:
     subprocess.run(("git", "init", "-q"), cwd=repo, check=True)
     subprocess.run(("git", "config", "user.email", "test@example.com"), cwd=repo, check=True)
     subprocess.run(("git", "config", "user.name", "Test"), cwd=repo, check=True)
+    write_claim(repo, "demo")
     return repo
+
+
+def claim_path(repo: Path) -> Path:
+    resolved = subprocess.run(
+        ("git", "rev-parse", "--git-path", commit_hygiene.CLAIM_NAME),
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    path = Path(resolved)
+    return path if path.is_absolute() else repo / path
+
+
+def write_claim(repo: Path, value: str) -> None:
+    claim_path(repo).write_text(value + "\n", encoding="utf-8")
 
 
 class StagedThenEditedTests(unittest.TestCase):
@@ -1367,6 +1384,272 @@ class SessionContinuityTests(unittest.TestCase):
             code = commit_hygiene.main(["--session-continuity", "--repo", str(repo)])
         self.assertEqual(0, code)
         self.assertEqual("", stderr.getvalue())
+
+
+class CommitAssignmentTests(unittest.TestCase):
+    @staticmethod
+    def _write(repo: Path, path: str) -> None:
+        target = repo / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("# Proposal\n", encoding="utf-8")
+
+    @staticmethod
+    def _stage(repo: Path, *paths: str) -> None:
+        subprocess.run(("git", "add", *paths), cwd=repo, check=True)
+
+    @staticmethod
+    def _commit_all(repo: Path) -> None:
+        subprocess.run(("git", "add", "--all"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "--allow-empty", "-m", "base"), cwd=repo, check=True)
+
+    @staticmethod
+    def _switch(repo: Path, branch: str) -> None:
+        subprocess.run(("git", "switch", "-q", "-c", branch), cwd=repo, check=True)
+
+    @staticmethod
+    def _run(repo: Path) -> tuple[int, str]:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.check_staged(repo, ["true"])
+        return code, stderr.getvalue()
+
+    def test_the_assigned_changes_own_paths_are_accepted(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._stage(repo, "openspec/changes/demo")
+
+        self.assertEqual(0, self._run(repo)[0])
+
+    def test_another_changes_directory_is_refused_even_as_the_only_change_dir(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/intruder/proposal.md")
+        self._stage(repo, "openspec/changes/intruder")
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("belongs to change 'intruder'", stderr)
+        self.assertIn("assigned change 'demo'", stderr)
+
+    def test_the_assigned_changes_archive_move_is_accepted(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._commit_all(repo)
+        subprocess.run(("git", "rm", "-q", "-r", "openspec/changes/demo"), cwd=repo, check=True)
+        self._write(repo, "openspec/changes/archive/2026-01-01-demo/proposal.md")
+        self._stage(repo, "openspec/changes")
+
+        self.assertEqual(0, self._run(repo)[0])
+
+    def test_another_changes_archive_move_is_refused(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/archive/2026-01-01-other/proposal.md")
+        self._stage(repo, "openspec/changes/archive")
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("belongs to change 'other'", stderr)
+
+    def test_the_assigned_changes_own_deletion_is_accepted(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/design.md")
+        self._commit_all(repo)
+        subprocess.run(("git", "rm", "-q", "openspec/changes/demo/design.md"), cwd=repo, check=True)
+
+        self.assertEqual(0, self._run(repo)[0])
+
+    def test_another_changes_deletion_is_refused(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/other/proposal.md")
+        self._commit_all(repo)
+        subprocess.run(("git", "rm", "-q", "-r", "openspec/changes/other"), cwd=repo, check=True)
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("belongs to change 'other'", stderr)
+
+    def test_a_missing_assignment_refuses_and_recording_it_resolves_the_same_set(self):
+        repo = make_repo(self)
+        self._commit_all(repo)
+        claim_path(repo).unlink()
+        self._write(repo, "docs/note.md")
+        self._stage(repo, "docs")
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("No commit assignment", stderr)
+
+        write_claim(repo, "demo")
+        self.assertEqual(0, self._run(repo)[0])
+
+    def test_a_contradictory_claim_and_branch_are_refused(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "demo")
+        write_claim(repo, "other")
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("contradictory", stderr)
+
+    def test_a_none_claim_refuses_any_change_path(self):
+        repo = make_repo(self)
+        self._commit_all(repo)
+        write_claim(repo, "none")
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._stage(repo, "openspec/changes/demo")
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("declares none", stderr)
+
+    def test_a_none_claim_on_a_change_named_branch_leaves_the_branch_assignment(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "demo")
+        write_claim(repo, "none")
+        self._write(repo, "openspec/changes/demo/tasks.md")
+        self._stage(repo, "openspec/changes/demo")
+
+        self.assertEqual(0, self._run(repo)[0])
+
+    def test_a_staged_set_outside_change_dirs_passes_under_none(self):
+        repo = make_repo(self)
+        self._commit_all(repo)
+        write_claim(repo, "none")
+        self._write(repo, "docs/note.md")
+        self._stage(repo, "docs")
+
+        self.assertEqual(0, self._run(repo)[0])
+
+    def test_a_claim_that_is_empty_or_holds_two_lines_is_refused(self):
+        repo = make_repo(self)
+        self._commit_all(repo)
+        self._write(repo, "docs/note.md")
+        self._stage(repo, "docs")
+
+        for content in ("", "demo\nother"):
+            claim_path(repo).write_text(content, encoding="utf-8")
+            code, stderr = self._run(repo)
+            self.assertEqual(1, code)
+            self.assertIn("must hold exactly one line", stderr)
+
+    def test_the_contradiction_message_names_the_remedy(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "demo")
+        write_claim(repo, "other")
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("Correct the claim", stderr)
+
+    def test_a_file_directly_under_the_changes_directory_names_no_change(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/README.md")
+        self._stage(repo, "openspec/changes/README.md")
+
+        self.assertEqual(0, self._run(repo)[0])
+
+    def test_a_second_foreign_rename_is_refused_after_a_legitimate_one(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._write(repo, "openspec/changes/demo/keep.md")
+        self._write(repo, "openspec/changes/intruder/theirs.md")
+        self._commit_all(repo)
+        subprocess.run(
+            ("git", "mv", "openspec/changes/demo/proposal.md", "openspec/changes/demo/renamed.md"),
+            cwd=repo,
+            check=True,
+        )
+        subprocess.run(
+            ("git", "mv", "openspec/changes/intruder/theirs.md", "openspec/changes/demo/moved.md"),
+            cwd=repo,
+            check=True,
+        )
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("belongs to change 'intruder'", stderr)
+
+    def test_a_foreign_path_renamed_out_of_the_changes_directory_is_refused(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/intruder/theirs.md")
+        self._commit_all(repo)
+        (repo / "docs").mkdir(exist_ok=True)
+        subprocess.run(
+            ("git", "mv", "openspec/changes/intruder/theirs.md", "docs/moved.md"), cwd=repo, check=True
+        )
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("belongs to change 'intruder'", stderr)
+
+    def test_a_foreign_path_renamed_into_the_assigned_change_is_refused(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/keep.md")
+        self._write(repo, "openspec/changes/intruder/theirs.md")
+        self._commit_all(repo)
+        subprocess.run(
+            ("git", "mv", "openspec/changes/intruder/theirs.md", "openspec/changes/demo/moved.md"),
+            cwd=repo,
+            check=True,
+        )
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("belongs to change 'intruder'", stderr)
+
+    def test_a_none_claim_refuses_a_file_directly_under_the_changes_directory(self):
+        repo = make_repo(self)
+        self._commit_all(repo)
+        write_claim(repo, "none")
+        self._write(repo, "openspec/changes/README.md")
+        self._stage(repo, "openspec/changes/README.md")
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("declares none", stderr)
+
+    def test_a_change_named_branch_is_assigned_despite_a_malformed_claim(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "demo")
+        claim_path(repo).write_text("demo\nother", encoding="utf-8")
+        self._write(repo, "openspec/changes/demo/tasks.md")
+        self._stage(repo, "openspec/changes/demo")
+
+        self.assertEqual(0, self._run(repo)[0])
+
+    def test_the_assigned_changes_archive_move_is_accepted_when_git_reports_an_addition(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/design.md")
+        self._commit_all(repo)
+        subprocess.run(("git", "rm", "-q", "openspec/changes/demo/design.md"), cwd=repo, check=True)
+        archived = repo / "openspec/changes/archive/2026-01-01-demo/design.md"
+        archived.parent.mkdir(parents=True, exist_ok=True)
+        archived.write_text("# Design\n\nRewritten for the archive.\n", encoding="utf-8")
+        self._stage(repo, "openspec/changes")
+
+        status = subprocess.run(
+            ("git", "diff", "--cached", "--name-status", "-z"), cwd=repo, capture_output=True, text=True, check=True
+        ).stdout
+        self.assertIn("A\0openspec/changes/archive/2026-01-01-demo/design.md", status)
+        self.assertEqual(0, self._run(repo)[0])
+
+    def test_a_branch_named_after_an_archived_change_needs_no_claim(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/archive/2026-01-01-demo/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "demo")
+        claim_path(repo).unlink()
+        self._write(repo, "openspec/changes/archive/2026-01-01-demo/tasks.md")
+        self._stage(repo, "openspec/changes/archive")
+
+        self.assertEqual(0, self._run(repo)[0])
 
 
 if __name__ == "__main__":

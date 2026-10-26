@@ -26,7 +26,8 @@ What the repository has today is a discipline, not a prohibition:
   session does not see it unless it opens another unit's change directory.
 - git's worktree registry shows a tree's **branch**, not a session; between units the primary sits on `main` and reads
   as free.
-- `scripts/commit-hygiene.py --staged` verifies the staged set's mechanics and has no notion of path ownership.
+- `scripts/commit-hygiene.py --staged` verifies the staged set's mechanics and has no notion of path ownership (the
+  Amendment below records what changed).
 
 An episode motivated the question: several units ago a unit wrote its artifacts in the primary checkout before its own
 worktree existed and left them behind. It cannot be verified after the fact: the files are gone, and no git record of
@@ -72,3 +73,18 @@ shell for a non-owner).
   that detects a write which is undone before the filesystem is compared. That belongs to a future implementation
   change, which would also need a delta on `showcase/quality/agent-skills` — the capability that owns the gate's
   procedure — rather than only prose.
+
+## Amendment — 2026-10-26
+
+Two statements above no longer hold as written, and this amendment qualifies them without reopening the Decision.
+
+- The Context says `scripts/commit-hygiene.py --staged` "has no notion of path ownership". It now refuses a staged
+  change directory that is not the commit's assigned one, read from a per-worktree claim or from a branch named after
+  its change (`reject-a-foreign-change-dir-at-commit`).
+- The rejected alternative "a staged-set ownership check" stays rejected **as a write prohibition**: the check cannot
+  see the write, does not prove who wrote a file, and is defeated by a spoofed assignment, since the branch and the
+  claim are mutable declarations. What the change adopts is the consequence check — the accidental cross-tree sweep into
+  a commit — and the Decision above therefore stands: the property remains **not ensured**.
+- The two reasons the alternative was rejected are answered only in the narrow sense that made this check possible: a
+  recorded claim supplies the attribution a branch name cannot, and comparing change identity replaces rename detection.
+  Neither makes a write attributable to its author, which is why the revisit gate above is unchanged.

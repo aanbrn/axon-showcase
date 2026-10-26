@@ -62,7 +62,7 @@ branch=pause-resume-unit; writer=ses_e88bc904dffeKGky0FHVVIFNaq
 - [x] 3.4 Confirm no `docs/ideas.md` entry covers the procedure, so the change removes none, and record the grep that
       establishes it in the task — verified by `grep -n -i "pause\|resume\|checkpoint\|interrupt" docs/ideas.md`
       returning only the round-checkpoint, the OpenSearch, and the 2026-10-23 program usages.
-- [ ] 3.5 Refresh the capability's `## Purpose` in the archive commit, adding `pause-resume-unit` to the
+- [x] 3.5 Refresh the capability's `## Purpose` in the archive commit, adding `pause-resume-unit` to the
       project-authored skills it names by member (a delta cannot carry a Purpose, so the edit is deferred and rides the
       archive commit) — verified by reading the refreshed Purpose against `ls .opencode/skills` and by
       `openspec validate --all`.
@@ -74,11 +74,18 @@ branch=pause-resume-unit; writer=ses_e88bc904dffeKGky0FHVVIFNaq
 - [x] 4.2 Verify each new definition's frontmatter survives formatting: a `name`/`description` block with no unquoted
       `: ` at a wrapped line start, re-read after `spotlessApply` (the readme-auditor incident's failure mode) —
       verified by reading both frontmatters and the skill's.
-- [ ] 4.3 Confirm the new definitions are reachable as far as the local binary allows: `opencode debug agents` resolves
+- [x] 4.3 Confirm the new definitions are reachable as far as the local binary allows: `opencode debug agents` resolves
       subagents only, `opencode debug config` prints a source list rather than a resolved document, and v2.1.4 has no
       `opencode debug skill`, so the resolved-inventory assertion is the CI probe's (v1) and is owed by this change's
       own pull-request `build` run, whose diff gate includes `.opencode/` — verified by recording the local output, its
       difference from the probe's shape in `design.md`'s claims table, and the run's log.
+
+      **Result:** locally `opencode debug agents` lists subagents only, `opencode debug config` prints a source list, and
+      v2.1.4 has no `opencode debug skill` — the difference is recorded in the claims table. The probe ran on this pull
+      request's `build`: run [40340195021](https://github.com/aanbrn/axon-showcase/actions/runs/40340195021), head
+      `dcade8a9`, step "Probe the OpenCode config's V1 read path", which the `.opencode/` diff kept from skipping. It
+      printed `agents=11 commands=26 skills=20` with no `::error::OpenCode definition` line, so both new commands resolved
+      with their descriptions and the new skill is in the resolved inventory.
 
 ## 5. Review, capture, and hand-over
 
@@ -136,9 +143,12 @@ branch=pause-resume-unit; writer=ses_e88bc904dffeKGky0FHVVIFNaq
       rule), and the stale `tasks.md` 2.2 repetition (the corrected-fact sweep). Net `AGENTS.md` delta from the capture:
       `0` lines (the unit's own +5 is the entry-point bullet); `openspec/config.yaml` `+3`.
 
-- [ ] 5.5 Satisfy the gate's §5 preconditions, its boundary ledger invocation included, then ask the owner for the
+- [x] 5.5 Satisfy the gate's §5 preconditions, its boundary ledger invocation included, then ask the owner for the
       manual review pass and stop before any commit, push, pull request, archive, or merge — verified by the turn ending
       on that request.
+
+      **Manual pass:** asked with the staged surface and the deferred tasks named; the owner approved the delivery. Commit,
+      pull request, and archive followed that approval.
 
 ## Workflow follow-up
 

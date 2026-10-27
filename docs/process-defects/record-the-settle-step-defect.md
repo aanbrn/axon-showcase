@@ -19,6 +19,8 @@
 - **Knowledge boundary**: observed the corrupt file, the 19-line count and the restore. Did not preserve the corrupt
   file's own copy, so the pre-edit line count is not derivable from the tree. Did not check whether any other edit in
   this unit's history used the same first-occurrence lookup.
+- **Decision** — no-change: the programmatic-edit gotcha already requires scoping a lookup to the owning block and
+  deriving the item's end from the structure.
 
 ### record-the-settle-step-defect#2 — A repair replacement dropped the words it was meant to keep
 
@@ -34,6 +36,8 @@
   else changed. Repaired in the same turn.
 - **Knowledge boundary**: observed the edited line and its repair. Did not check the replacement's span against the
   sentence before writing it, and the slip is visible only in file reads taken around the edit.
+- **Decision** — no-change: the span-edit rule already requires replacing the whole unit in one edit and re-reading it
+  against the pre-edit facts.
 
 ### record-the-settle-step-defect#3 — An unreproducible line figure was replaced with another one
 
@@ -51,3 +55,5 @@
   without the unsupported comparison. Nothing remains broken.
 - **Knowledge boundary**: observed the two rounds and the final text. Did not preserve the pre-edit file, so the count
   it measured cannot be re-derived.
+- **Decision** — no-change: `review-gate` §1 already requires deriving a figure from the mechanism that produces it and
+  deleting a clause its source does not support.

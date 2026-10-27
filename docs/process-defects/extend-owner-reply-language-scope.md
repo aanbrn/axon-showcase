@@ -21,6 +21,8 @@
   is a separate recurrence.
 - **Knowledge boundary** — observed for this unit's table. Not checked: whether earlier changes' claims tables carry
   line-range commands that no longer reproduce at their recorded base.
+- **Decision** — no-change: `review-gate` §1 already requires reproduction, base anchoring, and re-derivation after
+  edits, so the incident needs no new rule.
 
 ### extend-owner-reply-language-scope#2 — An unescaped table pipe split three claims-table rows
 
@@ -41,6 +43,8 @@
   No other table in the unit's artifacts was affected.
 - **Knowledge boundary** — checked this unit's artifacts only; not checked whether other change dirs carry rows split
   this way, which no gate reads.
+- **Decision** — proposed: routed to the parked table-integrity check, which now carries this incident (`docs/ideas.md`,
+  "Add a markdown table-integrity check"); https://github.com/aanbrn/axon-showcase/pull/715.
 
 ### extend-owner-reply-language-scope#3 — A claims row and a Done note were not re-run after their own edit
 
@@ -63,3 +67,5 @@
   notes immediately before the ask. Nothing is committed, so no artifact shipped the unverified claims.
 - **Knowledge boundary** — observed in this unit's round 1 and round 2. Not checked: whether other units' claims tables
   or Done notes carry commands their stated output does not reproduce.
+- **Decision** — no-change: covered by `review-gate` §1's re-run rule and that unit's task 6.3, which re-ran every
+  claims row and Done note; no new rule is owed.

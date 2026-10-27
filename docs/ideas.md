@@ -98,6 +98,18 @@ as a second entry and splits one idea's detail across two sections.
   the offending excerpt, and the evidence identifying the applicable instruction state. The direction is to investigate
   compliance before proposing another wording expansion; no enforcement mechanism is selected.
 
+- Give claims-table rows an executable verification mode — parked; no change yet. Of the units this pass analyzed, four
+  carry 17 `claim-unreproducible` rounds between them (`extend-owner-reply-language-scope` 3,
+  `hand-over-unfinished-work` 4, `record-the-settle-step-defect` 2, `separate-lesson-capture-from-implementation` 8),
+  with different causes (a line range, a case-sensitive `grep`, an unsourced figure, a path set that excludes the
+  subject), and the cause-specific prose rules already exist while each new cause produced another defect: the row's
+  command and expected result are prose, so nothing executes a row. The shape to build is an opt-in stdlib Python
+  `--verify` mode in `scripts/claim-scan.py`, its advisory default preserved, running each row's command at the revision
+  the row names and exiting non-zero on a mismatch, with no execution in the default `check`. A bounded pilot over these
+  incident commands comes first, because it must establish the machine-checkable subset (some rows rest on sources or
+  transient observations) and the execution-context, safe-operations, revision-semantics, timeout and comparable-result
+  contracts that a command/result pair does not supply. Surfaced by `generalize-process-defects-2026-10-27`.
+
 ## 2026-10-26
 
 - Freeze a unit's resume checkpoint at the resume — parked; no change yet. `.opencode/skills/pause-resume-unit/SKILL.md`
@@ -222,7 +234,10 @@ as a second entry and splits one idea's detail across two sections.
   the build's Prettier 3.9.10 under this repo's config during `adopt-worktree-isolation`'s review (a `--table-rows` mode
   counting unescaped pipes per row against the delimiter row, a `verifyTableRows` task beside `verifyConflictMarkers`,
   and controls for a wrapped row, Prettier's output, an escaped `\|`, a fenced diagram and a clean table; a prototype
-  over the 113 gated markdown files found no false positive).
+  over the 113 gated markdown files found no false positive). The same modes cover a second failure,
+  `extend-owner-reply-language-scope#2`: a bare `|` inside a command cell split three claims rows into five-to-seven
+  columns while `spotlessApply`/`spotlessCheck` stayed green, so the split rows join the known-bad cases and the
+  unescaped-pipe count against the delimiter row is the same assertion.
 
 - Extend that markdown-integrity check with an inline-code-span whitespace mode — parked; no change yet. A run of two or
   more spaces inside a single-line inline code span passes `spotlessCheck` (Prettier never rewrites a span's interior)

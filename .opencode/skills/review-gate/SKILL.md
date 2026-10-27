@@ -82,8 +82,8 @@ Source: `AGENTS.md` "Workflow: The review gate".
 
 ## 2. Quick review loop
 
-1. Run the reviewer-session preflight, then `review-quick`:
-   - **Preflight** — before each invocation, the re-runs in step 2 included: create the reviewer's session on the unit's
+1. Before the invocation: run the reviewer-session preflight, then `review-quick`:
+   - **Preflight** — before each invocation, the re-runs in step 3 included: create the reviewer's session on the unit's
      first round with a fresh invocation and retain the identifier it returns; on every later round pass that saved
      identifier as the invocation's session-continuation parameter, never a fresh invocation relabelled as a
      continuation; compare the identifier the invocation returns with the one you saved, and stop the round reporting a
@@ -104,6 +104,7 @@ Source: `AGENTS.md` "Workflow: The review gate".
      For a generalizing unit, supply the process-defect records it analyzes, the existing rules each proposal names (or
      its statement that none covers it), each record's cited evidence, and the `lesson-capture` definition where its
      gate is checked. captured: override-opencode-plugin-transitives
+2. When the report arrives — before applying a fix:
    - Append each round's row with the session fields `docs/review-rounds.tsv` declares — the identifier, the transition,
      and a replacement's reason — supplying the identifier the invocation returned, never an invented one; an omission
      fails `verifyReviewSessionContinuity`. captured: track-review-session-continuity
@@ -118,11 +119,11 @@ Source: `AGENTS.md` "Workflow: The review gate".
      `python3 scripts/commit-hygiene.py --unique-rounds --expect-clean <unit>`, which fails while the unit's highest
      recorded round still carries a finding class. That invocation belongs to the boundary alone: a round in flight is
      unclean by design, so it is not part of the repeat rule above.
-   - **Complete the unit's own record in the same step as the round:** bring the hand-over's table and the
-     `Resume checkpoint`'s stage and next step to the round that just closed — a record that trails the rounds is the
-     next round's `missing-task`, and a resuming session takes its stated position for the unit's. captured:
-     separate-lesson-capture-from-implementation
-2. Fix everything it finds; re-run. Repeat until it reports no new observations. Verify each fix against the finding's
+   - **Preserve the finding instances the next invocation needs, and bring an existing `Resume checkpoint` to the closed
+     round:** round status is `docs/review-rounds.tsv`'s, so do not maintain a second round inventory, and the
+     checkpoint's fields are `.opencode/skills/pause-resume-unit/SKILL.md`'s rather than restated here. captured:
+     separate-lesson-capture-from-implementation captured: hand-over-unfinished-work
+3. Fix everything it finds; re-run. Repeat until it reports no new observations. Verify each fix against the finding's
    own claim — re-read the text the finding named, or assert the replacement's match count — before the next round and
    before any record reports it fixed: a replacement aimed at re-wrapped prose matches nothing and leaves the finding
    live, and a grep hit for the replacement token is not that check (`AGENTS.md`'s edit-verification gotcha owns the
@@ -143,8 +144,10 @@ checklist line for a unit with no change dir).
 - A unit with no change dir omits `--change <name>`; naming a directory that does not exist fails the derivation, which
   the rule below reads as `REQUIRED`, so the omission is not a lower floor. What the flag supplies is the tool's own
   contract — its docstring and its `--change` help — not a rule restated here.
-- A `REQUIRED` outcome runs before completion; a `RECOMMENDED` one needs an explicit recorded resolution; a `NOT_NEEDED`
-  one creates no deep-review session, prepares no hand-over, and spends no expensive-model invocation.
+- A `REQUIRED` outcome runs before completion; a `NOT_NEEDED` one creates no deep-review session, prepares no hand-over,
+  and spends no expensive-model invocation.
+- **A `RECOMMENDED` outcome runs only on the owner's explicit run-or-skip decision** — when it is absent, ask the owner
+  and end the turn, and record the answer on the review task before proceeding. captured: hand-over-unfinished-work
 - A missing, malformed, or failed derivation is `REQUIRED` — never a silent skip.
 - The outcomes and the procedure are specified in `showcase/quality/agent-skills` and `/review-thorough`.
 

@@ -65,9 +65,11 @@
 
 ## 5. Archive-stage edit
 
-- [ ] 5.1 Apply the `## Purpose` refresh for `showcase/quality/agent-skills` in the archive commit: its "owner-facing
+- [x] 5.1 Apply the `## Purpose` refresh for `showcase/quality/agent-skills` in the archive commit: its "owner-facing
       replies in the owner's request language" becomes the owner-visible messages the convention now covers. A delta
-      cannot carry a Purpose, so the edit belongs here and the change's report states the deferral.
+      cannot carry a Purpose, so the edit belongs here and the change's report states the deferral. **Done** — the
+      Purpose now reads "owner-visible messages in the owner's request language", which covers the narration and the
+      presented-report prose the requirement's scenarios assert.
 
 ## 6. Review, routing, and capture
 

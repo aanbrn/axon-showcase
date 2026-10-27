@@ -9,13 +9,13 @@ not-yet-implemented ideas remain.
 Changes to this file travel with the change that owns them: an idea's **removal** ships in the implementing change's PR
 — it rides that change's branch and commits with its push, like the rest of the work — and a **newly parked** idea the
 in-flight change's own work surfaced rides that branch too; only a docs edit the change did _not_ cause, or one surfaced
-after it is done (a merge-time capture), ships as its own docs PR (like an `AGENTS.md`/`README.md` refresh PR). When an
-idea graduates into a concrete candidate for work, it may be promoted to a GitHub issue that links to the eventual
-OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
-dated when it was added (start a new section for a new day rather than appending to the most recent one). Search the
-file for the idea before adding it: the same work already parked — however differently worded — is extended in place in
-its existing section, since the day-section rule otherwise files a re-park as a second entry and splits one idea's
-detail across two sections.
+after it is done (a defect a merge appends to the merged unit's record), ships as its own docs PR (like an
+`AGENTS.md`/`README.md` refresh PR). When an idea graduates into a concrete candidate for work, it may be promoted to a
+GitHub issue that links to the eventual OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered
+newest-first; each idea goes under a section dated when it was added (start a new section for a new day rather than
+appending to the most recent one). Search the file for the idea before adding it: the same work already parked — however
+differently worded — is extended in place in its existing section, since the day-section rule otherwise files a re-park
+as a second entry and splits one idea's detail across two sections.
 
 ## 2026-10-27
 
@@ -46,7 +46,10 @@ detail across two sections.
   mention while the passage still states the old behaviour. It failed the capture promotion gate on evidence: one gap
   that survived two merges is one instance, not two independent ones, and no severity is shown. Promote it with a second
   independent occurrence — another change that altered a procedure without revisiting the passage describing it — or
-  with a demonstrated cost.
+  with a demonstrated cost. **Reopened 2026-10-27**: its condition is met. `separate-lesson-capture-from-implementation`
+  replaced the per-unit capture with recording plus an owner-triggered generalization and rewrote the README's loop
+  bullet, while the introduction that forwards to that section still said each unit's lessons are written back — found
+  by a consultation, not by the unit's own README sweep. No rule is proposed here; the entry stays parked for the owner.
 
 - Verify a fix against its source, not only against its finding — parked; no change yet. A fix can satisfy its finding
   and still narrow or broaden the claim past its source: this unit's round-1 fix added "only", which met the finding and
@@ -351,8 +354,7 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   `lesson-capture.md` owns. Route: the ownership model the review gate pilot established — the procedure in the
   definition, the spec stating outcomes — with the same per-obligation trace before any clause is removed. The retarget
   the extraction rule required is done: the destinations and the existing-rule enumeration both name the `review-gate`
-  skill, so a gate-procedure lesson has a listed destination. The capture record's own hand-listed enumeration stays
-  here.
+  skill, so a gate-procedure lesson has a listed destination. The record's own hand-listed enumeration stays here.
 
 - Give an unparseable quick-review report an explicit recovery in the review-gate skill's stage 2 — parked; no change
   yet. The registered-definition probe for `consolidate-review-gate-ownership` verified the narrow gap:
@@ -387,8 +389,8 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
     clause (the instruction), the draft's decision to state a cause the counts cannot support (the wrong decision), and
     the action the proposed wording would change, stating a hypothesis with what would settle it (the different action)
     — with that instance named in `docs/review-rounds.tsv`'s rows for the unit or in the pull-request checklist line
-    carrying its capture record (internal trigger, at that coordinate) **and** the 2026-10-23 pause lifted (external
-    coordinate: the P1 acceptance in `docs/retrospectives/2026-10-23.md`).
+    carrying its process-defect record (internal trigger, at that coordinate) **and** the 2026-10-23 pause lifted
+    (external coordinate: the P1 acceptance in `docs/retrospectives/2026-10-23.md`).
 
 ## 2026-10-22
 
@@ -528,12 +530,12 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   workflow-invoked task joins it by construction.
 
 - Draft the pull-request body before the pre-write derivation pass — parked; no change yet. A unit with no change dir
-  carries its claims table and capture record "on the pull-request checklist line", but that line exists only once the
-  body is drafted — so the pass is stated before its record has a home, and the quick review reports the missing record
-  (`claim-missing`) before the checklist exists to hold it. State in the requirement that owns the destination (and in
-  the `/seed-claims` step the pass runs) that the body is drafted from the template first. Parked rather than built: the
-  destination is stated in the requirement, the command, and the pull-request template, so correcting only `AGENTS.md`
-  would leave the two sites the pass actually executes designating a home created later.
+  carries its claims table and process-defect record "on the pull-request checklist line", but that line exists only
+  once the body is drafted — so the pass is stated before its record has a home, and the quick review reports the
+  missing record (`claim-missing`) before the checklist exists to hold it. State in the requirement that owns the
+  destination (and in the `/seed-claims` step the pass runs) that the body is drafted from the template first. Parked
+  rather than built: the destination is stated in the requirement, the command, and the pull-request template, so
+  correcting only `AGENTS.md` would leave the two sites the pass actually executes designating a home created later.
 
 - Enforce the command lifecycle preflight with a check rather than prose in seventeen files — parked; no change yet.
   `harden-command-definitions` added the requirement that a project-authored command starting a mutating unit states the

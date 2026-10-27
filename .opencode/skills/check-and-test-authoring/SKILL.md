@@ -192,6 +192,19 @@ nothing.
   `AGENTS.md`'s `### Evidence and search` bullet; this is the authoring half. captured:
   extract-deployment-operations-guidance
 
+## A catch-all disposition cannot fail
+
+- **A disposition whose last class accepts everything it did not name cannot fail — close the classes the check allows,
+  and fail an input that fits none.** A check that sorts every hit into known-benign classes and sends the remainder to
+  an "anything else" row reports each unenumerated input as classified, so the loop it feeds keeps surfacing new sites
+  while its verdict stays clean: `separate-lesson-capture-from-implementation`'s site sweep spent round after round on
+  `incomplete-enumeration` because the catch-all row absorbed the false positives its own pattern produced, and no round
+  could fail until the allowed senses became a closed list whose unmatched hit is a plan gap. Name the classes the check
+  accepts, make an unmatched input a failure that names it, and add a fixture that fits no class to the controls, since
+  a control drawn only from the listed classes leaves the branch unexercised. Confirmed there: the catch-all stayed
+  green over a hit no class named, while the closed list makes that hit a plan gap the task fails on. captured:
+  separate-lesson-capture-from-implementation
+
 ## Assert what the subject emits, not only what it declares
 
 - **An assertion about an intermediate — a declaration's content, or an internal helper's behaviour — cannot see what

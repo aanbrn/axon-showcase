@@ -11,10 +11,10 @@ It is not a toy CRUD app. It is a complete event-sourced system: schedule a show
 lifecycle — starting at the right time, finishing after its duration, streaming every event live to a browser UI that
 updates as it happens. And the way the code is written and reviewed is itself a demonstration: behavior is captured in
 specs, changes are proposed, applied, reviewed, and archived by an automated agent pipeline. That pipeline also **learns
-from itself**: each unit's lessons are written back into the agent's instructions, so the next change starts a little
-smarter (see [The Self-Learning Loop](#the-self-learning-loop)). It can even bootstrap its own tooling — ask it to set
-up the MCP servers and it detects, wires, and installs what it can for you (see
-[Tooling MCP Servers](#tooling-mcp-servers)).
+from itself**: every unit records the process defects it observes, and you turn those records into rules the pipeline
+reads on the next change when they are due (see [The Self-Learning Loop](#the-self-learning-loop)). It can even
+bootstrap its own tooling — ask it to set up the MCP servers and it detects, wires, and installs what it can for you
+(see [Tooling MCP Servers](#tooling-mcp-servers)).
 
 It is also a personal vehicle for learning agentic development: the process is as much the point as the product.
 
@@ -238,9 +238,10 @@ subscribed browser — all from one `POST /showcases`.
 - **Snyk and `npm audit`** — dependency security scanning (JVM classpaths and web-UI npm packages); **gitleaks** — a
   source-secret scan in the merge gate
 - **OpenSpec** — spec-driven behavior capture (`propose → apply → archive`)
-- **OpenCode** — the agentic coding tool driving the process: slash-commands, spec-aware subagents, a self-learning
-  lesson-capture loop, on-request setup of its own tooling ([Tooling MCP Servers](#tooling-mcp-servers)), and a project
-  practice of reporting a dependency's gap back upstream — with a reproduction — instead of only working around it
+- **OpenCode** — the agentic coding tool driving the process: slash-commands, spec-aware subagents, a self-learning loop
+  that records process defects and generalizes them, on-request setup of its own tooling
+  ([Tooling MCP Servers](#tooling-mcp-servers)), and a project practice of reporting a dependency's gap back upstream —
+  with a reproduction — instead of only working around it
 - **GitHub Actions** — CI (with a gitleaks source-secret scan), e2e, dependency, helm, buildpack and tooling updates,
   security scans
 
@@ -389,7 +390,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                                                                                                                                                                                                                               |
 | `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift, unrecorded intent, and a due record — `/audit-architecture`                                                                                                                                                                                        |
 | `readme-auditor`       | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage — `/audit-readme`                                                                                                                                                                                                   |
-| `lesson-capture`       | Captures gotchas/conventions into AGENTS.md or the owning subject pack, consolidating rather than accreting, retiring the rules a unit obsoletes, marking each rule with its origin, and routing an authoring-mechanism fix to that mechanism                                                                                  |
+| `lesson-capture`       | Turns process-defect records into rules: additions to AGENTS.md or the owning subject pack, consolidating rather than accreting, retiring the rules it obsoletes, marking each rule with its origin, and routing an authoring-mechanism fix to that mechanism — `/generalize-process-defects`                                  |
 | `review-quick`         | Fast bounded screen after proposal & implementation, repeated until clean (automatic)                                                                                                                                                                                                                                          |
 | `review-thorough`      | Deep risk-routed review (drift, correctness, architecture) — the review gate's routing decision, or `/review-thorough`                                                                                                                                                                                                         |
 | `technical-advisor`    | Independent technical consultation on a decision question — read-only, advisory, and on demand via `/consult`                                                                                                                                                                                                                  |
@@ -439,12 +440,12 @@ whether it consumed included usage or additional credits. See
   a bounded screen that repeats until it finds nothing new. After implementation one routing decision selects a deep
   `review-thorough` pass — required, recommended for an explicit resolution, or not needed — and a manual
   `/review-thorough` run is always available.
-- **Lesson capture**: `lesson-capture` runs after every unit's implementation quick review unless the skip condition
-  `AGENTS.md` defines holds in full, and proposes gotchas and conventions for `AGENTS.md` or the owning subject pack,
-  merging each into an existing bullet or stating that none covers it, reports the rules the unit makes obsolete or
-  redundant as retirement candidates, and routes a lesson whose cause is an authoring mechanism to that mechanism rather
-  than to the guidance file — so the file shrinks as well as grows, and a mistake is recorded where it can be prevented
-  instead of only where it is read.
+- **Recording, then generalizing**: every unit records the process defects it observes in
+  `docs/process-defects/<unit>.md` as it works, and `/generalize-process-defects` later turns those records into rules —
+  gotchas and conventions for `AGENTS.md` or the owning subject pack, each merged into an existing bullet or reported as
+  uncovered, the rules the work obsoletes reported as retirement candidates, and a lesson whose cause is an authoring
+  mechanism routed to that mechanism rather than to the guidance file — so the file shrinks as well as grows, and a
+  mistake is recorded where it can be prevented instead of only where it is read.
 - **Retrospectives**: `/retrospective` gathers the last week of PRs and the git log, plus the archived changes and
   accumulated gotchas, and produces a sprint retrospective that root-causes each significant failure to the stage that
   could have caught it, evaluates the previous window's recommendations, and proposes improvements with a verifiable
@@ -460,8 +461,8 @@ tests, reviews, and ships. You almost never edit files by hand — the manual wo
 - **Scope and direction**: what to build, and what an idea becomes.
 - **Approval at each step**: the agent proposes; you approve the proposal, the implementation, and the merge.
 - **Archiving**: a change is archived only after CI is green and you approve.
-- **Applying suggestions**: retrospective improvements and lesson captures are proposed by the agent and applied by your
-  judgment.
+- **Applying suggestions**: retrospective improvements and generalized process rules are proposed by the agent and
+  applied by your judgment.
 - **Merging**: on this repo, the owner merges PRs directly (admin) once CI is green; a non-admin follows the normal
   review-required flow.
 
@@ -501,14 +502,12 @@ The process is designed to **learn from itself** — and that is the mechanic, n
 
 - **`AGENTS.md` is the agent's persistent memory.** It is loaded as instructions at the start of every session, so a
   lesson written there does not merely document the past — it changes how the agent behaves on the next change.
-- **Every unit closes the loop.** The `lesson-capture` subagent runs after a unit's implementation quick review unless
-  the skip condition `AGENTS.md` defines holds in full, and the unit carries a record of the decision — the applied
-  `AGENTS.md` delta, or the skip and its reason, as a task in a change's `tasks.md` or a checklist line on the pull
-  request — so neither an unrun capture nor an unrecorded skip hides at the merge. The pre-write derivation pass, run
-  before the review loop, is carried the same way. At a merge the agent detects — reading the merge's non-diff effects
-  and reporting any candidate — so lessons that only surface once a unit is live still get captured (it asks before
-  running one); the ones you accept land in `AGENTS.md` or the owning subject pack, and a lesson whose cause is an
-  authoring mechanism is routed to that mechanism instead.
+- **Every unit records what it learned.** The unit writes the process defects it observes — a rule it missed, an action
+  that failed — to `docs/process-defects/<unit>.md` as it works, so nothing an implementation taught is lost to a
+  session and your review never waits on the analysis. The improvement those records lead to is a unit of its own, which
+  you run when they are due: it turns the records that hold up into rules the agent reads on the next change, and a
+  record that adds nothing ends as an explicit `no-change`. A defect a merge alone reveals is appended to the merged
+  unit's record, so it reaches that pass too.
 - **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
   same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
   uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.
@@ -540,7 +539,8 @@ The process is designed to **learn from itself** — and that is the mechanic, n
   suggestions classified `process` (→ `AGENTS.md` or a subagent definition) or `system` (→ an idea or a proposal) and
   stating how their outcome would be verified, so both the process and the system keep improving.
 
-A mistake made once becomes a rule the agent follows thereafter — the process gets a little better with every unit.
+A mistake, once recorded and generalized, becomes a rule the agent follows thereafter — so the process gets a little
+better with every unit that teaches it something.
 
 #### Tooling MCP Servers
 
@@ -581,36 +581,37 @@ removed.
 
 ### Slash Commands
 
-| Command                      | What it does                                                                                                                                                                                                                                                                                                                   |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/opsx-propose`              | Scaffolds a new change: proposal, design, tasks, and spec delta                                                                                                                                                                                                                                                                |
-| `/opsx-apply`                | Implements the change's tasks                                                                                                                                                                                                                                                                                                  |
-| `/opsx-archive`              | Archives a completed change and syncs the main spec                                                                                                                                                                                                                                                                            |
-| `/opsx-sync`                 | Syncs a change's delta spec to the main spec — internal to `/opsx-archive`, not run standalone                                                                                                                                                                                                                                 |
-| `/opsx-update`               | Revises a change's planning artifacts                                                                                                                                                                                                                                                                                          |
-| `/opsx-explore`              | Explores an idea before proposing it                                                                                                                                                                                                                                                                                           |
-| `/setup-agent-tools`         | Sets up the tooling MCP servers (GitHub core, plus optional extras)                                                                                                                                                                                                                                                            |
-| `/reconnect-mcp`             | Reports every MCP server's status, or reconnects one named server or the whole failed set, verifying each reached `connected` — without restarting OpenCode                                                                                                                                                                    |
-| `/setup-idea`                | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier)                                                                                                                                                                                                                                        |
-| `/check-tooling`             | Checks whether this machine has the prerequisites (Java, Docker, Python, and the optional tools)                                                                                                                                                                                                                               |
-| `/review-thorough`           | Deep risk-routed review of a change (the review gate's routing decision, or this explicit run)                                                                                                                                                                                                                                 |
-| `/pause-unit`                | Records the current unit's `Resume checkpoint` and ends the turn: no commit, stash, push, or teardown                                                                                                                                                                                                                          |
-| `/resume-unit`               | Continues an unfinished unit: verifies the available state, hands the writer role over, restores what it awaited                                                                                                                                                                                                               |
-| `/consult`                   | Asks the technical advisor for an independent recommendation on a question, the current objective, or the next step                                                                                                                                                                                                            |
-| `/audit-agents`              | Audits AGENTS.md + project-owned .opencode/ files, measures the always-loaded instruction budget, flags third-party files our usage contradicts, and reports accreted meta rules with their origins, merge, removal, route, and extraction candidates, extraction opportunities, and authoring-system gaps (pro-model auditor) |
-| `/audit-specs`               | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                                                                                                                                                       |
-| `/audit-architecture`        | Audits the architecture for recorded-decision drift, unrecorded intent, and a due record (pro-model auditor)                                                                                                                                                                                                                   |
-| `/audit-readme`              | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage (pro-model auditor)                                                                                                                                                                                                 |
-| `/apply-audit-reductions`    | Applies an audit report's merge/removal/route/extraction reduction candidates — merged text, pointers, and deletions inline, a content-move routed to the change workflow — under the review gate                                                                                                                              |
-| `/diagram`                   | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer, then visually reviews a Mermaid render with `vision`                                                                                                                                                                                                 |
-| `/retrospective`             | Periodic retrospective that root-causes failures and proposes verified improvements                                                                                                                                                                                                                                            |
-| `/dependency-updates`        | Runs and summarizes the Gradle, web-UI, and build-logic pin dependency update reports                                                                                                                                                                                                                                          |
-| `/gradle-update`             | Updates the Gradle wrapper to the latest stable                                                                                                                                                                                                                                                                                |
-| `/dependency-security-check` | Runs the Snyk and web-UI npm dependency security scans                                                                                                                                                                                                                                                                         |
-| `/opsx-tool-update`          | Regenerates the OpenSpec command/skill files after an openspec CLI release                                                                                                                                                                                                                                                     |
-| `/ideas`                     | Lists and manages `docs/ideas.md`                                                                                                                                                                                                                                                                                              |
-| `/seed-claims`               | Scans the unit's diff for claim shapes and hands the candidates to the pre-write pass's claims table                                                                                                                                                                                                                           |
-| `/sync-branch`               | Checks the current branch against `origin/main` and, on request, refreshes it by the rule `AGENTS.md` states, resolving conflicts for both sides                                                                                                                                                                               |
+| Command                       | What it does                                                                                                                                                                                                                                                                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/opsx-propose`               | Scaffolds a new change: proposal, design, tasks, and spec delta                                                                                                                                                                                                                                                                |
+| `/opsx-apply`                 | Implements the change's tasks                                                                                                                                                                                                                                                                                                  |
+| `/opsx-archive`               | Archives a completed change and syncs the main spec                                                                                                                                                                                                                                                                            |
+| `/opsx-sync`                  | Syncs a change's delta spec to the main spec — internal to `/opsx-archive`, not run standalone                                                                                                                                                                                                                                 |
+| `/opsx-update`                | Revises a change's planning artifacts                                                                                                                                                                                                                                                                                          |
+| `/opsx-explore`               | Explores an idea before proposing it                                                                                                                                                                                                                                                                                           |
+| `/setup-agent-tools`          | Sets up the tooling MCP servers (GitHub core, plus optional extras)                                                                                                                                                                                                                                                            |
+| `/reconnect-mcp`              | Reports every MCP server's status, or reconnects one named server or the whole failed set, verifying each reached `connected` — without restarting OpenCode                                                                                                                                                                    |
+| `/setup-idea`                 | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier)                                                                                                                                                                                                                                        |
+| `/check-tooling`              | Checks whether this machine has the prerequisites (Java, Docker, Python, and the optional tools)                                                                                                                                                                                                                               |
+| `/review-thorough`            | Deep risk-routed review of a change (the review gate's routing decision, or this explicit run)                                                                                                                                                                                                                                 |
+| `/pause-unit`                 | Records the current unit's `Resume checkpoint` and ends the turn: no commit, stash, push, or teardown                                                                                                                                                                                                                          |
+| `/resume-unit`                | Continues an unfinished unit: verifies the available state, hands the writer role over, restores what it awaited                                                                                                                                                                                                               |
+| `/consult`                    | Asks the technical advisor for an independent recommendation on a question, the current objective, or the next step                                                                                                                                                                                                            |
+| `/audit-agents`               | Audits AGENTS.md + project-owned .opencode/ files, measures the always-loaded instruction budget, flags third-party files our usage contradicts, and reports accreted meta rules with their origins, merge, removal, route, and extraction candidates, extraction opportunities, and authoring-system gaps (pro-model auditor) |
+| `/audit-specs`                | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                                                                                                                                                       |
+| `/audit-architecture`         | Audits the architecture for recorded-decision drift, unrecorded intent, and a due record (pro-model auditor)                                                                                                                                                                                                                   |
+| `/audit-readme`               | Audits the human-facing README for accuracy, design-intent fidelity, and human-visible-capability coverage (pro-model auditor)                                                                                                                                                                                                 |
+| `/apply-audit-reductions`     | Applies an audit report's merge/removal/route/extraction reduction candidates — merged text, pointers, and deletions inline, a content-move routed to the change workflow — under the review gate                                                                                                                              |
+| `/diagram`                    | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer, then visually reviews a Mermaid render with `vision`                                                                                                                                                                                                 |
+| `/generalize-process-defects` | Turns the accumulated process-defect records into rules and improvements, recording a decision per record                                                                                                                                                                                                                      |
+| `/retrospective`              | Periodic retrospective that root-causes failures and proposes verified improvements                                                                                                                                                                                                                                            |
+| `/dependency-updates`         | Runs and summarizes the Gradle, web-UI, and build-logic pin dependency update reports                                                                                                                                                                                                                                          |
+| `/gradle-update`              | Updates the Gradle wrapper to the latest stable                                                                                                                                                                                                                                                                                |
+| `/dependency-security-check`  | Runs the Snyk and web-UI npm dependency security scans                                                                                                                                                                                                                                                                         |
+| `/opsx-tool-update`           | Regenerates the OpenSpec command/skill files after an openspec CLI release                                                                                                                                                                                                                                                     |
+| `/ideas`                      | Lists and manages `docs/ideas.md`                                                                                                                                                                                                                                                                                              |
+| `/seed-claims`                | Scans the unit's diff for claim shapes and hands the candidates to the pre-write pass's claims table                                                                                                                                                                                                                           |
+| `/sync-branch`                | Checks the current branch against `origin/main` and, on request, refreshes it by the rule `AGENTS.md` states, resolving conflicts for both sides                                                                                                                                                                               |
 
 ## Getting Started
 

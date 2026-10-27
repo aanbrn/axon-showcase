@@ -108,3 +108,21 @@ Alternatives considered and rejected:
   incomplete keeps the old index and remains outside the guarantee.
 - The `showcaseProjector.batch.size` metric keeps its meaning (the incoming batch's event count, recorded once per
   batch), because a batch now spans several bulk requests.
+
+### Scope clarification — 2026-10-27
+
+- **Retained scope:** The existing failure policy is retained without adding a guarantee of automatic progress past
+  every Kafka record.
+- **Item versus stream failures:** Decision 5 classifies bulk-item outcomes; it does not classify exceptions that fail
+  the consumption stream.
+- **Conditional consequence:** If processing a record fails the consumption stream before its batch resolves, that batch
+  is not acknowledged.
+- **Recovery limit:** Restarting the consumer and redelivering unacknowledged records does not by itself eliminate a
+  persistent processing error.
+- **Evidence:** `ShowcaseProjector.writeBatch` acknowledges records only after processing completes.
+  `ShowcaseProjector.start` restarts a failed stream. The projection-service specification's "Stream failures restart
+  the consumer" scenario owns that behavior.
+- **Knowledge boundary:** This clarification does not establish which malformed records, if any, cause the projection
+  service's Axon `KafkaMessageConverter` to fail the stream.
+- **Reconsideration:** A future owner requirement for automatic progress past persistently failing records would reopen
+  this failure-policy decision.

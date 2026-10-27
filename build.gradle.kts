@@ -165,7 +165,20 @@ tasks.register("verifyInfraImageVersions", VerifyInfraImageVersionsTask::class.j
 
     checks.set(infraChecks)
 
-    repos.set(helmRepoUrls)
+    // Only the repositories the checks resolve charts from; the rest belong to the release path.
+    repos.set(
+        helmRepoUrls.zip(infraChecks) { urls, checks ->
+            checks
+                .map { it.chartRef.substringBefore('/') }
+                .toSet()
+                .associateWith { name ->
+                    urls[name]
+                        ?: throw GradleException(
+                            "Helm repository '$name' is required by an infra image check but is not declared.",
+                        )
+                }
+        },
+    )
 
     valuesFiles.from(
         infraChecks.map { checks ->

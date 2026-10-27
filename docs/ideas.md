@@ -38,6 +38,24 @@ detail across two sections.
   way and its round 2 caught it, not the gate. The check could require the marker chain to be the last text before the
   rule's next sibling, or that no prose follows a marker inside the block. Surfaced by the
   `annotate-the-reviewer-wrapper-recurrence` unit's round 2.
+
+- Read a changed procedure's narrative, not only its name — parked; no change yet. When `#706` added the branch-refresh
+  step and `#707` added the base check, the README's manual-review paragraph kept saying only that the agent stages the
+  new files, and a name search for `origin/main` hit the `/sync-branch` table row and read as coverage. A candidate rule
+  would say that a procedure the change alters takes its narrative with it, because a name search is answered by any
+  mention while the passage still states the old behaviour. It failed the capture promotion gate on evidence: one gap
+  that survived two merges is one instance, not two independent ones, and no severity is shown. Promote it with a second
+  independent occurrence — another change that altered a procedure without revisiting the passage describing it — or
+  with a demonstrated cost.
+
+- Verify a fix against its source, not only against its finding — parked; no change yet. A fix can satisfy its finding
+  and still narrow or broaden the claim past its source: this unit's round-1 fix added "only", which met the finding and
+  excluded the procedure's other stops. A candidate rule would add that second check to the review gate's fix step. Two
+  obstacles stand: it failed the promotion gate on evidence — one round of one unit, and the loop itself caught the
+  over-correction — and it contradicts the gate's own "No semantic self-review precedes the loop", which has the author
+  owe only the pre-write pass and the mechanical pre-flight. Promote it with a second independent occurrence and wording
+  that reconciles it with that rule, or route it to the reviewer's side, where re-deriving from the source already
+  lives.
 - Record that a `PATH` interception sees only the calls resolving through it — parked; no change yet. A wrapper placed
   first on `PATH` records the calls that resolve through it; a tool that launches its own child by an internal exec-path
   escapes it, so a record evidences the calls and never the effect. A `git` wrapper was designed to capture a

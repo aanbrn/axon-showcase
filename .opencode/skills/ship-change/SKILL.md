@@ -43,9 +43,10 @@ Source: `AGENTS.md` "Workflow: Ship a change (CI → archive → merge)".
   review-required flow applies: request a reviewer and wait for approval before merging.
 - IF the pull request's base advanced after CI ran (a `mergeStateStatus` of BEHIND) THEN run `gh pr update-branch` and
   merge once the re-run is green (see the BEHIND gotcha).
-- **Docs the change causes while it is in flight** — a capture from its implementation, an idea its own work surfaced, a
-  fact it falsified — ship with the change's pull request; a docs refresh it did not cause, or one surfaced only after
-  it is done (a merge-time capture), ships as its own docs pull request, per the docs-refresh convention.
+- **Docs the change causes while it is in flight** — a process-defect record from its implementation, an idea its own
+  work surfaced, a fact it falsified — ship with the change's pull request; a docs refresh it did not cause, or one
+  surfaced only after it is done (a defect the merge appends to the merged unit's record), ships as its own docs pull
+  request, per the docs-refresh convention.
 - IF a pull request implements a tracker issue, THEN decide by the tracker's lifetime whether it may close.
   - A long-lived tracker — the update-check and upstream-reference issues, which their weekly workflow looks up with
     `is:issue is:open` and opens a fresh one when none is open — must not close: strip the closing keyword from the body

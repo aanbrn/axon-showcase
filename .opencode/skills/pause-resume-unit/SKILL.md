@@ -32,7 +32,7 @@ pause was announced or the unit was simply left waiting, and whether it invokes 
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Time and revision           | When the pause was recorded, and the revision observed (`git rev-parse HEAD`)                                                                                    |
 | Workspace                   | The unit's `Workspace:` record — its path, branch, and writer                                                                                                    |
-| Stage                       | Where the unit is: the proposal, a review round, the implementation, the capture, the manual pass, or shipping                                                   |
+| Stage                       | Where the unit is: the proposal, a review round, the implementation, the record, the generalization, the manual pass, or shipping                                |
 | Next step                   | One step, specific enough that a session can start it without re-deriving the plan                                                                               |
 | Change set                  | What `git status` showed — the staged, unstaged, and untracked sets, with nothing cleaned up                                                                     |
 | Blockers and open decisions | What is stuck, and what was decided locally without reaching the artifacts                                                                                       |

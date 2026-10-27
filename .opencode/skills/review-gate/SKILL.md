@@ -34,7 +34,7 @@ Source: `AGENTS.md` "Workflow: The review gate".
    external prompt; a design carried three, each stripped by a review round); and, for a change whose facts are its own
    measurement, computation, or process record, derive each figure from the mechanism that produces it — the window or
    instant it spans and the aggregation it applies, or for a record figure the command that emits it (a review round's
-   row from its report's record line, the capture record's net delta from `git diff --numstat AGENTS.md` after
+   row from its report's record line, the generalization unit's net delta from `git diff --numstat AGENTS.md` after
    `spotlessApply`, per-hunk `git diff -U0` counts when other edits share the file) — re-deriving it after that
    mechanism's last edit, since a figure measured before the final tuning, or written from what the edits were meant to
    add, is the claim the next round reports unreproducible (`verify-unique-review-rounds` recorded a row clean before
@@ -101,13 +101,14 @@ Source: `AGENTS.md` "Workflow: The review gate".
      owner's recovery decision.
    - **Run** — `review-quick` against the change's planning artifacts: for the proposal round, the
      proposal/design/tasks/spec-delta coherence and repo fit; for the implementation round, the tasks and delta spec.
-     For a capture, supply the existing rules each proposal names (or its statement that none covers it), the round rows
-     and each round's findings — a row's class label cannot show a recurrence's shared cause — and the change record,
-     and the `lesson-capture` definition where its gate is checked. captured: override-opencode-plugin-transitives
+     For a generalizing unit, supply the process-defect records it analyzes, the existing rules each proposal names (or
+     its statement that none covers it), each record's cited evidence, and the `lesson-capture` definition where its
+     gate is checked. captured: override-opencode-plugin-transitives
    - Append each round's row with the session fields `docs/review-rounds.tsv` declares — the identifier, the transition,
      and a replacement's reason — supplying the identifier the invocation returned, never an invented one; an omission
      fails `verifyReviewSessionContinuity`. captured: track-review-session-continuity
-   - **IF a review-round row is appended or edited, THEN immediately run both ledger checks:**
+   - **IF a round's report has arrived, THEN immediately run both ledger checks — whether or not its row was appended,
+     since a check keyed on the append cannot see an append that never happened:**
      `python3 scripts/commit-hygiene.py --unique-rounds --expect <unit>:<round>` and, as a separate invocation,
      `python3 scripts/commit-hygiene.py --session-continuity`. Repeat both before the next reviewer invocation and
      before the manual pass; stop on either failure. `<unit>:<round>` names the round whose report just arrived, so
@@ -117,6 +118,10 @@ Source: `AGENTS.md` "Workflow: The review gate".
      `python3 scripts/commit-hygiene.py --unique-rounds --expect-clean <unit>`, which fails while the unit's highest
      recorded round still carries a finding class. That invocation belongs to the boundary alone: a round in flight is
      unclean by design, so it is not part of the repeat rule above.
+   - **Complete the unit's own record in the same step as the round:** bring the hand-over's table and the
+     `Resume checkpoint`'s stage and next step to the round that just closed — a record that trails the rounds is the
+     next round's `missing-task`, and a resuming session takes its stated position for the unit's. captured:
+     separate-lesson-capture-from-implementation
 2. Fix everything it finds; re-run. Repeat until it reports no new observations. Verify each fix against the finding's
    own claim — re-read the text the finding named, or assert the replacement's match count — before the next round and
    before any record reports it fixed: a replacement aimed at re-wrapped prose matches nothing and leaves the finding
@@ -154,10 +159,11 @@ continuity is not proof that a fix is correct.
 
 Only after the quick review reports no new observations, any required deep review has completed, the pre-write
 derivation pass and its claims table are recorded, the unit's highest recorded round carries no finding class (§2's
-`--expect-clean`), and — at the implementation stage, where a capture follows the implementation's quick review — the
-unit's capture record exists (`AGENTS.md`'s `### Workflow: Capture lessons`), ask the owner for the manual review pass,
-and end the turn there. None of those preconditions substitutes for the ask, and none is the approval: nothing is
-committed, pushed, opened as a PR, archived, or merged before the owner approves (the stops are `AGENTS.md`'s).
+`--expect-clean`), and — at the implementation stage — the unit's process-defect record exists and reflects what it
+observed, or states that it observed none (`AGENTS.md`'s `### Workflow: Record process defects`), ask the owner for the
+manual review pass, and end the turn there. None of those preconditions substitutes for the ask, and none is the
+approval: nothing is committed, pushed, opened as a PR, archived, or merged before the owner approves (the stops are
+`AGENTS.md`'s).
 
 - **Before the ask, confirm the unit's base has not moved:** `git diff --stat origin/main` must delete nothing the unit
   did not author. A merge that lands after the closing round leaves the uncommitted tree behind `origin/main`, and the
@@ -267,4 +273,4 @@ modifications as the CLI equivalent. Staging is not committing: the approval sto
 recorded with no class), the pre-write pass and claims table are recorded as required, the deep-review routing decision
 is recorded with its outcome, any `REQUIRED` deep review has completed, and the manual review pass has been requested. A
 clean closing round, the recorded pre-write pass, any required deep review, and — at the implementation stage — the
-capture record mean _ask the user now_; none of them is the owner's approval.
+process-defect record mean _ask the user now_; none of them is the owner's approval.

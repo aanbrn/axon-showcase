@@ -54,8 +54,11 @@ rules:
       predicate
     - A claim, a rule set, or a record stated in more than one artifact is single-sourced, the rest referencing it by
       name
-    - A change that adds or widens a member of a set (a swept surface, a finding class, an output kind, a documented
-      enumeration) derives the sites it touches from the change's tasks, never a hand-written list
+    - A change that adds, widens, retires, or replaces a member of a set or a behavior stated in more than one file (a
+      swept surface, a finding class, an output kind, a documented enumeration, a workflow) derives the sites it touches
+      from the durable surfaces the behavior can live in, one task per file, never from a hand-written list and never
+      from the change's own tasks — the tasks are checked against that set, so deriving the set from them cannot find a
+      missing task
     - Follow the "Structured Writing Standard" in AGENTS.md — one bullet per change in "What Changes", not a paragraph
       carrying several independent points
   specs:
@@ -107,10 +110,9 @@ rules:
       passes on a known-good one — a gate whose logic lives in a rules object carries the case in that object's
       `*RulesTests`, an inline gate in its consuming module — instead of a task asserting the control was run, plus a
       task to read the output of any scratch command used as evidence
-    - Include the per-unit `lesson-capture` decision as a task in every change — run the `lesson-capture` subagent when
-      the skip condition does not hold, apply its durable proposals (routing an authoring-system
-      recommendation to the mechanism it names), and record the applied net `AGENTS.md` delta or the skip and its
-      reason on the task — so neither an unrun capture nor an unrecorded skip reads as a run that found nothing
+    - Include the unit's process-defect record as a task in every change — write `docs/process-defects/<unit>.md` as
+      defects are observed, or state that none was observed — so a unit that skipped the record reads as a missing box
+      rather than a run that found nothing
     - Carry the deep-review routing decision as a task in every change — derive the floor with
       `scripts/review-routing.py`, decide at or above it, and record the outcome and the signals it relied on on the
       change's review task — so a missing or failed decision reads as a missing box rather than a silent skip

@@ -10,23 +10,25 @@ trigger `AGENTS.md` names), the knowledge-authoring standard `AGENTS.md` entries
 authoritative definition per subject, the procedure and gotcha shapes, the evidence rules, and the validation pass —
 applied by the capture when authoring and the audit when reconciling), the structured writing standard every
 agent-authored technical artifact follows (stated once in `AGENTS.md`, applied while drafting and checked by the review
-and audit subagents), and the locally-defined quality-gate and analysis subagents under `.opencode/agent/` — the
-per-unit review and lesson-capture agents, the experience-analyzer, the visual and diagram agents, the on-demand
-technical advisor, and the on-demand auditors of the project-owned agent tooling (the guidance and project-authored
-`.opencode/` files, plus any generated or vendored file that contradicts how the repository uses it, the always-loaded
-instruction budget it measures with the extraction opportunities that surface where guidance has no destination yet, the
-meta rules it reports with their origins, the merge, removal, route, and extraction candidates it reports, and the
-authoring-system gaps it traces to a mechanism that produces an artifact), of the `openspec/specs/` corpus, of the
-architecture (the ADRs, the service, module, and spec-decomposition surface, where a deliberate decision's rationale is
-not recorded, and where a record's recorded premise appears met — a deferral's `Revisit when:` condition, or a parked
-`docs/ideas.md` entry whose work has landed, fully or partly, or whose objective a different mechanism achieves), of the
-human-facing `README.md` (its claims against the repository, its shape against the README convention, and its coverage
-of the human-visible capabilities), and the scheduled unattended run that performs the audits without a human asking,
-together with the standing owner-gated unit that applies an audit report's reduction candidates, and the
-project-authored command definitions under `.opencode/commands/` — their authoring shape, the repository lifecycle a
-mutating unit owes, and how an audit's approved findings are delivered as separate units by the route each finding's
-kind requires. It also covers the on-demand recovery of MCP servers that failed to connect, through the
-`scripts/reconnect-mcp.py` tool its `/reconnect-mcp` command fronts.
+and audit subagents), the output-language convention every agent's output follows (stated once in `AGENTS.md`:
+owner-facing replies in the owner's request language, agent-facing text and durable artifacts in English), and the
+locally-defined quality-gate and analysis subagents under `.opencode/agent/` — the per-unit review and lesson-capture
+agents, the experience-analyzer, the visual and diagram agents, the on-demand technical advisor, and the on-demand
+auditors of the project-owned agent tooling (the guidance and project-authored `.opencode/` files, plus any generated or
+vendored file that contradicts how the repository uses it, the always-loaded instruction budget it measures with the
+extraction opportunities that surface where guidance has no destination yet, the meta rules it reports with their
+origins, the merge, removal, route, and extraction candidates it reports, and the authoring-system gaps it traces to a
+mechanism that produces an artifact), of the `openspec/specs/` corpus, of the architecture (the ADRs, the service,
+module, and spec-decomposition surface, where a deliberate decision's rationale is not recorded, and where a record's
+recorded premise appears met — a deferral's `Revisit when:` condition, or a parked `docs/ideas.md` entry whose work has
+landed, fully or partly, or whose objective a different mechanism achieves), of the human-facing `README.md` (its claims
+against the repository, its shape against the README convention, and its coverage of the human-visible capabilities),
+and the scheduled unattended run that performs the audits without a human asking, together with the standing owner-gated
+unit that applies an audit report's reduction candidates, and the project-authored command definitions under
+`.opencode/commands/` — their authoring shape, the repository lifecycle a mutating unit owes, and how an audit's
+approved findings are delivered as separate units by the route each finding's kind requires. It also covers the
+on-demand recovery of MCP servers that failed to connect, through the `scripts/reconnect-mcp.py` tool its
+`/reconnect-mcp` command fronts.
 
 ## Requirements
 
@@ -1881,22 +1883,6 @@ alternatives.
 - **WHEN** an existing review finding affects the direction
 - **THEN** the report references it without reproducing the review
 
-### Requirement: A consultation report follows the language rules
-
-An agent-facing report and the inter-agent handoff SHALL be English. An owner-facing report SHALL use the language of
-the owner's current request unless they explicitly request another. Identifiers and exact quotations SHALL remain
-unchanged.
-
-#### Scenario: An owner-facing report uses the owner's language
-
-- **WHEN** the report is owner-facing
-- **THEN** it uses the language of the owner's current request unless another language was explicitly requested
-
-#### Scenario: An agent-facing report is English
-
-- **WHEN** the report is agent-facing
-- **THEN** it is written in English and keeps identifiers and exact quotations unchanged
-
 ### Requirement: The technical advisor's model and effort are pinned
 
 The advisor's model SHALL be exactly `openai/gpt-6.1-sol`, and its default reasoning effort SHALL be `high`. `xhigh`
@@ -2572,3 +2558,52 @@ cannot address, or cannot confirm, and SHALL keep the service's credentials and 
 
 - **WHEN** the OpenCode client cannot be reached or answers with an error
 - **THEN** the tool exits non-zero and its output carries no service credential and no raw response body
+
+### Requirement: Agent output language follows the output's audience
+
+Every agent's output in this repository SHALL use the language its audience reads, following the output-language
+convention stated once in `AGENTS.md`'s "Conventions" section.
+
+#### Scenario: An owner-facing reply uses the owner's language
+
+- **WHEN** an agent replies to the owner in the session
+- **THEN** the reply uses the language of the owner's current request unless the owner explicitly requested another
+  language
+
+#### Scenario: A later language switch is followed
+
+- **WHEN** the owner writes a later request in another language
+- **THEN** the reply follows that language rather than the language of the session's first request
+
+#### Scenario: An agent-facing report and a handoff are English
+
+- **WHEN** an agent returns a report to another agent, or hands a decision to one
+- **THEN** the report and the handoff are English, whatever language the owner's request used
+
+#### Scenario: A delegation prompt is English
+
+- **WHEN** an agent composes the prompt for a `subagent` invocation
+- **THEN** that prompt is English, whatever language the owner's request used
+
+#### Scenario: A durable artifact is English
+
+- **WHEN** an agent writes a repository document, a specification, a commit message, a pull-request or issue body, or a
+  report a workflow publishes — or composes a draft in chat for one
+- **THEN** the artifact is English even when the conversation about it ran in the owner's language
+
+#### Scenario: A relayed report keeps its contract
+
+- **WHEN** an agent presents a subagent's English report to the owner in the owner's language
+- **THEN** the presentation keeps the report's structure, evidence, and uncertainty rather than shortening it into a
+  summary
+
+#### Scenario: Identifiers and quotations stay untranslated
+
+- **WHEN** a reply or a relayed report quotes an identifier, a path, a command, an exact quotation, or a
+  machine-readable field
+- **THEN** it stays in its original form
+
+#### Scenario: An unclear owner language is asked about
+
+- **WHEN** the language of the owner's request cannot be established
+- **THEN** the agent asks rather than guessing

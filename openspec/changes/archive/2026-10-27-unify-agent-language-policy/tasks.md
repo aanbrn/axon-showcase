@@ -69,9 +69,10 @@
 
 ## 5. Archive-stage edits
 
-- [ ] 5.1 Apply the `## Purpose` refresh for `showcase/quality/agent-skills` in the archive commit: name the
+- [x] 5.1 Apply the `## Purpose` refresh for `showcase/quality/agent-skills` in the archive commit: name the
       output-language convention beside the structured writing standard, and that it is stated once in `AGENTS.md`. A
-      delta cannot carry a Purpose, so the edit belongs here and the change's report states the deferral.
+      delta cannot carry a Purpose, so the edit belongs here and the change's report states the deferral. **Done** —
+      the Purpose now names the output-language convention beside the structured writing standard.
 
 ## 6. Review, routing, and capture
 

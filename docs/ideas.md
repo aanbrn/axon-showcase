@@ -19,6 +19,11 @@ as a second entry and splits one idea's detail across two sections.
 
 ## 2026-10-27
 
+- Fix the gradle-helm-plugin's `failIfExists` repository-add option — reported upstream at
+  `build-extensions-oss/gradle-helm-plugin#238`; no change yet. The option emits `helm repo add --no-update`, and the
+  pinned Helm 4.3.1 rejects that flag (`unknown flag: --no-update`), so the option cannot work with the client the
+  plugin installs. The build does not set it.
+
 - Read a parked idea's own `Revisit when:` condition, not only whether its work landed — parked; no change yet.
   `architecture-auditor` classifies a `Revisit when:` condition for a deferred ADR, but for a `docs/ideas.md` entry it
   tests whether the work has landed, only partly landed, or is achieved by a different mechanism — not the entry's own
@@ -612,14 +617,17 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   canonical boundary is in that list, so a genuinely new class is added to the contract before it is recorded. Routes to
   a `code-quality` requirement plus an `agent-skills` delta.
 
-- Make the chart-packaging gate's fetches resilient — parked; no change yet. `check` now runs the chart's packaging, so
-  the plugin's repository setup (`helmAdd*Repository`, `helmUpdateRepositories`) and its dependency fetch
-  (`helmUpdateMainChartDependencies`) run on every pull request. The gate-worthy-step rule wants such a fetch made
-  resilient with a bounded retry, but these are the plugin's own task types, so no repo-side wrapper can retry another
-  task's action; `verifyInfraImageVersions`'s `AbstractHelmRepositoriesTask` + `BoundedRetry` is the model for a
-  repo-authored fetch. Verify whether the plugin can configure a retry before acting — if it cannot, the gap is an
-  upstream report on `build-extensions-oss/gradle-helm-plugin` (its issues are enabled), and the remedy is a
-  repo-authored fetch task.
+- Make the chart-packaging gate's fetches resilient — scope landed; retry gap reported upstream at
+  `build-extensions-oss/gradle-helm-plugin#238`. `check` runs the chart's packaging, so the plugin's repository setup
+  (`helmAdd*Repository`, `helmUpdateRepositories`) and its dependency fetch (`helmUpdateMainChartDependencies`) run on
+  every pull request. The gate now fetches only the repositories its charts need: the chart module registers and
+  refreshes Bitnami alone (its sole dependency, `common`), and `verifyInfraImageVersions` derives its repositories from
+  the checks' chart refs. The plugin's own task types still cannot be retried by a repo-side wrapper.
+  `verifyInfraImageVersions`'s `AbstractHelmRepositoriesTask` + `BoundedRetry` is the model for a repo-authored fetch. A
+  retry with the same timeout does not help a steadily slow index, where every download exceeds the limit; it recovers
+  only a transient failure. Helm restarts each download and `--timeout` is per download (scoped `extraArgs` sets it),
+  and this change leaves the timeout at its default. The remaining gap is bounded retry for the plugin's fetch tasks,
+  reported upstream at `build-extensions-oss/gradle-helm-plugin#238`.
 
 ## 2026-10-16
 

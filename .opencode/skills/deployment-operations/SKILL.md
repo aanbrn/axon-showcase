@@ -185,8 +185,11 @@ the chart sources are collected, i.e. on clean checkouts and in CI, so `helm/cha
 with `setOnlyIf { true }`: without it nothing fetches on a clean checkout, the strict lint fails with "chart directory
 is missing these dependencies: common", and the deployment smoke fails at the install with "found in Chart.yaml, but
 missing in charts/ directory: common". Measured on one commit with only the cache toggled: the task reports SKIPPED with
-the cache on and fetches with `--no-configuration-cache`. The upstream gap is parked in `docs/ideas.md`. Lint runs
-strict (warnings are errors) and lints the Bitnami `common` subchart, rendering two extra value sets:
+the cache on and fetches with `--no-configuration-cache`. The upstream gap is parked in `docs/ideas.md`. The chart
+module's packaging path registers and refreshes only the Bitnami repository — its sole dependency — while the root
+project's release-install path keeps every declared repository; the chart publication runs this same packaging, and
+`verifyInfraImageVersions` derives its repositories from the charts its checks name. Lint runs strict (warnings are
+errors) and lints the Bitnami `common` subchart, rendering two extra value sets:
 
 ```bash
 ./gradlew :helm:chart:helmLintMainChartFull :helm:chart:helmLintMainChartMinimal

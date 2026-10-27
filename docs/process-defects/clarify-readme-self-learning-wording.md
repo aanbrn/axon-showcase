@@ -37,4 +37,4 @@
   command issued during a settlement names its branch. No documented settle step performs an upstream operation, so the
   command itself had no step to follow.
 - **Decision** — proposed: applied as the explicit `<branch>` operand in the "Fork every new branch" remedy
-  (`AGENTS.md`); the PR link replaces this one before merge.
+  (`AGENTS.md`); https://github.com/aanbrn/axon-showcase/pull/715.

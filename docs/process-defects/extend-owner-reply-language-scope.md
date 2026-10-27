@@ -44,7 +44,7 @@
 - **Knowledge boundary** — checked this unit's artifacts only; not checked whether other change dirs carry rows split
   this way, which no gate reads.
 - **Decision** — proposed: routed to the parked table-integrity check, which now carries this incident (`docs/ideas.md`,
-  "Add a markdown table-integrity check"); the PR link replaces this one before merge.
+  "Add a markdown table-integrity check"); https://github.com/aanbrn/axon-showcase/pull/715.
 
 ### extend-owner-reply-language-scope#3 — A claims row and a Done note were not re-run after their own edit
 

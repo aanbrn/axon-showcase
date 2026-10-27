@@ -89,6 +89,15 @@ as a second entry and splits one idea's detail across two sections.
   pull-request body is observed in a language other than English, or a review records one on that path; the fix is then
   the prompt clause, its `merge-governance` delta, and a dispatch from the pushed branch.
 
+- Investigate runtime reply-language compliance if mixing persists — parked; no change yet. #713 widened the `AGENTS.md`
+  convention and the `agent-skills` scenarios so owner-visible narration and a presented report's prose follow the
+  owner's request language, while its design records that no in-repo check can observe how a model phrases a reply and
+  ends "the next step is runtime compliance, not more wording"; this entry is that next step's live record, since the
+  archived design is not read. It reopens when an owner-visible message produced with the widened convention in effect
+  violates it — not when it merely carries an untranslated identifier or quotation — and retains the triggering request,
+  the offending excerpt, and the evidence identifying the applicable instruction state. The direction is to investigate
+  compliance before proposing another wording expansion; no enforcement mechanism is selected.
+
 ## 2026-10-26
 
 - Freeze a unit's resume checkpoint at the resume — parked; no change yet. `.opencode/skills/pause-resume-unit/SKILL.md`

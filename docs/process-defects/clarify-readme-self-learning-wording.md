@@ -15,6 +15,8 @@
   corrected in round 2, when the first version stated no defect had been observed. Nothing remains broken.
 - **Knowledge boundary**: observed this unit's round 1 and its class. Did not check whether any earlier unit wrote its
   record only after a review found it missing, so this is not evidence of a recurrence.
+- **Decision** — no-change: `review-gate` §5 has carried the process-defect-record precondition since #709; a compliance
+  miss, so no rule change is owed.
 
 ### clarify-readme-self-learning-wording#2 — A branch command ran against the wrong branch in the settlement step
 
@@ -34,3 +36,5 @@
 - **Knowledge boundary**: observed the unset and its restoration. Did not check whether any other branch-scoped git
   command issued during a settlement names its branch. No documented settle step performs an upstream operation, so the
   command itself had no step to follow.
+- **Decision** — proposed: applied as the explicit `<branch>` operand in the "Fork every new branch" remedy
+  (`AGENTS.md`); the PR link replaces this one before merge.

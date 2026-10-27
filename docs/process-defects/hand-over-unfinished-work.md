@@ -1,7 +1,8 @@
 # hand-over-unfinished-work
 
 Process defects observed while working this change. Recorded under `AGENTS.md`'s "Workflow: Record process defects";
-analysis is a later, owner-triggered unit, so no record here carries a `Decision` line yet.
+analysis is a later, owner-triggered unit; `generalize-process-defects-2026-10-27` appended each record's `Decision`
+line.
 
 ### hand-over-unfinished-work#1 — A session declared its budget exhausted and kept the unit moving one step per reply
 
@@ -24,6 +25,8 @@ analysis is a later, owner-triggered unit, so no record here carries a `Decision
   completed without rework. Nothing remains broken; the claim's classification is the generalizer's.
 - **Knowledge boundary**: observed — the messages, the owner's replies, and the measured limits. Assumed — that no
   account-level or provider limit was involved. Not checked — whether another model or provider behaves the same.
+- **Decision** — no-change: the `pause-resume-unit` skill's assessment clause covers a pause the agent judges it cannot
+  continue, and the harness exposes no budget signal.
 
 ### hand-over-unfinished-work#2 — A `RECOMMENDED` deep pass ran without the owner's resolution
 
@@ -41,6 +44,8 @@ analysis is a later, owner-triggered unit, so no record here carries a `Decision
   is outstanding.
 - **Knowledge boundary**: observed — the record, the rule text, the reviewer's finding, and the owner's acceptance. Not
   checked — whether the owner would have resolved to run the pass had it been asked first.
+- **Decision** — proposed: applied as the owner-decision rule in `review-gate` §3; the PR link replaces this one before
+  merge.
 
 ### hand-over-unfinished-work#3 — The review record trailed the loop
 
@@ -58,3 +63,5 @@ analysis is a later, owner-triggered unit, so no record here carries a `Decision
   present and contiguous and the staged set is current; nothing remains broken.
 - **Knowledge boundary**: observed — the missing row, the stale index, and the checks that caught them. Not checked —
   whether another unit's ledger carries the same gap.
+- **Decision** — proposed: applied as `review-gate` §2's "When the report arrives" step; the PR link replaces this one
+  before merge.

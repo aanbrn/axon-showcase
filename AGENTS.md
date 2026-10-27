@@ -148,10 +148,10 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   plain `git checkout -b <name> origin/main` silently makes `origin/main` the new branch's upstream
   (`branch.autoSetupMerge`), so a later bare `git push` refuses with "The upstream branch of your current branch does
   not match the name of your current branch" — fix it with `git push -u origin <branch>`, which repoints it, or
-  `git branch --unset-upstream`. When the local branch is not named after the remote branch it must update — completing
-  an agent's `opencode/…` PR from a differently-named checkout — push with an explicit refspec
+  `git branch --unset-upstream <branch>`. When the local branch is not named after the remote branch it must update —
+  completing an agent's `opencode/…` PR from a differently-named checkout — push with an explicit refspec
   (`git push origin HEAD:<remote-branch>`); the `git push -u origin <branch>` remedy would open a second branch and
-  leave the PR without the commit. captured: park-git-worktree-idea
+  leave the PR without the commit. captured: park-git-worktree-idea captured: clarify-readme-self-learning-wording
 
 - **Sync the main spec only at archive.** Edit the code and the change dir's _delta_ spec; never edit the main spec
   under `openspec/specs/`. The main spec is updated exclusively when the change is archived (delta → main), so the

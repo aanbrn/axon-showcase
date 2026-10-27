@@ -1,7 +1,8 @@
 # separate-lesson-capture-from-implementation
 
 Process defects observed while working this change. Recorded under `AGENTS.md`'s "Workflow: Record process defects";
-analysis is a later, owner-triggered unit, so no record here carries a `Decision` line yet.
+analysis is a later, owner-triggered unit; `generalize-process-defects-2026-10-27` appended each record's `Decision`
+line.
 
 ### separate-lesson-capture-from-implementation#1 — A site list maintained by hand kept missing sites
 
@@ -19,6 +20,8 @@ analysis is a later, owner-triggered unit, so no record here carries a `Decision
   list. Nothing remains broken; the cost is the rounds.
 - **Knowledge boundary**: observed — the omissions and the class repetition. Assumed — that the site set is now closed;
   only a future edit against this plan tests that.
+- **Decision** — no-change: the catch-all-disposition mode in `check-and-test-authoring` and the single-sourcing scope
+  rule already cover it.
 
 ### separate-lesson-capture-from-implementation#2 — A review round's ledger row was written late
 
@@ -34,6 +37,8 @@ analysis is a later, owner-triggered unit, so no record here carries a `Decision
   row is restored and the incident is noted in `review-handover.md`; no other artifact was affected.
 - **Knowledge boundary**: observed — the missing row and the check that caught it. Unchecked — whether any other unit's
   ledger has an acknowledged gap of the same shape.
+- **Decision** — proposed: applied by `review-gate` §2's numbered "When the report arrives" step; the PR link replaces
+  this one before merge.
 
 ### separate-lesson-capture-from-implementation#3 — A premise was read from another unit's uncommitted tree
 
@@ -49,6 +54,8 @@ analysis is a later, owner-triggered unit, so no record here carries a `Decision
   refresh; the sibling change then merged (`61bcdee2`), so the clause exists now, at three sites rather than one.
 - **Knowledge boundary**: observed — the read and its source tree. Unchecked — whether any other premise in the first
   draft came from the same tree; the claims table was re-anchored to `ea1ee3b5` afterwards.
+- **Decision** — no-change: withheld — one occurrence, and the "Interrogate the premise" `HEAD` obligation substantially
+  covers it; reopen on a second occurrence.
 
 ### separate-lesson-capture-from-implementation#4 — The unit's review record trailed its rounds
 
@@ -69,3 +76,5 @@ analysis is a later, owner-triggered unit, so no record here carries a `Decision
   round 31. Nothing else remains broken.
 - **Knowledge boundary**: observed the rounds and their findings. Did not check whether any occurrence went unreported,
   since the ledger records only what a round raised.
+- **Decision** — proposed: applied by `review-gate` §2's replacement of the round-state bullet; the PR link replaces
+  this one before merge.

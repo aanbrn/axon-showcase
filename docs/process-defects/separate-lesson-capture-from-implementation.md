@@ -37,8 +37,8 @@ line.
   row is restored and the incident is noted in `review-handover.md`; no other artifact was affected.
 - **Knowledge boundary**: observed — the missing row and the check that caught it. Unchecked — whether any other unit's
   ledger has an acknowledged gap of the same shape.
-- **Decision** — proposed: applied by `review-gate` §2's numbered "When the report arrives" step; the PR link replaces
-  this one before merge.
+- **Decision** — proposed: applied by `review-gate` §2's numbered "When the report arrives" step;
+  https://github.com/aanbrn/axon-showcase/pull/715.
 
 ### separate-lesson-capture-from-implementation#3 — A premise was read from another unit's uncommitted tree
 
@@ -76,5 +76,5 @@ line.
   round 31. Nothing else remains broken.
 - **Knowledge boundary**: observed the rounds and their findings. Did not check whether any occurrence went unreported,
   since the ledger records only what a round raised.
-- **Decision** — proposed: applied by `review-gate` §2's replacement of the round-state bullet; the PR link replaces
-  this one before merge.
+- **Decision** — proposed: applied by `review-gate` §2's replacement of the round-state bullet;
+  https://github.com/aanbrn/axon-showcase/pull/715.

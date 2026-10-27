@@ -1124,13 +1124,15 @@ Key modules (libraries, not services):
   README already follows this.
 - **Output language follows the output's audience, not the language of the turn that triggered it** — the
   output-language convention:
-  - a reply the owner reads uses the language of the owner's current request, unless they explicitly requested another,
-    and follows a later switch;
+  - a reply the owner reads — including the progress narration an agent emits around tool calls and every other
+    assistant message the owner can see in the turn — uses the language of the owner's current request, unless they
+    explicitly requested another, and follows a later switch;
   - an agent-facing report is English, and so is the prompt or handoff an agent sends another agent — including the
     prompt the main agent composes for a `subagent` invocation, whatever language the owner's request used;
   - a durable artifact is English, a chat-composed draft included;
   - identifiers, paths, commands, exact quotations, and machine-readable fields stay untranslated;
-  - a relayed report keeps the structure, evidence, and uncertainty of the report it presents;
+  - a relayed report keeps the structure, evidence, and uncertainty of the report it presents, its prose — headings,
+    labels, and count descriptions included — translated into the owner's language;
   - IF the owner's language cannot be established, THEN ask rather than guess.
 - **README design intent**: the README is a human-facing showcase and onboarding guide, not a reference dump. Preserve
   its intended shape on every edit: section order (intro → Project Structure → Cool Story → Architecture → Technologies

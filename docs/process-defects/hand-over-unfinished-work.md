@@ -44,8 +44,8 @@ line.
   is outstanding.
 - **Knowledge boundary**: observed — the record, the rule text, the reviewer's finding, and the owner's acceptance. Not
   checked — whether the owner would have resolved to run the pass had it been asked first.
-- **Decision** — proposed: applied as the owner-decision rule in `review-gate` §3; the PR link replaces this one before
-  merge.
+- **Decision** — proposed: applied as the owner-decision rule in `review-gate` §3;
+  https://github.com/aanbrn/axon-showcase/pull/715.
 
 ### hand-over-unfinished-work#3 — The review record trailed the loop
 
@@ -63,5 +63,5 @@ line.
   present and contiguous and the staged set is current; nothing remains broken.
 - **Knowledge boundary**: observed — the missing row, the stale index, and the checks that caught them. Not checked —
   whether another unit's ledger carries the same gap.
-- **Decision** — proposed: applied as `review-gate` §2's "When the report arrives" step; the PR link replaces this one
-  before merge.
+- **Decision** — proposed: applied as `review-gate` §2's "When the report arrives" step;
+  https://github.com/aanbrn/axon-showcase/pull/715.

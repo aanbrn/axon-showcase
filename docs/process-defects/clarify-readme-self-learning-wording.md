@@ -15,3 +15,22 @@
   corrected in round 2, when the first version stated no defect had been observed. Nothing remains broken.
 - **Knowledge boundary**: observed this unit's round 1 and its class. Did not check whether any earlier unit wrote its
   record only after a review found it missing, so this is not evidence of a recurrence.
+
+### clarify-readme-self-learning-wording#2 — A branch command ran against the wrong branch in the settlement step
+
+- **Recorded**: 2026-10-27, by the writing session (`ses_e84c9b955ffeY6V3z6ZN1VELva`).
+- **Stage**: ship.
+- **Expected**: the settlement after the pull request merged — confirming the unit completed, removing the claim the
+  commit guard reads, and returning the primary to a clean `main` that still tracks `origin/main` — leaves the tree's
+  branch state as the procedure defines it, and any command the settlement issues acts on the branch it names.
+- **Observed**: the unit branch had already been deleted, and `git branch --unset-upstream` — issued with no branch
+  name, after `git switch main` — unset `main`'s upstream instead of a branch that no longer existed; the next
+  `git status -sb` showed `## main` with no tracking reference.
+- **Evidence**: the command exited 0, and the status line read `## main`;
+  `git branch --set-upstream-to=origin/main main` restored it, after which the line reads `## main...origin/main` and
+  `git rev-parse HEAD origin/main` returns the same commit for both.
+- **Consequence**: `main` carried no upstream for the interval between the two commands; no work was lost and nothing
+  else changed. Repaired in the same turn.
+- **Knowledge boundary**: observed the unset and its restoration. Did not check whether any other branch-scoped git
+  command issued during a settlement names its branch. No documented settle step performs an upstream operation, so the
+  command itself had no step to follow.

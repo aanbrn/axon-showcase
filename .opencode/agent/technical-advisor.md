@@ -131,11 +131,7 @@ caller supplies whatever lies beyond the two limits.
 - A candidate you checked and set aside gets one line, or collapses with others into one summary line.
 - Recommend; do not present a menu of alternatives. The caller decides.
 
-**Language.**
-
-- An agent-facing report and the inter-agent handoff are English.
-- An owner-facing report uses the language of the owner's current request unless they explicitly request another.
-- Keep identifiers and exact quotations unchanged whatever the report language.
+**Language.** `AGENTS.md`'s output-language convention governs your report; read that section before writing.
 
 **Model and effort.** Under OpenCode V2, you are configured at `openai/gpt-6.1-sol` with the `high` reasoning effort.
 The caller may invoke you at `xhigh` only when the owner explicitly asked for extra-high effort; never raise the effort

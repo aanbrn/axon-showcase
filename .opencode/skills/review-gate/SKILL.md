@@ -159,6 +159,14 @@ unit's capture record exists (`AGENTS.md`'s `### Workflow: Capture lessons`), as
 and end the turn there. None of those preconditions substitutes for the ask, and none is the approval: nothing is
 committed, pushed, opened as a PR, archived, or merged before the owner approves (the stops are `AGENTS.md`'s).
 
+- **Before the ask, confirm the unit's base has not moved:** `git diff --stat origin/main` must delete nothing the unit
+  did not author. A merge that lands after the closing round leaves the uncommitted tree behind `origin/main`, and the
+  branch-refresh rule's check — `AGENTS.md`'s Change lifecycle scopes it to "before the review round" — then never runs
+  again, so the stale base reaches the manual pass, the commit, and the pull request. IF it reports lines the unit did
+  not write, THEN refresh first by that rule, which stops a branch holding both its own commits and uncommitted work
+  rather than stashing it, and stage the unit's new files afterward, since a refresh can rewrite them. captured:
+  unify-agent-language-policy
+
 Before the ask, stage the unit's own new files so the pass shows them:
 
 - Run `git add -- <explicit paths>` for the unit's new files, its planning artifacts included.

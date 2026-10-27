@@ -22,6 +22,7 @@ context: |
   Conventions:
     - No comments in source code
     - Wrap code and text at 120 characters
+    - Write every agent-authored artifact and repository document in English
     - Load the owning subject pack before a decision in its subject:
       `.opencode/skills/jvm-development/SKILL.md`, `.opencode/skills/jvm-testing/SKILL.md`,
       `.opencode/skills/gradle-build/SKILL.md`, or `.opencode/skills/deployment-operations/SKILL.md` — the root

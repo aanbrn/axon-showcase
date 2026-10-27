@@ -61,6 +61,12 @@ detail across two sections.
   checkpoint (`add-sync-branch-command`'s) came from that pressure, each fixed by pointing at the ledger. The correction
   belongs in the skill's field set and a decision point (state only what the artifact owns; point at the ledger), not in
   `AGENTS.md`, whose invariant already states the obligation. A definition edit of that skill owes its own change.
+- Edit the audit workflow's prompt if the general language rule is ever observed failing on that path — parked; no
+  change yet. `unify-agent-language-policy` leaves `.github/workflows/audit.yml` unedited: its prompt already states
+  that the final response becomes the pull-request body, so the durable-artifact rule makes that body English, while a
+  separate clause would owe a `merge-governance` delta and a full three-audit cloud dispatch. It reopens when an audit
+  pull-request body is observed in a language other than English, or a review records one on that path; the fix is then
+  the prompt clause, its `merge-governance` delta, and a dispatch from the pushed branch.
 
 ## 2026-10-26
 
@@ -149,6 +155,14 @@ detail across two sections.
   rather than propagate an unverified mechanism. Settling it: on the installed 2.1.4 build (`opencode --version`), add a
   throwaway server entry, run `/reload`, and check whether `opencode mcp list` or the session's tools show it; if a
   reload suffices, the three sites are one docs PR. It retires when those sites state the behaviour the probe shows.
+
+- Add the marker's removal to the definition-edit probe rule — parked; no change yet. `AGENTS.md`'s rule (refreshed by
+  `correct-subagent-reload-rule`) saves a marker line in a definition and requires it in the reply to prove the
+  registered body was applied, but names no removal step: a run that follows the four steps literally leaves probe text
+  in a shipped definition, while removing it without a further check leaves the evidence attesting to a body the
+  repository does not ship. The rule should end with the marker removed and a final probe requiring that no marker is
+  defined, which is what confirms the marker-free body is the registered one. Surfaced by `unify-agent-language-policy`,
+  whose advisor-definition edit applies the rule.
 
 ## 2026-10-25
 

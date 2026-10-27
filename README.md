@@ -11,8 +11,8 @@ It is not a toy CRUD app. It is a complete event-sourced system: schedule a show
 lifecycle — starting at the right time, finishing after its duration, streaming every event live to a browser UI that
 updates as it happens. And the way the code is written and reviewed is itself a demonstration: behavior is captured in
 specs, changes are proposed, applied, reviewed, and archived by an automated agent pipeline. That pipeline also **learns
-from itself**: every unit records the process defects it observes, and you turn those records into rules the pipeline
-reads on the next change when they are due (see [The Self-Learning Loop](#the-self-learning-loop)). It can even
+from itself**: every unit records the process defects it observes, and you turn those records into rules when they are
+due, which the pipeline reads on the next change (see [The Self-Learning Loop](#the-self-learning-loop)). It can even
 bootstrap its own tooling — ask it to set up the MCP servers and it detects, wires, and installs what it can for you
 (see [Tooling MCP Servers](#tooling-mcp-servers)).
 
@@ -502,12 +502,12 @@ The process is designed to **learn from itself** — and that is the mechanic, n
 
 - **`AGENTS.md` is the agent's persistent memory.** It is loaded as instructions at the start of every session, so a
   lesson written there does not merely document the past — it changes how the agent behaves on the next change.
-- **Every unit records what it learned.** The unit writes the process defects it observes — a rule it missed, an action
-  that failed — to `docs/process-defects/<unit>.md` as it works, so nothing an implementation taught is lost to a
-  session and your review never waits on the analysis. The improvement those records lead to is a unit of its own, which
-  you run when they are due: it turns the records that hold up into rules the agent reads on the next change, and a
-  record that adds nothing ends as an explicit `no-change`. A defect a merge alone reveals is appended to the merged
-  unit's record, so it reaches that pass too.
+- **Every unit records the process defects it observes.** The unit writes them down — a rule it missed, an action that
+  failed — to `docs/process-defects/<unit>.md` as it works, so nothing an implementation taught is lost to a session and
+  your review never waits on the analysis. The improvement those records lead to is a unit of its own, which you run
+  when they are due: it turns the records that hold up into rules the agent reads on the next change, and a record that
+  adds nothing ends as an explicit `no-change`. A defect a merge alone reveals is appended to the merged unit's record,
+  so it reaches that pass too.
 - **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
   same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
   uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.

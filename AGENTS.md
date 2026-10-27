@@ -339,11 +339,12 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   checkout the IDE project is attached to.
 - The session's cwd follows the workspace: after a creation or a `session_move`, verify the absolute path and branch
   before writing. `git worktree list --porcelain` is the registry; a directory name is a hint, never the identification.
-- **Pause and resume are the skill's procedure.** Before pausing a unit — or continuing one left unfinished, whether or
-  not a pause was announced — load `.opencode/skills/pause-resume-unit/SKILL.md`, which owns the pause's
-  `Resume checkpoint` and the resume's verification, writer handover, and restored decision. A missing or unreadable
-  skill stops the step: report it rather than writing an improvised checkpoint or reconstructing the procedure from this
-  file. captured: pause-resume-unit
+- **Pause and resume are the skill's procedure.** Before pausing a unit — the owner announced it, the agent judges it
+  cannot reliably continue the unit in this session, or one was left unfinished, whether or not a pause was announced —
+  load `.opencode/skills/pause-resume-unit/SKILL.md`, which owns the pause's `Resume checkpoint` and the resume's
+  verification, writer handover, and restored decision. A missing or unreadable skill stops the step: report it rather
+  than writing an improvised checkpoint or reconstructing the procedure from this file. captured: pause-resume-unit
+  captured: hand-over-unfinished-work
 
 **Procedure**
 

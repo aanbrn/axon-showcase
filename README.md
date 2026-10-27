@@ -433,9 +433,10 @@ whether it consumed included usage or additional credits. See
 - **Proposing and applying changes**: the `opsx-*` commands scaffold a change (proposal, design, tasks, spec delta),
   implement it, and prepare it for review.
 - **Pausing and resuming a unit**: `/pause-unit` records the unit's `Resume checkpoint` and ends the turn — nothing is
-  committed, stashed, or torn down, so a laptop can close mid-unit; `/resume-unit` continues it later, from that session
-  or a new one, verifying the recorded and live state, handing the writer role over, and restoring whatever the unit was
-  waiting on.
+  committed, stashed, or torn down, so a laptop can close mid-unit, and the agent takes this route itself when it judges
+  it cannot reliably continue the session instead of asking you to confirm each next step; `/resume-unit` continues it
+  later, from that session or a new one, verifying the recorded and live state, handing the writer role over, and
+  restoring whatever the unit was waiting on.
 - **Code review**: every unit is auto-reviewed after its proposal and after its implementation; the quick-review loop is
   a bounded screen that repeats until it finds nothing new. After implementation one routing decision selects a deep
   `review-thorough` pass — required, recommended for an explicit resolution, or not needed — and a manual

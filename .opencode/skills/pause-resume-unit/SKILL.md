@@ -12,8 +12,9 @@ The procedure `AGENTS.md`'s "Workflow: Change lifecycle" triggers. This skill ow
 the pause's steps, and the resume's steps; `AGENTS.md` owns the lifecycle, the approval stop, and the review gate's
 entry point, and this skill adds no permission of its own.
 
-**Trigger** — the owner announces a pause or invokes `/pause-unit`; or a session continues an unfinished unit, whether a
-pause was announced or the unit was simply left waiting, and whether it invokes `/resume-unit` or not.
+**Trigger** — the owner announces a pause or invokes `/pause-unit`; the agent judges it cannot reliably continue the
+unit in this session; or a session continues an unfinished unit, whether a pause was announced or the unit was simply
+left waiting, and whether it invokes `/resume-unit` or not.
 
 ## 1. Pausing
 
@@ -24,7 +25,8 @@ pause was announced or the unit was simply left waiting, and whether it invokes 
    hand-off. Create it once and update it in place; never append a second section.
 3. Fill the field set below.
 4. Read the record back and fix what it does not say.
-5. End the turn with the pause reported, naming the tree and the next step.
+5. End the turn with the pause reported: name the saved `Resume checkpoint` and the tree, state the next step, and tell
+   the owner to continue in a new session with `/resume-unit`.
 
 **The field set**
 
@@ -43,6 +45,13 @@ pause was announced or the unit was simply left waiting, and whether it invokes 
 **Decision points**
 
 - A pause is not a delivery step: nothing is committed, stashed, pushed, archived, or merged for it.
+- Pausing is the alternative to continuing through confirmation requests: when the agent cannot reliably continue, it
+  records the checkpoint rather than ending each step with a request to confirm the next one. A decision the owner
+  actually owes — an approval stop, a pending choice, a permission prompt — is not such a request.
+- A session limitation the agent could not measure is its own assessment: the report does not call it an exhausted
+  context window or provider quota unless the harness, the provider, or the account reported one. Upstream,
+  `anomalyco/opencode#59531` asks for a remaining-budget signal to cite; this clause retires when the harness exposes
+  one.
 - The staged set is recorded rather than cleaned, added to, or reset.
 - The tree stays assigned to the unit, and no build, container, or daemon is stopped for the pause.
 - The review gate's approval stop stands: a pause while the manual pass is outstanding leaves that request outstanding.

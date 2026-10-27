@@ -11,7 +11,7 @@ authoritative definition per subject, the procedure and gotcha shapes, the evide
 applied by the generalization's analysis when authoring and the audit when reconciling), the structured writing standard
 every agent-authored technical artifact follows (stated once in `AGENTS.md`, applied while drafting and checked by the
 review and audit subagents), the output-language convention every agent's output follows (stated once in `AGENTS.md`:
-owner-facing replies in the owner's request language, agent-facing text and durable artifacts in English), and the
+owner-visible messages in the owner's request language, agent-facing text and durable artifacts in English), and the
 locally-defined quality-gate and analysis subagents under `.opencode/agent/` — the per-unit review agent and the
 analysis the owner-triggered generalization runs, the experience-analyzer, the visual and diagram agents, the on-demand
 technical advisor, and the on-demand auditors of the project-owned agent tooling (the guidance and project-authored
@@ -2477,6 +2477,13 @@ convention stated once in `AGENTS.md`'s "Conventions" section.
 - **THEN** the reply uses the language of the owner's current request unless the owner explicitly requested another
   language
 
+#### Scenario: Progress narration uses the owner's language
+
+- **WHEN** an agent emits progress narration around a tool call, or any other assistant message the owner can see in the
+  turn
+- **THEN** that message uses the language of the owner's current request unless the owner explicitly requested another
+  language
+
 #### Scenario: A later language switch is followed
 
 - **WHEN** the owner writes a later request in another language
@@ -2503,6 +2510,12 @@ convention stated once in `AGENTS.md`'s "Conventions" section.
 - **WHEN** an agent presents a subagent's English report to the owner in the owner's language
 - **THEN** the presentation keeps the report's structure, evidence, and uncertainty rather than shortening it into a
   summary
+
+#### Scenario: A presented report's prose is translated
+
+- **WHEN** an agent presents a subagent's English report to the owner in the owner's language
+- **THEN** the report's prose headings, labels, and count descriptions are translated, while its structure, evidence,
+  and uncertainty are preserved
 
 #### Scenario: Identifiers and quotations stay untranslated
 

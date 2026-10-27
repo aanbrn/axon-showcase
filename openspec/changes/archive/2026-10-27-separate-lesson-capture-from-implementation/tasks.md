@@ -165,7 +165,7 @@ branch=separate-lesson-capture-from-implementation; writer=ses_e84c9b955ffeY6V3z
       `/generalize-process-defects` row to the slash-command table. Verification:
       `git grep -n -i 'lesson-capture\|lesson capture' README.md` returns only sites describing the generalization, and
       the agent-table row's column count is unchanged.
-- [ ] 3.4 Refresh the `agent-skills` capability `## Purpose`, whose "applied by the capture when authoring" and "the
+- [x] 3.4 Refresh the `agent-skills` capability `## Purpose`, whose "applied by the capture when authoring" and "the
       per-unit review and lesson-capture agents" phrasings the change falsifies; a delta cannot carry a Purpose, so
       apply it in the archive commit. Verification: the archive commit carries the Purpose edit.
 - [x] 3.5 Confirm the report-contract `MODIFIED` block changes only the retargeted appositive, with all five scenarios

@@ -442,9 +442,10 @@ whether it consumed included usage or additional credits. See
   `review-thorough` pass — required, recommended for an explicit resolution, or not needed — and a manual
   `/review-thorough` run is always available.
 - **Recording, then generalizing**: every unit records the process defects it observes in
-  `docs/process-defects/<unit>.md` as it works, and `/generalize-process-defects` later turns those records into rules —
-  gotchas and conventions for `AGENTS.md` or the owning subject pack, each merged into an existing bullet or reported as
-  uncovered, the rules the work obsoletes reported as retirement candidates, and a lesson whose cause is an authoring
+  `docs/process-defects/<unit>.md` as it works, and `/flag-process-defect` adds one you report once the agent verifies
+  the episode rather than taking the report on trust; `/generalize-process-defects` later turns those records into rules
+  — gotchas and conventions for `AGENTS.md` or the owning subject pack, each merged into an existing bullet or reported
+  as uncovered, the rules the work obsoletes reported as retirement candidates, and a lesson whose cause is an authoring
   mechanism routed to that mechanism rather than to the guidance file — so the file shrinks as well as grows, and a
   mistake is recorded where it can be prevented instead of only where it is read.
 - **Retrospectives**: `/retrospective` gathers the last week of PRs and the git log, plus the archived changes and
@@ -508,7 +509,9 @@ The process is designed to **learn from itself** — and that is the mechanic, n
   your review never waits on the analysis. The improvement those records lead to is a unit of its own, which you run
   when they are due: it turns the records that hold up into rules the agent reads on the next change, and a record that
   adds nothing ends as an explicit `no-change`. A defect a merge alone reveals is appended to the merged unit's record,
-  so it reaches that pass too.
+  so it reaches that pass too. One you notice and the unit did not reaches it through `/flag-process-defect`, and only
+  after the agent verifies that episode — comparing what the rule required against what happened, bounded to that
+  episode — and reports a proven outcome: confirmed, refuted by the available evidence, or not establishable from it.
 - **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
   same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
   uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.
@@ -605,6 +608,7 @@ removed.
 | `/apply-audit-reductions`     | Applies an audit report's merge/removal/route/extraction reduction candidates — merged text, pointers, and deletions inline, a content-move routed to the change workflow — under the review gate                                                                                                                              |
 | `/diagram`                    | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer, then visually reviews a Mermaid render with `vision`                                                                                                                                                                                                 |
 | `/generalize-process-defects` | Turns the accumulated process-defect records into rules and improvements, recording a decision per record                                                                                                                                                                                                                      |
+| `/flag-process-defect`        | Verifies a process defect the owner reports, and records it only when the episode evidence establishes it                                                                                                                                                                                                                      |
 | `/retrospective`              | Periodic retrospective that root-causes failures and proposes verified improvements                                                                                                                                                                                                                                            |
 | `/dependency-updates`         | Runs and summarizes the Gradle, web-UI, and build-logic pin dependency update reports                                                                                                                                                                                                                                          |
 | `/gradle-update`              | Updates the Gradle wrapper to the latest stable                                                                                                                                                                                                                                                                                |

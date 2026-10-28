@@ -58,7 +58,7 @@
       formatting pass, and the recurrence after its repair), each with its evidence, consequence, and knowledge
       boundary.
 
-- [ ] 3.6 Close the gate in one final pass, after every other edit: run `git fetch origin main` and refresh the branch
+- [x] 3.6 Close the gate in one final pass, after every other edit: run `git fetch origin main` and refresh the branch
       onto it — a stash whose pop reconciles the review ledger's rows, then a re-stage — because a merge landing after a
       round leaves the tree behind the base. Then run the closing quick-review round and append its row, run
       `python3 scripts/commit-hygiene.py --unique-rounds --expect record-opencode-59531-closure:<round>`,

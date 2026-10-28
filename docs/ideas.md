@@ -19,10 +19,12 @@ as a second entry and splits one idea's detail across two sections.
 
 ## 2026-10-28
 
-- Retry `verifyInfraImageVersions`'s `helm show values` fetches — parked; no change yet. The task retries its repository
-  add and update through `BoundedRetry`, but each `helm show values` call is a single fetch; a transient failure there
-  failed the Docker-free `check` once during `retry-chart-dependency-fetch`, while the same task passed alone minutes
-  later.
+- Give the review gate's §5 a post-refresh return branch — parked; no change yet. The unit's `#1` process-defect record
+  describes a refresh after the closing quick round whose hand-resolved conflicts were not re-reviewed before the manual
+  pass was requested again. The requirement exists in `/sync-branch`'s lifecycle ("The full per-unit review gate runs
+  over the result"), but §5 — the boundary the agent follows when asking — is silent: it permits refresh, re-stage and
+  ask. Add the return branch to §5 (after a refresh that changed the reviewed tree, run the closing quick round again),
+  or point §5 at the lifecycle line, without restating the sync procedure.
 
 - Evaluate Gradle's official `gradle-best-practices` skill against this build — parked; no change yet. `gradle-skills`
   ships `gradle-wrapper-upgrade` and `gradle-best-practices`. `gradle-best-practices` audits a build against a bundled

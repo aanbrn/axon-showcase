@@ -168,24 +168,29 @@ manual review pass, and end the turn there. None of those preconditions substitu
 approval: nothing is committed, pushed, opened as a PR, archived, or merged before the owner approves (the stops are
 `AGENTS.md`'s).
 
-- **Before the ask, confirm the unit's base has not moved:** `git diff --stat origin/main` must delete nothing the unit
-  did not author. A merge that lands after the closing round leaves the uncommitted tree behind `origin/main`, and the
-  branch-refresh rule's check — `AGENTS.md`'s Change lifecycle scopes it to "before the review round" — then never runs
-  again, so the stale base reaches the manual pass, the commit, and the pull request. IF it reports lines the unit did
-  not write, THEN refresh first by that rule, which stops a branch holding both its own commits and uncommitted work
-  rather than stashing it, and stage the unit's new files afterward, since a refresh can rewrite them. captured:
-  unify-agent-language-policy
-
-Before the ask, stage the unit's own new files so the pass shows them:
-
-- Run `git add -- <explicit paths>` for the unit's new files, its planning artifacts included.
-- Re-run that add for any of those files edited after the previous add.
-- Never use `git add -A`, `git add .`, or `git add -N` for this.
-- A unit with no new files adds no step.
+- **Before the ask, verify the tree is ready** — run `git fetch origin main`, then
+  `python3 scripts/commit-hygiene.py --review-ready`, and apply the remedy each failure names before re-running it. A
+  merge that lands after the closing round leaves the uncommitted tree behind `origin/main`, and the branch-refresh rule
+  is scoped to "before the review round", so without this step the stale base reaches the manual pass, the commit, and
+  the pull request. captured: unify-agent-language-policy captured: stage-new-files-before-manual-review
+  - IF it names an untracked path that is the unit's own file, THEN stage it with `git add -- <explicit path>`, the
+    unit's planning artifacts included.
+  - IF it names an untracked path the unit did not author, THEN git-ignore it (`.gitignore` or `.git/info/exclude`) or
+    remove it deliberately, rather than staging it — leaving it in place keeps the failure the re-run reports. Never
+    reach for `git add -A`, `git add .`, or `git add -N`, which sweep an artifact into the index.
+  - IF it names a path staged and then edited, THEN re-run that explicit add for that path, so the index carries its
+    last edit.
+  - IF it reports that the base carries commits `HEAD` does not, THEN refresh by `AGENTS.md`'s branch-refresh rule — an
+    uncommitted tree fast-forwards with `git merge --ff-only origin/main`, while a branch holding both its own commits
+    and uncommitted work stops there rather than being stashed — and re-stage and re-run afterward, since a refresh can
+    rewrite the unit's new files.
+  - IF it reports that readiness is not established, THEN correct the repository state the failing command names and
+    re-run; that line is a failed measurement, never a ready tree.
 
 The ask names the review surface: the unit's workspace tree and its IDE Changes panel, where staged new files show as
 Added and the remaining modifications as Modified — `git diff --cached` for the new files and `git diff` for the
-modifications as the CLI equivalent. Staging is not committing: the approval stop is unchanged.
+modifications as the CLI equivalent — and the revision line the check printed, so the owner reads which base and `HEAD`
+were compared. Staging is not committing: the approval stop is unchanged.
 
 **Decision points**
 

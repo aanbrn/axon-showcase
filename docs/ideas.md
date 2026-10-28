@@ -50,6 +50,19 @@ as a second entry and splits one idea's detail across two sections.
   build no longer configures. `/gradle-update` and the `gradle-build` pack's wrapper rule carry neither, as the pack
   records; whether either is worth adopting here is unmeasured. Surfaced while scoping the entry above.
 
+- Expose the session's remaining context budget to the agent — parked; no change yet. `anomalyco/opencode#59531` (this
+  repository's report: an agent concluded its budget was exhausted well inside the model's window) closed `not_planned`
+  on 2026-10-27, because newer models get confused by such a figure; the maintainer closed with "if you want it you
+  should write a plugin for it". The SDK reports a session's token totals and cost but no remaining budget, and whether
+  a remainder can be derived from those totals is unverified. On the surface the running binary loads, feasibility is
+  not established either: the v2 `PluginContext` names no tool and no per-turn message hook (ADR-0024 lists its
+  domains), leaving a static `agent.transform` prompt — the caching-breaking form the issue's own discussion flagged —
+  and an `aisdk.language` model wrapper whose ability to append a reminder to the latest message is untested. Any
+  implementation must be measured against the maintainer's caution rather than assumed helpful. Revisit when either of
+  the following is met, each alone reopening it: (external coordinate) a released OpenCode version's v2 plugin surface
+  gains a tool-registration or per-turn message hook; (internal trigger) a probe shows an `aisdk.language` wrapper
+  appending a reminder to the latest user message while the earlier prefix stays cacheable.
+
 ## 2026-10-27
 
 - Fix the gradle-helm-plugin's `failIfExists` repository-add option — reported upstream at

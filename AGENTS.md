@@ -1780,7 +1780,8 @@ capture-stash-stale-copy captured: override-opencode-plugin-transitives
   `scripts/install-git-hooks.sh`) enforces this inspection mechanically: it refuses a commit whose staged set fails the
   formatter check, force-stages a generated artifact, stages a path and then edits it, carries a merge conflict marker,
   misplaces a `captured:` marker, stages an `openspec/changes/archive/**` change dir while leaving its
-  `openspec/specs/**` sync unstaged, or carries a change directory that is not the commit's assigned one.
+  `openspec/specs/**` sync unstaged, or carries a change directory that is not the commit's assigned one — apart from a
+  change path the commit's own merge accounts for, whose content is not the commit's own.
 
   evidence: git-and-repository-workflow
 

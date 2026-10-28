@@ -1602,3 +1602,7 @@
 2026-10-28	record-merge-commit-guard-refusal	1	contradiction,claim-unreproducible	-	1	ses_e7f47a761ffeSeuZpxTDGEx9cd	created	-
 2026-10-28	record-merge-commit-guard-refusal	2	claim-missing	-	1	ses_e7f47a761ffeSeuZpxTDGEx9cd	continued	-
 2026-10-28	record-merge-commit-guard-refusal	3	-	-	0	ses_e7f47a761ffeSeuZpxTDGEx9cd	continued	-
+2026-10-28	exempt-merge-commits-from-assignment	1	contradiction,impact-omission,test-control,claim-unreproducible,missing-task	-	2	ses_e7f4a9dc1ffenbaG9OGVMsqgpF	created	-
+2026-10-28	exempt-merge-commits-from-assignment	2	contradiction,formatting,docs-residue,test-control,claim-unreproducible,claim-missing	contradiction,test-control,claim-unreproducible	2	ses_e7f4a9dc1ffenbaG9OGVMsqgpF	continued	-
+2026-10-28	exempt-merge-commits-from-assignment	3	contradiction	contradiction	0	ses_e7f4a9dc1ffenbaG9OGVMsqgpF	continued	-
+2026-10-28	exempt-merge-commits-from-assignment	4	-	-	0	ses_e7f4a9dc1ffenbaG9OGVMsqgpF	continued	-

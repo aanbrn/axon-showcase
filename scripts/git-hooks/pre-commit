@@ -5,7 +5,8 @@ set -euo pipefail
 # check, a force-staged generated artifact, a path staged and then edited (leaving the index stale), a merge conflict
 # marker, a misplaced captured: marker in a guidance file (AGENTS.md or a project agent/skill definition), an
 # openspec archive move staged without its spec sync, or a change directory that is not the commit's assigned one (read
-# from the worktree's claim or a change-named branch). Bypass a
+# from the worktree's claim or a change-named branch, apart from a change path the commit's own merge accounts
+# for). Bypass a
 # deliberate exception with `git commit --no-verify`.
 # Activated by `scripts/install-git-hooks.sh`, which points core.hooksPath at this directory.
 

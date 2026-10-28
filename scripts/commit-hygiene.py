@@ -8,7 +8,8 @@ stages an `openspec/changes/archive/**` change dir while leaving its `openspec/s
 `--markers` mode checks marker placement in the working-tree guidance files; the `--tracked-ignored`,
 `--conflict-markers`, and
 `--executable-bits` modes each verify the tracked set for the build; `--staged` also refuses a staged change directory
-that is not the commit's assigned one, read from the worktree's claim or a change-named branch; `--unique-crons`
+that is not the commit's assigned one, read from the worktree's claim or a change-named branch — except a change path
+the commit's own merge accounts for, whose content is not the commit's own; `--unique-crons`
 verifies the workflow
 `cron` schedules do not collide; `--unique-rounds` verifies the review-round ledger carries one row per unit and
 round, that each unit's rounds are contiguous from 1, that a round named with `--expect` is recorded, and that a unit
@@ -576,23 +577,102 @@ def rename_sources(repo: Path) -> list[str]:
     ]
 
 
+def deleted_change_paths(repo: Path) -> list[str]:
+    """The staged deletions under a change directory; a rename reports its source separately, under `R`."""
+    output = git_output(
+        repo, "diff", "--cached", "--name-only", "-z", "--diff-filter=D", "--", CHANGES_PREFIX
+    )
+    return [path for path in output.split("\0") if path]
+
+
 def staged_change_paths(repo: Path) -> list[str]:
     """Every staged path under a change directory — added, modified, deleted, or renamed away from — each once."""
-    deleted = [path for path in git_output(
-        repo, "diff", "--cached", "--name-only", "-z", "--diff-filter=D", "--", CHANGES_PREFIX
-    ).split("\0") if path]
-    paths = staged_paths(repo) + deleted + rename_sources(repo)
+    paths = staged_paths(repo) + deleted_change_paths(repo) + rename_sources(repo)
     return list(dict.fromkeys(path for path in paths if path.startswith(CHANGES_PREFIX)))
 
 
+def staged_change_presence(repo: Path) -> dict[str, bool]:
+    """Each staged change path, mapped to whether the index holds it: a deletion or a rename's source does not."""
+    present = set(staged_paths(repo))
+    return {path: path in present for path in staged_change_paths(repo)}
+
+
+def merge_revisions(repo: Path) -> list[str]:
+    """The revisions a merge in progress is joining, or an empty list when the commit under construction is no merge.
+
+    The merge state is the git directory's `MERGE_HEAD`, one revision per merged parent — an octopus merge holds
+    several, where `rev-parse MERGE_HEAD` answers only the first. A file that is absent means no merge is in progress;
+    any other read failure stops the check rather than reading as an ordinary commit.
+    """
+    resolved = Path(git_output(repo, "rev-parse", "--git-path", "MERGE_HEAD").strip())
+    path = resolved if resolved.is_absolute() else repo / resolved
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return []
+    except OSError as error:
+        raise GitFailure(f"the merge state at {path} could not be read: {error}") from error
+    return [line.strip() for line in text.splitlines() if line.strip()]
+
+
+def tree_paths(repo: Path, revisions: list[str]) -> set[str]:
+    """Every path the given revisions hold, read from their trees."""
+    paths: set[str] = set()
+    for revision in revisions:
+        output = git_output(repo, "ls-tree", "-r", "-z", "--name-only", revision)
+        paths.update(path for path in output.split("\0") if path)
+    return paths
+
+
+def merge_base_paths(repo: Path, revisions: list[str]) -> set[str]:
+    """Every path the merged revisions' forks held, read from their merge bases with `HEAD`.
+
+    This is the evidence that a merged revision removed a path: a path absent from the merged trees but present here
+    was deleted by the merge, while a path absent from both was never the merged revision's own.
+    """
+    head = resolved_revision(repo, "HEAD")
+    if head is None:
+        return set()
+    bases = [merge_base_of(repo, head, revision) for revision in revisions]
+    return tree_paths(repo, [base for base in bases if base is not None])
+
+
+def merge_accounts_for(path: str, in_index: bool, merged: set[str], bases: set[str]) -> bool:
+    """Whether a merged revision accounts for the path's staged state.
+
+    A path the index holds is the merged revision's own when that revision holds it too. A path the index lacks is a
+    deletion, and a merge accounts for it only when a fork held it and no merged revision does: a path no fork held was
+    never the merged revision's, so its deletion is the commit's own.
+    """
+    if in_index:
+        return path in merged
+    return path not in merged and path in bases
+
+
 def find_foreign_change_paths(repo: Path, assignment: str | None) -> list[tuple[str, str | None]]:
-    """The (path, change) pairs the commit may not carry; with no assignment, every change-directory path."""
+    """The (path, change) pairs the commit may not carry; with no assignment, every change-directory path.
+
+    A merge commit joins revisions whose content is not the commit's own, so a staged change path the merge accounts
+    for is exempt: a path the index holds when a merged revision holds it, or a path the index lacks when a fork held it
+    and the merged revision removed it. A foreign path the merge does not account for is still refused, so the
+    exemption narrows the ownership check rather than disabling it for merges.
+    """
+    presence = staged_change_presence(repo)
     foreign: list[tuple[str, str | None]] = []
-    for path in staged_change_paths(repo):
+    for path in presence:
         name = change_path_name(path)
         if assignment is None or (name is not None and name != assignment):
             foreign.append((path, name))
-    return foreign
+    revisions = merge_revisions(repo)
+    if not revisions:
+        return foreign
+    merged = tree_paths(repo, revisions)
+    bases = merge_base_paths(repo, revisions)
+    return [
+        (path, change)
+        for path, change in foreign
+        if not merge_accounts_for(path, presence[path], merged, bases)
+    ]
 
 
 def check_staged(repo: Path, formatter: list[str]) -> int:

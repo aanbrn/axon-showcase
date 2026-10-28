@@ -1442,7 +1442,7 @@ class FailedReadTests(unittest.TestCase):
             ("modified_spec_paths", "diff --name-only -z -- openspec/specs/", commit_hygiene.modified_spec_paths),
             ("untracked_spec_paths", "ls-files --others", commit_hygiene.untracked_spec_paths),
             ("rename_sources", "--diff-filter=R", commit_hygiene.rename_sources),
-            ("staged_change_paths", "--diff-filter=D", commit_hygiene.staged_change_paths),
+            ("deleted_change_paths", "--diff-filter=D", commit_hygiene.deleted_change_paths),
         )
         for name, command, read in reads:
             with self.subTest(read=name):
@@ -1522,6 +1522,130 @@ class FailedReadTests(unittest.TestCase):
         self.assertEqual("one\n", commit_hygiene.staged_file_text(repo, "a.txt"))
         with self.assertRaises(commit_hygiene.GitFailure):
             commit_hygiene.staged_file_text(repo, "missing.txt")
+
+
+class MergeStateTests(unittest.TestCase):
+    @staticmethod
+    def _commit(repo: Path, name: str, content: str) -> None:
+        (repo / "docs").mkdir(exist_ok=True)
+        (repo / "docs" / name).write_text(content, encoding="utf-8")
+        subprocess.run(("git", "add", "--all"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", content.strip()), cwd=repo, check=True)
+
+    @staticmethod
+    def _merge_incoming(repo: Path) -> int:
+        return subprocess.run(("git", "merge", "--no-commit", "incoming"), cwd=repo).returncode
+
+    @staticmethod
+    def _create_branch(repo: Path, branch: str) -> None:
+        subprocess.run(("git", "switch", "-q", "-c", branch), cwd=repo, check=True)
+
+    @staticmethod
+    def _back(repo: Path) -> None:
+        subprocess.run(("git", "switch", "-q", "-"), cwd=repo, check=True)
+
+    def test_no_merge_in_progress_answers_empty(self):
+        repo = make_repo(self)
+        self.assertEqual([], commit_hygiene.merge_revisions(repo))
+
+    def test_a_clean_merge_names_the_revision_it_joins(self):
+        repo = make_repo(self)
+        self._commit(repo, "note.md", "base\n")
+        self._create_branch(repo, "incoming")
+        self._commit(repo, "theirs.md", "theirs\n")
+        self._back(repo)
+        self._commit(repo, "ours.md", "ours\n")
+        self.assertEqual(0, self._merge_incoming(repo))
+
+        self.assertEqual([self._revision(repo, "incoming")], commit_hygiene.merge_revisions(repo))
+
+    def test_a_conflicted_merge_names_the_revision_it_joins(self):
+        repo = make_repo(self)
+        self._commit(repo, "note.md", "base\n")
+        self._create_branch(repo, "incoming")
+        self._commit(repo, "note.md", "theirs\n")
+        self._back(repo)
+        self._commit(repo, "note.md", "ours\n")
+        self.assertEqual(1, self._merge_incoming(repo))
+
+        self.assertEqual([self._revision(repo, "incoming")], commit_hygiene.merge_revisions(repo))
+
+    def test_the_read_raises_outside_a_repository(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+
+        with self.assertRaises(commit_hygiene.GitFailure):
+            commit_hygiene.merge_revisions(Path(directory.name))
+
+    def test_an_unreadable_merge_state_stops_the_check(self):
+        repo = make_repo(self)
+        relative = subprocess.run(
+            ("git", "rev-parse", "--git-path", "MERGE_HEAD"), cwd=repo, capture_output=True, text=True, check=True
+        ).stdout.strip()
+        merge_state = Path(relative)
+        (merge_state if merge_state.is_absolute() else repo / merge_state).mkdir()
+
+        with self.assertRaises(commit_hygiene.GitFailure):
+            commit_hygiene.merge_revisions(repo)
+
+    def test_a_two_parent_merge_names_both_revisions(self):
+        repo = make_repo(self)
+        self._commit(repo, "note.md", "base\n")
+        self._create_branch(repo, "first")
+        self._commit(repo, "first.md", "first\n")
+        self._back(repo)
+        self._create_branch(repo, "second")
+        self._commit(repo, "second.md", "second\n")
+        self._back(repo)
+        self._commit(repo, "ours.md", "ours\n")
+        subprocess.run(("git", "merge", "--no-commit", "first", "second"), cwd=repo, check=True)
+
+        self.assertEqual(
+            [self._revision(repo, "first"), self._revision(repo, "second")], commit_hygiene.merge_revisions(repo)
+        )
+
+    def test_merge_base_paths_unites_the_forks_of_every_merged_revision(self):
+        repo = make_repo(self)
+        self._commit(repo, "note.md", "base\n")
+        subprocess.run(("git", "branch", "first"), cwd=repo, check=True)
+        self._commit(repo, "later.md", "later\n")
+        subprocess.run(("git", "branch", "second"), cwd=repo, check=True)
+
+        self.assertEqual(
+            {"docs/note.md"}, commit_hygiene.merge_base_paths(repo, [self._revision(repo, "first")])
+        )
+        self.assertEqual(
+            {"docs/note.md", "docs/later.md"},
+            commit_hygiene.merge_base_paths(
+                repo, [self._revision(repo, "first"), self._revision(repo, "second")]
+            ),
+        )
+
+    def test_the_merge_base_read_answers_no_common_ancestor_and_raises_on_an_error(self):
+        repo = make_repo(self)
+        self._commit(repo, "note.md", "base\n")
+        first = self._revision(repo, "HEAD")
+        subprocess.run(("git", "checkout", "-q", "--orphan", "unrelated"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "--allow-empty", "-m", "unrelated"), cwd=repo, check=True)
+        second = self._revision(repo, "HEAD")
+
+        self.assertIsNone(commit_hygiene.merge_base_of(repo, first, second))
+        with self.assertRaises(commit_hygiene.GitFailure):
+            commit_hygiene.merge_base_of(repo, first, "no-such-revision")
+
+    def test_tree_paths_reads_a_revision_and_fails_on_an_unreadable_one(self):
+        repo = make_repo(self)
+        self._commit(repo, "note.md", "base\n")
+
+        self.assertEqual({"docs/note.md"}, commit_hygiene.tree_paths(repo, [self._revision(repo, "HEAD")]))
+        with self.assertRaises(commit_hygiene.GitFailure):
+            commit_hygiene.tree_paths(repo, ["no-such-revision"])
+
+    @staticmethod
+    def _revision(repo: Path, revision: str) -> str:
+        return subprocess.run(
+            ("git", "rev-parse", revision), cwd=repo, capture_output=True, text=True, check=True
+        ).stdout.strip()
 
 
 class CliTests(unittest.TestCase):
@@ -1844,6 +1968,195 @@ class CommitAssignmentTests(unittest.TestCase):
         code, stderr = self._run(repo)
         self.assertEqual(1, code)
         self.assertIn("belongs to change 'other'", stderr)
+
+    @staticmethod
+    def _switch_back(repo: Path) -> None:
+        subprocess.run(("git", "switch", "-q", "-"), cwd=repo, check=True)
+
+    @staticmethod
+    def _merge_incoming(repo: Path, *options: str) -> None:
+        subprocess.run(("git", "merge", *options, "incoming"), cwd=repo, check=True)
+
+    def _merge_fixture(self, repo: Path) -> None:
+        """A branch carrying another change's archive, and a unit commit of the unit's own for the merge to join."""
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "incoming")
+        self._write(repo, "openspec/changes/archive/2026-01-01-other/proposal.md")
+        self._commit_all(repo)
+        self._switch_back(repo)
+        self._write(repo, "docs/note.md")
+        self._commit_all(repo)
+        self._merge_incoming(repo, "--no-commit")
+
+    def test_a_merge_commit_may_carry_the_archive_it_merges(self):
+        repo = make_repo(self)
+        self._merge_fixture(repo)
+
+        code, stderr = self._run(repo)
+        self.assertEqual(0, code, stderr)
+
+    def test_a_merge_commit_may_carry_the_archive_move_it_merges(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._write(repo, "openspec/changes/other/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "incoming")
+        subprocess.run(("git", "rm", "-q", "-r", "openspec/changes/other"), cwd=repo, check=True)
+        self._write(repo, "openspec/changes/archive/2026-01-01-other/proposal.md")
+        self._commit_all(repo)
+        self._switch_back(repo)
+        self._write(repo, "docs/note.md")
+        self._commit_all(repo)
+        self._merge_incoming(repo, "--no-commit")
+
+        code, stderr = self._run(repo)
+        self.assertEqual(0, code, stderr)
+
+    def test_a_merge_commit_may_carry_an_archive_from_either_merged_revision(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "first")
+        self._write(repo, "docs/first.md")
+        self._commit_all(repo)
+        self._switch_back(repo)
+        self._switch(repo, "second")
+        self._write(repo, "openspec/changes/archive/2026-01-01-other/proposal.md")
+        self._commit_all(repo)
+        self._switch_back(repo)
+        self._write(repo, "docs/ours.md")
+        self._commit_all(repo)
+        subprocess.run(("git", "merge", "--no-commit", "first", "second"), cwd=repo, check=True)
+
+        code, stderr = self._run(repo)
+        self.assertEqual(0, code, stderr)
+
+    def test_a_foreign_path_the_merge_never_held_cannot_be_deleted(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "incoming")
+        self._write(repo, "docs/theirs.md")
+        self._commit_all(repo)
+        self._switch_back(repo)
+        self._write(repo, "docs/ours.md")
+        self._write(repo, "openspec/changes/other/proposal.md")
+        self._commit_all(repo)
+        self._merge_incoming(repo, "--no-commit")
+        subprocess.run(("git", "rm", "-q", "-r", "openspec/changes/other"), cwd=repo, check=True)
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("belongs to change 'other'", stderr)
+
+    def test_a_merge_commit_still_refuses_a_foreign_change_path_it_does_not_merge(self):
+        repo = make_repo(self)
+        self._merge_fixture(repo)
+        self._write(repo, "openspec/changes/intruder/proposal.md")
+        self._stage(repo, "openspec/changes/intruder")
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("belongs to change 'intruder'", stderr)
+
+    def test_a_two_parent_merge_deletion_is_judged_against_every_fork(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "first")
+        self._write(repo, "docs/first.md")
+        self._commit_all(repo)
+        self._switch_back(repo)
+        self._write(repo, "openspec/changes/other/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "second")
+        subprocess.run(("git", "rm", "-q", "-r", "openspec/changes/other"), cwd=repo, check=True)
+        self._commit_all(repo)
+        self._switch_back(repo)
+        self._write(repo, "docs/ours.md")
+        self._commit_all(repo)
+        subprocess.run(("git", "merge", "--no-commit", "first", "second"), cwd=repo, check=True)
+
+        self.assertEqual(
+            {"openspec/changes/other/proposal.md": False}, commit_hygiene.staged_change_presence(repo)
+        )
+        code, stderr = self._run(repo)
+        self.assertEqual(0, code, stderr)
+
+    def test_a_foreign_change_path_deleted_during_a_merge_is_refused(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._write(repo, "openspec/changes/other/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "incoming")
+        self._write(repo, "openspec/changes/archive/2026-01-01-second/proposal.md")
+        self._commit_all(repo)
+        self._switch_back(repo)
+        self._write(repo, "docs/note.md")
+        self._commit_all(repo)
+        self._merge_incoming(repo, "--no-commit")
+        subprocess.run(("git", "rm", "-q", "-r", "openspec/changes/other"), cwd=repo, check=True)
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("belongs to change 'other'", stderr)
+
+    def test_a_squash_merge_is_refused_as_an_ordinary_commit(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "incoming")
+        self._write(repo, "openspec/changes/archive/2026-01-01-other/proposal.md")
+        self._commit_all(repo)
+        self._switch_back(repo)
+        self._write(repo, "docs/note.md")
+        self._commit_all(repo)
+        self._merge_incoming(repo, "--squash")
+
+        code, stderr = self._run(repo)
+        self.assertEqual(1, code)
+        self.assertIn("belongs to change 'other'", stderr)
+
+    def test_a_change_paths_staged_presence_distinguishes_an_addition_from_a_removal(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/kept.md")
+        self._write(repo, "openspec/changes/demo/gone.md")
+        self._commit_all(repo)
+        self._write(repo, "openspec/changes/demo/added.md")
+        subprocess.run(("git", "rm", "-q", "openspec/changes/demo/gone.md"), cwd=repo, check=True)
+        subprocess.run(
+            ("git", "mv", "openspec/changes/demo/kept.md", "openspec/changes/demo/renamed.md"),
+            cwd=repo,
+            check=True,
+        )
+        self._stage(repo, "openspec/changes/demo/added.md")
+
+        self.assertEqual(
+            {
+                "openspec/changes/demo/added.md": True,
+                "openspec/changes/demo/gone.md": False,
+                "openspec/changes/demo/renamed.md": True,
+                "openspec/changes/demo/kept.md": False,
+            },
+            commit_hygiene.staged_change_presence(repo),
+        )
+
+    def test_a_merge_commit_with_no_assignment_may_carry_the_archive_it_merges(self):
+        repo = make_repo(self)
+        self._write(repo, "openspec/changes/demo/proposal.md")
+        self._commit_all(repo)
+        self._switch(repo, "incoming")
+        self._write(repo, "openspec/changes/archive/2026-01-01-other/proposal.md")
+        self._commit_all(repo)
+        self._switch_back(repo)
+        self._write(repo, "docs/note.md")
+        self._commit_all(repo)
+        write_claim(repo, "none")
+        self._merge_incoming(repo, "--no-commit")
+
+        code, stderr = self._run(repo)
+        self.assertEqual(0, code, stderr)
 
     def test_the_assigned_changes_own_deletion_is_accepted(self):
         repo = make_repo(self)

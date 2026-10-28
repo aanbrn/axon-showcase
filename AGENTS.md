@@ -464,7 +464,9 @@ point.
 ### Workflow: Record process defects
 
 **Trigger** — you observe a process defect while working: a rule you missed, an action that failed, wasted work, a
-misread artifact. Record it when you observe it, before the context is lost.
+misread artifact. Record it when you observe it, before the context is lost. The owner may report one you did not
+notice: `/flag-process-defect` verifies that episode before any record is written, and only a confirmed outcome appends
+one.
 
 **Procedure**
 

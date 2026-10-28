@@ -505,13 +505,14 @@ the owner's decision, and no queue or drain guarantee exists.
 **Procedure**
 
 1. Run `/generalize-process-defects`. It selects the records carrying no `Decision` line and shows the owner that set.
-2. Run the `lesson-capture` subagent with those records, the existing guidance a candidate would extend, and the review
+2. Decide each record's disposition against the **Decision points** below before the hand-off.
+3. Run the `lesson-capture` subagent with those records, the existing guidance a candidate would extend, and the review
    evidence the records cite. Its contract — the promotion gate, the evidence threshold, the dispositions, the owning
    destinations, the retirement candidates, and the authoring-system recommendations — is the `agent-skills`
    requirement's, and neither this file nor the command restates it.
-3. Apply the proposals the owner approves in this unit, and keep the unit's own findings in its own
+4. Apply the proposals the owner approves in this unit, and keep the unit's own findings in its own
    `docs/process-defects/<unit>.md` like any other unit's.
-4. Append one `Decision` line to every analyzed record — `no-change` with its reason, `proposed` with a link, or
+5. Append one `Decision` line to every analyzed record — `no-change` with its reason, `proposed` with a link, or
    `shipped` with a merged pull request's link. A link to an open pull request is `proposed`, never `shipped`, and a
    record with no `Decision` line is unanalyzed, which is how a later pass finds it.
 

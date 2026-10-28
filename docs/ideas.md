@@ -63,16 +63,6 @@ as a second entry and splits one idea's detail across two sections.
   gains a tool-registration or per-turn message hook; (internal trigger) a probe shows an `aisdk.language` wrapper
   appending a reminder to the latest user message while the earlier prefix stays cacheable.
 
-- Run the refresh on an explicit `/sync-branch` invocation — parked; direction A approved, no change yet. Step 3 of the
-  command hands an open pull request's `gh pr update-branch` to the owner, while the same procedure's decision point
-  says an explicit invocation authorizes the refresh; `bump-setup-pack-action-2026-10-28#2` records the owner asking in
-  a third message why the synchronization had not happened. The archived design (`2026-10-27-add-sync-branch-command`,
-  D2) records the hand-off deliberately, so running it is a behaviour change rather than a wording repair: step 3 runs
-  the update on an explicit invocation, the read-only carve-out for a diagnosis or a review round stays, and the
-  approval boundary is reconciled with a `MODIFIED` delta on the `agent-skills` command requirement instead of leaving
-  an exception for the agent to infer. A separate change; the generalization unit of 2026-10-28 records the direction
-  only.
-
 ## 2026-10-27
 
 - Fix the gradle-helm-plugin's `failIfExists` repository-add option — parked; reported upstream at

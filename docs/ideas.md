@@ -17,6 +17,13 @@ appending to the most recent one). Search the file for the idea before adding it
 differently worded — is extended in place in its existing section, since the day-section rule otherwise files a re-park
 as a second entry and splits one idea's detail across two sections.
 
+## 2026-10-28
+
+- Retry `verifyInfraImageVersions`'s `helm show values` fetches — parked; no change yet. The task retries its repository
+  add and update through `BoundedRetry`, but each `helm show values` call is a single fetch; a transient failure there
+  failed the Docker-free `check` once during `retry-chart-dependency-fetch`, while the same task passed alone minutes
+  later.
+
 ## 2026-10-27
 
 - Fix the gradle-helm-plugin's `failIfExists` repository-add option — reported upstream at
@@ -617,29 +624,25 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   canonical boundary is in that list, so a genuinely new class is added to the contract before it is recorded. Routes to
   a `code-quality` requirement plus an `agent-skills` delta.
 
-- Make the chart-packaging gate's fetches resilient — scope landed; retry gap reported upstream at
-  `build-extensions-oss/gradle-helm-plugin#238`. `check` runs the chart's packaging, so the plugin's repository setup
-  (`helmAdd*Repository`, `helmUpdateRepositories`) and its dependency fetch (`helmUpdateMainChartDependencies`) run on
-  every pull request. The gate now fetches only the repositories its charts need: the chart module registers and
-  refreshes Bitnami alone (its sole dependency, `common`), and `verifyInfraImageVersions` derives its repositories from
-  the checks' chart refs. The plugin's own task types still cannot be retried by a repo-side wrapper.
-  `verifyInfraImageVersions`'s `AbstractHelmRepositoriesTask` + `BoundedRetry` is the model for a repo-authored fetch. A
-  retry with the same timeout does not help a steadily slow index, where every download exceeds the limit; it recovers
-  only a transient failure. Helm restarts each download and `--timeout` is per download (scoped `extraArgs` sets it),
-  and this change leaves the timeout at its default. The remaining gap is bounded retry for the plugin's fetch tasks,
-  reported upstream at `build-extensions-oss/gradle-helm-plugin#238`.
+- Replace the chart-packaging workaround with the plugin's own retried fetches — upstream reported; the workaround is in
+  place. The gate's repository setup and dependency fetch run through the repository's `FetchChartDependenciesTask`
+  (`helm/chart/build.gradle.kts`), which retries each network step a bounded number of times; the plugin's own
+  `HelmAddRepository`, `HelmUpdateRepositories` and `HelmUpdateDependencies` tasks have no retry and cannot be wrapped.
+  Reported upstream at `build-extensions-oss/gradle-helm-plugin#238`; retire the workaround when a plugin release
+  retries these fetches, and keep the install path's manual retry until then.
 
 ## 2026-10-16
 
-- Report the plugin's cache-dependent chart-dependency skip upstream — parked; no change yet. The
-  `helmUpdateMainChartDependencies` task (which the plugin's docs equate with `helm dependency update`) silently skips
-  when the **configuration cache** (#581) stores its entry before the chart sources are collected — a clean checkout or
-  CI: its `onlyIf` resolves false there, so nothing fetches the chart's external Bitnami `common` dependency,
-  `helm/chart`'s packaging produces a chart with no `charts/`, and both the strict lint and the deployed install fail.
-  Measured on one commit with only the cache toggled: SKIPPED with the cache on, fetches with
-  `--no-configuration-cache`. The repo's workaround is `setOnlyIf { true }` in `helm/chart/build.gradle.kts`;
-  `build-extensions-oss/gradle-helm-plugin` has issues enabled (`has_issues: true`, `has_discussions: false`), so a fix
-  belongs there as an issue or a pull request and would retire the workaround.
+- Report the plugin's cache-dependent chart-dependency skip upstream — the build no longer runs the task's fetch; the
+  report stays. The `helmUpdateMainChartDependencies` task (which the plugin's docs equate with
+  `helm dependency update`) silently skips when the **configuration cache** (#581) stores its entry before the chart
+  sources are collected — a clean checkout or CI: its `onlyIf` resolves false there, so nothing fetches the chart's
+  external Bitnami `common` dependency, `helm/chart`'s packaging produces a chart with no `charts/`, and both the strict
+  lint and the deployed install fail. The repository's `FetchChartDependenciesTask` replaced the task in the packaging
+  path, so the workaround below is moot here. Measured on one commit with only the cache toggled: SKIPPED with the cache
+  on, fetches with `--no-configuration-cache`. The workaround was `setOnlyIf { true }` in `helm/chart/build.gradle.kts`
+  and was removed when the task became a disabled bridge; `build-extensions-oss/gradle-helm-plugin` has issues enabled
+  (`has_issues: true`, `has_discussions: false`), so a fix belongs there as an issue or a pull request.
 
 ## 2026-10-15
 

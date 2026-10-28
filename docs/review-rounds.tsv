@@ -1519,3 +1519,13 @@
 2026-10-27	scope-chart-repository-fetch	8	-	-	0	ses_e8295abd9ffemwFCmFWa4giX5Z	continued	-
 2026-10-27	scope-chart-repository-fetch	9	staged-index-stale	-	1	ses_e8295abd9ffemwFCmFWa4giX5Z	continued	-
 2026-10-27	scope-chart-repository-fetch	10	-	-	0	ses_e8295abd9ffemwFCmFWa4giX5Z	continued	-
+2026-10-28	retry-chart-dependency-fetch	1	claim-missing,claim-unreproducible,contradiction,docs-residue,incomplete-enumeration,missing-task,structured-writing,wording	-	7	ses_e804562eeffezsYg6S5DI28Dz3	created	-
+2026-10-28	retry-chart-dependency-fetch	2	dropped-content,wording	wording	1	ses_e804562eeffezsYg6S5DI28Dz3	continued	-
+2026-10-28	retry-chart-dependency-fetch	3	contradiction,missing-task	-	2	ses_e804562eeffezsYg6S5DI28Dz3	continued	-
+2026-10-28	retry-chart-dependency-fetch	4	-	-	0	ses_e804562eeffezsYg6S5DI28Dz3	continued	-
+2026-10-28	retry-chart-dependency-fetch	5	missing-task	missing-task	1	ses_e804562eeffezsYg6S5DI28Dz3	continued	-
+2026-10-28	retry-chart-dependency-fetch	6	missing-task	missing-task	1	ses_e804562eeffezsYg6S5DI28Dz3	continued	-
+2026-10-28	retry-chart-dependency-fetch	7	-	-	0	ses_e804562eeffezsYg6S5DI28Dz3	continued	-
+2026-10-28	retry-chart-dependency-fetch	8	-	-	0	ses_e804562eeffezsYg6S5DI28Dz3	continued	-
+2026-10-28	retry-chart-dependency-fetch	9	claim-unreproducible	claim-unreproducible	1	ses_e804562eeffezsYg6S5DI28Dz3	continued	-
+2026-10-28	retry-chart-dependency-fetch	10	-	-	0	ses_e804562eeffezsYg6S5DI28Dz3	continued	-

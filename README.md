@@ -843,21 +843,21 @@ for a Docker-free check and disable the coverage gate it would otherwise fail; `
 quality gates run in the Gradle build, so no IDE is required to verify a change. An IDE (e.g. IntelliJ IDEA) is an
 optional convenience for interactive editing, debugging, and inspection.
 
-A pre-commit guard (`scripts/git-hooks/pre-commit`) catches seven commit-hygiene slips before they reach CI: a staged
+A pre-commit guard (`scripts/git-hooks/pre-commit`) catches eight commit-hygiene slips before they reach CI: a staged
 file `spotlessCheck` would rewrite, a force-staged generated artifact, a path staged and then edited (leaving the index
 stale), a merge conflict marker, a misplaced `captured:` marker in `AGENTS.md`, an `openspec archive` move staged
-without its spec sync, and another change's directory staged in place of the one the commit is assigned to — the last
-read from a claim in the worktree's git directory, or from a branch named after its change. It is activated once per
-clone (see [Get the Sources](#get-the-sources)); bypass a deliberate exception with `git commit --no-verify`. Its checks
-also have build-side counterparts in `./gradlew check`: the formatter as `spotlessCheck`, marker placement as
-`verifyCapturedMarkers`, tracked-file hygiene (the tracked-set counterpart of the force-staged-artifact check) as
-`verifyTrackedIgnoredFiles`, and conflict markers as `verifyConflictMarkers` — so they hold even without the hook.
-`verifyExecutableBits` additionally verifies the tracked scripts' executable bits, and the web module's own Prettier
-check (`npmFormatCheck`) remains part of `check`. `verifyUniqueCronSchedules` verifies no two workflow `cron` schedules
-collide, `verifyUniqueReviewRounds` verifies the review-round ledger carries one row per unit and round, contiguous from
-1, `verifyReviewSessionContinuity` verifies each of those rows records the reviewer session it ran in and whether that
-session was created, continued, or replaced, and `verifyLargeFiles` verifies no tracked file exceeds the configured size
-limit.
+without its spec sync, a review-round ledger that fails its checks or loses a row, and another change's directory staged
+in place of the one the commit is assigned to — the last read from a claim in the worktree's git directory, or from a
+branch named after its change. It is activated once per clone (see [Get the Sources](#get-the-sources)); bypass a
+deliberate exception with `git commit --no-verify`. Its checks also have build-side counterparts in `./gradlew check`:
+the formatter as `spotlessCheck`, marker placement as `verifyCapturedMarkers`, tracked-file hygiene (the tracked-set
+counterpart of the force-staged-artifact check) as `verifyTrackedIgnoredFiles`, and conflict markers as
+`verifyConflictMarkers` — so they hold even without the hook. `verifyExecutableBits` additionally verifies the tracked
+scripts' executable bits, and the web module's own Prettier check (`npmFormatCheck`) remains part of `check`.
+`verifyUniqueCronSchedules` verifies no two workflow `cron` schedules collide, `verifyUniqueReviewRounds` verifies the
+review-round ledger carries one row per unit and round, contiguous from 1, `verifyReviewSessionContinuity` verifies each
+of those rows records the reviewer session it ran in and whether that session was created, continued, or replaced, and
+`verifyLargeFiles` verifies no tracked file exceeds the configured size limit.
 
 ### Formatting and IDE Setup
 

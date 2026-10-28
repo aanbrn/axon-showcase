@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Check commit hygiene: the staged set, `captured:` marker placement, and the tracked set.
 
-The `--staged` mode is the pre-commit guard. It refuses a commit whose staged set the project's formatter would
-rewrite, that force-stages a generated artifact, that stages a path and then edits it again (leaving the index stale),
-that carries a merge conflict marker, that misplaces a `captured:` marker in the project's guidance files, or that
-stages an `openspec/changes/archive/**` change dir while leaving its `openspec/specs/**` sync unstaged. The
+The `--staged` mode is the pre-commit guard: it refuses a mechanically defective staged set, including a staged
+review-round ledger whose checks fail or that loses a row. The complete list of its refusals is the
+`showcase/quality/commit-hygiene` spec's pre-commit requirement; this docstring states only that a mode exists and
+what it is for. The
 `--markers` mode checks marker placement in the working-tree guidance files; the `--tracked-ignored`,
 `--conflict-markers`, and
 `--executable-bits` modes each verify the tracked set for the build; `--staged` also refuses a staged change directory
@@ -737,6 +737,24 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
         for path in spec_paths:
             print(f"  {path}", file=sys.stderr)
 
+    ledger = "docs/review-rounds.tsv"
+    ledger_removed = bool(
+        git_output(repo, "diff", "--cached", "--name-status", "--diff-filter=DR", "--", ledger).strip()
+    )
+    if ledger in paths or ledger_removed:
+        absent = ledger_removed and ledger not in paths
+        staged_ledger = "" if absent else staged_file_text(repo, ledger)
+        if not absent:
+            try:
+                failures += check_unique_review_rounds(repo, text=staged_ledger)
+                failures += check_session_continuity(repo, text=staged_ledger)
+            except ValueError as failure:
+                failures += 1
+                print(
+                    "The review-round ledger ({0}) cannot be checked: {1}".format(ledger, failure), file=sys.stderr
+                )
+        failures += check_ledger_preservation(repo, staged_ledger)
+
     return failures
 
 
@@ -865,18 +883,46 @@ def check_unique_crons(repo: Path) -> int:
     return len(collisions)
 
 
-def find_duplicate_review_rounds(repo: Path) -> list[tuple[str, str, int, int]]:
+def ledger_source(repo: Path, text: str | None = None) -> str:
+    """The ledger's text: the supplied one, or the repository file's.
+
+    `None` reads the repository file, and `""` is an empty ledger, so a caller that judged the staged content never
+    falls back to the working tree.
+    """
+    if text is not None:
+        return text
+    ledger = repo / "docs" / "review-rounds.tsv"
+    if not ledger.is_file():
+        return ""
+    return ledger.read_text(encoding="utf-8")
+
+
+def ledger_row_keys(text: str) -> tuple[set[tuple[str, str]], list[str]]:
+    """The ledger text's (unit, round) keys, and the data lines whose round cannot be parsed."""
+    keys: set[tuple[str, str]] = set()
+    malformed: list[str] = []
+    for line in text.splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        fields = line.split("\t")
+        if len(fields) < 3:
+            continue
+        if not fields[2].isdigit():
+            malformed.append(line)
+            continue
+        keys.add((fields[1], fields[2]))
+    return keys, malformed
+
+
+def find_duplicate_review_rounds(repo: Path, text: str | None = None) -> list[tuple[str, str, int, int]]:
     """The duplicated (unit, round) rows in the review-round ledger, with both line numbers.
 
     The ledger declares one row per review round and `scripts/experience-analysis.sh` sums a column, so a duplicate
     double-counts a round. Its leading `#` lines are comments, and a row whose pair is absent is not a pair.
     """
-    ledger = repo / "docs" / "review-rounds.tsv"
-    if not ledger.is_file():
-        return []
     first_seen: dict[tuple[str, str], int] = {}
     duplicates: list[tuple[str, str, int, int]] = []
-    for number, line in enumerate(ledger.read_text(encoding="utf-8").splitlines(), start=1):
+    for number, line in enumerate(ledger_source(repo, text).splitlines(), start=1):
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         fields = line.split("\t")
@@ -902,13 +948,10 @@ def check_unique_review_rounds(repo: Path) -> int:
     return len(duplicates)
 
 
-def ledger_data_rows(repo: Path) -> list[list[str]]:
+def ledger_data_rows(repo: Path, text: str | None = None) -> list[list[str]]:
     """The ledger's data rows, comment and blank lines dropped, so every reader parses and validates it once."""
-    ledger = repo / "docs" / "review-rounds.tsv"
-    if not ledger.is_file():
-        return []
     rows: list[list[str]] = []
-    for line in ledger.read_text(encoding="utf-8").splitlines():
+    for line in ledger_source(repo, text).splitlines():
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         fields = line.split("\t")
@@ -924,41 +967,40 @@ def ledger_data_rows(repo: Path) -> list[list[str]]:
     return rows
 
 
-def ledger_rounds(repo: Path) -> dict[str, set[int]]:
+def ledger_rounds(repo: Path, text: str | None = None) -> dict[str, set[int]]:
     """The recorded round numbers per unit, from the ledger's data rows."""
     rounds: dict[str, set[int]] = {}
-    for fields in ledger_data_rows(repo):
+    for fields in ledger_data_rows(repo, text):
         rounds.setdefault(fields[1], set()).add(int(fields[2]))
     return rounds
 
 
-def acknowledged_gaps(repo: Path) -> set[tuple[str, int]]:
+def acknowledged_gaps(repo: Path, text: str | None = None) -> set[tuple[str, int]]:
     """The (unit, round) gaps the ledger acknowledges as unrecoverable or as a misfiled deep pass."""
-    ledger = repo / "docs" / "review-rounds.tsv"
-    if not ledger.is_file():
-        return set()
     gaps: set[tuple[str, int]] = set()
-    for line in ledger.read_text(encoding="utf-8").splitlines():
+    for line in ledger_source(repo, text).splitlines():
         match = ACKNOWLEDGED_GAP_RE.match(line.strip())
         if match:
             gaps.add((match.group("unit"), int(match.group("round"))))
     return gaps
 
 
-def find_round_gaps(repo: Path) -> list[tuple[str, int]]:
+def find_round_gaps(repo: Path, text: str | None = None) -> list[tuple[str, int]]:
     """The (unit, missing round) pairs that break a unit's contiguity from 1, unacknowledged ones only."""
-    acknowledged = acknowledged_gaps(repo)
+    acknowledged = acknowledged_gaps(repo, text)
     gaps: list[tuple[str, int]] = []
-    for unit, recorded in sorted(ledger_rounds(repo).items()):
+    for unit, recorded in sorted(ledger_rounds(repo, text).items()):
         for number in range(1, max(recorded) + 1):
             if number not in recorded and (unit, number) not in acknowledged:
                 gaps.append((unit, number))
     return gaps
 
 
-def find_unrecorded_expected(repo: Path, expected: Sequence[str]) -> list[tuple[str, int]]:
+def find_unrecorded_expected(
+    repo: Path, expected: Sequence[str], text: str | None = None
+) -> list[tuple[str, int]]:
     """The (unit, round) pairs named by the caller whose row the ledger does not carry."""
-    recorded = ledger_rounds(repo)
+    recorded = ledger_rounds(repo, text)
     missing: list[tuple[str, int]] = []
     for pair in expected:
         unit, _, number = pair.rpartition(":")
@@ -979,10 +1021,12 @@ def parse_expected_clean(units: Sequence[str]) -> list[str]:
     return names
 
 
-def find_unclean_closing_rounds(repo: Path, units: Sequence[str]) -> list[tuple[str, str]]:
+def find_unclean_closing_rounds(
+    repo: Path, units: Sequence[str], text: str | None = None
+) -> list[tuple[str, str]]:
     """The (unit, reason) pairs for named units whose closing round is not recorded as clean."""
     rows: dict[str, list[list[str]]] = {}
-    for fields in ledger_data_rows(repo):
+    for fields in ledger_data_rows(repo, text):
         rows.setdefault(fields[1], []).append(fields)
     failures: list[tuple[str, str]] = []
     for unit in parse_expected_clean(units):
@@ -999,11 +1043,11 @@ def find_unclean_closing_rounds(repo: Path, units: Sequence[str]) -> list[tuple[
 
 
 def check_unique_review_rounds(
-    repo: Path, expected: Sequence[str] = (), expect_clean: Sequence[str] = ()
+    repo: Path, expected: Sequence[str] = (), expect_clean: Sequence[str] = (), text: str | None = None
 ) -> int:
     """The ledger's duplicate pairs, contiguity gaps, expected-but-unrecorded rounds, and unclean closing rounds."""
     failures = 0
-    for unit, round_number, first, second in find_duplicate_review_rounds(repo):
+    for unit, round_number, first, second in find_duplicate_review_rounds(repo, text):
         print(
             "Two review-round rows share unit '{0}' round {1}: lines {2} and {3}".format(
                 unit, round_number, first, second
@@ -1011,19 +1055,19 @@ def check_unique_review_rounds(
             file=sys.stderr,
         )
         failures += 1
-    for unit, number in find_round_gaps(repo):
+    for unit, number in find_round_gaps(repo, text):
         print(
             "Unit '{0}' is missing round {1}: its rounds must be contiguous from 1".format(unit, number),
             file=sys.stderr,
         )
         failures += 1
-    for unit, number in find_unrecorded_expected(repo, expected):
+    for unit, number in find_unrecorded_expected(repo, expected, text):
         print(
             "Unit '{0}' has no row for round {1}, the round whose report arrived".format(unit, number),
             file=sys.stderr,
         )
         failures += 1
-    for unit, reason in find_unclean_closing_rounds(repo, expect_clean):
+    for unit, reason in find_unclean_closing_rounds(repo, expect_clean, text):
         print(
             "Unit '{0}' is named with --expect-clean, but {1}".format(unit, reason),
             file=sys.stderr,
@@ -1033,7 +1077,7 @@ def check_unique_review_rounds(
 
 
 def session_rows(
-    repo: Path,
+    repo: Path, text: str | None = None
 ) -> tuple[bool, list[tuple[int, list[str]]], list[tuple[int, list[str]]]]:
     """The ledger's data rows split at the session-fields boundary, plus whether that boundary is present.
 
@@ -1042,13 +1086,13 @@ def session_rows(
     them rather than requiring an identifier the record cannot evidence — which is only sound while those rows carry the
     pre-fields width.
     """
-    ledger = repo / "docs" / "review-rounds.tsv"
-    if not ledger.is_file():
-        return False, [], []
     above: list[tuple[int, list[str]]] = []
     below: list[tuple[int, list[str]]] = []
     seen_boundary = False
-    for number, line in enumerate(ledger.read_text(encoding="utf-8").splitlines(), start=1):
+    source = ledger_source(repo, text)
+    if not source:
+        return False, [], []
+    for number, line in enumerate(source.splitlines(), start=1):
         if line.startswith(SESSION_FIELDS_MARKER):
             seen_boundary = True
             continue
@@ -1058,7 +1102,7 @@ def session_rows(
     return seen_boundary, above, below
 
 
-def find_session_continuity_violations(repo: Path) -> list[str]:
+def find_session_continuity_violations(repo: Path, text: str | None = None) -> list[str]:
     """The reviewer-session continuity violations the ledger carries, each as a message naming its line.
 
     The rule is per unit: the first row below the boundary creates the session, a later row whose identifier equals its
@@ -1066,7 +1110,7 @@ def find_session_continuity_violations(repo: Path) -> list[str]:
     reasons. Distinct units may name distinct sessions. The verification validates the recorded fields; it does not
     attest that a replacement's reason occurred.
     """
-    present, above, rows = session_rows(repo)
+    present, above, rows = session_rows(repo, text)
     if not present:
         return ["the review-round ledger carries no '{0}' boundary comment".format(SESSION_FIELDS_MARKER)]
     violations: list[str] = []
@@ -1137,8 +1181,56 @@ def find_session_continuity_violations(repo: Path) -> list[str]:
     return violations
 
 
-def check_session_continuity(repo: Path) -> int:
-    violations = find_session_continuity_violations(repo)
+def predecessor_ledger_text(repo: Path) -> str | None:
+    """`HEAD`'s review-round ledger, or None when HEAD or the ledger is absent.
+
+    An unborn HEAD and a ledger absent at HEAD are legitimate (a first commit, a first ledger); a failed inspection is
+    a read failure that raises, so an unreadable predecessor is never mistaken for an absent one.
+    """
+    if git(repo, "rev-parse", "--verify", "--quiet", "HEAD").returncode != 0:
+        return None
+    listing = git(repo, "ls-tree", "-z", "HEAD", "--", "docs/review-rounds.tsv")
+    if listing.returncode != 0:
+        raise CheckFailure("cannot inspect the predecessor ledger: {0}".format(listing.stderr.strip()))
+    if not listing.stdout.strip("\0"):
+        return None
+    return git_output(repo, "show", "HEAD:docs/review-rounds.tsv")
+
+
+def check_ledger_preservation(repo: Path, staged_text: str) -> int:
+    """Refuse a staged ledger whose rows the commit removes without a surviving (unit, round) row.
+
+    The comparison is against the parent commit's ledger, so a duplicated row's repair passes (its key survives) while
+    a removed highest row, a unit's whole set, or a deleted or renamed-away ledger fails.
+    """
+    before = predecessor_ledger_text(repo)
+    if before is None:
+        return 0
+    before_keys, malformed = ledger_row_keys(before)
+    after_keys, unparseable = ledger_row_keys(staged_text)
+    failures = 0
+    if unparseable:
+        print(
+            "Review-round row preservation was not assessed until the staged ledger's parsing is repaired",
+            file=sys.stderr,
+        )
+        return failures
+    for line in malformed:
+        failures += 1
+        print("A removed review-round row cannot be identified: {0}".format(line), file=sys.stderr)
+    for unit, round_number in sorted(before_keys - after_keys):
+        failures += 1
+        print(
+            "A review-round row is removed and no row keeps unit '{0}' round {1}: the ledger is append-only".format(
+                unit, round_number
+            ),
+            file=sys.stderr,
+        )
+    return failures
+
+
+def check_session_continuity(repo: Path, text: str | None = None) -> int:
+    violations = find_session_continuity_violations(repo, text)
     for violation in violations:
         print("Review-round session continuity: {0}".format(violation), file=sys.stderr)
     return len(violations)

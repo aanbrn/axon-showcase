@@ -341,13 +341,6 @@ as a second entry and splits one idea's detail across two sections.
 
 ## 2026-10-24
 
-- Add a pre-commit ledger guard for the review-round checks — parked; no change yet. `commit-hygiene.py --staged` runs
-  the staged-set checks but not `--unique-rounds`/`--session-continuity`, so a mis-transitioned ledger row reaches CI
-  (it happened twice: #670 and `projector-operability`). The guard is the natural hook; the rule lives in the
-  review-gate checkpoint. It should also refuse a staged `docs/review-rounds.tsv` diff that **removes** a data row: the
-  ledger is append-only by contract, and contiguity passes over a silent deletion of another unit's rows — the shape a
-  base refresh produces when the diff is re-applied against the wrong base.
-
 - Harden the `Recreate` upgrade against a foreign-owned `rollingUpdate` — parked; no change yet. The chart's
   `rollingUpdate: null` converts a Deployment the Helm release itself owns, but a live Deployment whose
   `strategy.rollingUpdate` is owned by another manager (a `kubectl` patch, a controller update) still fails the upgrade

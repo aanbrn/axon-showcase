@@ -1658,3 +1658,12 @@
 2026-10-28	run-pr-refresh-on-explicit-invocation	8	-	-	0	ses_e7d4f4ffafferqk9quKTMtS1CE	continued	-
 2026-10-28	run-pr-refresh-on-explicit-invocation	9	coherence,wording	coherence,wording	0	ses_e7d4f4ffafferqk9quKTMtS1CE	continued	-
 2026-10-28	run-pr-refresh-on-explicit-invocation	10	-	-	0	ses_e7d4f4ffafferqk9quKTMtS1CE	continued	-
+2026-10-28	route-the-ledger-signal-per-unit	1	claim-unreproducible,missing-task,test-control,over-claim,coherence,structured-writing	-	2	ses_e7d0f0c09ffe8Vn1IMZuTBxB1k	created	-
+2026-10-28	route-the-ledger-signal-per-unit	2	test-control,missing-task,claim-unreproducible,wording	test-control,missing-task,claim-unreproducible	1	ses_e7d0f0c09ffe8Vn1IMZuTBxB1k	continued	-
+2026-10-28	route-the-ledger-signal-per-unit	3	claim-unreproducible,incomplete-enumeration	claim-unreproducible	1	ses_e7d0f0c09ffe8Vn1IMZuTBxB1k	continued	-
+2026-10-28	route-the-ledger-signal-per-unit	4	over-claim	over-claim	0	ses_e7d0f0c09ffe8Vn1IMZuTBxB1k	continued	-
+2026-10-28	route-the-ledger-signal-per-unit	5	-	-	0	ses_e7d0f0c09ffe8Vn1IMZuTBxB1k	continued	-
+2026-10-28	route-the-ledger-signal-per-unit	6	over-claim,formatting	over-claim	1	ses_e7d0f0c09ffe8Vn1IMZuTBxB1k	continued	-
+2026-10-28	route-the-ledger-signal-per-unit	7	-	-	0	ses_e7d0f0c09ffe8Vn1IMZuTBxB1k	continued	-
+2026-10-28	route-the-ledger-signal-per-unit	8	-	-	0	ses_e7d0f0c09ffe8Vn1IMZuTBxB1k	continued	-
+2026-10-28	route-the-ledger-signal-per-unit	9	-	-	0	ses_e7d0f0c09ffe8Vn1IMZuTBxB1k	continued	-

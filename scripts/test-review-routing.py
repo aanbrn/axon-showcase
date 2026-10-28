@@ -11,6 +11,7 @@ reading as a floor that found nothing.
 import contextlib
 import importlib.util
 import io
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -110,8 +111,9 @@ class LedgerSignalTests(unittest.TestCase):
     def test_another_units_rows_are_ignored(self):
         self.assertEqual(review_routing.ledger_signal(rows(("other", "wording"), ("other", "coherence")), CHANGE), [])
 
-    def test_no_change_name_carries_no_signal(self):
-        self.assertEqual(review_routing.ledger_signal(rows((CHANGE, "wording")), None), [])
+    def test_no_unit_identity_is_a_failure_not_a_silent_floor(self):
+        with self.assertRaises(ValueError):
+            review_routing.ledger_signal(rows((CHANGE, "wording")), None)
 
     def test_a_malformed_row_is_a_failure_not_a_silent_floor(self):
         with self.assertRaises(ValueError):
@@ -176,6 +178,113 @@ class FailureTests(unittest.TestCase):
             status = review_routing.main(["--repo", str(REPO), "--change", "no-such-change"])
         self.assertEqual(status, 1)
         self.assertIn(REQUIRED, printed.getvalue())
+
+
+class CliTests(unittest.TestCase):
+    """Argument-plumbing controls over a scratch repository: each run names its unit, its change, or neither."""
+
+    def scratch(self, ledger_rows, change=None, delta=None, untracked=None):
+        """A temporary git repository holding the ledger rows, and optionally a change dir and an untracked path."""
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        repo = Path(directory.name)
+        (repo / "README.md").write_text("base\n", encoding="utf-8")
+        ledger = repo / "docs" / "review-rounds.tsv"
+        ledger.parent.mkdir(parents=True)
+        ledger.write_text(
+            "# header\n" + "".join("\t".join(row) + "\n" for row in ledger_rows), encoding="utf-8"
+        )
+        if change:
+            (repo / "openspec" / "changes" / change / "specs" / "cap").mkdir(parents=True)
+            if delta is not None:
+                (repo / "openspec" / "changes" / change / "specs" / "cap" / "spec.md").write_text(
+                    delta, encoding="utf-8"
+                )
+        self.git(repo, "init", "-q")
+        self.git(repo, "add", "README.md", "docs/review-rounds.tsv")
+        for path in ("openspec",):
+            if (repo / path).exists():
+                self.git(repo, "add", path)
+        self.git(repo, "commit", "-q", "-m", "base")
+        if untracked:
+            (repo / untracked).parent.mkdir(parents=True, exist_ok=True)
+            (repo / untracked).write_text("x\n", encoding="utf-8")
+        return repo
+
+    def git(self, repo, *args):
+        subprocess.run(
+            ["git", "-c", "user.email=t@example.com", "-c", "user.name=t", *args],
+            cwd=str(repo),
+            check=True,
+            capture_output=True,
+        )
+
+    def run_tool(self, repo, *args):
+        with contextlib.redirect_stdout(io.StringIO()) as printed:
+            status = review_routing.main(["--repo", str(repo), "--base", "HEAD", *args])
+        return status, printed.getvalue()
+
+    @staticmethod
+    def repeated(unit):
+        return [
+            ["2026-01-01", unit, "1", "wording", "wording", "1"],
+            ["2026-01-01", unit, "2", "coherence", "coherence", "1"],
+        ]
+
+    def test_a_unit_only_run_without_a_change_directory_recommends(self):
+        status, out = self.run_tool(self.scratch(self.repeated("u")), "--unit", "u")
+        self.assertEqual(status, 0)
+        self.assertIn("ROUTING: RECOMMENDED", out)
+        self.assertIn("[repeated-class]", out)
+
+    def test_a_unit_only_run_without_its_own_repeats_is_not_needed(self):
+        status, out = self.run_tool(self.scratch(self.repeated("other")), "--unit", "u")
+        self.assertEqual(status, 0)
+        self.assertIn("ROUTING: NOT_NEEDED", out)
+        self.assertNotIn("repeated-class", out)
+
+    def test_a_change_only_run_keeps_the_change_units_signal(self):
+        status, out = self.run_tool(self.scratch(self.repeated("c"), change="c"), "--change", "c")
+        self.assertEqual(status, 0)
+        self.assertIn("ROUTING: RECOMMENDED", out)
+        self.assertIn("[repeated-class]", out)
+
+    def test_a_different_unit_decides_when_the_change_delta_carries_no_block(self):
+        status, out = self.run_tool(
+            self.scratch(self.repeated("u"), change="c", delta="## Purpose\nprose\n"), "--change", "c", "--unit", "u"
+        )
+        self.assertEqual(status, 0)
+        self.assertIn("ROUTING: RECOMMENDED", out)
+        self.assertIn("[repeated-class]", out)
+
+    def test_a_change_block_decides_and_names_its_spec(self):
+        status, out = self.run_tool(
+            self.scratch(self.repeated("u"), change="c", delta="## ADDED Requirements\n"),
+            "--change",
+            "c",
+            "--unit",
+            "u",
+        )
+        self.assertEqual(status, 0)
+        self.assertIn("ROUTING: REQUIRED", out)
+        self.assertIn("openspec/changes/c/specs/cap/spec.md", out)
+
+    def test_no_identity_is_a_visible_failure(self):
+        status, out = self.run_tool(self.scratch(self.repeated("u")))
+        self.assertEqual(status, 1)
+        self.assertIn("no unit identity", out)
+        self.assertTrue(out.startswith(REQUIRED + ": the routing derivation failed"))
+
+    def test_a_required_path_signal_does_not_hide_a_missing_identity(self):
+        repo = self.scratch(self.repeated("u"), untracked="showcase-command-api/x.java")
+        status, out = self.run_tool(repo)
+        self.assertEqual(status, 1)
+        self.assertIn("no unit identity", out)
+
+    def test_an_explicit_unit_does_not_bypass_change_directory_validation(self):
+        status, out = self.run_tool(self.scratch(self.repeated("u")), "--unit", "u", "--change", "no-such-change")
+        self.assertEqual(status, 1)
+        self.assertIn("no such change", out)
 
 
 if __name__ == "__main__":

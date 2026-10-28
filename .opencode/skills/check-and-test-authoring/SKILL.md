@@ -106,6 +106,14 @@ nothing.
   apart). A documentation edit has no committed control behind it — a gate's control is a committed test — so the
   before-run is the only control it gets. captured: unify-agent-language-policy
 
+## The predicate is the rule's own condition, not a sentence beside it
+
+- **Derive a check's predicate from the condition the owning rule states, not from an adjacent sentence that describes a
+  symptom of it — a symptom may admit states the rule forbids.** Read the rule for the condition it tests, restate that
+  as the predicate, and construct a case that satisfies the symptom while violating the condition; reject the proxy when
+  that case exposes the mismatch. No existing mode covers it. Confirmation: the recorded base-refresh counterexample
+  passed the deletion proxy while violating the required ancestry condition. captured: gate-manual-review-readiness
+
 ## The fixture must reach the state the assertion claims
 
 - **A fixture that reaches the subject by a neighbouring path proves nothing about the path under test: drive the

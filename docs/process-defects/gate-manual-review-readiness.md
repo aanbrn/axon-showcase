@@ -18,6 +18,9 @@
 - **Knowledge boundary** — observed for this unit's claims table. Not checked whether other units' tables carry rows
   anchored to `HEAD` or the working tree; the rule is stated, and this record cannot show how often it is missed.
 
+- **Decision** — no-change: review-gate §1 already requires a pre-change claim's source to be anchored to the unit's
+  base revision.
+
 ### gate-manual-review-readiness#2 — A test fixture inherited the branch its assertion named
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e804f4f1bffecIPYa7PieI2YY1`), during the review stage.
@@ -35,6 +38,9 @@
   The fixture now runs `git checkout -B main` before the orphan branch, and the suite passes under both configurations.
 - **Knowledge boundary** — observed for this case. The sibling readiness fixtures obtain `main` from a shared helper
   that creates it; not checked whether other suites inherit refs the same way.
+
+- **Decision** — no-change: check-and-test-authoring's fixture mode already requires the fixture to reach the state the
+  assertion claims, every ref it names included.
 
 ### gate-manual-review-readiness#3 — The base criterion was derived from a symptom sentence, not from the rule it serves
 
@@ -56,6 +62,10 @@
 - **Knowledge boundary** — observed for this unit's criterion. Not checked whether other checks in the repository derive
   their criterion from a symptom sentence rather than from the condition the owning rule names.
 
+- **Decision** — proposed: applied as the new mode "The predicate is the rule's own condition, not a sentence beside it"
+  in [`check-and-test-authoring`](../../.opencode/skills/check-and-test-authoring/SKILL.md);
+  https://github.com/aanbrn/axon-showcase/pull/733.
+
 ### gate-manual-review-readiness#4 — A failing git read was mapped onto the benign outcome
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e804f4f1bffecIPYa7PieI2YY1`), during the review stage.
@@ -71,3 +81,6 @@
   a test corrupts the index and asserts that line. Nothing shipped with the defect.
 - **Knowledge boundary** — observed for this mode's reads. The sibling modes in the same script (`--staged`,
   `--tracked-ignored`, `--unique-crons`, …) were not surveyed for the same pattern; only this unit's path was fixed.
+
+- **Decision** — no-change: the rule that a derivation's failure must not map onto the benign outcome already requires
+  an unreadable input to be reported as unestablished, never as "no violations".

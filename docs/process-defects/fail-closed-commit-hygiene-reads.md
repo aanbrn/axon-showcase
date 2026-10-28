@@ -15,6 +15,9 @@
 - **Knowledge boundary** — observed for this command. The other answer-by-exit branches in the file (grep, rev-parse,
   merge-base) were already exercised by tests; spooling them was not re-probed here.
 
+- **Decision** — no-change: the tool-contract rule already requires an asserted exit code and an assumed output stream
+  to be probed before a design keys on them.
+
 ### fail-closed-commit-hygiene-reads#2 — A shared read's new failure mode broke fourteen existing fixtures
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e804f4f1bffecIPYa7PieI2YY1`), during the implementation stage.
@@ -31,6 +34,9 @@
   established by `claim_file`, which runs before it and is checked; the suite then passed at 166 tests.
 - **Knowledge boundary** — observed for this helper. The other converted reads passed the same suite unchanged; their
   behaviour in a repository with an unborn HEAD was not examined beyond that run.
+
+- **Decision** — no-change: the suite caught the shared read's new failure mode in the same pass, so one run of rework
+  is below the materiality the promotion gate requires.
 
 ### fail-closed-commit-hygiene-reads#3 — An answer exception was widened past the state it was written for
 
@@ -50,6 +56,9 @@
 - **Knowledge boundary** — observed for this read. Whether the other answer branches ("no match", "unresolvable", "not
   an ancestor") admit a wider state than their tests exercise was not re-derived here.
 
+- **Decision** — no-change: the rule that a derivation's failure must not map onto the benign outcome already forbids
+  answering any non-zero exit with the empty answer.
+
 ### fail-closed-commit-hygiene-reads#4 — The accepted-limitation section over-claimed a file read
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e804f4f1bffecIPYa7PieI2YY1`), during the review stage.
@@ -65,6 +74,9 @@
   for it.
 - **Knowledge boundary** — observed for this function. The other direct file reads (`AGENTS.md`, the ledger, the size
   configuration) were not re-surveyed for the same shape.
+
+- **Decision** — no-change: review-gate §1 and the durable-artifact evidence rule already require a limitation section
+  to state what the mechanism does, not a guess about a sibling read.
 
 ### fail-closed-commit-hygiene-reads#5 — A consultation's report was applied before the owner decided
 
@@ -85,6 +97,9 @@
 - **Knowledge boundary** — observed for this turn. Whether the owner would have approved the same rework had it been
   presented first was not established.
 
+- **Decision** — no-change: the `/consult` command already ends the turn with the report and starts the proposed work
+  only on a later owner decision.
+
 ### fail-closed-commit-hygiene-reads#6 — An owner's scope decision was filed as a process defect
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e804f4f1bffecIPYa7PieI2YY1`), during the review stage.
@@ -102,3 +117,6 @@
   stands, as the owner ordered it.
 - **Knowledge boundary** — observed for this unit's record file. Whether another unit's defect file carries an owner
   decision filed the same way was not checked.
+
+- **Decision** — no-change: the recording workflow already defines a defect as a rule the unit missed, a failed action,
+  wasted work, or a misread artifact, and an owner's scope decision is none of those.

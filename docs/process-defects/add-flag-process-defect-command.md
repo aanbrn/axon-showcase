@@ -24,6 +24,10 @@
   an inline-code boundary the formatter joins; the tightened scan covers a backtick with an alphanumeric on both sides,
   not every spacing defect a reflow can produce.
 
+- **Decision** — no-change: review-gate §2 already requires verifying a fix against the finding's claim before the next
+  round, and the formatting rule requires the formatter run after the final write; the parked inline-code check covers a
+  span's interior, which this incident did not concern.
+
 ### add-flag-process-defect-command#2 — The probe's "uncommitted" assertion was vacuously true
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e7f86f892ffe5UDzeevFdhToUq`), during implementation (task
@@ -43,6 +47,9 @@
 - **Knowledge boundary** — observed for this probe's fixture. Not checked whether other verification tasks in this
   change assert something that is vacuous in their fixture's initial state.
 
+- **Decision** — no-change: check-and-test-authoring's invariant and its verification-discrimination mode already
+  require the fixture's unedited and edited states to differ, so a vacuously true assertion there is a compliance miss.
+
 ### add-flag-process-defect-command#3 — The shipped lifecycle prohibited the write its own rule requires
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e7f86f892ffe5UDzeevFdhToUq`), during the review stage.
@@ -61,3 +68,7 @@
   entered here when round 22 reported the omission.
 - **Knowledge boundary** — observed for this command's lifecycle text. Not checked whether other project commands pair a
   prohibition with a permission the same way.
+
+- **Decision** — no-change: review-gate's failure handling for a rule's boundary already requires the corrected wording
+  to be tested against the case it was written for, and its coherence sweep re-reads the artifact a correction touches,
+  a sibling clause included.

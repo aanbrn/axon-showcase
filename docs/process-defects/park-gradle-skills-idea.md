@@ -15,6 +15,9 @@
   guidance, or the `gradle-build`/`ast-grep` material it points at, states anything about quoting a pattern handed to a
   tool.
 
+- **Decision** — no-change: one command repeated in the same session, below the evidence threshold; the shell's error
+  names the failing token and no repository decision depends on the quoting rule.
+
 ### park-gradle-skills-idea#2 — The `Packs:` line was written after the first edits, not before them
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e80386b7cffe4xWXlGt68Lvxjj`), during the implementation stage.
@@ -29,6 +32,8 @@
 - **Consequence** — no artifact states a wrong classification; the missing pre-edit statement is not repaired by a later
   one.
 - **Knowledge boundary** — observed for this session. Not checked whether earlier units also stated the line late.
+
+- **Decision** — no-change: `AGENTS.md` already requires the `Packs:` line before the first edit.
 
 ### park-gradle-skills-idea#3 — Two consecutive decisions about an external artifact were taken before reading it
 
@@ -49,6 +54,9 @@
 - **Knowledge boundary** — observed for this unit. Not checked whether other parked entries key a gate to a source their
   author never read.
 
+- **Decision** — no-change: the third-party capability rule and the upstream-reference status rule already require an
+  external artifact to be read before a decision rests on it, and a deferral's gate to name a checkable condition.
+
 ### park-gradle-skills-idea#4 — A round's ledger row was appended a round late
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e80386b7cffe4xWXlGt68Lvxjj`), during the review stage.
@@ -63,3 +71,6 @@
   before the commit, so the ledger did not reach the repository with the gap.
 - **Knowledge boundary** — observed for this unit. Not checked whether earlier units appended rows late; the
   session-continuity check validates the appended rows' fields, not the timing of the append.
+
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-10-22 "reviewer wrapper" entry, whose
+  `Revisit when:` condition is not met.

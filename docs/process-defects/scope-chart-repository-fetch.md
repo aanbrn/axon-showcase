@@ -17,6 +17,9 @@
 - **Knowledge boundary** — observed for this unit's planning. Not checked whether other units' plans make similar
   third-party capability claims without reading the source.
 
+- **Decision** — no-change: the third-party capability rule already requires a plugin's own documentation or source to
+  establish a capability claim before it drives a design.
+
 ### scope-chart-repository-fetch#2 — A CLI flag was asserted from a call site, not the pinned tool
 
 - **Recorded** — 2026-10-27, by the writing session (`ses_e832e4043ffe6ADYTEa13DvV1s`), during the review stage.
@@ -35,6 +38,9 @@
 - **Knowledge boundary** — observed for this unit's claims table. Not checked whether other units derive CLI claims from
   call sites rather than the pinned tool.
 
+- **Decision** — no-change: the CLI-contract rule and review-gate §1 already require a tool's behaviour to be derived
+  from the pinned tool, not from a call site.
+
 ### scope-chart-repository-fetch#3 — A round's ledger row was appended a round late
 
 - **Recorded** — 2026-10-27, by the writing session (`ses_e832e4043ffe6ADYTEa13DvV1s`), during the review stage.
@@ -50,6 +56,9 @@
 - **Knowledge boundary** — observed for this unit. Not checked whether earlier units appended rows late; the
   session-continuity check validates the appended rows' fields, not the timing of the append.
 
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-10-22 "reviewer wrapper" entry, whose
+  `Revisit when:` condition is not met.
+
 ### scope-chart-repository-fetch#4 — The record was staged before its last edit, twice
 
 - **Recorded** — 2026-10-27, by the writing session (`ses_e832e4043ffe6ADYTEa13DvV1s`), during the review stage.
@@ -63,3 +72,6 @@
   artifact shipped a stale copy.
 - **Knowledge boundary** — observed for this unit. Not checked whether other units stage a new file before its last
   edit.
+
+- **Decision** — no-change: the staging-snapshot rule and the pre-commit guard already require a new file to be
+  re-staged after its last edit.

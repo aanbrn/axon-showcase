@@ -1128,6 +1128,240 @@ class UniqueReviewRoundTests(unittest.TestCase):
                 )
             self.assertIn("must name a non-empty unit without whitespace", stderr.getvalue())
 
+class ReviewReadyTests(unittest.TestCase):
+    @staticmethod
+    def _commit_all(repo: Path, message: str = "commit") -> None:
+        subprocess.run(("git", "add", "-A"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", message), cwd=repo, check=True)
+
+    def _repo(self, ignore: str = None) -> Path:
+        repo = make_repo(self)
+        (repo / "notes.txt").write_text("one\ntwo\nthree\n", encoding="utf-8")
+        if ignore is not None:
+            (repo / ".gitignore").write_text(ignore, encoding="utf-8")
+        self._commit_all(repo, "base")
+        subprocess.run(("git", "checkout", "-q", "-B", "main"), cwd=repo, check=True)
+        subprocess.run(("git", "checkout", "-q", "-b", "unit"), cwd=repo, check=True)
+        return repo
+
+    def _advance_main(self, repo: Path, content: str = "one\ntwo\nthree\nfour\n") -> None:
+        subprocess.run(("git", "checkout", "-q", "main"), cwd=repo, check=True)
+        (repo / "notes.txt").write_text(content, encoding="utf-8")
+        self._commit_all(repo, "advance")
+        subprocess.run(("git", "checkout", "-q", "unit"), cwd=repo, check=True)
+
+    @staticmethod
+    def _run(repo: Path, base: str = "main"):
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            status = commit_hygiene.check_review_ready(repo, base)
+        return status, out.getvalue(), err.getvalue()
+
+    def test_a_ready_tree_passes_and_reports_the_revisions_it_checked(self):
+        repo = self._repo()
+        (repo / "notes.txt").write_text("ONE\ntwo\nthree\n", encoding="utf-8")
+        subprocess.run(("git", "add", "notes.txt"), cwd=repo, check=True)
+
+        status, out, err = self._run(repo)
+
+        self.assertEqual(0, status, err)
+        self.assertIn("Review-ready", out)
+        self.assertIn("base main at", out)
+        self.assertIn("is contained in HEAD", out)
+
+    def test_a_unit_with_its_own_commits_on_a_current_base_passes(self):
+        repo = self._repo()
+        (repo / "unit.md").write_text("draft\n", encoding="utf-8")
+        self._commit_all(repo, "unit work")
+
+        status, out, err = self._run(repo)
+
+        self.assertEqual(0, status, err)
+        self.assertIn("is contained in HEAD", out)
+
+    def test_an_untracked_file_fails_and_is_not_staged(self):
+        repo = self._repo()
+        (repo / "unit.md").write_text("draft\n", encoding="utf-8")
+
+        status, _, err = self._run(repo)
+
+        self.assertEqual(1, status)
+        self.assertIn("unit.md", err)
+        untracked = subprocess.run(
+            ("git", "ls-files", "--others", "--exclude-standard"), cwd=repo, capture_output=True, text=True
+        ).stdout
+        self.assertIn("unit.md", untracked, "the checker must report an untracked path, never stage it")
+
+    def test_an_ignored_untracked_path_is_not_reported(self):
+        repo = self._repo(ignore="build/\n")
+        (repo / "build").mkdir()
+        (repo / "build" / "out.txt").write_text("artifact\n", encoding="utf-8")
+
+        status, _, err = self._run(repo)
+
+        self.assertEqual(0, status, err)
+
+    def test_an_untracked_directory_is_reported_by_file(self):
+        repo = self._repo()
+        (repo / "newdir" / "nested").mkdir(parents=True)
+        (repo / "newdir" / "b.txt").write_text("b\n", encoding="utf-8")
+        (repo / "newdir" / "nested" / "a.txt").write_text("a\n", encoding="utf-8")
+
+        status, _, err = self._run(repo)
+
+        self.assertIn("newdir/b.txt", err)
+        self.assertIn("newdir/nested/a.txt", err)
+        self.assertEqual(2, err.count("An untracked path is not in the index"), err)
+
+    def test_a_repository_hiding_untracked_files_still_reports_them(self):
+        repo = self._repo()
+        subprocess.run(("git", "config", "status.showUntrackedFiles", "no"), cwd=repo, check=True)
+        (repo / "unit.md").write_text("draft\n", encoding="utf-8")
+
+        status, _, err = self._run(repo)
+
+        self.assertEqual(1, status)
+        self.assertIn("unit.md", err)
+
+    def test_a_path_staged_and_then_edited_fails(self):
+        repo = self._repo()
+        (repo / "unit.md").write_text("one\n", encoding="utf-8")
+        subprocess.run(("git", "add", "unit.md"), cwd=repo, check=True)
+        (repo / "unit.md").write_text("two\n", encoding="utf-8")
+
+        status, _, err = self._run(repo)
+
+        self.assertEqual(1, status)
+        self.assertIn("unit.md", err)
+        self.assertIn("staged and then edited", err)
+
+    def test_a_base_that_advanced_fails(self):
+        repo = self._repo()
+        self._advance_main(repo)
+        (repo / "unit.md").write_text("draft\n", encoding="utf-8")
+        subprocess.run(("git", "add", "unit.md"), cwd=repo, check=True)
+
+        status, _, err = self._run(repo)
+
+        self.assertEqual(1, status)
+        self.assertIn("carries 1 commit(s) HEAD does not", err)
+        self.assertIn("changed on the base: notes.txt", err)
+
+    def test_a_base_that_dropped_a_line_fails(self):
+        repo = self._repo()
+        self._advance_main(repo, content="one\nthree\n")
+
+        status, _, err = self._run(repo)
+
+        self.assertEqual(1, status)
+        self.assertIn("carries 1 commit(s) HEAD does not", err)
+
+    def test_a_refreshed_tree_passes(self):
+        repo = self._repo()
+        (repo / "unit.md").write_text("draft\n", encoding="utf-8")
+        subprocess.run(("git", "add", "unit.md"), cwd=repo, check=True)
+        self._advance_main(repo)
+        subprocess.run(("git", "merge", "--ff-only", "-q", "main"), cwd=repo, check=True)
+
+        status, _, err = self._run(repo)
+
+        self.assertEqual(0, status, err)
+
+    def test_two_failures_are_reported_together(self):
+        repo = self._repo()
+        (repo / "unit.md").write_text("one\n", encoding="utf-8")
+        subprocess.run(("git", "add", "unit.md"), cwd=repo, check=True)
+        (repo / "unit.md").write_text("two\n", encoding="utf-8")
+        (repo / "later.md").write_text("draft\n", encoding="utf-8")
+
+        status, _, err = self._run(repo)
+
+        self.assertEqual(2, status)
+        self.assertIn("unit.md", err)
+        self.assertIn("later.md", err)
+
+    def test_an_unresolvable_base_fails_cleanly(self):
+        repo = self._repo()
+
+        status, _, err = self._run(repo, base="no-such-ref")
+
+        self.assertEqual(1, status)
+        self.assertIn("no-such-ref", err)
+        self.assertIn("does not resolve", err)
+
+    def test_a_base_without_shared_history_fails(self):
+        repo = make_repo(self)
+        (repo / "notes.txt").write_text("one\n", encoding="utf-8")
+        self._commit_all(repo, "base")
+        subprocess.run(("git", "checkout", "-q", "-B", "main"), cwd=repo, check=True)
+        subprocess.run(("git", "checkout", "-q", "--orphan", "unrelated"), cwd=repo, check=True)
+        subprocess.run(("git", "rm", "-q", "-rf", "."), cwd=repo, check=True)
+        (repo / "other.txt").write_text("two\n", encoding="utf-8")
+        self._commit_all(repo, "unrelated root")
+
+        status, _, err = self._run(repo, base="main")
+
+        self.assertEqual(1, status)
+        self.assertIn("share no history", err)
+
+    def test_a_failing_git_invocation_fails_as_not_established(self):
+        repo = self._repo()
+        relative = subprocess.run(
+            ("git", "rev-parse", "--git-path", "index"), cwd=repo, capture_output=True, text=True, check=True
+        ).stdout.strip()
+        index = Path(relative)
+        (index if index.is_absolute() else repo / index).write_text("garbage\n", encoding="utf-8")
+
+        status, _, err = self._run(repo)
+
+        self.assertEqual(1, status)
+        self.assertIn("Readiness is not established", err)
+
+    def test_the_mode_is_reachable_through_main(self):
+        repo = self._repo()
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = commit_hygiene.main(["--review-ready", "--base", "main", "--repo", str(repo)])
+        self.assertEqual(0, code, err.getvalue())
+        self.assertIn("Review-ready", out.getvalue())
+
+        (repo / "unit.md").write_text("draft\n", encoding="utf-8")
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = commit_hygiene.main(["--review-ready", "--base", "main", "--repo", str(repo)])
+        self.assertEqual(1, code)
+        self.assertIn("unit.md", err.getvalue())
+
+    def test_a_fatal_git_error_fails_as_not_established(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+
+        status, _, err = self._run(Path(directory.name))
+
+        self.assertEqual(1, status)
+        self.assertIn("Readiness is not established", err)
+
+    def test_the_default_base_is_origin_main_and_its_absence_fails(self):
+        repo = self._repo()
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--review-ready", "--repo", str(repo)])
+
+        self.assertEqual(1, code)
+        self.assertIn("origin/main", stderr.getvalue())
+        self.assertIn("does not resolve", stderr.getvalue())
+
+    def test_base_without_the_mode_fails_rather_than_being_ignored(self):
+        repo = self._repo()
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--base", "main", "--repo", str(repo)])
+
+        self.assertEqual(1, code)
+        self.assertIn("--base needs --review-ready", stderr.getvalue())
+
+
 class CliTests(unittest.TestCase):
     @staticmethod
     def _run(argv):

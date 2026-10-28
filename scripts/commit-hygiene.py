@@ -14,7 +14,13 @@ verifies the workflow
 round, that each unit's rounds are contiguous from 1, that a round named with `--expect` is recorded, and that a unit
 named with `--expect-clean` closes on a round carrying no finding class (both need that mode); `--session-continuity`
 verifies the ledger's reviewer-session fields record each round's session and its transition; and `--large-files`
-verifies no tracked file exceeds the configured size limit. Stdlib only.
+verifies no tracked file exceeds the configured size limit.
+
+`--review-ready` is the unit's readiness for the owner's manual review pass, which the review gate's manual-pass step
+invokes rather than a `check` task, since the state it reads exists only in an uncommitted working tree: a non-ignored
+untracked path, a path staged and then edited, and a base revision (`--base`, default `origin/main`) whose history
+`HEAD` does not contain. A git invocation it needs that fails is reported as readiness not established rather than as a
+clean tree. It reports the revisions it compared, stages nothing, and fetches nothing. Stdlib only.
 """
 
 import argparse
@@ -31,6 +37,11 @@ FORMATTER_OWNED = (".java", ".kt", ".kts", ".md", ".json")
 DEFAULT_FORMATTER = ("./gradlew", "spotlessCheck")
 MARKER = "captured:"
 LARGE_FILES_CONFIG = "config/commit-hygiene/large-files.properties"
+REVIEW_READY_BASE = "origin/main"
+
+
+class GitFailure(Exception):
+    """A git invocation the readiness check needs, which failed: readiness is not established, not clean."""
 LEAD_RE = re.compile(r"^(- |\*\*)")
 CONFLICT_MARKER_RE = r"^(<<<<<<< |>>>>>>> )"
 VENDORED_SKILL_PREFIXES = (".opencode/skills/ast-grep/", ".opencode/skills/axon4to5-", ".opencode/skills/openspec-")
@@ -94,14 +105,16 @@ def staged_file_text(repo: Path, path: str) -> Optional[str]:
     return result.stdout if result.returncode == 0 else None
 
 
-def find_staged_then_edited(repo: Path) -> list[str]:
+def staged_then_edited_in(records: list[str]) -> list[str]:
+    """The paths that are staged and then edited again among `git status --porcelain -z` records.
+
+    `-z` NUL-separates the records and, for a rename, emits the new name in the status-prefixed field followed by the
+    old name as its own field with no status columns. That old-name field must be skipped for EVERY rename, before the
+    offender test: a clean rename (`R ` with an unmodified worktree) does not enter the branch below, and an old name
+    whose first two characters look like status columns (e.g. `RM.txt`) would otherwise be read as a record and yield a
+    bogus path such as `txt`.
+    """
     offenders = []
-    # `-z` NUL-separates the records and, for a rename, emits the new name in the status-prefixed field followed by the
-    # old name as its own field with no status columns. That old-name field must be skipped for EVERY rename, before the
-    # offender test: a clean rename (`R ` with an unmodified worktree) does not enter the branch below, and an old name
-    # whose first two characters look like status columns (e.g. `RM.txt`) would otherwise be read as a record and yield
-    # a bogus path such as `txt`.
-    records = git(repo, "status", "--porcelain", "-z").stdout.split("\0")
     index = 0
     while index < len(records):
         line = records[index]
@@ -114,6 +127,91 @@ def find_staged_then_edited(repo: Path) -> list[str]:
         if index_status in "MARC" and worktree_status in "MADRC":
             offenders.append(line[3:])
     return offenders
+
+
+def find_staged_then_edited(repo: Path) -> list[str]:
+    return staged_then_edited_in(git(repo, "status", "--porcelain", "-z").stdout.split("\0"))
+
+
+def untracked_in(records: list[str]) -> list[str]:
+    """The untracked paths among `git status --porcelain -z` records, which the ignore rules already exclude."""
+    return [record[3:] for record in records if record.startswith("?? ")]
+
+
+def git_output(repo: Path, *args: str) -> str:
+    """The stdout of a git invocation the readiness check cannot proceed without, raising when it fails.
+
+    A failed invocation must not read as an empty result: the check would then report the tree ready on evidence it does
+    not have, which is the failure mode the readiness check exists to prevent.
+    """
+    result = git(repo, *args)
+    if result.returncode != 0:
+        detail = result.stderr.strip() or "exit {0}".format(result.returncode)
+        raise GitFailure("git {0} failed: {1}".format(" ".join(args), detail))
+    return result.stdout
+
+
+def status_entries(repo: Path) -> list[str]:
+    """The records of `git status --porcelain -z`, read through the failure-raising helper.
+
+    `--untracked-files=all` is explicit: the repository's `status.showUntrackedFiles` setting can otherwise hide
+    untracked files entirely, or collapse a new directory into one record, and both read as an absent obligation.
+    """
+    return git_output(repo, "status", "--porcelain", "--untracked-files=all", "-z").split("\0")
+
+
+def resolved_revision(repo: Path, revision: str) -> Optional[str]:
+    """The commit `revision` resolves to, or None when it does not resolve; a git error raises."""
+    result = git(repo, "rev-parse", "--verify", "--quiet", revision + "^{commit}")
+    if result.returncode == 0:
+        resolved = result.stdout.strip()
+        return resolved or None
+    if result.returncode == 1:
+        return None
+    raise GitFailure(
+        "git rev-parse failed for '{0}': {1}".format(revision, result.stderr.strip() or result.returncode)
+    )
+
+
+def merge_base_of(repo: Path, left: str, right: str) -> Optional[str]:
+    """The merge base of two revisions, or None when they share none; a git error raises.
+
+    `git merge-base` answers "no common ancestor" with exit 1 and a failure with a higher code, which the two branches
+    below keep apart rather than reading both as an absent base.
+    """
+    result = git(repo, "merge-base", left, right)
+    if result.returncode == 1:
+        return None
+    if result.returncode != 0:
+        raise GitFailure(
+            "git merge-base failed: {0}".format(result.stderr.strip() or result.returncode)
+        )
+    merged = result.stdout.strip()
+    return merged or None
+
+
+def is_ancestor(repo: Path, base: str, head: str) -> bool:
+    """Whether `head` contains `base`; git answers with exit 1 when it does not and a higher code on failure."""
+    result = git(repo, "merge-base", "--is-ancestor", base, head)
+    if result.returncode == 0:
+        return True
+    if result.returncode == 1:
+        return False
+    raise GitFailure(
+        "git merge-base --is-ancestor failed: {0}".format(result.stderr.strip() or result.returncode)
+    )
+
+
+def commits_base_has_over_head(repo: Path, base: str, head: str) -> list[str]:
+    """The base's commits `head` does not contain, newest first: what a stale unit is missing."""
+    output = git_output(repo, "rev-list", "--oneline", "{0}..{1}".format(head, base))
+    return [line for line in output.splitlines() if line.strip()]
+
+
+def paths_changed_since(repo: Path, ancestor: str, revision: str) -> list[str]:
+    """The paths `revision` changed after `ancestor`, which is where a moved base left the unit behind."""
+    output = git_output(repo, "diff", "--name-only", "-z", ancestor, revision, "--")
+    return [path for path in output.split("\0") if path]
 
 
 def find_tracked_ignored(repo: Path) -> list[str]:
@@ -500,6 +598,65 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
     return failures
 
 
+def check_review_ready(repo: Path, base: str) -> int:
+    try:
+        base_sha = resolved_revision(repo, base)
+        if base_sha is None:
+            print(
+                f"The base revision '{base}' does not resolve; fetch it before the manual-pass request "
+                "(git fetch origin main).",
+                file=sys.stderr,
+            )
+            return 1
+        head_sha = resolved_revision(repo, "HEAD")
+        if head_sha is None:
+            print("HEAD does not resolve to a commit, so the unit cannot be on a base.", file=sys.stderr)
+            return 1
+        merge_sha = merge_base_of(repo, base_sha, head_sha)
+        if merge_sha is None:
+            print(
+                f"'{base}' and HEAD share no history, so the unit cannot be shown to sit on that base.",
+                file=sys.stderr,
+            )
+            return 1
+        contained = is_ancestor(repo, base_sha, head_sha)
+        missing = commits_base_has_over_head(repo, base_sha, head_sha) if not contained else []
+        changed = paths_changed_since(repo, merge_sha, base_sha) if missing else []
+        records = status_entries(repo)
+    except GitFailure as failure:
+        print(f"Readiness is not established: {failure}", file=sys.stderr)
+        return 1
+
+    failures = 0
+    if missing:
+        failures += 1
+        print(
+            f"'{base}' carries {len(missing)} commit(s) HEAD does not, so the unit is not on that base; refresh it "
+            "and re-run.",
+            file=sys.stderr,
+        )
+        for line in missing[:3]:
+            print(f"  {line}", file=sys.stderr)
+        for path in changed[:5]:
+            print(f"  changed on the base: {path}", file=sys.stderr)
+    for path in untracked_in(records):
+        failures += 1
+        print(f"An untracked path is not in the index, so the manual pass would not show it: {path}", file=sys.stderr)
+    for path in staged_then_edited_in(records):
+        failures += 1
+        print(
+            f"A path is staged and then edited, so the manual pass would show the index's older copy: {path}",
+            file=sys.stderr,
+        )
+    if failures:
+        return failures
+    print(
+        f"Review-ready: base {base} at {base_sha} is contained in HEAD {head_sha}; the index is current and no "
+        "untracked path is unaccounted for."
+    )
+    return 0
+
+
 def check_markers(repo: Path) -> int:
     paths = marker_paths(repo)
     if AGENTS not in paths:
@@ -849,6 +1006,7 @@ def check_session_continuity(repo: Path) -> int:
 # forms from this list rather than repeating them.
 MODE_FLAGS = (
     "--staged",
+    "--review-ready",
     "--markers",
     "--tracked-ignored",
     "--conflict-markers",
@@ -864,12 +1022,17 @@ def build_parser() -> argparse.ArgumentParser:
     """The script's argument parser, so a test can read the mode group it declares."""
     parser = argparse.ArgumentParser(
         description=(
-            "Check commit hygiene over the staged set, AGENTS.md markers, the tracked set, the workflow cron "
-            "schedules, the review-round ledger, or a file's size."
+            "Check commit hygiene over the staged set, the unit's readiness for the manual review pass, AGENTS.md "
+            "markers, the tracked set, the workflow cron schedules, the review-round ledger, or a file's size."
         )
     )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--staged", action="store_true", help="check the staged set (the pre-commit guard)")
+    mode.add_argument(
+        "--review-ready",
+        action="store_true",
+        help="check the unit is ready for the manual review pass (untracked files, a stale index, a moved base)",
+    )
     mode.add_argument("--markers", action="store_true", help="check captured: marker placement in the guidance files")
     mode.add_argument(
         "--tracked-ignored", action="store_true", help="check the tracked set excludes every ignored path"
@@ -908,6 +1071,15 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument(
         "--large-files", action="store_true", help="check no tracked file exceeds the configured size limit"
     )
+    parser.add_argument(
+        "--base",
+        default=None,
+        metavar="REVISION",
+        help=(
+            "the revision the readiness check compares the working tree against "
+            f"(default: {REVIEW_READY_BASE}, with --review-ready)"
+        ),
+    )
     parser.add_argument("--repo", default=str(REPO_ROOT), help="repository root (default: the script's parent)")
     return parser
 
@@ -931,6 +1103,14 @@ def main(argv: Sequence[str] = ()) -> int:
             "--expect-clean needs --unique-rounds: it reads the ledger the same mode parses", file=sys.stderr
         )
         return 1
+    if args.base is not None and not args.review_ready:
+        print(
+            "--base needs --review-ready: it names the revision that mode compares the working tree against",
+            file=sys.stderr,
+        )
+        return 1
+    if args.review_ready:
+        return 1 if check_review_ready(repo, args.base or REVIEW_READY_BASE) else 0
     if args.markers:
         return 1 if check_markers(repo) else 0
     if args.tracked_ignored:

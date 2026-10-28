@@ -66,8 +66,9 @@ branch=clarify-generalization-parked-match; writer=ses_e7fc21367ffeOpRAKtbkZCJuU
       `docs/review-rounds.tsv`, and run the ledger checks before the manual pass. Verify: the closing round carries no
       finding class and every ledger check passes. **Done:** the ledger carries a row per round with its classes and
       repeats, its last row for this unit carries no class, and the three ledger checks pass.
-- [ ] 3.6 Ask the owner for the manual review pass and stop. Verify: the turn ends with the ask, and nothing is
-      committed, pushed, archived, or merged.
+- [x] 3.6 Ask the owner for the manual review pass and stop. Verify: the turn ends with the ask, and nothing is
+      committed, pushed, archived, or merged. **Done:** the ask was made with the tree ready; the owner approved, and
+      the ship sequence then ran per `ship-change`.
 
 ## 4. Review rounds
 

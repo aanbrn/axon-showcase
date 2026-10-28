@@ -35,3 +35,29 @@
   does not decide whether this change caused it. The pull-request gate is the verification that remains.
 - **Knowledge boundary** — one case observed. The failure's cause was not investigated, and no attempt was made to
   reproduce it.
+
+### retry-install-path-fetches#3 — A local merge of the base was refused for a change directory the base carried
+
+- **Recorded** — 2026-10-28, by the writing session (`ses_e832e4043ffe6ADYTEa13DvV1s`), during the ship stage.
+- **Stage** — ship.
+- **Expected** — an open pull request whose base advanced is refreshed by `gh pr update-branch`, the procedure's route
+  once a pull request is open; this unit's assignment is `none`, and its own staged set carries no path under
+  `openspec/changes/`.
+- **Observed** — `gh pr update-branch 725` reported `Cannot update PR branch due to conflicts`. The agent then ran a
+  local `git merge origin/main`, which conflicted only in `docs/review-rounds.tsv`, and after that resolution was
+  staged, `git commit --no-edit` was refused for paths under
+  `openspec/changes/archive/2026-10-28-fail-closed-commit-hygiene-reads/`, which the merge brought from the base rather
+  than from this unit's edits.
+- **Evidence** — the guard's stderr carried one line per staged path under that archive directory:
+  `Path staged under a change directory, but the workspace declares none (…)` — the ellipsis standing for the claim file
+  and its `records 'none'` clause — followed by the path; the last three named `proposal.md`,
+  `specs/showcase/quality/commit-hygiene/spec.md` and `tasks.md`. Before the merge the staged set held only this unit's
+  six paths.
+- **Consequence** — the merge was aborted and the branch refreshed by `git rebase origin/main` with the same conflict
+  resolution re-applied; the branch's single commit was rewritten and force-pushed (`--force-with-lease`), the pull
+  request's CI re-ran green, and the merge completed. No content was lost.
+- **Knowledge boundary** — one case observed, for a unit whose assignment is `none` and whose base advanced with an
+  archived change directory. The guard's rule matches `showcase/quality/commit-hygiene`'s "When the assignment is
+  `none`, any path under `openspec/changes/` SHALL fail", so the refusal reproduces the specified behavior rather than a
+  defect in it; whether a change-owning unit's merge behaves differently, and whether the refresh procedure intends the
+  merge route for this unit shape, was not established.

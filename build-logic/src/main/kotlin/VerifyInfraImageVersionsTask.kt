@@ -50,9 +50,15 @@ abstract class VerifyInfraImageVersionsTask : AbstractHelmRepositoriesTask() {
 
         checks.get().forEach { check ->
             val values =
-                execHelmCaptureOutput("show", "values") {
-                    args(check.chartRef)
-                    option("--version", check.chartVersion)
+                BoundedRetry.execute(
+                    onTransientFailure = { failure ->
+                        logger.warn("Chart '{}' values fetch failed; retrying: {}", check.chartRef, failure.message)
+                    },
+                ) {
+                    execHelmCaptureOutput("show", "values") {
+                        args(check.chartRef)
+                        option("--version", check.chartVersion)
+                    }
                 }
             val chartImageTag =
                 InfraImageVersionRules.topLevelImageTag(values.lines())

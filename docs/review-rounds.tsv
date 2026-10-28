@@ -1545,3 +1545,11 @@
 2026-10-28	gate-manual-review-readiness	4	contradiction,test-control,docs-residue,claim-unreproducible,formatting	test-control,claim-unreproducible,formatting	0	ses_e8038ce0fffeqp2SBJ4wa7xim5	continued	-
 2026-10-28	gate-manual-review-readiness	5	contradiction,docs-residue,test-control	contradiction,docs-residue,test-control	0	ses_e8038ce0fffeqp2SBJ4wa7xim5	continued	-
 2026-10-28	gate-manual-review-readiness	6	-	-	0	ses_e8038ce0fffeqp2SBJ4wa7xim5	continued	-
+2026-10-28	retry-infra-verification-fetches	1	premise,contradiction,claim-unreproducible,claim-missing,impact-omission,wording	-	3	ses_e7fe8f8a9ffe8tx9g7rjs04eZ1	created	-
+2026-10-28	retry-infra-verification-fetches	2	premise,impact-omission,claim-unreproducible	premise,impact-omission,claim-unreproducible	2	ses_e7fe8f8a9ffe8tx9g7rjs04eZ1	continued	-
+2026-10-28	retry-infra-verification-fetches	3	-	-	0	ses_e7fe8f8a9ffe8tx9g7rjs04eZ1	continued	-
+2026-10-28	retry-infra-verification-fetches	4	-	-	0	ses_e7fe8f8a9ffe8tx9g7rjs04eZ1	continued	-
+2026-10-28	retry-infra-verification-fetches	5	-	-	0	ses_e7fe8f8a9ffe8tx9g7rjs04eZ1	continued	-
+2026-10-28	retry-infra-verification-fetches	6	-	-	0	ses_e7fe8f8a9ffe8tx9g7rjs04eZ1	continued	-
+2026-10-28	retry-infra-verification-fetches	7	-	-	0	ses_e7fe8f8a9ffe8tx9g7rjs04eZ1	continued	-
+2026-10-28	retry-infra-verification-fetches	8	-	-	0	ses_e7fe8f8a9ffe8tx9g7rjs04eZ1	continued	-

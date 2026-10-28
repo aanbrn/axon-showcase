@@ -1485,6 +1485,15 @@ Key modules (libraries, not services):
   no model at all, so check that the workflow itself spends metered quota before reasoning about its slot. The
   interactive loop is paced by the human and cannot be shifted. captured: capture-offpeak-cost-lever (#369) captured:
   schedule-jobs-into-the-owners-night captured: structure-visual-review
+- **An intermittent HTTP 400 whose body is only a model echo (`{"model":"<id>"}`) is not a verdict on the request.** The
+  `opencode.ai/zen/go` gateway returns it in long sessions with no `error` object, the client classifies it
+  `provider.invalid-request` and ends the turn, and a byte-identical replay of the same request can then return 200, so
+  it is not a stable predicate on the payload. The same body also accompanies requests that genuinely exceed one
+  upstream route's limit, so it does not tell an overflow from a rejection that clears — do not read it as either.
+  Observed on `deepseek-v4.1-flash` across 2.0.15–2.0.21; the replay series is on `anomalyco/opencode#50761` and the
+  client-side half on `#50446`. Tracked upstream as `anomalyco/opencode#50761` (open); retires when the v2 line this
+  repository runs handles these rejections without masking a context-limit rejection — a v1 release alone does not
+  retire it, since the observation is the 2.0.x line. captured: record-opencode-transient-400
 - **Vendored agent skills**: two upstream skill sets are copied verbatim under `.opencode/skills/`, each with its own
   provenance below and in the `showcase/quality/agent-skills` spec. To refresh either set, re-copy its skill directories
   from that upstream tree at the desired plugin version and update the recorded version, commit, and any recorded blob

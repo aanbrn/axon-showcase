@@ -110,10 +110,10 @@ tests. The verification resolves the chart's preconfigured tag from the chart re
 requires the Helm CLI (the plugin-managed client) and network access to the chart repository. The verification SHALL be
 cacheable on its inputs (the pinned coordinates and the infra values files): when none of them change, `check` SHALL NOT
 re-run the Helm resolution, because a pinned chart version's preconfigured `image.tag` is immutable and a cached result
-remains valid until a coordinate or values file changes. The setup steps that read the chart repository (the repository
-add and update) SHALL be retried a bounded number of times before the verification fails, so a transient repository
-failure does not fail `check` — and the retry SHALL NOT weaken the failure, since a repository that stays unreachable
-SHALL still fail the build.
+remains valid until a coordinate or values file changes. The steps that read the chart repository — the repository add
+and update, and each chart's `helm show values` fetch — SHALL be retried a bounded number of times before the
+verification fails, so a transient repository failure does not fail `check` — and the retry SHALL NOT weaken the
+failure, since a read that stays unreachable SHALL still fail the build.
 
 #### Scenario: Image and chart-preconfigured tags agree
 
@@ -147,10 +147,10 @@ SHALL still fail the build.
 
 #### Scenario: A transient repository failure is retried, a persistent one still fails
 
-- **WHEN** a repository add or update fails and a later bounded attempt succeeds
+- **WHEN** a repository add or update, or a chart's values fetch, fails and a later bounded attempt succeeds
 - **THEN** the drift verification proceeds and `check` passes without an error
-- **WHEN** the repository stays unreachable across every bounded attempt
-- **THEN** `check` still fails, naming the repository
+- **WHEN** the repository stays unreachable, or a chart's values fetch keeps failing, across every bounded attempt
+- **THEN** `check` still fails, naming the repository or the chart
 
 ### Requirement: The drift gate follows the configured releases
 

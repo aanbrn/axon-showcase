@@ -12,9 +12,9 @@ lifecycle — starting at the right time, finishing after its duration, streamin
 updates as it happens. And the way the code is written and reviewed is itself a demonstration: behavior is captured in
 specs, changes are proposed, applied, reviewed, and archived by an automated agent pipeline. That pipeline also **learns
 from itself**: every unit records the process defects it observes, and you turn those records into rules when they are
-due, which the pipeline reads on the next change (see [The Self-Learning Loop](#the-self-learning-loop)). It can even
-bootstrap its own tooling — ask it to set up the MCP servers and it detects, wires, and installs what it can for you
-(see [Tooling MCP Servers](#tooling-mcp-servers)).
+due. The pipeline reads those rules on the next change (see [The Self-Learning Loop](#the-self-learning-loop)). It can
+even bootstrap its own tooling — ask it to set up the MCP servers and it detects, wires, and installs what it can for
+you (see [Tooling MCP Servers](#tooling-mcp-servers)).
 
 It is also a personal vehicle for learning agentic development: the process is as much the point as the product.
 
@@ -117,7 +117,7 @@ You can also drive the lifecycle by hand — start or finish a showcase before t
   carries any query, and the query service dispatches it on its own `QueryBus`. It fills the distributed-query-bus role
   **without Axon Server** (see `docs/adr/0017`), just as the command side uses a JGroups command bus.
 - **A real browser UI shows it live.** The React UI renders the event timeline, listens to the SSE stream, and
-  reconciles against the eventually-consistent read model — so you see the saga's transitions appear live.
+  reconciles against the eventually consistent read model — so you see the saga's transitions appear live.
 - **Resilience is built in.** The command and query clients apply **Resilience4j** circuit breakers, time limiters, and
   retries, and the gateway serves repeated reads from a read-through cache.
 - **It is observable.** Tempo traces, Prometheus metrics (including web-UI nginx metrics), a dedicated Grafana
@@ -242,7 +242,7 @@ subscribed browser — all from one `POST /showcases`.
   that records process defects and generalizes them, on-request setup of its own tooling
   ([Tooling MCP Servers](#tooling-mcp-servers)), and a project practice of reporting a dependency's gap back upstream —
   with a reproduction — instead of only working around it
-- **GitHub Actions** — CI (with a gitleaks source-secret scan), e2e, dependency, helm, buildpack and tooling updates,
+- **GitHub Actions** — CI (with a gitleaks source-secret scan), e2e, dependency, Helm, buildpack and tooling updates,
   security scans
 
 ## Development Workflow
@@ -302,17 +302,19 @@ flowchart TB
 </details>
 
 An idea becomes a **proposal** (what and why), then a **spec delta** (the new behavior, scoped to a capability), a
-**design** (how), and **tasks**. Applying writes the code and tests. Each phase ends in **two reviews**: an
-**auto-review** (the `review-quick` subagent, repeated until it finds nothing new) and your **manual review** — before
-it, the agent checks the branch against `origin/main`, refreshing it when it has fallen behind so you review the diff
-against current `main`, and then stages the unit's new files so the pass shows them in your IDE's Changes panel; a
-conflict is resolved for both sides rather than by picking one, and the agent asks you to decide when the branch carries
-both its own commits and uncommitted work — and, after implementation, a deep `review-thorough` pass whenever the review
-gate's routing decision requires one. The change's single **PR** may be opened as a draft after the proposal review (to
-share the plan) and is opened for real after the implementation review — it's the same PR, on which CI runs. Once CI is
-green and you approve, the change is **archived** — the change dir moves to `openspec/changes/archive/` and its delta
-spec is folded into the main spec — as a commit in the same PR, then merged. So the main spec always describes behavior
-the code has been verified against.
+**design** (how), and **tasks**. Applying writes the code and tests.
+
+Each phase ends in **two reviews**: an **auto-review** (the `review-quick` subagent, repeated until it finds nothing
+new) and your **manual review**. Before your manual review, the agent checks the branch against `origin/main` and
+refreshes it when it has fallen behind, so you review the diff against current `main`; it then stages the unit's new
+files so they appear in your IDE's Changes panel. A conflict is resolved for both sides rather than by picking one. If
+the branch carries both its own commits and uncommitted work, the agent asks you to decide how to proceed. After
+implementation, a deep `review-thorough` pass also runs whenever the review gate's routing decision requires one.
+
+The change's single **PR** may be opened as a draft after the proposal review (to share the plan) and is opened for real
+after the implementation review — it's the same PR, on which CI runs. Once CI is green and you approve, the change is
+**archived** — the change dir moves to `openspec/changes/archive/` and its delta spec is folded into the main spec — as
+a commit in the same PR, then merged. So the main spec always describes behavior the code has been verified against.
 
 A vague idea is usually sharpened first in **explore mode** (`/opsx-explore`) — a thinking stance that investigates the
 codebase and clarifies what to build, without writing code. Only when the idea is concrete enough does it become a
@@ -337,14 +339,14 @@ the code. It verifies a dead reference before reporting it and classifies a dupl
 generated class or a deliberately repeated convention is not reported. It reports findings with their evidence line and
 suggested rewrites, and never edits the specs itself.
 
-Emerging ideas are parked in `docs/ideas.md` — a lightweight, date-grouped scratchpad (added to via `/ideas`, removed
-once implemented or decided against) rather than a backlog of planned work. A parked idea is the usual starting point
-for an explore session that decides whether it deserves a proposal.
+Emerging ideas are parked in `docs/ideas.md` — a lightweight, date-grouped scratchpad (ideas are added via `/ideas` and
+removed once implemented or decided against) rather than a backlog of planned work. A parked idea is the usual starting
+point for an explore session that decides whether it deserves a proposal.
 
 An idea isn't the only entry point, though: a session can start just as well from a reported issue, a failing CI job, or
 any other observation — you describe it in a prompt; the agent investigates (reading the issue or the failing check
 through the GitHub MCP) and proposes from there. The loop is identical whatever kicked it off; `docs/ideas.md` holds
-un-acted ideas — it is not a required gate.
+ideas not yet acted on — it is not a required gate.
 
 Cross-cutting architecture decisions and their rationale are recorded as Architecture Decision Records under
 `docs/adr/`. OpenSpec captures what the system does and how a change is planned; ADRs capture why the system is shaped
@@ -442,12 +444,12 @@ whether it consumed included usage or additional credits. See
   `review-thorough` pass — required, recommended for an explicit resolution, or not needed — and a manual
   `/review-thorough` run is always available.
 - **Recording, then generalizing**: every unit records the process defects it observes in
-  `docs/process-defects/<unit>.md` as it works, and `/flag-process-defect` adds one you report once the agent verifies
-  the episode rather than taking the report on trust; `/generalize-process-defects` later turns those records into rules
-  — gotchas and conventions for `AGENTS.md` or the owning subject pack, each merged into an existing bullet or reported
-  as uncovered, the rules the work obsoletes reported as retirement candidates, and a lesson whose cause is an authoring
-  mechanism routed to that mechanism rather than to the guidance file — so the file shrinks as well as grows, and a
-  mistake is recorded where it can be prevented instead of only where it is read.
+  `docs/process-defects/<unit>.md` as it works, and `/flag-process-defect` adds one you report only after the agent
+  verifies the episode, rather than taking the report on trust; `/generalize-process-defects` later turns those records
+  into rules — gotchas and conventions for `AGENTS.md` or the owning subject pack, each merged into an existing bullet
+  or reported as uncovered, the rules the work obsoletes reported as retirement candidates, and a lesson whose cause is
+  an authoring mechanism routed to that mechanism rather than to the guidance file — so the file shrinks as well as
+  grows, and a mistake is recorded where it can be prevented instead of only where it is read.
 - **Retrospectives**: `/retrospective` gathers the last week of PRs and the git log, plus the archived changes and
   accumulated gotchas, and produces a sprint retrospective that root-causes each significant failure to the stage that
   could have caught it, evaluates the previous window's recommendations, and proposes improvements with a verifiable
@@ -464,7 +466,7 @@ tests, reviews, and ships. You almost never edit files by hand — the manual wo
 - **Approval at each step**: the agent proposes; you approve the proposal, the implementation, and the merge.
 - **Archiving**: a change is archived only after CI is green and you approve.
 - **Applying suggestions**: retrospective improvements and generalized process rules are proposed by the agent and
-  applied by your judgment.
+  applied according to your judgment.
 - **Merging**: on this repo, the owner merges PRs directly (admin) once CI is green; a non-admin follows the normal
   review-required flow.
 
@@ -492,8 +494,8 @@ That one prompt starts the whole loop. The agent:
    code.
 6. **Ships**: on your go-ahead it pushes a branch and opens a PR and watches CI until green.
 7. **You approve archiving** (`/opsx-archive`): the change dir moves to the archive and the main spec is updated to
-   match — as a commit in the same PR — then it merges. The feature is now part of the source of truth. On this repo the
-   owner's merge is direct (admin); the agent only merges with your approval.
+   match — as a commit in the same PR — and then the PR is merged. The feature is now part of the source of truth. On
+   this repo the owner's merge is direct (admin); the agent only merges with your approval.
 
 Throughout, the only manual work was the initial prompt and a few approvals. The agent wrote the plan, the code, the
 tests, and the PR; you steered.
@@ -509,9 +511,10 @@ The process is designed to **learn from itself** — and that is the mechanic, n
   your review never waits on the analysis. The improvement those records lead to is a unit of its own, which you run
   when they are due: it turns the records that hold up into rules the agent reads on the next change, and a record that
   adds nothing ends as an explicit `no-change`. A defect a merge alone reveals is appended to the merged unit's record,
-  so it reaches that pass too. One you notice and the unit did not reaches it through `/flag-process-defect`, and only
-  after the agent verifies that episode — comparing what the rule required against what happened, bounded to that
-  episode — and reports a proven outcome: confirmed, refuted by the available evidence, or not establishable from it.
+  so it reaches that pass too. A defect you notice but the unit missed reaches that pass through `/flag-process-defect`,
+  which records it only after the agent verifies that episode — comparing what the rule required against what happened,
+  bounded to that episode — and reports a proven outcome: confirmed, refuted by the available evidence, or not
+  establishable from it.
 - **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
   same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
   uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.
@@ -556,7 +559,7 @@ and installs the `gh-mcp` extension, handing back only what it can't do for you 
 The one that matters is **GitHub** (the agent reads PRs, issues, and CI checks); **Playwright** is already configured in
 the project, so there's nothing to set up.
 
-By hand, the auth-bound server (GitHub) goes under the **flat** `mcp` map of your **global** config
+For manual setup, the auth-bound server (GitHub) goes under the **flat** `mcp` map of your **global** config
 (`~/.config/opencode/opencode.jsonc`), not the project config — a project entry can't use your credentials, and the flat
 map (not the `mcp.servers` nesting) is what both OpenCode lines load: the 1.x agent IntelliJ IDEA's AI launches rejects
 `mcp.servers`, and the flat map loads under both.
@@ -661,8 +664,8 @@ Then activate the repository's git hooks once per clone:
 ```
 
 This points `core.hooksPath` at `scripts/git-hooks` so the pre-commit guard runs on your commits; bypass a deliberate
-exception with `git commit --no-verify`. It is recommended rather than required — the guard's `captured:` marker check
-also runs in `./gradlew check`.
+exception with `git commit --no-verify`. Activating the hooks is recommended rather than required — the guard's
+`captured:` marker check also runs in `./gradlew check`.
 
 ### Build the Project
 
@@ -722,10 +725,10 @@ docker pull ghcr.io/aanbrn/axon-showcase-api-gateway:<version>
 
 The five repositories are
 `ghcr.io/aanbrn/axon-showcase-{command-service,api-gateway,query-service,projection-service,web-ui}`, and each is a
-`linux/amd64` image. The packages are public and pull anonymously: a package published by this repository's workflow
-inherits the repository's visibility (still a per-package setting, so verify after a first publish). A release that
-predates the publishing workflow (e.g. `v0.1.0`) can be backfilled by dispatching the workflow with `publish_tag`. This
-path pulls a released build; the local cluster above keeps building the images from source.
+`linux/amd64` image. The packages are public and can be pulled anonymously: a package published by this repository's
+workflow inherits the repository's visibility (still a per-package setting, so verify after a first publish). A release
+that predates the publishing workflow (e.g. `v0.1.0`) can be backfilled by dispatching the workflow with `publish_tag`.
+This path pulls a released build; the local cluster above keeps building the images from source.
 
 ### Install from the Published Chart
 
@@ -744,7 +747,7 @@ example: copy it, fill in your endpoints and hostnames, and install with `-f`. T
   target's Bitnami releases are in [Kubernetes Deployment](#kubernetes-deployment)).
 - **Secrets** — one holding the PostgreSQL password, and one for OpenSearch if it is secured (the example shows the
   `kubectl create secret` commands).
-- **The UI's URL** — `webUi.apiBaseUrl` (the browser's externally-visible gateway URL; the UI image fails fast if it is
+- **The UI's URL** — `webUi.apiBaseUrl` (the browser's externally visible gateway URL; the UI image fails fast if it is
   empty) and `apiGateway.cors.allowedOrigins` (the UI's origin, since an empty list denies all browser origins).
 
 Its service images resolve from `ghcr.io` by default. The example leaves ServiceMonitors off (they need the
@@ -773,8 +776,8 @@ Open http://localhost:5173.
 
 #### Database Scripts
 
-The command service stores events in PostgreSQL. When running it standalone against a native local PostgreSQL (instead
-of the Docker stack), initialize the event store first:
+The command service stores events in PostgreSQL. When running it standalone against a native local PostgreSQL instance
+(instead of the Docker stack), initialize the event store first:
 
 ```bash
 ./db.sh init    # initialize the event store (idempotent)
@@ -813,9 +816,9 @@ curl http://localhost:8080/showcases/{showcaseId}
 
 The query service exposes a single **generic gRPC RPC** (`ShowcaseQueryTransport.Dispatch`, with
 `QueryRequest → stream QueryResponse`) on port `9090`, consumed by the query-client (`showcase-query-client`) for
-inter-service communication — the gateway queries the query service through that client over gRPC, which in turn queries
-OpenSearch. The RPC is name-routed and carries any Axon query, so it stands in for Axon's distributed query bus without
-Axon Server (see `docs/adr/0017`).
+inter-service communication — the gateway queries the query service through that client over gRPC, and the query service
+in turn queries OpenSearch. The RPC is name-routed and carries any Axon query, so it stands in for Axon's distributed
+query bus without Axon Server (see `docs/adr/0017`).
 
 ## Development Practices
 
@@ -847,17 +850,18 @@ A pre-commit guard (`scripts/git-hooks/pre-commit`) catches eight commit-hygiene
 file `spotlessCheck` would rewrite, a force-staged generated artifact, a path staged and then edited (leaving the index
 stale), a merge conflict marker, a misplaced `captured:` marker in `AGENTS.md`, an `openspec archive` move staged
 without its spec sync, a review-round ledger that fails its checks or loses a row, and another change's directory staged
-in place of the one the commit is assigned to — the last read from a claim in the worktree's git directory, or from a
-branch named after its change. It is activated once per clone (see [Get the Sources](#get-the-sources)); bypass a
-deliberate exception with `git commit --no-verify`. Its checks also have build-side counterparts in `./gradlew check`:
-the formatter as `spotlessCheck`, marker placement as `verifyCapturedMarkers`, tracked-file hygiene (the tracked-set
-counterpart of the force-staged-artifact check) as `verifyTrackedIgnoredFiles`, and conflict markers as
-`verifyConflictMarkers` — so they hold even without the hook. `verifyExecutableBits` additionally verifies the tracked
-scripts' executable bits, and the web module's own Prettier check (`npmFormatCheck`) remains part of `check`.
-`verifyUniqueCronSchedules` verifies no two workflow `cron` schedules collide, `verifyUniqueReviewRounds` verifies the
-review-round ledger carries one row per unit and round, contiguous from 1, `verifyReviewSessionContinuity` verifies each
-of those rows records the reviewer session it ran in and whether that session was created, continued, or replaced, and
-`verifyLargeFiles` verifies no tracked file exceeds the configured size limit.
+in place of the one the commit is assigned to; the last is detected by reading the assignment from a claim in the
+worktree's git directory, or from a branch named after its change. It is activated once per clone (see
+[Get the Sources](#get-the-sources)); bypass a deliberate exception with `git commit --no-verify`. Its checks also have
+build-side counterparts in `./gradlew check`: the formatter as `spotlessCheck`, marker placement as
+`verifyCapturedMarkers`, tracked-file hygiene (the tracked-set counterpart of the force-staged-artifact check) as
+`verifyTrackedIgnoredFiles`, and conflict markers as `verifyConflictMarkers` — so they hold even without the hook.
+`verifyExecutableBits` additionally verifies the tracked scripts' executable bits, and the web module's own Prettier
+check (`npmFormatCheck`) remains part of `check`. `verifyUniqueCronSchedules` verifies no two workflow `cron` schedules
+collide, `verifyUniqueReviewRounds` verifies the review-round ledger carries one row per unit and round, contiguous from
+1, `verifyReviewSessionContinuity` verifies each of those rows records the reviewer session in which the review ran and
+whether that session was created, continued, or replaced, and `verifyLargeFiles` verifies no tracked file exceeds the
+configured size limit.
 
 ### Formatting and IDE Setup
 
@@ -1028,7 +1032,7 @@ existing release that predates this workflow, dispatch it with `publish_tag` (e.
 from that tag and pushes only its version tag, leaving `latest` unchanged and creating no tag or release. The images are
 `linux/amd64`, and the packages are public — a workflow-published package inherits the repository's visibility, though
 visibility stays a per-package setting. Afterward, bump `gradle.properties` to the next development version in a
-follow-up pull request, so the next release has a base. It is not a merge gate.
+follow-up pull request, so the next release has a base. The release workflow is not a merge gate.
 
 ### Dependency Updates and Security
 
@@ -1099,9 +1103,9 @@ keep the leading-integer major comparison.
 ./gradlew :load-tests:baselineTrend
 ```
 
-Gatling-based load tests that drive the deployed system through **three concurrent streams** — reads, a write lifecycle,
-and a live `/events` SSE connection — with a configurable read/write ratio and branch mix, so the load looks like real
-use. Beyond the quick `smoke` run and the **knee-relative** performance profiles (`average`, `soak`, `stress`, `spike`,
+Gatling-based load tests drive the deployed system through **three concurrent streams** — reads, a write lifecycle, and
+a live `/events` SSE connection — with a configurable read/write ratio and branch mix, so the load looks like real use.
+Beyond the quick `smoke` run and the **knee-relative** performance profiles (`average`, `soak`, `stress`, `spike`,
 `breakpoint`, scaled from a `kneeRate`), the `calibrate` profile ramps to find the load knee and `baseline` holds a
 plateau below it; `./scripts/load-test-baseline.sh` raises the calibration ceiling until a real knee is measured (or the
 `CALIBRATE_MAX_RATE` cap is reached), runs the baseline, and (with `PROFILE=<name>`) a performance profile at the
@@ -1112,19 +1116,19 @@ to `smoke`, and a `PROFILE` run's own Gatling report lands under `load-tests/bui
 profiles assert thresholds **derived from the last recorded baseline** — `max(floor, factor × baseline)` per request —
 so a fast host's regression is caught instead of hiding under fixed absolutes, and a reference recorded for another
 target is ignored in favour of them. A run writes its own reference — the operating point it ran at plus the per-request
-figures (`baseline.properties`, or `baseline-<slug>.properties` for another target — `-PbaselineFile` selects it) and a
+figures (`baseline.properties`, or `baseline-<slug>.properties` for another target; `-PbaselineFile` selects it) — and a
 ready-to-annotate record under `docs/load-tests/`, for the operator to annotate and commit. So that a slow-but-passing
 plateau cannot quietly become the new normal, a baseline run first compares its plateau's per-request mean and 95th/99th
-percentiles against the recorded reference — made only when the reference's target matches and the measured operating
-point is within a tenth of the reference's, so a plateau run at a different load is not misread as a regression — and
-reports every delta; a mean or 95th-percentile figure beyond `TOLERANCE` (a percent, default 50) fails the run and
-leaves the reference unchanged, while a 99th-percentile excursion withholds it without failing and asks for a re-run at
-the same operating point to confirm it — set `REFRESH_BASELINE=1` to accept either deliberately — while a measurement
-that recorded no figures is withheld even when refreshed, and the dated record is written either way, so the movement
-stays visible. `./gradlew :load-tests:baselineTrend` reads those records back (`-Precords=<dir>` overrides the default
-`docs/load-tests/`) and prints them as a chronological series: each record's date, target, operating point, and plateau
-figures, reporting a record it cannot read as unreadable rather than failing. The calibration deliberately ramps past
-the knee and the resource sampling follows the current kube context, so point it at an environment you own.
+percentiles against the recorded reference — the comparison is made only when the reference's target matches and the
+measured operating point is within a tenth of the reference's, so a plateau run at a different load is not misread as a
+regression — and reports every delta. A mean or 95th-percentile figure beyond `TOLERANCE` (a percent, default 50) fails
+the run and leaves the reference unchanged, while a 99th-percentile excursion withholds it without failing and asks for
+a re-run at the same operating point to confirm it — set `REFRESH_BASELINE=1` to accept either deliberately — while a
+measurement that recorded no figures is withheld even when refreshed, and the dated record is written either way, so the
+movement stays visible. `./gradlew :load-tests:baselineTrend` reads those records back (`-Precords=<dir>` overrides the
+default `docs/load-tests/`) and prints them as a chronological series: each record's date, target, operating point, and
+plateau figures, reporting a record it cannot read as unreadable rather than failing. The calibration deliberately ramps
+past the knee and the resource sampling follows the current kube context, so point it at an environment you own.
 
 ### Observability
 

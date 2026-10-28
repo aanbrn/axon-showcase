@@ -50,8 +50,9 @@ left waiting, and whether it invokes `/resume-unit` or not.
   actually owes — an approval stop, a pending choice, a permission prompt — is not such a request.
 - A session limitation the agent could not measure is its own assessment: the report does not call it an exhausted
   context window or provider quota unless the harness, the provider, or the account reported one. Upstream,
-  `anomalyco/opencode#59531` asks for a remaining-budget signal to cite; this clause retires when the harness exposes
-  one.
+  `anomalyco/opencode#59531` asks for a remaining-budget signal to cite; it closed `not_planned` on 2026-10-27, so no
+  harness fix is coming from it and its maintainer points at a plugin instead. This reference retires when a session can
+  cite a reported figure, whether from the harness or from a plugin this repository ships.
 - The staged set is recorded rather than cleaned, added to, or reset.
 - The tree stays assigned to the unit, and no build, container, or daemon is stopped for the pause.
 - The review gate's approval stop stands: a pause while the manual pass is outstanding leaves that request outstanding.

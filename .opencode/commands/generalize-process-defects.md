@@ -15,18 +15,23 @@ moment is the owner's decision; nothing schedules this command, and no queue or 
    decided and undecided records, so list per record, not per file. Show the owner the set, with each record's unit,
    stage, and one-line title.
 2. Take the selection: the units the owner named, or the whole set when none were named.
-3. Invoke the `lesson-capture` subagent with the selected records, the existing guidance a candidate would extend, and
+3. Before the hand-off, decide each selected record's disposition against the recurrence sites `AGENTS.md`'s
+   generalization workflow **Decision points** name — its "Where the repository already records a recurrence decides its
+   disposition" bullet. The bullet owns the sites, their conditions, and their actions; do not restate them here.
+4. Invoke the `lesson-capture` subagent with the selected records, the existing guidance a candidate would extend, and
    the review evidence each record cites. Its contract — the promotion gate, the evidence threshold, the dispositions,
    the owning destinations, the retirement candidates, and the authoring-system recommendations — is the `agent-skills`
    requirement's; do not restate it here or in the hand-over.
-4. Present the proposals, and apply only those the owner approves, in this unit.
-5. Append one `Decision` line to each analyzed record: `no-change` with its reason, `proposed` with a link, or `shipped`
+5. Present each selected record's disposition, with any proposal for it.
+6. Apply only those the owner approves, in this unit.
+7. Append one `Decision` line to each analyzed record: `no-change` with its reason, `proposed` with a link, or `shipped`
    with a merged pull request's link.
-6. Keep this unit's own process defects in its own record, like any other unit's.
+8. Keep this unit's own process defects in its own record, like any other unit's.
 
 **Decision points**
 
 - IF the selection is empty, THEN report that and stop — an empty selection is not a pass over the corpus.
+- IF a record's disposition already records the problem as parked, THEN a proposal for it is not applied.
 - IF a record's evidence is missing or unreadable, THEN hand that candidate back with the limitation stated and withhold
   it; do not infer the missing evidence.
 - IF a record already carries a `Decision` line, THEN read it as history rather than re-analyzing it.
@@ -38,8 +43,9 @@ moment is the owner's decision; nothing schedules this command, and no queue or 
 **Failure handling** — a record set that cannot be read is reported with the paths named, and the pass does not start. A
 `lesson-capture` run that returns nothing durable still ends with a `Decision` line per record.
 
-**Verification** — every selected record carries a `Decision` line, each applied proposal states the rule it extends,
-and the unit has been through the review gate.
+**Verification** — every selected record's recurrence disposition is presented, including a record that produced no
+proposal, every selected record carries a `Decision` line, no proposal the disposition records as parked is applied,
+each applied proposal states the rule it extends, and the unit has been through the review gate.
 
 **Completion criteria** — the owner has the proposals and their outcomes, every selected record is decided, and the
 approved improvements are applied or routed.

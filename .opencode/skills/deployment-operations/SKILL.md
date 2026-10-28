@@ -188,8 +188,8 @@ dependency is missing, the strict lint reports "chart directory is missing these
 reports "found in Chart.yaml, but missing in charts/ directory: common". The chart module's packaging path registers and
 refreshes only the Bitnami repository — its sole dependency — while the root project's release-install path keeps every
 declared repository; the chart publication runs this same packaging, and `verifyInfraImageVersions` derives its
-repositories from the charts its checks name. The install path below still has no bounded retry and is retried by hand.
-Lint runs strict (warnings are errors) and lints the Bitnami `common` subchart, rendering two extra value sets:
+repositories from the charts its checks name. Lint runs strict (warnings are errors) and lints the Bitnami `common`
+subchart, rendering two extra value sets:
 
 ```bash
 ./gradlew :helm:chart:helmLintMainChartFull :helm:chart:helmLintMainChartMinimal
@@ -465,15 +465,17 @@ migration, not an automatic update. The observability charts (kps, tempo) carry 
 surface as actionable; verify them with a live install + smoke test (pods ready, Prometheus targets up, Grafana
 datasources wired), since `verifyInfraImageVersions` covers only the bitnami infra charts.
 
-- **The install path's chart-repository fetch has no bounded retry — retry a failed `helmInstall<Release>ToLocal` by
-  hand instead of re-reading the pin.** Only the tasks built on `AbstractHelmRepositoriesTask` (`helmUpdates`,
-  `verifyInfraImageVersions`, `fetchMainChartDependencies`) retry the repository update, and `verifyInfraImageVersions`
-  also retries each chart's `helm show values` fetch; the install targets run the plugin's own
-  `HelmAddRepository`/`HelmUpdateRepositories`, whose sources carry no retry, so a transient fetch failure ends the
-  install before the chart resolves. Retry it, confirming first that the repository's `index.yaml` answers a `curl`,
-  rather than re-resolving or reverting the chart version: the retried install succeeded while `curl` reached the same
-  index, so the failure was a transient fetch rather than a version gap, and its cause stays unestablished. Making these
-  plugin tasks resilient is parked in `docs/ideas.md` (2026-10-17). captured: bump-kps-chart-2026-10-25
+- **The install path's repository setup retries the per-repository add/update pair — a repository that stays unreachable
+  still fails the install.** The release-install targets depend on the plugin's `helmUpdateRepositories`, now a disabled
+  bridge to the root `updateHelmRepositories` task (`UpdateHelmRepositoriesTask`, built on
+  `AbstractHelmRepositoriesTask`), with the plugin's own `helmAdd*` and `helmUpdateRepositories` tasks disabled: the
+  add/update pair per repository runs inside `BoundedRetry` (three attempts, a two-second pause, a warning per retry),
+  while `verifyInfraImageVersions` also retries each chart's `helm show values` fetch. A failure that survives the
+  attempts still fails the build, so a real version gap is still reported — confirm the repository's `index.yaml`
+  answers a `curl` before re-resolving or reverting the chart version, since the manual retry this rule came from
+  succeeded while `curl` reached the same index. Replacing the workaround with retries in the plugin's own tasks stays
+  parked in `docs/ideas.md` (2026-10-17) and reported upstream at `build-extensions-oss/gradle-helm-plugin#238`.
+  captured: bump-kps-chart-2026-10-25 captured: retry-install-path-fetches
 
 ## DB scripts
 

@@ -1580,3 +1580,9 @@
 2026-10-28	fail-closed-commit-hygiene-reads	8	contradiction,wording	contradiction	1	ses_e7fd684f1ffenPkBVR8Z6d0XHL	continued	-
 2026-10-28	fail-closed-commit-hygiene-reads	9	wording	wording	0	ses_e7fd684f1ffenPkBVR8Z6d0XHL	continued	-
 2026-10-28	fail-closed-commit-hygiene-reads	10	-	-	0	ses_e7fd684f1ffenPkBVR8Z6d0XHL	continued	-
+2026-10-28	retry-install-path-fetches	1	claim-unreproducible,wording,missing-task	-	4	ses_e7f8a1adaffeGWUkjRxHz5jUOK	created	-
+2026-10-28	retry-install-path-fetches	2	wording	wording	0	ses_e7f8a1adaffeGWUkjRxHz5jUOK	continued	-
+2026-10-28	retry-install-path-fetches	3	-	-	0	ses_e7f8a1adaffeGWUkjRxHz5jUOK	continued	-
+2026-10-28	retry-install-path-fetches	4	contradiction,coherence	-	1	ses_e7f8a1adaffeGWUkjRxHz5jUOK	continued	-
+2026-10-28	retry-install-path-fetches	5	-	-	0	ses_e7f8a1adaffeGWUkjRxHz5jUOK	continued	-
+2026-10-28	retry-install-path-fetches	6	-	-	0	ses_e7f8a1adaffeGWUkjRxHz5jUOK	continued	-

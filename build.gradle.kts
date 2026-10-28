@@ -857,3 +857,27 @@ helm {
         }
     }
 }
+
+// The release install tasks depend on the plugin's repository update; run the repository setup through a task that
+// retries the per-repository add/update pair, and keep the plugin's task as a disabled bridge so every install target
+// keeps one entry point.
+val updateHelmRepositories =
+    tasks.register<UpdateHelmRepositoriesTask>("updateHelmRepositories") {
+        description = "Registers and refreshes the releases' Helm repositories, retrying each add/update pair"
+        repos.set(helmRepoUrls)
+    }
+
+tasks.named("helmAddBitnamiRepository") { enabled = false }
+
+tasks.named("helmAddGrafanaRepository") { enabled = false }
+
+tasks.named("helmAddPrometheusCommunityRepository") { enabled = false }
+
+tasks.named("helmAddIngressNginxRepository") { enabled = false }
+
+tasks.named("helmAddRepositories") { enabled = false }
+
+tasks.named("helmUpdateRepositories") {
+    enabled = false
+    dependsOn(updateHelmRepositories)
+}

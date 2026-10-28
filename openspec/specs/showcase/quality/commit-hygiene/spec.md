@@ -3,18 +3,19 @@
 ## Purpose
 
 Defines the mechanical guards over the commit/artifact hygiene the standard quality gates cannot see — a local
-pre-commit hook that inspects the staged set, build checks that verify `captured:` marker placement, that the tracked
-set excludes ignored files, that no tracked file carries a merge conflict marker, that tracked scripts carry the
-executable bit, that no tracked file exceeds the configured size limit, that no two workflow cron schedules collide,
-that the review-round ledger carries at most one row per unit and round, that each unit's rounds are contiguous from `1`
-apart from an explicitly acknowledged gap, that a round the caller names with `--expect` is recorded, and that each
-round's reviewer session and its continuity are recorded — and, asserted at the review gate's manual-pass boundary
-rather than by a build check, that a unit the caller names with `--expect-clean` closes on a round carrying no finding
-class, since a round in flight is unclean by design, and that the unit's own tree is ready for the owner's pass: no
-unstaged new file, no stale indexed copy, and a base its `HEAD` contains, failing as not established when a read it
-needs fails rather than reporting the tree clean — and a committed `.gitattributes` that normalizes line endings
-(enforced by git, not the build) — so slips that were caught only by a human or a review pass are blocked by
-construction.
+pre-commit hook that inspects the staged set and validates a staged review-round ledger's duplicate and contiguity
+checks, its reviewer-session continuity, and the preservation of every recorded `(unit, round)` row — build checks that
+verify `captured:` marker placement, that the tracked set excludes ignored files, that no tracked file carries a merge
+conflict marker, that tracked scripts carry the executable bit, that no tracked file exceeds the configured size limit,
+that no two workflow cron schedules collide, that the review-round ledger carries at most one row per unit and round,
+that each unit's rounds are contiguous from `1` apart from an explicitly acknowledged gap, that a round the caller names
+with `--expect` is recorded, and that each round's reviewer session and its continuity are recorded — and, asserted at
+the review gate's manual-pass boundary rather than by a build check, that a unit the caller names with `--expect-clean`
+closes on a round carrying no finding class, since a round in flight is unclean by design, and that the unit's own tree
+is ready for the owner's pass: no unstaged new file, no stale indexed copy, and a base its `HEAD` contains, failing as
+not established when a read it needs fails rather than reporting the tree clean — and a committed `.gitattributes` that
+normalizes line endings (enforced by git, not the build) — so slips that were caught only by a human or a review pass
+are blocked by construction.
 
 ## Requirements
 
@@ -29,6 +30,13 @@ file (`AGENTS.md`, or a project-authored `.opencode/agent/*.md` or `.opencode/sk
 unstaged or untracked. The hook SHALL name each offending path and the reason and SHALL exit non-zero. The hook's path
 parsing SHALL be quote-safe: every path it reads from git SHALL be the real path rather than git's C-quoted rendering,
 so a path containing non-ASCII bytes is inspected exactly like any other and no check is silently skipped for it.
+
+It SHALL also refuse a staged review-round ledger (`docs/review-rounds.tsv`) whose duplicate or non-contiguous rows the
+ledger's own verification reports. It SHALL refuse a staged ledger whose session-continuity check reports a
+contradiction. It SHALL refuse a staged ledger diff that removes a data row unless that `(unit, round)` remains in the
+staged ledger, and a staged ledger whose file is deleted or renamed away has no row remaining. It SHALL judge the
+ledger's staged content, not the working tree's copy. It SHALL report a staged ledger row whose round column cannot be
+parsed as a named failure rather than raising.
 
 The hook SHALL also refuse a staged set that carries another change's directory. Before it reads the staged set it SHALL
 establish the commit's **assigned change**: the branch's name when that name is a change name, and otherwise the single
@@ -199,6 +207,48 @@ merged revision, so the exemption has nothing to name.
 - **WHEN** another revision's content is staged with `git merge --squash`, so the staged set carries that revision's
   foreign change directory and no merged revision is recorded
 - **THEN** the guard refuses the commit, since a squash merge leaves no merged revision for the exemption to match
+
+#### Scenario: A duplicated ledger row refuses the commit
+
+- **WHEN** `docs/review-rounds.tsv` is staged and two of its rows share a unit and round
+- **THEN** the guard refuses the commit and names the unit, the round and both rows
+
+#### Scenario: A ledger gap refuses the commit
+
+- **WHEN** `docs/review-rounds.tsv` is staged and a unit's rows are not contiguous from 1
+- **THEN** the guard refuses the commit and names the unit and the missing round
+
+#### Scenario: A ledger row contradicting the session's continuity refuses the commit
+
+- **WHEN** `docs/review-rounds.tsv` is staged and a row's session transition contradicts the continuity rule
+- **THEN** the guard refuses the commit and names the row
+
+#### Scenario: A removed ledger row refuses the commit
+
+- **WHEN** `docs/review-rounds.tsv` is staged and its diff removes a data row whose unit and round are absent from the
+  staged ledger, or the staged ledger is deleted or renamed away
+- **THEN** the guard refuses the commit and names the removal
+
+#### Scenario: A duplicated row's repair proceeds
+
+- **WHEN** `docs/review-rounds.tsv` is staged and its diff removes a row whose unit and round remain in the staged
+  ledger
+- **THEN** the guard does not report the removal, so a duplicated row can be repaired
+
+#### Scenario: An unparseable ledger row refuses the commit by name
+
+- **WHEN** `docs/review-rounds.tsv` is staged and a row's round column cannot be parsed
+- **THEN** the guard refuses the commit and names the file and the failure, rather than raising
+
+#### Scenario: A clean ledger append proceeds
+
+- **WHEN** `docs/review-rounds.tsv` is staged with an appended row that passes the checks
+- **THEN** the guard reports no ledger failure
+
+#### Scenario: A commit that does not stage the ledger runs no ledger check
+
+- **WHEN** `docs/review-rounds.tsv` is not in the staged set, whatever its working-tree content
+- **THEN** the guard reports no ledger failure
 
 ### Requirement: The guard is activated per clone and does not alter state
 
@@ -461,6 +511,8 @@ ledger naming the unit and the round, and only an acknowledged gap SHALL pass. A
 expectation given without the mode, and a ledger row whose round column is not a number SHALL each fail rather than
 skip. The verification SHALL be a `commit-hygiene.py` mode run by a `check` task, reading the tracked ledger rather than
 the staged set.
+
+That input clause scopes the build's verification.
 
 When the caller also names the units whose loops must have converged (`--expect-clean <unit>`, repeatable, and valid
 only with `--unique-rounds`), the same verification SHALL fail unless each named unit's numerically highest recorded

@@ -11,6 +11,7 @@ import io
 import subprocess
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 CHECKER_PATH = Path(__file__).resolve().parent / "commit-hygiene.py"
@@ -2359,6 +2360,192 @@ class CommitAssignmentTests(unittest.TestCase):
         self._stage(repo, "openspec/changes/archive")
 
         self.assertEqual(0, self._run(repo)[0])
+
+
+class LedgerGuardTests(unittest.TestCase):
+    """The pre-commit guard's review-round ledger checks, over a committed ledger and a staged change."""
+
+    def _commit(self, repo: Path, lines: list[str]) -> None:
+        ledger = repo / "docs" / "review-rounds.tsv"
+        ledger.parent.mkdir(parents=True, exist_ok=True)
+        ledger.write_text("\n".join([MARKER] + lines) + "\n", encoding="utf-8")
+        subprocess.run(("git", "add", "docs/review-rounds.tsv"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "ledger"), cwd=repo, check=True)
+
+    def _stage(self, repo: Path, lines: list[str]) -> None:
+        ledger = repo / "docs" / "review-rounds.tsv"
+        ledger.parent.mkdir(parents=True, exist_ok=True)
+        ledger.write_text("\n".join([MARKER] + lines) + "\n", encoding="utf-8")
+        subprocess.run(("git", "add", "docs/review-rounds.tsv"), cwd=repo, check=True)
+
+    def _check(self, repo: Path) -> tuple[int, str]:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            return commit_hygiene.check_staged(repo, ["true"]), stderr.getvalue()
+
+    def _valid_pair(self) -> list[str]:
+        return [row("unit-a", 1, "ses_a", CREATED), row("unit-a", 2, "ses_a", CONTINUED)]
+
+    def test_a_staged_duplicated_row_is_refused(self):
+        repo = make_repo(self)
+        self._commit(repo, self._valid_pair())
+        duplicate = row("unit-a", 2, "ses_a", CONTINUED)
+        self._stage(repo, self._valid_pair() + [duplicate])
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("share unit 'unit-a' round 2", stderr)
+
+    def test_a_staged_gap_is_refused(self):
+        repo = make_repo(self)
+        self._commit(repo, self._valid_pair())
+        self._stage(repo, [row("unit-a", 1, "ses_a", CREATED), row("unit-a", 3, "ses_a", CONTINUED)])
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("missing round 2", stderr)
+
+    def test_a_staged_continuity_violation_is_refused(self):
+        repo = make_repo(self)
+        self._commit(repo, [row("unit-a", 1, "ses_a", CREATED)])
+        self._stage(repo, [row("unit-a", 1, "ses_a", CREATED), row("unit-a", 2, "ses_a", CREATED)])
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("session continuity", stderr)
+
+    def test_a_removed_rows_key_is_refused(self):
+        repo = make_repo(self)
+        self._commit(repo, self._valid_pair())
+        self._stage(repo, [row("unit-a", 1, "ses_a", CREATED)])
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("A review-round row is removed", stderr)
+        self.assertIn("round 2", stderr)
+
+    def test_a_duplicated_rows_repair_proceeds(self):
+        repo = make_repo(self)
+        self._commit(repo, [row("unit-a", 1, "ses_a", CREATED), row("unit-a", 1, "ses_a", CREATED)])
+        self._stage(repo, [row("unit-a", 1, "ses_a", CREATED)])
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_an_unparseable_staged_row_is_refused_by_name(self):
+        repo = make_repo(self)
+        self._commit(repo, [row("unit-a", 1, "ses_a", CREATED)])
+        self._stage(repo, ["2026-10-16\tunit-a\tx\t-\t-\t0\tses_a\tcreated\t-"])
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("cannot be checked", stderr)
+        self.assertIn("docs/review-rounds.tsv", stderr)
+        self.assertIn("non-numeric round", stderr)
+        self.assertNotIn("A review-round row is removed", stderr)
+        self.assertIn("not assessed", stderr)
+
+    def test_a_malformed_row_hides_and_then_exposes_a_removal(self):
+        repo = make_repo(self)
+        self._commit(repo, self._valid_pair())
+        malformed = "2026-10-16\tunit-a\tx\t-\t-\t0\tses_a\tcontinued\t-"
+        self._stage(repo, [row("unit-a", 1, "ses_a", CREATED), malformed])
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("cannot be checked", stderr)
+        self.assertNotIn("A review-round row is removed", stderr)
+
+        self._stage(repo, [row("unit-a", 1, "ses_a", CREATED)])
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("A review-round row is removed", stderr)
+
+    def test_a_first_ledger_with_no_predecessor_passes(self):
+        repo = make_repo(self)
+        self._stage(repo, self._valid_pair())
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_a_failed_predecessor_inspection_is_a_named_failure(self):
+        repo = make_repo(self)
+        self._commit(repo, self._valid_pair())
+        self._stage(repo, self._valid_pair())
+        ok = subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr="")
+        failed = subprocess.CompletedProcess(args=[], returncode=128, stdout="", stderr="read failure")
+
+        with mock.patch.object(commit_hygiene, "git", side_effect=[ok, failed]):
+            with self.assertRaises(commit_hygiene.CheckFailure):
+                commit_hygiene.check_ledger_preservation(
+                    repo, row("unit-a", 1, "ses_a", CREATED) + "\n"
+                )
+
+    def test_a_clean_append_proceeds(self):
+        repo = make_repo(self)
+        self._commit(repo, self._valid_pair())
+        self._stage(repo, self._valid_pair() + [row("unit-a", 3, "ses_a", CONTINUED)])
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_an_unstaged_defective_ledger_is_not_checked(self):
+        repo = make_repo(self)
+        ledger = repo / "docs" / "review-rounds.tsv"
+        ledger.parent.mkdir(parents=True, exist_ok=True)
+        rows = [MARKER, row("unit-a", 1, "ses_a", CREATED), row("unit-a", 1, "ses_a", CREATED)]
+        ledger.write_text("\n".join(rows) + "\n", encoding="utf-8")
+        (repo / "a.txt").write_text("x", encoding="utf-8")
+        subprocess.run(("git", "add", "a.txt"), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_the_staged_blob_is_read_rather_than_the_worktree(self):
+        repo = make_repo(self)
+        self._commit(repo, self._valid_pair())
+        duplicate = row("unit-a", 2, "ses_a", CONTINUED)
+        self._stage(repo, self._valid_pair() + [duplicate])
+        ledger = repo / "docs" / "review-rounds.tsv"
+        ledger.write_text("\n".join([MARKER] + self._valid_pair()) + "\n", encoding="utf-8")
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("share unit 'unit-a' round 2", stderr)
+
+    def test_a_deleted_ledger_is_refused(self):
+        repo = make_repo(self)
+        self._commit(repo, self._valid_pair())
+        subprocess.run(("git", "rm", "-q", "docs/review-rounds.tsv"), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("A review-round row is removed", stderr)
+        self.assertNotIn("boundary comment", stderr)
+
+    def test_a_renamed_away_ledger_is_refused(self):
+        repo = make_repo(self)
+        self._commit(repo, self._valid_pair())
+        subprocess.run(("git", "mv", "docs/review-rounds.tsv", "docs/old-ledger.tsv"), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("A review-round row is removed", stderr)
+        self.assertNotIn("boundary comment", stderr)
 
 
 if __name__ == "__main__":

@@ -244,5 +244,7 @@ coordinates keep the leading-integer major comparison.
   `-all` distribution to `-bin` — both silently. `./gradlew --version` cannot see either (it reports the version from
   `distributionUrl`), so verify by diffing all four wrapper files (`gradle/wrapper/gradle-wrapper.properties`,
   `gradle/wrapper/gradle-wrapper.jar`, `gradlew`, `gradlew.bat`) and confirming `distributionUrl` still ends `-all.zip`;
-  if only `gradle-wrapper.properties` changed, the bump is incomplete. Keep `/gradle-update`'s two-step invocation.
-  captured: bump-gradle-and-web-ui-dependencies
+  if only `gradle-wrapper.properties` changed, the bump is incomplete. Keep `/gradle-update`'s two-step invocation. The
+  wrapper pins no `distributionSha256Sum`, and the bump has no rollback step. IF a wrapper run fails, or the four files
+  disagree after the second run, THEN `/gradle-update` reports what it found and does not hand-edit the wrapper files;
+  recovering them is the operator's step. captured: bump-gradle-and-web-ui-dependencies

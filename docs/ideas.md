@@ -24,6 +24,30 @@ as a second entry and splits one idea's detail across two sections.
   failed the Docker-free `check` once during `retry-chart-dependency-fetch`, while the same task passed alone minutes
   later.
 
+- Evaluate Gradle's official `gradle-best-practices` skill against this build — parked; no change yet. `gradle-skills`
+  ships `gradle-wrapper-upgrade` and `gradle-best-practices`. `gradle-best-practices` audits a build against a bundled
+  copy of the official best practices, in an Audit mode that reports and an Apply mode that edits. Of the two skills,
+  only `gradle-best-practices` is in question here: `/gradle-update` with the `gradle-build` pack's wrapper rule already
+  carries the wrapper skill's two-`wrapper`-runs procedure. Its value here is unmeasured, and this build deliberately
+  diverges from generic advice in places that the audit may flag: upstream `gradle-helm-plugin` warnings left unfixed,
+  the custom test suites' re-declared dependencies, and the coverage gate's `-Pcoverage.gate.enabled=false`. Read a
+  published tag rather than the announcement: the announcement promised a fix for wording that could let an unattended
+  audit apply structural fixes, and at `gradle-best-practices-v1.0.1` an unattended run still applies structural fixes —
+  its "Never block on a question" rule has the run record the plan and then execute it, and its Audit mode applies fixes
+  without asking once no reply can come. Do not run the skill's Audit or Apply mode unattended. Vendoring is one option
+  rather than a requirement: it would make `gradle-best-practices` another vendored skill set, owing the provenance
+  record, the declaration sites the `Vendored agent skills` bullet and the `2026-10-22` single-sourcing entry own, and a
+  `MODIFIED` delta on `showcase/quality/agent-skills`, whose requirement names the vendored sets. Revisit when: a
+  published `gradle-best-practices` tag's `SKILL.md` leaves an unattended Audit run report-only — it applies no fixes,
+  structural or otherwise, and does not proceed past a confirmation it could not obtain (external coordinate — a
+  per-skill released tag such as `gradle-best-practices-v1.0.1`, not a default-branch commit; the skills carry their own
+  tags beside the repository's releases). Meeting it reopens the evaluation; it authorizes no run and no adoption.
+
+- Pin the wrapper's distribution checksum and give the bump a rollback — parked; no change yet. Gradle's
+  `gradle-wrapper-upgrade` reads the release's SHA-256 from `services.gradle.org` and restores the wrapper when the
+  build no longer configures. `/gradle-update` and the `gradle-build` pack's wrapper rule carry neither, as the pack
+  records; whether either is worth adopting here is unmeasured. Surfaced while scoping the entry above.
+
 ## 2026-10-27
 
 - Fix the gradle-helm-plugin's `failIfExists` repository-add option — reported upstream at

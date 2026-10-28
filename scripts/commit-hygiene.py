@@ -16,6 +16,10 @@ named with `--expect-clean` closes on a round carrying no finding class (both ne
 verifies the ledger's reviewer-session fields record each round's session and its transition; and `--large-files`
 verifies no tracked file exceeds the configured size limit.
 
+No mode reads a failed read as a clean result — a git invocation or a tracked file's size: a read whose failure would
+look like an empty offender list raises, and `main` reports it as the check having failed. The exits that answer a
+question keep their own branch.
+
 `--review-ready` is the unit's readiness for the owner's manual review pass, which the review gate's manual-pass step
 invokes rather than a `check` task, since the state it reads exists only in an uncommitted working tree: a non-ignored
 untracked path, a path staged and then edited, and a base revision (`--base`, default `origin/main`) whose history
@@ -40,8 +44,16 @@ LARGE_FILES_CONFIG = "config/commit-hygiene/large-files.properties"
 REVIEW_READY_BASE = "origin/main"
 
 
-class GitFailure(Exception):
-    """A git invocation the readiness check needs, which failed: readiness is not established, not clean."""
+class CheckFailure(Exception):
+    """A read a check cannot proceed without, which failed: the check reports it instead of a clean result."""
+
+
+class GitFailure(CheckFailure):
+    """A git invocation a check cannot proceed without, which failed."""
+
+
+class FileFailure(CheckFailure):
+    """A file a check cannot measure, which it reports rather than skipping."""
 LEAD_RE = re.compile(r"^(- |\*\*)")
 CONFLICT_MARKER_RE = r"^(<<<<<<< |>>>>>>> )"
 VENDORED_SKILL_PREFIXES = (".opencode/skills/ast-grep/", ".opencode/skills/axon4to5-", ".opencode/skills/openspec-")
@@ -96,13 +108,17 @@ def git(repo: Path, *args: str) -> subprocess.CompletedProcess:
 
 
 def staged_paths(repo: Path) -> list[str]:
-    result = git(repo, "diff", "--cached", "--name-only", "-z", "--diff-filter=ACMR")
-    return [path for path in result.stdout.split("\0") if path]
+    output = git_output(repo, "diff", "--cached", "--name-only", "-z", "--diff-filter=ACMR")
+    return [path for path in output.split("\0") if path]
 
 
-def staged_file_text(repo: Path, path: str) -> Optional[str]:
-    result = git(repo, "show", f":{path}")
-    return result.stdout if result.returncode == 0 else None
+def staged_file_text(repo: Path, path: str) -> str:
+    """The staged content of `path`, read through the failure-raising helper.
+
+    The caller reads a path it has just seen staged, so a failed read is the index having changed under the check
+    rather than an absent path, and it must stop the check instead of skipping that path's marker scan.
+    """
+    return git_output(repo, "show", f":{path}")
 
 
 def staged_then_edited_in(records: list[str]) -> list[str]:
@@ -130,7 +146,7 @@ def staged_then_edited_in(records: list[str]) -> list[str]:
 
 
 def find_staged_then_edited(repo: Path) -> list[str]:
-    return staged_then_edited_in(git(repo, "status", "--porcelain", "-z").stdout.split("\0"))
+    return staged_then_edited_in(git_output(repo, "status", "--porcelain", "-z").split("\0"))
 
 
 def untracked_in(records: list[str]) -> list[str]:
@@ -139,10 +155,10 @@ def untracked_in(records: list[str]) -> list[str]:
 
 
 def git_output(repo: Path, *args: str) -> str:
-    """The stdout of a git invocation the readiness check cannot proceed without, raising when it fails.
+    """The stdout of a git invocation a check cannot proceed without, raising when it fails.
 
-    A failed invocation must not read as an empty result: the check would then report the tree ready on evidence it does
-    not have, which is the failure mode the readiness check exists to prevent.
+    A failed invocation must not read as an empty result: the check would then report a clean tree or set on evidence it
+    does not have, which is the failure mode every check exists to prevent.
     """
     result = git(repo, *args)
     if result.returncode != 0:
@@ -215,8 +231,8 @@ def paths_changed_since(repo: Path, ancestor: str, revision: str) -> list[str]:
 
 
 def find_tracked_ignored(repo: Path) -> list[str]:
-    result = git(repo, "ls-files", "--cached", "--ignored", "--exclude-standard", "-z")
-    return [path for path in result.stdout.split("\0") if path]
+    output = git_output(repo, "ls-files", "--cached", "--ignored", "--exclude-standard", "-z")
+    return [path for path in output.split("\0") if path]
 
 
 def find_force_staged_artifacts(repo: Path) -> list[str]:
@@ -224,10 +240,18 @@ def find_force_staged_artifacts(repo: Path) -> list[str]:
     return [path for path in staged_paths(repo) if path in ignored]
 
 
+def modified_spec_paths(repo: Path) -> str:
+    """The tracked spec paths with an unstaged modification, NUL-separated."""
+    return git_output(repo, "diff", "--name-only", "-z", "--", SPECS_PREFIX)
+
+
+def untracked_spec_paths(repo: Path) -> str:
+    """The untracked spec paths the ignore rules do not exclude, NUL-separated."""
+    return git_output(repo, "ls-files", "--others", "--exclude-standard", "-z", "--", SPECS_PREFIX)
+
+
 def unstaged_spec_paths(repo: Path) -> list[str]:
-    modified = git(repo, "diff", "--name-only", "-z", "--", SPECS_PREFIX).stdout
-    untracked = git(repo, "ls-files", "--others", "--exclude-standard", "-z", "--", SPECS_PREFIX).stdout
-    return [path for path in (modified + untracked).split("\0") if path]
+    return [path for path in (modified_spec_paths(repo) + untracked_spec_paths(repo)).split("\0") if path]
 
 
 def _staged_archived_changes(staged: list[str]) -> list[str]:
@@ -254,11 +278,17 @@ def find_unpaired_archive_sync(repo: Path) -> list[tuple[str, list[str]]]:
 
 
 def find_conflict_markers(repo: Path, staged: bool = False) -> list[str]:
+    """The tracked (or staged) lines carrying a conflict marker; git grep's exit 1 answers "no match"."""
     args = ["grep", "-I", "-n", "-E"]
     if staged:
         args.append("--cached")
     args.append(CONFLICT_MARKER_RE)
-    return [line for line in git(repo, *args).stdout.splitlines() if line]
+    result = git(repo, *args)
+    if result.returncode == 0:
+        return [line for line in result.stdout.splitlines() if line]
+    if result.returncode == 1:
+        return []
+    raise GitFailure("git grep failed: {0}".format(result.stderr.strip() or result.returncode))
 
 
 def _should_be_executable(path: str) -> bool:
@@ -269,7 +299,7 @@ def _should_be_executable(path: str) -> bool:
 
 def find_non_executable_scripts(repo: Path) -> list[str]:
     offenders = []
-    for line in git(repo, "ls-files", "-s", "-z").stdout.split("\0"):
+    for line in git_output(repo, "ls-files", "-s", "-z").split("\0"):
         parts = line.split(None, 3)
         if len(parts) < 4:
             continue
@@ -280,8 +310,7 @@ def find_non_executable_scripts(repo: Path) -> list[str]:
 
 
 def tracked_paths(repo: Path) -> list[str]:
-    result = git(repo, "ls-files", "-z")
-    return [path for path in result.stdout.split("\0") if path]
+    return [path for path in git_output(repo, "ls-files", "-z").split("\0") if path]
 
 
 def read_max_bytes(repo: Path) -> int:
@@ -304,13 +333,29 @@ def read_max_bytes(repo: Path) -> int:
     raise ValueError(f"maxBytes is not set in {LARGE_FILES_CONFIG}")
 
 
+def tracked_file_size(repo: Path, path: str) -> int:
+    """The size a tracked path contributes: measured in the worktree, or from the index when it is absent there.
+
+    A path absent from the worktree is a normal state — deleted and not yet staged — and the index copy is what a commit
+    would carry, so it is measured instead. Any other failure to measure is reported, never skipped: the mode would
+    otherwise print its checked-count line without having measured the file.
+    """
+    try:
+        return (repo / path).stat().st_size
+    except FileNotFoundError:
+        staged = git_output(repo, "cat-file", "-s", f":{path}")
+        try:
+            return int(staged.strip())
+        except ValueError as error:
+            raise FileFailure(f"the index size of {path} is unreadable: {staged!r}") from error
+    except OSError as error:
+        raise FileFailure(f"{path} could not be measured: {error}") from error
+
+
 def find_oversized_files(repo: Path, limit: int) -> list[tuple[str, int]]:
     offenders = []
     for path in tracked_paths(repo):
-        try:
-            size = (repo / path).stat().st_size
-        except OSError:
-            continue
+        size = tracked_file_size(repo, path)
         if size > limit:
             offenders.append((path, size))
     return offenders
@@ -438,7 +483,7 @@ def run_formatter(repo: Path, command: list[str]) -> subprocess.CompletedProcess
 
 def claim_file(repo: Path) -> Path:
     """The per-worktree claim file, resolved through git so a linked worktree reads its own git directory."""
-    resolved = Path(git(repo, "rev-parse", "--git-path", CLAIM_NAME).stdout.strip())
+    resolved = Path(git_output(repo, "rev-parse", "--git-path", CLAIM_NAME).strip())
     return resolved if resolved.is_absolute() else repo / resolved
 
 
@@ -457,11 +502,28 @@ def change_names(repo: Path) -> set[str]:
     return names
 
 
+def current_branch(repo: Path) -> str:
+    """The branch HEAD points at, or an empty string when HEAD is detached; an unreadable HEAD raises.
+
+    An unborn HEAD still names its branch, so it is not an error. A detached HEAD is the one answer by exit code
+    (`symbolic-ref` exits 1), and neither a detached name nor a branch outside a change names a change, so the claim
+    alone assigns the commit.
+    """
+    result = git(repo, "symbolic-ref", "--quiet", "--short", "HEAD")
+    if result.returncode == 0:
+        return result.stdout.strip()
+    if result.returncode == 1:
+        return ""
+    raise GitFailure(
+        "git symbolic-ref failed: {0}".format(result.stderr.strip() or result.returncode)
+    )
+
+
 def resolve_assignment(repo: Path) -> tuple[str | None, list[str]]:
     """The commit's assigned change and the reasons the assignment fails."""
-    branch = git(repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
-    branch_change = branch if branch in change_names(repo) else None
     claim = claim_file(repo)
+    branch = current_branch(repo)
+    branch_change = branch if branch in change_names(repo) else None
     lines: list[str] = []
     if claim.is_file():
         lines = [line.strip() for line in claim.read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -483,8 +545,8 @@ def resolve_assignment(repo: Path) -> tuple[str | None, list[str]]:
         )
         return None, failures
     if recorded is None:
-        if branch == "HEAD":
-            where = "HEAD is detached or unborn"
+        if branch == "":
+            where = "HEAD is detached"
         else:
             where = "the branch '{0}' is not a change name".format(branch)
         failures.append(
@@ -507,8 +569,8 @@ def change_path_name(path: str) -> str | None:
 
 def rename_sources(repo: Path) -> list[str]:
     """The paths a staged rename moved away from, which a rename report hides behind its new name."""
-    result = git(repo, "diff", "--cached", "--name-status", "-z", "--diff-filter=R", "--", CHANGES_PREFIX)
-    fields = [field for field in result.stdout.split("\0") if field]
+    output = git_output(repo, "diff", "--cached", "--name-status", "-z", "--diff-filter=R", "--", CHANGES_PREFIX)
+    fields = [field for field in output.split("\0") if field]
     return [
         fields[index + 1] for index in range(0, len(fields) - 2, 3) if fields[index].startswith("R")
     ]
@@ -516,8 +578,10 @@ def rename_sources(repo: Path) -> list[str]:
 
 def staged_change_paths(repo: Path) -> list[str]:
     """Every staged path under a change directory — added, modified, deleted, or renamed away from — each once."""
-    deleted = git(repo, "diff", "--cached", "--name-only", "-z", "--diff-filter=D", "--", CHANGES_PREFIX)
-    paths = staged_paths(repo) + [path for path in deleted.stdout.split("\0") if path] + rename_sources(repo)
+    deleted = [path for path in git_output(
+        repo, "diff", "--cached", "--name-only", "-z", "--diff-filter=D", "--", CHANGES_PREFIX
+    ).split("\0") if path]
+    paths = staged_paths(repo) + deleted + rename_sources(repo)
     return list(dict.fromkeys(path for path in paths if path.startswith(CHANGES_PREFIX)))
 
 
@@ -579,11 +643,9 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
 
     for marker_file in marker_paths(repo):
         if marker_file in paths:
-            text = staged_file_text(repo, marker_file)
-            if text is not None:
-                for line, content in find_misplaced_markers(text):
-                    failures += 1
-                    print(f"Misplaced captured: marker in {marker_file}:{line}: {content}", file=sys.stderr)
+            for line, content in find_misplaced_markers(staged_file_text(repo, marker_file)):
+                failures += 1
+                print(f"Misplaced captured: marker in {marker_file}:{line}: {content}", file=sys.stderr)
 
     for change_dir, spec_paths in find_unpaired_archive_sync(repo):
         failures += 1
@@ -1084,6 +1146,33 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def dispatch(args: argparse.Namespace, repo: Path) -> int:
+    """Run the mode the caller selected, returning its failure count as an exit status."""
+    if args.review_ready:
+        return 1 if check_review_ready(repo, args.base or REVIEW_READY_BASE) else 0
+    if args.markers:
+        return 1 if check_markers(repo) else 0
+    if args.tracked_ignored:
+        return 1 if check_tracked_ignored(repo) else 0
+    if args.conflict_markers:
+        return 1 if check_conflict_markers(repo) else 0
+    if args.executable_bits:
+        return 1 if check_executable_bits(repo) else 0
+    if args.unique_crons:
+        return 1 if check_unique_crons(repo) else 0
+    if args.unique_rounds:
+        try:
+            return 1 if check_unique_review_rounds(repo, args.expect, args.expect_clean) else 0
+        except ValueError as error:
+            print(str(error), file=sys.stderr)
+            return 1
+    if args.session_continuity:
+        return 1 if check_session_continuity(repo) else 0
+    if args.large_files:
+        return 1 if check_large_files(repo) else 0
+    return 1 if check_staged(repo, args.formatter) else 0
+
+
 def main(argv: Sequence[str] = ()) -> int:
     parser = build_parser()
     parser.add_argument(
@@ -1109,29 +1198,11 @@ def main(argv: Sequence[str] = ()) -> int:
             file=sys.stderr,
         )
         return 1
-    if args.review_ready:
-        return 1 if check_review_ready(repo, args.base or REVIEW_READY_BASE) else 0
-    if args.markers:
-        return 1 if check_markers(repo) else 0
-    if args.tracked_ignored:
-        return 1 if check_tracked_ignored(repo) else 0
-    if args.conflict_markers:
-        return 1 if check_conflict_markers(repo) else 0
-    if args.executable_bits:
-        return 1 if check_executable_bits(repo) else 0
-    if args.unique_crons:
-        return 1 if check_unique_crons(repo) else 0
-    if args.unique_rounds:
-        try:
-            return 1 if check_unique_review_rounds(repo, args.expect, args.expect_clean) else 0
-        except ValueError as error:
-            print(str(error), file=sys.stderr)
-            return 1
-    if args.session_continuity:
-        return 1 if check_session_continuity(repo) else 0
-    if args.large_files:
-        return 1 if check_large_files(repo) else 0
-    return 1 if check_staged(repo, args.formatter) else 0
+    try:
+        return dispatch(args, repo)
+    except CheckFailure as failure:
+        print(f"The check could not run: {failure}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

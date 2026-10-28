@@ -63,7 +63,8 @@
   their criterion from a symptom sentence rather than from the condition the owning rule names.
 
 - **Decision** — proposed: applied as the new mode "The predicate is the rule's own condition, not a sentence beside it"
-  in [`check-and-test-authoring`](../../.opencode/skills/check-and-test-authoring/SKILL.md).
+  in [`check-and-test-authoring`](../../.opencode/skills/check-and-test-authoring/SKILL.md);
+  https://github.com/aanbrn/axon-showcase/pull/733.
 
 ### gate-manual-review-readiness#4 — A failing git read was mapped onto the benign outcome
 

@@ -40,7 +40,8 @@
   the pin again the next time this worktree's session starts.
 
 - **Decision** — proposed: applied as the earlier decision moment in the `.opencode/package.json` installer-state bullet
-  ([`AGENTS.md`](../../AGENTS.md)), since the rewrite was already in the tree when round 1 read it.
+  ([`AGENTS.md`](../../AGENTS.md)), since the rewrite was already in the tree when round 1 read it;
+  https://github.com/aanbrn/axon-showcase/pull/733.
 
 ### exempt-merge-commits-from-assignment#3 — A claims-table row asserted a grep's result without running it
 

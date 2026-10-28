@@ -58,7 +58,7 @@
 
 - **Decision** — proposed: applied as the earlier decision moment in the `.opencode/package.json` installer-state bullet
   ([`AGENTS.md`](../../AGENTS.md)), since the rule's own "before staging" deadline was later than the review read that
-  kept finding the rewrite.
+  kept finding the rewrite; https://github.com/aanbrn/axon-showcase/pull/733.
 
 ### clarify-generalization-parked-match#4 — Rounds 2 and 3 were handed over inside the invocation, not recorded before it
 

@@ -663,12 +663,13 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   canonical boundary is in that list, so a genuinely new class is added to the contract before it is recorded. Routes to
   a `code-quality` requirement plus an `agent-skills` delta.
 
-- Replace the chart-packaging workaround with the plugin's own retried fetches — upstream reported; the workaround is in
-  place. The gate's repository setup and dependency fetch run through the repository's `FetchChartDependenciesTask`
-  (`helm/chart/build.gradle.kts`), which retries each network step a bounded number of times; the plugin's own
-  `HelmAddRepository`, `HelmUpdateRepositories` and `HelmUpdateDependencies` tasks have no retry and cannot be wrapped.
-  Reported upstream at `build-extensions-oss/gradle-helm-plugin#238`; retire the workaround when a plugin release
-  retries these fetches, and keep the install path's manual retry until then.
+- Replace the chart-packaging and install-path workarounds with the plugin's own retried fetches — parked; both
+  workarounds are in place and the plugin-side gap is reported upstream. The gate's repository setup and dependency
+  fetch run through the repository's `FetchChartDependenciesTask` (`helm/chart/build.gradle.kts`) and the
+  release-install path's through the root `UpdateHelmRepositoriesTask`, each retrying its network steps a bounded number
+  of times; the plugin's own `HelmAddRepository`, `HelmUpdateRepositories` and `HelmUpdateDependencies` tasks have no
+  retry and cannot be wrapped. Reported upstream at `build-extensions-oss/gradle-helm-plugin#238`; retire both
+  workarounds when a plugin release retries these fetches.
 
 ## 2026-10-16
 

@@ -37,8 +37,9 @@
 - [x] 4.1 `README.md`'s guard enumeration gains the ledger check and its count.
 - [x] 4.2 The `AGENTS.md` `git add <dir>` gotcha's enumeration of the guard's refusals gains it.
 - [x] 4.3 Remove the 2026-10-24 `docs/ideas.md` entry this change implements.
-- [ ] 4.4 Refresh the `showcase/quality/commit-hygiene` Purpose in the archive commit: a delta cannot carry it, and the
-      Purpose attributes the ledger checks to the build alone.
+- [x] 4.4 Refresh the `showcase/quality/commit-hygiene` Purpose in the archive commit: a delta cannot carry it, and the
+      Purpose attributes the ledger checks to the build alone — the local pre-commit hook clause now names the staged
+      ledger's duplicate/contiguity, continuity and preservation checks, and the build clause keeps its own.
 
 ## 5. Verification
 

@@ -42,9 +42,17 @@ branch's assignment stands. A path under `openspec/changes/<name>/` or `openspec
 pass only when `<name>` is the assigned change: an added or modified path under the assigned change's live directory
 passes, and so does a deletion under it — whether it removes a file the change no longer needs or carries the change
 into `openspec/changes/archive/`; and a foreign change's path, added, modified, or deleted, SHALL fail. When the
-assignment is `none`, any path under `openspec/changes/` SHALL fail. Except under a `none` assignment, a path that names
-no change directory — one outside `openspec/changes/`, a file directly under it, or an `archive/` entry without the
-`YYYY-MM-DD-` prefix — SHALL NOT be judged by this check.
+assignment is `none`, any path under `openspec/changes/` SHALL fail, apart from a path the commit's merge accounts for
+as stated below. Except under a `none` assignment, a path that names no change directory — one outside
+`openspec/changes/`, a file directly under it, or an `archive/` entry without the `YYYY-MM-DD-` prefix — SHALL NOT be
+judged by this check.
+
+A merge commit SHALL be judged against the revisions it merges as well as against the commit's own staged set: a staged
+change path SHALL be exempt from the ownership check when the index holds it and a merged revision holds it too, or when
+the index lacks it while a fork of that revision held it and the revision removed it — the path is then the merged
+revision's content rather than the commit's. An added or modified foreign change path no merged revision holds, and a
+deletion the merge did not make, SHALL still fail. A squash merge SHALL NOT be treated as a merge commit: it records no
+merged revision, so the exemption has nothing to name.
 
 #### Scenario: A failing formatter check refuses the commit
 
@@ -127,7 +135,8 @@ no change directory — one outside `openspec/changes/`, a file directly under i
 #### Scenario: Another change's directory is refused
 
 - **WHEN** the assignment names one change and the staged set carries paths under a different change's
-  `openspec/changes/<name>/`, including when that is the only change directory staged
+  `openspec/changes/<name>/` that the commit's merge does not account for, including when that is the only change
+  directory staged
 - **THEN** the guard refuses the commit and names both the staged directory and the assigned change
 
 #### Scenario: The assigned change's archive move is accepted
@@ -138,7 +147,7 @@ no change directory — one outside `openspec/changes/`, a file directly under i
 
 #### Scenario: Another change's archive move is refused
 
-- **WHEN** the staged set archives a change the assignment does not name
+- **WHEN** the staged set archives a change the assignment does not name and the commit's merge does not account for
 - **THEN** the guard refuses the commit and names the archived change and the assignment
 
 #### Scenario: An unestablished assignment stops the commit
@@ -151,13 +160,13 @@ no change directory — one outside `openspec/changes/`, a file directly under i
 #### Scenario: A unit that declares no change directory stages none
 
 - **WHEN** the assignment declares that the unit works without a change dir and the staged set carries a path under
-  `openspec/changes/`
+  `openspec/changes/` that the commit's merge does not account for
 - **THEN** the guard refuses the commit and names the path and the declaration
 
 #### Scenario: Another change's directory deleted without archiving is refused
 
-- **WHEN** the staged set deletes paths under another change's `openspec/changes/<name>/` — or renames them away from it
-  — and adds nothing under `openspec/changes/archive/`
+- **WHEN** the staged set deletes paths under another change's `openspec/changes/<name>/` that the commit's merge does
+  not account for — or renames them away from it — and adds nothing under `openspec/changes/archive/`
 - **THEN** the guard refuses the commit and names the deleted change and the assignment
 
 #### Scenario: The assigned change's own deletion passes
@@ -171,6 +180,25 @@ no change directory — one outside `openspec/changes/`, a file directly under i
 
 - **WHEN** the staged set carries paths outside `openspec/changes/`, alongside the assigned change's own directory
 - **THEN** the ownership check reports nothing for them, and the guard's other checks apply as before
+
+#### Scenario: A merge commit may carry the change directories it merges
+
+- **WHEN** a merge commit's staged set carries another change's directory or archive move that a merged revision holds,
+  or deletes such a path that a fork of a merged revision held and that revision removed
+- **THEN** the guard accepts those paths and the commit proceeds, since they are the merged revision's content rather
+  than the commit's own
+
+#### Scenario: A merge commit still refuses a foreign change path it does not merge
+
+- **WHEN** a merge is in progress and the staged set adds or modifies a path under another change's directory that no
+  merged revision holds, or deletes a path no merged revision removed
+- **THEN** the guard refuses the commit and names the path and the assignment, as it does for an ordinary commit
+
+#### Scenario: A squash merge is judged as an ordinary commit
+
+- **WHEN** another revision's content is staged with `git merge --squash`, so the staged set carries that revision's
+  foreign change directory and no merged revision is recorded
+- **THEN** the guard refuses the commit, since a squash merge leaves no merged revision for the exemption to match
 
 ### Requirement: The guard is activated per clone and does not alter state
 

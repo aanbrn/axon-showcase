@@ -1599,3 +1599,6 @@
 2026-10-28	retry-install-path-fetches	4	contradiction,coherence	-	1	ses_e7f8a1adaffeGWUkjRxHz5jUOK	continued	-
 2026-10-28	retry-install-path-fetches	5	-	-	0	ses_e7f8a1adaffeGWUkjRxHz5jUOK	continued	-
 2026-10-28	retry-install-path-fetches	6	-	-	0	ses_e7f8a1adaffeGWUkjRxHz5jUOK	continued	-
+2026-10-28	record-merge-commit-guard-refusal	1	contradiction,claim-unreproducible	-	1	ses_e7f47a761ffeSeuZpxTDGEx9cd	created	-
+2026-10-28	record-merge-commit-guard-refusal	2	claim-missing	-	1	ses_e7f47a761ffeSeuZpxTDGEx9cd	continued	-
+2026-10-28	record-merge-commit-guard-refusal	3	-	-	0	ses_e7f47a761ffeSeuZpxTDGEx9cd	continued	-

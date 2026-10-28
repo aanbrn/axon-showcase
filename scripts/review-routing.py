@@ -7,7 +7,8 @@ reads the change's own facts, not the repository's size:
   * the changed paths and the declarations in its diff;
   * the requirement-block kinds its delta spec carries (`ADDED`, `REMOVED`, `RENAMED`);
   * the unit's recorded rounds in `docs/review-rounds.tsv`, where a class repeated on at least two rows is evidence the
-    quick loop is not converging.
+    quick loop is not converging. The unit's identity is `--unit` (its recorded name), defaulting to `--change`; a unit
+    with no change directory passes `--unit` alone, and an invocation that names neither is a failed derivation.
 
 The floor is a floor: the agent's decision must be at or above it, and a fact the tool cannot derive -- a major
 specification deviation, a material defect an earlier review missed -- is the agent's judgment above it.
@@ -86,15 +87,15 @@ def block_signals(kinds: Sequence[BlockKind]) -> List[Signal]:
     return [("requirement-block-" + kind.lower(), source) for kind, source in kinds]
 
 
-def ledger_signal(rows: Sequence[Row], change: Optional[str]) -> List[Signal]:
+def ledger_signal(rows: Sequence[Row], unit: Optional[str]) -> List[Signal]:
     """The `RECOMMENDED` signal a unit's recorded rounds carry when a class repeats on two or more rows."""
-    if not change:
-        return []
+    if not unit:
+        raise ValueError("no unit identity: pass --unit or --change")
     repeats = 0
     for row in rows:
         if len(row) < 5:
             raise ValueError("malformed ledger row: {0}".format("\t".join(row)))
-        if row[1] == change and row[4].strip() not in ("", "-"):
+        if row[1] == unit and row[4].strip() not in ("", "-"):
             repeats += 1
     if repeats >= 2:
         return [("repeated-class", "{0} rows repeat a prior class".format(repeats))]
@@ -106,13 +107,13 @@ def floor(
     files: Sequence[FileText],
     kinds: Sequence[BlockKind],
     rows: Sequence[Row],
-    change: Optional[str],
+    unit: Optional[str],
 ) -> Tuple[str, List[Signal]]:
     """The routing floor and the signals it matched, from the change's own facts."""
     required = path_signals(paths) + declaration_signals(files) + block_signals(kinds)
     if required:
         return REQUIRED, required
-    recommended = ledger_signal(rows, change)
+    recommended = ledger_signal(rows, unit)
     if recommended:
         return RECOMMENDED, recommended
     return NOT_NEEDED, []
@@ -194,7 +195,14 @@ def main(argv: Sequence[str] = ()) -> int:
             "facts, and print the signals it matched."
         )
     )
-    parser.add_argument("--change", help="the change name (its delta spec and ledger rows are read from it)")
+    parser.add_argument(
+        "--unit",
+        help=(
+            "the unit's recorded ledger identity (default: the --change name); pass it for a unit with no change "
+            "directory"
+        ),
+    )
+    parser.add_argument("--change", help="the change directory whose delta spec is read")
     parser.add_argument("--base", default="origin/main", help="the ref to diff against (default: origin/main)")
     parser.add_argument("--repo", default=".", help="the repository to read (default: the current directory)")
     parser.add_argument(
@@ -204,8 +212,11 @@ def main(argv: Sequence[str] = ()) -> int:
     )
     args = parser.parse_args(argv)
     try:
+        unit = args.unit or args.change
+        if not unit:
+            raise ValueError("no unit identity: pass --unit or --change")
         paths, files, kinds, rows = gather(Path(args.repo), args.base, args.change, args.ledger)
-        outcome, signals = floor(paths, files, kinds, rows, args.change)
+        outcome, signals = floor(paths, files, kinds, rows, unit)
     except (subprocess.CalledProcessError, ValueError, OSError) as failure:
         print("{0}: the routing derivation failed ({1})".format(REQUIRED, failure))
         return 1

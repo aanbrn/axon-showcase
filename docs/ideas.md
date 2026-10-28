@@ -214,16 +214,6 @@ as a second entry and splits one idea's detail across two sections.
   report and then its pull request, which the current offline guard does not fetch, so that home stays with the review
   unless the record moves to a file a gate reads. Surfaced by the `clarify-the-refresh-recovery-route` unit's review.
 
-- Route a unit without a change dir into the routing decision — parked; no change yet. `review-routing.py`'s
-  `ledger_signal` returns `[]` unless `--change` names a unit, and `--change` for a unit with no change directory fails
-  the derivation as `REQUIRED` — so such a unit can reach its repeated-class signal neither way, and the tool reports
-  `NOT_NEEDED` where no other signal fires, although the ledger holds the evidence for `RECOMMENDED`. Every unit without
-  a change directory inherits that blind spot, since the gate tells it to omit the flag — a `REQUIRED` signal still
-  fires regardless — and this one's floor came only from the owner's resolution. The gate's sentence "the omission is
-  not a lower floor" holds for a wrong flag, not for the correct omission. Fix by reading the ledger's own rows for the
-  branch's unit when `--change` is absent, or by correcting that sentence to state the gap — with a test pinning
-  whichever it becomes. Surfaced by this unit's routing decision.
-
 - Probe whether v1's `permission.ask` denies a write before it happens — parked; no change yet. ADR-0024 records that
   the property "one owning session per tree" is not ensured: the v2 plugin surface has no tool or permission hook, the
   static config carries no session dimension, and the v1 legacy `Hooks` — `permission.ask` (output settable to `deny`)

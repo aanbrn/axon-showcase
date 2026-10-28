@@ -136,14 +136,17 @@ final edit). captured: decide-against-pre-review
 ## 3. Deep-review routing
 
 Route the deep review, once, from the completed implementation, the diff, the applicable artifacts, and the existing
-review evidence: derive the floor with `python3 scripts/review-routing.py`, passing `--change <name>` when the unit has
-a change dir and omitting it for a unit that has none; decide at or above it (`REQUIRED`, `RECOMMENDED`, or
-`NOT_NEEDED`), and record the outcome and its signals on the change's review task in `tasks.md` (or on the pull-request
-checklist line for a unit with no change dir).
+review evidence: derive the floor with `python3 scripts/review-routing.py`, passing `--unit <name>` — the name the
+unit's ledger rows record, defaulting to `--change` — and `--change <name>` when the unit has a change dir; decide at or
+above it (`REQUIRED`, `RECOMMENDED`, or `NOT_NEEDED`), and record the outcome and its signals on the change's review
+task in `tasks.md` (or on the pull-request checklist line for a unit with no change dir).
 
-- A unit with no change dir omits `--change <name>`; naming a directory that does not exist fails the derivation, which
-  the rule below reads as `REQUIRED`, so the omission is not a lower floor. What the flag supplies is the tool's own
-  contract — its docstring and its `--change` help — not a rule restated here.
+- A unit with no change dir passes `--unit <name>` and omits `--change`; a change unit passes `--unit` as well when its
+  ledger rows are recorded under another name (a continued cloud branch). Naming a directory that does not exist fails
+  the derivation, and a run that names neither identity fails it as `REQUIRED`, so omitting `--change` for a unit with
+  no change dir is not a lower floor — while omitting `--unit` for a unit whose ledger name differs does lower it
+  silently, to zero rows. What the flags supply is the tool's own contract — its docstring and its `--unit`/`--change`
+  help — not a rule restated here.
 - A `REQUIRED` outcome runs before completion; a `NOT_NEEDED` one creates no deep-review session, prepares no hand-over,
   and spends no expensive-model invocation.
 - **A `RECOMMENDED` outcome runs only on the owner's explicit run-or-skip decision** — when it is absent, ask the owner

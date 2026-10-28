@@ -25,6 +25,9 @@ Knowledge boundary: the interval and the qualifier come from the quoted comment 
 a capture this unit made; the review's line anchor is not resolvable against `reply.md` as it now stands, since the
 sentence moved in a later rewrite.
 
+- **Decision** — no-change: the doc-claim rule already requires a claim to match its source and its strength, and the
+  pre-write pass re-reads every external-artifact claim from the artifact.
+
 ### record-opencode-transient-400#2 — A draft attributed a persisted record to the wrong version
 
 Recorded: 2026-10-28 by the unit's session.
@@ -50,6 +53,9 @@ same issue (issuecomment-6463878609) corrects it.
 Knowledge boundary: recorded from the pre-publication review's report, the published comment, and the `#51201` text; not
 re-derived from a local error record.
 
+- **Decision** — no-change: the doc-claim rule and the pre-write pass already require the quoted record and its version
+  to be read from the entry that states them; the record's evidence retains both published corrections.
+
 ### record-opencode-transient-400#3 — The unit's artifacts were written before the review gate's pre-write pass
 
 Recorded: 2026-10-28 by the unit's session.
@@ -72,3 +78,7 @@ was instead checked against text already drafted. Nothing was published or commi
 
 Knowledge boundary: recorded from this session's own command order; no claim about whether the pass would have caught
 anything the review rounds later did.
+
+- **Decision** — no-change: the pre-write pass is defined over the unit's artifacts, so running it after they are
+  drafted is the stated procedure, and one occurrence with nothing published is below the threshold for changing that
+  placement.

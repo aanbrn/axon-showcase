@@ -32,6 +32,10 @@
 - **Knowledge boundary** — observed for this unit's analysis. Not established: whether the promotion-gate wording or its
   application produced the over-reach, and whether the same shape recurs in a later generalization.
 
+- **Decision** — no-change: the record's own knowledge boundary leaves the cause unestablished — the gate's wording
+  versus its application — so no durable correction can be derived without inventing one; this unit re-checked every
+  proposal against the gate.
+
 ### generalize-process-defects-2026-10-27#2 — The unit's review-round rows were not appended as each report arrived
 
 - **Recorded** — 2026-10-27, main agent session, review stage.
@@ -47,3 +51,6 @@
   continued twice), and both ledger checks then passed. The unit shipped no artifact with an untracked round.
 - **Knowledge boundary** — observed for this unit. Not established: whether the new §2 step's placement prevents the
   miss in a later unit, or whether the caller simply skipped a step it had just written.
+
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-10-22 "reviewer wrapper" entry, whose
+  `Revisit when:` condition is not met.

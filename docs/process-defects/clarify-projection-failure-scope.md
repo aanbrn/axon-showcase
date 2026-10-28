@@ -18,6 +18,9 @@
 - **Knowledge boundary** — observed for this unit's round 1. Not checked whether other units' hand-overs carry
   statements about command output that were not run, so this is not evidence of a recurrence.
 
+- **Decision** — no-change: the verdict-echo rule and the evidence rule already require a statement about a command's
+  output to be that command's output at the state it describes.
+
 ### clarify-projection-failure-scope#2 — The unit's first edit ran without the required `Packs:` line
 
 - **Recorded** — 2026-10-27, by the writing session (`ses_e832e4043ffe6ADYTEa13DvV1s`), during the review stage.
@@ -32,3 +35,5 @@
   record-keeping purpose was not met for the unit's own turn.
 - **Knowledge boundary** — observed for this unit. Not checked whether other docs units omitted the line, so this is not
   evidence of a pattern.
+
+- **Decision** — no-change: `AGENTS.md` already requires one `Packs:` line before the first edit of a task.

@@ -17,6 +17,9 @@
   for `execute` names the dedicated `read`/`grep` tools as the preferred route, so the alternative explanation (the
   dedicated tools were the intended path all along) is unverified.
 
+- **Decision** — no-change: one wasted tool call; the Code Mode catalog instruction already states that its listing is
+  partial and that a tool is reached by the `path` a `search(...)` call returns.
+
 ### clarify-generalization-parked-match#2 — A decision's premise about `AGENTS.md` was asserted without reading it
 
 - **Recorded** — 2026-10-28, main agent session, at review round 1.
@@ -35,6 +38,9 @@
 - **Knowledge boundary** — observed the three false statements and their rewrite. Did not check whether any other unit
   rests on the same premise about root's Procedure.
 
+- **Decision** — no-change: "Interrogate the premise" and review-gate §1 already require reading the artifact a claim
+  describes and giving the claim its own claims-table row.
+
 ### clarify-generalization-parked-match#3 — The installer rewrote `.opencode/package.json` mid-session, unnoticed until review
 
 - **Recorded** — 2026-10-28, main agent session, at review round 2.
@@ -49,6 +55,10 @@
   the command and the review ledger row. One review finding was spent on it.
 - **Knowledge boundary** — observed the change and its revert. Did not establish which process rewrote the pin, and did
   not check whether the same rewrite recurs on the next session start in this tree.
+
+- **Decision** — proposed: applied as the earlier decision moment in the `.opencode/package.json` installer-state bullet
+  ([`AGENTS.md`](../../AGENTS.md)), since the rule's own "before staging" deadline was later than the review read that
+  kept finding the rewrite.
 
 ### clarify-generalization-parked-match#4 — Rounds 2 and 3 were handed over inside the invocation, not recorded before it
 
@@ -66,6 +76,9 @@
 - **Knowledge boundary** — observed the missing pre-wait records. Did not check whether an earlier unit in this
   repository persisted only its first round's hand-over, so whether this is a recurrence is unestablished.
 
+- **Decision** — no-change: review-gate §2's preflight already requires the invocation's hand-over to be recorded before
+  the wait.
+
 ### clarify-generalization-parked-match#5 — `docs/ideas.md` was read from another unit's working tree, not the base revision
 
 - **Recorded** — 2026-10-28, main agent session, at review round 6.
@@ -81,6 +94,10 @@
   correction; the `tasks.md` note that claimed no cited artifact changed in the merge was corrected to state the shift.
 - **Knowledge boundary** — observed this file and its two revisions. Did not check whether any other artifact read
   during the premise investigation came from the primary's working tree rather than from the base.
+
+- **Decision** — no-change: the premise and base-anchoring rules already require a pre-change claim to be read at the
+  unit's base revision, never from another unit's working tree; this is the second occurrence the decided record
+  `separate-lesson-capture-from-implementation#3` withheld, and the covering rule still determines the action.
 
 ### clarify-generalization-parked-match#6 — A rule was cited from memory to justify a decision, against its own boundary text
 
@@ -100,6 +117,9 @@
 - **Knowledge boundary** — observed this decision. Did not check whether other rules invoked elsewhere in this unit's
   artifacts were quoted from memory rather than read.
 
+- **Decision** — no-change: the premise rule already requires reading the artifact a decision cites, and the
+  single-sourcing invariant states the imperative-versus-procedure boundary the decision misquoted.
+
 ### clarify-generalization-parked-match#7 — Round 8's ledger row was never appended
 
 - **Recorded** — 2026-10-28, main agent session, at review round 9.
@@ -115,6 +135,9 @@
   note was false for the interval between the two rounds.
 - **Knowledge boundary** — observed this omission. Did not check whether an earlier unit in this repository missed a row
   the same way, since the ledger's continuity check reports only the current boundary.
+
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-10-22 "reviewer wrapper" entry, whose
+  `Revisit when:` condition is not met.
 
 ### clarify-generalization-parked-match#8 — An invented session identifier was written into the change record
 
@@ -133,6 +156,9 @@
 - **Knowledge boundary** — observed this instance. Did not check whether an earlier unit's records carry an identifier
   no invocation returned.
 
+- **Decision** — no-change: the deep-review procedure requires each pass's session to be recorded from the invocation,
+  and the authored-claims evidence rule already requires a recorded identifier to be the one the invocation returned.
+
 ### clarify-generalization-parked-match#9 — An inline code span was authored across a line break, and the reflow left a whitespace run inside it
 
 - **Recorded** — 2026-10-28, main agent session, at quick-review round 12.
@@ -149,3 +175,6 @@
   the recorded text disagreed with its source.
 - **Knowledge boundary** — observed this instance. Did not sweep the unit's other artifacts for the same shape, and did
   not check whether the gate could detect a whitespace run inside a span.
+
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-10-25 and 2026-10-22 inline-code-span entries; the
+  formatting convention already forbids authoring a span across a line break.

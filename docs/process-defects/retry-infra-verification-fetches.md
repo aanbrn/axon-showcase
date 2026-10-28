@@ -17,6 +17,9 @@
 - **Knowledge boundary** — one case observed; why the round was skipped and whether it recurs are not established. The
   agent's reading of the review gate's §5 alone as permitting the request is its own account, not a proven diagnosis.
 
+- **Decision** — no-change: already parked — `docs/ideas.md` 2026-10-28 "Give the review gate's §5 a post-refresh return
+  branch", whose evidence is this record.
+
 ### retry-infra-verification-fetches#2 — A review round's ledger row was appended only after the next round's check failed
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e832e4043ffe6ADYTEa13DvV1s`), during the review stage.
@@ -32,3 +35,6 @@
   shipping, so the gap would have blocked the commit rather than reaching the repository.
 - **Knowledge boundary** — observed for this unit. `docs/process-defects/retry-chart-dependency-fetch.md#1` records the
   same class for the previous unit, so this is a recurrence; other units were not checked.
+
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-10-22 "reviewer wrapper" entry, whose
+  `Revisit when:` condition is not met.

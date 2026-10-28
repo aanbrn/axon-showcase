@@ -1570,10 +1570,12 @@ Key modules (libraries, not services):
   `.opencode/`, rewriting the tracked pin to the plugin version it installs, which need not equal its own `--version`
   (never "correct" the pin to match it). The rewrite is not cloud-only — any working tree whose session runs OpenCode
   can carry it silently, even while the unit edits this file for its `overrides` block — so diff the pin against `HEAD`
-  before staging and decide whether to keep or revert it, reading it as the startup install rather than a deliberate
-  dependency change (report PR #543 carried `1.18.34`→`1.19.0`). captured: capture-cloud-plugin-pin-bump (#545) The
-  plugin's exact pins keep `toml` (through `effect`) and `zod` below their patched releases, which the `overrides`
-  forces; `docs/ideas.md` carries their re-check. captured: override-opencode-plugin-transitives
+  before staging, and when the working tree carries the pin rewrite, resolve it before the next quick-review invocation
+  rather than leaving it undecided, reading it as the startup install rather than a deliberate dependency change (report
+  PR #543 carried `1.18.34`→`1.19.0`). captured: capture-cloud-plugin-pin-bump (#545) captured:
+  exempt-merge-commits-from-assignment captured: clarify-generalization-parked-match The plugin's exact pins keep `toml`
+  (through `effect`) and `zod` below their patched releases, which the `overrides` forces; `docs/ideas.md` carries their
+  re-check. captured: override-opencode-plugin-transitives
 
 - **`.opencode/.gitignore` keeps only `node_modules` and the lockfiles out of the repo.**
 

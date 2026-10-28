@@ -18,6 +18,10 @@
   checked, and the convention states the format step relative to reporting the unit done rather than relative to running
   the gate.
 
+- **Decision** — no-change: one gate run stopped at formatting the formatter would have settled; the formatting rule
+  requires the run before the unit is reported done but does not order it against a preliminary gate (the record's own
+  boundary says so), and one run of rework is below the materiality the promotion gate requires.
+
 ### retry-install-path-fetches#2 — A failed gate run's diagnostics were discarded before the run was repeated
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e832e4043ffe6ADYTEa13DvV1s`), during the implementation stage.
@@ -35,6 +39,9 @@
   does not decide whether this change caused it. The pull-request gate is the verification that remains.
 - **Knowledge boundary** — one case observed. The failure's cause was not investigated, and no attempt was made to
   reproduce it.
+
+- **Decision** — no-change: the evidence rule already requires a command's full output to be read and cited rather than
+  a `head`/`tail` slice, so a run whose output is needed must not be piped into one; one occurrence adds no obligation.
 
 ### retry-install-path-fetches#3 — A local merge of the base was refused for a change directory the base carried
 
@@ -61,3 +68,7 @@
   `none`, any path under `openspec/changes/` SHALL fail", so the refusal reproduces the specified behavior rather than a
   defect in it; whether a change-owning unit's merge behaves differently, and whether the refresh procedure intends the
   merge route for this unit shape, was not established.
+
+- **Decision** — no-change: the mechanism the record hit is gone — `exempt-merge-commits-from-assignment` (#728) exempts
+  a staged change path the commit's merge accounts for, merged about two and a half hours after this unit — and the
+  rebase route the unit used remains the documented one.

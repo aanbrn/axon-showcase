@@ -22,6 +22,9 @@ re-run owed again after the unit's last edit. Nothing else was broken.
 Knowledge boundary: observed from the round's run and this unit's own later run; no claim about whether other units
 carry the same stale tick.
 
+- **Decision** — no-change: the formatting rule already requires `spotlessApply` and `spotlessCheck` after the final
+  write and forbids the tick that claims a gate green as the last act.
+
 ### record-opencode-59531-closure#2 — The same gate-state claim recurred after its repair
 
 Recorded: 2026-10-28 by the unit's session.
@@ -45,3 +48,6 @@ Consequence: three further review rounds. Repaired by folding tasks 3.2 and 3.6�
 precedes the final formatting and readiness runs, with the task text stating why the note cannot claim those two.
 
 Knowledge boundary: recorded from the rounds' reports and the ledger; no cause is assigned here.
+
+- **Decision** — no-change: review-gate §1 already requires a self-record — a Done note or a claims row — to state a
+  relative result and the verification as of its own step, never a status its remaining steps move.

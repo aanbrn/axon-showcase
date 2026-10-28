@@ -18,6 +18,9 @@
 - **Knowledge boundary** — observed: the default subject and the misread output. Not checked: whether another scripted
   probe in this repository shares the same default.
 
+- **Decision** — no-change: the wrong-resolution-context rule already requires a reproduction to run from the context
+  that fails, and the script's default subject is part of that context.
+
 ### exempt-merge-commits-from-assignment#2 — The startup install's pin rewrite reached the review undecided
 
 - **Recorded** — 2026-10-28, by the implementing agent.
@@ -36,6 +39,9 @@
 - **Knowledge boundary** — observed: the file state and the round's finding. Not checked: whether the install rewrites
   the pin again the next time this worktree's session starts.
 
+- **Decision** — proposed: applied as the earlier decision moment in the `.opencode/package.json` installer-state bullet
+  ([`AGENTS.md`](../../AGENTS.md)), since the rewrite was already in the tree when round 1 read it.
+
 ### exempt-merge-commits-from-assignment#3 — A claims-table row asserted a grep's result without running it
 
 - **Recorded** — 2026-10-28, by the implementing agent.
@@ -52,3 +58,6 @@
   caller) was unaffected, and the review round was spent on the correction.
 - **Knowledge boundary** — observed: the clause, the command's output, and the finding. Not checked: whether any other
   row's negative clause is asserted rather than derived — the remaining rows' sources were re-run for this pass.
+
+- **Decision** — no-change: review-gate §1 and the evidence rule already require a claim to be derived from the named
+  command's output, re-run at the base revision.

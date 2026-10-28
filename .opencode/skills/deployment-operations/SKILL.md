@@ -179,14 +179,17 @@ half. Do not hard-code a machine-specific local context name (like `colima`) in 
 **Chart validation**: the chart is linted as part of packaging (`helmPackageMainChart` → `helmLintMainChart`), and
 `check` depends on that packaging — the members the `helm-chart` requirement names — so a chart that cannot bundle its
 declared dependency fails the pull request rather than only in the nightly deployment smoke's install. The Bitnami
-`common` dependency is fetched by the plugin's `helmUpdateMainChartDependencies` task — which its own docs equate with
-`helm dependency update` — and that task's `onlyIf` resolves false when the configuration cache stores its entry before
-the chart sources are collected, i.e. on clean checkouts and in CI, so `helm/chart/build.gradle.kts` replaces the gate
-with `setOnlyIf { true }`: without it nothing fetches on a clean checkout, the strict lint fails with "chart directory
-is missing these dependencies: common", and the deployment smoke fails at the install with "found in Chart.yaml, but
-missing in charts/ directory: common". Measured on one commit with only the cache toggled: the task reports SKIPPED with
-the cache on and fetches with `--no-configuration-cache`. The upstream gap is parked in `docs/ideas.md`. Lint runs
-strict (warnings are errors) and lints the Bitnami `common` subchart, rendering two extra value sets:
+`common` dependency is fetched by the repository's `FetchChartDependenciesTask`, registered as
+`fetchMainChartDependencies` in `helm/chart/build.gradle.kts`: it registers and refreshes the chart's repository and
+runs `helm dependency update`, retrying each network step a bounded number of times. The plugin's
+`helmUpdateMainChartDependencies` is a disabled bridge the packaging tasks still depend on, so its cache-dependent skip
+and the `setOnlyIf { true }` workaround it needed no longer apply; both are recorded in `docs/ideas.md`. When the
+dependency is missing, the strict lint reports "chart directory is missing these dependencies: common" and the install
+reports "found in Chart.yaml, but missing in charts/ directory: common". The chart module's packaging path registers and
+refreshes only the Bitnami repository — its sole dependency — while the root project's release-install path keeps every
+declared repository; the chart publication runs this same packaging, and `verifyInfraImageVersions` derives its
+repositories from the charts its checks name. The install path below still has no bounded retry and is retried by hand.
+Lint runs strict (warnings are errors) and lints the Bitnami `common` subchart, rendering two extra value sets:
 
 ```bash
 ./gradlew :helm:chart:helmLintMainChartFull :helm:chart:helmLintMainChartMinimal
@@ -464,12 +467,12 @@ datasources wired), since `verifyInfraImageVersions` covers only the bitnami inf
 
 - **The install path's chart-repository fetch has no bounded retry — retry a failed `helmInstall<Release>ToLocal` by
   hand instead of re-reading the pin.** Only the tasks built on `AbstractHelmRepositoriesTask` (`helmUpdates`,
-  `verifyInfraImageVersions`) retry the repository update; the install targets run the plugin's own
-  `HelmAddRepository`/`HelmUpdateRepositories`, whose sources carry no retry, so a transient fetch failure ends the
-  install before the chart resolves. Retry it, confirming first that the repository's `index.yaml` answers a `curl`,
-  rather than re-resolving or reverting the chart version: the retried install succeeded while `curl` reached the same
-  index, so the failure was a transient fetch rather than a version gap, and its cause stays unestablished. Making these
-  plugin tasks resilient is parked in `docs/ideas.md` (2026-10-17). captured: bump-kps-chart-2026-10-25
+  `verifyInfraImageVersions`, `fetchMainChartDependencies`) retry the repository update; the install targets run the
+  plugin's own `HelmAddRepository`/`HelmUpdateRepositories`, whose sources carry no retry, so a transient fetch failure
+  ends the install before the chart resolves. Retry it, confirming first that the repository's `index.yaml` answers a
+  `curl`, rather than re-resolving or reverting the chart version: the retried install succeeded while `curl` reached
+  the same index, so the failure was a transient fetch rather than a version gap, and its cause stays unestablished.
+  Making these plugin tasks resilient is parked in `docs/ideas.md` (2026-10-17). captured: bump-kps-chart-2026-10-25
 
 ## DB scripts
 

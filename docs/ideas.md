@@ -17,7 +17,43 @@ appending to the most recent one). Search the file for the idea before adding it
 differently worded — is extended in place in its existing section, since the day-section rule otherwise files a re-park
 as a second entry and splits one idea's detail across two sections.
 
+## 2026-10-28
+
+- Retry `verifyInfraImageVersions`'s `helm show values` fetches — parked; no change yet. The task retries its repository
+  add and update through `BoundedRetry`, but each `helm show values` call is a single fetch; a transient failure there
+  failed the Docker-free `check` once during `retry-chart-dependency-fetch`, while the same task passed alone minutes
+  later.
+
+- Evaluate Gradle's official `gradle-best-practices` skill against this build — parked; no change yet. `gradle-skills`
+  ships `gradle-wrapper-upgrade` and `gradle-best-practices`. `gradle-best-practices` audits a build against a bundled
+  copy of the official best practices, in an Audit mode that reports and an Apply mode that edits. Of the two skills,
+  only `gradle-best-practices` is in question here: `/gradle-update` with the `gradle-build` pack's wrapper rule already
+  carries the wrapper skill's two-`wrapper`-runs procedure. Its value here is unmeasured, and this build deliberately
+  diverges from generic advice in places that the audit may flag: upstream `gradle-helm-plugin` warnings left unfixed,
+  the custom test suites' re-declared dependencies, and the coverage gate's `-Pcoverage.gate.enabled=false`. Read a
+  published tag rather than the announcement: the announcement promised a fix for wording that could let an unattended
+  audit apply structural fixes, and at `gradle-best-practices-v1.0.1` an unattended run still applies structural fixes —
+  its "Never block on a question" rule has the run record the plan and then execute it, and its Audit mode applies fixes
+  without asking once no reply can come. Do not run the skill's Audit or Apply mode unattended. Vendoring is one option
+  rather than a requirement: it would make `gradle-best-practices` another vendored skill set, owing the provenance
+  record, the declaration sites the `Vendored agent skills` bullet and the `2026-10-22` single-sourcing entry own, and a
+  `MODIFIED` delta on `showcase/quality/agent-skills`, whose requirement names the vendored sets. Revisit when: a
+  published `gradle-best-practices` tag's `SKILL.md` leaves an unattended Audit run report-only — it applies no fixes,
+  structural or otherwise, and does not proceed past a confirmation it could not obtain (external coordinate — a
+  per-skill released tag such as `gradle-best-practices-v1.0.1`, not a default-branch commit; the skills carry their own
+  tags beside the repository's releases). Meeting it reopens the evaluation; it authorizes no run and no adoption.
+
+- Pin the wrapper's distribution checksum and give the bump a rollback — parked; no change yet. Gradle's
+  `gradle-wrapper-upgrade` reads the release's SHA-256 from `services.gradle.org` and restores the wrapper when the
+  build no longer configures. `/gradle-update` and the `gradle-build` pack's wrapper rule carry neither, as the pack
+  records; whether either is worth adopting here is unmeasured. Surfaced while scoping the entry above.
+
 ## 2026-10-27
+
+- Fix the gradle-helm-plugin's `failIfExists` repository-add option — reported upstream at
+  `build-extensions-oss/gradle-helm-plugin#238`; no change yet. The option emits `helm repo add --no-update`, and the
+  pinned Helm 4.3.1 rejects that flag (`unknown flag: --no-update`), so the option cannot work with the client the
+  plugin installs. The build does not set it.
 
 - Read a parked idea's own `Revisit when:` condition, not only whether its work landed — parked; no change yet.
   `architecture-auditor` classifies a `Revisit when:` condition for a deferred ADR, but for a `docs/ideas.md` entry it
@@ -612,26 +648,25 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   canonical boundary is in that list, so a genuinely new class is added to the contract before it is recorded. Routes to
   a `code-quality` requirement plus an `agent-skills` delta.
 
-- Make the chart-packaging gate's fetches resilient — parked; no change yet. `check` now runs the chart's packaging, so
-  the plugin's repository setup (`helmAdd*Repository`, `helmUpdateRepositories`) and its dependency fetch
-  (`helmUpdateMainChartDependencies`) run on every pull request. The gate-worthy-step rule wants such a fetch made
-  resilient with a bounded retry, but these are the plugin's own task types, so no repo-side wrapper can retry another
-  task's action; `verifyInfraImageVersions`'s `AbstractHelmRepositoriesTask` + `BoundedRetry` is the model for a
-  repo-authored fetch. Verify whether the plugin can configure a retry before acting — if it cannot, the gap is an
-  upstream report on `build-extensions-oss/gradle-helm-plugin` (its issues are enabled), and the remedy is a
-  repo-authored fetch task.
+- Replace the chart-packaging workaround with the plugin's own retried fetches — upstream reported; the workaround is in
+  place. The gate's repository setup and dependency fetch run through the repository's `FetchChartDependenciesTask`
+  (`helm/chart/build.gradle.kts`), which retries each network step a bounded number of times; the plugin's own
+  `HelmAddRepository`, `HelmUpdateRepositories` and `HelmUpdateDependencies` tasks have no retry and cannot be wrapped.
+  Reported upstream at `build-extensions-oss/gradle-helm-plugin#238`; retire the workaround when a plugin release
+  retries these fetches, and keep the install path's manual retry until then.
 
 ## 2026-10-16
 
-- Report the plugin's cache-dependent chart-dependency skip upstream — parked; no change yet. The
-  `helmUpdateMainChartDependencies` task (which the plugin's docs equate with `helm dependency update`) silently skips
-  when the **configuration cache** (#581) stores its entry before the chart sources are collected — a clean checkout or
-  CI: its `onlyIf` resolves false there, so nothing fetches the chart's external Bitnami `common` dependency,
-  `helm/chart`'s packaging produces a chart with no `charts/`, and both the strict lint and the deployed install fail.
-  Measured on one commit with only the cache toggled: SKIPPED with the cache on, fetches with
-  `--no-configuration-cache`. The repo's workaround is `setOnlyIf { true }` in `helm/chart/build.gradle.kts`;
-  `build-extensions-oss/gradle-helm-plugin` has issues enabled (`has_issues: true`, `has_discussions: false`), so a fix
-  belongs there as an issue or a pull request and would retire the workaround.
+- Report the plugin's cache-dependent chart-dependency skip upstream — the build no longer runs the task's fetch; the
+  report stays. The `helmUpdateMainChartDependencies` task (which the plugin's docs equate with
+  `helm dependency update`) silently skips when the **configuration cache** (#581) stores its entry before the chart
+  sources are collected — a clean checkout or CI: its `onlyIf` resolves false there, so nothing fetches the chart's
+  external Bitnami `common` dependency, `helm/chart`'s packaging produces a chart with no `charts/`, and both the strict
+  lint and the deployed install fail. The repository's `FetchChartDependenciesTask` replaced the task in the packaging
+  path, so the workaround below is moot here. Measured on one commit with only the cache toggled: SKIPPED with the cache
+  on, fetches with `--no-configuration-cache`. The workaround was `setOnlyIf { true }` in `helm/chart/build.gradle.kts`
+  and was removed when the task became a disabled bridge; `build-extensions-oss/gradle-helm-plugin` has issues enabled
+  (`has_issues: true`, `has_discussions: false`), so a fix belongs there as an issue or a pull request.
 
 ## 2026-10-15
 

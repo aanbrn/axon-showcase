@@ -65,10 +65,11 @@ as a second entry and splits one idea's detail across two sections.
 
 ## 2026-10-27
 
-- Fix the gradle-helm-plugin's `failIfExists` repository-add option — reported upstream at
-  `build-extensions-oss/gradle-helm-plugin#238`; no change yet. The option emits `helm repo add --no-update`, and the
-  pinned Helm 4.3.1 rejects that flag (`unknown flag: --no-update`), so the option cannot work with the client the
-  plugin installs. The build does not set it.
+- Fix the gradle-helm-plugin's `failIfExists` repository-add option — parked; reported upstream at
+  `build-extensions-oss/gradle-helm-plugin#238`, open as `build-extensions-oss/gradle-helm-plugin#241`; not yet merged.
+  The option emits `helm repo add --no-update`; the pinned Helm 4.3.1 rejects that flag (`unknown flag: --no-update`),
+  and Helm 3 declares it `Ignored.`, so the option cannot work with any client the plugin supports. The proposal reads
+  the registered repositories and fails the task instead. The build does not set the option.
 
 - Read a parked idea's own `Revisit when:` condition, not only whether its work landed — parked; no change yet.
   `architecture-auditor` classifies a `Revisit when:` condition for a deferred ADR, but for a `docs/ideas.md` entry it
@@ -664,12 +665,15 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   a `code-quality` requirement plus an `agent-skills` delta.
 
 - Replace the chart-packaging and install-path workarounds with the plugin's own retried fetches — parked; both
-  workarounds are in place and the plugin-side gap is reported upstream. The gate's repository setup and dependency
-  fetch run through the repository's `FetchChartDependenciesTask` (`helm/chart/build.gradle.kts`) and the
-  release-install path's through the root `UpdateHelmRepositoriesTask`, each retrying its network steps a bounded number
-  of times; the plugin's own `HelmAddRepository`, `HelmUpdateRepositories` and `HelmUpdateDependencies` tasks have no
-  retry and cannot be wrapped. Reported upstream at `build-extensions-oss/gradle-helm-plugin#238`; retire both
-  workarounds when a plugin release retries these fetches.
+  workarounds are in place and the retry is open upstream as `build-extensions-oss/gradle-helm-plugin#240`; not yet
+  merged. The gate's repository setup and dependency fetch run through the repository's `FetchChartDependenciesTask`
+  (`helm/chart/build.gradle.kts`) and the release-install path's through the root `UpdateHelmRepositoriesTask`, each
+  retrying its network steps a bounded number of times; the plugin's own `HelmAddRepository`, `HelmUpdateRepositories`
+  and `HelmUpdateDependencies` tasks have no retry and cannot be wrapped. The proposal covers the three fetch tasks and
+  a `repo update` timeout, and it follows issue `build-extensions-oss/gradle-helm-plugin#238`. Retire the install-path
+  workaround when a plugin release carries the retry and this build turns it on (`attempts`), since the proposal
+  defaults to one attempt; retire the chart-packaging workaround on such a release only once the plugin's dependency
+  task also stops skipping under the configuration cache (the 2026-10-16 entry).
 
 ## 2026-10-16
 

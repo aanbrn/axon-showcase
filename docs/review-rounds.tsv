@@ -1629,3 +1629,5 @@
 2026-10-28	add-flag-process-defect-command	21	-	-	0	ses_e7f7ecda1ffe60VGTJ7NLKCcmn	continued	-
 2026-10-28	add-flag-process-defect-command	22	missing-task	missing-task	1	ses_e7f7ecda1ffe60VGTJ7NLKCcmn	continued	-
 2026-10-28	add-flag-process-defect-command	23	-	-	0	ses_e7f7ecda1ffe60VGTJ7NLKCcmn	continued	-
+2026-10-28	link-upstream-238-prs	1	incomplete-enumeration,missing-task,dropped-content,claim-missing	-	3	ses_e7e850c8effeB6haluqUz5PGv5	created	-
+2026-10-28	link-upstream-238-prs	2	-	-	0	ses_e7e850c8effeB6haluqUz5PGv5	continued	-

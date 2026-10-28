@@ -1583,3 +1583,13 @@
 2026-10-28	clarify-generalization-parked-match	11	contradiction	contradiction	1	ses_e7fb3f631ffek8w6mfO49bd8Rs	continued	-
 2026-10-28	clarify-generalization-parked-match	12	-	-	0	ses_e7fb3f631ffek8w6mfO49bd8Rs	continued	-
 2026-10-28	clarify-generalization-parked-match	13	-	-	0	ses_e7fb3f631ffek8w6mfO49bd8Rs	continued	-
+2026-10-28	fail-closed-commit-hygiene-reads	1	contradiction,claim-unreproducible,test-control,docs-residue,over-claim,missing-task	-	6	ses_e7fd684f1ffenPkBVR8Z6d0XHL	created	-
+2026-10-28	fail-closed-commit-hygiene-reads	2	test-control,claim-unreproducible,coherence,formatting	claim-unreproducible,test-control	5	ses_e7fd684f1ffenPkBVR8Z6d0XHL	continued	-
+2026-10-28	fail-closed-commit-hygiene-reads	3	-	-	0	ses_e7fd684f1ffenPkBVR8Z6d0XHL	continued	-
+2026-10-28	fail-closed-commit-hygiene-reads	4	contradiction,test-control	contradiction,test-control	3	ses_e7fd684f1ffenPkBVR8Z6d0XHL	continued	-
+2026-10-28	fail-closed-commit-hygiene-reads	5	claim-unreproducible	claim-unreproducible	1	ses_e7fd684f1ffenPkBVR8Z6d0XHL	continued	-
+2026-10-28	fail-closed-commit-hygiene-reads	6	-	-	0	ses_e7fd684f1ffenPkBVR8Z6d0XHL	continued	-
+2026-10-28	fail-closed-commit-hygiene-reads	7	contradiction,claim-unreproducible,docs-residue	contradiction,claim-unreproducible,docs-residue	3	ses_e7fd684f1ffenPkBVR8Z6d0XHL	continued	-
+2026-10-28	fail-closed-commit-hygiene-reads	8	contradiction,wording	contradiction	1	ses_e7fd684f1ffenPkBVR8Z6d0XHL	continued	-
+2026-10-28	fail-closed-commit-hygiene-reads	9	wording	wording	0	ses_e7fd684f1ffenPkBVR8Z6d0XHL	continued	-
+2026-10-28	fail-closed-commit-hygiene-reads	10	-	-	0	ses_e7fd684f1ffenPkBVR8Z6d0XHL	continued	-

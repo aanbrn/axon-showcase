@@ -2533,7 +2533,8 @@ convention stated once in `AGENTS.md`'s "Conventions" section.
 The repository SHALL separate recording a unit's process defects from generalizing them: the unit's session records what
 it observes, and analysis, improvement design, and implementation happen in a separate unit that the owner triggers. The
 unit's own review SHALL gate the record's currency, not the analysis, and the generalizing unit SHALL keep the analysis
-contract this requirement carries in full.
+contract this requirement carries in full. An owner-reported defect SHALL be verified against the episode's evidence
+before recording.
 
 #### Scenario: A unit records the process defects it observes
 
@@ -2681,3 +2682,23 @@ contract this requirement carries in full.
 - **AND** the assignment grants no approval, self-review, or merge authority, and the owner remains the approver
 - **AND** `AGENTS.md` names the owner as the default generalizer, and a unit's tasking names any other assignee rather
   than a standing registry of roles
+
+#### Scenario: An owner-reported defect is verified before it is recorded
+
+- **WHEN** the owner reports a process defect the unit's session did not notice
+- **THEN** the `/flag-process-defect` command resolves the episode the report points at — the named one, or the nearest
+  action in the current context
+- **AND** it asks one clarifying question rather than guessing when that episode is ambiguous
+- **AND** it compares the action the rule or plan in force at the episode required against the sequence of events that
+  actually occurred, within that episode and its immediate sources, and does not keep searching until a violation
+  appears
+- **AND** it reports exactly one outcome: confirmed, refuted by the available evidence, or not establishable from it
+- **AND** a confirmed outcome appends a record that names the owner's report as the signal, states as the observed
+  action the one established rather than the owner's interpretation, and cites the verified fragment as its evidence
+- **AND** the record is appended to the file of the unit the episode belongs to, not to whichever unit the session is
+  working in
+- **AND** an episode that file already records is extended rather than recorded a second time
+- **AND** a refuted outcome names the specific grounding for the refusal and writes no record
+- **AND** an unestablished outcome names what was checked and which fragment is missing, and asserts neither the defect
+  nor its absence
+- **AND** the record carries no `Decision` line

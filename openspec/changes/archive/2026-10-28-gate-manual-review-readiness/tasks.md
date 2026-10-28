@@ -35,9 +35,9 @@ writer=ses_e804f4f1bffecIPYa7PieI2YY1
       change. Verify: the decision names each file and its reason; no file is edited on a hunch. Done: no edit owed —
       `AGENTS.md`'s branch-refresh rule keeps its wording, the README lists the pre-commit guard and the `check` tasks
       (this mode joins neither), and no ADR describes the boundary.
-- [ ] 1.9 Record the `showcase/quality/commit-hygiene` `## Purpose` refresh as owed by the archive commit, since a delta
+- [x] 1.9 Record the `showcase/quality/commit-hygiene` `## Purpose` refresh as owed by the archive commit, since a delta
       cannot carry it: the check enumeration gains this mode and the boundary-asserted clause gains its member. Verify:
-      the archive commit's `git diff` shows the Purpose edit, or the report states why none was owed.
+      the archive commit's `git diff` shows the Purpose edit, or the report states why none was owed. Done: applied in this archive commit, with this tick.
 
 ## 2. Verification
 

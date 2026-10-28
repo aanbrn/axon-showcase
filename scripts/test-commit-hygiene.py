@@ -747,6 +747,34 @@ class LargeFileTests(unittest.TestCase):
 
         self.assertEqual([], commit_hygiene.find_oversized_files(repo, 4096))
 
+    def test_a_tracked_file_absent_from_the_worktree_is_measured_from_the_index(self):
+        repo = self._repo_with_limit(4096)
+        self._commit(repo, "big.bin", 5000)
+        (repo / "big.bin").unlink()
+
+        self.assertEqual([("big.bin", 5000)], commit_hygiene.find_oversized_files(repo, 4096))
+
+    def test_an_unmeasurable_tracked_file_fails_rather_than_being_skipped(self):
+        repo = self._repo_with_limit(4096)
+        (repo / "loop").symlink_to("loop")
+        subprocess.run(("git", "add", "loop"), cwd=repo, check=True)
+
+        with self.assertRaises(commit_hygiene.FileFailure):
+            commit_hygiene.find_oversized_files(repo, 4096)
+
+    def test_the_large_files_mode_reports_an_unmeasurable_file(self):
+        repo = self._repo_with_limit(4096)
+        (repo / "loop").symlink_to("loop")
+        subprocess.run(("git", "add", "loop"), cwd=repo, check=True)
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--large-files", "--repo", str(repo)])
+
+        self.assertEqual(1, code)
+        self.assertIn("The check could not run", stderr.getvalue())
+        self.assertIn("loop", stderr.getvalue())
+
     def test_large_files_mode_reports_the_offender(self):
         repo = self._repo_with_limit(4096)
         self._commit(repo, "big.bin", 5000)
@@ -1360,6 +1388,140 @@ class ReviewReadyTests(unittest.TestCase):
 
         self.assertEqual(1, code)
         self.assertIn("--base needs --review-ready", stderr.getvalue())
+
+
+class FailedReadTests(unittest.TestCase):
+    @staticmethod
+    def _break_index(repo: Path) -> None:
+        relative = subprocess.run(
+            ("git", "rev-parse", "--git-path", "index"), cwd=repo, capture_output=True, text=True, check=True
+        ).stdout.strip()
+        index = Path(relative)
+        (index if index.is_absolute() else repo / index).write_text("garbage\n", encoding="utf-8")
+
+    @staticmethod
+    def _write_large_files_config(repo: Path) -> None:
+        config = repo / "config" / "commit-hygiene" / "large-files.properties"
+        config.parent.mkdir(parents=True, exist_ok=True)
+        config.write_text("maxBytes=1000\n", encoding="utf-8")
+
+    @staticmethod
+    def _run(argv: list[str]):
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(argv)
+        return code, stderr.getvalue()
+
+    def test_each_modes_failing_read_is_reported_rather_than_read_clean(self):
+        for mode, command in (
+            ("--staged", "git diff"),
+            ("--tracked-ignored", "git ls-files"),
+            ("--executable-bits", "git ls-files"),
+            ("--large-files", "git ls-files"),
+            ("--conflict-markers", "git grep"),
+        ):
+            with self.subTest(mode=mode):
+                repo = make_repo(self)
+                self._write_large_files_config(repo)
+                self._break_index(repo)
+
+                code, stderr = self._run([mode, "--repo", str(repo), "--formatter", "true"])
+
+                self.assertEqual(1, code)
+                self.assertIn("The check could not run", stderr)
+                self.assertIn(command, stderr)
+
+    def test_each_converted_read_reports_its_own_failure(self):
+        reads = (
+            ("staged_paths", "--diff-filter=ACMR", commit_hygiene.staged_paths),
+            ("find_staged_then_edited", "status --porcelain -z", commit_hygiene.find_staged_then_edited),
+            ("find_tracked_ignored", "ls-files --cached --ignored", commit_hygiene.find_tracked_ignored),
+            ("find_non_executable_scripts", "ls-files -s -z", commit_hygiene.find_non_executable_scripts),
+            ("tracked_paths", "ls-files -z", commit_hygiene.tracked_paths),
+            ("find_conflict_markers", "git grep failed", commit_hygiene.find_conflict_markers),
+            ("modified_spec_paths", "diff --name-only -z -- openspec/specs/", commit_hygiene.modified_spec_paths),
+            ("untracked_spec_paths", "ls-files --others", commit_hygiene.untracked_spec_paths),
+            ("rename_sources", "--diff-filter=R", commit_hygiene.rename_sources),
+            ("staged_change_paths", "--diff-filter=D", commit_hygiene.staged_change_paths),
+        )
+        for name, command, read in reads:
+            with self.subTest(read=name):
+                repo = make_repo(self)
+                self._break_index(repo)
+
+                with self.assertRaises(commit_hygiene.GitFailure) as caught:
+                    read(repo)
+                self.assertIn(command, str(caught.exception))
+
+    def test_the_branch_read_names_an_unborn_head_and_answers_detached(self):
+        repo = make_repo(self)
+        expected = subprocess.run(
+            ("git", "symbolic-ref", "--short", "HEAD"), cwd=repo, capture_output=True, text=True, check=True
+        ).stdout.strip()
+        self.assertEqual(expected, commit_hygiene.current_branch(repo), "an unborn HEAD names its branch")
+
+        (repo / "a.txt").write_text("one\n", encoding="utf-8")
+        subprocess.run(("git", "add", "a.txt"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "base"), cwd=repo, check=True)
+        subprocess.run(("git", "checkout", "-q", "--detach"), cwd=repo, check=True)
+        self.assertEqual("", commit_hygiene.current_branch(repo))
+
+    def test_the_branch_read_raises_on_an_unreadable_head(self):
+        repo = make_repo(self)
+        head = subprocess.run(
+            ("git", "rev-parse", "--git-path", "HEAD"), cwd=repo, capture_output=True, text=True, check=True
+        ).stdout.strip()
+        path = Path(head)
+        (path if path.is_absolute() else repo / path).write_text("garbage\n", encoding="utf-8")
+
+        with self.assertRaises(commit_hygiene.GitFailure):
+            commit_hygiene.current_branch(repo)
+
+    def test_a_detached_head_assigns_by_claim_rather_than_failing(self):
+        repo = make_repo(self)
+        (repo / "a.txt").write_text("one\n", encoding="utf-8")
+        subprocess.run(("git", "add", "a.txt"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "base"), cwd=repo, check=True)
+        subprocess.run(("git", "checkout", "-q", "--detach"), cwd=repo, check=True)
+
+        code, stderr = self._run(["--staged", "--repo", str(repo), "--formatter", "true"])
+
+        self.assertEqual(0, code, stderr)
+
+    def test_the_assignment_read_fails_rather_than_approving_the_commit(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+
+        code, stderr = self._run(["--staged", "--repo", str(directory.name), "--formatter", "true"])
+
+        self.assertEqual(1, code)
+        self.assertIn("The check could not run", stderr)
+        self.assertIn("git rev-parse", stderr)
+
+    def test_a_grep_with_no_match_stays_an_answer(self):
+        repo = make_repo(self)
+        (repo / "clean.txt").write_text("no marker here\n", encoding="utf-8")
+        subprocess.run(("git", "add", "clean.txt"), cwd=repo, check=True)
+
+        code, stderr = self._run(["--conflict-markers", "--repo", str(repo)])
+
+        self.assertEqual(0, code, stderr)
+
+    def test_a_failed_command_raises_rather_than_returning_empty_output(self):
+        repo = make_repo(self)
+        self._break_index(repo)
+
+        with self.assertRaises(commit_hygiene.GitFailure):
+            commit_hygiene.git_output(repo, "status", "--porcelain")
+
+    def test_the_staged_content_read_reports_a_failed_read(self):
+        repo = make_repo(self)
+        (repo / "a.txt").write_text("one\n", encoding="utf-8")
+        subprocess.run(("git", "add", "a.txt"), cwd=repo, check=True)
+
+        self.assertEqual("one\n", commit_hygiene.staged_file_text(repo, "a.txt"))
+        with self.assertRaises(commit_hygiene.GitFailure):
+            commit_hygiene.staged_file_text(repo, "missing.txt")
 
 
 class CliTests(unittest.TestCase):

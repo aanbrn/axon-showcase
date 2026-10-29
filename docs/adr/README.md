@@ -4,6 +4,18 @@ This directory records the project's architecture decisions as lightweight, numb
 capture the **context, decision, and consequences** behind cross-cutting choices — the _why_ that specs and code do not
 express. OpenSpec specs capture what the system does; ADRs capture why it is shaped that way.
 
+## An ADR or a dated decision record
+
+|            | An ADR                                                                                                                                                                                  | A dated record under `docs/decisions/`                                                      |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| What it is | a numbered, standing decision on how the project is built, supplied, or worked on — later work cites it as the rule                                                                     | a bounded exploration whose verdict later work cites as evidence; it binds no standing rule |
+| Shape      | numbered `NNNN-kebab-case-title.md`; its Decision is not rewritten — a falsified Context or Consequences statement takes a dated `## Amendment`, and a superseded Decision is a new ADR | date-named, and it states its own reopening condition                                       |
+| Read again | the `architecture-auditor` holds its `Revisit when:` condition against the repository                                                                                                   | the owner, when a later attempt reopens the question                                        |
+
+`docs/ideas.md`'s removal rule owns where a decided-against idea's durable lesson goes; this section decides only which
+shape a settled decision takes. `docs/decisions/2026-10-29-inline-span-whitespace.md` is the worked example: a proposed
+gate was rejected after a probe, so the record carries the probe and the verdict, and nothing cites it as a rule.
+
 ## Naming
 
 Numbered files: `NNNN-kebab-case-title.md`. Never renumber; a superseding ADR points at the one it replaces.

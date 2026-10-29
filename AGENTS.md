@@ -1048,26 +1048,29 @@ Key modules (libraries, not services):
 
 - **Architecture Decision Records**: record cross-cutting decisions as numbered ADRs (architecture and supply-chain
   alike, such as a build's third-party artifact source) under `docs/adr/` (Nygard format —
-  Status/Context/Decision/Consequences). OpenSpec captures behavior and change plans; ADRs capture the _why_ behind
-  structural choices. Capture a decision as an ADR when it is made, not after the fact. A decision that only surfaces
-  after the fact (an auditor or review finds it unrecorded) is dated to the day the decision was made — derived from git
-  history (the shipping commit), never from the record's own `Date:` field or a reviewing audit's suggested date, which
-  transpose a retrospective record's shipped, recorded, and amended dates — with a Context line stating it was recorded
-  retrospectively and when; if the decision predates the ADR practice and no date can be established, date the recording
-  and say so (the first architecture audit produced two such ADRs, dated the two ways). A retrospective ADR (or the note
-  for any other unrecorded cross-cutting declaration whose rationale the repository does not state) that cannot state
-  _why_ the decision was made should ask the project owner before recording the rationale as unrecorded — the
-  repository's silence is not evidence the rationale does not exist, and a missing _why_ is a question for the human,
-  not a permanent gap to write down (ADR-0009 declared its no-Axon-Server rationale "not recorded anywhere in the
-  repository" until asking the owner recovered it: avoiding Axon Server's commercial licensing). captured:
-  apply-2026-09-28-audit-docs-findings captured: remove-unrecorded-redgate-repository A deferral's `Revisit when:` gate
-  names each clause's artifact at that artifact's **current** coordinate and labels its type (external coordinate vs
-  internal trigger); states the qualifier that narrows the condition in the gate's own line (a _maintained_ release, not
-  any); and a compound gate states its clauses' relation — a conjunction, met only when every clause is, or a
-  disjunction, any one of which reopens the decision — so a check reads that relation literally and names the clauses
-  still open. A check reads the gate literally: a renamed coordinate (`axon-bom` → `axon-framework-bom`) resolves to a
-  frozen artifact that never fires, and an implicit qualifier reads as met by a release the owner's intent excludes.
-  captured: correct-adr-0011-axon5-gate captured: correct-adr-0017-spring-grpc-gate captured: probe-write-exclusivity
+  Status/Context/Decision/Consequences). A bounded exploration whose verdict later work cites as evidence binds no
+  standing rule, so a probe's verdict or a rejected approach with its evidence is a dated record under `docs/decisions/`
+  instead; `docs/adr/README.md` states the boundary. OpenSpec captures behavior and change plans; ADRs capture the _why_
+  behind structural choices. Capture a decision as an ADR when it is made, not after the fact. A decision that only
+  surfaces after the fact (an auditor or review finds it unrecorded) is dated to the day the decision was made — derived
+  from git history (the shipping commit), never from the record's own `Date:` field or a reviewing audit's suggested
+  date, which transpose a retrospective record's shipped, recorded, and amended dates — with a Context line stating it
+  was recorded retrospectively and when; if the decision predates the ADR practice and no date can be established, date
+  the recording and say so (the first architecture audit produced two such ADRs, dated the two ways). A retrospective
+  ADR (or the note for any other unrecorded cross-cutting declaration whose rationale the repository does not state)
+  that cannot state _why_ the decision was made should ask the project owner before recording the rationale as
+  unrecorded — the repository's silence is not evidence the rationale does not exist, and a missing _why_ is a question
+  for the human, not a permanent gap to write down (ADR-0009 declared its no-Axon-Server rationale "not recorded
+  anywhere in the repository" until asking the owner recovered it: avoiding Axon Server's commercial licensing).
+  captured: apply-2026-09-28-audit-docs-findings captured: remove-unrecorded-redgate-repository A deferral's
+  `Revisit when:` gate names each clause's artifact at that artifact's **current** coordinate and labels its type
+  (external coordinate vs internal trigger); states the qualifier that narrows the condition in the gate's own line (a
+  _maintained_ release, not any); and a compound gate states its clauses' relation — a conjunction, met only when every
+  clause is, or a disjunction, any one of which reopens the decision — so a check reads that relation literally and
+  names the clauses still open. A check reads the gate literally: a renamed coordinate (`axon-bom` →
+  `axon-framework-bom`) resolves to a frozen artifact that never fires, and an implicit qualifier reads as met by a
+  release the owner's intent excludes. captured: correct-adr-0011-axon5-gate captured: correct-adr-0017-spring-grpc-gate
+  captured: probe-write-exclusivity
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md`, `README.md`, and `docs/adr/` need to be
   refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
   a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on

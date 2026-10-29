@@ -724,8 +724,8 @@ docker pull ghcr.io/aanbrn/axon-showcase-api-gateway:<version>
 ```
 
 The five repositories are
-`ghcr.io/aanbrn/axon-showcase-{command-service,api-gateway,query-service,projection-service,web-ui}`, and each is a
-`linux/amd64` image. The packages are public and can be pulled anonymously: a package published by this repository's
+`ghcr.io/aanbrn/axon-showcase-{command-service,api-gateway,query-service,projection-service,web-ui}`, and each publishes
+a `linux/amd64` image. The packages are public and can be pulled anonymously: a package published by this repository's
 workflow inherits the repository's visibility (still a per-package setting, so verify after a first publish). A release
 that predates the publishing workflow (e.g. `v0.1.0`) can be backfilled by dispatching the workflow with `publish_tag`.
 This path pulls a released build; the local cluster above keeps building the images from source.
@@ -1115,20 +1115,21 @@ derived knee — the measured knee, or the ceiling when none was measured — ag
 to `smoke`, and a `PROFILE` run's own Gatling report lands under `load-tests/build/reports/gatling/`. The below-knee
 profiles assert thresholds **derived from the last recorded baseline** — `max(floor, factor × baseline)` per request —
 so a fast host's regression is caught instead of hiding under fixed absolutes, and a reference recorded for another
-target is ignored in favour of them. A run writes its own reference — the operating point it ran at plus the per-request
-figures (`baseline.properties`, or `baseline-<slug>.properties` for another target; `-PbaselineFile` selects it) — and a
-ready-to-annotate record under `docs/load-tests/`, for the operator to annotate and commit. So that a slow-but-passing
-plateau cannot quietly become the new normal, a baseline run first compares its plateau's per-request mean and 95th/99th
-percentiles against the recorded reference — the comparison is made only when the reference's target matches and the
-measured operating point is within a tenth of the reference's, so a plateau run at a different load is not misread as a
-regression — and reports every delta. A mean or 95th-percentile figure beyond `TOLERANCE` (a percent, default 50) fails
-the run and leaves the reference unchanged, while a 99th-percentile excursion withholds it without failing and asks for
-a re-run at the same operating point to confirm it — set `REFRESH_BASELINE=1` to accept either deliberately — while a
-measurement that recorded no figures is withheld even when refreshed, and the dated record is written either way, so the
-movement stays visible. `./gradlew :load-tests:baselineTrend` reads those records back (`-Precords=<dir>` overrides the
-default `docs/load-tests/`) and prints them as a chronological series: each record's date, target, operating point, and
-plateau figures, reporting a record it cannot read as unreadable rather than failing. The calibration deliberately ramps
-past the knee and the resource sampling follows the current kube context, so point it at an environment you own.
+target is ignored, so the profiles fall back to those fixed absolutes. A run writes its own reference — the operating
+point it ran at plus the per-request figures (`baseline.properties`, or `baseline-<slug>.properties` for another target;
+`-PbaselineFile` selects it) — and a ready-to-annotate record under `docs/load-tests/`, for the operator to annotate and
+commit. So that a slow-but-passing plateau cannot quietly become the new normal, a baseline run first compares its
+plateau's per-request mean and 95th/99th percentiles against the recorded reference — the comparison is made only when
+the reference's target matches and the measured operating point is within a tenth of the reference's, so a plateau run
+at a different load is not misread as a regression — and reports every delta. A mean or 95th-percentile figure beyond
+`TOLERANCE` (a percent, default 50) fails the run and leaves the reference unchanged, while a 99th-percentile excursion
+withholds it without failing and asks for a re-run at the same operating point to confirm it — set `REFRESH_BASELINE=1`
+to accept either deliberately — while a measurement that recorded no figures fails the run and leaves the reference
+unchanged even when a refresh is intended, and the dated record is written either way, so the movement stays visible.
+`./gradlew :load-tests:baselineTrend` reads those records back (`-Precords=<dir>` overrides the default
+`docs/load-tests/`) and prints them as a chronological series: each record's date, target, operating point, and plateau
+figures, reporting a record it cannot read as unreadable rather than failing. The calibration deliberately ramps past
+the knee and the resource sampling follows the current kube context, so point it at an environment you own.
 
 ### Observability
 

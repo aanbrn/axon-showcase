@@ -1678,3 +1678,6 @@
 2026-10-29	guard-the-ledger-at-commit	9	-	-	0	ses_e7cdd3ddaffeXpJWljm4VbGFIP	continued	-
 2026-10-29	proofread-readme-language	1	-	-	0	ses_e7b6bd092ffeAGVZvEFQcG6Q4O	created	-
 2026-10-29	proofread-readme-language	2	-	-	0	ses_e7b6bd092ffeAGVZvEFQcG6Q4O	continued	-
+2026-10-29	correct-readme-mechanism-claims	1	missing-task	-	1	ses_e7b2e1f96ffeY6uCOUbrISRZ1Z	created	-
+2026-10-29	correct-readme-mechanism-claims	2	contradiction	-	1	ses_e7b2e1f96ffeY6uCOUbrISRZ1Z	continued	-
+2026-10-29	correct-readme-mechanism-claims	3	-	-	0	ses_e7b2e1f96ffeY6uCOUbrISRZ1Z	continued	-

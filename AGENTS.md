@@ -1386,13 +1386,14 @@ Key modules (libraries, not services):
   user's decision first. The scheduled variant runs unattended in the `audit` workflow.
 - **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
   (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
-  guide, whose content no gate checks — on three axes: accuracy against the repository, design-intent fidelity (the
-  README convention), and coverage of every human-visible capability (the axes and the report contract are in the
-  `agent-skills` spec; a clean audit is a valid one-line result). Its scope is `README.md` only — the other documents
-  have their own owners — and it is justified as a distinct artifact and audience (humans, not agents). Trigger it with
-  the `/audit-readme` command. It is the one audit **not** in the scheduled `audit` workflow — deliberately, since the
-  schedule counters the accretion the capture loop produces while the README audit verifies a human-facing document
-  against the repository.
+  guide, whose content no gate checks — on four axes: accuracy against the repository, design-intent fidelity (the
+  README convention), grammatical correctness of its prose (a provable error is a finding, a preference advisory), and
+  coverage of every human-visible capability (the axes, the finding/advisory boundary, and the report contract are in
+  the `agent-skills` spec; a clean audit is a valid one-line result). Its scope is `README.md` only — the other
+  documents have their own owners — and it is justified as a distinct artifact and audience (humans, not agents).
+  Trigger it with the `/audit-readme` command. It is the one audit **not** in the scheduled `audit` workflow —
+  deliberately, since the schedule counters the accretion the capture loop produces while the README audit verifies a
+  human-facing document against the repository.
 - **Justify a new auditor by a distinct artifact/property, not by symmetry — widen an existing one when its artifacts
   are coupled.** A new auditor earns its place only when its artifact or property has drift no existing auditor can see;
   if the drift is visible only across artifacts an existing auditor already holds, widen that auditor instead:

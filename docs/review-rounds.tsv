@@ -1798,3 +1798,6 @@
 2026-10-30	state-the-adr-decision-boundary	3	coherence	coherence	0	ses_e760a602fffeH8uHMELRKAZFfG	continued	-
 2026-10-30	state-the-adr-decision-boundary	4	staging	-	1	ses_e760a602fffeH8uHMELRKAZFfG	continued	-
 2026-10-30	state-the-adr-decision-boundary	5	-	-	0	ses_e760a602fffeH8uHMELRKAZFfG	continued	-
+2026-10-30	advance-the-ideas-cleanup-cursor	1	missing-task	-	1	ses_e75f686a9ffe7Hfw1mH7R9UM3g	created	-
+2026-10-30	advance-the-ideas-cleanup-cursor	2	coherence,claim-unreproducible	-	2	ses_e75f686a9ffe7Hfw1mH7R9UM3g	continued	-
+2026-10-30	advance-the-ideas-cleanup-cursor	3	-	-	0	ses_e75f686a9ffe7Hfw1mH7R9UM3g	continued	-

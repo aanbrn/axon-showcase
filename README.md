@@ -16,6 +16,12 @@ due. The pipeline reads those rules on the next change (see [The Self-Learning L
 even bootstrap its own tooling — ask it to set up the MCP servers and it detects, wires, and installs what it can for
 you (see [Tooling MCP Servers](#tooling-mcp-servers)).
 
+It is a **reference application**, not a supported product: there is no security team and no response-time commitment
+([SECURITY.md](SECURITY.md)), the gateway accepts unauthenticated requests by design, and the projection is best-effort
+at its edges — a terminal item failure loses the fields that event carried
+([ADR-0022](docs/adr/0022-projection-failure-policy.md)). Treat the design as something to learn from and copy, and
+bring your own authentication, secrets, and failure handling before running it for anyone else.
+
 It is also a personal vehicle for learning agentic development: the process is as much the point as the product.
 
 ## Project Structure
@@ -208,6 +214,17 @@ flowchart TB
 A scheduled showcase flows through the whole pipeline: the command service stores the event and publishes it, the
 projection service builds the read model, the query service serves it, and the gateway streams the event live to any
 subscribed browser — all from one `POST /showcases`.
+
+The command's answer is not the read model's. A successful `POST /showcases` returns `201 Created` once command handling
+completes; it does not wait for the read model to catch up, which the projection service builds from Kafka afterwards.
+The UI leans on the difference: the live timeline appends each event the SSE stream delivers, while the list makes
+bounded refetch attempts to observe their effects — so a read can briefly return the previous state, and an event can
+appear in the timeline before the list catches up. Historical markers (scheduled, started, finished) come from the read
+model, not from the event store.
+
+The local stack's defaults are demonstration defaults: Compose runs with built-in credentials and with OpenSearch
+security disabled. Replace both before exposing the stack to anyone else, and add authentication to the gateway intake
+the intro describes.
 
 ## Technologies
 
@@ -623,6 +640,14 @@ removed.
 
 ## Getting Started
 
+Three ways in, depending on what you want:
+
+- **See it run** — [Run the Stack with Docker](#run-the-stack-with-docker) starts the whole system with one command, and
+  is where most readers should start.
+- **Study the design** — [The Cool Story](#the-cool-story) and [Architecture](#architecture) need nothing installed.
+- **Follow the process** — [Development Workflow](#development-workflow) explains how a change is proposed, reviewed,
+  and archived; OpenCode is optional for the application itself.
+
 ### Prerequisites
 
 Most verification runs entirely in the Gradle build, so the tool list is small. Gradle itself is not on it — the wrapper
@@ -728,7 +753,10 @@ The five repositories are
 a `linux/amd64` image. The packages are public and can be pulled anonymously: a package published by this repository's
 workflow inherits the repository's visibility (still a per-package setting, so verify after a first publish). A release
 that predates the publishing workflow (e.g. `v0.1.0`) can be backfilled by dispatching the workflow with `publish_tag`.
-This path pulls a released build; the local cluster above keeps building the images from source.
+These are the artifacts the published chart deploys, and
+[Install from the Published Chart](#install-from-the-published-chart) is the only path that starts them. Both
+source-building paths — [Run the Stack with Docker](#run-the-stack-with-docker) and
+[Kubernetes Deployment](#kubernetes-deployment) — build the same images from your working tree instead.
 
 ### Install from the Published Chart
 
@@ -755,8 +783,14 @@ Prometheus-operator CRDs); enable them and the `observability` endpoints if you 
 
 ### Develop from Source
 
-The compose stack runs the application as pre-built containers. To develop a service with hot reload, run it from source
-with `bootRun` while the infrastructure stays in Docker:
+The compose stack runs the application as pre-built containers. To develop a service with hot reload, run that service
+from source instead, after two steps:
+
+- Stop any container whose published port would collide: only the API gateway publishes its HTTP port (`8080`, the port
+  `bootRun` takes), so for the other three there is nothing to stop. The per-module `composeDown` above stops one
+  service.
+- Provide PostgreSQL, Kafka, and OpenSearch reachable from your host on the ports the service's configuration names —
+  the Compose file publishes no infrastructure port.
 
 ```bash
 ./gradlew :showcase-api-gateway:bootRun        # :8080
@@ -813,6 +847,10 @@ curl -X DELETE http://localhost:8080/showcases/{showcaseId}
 curl "http://localhost:8080/showcases?title=My&status=SCHEDULED&size=10"
 curl http://localhost:8080/showcases/{showcaseId}
 ```
+
+A `POST` answers `201 Created` with a `Location` header once the command has completed; when the command's own wait
+times out it answers `202 Accepted` with an `Idempotency-Key` header, and a request may carry its own key (a KSUID),
+which the command then uses as the showcase ID — that is what makes a retry safe.
 
 The query service exposes a single **generic gRPC RPC** (`ShowcaseQueryTransport.Dispatch`, with
 `QueryRequest → stream QueryResponse`) on port `9090`, consumed by the query-client (`showcase-query-client`) for

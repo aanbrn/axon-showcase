@@ -305,23 +305,6 @@ as a second entry and splits one idea's detail across two sections.
   2. run `npm ls toml zod` and `npm audit` there;
   3. if that graph is clean and the condition holds, drop the `toml`/`zod` entries from `.opencode/package.json`.
 
-- Extend `scripts/claim-scan.py`'s absolute-quantifier pattern to the absence forms the rule names — parked; no change
-  yet. Review-gate stage 1 names the absence form `no`/`none`/`nothing`, while `ABSOLUTE` matches
-  `only|every|all|never|always|none` (`scripts/claim-scan.py:37`), so `no` and `nothing` never surface. Reproduced
-  during `record-2026-10-24-audit-disposition` on its appended section: the line "nothing is parked for it" yields no
-  candidate at all, and "no finding reduced `AGENTS.md`" yields only its `[path] AGENTS.md` — no absolute — so each such
-  claim row needs the author to notice it unaided. Widen the pattern with one test per added form beside
-  `test_an_absolute_quantifier_is_reported` (`scripts/test-claim-scan.py`) and re-measure the noise a widened pattern
-  adds to a real guidance diff before committing it. A second instance (`document-java-version-selector`, round 1): the
-  fact that made the word "optional" true — "Nothing in the repository reads `.java-version`" — had no claims-table row,
-  and the scan surfaced no candidate for it. A third (`bump-buildpacks-2026-10-25`): a design risk bullet's "Nothing
-  else in this image is pinned independently" shipped false and cost a review round, while its sibling "Only the web UI
-  consumes …" was seeded — the author verified the claim the scan surfaced and not the one it did not. A fourth
-  (`stage-new-files-before-manual-review`): "`git clean -fd` is the one loss vector" — an absolute its own evidence
-  falsified, caught only by a deep review — sat on an added line of the diff and produced no candidate, so the
-  definite-singular form (`the (?:only|one|sole|single)`) is a form to add beside the absence forms, with its own
-  positive-control test.
-
 - Bold-lead the plain rules a `captured:` marker has to land on — parked; no change yet. `scripts/commit-hygiene.py`'s
   marker check requires a lead starting `- **` or `**`, so the two plain `- Text` bullets a capture may need to annotate
   — the "Work done while awaiting the approval pass" bullet and the failure-handling bullet below it — cannot carry a

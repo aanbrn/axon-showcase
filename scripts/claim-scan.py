@@ -7,7 +7,8 @@ and optionally one supplementary text file (`--include`, e.g. a unit's saved dra
 has no other home), and prints one candidate per line for the four shapes the review loop keeps catching:
 
   count      a numeral with a referent (e.g. "12 files", "0.80 baseline")
-  absolute   an absolute quantifier (only, every, all, never, always, none)
+  absolute   an absolute quantifier or absence claim (only, every, all, never, always, none, no, nothing) and the
+             definite singular (the one, the sole, the single)
   cross-ref  a reference to another artifact (a repo path, #NNN, owner/repo#NNN, a root document)
   path       a backticked path
 
@@ -37,7 +38,9 @@ PATH_EXTENSION = re.compile(
 CROSS_REFERENCE = re.compile(
     r"(?:[\w.-]+/[\w./-]+|[\w.-]+#\d+|#\d+|(?<![\w/])AGENTS\.md|(?<![\w/])README\.md|(?<![\w/])SECURITY\.md)"
 )
-ABSOLUTE = re.compile(r"\b(?:only|every|all|never|always|none)\b", re.IGNORECASE)
+ABSOLUTE = re.compile(
+    r"\b(?:only|every|all|never|always|none|no|nothing)\b|\bthe\s+(?:one|sole|single)\b", re.IGNORECASE
+)
 COUNT = re.compile(r"(?<![\w.#-])(\d[\d,]*(?:\.\d+)?)`?\s*([A-Za-z][\w-]*)")
 
 

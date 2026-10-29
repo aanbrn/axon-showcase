@@ -1939,9 +1939,9 @@ continuity violation rather than as a permitted replacement.
   skill's
 - **AND** a defect the applying command rewrites — `spotlessApply`, or the web module's `npmFormat` — is routed to that
   command rather than reported, so what the command leaves alone stays reportable
-- **AND** for a record artifact (a retrospective, a load-test record), a later round raising only new instances of an
-  already-raised class stops and escalates to the owner rather than iterating, since such an artifact has no shipped
-  behavior to converge on
+- **AND** for a record artifact (a retrospective, a load-test record, or a process-defect record), a later round raising
+  only new instances of an already-raised class stops and escalates to the owner rather than iterating, since such an
+  artifact has no shipped behavior to converge on
 
 #### Scenario: A stalled reviewer is replaced from a recorded handover
 
@@ -1970,6 +1970,15 @@ continuity violation rather than as a permitted replacement.
 - **THEN** the unit's record names the pre-write derivation pass it ran — the change's `tasks.md` task, or the
   pull-request checklist line for a unit with no change dir — so a pass that was skipped is reported as that record
   missing or unticked rather than reconstructed from recollection
+
+#### Scenario: An escalated record unit is not cleared by the stop
+
+- **WHEN** a record artifact's later round raises only new instances of an already-raised class and the loop escalates
+  to the owner
+- **THEN** the finding-bearing ledger row and the finding instances are preserved, and the owner's decision is recorded
+  on the unit's review task or pull-request review record
+- **AND** the loop resumes per that decision without a manufactured clean round, and the stop is not clearance: the unit
+  does not proceed to delivery while its highest recorded round still carries a finding class
 
 ### Requirement: The deep review is routed and bounded
 
@@ -2013,6 +2022,15 @@ is recorded on the change's review task.
   declarations in its diff, its delta spec's requirement-block kinds, and its recorded rounds — so the decision is
   explainable and reproducible rather than an unaided judgment, and the agent's decision is at or above that floor and
   records the signals it relied on
+- **AND** a diff whose changed-path set is non-empty and holds only Markdown record artifacts under
+  `docs/process-defects/`, `docs/retrospectives/`, or `docs/load-tests/`, or the ledger path the invocation reads, SHALL
+  NOT have its floor raised by the repeated-class signal alone when its derivation succeeded
+- **AND** the classification SHALL be conservative: another file type or location keeps normal routing, and a rename is
+  judged by both its source and its destination
+- **AND** the suppressed signal SHALL be reported wherever the exemption applies, and a mandatory signal, a failed
+  derivation, or the agent's own evidence still decides
+- **AND** the rationale is that such a unit ships no behavior to converge on, so a repeated class is not by itself
+  evidence of an unreviewed defect
 - **AND** the decision is reassessed only when material new evidence changes the risk
 
 #### Scenario: A missing or failed routing decision cannot skip mandatory review
@@ -2073,6 +2091,14 @@ is recorded on the change's review task.
 - **WHEN** a deep-review pass raises a finding that falls in a class
 - **THEN** it searches the change's artifacts for every instance of that class's shape and reports them as one clustered
   finding, so a class surfaces whole in the deep pass rather than one instance per quick-review round
+
+#### Scenario: A record-only diff is not lifted by repeated classes
+
+- **WHEN** a unit's changed-path set is non-empty and holds only Markdown record artifacts or the review-round ledger,
+  its derivation succeeded, and its recorded rounds repeat a class
+- **THEN** the routing floor is `NOT_NEEDED`, with the repeated-class signal and the record-only exemption both reported
+- **AND** the agent may still decide above the floor on other evidence, while a mandatory path, a requirement block, a
+  declaration, or a failed derivation still resolves to `REQUIRED` before the exemption is considered
 
 ### Requirement: Diagrams and screenshots are produced by their specialist subagents
 

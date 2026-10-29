@@ -123,11 +123,19 @@ Source: `AGENTS.md` "Workflow: The review gate".
      round:** round status is `docs/review-rounds.tsv`'s, so do not maintain a second round inventory, and the
      checkpoint's fields are `.opencode/skills/pause-resume-unit/SKILL.md`'s rather than restated here. captured:
      separate-lesson-capture-from-implementation captured: hand-over-unfinished-work
-3. Fix everything it finds; re-run. Repeat until it reports no new observations. Verify each fix against the finding's
-   own claim — re-read the text the finding named, or assert the replacement's match count — before the next round and
-   before any record reports it fixed: a replacement aimed at re-wrapped prose matches nothing and leaves the finding
-   live, and a grep hit for the replacement token is not that check (`AGENTS.md`'s edit-verification gotcha owns the
-   mechanism). captured: correct-subagent-reload-rule
+3. Fix everything it finds; re-run. Repeat until it reports no new observations.
+   - **IF the unit's diff is a record artifact's — a retrospective, a load-test record, or a process-defect record — and
+     a later round raises only new instances of a class already raised, THEN stop and escalate to the owner instead of
+     iterating:** the finding-bearing ledger row and its instances stay as they are, the owner's decision is recorded on
+     the unit's review task or pull-request review record, and the loop resumes per that decision without a manufactured
+     clean round.
+   - **The stop is not clearance:** `--expect-clean` is unchanged, so the unit does not proceed to delivery while its
+     highest recorded round still carries a finding class, and changing that check is a separate governance question.
+
+   Verify each fix against the finding's own claim — re-read the text the finding named, or assert the replacement's
+   match count — before the next round and before any record reports it fixed: a replacement aimed at re-wrapped prose
+   matches nothing and leaves the finding live, and a grep hit for the replacement token is not that check
+   (`AGENTS.md`'s edit-verification gotcha owns the mechanism). captured: correct-subagent-reload-rule
 
 No semantic self-review precedes the loop — a re-read shares the blind spot that produced the claim — so the author owes
 only the pre-write pass above and the mechanical pre-flight (the formatter and the touched module's gates after the

@@ -1744,6 +1744,11 @@
 2026-10-29	add-a-markdown-table-integrity-check	8	contradiction,test-control,over-claim,wording	contradiction,test-control,over-claim,wording	4	ses_e7999faacffeXmYT893tKY0Tv3	continued	-
 2026-10-29	add-a-markdown-table-integrity-check	9	wording	wording	0	ses_e7999faacffeXmYT893tKY0Tv3	continued	-
 2026-10-29	add-a-markdown-table-integrity-check	10	-	-	0	ses_e7999faacffeXmYT893tKY0Tv3	continued	-
+2026-10-29	widen-the-claim-scanner-absences	1	contradiction,missing-task,claim-unreproducible,claim-missing,proposal-schema,wording	-	2	ses_e79556a07ffeP2BdP3zB6c8Lt5	created	-
+2026-10-29	widen-the-claim-scanner-absences	2	claim-unreproducible,test-control,dropped-content,missing-task	claim-unreproducible,missing-task	4	ses_e79556a07ffeP2BdP3zB6c8Lt5	continued	-
+2026-10-29	widen-the-claim-scanner-absences	3	claim-unreproducible,contradiction,structured-writing	claim-unreproducible	4	ses_e79556a07ffeP2BdP3zB6c8Lt5	continued	-
+2026-10-29	widen-the-claim-scanner-absences	4	missing-task	missing-task	1	ses_e79556a07ffeP2BdP3zB6c8Lt5	continued	-
+2026-10-29	widen-the-claim-scanner-absences	5	-	-	0	ses_e79556a07ffeP2BdP3zB6c8Lt5	continued	-
 2026-10-29	sharpen-readme-promises-and-routes	1	contradiction,dropped-content,claim-unreproducible,structured-writing,single-sourcing	-	4	ses_e794b866cffeZwpLiOFmGwOntH	created	-
 2026-10-29	sharpen-readme-promises-and-routes	2	over-claim,contradiction,wording	contradiction	2	ses_e794b866cffeZwpLiOFmGwOntH	continued	-
 2026-10-29	sharpen-readme-promises-and-routes	3	-	-	0	ses_e794b866cffeZwpLiOFmGwOntH	continued	-

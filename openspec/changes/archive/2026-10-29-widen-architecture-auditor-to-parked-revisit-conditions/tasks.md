@@ -53,7 +53,7 @@
 - [x] 4.1 `./gradlew spotlessApply` after the final edit to a formatter-owned file, then `spotlessCheck`, the PR gate
       `./gradlew check -PskipITs -Pcoverage.gate.enabled=false`, `verifyTableRows`, and `openspec validate --all` are
       clean.
-- [ ] 4.2 Smoke-run the widened auditor with the controls below: verify each seed's premise against the repository
+- [x] 4.2 Smoke-run the widened auditor with the controls below: verify each seed's premise against the repository
       **before** the run, write the expected outcome here rather than handing it to the auditor, save a byte copy of
       `docs/ideas.md`, seed the entries, and run `architecture-auditor` once with a neutral prompt. Restore the saved
       copy afterwards and confirm it matches byte for byte, on a failed run too. Record the run's output and which
@@ -62,8 +62,17 @@
       positive control doubles as the registered-body confirmation: a `revisit due` item for the prose-stated seed
       cannot come from the pre-change definition, and the run applies the reload gotcha's conditions (file watcher on,
       the auditor invoked as a project subagent; `opencode run` is unverified), a restart being the recovery if the
-      control yields nothing. **Blocked on the provider:** the pro-pinned auditor currently fails with
-      `Model access is disabled`, so the run waits for the model and the archive waits on the run.
+      control yields nothing. **Done** — run A seeded a met condition whose described work had also landed (`--include`,
+      #745), so it reported both and isolated nothing; run B's seed (`scripts/review-timeline.py`, whose condition "the
+      ledger holds more than 1,000 rows" was well over that threshold when the run read it, while the script is absent)
+      was reported as "a recorded
+      reopening condition that appears met … the work itself has not landed … a due recurrence, not an instruction to
+      remove the entry" — the branch's designed shape. Negatives: the `capacity`-profile seed was reported only under
+      the alternative-mechanism class, with "the literal reopen condition … is not met"; the human-judgment seed and the
+      no-condition seed were absent. The landed-work regression fired in run A (citing `verifyTableRows`, #746) and did
+      not fire in run B; whether that branch is intermittent or run B's no-condition seed defeated its work-detection
+      is unestablished, and it is left unfixed here. `docs/ideas.md` restored
+      byte-for-byte (`8173aa16…`). Verdict lines: `0 findings, 3 advisory` both.
 
 **Smoke-run controls**
 
@@ -80,11 +89,13 @@
       open questions with the technical advisor and ship once agreed; the advisor recommended skipping the deep pass (a
       read-only definition-and-prose change whose remaining uncertainty is runtime behaviour, which the smoke-run
       tests), and that recommendation is the recorded decision.
-- [ ] 4.5 Ask for the owner's manual review pass and stop there; no commit, push, or archive before the approval.
+- [x] 4.5 Asked at the proposal hand-off; the owner's instruction was to settle the open questions with the
+      technical advisor and ship once agreed. The PR was published with 4.2 still blocked, and the archive landed
+      after that run passed, so the order the gates require is preserved.
 
 ## 5. The change's own records
 
-- [ ] 5.1 **Owed — for the archive commit**: refresh the `agent-skills` `## Purpose`, which says the auditor reports
+- [x] 5.1 **Owed — for the archive commit**: refresh the `agent-skills` `## Purpose`, which says the auditor reports
       where a record's recorded premise appears met — a deferral's condition, or a parked entry whose work has landed,
       fully or partly, or whose objective a different mechanism achieves — and now covers a parked entry's own condition
       too. A delta cannot carry a Purpose, so the edit lands with the archive; the report states that the implementing

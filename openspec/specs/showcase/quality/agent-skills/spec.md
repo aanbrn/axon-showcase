@@ -21,15 +21,15 @@ meta rules it reports with their origins, the merge, removal, route, and extract
 authoring-system gaps it traces to a mechanism that produces an artifact), of the `openspec/specs/` corpus, of the
 architecture (the ADRs, the service, module, and spec-decomposition surface, where a deliberate decision's rationale is
 not recorded, and where a record's recorded premise appears met — a deferral's `Revisit when:` condition, or a parked
-`docs/ideas.md` entry whose work has landed, fully or partly, or whose objective a different mechanism achieves), of the
-human-facing `README.md` (its claims against the repository, its shape against the README convention, the grammatical
-correctness of its prose — a provable error is a finding, a preference advisory — and its coverage of the human-visible
-capabilities), and the scheduled unattended run that performs the audits without a human asking, together with the
-standing owner-gated unit that applies an audit report's reduction candidates, and the project-authored command
-definitions under `.opencode/commands/` — their authoring shape, the repository lifecycle a mutating unit owes, and how
-an audit's approved findings are delivered as separate units by the route each finding's kind requires. It also covers
-the on-demand recovery of MCP servers that failed to connect, through the `scripts/reconnect-mcp.py` tool its
-`/reconnect-mcp` command fronts.
+`docs/ideas.md` entry whose work has landed, fully or partly, whose objective a different mechanism achieves, or whose
+own recorded reopening condition appears met), of the human-facing `README.md` (its claims against the repository, its
+shape against the README convention, the grammatical correctness of its prose — a provable error is a finding, a
+preference advisory — and its coverage of the human-visible capabilities), and the scheduled unattended run that
+performs the audits without a human asking, together with the standing owner-gated unit that applies an audit report's
+reduction candidates, and the project-authored command definitions under `.opencode/commands/` — their authoring shape,
+the repository lifecycle a mutating unit owes, and how an audit's approved findings are delivered as separate units by
+the route each finding's kind requires. It also covers the on-demand recovery of MCP servers that failed to connect,
+through the `scripts/reconnect-mcp.py` tool its `/reconnect-mcp` command fronts.
 
 ## Requirements
 
@@ -822,29 +822,33 @@ implies a rejected alternative: dependency `exclude(...)` declarations; major-ve
 `config/web-ui-updates/major-disabled.txt`; suppression annotations that encode a design choice (`@SuppressWarnings`)
 and deprecated-API usages the project still carries; deferrals or band-aids recorded in an ADR or parked in
 `docs/ideas.md`; and a record whose premise appears to have expired — a decision deferred in an ADR whose recorded
-`Revisit when:` condition appears met, or a parked `docs/ideas.md` entry whose work has already landed. It SHALL hold
-the condition against the repository where it names a checkable fact (an external coordinate or a consumed artifact's
-adoption), and the parked entry against the change, commit, workflow or mechanism the entry describes rather than an
-artifact it merely cites, and SHALL NOT report one that names no such fact. For the first class it SHALL verify by
-searching the repository that no rationale is recorded before reporting an item, and SHALL NOT report a choice whose
-rationale is already recorded; the deferred-and-parked-record class is the inverse — its rationale is recorded, and it
-is reported only when that record's premise appears to have expired. Each item SHALL name the deliberate choice or
-absence with its location, and SHALL state the question whose answer would record the missing rationale — for a record
-whose premise appears to have expired, the recorded condition or parked entry and the signal that appears to meet it.
-The items SHALL be advisory: reported without severity, and SHALL NOT be treated as defects to fix, because only the
-project owner can say which unrecorded rationales matter.
+`Revisit when:` condition appears met, a parked `docs/ideas.md` entry whose work has already landed, or a parked entry
+whose own recorded reopening condition appears met. It SHALL hold a recorded condition — an ADR's or a parked entry's —
+against the repository where it names a checkable fact (an external coordinate or a consumed artifact's adoption), and
+the parked entry against the change, commit, workflow or mechanism the entry describes rather than an artifact it merely
+cites, and SHALL NOT report one that names no such fact. For the first class it SHALL verify by searching the repository
+that no rationale is recorded before reporting an item, and SHALL NOT report a choice whose rationale is already
+recorded; the deferred-and-parked-record class is the inverse — its rationale is recorded, and it is reported only when
+that record's premise appears to have expired. Each item SHALL name the deliberate choice or absence with its location,
+and SHALL state the question whose answer would record the missing rationale — for a record whose premise appears to
+have expired, the recorded condition or parked entry and the signal that appears to meet it. The items SHALL be
+advisory: reported without severity, and SHALL NOT be treated as defects to fix, because only the project owner can say
+which unrecorded rationales matter.
 
 A rationale need not be located in an ADR to count as recorded: the search SHALL cover the ADRs, the specs, `AGENTS.md`,
 the build files, the configuration, the source, and the established conventions, and a choice SHALL be reported only
 where its rationale's absence is consequential enough for the owner to decide — a low-impact local implementation detail
-is not an architectural decision. Each `Revisit when:` condition SHALL be classified before it is reported —
-repository-checkable, externally checkable, dependent on human judgment, or not currently verifiable — and the deferral
-SHALL be reported only where the condition is demonstrably satisfied; a newer published version alone does not satisfy a
-condition that requires compatibility, adoption, or support, and where external verification is unavailable or
-inconclusive the audit SHALL state no conclusion about the condition, since an inability to verify SHALL NOT become an
-expiry claim. An expired condition triggers a review, not a predetermined change. A parked entry SHALL distinguish its
-proposed work having landed, only part of it having landed, and a different mechanism achieving the same objective; an
-artifact the entry merely cites SHALL NOT establish completion.
+is not an architectural decision. Each recorded reopening condition — an ADR's `Revisit when:` line, or a parked entry's
+own condition, labelled or in prose — SHALL retain its own qualifiers and compound structure, a conjunction being met
+only when every clause is, and SHALL be classified before it is reported — repository-checkable, externally checkable,
+dependent on human judgment, or not currently verifiable — and the deferral or parked entry SHALL be reported only where
+the condition is demonstrably satisfied; a newer published version alone does not satisfy a condition that requires
+compatibility, adoption, or support, and where external verification is unavailable or inconclusive the audit SHALL
+state no conclusion about the condition, since an inability to verify SHALL NOT become an expiry or a due-recurrence
+claim. An expired condition triggers a review, not a predetermined change. A parked entry's met condition SHALL be
+reported as a recurrence that is due, and SHALL NOT be reported as an instruction to remove the entry. A parked entry
+SHALL distinguish its proposed work having landed, only part of it having landed, and a different mechanism achieving
+the same objective; an artifact the entry merely cites SHALL NOT establish completion.
 
 Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
 owns, not this one.
@@ -911,6 +915,28 @@ owns, not this one.
 - **WHEN** a parked entry's proposed work has only partly landed, or a different mechanism achieves the same objective
 - **THEN** the audit says which part appears to have landed (or that a different mechanism does), and does not report
   the entry as fully implemented or silently unpark it
+
+#### Scenario: A parked idea whose own recorded condition appears met is surfaced as due
+
+- **WHEN** the `architecture-auditor` subagent reads a parked `docs/ideas.md` entry whose own reopening condition
+  appears met — stated under a `Revisit when:` label or in the entry's prose, such as a fix to make once a third
+  vendored skill set exists and a third set has been vendored since
+- **THEN** it reports the entry, its recorded condition, and the signal that appears to meet it, in the advisory
+  section, as a recurrence that is due rather than as an instruction to remove the entry, so the owner can decide
+  whether to reopen the decision, do the work, or narrow the entry
+
+#### Scenario: A parked idea whose condition is not met is not reported
+
+- **WHEN** a parked entry records a reopening condition the repository's own state does not satisfy — a named
+  prerequisite that still stands, or a conjunction one of whose clauses is still open
+- **THEN** the auditor does not report that entry, so the advisory section stays a list of due recurrences
+
+#### Scenario: A parked idea's condition the repository cannot settle is not reported
+
+- **WHEN** a parked entry's condition depends on human judgment or on an external fact the auditor cannot establish — an
+  upstream release it cannot verify, or an internal capacity trigger
+- **THEN** the auditor classifies it as dependent on human judgment or not currently verifiable, states no conclusion
+  about it, and does not report it, since an inability to verify SHALL NOT become a due-recurrence claim
 
 ### Requirement: Report-producing subagents follow a shared report contract
 

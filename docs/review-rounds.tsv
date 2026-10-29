@@ -1702,3 +1702,6 @@
 2026-10-29	widen-readme-auditor-with-language-axis	8	-	-	0	ses_e7aec78d1ffex8hOhxjgyL4sx9	continued	-
 2026-10-29	record-stale-origin-main-check	1	claim-unreproducible,claim-missing,wording,structured-writing	-	3	ses_e7a72fd7cffeHRe2fWTYUWUhKJ	created	-
 2026-10-29	record-stale-origin-main-check	2	-	-	0	ses_e7a72fd7cffeHRe2fWTYUWUhKJ	continued	-
+2026-10-29	deversion-readme-archive-count	1	missing-task,docs-residue,wording	-	2	ses_e7a68e44dffewg7eyhg098I1cR	created	-
+2026-10-29	deversion-readme-archive-count	2	contradiction,wording	wording	1	ses_e7a68e44dffewg7eyhg098I1cR	continued	-
+2026-10-29	deversion-readme-archive-count	3	-	-	0	ses_e7a68e44dffewg7eyhg098I1cR	continued	-

@@ -14,8 +14,9 @@ verifies the workflow
 `cron` schedules do not collide; `--unique-rounds` verifies the review-round ledger carries one row per unit and
 round, that each unit's rounds are contiguous from 1, that a round named with `--expect` is recorded, and that a unit
 named with `--expect-clean` closes on a round carrying no finding class (both need that mode); `--session-continuity`
-verifies the ledger's reviewer-session fields record each round's session and its transition; and `--large-files`
-verifies no tracked file exceeds the configured size limit.
+verifies the ledger's reviewer-session fields record each round's session and its transition; `--large-files`
+verifies no tracked file exceeds the configured size limit; and `--table-rows` verifies each markdown file it is given
+carries table rows whose cell count matches their delimiter row's.
 
 No mode reads a failed read as a clean result — a git invocation or a tracked file's size: a read whose failure would
 look like an empty offender list raises, and `main` reports it as the check having failed. The exits that answer a
@@ -932,6 +933,147 @@ def check_large_files(repo: Path) -> int:
     return len(offenders)
 
 
+FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})")
+BLOCK_START_RE = re.compile(r"^\s*(?:#{1,6}\s|>|[-*+]\s|\d+\.\s|<)")
+THEMATIC_BREAK_RE = re.compile(r"^\s*([-*_])\s*(?:\1\s*){2,}$")
+DELIMITER_CELL_RE = re.compile(r"^\s*:?-+:?\s*$")
+
+
+def has_separator(line: str) -> bool:
+    """Whether the line carries an unescaped pipe, i.e. a cell separator."""
+    backslashes = 0
+    for character in line:
+        if character == "\\":
+            backslashes += 1
+            continue
+        if character == "|" and backslashes % 2 == 0:
+            return True
+        backslashes = 0
+    return False
+
+
+def split_cells(line: str) -> list[str]:
+    """The line's cells: one optional leading and one optional trailing pipe removed, then split on separators."""
+    text = line.strip()
+    if text.startswith("|"):
+        text = text[1:]
+    cells: list[str] = []
+    current: list[str] = []
+    backslashes = 0
+    for character in text:
+        if character == "\\":
+            backslashes += 1
+            current.append(character)
+            continue
+        if character == "|" and backslashes % 2 == 0:
+            cells.append("".join(current))
+            current = []
+            backslashes = 0
+            continue
+        backslashes = 0
+        current.append(character)
+    cells.append("".join(current))
+    if len(cells) > 1 and not cells[-1].strip():
+        cells.pop()
+    return cells
+
+
+def is_delimiter_row(line: str) -> bool:
+    """Whether the line is a table's delimiter row: every cell a hyphen run with optional alignment colons."""
+    cells = split_cells(line)
+    return bool(cells) and all(DELIMITER_CELL_RE.match(cell) for cell in cells)
+
+
+def find_table_row_offenders(path: str, text: str) -> list[tuple[str, int, int | None, int]]:
+    """The (path, line, cells, delimiter cells) of each row disagreeing with its table's delimiter row.
+
+    A cell count of None marks a wrapped row: a non-blank line inside the table that carries no separator. A table runs
+    from its header to a blank line or a line beginning another block, and a fenced block is never read as a table.
+    """
+    lines = text.splitlines()
+    offenders: list[tuple[str, int, int | None, int]] = []
+    fence: tuple[str, int] | None = None
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        marker = FENCE_RE.match(line)
+        if marker:
+            closing = marker.group(1)
+            if fence is None:
+                fence = (closing[0], len(closing))
+            elif closing[0] == fence[0] and len(closing) >= fence[1]:
+                fence = None
+            index += 1
+            continue
+        if fence is not None:
+            index += 1
+            continue
+        if (
+            index + 1 < len(lines)
+            and has_separator(line)
+            and not BLOCK_START_RE.match(line)
+            and has_separator(lines[index + 1])
+            and is_delimiter_row(lines[index + 1])
+        ):
+            columns = len(split_cells(lines[index + 1]))
+            row = index
+            while row < len(lines):
+                current = lines[row]
+                if row > index and (
+                    not current.strip()
+                    or FENCE_RE.match(current)
+                    or BLOCK_START_RE.match(current)
+                    or THEMATIC_BREAK_RE.match(current)
+                ):
+                    break
+                if not has_separator(current):
+                    offenders.append((path, row + 1, None, columns))
+                else:
+                    count = len(split_cells(current))
+                    if count != columns:
+                        offenders.append((path, row + 1, count, columns))
+                row += 1
+            index = row
+            continue
+        index += 1
+    return offenders
+
+
+def check_table_rows(repo: Path, paths: Sequence[str]) -> int:
+    """Verify each markdown file's tables carry their delimiter row's column count; no path is a failure."""
+    if not paths:
+        print("The table-row verification was given no path to read.", file=sys.stderr)
+        return 1
+    failures = 0
+    checked = 0
+    for path in paths:
+        try:
+            text = (repo / path).read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as error:
+            failures += 1
+            print("A markdown file could not be read: {0} ({1})".format(path, error), file=sys.stderr)
+            continue
+        checked += 1
+        for offender, number, cells, columns in find_table_row_offenders(path, text):
+            failures += 1
+            if cells is None:
+                print(
+                    "A markdown table row is wrapped and carries no separator: {0}:{1} (the delimiter row has {2} "
+                    "cells)".format(offender, number, columns),
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    "A markdown table row has {0} cell{1} where its delimiter row has {2}: {3}:{4}".format(
+                        cells, "" if cells == 1 else "s", columns, offender, number
+                    ),
+                    file=sys.stderr,
+                )
+    if not failures:
+        print(f"Checked {checked} markdown file(s) for table row integrity.")
+    return failures
+
+
 def check_unique_crons(repo: Path) -> int:
     collisions = find_cron_collisions(repo)
     for left_path, left_cron, right_path, right_cron in collisions:
@@ -1310,6 +1452,7 @@ MODE_FLAGS = (
     "--unique-rounds",
     "--session-continuity",
     "--large-files",
+    "--table-rows",
 )
 
 
@@ -1318,7 +1461,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Check commit hygiene over the staged set, the unit's readiness for the manual review pass, AGENTS.md "
-            "markers, the tracked set, the workflow cron schedules, the review-round ledger, or a file's size."
+            "markers, the tracked set, the workflow cron schedules, the review-round ledger, a file's size, or the "
+            "given markdown files' table rows."
         )
     )
     mode = parser.add_mutually_exclusive_group()
@@ -1344,6 +1488,11 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument(
         "--unique-rounds", action="store_true", help="check the review-round ledger carries one row per unit and round"
     )
+    mode.add_argument(
+        "--table-rows",
+        action="store_true",
+        help="verify each given markdown file's tables carry their delimiter row's column count",
+    )
     parser.add_argument(
         "--expect",
         action="append",
@@ -1366,6 +1515,7 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument(
         "--large-files", action="store_true", help="check no tracked file exceeds the configured size limit"
     )
+    parser.add_argument("paths", nargs="*", help="the markdown files --table-rows reads")
     parser.add_argument(
         "--base",
         default=None,
@@ -1403,6 +1553,8 @@ def dispatch(args: argparse.Namespace, repo: Path) -> int:
         return 1 if check_session_continuity(repo) else 0
     if args.large_files:
         return 1 if check_large_files(repo) else 0
+    if args.table_rows:
+        return 1 if check_table_rows(repo, args.paths) else 0
     return 1 if check_staged(repo, args.formatter) else 0
 
 

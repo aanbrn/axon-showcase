@@ -12,32 +12,37 @@ plugins {
     id("workflow-lint-conventions")
 }
 
+val markdownTarget =
+    listOf(
+        "docs/**/*.md",
+        "AGENTS.md",
+        "README.md",
+        "openspec/specs/**/*.md",
+        "openspec/changes/**/*.md",
+        ".github/**/*.md",
+        "SECURITY.md",
+        ".opencode/agent/**/*.md",
+        ".opencode/commands/**/*.md",
+        ".opencode/skills/**/*.md",
+    )
+val markdownTargetExclude =
+    listOf(
+        "openspec/changes/archive/**",
+        ".opencode/commands/opsx-apply.md",
+        ".opencode/commands/opsx-archive.md",
+        ".opencode/commands/opsx-explore.md",
+        ".opencode/commands/opsx-propose.md",
+        ".opencode/commands/opsx-sync.md",
+        ".opencode/commands/opsx-update.md",
+        ".opencode/skills/ast-grep/**",
+        ".opencode/skills/axon4to5-*/**",
+        ".opencode/skills/openspec-*/**",
+    )
+
 spotless {
     format("markdown") {
-        target(
-            "docs/**/*.md",
-            "AGENTS.md",
-            "README.md",
-            "openspec/specs/**/*.md",
-            "openspec/changes/**/*.md",
-            ".github/**/*.md",
-            "SECURITY.md",
-            ".opencode/agent/**/*.md",
-            ".opencode/commands/**/*.md",
-            ".opencode/skills/**/*.md",
-        )
-        targetExclude(
-            "openspec/changes/archive/**",
-            ".opencode/commands/opsx-apply.md",
-            ".opencode/commands/opsx-archive.md",
-            ".opencode/commands/opsx-explore.md",
-            ".opencode/commands/opsx-propose.md",
-            ".opencode/commands/opsx-sync.md",
-            ".opencode/commands/opsx-update.md",
-            ".opencode/skills/ast-grep/**",
-            ".opencode/skills/axon4to5-*/**",
-            ".opencode/skills/openspec-*/**",
-        )
+        target(*markdownTarget.toTypedArray())
+        targetExclude(*markdownTargetExclude.toTypedArray())
         prettier(libs.versions.prettier.get())
             .config(
                 mapOf(
@@ -636,6 +641,42 @@ tasks.register<Exec>("verifyLargeFiles") {
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--large-files")
 }
 
+val markdownTableFiles =
+    fileTree(layout.projectDirectory) {
+        include(markdownTarget)
+        exclude(markdownTargetExclude)
+    }
+
+abstract class VerifyTableRowsTask : DefaultTask() {
+    @get:InputFiles @get:PathSensitive(PathSensitivity.RELATIVE) abstract val markdownFiles: ConfigurableFileCollection
+
+    @get:InputFile abstract val script: RegularFileProperty
+
+    @get:Input abstract val python: Property<String>
+
+    @get:Internal abstract val rootDir: DirectoryProperty
+
+    @get:Inject abstract val execOperations: ExecOperations
+
+    @TaskAction
+    fun verify() {
+        val paths = markdownFiles.files.sorted().map { it.relativeTo(rootDir.get().asFile).path }
+        execOperations.exec {
+            commandLine(python.get(), script.get().asFile.path, "--table-rows", *paths.toTypedArray())
+        }
+    }
+}
+
+tasks.register<VerifyTableRowsTask>("verifyTableRows") {
+    group = "verification"
+    description = "Verifies every markdown table's rows carry its delimiter row's column count"
+
+    markdownFiles.setFrom(markdownTableFiles)
+    script.set(layout.projectDirectory.file("scripts/commit-hygiene.py"))
+    python.set(pythonExecutable)
+    rootDir.set(layout.projectDirectory)
+}
+
 tasks.register("verifyInstallCommands", VerifyInstallCommandsTask::class.java) {
     group = "verification"
     description = "Verifies the deployment guidance's manual helm install commands quote the catalog chart versions"
@@ -705,6 +746,7 @@ tasks.named("check") {
     dependsOn("verifyUniqueReviewRounds")
     dependsOn("verifyReviewSessionContinuity")
     dependsOn("verifyLargeFiles")
+    dependsOn("verifyTableRows")
     // The chart's packaging path (its repository setup, dependency fetch, and strict lints), so a chart that cannot
     // bundle its declared dependency fails the pull request rather than only the nightly deployment smoke's install.
     dependsOn(":helm:chart:helmPackageMainChart")

@@ -48,8 +48,9 @@
 
 ## 6. The capability Purpose
 
-- [ ] 6.0 Refresh the `commit-hygiene` `## Purpose` in the archive commit: it enumerates the build checks, and this
-      change adds one to that class (a delta cannot carry a Purpose).
+- [x] 6.0 Refresh the `commit-hygiene` `## Purpose` in the archive commit: it enumerates the build checks, and this
+      change adds one to that class (a delta cannot carry a Purpose) — **Done** in the archive commit: "that recognized
+      tables in formatter-owned Markdown have consistent cell counts".
 
 ## 7. Verification
 

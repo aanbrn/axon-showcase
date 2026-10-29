@@ -83,3 +83,30 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   four mutations then failed their controls. No committed state carried the gap.
 - **Knowledge boundary** — observed for this unit's scripts and verification rounds. Did not establish why the suite's
   green run did not reveal the missing assertions; only that it did not.
+
+### guard-archived-task-boxes#5 — The merged state was verified against a stale remote ref
+
+- **Recorded** — 2026-10-29, by the writing session (`ses_e7e0a3d04ffepyFcMfYYisYm9y`), during the ship/settle stage.
+- **Stage** — merge (the settle step's verification of the merged result).
+- **Expected** —
+  - A claim about the remote's default branch is a query whose output you have.
+  - The ref such a claim reads is refreshed before the claim is made: the merge landed on the server, so the local
+    `origin/main` ref predates it.
+- **Observed** —
+  - After `gh pr merge` reported success, the merged content was checked without a `git fetch`, so the local
+    `origin/main` ref still named the pre-merge commit `1842b105`.
+  - `git show 1842b105:scripts/commit-hygiene.py | grep -c find_unticked_archived_tasks` printed `0`;
+    `git ls-tree --name-only 1842b105 openspec/changes/archive/ | grep -c guard-archived-task-boxes` printed `0`; and a
+    grep of that commit's `commit-hygiene` spec for `archived change` printed `2` — pre-existing text about archived
+    change directories, read as the sync having landed.
+- **Evidence** —
+  - Those counts (`0`, `0`, and a `2` from the non-discriminating pattern) formed the false conclusion.
+  - `git reflog show refs/remotes/origin/main` records the transition:
+    `1842b105 … pull --ff-only origin main: fast-forward` precedes `b5606da1 … fetch origin --quiet: fast-forward`.
+  - At `b5606da1` the first two checks print `2` (the definition and its single caller) and `1`, while a grep for
+    `unticked` — the pattern that discriminates — prints `7` where `1842b105` prints `0`.
+- **Consequence** — one false conclusion was formed ("the guard is not on main") and corrected by the next command; no
+  report, artifact or commit carried it, and the settle proceeded against the fetched ref. Cost: one extra command
+  sequence.
+- **Knowledge boundary** — observed for this unit's settle sequence. Did not check whether another session's
+  `origin/main` was stale at the same time, and did not establish how long the ref had lagged.

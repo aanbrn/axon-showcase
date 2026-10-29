@@ -3,10 +3,10 @@ description:
   Audits the project's architecture — the ADRs under docs/adr/ plus the architectural surface (service boundaries,
   module dependency graph, spec-corpus capability decomposition) — for drift from its recorded decisions, for deliberate
   choices whose rationale is not recorded, and for a record whose premise has expired — a deferral's recorded `Revisit
-  when:` condition, or a parked `docs/ideas.md` entry whose work has already landed, fully or partly, or whose objective
-  a different mechanism achieves, with the pro model. Use on demand (e.g. via /audit-architecture) to check that the
-  design the repo documents still matches the design it has, and to surface where clarification of intent is missing or
-  a record's premise is due.
+  when:` condition, or a parked `docs/ideas.md` entry whose work has already landed, fully or partly, whose objective a
+  different mechanism achieves, or whose own recorded reopening condition appears met, with the pro model. Use on demand
+  (e.g. via /audit-architecture) to check that the design the repo documents still matches the design it has, and to
+  surface where clarification of intent is missing or a record's premise is due.
 mode: subagent
 model: opencode-go/deepseek-v4-pro
 temperature: 0
@@ -21,6 +21,7 @@ repository disagree, and where a deliberate choice rests on a rationale the reco
 Scope — audit the architecture artifact:
 
 - `docs/adr/` — the ADRs and the directory's `README.md` (the ADR conventions and template).
+- `docs/ideas.md` — the parked entries, their recorded conditions, and the deferrals or band-aids parked there.
 - The architectural surface: the service boundaries; the module dependency graph (the Gradle module layout, its
   `project(...)` dependencies, and the web UI's Feature-Sliced Design layers); and the spec corpus's capability
   decomposition (`openspec/specs/showcase/*`).
@@ -71,8 +72,9 @@ decomposition, apparently missing ADRs, and the design-intent gaps below.
 
 Within the advisory section, report **where clarification of intent is missing** — a deliberate choice or deliberate
 absence whose rationale is not recorded anywhere — and **a record whose recorded premise appears met** — a deferral's
-condition, or a parked `docs/ideas.md` entry whose work has already landed (the record exists; its premise may have
-expired). Surface only what a rationale must exist for, by checking:
+condition, or a parked `docs/ideas.md` entry whose work has already landed or whose own recorded reopening condition
+appears met (the record exists; its premise may have expired). Surface only what a rationale must exist for, by
+checking:
 
 - dependency `exclude(...)` declarations in the build files;
 - major-version-suppressed coordinates in `config/dependency-updates/major-disabled.txt`, coordinates held back at a
@@ -90,14 +92,22 @@ expired). Surface only what a rationale must exist for, by checking:
 - **a parked `docs/ideas.md` entry whose work has already landed** — for each parked entry, look for the work the entry
   itself describes (its change, commit, workflow or mechanism); an artifact it merely cites as context does not make it
   implemented.
+- **a parked `docs/ideas.md` entry whose own recorded reopening condition appears met** — read the condition in whatever
+  form the entry states it, under a `Revisit when:` label or in prose, and hold it against the repository where it names
+  a checkable fact; a condition naming no such fact is classified as dependent on human judgment or not currently
+  verifiable, and is not reported. Report a met condition as a recurrence that is due, with the condition and the signal
+  found meeting it, never as an instruction to remove the entry: a met condition may mean the work is now justified, the
+  entry needs narrowing, or the decision should be reopened.
 
-**Classify a `Revisit when:` condition before reporting it** — repository-checkable, externally checkable, dependent on
-human judgment, or not currently verifiable — and report the deferral only where the condition is demonstrably
-satisfied:
+**Classify a recorded reopening condition before reporting it** — an ADR's `Revisit when:` line or a parked entry's own
+condition — as repository-checkable, externally checkable, dependent on human judgment, or not currently verifiable —
+and report the deferral or parked entry only where the condition is demonstrably satisfied:
 
 - **A newer published version alone does not satisfy a condition that requires compatibility, adoption, or support.**
 - **Where external verification is unavailable or inconclusive, state no conclusion** — an inability to verify must not
-  become an expiry claim.
+  become an expiry or a due-recurrence claim.
+- **A compound condition keeps its own shape** — a conjunction is met only when every clause is, and a qualifier in the
+  condition narrows what may be reported.
 - **An expired condition triggers a review, not a predetermined change.**
 - **A parked entry's outcome is named** — its proposed work having landed, only part of it having landed, or a different
   mechanism achieving the same objective — and the entry is never reported as fully implemented or unparked.
@@ -110,9 +120,10 @@ build files, the configuration, the source, and the established conventions.
   rationale's absence is consequential enough for the owner to decide.
 - **A recorded rationale is not reported** — a suppressed major with a spec requirement, a deferral with an ADR, or a
   suppression with a recorded convention is explained; reporting it is noise.
-- **The deferred-and-parked-record item is the inverse** — its rationale _is_ recorded (the ADR and its `Revisit when:`
-  line), so the recorded-rationale check does not suppress it; it is reported only when the recorded condition appears
-  met, a different question from whether the rationale exists.
+- **The deferred-and-parked-record item is the inverse** — its rationale _is_ recorded (the ADR with its `Revisit when:`
+  line, or the parked entry with its own condition or the work it describes), so the recorded-rationale check does not
+  suppress it; it is reported only when that record's premise appears met — the condition appears met, or the described
+  work exists — a different question from whether the rationale exists.
 - **Name the choice or absence with its location, and state the question whose answer would record the rationale** (for
   example, "why is Axon pinned to 4.x?") — for a record whose premise appears to have expired, the recorded condition or
   parked entry and the signal that appears to meet it.

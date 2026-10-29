@@ -20,12 +20,6 @@ as a second entry and splits one idea's detail across two sections.
 
 ## 2026-10-29
 
-- README density pass, remaining half — parked; no change yet. The audit cluster was shortened by the density unit — the
-  `specs-auditor` paragraph, the `agents-auditor` row in both tables and the `lesson-capture` row in the agent table,
-  the instruction-budget restatement, and the retrospective bullet now state the capability and name the command rather
-  than repeating the mechanism its owner documents. What remains is different in kind: **Quality Gates**'
-  pre-commit-guard enumeration and **Dependency Updates and Security**'s mechanism descriptions are instructions a
-  contributor runs, so trimming them means re-deriving them from the build rather than deleting prose.
 - First-run resource passport — parked; no change yet. No source in the repository states the machine budget a first
   Compose or Helm run needs, the builds included; the load-test baselines measure a deployed cluster, not a minimum.
   Measure it before the README promises RAM or startup time.

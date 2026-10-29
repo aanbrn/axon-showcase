@@ -17,6 +17,15 @@ appending to the most recent one). Search the file for the idea before adding it
 differently worded — is extended in place in its existing section, since the day-section rule otherwise files a re-park
 as a second entry and splits one idea's detail across two sections.
 
+## 2026-10-29
+
+- README density pass — parked; no change yet. Development Workflow runs roughly twice the length of Getting Started,
+  and several mechanism descriptions (the auditors, the instruction budget, the quality gates) restate what their owners
+  document; trimming them to pointers is its own pass, deliberately outside the promises-and-routes unit.
+- First-run resource passport — parked; no change yet. No source in the repository states the machine budget a first
+  Compose or Helm run needs, the builds included; the load-test baselines measure a deployed cluster, not a minimum.
+  Measure it before the README promises RAM or startup time.
+
 ## 2026-10-28
 
 - Give the review gate's §5 a post-refresh return branch — parked; no change yet. The unit's `#1` process-defect record

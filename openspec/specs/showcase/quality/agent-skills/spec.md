@@ -1970,6 +1970,12 @@ continuity violation rather than as a permitted replacement.
 - **THEN** the unit's record names the pre-write derivation pass it ran — the change's `tasks.md` task, or the
   pull-request checklist line for a unit with no change dir — so a pass that was skipped is reported as that record
   missing or unticked rather than reconstructed from recollection
+- **AND** a unit with no change dir drafts its pull-request body from the template before the pass runs, so the
+  checklist line the table and the pass's record go on exists when they are written
+- **AND** for a unit whose claims-table home is the body, the pass's seed scans the saved body's text beside its
+  ordinary diff scan, so a deletion-only diff does not hide the claims the body states
+- **AND** the scan reports the candidates its inputs contain
+- **AND** an empty list means no recognized candidate rather than a complete table
 
 #### Scenario: An escalated record unit is not cleared by the stop
 

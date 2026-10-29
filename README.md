@@ -612,7 +612,7 @@ removed.
 | `/audit-specs`                | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                          |
 | `/audit-architecture`         | Audits the architecture for recorded-decision drift, unrecorded intent, and a due record (pro-model auditor)                                                                                      |
 | `/audit-readme`               | Audits the human-facing README for accuracy, design-intent fidelity, grammar, and human-visible-capability coverage (pro-model auditor)                                                           |
-| `/apply-audit-reductions`     | Applies an audit report's merge/removal/route/extraction reduction candidates — merged text, pointers, and deletions inline, a content-move routed to the change workflow — under the review gate |
+| `/apply-audit-reductions`     | Applies an audit report's reduction candidates under the review gate, routing a content move to the change workflow                                                                               |
 | `/diagram`                    | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer, then visually reviews a Mermaid render with `vision`                                                                    |
 | `/generalize-process-defects` | Turns the accumulated process-defect records into rules and improvements, recording a decision per record                                                                                         |
 | `/flag-process-defect`        | Verifies a process defect the owner reports, and records it only when the episode evidence establishes it                                                                                         |
@@ -865,29 +865,22 @@ SSE, live events appending to the timeline, and a duplicate title surfacing the 
 
 ### Quality Gates
 
-Run the full check for a module — compile, spotless, checkstyle, spotbugs, errorprone, test, componentTest,
-integrationTest — with `./gradlew :<module>:check` (add `-PskipITs -Pcoverage.gate.enabled=false` to drop integration
-for a Docker-free check and disable the coverage gate it would otherwise fail; `e2eTest` is a separate opt-in task). All
-quality gates run in the Gradle build, so no IDE is required to verify a change. An IDE (e.g. IntelliJ IDEA) is an
-optional convenience for interactive editing, debugging, and inspection.
+`./gradlew :<module>:check` runs the module's gates — compilation, formatting and static analysis, and every test tier
+except the opt-in end-to-end suite — and the root `./gradlew check` adds the repository-wide verification tasks, the
+chart packaging, and the workflow lint; the `check` block in `build.gradle.kts` is the list. Add
+`-PskipITs -Pcoverage.gate.enabled=false` for a Docker-free check: the first flag drops the integration tier, the second
+disables the coverage gate that would otherwise fail without its data. All of it runs in the Gradle build, so no IDE is
+required to verify a change; an IDE is an optional convenience for editing, debugging, and inspection.
 
-A pre-commit guard (`scripts/git-hooks/pre-commit`) catches nine commit-hygiene slips before they reach CI: a staged
-file `spotlessCheck` would rewrite, a force-staged generated artifact, a path staged and then edited (leaving the index
-stale), a merge conflict marker, a misplaced `captured:` marker in `AGENTS.md`, an `openspec archive` move staged
-without its spec sync, a review-round ledger that fails its checks or loses a row, an archived change's `tasks.md` left
-with an unticked task, and another change's directory staged in place of the one the commit is assigned to; the last is
-detected by reading the assignment from a claim in the worktree's git directory, or from a branch named after its
-change. It is activated once per clone (see [Get the Sources](#get-the-sources)); bypass a deliberate exception with
-`git commit --no-verify`. Its checks also have build-side counterparts in `./gradlew check`: the formatter as
-`spotlessCheck`, marker placement as `verifyCapturedMarkers`, tracked-file hygiene (the tracked-set counterpart of the
-force-staged-artifact check) as `verifyTrackedIgnoredFiles`, and conflict markers as `verifyConflictMarkers` — so they
-hold even without the hook. `verifyExecutableBits` additionally verifies the tracked scripts' executable bits, and the
-web module's own Prettier check (`npmFormatCheck`) remains part of `check`. `verifyUniqueCronSchedules` verifies no two
-workflow `cron` schedules collide, `verifyUniqueReviewRounds` verifies the review-round ledger carries one row per unit
-and round, contiguous from 1, `verifyReviewSessionContinuity` verifies each of those rows records the reviewer session
-in which the review ran and whether that session was created, continued, or replaced, `verifyLargeFiles` verifies no
-tracked file exceeds the configured size limit, and `verifyTableRows` verifies the recognized markdown tables' rows
-carry their delimiter row's column count — a defect Prettier accepts as its fixpoint.
+A pre-commit guard (`scripts/git-hooks/pre-commit`) refuses a commit whose staged set is mechanically defective — a
+stale index, a misplaced `captured:` marker, an `openspec archive` move without its spec sync, an unticked task in an
+archived change, a change directory that is not the commit's own, and the rest of the set its own header and
+`AGENTS.md`'s staging gotcha enumerate. Several of its checks have build-side counterparts in `./gradlew check` —
+`spotlessCheck` for the formatter, `verifyCapturedMarkers`, `verifyConflictMarkers`, `verifyTrackedIgnoredFiles` for the
+force-staged artifact, and the review-round ledger's tasks — so they hold even without the hook. The rest read the
+commit's own boundary — the index diverging from a later edit, an unpaired archive move, an unticked archived task, a
+foreign change directory — which no build task sees. Install it once per clone (see
+[Get the Sources](#get-the-sources)); bypass a deliberate exception with `git commit --no-verify`.
 
 ### Formatting and IDE Setup
 
@@ -1063,63 +1056,36 @@ follow-up pull request, so the next release has a base. The release workflow is 
 ### Dependency Updates and Security
 
 ```bash
-./gradlew dependencyUpdates             # report available dependency updates
-./gradlew :showcase-web-ui:npmOutdated  # report the web UI's outdated npm dependencies
-./gradlew buildLogicUpdates             # report available updates for build-logic's plugin pins
-./gradlew dependencySecurityCheck       # Snyk dependency security scan (needs Snyk CLI, not part of check)
-./gradlew :showcase-web-ui:npmAudit     # web UI npm vulnerability audit (not part of check)
-./gradlew helmUpdates                   # report available Helm CLI/chart updates
-./gradlew buildpackUpdates              # report available Paketo builder/buildpack updates
-./gradlew toolingUpdates                # report available updates for the CLIs pinned in workflow files
-./gradlew upstreamReferences            # report the state of cited upstream references
-./gradlew verifyInfraImageVersions      # verify infra image tags match their pinned charts
-./gradlew verifyInstallCommands         # verify the deployment guidance's manual install commands match the catalog
-./gradlew verifyDocumentedPins          # verify the catalog's Paketo pins a live doc states match the catalog
-./gradlew verifyModuleDependencies      # verify the module dependency graph (ADR-0010)
-./gradlew verifyDashboardJson           # verify the bundled Grafana dashboard JSON parses
-./gradlew verifyPrettierAlignment       # verify the catalog's Prettier version is the one the web module resolves
-./gradlew verifyUniqueReviewRounds      # verify the review-round ledger carries one row per unit and round, contiguous from 1
-./gradlew verifyReviewSessionContinuity # verify each review-round row records its reviewer session and transition
-./gradlew verifyLargeFiles              # verify no tracked file exceeds the configured size limit
-./gradlew verifyTableRows               # verify the recognized markdown tables' rows carry their delimiter row's count
-./gradlew workflowLint                  # lint the GitHub Actions workflows with actionlint
+# Reports — run by the scheduled workflows (not part of check)
+./gradlew dependencyUpdates             # the catalog's coordinates
+./gradlew buildLogicUpdates             # the included build-logic build's plugin pins
+./gradlew :showcase-web-ui:npmOutdated  # the web UI's npm dependencies
+./gradlew helmUpdates                   # the Helm CLI and chart pins
+./gradlew buildpackUpdates              # the Paketo builder and buildpacks
+./gradlew toolingUpdates                # the CLIs pinned in workflow files
+./gradlew upstreamReferences            # the state of cited upstream references
+
+# Security scans (not part of check)
+./gradlew dependencySecurityCheck       # Snyk, needs the Snyk CLI
+./gradlew :showcase-web-ui:npmAudit     # npm audit for the web UI
 ```
 
-`dependencyUpdates` reports newer versions of dependencies whose version is declared with an exact `version.ref` in the
-version catalog (`gradle/libs.versions.toml`); BOM-inherited versions are not reported. Major updates can be suppressed
-per coordinate or group prefix in `config/dependency-updates/major-disabled.txt` — minor and patch updates for those
-coordinates are still reported. A coordinate can also be held back at a version line in
-`config/dependency-updates/hold-back.txt`: updates on a newer minor line within the same major are suppressed, while
-patches within the held line and any major jump stay reported. The rationale for each suppressed or held-back coordinate
-is recorded in the `showcase/quality/dependency-management` spec. See ADR-0004 for the deferred Spring Boot 4 migration
-context.
+Scheduled workflows open or update a tracker issue with a report's findings; security scans fail on findings their
+policies reject. `dependencyUpdates` covers the coordinates the catalog declares with an exact `version.ref`, so a
+BOM-inherited version is not reported, and it honours the suppression and hold-back lists under
+`config/dependency-updates/` — each entry's rationale is the `showcase/quality/dependency-management` spec's. The web
+UI's report has its own list (`config/web-ui-updates/major-disabled.txt`). `buildLogicUpdates` exists because the
+included `build-logic` build's plugin pins resolve on its own buildscript classpath, where `dependencyUpdates` cannot
+see them. A calendar-versioned coordinate (a `YYYY.MINOR.MICRO` Spring train) treats a change in the train pair as a
+major update, matching Spring's release-train definition.
 
-The web UI's npm dependencies are covered separately: `:showcase-web-ui:npmOutdated` reports their available updates —
-excluding the majors suppressed in `config/web-ui-updates/major-disabled.txt`, as the JVM report excludes its own — and
-`:showcase-web-ui:npmAudit` audits them for high-severity vulnerabilities. See ADR-0014 for why the web UI uses npm's
-own tooling rather than Snyk.
+Three decisions bound what these reports show: [ADR-0004](docs/adr/0004-defer-spring-boot-4-migration.md) defers the
+Spring Boot 4 migration, [ADR-0014](docs/adr/0014-web-ui-npm-dependency-checks.md) explains why the web UI uses npm's
+own audit rather than Snyk, and [ADR-0021](docs/adr/0021-filter-report-rows-the-catalog-satisfies.md) filters the
+spurious row a build-environment constraint produces when the tooling's own floor is read as the "current version".
 
-The Gradle plugin versions the included `build-logic` build pins are covered separately too: they resolve only on that
-build's buildscript classpath, so `dependencyUpdates` cannot see them, and `buildLogicUpdates` looks each one up in the
-Gradle Plugin Portal with the same stability rule and suppression files, reporting them in the "Dependency updates"
-issue.
-
-The `/dependency-updates` OpenCode command runs these reports and summarizes the available updates; the `/gradle-update`
-command updates the Gradle wrapper to the latest stable version when one is available, and the `/opsx-tool-update`
-command regenerates the OpenSpec command/skill instruction files after a new `openspec` CLI release.
-
-Note that the report can also surface spurious rows caused by build-environment constraints: the build tooling itself
-publishes module constraints that `checkBuildEnvironmentConstraints` reads and reports as the "current version". One
-such row was `log4j-core [2.17.1 -> 2.26.1]`, reported although `log4j-core` resolves to `2.26.1` everywhere: `2.17.1`
-is the floor of the Log4Shell ban Gradle itself applies to every classpath it builds. The report no longer lists that
-update: it rejects a candidate no newer than the version the catalog declares when the plugin's own "current" disagrees
-with it. See ADR-0021, and upstream ben-manes/gradle-versions-plugin#755 for the plugin behaviour.
-
-For calendar-versioned coordinates (leading segment is a 4-digit year, e.g. Spring `YYYY.MINOR.MICRO` such as
-`reactor-bom` on the `2025.0` train), a change in the `YYYY.TRAIN` pair (the first two version segments) is treated as a
-major update — matching Spring's release-train definition where `2025.0` and `2025.1` are distinct trains — while a
-change only in the service-release (third) segment within the same train is a minor/patch update. Semver coordinates
-keep the leading-integer major comparison.
+The `/dependency-updates` command runs the Gradle, web-UI, and build-logic reports and summarizes them; `/gradle-update`
+bumps the Gradle wrapper to the latest stable version.
 
 ### Load Testing
 

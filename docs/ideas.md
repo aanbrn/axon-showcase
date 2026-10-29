@@ -25,12 +25,6 @@ as a second entry and splits one idea's detail across two sections.
 
 ## 2026-10-29
 
-- State the boundary between an ADR and a dated `docs/decisions/` record in `docs/adr/README.md` — parked; no change
-  yet. The repository now records a program-direction decision under `docs/decisions/` (the rejected inline-span check),
-  and the routing for that location is stated in `docs/ideas.md`'s header and in `/ideas`'s lesson rule, neither of
-  which a reader of the ADR conventions consults. The architecture audit surfaced it: a reader would not learn that some
-  decisions deliberately live outside `docs/adr/`.
-
 - First-run resource passport — parked; no change yet. No source in the repository states the machine budget a first
   Compose or Helm run needs, the builds included; the load-test baselines measure a deployed cluster, not a minimum.
   Measure it before the README promises RAM or startup time.

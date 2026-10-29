@@ -1793,3 +1793,8 @@
 2026-10-29	scope-ideas-to-owner-cleanup	4	claim-unreproducible,incomplete-enumeration,impact-omission	claim-unreproducible,incomplete-enumeration,impact-omission	1	ses_e77d8a0eaffeDRfOm5SUWxuGQx	continued	-
 2026-10-29	scope-ideas-to-owner-cleanup	5	contradiction	contradiction	1	ses_e77d8a0eaffeDRfOm5SUWxuGQx	continued	-
 2026-10-29	scope-ideas-to-owner-cleanup	6	-	-	0	ses_e77d8a0eaffeDRfOm5SUWxuGQx	continued	-
+2026-10-30	state-the-adr-decision-boundary	1	impact-omission,coherence,contradiction,single-sourcing,structured-writing	-	2	ses_e760a602fffeH8uHMELRKAZFfG	created	-
+2026-10-30	state-the-adr-decision-boundary	2	coherence	coherence	0	ses_e760a602fffeH8uHMELRKAZFfG	continued	-
+2026-10-30	state-the-adr-decision-boundary	3	coherence	coherence	0	ses_e760a602fffeH8uHMELRKAZFfG	continued	-
+2026-10-30	state-the-adr-decision-boundary	4	staging	-	1	ses_e760a602fffeH8uHMELRKAZFfG	continued	-
+2026-10-30	state-the-adr-decision-boundary	5	-	-	0	ses_e760a602fffeH8uHMELRKAZFfG	continued	-

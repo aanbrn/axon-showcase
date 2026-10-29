@@ -2362,6 +2362,239 @@ class CommitAssignmentTests(unittest.TestCase):
         self.assertEqual(0, self._run(repo)[0])
 
 
+ARCHIVED_DIR = "openspec/changes/archive/2026-10-01-unit-a"
+
+
+class ArchivedTasksGuardTests(unittest.TestCase):
+    """The pre-commit guard's staged archived tasks check, over a repository assigned to the archived change."""
+
+    def _repo(self) -> Path:
+        repo = make_repo(self)
+        write_claim(repo, "unit-a")
+        return repo
+
+    def _tasks(self, repo: Path, lines: list[str], name: str = "tasks.md", directory: str = ARCHIVED_DIR) -> str:
+        directory = repo / directory
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / name
+        path.write_text("# Tasks\n\n" + "\n".join(lines) + "\n", encoding="utf-8")
+        return path.relative_to(repo).as_posix()
+
+    def _commit_all(self, repo: Path, message: str = "base") -> None:
+        (repo / "base.txt").write_text("base\n", encoding="utf-8")
+        subprocess.run(("git", "add", "-A"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", message), cwd=repo, check=True)
+
+    def _check(self, repo: Path) -> tuple[int, str]:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            return commit_hygiene.check_staged(repo, ["true"]), stderr.getvalue()
+
+    def _merge_side(self, repo: Path, paths: list[str], message: str) -> None:
+        primary = subprocess.run(
+            ("git", "rev-parse", "--abbrev-ref", "HEAD"), cwd=repo, capture_output=True, text=True, check=True
+        ).stdout.strip()
+        subprocess.run(("git", "switch", "-q", "-c", "side"), cwd=repo, check=True)
+        for path in paths:
+            target = repo / path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("# Tasks\n\n- [ ] 1.1 An unticked task\n", encoding="utf-8")
+        self._commit_all(repo, message)
+        subprocess.run(("git", "switch", "-q", primary), cwd=repo, check=True)
+
+    def test_an_unticked_task_is_refused_and_named(self):
+        repo = self._repo()
+        path = self._tasks(repo, ["- [x] 1.1 Done", "- [x] 1.2 Open", "  - [x] 1.3 Nested"])
+        self._commit_all(repo)
+        self._tasks(repo, ["- [x] 1.1 Done", "- [ ] 1.2 Open", "  - [ ] 1.3 Nested", "\t- [ ] 1.4 Tabbed"])
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("An archived change's task is not ticked", stderr)
+        self.assertIn(path, stderr)
+        self.assertIn("1.2 Open", stderr)
+        self.assertIn("1.3 Nested", stderr)
+        self.assertIn("1.4 Tabbed", stderr)
+        self.assertNotIn("1.1 Done", stderr)
+
+    def test_a_fully_ticked_file_proceeds(self):
+        repo = self._repo()
+        path = self._tasks(repo, ["- [x] 1.1 Done", "- [X] 1.2 Also done"])
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_an_unstaged_archived_tasks_file_is_not_judged(self):
+        repo = self._repo()
+        self._commit_all(repo)
+        self._tasks(repo, ["- [ ] 1.1 Open"])
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_an_empty_bracket_is_unticked(self):
+        repo = self._repo()
+        path = self._tasks(repo, ["- [] 1.1 Open"])
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("(unticked)", stderr)
+        self.assertIn("1.1 Open", stderr)
+
+    def test_an_unsupported_marker_is_refused(self):
+        repo = self._repo()
+        path = self._tasks(repo, ["- [~] 1.1 In progress"])
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("unsupported marker '~'", stderr)
+        self.assertIn("1.1 In progress", stderr)
+
+    def test_a_plus_or_ordered_task_is_refused(self):
+        repo = self._repo()
+        path = self._tasks(
+            repo,
+            [
+                "+ [ ] 1.1 Plus marker",
+                "1. [ ] 1.2 Ordered marker",
+                "* [ ] 1.3 Star marker",
+                "1) [ ] 1.4 Paren marker",
+            ],
+        )
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        for task in ("1.1 Plus marker", "1.2 Ordered marker", "1.3 Star marker", "1.4 Paren marker"):
+            self.assertIn(task, stderr)
+
+    def test_a_bracket_longer_than_one_character_is_not_a_task(self):
+        repo = self._repo()
+        path = self._tasks(repo, ["- [x] 1.1 Done", "- [see below] a note, not a checkbox"])
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_a_link_bullet_is_not_a_task(self):
+        repo = self._repo()
+        path = self._tasks(repo, ["- [x] 1.1 Done", "- [ ](docs/notes.md) a link"])
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_a_live_change_directory_tasks_file_is_not_judged(self):
+        repo = self._repo()
+        path = self._tasks(repo, ["- [ ] 1.1 Open"], directory="openspec/changes/unit-a")
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_an_archived_file_other_than_tasks_is_not_judged(self):
+        repo = self._repo()
+        path = self._tasks(repo, ["- [ ] 1.1 An example, not a task"], name="notes.md")
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_the_indexed_content_is_judged_not_the_working_tree(self):
+        repo = self._repo()
+        path = self._tasks(repo, ["- [ ] 1.1 Open"])
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+        self._tasks(repo, ["- [x] 1.1 Open"])
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("An archived change's task is not ticked", stderr)
+        self.assertIn("1.1 Open", stderr)
+
+        self._tasks(repo, ["- [x] 1.1 Open"])
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+        self._tasks(repo, ["- [ ] 1.1 Open"])
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("Staged and then edited again", stderr)
+        self.assertNotIn("An archived change's task is not ticked", stderr)
+
+    def test_a_live_change_directory_moved_into_the_archive_is_refused(self):
+        repo = self._repo()
+        live = repo / "openspec" / "changes" / "unit-a" / "tasks.md"
+        live.parent.mkdir(parents=True, exist_ok=True)
+        live.write_text("# Tasks\n\n- [ ] 1.1 Open\n", encoding="utf-8")
+        self._commit_all(repo)
+        (repo / ARCHIVED_DIR).parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(("git", "mv", "openspec/changes/unit-a", ARCHIVED_DIR), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn(ARCHIVED_DIR + "/tasks.md", stderr)
+        self.assertIn("1.1 Open", stderr)
+
+    def test_a_merge_that_brings_the_file_unchanged_is_exempt(self):
+        repo = self._repo()
+        self._commit_all(repo)
+        self._merge_side(repo, [ARCHIVED_DIR + "/tasks.md"], "archived")
+        (repo / "other.txt").write_text("main\n", encoding="utf-8")
+        self._commit_all(repo, "main")
+        subprocess.run(("git", "merge", "--no-commit", "--no-ff", "side"), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_a_merge_with_an_edited_file_is_refused(self):
+        repo = self._repo()
+        self._commit_all(repo)
+        self._merge_side(repo, [ARCHIVED_DIR + "/tasks.md"], "archived")
+        (repo / "other.txt").write_text("main\n", encoding="utf-8")
+        self._commit_all(repo, "main")
+        subprocess.run(("git", "merge", "--no-commit", "--no-ff", "side"), cwd=repo, check=True)
+        path = repo / ARCHIVED_DIR / "tasks.md"
+        path.write_text("# Tasks\n\n- [ ] 1.1 Open\n- [ ] 1.2 Added by the resolution\n", encoding="utf-8")
+        subprocess.run(("git", "add", "--", ARCHIVED_DIR + "/tasks.md"), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("1.2 Added by the resolution", stderr)
+
+    def test_a_merge_that_does_not_hold_the_path_is_judged(self):
+        repo = self._repo()
+        self._commit_all(repo)
+        self._merge_side(repo, ["side.txt"], "side")
+        (repo / "other.txt").write_text("main\n", encoding="utf-8")
+        self._commit_all(repo, "main")
+        subprocess.run(("git", "merge", "--no-commit", "--no-ff", "side"), cwd=repo, check=True)
+        path = self._tasks(repo, ["- [ ] 1.1 Open"])
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("1.1 Open", stderr)
+
+
 class LedgerGuardTests(unittest.TestCase):
     """The pre-commit guard's review-round ledger checks, over a committed ledger and a staged change."""
 

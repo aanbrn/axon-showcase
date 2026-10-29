@@ -14,14 +14,15 @@ Manage the lightweight ideas scratchpad at `docs/ideas.md`.
 
 ## Cleanup mode
 
-1. Take the **oldest dated section after the `Last cleanup:` date in `docs/ideas.md`'s header** (the oldest section when
-   that line reads `none`), and read its entries in full. If no section is after the cursor, report that every section
-   has been covered and ask whether to reset the cursor to `none` — do not re-open a section it already covered. **This
-   step ends the turn** — the reset is applied only under the owner's answer.
+1. Take the **oldest dated section after the `Cleanup cursor:` date in `docs/ideas.md`'s header** (the oldest section
+   when that line reads `none`), and read its entries in full. If no section is after the cursor, report that every
+   section has been covered and ask whether to reset the cursor to `none` — do not re-open a section it already covered.
+   **This step ends the turn** — the reset is applied only under the owner's answer, and it writes
+   `**Cleanup cursor:** none — no section is covered.`
 2. Present the batch: each entry with its own text, and the disposition you propose for it.
 3. Ask the owner for one disposition per entry, from the table below. **This step ends the turn** — no disposition is
    applied until the owner answers.
-4. Apply the answers and set the header's `**Last cleanup:**` line to this section's date once **every** entry in the
+4. Apply the answers and set the header's `**Cleanup cursor:**` line to this section's date once **every** entry in the
    batch has a disposition, then stop: the next invocation starts after the section just covered. An entry the owner
    leaves undisposed leaves that line unchanged, so the next invocation presents the same section again.
 

@@ -10,7 +10,7 @@ applies — in the window's retrospective or in a dated record under `docs/decis
 there rather than in `docs/retrospectives/`, which holds the window reports the retrospective digest selects. Only open,
 not-yet-implemented ideas remain.
 
-**Last cleanup:** none — the next cleanup starts at the oldest section.
+**Cleanup cursor:** 2026-09-01 — every section dated on or before it is covered.
 
 Changes to this file travel with the change that owns them: an idea's **removal** ships in the implementing change's PR
 — it rides that change's branch and commits with its push, like the rest of the work — and a **newly parked** idea the

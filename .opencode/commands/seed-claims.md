@@ -11,7 +11,12 @@ Seed the pre-write derivation pass's claims table from the unit's own diff.
 **Procedure**
 
 1. Run `python3 scripts/claim-scan.py` from the repository root. The script owns what it scans, its `--base` default,
-   and the candidate kinds it prints — read its output rather than its documentation restated here.
+   `--include`, and the candidate kinds it prints — read its output rather than its documentation restated here.
+   - **IF the unit has no change dir, THEN draft its pull-request body from `.github/PULL_REQUEST_TEMPLATE.md` and save
+     it before this step, and pass it with `--include`:** the checklist line the table goes on exists only once the body
+     does, and the body's text is not one of the scan's input sets. Drafting is not publication.
+   - The `--include` file is scanned beside the ordinary scan, never instead of it, and an unreadable one is a failure
+     rather than an empty candidate list.
 2. Resolve every candidate: give it a claims-table row (in the change's `design.md`, or in `tasks.md` for a unit that
    writes no design, or on the pull-request checklist line for a unit with no change dir), or record its dismissal
    beside the table — grouped by kind where the dismissal is uniform, with the reason.

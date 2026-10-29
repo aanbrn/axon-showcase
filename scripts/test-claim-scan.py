@@ -122,13 +122,51 @@ class ScanTests(unittest.TestCase):
         self.assertIn(("untracked.md", 1, "cross-ref", "#606"), claims)
 
 
-class UntrackedFileTests(unittest.TestCase):
-    def test_an_untracked_file_is_scanned_as_all_added(self):
+class FileScanTests(unittest.TestCase):
+    def test_a_file_outside_the_diff_is_scanned_as_all_added(self):
         with tempfile.TemporaryDirectory() as directory:
             repo = Path(directory)
             (repo / "notes.md").write_text("first line\nfixed by #606\n", encoding="utf-8")
 
-            self.assertEqual([("notes.md", 2, "cross-ref", "#606")], claim_scan.scan_untracked_file(repo, "notes.md"))
+            self.assertEqual([("notes.md", 2, "cross-ref", "#606")], claim_scan.scan_file(repo, "notes.md"))
+
+    def test_an_included_file_keeps_a_path_it_shares_with_the_diff(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            (repo / "body.md").write_text("the row names `AGENTS.md`\n", encoding="utf-8")
+
+            self.assertEqual(
+                [("body.md", 1, "path", "AGENTS.md")],
+                claim_scan.scan_file(repo, "body.md", known=["AGENTS.md"], required=True),
+            )
+
+    def test_an_unreadable_untracked_file_is_swamped_while_an_included_one_fails(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+
+            self.assertEqual([], claim_scan.scan_file(repo, "missing.md"))
+            with self.assertRaises(ValueError):
+                claim_scan.scan_file(repo, "missing.md", required=True)
+
+
+class ScanFailureTests(unittest.TestCase):
+    def test_an_undecodable_untracked_file_does_not_stop_the_scan(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            subprocess.run(["git", "init", "-q"], cwd=str(repo), check=True)
+            (repo / "base.md").write_text("base\n", encoding="utf-8")
+            subprocess.run(["git", "add", "base.md"], cwd=str(repo), check=True)
+            subprocess.run(
+                ["git", "-c", "user.email=t@example.com", "-c", "user.name=t", "commit", "-q", "-m", "base"],
+                cwd=str(repo),
+                check=True,
+            )
+            (repo / "binary.md").write_bytes(b"\xff\xfe fixed by #606\n")
+            (repo / "notes.md").write_text("fixed by #606\n", encoding="utf-8")
+
+            claims = claim_scan.scan(repo, "HEAD")
+
+        self.assertIn(("notes.md", 1, "cross-ref", "#606"), claims)
 
 
 class CliTests(unittest.TestCase):
@@ -146,6 +184,75 @@ class CliTests(unittest.TestCase):
         self.assertIn("[absolute]  only", stdout.getvalue())
         self.assertIn("[cross-ref]  #606", stdout.getvalue())
         self.assertIn("[path]  scripts/claim-scan.py", stdout.getvalue())
+
+    def test_a_deletion_only_diff_seeds_from_the_included_body(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            diff_file = root / "deletion.diff"
+            diff_file.write_text(
+                "--- a/docs/sample.md\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-only 12 files\n-fixed by #606\n",
+                encoding="utf-8",
+            )
+            body = root / "body.md"
+            body.write_text("The pass keeps 3 rows and only the saved body names #741.\n", encoding="utf-8")
+            stdout = io.StringIO()
+
+            with contextlib.redirect_stdout(stdout):
+                code = claim_scan.main(["--diff-file", str(diff_file), "--include", str(body), "--repo", str(root)])
+
+        self.assertEqual(0, code)
+        self.assertIn("body.md:1  [count]  3 rows", stdout.getvalue())
+        self.assertIn("[absolute]  only", stdout.getvalue())
+        self.assertIn("[cross-ref]  #741", stdout.getvalue())
+
+    def test_the_include_and_the_diff_both_contribute(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            diff_file = root / "sample.diff"
+            diff_file.write_text(FIXTURE_DIFF, encoding="utf-8")
+            body = root / "body.md"
+            body.write_text("The body names #741.\n", encoding="utf-8")
+            stdout = io.StringIO()
+
+            with contextlib.redirect_stdout(stdout):
+                code = claim_scan.main(["--diff-file", str(diff_file), "--include", str(body), "--repo", str(root)])
+
+        self.assertEqual(0, code)
+        self.assertIn("docs/sample.md:2  [count]  12 files", stdout.getvalue())
+        self.assertIn("body.md:1  [cross-ref]  #741", stdout.getvalue())
+
+    def test_an_empty_included_file_keeps_the_diff_candidates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            diff_file = root / "sample.diff"
+            diff_file.write_text(FIXTURE_DIFF, encoding="utf-8")
+            body = root / "body.md"
+            body.write_text("", encoding="utf-8")
+            stdout = io.StringIO()
+
+            with contextlib.redirect_stdout(stdout):
+                code = claim_scan.main(["--diff-file", str(diff_file), "--include", str(body), "--repo", str(root)])
+
+        self.assertEqual(0, code)
+        self.assertIn("[count]  12 files", stdout.getvalue())
+        self.assertNotIn("body.md", stdout.getvalue())
+
+    def test_a_missing_included_file_fails_and_keeps_the_diff_candidates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            diff_file = root / "sample.diff"
+            diff_file.write_text(FIXTURE_DIFF, encoding="utf-8")
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+
+            with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                code = claim_scan.main(
+                    ["--diff-file", str(diff_file), "--include", str(root / "missing.md"), "--repo", str(root)]
+                )
+
+        self.assertEqual(1, code)
+        self.assertIn("missing.md", stderr.getvalue())
+        self.assertIn("[count]  12 files", stdout.getvalue())
 
 
 if __name__ == "__main__":

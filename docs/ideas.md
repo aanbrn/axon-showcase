@@ -271,20 +271,10 @@ as a second entry and splits one idea's detail across two sections.
 - Classify `actionlint` as a required probe in the doctor, with its required-set assertion and the spec example: it is
   optional today although `check`'s `workflowLint` needs it — parked; no change yet.
 
-- Add a markdown table-integrity check to `commit-hygiene.py` — parked; no change yet. A table row wrapped onto a second
-  line becomes a spurious row, and Prettier treats that as its fixpoint, so `spotlessCheck` stays green: reproduced with
-  the build's Prettier 3.9.10 under this repo's config during `adopt-worktree-isolation`'s review (a `--table-rows` mode
-  counting unescaped pipes per row against the delimiter row, a `verifyTableRows` task beside `verifyConflictMarkers`,
-  and controls for a wrapped row, Prettier's output, an escaped `\|`, a fenced diagram and a clean table; a prototype
-  over the 113 gated markdown files found no false positive). The same modes cover a second failure,
-  `extend-owner-reply-language-scope#2`: a bare `|` inside a command cell split three claims rows into five-to-seven
-  columns while `spotlessApply`/`spotlessCheck` stayed green, so the split rows join the known-bad cases and the
-  unescaped-pipe count against the delimiter row is the same assertion.
-
-- Extend that markdown-integrity check with an inline-code-span whitespace mode — parked; no change yet. A run of two or
-  more spaces inside a single-line inline code span passes `spotlessCheck` (Prettier never rewrites a span's interior)
-  and the 120-character check measures length only; reproduced twice, by `fix-gateway-cors-allowed-headers` (#359) and
-  by `bump-kps-chart-2026-10-25`'s five-space `kubectl get pods -n monitoring` span. Scope it to the Spotless markdown
+- Extend `verifyTableRows` with an inline-code-span whitespace mode — parked; no change yet. A run of two or more spaces
+  inside a single-line inline code span passes `spotlessCheck` (Prettier never rewrites a span's interior) and the
+  120-character check measures length only; reproduced twice, by `fix-gateway-cors-allowed-headers` (#359) and by
+  `bump-kps-chart-2026-10-25`'s five-space `kubectl get pods -n monitoring` span. Scope it to the Spotless markdown
   target (active `openspec/changes/*/` included, `archive/**` excluded), with those two spans as the known-bad cases and
   fenced blocks, delimiter rows and an escaped `\|` as the known-good ones; prototype over the gated set first, since
   one false-positive class would block it.
@@ -852,9 +842,9 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 - Widen the `commit-hygiene` test-coverage requirement to every check — parked; no change yet. The spec's "The guard's
   checks are covered by tests run in the build" is scoped to the guard's classes, while the build checks
   (`verifyCapturedMarkers`, `verifyTrackedIgnoredFiles`, `verifyConflictMarkers`, `verifyExecutableBits`,
-  `verifyUniqueCronSchedules`, `verifyUniqueReviewRounds`, `verifyReviewSessionContinuity`, `verifyLargeFiles`) carry no
-  test-coverage clause; widening it needs a REMOVED+ADDED retitle, since a `MODIFIED` block cannot rename a requirement
-  header.
+  `verifyUniqueCronSchedules`, `verifyUniqueReviewRounds`, `verifyReviewSessionContinuity`, `verifyLargeFiles`,
+  `verifyTableRows`) carry no test-coverage clause; widening it needs a REMOVED+ADDED retitle, since a `MODIFIED` block
+  cannot rename a requirement header.
 
 - Carry findings forward across audit reports — parked; no change yet. The reports under `docs/audits/` have been
   write-only: a finding recurs run after run with nothing to say it is the same unapplied item, and the recorded

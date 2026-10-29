@@ -2595,6 +2595,152 @@ class ArchivedTasksGuardTests(unittest.TestCase):
         self.assertIn("1.1 Open", stderr)
 
 
+class TableRowTests(unittest.TestCase):
+    """The --table-rows verification: a row's cell count against its delimiter row's, over the files it is given."""
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.repo = Path(self.directory.name)
+
+    def write(self, name, text):
+        path = self.repo / name
+        path.write_text(text, encoding="utf-8")
+        return name
+
+    def check(self, *paths):
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            return commit_hygiene.check_table_rows(self.repo, list(paths)), stderr.getvalue()
+
+    def test_a_wrapped_row_fails_naming_the_file_and_line(self):
+        path = self.write("wrapped.md", "| A | B |\n| - | - |\n| one | two |\n| wrapped |\n")
+
+        code, stderr = self.check(path)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("wrapped.md:4", stderr)
+        self.assertIn("1 cell", stderr)
+
+    def test_a_bare_pipe_in_a_cell_fails_and_an_escaped_one_passes(self):
+        split = self.write("split.md", "| A | B |\n| - | - |\n| one | a | b |\n")
+        escaped = self.write("escaped.md", "| A | B |\n| - | - |\n| one | a \\| b |\n")
+
+        code, stderr = self.check(split)
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("split.md:3", stderr)
+        self.assertIn("3 cells", stderr)
+
+        code, stderr = self.check(escaped)
+        self.assertEqual(code, 0, stderr)
+
+    def test_a_fence_and_a_clean_table_pass(self):
+        path = self.write(
+            "clean.md",
+            "# Title\n\n| A | B |\n| - | - |\n| one | two |\n\n```\n| x | y |\n| - | - |\n| only one |\n```\n",
+        )
+
+        code, stderr = self.check(path)
+
+        self.assertEqual(code, 0, stderr)
+        self.assertEqual(stderr, "")
+
+    def test_a_table_without_outer_pipes_passes(self):
+        path = self.write("bare.md", "A | B\n- | -\none | two\n")
+
+        code, stderr = self.check(path)
+
+        self.assertEqual(code, 0, stderr)
+
+    def test_a_block_start_ends_the_table(self):
+        for marker in ("## Next", "- item", "> quote", "---"):
+            path = self.write("ends.md", "| A | B |\n| - | - |\n| one | two |\n{0}\n".format(marker))
+
+            code, stderr = self.check(path)
+
+            self.assertEqual(code, 0, "{0}: {1}".format(marker, stderr))
+
+    def test_a_separatorless_line_inside_the_table_fails(self):
+        path = self.write("inside.md", "| A | B |\n| - | - |\n| one | two |\nno separator here\n")
+
+        code, stderr = self.check(path)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("inside.md:4", stderr)
+        self.assertIn("wrapped", stderr)
+        self.assertIn("delimiter row has 2", stderr)
+
+    def test_prose_with_a_pipe_before_a_thematic_break_is_not_a_table(self):
+        path = self.write("prose.md", "Some prose with a pipe | in it\n---\n")
+
+        code, stderr = self.check(path)
+
+        self.assertEqual(code, 0, stderr)
+
+    def test_a_prefixed_table_is_skipped(self):
+        path = self.write("prefixed.md", "- | A | B |\n  | - | - |\n  | one | two |\n")
+
+        code, stderr = self.check(path)
+
+        self.assertEqual(code, 0, stderr)
+
+    def test_a_blockquote_table_is_not_judged(self):
+        path = self.write("quoted.md", "> | A | B |\n> | --- | --- |\n> | one | a | b |\n")
+
+        code, stderr = self.check(path)
+
+        self.assertEqual(code, 0, stderr)
+
+    def test_a_row_starting_with_an_html_tag_is_not_examined(self):
+        path = self.write("html.md", "A | B\n- | -\n<a> | b | c\nc | d | e\n")
+
+        code, stderr = self.check(path)
+
+        self.assertEqual(code, 0, "the accepted false negative: a line beginning with `<` ends the table")
+
+    def test_a_fence_ends_the_table(self):
+        path = self.write("fenced.md", "| A | B |\n| - | - |\n| one | two |\n```\n| x |\n```\n")
+
+        code, stderr = self.check(path)
+
+        self.assertEqual(code, 0, stderr)
+
+    def test_a_double_backslash_pipe_separates(self):
+        path = self.write("doubled.md", "| A | B |\n| - | - |\n| one | a \\\\| b |\n")
+
+        code, stderr = self.check(path)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("3 cells", stderr)
+
+    def test_the_report_names_the_delimiter_count(self):
+        path = self.write("split2.md", "| A | B |\n| - | - |\n| one | a | b |\n")
+
+        code, stderr = self.check(path)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("delimiter row has 2", stderr)
+
+    def test_a_run_with_no_path_fails(self):
+        code, stderr = self.check()
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("no path", stderr)
+
+    def test_an_unreadable_path_fails_naming_it(self):
+        code, stderr = self.check("absent.md")
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("absent.md", stderr)
+
+    def test_a_file_without_a_table_passes(self):
+        path = self.write("prose.md", "Just prose, no table.\n")
+
+        code, stderr = self.check(path)
+
+        self.assertEqual(code, 0, stderr)
+
+
 class LedgerGuardTests(unittest.TestCase):
     """The pre-commit guard's review-round ledger checks, over a committed ledger and a staged change."""
 

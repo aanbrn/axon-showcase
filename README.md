@@ -860,8 +860,9 @@ hold even without the hook. `verifyExecutableBits` additionally verifies the tra
 web module's own Prettier check (`npmFormatCheck`) remains part of `check`. `verifyUniqueCronSchedules` verifies no two
 workflow `cron` schedules collide, `verifyUniqueReviewRounds` verifies the review-round ledger carries one row per unit
 and round, contiguous from 1, `verifyReviewSessionContinuity` verifies each of those rows records the reviewer session
-in which the review ran and whether that session was created, continued, or replaced, and `verifyLargeFiles` verifies no
-tracked file exceeds the configured size limit.
+in which the review ran and whether that session was created, continued, or replaced, `verifyLargeFiles` verifies no
+tracked file exceeds the configured size limit, and `verifyTableRows` verifies the recognized markdown tables' rows
+carry their delimiter row's column count — a defect Prettier accepts as its fixpoint.
 
 ### Formatting and IDE Setup
 
@@ -1055,6 +1056,7 @@ follow-up pull request, so the next release has a base. The release workflow is 
 ./gradlew verifyUniqueReviewRounds      # verify the review-round ledger carries one row per unit and round, contiguous from 1
 ./gradlew verifyReviewSessionContinuity # verify each review-round row records its reviewer session and transition
 ./gradlew verifyLargeFiles              # verify no tracked file exceeds the configured size limit
+./gradlew verifyTableRows               # verify the recognized markdown tables' rows carry their delimiter row's count
 ./gradlew workflowLint                  # lint the GitHub Actions workflows with actionlint
 ```
 

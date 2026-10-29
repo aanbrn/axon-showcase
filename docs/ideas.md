@@ -17,6 +17,14 @@ appending to the most recent one). Search the file for the idea before adding it
 differently worded — is extended in place in its existing section, since the day-section rule otherwise files a re-park
 as a second entry and splits one idea's detail across two sections.
 
+## 2026-10-29
+
+- The README's archived-change tally is a growing-corpus count — parked; no change yet. `README.md` says "Every
+  implemented change is archived under `openspec/changes/archive/` (120+ and counting)", and the count is still
+  literally true; the issue is that a count of a growing corpus in a durable artifact drifts on every archive, which the
+  documented-numbers convention forbids. The fix is to replace the figure with a growing-corpus phrasing. Surfaced by
+  this unit's auditor smoke-run, not by a language defect.
+
 ## 2026-10-28
 
 - Give the review gate's §5 a post-refresh return branch — parked; no change yet. The unit's `#1` process-defect record

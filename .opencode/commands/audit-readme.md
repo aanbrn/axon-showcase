@@ -1,7 +1,8 @@
 ---
 description:
   Audit the repository's human-facing README for accuracy against the repository, fidelity to its documented design
-  intent, and coverage of the human-visible capabilities the system offers, with the pro-model readme-auditor subagent
+  intent, grammatical correctness of its prose, and coverage of the human-visible capabilities the system offers, with
+  the pro-model readme-auditor subagent
 ---
 
 Run the README audit, which reports only — it never edits a file.
@@ -11,7 +12,7 @@ Run the README audit, which reports only — it never edits a file.
 **Procedure**
 
 1. Invoke the `readme-auditor` subagent (`.opencode/agent/readme-auditor.md`) on the repository. Its definition owns the
-   three axes it audits, the artifacts it verifies against, and its report contract.
+   four axes it audits, the evidence each finding rests on, and its report contract.
 2. Present its report in the contract it returns — the verdict line first, then its findings grouped by axis and its
    advisory section, each item as the shared report contract requires. Do not re-summarize it.
 3. Ask the owner which findings to apply.
@@ -21,7 +22,9 @@ Run the README audit, which reports only — it never edits a file.
 - IF the report carries nothing actionable, or the owner approves nothing, THEN report that and stop — create no unit.
 - IF the approved findings differ in delivery route or in scope, THEN split them into separate units, each scoped to its
   own artifacts and diff.
-- An advisory item — subjective prose or structure, for the owner's judgment — is never "fixed" automatically.
+- An advisory item — a wording preference, a structure, or an unclear intent, for the owner's judgment — is never
+  "fixed" automatically. A provable language error is a finding, not an advisory item, and its suggested rewrite is
+  applied only through the unit process the definition's boundary describes.
 - A finding the README's own convention records as deliberate (its documented section order, the OpenSpec-flow diagram's
   asymmetry) is not a defect.
 - A correction that changes the README's _design intent_ rather than its accuracy needs the owner's decision, since the

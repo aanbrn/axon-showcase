@@ -59,6 +59,8 @@ LEAD_RE = re.compile(r"^(- |\*\*)")
 CONFLICT_MARKER_RE = r"^(<<<<<<< |>>>>>>> )"
 VENDORED_SKILL_PREFIXES = (".opencode/skills/ast-grep/", ".opencode/skills/axon4to5-", ".opencode/skills/openspec-")
 ARCHIVE_PREFIX = "openspec/changes/archive/"
+ARCHIVED_TASKS_BASENAME = "/tasks.md"
+TASK_LINE_RE = re.compile(r"^[ \t]*(?:[-*+]|\d{1,9}[.)])[ \t]+\[(?P<mark>[^\]]{0,1})\](?!\()")
 CHANGES_PREFIX = "openspec/changes/"
 SPECS_PREFIX = "openspec/specs/"
 # The per-worktree record of the unit's assigned change, read at commit time so a staged path can be judged against it.
@@ -276,6 +278,61 @@ def find_unpaired_archive_sync(repo: Path) -> list[tuple[str, list[str]]]:
         return []
     spec_paths = unstaged_spec_paths(repo)
     return [(change, spec_paths) for change in with_deltas] if spec_paths else []
+
+
+def quiet_rev_parse(repo: Path, spec: str) -> Optional[str]:
+    """The object id `spec` names, or None when it names nothing.
+
+    A miss is an ordinary answer here rather than a failed read: a merged revision that does not hold the path simply
+    does not account for it, and a raising lookup would abort the hook instead of judging the path.
+    """
+    result = git(repo, "rev-parse", "--verify", "--quiet", spec)
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip() or None
+
+
+def merge_carries_unchanged(repo: Path, path: str, revisions: list[str]) -> bool:
+    """Whether the index blob of `path` equals a merged revision's blob for the same path.
+
+    Path membership alone would exempt content the commit authored: a merge that resolves a conflict in the file, or an
+    edit staged after the merge, leaves a different blob and is judged.
+    """
+    staged = quiet_rev_parse(repo, ":{0}".format(path))
+    if staged is None:
+        return False
+    return any(quiet_rev_parse(repo, "{0}:{1}".format(revision, path)) == staged for revision in revisions)
+
+
+def find_unticked_archived_tasks(repo: Path) -> list[tuple[str, int, str, str]]:
+    """The (path, line, kind, content) of each task line a staged archived change's `tasks.md` leaves unticked.
+
+    Selection is the staged set's own `openspec/changes/archive/**/tasks.md` paths, so no file the commit does not
+    stage is judged and the archive's historical files stay untouched. The staged blob is judged rather than the
+    working tree's copy, and a file a merge brings unchanged is exempt because merged content is not the commit's own.
+    """
+    tasks = [
+        path
+        for path in staged_paths(repo)
+        if path.startswith(ARCHIVE_PREFIX) and path.endswith(ARCHIVED_TASKS_BASENAME)
+    ]
+    if not tasks:
+        return []
+    revisions = merge_revisions(repo)
+    offenders: list[tuple[str, int, str, str]] = []
+    for path in tasks:
+        if revisions and merge_carries_unchanged(repo, path, revisions):
+            continue
+        for number, line in enumerate(staged_file_text(repo, path).splitlines(), start=1):
+            match = TASK_LINE_RE.match(line)
+            if match is None:
+                continue
+            marker = match.group("mark")
+            if marker in ("x", "X"):
+                continue
+            kind = "unticked" if not marker.strip() else "unsupported marker '{0}'".format(marker)
+            offenders.append((path, number, kind, line.strip()))
+    return offenders
 
 
 def find_conflict_markers(repo: Path, staged: bool = False) -> list[str]:
@@ -736,6 +793,10 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
         )
         for path in spec_paths:
             print(f"  {path}", file=sys.stderr)
+
+    for path, line, kind, content in find_unticked_archived_tasks(repo):
+        failures += 1
+        print(f"An archived change's task is not ticked ({kind}): {path}:{line}: {content}", file=sys.stderr)
 
     ledger = "docs/review-rounds.tsv"
     ledger_removed = bool(

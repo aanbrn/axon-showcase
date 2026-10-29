@@ -1,7 +1,7 @@
 ---
 description:
-  Audit the project's architecture for recorded-decision drift, unrecorded intent, and a record whose recorded premise
-  is due (docs/adr/, docs/ideas.md, the service/module topology, and the spec decomposition) with the pro-model
+  Audit the project's architecture for recorded-decision drift, unrecorded intent, and a deferral whose recorded
+  condition is due (docs/adr/, the service/module topology, and the spec decomposition) with the pro-model
   architecture-auditor subagent
 ---
 
@@ -12,8 +12,8 @@ Run the architecture audit, which reports only — it never edits a file.
 **Procedure**
 
 1. Invoke the `architecture-auditor` subagent (`.opencode/agent/architecture-auditor.md`) on the repository. Its
-   definition owns the surfaces it sweeps, how it establishes the authoritative record, how it reads and classifies a
-   recorded reopening condition, and its report contract.
+   definition owns the surfaces it sweeps, how it establishes the authoritative record, how it classifies an ADR's
+   recorded `Revisit when:` condition, and its report contract.
 2. Present its report in the contract it returns — the verdict line first, then its findings and advisory sections, each
    item as the shared report contract requires. Do not re-summarize it.
 3. Ask the owner which findings to apply.

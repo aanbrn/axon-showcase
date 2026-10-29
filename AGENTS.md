@@ -533,9 +533,9 @@ the owner's decision, and no queue or drain guarantee exists.
 - **Where the repository already records a recurrence decides its disposition** — in a `captured:` rule, an
   instruction-following failure and a reason to question the rule's wording; in a `docs/ideas.md` entry whose own
   recorded reopening condition the incident meets, a reopened entry carrying the evidence the condition names, since the
-  capture reads the condition when an incident meets it while the `architecture-auditor` sweep reports it only at its
-  next run; in one whose condition is not met or which records none, an already-parked problem, recorded as that rather
-  than as a proposed rule. captured: annotate-the-reviewer-wrapper-recurrence
+  capture checks the condition when the owner generalizes an incident that meets it, and `/ideas cleanup` is a pruning
+  pass, not a condition monitor; in one whose condition is not met or which records none, an already-parked problem,
+  recorded as that rather than as a proposed rule. captured: annotate-the-reviewer-wrapper-recurrence
 - The record rides the product unit's pull request, and the improvement is a unit of its own: its own branch and tree
   from a freshly fetched `origin/main`, consuming records that are already merged, never an unfinished unit's branch.
   That is a narrow exception to the docs-refresh convention's "while the change is in flight" rule, since the
@@ -1097,40 +1097,41 @@ Key modules (libraries, not services):
   it: parked in `docs/ideas.md`, a named change, an issue; or closed where it decides against it) rather than removes.
   An open idea that still calls it "the proposed X" is itself a stale claim: update its prose in the same change,
   including any enumeration or count it carries ("two others remain open: A, B") that the change's new instance makes
-  wrong. No auditor **owns** either file (each auditor's bullet states its own scope; the architecture-auditor's sweep
-  reaches `docs/ideas.md` for a parked entry's staleness or its own due reopening condition). The
-  `docs/guidance-evidence/` records are live docs too: an auditor reconciles them only on its periodic or on-demand
-  pass, so an upstream status, a supersession, or a retirement condition a change falsifies there is refreshed in that
-  change. captured: address-scan-findings-2026-10-25 For every docs edit the boundary is **causation _while the change
-  is in flight_**: docs that ARE the change (new agent/command/skill documentation, README rows describing a new
-  capability, the change's idea removal), and any edit the change causes that exists while it can still ride a branch —
-  a process-defect record from its implementation, an idea its own sweep surfaced, a fact it falsified — ship with the
-  change's PR, while an edit the change did not cause (a stale fact it merely passed by, a standalone reword, a refresh
-  of an already-completed change) and one surfaced only after the change is done (a defect a merge appends to the merged
-  unit's record, with no branch left to ride) ships as its own docs PR, forked from `main`, batched into one docs PR
-  rather than one per item. Decide the owner before committing — a docs PR forked from `main` cannot carry an edit
-  committed on a change branch, so committing it there first for a clean tree silently leaves it out of the docs PR and
-  `main` unchanged — and verify the fix against the merged PR's diff rather than the PR description, which can claim a
-  change the diff does not contain. A parked-idea docs PR owes the refresh too: fold any durable fact the idea reveals
-  into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin to an existing enumeration) —
-  `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the idea is implemented or dropped.
-  The un-gated copies of what this file and the specs state take the same sweep, refreshed in the change that moves one:
-  the `openspec/config.yaml` `context:` block (the runtime/Spring/Gradle versions, module count, service list, and
-  Docker image names that OpenSpec shows the AI when creating artifacts), that file's per-artifact `rules` (which
-  restate obligations stated here and in the specs, injected per artifact alone — `projectConfig.rules[artifactId]` — so
-  a clause several artifacts need lives in each list rather than in a shared one), and the repository's GitHub
-  description and topics. What is un-gated is their content and currency: `ci.yml`'s probe fails on a malformed item —
-  the list's shape, since a bad one silently drops the whole artifact's rule set — but not on whether a rule's wording
-  still matches `AGENTS.md` and the spec, so refresh a rule whose obligation moves even though the gate stays green, and
-  `openspec validate` never checks the rest, so it drifts silently. A **removal** counts too: when a sweep deletes an
-  entry as non-durable, check these copies for the same sentence — the fact has not moved, so the move rule does not
-  fire (`disable-axoniq-console-message`'s sentence outlived #292's removal from `AGENTS.md` by four PRs in
-  `config.yaml`, until the audit noticed). No auditor owns a surface outside the repository. A file can also _depend_ on
-  such a surface rather than describe one: `SECURITY.md`'s private-reporting path is a dead end unless private
-  vulnerability reporting is enabled. Enable the setting as part of the change that ships the instruction — a repository
-  setting leaves no diff, so a diff-only review cannot see it — and name the enabling in the change's report. captured:
-  park-retro-marking-idea (#281) captured: re-measure-load-test-baseline (#429) captured: mark-s3-applied captured:
-  attribute-load-test-tail (#570) captured: park-review-loop-follow-ups captured: fix-openspec-config-rules
+  wrong. No auditor **owns** either file (each auditor's bullet states its own scope; the architecture-auditor reads
+  `docs/ideas.md` only for a deferral's or band-aid's missing rationale, and the file's entries are pruned by the owner
+  through `/ideas cleanup`). The `docs/guidance-evidence/` records are live docs too: an auditor reconciles them only on
+  its periodic or on-demand pass, so an upstream status, a supersession, or a retirement condition a change falsifies
+  there is refreshed in that change. captured: address-scan-findings-2026-10-25 For every docs edit the boundary is
+  **causation _while the change is in flight_**: docs that ARE the change (new agent/command/skill documentation, README
+  rows describing a new capability, the change's idea removal), and any edit the change causes that exists while it can
+  still ride a branch — a process-defect record from its implementation, an idea its own sweep surfaced, a fact it
+  falsified — ship with the change's PR, while an edit the change did not cause (a stale fact it merely passed by, a
+  standalone reword, a refresh of an already-completed change) and one surfaced only after the change is done (a defect
+  a merge appends to the merged unit's record, with no branch left to ride) ships as its own docs PR, forked from
+  `main`, batched into one docs PR rather than one per item. Decide the owner before committing — a docs PR forked from
+  `main` cannot carry an edit committed on a change branch, so committing it there first for a clean tree silently
+  leaves it out of the docs PR and `main` unchanged — and verify the fix against the merged PR's diff rather than the PR
+  description, which can claim a change the diff does not contain. A parked-idea docs PR owes the refresh too: fold any
+  durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin
+  to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the
+  idea is implemented or dropped. The un-gated copies of what this file and the specs state take the same sweep,
+  refreshed in the change that moves one: the `openspec/config.yaml` `context:` block (the runtime/Spring/Gradle
+  versions, module count, service list, and Docker image names that OpenSpec shows the AI when creating artifacts), that
+  file's per-artifact `rules` (which restate obligations stated here and in the specs, injected per artifact alone —
+  `projectConfig.rules[artifactId]` — so a clause several artifacts need lives in each list rather than in a shared
+  one), and the repository's GitHub description and topics. What is un-gated is their content and currency: `ci.yml`'s
+  probe fails on a malformed item — the list's shape, since a bad one silently drops the whole artifact's rule set — but
+  not on whether a rule's wording still matches `AGENTS.md` and the spec, so refresh a rule whose obligation moves even
+  though the gate stays green, and `openspec validate` never checks the rest, so it drifts silently. A **removal**
+  counts too: when a sweep deletes an entry as non-durable, check these copies for the same sentence — the fact has not
+  moved, so the move rule does not fire (`disable-axoniq-console-message`'s sentence outlived #292's removal from
+  `AGENTS.md` by four PRs in `config.yaml`, until the audit noticed). No auditor owns a surface outside the repository.
+  A file can also _depend_ on such a surface rather than describe one: `SECURITY.md`'s private-reporting path is a dead
+  end unless private vulnerability reporting is enabled. Enable the setting as part of the change that ships the
+  instruction — a repository setting leaves no diff, so a diff-only review cannot see it — and name the enabling in the
+  change's report. captured: park-retro-marking-idea (#281) captured: re-measure-load-test-baseline (#429) captured:
+  mark-s3-applied captured: attribute-load-test-tail (#570) captured: park-review-loop-follow-ups captured:
+  fix-openspec-config-rules
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the
@@ -1373,29 +1374,26 @@ Key modules (libraries, not services):
   `architecture-auditor` subagent (`.opencode/agent/architecture-auditor.md`) audits `docs/adr/` plus the architectural
   surface (the service boundaries, the module dependency graph, and the spec corpus's capability decomposition) for
   drift from its recorded decisions, and reports **where clarification of intent is missing** — a deliberate choice or
-  absence whose rationale is not recorded — and **a record whose recorded premise appears met** — a deferral's
-  `Revisit when:` condition, or a parked `docs/ideas.md` entry whose work has landed, fully or partly, whose objective a
-  different mechanism achieves, or whose own recorded reopening condition appears met (its finding classes, its advisory
-  section, and the report contract are in the `agent-skills` spec). It sweeps the surfaces a rationale must exist for
-  (dependency `exclude(...)` declarations, the major-version-suppressed, held-back, and web-UI-npm-suppressed
-  coordinates, the suppression annotations and retained deprecated APIs, the deferrals and band-aids recorded in ADRs or
-  `docs/ideas.md`, and a record whose premise is due — a deferred ADR's `Revisit when:` condition, the work a parked
-  entry describes, or the reopening condition a parked entry records — held against the repository where it names a
-  checkable fact) and searches the repository for a rationale before reporting each item — an item whose rationale is
-  already recorded is not reported. The **deferred-and-parked-record** item is the inverse — its record exists, so it is
-  reported when that record's premise appears met, a different question from whether the rationale exists. It
-  establishes the authoritative record before asserting a violation (a two-record contradiction, a stale supersession,
-  or a deliberate exception is an advisory, not a finding). It deliberately does **not** check behavior against the code
-  (the review loop and archive-time sync own that), the corpus's internal structure (`specs-auditor` owns that), or any
-  property an existing gate enforces. It classifies each recorded reopening condition before reporting it, and an
-  unverifiable condition is neither an expiry nor a revisit-due claim. A parked entry's met condition is reported as a
-  recurrence that is due, never as an instruction to remove the entry. Trigger it with the `/audit-architecture`
-  command. The main agent applies the approved findings under the review gate: the route each finding takes is the
-  `showcase/quality/agent-skills` requirement's, with one addition it does not carry: a correction that becomes its own
-  change is parked as an idea until then; do not force the suggested correction into the audit-fix PR (the first audit's
-  `query-api` boundary finding was verified drift, yet narrowing the dependency broke
-  `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`). An advisory item needs the
-  user's decision first. The scheduled variant runs unattended in the `audit` workflow.
+  absence whose rationale is not recorded — and **a decision deferred in an ADR whose recorded `Revisit when:` condition
+  appears met** (its finding classes, its advisory section, and the report contract are in the `agent-skills` spec). It
+  sweeps the surfaces a rationale must exist for (dependency `exclude(...)` declarations, the major-version-suppressed,
+  held-back, and web-UI-npm-suppressed coordinates, the suppression annotations and retained deprecated APIs, and the
+  deferrals and band-aids recorded in ADRs or parked in `docs/ideas.md`, with a deferred ADR's `Revisit when:` condition
+  held against the repository where it names a checkable fact) and searches the repository for a rationale before
+  reporting each item — an item whose rationale is already recorded is not reported. The **deferred-decision** item is
+  the inverse — its record exists, so it is reported when that record's condition appears met, a different question from
+  whether the rationale exists. It establishes the authoritative record before asserting a violation (a two-record
+  contradiction, a stale supersession, or a deliberate exception is an advisory, not a finding). It deliberately does
+  **not** check behavior against the code (the review loop and archive-time sync own that), the corpus's internal
+  structure (`specs-auditor` owns that), or any property an existing gate enforces. It classifies each recorded
+  `Revisit when:` condition before reporting it, and an unverifiable condition is no expiry claim. It does **not** track
+  the lifecycle of a parked `docs/ideas.md` entry: that file is a scratchpad pruned by its owner through
+  `/ideas cleanup`. Trigger it with the `/audit-architecture` command. The main agent applies the approved findings
+  under the review gate: the route each finding takes is the `showcase/quality/agent-skills` requirement's, with one
+  addition it does not carry: a correction that becomes its own change is parked as an idea until then; do not force the
+  suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet
+  narrowing the dependency broke `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`).
+  An advisory item needs the user's decision first. The scheduled variant runs unattended in the `audit` workflow.
 - **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
   (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
   guide, whose content no gate checks — on four axes: accuracy against the repository, design-intent fidelity (the

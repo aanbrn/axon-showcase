@@ -36,7 +36,7 @@
       names the old header with its reason and migration, ADDED carries every retained obligation and every retained
       scenario under its original name and in the original relative order, plus the language scenarios and the
       design-intent scenario — and that `openspec validate --all` passes
-- [ ] 3.2 Apply the capability `## Purpose` refresh in the archive commit: the Purpose names the README audit's scope,
+- [x] 3.2 Apply the capability `## Purpose` refresh in the archive commit: the Purpose names the README audit's scope,
       which the language axis extends — recorded as an explicit task because a delta cannot carry a Purpose
 
 ## 4. Verification

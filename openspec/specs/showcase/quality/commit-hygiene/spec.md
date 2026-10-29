@@ -38,6 +38,18 @@ staged ledger, and a staged ledger whose file is deleted or renamed away has no 
 ledger's staged content, not the working tree's copy. It SHALL report a staged ledger row whose round column cannot be
 parsed as a named failure rather than raising.
 
+It SHALL also refuse a staged change directory under `openspec/changes/archive/**` whose `tasks.md` carries an unticked
+task, naming the file and the task line: the archive commit carries the file, and `openspec archive --yes` reports an
+incomplete task as a warning rather than failing. The refusal SHALL select a path the staged set carries under
+`openspec/changes/archive/**` whose basename is `tasks.md`, and an archived `tasks.md` absent from the staged set SHALL
+NOT be judged. For each selected path it SHALL judge that file's entire content as the index holds it, and SHALL NOT
+substitute the working tree's copy. A task is a list item at any indentation whose bracket holds at most one character
+and is not followed by `(`, which is a Markdown link's syntax. A bracket whose content is empty or whitespace SHALL be
+unticked; `x` or `X` SHALL be ticked; any other content SHALL be refused as an unsupported marker rather than counted as
+ticked. The file's historical content SHALL refuse the commit too, without implying that its tasks are to be marked
+completed. A selected path SHALL be exempt when the commit's merge brings it unchanged — the staged blob equals that of
+the same path in a merged revision — since merged content is not the commit's own.
+
 The hook SHALL also refuse a staged set that carries another change's directory. Before it reads the staged set it SHALL
 establish the commit's **assigned change**: the branch's name when that name is a change name, and otherwise the single
 line of the claim at the worktree's git path `axon-showcase-change`, which holds a change name or the literal `none`. A
@@ -249,6 +261,44 @@ merged revision, so the exemption has nothing to name.
 
 - **WHEN** `docs/review-rounds.tsv` is not in the staged set, whatever its working-tree content
 - **THEN** the guard reports no ledger failure
+
+#### Scenario: A staged archived tasks file with an unticked task refuses the commit
+
+- **WHEN** `openspec/changes/archive/<date>-<name>/tasks.md` is staged and a task line's checkbox is unticked
+- **THEN** the guard refuses the commit and names the file and the task
+
+#### Scenario: A fully ticked archived tasks file proceeds
+
+- **WHEN** a staged archived `tasks.md` has every task line ticked
+- **THEN** the guard reports no archived-task failure
+
+#### Scenario: An archived tasks file the commit does not stage is not judged
+
+- **WHEN** an archived `tasks.md` carries an unticked task but is not in the staged set
+- **THEN** the guard reports no archived-task failure
+
+#### Scenario: An unsupported checkbox marker refuses the commit
+
+- **WHEN** a staged archived `tasks.md` carries a task whose checkbox content is neither empty nor whitespace nor `x`
+  nor `X`, such as `~`
+- **THEN** the guard refuses the commit and names the file and the task as an unsupported marker
+
+#### Scenario: A staged archived tasks file is judged by its indexed content
+
+- **WHEN** the staged blob of an archived `tasks.md` carries an unticked task and the working tree's copy has it ticked
+- **THEN** the guard refuses the commit and names the task
+
+#### Scenario: A link bullet is not a task
+
+- **WHEN** a staged archived `tasks.md` carries a list item whose one-character bracket is followed by `(`, as the link
+  `- [ ](url)`
+- **THEN** the guard reports no archived-task failure for it
+
+#### Scenario: A merge commit's archived tasks file is exempt
+
+- **WHEN** a merge commit stages an archived `tasks.md` whose staged blob equals a merged revision's blob for that path,
+  and it carries an unticked task
+- **THEN** the guard reports no archived-task failure for it
 
 ### Requirement: The guard is activated per clone and does not alter state
 

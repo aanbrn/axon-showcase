@@ -1681,6 +1681,17 @@
 2026-10-29	correct-readme-mechanism-claims	1	missing-task	-	1	ses_e7b2e1f96ffeY6uCOUbrISRZ1Z	created	-
 2026-10-29	correct-readme-mechanism-claims	2	contradiction	-	1	ses_e7b2e1f96ffeY6uCOUbrISRZ1Z	continued	-
 2026-10-29	correct-readme-mechanism-claims	3	-	-	0	ses_e7b2e1f96ffeY6uCOUbrISRZ1Z	continued	-
+2026-10-29	guard-archived-task-boxes	1	wording,contradiction,missing-scenario,test-control,over-claim,claim-unreproducible,coherence,incomplete-enumeration,structured-writing	-	3	ses_e7b20612cffef22MZDR4wjGOoD	created	-
+2026-10-29	guard-archived-task-boxes	2	over-claim,contradiction,test-control,wording	over-claim,contradiction,test-control,wording	2	ses_e7b188549ffeLWwNArbfWIqFrw	replaced	caller-restarted
+2026-10-29	guard-archived-task-boxes	3	contradiction,wording,structured-writing	contradiction,wording,structured-writing	2	ses_e7b188549ffeLWwNArbfWIqFrw	continued	-
+2026-10-29	guard-archived-task-boxes	4	-	-	0	ses_e7b188549ffeLWwNArbfWIqFrw	continued	-
+2026-10-29	guard-archived-task-boxes	5	contradiction	contradiction	2	ses_e7b188549ffeLWwNArbfWIqFrw	continued	-
+2026-10-29	guard-archived-task-boxes	6	-	-	0	ses_e7b188549ffeLWwNArbfWIqFrw	continued	-
+2026-10-29	guard-archived-task-boxes	7	contradiction,test-control,claim-unreproducible	contradiction,test-control,claim-unreproducible	3	ses_e7b188549ffeLWwNArbfWIqFrw	continued	-
+2026-10-29	guard-archived-task-boxes	8	test-control	test-control	1	ses_e7b188549ffeLWwNArbfWIqFrw	continued	-
+2026-10-29	guard-archived-task-boxes	9	test-control,missing-task	test-control	2	ses_e7b188549ffeLWwNArbfWIqFrw	continued	-
+2026-10-29	guard-archived-task-boxes	10	-	-	0	ses_e7b188549ffeLWwNArbfWIqFrw	continued	-
+2026-10-29	guard-archived-task-boxes	11	-	-	0	ses_e7b188549ffeLWwNArbfWIqFrw	continued	-
 2026-10-29	widen-readme-auditor-with-language-axis	1	contradiction,wording,missing-task,claim-unreproducible,claim-missing,missing-scenario,test-control,single-sourcing	-	7	ses_e7aec78d1ffex8hOhxjgyL4sx9	created	-
 2026-10-29	widen-readme-auditor-with-language-axis	2	contradiction,wording,claim-unreproducible	contradiction	1	ses_e7aec78d1ffex8hOhxjgyL4sx9	continued	-
 2026-10-29	widen-readme-auditor-with-language-axis	3	contradiction,single-sourcing	contradiction,single-sourcing	1	ses_e7aec78d1ffex8hOhxjgyL4sx9	continued	-

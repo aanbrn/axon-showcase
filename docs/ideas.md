@@ -567,23 +567,6 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   result or states that it is untested, not to how an agent reads it; an `AGENTS.md` warning would not close it. Parked
   rather than built: it needs an `agent-skills` delta and the auditor definition's refresh.
 
-- Refuse a commit that stages an archived change dir with an unchecked task — parked; no change yet. This is the
-  2026-10-15 retrospective's S4, restated with the machinery named, and the retrospective proposed it at lower
-  confidence: `openspec archive --yes` continues past incomplete tasks with a warning line rather than failing, and a
-  merge-time verification (a workflow dispatch, which needs the pushed branch) can only be ticked _after_ the change dir
-  is committed, so the tick lands in the archive commit's own edit and nothing re-reads the warning afterwards. The
-  outcome "an archived task is not left unchecked" is mechanically checkable, and the machinery exists:
-  `commit-hygiene.py`'s `find_unpaired_archive_sync` already inspects staged archived change dirs, so a sibling check
-  would read a staged `openspec/changes/archive/**/tasks.md` and refuse a commit carrying an unchecked item. It must be
-  scoped to the **staged set** rather than the whole archive, because archived change dirs already carry unchecked tasks
-  that are historical and would all be flagged. The exemption the 2026-10-17 entry asked for — for a task the owner
-  deliberately decoupled from its merge — is unnecessary: `AGENTS.md`'s deferred-task clause (the smoke-run bullet)
-  requires such a task to be reworded to record the deferral and then **ticked**, so it does not trip the guard. Which
-  other boxes, such as a bookkeeping box whose edit landed or a completed control run, are exempt is the design question
-  the 2026-10-23 retrospective's P2 leaves open, and until that list is settled the guard trips any unchecked box.
-  Parked rather than built: it overrides `openspec archive --yes`'s deliberate non-blocking design by policy, so it
-  needs its own `commit-hygiene` delta and a `*RulesTests` control.
-
 - Run a configuration-cache store sweep over the tasks the workflows invoke — parked; no change yet.
   `fix-upstream-references-config-cache` restored `upstreamReferences`'s cache compatibility, but the class it belongs
   to is unreachable by anything the build runs locally: `./gradlew tasks --all` realizes the graph without executing a

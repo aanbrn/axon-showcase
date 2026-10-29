@@ -46,6 +46,24 @@ class ShapesTests(unittest.TestCase):
     def test_an_absolute_quantifier_is_reported(self):
         self.assertIn(("absolute", "only"), claim_scan.shapes("only the changed ones"))
 
+    def test_an_absence_form_is_reported(self):
+        for line in ("nothing is parked for it", "no finding reduced the guide", "no other row is pinned"):
+            matches = [kind for kind, _ in claim_scan.shapes(line)]
+            self.assertIn("absolute", matches, line)
+
+    def test_a_definite_singular_is_reported(self):
+        for line in ("it is the one loss vector", "the sole owner of that fact", "the single reader"):
+            matches = [kind for kind, _ in claim_scan.shapes(line)]
+            self.assertIn("absolute", matches, line)
+
+    def test_a_bare_determiner_and_a_compound_surface(self):
+        for line in ("no change yet", "the no-op skip"):
+            matches = [kind for kind, _ in claim_scan.shapes(line)]
+            self.assertIn("absolute", matches, line)
+
+    def test_a_code_span_is_removed_before_the_class(self):
+        self.assertNotIn("absolute", [kind for kind, _ in claim_scan.shapes("a `no` in a span")])
+
     def test_a_reference_to_another_artifact_is_a_cross_reference(self):
         self.assertIn(("cross-ref", "#606"), claim_scan.shapes("fixed by #606"))
         self.assertIn(("cross-ref", "AGENTS.md"), claim_scan.shapes("see AGENTS.md for the rule"))

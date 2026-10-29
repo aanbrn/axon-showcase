@@ -349,12 +349,9 @@ change is archived under `openspec/changes/archive/`, so the spec structure itse
 spec is always in sync with behavior the code has been verified against, and a change's delta spec shows what a specific
 feature introduced.
 
-The corpus itself is kept well-structured and mutually consistent by the `specs-auditor` subagent (`/audit-specs`, on
-demand): it checks title ↔ capability-path match, Purpose ↔ requirements fit, requirement conventions, cross-spec
-duplication, and dead cross-references — the structural drift `openspec validate` does not catch, not behavior against
-the code. It verifies a dead reference before reporting it and classifies a duplicate before reporting it, so a
-generated class or a deliberately repeated convention is not reported. It reports findings with their evidence line and
-suggested rewrites, and never edits the specs itself.
+The corpus is kept mutually consistent by the `specs-auditor` subagent (`/audit-specs`, on demand), which reports the
+structural drift `openspec validate` does not catch — a dead reference or a duplicate — with its evidence line and a
+suggested rewrite, and never edits the specs itself.
 
 Emerging ideas are parked in `docs/ideas.md` — a lightweight, date-grouped scratchpad (ideas are added via `/ideas` and
 removed once implemented or decided against) rather than a backlog of planned work. A parked idea is the usual starting
@@ -402,19 +399,19 @@ for when a question is about code _shape_ — a method annotated `@Test` that al
 
 The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 
-| Agent                  | Role                                                                                                                                                                                                                                                                                                                           |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `experience-analyzer`  | Periodic retrospectives that root-cause failures, evaluate the previous window, and propose verified improvements (system & process) — `/retrospective`                                                                                                                                                                        |
-| `agents-auditor`       | Audits AGENTS.md + project-owned `.opencode/` files, measures the always-loaded instruction budget, flags third-party files our usage contradicts, and reports accreted meta rules with their origins, merge, removal, route, and extraction candidates, extraction opportunities, and authoring-system gaps — `/audit-agents` |
-| `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                                                                                                                                                                                                                               |
-| `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift, unrecorded intent, and a due record — `/audit-architecture`                                                                                                                                                                                        |
-| `readme-auditor`       | Audits the human-facing README for accuracy, design-intent fidelity, grammatical correctness, and human-visible-capability coverage — `/audit-readme`                                                                                                                                                                          |
-| `lesson-capture`       | Turns process-defect records into rules: additions to AGENTS.md or the owning subject pack, consolidating rather than accreting, retiring the rules it obsoletes, marking each rule with its origin, and routing an authoring-mechanism fix to that mechanism — `/generalize-process-defects`                                  |
-| `review-quick`         | Fast bounded screen after proposal & implementation, repeated until clean (automatic)                                                                                                                                                                                                                                          |
-| `review-thorough`      | Deep risk-routed review (drift, correctness, architecture) — the review gate's routing decision, or `/review-thorough`                                                                                                                                                                                                         |
-| `technical-advisor`    | Independent technical consultation on a decision question — read-only, advisory, and on demand via `/consult`                                                                                                                                                                                                                  |
-| `vision`               | Structured visual review of screenshots and diagram renders for the text-only main agent                                                                                                                                                                                                                                       |
-| `diagrammer`           | Draws/fixes ASCII and Mermaid diagrams with the pro model and returns a visual-review handoff for a Mermaid render, which `/diagram` has `vision` inspect                                                                                                                                                                      |
+| Agent                  | Role                                                                                                                                                      |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `experience-analyzer`  | Periodic retrospectives that root-cause failures, evaluate the previous window, and propose verified improvements (system & process) — `/retrospective`   |
+| `agents-auditor`       | Audits AGENTS.md and the project-owned `.opencode/` files for drift, duplication, and the always-loaded instruction budget — `/audit-agents`              |
+| `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                                                          |
+| `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift, unrecorded intent, and a due record — `/audit-architecture`                   |
+| `readme-auditor`       | Audits the human-facing README for accuracy, design-intent fidelity, grammatical correctness, and human-visible-capability coverage — `/audit-readme`     |
+| `lesson-capture`       | Turns process-defect records into rules, merging into the owning destination rather than accreting — `/generalize-process-defects`                        |
+| `review-quick`         | Fast bounded screen after proposal & implementation, repeated until clean (automatic)                                                                     |
+| `review-thorough`      | Deep risk-routed review (drift, correctness, architecture) — the review gate's routing decision, or `/review-thorough`                                    |
+| `technical-advisor`    | Independent technical consultation on a decision question — read-only, advisory, and on demand via `/consult`                                             |
+| `vision`               | Structured visual review of screenshots and diagram renders for the text-only main agent                                                                  |
+| `diagrammer`           | Draws/fixes ASCII and Mermaid diagrams with the pro model and returns a visual-review handoff for a Mermaid render, which `/diagram` has `vision` inspect |
 
 **Independent consultation.** The `technical-advisor` evaluates a proposal, implementation, disagreement, or next step
 and recommends a direction — for example,
@@ -535,33 +532,23 @@ The process is designed to **learn from itself** — and that is the mechanic, n
 - **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
   same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
   uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.
+- **The guidance and tooling are audited, not just appended to.** `/audit-agents` checks `AGENTS.md` and the
+  project-owned `.opencode/` files: each consistency or conciseness finding comes with its evidence line and a suggested
+  rewrite, and the report measures the always-loaded **instruction budget** `AGENTS.md` consumes in every session.
+  Separately it reports a third-party file our usage contradicts and a meta rule that accreted with the origin that
+  introduced it — decisions for you rather than defects — and, for an authoring-system gap that keeps producing a
+  defect, proposes the smallest correction at the mechanism that produced it. `/audit-specs` and `/audit-architecture`
+  check the spec corpus and the architecture the same way, so the guidance and tooling stay consistent, concise, and
+  affordable instead of only growing. A report's reduction candidates do not age: the standing, owner-gated
+  `/apply-audit-reductions` unit applies them under the review gate.
 - **The human-facing README is audited too.** `/audit-readme` runs an on-demand, pro-model audit of `README.md` — its
   claims against the repository, its shape against the README convention, its grammar, and its coverage of what a person
   can actually experience — because no gate checks the showcase's content.
-- **The audits also run unattended.** A weekly `audit` workflow runs the three audits (guidance/tooling, spec corpus,
-  architecture) and opens a pull request with their findings, mentioning the owner so the report is not missed — so the
-  reconciliation does not wait for someone to ask. The `/audit-*` commands remain the on-demand path.
-- **The guidance and tooling are audited, not just appended to.** `/audit-agents` runs an on-demand, pro-model audit of
-  `AGENTS.md` and the project-owned `.opencode/` files: it verifies each claim against the repository and reports
-  consistency problems (contradictions, stale claims, dead cross-references, drift, `AGENTS.md` entries that violate the
-  stated authoring standard, prose that violates the Structured Writing Standard — with the impact of the current
-  structure and a minimally invasive rewrite) and conciseness problems (duplication, trivia, length, placement) — each
-  with its evidence line and a concrete suggested rewrite, including standing merge, removal, route, and extraction
-  candidates — and, separately and without severity, a third-party file our usage contradicts, the meta rules that
-  accreted with the origin that introduced each, and an authoring-system gap that keeps producing a defect — decisions
-  for the owner rather than defects to fix. It also measures the always-loaded **instruction budget**: `AGENTS.md` is
-  injected in full into every session, so the audit reports the file's size and its size by section, the effective bound
-  with its source, the growth since the newest report, and the rules and extraction candidates that would move guidance
-  out of the always-loaded prefix into a destination that loads when its task triggers — and, where no such destination
-  exists yet, an **extraction opportunity**: a design recommendation for the owner, never applied by the reduction unit.
-  A report's reduction candidates do not age: the standing, owner-gated `/apply-audit-reductions` unit applies them as
-  merged text, pointers, and deletions, routing a content-move to the change workflow, under the review gate. So the
-  guidance and tooling stay consistent, concise, and affordable instead of only growing.
-- **Periodic retrospectives zoom out.** `/retrospective` turns a window of merged PRs and the git log, together with the
-  archived changes and accumulated gotchas, into a sprint retrospective that traces each significant failure to its root
-  cause and the stage that could have caught it and evaluates the previous retrospective's recommendations — with
-  suggestions classified `process` (→ `AGENTS.md` or a subagent definition) or `system` (→ an idea or a proposal) and
-  stating how their outcome would be verified, so both the process and the system keep improving.
+- **The audits also run unattended.** A weekly `audit` workflow runs the three audits and opens a pull request with
+  their findings, mentioning the owner so the report is not missed — the `/audit-*` commands remain the on-demand path.
+- **Periodic retrospectives zoom out.** `/retrospective` turns a window of merged PRs, archived changes, and accumulated
+  gotchas into a retrospective that traces each significant failure to its root cause and evaluates the previous
+  window's recommendations, classifying its suggestions as `process` or `system`.
 
 A mistake, once recorded and generalized, becomes a rule the agent follows thereafter — so the process gets a little
 better with every unit that teaches it something.
@@ -605,38 +592,38 @@ removed.
 
 ### Slash Commands
 
-| Command                       | What it does                                                                                                                                                                                                                                                                                                                   |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/opsx-propose`               | Scaffolds a new change: proposal, design, tasks, and spec delta                                                                                                                                                                                                                                                                |
-| `/opsx-apply`                 | Implements the change's tasks                                                                                                                                                                                                                                                                                                  |
-| `/opsx-archive`               | Archives a completed change and syncs the main spec                                                                                                                                                                                                                                                                            |
-| `/opsx-sync`                  | Syncs a change's delta spec to the main spec — internal to `/opsx-archive`, not run standalone                                                                                                                                                                                                                                 |
-| `/opsx-update`                | Revises a change's planning artifacts                                                                                                                                                                                                                                                                                          |
-| `/opsx-explore`               | Explores an idea before proposing it                                                                                                                                                                                                                                                                                           |
-| `/setup-agent-tools`          | Sets up the tooling MCP servers (GitHub core, plus optional extras)                                                                                                                                                                                                                                                            |
-| `/reconnect-mcp`              | Reports every MCP server's status, or reconnects one named server or the whole failed set, verifying each reached `connected` — without restarting OpenCode                                                                                                                                                                    |
-| `/setup-idea`                 | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier)                                                                                                                                                                                                                                        |
-| `/check-tooling`              | Checks whether this machine has the prerequisites (Java, Docker, Python, and the optional tools)                                                                                                                                                                                                                               |
-| `/review-thorough`            | Deep risk-routed review of a change (the review gate's routing decision, or this explicit run)                                                                                                                                                                                                                                 |
-| `/pause-unit`                 | Records the current unit's `Resume checkpoint` and ends the turn: no commit, stash, push, or teardown                                                                                                                                                                                                                          |
-| `/resume-unit`                | Continues an unfinished unit: verifies the available state, hands the writer role over, restores what it awaited                                                                                                                                                                                                               |
-| `/consult`                    | Asks the technical advisor for an independent recommendation on a question, the current objective, or the next step                                                                                                                                                                                                            |
-| `/audit-agents`               | Audits AGENTS.md + project-owned .opencode/ files, measures the always-loaded instruction budget, flags third-party files our usage contradicts, and reports accreted meta rules with their origins, merge, removal, route, and extraction candidates, extraction opportunities, and authoring-system gaps (pro-model auditor) |
-| `/audit-specs`                | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                                                                                                                                                       |
-| `/audit-architecture`         | Audits the architecture for recorded-decision drift, unrecorded intent, and a due record (pro-model auditor)                                                                                                                                                                                                                   |
-| `/audit-readme`               | Audits the human-facing README for accuracy, design-intent fidelity, grammar, and human-visible-capability coverage (pro-model auditor)                                                                                                                                                                                        |
-| `/apply-audit-reductions`     | Applies an audit report's merge/removal/route/extraction reduction candidates — merged text, pointers, and deletions inline, a content-move routed to the change workflow — under the review gate                                                                                                                              |
-| `/diagram`                    | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer, then visually reviews a Mermaid render with `vision`                                                                                                                                                                                                 |
-| `/generalize-process-defects` | Turns the accumulated process-defect records into rules and improvements, recording a decision per record                                                                                                                                                                                                                      |
-| `/flag-process-defect`        | Verifies a process defect the owner reports, and records it only when the episode evidence establishes it                                                                                                                                                                                                                      |
-| `/retrospective`              | Periodic retrospective that root-causes failures and proposes verified improvements                                                                                                                                                                                                                                            |
-| `/dependency-updates`         | Runs and summarizes the Gradle, web-UI, and build-logic pin dependency update reports                                                                                                                                                                                                                                          |
-| `/gradle-update`              | Updates the Gradle wrapper to the latest stable                                                                                                                                                                                                                                                                                |
-| `/dependency-security-check`  | Runs the Snyk and web-UI npm dependency security scans                                                                                                                                                                                                                                                                         |
-| `/opsx-tool-update`           | Regenerates the OpenSpec command/skill files after an openspec CLI release                                                                                                                                                                                                                                                     |
-| `/ideas`                      | Lists and manages `docs/ideas.md`                                                                                                                                                                                                                                                                                              |
-| `/seed-claims`                | Scans the unit's diff, and the saved draft body a unit with no change dir passes with `--include`, for claim shapes and hands the candidates to the pre-write pass's claims table                                                                                                                                              |
-| `/sync-branch`                | Checks the current branch against `origin/main` and, on request, refreshes it by the rule `AGENTS.md` states — an open pull request's branch included — resolving a local conflict for both sides                                                                                                                              |
+| Command                       | What it does                                                                                                                                                                                      |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/opsx-propose`               | Scaffolds a new change: proposal, design, tasks, and spec delta                                                                                                                                   |
+| `/opsx-apply`                 | Implements the change's tasks                                                                                                                                                                     |
+| `/opsx-archive`               | Archives a completed change and syncs the main spec                                                                                                                                               |
+| `/opsx-sync`                  | Syncs a change's delta spec to the main spec — internal to `/opsx-archive`, not run standalone                                                                                                    |
+| `/opsx-update`                | Revises a change's planning artifacts                                                                                                                                                             |
+| `/opsx-explore`               | Explores an idea before proposing it                                                                                                                                                              |
+| `/setup-agent-tools`          | Sets up the tooling MCP servers (GitHub core, plus optional extras)                                                                                                                               |
+| `/reconnect-mcp`              | Reports every MCP server's status, or reconnects one named server or the whole failed set, verifying each reached `connected` — without restarting OpenCode                                       |
+| `/setup-idea`                 | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier)                                                                                                           |
+| `/check-tooling`              | Checks whether this machine has the prerequisites (Java, Docker, Python, and the optional tools)                                                                                                  |
+| `/review-thorough`            | Deep risk-routed review of a change (the review gate's routing decision, or this explicit run)                                                                                                    |
+| `/pause-unit`                 | Records the current unit's `Resume checkpoint` and ends the turn: no commit, stash, push, or teardown                                                                                             |
+| `/resume-unit`                | Continues an unfinished unit: verifies the available state, hands the writer role over, restores what it awaited                                                                                  |
+| `/consult`                    | Asks the technical advisor for an independent recommendation on a question, the current objective, or the next step                                                                               |
+| `/audit-agents`               | Audits AGENTS.md and the project-owned .opencode/ files for drift, duplication, and the always-loaded instruction budget (pro-model auditor)                                                      |
+| `/audit-specs`                | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                          |
+| `/audit-architecture`         | Audits the architecture for recorded-decision drift, unrecorded intent, and a due record (pro-model auditor)                                                                                      |
+| `/audit-readme`               | Audits the human-facing README for accuracy, design-intent fidelity, grammar, and human-visible-capability coverage (pro-model auditor)                                                           |
+| `/apply-audit-reductions`     | Applies an audit report's merge/removal/route/extraction reduction candidates — merged text, pointers, and deletions inline, a content-move routed to the change workflow — under the review gate |
+| `/diagram`                    | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer, then visually reviews a Mermaid render with `vision`                                                                    |
+| `/generalize-process-defects` | Turns the accumulated process-defect records into rules and improvements, recording a decision per record                                                                                         |
+| `/flag-process-defect`        | Verifies a process defect the owner reports, and records it only when the episode evidence establishes it                                                                                         |
+| `/retrospective`              | Periodic retrospective that root-causes failures and proposes verified improvements                                                                                                               |
+| `/dependency-updates`         | Runs and summarizes the Gradle, web-UI, and build-logic pin dependency update reports                                                                                                             |
+| `/gradle-update`              | Updates the Gradle wrapper to the latest stable                                                                                                                                                   |
+| `/dependency-security-check`  | Runs the Snyk and web-UI npm dependency security scans                                                                                                                                            |
+| `/opsx-tool-update`           | Regenerates the OpenSpec command/skill files after an openspec CLI release                                                                                                                        |
+| `/ideas`                      | Lists and manages `docs/ideas.md`                                                                                                                                                                 |
+| `/seed-claims`                | Scans the unit's diff, and the saved draft body a unit with no change dir passes with `--include`, for claim shapes and hands the candidates to the pre-write pass's claims table                 |
+| `/sync-branch`                | Checks the current branch against `origin/main` and, on request, refreshes it by the rule `AGENTS.md` states — an open pull request's branch included — resolving a local conflict for both sides |
 
 ## Getting Started
 

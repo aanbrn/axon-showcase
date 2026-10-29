@@ -882,6 +882,40 @@ commit's own boundary — the index diverging from a later edit, an unpaired arc
 foreign change directory — which no build task sees. Install it once per clone (see
 [Get the Sources](#get-the-sources)); bypass a deliberate exception with `git commit --no-verify`.
 
+### Dependency Updates and Security
+
+```bash
+# Reports — run by the scheduled workflows (not part of check)
+./gradlew dependencyUpdates             # the catalog's coordinates
+./gradlew buildLogicUpdates             # the included build-logic build's plugin pins
+./gradlew :showcase-web-ui:npmOutdated  # the web UI's npm dependencies
+./gradlew helmUpdates                   # the Helm CLI and chart pins
+./gradlew buildpackUpdates              # the Paketo builder and buildpacks
+./gradlew toolingUpdates                # the CLIs pinned in workflow files
+./gradlew upstreamReferences            # the state of cited upstream references
+
+# Security scans (not part of check)
+./gradlew dependencySecurityCheck       # Snyk, needs the Snyk CLI
+./gradlew :showcase-web-ui:npmAudit     # npm audit for the web UI
+```
+
+Scheduled workflows open or update a tracker issue with a report's findings; security scans fail on findings their
+policies reject. `dependencyUpdates` covers the coordinates the catalog declares with an exact `version.ref`, so a
+BOM-inherited version is not reported, and it honours the suppression and hold-back lists under
+`config/dependency-updates/` — each entry's rationale is the `showcase/quality/dependency-management` spec's. The web
+UI's report has its own list (`config/web-ui-updates/major-disabled.txt`). `buildLogicUpdates` exists because the
+included `build-logic` build's plugin pins resolve on its own buildscript classpath, where `dependencyUpdates` cannot
+see them. A calendar-versioned coordinate (a `YYYY.MINOR.MICRO` Spring train) treats a change in the train pair as a
+major update, matching Spring's release-train definition.
+
+Three decisions bound what these reports show: [ADR-0004](docs/adr/0004-defer-spring-boot-4-migration.md) defers the
+Spring Boot 4 migration, [ADR-0014](docs/adr/0014-web-ui-npm-dependency-checks.md) explains why the web UI uses npm's
+own audit rather than Snyk, and [ADR-0021](docs/adr/0021-filter-report-rows-the-catalog-satisfies.md) filters the
+spurious row a build-environment constraint produces when the tooling's own floor is read as the "current version".
+
+The `/dependency-updates` command runs the Gradle, web-UI, and build-logic reports and summarizes them; `/gradle-update`
+bumps the Gradle wrapper to the latest stable version.
+
 ### Formatting and IDE Setup
 
 Formatting is enforced by Spotless — palantir-java-format for Java, ktfmt for Gradle Kotlin DSL (`*.gradle.kts`) and
@@ -1052,40 +1086,6 @@ from that tag and pushes only its version tag, leaving `latest` unchanged and cr
 `linux/amd64`, and the packages are public — a workflow-published package inherits the repository's visibility, though
 visibility stays a per-package setting. Afterward, bump `gradle.properties` to the next development version in a
 follow-up pull request, so the next release has a base. The release workflow is not a merge gate.
-
-### Dependency Updates and Security
-
-```bash
-# Reports — run by the scheduled workflows (not part of check)
-./gradlew dependencyUpdates             # the catalog's coordinates
-./gradlew buildLogicUpdates             # the included build-logic build's plugin pins
-./gradlew :showcase-web-ui:npmOutdated  # the web UI's npm dependencies
-./gradlew helmUpdates                   # the Helm CLI and chart pins
-./gradlew buildpackUpdates              # the Paketo builder and buildpacks
-./gradlew toolingUpdates                # the CLIs pinned in workflow files
-./gradlew upstreamReferences            # the state of cited upstream references
-
-# Security scans (not part of check)
-./gradlew dependencySecurityCheck       # Snyk, needs the Snyk CLI
-./gradlew :showcase-web-ui:npmAudit     # npm audit for the web UI
-```
-
-Scheduled workflows open or update a tracker issue with a report's findings; security scans fail on findings their
-policies reject. `dependencyUpdates` covers the coordinates the catalog declares with an exact `version.ref`, so a
-BOM-inherited version is not reported, and it honours the suppression and hold-back lists under
-`config/dependency-updates/` — each entry's rationale is the `showcase/quality/dependency-management` spec's. The web
-UI's report has its own list (`config/web-ui-updates/major-disabled.txt`). `buildLogicUpdates` exists because the
-included `build-logic` build's plugin pins resolve on its own buildscript classpath, where `dependencyUpdates` cannot
-see them. A calendar-versioned coordinate (a `YYYY.MINOR.MICRO` Spring train) treats a change in the train pair as a
-major update, matching Spring's release-train definition.
-
-Three decisions bound what these reports show: [ADR-0004](docs/adr/0004-defer-spring-boot-4-migration.md) defers the
-Spring Boot 4 migration, [ADR-0014](docs/adr/0014-web-ui-npm-dependency-checks.md) explains why the web UI uses npm's
-own audit rather than Snyk, and [ADR-0021](docs/adr/0021-filter-report-rows-the-catalog-satisfies.md) filters the
-spurious row a build-environment constraint produces when the tooling's own floor is read as the "current version".
-
-The `/dependency-updates` command runs the Gradle, web-UI, and build-logic reports and summarizes them; `/gradle-update`
-bumps the Gradle wrapper to the latest stable version.
 
 ### Load Testing
 

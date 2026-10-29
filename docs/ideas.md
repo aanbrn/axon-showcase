@@ -78,19 +78,6 @@ as a second entry and splits one idea's detail across two sections.
   and Helm 3 declares it `Ignored.`, so the option cannot work with any client the plugin supports. The proposal reads
   the registered repositories and fails the task instead. The build does not set the option.
 
-- Read a parked idea's own `Revisit when:` condition, not only whether its work landed — parked; no change yet.
-  `architecture-auditor` classifies a `Revisit when:` condition for a deferred ADR, but for a `docs/ideas.md` entry it
-  tests whether the work has landed, only partly landed, or is achieved by a different mechanism — not the entry's own
-  recorded condition — and the parked entries carrying one (any entry stating one, in whatever form; the vendored-skill
-  set's under `## 2026-10-22`, the retrospective-evidence one's under `## 2026-10-23`, and the pull-request title
-  check's under `## 2026-10-25` are examples) are swept by nothing. Add a sibling branch — "a parked entry whose own
-  recorded condition appears met" — classified by the same four-way rule as an ADR condition and not reported when the
-  condition names no checkable repository fact, with a `MODIFIED` delta on the `agent-skills` requirement, one clause in
-  `AGENTS.md`'s auditor summary, and the capture bullet's own closing reason — "no other reader tests a parked entry's
-  condition" — which this branch would falsify. The event-time half is in this unit's capture (an incident that meets a
-  parked entry's condition reopens it); this is the periodic sweep. Surfaced by the
-  `annotate-the-reviewer-wrapper-recurrence` capture.
-
 - Make `--markers` require that a marker ends its rule, not only that it sits inside one — parked; no change yet.
   `commit-hygiene.py`'s `_marker_is_in_rule_block` accepts a `captured:` marker anywhere within a bold-lead block, so a
   marker inserted mid-rule passes green while reading as part of the sentence around it; this unit introduced one that

@@ -2,9 +2,10 @@
 
 Short notes to remember emerging development ideas. An idea becomes an OpenSpec change only when acted on — this file is
 a scratchpad, not a backlog of planned work. An idea is removed from the list once implemented (captured by a change) or
-once explored and decided against (the durable lesson is captured in `AGENTS.md`, an ADR, or a dated retrospective where
-the decision is a program direction with a revisit condition rather than a rule an agent applies); only open,
-not-yet-implemented ideas remain.
+once explored and decided against. The durable lesson is captured in `AGENTS.md`, in an ADR, or — where it is a program
+direction with a revisit condition rather than a rule an agent applies — in the window's retrospective or in a dated
+record under `docs/decisions/`. A separate dated record lives there rather than in `docs/retrospectives/`, which holds
+the window reports the retrospective digest selects. Only open, not-yet-implemented ideas remain.
 
 Changes to this file travel with the change that owns them: an idea's **removal** ships in the implementing change's PR
 — it rides that change's branch and commits with its push, like the rest of the work — and a **newly parked** idea the
@@ -283,14 +284,6 @@ as a second entry and splits one idea's detail across two sections.
 - Classify `actionlint` as a required probe in the doctor, with its required-set assertion and the spec example: it is
   optional today although `check`'s `workflowLint` needs it — parked; no change yet.
 
-- Extend `verifyTableRows` with an inline-code-span whitespace mode — parked; no change yet. A run of two or more spaces
-  inside a single-line inline code span passes `spotlessCheck` (Prettier never rewrites a span's interior) and the
-  120-character check measures length only; reproduced twice, by `fix-gateway-cors-allowed-headers` (#359) and by
-  `bump-kps-chart-2026-10-25`'s five-space `kubectl get pods -n monitoring` span. Scope it to the Spotless markdown
-  target (active `openspec/changes/*/` included, `archive/**` excluded), with those two spans as the known-bad cases and
-  fenced blocks, delimiter rows and an escaped `\|` as the known-good ones; prototype over the gated set first, since
-  one false-positive class would block it.
-
 - Verify the worktree workspace rule on the first two real parallel units — parked; verification pending.
   `adopt-worktree-isolation` adds the rule and its recorded preflight, but the practical test needs two parallel units,
   which exist only after it lands. Completion:
@@ -444,13 +437,6 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   `build-logic/src/main/kotlin/UpstreamReferenceScope.kt`. `vendor-ast-grep-skill` updated every one of them and named
   them in `AGENTS.md`, but the next vendored set repeats the sweep. The fix is one declaration the build, the checker,
   and the Kotlin scope each read. Revisit when a third set is vendored, or when one of the four drifts.
-
-- Gate the formatter-blind inline-code interior — parked; no change yet. Prettier never rewrites an inline span's
-  interior, and neither `spotlessCheck`, the 120-character recipe, nor the pre-commit guard looks inside one, so a
-  whitespace run there passes every gate (the `Formatting` convention says so and it has now recurred across units). The
-  fix is a check over the Spotless markdown scope with its known-bad/known-good cases in a `*RulesTests`, after which
-  the convention's "proofread inline-code content" clause trims to a pointer. Revisit as its own change; it is a
-  build-logic addition, not a copy edit.
 
 - Guarantee the ledger row is written before the fixes with a reviewer wrapper — parked; no change yet. A `/consult`
   report's closing prompt was once applied before the owner decided, and the round's ledger row is repeatedly deferred

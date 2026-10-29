@@ -10,6 +10,7 @@ reading as a floor that found nothing.
 
 import contextlib
 import importlib.util
+import unittest.mock as mock
 import io
 import subprocess
 import tempfile
@@ -120,6 +121,84 @@ class LedgerSignalTests(unittest.TestCase):
             review_routing.ledger_signal([["2026-01-01", CHANGE]], CHANGE)
 
 
+LEDGER = review_routing.LEDGER_DEFAULT
+
+
+class RecordOnlyTests(unittest.TestCase):
+    """The record-only predicate: the Markdown records plus the ledger the invocation reads, and its boundaries."""
+
+    def test_a_record_set_with_the_ledger_is_record_only(self):
+        self.assertTrue(
+            review_routing.record_only(["docs/process-defects/a.md", LEDGER], LEDGER)
+        )
+
+    def test_an_empty_set_is_not_record_only(self):
+        self.assertFalse(review_routing.record_only([], LEDGER))
+
+    def test_a_supporting_json_beside_a_record_keeps_normal_routing(self):
+        self.assertFalse(
+            review_routing.record_only(["docs/process-defects/a.md", "docs/process-defects/data.json"], LEDGER)
+        )
+
+    def test_a_markdown_file_outside_the_record_directories_keeps_normal_routing(self):
+        self.assertFalse(review_routing.record_only(["docs/ideas.md"], LEDGER))
+
+    def test_a_code_path_renamed_from_a_record_directory_keeps_normal_routing(self):
+        both = ["docs/process-defects/a.md", "src/Record.md"]
+        self.assertFalse(review_routing.record_only(both, LEDGER))
+
+    def test_a_record_renamed_between_record_directories_is_record_only(self):
+        self.assertTrue(
+            review_routing.record_only(["docs/process-defects/a.md", "docs/retrospectives/a.md"], LEDGER)
+        )
+
+    def test_a_load_test_record_is_record_only(self):
+        self.assertTrue(review_routing.record_only(["docs/load-tests/2026-10-01.md"], LEDGER))
+
+    def test_the_ledger_recognised_is_the_one_read(self):
+        self.assertTrue(review_routing.record_only(["ledgers/rounds.tsv"], "ledgers/rounds.tsv"))
+        self.assertFalse(review_routing.record_only(["ledgers/rounds.tsv"], LEDGER))
+
+
+class ChangedPathTests(unittest.TestCase):
+    """The changed-path parser over `git diff --name-status -z` records, independent of any repository."""
+
+    def test_a_rename_contributes_both_sides(self):
+        with mock.patch.object(review_routing, "_git", return_value="R100\0old.md\0new.md"):
+            self.assertEqual(review_routing._changed_paths(Path("."), "HEAD"), ["old.md", "new.md"])
+
+    def test_a_copy_record_contributes_both_sides(self):
+        with mock.patch.object(
+            review_routing,
+            "_git",
+            return_value="C100\0src/note.md\0docs/process-defects/note.md",
+        ):
+            self.assertEqual(
+                review_routing._changed_paths(Path("."), "HEAD"),
+                ["src/note.md", "docs/process-defects/note.md"],
+            )
+
+    def test_a_truncated_status_is_a_failure(self):
+        with mock.patch.object(review_routing, "_git", return_value="M"):
+            with self.assertRaises(ValueError):
+                review_routing._changed_paths(Path("."), "HEAD")
+
+    def test_an_empty_path_field_is_a_failure(self):
+        with mock.patch.object(review_routing, "_git", return_value="M\0"):
+            with self.assertRaises(ValueError):
+                review_routing._changed_paths(Path("."), "HEAD")
+
+    def test_a_rename_without_a_destination_is_a_failure(self):
+        with mock.patch.object(review_routing, "_git", return_value="R100\0old.md\0"):
+            with self.assertRaises(ValueError):
+                review_routing._changed_paths(Path("."), "HEAD")
+
+    def test_a_truncated_rename_is_a_failure(self):
+        with mock.patch.object(review_routing, "_git", return_value="R100\0old.md"):
+            with self.assertRaises(ValueError):
+                review_routing._changed_paths(Path("."), "HEAD")
+
+
 class FloorTests(unittest.TestCase):
     def test_a_docs_only_change_is_not_needed(self):
         self.assertEqual(
@@ -139,6 +218,38 @@ class FloorTests(unittest.TestCase):
             ["README.md"], [("README.md", "prose")], [], rows((CHANGE, "wording"), (CHANGE, "wording")), CHANGE
         )
         self.assertEqual(outcome, RECOMMENDED)
+
+    def test_a_record_only_diff_with_repeats_is_not_needed_and_reports_the_exemption(self):
+        outcome, signals = review_routing.floor(
+            ["docs/process-defects/a.md", LEDGER],
+            [],
+            [],
+            rows((CHANGE, "wording"), (CHANGE, "wording")),
+            CHANGE,
+        )
+        self.assertEqual(outcome, NOT_NEEDED)
+        self.assertEqual([kind for kind, _ in signals], ["repeated-class", "record-only"])
+
+    def test_a_record_beside_a_code_path_stays_recommended(self):
+        outcome, _ = review_routing.floor(
+            ["docs/process-defects/a.md", "scripts/x.py"],
+            [],
+            [],
+            rows((CHANGE, "wording"), (CHANGE, "wording")),
+            CHANGE,
+        )
+        self.assertEqual(outcome, RECOMMENDED)
+
+    def test_a_record_beside_a_mandatory_path_is_required(self):
+        outcome, signals = review_routing.floor(
+            ["docs/process-defects/a.md", "helm/values/x.yaml"],
+            [],
+            [],
+            rows((CHANGE, "wording"), (CHANGE, "wording")),
+            CHANGE,
+        )
+        self.assertEqual(outcome, REQUIRED)
+        self.assertEqual(signals[0][0], "infrastructure-or-deployment")
 
     def test_a_new_requirement_block_is_required(self):
         outcome, signals = review_routing.floor(["docs/x.md"], [], kinds("ADDED"), [], CHANGE)
@@ -230,6 +341,139 @@ class CliTests(unittest.TestCase):
             ["2026-01-01", unit, "1", "wording", "wording", "1"],
             ["2026-01-01", unit, "2", "coherence", "coherence", "1"],
         ]
+
+    def record(self, repo, path, text="x\n"):
+        target = repo / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8")
+        return target
+
+    def test_a_record_only_run_is_not_needed_and_reports_the_exemption(self):
+        repo = self.scratch(self.repeated("u"))
+        self.record(repo, "docs/process-defects/new.md")
+
+        status, out = self.run_tool(repo, "--unit", "u")
+
+        self.assertEqual(status, 0)
+        self.assertIn("ROUTING: NOT_NEEDED", out)
+        self.assertIn("[repeated-class]", out)
+        self.assertIn("[record-only]", out)
+
+    def test_a_code_file_renamed_into_a_record_directory_stays_recommended(self):
+        repo = self.scratch(self.repeated("u"))
+        self.record(repo, "src/note.md")
+        self.git(repo, "add", "src/note.md")
+        self.git(repo, "commit", "-q", "-m", "src")
+        (repo / "docs" / "process-defects").mkdir(parents=True, exist_ok=True)
+        self.git(repo, "mv", "src/note.md", "docs/process-defects/note.md")
+
+        status, out = self.run_tool(repo, "--unit", "u")
+
+        self.assertEqual(status, 0)
+        self.assertIn("ROUTING: RECOMMENDED", out)
+        self.assertNotIn("[record-only]", out)
+
+    def test_a_record_renamed_between_record_directories_is_not_needed(self):
+        repo = self.scratch(self.repeated("u"))
+        self.record(repo, "docs/process-defects/note.md")
+        self.git(repo, "add", "docs/process-defects/note.md")
+        self.git(repo, "commit", "-q", "-m", "record")
+        (repo / "docs" / "retrospectives").mkdir(parents=True, exist_ok=True)
+        self.git(repo, "mv", "docs/process-defects/note.md", "docs/retrospectives/note.md")
+
+        status, out = self.run_tool(repo, "--unit", "u")
+
+        self.assertEqual(status, 0)
+        self.assertIn("ROUTING: NOT_NEEDED", out)
+        self.assertIn("[record-only]", out)
+
+    def test_a_deleted_record_is_still_record_only(self):
+        repo = self.scratch(self.repeated("u"))
+        self.record(repo, "docs/process-defects/old.md")
+        self.git(repo, "add", "docs/process-defects/old.md")
+        self.git(repo, "commit", "-q", "-m", "record")
+        self.git(repo, "rm", "-q", "docs/process-defects/old.md")
+
+        status, out = self.run_tool(repo, "--unit", "u")
+
+        self.assertEqual(status, 0)
+        self.assertIn("ROUTING: NOT_NEEDED", out)
+        self.assertIn("[record-only]", out)
+
+    def test_a_non_ascii_record_path_is_classified(self):
+        repo = self.scratch(self.repeated("u"))
+        self.record(repo, "docs/process-defects/запись.md")
+
+        status, out = self.run_tool(repo, "--unit", "u")
+
+        self.assertEqual(status, 0)
+        self.assertIn("ROUTING: NOT_NEEDED", out)
+        self.assertIn("[record-only]", out)
+
+    def test_a_dot_prefixed_ledger_is_recognised(self):
+        repo = self.scratch([])
+        ledger = repo / "docs" / "review-rounds.tsv"
+        ledger.write_text(
+            ledger.read_text(encoding="utf-8")
+            + "".join("\t".join(row) + "\n" for row in self.repeated("u")),
+            encoding="utf-8",
+        )
+        self.record(repo, "docs/process-defects/a.md")
+
+        status, out = self.run_tool(repo, "--unit", "u", "--ledger", "./docs/review-rounds.tsv")
+
+        self.assertEqual(status, 0)
+        self.assertIn("ROUTING: NOT_NEEDED", out)
+        self.assertIn("[record-only]", out)
+
+    def test_an_absolute_ledger_is_recognised(self):
+        repo = self.scratch([])
+        ledger = repo / "docs" / "review-rounds.tsv"
+        ledger.write_text(
+            ledger.read_text(encoding="utf-8")
+            + "".join("\t".join(row) + "\n" for row in self.repeated("u")),
+            encoding="utf-8",
+        )
+        self.record(repo, "docs/process-defects/a.md")
+
+        status, out = self.run_tool(
+            repo, "--unit", "u", "--ledger", str(repo / "docs" / "review-rounds.tsv")
+        )
+
+        self.assertEqual(status, 0)
+        self.assertIn("ROUTING: NOT_NEEDED", out)
+        self.assertIn("[record-only]", out)
+
+    def test_a_custom_ledger_is_the_path_the_run_reads(self):
+        repo = self.scratch([])
+        self.record(repo, "ledgers/rounds.tsv", "\n".join("\t".join(r) for r in self.repeated("u")) + "\n")
+        self.record(repo, "docs/process-defects/a.md")
+
+        status, out = self.run_tool(repo, "--unit", "u", "--ledger", "ledgers/rounds.tsv")
+
+        self.assertEqual(status, 0)
+        self.assertIn("ROUTING: NOT_NEEDED", out)
+        self.assertIn("[record-only]", out)
+
+    def test_a_malformed_ledger_fails_on_a_record_only_set(self):
+        repo = self.scratch([["2026-01-01", "u"]])
+        self.record(repo, "docs/process-defects/a.md")
+
+        status, out = self.run_tool(repo, "--unit", "u")
+
+        self.assertNotEqual(status, 0)
+        self.assertIn("REQUIRED: the routing derivation failed", out)
+        self.assertIn("malformed ledger row", out)
+
+    def test_a_malformed_ledger_fails_beside_a_mandatory_path(self):
+        repo = self.scratch([["2026-01-01", "u"]])
+        self.record(repo, "helm/values/x.yaml")
+
+        status, out = self.run_tool(repo, "--unit", "u")
+
+        self.assertNotEqual(status, 0)
+        self.assertIn("REQUIRED: the routing derivation failed", out)
+        self.assertIn("malformed ledger row", out)
 
     def test_a_unit_only_run_without_a_change_directory_recommends(self):
         status, out = self.run_tool(self.scratch(self.repeated("u")), "--unit", "u")

@@ -484,7 +484,17 @@ one.
    work, and a record that requires a cause diagnosis brings the inline analysis back under another name.
 4. Repair immediate damage in the unit regardless: a lost file, a broken result, or a wrongly closed tracker is not left
    to a later analysis.
-5. State "no process defect observed" when that is what happened. That statement is not a claim that nothing went wrong.
+5. Write the record short:
+   - give a short account of the observed event;
+   - quote only a span that reproduces;
+   - take a figure attributed to a command's output from a run of that command;
+   - describe text that existed only in the session rather than quoting it.
+
+   The record's evidence rules are unchanged — an observation and an event sequence stay admissible — and brevity is the
+   one class the accretion kept producing that no rule stated. Step 2's `Evidence` field and the
+   `Documentation & durable claims` gotcha own those rules.
+
+6. State "no process defect observed" when that is what happened. That statement is not a claim that nothing went wrong.
 
 **Decision points**
 

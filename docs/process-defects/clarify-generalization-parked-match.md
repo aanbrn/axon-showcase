@@ -176,5 +176,6 @@
 - **Knowledge boundary** — observed this instance. Did not sweep the unit's other artifacts for the same shape, and did
   not check whether the gate could detect a whitespace run inside a span.
 
-- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-10-25 and 2026-10-22 inline-code-span entries; the
-  formatting convention already forbids authoring a span across a line break.
+- **Decision** — no-change: the inline-code-span entries this pointed at are closed by
+  `docs/decisions/2026-10-29-inline-span-whitespace.md`, which rejects the proposed whitespace gate on a probe over the
+  gated markdown; the formatting convention already forbids authoring a span across a line break.

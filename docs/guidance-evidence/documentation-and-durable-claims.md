@@ -65,8 +65,7 @@ Rule: **Distinguish a point-in-time count from a durable one:**
 
 The `add-specs-auditor-agent` proposal said the corpus held "157 requirements"; the change's own delta made the main
 spec hold 158, and the README still stated a hard "22 capability specs". The `specs-auditor` definition's "a corpus …
-that grows with every archived change" and the README's "120+ and counting" are the shape-describing form the rule asks
-for.
+that grows with every archived change" is the shape-describing form the rule asks for.
 
 ## claim-site-sweep
 

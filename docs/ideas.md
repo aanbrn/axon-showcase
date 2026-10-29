@@ -1,11 +1,16 @@
 # Ideas
 
 Short notes to remember emerging development ideas. An idea becomes an OpenSpec change only when acted on — this file is
-a scratchpad, not a backlog of planned work. An idea is removed from the list once implemented (captured by a change) or
-once explored and decided against. The durable lesson is captured in `AGENTS.md`, in an ADR, or — where it is a program
-direction with a revisit condition rather than a rule an agent applies — in the window's retrospective or in a dated
-record under `docs/decisions/`. A separate dated record lives there rather than in `docs/retrospectives/`, which holds
-the window reports the retrospective digest selects. Only open, not-yet-implemented ideas remain.
+a scratchpad, not a backlog of planned work. Nothing here is a commitment: an entry nobody wants is dropped at a cleanup
+(`/ideas cleanup`, one oldest-first batch at a time) rather than kept by inertia. A cleanup covers one dated section and
+updates the cursor below, so the next invocation starts after the section it covered. An idea is removed from the list
+once implemented (captured by a change) or once explored and decided against. The durable lesson is captured in
+`AGENTS.md`, in an ADR, or — where it is a program direction with a revisit condition rather than a rule an agent
+applies — in the window's retrospective or in a dated record under `docs/decisions/`. A separate dated record lives
+there rather than in `docs/retrospectives/`, which holds the window reports the retrospective digest selects. Only open,
+not-yet-implemented ideas remain.
+
+**Last cleanup:** none — the next cleanup starts at the oldest section.
 
 Changes to this file travel with the change that owns them: an idea's **removal** ships in the implementing change's PR
 — it rides that change's branch and commits with its push, like the rest of the work — and a **newly parked** idea the
@@ -19,6 +24,12 @@ differently worded — is extended in place in its existing section, since the d
 as a second entry and splits one idea's detail across two sections.
 
 ## 2026-10-29
+
+- State the boundary between an ADR and a dated `docs/decisions/` record in `docs/adr/README.md` — parked; no change
+  yet. The repository now records a program-direction decision under `docs/decisions/` (the rejected inline-span check),
+  and the routing for that location is stated in `docs/ideas.md`'s header and in `/ideas`'s lesson rule, neither of
+  which a reader of the ADR conventions consults. The architecture audit surfaced it: a reader would not learn that some
+  decisions deliberately live outside `docs/adr/`.
 
 - First-run resource passport — parked; no change yet. No source in the repository states the machine budget a first
   Compose or Helm run needs, the builds included; the load-test baselines measure a deployed cluster, not a minimum.

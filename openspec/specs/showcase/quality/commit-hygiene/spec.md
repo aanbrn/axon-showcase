@@ -7,16 +7,16 @@ pre-commit hook that inspects the staged set and validates a staged review-round
 checks, its reviewer-session continuity, and the preservation of every recorded `(unit, round)` row — build checks that
 verify `captured:` marker placement, that the tracked set excludes ignored files, that no tracked file carries a merge
 conflict marker, that tracked scripts carry the executable bit, that no tracked file exceeds the configured size limit,
-that recognized tables in formatter-owned Markdown have consistent cell counts, that no two workflow cron schedules
-collide, that the review-round ledger carries at most one row per unit and round, that each unit's rounds are contiguous
-from `1` apart from an explicitly acknowledged gap, that a round the caller names with `--expect` is recorded, and that
-each round's reviewer session and its continuity are recorded — and, asserted at the review gate's manual-pass boundary
-rather than by a build check, that a unit the caller names with `--expect-clean` closes on a round carrying no finding
-class, since a round in flight is unclean by design, and that the unit's own tree is ready for the owner's pass: no
-unstaged new file, no stale indexed copy, and a base its `HEAD` contains, failing as not established when a read it
-needs fails rather than reporting the tree clean — and a committed `.gitattributes` that normalizes line endings
-(enforced by git, not the build) — so slips that were caught only by a human or a review pass are blocked by
-construction.
+that recognized tables in formatter-owned Markdown have consistent cell counts, that every dated ideas section carries
+an entry, that no two workflow cron schedules collide, that the review-round ledger carries at most one row per unit and
+round, that each unit's rounds are contiguous from `1` apart from an explicitly acknowledged gap, that a round the
+caller names with `--expect` is recorded, and that each round's reviewer session and its continuity are recorded — and,
+asserted at the review gate's manual-pass boundary rather than by a build check, that a unit the caller names with
+`--expect-clean` closes on a round carrying no finding class, since a round in flight is unclean by design, and that the
+unit's own tree is ready for the owner's pass: no unstaged new file, no stale indexed copy, and a base its `HEAD`
+contains, failing as not established when a read it needs fails rather than reporting the tree clean — and a committed
+`.gitattributes` that normalizes line endings (enforced by git, not the build) — so slips that were caught only by a
+human or a review pass are blocked by construction.
 
 ## Requirements
 
@@ -936,3 +936,35 @@ requirement covers the recognized tables, never every line a renderer might lay 
 
 - **WHEN** the table-row verification runs with no path to read
 - **THEN** it fails rather than reporting a clean scan
+
+### Requirement: A dated ideas section carries an entry
+
+The standard `check` task SHALL verify that every dated section (`## YYYY-MM-DD`) in `docs/ideas.md` carries at least
+one idea entry, so removing a section's last entry fails the build rather than leaving an empty heading in the file. The
+verification SHALL name each offending section's line and heading. A file that carries no dated section SHALL pass: an
+emptied ideas file is a legitimate state, not a defect. A missing `docs/ideas.md` SHALL fail.
+
+#### Scenario: The standard check verifies the ideas sections
+
+- **WHEN** the standard `check` task runs
+- **THEN** it includes the ideas-section verification
+
+#### Scenario: An emptied section fails the build
+
+- **WHEN** a dated section in `docs/ideas.md` carries no `- ` entry
+- **THEN** the verification fails and names the section's line and heading
+
+#### Scenario: A section carrying entries passes
+
+- **WHEN** every dated section in `docs/ideas.md` carries at least one `- ` entry
+- **THEN** the verification passes
+
+#### Scenario: A file with no dated section passes
+
+- **WHEN** `docs/ideas.md` carries no dated section
+- **THEN** the verification passes
+
+#### Scenario: A missing ideas file fails
+
+- **WHEN** `docs/ideas.md` is absent
+- **THEN** the verification fails and names the missing file

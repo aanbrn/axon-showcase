@@ -22,7 +22,8 @@ removes the entry. Ideas are grouped into `## YYYY-MM-DD` sections ordered newes
 dated when it was added (start a new section for a new day rather than appending to the most recent one). Search the
 file for the idea before adding it: the same work already parked — however differently worded — is extended in place in
 its existing section, since the day-section rule otherwise files a re-park as a second entry and splits one idea's
-detail across two sections.
+detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
+not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
 ## 2026-10-28
 
@@ -805,8 +806,8 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   checks are covered by tests run in the build" is scoped to the guard's classes, while the build checks
   (`verifyCapturedMarkers`, `verifyTrackedIgnoredFiles`, `verifyConflictMarkers`, `verifyExecutableBits`,
   `verifyUniqueCronSchedules`, `verifyUniqueReviewRounds`, `verifyReviewSessionContinuity`, `verifyLargeFiles`,
-  `verifyTableRows`) carry no test-coverage clause; widening it needs a REMOVED+ADDED retitle, since a `MODIFIED` block
-  cannot rename a requirement header.
+  `verifyTableRows`, `verifyIdeasSections`) carry no test-coverage clause; widening it needs a REMOVED+ADDED retitle,
+  since a `MODIFIED` block cannot rename a requirement header.
 
 - Carry findings forward across audit reports — parked; no change yet. The reports under `docs/audits/` have been
   write-only: a finding recurs run after run with nothing to say it is the same unapplied item, and the recorded

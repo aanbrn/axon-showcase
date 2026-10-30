@@ -47,6 +47,8 @@ Decision points for a cleanup:
   owner's judgement rather than to a silent removal.
 - **A `narrow` or `drop` routes the durable lesson before the entry leaves** — the header's removal rule owns the
   destinations — and nothing when the entry carried no lesson.
+- **Removing a section's last entry removes its heading too** — the file's header states the rule, and
+  `./gradlew verifyIdeasSections` fails the build on an empty dated section.
 - A retained entry keeps its original date and needs no re-justification. There is no renewal date and no expiry.
 - Do not verify every entry against the repository: investigate a particular entry only when its disposition needs the
   evidence.

@@ -2927,5 +2927,73 @@ class LedgerGuardTests(unittest.TestCase):
         self.assertNotIn("boundary comment", stderr)
 
 
+class IdeaSectionTests(unittest.TestCase):
+    def _repo_with_ideas(self, text: str) -> Path:
+        repo = make_repo(self)
+        (repo / "docs").mkdir()
+        (repo / "docs" / "ideas.md").write_text(text, encoding="utf-8")
+        return repo
+
+    def _check(self, repo: Path) -> tuple[int, str]:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--ideas-sections", "--repo", str(repo)])
+        return code, stderr.getvalue()
+
+    def test_an_emptied_section_is_reported_with_its_line(self):
+        repo = self._repo_with_ideas("# Ideas\n\n## 2026-10-29\n\n## 2026-10-28\n\n- an idea\n")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/ideas.md:3 ## 2026-10-29", stderr)
+
+    def test_a_section_carrying_an_entry_passes(self):
+        repo = self._repo_with_ideas("# Ideas\n\n## 2026-10-28\n\n- an idea\n")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
+    def test_a_file_without_a_dated_section_passes(self):
+        repo = self._repo_with_ideas("# Ideas\n\nNothing is parked.\n")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
+    def test_a_missing_file_fails(self):
+        repo = make_repo(self)
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("The ideas file is missing: docs/ideas.md", stderr)
+
+    def test_a_section_at_end_of_file_is_judged(self):
+        repo = self._repo_with_ideas("# Ideas\n\n## 2026-10-28\n\n- an idea\n\n## 2026-10-29\n")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/ideas.md:7 ## 2026-10-29", stderr)
+
+    def test_a_section_whose_only_content_is_a_sub_heading_is_reported(self):
+        repo = self._repo_with_ideas("# Ideas\n\n## 2026-10-29\n\n#### Notes\n")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("## 2026-10-29", stderr)
+
+    def test_several_emptied_sections_are_each_reported(self):
+        text = "# Ideas\n\n## 2026-10-30\n\n## 2026-10-29\n\n- an idea\n\n## 2026-10-28\n"
+        offenders = commit_hygiene.find_empty_idea_sections(text)
+
+        self.assertEqual([(3, "## 2026-10-30"), (9, "## 2026-10-28")], offenders)
+
+
 if __name__ == "__main__":
     unittest.main()

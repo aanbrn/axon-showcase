@@ -667,6 +667,15 @@ abstract class VerifyTableRowsTask : DefaultTask() {
     }
 }
 
+tasks.register<Exec>("verifyIdeasSections") {
+    group = "verification"
+    description = "Verifies every dated section of docs/ideas.md carries an idea entry"
+    inputs.file("scripts/commit-hygiene.py")
+    inputs.file("docs/ideas.md")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--ideas-sections")
+}
+
 tasks.register<VerifyTableRowsTask>("verifyTableRows") {
     group = "verification"
     description = "Verifies every markdown table's rows carry its delimiter row's column count"
@@ -746,6 +755,7 @@ tasks.named("check") {
     dependsOn("verifyUniqueReviewRounds")
     dependsOn("verifyReviewSessionContinuity")
     dependsOn("verifyLargeFiles")
+    dependsOn("verifyIdeasSections")
     dependsOn("verifyTableRows")
     // The chart's packaging path (its repository setup, dependency fetch, and strict lints), so a chart that cannot
     // bundle its declared dependency fails the pull request rather than only the nightly deployment smoke's install.

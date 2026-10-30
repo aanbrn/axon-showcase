@@ -7,6 +7,7 @@ it is loaded by path.
 
 import contextlib
 import importlib.util
+import inspect
 import io
 import subprocess
 import tempfile
@@ -48,6 +49,8 @@ def write_claim(repo: Path, value: str) -> None:
 
 
 class StagedThenEditedTests(unittest.TestCase):
+    """The --staged verification: a path staged and then edited before the commit."""
+
     def test_a_path_staged_and_then_edited_is_reported(self):
         repo = make_repo(self)
         (repo / "a.txt").write_text("one", encoding="utf-8")
@@ -311,6 +314,8 @@ class MarkerFileScopeTests(unittest.TestCase):
 
 
 class MisplacedMarkerTests(unittest.TestCase):
+    """The --markers verification: a marker sits inside a rule block, not on a plain bullet."""
+
     def test_a_marker_on_a_bold_lead_bullet_passes(self):
         text = "- **Rule.** Some text. captured: some-change\n"
 
@@ -2925,6 +2930,47 @@ class LedgerGuardTests(unittest.TestCase):
         self.assertGreaterEqual(code, 1)
         self.assertIn("A review-round row is removed", stderr)
         self.assertNotIn("boundary comment", stderr)
+
+# The mode-to-test mapping the coverage requirement names: each mode the checker exposes, the test class that covers it,
+# and the checker function that class names. The mapping is asserted complete against the checker's own mode list, and
+# each entry against the named class's own source, as text — the mode's flag, and the function's call form (its name
+# followed by an opening parenthesis). Presence of that text is the sentinel: it does not establish that the text is a
+# call rather than prose, nor that the assertions around it are meaningful, so the classes' behaviour remains the tests'
+# subject. A mode added without an entry, or an entry pointed at a class whose source never mentions it, fails the
+# suite.
+MODE_TEST_COVERAGE = {
+    "--staged": ("StagedThenEditedTests", "find_staged_then_edited"),
+    "--review-ready": ("ReviewReadyTests", "check_review_ready"),
+    "--markers": ("MisplacedMarkerTests", "find_misplaced_markers"),
+    "--tracked-ignored": ("TrackedIgnoredTests", "find_tracked_ignored"),
+    "--conflict-markers": ("ConflictMarkerTests", "find_conflict_markers"),
+    "--executable-bits": ("ExecutableBitTests", "find_non_executable_scripts"),
+    "--unique-crons": ("UniqueCronTests", "find_cron_collisions"),
+    "--unique-rounds": ("UniqueReviewRoundTests", "check_unique_review_rounds"),
+    "--session-continuity": ("SessionContinuityTests", "find_session_continuity_violations"),
+    "--large-files": ("LargeFileTests", "find_oversized_files"),
+    "--table-rows": ("TableRowTests", "check_table_rows"),
+    "--ideas-sections": ("IdeaSectionTests", "find_empty_idea_sections"),
+}
+
+
+class ModeCoverageTests(unittest.TestCase):
+    def test_the_mapping_names_every_mode_the_checker_exposes(self):
+        self.assertEqual(sorted(commit_hygiene.MODE_FLAGS), sorted(MODE_TEST_COVERAGE))
+
+    def test_each_named_class_carries_a_test(self):
+        for mode, (name, _) in sorted(MODE_TEST_COVERAGE.items()):
+            klass = globals().get(name)
+            self.assertIsNotNone(klass, f"{mode} names {name}, which this module does not define")
+            self.assertTrue(issubclass(klass, unittest.TestCase), name)
+            cases = [method for method in dir(klass) if method.startswith("test_")]
+            self.assertTrue(cases, f"{mode} names {name}, which carries no test")
+
+    def test_each_named_class_names_its_mode_and_its_function_call(self):
+        for mode, (name, exercised) in sorted(MODE_TEST_COVERAGE.items()):
+            source = inspect.getsource(globals()[name])
+            self.assertIn(mode, source, f"{mode} names {name}, which never names {mode}")
+            self.assertIn(exercised + "(", source, f"{mode} names {name}, which never names a call to {exercised}")
 
 
 class IdeaSectionTests(unittest.TestCase):

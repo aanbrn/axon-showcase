@@ -797,13 +797,6 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 
 ## 2026-09-24
 
-- Widen the `commit-hygiene` test-coverage requirement to every check — parked; no change yet. The spec's "The guard's
-  checks are covered by tests run in the build" is scoped to the guard's classes, while the build checks
-  (`verifyCapturedMarkers`, `verifyTrackedIgnoredFiles`, `verifyConflictMarkers`, `verifyExecutableBits`,
-  `verifyUniqueCronSchedules`, `verifyUniqueReviewRounds`, `verifyReviewSessionContinuity`, `verifyLargeFiles`,
-  `verifyTableRows`, `verifyIdeasSections`) carry no test-coverage clause; widening it needs a REMOVED+ADDED retitle,
-  since a `MODIFIED` block cannot rename a requirement header.
-
 - Carry findings forward across audit reports — parked; no change yet. The reports under `docs/audits/` have been
   write-only: a finding recurs run after run with nothing to say it is the same unapplied item, and the recorded
   smoke-run lesson is that "the archived run's note is never swept again". Have the verdict name which items also appear

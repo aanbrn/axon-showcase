@@ -1836,3 +1836,6 @@
 2026-10-30	reproduce-python-ide-setup	13	contradiction	contradiction	1	ses_e750d1ab0ffexqeuzSUDKmdqeg	continued	-
 2026-10-30	reproduce-python-ide-setup	14	contradiction	contradiction	1	ses_e750d1ab0ffexqeuzSUDKmdqeg	continued	-
 2026-10-30	reproduce-python-ide-setup	15	-	-	0	ses_e750d1ab0ffexqeuzSUDKmdqeg	continued	-
+2026-10-30	fix-python-idea-inspection-warnings	1	claim-missing,claim-unreproducible,wording	-	1	ses_e746719e6ffeAJnHS3GZgyFmN1	created	-
+2026-10-30	fix-python-idea-inspection-warnings	2	claim-unreproducible	claim-unreproducible	1	ses_e746719e6ffeAJnHS3GZgyFmN1	continued	-
+2026-10-30	fix-python-idea-inspection-warnings	3	-	-	0	ses_e746719e6ffeAJnHS3GZgyFmN1	continued	-

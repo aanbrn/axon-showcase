@@ -15,7 +15,6 @@ import io
 import re
 import shutil
 import subprocess
-import sys
 import tempfile
 import unittest
 import unittest.mock
@@ -72,7 +71,7 @@ class SettingsStageTests(unittest.TestCase):
         self.config = self.tmp / "IntelliJIdea2026.2"
         self.config.mkdir()
 
-    def write_table(self, *entries: tuple, config: Path = None) -> Path:
+    def write_table(self, *entries: tuple, config: Path | None = None) -> Path:
         """Write an SDK table for the given (name, home) pairs and return its configuration directory."""
         target = config or self.config
         options = target / "options"

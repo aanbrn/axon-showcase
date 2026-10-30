@@ -709,6 +709,13 @@ This is the fastest way to see the whole system work: it builds all five service
 PostgreSQL, Kafka, OpenSearch, the four services, and the web UI. The Gradle compose tasks set `PROJECT_VERSION` and the
 image tags automatically, so no environment variables are needed.
 
+Measured once, on a 32 GB arm64 machine and with the stack idle: with the images built, the stack answers on the gateway
+in about half a minute and holds about 3.4 GiB of memory (OpenSearch alone about 1.4 GiB); a first run pulls or builds
+about 6 GB of images, 3 GB of them the application's five.
+[`docs/decisions/2026-10-30-first-run-resource-passport.md`](docs/decisions/2026-10-30-first-run-resource-passport.md)
+records the measurement, its conditions, and what it does not cover — a first build's time, a minimum machine
+specification, and the disk a first run actually adds.
+
 Open http://localhost:8084 for the web UI, or http://localhost:8080 for the API. Stop everything with
 `./gradlew composeDown`.
 

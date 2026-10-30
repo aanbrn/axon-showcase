@@ -26,10 +26,6 @@ detail across two sections.
 
 ## 2026-10-29
 
-- First-run resource passport — parked; no change yet. No source in the repository states the machine budget a first
-  Compose or Helm run needs, the builds included; the load-test baselines measure a deployed cluster, not a minimum.
-  Measure it before the README promises RAM or startup time.
-
 ## 2026-10-28
 
 - Give the review gate's §5 a post-refresh return branch — parked; no change yet. The unit's `#1` process-defect record

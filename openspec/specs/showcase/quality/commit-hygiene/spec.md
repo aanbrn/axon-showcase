@@ -75,6 +75,11 @@ revision's content rather than the commit's. An added or modified foreign change
 deletion the merge did not make, SHALL still fail. A squash merge SHALL NOT be treated as a merge commit: it records no
 merged revision, so the exemption has nothing to name.
 
+The hook SHALL also refuse a staged `docs/ideas.md` that the ideas-section verification rejects — a dated section
+carrying no entry — naming the file, the section's line, and its heading, since that verification runs at `check` time
+rather than at the commit. It SHALL judge the index's content rather than the working tree's copy, and SHALL refuse a
+staged deletion of the file as a missing ideas file.
+
 #### Scenario: A failing formatter check refuses the commit
 
 - **WHEN** the project's formatter check fails while a formatter-owned file is staged
@@ -300,6 +305,26 @@ merged revision, so the exemption has nothing to name.
 - **WHEN** a merge commit stages an archived `tasks.md` whose staged blob equals a merged revision's blob for that path,
   and it carries an unticked task
 - **THEN** the guard reports no archived-task failure for it
+
+#### Scenario: A staged emptied ideas section refuses the commit
+
+- **WHEN** `docs/ideas.md` is staged and one of its dated sections carries no `- ` entry
+- **THEN** the guard refuses the commit and names the file, the section's line, and its heading
+
+#### Scenario: A staged deletion of the ideas file refuses the commit
+
+- **WHEN** `docs/ideas.md` is staged as deleted
+- **THEN** the guard refuses the commit and names the missing file
+
+#### Scenario: A commit that does not stage the ideas file runs no ideas-section check
+
+- **WHEN** a commit's staged set does not carry `docs/ideas.md`
+- **THEN** the guard reports no ideas-section failure
+
+#### Scenario: The guard judges the staged copy, not the working tree's
+
+- **WHEN** the staged `docs/ideas.md` differs from the working tree's copy
+- **THEN** the guard judges the content the commit records
 
 ### Requirement: The guard is activated per clone and does not alter state
 

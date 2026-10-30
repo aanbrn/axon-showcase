@@ -3041,5 +3041,78 @@ class IdeaSectionTests(unittest.TestCase):
         self.assertEqual([(3, "## 2026-10-30"), (9, "## 2026-10-28")], offenders)
 
 
+class StagedIdeaSectionTests(unittest.TestCase):
+    """The guard's ideas-section refusal: a staged copy's emptied dated section, judged from the index."""
+
+    def _stage(self, repo: Path, text: str) -> None:
+        path = repo / "docs" / "ideas.md"
+        path.parent.mkdir(exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+        subprocess.run(("git", "add", "docs/ideas.md"), cwd=repo, check=True)
+
+    def _check(self, repo: Path) -> tuple[int, str]:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.check_staged(repo, ["true"])
+        return code, stderr.getvalue()
+
+    def test_a_staged_emptied_section_refuses_the_commit(self):
+        repo = make_repo(self)
+        self._stage(repo, "# Ideas\n\n## 2026-10-29\n\n## 2026-10-28\n\n- an idea\n")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/ideas.md:3 ## 2026-10-29", stderr)
+
+    def test_a_staged_file_whose_sections_carry_entries_passes(self):
+        repo = make_repo(self)
+        self._stage(repo, "# Ideas\n\n## 2026-10-29\n\n- an idea\n")
+
+        self.assertEqual(0, self._check(repo)[0])
+
+    def test_the_check_is_skipped_when_the_ideas_file_is_not_staged(self):
+        repo = make_repo(self)
+        (repo / "docs").mkdir()
+        (repo / "docs" / "ideas.md").write_text("# Ideas\n\n## 2026-10-29\n\n", encoding="utf-8")
+        (repo / "a.txt").write_text("x", encoding="utf-8")
+        subprocess.run(("git", "add", "a.txt"), cwd=repo, check=True)
+
+        self.assertEqual(0, self._check(repo)[0])
+
+    def test_the_judgment_reads_the_index_and_a_fixed_working_tree_changes_nothing(self):
+        repo = make_repo(self)
+        self._stage(repo, "# Ideas\n\n## 2026-10-29\n\n")
+        (repo / "docs" / "ideas.md").write_text("# Ideas\n\n## 2026-10-29\n\n- an idea\n", encoding="utf-8")
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.check_staged_idea_sections(repo, commit_hygiene.staged_paths(repo))
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/ideas.md:3 ## 2026-10-29", stderr.getvalue())
+
+    def test_an_emptied_working_tree_over_a_staged_copy_carrying_entries_passes(self):
+        repo = make_repo(self)
+        self._stage(repo, "# Ideas\n\n## 2026-10-29\n\n- an idea\n")
+        (repo / "docs" / "ideas.md").write_text("# Ideas\n\n## 2026-10-29\n\n", encoding="utf-8")
+
+        with contextlib.redirect_stderr(io.StringIO()):
+            code = commit_hygiene.check_staged_idea_sections(repo, commit_hygiene.staged_paths(repo))
+
+        self.assertEqual(0, code)
+
+    def test_a_staged_deletion_refuses_as_a_missing_file(self):
+        repo = make_repo(self)
+        self._stage(repo, "# Ideas\n\n## 2026-10-29\n\n- an idea\n")
+        subprocess.run(("git", "commit", "-qm", "init"), cwd=repo, check=True)
+        subprocess.run(("git", "rm", "-q", "docs/ideas.md"), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("The ideas file is missing: docs/ideas.md", stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -15,8 +15,9 @@ verifies the workflow
 round, that each unit's rounds are contiguous from 1, that a round named with `--expect` is recorded, and that a unit
 named with `--expect-clean` closes on a round carrying no finding class (both need that mode); `--session-continuity`
 verifies the ledger's reviewer-session fields record each round's session and its transition; `--large-files`
-verifies no tracked file exceeds the configured size limit; and `--table-rows` verifies each markdown file it is given
-carries table rows whose cell count matches their delimiter row's.
+verifies no tracked file exceeds the configured size limit; `--table-rows` verifies each markdown file it is given
+carries table rows whose cell count matches their delimiter row's; and `--ideas-sections` verifies every dated section
+of `docs/ideas.md` carries an entry, failing when the file itself is missing.
 
 No mode reads a failed read as a clean result — a git invocation or a tracked file's size: a read whose failure would
 look like an empty offender list raises, and `main` reports it as the check having failed. The exits that answer a
@@ -66,6 +67,9 @@ CHANGES_PREFIX = "openspec/changes/"
 SPECS_PREFIX = "openspec/specs/"
 # The per-worktree record of the unit's assigned change, read at commit time so a staged path can be judged against it.
 CLAIM_NAME = "axon-showcase-change"
+IDEAS_PATH = "docs/ideas.md"
+IDEA_SECTION_RE = re.compile(r"^##\s+(\d{4}-\d{2}-\d{2})\s*$")
+SECTION_BOUNDARY_RE = re.compile(r"^#{1,2}\s")
 CLAIM_NONE = "none"
 ARCHIVED_CHANGE_RE = re.compile(r"^(?P<date>\d{4}-\d{2}-\d{2})-(?P<name>.+)$")
 CRON_LINE_RE = re.compile(r"^\s*-\s*cron:\s*(?P<value>.+?)\s*$")
@@ -1453,7 +1457,42 @@ MODE_FLAGS = (
     "--session-continuity",
     "--large-files",
     "--table-rows",
+    "--ideas-sections",
 )
+
+
+def check_idea_sections(repo: Path) -> int:
+    """Verify every dated section of the ideas file carries an entry; no dated section passes, a missing file fails."""
+    path = repo / IDEAS_PATH
+    if not path.is_file():
+        print("The ideas file is missing: {0}".format(IDEAS_PATH), file=sys.stderr)
+        return 1
+    offenders = find_empty_idea_sections(path.read_text(encoding="utf-8"))
+    for number, heading in offenders:
+        print(
+            "A dated ideas section carries no entry: {0}:{1} {2}".format(IDEAS_PATH, number, heading),
+            file=sys.stderr,
+        )
+    return len(offenders)
+
+
+def find_empty_idea_sections(text: str) -> list[tuple[int, str]]:
+    """Each dated `## YYYY-MM-DD` section of the ideas file carrying no `- ` entry, as its line and heading."""
+    lines = text.splitlines()
+    offenders: list[tuple[int, str]] = []
+    for index, line in enumerate(lines):
+        if not IDEA_SECTION_RE.match(line):
+            continue
+        carried = False
+        for following in lines[index + 1 :]:
+            if SECTION_BOUNDARY_RE.match(following):
+                break
+            if following.startswith("- "):
+                carried = True
+                break
+        if not carried:
+            offenders.append((index + 1, line.strip()))
+    return offenders
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1461,8 +1500,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Check commit hygiene over the staged set, the unit's readiness for the manual review pass, AGENTS.md "
-            "markers, the tracked set, the workflow cron schedules, the review-round ledger, a file's size, or the "
-            "given markdown files' table rows."
+            "markers, the tracked set, the workflow cron schedules, the review-round ledger, a file's size, the "
+            "given markdown files' table rows, or the ideas file's dated sections."
         )
     )
     mode = parser.add_mutually_exclusive_group()
@@ -1492,6 +1531,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--table-rows",
         action="store_true",
         help="verify each given markdown file's tables carry their delimiter row's column count",
+    )
+    mode.add_argument(
+        "--ideas-sections",
+        action="store_true",
+        help="check every dated section of docs/ideas.md carries an entry",
     )
     parser.add_argument(
         "--expect",
@@ -1555,6 +1599,8 @@ def dispatch(args: argparse.Namespace, repo: Path) -> int:
         return 1 if check_large_files(repo) else 0
     if args.table_rows:
         return 1 if check_table_rows(repo, args.paths) else 0
+    if args.ideas_sections:
+        return 1 if check_idea_sections(repo) else 0
     return 1 if check_staged(repo, args.formatter) else 0
 
 

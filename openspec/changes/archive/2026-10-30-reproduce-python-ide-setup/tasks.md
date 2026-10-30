@@ -165,7 +165,8 @@ own re-grep.
       closing quick-review round, the process-defect record, this task's routing line, and any deep-review status — and
       re-run `scripts/claim-scan.py --base 89224c730e63e773fcfdd882c9f6492c323d56ea` over this change directory. Verify
       that each class still carries its dismissal and that no row cites a command whose output changed.
-- [ ] 7.9 Ask the owner for the manual review pass and end the turn without committing.
+- [x] 7.9 Ask the owner for the manual review pass and end the turn without committing. **Done** — asked on the
+      proposal and after the implementation; the owner approved shipping.
 
 ## Review hand-overs
 

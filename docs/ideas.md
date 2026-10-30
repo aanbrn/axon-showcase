@@ -17,11 +17,12 @@ Changes to this file travel with the change that owns them: an idea's **removal*
 in-flight change's own work surfaced rides that branch too; only a docs edit the change did _not_ cause, or one surfaced
 after it is done (a defect a merge appends to the merged unit's record), ships as its own docs PR (like an
 `AGENTS.md`/`README.md` refresh PR). When an idea graduates into a concrete candidate for work, it may be promoted to a
-GitHub issue that links to the eventual OpenSpec change. Ideas are grouped into `## YYYY-MM-DD` sections ordered
-newest-first; each idea goes under a section dated when it was added (start a new section for a new day rather than
-appending to the most recent one). Search the file for the idea before adding it: the same work already parked — however
-differently worded — is extended in place in its existing section, since the day-section rule otherwise files a re-park
-as a second entry and splits one idea's detail across two sections.
+GitHub issue that links to the eventual OpenSpec change, or — when the work is ready now — implemented as a change that
+removes the entry. Ideas are grouped into `## YYYY-MM-DD` sections ordered newest-first; each idea goes under a section
+dated when it was added (start a new section for a new day rather than appending to the most recent one). Search the
+file for the idea before adding it: the same work already parked — however differently worded — is extended in place in
+its existing section, since the day-section rule otherwise files a re-park as a second entry and splits one idea's
+detail across two sections.
 
 ## 2026-10-29
 

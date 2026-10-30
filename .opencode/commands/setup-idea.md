@@ -18,9 +18,10 @@ Set up the project's IntelliJ configuration so the IDE matches the build formatt
 
 - IF the script reports the IDE is running, THEN ask the owner to close it and re-run for the plugin install. That skip
   is not a failure.
-- IF the Python line reports `NEEDS_ACTION`, THEN hand the owner the interpreter path and the settings page the message
-  names: registering that interpreter is a one-time step per IntelliJ configuration, and the script exits non-zero until
-  it is done.
+- IF the Python report is `NEEDS_ACTION`, THEN hand the owner its block — a first line naming the problem, then the
+  remedies, then the inventories — and walk them through one of the ways out it lists: register the printed interpreter
+  (a one-time step per IntelliJ configuration), or run the tree on one of the registered entries; re-run afterwards. The
+  script exits non-zero until one of them is done.
 - IF the owner works in several working trees, THEN note that each tree needs its own setup run — the module lives in
   the ignored `.idea/` — while the interpreter registration is shared by trees that resolve the same interpreter.
 - Tell the owner how to apply the configuration, as the skill's hand-back step states.

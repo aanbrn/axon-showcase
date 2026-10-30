@@ -79,9 +79,25 @@ class SettingsStageTests(unittest.TestCase):
         (options / "jdk.table.xml").write_text(sdk_table(*entries), encoding="utf-8")
         return target
 
+    def python_install(self) -> tuple[Path, Path]:
+        """Build a Python install and a venv wrapping it; return the install directory and the venv's interpreter."""
+        install = self.tmp / "pythons" / "3.12.1"
+        binaries = install / "bin"
+        binaries.mkdir(parents=True)
+        (binaries / "python3.12").write_text("", encoding="utf-8")
+        (binaries / "python3").symlink_to("python3.12")
+        environment = install / "envs" / "example"
+        (environment / "bin").mkdir(parents=True)
+        (environment / "bin" / "python").symlink_to("python3.12")
+        (environment / "bin" / "python3.12").symlink_to(binaries / "python3.12")
+        versions = self.tmp / "pythons" / "versions"
+        versions.mkdir(parents=True)
+        (versions / "example").symlink_to(environment)
+        return install, versions / "example" / "bin" / "python"
+
     def probe(self, working_dir: Path) -> tuple:
         """Report a fixed interpreter, standing in for the real `python3` run."""
-        return INTERPRETER, VERSION
+        return INTERPRETER, VERSION, False
 
     def stage(self, **overrides) -> tuple:
         """Run the Python stage against the temporary root with fixed defaults."""
@@ -113,6 +129,25 @@ class SettingsStageTests(unittest.TestCase):
         self.assertIn("<exclude-output />", iml)
         modules = (self.root / ensure.MODULES_XML_RELATIVE).read_text(encoding="utf-8")
         self.assertEqual(1, modules.count(f'filepath="{ensure.MODULE_FILEPATH}"'), modules)
+
+    def test_a_module_at_the_gradle_owned_path_is_relocated(self) -> None:
+        """A module left where IntelliJ's Gradle import owns it is moved to the path a sync keeps, and its entry too."""
+        self.write_table(("Test Python", str(INTERPRETER)))
+        legacy = self.root / ensure.LEGACY_MODULE_RELATIVE
+        legacy.parent.mkdir(parents=True)
+        legacy.write_text("<module />\n", encoding="utf-8")
+        modules = self.root / ensure.MODULES_XML_RELATIVE
+        modules.parent.mkdir(parents=True, exist_ok=True)
+        modules.write_text(module_xml(ensure.LEGACY_MODULE_FILEPATH), encoding="utf-8")
+
+        outcome, message = self.stage()
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        self.assertFalse(legacy.exists())
+        self.assertTrue((self.root / ensure.MODULE_RELATIVE).is_file())
+        updated = modules.read_text(encoding="utf-8")
+        self.assertNotIn(ensure.LEGACY_MODULE_FILEPATH, updated)
+        self.assertEqual(1, updated.count(f'filepath="{ensure.MODULE_FILEPATH}"'), updated)
 
     def test_second_run_writes_nothing(self) -> None:
         """A second run over the first run's output leaves both files byte-identical."""
@@ -214,6 +249,148 @@ class SettingsStageTests(unittest.TestCase):
                 self.assertEqual(ensure.CONFIGURED, outcome, message)
                 self.assertIn(f'jdkName="{expected}"', (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8"))
 
+    def test_a_virtual_environment_sdk_does_not_match_the_interpreter_it_wraps(self) -> None:
+        """A venv's SDK resolves to its base interpreter, so that interpreter must not match the SDK."""
+        install, entry = self.python_install()
+        probe = install / "bin" / "python3"
+        self.assertEqual(entry.resolve(), probe.resolve(), "the fixture must reproduce the aliasing")
+        self.write_table(("Virtual Environment", str(entry)))
+
+        outcome, message = self.stage(probe=lambda _working: (probe, VERSION, False))
+
+        self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
+        self.assertIn("is not registered as a Python SDK", message)
+        self.assertNotIn("several Python SDK entries", message)
+        self.assertFalse((self.root / ensure.MODULE_RELATIVE).exists())
+
+    def test_a_virtual_environment_entry_leaves_the_base_interpreter_unambiguous(self) -> None:
+        """A venv entry beside the base install's entry leaves exactly one match: the base install's."""
+        install, entry = self.python_install()
+        probe = install / "bin" / "python3"
+        self.write_table(("Virtual Environment", str(entry)), ("Base Python", str(probe)))
+
+        outcome, message = self.stage(probe=lambda _working: (probe, VERSION, False))
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        self.assertIn("Base Python", message)
+        iml = (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8")
+        self.assertIn('jdkName="Base Python"', iml)
+
+    def test_an_entry_symlinked_to_a_sibling_interpreter_matches(self) -> None:
+        """`bin/python3` and `bin/python3.12` are one install, so an entry naming either matches the other."""
+        install, _entry = self.python_install()
+        self.write_table(("Pyenv Python", str(install / "bin" / "python3")))
+
+        outcome, message = self.stage(probe=lambda _working: (install / "bin" / "python3.12", VERSION, False))
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        iml = (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8")
+        self.assertIn('jdkName="Pyenv Python"', iml)
+
+    def test_a_sibling_interpreter_in_the_same_directory_does_not_match(self) -> None:
+        """A different interpreter installed beside the probe's is not the probe's install, though its directory is."""
+        install, _entry = self.python_install()
+        probe = (install / "bin" / "python3.12").resolve()
+        sibling = install / "bin" / "python3.13"
+        sibling.write_text("", encoding="utf-8")
+        self.assertEqual(sibling.parent.resolve(), probe.parent, "the fixture must share the directory")
+        self.assertNotEqual(sibling.resolve(), probe)
+        self.write_table(("Sibling Python", str(sibling)))
+
+        outcome, message = self.stage(probe=lambda _working: (probe, VERSION, False))
+
+        self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
+        self.assertFalse((self.root / ensure.MODULE_RELATIVE).exists())
+
+    def test_an_entry_spelled_through_a_symlinked_prefix_matches(self) -> None:
+        """An install reached through a symlinked prefix is the same install as the probe's real path."""
+        real = self.tmp / "pythons" / "real"
+        binaries = real / "3.12.1" / "bin"
+        binaries.mkdir(parents=True)
+        (binaries / "python3.12").write_text("", encoding="utf-8")
+        prefix = self.tmp / "pythons" / "prefix"
+        prefix.symlink_to(real, target_is_directory=True)
+        self.write_table(("Prefix Python", str(prefix / "3.12.1" / "bin" / "python3.12")))
+
+        outcome, message = self.stage(probe=lambda _working: (binaries / "python3.12", VERSION, False))
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        iml = (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8")
+        self.assertIn('jdkName="Prefix Python"', iml)
+
+    def test_an_entry_naming_the_target_of_a_link_matches_a_probe_naming_the_link(self) -> None:
+        """Registering the resolved target is the same install as running the link that points at it."""
+        install = self.tmp / "pythons" / "homebrew"
+        binaries = install / "bin"
+        binaries.mkdir(parents=True)
+        cellar = install / "Cellar" / "python@3.13" / "3.13.18" / "bin"
+        cellar.mkdir(parents=True)
+        target = cellar / "python3.13"
+        target.write_text("", encoding="utf-8")
+        invoked = binaries / "python3.13"
+        invoked.symlink_to(target)
+        self.write_table(("Homebrew Target", str(target)))
+
+        outcome, message = self.stage(probe=lambda _working: (invoked, VERSION, False))
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        iml = (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8")
+        self.assertIn('jdkName="Homebrew Target"', iml)
+
+    def test_the_interpreter_a_virtual_environment_runs_matches_its_own_sdk(self) -> None:
+        """A venv probed through its own interpreter matches its own SDK, though both resolve to the base binary."""
+        _install, entry = self.python_install()
+        self.write_table(("Virtual Environment", str(entry)))
+
+        outcome, message = self.stage(probe=lambda _working: (entry, VERSION, True))
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        iml = (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8")
+        self.assertIn('jdkName="Virtual Environment"', iml)
+
+    def test_a_virtual_environment_probe_does_not_match_the_base_install_s_sdk(self) -> None:
+        """Running from a venv does not select the base installation whose binary it resolves to."""
+        install, entry = self.python_install()
+        base = install / "bin" / "python3.12"
+        self.assertEqual(entry.resolve(), base.resolve(), "the fixture must reproduce the aliasing")
+        self.write_table(("Base Python", str(base)))
+
+        outcome, message = self.stage(probe=lambda _working: (entry, VERSION, True))
+
+        self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
+        self.assertNotIn("several Python SDK entries", message)
+        self.assertFalse((self.root / ensure.MODULE_RELATIVE).exists())
+
+    def test_a_virtual_environment_probe_prefers_its_own_entry(self) -> None:
+        """With both SDKs registered, a venv probe matches its own entry and not the base installation's."""
+        install, entry = self.python_install()
+        self.write_table(("Virtual Environment", str(entry)), ("Base Python", str(install / "bin" / "python3.12")))
+
+        outcome, message = self.stage(probe=lambda _working: (entry, VERSION, True))
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        iml = (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8")
+        self.assertIn('jdkName="Virtual Environment"', iml)
+
+    def test_an_entry_in_the_directory_the_interpreter_was_run_from_matches(self) -> None:
+        """A Homebrew-shaped entry matches: the invoked path is in `bin`, its target lives outside that directory."""
+        install = self.tmp / "pythons" / "homebrew"
+        binaries = install / "bin"
+        binaries.mkdir(parents=True)
+        cellar = install / "Cellar" / "python@3.13" / "3.13.18" / "bin"
+        cellar.mkdir(parents=True)
+        (cellar / "python3.13").write_text("", encoding="utf-8")
+        entry = binaries / "python3.13"
+        entry.symlink_to(cellar / "python3.13")
+        self.assertNotEqual(entry.parent, entry.resolve().parent, "the fixture must leave the target outside bin")
+        self.write_table(("Homebrew Python", str(entry)))
+
+        outcome, message = self.stage(probe=lambda _working: (entry, VERSION, False))
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        iml = (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8")
+        self.assertIn('jdkName="Homebrew Python"', iml)
+
     def test_a_name_needing_escaping_is_written_as_valid_xml(self) -> None:
         """An SDK name with `&` and `"` produces a file that parses and keeps the name verbatim."""
         awkward = 'A & B "quoted"'
@@ -255,8 +432,17 @@ class SettingsStageTests(unittest.TestCase):
 
         self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
         self.assertIn(str(INTERPRETER), message)
-        self.assertIn("Project Structure", message)
-        self.assertIn("SDKs", message)
+        self.assertIn("Register it in IntelliJ", message)
+        self.assertIn("Or run this tree on an interpreter that is already registered", message)
+        self.assertIn("pyenv local", message)
+        self.assertIn("Registered Python SDKs", message)
+        self.assertIn("Other Python -> /opt/other/python3", message)
+        self.assertIn("File -> Project Structure -> SDKs -> Add SDK -> Python SDK", message)
+        self.assertLess(
+            message.index("Register it in IntelliJ"),
+            message.index("Registered Python SDKs"),
+            "the remedy must come before the inventory",
+        )
         self.assertFalse((self.root / ensure.MODULE_RELATIVE).exists())
         self.assertEqual(1, self.main_status("--idea-config-dir", str(self.config)))
 
@@ -268,6 +454,11 @@ class SettingsStageTests(unittest.TestCase):
 
         self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
         self.assertIn("several Python SDK entries", message)
+        self.assertIn("Keep one match", message)
+        self.assertIn("--idea-config-dir", message)
+        self.assertIn("delete all but one", message)
+        self.assertIn("Matching SDKs", message)
+        self.assertLess(message.index("Keep one match"), message.index("Matching SDKs"))
         self.assertFalse((self.root / ensure.MODULE_RELATIVE).exists())
 
     def test_another_product_s_configuration_is_not_an_intellij_configuration(self) -> None:
@@ -329,7 +520,7 @@ class SettingsStageTests(unittest.TestCase):
         """A 3.9 interpreter fails the stage, writes nothing, and makes the run exit non-zero."""
         self.write_table(("Test Python", str(INTERPRETER)))
 
-        outcome, message = self.stage(probe=lambda _working: (INTERPRETER, "3.9.18"))
+        outcome, message = self.stage(probe=lambda _working: (INTERPRETER, "3.9.18", False))
 
         self.assertEqual(ensure.ERROR, outcome, message)
         self.assertIn("below the required 3.12", message)
@@ -365,29 +556,32 @@ class SettingsStageTests(unittest.TestCase):
         self.assertTrue((self.root / ensure.MODULE_RELATIVE).is_file())
 
     def test_the_real_probe_reports_the_interpreter_it_ran(self) -> None:
-        """The real probe reports an existing interpreter whose own version matches the version it printed."""
-        interpreter, version = ensure.probe_interpreter(self.root)
+        """The real probe reports an existing interpreter whose own version and environment match its report."""
+        interpreter, version, in_environment = ensure.probe_interpreter(self.root)
 
         self.assertTrue(interpreter.is_file())
         reported = subprocess.run(
-            [str(interpreter), "-c", "import sys; print('%d.%d' % sys.version_info[:2])"],
+            [str(interpreter), "-c", "import sys; print('%d.%d' % sys.version_info[:2]); "
+             "print('environment' if sys.prefix != sys.base_prefix else 'base')"],
             capture_output=True,
             text=True,
             check=True,
-        ).stdout.strip()
-        self.assertEqual(".".join(version.split(".")[:2]), reported)
+        ).stdout.strip().splitlines()
+        self.assertEqual(".".join(version.split(".")[:2]), reported[0])
+        self.assertEqual("environment" if in_environment else "base", reported[1])
 
     def test_the_probe_asserts_its_program_and_parses_its_output(self) -> None:
-        """The probe runs the declared `-c` program and parses the two lines it prints."""
+        """The probe runs the declared `-c` program and parses the three lines it prints."""
         with unittest.mock.patch.object(ensure.subprocess, "run") as run:
             run.return_value = subprocess.CompletedProcess(
-                args=[], returncode=0, stdout=f'{INTERPRETER}\n{VERSION}\n', stderr=""
+                args=[], returncode=0, stdout=f"{INTERPRETER}\n{VERSION}\nenvironment\n", stderr=""
             )
 
-            interpreter, version = ensure.probe_interpreter(self.root)
+            interpreter, version, in_environment = ensure.probe_interpreter(self.root)
 
         self.assertEqual(INTERPRETER, interpreter)
         self.assertEqual(VERSION, version)
+        self.assertTrue(in_environment)
         command = run.call_args.args[0]
         self.assertEqual(ensure.INTERPRETER_PROGRAM, command[2])
         self.assertEqual(str(self.root), run.call_args.kwargs["cwd"])

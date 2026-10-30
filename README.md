@@ -975,14 +975,16 @@ its own code style and would reformat files differently, so configure the IDE to
   the one the build uses — the first `python3` on `PATH`, at 3.12 or newer — and the script prints the path and version
   it selected; the selection still does not change what `./gradlew check` or the Git hooks run.
 
-  Registering that interpreter is the one manual step, once per IntelliJ configuration and interpreter: **Settings →
-  Build, Execution, Deployment → Python Interpreter** (or **Project Structure → SDKs**), _Add Interpreter_ → _System_,
-  pointing at the path the setup printed, then save the IDE settings. Re-run the setup afterwards: it reads the SDK name
-  IntelliJ recorded and references exactly that entry. Its Python line reports `CONFIGURED` when the module is in place,
-  `SKIPPED` when no IntelliJ configuration was found, and `NEEDS_ACTION` (exiting non-zero) when the interpreter is not
-  registered yet, or more than one IntelliJ configuration or SDK entry matches — the message names the interpreter path,
-  the candidates, and where to register the SDK. A different patch version per working tree is expected:
-  `.python-version` is a personal, ignored setting.
+  Its Python line reports `CONFIGURED` when the module is in place, `SKIPPED` when no IntelliJ configuration was found,
+  and `NEEDS_ACTION` (exiting non-zero) in two cases. Its report is a short first line followed by an indented block
+  that puts the remedies first. When the tree's interpreter is not registered, the block says to register the printed
+  interpreter once per configuration (**Settings → Build, Execution, Deployment → Python Interpreter**, or **Project
+  Structure → SDKs**, _Add Interpreter_ → _System_, then save) or to run the tree on one that is already registered
+  (`pyenv local <installed-version>` where pyenv supplies it), and lists beneath them the registered SDKs with their
+  interpreter paths and the configurations searched. When several configurations or SDK entries match, the block names
+  the matching entries and that case's remedy: narrow the search with `--idea-config-dir <path>`, or delete all but one
+  entry. Re-run the setup afterwards: it reads the SDK name IntelliJ recorded and references exactly that entry. A
+  different patch version per working tree is expected: `.python-version` is a personal, ignored setting.
 
 - Pyenv users may keep a personal `.python-version` (created with `pyenv local <installed-version>` for an installed
   Python 3.12+); it is ignored rather than a shared repository runtime pin. Verify `python3 --version` in the

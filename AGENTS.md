@@ -2173,9 +2173,13 @@ changing an image or buildpack pin.
   (`config/idea/*.xml` and the test-tier naming inspection) into `.idea/`, replacing only our components and preserving
   IntelliJ-managed content, so a re-run repairs a configuration that has drifted (e.g. it was never applied cleanly, or
   IntelliJ overwrote it); it then installs the palantir-java-format and ktfmt plugins when IntelliJ is closed. The
-  configuration merge needs neither the launcher nor a closed IDE — only the plugin install does. IntelliJ reads the
-  merged files at startup (or on **File → Reload All from Disk**), so the settings take effect only after a reload or
-  restart. The `/setup-idea` agent command wraps the script (and negotiates quitting a running IDE for the plugin
+  configuration merge needs neither the launcher nor a closed IDE — only the plugin install does, and a skipped install
+  is legitimate rather than a failure. The same run also reconciles the module that gives IntelliJ Python analysis for
+  `scripts/*.py`: it resolves the first `python3` on `PATH` from the working tree's root, reads the SDK name an IntelliJ
+  configuration registered for that interpreter, and reports `CONFIGURED`, `SKIPPED`, `NEEDS_ACTION`, or `ERROR` — a
+  `NEEDS_ACTION` for an unregistered interpreter exits non-zero until that one-time registration is done. IntelliJ reads
+  the merged files at startup (or on **File → Reload All from Disk**), so the settings take effect only after a reload
+  or restart. The `/setup-idea` agent command wraps the script (and negotiates quitting a running IDE for the plugin
   install). For the web module it also enables IntelliJ's built-in **Prettier** (via `config/idea/prettier.xml`; free
   from IntelliJ IDEA 2026.1, Ultimate on the earlier unified 2025.3–2026.0) and extends its file-type scope
   (`myFilesPattern`) to CSS and HTML, which the Prettier default omits, so `Reformat Code` matches the

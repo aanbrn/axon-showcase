@@ -549,6 +549,27 @@ tasks.register<Exec>("testDoctorCharter") {
     commandLine(shExecutable, "scripts/test-doctor.sh")
 }
 
+tasks.register<Exec>("testEnsureIdeaSettings") {
+    group = "verification"
+    description = "Runs the IntelliJ settings helper's tests, including the Python-analysis stage"
+    inputs.file("scripts/ensure-idea-settings.py")
+    inputs.file("scripts/test-ensure-idea-settings.py")
+    inputs.files(fileTree("config/idea") { include("*.xml") })
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/test-ensure-idea-settings.py")
+}
+
+tasks.register<Exec>("testSetupIdea") {
+    group = "verification"
+    description = "Runs the IntelliJ setup wrapper's tests, including its stage-continuation and exit-status contract"
+    inputs.file("scripts/setup-idea.sh")
+    inputs.file("scripts/test-setup-idea.sh")
+    inputs.file("scripts/ensure-idea-settings.py")
+    inputs.files(fileTree("config/idea") { include("*.xml") })
+    outputs.upToDateWhen { false }
+    commandLine(shExecutable, "scripts/test-setup-idea.sh")
+}
+
 tasks.register<Exec>("testReviewRounds") {
     group = "verification"
     description = "Runs the review-round digest's tests"
@@ -745,6 +766,8 @@ tasks.named("check") {
     dependsOn("testCommitHygiene")
     dependsOn("testClaimScan")
     dependsOn("testDoctorCharter")
+    dependsOn("testEnsureIdeaSettings")
+    dependsOn("testSetupIdea")
     dependsOn("testReviewRounds")
     dependsOn("testReviewRouting")
     dependsOn("testReconnectMcp")

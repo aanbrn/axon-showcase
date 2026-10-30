@@ -1,10 +1,11 @@
 ---
 name: setup-idea
 description:
-  Set up this repo's IntelliJ configuration so the IDE matches the build formatter — merge the committed settings
-  (config/idea/*.xml plus the test-tier naming inspection) into .idea/, install the palantir-java-format + ktfmt
-  plugins, and enable IntelliJ's built-in Prettier for the web module. Use when the user asks to set up or fix their
-  IntelliJ/IDE configuration, or when the configuration has drifted (e.g. IntelliJ rewrote .idea/).
+  Set up this repo's IntelliJ configuration so the IDE matches the build formatter and analyzes scripts/*.py — merge the
+  committed settings (config/idea/*.xml plus the test-tier naming inspection) into .idea/, reconcile the Python analysis
+  module for the current working tree, install the palantir-java-format + ktfmt plugins, and enable IntelliJ's built-in
+  Prettier for the web module. Use when the user asks to set up or fix their IntelliJ/IDE configuration, or when the
+  configuration has drifted (e.g. IntelliJ rewrote .idea/).
 license: MIT
 ---
 
@@ -12,14 +13,14 @@ license: MIT
 
 `./scripts/setup-idea.sh` is the primary, token-free path — a contributor runs it directly (repeatedly, when the
 configuration has drifted). The script merges the committed settings (`config/idea/*.xml` and the test-tier naming
-inspection) into `.idea/`, preserving IDE-managed content, installs the palantir-java-format and ktfmt plugins, and
-enables IntelliJ's built-in Prettier for the web module (run on reformat/save; the JS/TS indentation comes from
-`.editorconfig`). Applying the configuration needs neither the IDE launcher nor a closed IDE; only the plugin install is
-skipped when IntelliJ is running or not found.
+inspection) into `.idea/`, preserving IDE-managed content, reconciles the Python analysis module for the current working
+tree, installs the palantir-java-format and ktfmt plugins, and enables IntelliJ's built-in Prettier for the web module
+(run on reformat/save; the JS/TS indentation comes from `.editorconfig`). Applying the configuration needs neither the
+IDE launcher nor a closed IDE; only the plugin install is skipped when IntelliJ is running or not found, and that skip
+is legitimate.
 
-Prefer telling the user to run the script themselves — it is mechanical and cheap. Use this skill when they ask you to
-do it, or when the script needs a handshake a terminal cannot give: quitting a running IDE so a wanted plugin install
-can proceed.
+The Python stage's selection rule, the module it writes, and the conditions behind each outcome are the delta spec's and
+the script's; this skill carries what to do for the outcome it reports.
 
 ## Procedure
 
@@ -29,6 +30,14 @@ can proceed.
    proceeds. Do not try to close the IDE yourself.
 3. **If the launcher is not found**: the configuration is still applied — tell the user to pass the launcher path
    (`./scripts/setup-idea.sh /path/to/idea`), set `IDEA_HOME`, or install the plugins from the IDE.
-4. **Hand back**: report what the script restored, left unchanged, or skipped, and tell the user to apply the
-   configuration with **File → Reload All from Disk** (or restart IntelliJ) — IDEA reads `.idea/` settings at startup,
-   so the change takes effect only after a reload.
+4. **Read the Python line** and act on its outcome:
+   - `CONFIGURED` — nothing to do.
+   - `SKIPPED` — pass `--idea-config-dir <path>` if an IntelliJ configuration exists outside the searched roots.
+   - `NEEDS_ACTION` — hand the user the message the script printed, which names the interpreter path, the candidates,
+     and where to register the SDK; wait for that one-time registration, then re-run. Every working tree that resolves
+     the same interpreter reuses it.
+   - `ERROR` — report the message; no module was written.
+5. **Hand back**: report what the script restored, left unchanged, or skipped and both outcome lines, and tell the user
+   to apply the configuration with **File → Reload All from Disk** (or restart IntelliJ) — IDEA reads `.idea/` settings
+   at startup, so the change takes effect only after a reload. A non-zero exit is a `NEEDS_ACTION`/`ERROR` stage or a
+   failed plugin installation, not a failed merge: the other stages still ran.

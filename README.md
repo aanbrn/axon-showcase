@@ -602,7 +602,7 @@ removed.
 | `/opsx-explore`               | Explores an idea before proposing it                                                                                                                                                              |
 | `/setup-agent-tools`          | Sets up the tooling MCP servers (GitHub core, plus optional extras)                                                                                                                               |
 | `/reconnect-mcp`              | Reports every MCP server's status, or reconnects one named server or the whole failed set, verifying each reached `connected` — without restarting OpenCode                                       |
-| `/setup-idea`                 | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier)                                                                                                           |
+| `/setup-idea`                 | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier + Python analysis)                                                                                         |
 | `/check-tooling`              | Checks whether this machine has the prerequisites (Java, Docker, Python, and the optional tools)                                                                                                  |
 | `/review-thorough`            | Deep risk-routed review of a change (the review gate's routing decision, or this explicit run)                                                                                                    |
 | `/pause-unit`                 | Records the current unit's `Resume checkpoint` and ends the turn: no commit, stash, push, or teardown                                                                                             |
@@ -939,9 +939,10 @@ its own code style and would reformat files differently, so configure the IDE to
 - The repo's IntelliJ config is **not versioned** — `.idea/` is git-ignored. Run the setup script any time the
   configuration drifts: it merges the committed settings from `config/idea/` into `.idea/` (restoring the
   palantir-java-format and ktfmt settings and the test-tier naming inspection, leaving IntelliJ-managed content
-  untouched) and installs the **palantir-java-format** and **ktfmt** plugins. The plugin install needs IntelliJ closed
-  (it warns and skips that step otherwise); the configuration merge does not, so a re-run repairs the config even with
-  the IDE open:
+  untouched), reconciles the module that gives IntelliJ Python analysis for `scripts/*.py` (see the Python-analysis
+  bullet below), and installs the **palantir-java-format** and **ktfmt** plugins. The plugin install needs IntelliJ
+  closed (it warns and skips that step otherwise); the configuration merge does not, so a re-run repairs the config even
+  with the IDE open:
 
   ```bash
   ./scripts/setup-idea.sh
@@ -969,11 +970,20 @@ its own code style and would reformat files differently, so configure the IDE to
   **Actions on Save** → _Reformat code_ / _Optimize imports_, and **Auto Import** → _Optimize imports on the fly_. If
   the plugin is not active on a machine, disable those triggers instead to avoid drift; `spotlessCheck` in `check` is
   the backstop either way.
-- For **Python analysis** of `scripts/*.py`, select an interpreter for the project once (Settings → Project → Python
-  Interpreter → Add Interpreter) at or above the build's declared minimum, Python 3.12+ (the Prerequisites row states
-  it). The selection is per machine and `.idea/` is ignored, so it does not travel with the clone; `setup-idea.sh` does
-  not provision or register an interpreter, and the selection does not change what `./gradlew check` or the Git hooks
-  run — those resolve the first `python3` on `PATH`.
+- For **Python analysis** of `scripts/*.py`, the same setup writes the IntelliJ module that gives those files an
+  interpreter, so each clone and each `git worktree` gets it from one `./scripts/setup-idea.sh` run. The interpreter is
+  the one the build uses — the first `python3` on `PATH`, at 3.12 or newer — and the script prints the path and version
+  it selected; the selection still does not change what `./gradlew check` or the Git hooks run.
+
+  Registering that interpreter is the one manual step, once per IntelliJ configuration and interpreter: **Settings →
+  Build, Execution, Deployment → Python Interpreter** (or **Project Structure → SDKs**), _Add Interpreter_ → _System_,
+  pointing at the path the setup printed, then save the IDE settings. Re-run the setup afterwards: it reads the SDK name
+  IntelliJ recorded and references exactly that entry. Its Python line reports `CONFIGURED` when the module is in place,
+  `SKIPPED` when no IntelliJ configuration was found, and `NEEDS_ACTION` (exiting non-zero) when the interpreter is not
+  registered yet, or more than one IntelliJ configuration or SDK entry matches — the message names the interpreter path,
+  the candidates, and where to register the SDK. A different patch version per working tree is expected:
+  `.python-version` is a personal, ignored setting.
+
 - Pyenv users may keep a personal `.python-version` (created with `pyenv local <installed-version>` for an installed
   Python 3.12+); it is ignored rather than a shared repository runtime pin. Verify `python3 --version` in the
   environment running the tooling, with pyenv's shims ahead of other Python installations on `PATH` if that selection is

@@ -1143,18 +1143,6 @@ def find_duplicate_review_rounds(repo: Path, text: str | None = None) -> list[tu
     return duplicates
 
 
-def check_unique_review_rounds(repo: Path) -> int:
-    duplicates = find_duplicate_review_rounds(repo)
-    for unit, round_number, first, second in duplicates:
-        print(
-            "Two review-round rows share unit '{0}' round {1}: lines {2} and {3}".format(
-                unit, round_number, first, second
-            ),
-            file=sys.stderr,
-        )
-    return len(duplicates)
-
-
 def ledger_data_rows(repo: Path, text: str | None = None) -> list[list[str]]:
     """The ledger's data rows, comment and blank lines dropped, so every reader parses and validates it once."""
     rows: list[list[str]] = []
@@ -1241,7 +1229,7 @@ def find_unclean_closing_rounds(
         if not unit_rows:
             failures.append((unit, "the ledger records no round for it"))
             continue
-        closing = max(unit_rows, key=lambda fields: int(fields[2]))
+        closing = max(unit_rows, key=lambda row: int(row[2]))
         if len(closing) < 4 or not closing[3].strip():
             failures.append((unit, "round {0} carries no readable classes field".format(closing[2])))
         elif closing[3] != "-":

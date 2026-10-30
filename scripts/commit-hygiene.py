@@ -17,7 +17,8 @@ named with `--expect-clean` closes on a round carrying no finding class (both ne
 verifies the ledger's reviewer-session fields record each round's session and its transition; `--large-files`
 verifies no tracked file exceeds the configured size limit; `--table-rows` verifies each markdown file it is given
 carries table rows whose cell count matches their delimiter row's; and `--ideas-sections` verifies every dated section
-of `docs/ideas.md` carries an entry, failing when the file itself is missing.
+of `docs/ideas.md` carries an entry, failing when the file itself is missing — a judgment the guard applies to a staged
+copy through the same reporter.
 
 No mode reads a failed read as a clean result — a git invocation or a tracked file's size: a read whose failure would
 look like an empty offender list raises, and `main` reports it as the check having failed. The exits that answer a
@@ -821,6 +822,8 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
                 )
         failures += check_ledger_preservation(repo, staged_ledger)
 
+    failures += check_staged_idea_sections(repo, paths)
+
     return failures
 
 
@@ -1449,19 +1452,34 @@ MODE_FLAGS = (
 )
 
 
-def check_idea_sections(repo: Path) -> int:
-    """Verify every dated section of the ideas file carries an entry; no dated section passes, a missing file fails."""
-    path = repo / IDEAS_PATH
-    if not path.is_file():
+def check_staged_idea_sections(repo: Path, paths: Sequence[str]) -> int:
+    """The guard's ideas-section judgment over the staged set: the index's emptied sections, or a staged deletion."""
+    if IDEAS_PATH in paths:
+        return report_empty_idea_sections(find_empty_idea_sections(staged_file_text(repo, IDEAS_PATH)))
+    deleted = git_output(repo, "diff", "--cached", "--name-only", "--diff-filter=D", "--", IDEAS_PATH).strip()
+    if deleted:
         print("The ideas file is missing: {0}".format(IDEAS_PATH), file=sys.stderr)
         return 1
-    offenders = find_empty_idea_sections(path.read_text(encoding="utf-8"))
+    return 0
+
+
+def report_empty_idea_sections(offenders: list[tuple[int, str]]) -> int:
+    """Print each offender as a named failure and return how many there are, shared by the build check and the guard."""
     for number, heading in offenders:
         print(
             "A dated ideas section carries no entry: {0}:{1} {2}".format(IDEAS_PATH, number, heading),
             file=sys.stderr,
         )
     return len(offenders)
+
+
+def check_idea_sections(repo: Path) -> int:
+    """Verify every dated section of the ideas file carries an entry; no dated section passes, a missing file fails."""
+    path = repo / IDEAS_PATH
+    if not path.is_file():
+        print("The ideas file is missing: {0}".format(IDEAS_PATH), file=sys.stderr)
+        return 1
+    return report_empty_idea_sections(find_empty_idea_sections(path.read_text(encoding="utf-8")))
 
 
 def find_empty_idea_sections(text: str) -> list[tuple[int, str]]:

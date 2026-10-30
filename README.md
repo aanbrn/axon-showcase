@@ -881,13 +881,15 @@ required to verify a change; an IDE is an optional convenience for editing, debu
 
 A pre-commit guard (`scripts/git-hooks/pre-commit`) refuses a commit whose staged set is mechanically defective — a
 stale index, a misplaced `captured:` marker, an `openspec archive` move without its spec sync, an unticked task in an
-archived change, a change directory that is not the commit's own, and the rest of the set its own header and
-`AGENTS.md`'s staging gotcha enumerate. Several of its checks have build-side counterparts in `./gradlew check` —
-`spotlessCheck` for the formatter, `verifyCapturedMarkers`, `verifyConflictMarkers`, `verifyTrackedIgnoredFiles` for the
-force-staged artifact, and the review-round ledger's tasks — so they hold even without the hook. The rest read the
-commit's own boundary — the index diverging from a later edit, an unpaired archive move, an unticked archived task, a
-foreign change directory — which no build task sees. Install it once per clone (see
-[Get the Sources](#get-the-sources)); bypass a deliberate exception with `git commit --no-verify`.
+archived change, an emptied dated ideas section or a removed ideas file, a change directory that is not the commit's
+own, and the rest of the set its own header and `AGENTS.md`'s staging gotcha enumerate. Several of its checks have
+build-side counterparts in `./gradlew check` — `spotlessCheck` for the formatter, `verifyCapturedMarkers`,
+`verifyConflictMarkers`, `verifyTrackedIgnoredFiles` for the force-staged artifact, `verifyIdeasSections` for the ideas
+sections, and the review-round ledger's tasks — so they hold even without the hook. The rest read the commit's own
+boundary — the index diverging from a later edit, an unpaired archive move, an unticked archived task, a foreign change
+directory, and an ideas file removed from the index while the working-tree copy remains — which no build task sees.
+Install it once per clone (see [Get the Sources](#get-the-sources)); bypass a deliberate exception with
+`git commit --no-verify`.
 
 ### Dependency Updates and Security
 

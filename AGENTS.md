@@ -1808,8 +1808,9 @@ capture-stash-stale-copy captured: override-opencode-plugin-transitives
   formatter check, force-stages a generated artifact, stages a path and then edits it, carries a merge conflict marker,
   misplaces a `captured:` marker, stages an `openspec/changes/archive/**` change dir while leaving its
   `openspec/specs/**` sync unstaged, stages a review-round ledger that fails its checks or loses a row, stages an
-  archived change's `tasks.md` with an unticked task, or carries a change directory that is not the commit's assigned
-  one — apart from a change path the commit's own merge accounts for, whose content is not the commit's own.
+  archived change's `tasks.md` with an unticked task, stages a `docs/ideas.md` whose dated section carries no entry or
+  that the commit removes, or carries a change directory that is not the commit's assigned one — apart from a change
+  path the commit's own merge accounts for, whose content is not the commit's own.
 
   evidence: git-and-repository-workflow
 

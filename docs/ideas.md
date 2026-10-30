@@ -24,8 +24,6 @@ file for the idea before adding it: the same work already parked — however dif
 its existing section, since the day-section rule otherwise files a re-park as a second entry and splits one idea's
 detail across two sections.
 
-## 2026-10-29
-
 ## 2026-10-28
 
 - Give the review gate's §5 a post-refresh return branch — parked; no change yet. The unit's `#1` process-defect record

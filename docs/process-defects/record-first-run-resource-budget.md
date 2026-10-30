@@ -25,3 +25,26 @@ corrected in the same unit.
 **Knowledge boundary** — observed: the aborted script, the unchanged cell, the reviewer's finding. Not checked: whether
 any other claim in that hand-over described an edit rather than the tree (the round-2 hand-over was written from the
 applied diffs).
+
+### record-first-run-resource-budget#2 — Removing a section's last entry left its heading behind
+
+**Recorded** — 2026-10-30, by the owner, who found the residue at `docs/ideas.md:27` after the merge; recorded here by
+the unit's session.
+
+**Stage** — implementation, surfacing after the merge.
+
+**Expected** — `docs/ideas.md` groups ideas under dated sections and keeps only open ideas, so removing a section's last
+entry leaves no heading behind.
+
+**Observed** — the change removed the "First-run resource passport" entry, the only one left under `## 2026-10-29`, and
+left that heading with no entries under it. It shipped to `main` that way and the owner spotted it afterwards.
+
+**Evidence** — the merged change's diff removes the entry's four lines and nothing else in that file
+(`docs/ideas.md | 4 --` in `b4b331f8`, whose full stat is 5 files); a section scan over the merged file reported 28
+dated sections with one empty, at line 27.
+
+**Consequence** — an empty dated section reached `main`; it is removed in its own docs pull request (2 deleted lines),
+which also leaves 27 sections and 98 entries with none empty.
+
+**Knowledge boundary** — observed: the empty section, the merged diff, and the scan. Not checked: whether any other
+document keeps a grouping whose last item can disappear the same way (the scan covered `docs/ideas.md` only).

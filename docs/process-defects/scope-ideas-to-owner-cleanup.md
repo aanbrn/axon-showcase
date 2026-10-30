@@ -22,3 +22,5 @@ bullets had been deleted; the line was narrowed to "an expiry claim".
 
 **Knowledge boundary** — observed: the leftover clause, the sweep that found it, and the fix. Not checked: whether the
 same sweep covered the spec delta, which still ships the old class until the archive applies the delta.
+
+- **Decision** — no-change: the sweep rule already requires the sibling clauses naming a removed class removed with it.

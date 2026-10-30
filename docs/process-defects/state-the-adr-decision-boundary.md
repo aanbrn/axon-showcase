@@ -23,3 +23,6 @@ pass, and the content itself needed no change.
 
 **Knowledge boundary** — observed: the stale index, the round-4 report, and the re-stage. Not checked: whether an
 earlier round in this unit also reviewed a stale index, which the round reports' file lists would show.
+
+- **Decision** — no-change: the `git add <dir>` staging-snapshot rule and the review gate's §5 re-stage remedy already
+  require a path edited after staging to be re-staged.

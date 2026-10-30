@@ -28,6 +28,9 @@ cost was one round trip, and the hazard it exposed would have been silent had th
 advisor would have used the sibling tree's line numbers had the read been permitted, and whether any other subagent
 definition resolves its file reads against the session workspace rather than an absolute path.
 
+- **Decision** — no-change: one occurrence, blocked by the permission denial; the advisor definition states its
+  workspace limit, and the caller's move was the fix.
+
 ### proofread-readme-language#2 — A PR body carried a count no command produced
 
 **Recorded** — 2026-10-29, by this unit's writing session, while working in the next unit's tree.
@@ -54,3 +57,6 @@ re-deriving the two figures and rewriting the row. Nothing remains broken.
 **Knowledge boundary** — observed: both drafts and their text. Not checked: whether the same hand-counted style appears
 in another unit's PR body in this repository, and whether a gate could read a body at all, since a body is composed
 outside the working tree.
+
+- **Decision** — no-change: one occurrence, caught before publication; §1's claims table and the outward-facing review
+  rule already cover the derivation.

@@ -25,6 +25,9 @@ status matched the pre-switch list), and the unit then took its own worktree. No
 **Knowledge boundary** — observed: both statuses, the branch deletion and the worktree registry. Not checked: whether a
 session for the other unit was still writing to that tree while the switch ran.
 
+- **Decision** — no-change: the Workspace rule already determines the action; the second occurrence questions
+  compliance, not the rule's text.
+
 ### sharpen-readme-promises-and-routes#2 — Three edit anchors matched nothing because the formatter had re-wrapped them
 
 **Recorded** — 2026-10-29, by the unit's writing session.
@@ -48,3 +51,5 @@ dev…'`against text that the rendered README shows; the next attempts replaced 
 **Knowledge boundary** — observed: the anchors, their counts, and the re-wrapped source. Not checked: whether the same
 class sits in another live script that anchors on wrapped prose; `widen-readme-auditor-with-language-axis#3` records the
 same shape from an earlier unit in this repository.
+
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-10-22 'Route the wrapped-prose gotcha' entry.

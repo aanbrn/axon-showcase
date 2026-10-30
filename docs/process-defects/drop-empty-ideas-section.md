@@ -21,3 +21,6 @@ slip was raised once in the previous unit's claims table.
 
 **Knowledge boundary** — observed: the row, both commands' output, and the correction. Not checked: whether any other
 row of this unit's table names a command whose output depends on the index.
+
+- **Decision** — no-change: §1 already requires every claims row re-run so it reproduces; the record reports a prior
+  occurrence too, so the existing obligation is the durable fix.

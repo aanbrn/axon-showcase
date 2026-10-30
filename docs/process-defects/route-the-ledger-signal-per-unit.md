@@ -20,3 +20,6 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   ledger rows, every row was re-run at the base in round 4, and no claim shipped on the wrong figure.
 - **Knowledge boundary** — observed for this table. Did not check whether other changes' claims rows cite artifacts that
   never existed; this unit's rows were re-run, the earlier ones not.
+
+- **Decision** — no-change: already parked — `docs/ideas.md` 2026-10-27 'Give claims-table rows an executable
+  verification mode'; §1 covers the row's derivation meanwhile.

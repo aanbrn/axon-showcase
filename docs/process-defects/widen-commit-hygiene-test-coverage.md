@@ -17,6 +17,9 @@
   classes that lacked one.
 - **Knowledge boundary**: the probe ran locally; how the reviewer reached its finding was not examined.
 
+- **Decision** — no-change: check-and-test-authoring's 'control must perturb the surface the check actually reads' mode
+  already requires proving the setup perturbed its target before reading the outcome.
+
 ### widen-commit-hygiene-test-coverage#2 — A corrected claim was not swept to its repetition
 
 - **Recorded**: 2026-10-30, main agent.
@@ -33,3 +36,5 @@
   the claims table were moved to that lexical predicate.
 - **Knowledge boundary**: the sweep covered this change's artifacts, the process-defect record, and the test module; no
   other file stated the claim.
+
+- **Decision** — no-change: the sweep rule already requires a corrected claim swept to its repetitions.

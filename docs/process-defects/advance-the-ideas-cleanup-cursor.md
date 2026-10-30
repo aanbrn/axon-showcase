@@ -24,3 +24,5 @@ renamed to match and the reset text defined.
 
 **Knowledge boundary** — observed: the label, the value, the owner's reading, and the rename. Not checked: whether any
 other state field in the repository names an event while holding a position.
+
+- **Decision** — no-change: one occurrence and one round of owner confusion; below the promotion gate.

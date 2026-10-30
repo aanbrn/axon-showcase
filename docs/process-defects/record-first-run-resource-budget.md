@@ -26,6 +26,9 @@ corrected in the same unit.
 any other claim in that hand-over described an edit rather than the tree (the round-2 hand-over was written from the
 applied diffs).
 
+- **Decision** — no-change: the 'Never chain an edit to a commit' rule and the review gate's fix-verification step
+  already require the edited text re-read before a hand-over claims it.
+
 ### record-first-run-resource-budget#2 — Removing a section's last entry left its heading behind
 
 **Recorded** — 2026-10-30, by the owner, who found the residue at `docs/ideas.md:27` after the merge; recorded here by
@@ -48,3 +51,6 @@ which also leaves 27 sections and 98 entries with none empty.
 
 **Knowledge boundary** — observed: the empty section, the merged diff, and the scan. Not checked: whether any other
 document keeps a grouping whose last item can disappear the same way (the scan covered `docs/ideas.md` only).
+
+- **Decision** — no-change: `verifyIdeasSections` now fails the build on an empty dated section, so the prose rule is
+  enforced.

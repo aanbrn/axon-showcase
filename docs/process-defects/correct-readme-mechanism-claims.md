@@ -26,6 +26,9 @@ pipe; nothing else remains broken.
 workflow in this repository reads a tool's status through a pipe, which is a grep over the scripts rather than a fact of
 this episode.
 
+- **Decision** — no-change: 'A verdict echo is not a check' and the CI rule to read the run's own exit status already
+  require the command's status, not a pipe's.
+
 ### correct-readme-mechanism-claims#2 — A reviewer hand-off named no subject packs, so the pass reviewed nothing
 
 **Recorded** — 2026-10-29, by the unit's writing session.
@@ -52,3 +55,6 @@ nothing in the artifact changed.
 **Knowledge boundary** — observed: both prompts, both reports, and the ledger rows. Not checked: whether the reviewer
 would have searched for an applicable pack had the hand-off stayed silent — its definition makes silence a stop, and
 this episode is one instance of the stop, not a study of the alternative.
+
+- **Decision** — no-change: the subject-pack rule already states that a delegated agent does not inherit a pack its
+  caller loaded and that the caller names every applicable pack.

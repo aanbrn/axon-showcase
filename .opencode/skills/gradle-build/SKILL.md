@@ -127,7 +127,9 @@ coordinates keep the leading-integer major comparison.
 - **The configuration cache is enabled (`org.gradle.configuration-cache=true`); a task action must not reference
   anything belonging to the Gradle script** — `project`, `gradle`, `rootProject`, `providers`, a script-level
   `val`/`fun`, the script's own `this` — because serializing the captured **script object** fails the store; compute
-  what the action needs into a `val` local to the configuration lambda (a class/object reference is safe). It needed the
+  what the action needs into a `val` local to the configuration lambda (a class/object reference is safe) — but a file
+  tree the task scans is a declared task input (`@InputFiles`) resolved in the action, never a hoisted path list, since
+  a warm cache replays the configuration-time list and a file added after the store goes unscanned. It needed the
   gradle-helm-plugin at **3.2.0** (its tasks captured a `Task`/`Project` through 3.1.2 —
   build-extensions-oss/gradle-helm-plugin#140, closed), that hoist at each task action that had it (the workflow-lint,
   dependency-security, frontend npm, load-tests, and compose tasks — whose `onlyIf` also read `gradle.startParameter`
@@ -144,7 +146,7 @@ coordinates keep the leading-integer major comparison.
   checkout, not only that the graph stores; and neutralize such a gate with `setOnlyIf { true }`, since a bare
   `onlyIf { true }` only appends a spec that is ANDed with the plugin's and leaves it in force (the helm plugin's
   chart-dependency skip is the worked case — see the `deployment-operations` pack's Chart validation). captured:
-  fix-upstream-references-config-cache
+  fix-upstream-references-config-cache captured: add-a-markdown-table-integrity-check
 
 - **IF a Gradle run under `--warning-mode all` emits a gradle-helm-plugin deprecation or a `Configuration.visible`
   warning, THEN treat it as upstream and leave it: there is no repo-side fix.** gradle-helm-plugin 3.2.0 still calls the

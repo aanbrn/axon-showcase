@@ -25,3 +25,6 @@ not the result.
 **Knowledge boundary** — observed: the script, its assertions, and the three post-hoc checks. Not checked: whether the
 same verification would have caught a mistake in a section whose boundaries were less clean than this one's (it moves
 between two `###` headings with no nested headings inside).
+
+- **Decision** — no-change: the programmatic-edit rule already says a single known unit's move is made with the edit
+  tool; the scripted move was a method deviation with no artifact damage.

@@ -22,6 +22,8 @@ tuple with the parser's group.
 **Knowledge boundary** — observed: the failing assertion, the tuple, and the passing rerun. Not checked: whether the
 prompt or the script's docstring states that a mode joins both places, which would have been the rule to read first.
 
+- **Decision** — no-change: the commit-hygiene suite already asserts `MODE_FLAGS` against the parser's group.
+
 ### verify-empty-ideas-sections#2 — A padded table row defeated a scripted replace, and the hand-over reported it as done
 
 **Recorded** — 2026-10-30, by the unit's writing session.
@@ -44,3 +46,6 @@ restated.
 
 **Knowledge boundary** — observed: the no-op replace, the stale row, and the correction. Not checked: whether the same
 script's other two edits in that run landed (the task 5.2 and 4.2 insertions were made in a later, line-indexed pass).
+
+- **Decision** — no-change: the programmatic-edit rule already requires a padded row keyed by its text and the result
+  read back; the hand-over's claim is the 'Never chain an edit to a commit' rule's.

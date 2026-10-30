@@ -23,6 +23,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed for P1. Not checked whether another proposal in this pass rests on an unread
   archived decision; only P1's premise was re-read against the archive.
 
+- **Decision** — no-change: 'Interrogate the premise' already requires reading the archived design a proposal would
+  reverse.
+
 ### generalize-process-defects-2026-10-28#2 — A merged record's asserted timeline was relied on and was false
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e7e0a3d04ffepyFcMfYYisYm9y`), during the proposal stage (the
@@ -44,3 +47,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   the false sentence.
 - **Knowledge boundary** — observed for this record. Not checked whether other merged records' asserted timelines are
   wrong; the pass took record text and PR bodies as evidence elsewhere without a session-store measurement.
+
+- **Decision** — no-change: one occurrence, corrected in its own unit; below the promotion gate.

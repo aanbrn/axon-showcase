@@ -26,3 +26,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed that the written value did not reproduce under a direct invocation. Did not
   establish what the command printed at that time, nor why the value was attributed to it (a misread, a stray reading
   from a neighbouring command, or execution behaviour), and did not reproduce `3` in any direct invocation.
+
+- **Decision** — no-change: review-gate §1 already requires a figure written from the command's output at the value
+  recorded; the parked executable-rows idea is the durable direction.

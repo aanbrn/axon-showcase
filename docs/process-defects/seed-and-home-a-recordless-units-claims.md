@@ -19,6 +19,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed this premise in this unit. Did not check whether other units' motivation sections
   restate a tool's behaviour instead of reading it.
 
+- **Decision** — no-change: the single-sourcing invariant already requires one statement of a fact and pointers
+  elsewhere.
+
 ### seed-and-home-a-recordless-units-claims#2 — A section rebuild removed a step and moved an inserted bullet to the wrong section
 
 - **Recorded** — 2026-10-29, by the writing session, during the review gate.
@@ -37,6 +40,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed this edit in this unit. Did not establish whether the rebuild also altered any
   whitespace the word-level diff normalizes away.
 
+- **Decision** — no-change: the programmatic-edit rule already requires a section rebuild to leave every other step as
+  it was and the inserted text in its own step.
+
 ### seed-and-home-a-recordless-units-claims#3 — A ledger row was appended after its successor
 
 - **Recorded** — 2026-10-29, by the writing session, during the review gate.
@@ -50,3 +56,7 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — one failed check and one inserted row; nothing shipped with the gap.
 - **Knowledge boundary** — observed this sequence in this unit. Did not check whether earlier units' rows were appended
   out of order and later reordered.
+
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-10-22 "reviewer wrapper" entry; its first trigger
+  is unmet: the two post-contiguity `Acknowledged gap` rows are `projector-operability`'s deep passes, the ledger
+  header's second kind (a historical number whose record moved to the review task), not a report received without a row.

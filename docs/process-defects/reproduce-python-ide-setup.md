@@ -23,6 +23,9 @@ behave identically, so the gap was in the control run, not in the code.
 else in the wrapper differs between the branches. Not checked: whether a future rearrangement could reintroduce two
 divergent branches.
 
+- **Decision** — no-change: check-and-test-authoring's 'fixture must reach the state the assertion claims' mode already
+  requires driving the branch's own operation and neutering the mechanism.
+
 ### reproduce-python-ide-setup#2 — PATH isolation did not stop the real IDE launcher from being invoked
 
 **Recorded** — 2026-10-30, by the implementing agent.
@@ -49,3 +52,6 @@ isolated on `PATH`, `HOME` and `IDEA_HOME`.
 **Knowledge boundary** — observed: the discovery path, the log lines, and that the IDE refused the invocation. Assumed:
 that the refusal left the IDE's plugin state unchanged. Not checked: whether another host could reach a launcher through
 a further mechanism the isolation does not cover.
+
+- **Decision** — no-change: already parked — `docs/ideas.md` 2026-10-27 'Record that a `PATH` interception sees only the
+  calls resolving through it'; this record is a second occurrence, and the entry records no reopening condition.

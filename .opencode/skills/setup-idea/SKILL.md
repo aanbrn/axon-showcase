@@ -33,9 +33,12 @@ the script's; this skill carries what to do for the outcome it reports.
 4. **Read the Python line** and act on its outcome:
    - `CONFIGURED` — nothing to do.
    - `SKIPPED` — pass `--idea-config-dir <path>` if an IntelliJ configuration exists outside the searched roots.
-   - `NEEDS_ACTION` — hand the user the message the script printed, which names the interpreter path, the candidates,
-     and where to register the SDK; wait for that one-time registration, then re-run. Every working tree that resolves
-     the same interpreter reuses it.
+   - `NEEDS_ACTION` — hand the user the block the script printed: its first line states what is wrong, then the remedies
+     — register the printed interpreter once per configuration (File → Project Structure → SDKs → Add SDK → Python SDK),
+     or run the tree on an interpreter that is already registered (`pyenv local <version>` where pyenv supplies one) —
+     and only then the registered SDKs with their interpreter paths and the configurations searched. Walk the user
+     through the first remedy or the alternative, then re-run. Every working tree that resolves the same interpreter
+     reuses it; the ambiguity case names the matching entries and the `--idea-config-dir` / keep-one-entry remedy.
    - `ERROR` — report the message; no module was written.
 5. **Hand back**: report what the script restored, left unchanged, or skipped and both outcome lines, and tell the user
    to apply the configuration with **File → Reload All from Disk** (or restart IntelliJ) — IDEA reads `.idea/` settings

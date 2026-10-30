@@ -59,11 +59,11 @@ run_wrapper() {
 
 check_module_written() {
     tree="$1"
-    if [ ! -f "$tree/.idea/modules/scripts.iml" ]; then
+    if [ ! -f "$tree/.idea/python/scripts.iml" ]; then
         fail "the Python module was not written in $tree"
         return
     fi
-    grep -q 'jdkName="Stub Python"' "$tree/.idea/modules/scripts.iml" ||
+    grep -q 'jdkName="Stub Python"' "$tree/.idea/python/scripts.iml" ||
         fail "the module does not reference the registered SDK name"
 }
 

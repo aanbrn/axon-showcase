@@ -8,9 +8,10 @@ every other inspection. Reconciling (not create-if-absent) is what lets a re-run
 
 The Python stage writes the module that makes IntelliJ analyze `scripts/*.py`: it resolves the interpreter the build
 would run, reads the SDK name that an identified IntelliJ configuration registered for that interpreter, and reconciles
-`.idea/modules/scripts.iml` plus its `.idea/modules.xml` entry. Every stage reports one outcome — `CONFIGURED`,
-`SKIPPED`, `NEEDS_ACTION`, or `ERROR` — and the process exits non-zero only when a stage needs the contributor's action
-or could not run. Stdlib only.
+`.idea/python/scripts.iml` plus its `.idea/modules.xml` entry. That path sits outside `.idea/modules/`, the directory
+IntelliJ's Gradle import owns and rebuilds, so a Gradle sync keeps the module. Every stage reports one outcome —
+`CONFIGURED`, `SKIPPED`, `NEEDS_ACTION`, or `ERROR` — and the process exits non-zero only when a stage needs the
+contributor's action or could not run. Stdlib only.
 """
 
 import argparse
@@ -33,13 +34,17 @@ COMPONENTS = [
 
 PROFILE_RELATIVE = ".idea/inspectionProfiles/Project_Default.xml"
 
-CANONICAL_INSPECTION = """    <inspection_tool class="NewClassNamingConvention" enabled="true" level="WARNING" enabled_by_default="true">
-      <extension name="JUnitTestClassNamingConvention" enabled="true">
-        <option name="m_regex" value="[A-Z][A-Za-z\\d]*(Test(s|Case)?|CT|E2E)|Test[A-Z][A-Za-z\\d]*|IT(.*)|(.*)IT(Case)?" />
-        <option name="m_minLength" value="5" />
-        <option name="m_maxLength" value="255" />
-      </extension>
-    </inspection_tool>"""
+CANONICAL_INSPECTION = (
+    '    <inspection_tool class="NewClassNamingConvention" enabled="true" level="WARNING" enabled_by_default="true">\n'
+    '      <extension name="JUnitTestClassNamingConvention" enabled="true">\n'
+    '        <option name="m_regex" value="'
+    "[A-Z][A-Za-z\\d]*(Test(s|Case)?|CT|E2E)|Test[A-Z][A-Za-z\\d]*|IT(.*)|(.*)IT(Case)?"
+    '" />\n'
+    '        <option name="m_minLength" value="5" />\n'
+    '        <option name="m_maxLength" value="255" />\n'
+    "      </extension>\n"
+    "    </inspection_tool>"
+)
 
 SKELETON_HEADER = (
     '<?xml version="1.0" encoding="UTF-8"?>\n<component name="InspectionProjectProfileManager">\n'
@@ -58,10 +63,12 @@ NEEDS_ACTION = "NEEDS_ACTION"
 ERROR = "ERROR"
 
 PYTHON_MINIMUM = (3, 12)
-MODULE_RELATIVE = ".idea/modules/scripts.iml"
+MODULE_RELATIVE = ".idea/python/scripts.iml"
+LEGACY_MODULE_RELATIVE = ".idea/modules/scripts.iml"
 MODULES_XML_RELATIVE = ".idea/modules.xml"
 CONTENT_URL = "file://$MODULE_DIR$/../../scripts"
 MODULE_FILEPATH = "$PROJECT_DIR$/" + MODULE_RELATIVE
+LEGACY_MODULE_FILEPATH = "$PROJECT_DIR$/" + LEGACY_MODULE_RELATIVE
 SDK_TABLE_RELATIVE = "options/jdk.table.xml"
 IDE_CONFIG_PREFIXES = ("IntelliJIdea", "IdeaIC")
 IDE_CONFIG_ROOTS = {
@@ -70,7 +77,10 @@ IDE_CONFIG_ROOTS = {
     "win32": ["AppData/Roaming/JetBrains"],
 }
 
-INTERPRETER_PROGRAM = "import sys; print(sys.executable); print('%d.%d.%d' % sys.version_info[:3])"
+INTERPRETER_PROGRAM = (
+    "import sys; print(sys.executable); print('%d.%d.%d' % sys.version_info[:3]); "
+    "print('environment' if sys.prefix != sys.base_prefix else 'base')"
+)
 
 MODULES_TEMPLATE = """<?xml version='1.0' encoding='utf-8'?>
 <project version="4">
@@ -147,8 +157,14 @@ def ensure_inspection() -> str:
     return "added"
 
 
-def probe_interpreter(working_dir: Path) -> Tuple[Path, str]:
-    """Run `python3` in `working_dir` and report the interpreter that ran and its version."""
+def probe_interpreter(working_dir: Path) -> Tuple[Path, str, bool]:
+    """Run `python3` in `working_dir` and report the interpreter path it names for itself, its version, and whether it
+    runs from a virtual environment.
+
+    The path is the one the interpreter reports as `sys.executable`, left unresolved on purpose: its directory is the
+    install the build selected, which a resolved path would replace with whatever symlink chain's target it follows. The
+    environment flag is `sys.prefix != sys.base_prefix`, the interpreter's own report of the same fact.
+    """
     executable = shutil.which("python3") or "python3"
     completed = subprocess.run(
         [executable, "-c", INTERPRETER_PROGRAM],
@@ -158,9 +174,9 @@ def probe_interpreter(working_dir: Path) -> Tuple[Path, str]:
         check=True,
     )
     lines = completed.stdout.strip().splitlines()
-    if len(lines) < 2:
+    if len(lines) < 3:
         raise ValueError(f"python3 reported no interpreter: {completed.stdout!r}")
-    return Path(lines[0].strip()).resolve(), lines[1].strip()
+    return Path(lines[0].strip()), lines[1].strip(), lines[2].strip() == "environment"
 
 
 def version_tuple(version: str) -> Tuple[int, ...]:
@@ -195,12 +211,37 @@ def default_roots() -> List[Path]:
 
 
 def expand_home(value: str) -> Path:
-    """Expand the `$USER_HOME$` macro and a leading `~` in an IntelliJ path value."""
+    """Expand the `$USER_HOME$` macro and a leading `~` in an IntelliJ path value, without resolving it."""
     if value.startswith("$USER_HOME$"):
         value = str(Path.home()) + value[len("$USER_HOME$") :]
     if value.startswith("~/") or value == "~":
         value = str(Path.home()) + value[1:]
-    return Path(value).resolve()
+    return Path(value)
+
+
+def install_directory(interpreter: Path) -> Path:
+    """Return the directory an interpreter is installed in, with any symlinked directory resolved.
+
+    A virtual environment's interpreter is a symlink chain to the base interpreter it was created from, so resolving the
+    file erases which install it belongs to; the directory it sits in does not.
+    """
+    return interpreter.parent.resolve()
+
+
+def is_the_same_install(entry: Path, interpreter: Path, in_environment: bool) -> bool:
+    """Report whether an SDK entry's interpreter is the installation the probe ran.
+
+    The binaries must be the same, and the entry must sit in the directory the probe's path names. Outside a virtual
+    environment an entry naming the resolved target of that path also matches, since it is the same installation. That
+    allowance is withheld inside one: a virtual environment's interpreter resolves to the base binary, so accepting the
+    base installation there would configure the wrong environment.
+    """
+    binary = interpreter.resolve()
+    if entry.resolve() != binary:
+        return False
+    if install_directory(entry) == install_directory(interpreter):
+        return True
+    return not in_environment and install_directory(entry) == binary.parent
 
 
 def sdk_entries(config_dir: Path) -> List[Tuple[str, Path]]:
@@ -239,7 +280,7 @@ def write_if_changed(path: Path, payload: bytes) -> bool:
 
 
 def ensure_module_file(sdk_name: str) -> bool:
-    """Reconcile the managed Python module file for the given interpreter; report whether it was written."""
+    """Reconcile the managed Python module file for the given interpreter; report whether the tree changed."""
     path = REPO_ROOT / MODULE_RELATIVE
     if path.is_file():
         tree = ET.parse(path)
@@ -277,7 +318,12 @@ def ensure_module_file(sdk_name: str) -> bool:
     jdk.set("jdkType", "Python SDK")
     if not any(entry.get("type") == "sourceFolder" for entry in component.findall("orderEntry")):
         ET.SubElement(component, "orderEntry", {"type": "sourceFolder", "forTests": "false"})
-    return write_if_changed(path, render(tree))
+    written = write_if_changed(path, render(tree))
+    legacy = REPO_ROOT / LEGACY_MODULE_RELATIVE
+    if legacy.is_file():
+        legacy.unlink()
+        return True
+    return written
 
 
 def ensure_module_registration() -> bool:
@@ -297,6 +343,12 @@ def ensure_module_registration() -> bool:
     modules = manager.find("modules")
     if modules is None:
         modules = ET.SubElement(manager, "modules")
+    for stale in [
+        element
+        for element in modules.findall("module")
+        if element.get("filepath") == LEGACY_MODULE_FILEPATH
+    ]:
+        modules.remove(stale)
     registered = [element for element in modules.findall("module") if element.get("filepath") == MODULE_FILEPATH]
     for stale in registered[1:]:
         modules.remove(stale)
@@ -313,12 +365,12 @@ def python_stage(
     project_dir: Path,
     idea_config_dir: Optional[Path] = None,
     roots: Optional[Sequence[Path]] = None,
-    probe: Optional[Callable[[Path], Tuple[Path, str]]] = None,
+    probe: Optional[Callable[[Path], Tuple[Path, str, bool]]] = None,
 ) -> Tuple[str, str]:
     """Reconcile the Python analysis module and report one outcome with its message."""
     probe = probe or probe_interpreter
     try:
-        interpreter, version = probe(project_dir)
+        interpreter, version, in_environment = probe(project_dir)
     except (OSError, subprocess.SubprocessError, ValueError) as error:
         return ERROR, f"cannot run python3: {error}"
     if version_tuple(version) < PYTHON_MINIMUM:
@@ -337,34 +389,69 @@ def python_stage(
         )
     readable = [candidate for candidate in candidates if (candidate / SDK_TABLE_RELATIVE).is_file()]
     if not readable:
+        listed = "\n".join(f"    {candidate}" for candidate in candidates)
         return NEEDS_ACTION, (
-            f"the IntelliJ configuration at {', '.join(str(c) for c in candidates)} has no "
-            f"{SDK_TABLE_RELATIVE} yet; open IntelliJ once, register {interpreter} ({version}) in "
-            "File -> Project Structure -> SDKs (Add SDK -> Python SDK), save the settings, and re-run"
+            f"the IntelliJ configuration has no {SDK_TABLE_RELATIVE} yet.\n"
+            "\n"
+            "  Open IntelliJ once so it writes one of these:\n"
+            f"{listed}\n"
+            "\n"
+            "  Then register this tree's interpreter in File -> Project Structure -> SDKs\n"
+            "  (Add SDK -> Python SDK), save, and re-run ./scripts/setup-idea.sh:\n"
+            f"    {interpreter} ({version})"
         )
 
     matches: List[Tuple[Path, str]] = []
+    registered: List[Tuple[Path, str, Path]] = []
     for config_dir in readable:
         try:
             entries = sdk_entries(config_dir)
         except MergeError as error:
             return ERROR, str(error)
+        registered.extend((config_dir, name, home) for name, home in entries)
         for name, home in entries:
-            if home == interpreter:
+            if is_the_same_install(home, interpreter, in_environment):
                 matches.append((config_dir, name))
     if not matches:
+        if registered:
+            inventory = "\n".join(
+                f"    {config_dir.name}:\n      {name} -> {home}" for config_dir, name, home in registered
+            )
+        else:
+            inventory = "    none"
+        searched = "\n".join(f"    {candidate}" for candidate in readable)
         return NEEDS_ACTION, (
-            f"interpreter {interpreter} ({version}) is not registered as a Python SDK in "
-            + ", ".join(str(candidate) for candidate in readable)
-            + "; register it in File -> Project Structure -> SDKs (Add SDK -> Python SDK) and save the IDE settings"
+            "this tree's interpreter is not registered as a Python SDK.\n"
+            "\n"
+            "  Register it in IntelliJ:\n"
+            f"    {interpreter} ({version})\n"
+            "    File -> Project Structure -> SDKs -> Add SDK -> Python SDK\n"
+            "    Save the IDE settings, then re-run ./scripts/setup-idea.sh.\n"
+            "\n"
+            "  Or run this tree on an interpreter that is already registered:\n"
+            "    If pyenv supplies one: pyenv local <installed-version>\n"
+            "    Then re-run ./scripts/setup-idea.sh.\n"
+            "\n"
+            "  Registered Python SDKs:\n"
+            f"{inventory}\n"
+            "\n"
+            "  Searched configurations:\n"
+            f"{searched}"
         )
     if len(matches) > 1:
+        listed = "\n".join(f"    {name} in {config_dir}" for config_dir, name in matches)
         return NEEDS_ACTION, (
-            "several Python SDK entries match interpreter "
-            + f"{interpreter}: "
-            + ", ".join(f"{name} in {config_dir}" for config_dir, name in matches)
-            + "; keep one entry and re-run, or select the configuration with --idea-config-dir; "
-            + "the SDK is registered in File -> Project Structure -> SDKs"
+            "several Python SDK entries match this tree's interpreter.\n"
+            "\n"
+            f"  {interpreter} ({version})\n"
+            "\n"
+            "  Keep one match:\n"
+            "    Several configurations qualify: select one with --idea-config-dir <path>.\n"
+            "    Several entries qualify inside one configuration: delete all but one in\n"
+            "    File -> Project Structure -> SDKs, then re-run ./scripts/setup-idea.sh.\n"
+            "\n"
+            "  Matching SDKs:\n"
+            f"{listed}"
         )
 
     config_dir, sdk_name = matches[0]

@@ -17,3 +17,6 @@
 - **Consequence**: the judgment gained a seam that is also what the guard calls, so the wiring test and the divergence
   tests exercise the same function. No behavior changed.
 - **Knowledge boundary**: observed locally; the probe ran against a temporary fixture repository, not this tree.
+
+- **Decision** — no-change: check-and-test-authoring's 'bad state the check rejects is unreachable' mode already
+  requires confirming the rejected state is reachable; the extraction was the remedy.

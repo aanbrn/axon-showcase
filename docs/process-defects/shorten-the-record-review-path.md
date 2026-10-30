@@ -17,6 +17,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed this pass in this unit. Did not establish whether the script's write had been lost
   to its own assertion, or whether the printed report simply did not correspond to the write.
 
+- **Decision** — no-change: the 'Never chain an edit to a commit' rule already requires the replacement read into the
+  file before a hand-over reports it landed.
+
 ### shorten-the-record-review-path#2 — A claims row enumerated instances where the set needed shapes
 
 - **Recorded** — 2026-10-29, by the writing session (`ses_e7e0a3d04ffepyFcMfYYisYm9y`), during the review gate.
@@ -33,6 +36,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed this row in this unit. Did not establish whether other units' claims tables carry
   the same instance-instead-of-shape pattern.
 
+- **Decision** — no-change: review-gate §1 already requires one reason per candidate kind, never an enumerating clause.
+
 ### shorten-the-record-review-path#3 — A control's fixture could not produce the status it asserted
 
 - **Recorded** — 2026-10-29, by the writing session (`ses_e7e0a3d04ffepyFcMfYYisYm9y`), during the review gate.
@@ -47,3 +52,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   emission is not.
 - **Knowledge boundary** — observed the fixture's behaviour in this session. Did not establish why git emitted an
   addition, nor whether any configuration would make the CLI copy route reachable.
+
+- **Decision** — no-change: check-and-test-authoring's fixture mode already requires the fixture to make the subject
+  emit the status it asserts.

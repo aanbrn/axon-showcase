@@ -17,3 +17,6 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   artifact carried a misedit; the delta and the ideas file are complete.
 - **Knowledge boundary** — observed for this unit's two files. Did not check whether other units' padded-table anchors
   survive `spotlessApply`; the repository's programmatic-edit gotcha already names the class.
+
+- **Decision** — no-change: the programmatic-edit rule already requires a boundary the file's structure establishes, a
+  padded row keyed by its text and a list item ended by its blank line.

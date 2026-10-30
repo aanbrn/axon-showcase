@@ -24,6 +24,9 @@ Nothing else remains broken.
 checked: whether the same universal-claim shape appears in other changes' design documents, which is a grep over the
 archive rather than a fact of this episode.
 
+- **Decision** — no-change: the review gate's non-convergence rule already requires re-deriving the root cause when the
+  same class repeats, not patching another instance.
+
 ### widen-readme-auditor-with-language-axis#2 — A markdown append after the last formatter run failed `spotlessMarkdownCheck`
 
 **Recorded** — 2026-10-29, by the unit's writing session.
@@ -49,6 +52,9 @@ tree that no longer existed. Repaired by re-running the formatter after the appe
 this is the third recurrence of the class in this session's units (the mechanism-claims unit recorded the same shape),
 since that is a comparison across records rather than a fact of this episode.
 
+- **Decision** — no-change: the formatting rule already requires `spotlessApply` and `spotlessCheck` after the final
+  write, a checklist tick included.
+
 ### widen-readme-auditor-with-language-axis#3 — Smoke-run seeds were anchored on wrapped prose and did not match
 
 **Recorded** — 2026-10-29, by the unit's writing session.
@@ -71,3 +77,5 @@ byte-identical. Nothing remains broken.
 
 **Knowledge boundary** — observed: the anchors, the counts, and the rendered text. Not checked: whether any other probe
 in the repository anchors on wrapped prose, which a grep over the scripts would establish.
+
+- **Decision** — no-change: already parked — the same wrapped-prose entry.

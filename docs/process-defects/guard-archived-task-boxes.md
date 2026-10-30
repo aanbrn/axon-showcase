@@ -34,6 +34,9 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
 - **Knowledge boundary** — observed for this unit and this tree. Did not check whether a `git switch -c` in a tree with
   an untracked-only foreign unit behaves differently; the outcome here involved tracked modifications.
 
+- **Decision** — no-change: the Workspace rule already requires occupancy read from the registry before the first write,
+  and a clean `git status` never releases a tree; this is a compliance miss, not a wording gap.
+
 ### guard-archived-task-boxes#2 — The quick reviewer was restarted without a recovery case
 
 - **Recorded** — 2026-10-29, by the writing session, during the review gate.
@@ -48,6 +51,9 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   the restart. The gate stopped once for the owner's decision.
 - **Knowledge boundary** — observed for this unit's two sessions. Did not verify whether the harness would have
   continued round 1's session had its identifier been passed; the invocation was written without one.
+
+- **Decision** — no-change: review-gate §2's reviewer-session preflight already requires a permitted recovery case and
+  both identifiers before a replacement.
 
 ### guard-archived-task-boxes#3 — A multi-edit script wrote once and lost the edits before its failure
 
@@ -66,6 +72,9 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
 - **Knowledge boundary** — observed for this unit's scripts. Did not count how many earlier scripts in the chain shared
   the single-write shape; the ones that aborted reported it.
 
+- **Decision** — no-change: the 'Never chain an edit to a commit' rule already records the single-write batch loss and
+  requires each edit written as it succeeds.
+
 ### guard-archived-task-boxes#4 — The same single-write loss repeated at the implementation stage
 
 - **Recorded** — 2026-10-29, by the writing session (`ses_e7e0a3d04ffepyFcMfYYisYm9y`), during the review gate.
@@ -83,6 +92,9 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   four mutations then failed their controls. No committed state carried the gap.
 - **Knowledge boundary** — observed for this unit's scripts and verification rounds. Did not establish why the suite's
   green run did not reveal the missing assertions; only that it did not.
+
+- **Decision** — no-change: the same rule already records the single-write loss; its repetition within one unit
+  questions retrieval, not the rule's obligation.
 
 ### guard-archived-task-boxes#5 — The merged state was verified against a stale remote ref
 
@@ -110,3 +122,5 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   sequence.
 - **Knowledge boundary** — observed for this unit's settle sequence. Did not check whether another session's
   `origin/main` was stale at the same time, and did not establish how long the ref had lagged.
+
+- **Decision** — no-change: one occurrence, cost one command, no artifact carried the false conclusion; below the gate.

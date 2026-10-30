@@ -20,6 +20,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed the under-matching verification for this quotation. Did not check whether the unit's
   other search verifications were token greps; the second round examined this one.
 
+- **Decision** — no-change: the "Documentation & durable claims" rule already requires a quotation to be verbatim, and
+  the "Evidence and search" rule records the token grep's under-match; the record is a compliance miss.
+
 ### record-the-figure-defect#2 — A moved fact left its dependent clause behind in another field
 
 - **Recorded** — 2026-10-29, by the writing session (`ses_e7e0a3d04ffepyFcMfYYisYm9y`), during the review gate.
@@ -39,6 +42,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   the record no longer asserts it.
 - **Knowledge boundary** — observed this residue in `record-stale-origin-main-check.md`. Did not establish whether the
   earlier units' records carry the same shape — the unit checked that record only.
+
+- **Decision** — no-change: the doc-consistency sweep rule already requires a removed fact's dependent statements
+  removed with it.
 
 ### record-the-figure-defect#3 — A `RECOMMENDED` routing outcome was resolved without the owner
 
@@ -61,3 +67,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   checklist line.
 - **Knowledge boundary** — observed this sequence in this session. Did not establish whether the pass, once it reports,
   contributes anything, and did not establish whether the same shortcut happened in the earlier units of this session.
+
+- **Decision** — no-change: review-gate §3 already requires a `RECOMMENDED` outcome to run only on the owner's explicit
+  decision, asked and recorded.

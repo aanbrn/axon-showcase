@@ -27,6 +27,9 @@ task's `Done` note records both mutation outcomes.
 new case depends on an input the production probe would produce differently. Not checked: whether a future change to the
 probe's return type would invalidate the other fixtures.
 
+- **Decision** — no-change: check-and-test-authoring's 'stand-in that does not hold the contract it replaces' mode
+  already requires the fixture to reproduce the production source's contract.
+
 ### match-python-sdk-by-install-directory#2 — The install-directory rule matched a different interpreter in the same directory
 
 **Recorded** — 2026-10-30, by the implementing agent.
@@ -53,6 +56,8 @@ that gap in it.
 `/opt/homebrew/bin`. Assumed: that an IDE configuration can register one of them while the build probes the other. Not
 checked: how often a machine holds two versions in one directory.
 
+- **Decision** — no-change: one occurrence, found by consultation and fixed in the unit; below the gate.
+
 ### match-python-sdk-by-install-directory#3 — Resolving the probe moved its install directory and broke two matching cases
 
 **Recorded** — 2026-10-30, by the implementing agent.
@@ -78,6 +83,8 @@ both sides; the report names the invoked path, and the scratch A/B evidence in t
 names the invoked path for every supported interpreter. Not checked: a wrapper that reports a path in a directory other
 than the one it was invoked from, which the design records as a risk.
 
+- **Decision** — no-change: one occurrence, fixed in the unit; below the gate.
+
 ### match-python-sdk-by-install-directory#4 — The rule dropped a matching direction the base rule had
 
 **Recorded** — 2026-10-30, by the implementing agent.
@@ -102,6 +109,8 @@ as a risk with its remedy.
 **Knowledge boundary** — observed: the round-5 finding, the base rule's predicate, and the new case's failure. Assumed:
 that registering the resolved target is a common enough configuration to preserve. Not checked: how many machines
 register the target rather than the link.
+
+- **Decision** — no-change: a second instance inside one unit, not independent; below the gate.
 
 ### match-python-sdk-by-install-directory#5 — The target-directory allowance let a venv probe select the base installation
 
@@ -130,6 +139,8 @@ cases.
 Assumed: that `sys.prefix`/`sys.base_prefix` report an environment for every supported Python. Not checked: an
 interpreter that sets them equal inside a virtual environment.
 
+- **Decision** — no-change: one occurrence, found by the second consultation and fixed in the unit; below the gate.
+
 ### match-python-sdk-by-install-directory#6 — Five of ten review rounds went to record artifacts that were patched rather than re-derived
 
 **Recorded** — 2026-10-30, by the implementing agent.
@@ -155,6 +166,9 @@ measured sets.
 from the suite and the delta would have shortened the loop. Not checked: how much of the residue a single full re-read
 would have caught.
 
+- **Decision** — no-change: review-gate §1's re-derivation rule and the sweep rule already require record artifacts
+  re-derived from the new state, not patched at the sites a finding names.
+
 ### match-python-sdk-by-install-directory#7 — The module was written where IntelliJ's Gradle import owns the files
 
 **Recorded** — 2026-10-30, by the implementing agent.
@@ -179,3 +193,6 @@ setup's shell control follows the path, and the delta states that a build-model 
 **Knowledge boundary** — observed: the two module lists, the `modules.xml` contents, and the survival of a full sync.
 Assumed: that a future import will not clean unknown module files. Not checked: other IntelliJ versions' import
 behaviour.
+
+- **Decision** — no-change: the setup script now writes the module under `.idea/python/`, which survives a Gradle
+  import; the mechanism is fixed.

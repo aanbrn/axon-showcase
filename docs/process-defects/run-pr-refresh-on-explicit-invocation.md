@@ -20,6 +20,9 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
 - **Knowledge boundary** — observed for this change's design table. Did not check whether other unasserted replacements
   in this change no-opped silently; every replacement after round 4 asserts its anchor.
 
+- **Decision** — no-change: the 'Never chain an edit to a commit' rule already requires an asserted replacement and a
+  re-read of the changed line before a hand-over reports it fixed.
+
 ### run-pr-refresh-on-explicit-invocation#2 — A spec delta was designed on a premise the requirement's own antecedent contradicts
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e7e0a3d04ffepyFcMfYYisYm9y`), during the proposal round.
@@ -40,6 +43,9 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
 - **Knowledge boundary** — observed for this requirement. Did not check whether other changes' deltas rest on a
   requirement whose antecedent their subject does not meet.
 
+- **Decision** — no-change: 'Interrogate the premise' and the spec-delta procedure already require reading the
+  requirement a delta modifies for its own antecedent.
+
 ### run-pr-refresh-on-explicit-invocation#3 — A correction was swept only at the sites the finding named
 
 - **Recorded** — 2026-10-28, by the writing session (`ses_e7e0a3d04ffepyFcMfYYisYm9y`), during the proposal round.
@@ -54,3 +60,6 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   occurrences; the surviving "completion criteria" occurrence is the report fields, not the boundary.
 - **Knowledge boundary** — observed for this statement. Did not check whether other corrected statements in the change
   have a third copy; the change's artifacts were grepped for this one's tokens.
+
+- **Decision** — no-change: the sweep rule already requires a corrected statement swept across every artifact that
+  carries it, not only the finding's site.

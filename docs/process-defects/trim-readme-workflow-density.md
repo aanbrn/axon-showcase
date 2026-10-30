@@ -29,6 +29,8 @@ before the repair.
 checked: whether another table in this repository carries an extra well-formed row, which a check comparing each table's
 row count against its own content would find.
 
+- **Decision** — no-change: `verifyTableRows` now checks every gated table's cell count, which `spotlessCheck` does not.
+
 ### trim-readme-workflow-density#2 — A replacement span took the neighbouring idea with it
 
 **Recorded** — 2026-10-29, by the unit's writing session.
@@ -49,3 +51,6 @@ returned nothing; restoring the entry by hand brought the count back to 103.
 
 **Knowledge boundary** — observed: the written range, the bullet counts before and after, and the restore. Not checked:
 whether another script the unit ran draws a range to a heading, which a read of the scripts' end-boundaries would show.
+
+- **Decision** — no-change: the programmatic-edit rule already requires a replacement's span bounded by its own unit,
+  since a range drawn to the next heading takes the sibling.

@@ -26,6 +26,9 @@ two scenarios were restored verbatim.
 repair. Not checked: whether any other artifact in this unit was written from a bounded read rather than from its
 subject's own boundary.
 
+- **Decision** — no-change: the spec-delta procedure already requires copying the whole requirement block;
+  `openspec validate` caught the omission before review.
+
 ### widen-architecture-auditor-to-parked-revisit-conditions#2 — The positive control's premise check verified only one of its two conditions
 
 **Recorded** — 2026-10-29, by the unit's writing session.
@@ -49,3 +52,6 @@ the first run's report is recorded on task 4.2 rather than discarded.
 
 **Knowledge boundary** — observed: the one-sided check, the run's report, and the re-seed. Not checked: whether the
 other controls' premises were equally one-sided, which re-reading each seed against its control would show.
+
+- **Decision** — no-change: the smoke-run bullet already requires the seed's premise verified against the repository
+  before the run; the control's premise had two parts.

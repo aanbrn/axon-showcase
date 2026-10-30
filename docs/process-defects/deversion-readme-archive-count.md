@@ -25,6 +25,9 @@ record reproduces against a live file again. Nothing else remains broken.
 whether other guidance-evidence records quote wording that has since changed, which a sweep over the directory would
 establish.
 
+- **Decision** — no-change: the docs-refresh convention already treats `docs/guidance-evidence/` records as live docs
+  refreshed in the change that falsifies a statement there.
+
 ### deversion-readme-archive-count#2 — A review finding required the record earlier than any rule does
 
 **Recorded** — 2026-10-29, by the unit's writing session.
@@ -48,3 +51,6 @@ the deadline it cited does not exist; that episode is removed rather than kept a
 
 **Knowledge boundary** — observed: the round-1 report, the gate's §5 text, and the ledger row. Not checked: whether
 other units have accepted a `missing-task` class for this same reason, which the ledger's occurrences would show.
+
+- **Decision** — no-change: 'Treat a review finding as a claim to verify' already requires reproducing the finding's
+  premise; the unit accepted a deadline no rule states.

@@ -16,6 +16,10 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed this design. Did not check whether the other predicate verbs in the list would have
   matched their own motivating sentences.
 
+- **Decision** — no-change: the review gate's failure handling already requires a discriminator tested against its
+  motivating case; the parked 2026-09-22 entry's class is a capture rule, which this scanner-pattern incident does not
+  meet.
+
 ### widen-the-claim-scanner-absences#2 — The change directory was staged and then edited
 
 - **Recorded** — 2026-10-29, by the writing session, during the implementation.
@@ -28,3 +32,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — one refused readiness run and one re-stage; nothing shipped stale.
 - **Knowledge boundary** — observed these two files. Did not check whether any other unit's staged set carried the same
   staleness for longer than one run.
+
+- **Decision** — no-change: the staging-snapshot rule and `--review-ready` already refuse a path staged and then edited.

@@ -21,6 +21,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed this file. The hand-built list read the tracked set only, so the untracked files of
   that moment were absent from it; did not check whether other units' claims tables carry raw pipes inside cells.
 
+- **Decision** — no-change: the new `verifyTableRows` mode found the design's own rows, and they are now its control
+  fixture; the mechanism enforces it.
+
 ### add-a-markdown-table-integrity-check#2 — The Gradle task captured script objects into the configuration cache
 
 - **Recorded** — 2026-10-29, by the writing session, during the implementation.
@@ -37,6 +40,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   captured values; the ones inspected set `commandLine` at configuration time, which itself turned out to be
   insufficient once the configuration cache was reused (entry #4).
 
+- **Decision** — no-change: the `gradle-build` pack's configuration-cache bullet already records the script-object
+  capture; this record is another covered occurrence.
+
 ### add-a-markdown-table-integrity-check#3 — A range edit left the replaced block's tail in place
 
 - **Recorded** — 2026-10-29, by the writing session, during the implementation.
@@ -50,6 +56,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — one failed tick pass and one deletion; the tasks file now carries one item per identifier.
 - **Knowledge boundary** — observed this edit. Did not establish whether other range edits in this session left similar
   residue; the artefacts they touched were read back at the time.
+
+- **Decision** — no-change: the programmatic-edit rule's range-boundary obligation already requires the replaced block's
+  end derived from its own structure.
 
 ### add-a-markdown-table-integrity-check#4 — A warm configuration cache left the task scanning a stale file set
 
@@ -67,3 +76,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — the task was rewritten once; the probe file was removed and the tree is clean.
 - **Knowledge boundary** — observed this task. Did not check whether other build tasks resolve a file list at
   configuration time and could miss a file added after a cached run.
+
+- **Decision** — proposed: applied as the scanned-tree clause in the `gradle-build` pack's configuration-cache bullet.

@@ -23,6 +23,8 @@ wrapping, and the retry built on that read applied.
 whether a later edit in the same session reused a pre-formatter anchor, which reading each edit's anchor source would
 show.
 
+- **Decision** — no-change: already parked — the same wrapped-prose entry; the anchor was re-read and the retry applied.
+
 ### trim-readme-practices-density#2 — Gradle logs written to `/tmp` instead of `$TMPDIR/opencode`
 
 **Recorded** — 2026-10-29, by the unit's writing session.
@@ -43,3 +45,5 @@ was written to `$TMPDIR/opencode/trim-readme-practices-pr-body.md`, the approved
 
 **Knowledge boundary** — observed: the redirect targets in this session's commands. Not checked: whether those writes
 required a permission grant in this environment, which the session's permission log would show.
+
+- **Decision** — no-change: the agent-scratch convention already names `$TMPDIR/opencode` as the approved directory.

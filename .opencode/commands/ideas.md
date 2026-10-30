@@ -1,10 +1,13 @@
 ---
-description: Append a dated idea note to docs/ideas.md, print the file, or clean up its oldest batch with the owner
+description:
+  Append a dated idea note to docs/ideas.md, print the file, promote one entry, or clean up its oldest batch with the
+  owner
 ---
 
 Manage the lightweight ideas scratchpad at `docs/ideas.md`.
 
-**Trigger** — the owner invokes `/ideas`, with or without a note, or `/ideas cleanup`.
+**Trigger** — the owner invokes `/ideas`, with or without a note, `/ideas promote <words>`, `/ideas promote --top`, or
+`/ideas cleanup`.
 
 ## Append and print
 
@@ -48,6 +51,42 @@ Decision points for a cleanup:
 - Do not verify every entry against the repository: investigate a particular entry only when its disposition needs the
   evidence.
 
+## Promote an entry
+
+**Trigger** — `/ideas promote <words>` names an entry by a few of its words; `/ideas promote --top` nominates the next
+entry to reconsider.
+
+1. Locate the entry: with `<words>`, match them against the file. When more than one matches, name the candidates and
+   ask which; when none matches, report that and stop — never nominate an unrelated entry. With `--top`, apply the
+   policy below.
+2. Verify the entry's decisive evidence at its owning source before proposing: a recorded reopening condition is checked
+   for what it names, with its own qualifiers and compound clauses, and the result is reported beside the entry as met,
+   not met, or not verifiable. For `--top` that result decides eligibility (below); for a named entry it informs the
+   owner's decision without vetoing it, since the condition is a deferral trigger rather than a prohibition.
+3. Present the entry — or the nomination with its reason, its evidence, and what could not be verified — and ask for the
+   destination and the confirmation: `issue` (a direction that needs a home now but is not ready to implement, whose
+   issue links to the eventual OpenSpec change) or `change` (start the cycle now). **This step ends the turn** — nothing
+   is created or tagged until the owner answers.
+4. Apply the answer: for an `issue`, create it and tag the entry as the cleanup table's `promote` row states; for a
+   `change`, start the propose cycle and leave the entry for that change to remove.
+
+**The `--top` policy** — "the next entry to reconsider", never "the most valuable work":
+
+- Exclude an entry already carrying a promotion tag or named by an active change.
+- A recorded reopening condition must be demonstrably met. A condition that cannot be verified stays unknown, and a
+  condition verified as not met keeps its entry closed to nomination.
+- Nominate only from two sets: entries with an evidenced, satisfied condition first, then entries that record no
+  reopening condition at all.
+- Tie-break: the oldest capture date, then the entry's opening words. That is an attention order, not a value ranking.
+- Show a nomination's dependency, recurrence, or risk evidence beside it as context; never fold those signals into a
+  hidden score.
+- Present exactly one nomination; step 3 owns the fields it carries.
+
+**Failure handling** — IF verification disproves a `--top` nomination, THEN disclose it and consider the next; IF an
+ambiguity could change the selection, THEN abstain and ask one question; IF the owner declines, THEN leave the entry
+unchanged and stop, since a rejection is neither `drop` nor a demotion; IF nothing qualifies, THEN say so rather than
+nominate.
+
 **Repository lifecycle**
 
 - A new unit starts on its own branch, created from a freshly fetched `origin/main`; a unit continuing an existing
@@ -62,6 +101,7 @@ Decision points for a cleanup:
   review gate" own the branch, uncommitted-work, approval, and review steps, including the reviewer-session preflight;
   this command points at them rather than restating them.
 
-**Completion criteria** — the note is appended under its dated section, the file's contents have been printed, a cleanup
-batch's dispositions have been applied under the owner's answer, or the every-section-covered branch has been reported
-and its reset awaited.
+**Completion criteria** — the note is appended under its dated section, the file's contents have been printed, a
+promotion's destination and confirmation have been asked and the promotion applied under the owner's answer (or nothing
+qualifying is so stated), a cleanup batch's dispositions have been applied under the owner's answer, or the
+every-section-covered branch has been reported and its reset awaited.

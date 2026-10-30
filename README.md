@@ -354,9 +354,9 @@ structural drift `openspec validate` does not catch — a dead reference or a du
 suggested rewrite, and never edits the specs itself.
 
 Emerging ideas are parked in `docs/ideas.md` — a lightweight, date-grouped scratchpad (ideas are added via `/ideas`,
-pruned in batches via `/ideas cleanup`, and removed once implemented or decided against) rather than a backlog of
-planned work. A parked idea is the usual starting point for an explore session that decides whether it deserves a
-proposal.
+promoted by name or `--top` to an issue, or implemented as a change when the work is ready now, pruned in batches via
+`/ideas cleanup`, and removed once implemented or decided against) rather than a backlog of planned work. A parked idea
+is the usual starting point for an explore session that decides whether it deserves a proposal.
 
 An idea isn't the only entry point, though: a session can start just as well from a reported issue, a failing CI job, or
 any other observation — you describe it in a prompt; the agent investigates (reading the issue or the failing check
@@ -621,7 +621,7 @@ removed.
 | `/gradle-update`              | Updates the Gradle wrapper to the latest stable                                                                                                                                                   |
 | `/dependency-security-check`  | Runs the Snyk and web-UI npm dependency security scans                                                                                                                                            |
 | `/opsx-tool-update`           | Regenerates the OpenSpec command/skill files after an openspec CLI release                                                                                                                        |
-| `/ideas`                      | Manages `docs/ideas.md`: append a note, list the file, or clean up its oldest batch                                                                                                               |
+| `/ideas`                      | Manages `docs/ideas.md`: append a note, list the file, promote one entry (by name or `--top`), or clean up its oldest batch                                                                       |
 | `/seed-claims`                | Scans the unit's diff, and the saved draft body a unit with no change dir passes with `--include`, for claim shapes and hands the candidates to the pre-write pass's claims table                 |
 | `/sync-branch`                | Checks the current branch against `origin/main` and, on request, refreshes it by the rule `AGENTS.md` states — an open pull request's branch included — resolving a local conflict for both sides |
 

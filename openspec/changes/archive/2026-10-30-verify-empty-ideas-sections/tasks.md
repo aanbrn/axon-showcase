@@ -33,8 +33,9 @@
 
 - [x] 5.1 The unit's process-defect record.
 - [x] 5.2 Record the absence claim as a claims-table row rather than prose; the row carries the command and its result.
-- [ ] 5.3 The capability's `## Purpose` enumerates each build check this capability owns and a delta cannot carry one:
+- [x] 5.3 The capability's `## Purpose` enumerates each build check this capability owns and a delta cannot carry one:
       add the ideas-section gate to it in the archive commit.
+      Applied in this archive commit.
 - [x] 5.4 Docs refresh: check `README.md`, `AGENTS.md`, and `docs/adr/` for an enumeration of the `check` members or of
       the ideas-file rule, and update what it states.
 

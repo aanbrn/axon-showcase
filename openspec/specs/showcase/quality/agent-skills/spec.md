@@ -15,20 +15,21 @@ convention every agent's output follows (stated once in `AGENTS.md`: owner-visib
 language, agent-facing text and durable artifacts in English), and the locally-defined quality-gate and analysis
 subagents under `.opencode/agent/` — the per-unit review agent and the analysis the owner-triggered generalization runs,
 the experience-analyzer, the visual and diagram agents, the on-demand technical advisor, and the on-demand auditors of
-the project-owned agent tooling (the guidance and project-authored `.opencode/` files, plus any generated or vendored
-file that contradicts how the repository uses it, the always-loaded instruction budget it measures with the extraction
-opportunities that surface where guidance has no destination yet, the meta rules it reports with their origins, the
-merge, removal, route, and extraction candidates it reports, and the authoring-system gaps it traces to a mechanism that
-produces an artifact), of the `openspec/specs/` corpus, of the architecture (the ADRs, the service, module, and
-spec-decomposition surface, where a deliberate decision's rationale is not recorded, and where a decision deferred in an
-ADR records a `Revisit when:` condition that appears met), of the human-facing `README.md` (its claims against the
-repository, its shape against the README convention, the grammatical correctness of its prose — a provable error is a
-finding, a preference advisory — and its coverage of the human-visible capabilities), and the scheduled unattended run
-that performs the audits without a human asking, together with the standing owner-gated unit that applies an audit
-report's reduction candidates, and the project-authored command definitions under `.opencode/commands/` — their
-authoring shape, the repository lifecycle a mutating unit owes, and how an audit's approved findings are delivered as
-separate units by the route each finding's kind requires. It also covers the on-demand recovery of MCP servers that
-failed to connect, through the `scripts/reconnect-mcp.py` tool its `/reconnect-mcp` command fronts.
+the project-owned agent tooling (the guidance, the project-authored `.opencode/` files, and the portable contracts under
+`docs/contracts/`, plus any generated or vendored file that contradicts how the repository uses it, the always-loaded
+instruction budget it measures with the extraction opportunities that surface where guidance has no destination yet, the
+meta rules it reports with their origins, the merge, removal, route, and extraction candidates it reports, and the
+authoring-system gaps it traces to a mechanism that produces an artifact), of the `openspec/specs/` corpus, of the
+architecture (the ADRs, the service, module, and spec-decomposition surface, where a deliberate decision's rationale is
+not recorded, and where a decision deferred in an ADR records a `Revisit when:` condition that appears met), of the
+human-facing `README.md` (its claims against the repository, its shape against the README convention, the grammatical
+correctness of its prose — a provable error is a finding, a preference advisory — and its coverage of the human-visible
+capabilities), and the scheduled unattended run that performs the audits without a human asking, together with the
+standing owner-gated unit that applies an audit report's reduction candidates, and the project-authored command
+definitions under `.opencode/commands/` — their authoring shape, the repository lifecycle a mutating unit owes, and how
+an audit's approved findings are delivered as separate units by the route each finding's kind requires. It also covers
+the on-demand recovery of MCP servers that failed to connect, through the `scripts/reconnect-mcp.py` tool its
+`/reconnect-mcp` command fronts.
 
 ## Requirements
 
@@ -315,39 +316,40 @@ Every item the report carries SHALL also carry the shared report contract's per-
 ### Requirement: Project-owned agent tooling is audited for consistency and conciseness
 
 The repository SHALL provide an `agents-auditor` agent subagent that audits the project-owned agent tooling —
-`AGENTS.md`, the project-authored files under `.opencode/agent/`, `.opencode/commands/`, and `.opencode/skills/`, and
-the guidance evidence records under `docs/guidance-evidence/` — for **consistency** and **conciseness**, and reports its
-findings without editing files. The audit SHALL exclude files the repository does not author: the generator-owned
-OpenSpec instruction files (the commands and skills written by `openspec update`) and the vendored skill trees
-(`axon4to5-*` and `ast-grep`) (each copied verbatim from its upstream repository); a project-authored file that shares a
-generated file's name prefix (e.g. the `opsx-tool-update` command) SHALL remain in scope. The audit SHALL cover, at
-least: contradictions between entries or files, stale claims and enumerations the repository has outgrown, dead
-cross-references, and drift from the code/workflows/specs the prose describes (consistency); and duplicated or
-near-duplicate entries, one-off trivia, over-long or over-specific entries, and misplaced entries (conciseness). Within
-conciseness the audit SHALL report these analyses as standing findings rather than only under a scoped run: **merge
-candidates**, each naming the overlapping or complementary entries and the merged text that preserves every anchor and
-piece of evidence the originals carried — and never blending two distinct lessons into one — and where the merged text
-would only restate a rule the file already carries, the candidate is a deletion of the duplicate rather than a merge,
-reported as a `remove` so the verdict's count includes it, and the audit SHALL say which it is; **removal candidates**,
-each naming a rule that governs no decision (trivia, not a rule — the same test the capture's filter applies), what
-would be lost, and whether git preserves it; and **route candidates**, each naming a rule whose subject a deterministic
-mechanism already enforces — a build or CI gate, a lint or test, a CLI validation, or a deterministic workflow step such
-as the archive-time spec sync, but never a review, whether a human's or a review subagent's — and proposing to reduce
-the rule to a pointer at that mechanism, or move its content to the spec or ADR that owns it, naming the mechanism, what
-would be lost, and confirming the mechanism exists and covers the rule's subject; and **extraction candidates**, each a
-verified proposal to partition one `AGENTS.md` unit into a minimal retained root entry point, an authoritative
-destination that loads or is discoverable when its trigger occurs, and an explicit retrieval path from that trigger to
-that destination, as the conditions below define. All are candidates for the owner, not actions. Each finding SHALL be
-verified against the repository rather than inferred from the prose alone, and SHALL be reported with its location and a
-concrete suggested rewrite. A reduction candidate — a merge, removal, route, or extraction — SHALL carry seven fields:
-its location; the decision its rule changes; the task or condition that requires it; the unique content the change would
-otherwise lose (every imperative, warning, exception, identifier, rationale, provenance marker, and verification); its
-current loading cost; its disposition; and the repository evidence that the surviving guidance preserves the same
-obligation. A merge candidate whose merged text delegates content to a target — a spec or an ADR it points the reader to
-— SHALL have that delegation verified against the target: its behavior **and** the identifiers, declarations, and gate
-conditions the delegated content names, not the behavior alone. A delegated item the target does not carry SHALL stay in
-the merged text, and the candidate SHALL say which items it kept for that reason. The subagent SHALL propose its
-findings without modifying files; the main agent verifies and applies those the user approves.
+`AGENTS.md`, the project-authored files under `.opencode/agent/`, `.opencode/commands/`, and `.opencode/skills/`, the
+guidance evidence records under `docs/guidance-evidence/`, and the portable contracts under `docs/contracts/` — for
+**consistency** and **conciseness**, and reports its findings without editing files. The audit SHALL exclude files the
+repository does not author: the generator-owned OpenSpec instruction files (the commands and skills written by
+`openspec update`) and the vendored skill trees (`axon4to5-*` and `ast-grep`) (each copied verbatim from its upstream
+repository); a project-authored file that shares a generated file's name prefix (e.g. the `opsx-tool-update` command)
+SHALL remain in scope. The audit SHALL cover, at least: contradictions between entries or files, stale claims and
+enumerations the repository has outgrown, dead cross-references, and drift from the code/workflows/specs the prose
+describes (consistency); and duplicated or near-duplicate entries, one-off trivia, over-long or over-specific entries,
+and misplaced entries (conciseness). Within conciseness the audit SHALL report these analyses as standing findings
+rather than only under a scoped run: **merge candidates**, each naming the overlapping or complementary entries and the
+merged text that preserves every anchor and piece of evidence the originals carried — and never blending two distinct
+lessons into one — and where the merged text would only restate a rule the file already carries, the candidate is a
+deletion of the duplicate rather than a merge, reported as a `remove` so the verdict's count includes it, and the audit
+SHALL say which it is; **removal candidates**, each naming a rule that governs no decision (trivia, not a rule — the
+same test the capture's filter applies), what would be lost, and whether git preserves it; and **route candidates**,
+each naming a rule whose subject a deterministic mechanism already enforces — a build or CI gate, a lint or test, a CLI
+validation, or a deterministic workflow step such as the archive-time spec sync, but never a review, whether a human's
+or a review subagent's — and proposing to reduce the rule to a pointer at that mechanism, or move its content to the
+spec or ADR that owns it, naming the mechanism, what would be lost, and confirming the mechanism exists and covers the
+rule's subject; and **extraction candidates**, each a verified proposal to partition one `AGENTS.md` unit into a minimal
+retained root entry point, an authoritative destination that loads or is discoverable when its trigger occurs, and an
+explicit retrieval path from that trigger to that destination, as the conditions below define. All are candidates for
+the owner, not actions. Each finding SHALL be verified against the repository rather than inferred from the prose alone,
+and SHALL be reported with its location and a concrete suggested rewrite. A reduction candidate — a merge, removal,
+route, or extraction — SHALL carry seven fields: its location; the decision its rule changes; the task or condition that
+requires it; the unique content the change would otherwise lose (every imperative, warning, exception, identifier,
+rationale, provenance marker, and verification); its current loading cost; its disposition; and the repository evidence
+that the surviving guidance preserves the same obligation. A merge candidate whose merged text delegates content to a
+target — a spec or an ADR it points the reader to — SHALL have that delegation verified against the target: its behavior
+**and** the identifiers, declarations, and gate conditions the delegated content names, not the behavior alone. A
+delegated item the target does not carry SHALL stay in the merged text, and the candidate SHALL say which items it kept
+for that reason. The subagent SHALL propose its findings without modifying files; the main agent verifies and applies
+those the user approves.
 
 The audit SHALL additionally report an **instruction-budget ledger** for `AGENTS.md`, measuring the always-loaded
 instruction surface rather than judging it: the file's total size in bytes and lines; its size by top-level section; the
@@ -491,10 +493,10 @@ Every item the report carries SHALL also carry the shared report contract's per-
 - **WHEN** the main agent invokes the `agents-auditor` subagent (e.g. via the `/audit-agents` command)
 - **THEN** it returns findings grouped by severity, covering consistency (contradictions, stale claims, dead
   cross-references, drift) and conciseness (duplication, trivia, length, placement) across the audited project-owned
-  tooling — `AGENTS.md`, the project-authored `.opencode/` files, and the `docs/guidance-evidence/` records, each with a
-  location and a suggested rewrite — plus, separately, any advisory third-party inconsistency, the accreted meta rules
-  with their origins, and any authoring-system gap, with the merge, removal, and route candidate counts named in the
-  verdict line
+  tooling — `AGENTS.md`, the project-authored `.opencode/` files, the `docs/guidance-evidence/` records, and the
+  `docs/contracts/` portable contracts, each with a location and a suggested rewrite — plus, separately, any advisory
+  third-party inconsistency, the accreted meta rules with their origins, and any authoring-system gap, with the merge,
+  removal, and route candidate counts named in the verdict line
 
 #### Scenario: Generated and vendored files are excluded
 

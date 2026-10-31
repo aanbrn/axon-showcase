@@ -402,7 +402,7 @@ The OpenCode agents under `.opencode/agent/` form a layered quality pipeline:
 | Agent                  | Role                                                                                                                                                         |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `experience-analyzer`  | Periodic retrospectives that root-cause failures, evaluate the previous window, and propose verified improvements (system & process) — `/retrospective`      |
-| `agents-auditor`       | Audits AGENTS.md and the project-owned `.opencode/` files for drift, duplication, and the always-loaded instruction budget — `/audit-agents`                 |
+| `agents-auditor`       | Audits the project-owned agent tooling for drift, duplication, and the always-loaded instruction budget — `/audit-agents`                                    |
 | `specs-auditor`        | Audits the `openspec/specs/` corpus for structure & consistency — `/audit-specs`                                                                             |
 | `architecture-auditor` | Audits the architecture (ADRs + boundaries + spec decomposition) for drift, unrecorded intent, and a deferral whose condition is due — `/audit-architecture` |
 | `readme-auditor`       | Audits the human-facing README for accuracy, design-intent fidelity, grammatical correctness, and human-visible-capability coverage — `/audit-readme`        |
@@ -532,15 +532,15 @@ The process is designed to **learn from itself** — and that is the mechanic, n
 - **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
   same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
   uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.
-- **The guidance and tooling are audited, not just appended to.** `/audit-agents` checks `AGENTS.md` and the
-  project-owned `.opencode/` files: each consistency or conciseness finding comes with its evidence line and a suggested
-  rewrite, and the report measures the always-loaded **instruction budget** `AGENTS.md` consumes in every session.
-  Separately it reports a third-party file our usage contradicts and a meta rule that accreted with the origin that
-  introduced it — decisions for you rather than defects — and, for an authoring-system gap that keeps producing a
-  defect, proposes the smallest correction at the mechanism that produced it. `/audit-specs` and `/audit-architecture`
-  check the spec corpus and the architecture the same way, so the guidance and tooling stay consistent, concise, and
-  affordable instead of only growing. A report's reduction candidates do not age: the standing, owner-gated
-  `/apply-audit-reductions` unit applies them under the review gate.
+- **The guidance and tooling are audited, not just appended to.** `/audit-agents` checks the project-owned agent tooling
+  (its definition owns the authoritative scope): each consistency or conciseness finding comes with its evidence line
+  and a suggested rewrite, and the report measures the always-loaded **instruction budget** `AGENTS.md` consumes in
+  every session. Separately it reports a third-party file our usage contradicts and a meta rule that accreted with the
+  origin that introduced it — decisions for you rather than defects — and, for an authoring-system gap that keeps
+  producing a defect, proposes the smallest correction at the mechanism that produced it. `/audit-specs` and
+  `/audit-architecture` check the spec corpus and the architecture the same way, so the guidance and tooling stay
+  consistent, concise, and affordable instead of only growing. A report's reduction candidates do not age: the standing,
+  owner-gated `/apply-audit-reductions` unit applies them under the review gate.
 - **The human-facing README is audited too.** `/audit-readme` runs an on-demand, pro-model audit of `README.md` — its
   claims against the repository, its shape against the README convention, its grammar, and its coverage of what a person
   can actually experience — because no gate checks the showcase's content.
@@ -608,7 +608,7 @@ removed.
 | `/pause-unit`                 | Records the current unit's `Resume checkpoint` and ends the turn: no commit, stash, push, or teardown                                                                                             |
 | `/resume-unit`                | Continues an unfinished unit: verifies the available state, hands the writer role over, restores what it awaited                                                                                  |
 | `/consult`                    | Asks the technical advisor for an independent recommendation on a question, the current objective, or the next step                                                                               |
-| `/audit-agents`               | Audits AGENTS.md and the project-owned .opencode/ files for drift, duplication, and the always-loaded instruction budget (pro-model auditor)                                                      |
+| `/audit-agents`               | Audits the project-owned agent tooling for drift, duplication, and the always-loaded instruction budget (pro-model auditor)                                                                       |
 | `/audit-specs`                | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                          |
 | `/audit-architecture`         | Audits the architecture for recorded-decision drift, unrecorded intent, and a deferral whose condition is due (pro-model auditor)                                                                 |
 | `/audit-readme`               | Audits the human-facing README for accuracy, design-intent fidelity, grammar, and human-visible-capability coverage (pro-model auditor)                                                           |

@@ -1,8 +1,7 @@
 ---
 description:
-  Audit the project-owned agent tooling (AGENTS.md + project-authored .opencode/ files) with the pro-model
-  agents-auditor subagent, including the always-loaded instruction budget and the authoring-system gaps that keep
-  producing a defect
+  Audit the project-owned agent tooling with the pro-model agents-auditor subagent, including the always-loaded
+  instruction budget and the authoring-system gaps that keep producing a defect
 ---
 
 Run the agent-tooling audit, which reports only — it never edits a file.

@@ -32,4 +32,4 @@ branch=prefer-claims-literal-results; writer=ses_e731f42aaffeKQAMVYfJ2KxAYN
 
 ## 5. Ship
 
-- [ ] 5.1 Commit, push, open the pull request, wait for `build`, archive (`skip_specs`), and merge.
+- [x] 5.1 Commit, push, open the pull request, wait for `build`, archive (`skip_specs`), and merge.

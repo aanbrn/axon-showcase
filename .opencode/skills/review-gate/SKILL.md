@@ -80,6 +80,10 @@ Source: `AGENTS.md` "Workflow: The review gate".
    convert-remaining-gotchas-rules captured: add-technical-advisor captured: projector-operability captured:
    stage-new-files-before-manual-review
 
+   - **IF a row is an explicit literal-only assertion, THEN it can be executed with
+     `scripts/claim-scan.py --verify <table>`** — the mode is opt-in; the default scan executes nothing, and `check`
+     runs only the test suite. captured: add-claims-execution-verify
+
    - **IF the unit has no change dir, THEN draft its pull-request body from `.github/PULL_REQUEST_TEMPLATE.md` and save
      it before the pass runs,** so the checklist line the table goes on exists when the table is written; drafting is
      not publication and opens no pull request. A unit with a change dir writes into its `design.md` or `tasks.md` and

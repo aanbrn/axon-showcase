@@ -10,12 +10,17 @@ set -euo pipefail
 # Usage: ./scripts/experience-analysis.sh [since]   (since defaults to 7 days ago, e.g. 2026-09-02)
 #
 # The derived-facts block is the authoritative source for the retrospective's countable claims (the merged-PR boundary,
-# the archived-change count, AGENTS.md's metrics, the window's captured: lines, and the window's review rounds): read
-# them from there rather than re-deriving them by hand. Both the PR and the archive counts carry the same `since`
-# boundary — the search and `git log --since` are inclusive of the `since` date — so the block names the `since`-date
-# items and the previous retrospective's file, and the author resolves the split against it. The review-rounds block is
-# printed by `scripts/review-rounds.py`: the window proper's figures beside the `since`-inclusive ones, and the classes
-# normalized to the reviewer's canonical vocabulary.
+# the archived-change count, AGENTS.md's metrics, the window's captured: lines, the window's process-defect records, and
+# the window's review rounds): read them from there rather than re-deriving them by hand. Both the PR and the archive
+# counts carry the same `since` boundary — the search and `git log --since` are inclusive of the `since` date — so the
+# block names the `since`-date items and the previous retrospective's file, and the author resolves the split against
+# it. The review-rounds block is printed by `scripts/review-rounds.py`: the window proper's figures beside the
+# `since`-inclusive ones, and the classes normalized to the reviewer's canonical vocabulary and counted once per round.
+#
+# The process-defect block is an INDEX, not the records' text: a window's records run to thousands of lines, so the
+# block prints each selected file with its `###` incident headings, the revision it indexed them at, and the `since`
+# date's own touches. The analyzer reads a record's body before a causal claim rests on it; the index makes the record
+# discoverable and its selection visible (a zero selection is stated, never silent).
 
 # Portable 7-days-ago: BSD date (macOS) uses -v-7d, GNU date (Linux) uses --date=-7day.
 if [ $# -gt 0 ]; then
@@ -86,6 +91,76 @@ if [ -n "${RAW_BASE}" ]; then
       | tail -n 1))"
   done
 fi
+
+# The process-defect records the window's commits touched, selected the way the archive block selects dirs: a file a
+# commit in the window added, changed, or deleted. The selection is by write time, not by the incident's date — a later
+# disposition edit selects an older incident — so the block says so. `-z` keeps a path with non-ASCII bytes intact:
+# `core.quotePath` would otherwise C-quote it and the file lookup below would miss.
+process_defect_files() {
+  git log --since="$1" --name-only --format= -z -- docs/process-defects/
+}
+INDEX_REV="$(git rev-parse HEAD)"
+PD_COUNT=0
+PD_HEADINGS=0
+PD_BODY=""
+PD_PATHS=()
+while IFS= read -r -d '' record; do
+  case "${record}" in
+    docs/process-defects/*.md) ;;
+    *) continue ;;
+  esac
+  duplicate=0
+  for existing in ${PD_PATHS[@]+"${PD_PATHS[@]}"}; do
+    if [ "${existing}" = "${record}" ]; then
+      duplicate=1
+      break
+    fi
+  done
+  if [ "${duplicate}" -eq 1 ]; then continue; fi
+  PD_PATHS+=("${record}")
+  PD_COUNT=$((PD_COUNT + 1))
+  if git cat-file -e "${INDEX_REV}:${record}" 2>/dev/null; then
+    headings="$(git show "${INDEX_REV}:${record}" | { grep '^### ' || true; })"
+    count="$(printf '%s\n' "${headings}" | grep -c . || true)"
+    PD_HEADINGS=$((PD_HEADINGS + count))
+    PD_BODY="${PD_BODY}  ${record} (${count} incident heading(s))"$'\n'
+    if [ -n "${headings}" ]; then
+      PD_BODY="${PD_BODY}$(printf '%s\n' "${headings}" | sed 's/^/    /')"$'\n'
+    fi
+  else
+    PD_BODY="${PD_BODY}  ${record} (absent at ${INDEX_REV}: read it at the revision that removed it)"$'\n'
+  fi
+done < <(process_defect_files "${SINCE_TS}")
+echo "Process-defect records the window's commits touched (indexed at ${INDEX_REV}; selection is inclusive of"
+echo "${SINCE}, and a file is selected when a commit in the window added, changed, or deleted it):"
+echo "  ${PD_COUNT} record file(s), ${PD_HEADINGS} incident heading(s) in the files present at HEAD — read a" \
+  "record's body before citing it:"
+printf '%s' "${PD_BODY}"
+if [ "${PD_COUNT}" -eq 0 ]; then
+  echo "  (none selected: no docs/process-defects/ record changed since ${SINCE})"
+fi
+BOUNDARY_PD=()
+while IFS= read -r -d '' record; do
+  case "${record}" in
+    docs/process-defects/*.md) ;;
+    *) continue ;;
+  esac
+  duplicate=0
+  for existing in ${BOUNDARY_PD[@]+"${BOUNDARY_PD[@]}"}; do
+    if [ "${existing}" = "${record}" ]; then
+      duplicate=1
+      break
+    fi
+  done
+  if [ "${duplicate}" -eq 0 ]; then BOUNDARY_PD+=("${record}"); fi
+done < <(git log --since="${SINCE_TS}" --until="${UNTIL_TS}" --name-only --format= -z -- docs/process-defects/)
+echo "Process-defect records touched ON ${SINCE} (resolve the boundary split as above):"
+if [ "${#BOUNDARY_PD[@]}" -eq 0 ]; then
+  echo "  (none)"
+else
+  printf '%s\n' "${BOUNDARY_PD[@]}" | sed 's/^/  /'
+fi
+
 python3 "$(dirname "$0")/review-rounds.py" --since "${SINCE}"
 echo
 echo "=== Merged pull requests ==="

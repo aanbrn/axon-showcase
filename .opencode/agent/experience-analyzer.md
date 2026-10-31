@@ -25,6 +25,9 @@ You are given:
   scoped to the window's commits, AGENTS.md's metrics at HEAD and just before each `since`-date PR, each `captured:`
   marker added since the window start with its introducing commit, and the window's review rounds from
   `docs/review-rounds.tsv`) — read the retrospective's countable claims from it rather than re-deriving them
+- The derived-facts block's process-defect index: the `docs/process-defects/` records the window's commits touched, each
+  with its incident headings, the revision the index was derived at, and the files the `since` date's own commits
+  touched
 - A short context note from the main agent (e.g. what went well/wrong that no diff captures)
 
 Produce two sections:
@@ -33,11 +36,16 @@ Produce two sections:
    - Shipped PRs grouped by theme (e.g. formatting/tooling, web UI, workflow/docs)
    - Lessons learned — reuse the AGENTS.md gotchas and the units' `docs/process-defects/` records rather than
      re-deriving them
+   - **A class's count is a round occurrence** — the digest's classes figure counts the rounds that raised a class, once
+     per round whatever labels on it normalized to that class; never divide it by the compliance-miss count or call it a
+     share of findings
    - Went-well and went-wrong observations (from the digest and the context note)
    - **Root cause and earliest prevention** — for each significant failure or recurring review-finding class, name the
      underlying cause and the earliest development stage at which it could reasonably have been prevented or detected
      (task understanding, exploration, planning, implementation, local verification, review), from the digest's
-     review-round data rather than restating the symptom
+     review-round data rather than restating the symptom. When a cause rests on a process-defect record, read that
+     record's body at the revision the index names and name the record; a heading is a discovery aid, not evidence that
+     a cause is established
    - **The previous retrospective's recommendations** — for each, whether it was applied and whether the available
      evidence shows it helped, or that the window cannot yet show it; never presume effectiveness from the absence of
      the failure

@@ -2,7 +2,8 @@
 
 The digest states a retrospective window's review rounds for the `experience-analyzer` subagent: the round count and the
 compliance-miss count both as the `since`-inclusive filter yields them and for the window proper (the rows dated after
-the `since` date), and the classes raised tallied under the reviewer's canonical vocabulary.
+the `since` date), and the classes raised tallied under the reviewer's canonical vocabulary, each class counted once per
+round that raised it.
 
 The classes compare across the canonical boundary only once normalized. Rows recorded before the reviewer's canonical
 class list landed (with the archived `2026-10-15-give-the-review-a-canonical-class-list` change, merged 2026-10-15) keep
@@ -19,7 +20,7 @@ import re
 import sys
 from datetime import date, timedelta
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 RECORD_DEFAULT = "docs/review-rounds.tsv"
 
@@ -121,14 +122,25 @@ def canonical_class(label: str, row_date: str) -> Optional[str]:
 
 
 def tally(rows: Iterable[Sequence[str]]) -> Tuple[List[Tuple[str, int]], List[Tuple[str, int]]]:
-    """The (classes, unmapped labels) a row set raises, each as (name, count) pairs, most-raised first."""
+    """The (classes, unmapped labels) a row set raises, each as (name, count) pairs, most-raised first.
+
+    A class contributes at most once per round: the ledger records the classes a round raised as a set, so two labels
+    that normalize to one class on one row are one occurrence, not two, and the count is never a share of the
+    compliance-miss total.
+    """
     counts: Dict[str, int] = {}
     unmapped: Dict[str, int] = {}
     for row in rows:
+        seen: Set[Tuple[str, str]] = set()
         for label in raised_classes(row):
             cls = canonical_class(label, row[0])
+            kind = "class" if cls is not None else "unmapped"
             bucket = counts if cls is not None else unmapped
             name = cls if cls is not None else label
+            key = (kind, name)
+            if key in seen:
+                continue
+            seen.add(key)
             bucket[name] = bucket.get(name, 0) + 1
     by_count = lambda pair: (-pair[1], pair[0])
     return sorted(counts.items(), key=by_count), sorted(unmapped.items(), key=by_count)
@@ -156,8 +168,10 @@ def render(record: str, since: str, rows: Sequence[Sequence[str]]) -> List[str]:
             "  window-proper (rows dated after {0}): {1} round(s), {2} compliance miss(es)".format(
                 since, proper_rounds, proper_misses
             ),
-            "  classes raised (window-proper; labels on rows dated on or before {0} normalized to the reviewer's "
-            "canonical list): {1}".format(PRE_CANONICAL_THROUGH, _pairs(classes)),
+            "  classes raised (window-proper; one contribution per canonical class per round, not a count of findings; "
+            "labels on rows dated on or before {0} normalized to the reviewer's canonical list): {1}".format(
+                PRE_CANONICAL_THROUGH, _pairs(classes)
+            ),
             "  unmapped (window-proper, kept as recorded): {0}".format(_pairs(unmapped)),
         ]
     )

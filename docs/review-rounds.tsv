@@ -1939,3 +1939,7 @@
 2026-10-31	lesson-capture-reuse	3	-	-	0	ses_e6f033ad3ffe5eBjC1CgB8cbv8	continued	-
 2026-10-31	lesson-capture-reuse	4	claim-unreproducible	-	0	ses_e6f033ad3ffe5eBjC1CgB8cbv8	continued	-
 2026-10-31	lesson-capture-reuse	5	-	-	0	ses_e6f033ad3ffe5eBjC1CgB8cbv8	continued	-
+2026-10-31	process-core-adr	1	claim-unreproducible,incomplete-enumeration,over-claim,coherence,structured-writing,wording,claim-missing	-	6	ses_e6ec8f235ffeX8gprdPLiHcAVc	created	-
+2026-10-31	process-core-adr	2	coherence	coherence	1	ses_e6ec8f235ffeX8gprdPLiHcAVc	continued	-
+2026-10-31	process-core-adr	3	-	-	0	ses_e6ec8f235ffeX8gprdPLiHcAVc	continued	-
+2026-10-31	process-core-adr	4	-	-	0	ses_e6ec8f235ffeX8gprdPLiHcAVc	continued	-

@@ -129,7 +129,9 @@ IDE-managed content, so that re-running it reconciles drift, and SHALL NOT requi
 Running the repository's setup SHALL provide IntelliJ Python analysis for `scripts/*.py` in the current working tree by
 generating a Python module that names `scripts/` as its content root and references one registered Python interpreter,
 and SHALL reconcile it in place on later runs, preserving the tree's other modules and any IDE- or plugin-managed
-content.
+content. It SHALL report the module's activation procedure: the module is read when the project is opened after a run
+made while the project was closed, and a run made while the project was open is completed by closing the project,
+running the setup again, and opening it. It SHALL NOT present reloading an open project as the way the module is added.
 
 #### Scenario: A fresh working tree gains the module
 
@@ -156,8 +158,16 @@ content.
 
 #### Scenario: Importing the build model keeps the module
 
-- **WHEN** IntelliJ imports or syncs the project from its build model after the setup wrote the module
+- **WHEN** IntelliJ imports or syncs the project from its build model after the setup wrote the module, and the project
+  has opened the module
 - **THEN** the module and its module-list entry remain, so the analysis is not lost by the sync
+
+#### Scenario: The outcome names the module's activation procedure
+
+- **WHEN** the setup reports its outcome after writing or confirming the module
+- **THEN** the outcome names opening the project after a run made while it was closed as the activation step, names
+  closing the project, running the setup again, and opening it for a run made while it was open, and does not present
+  reloading an open project as adding the module
 
 ### Requirement: The Python analysis interpreter is the one the build runs
 

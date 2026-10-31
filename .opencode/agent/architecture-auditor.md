@@ -37,7 +37,8 @@ Scope — audit the architecture artifact:
 
 Report in two clearly separated sections:
 
-**Findings** — verified drift, each carrying the shared report contract's per-item budget. Cover at least:
+**Findings** — verified drift, each carrying the shared report contract's per-item budget
+(`docs/contracts/shared-report.md`). Cover at least:
 
 - an ADR's Decision contradicted by the implementation;
 - an ADR `Status` that is stale, or a supersession not recorded as `Superseded by ADR-NNNN`;

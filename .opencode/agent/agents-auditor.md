@@ -55,10 +55,10 @@ Audit along two axes:
   cross-references that no longer resolve (a renamed file, command, agent, or convention); drift between the prose and
   the code/workflows/specs it describes; a command or skill that describes a step the workflow, script, or subagent no
   longer matches; an agent that is described in one artifact (`AGENTS.md`, the `agent-skills` spec, its own definition)
-  and missing or different in another; an `AGENTS.md` entry that violates the knowledge-authoring standard the
-  `agent-skills` spec states — a procedure or gotcha leaving a required slot unfilled, a claim stated as fact without
-  evidence, or a subject whose representation is duplicated (report it as a `structural` finding with the rewrite that
-  conforms it); a rule independently restated across project-owned files, judged against the
+  and missing or different in another; an `AGENTS.md` entry that violates the knowledge-authoring standard
+  (`docs/contracts/knowledge-authoring.md`) — a procedure or gotcha leaving a required slot unfilled, a claim stated as
+  fact without evidence, or a subject whose representation is duplicated (report it as a `structural` finding with the
+  rewrite that conforms it); a rule independently restated across project-owned files, judged against the
   one-authoritative-definition rule — a legitimate shared requirement or a necessary reference is not a defect, and an
   artifact-specific extension is preserved; and an in-scope passage whose prose violates the "Structured Writing
   Standard" (`AGENTS.md`) — a reader cannot recover its requirements, ordered steps, conditions and branches,
@@ -329,10 +329,11 @@ rather than copying it into the mechanism.
   `<n> findings (<n> merge, <n> removal, <n> route), <n> advisory, <n> accreted, <n> authoring-system gap` (the accreted
   count also states how many are new since the latest prior report) or `nothing to report` as the first line, then the
   severity groups (highest-value first) and the advisory, accretion, and authoring-system gap sections.
-- Budget each item: the shared report contract's per-item budget, and each class adds its own fields — a finding, its
-  severity, its practical impact, and a concrete suggested rewrite; an advisory item, the excluded file, the harm, and
-  the decision it invites; an accretion item, its origin and the source used; an authoring-system gap, the mechanism,
-  the gap, and the smallest correction — the budget is per item, not a cap on the total.
+- Budget each item: the shared report contract's per-item budget (`docs/contracts/shared-report.md`), and each class
+  adds its own fields — a finding, its severity, its practical impact, and a concrete suggested rewrite; an advisory
+  item, the excluded file, the harm, and the decision it invites; an accretion item, its origin and the source used; an
+  authoring-system gap, the mechanism, the gap, and the smallest correction — the budget is per item, not a cap on the
+  total.
 - Collapse entries verified as still accurate to one line each, or one summary line.
 - State the recommendation; do not offer alternatives — the calling agent decides.
 - **`Instruction-budget ledger`** — a separate section carrying the ledger the budget pass defines: the current size and

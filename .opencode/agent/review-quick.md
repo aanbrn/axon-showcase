@@ -151,8 +151,8 @@ alone):
   count of every class the report carries (the count summarises how many findings fall in each class — the per-finding
   label above still applies to every finding). When the caller supplied a prior round, also name which of the classes
   repeats one that round already raised (or state that none does).
-- Budget each finding: the shared report contract's per-item budget, plus its class, the issue, and the required
-  correction — the budget is per item, not a cap on the total.
+- Budget each finding: the shared report contract's per-item budget (`docs/contracts/shared-report.md`), plus its class,
+  the issue, and the required correction — the budget is per item, not a cap on the total.
 - Collapse checks that passed to one line each, or one summary line; state a check you could not complete.
 - State the recommendation; do not offer alternatives — the calling agent decides.
 - State which subject packs you loaded (or `none`), so the screen's scope is verifiable from the report.

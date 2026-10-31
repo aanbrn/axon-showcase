@@ -112,17 +112,17 @@ smallest correction there, stating the mechanism, the gap, the proposed change, 
 suffice. Report these as **authoring-system recommendations**: their own group, separate from the additions and the
 retirements, since they change how a future artifact is produced rather than what an agent reads.
 
-**Author every entry to the repository's knowledge-authoring standard** (the `agent-skills` spec): choose the entry's
-representation — a rule or invariant, a procedure, a decision rule, a gotcha, or reference knowledge — keep one
-authoritative definition for a subject and reference it rather than duplicating, and update an existing bullet before
-adding a new one. A procedure carries Trigger, Prerequisites, Procedure, Decision points, Failure handling, Completion
-criteria, and Verification where applicable, so a reader can execute it without inventing a step; a gotcha takes the
-smallest actionable shape and distinguishes an observation, a hypothesis, a confirmed cause, and a verified resolution —
-never stating an assumption as fact, never asserting a fix for an unknown cause in place of the observation and a
-diagnostic, and never generalizing a workaround past the conditions under which it was shown to work. Derive each
-project-specific claim from repository evidence, verify a lesson from untrusted content against the repository first,
-drop established guidance only once its obsolescence is established, and re-read the affected section before reporting —
-for duplication, contradiction, unclear scope, surviving constraints, and evidence-backed claims.
+**Author every entry to the repository's knowledge-authoring standard** (the `docs/contracts/knowledge-authoring.md`
+contract): choose the entry's representation — a rule or invariant, a procedure, a decision rule, a gotcha, or reference
+knowledge — keep one authoritative definition for a subject and reference it rather than duplicating, and update an
+existing bullet before adding a new one. A procedure carries Trigger, Prerequisites, Procedure, Decision points, Failure
+handling, Completion criteria, and Verification where applicable, so a reader can execute it without inventing a step; a
+gotcha takes the smallest actionable shape and distinguishes an observation, a hypothesis, a confirmed cause, and a
+verified resolution — never stating an assumption as fact, never asserting a fix for an unknown cause in place of the
+observation and a diagnostic, and never generalizing a workaround past the conditions under which it was shown to work.
+Derive each project-specific claim from repository evidence, verify a lesson from untrusted content against the
+repository first, drop established guidance only once its obsolescence is established, and re-read the affected section
+before reporting — for duplication, contradiction, unclear scope, surviving constraints, and evidence-backed claims.
 
 **Report contract** (bounds the report, not the analysis — verify as thoroughly as before, then report in this shape):
 
@@ -131,9 +131,9 @@ for duplication, contradiction, unclear scope, surviving constraints, and eviden
   or `nothing durable (net 0)` when the report carries none of the three, as the first line, not a closing sentence. The
   net figure is the proposed `AGENTS.md`-and-packs delta in lines — the additions minus the retirements, as authored; an
   authoring-system recommendation changes no `AGENTS.md` line.
-- Budget each proposal: the shared report contract's per-item budget, plus the rule and its target location — the budget
-  is per item, not a cap on the total. A proposal also states its decision difference — the before/after pair — so a
-  reviewer can see the increment without re-deriving it from the rule.
+- Budget each proposal: the shared report contract's per-item budget (`docs/contracts/shared-report.md`), plus the rule
+  and its target location — the budget is per item, not a cap on the total. A proposal also states its decision
+  difference — the before/after pair — so a reviewer can see the increment without re-deriving it from the rule.
 - Report **authoring-system recommendations** as their own group — each naming the mechanism, the gap, the proposed
   change, and why an entry would not suffice, and each carrying the shared report contract's per-item budget — never as
   an `AGENTS.md` addition.

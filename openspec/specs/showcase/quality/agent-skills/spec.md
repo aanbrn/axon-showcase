@@ -6,29 +6,29 @@ Provides the repository's agent capabilities: curated, vendored skill sets under
 the AxonIQ Axon 4→5 migration recipes against this codebase, and search it by code structure through the `ast-grep`
 skill), the project-authored guidance skills there beside them (the `check-and-test-authoring` reference, the
 `pause-resume-unit`, `ship-change`, and `review-gate` procedures, and the `setup-*` skills, loaded on demand at the
-trigger `AGENTS.md` names), the knowledge-authoring standard `AGENTS.md` entries follow (representation, one
-authoritative definition per subject, the procedure and gotcha shapes, the evidence rules, and the validation pass —
-applied by the generalization's analysis when authoring and the audit when reconciling), the structured writing standard
-every agent-authored technical artifact follows (stated once in `AGENTS.md`, applied while drafting and checked by the
-review and audit subagents), the output-language convention every agent's output follows (stated once in `AGENTS.md`:
-owner-visible messages in the owner's request language, agent-facing text and durable artifacts in English), and the
-locally-defined quality-gate and analysis subagents under `.opencode/agent/` — the per-unit review agent and the
-analysis the owner-triggered generalization runs, the experience-analyzer, the visual and diagram agents, the on-demand
-technical advisor, and the on-demand auditors of the project-owned agent tooling (the guidance and project-authored
-`.opencode/` files, plus any generated or vendored file that contradicts how the repository uses it, the always-loaded
-instruction budget it measures with the extraction opportunities that surface where guidance has no destination yet, the
-meta rules it reports with their origins, the merge, removal, route, and extraction candidates it reports, and the
-authoring-system gaps it traces to a mechanism that produces an artifact), of the `openspec/specs/` corpus, of the
-architecture (the ADRs, the service, module, and spec-decomposition surface, where a deliberate decision's rationale is
-not recorded, and where a decision deferred in an ADR records a `Revisit when:` condition that appears met), of the
-human-facing `README.md` (its claims against the repository, its shape against the README convention, the grammatical
-correctness of its prose — a provable error is a finding, a preference advisory — and its coverage of the human-visible
-capabilities), and the scheduled unattended run that performs the audits without a human asking, together with the
-standing owner-gated unit that applies an audit report's reduction candidates, and the project-authored command
-definitions under `.opencode/commands/` — their authoring shape, the repository lifecycle a mutating unit owes, and how
-an audit's approved findings are delivered as separate units by the route each finding's kind requires. It also covers
-the on-demand recovery of MCP servers that failed to connect, through the `scripts/reconnect-mcp.py` tool its
-`/reconnect-mcp` command fronts.
+trigger `AGENTS.md` names), the knowledge-authoring standard `AGENTS.md` entries follow, owned by
+`docs/contracts/knowledge-authoring.md` (applied by the generalization's analysis when authoring and the audit when
+reconciling), the shared report contract the report-producing subagents follow, owned by
+`docs/contracts/shared-report.md`, the structured writing standard every agent-authored technical artifact follows
+(stated once in `AGENTS.md`, applied while drafting and checked by the review and audit subagents), the output-language
+convention every agent's output follows (stated once in `AGENTS.md`: owner-visible messages in the owner's request
+language, agent-facing text and durable artifacts in English), and the locally-defined quality-gate and analysis
+subagents under `.opencode/agent/` — the per-unit review agent and the analysis the owner-triggered generalization runs,
+the experience-analyzer, the visual and diagram agents, the on-demand technical advisor, and the on-demand auditors of
+the project-owned agent tooling (the guidance and project-authored `.opencode/` files, plus any generated or vendored
+file that contradicts how the repository uses it, the always-loaded instruction budget it measures with the extraction
+opportunities that surface where guidance has no destination yet, the meta rules it reports with their origins, the
+merge, removal, route, and extraction candidates it reports, and the authoring-system gaps it traces to a mechanism that
+produces an artifact), of the `openspec/specs/` corpus, of the architecture (the ADRs, the service, module, and
+spec-decomposition surface, where a deliberate decision's rationale is not recorded, and where a decision deferred in an
+ADR records a `Revisit when:` condition that appears met), of the human-facing `README.md` (its claims against the
+repository, its shape against the README convention, the grammatical correctness of its prose — a provable error is a
+finding, a preference advisory — and its coverage of the human-visible capabilities), and the scheduled unattended run
+that performs the audits without a human asking, together with the standing owner-gated unit that applies an audit
+report's reduction candidates, and the project-authored command definitions under `.opencode/commands/` — their
+authoring shape, the repository lifecycle a mutating unit owes, and how an audit's approved findings are delivered as
+separate units by the route each finding's kind requires. It also covers the on-demand recovery of MCP servers that
+failed to connect, through the `scripts/reconnect-mcp.py` tool its `/reconnect-mcp` command fronts.
 
 ## Requirements
 
@@ -241,8 +241,8 @@ merged, repeated across severity groups, or padded with a placeholder.
 The audit SHALL proceed in stages — inventory, local structure, cross-spec consistency, reference verification, report
 validation — reusing the evidence an earlier stage gathered.
 
-Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
-owns, not this one.
+Every item the report carries SHALL also carry the shared report contract's per-item budget, owned by
+`docs/contracts/shared-report.md`, not this one.
 
 #### Scenario: A spec-corpus audit is produced
 
@@ -483,8 +483,8 @@ excluded mechanism (a generated OpenSpec instruction file, or a vendored skill) 
 class and never proposes a local edit to it. A correction SHALL reference the authoritative standard rather than copy it
 into the mechanism.
 
-Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
-owns, not this one.
+Every item the report carries SHALL also carry the shared report contract's per-item budget, owned by
+`docs/contracts/shared-report.md`, not this one.
 
 #### Scenario: An agent-tooling audit is produced
 
@@ -758,8 +758,8 @@ fit); targeted verification (only the discrepancies and missing-rationale candid
 searching for exceptions, consumers, implementation evidence, and relevant external facts); and report validation
 (re-checking every item against the evidence and the exclusions).
 
-Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
-owns, not this one.
+Every item the report carries SHALL also carry the shared report contract's per-item budget, owned by
+`docs/contracts/shared-report.md`, not this one.
 
 #### Scenario: An architecture audit is produced
 
@@ -833,11 +833,11 @@ owns, not this one.
 
 Every subagent that reports findings or a recommendation to the main agent — the per-unit review agent and the
 `lesson-capture` agent, the on-demand auditors of the agent tooling, the spec corpus, the architecture, and the README,
-and the independent technical advisor — SHALL follow one shared output contract, so a report is skimmable and its
-verdict is read first. The contract SHALL bound the report's shape; the analysis a subagent performs is bounded by that
-subagent's own stated scope, not by this contract — an auditor or the deep reviewer verifies its claims as thoroughly as
-its scope requires, while a bounded screen such as the quick review performs only the pass its scope defines and says
-so.
+and the independent technical advisor — SHALL follow one shared output contract owned by
+`docs/contracts/shared-report.md`, so a report is skimmable and its verdict is read first. The contract SHALL bound the
+report's shape; the analysis a subagent performs is bounded by that subagent's own stated scope, not by this contract —
+an auditor or the deep reviewer verifies its claims as thoroughly as its scope requires, while a bounded screen such as
+the quick review performs only the pass its scope defines and says so.
 
 #### Scenario: A report opens with its verdict
 
@@ -965,46 +965,16 @@ SHALL NOT run automatically.
 
 `AGENTS.md` SHALL be maintained as an operational guide for future agents — not a narrative log of development activity
 or a general knowledge repository — so every entry states reusable knowledge that constrains behavior, guides a
-decision, defines a reusable procedure, prevents a known failure, or supplies the context such a decision needs. Before
-adding knowledge, an author SHALL choose the entry's representation — a rule or invariant (behavior to preserve), a
-procedure (a repeatable, ordered sequence), a decision rule (observable conditions that select an action), a gotcha (a
-non-obvious failure mode, constraint, or recurring pitfall), or reference knowledge (architectural rationale or
-background) — keep one authoritative definition for each subject and reference it rather than duplicating its contents,
-and update an existing entry before adding a new one (for a capture's proposal, the capture requirement's
-existing-bullet rule). An entry SHALL NOT record transient debugging detail, generic advice, or a fact that does not
-change what a future agent does.
-
-A procedure SHALL state, where applicable: its **Trigger** (when it applies), **Prerequisites** (what must be known or
-available), **Procedure** (the steps in order), **Decision points** (how observable conditions select the next action),
-**Failure handling** (what to do when an action fails or the evidence is inconclusive), **Completion criteria** (when it
-may stop), and **Verification** (how the intended result is established). A gotcha SHALL take the smallest structure
-that makes it actionable — Trigger→Action→Verification, Symptom→Diagnostic→Resolution, Condition→Decision→Action,
-anti-pattern→correct-pattern, or Rule→Required-behavior — and SHALL state, where applicable, its **Trigger**, **Risk**,
-**Cause** (only once confirmed), **Required action**, **Resolution** (only once established), **Verification**, and
-**Scope**. A gotcha SHALL distinguish an observation, a hypothesis, a confirmed cause, and a verified resolution, and
-SHALL present only the last as established: it SHALL NOT state an assumption as fact, SHALL preserve the observation and
-a diagnostic approach when the cause is unknown rather than asserting an invented fix, and SHALL NOT generalize a
-workaround beyond the conditions and versions under which it was shown to work.
-
-Every project-specific claim SHALL be derived from repository evidence — contents, reproducible behavior, tests, or
-configuration — and never invented, and a lesson sourced from untrusted content SHALL be verified against the repository
-before it is recorded, whatever route the entry takes into the file (the capture's promotion gate already treats a
-claim's source as part of it). Established guidance SHALL NOT be removed because it appears unusual or has not been
-encountered recently; it is revised or removed only once its obsolescence is established. Where a lesson can be
-incorporated into an existing workflow — as a preventive rule, a diagnostic step, a verification criterion, or a
-targeted review check — it SHOULD be, rather than left as an isolated warning, and a procedure SHALL NOT be duplicated
-across sections. After adding, modifying, consolidating, or removing instructions, the author SHALL re-read the affected
-section and its context and check for duplication, contradiction, and unclear scope, confirm the surviving constraints
-and knowledge remain, confirm each new project-specific claim is evidence-backed, and confirm a procedure's steps,
-decisions, failure paths, and completion criteria can be executed without the reader inventing an essential step or an
-undocumented assumption.
+decision, defines a reusable procedure, prevents a known failure, or supplies the context such a decision needs. The
+representation choices, the procedure and gotcha shapes, the evidence rules, and the validation pass are owned by
+`docs/contracts/knowledge-authoring.md`; this requirement states the capability outcome and the scenarios below.
 
 The standard SHALL be applied when `AGENTS.md` knowledge is authored and when it is audited: the `lesson-capture`
 subagent (and the main agent's defect-generalization workflow) applies it to each proposed entry, and the
 `agents-auditor` subagent applies it to each `AGENTS.md` entry it reads.
 
-Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
-owns, not this one.
+Every item the report carries SHALL also carry the shared report contract's per-item budget, owned by
+`docs/contracts/shared-report.md`, not this requirement.
 
 #### Scenario: An entry is recorded in the right representation, once
 
@@ -1084,8 +1054,8 @@ code reviews, and other repository documentation — SHALL follow the structured
 "Structured Writing Standard" section states, applied while the artifact is drafted rather than only in a later cleanup
 pass, and each SHALL keep its own required template and sections.
 
-Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
-owns, not this one.
+Every item the report carries SHALL also carry the shared report contract's per-item budget, owned by
+`docs/contracts/shared-report.md`, not this one.
 
 #### Scenario: A requirement is stated as its own scannable unit
 
@@ -2630,8 +2600,8 @@ and its intended shape is to be preserved on every edit; a provable language err
 an advisory item. The subagent SHALL propose its findings without modifying files; the main agent verifies and applies
 those the user approves, and the report SHALL follow the shared report contract.
 
-Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
-owns, not this one.
+Every item the report carries SHALL also carry the shared report contract's per-item budget, owned by
+`docs/contracts/shared-report.md`, not this one.
 
 #### Scenario: A README audit is produced
 
@@ -2718,8 +2688,8 @@ condition that requires compatibility, adoption, or support, and where external 
 inconclusive the audit SHALL state no conclusion about the condition, since an inability to verify SHALL NOT become an
 expiry claim. An expired condition triggers a review, not a predetermined change.
 
-Every item the report carries SHALL also carry the shared report contract's per-item budget, which that requirement
-owns, not this one.
+Every item the report carries SHALL also carry the shared report contract's per-item budget, owned by
+`docs/contracts/shared-report.md`, not this one.
 
 #### Scenario: An unexplained deliberate choice is surfaced as a question
 

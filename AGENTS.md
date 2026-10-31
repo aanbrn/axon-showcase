@@ -282,23 +282,24 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
 - **Single-source a claim, a rule set, or a record one source owns** — a predicate the requirement owns (a threshold,
   band, or formula); a scope the owning definition states via its class names; a standard or rule set whose rules are
   never enumerated at a referencing site (including the change's own planning artifacts); a field set one artifact owns
-  (a report's per-item format — the shared report contract's per-item budget); or a record another artifact owns (a
-  review round's state is `docs/review-rounds.tsv`'s, not a task's): state it once there and repeat it identically
-  (referencing it by name where the site can), since a restated copy re-anchors on its own (a README copy made the
-  matching band a tenth of the _measured_ rate where the requirement and code use the _recorded_ one) and the sweep has
-  no canonical wording to sweep to. An enumeration repeated at many sites cannot be proven complete by any grep, read,
-  or sweep — the restatement is the drift surface — so a loop that keeps finding another site of one set
-  (`incomplete-enumeration` round after round) single-sources it rather than sweeping, deriving the sites from the
-  owner's own scope (its bearers crossed with its item classes); a field-list grep is a lead, never a completeness gate.
-  The boundary deciding whether a site states an item or points at it is the imperative-versus-procedure split: an
-  imperative a reader must act on before the step that would touch it — a warning, a safety condition, a lifecycle
-  requirement, a confirmation — is stated at every site where that step appears, so N definitions carrying the same four
-  imperatives is this rule working rather than the restatement it warns against, and a sweep over such a set corrects
-  all N (correcting the one a finding named and leaving its siblings is the `incomplete-enumeration` recurrence); only
-  the owner's procedure steps, field set, or record are pointed at, since those are what a copy drifts from.
-  Over-statement is the mirror defect: a site that restates a procedure, a skill's steps, or a script's semantics
-  instead of naming the owner has taken the copy this rule forbids. captured: establish-structured-writing-standard
-  captured: require-evidence-in-report-contracts captured: harden-command-definitions
+  (a report's per-item format — the shared report contract's per-item budget (`docs/contracts/shared-report.md`)); or a
+  record another artifact owns (a review round's state is `docs/review-rounds.tsv`'s, not a task's): state it once there
+  and repeat it identically (referencing it by name where the site can), since a restated copy re-anchors on its own (a
+  README copy made the matching band a tenth of the _measured_ rate where the requirement and code use the _recorded_
+  one) and the sweep has no canonical wording to sweep to. An enumeration repeated at many sites cannot be proven
+  complete by any grep, read, or sweep — the restatement is the drift surface — so a loop that keeps finding another
+  site of one set (`incomplete-enumeration` round after round) single-sources it rather than sweeping, deriving the
+  sites from the owner's own scope (its bearers crossed with its item classes); a field-list grep is a lead, never a
+  completeness gate. The boundary deciding whether a site states an item or points at it is the
+  imperative-versus-procedure split: an imperative a reader must act on before the step that would touch it — a warning,
+  a safety condition, a lifecycle requirement, a confirmation — is stated at every site where that step appears, so N
+  definitions carrying the same four imperatives is this rule working rather than the restatement it warns against, and
+  a sweep over such a set corrects all N (correcting the one a finding named and leaving its siblings is the
+  `incomplete-enumeration` recurrence); only the owner's procedure steps, field set, or record are pointed at, since
+  those are what a copy drifts from. Over-statement is the mirror defect: a site that restates a procedure, a skill's
+  steps, or a script's semantics instead of naming the owner has taken the copy this rule forbids. captured:
+  establish-structured-writing-standard captured: require-evidence-in-report-contracts captured:
+  harden-command-definitions
 
 ### Workflow: Change lifecycle
 
@@ -553,9 +554,10 @@ the owner's decision, and no queue or drain guarantee exists.
 
 **How a generalized rule is recorded**
 
-- **Author each entry to the stated standard.** The knowledge-authoring standard the `agent-skills` spec states governs
-  every entry — the representation it takes, a procedure's and a gotcha's shape, the evidence its claims need, and the
-  validation before finishing — and the `agents-auditor` reconciles entries against the same standard.
+- **Author each entry to the stated standard.** The knowledge-authoring standard
+  (`docs/contracts/knowledge-authoring.md`) governs every entry — the representation it takes, a procedure's and a
+  gotcha's shape, the evidence its claims need, and the validation before finishing — and the `agents-auditor`
+  reconciles entries against the same standard.
 - **A record is analyzed once, never in a chain.** Its `Decision` line ends the analysis; a later pass reads a decided
   record as history. Process mistakes that leave no diff trace (a git command that discarded work) are the most valuable
   thing to record, which is what makes the loop systematic instead of memory-dependent.
@@ -1354,65 +1356,66 @@ Key modules (libraries, not services):
   destination that loads on demand, and where no such destination exists yet it reports an extraction **opportunity** as
   a design recommendation rather than a candidate. Its finding classes (merge, removal, route, and extraction
   candidates, the advisory class for excluded files, the accreted meta rules with their origins, and the
-  authoring-system gap class for a recurring defect's mechanism) and the shared report contract are specified in
-  `showcase/quality/agent-skills` — see there rather than here. The boundary is a **provenance partition**: it never
-  _fixes_ what the repo does not author (the generated OpenSpec instruction files and the vendored skill trees), though
-  it still _reads_ them and reports an advisory item where one contradicts how the repo uses it — a project-authored
-  file that shares a generated prefix, like `opsx-tool-update`, stays in scope — a boundary drawn by provenance, not a
-  filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). Trigger it with the
-  `/audit-agents` command; the main agent applies the approved findings under the review gate, whose delivery routes —
-  each unit scoped to its own artifacts and diff, split by fix type rather than run through one unit — are the
-  `showcase/quality/agent-skills` requirement's. The scheduled variant runs unattended in the `audit` workflow; the
-  audit itself is on demand. A report's reduction candidates are drained by the standing owner-gated unit
+  authoring-system gap class for a recurring defect's mechanism) are specified in `showcase/quality/agent-skills`; its
+  report contract is `docs/contracts/shared-report.md` — see there rather than here. The boundary is a **provenance
+  partition**: it never _fixes_ what the repo does not author (the generated OpenSpec instruction files and the vendored
+  skill trees), though it still _reads_ them and reports an advisory item where one contradicts how the repo uses it — a
+  project-authored file that shares a generated prefix, like `opsx-tool-update`, stays in scope — a boundary drawn by
+  provenance, not a filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). Trigger
+  it with the `/audit-agents` command; the main agent applies the approved findings under the review gate, whose
+  delivery routes — each unit scoped to its own artifacts and diff, split by fix type rather than run through one unit —
+  are the `showcase/quality/agent-skills` requirement's. The scheduled variant runs unattended in the `audit` workflow;
+  the audit itself is on demand. A report's reduction candidates are drained by the standing owner-gated unit
   `/apply-audit-reductions` (specified in `showcase/quality/agent-skills`), run per report rather than left to age; the
   report's other findings go through the normal change workflow. captured: record-agents-md-authoring-standard
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus for the cross-spec structural consistency
   `openspec validate` does not gate — title ↔ capability-path match, Purpose ↔ requirements fit, requirement
-  conventions, cross-spec duplication, and dead cross-references (its classes and report contract are in the
-  `agent-skills` spec). It reports a dead reference only once it is verified absent or obsolete — never for a
-  false-positive class such as a generated class, an external tool's command, or a conceptual reference — and reports a
-  duplication only where the obligations are substantially identical or their overlap is materially ambiguous, leaving a
-  related-but-distinct requirement and an intentional repetition alone. It deliberately does **not** check behavior
-  against the code (the change workflow's review loop and the archive-time sync own that), audit the corpus's capability
-  decomposition (the `architecture-auditor` owns that), re-report an issue an existing gate enforces, or audit a
-  proposed change's internal quality. Trigger it with the `/audit-specs` command. The main agent applies approved
-  findings through the delivery routes the `showcase/quality/agent-skills` requirement states. The scheduled variant
-  runs unattended in the `audit` workflow.
+  conventions, cross-spec duplication, and dead cross-references (its classes are in the `agent-skills` spec; its report
+  contract is `docs/contracts/shared-report.md`). It reports a dead reference only once it is verified absent or
+  obsolete — never for a false-positive class such as a generated class, an external tool's command, or a conceptual
+  reference — and reports a duplication only where the obligations are substantially identical or their overlap is
+  materially ambiguous, leaving a related-but-distinct requirement and an intentional repetition alone. It deliberately
+  does **not** check behavior against the code (the change workflow's review loop and the archive-time sync own that),
+  audit the corpus's capability decomposition (the `architecture-auditor` owns that), re-report an issue an existing
+  gate enforces, or audit a proposed change's internal quality. Trigger it with the `/audit-specs` command. The main
+  agent applies approved findings through the delivery routes the `showcase/quality/agent-skills` requirement states.
+  The scheduled variant runs unattended in the `audit` workflow.
 - **Architecture-auditor subagent for design drift, unrecorded intent, and a record whose premise is due**: the
   `architecture-auditor` subagent (`.opencode/agent/architecture-auditor.md`) audits `docs/adr/` plus the architectural
   surface (the service boundaries, the module dependency graph, and the spec corpus's capability decomposition) for
   drift from its recorded decisions, and reports **where clarification of intent is missing** — a deliberate choice or
   absence whose rationale is not recorded — and **a decision deferred in an ADR whose recorded `Revisit when:` condition
-  appears met** (its finding classes, its advisory section, and the report contract are in the `agent-skills` spec). It
-  sweeps the surfaces a rationale must exist for (dependency `exclude(...)` declarations, the major-version-suppressed,
-  held-back, and web-UI-npm-suppressed coordinates, the suppression annotations and retained deprecated APIs, and the
-  deferrals and band-aids recorded in ADRs or parked in `docs/ideas.md`, with a deferred ADR's `Revisit when:` condition
-  held against the repository where it names a checkable fact) and searches the repository for a rationale before
-  reporting each item — an item whose rationale is already recorded is not reported. The **deferred-decision** item is
-  the inverse — its record exists, so it is reported when that record's condition appears met, a different question from
-  whether the rationale exists. It establishes the authoritative record before asserting a violation (a two-record
-  contradiction, a stale supersession, or a deliberate exception is an advisory, not a finding). It deliberately does
-  **not** check behavior against the code (the review loop and archive-time sync own that), the corpus's internal
-  structure (`specs-auditor` owns that), or any property an existing gate enforces. It classifies each recorded
-  `Revisit when:` condition before reporting it, and an unverifiable condition is no expiry claim. It does **not** track
-  the lifecycle of a parked `docs/ideas.md` entry: that file is a scratchpad pruned by its owner through
-  `/ideas cleanup`. Trigger it with the `/audit-architecture` command. The main agent applies the approved findings
-  under the review gate: the route each finding takes is the `showcase/quality/agent-skills` requirement's, with one
-  addition it does not carry: a correction that becomes its own change is parked as an idea until then; do not force the
-  suggested correction into the audit-fix PR (the first audit's `query-api` boundary finding was verified drift, yet
-  narrowing the dependency broke `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`).
-  An advisory item needs the user's decision first. The scheduled variant runs unattended in the `audit` workflow.
+  appears met** (its finding classes and advisory section are in the `agent-skills` spec; its report contract is
+  `docs/contracts/shared-report.md`). It sweeps the surfaces a rationale must exist for (dependency `exclude(...)`
+  declarations, the major-version-suppressed, held-back, and web-UI-npm-suppressed coordinates, the suppression
+  annotations and retained deprecated APIs, and the deferrals and band-aids recorded in ADRs or parked in
+  `docs/ideas.md`, with a deferred ADR's `Revisit when:` condition held against the repository where it names a
+  checkable fact) and searches the repository for a rationale before reporting each item — an item whose rationale is
+  already recorded is not reported. The **deferred-decision** item is the inverse — its record exists, so it is reported
+  when that record's condition appears met, a different question from whether the rationale exists. It establishes the
+  authoritative record before asserting a violation (a two-record contradiction, a stale supersession, or a deliberate
+  exception is an advisory, not a finding). It deliberately does **not** check behavior against the code (the review
+  loop and archive-time sync own that), the corpus's internal structure (`specs-auditor` owns that), or any property an
+  existing gate enforces. It classifies each recorded `Revisit when:` condition before reporting it, and an unverifiable
+  condition is no expiry claim. It does **not** track the lifecycle of a parked `docs/ideas.md` entry: that file is a
+  scratchpad pruned by its owner through `/ideas cleanup`. Trigger it with the `/audit-architecture` command. The main
+  agent applies the approved findings under the review gate: the route each finding takes is the
+  `showcase/quality/agent-skills` requirement's, with one addition it does not carry: a correction that becomes its own
+  change is parked as an idea until then; do not force the suggested correction into the audit-fix PR (the first audit's
+  `query-api` boundary finding was verified drift, yet narrowing the dependency broke
+  `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`). An advisory item needs the
+  user's decision first. The scheduled variant runs unattended in the `audit` workflow.
 - **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
   (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
   guide, whose content no gate checks — on four axes: accuracy against the repository, design-intent fidelity (the
   README convention), grammatical correctness of its prose (a provable error is a finding, a preference advisory), and
-  coverage of every human-visible capability (the axes, the finding/advisory boundary, and the report contract are in
-  the `agent-skills` spec; a clean audit is a valid one-line result). Its scope is `README.md` only — the other
-  documents have their own owners — and it is justified as a distinct artifact and audience (humans, not agents).
-  Trigger it with the `/audit-readme` command. It is the one audit **not** in the scheduled `audit` workflow —
-  deliberately, since the schedule counters the accretion the capture loop produces while the README audit verifies a
-  human-facing document against the repository.
+  coverage of every human-visible capability (the axes and the finding/advisory boundary are in the `agent-skills` spec;
+  the report contract is `docs/contracts/shared-report.md`; a clean audit is a valid one-line result). Its scope is
+  `README.md` only — the other documents have their own owners — and it is justified as a distinct artifact and audience
+  (humans, not agents). Trigger it with the `/audit-readme` command. It is the one audit **not** in the scheduled
+  `audit` workflow — deliberately, since the schedule counters the accretion the capture loop produces while the README
+  audit verifies a human-facing document against the repository.
 - **Justify a new auditor by a distinct artifact/property, not by symmetry — widen an existing one when its artifacts
   are coupled.** A new auditor earns its place only when its artifact or property has drift no existing auditor can see;
   if the drift is visible only across artifacts an existing auditor already holds, widen that auditor instead:
@@ -1430,7 +1433,7 @@ Key modules (libraries, not services):
   `/review-thorough` command, whose procedure carries the session, the hand-over, the pass budget, and the finding
   statuses (`showcase/quality/agent-skills` owns the outcomes); a manual invocation is an explicit run, never a
   substitute for a `REQUIRED` outcome. Findings come back grouped by severity, in the shared report contract
-  (`showcase/quality/agent-skills` owns it); the main agent applies fixes.
+  (`docs/contracts/shared-report.md` owns it); the main agent applies fixes.
 - **Technical-advisor subagent for independent consultation**: the `technical-advisor` subagent
   (`.opencode/agent/technical-advisor.md`) answers one concrete decision question from repository evidence and
   recommends a direction; it does not edit, approve, or gate. Invoke `/consult <question>`, or delegate directly with

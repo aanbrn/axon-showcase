@@ -12,6 +12,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SCANNER_PATH = Path(__file__).resolve().parent / "claim-scan.py"
 _spec = importlib.util.spec_from_file_location("claim_scan", SCANNER_PATH)
@@ -271,6 +272,195 @@ class CliTests(unittest.TestCase):
         self.assertEqual(1, code)
         self.assertIn("missing.md", stderr.getvalue())
         self.assertIn("[count]  12 files", stdout.getvalue())
+
+
+class VerifyModeTests(unittest.TestCase):
+    """The opt-in `--verify` mode's contract: eligibility, comparison, statuses, exit code."""
+
+    def setUp(self):
+        self.repo = make_repo(self)
+        (self.repo / "sample.md").write_text("alpha 8\nbeta\nzero 0\n", encoding="utf-8")
+        (self.repo / "pi.md").write_text("pi 8.5\n", encoding="utf-8")
+        (self.repo / "loc.md").write_text("x:20:y\n", encoding="utf-8")
+        subprocess.run(("git", "add", "sample.md", "pi.md", "loc.md"), cwd=self.repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "fixture"), cwd=self.repo, check=True)
+        self.sha = subprocess.run(
+            ("git", "rev-parse", "HEAD"), cwd=self.repo, capture_output=True, text=True, check=True
+        ).stdout.strip()
+
+    def run_rows(self, rows):
+        lines = ["## Claims table", "", "| Claim | Command | Result |", "| --- | --- | --- |"]
+        for row in rows:
+            lines.append("| " + " | ".join(row) + " |")
+        table = self.repo / "claims.md"
+        table.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            code = claim_scan.main(["--verify", str(table), "--repo", str(self.repo)])
+        return code, stdout.getvalue()
+
+    def test_a_correct_explicit_row_is_verified(self):
+        code, out = self.run_rows([("correct", "`git show {0}:sample.md`".format(self.sha), "`8`")])
+        self.assertEqual(0, code)
+        self.assertIn("verified: correct", out)
+        self.assertIn("checked 1, skipped 0, mismatches 0", out)
+
+    def test_a_wrong_literal_is_a_mismatch(self):
+        code, out = self.run_rows([("wrong", "`git show {0}:sample.md`".format(self.sha), "`9`")])
+        self.assertEqual(1, code)
+        self.assertIn("mismatch: wrong (missing 9)", out)
+
+    def test_a_zero_literal_is_verified(self):
+        code, out = self.run_rows([("zero", "`git show {0}:sample.md`".format(self.sha), "`0`")])
+        self.assertEqual(0, code)
+        self.assertIn("verified: zero", out)
+
+    def test_a_prose_result_is_advisory(self):
+        code, out = self.run_rows([("prose", "`git show {0}:sample.md`".format(self.sha), "the count")])
+        self.assertEqual(0, code)
+        self.assertIn("advisory: prose", out)
+
+    def test_a_two_column_row_is_advisory(self):
+        code, out = self.run_rows([("two", "`git show {0}:sample.md`".format(self.sha))])
+        self.assertEqual(0, code)
+        self.assertIn("advisory: two (two-column table)", out)
+
+    def test_an_ambiguous_pipe_escape_is_advisory(self):
+        code, out = self.run_rows([("ambiguous", "`git show {0}:sample.md \\| grep 8`".format(self.sha), "`8`")])
+        self.assertEqual(0, code)
+        self.assertIn("advisory: ambiguous", out)
+
+    def test_an_unsafe_form_is_reported(self):
+        code, out = self.run_rows([("unsafe", "`git push`", "`x`")])
+        self.assertEqual(0, code)
+        self.assertIn("unsafe: unsafe", out)
+
+    def test_a_working_tree_diff_is_advisory(self):
+        code, out = self.run_rows([("working", "`git diff HEAD`", "`x`")])
+        self.assertEqual(0, code)
+        self.assertIn("advisory: working", out)
+
+    def test_a_wrong_emitted_line_is_a_mismatch(self):
+        code, out = self.run_rows([("line", "`git grep -n 'alpha' {0}`".format(self.sha), "`:2`")])
+        self.assertEqual(1, code)
+        self.assertIn("mismatch: line (missing :2)", out)
+
+    def test_a_sed_write_form_is_unsafe(self):
+        code, out = self.run_rows([("sed-write", "`sed -i 's/a/b/' sample.md`", "`b`")])
+        self.assertEqual(0, code)
+        self.assertIn("unsafe: sed-write", out)
+
+    def test_a_git_output_form_is_unsafe(self):
+        code, out = self.run_rows([("git-output", "`git log --output=x`", "`x`")])
+        self.assertEqual(0, code)
+        self.assertIn("unsafe: git-output", out)
+
+    def test_a_redirection_is_unsafe(self):
+        code, out = self.run_rows([("redirect", "`git show {0}:sample.md > /tmp/x`".format(self.sha), "`8`")])
+        self.assertEqual(0, code)
+        self.assertIn("unsafe: redirect", out)
+
+    def test_a_pipeline_write_form_is_unsafe(self):
+        code, out = self.run_rows([
+            ("pipeline", "`git show {0}:sample.md` piped through `sed -i 's/a/b/'`".format(self.sha), "`8`")
+        ])
+        self.assertEqual(0, code)
+        self.assertIn("unsafe: pipeline", out)
+
+    def test_a_read_only_greater_than_pattern_is_not_unsafe(self):
+        code, out = self.run_rows([("gt", "`git grep -n '>' {0}`".format(self.sha), "`x`")])
+        self.assertEqual(1, code)
+        self.assertIn("mismatch: gt", out)
+        self.assertNotIn("unsafe: gt", out)
+
+    def test_a_pipeline_with_a_deferred_command_is_external(self):
+        code, out = self.run_rows([
+            ("pipe-gh", "`git show {0}:sample.md` piped through `gh api repos/x`".format(self.sha), "`8`")
+        ])
+        self.assertEqual(0, code)
+        self.assertIn("external: pipe-gh", out)
+
+    def test_an_escaped_quote_pattern_is_not_unsafe(self):
+        code, out = self.run_rows([
+            ("escaped", "`git grep -n \"a\\\"b>c\" {0}`".format(self.sha), "`x`")
+        ])
+        self.assertEqual(1, code)
+        self.assertIn("mismatch: escaped", out)
+        self.assertNotIn("unsafe: escaped", out)
+
+    def test_a_nonzero_exit_with_the_literal_is_a_mismatch(self):
+        completed = subprocess.CompletedProcess(["x"], 1, stdout="8", stderr="")
+        with mock.patch.object(claim_scan.subprocess, "run", return_value=completed):
+            code, out = self.run_rows([("exit", "`git show {0}:sample.md`".format(self.sha), "`8`")])
+        self.assertEqual(1, code)
+        self.assertIn("mismatch: exit (exit 1)", out)
+
+    def test_a_multi_literal_result_verifies_all(self):
+        code, out = self.run_rows([("multi", "`git show {0}:sample.md`".format(self.sha), "`8`, `0`")])
+        self.assertEqual(0, code)
+        self.assertIn("verified: multi", out)
+
+    def test_a_multi_literal_result_fails_on_a_missing_literal(self):
+        code, out = self.run_rows([("multi-bad", "`git show {0}:sample.md`".format(self.sha), "`8`, `9`")])
+        self.assertEqual(1, code)
+        self.assertIn("mismatch: multi-bad (missing 9)", out)
+
+    def test_a_single_revision_diff_is_advisory(self):
+        code, out = self.run_rows([("diff", "`git diff {0}`".format(self.sha), "`8`")])
+        self.assertEqual(0, code)
+        self.assertIn("advisory: diff", out)
+
+    def test_a_hex_pattern_without_a_revision_is_advisory(self):
+        code, out = self.run_rows([("hex", "`git grep -n deadbeef`", "`8`")])
+        self.assertEqual(0, code)
+        self.assertIn("advisory: hex", out)
+
+    def test_a_numeric_literal_does_not_match_a_decimal(self):
+        code, out = self.run_rows([("decimal", "`git show {0}:pi.md`".format(self.sha), "`8`")])
+        self.assertEqual(1, code)
+        self.assertIn("mismatch: decimal (missing 8)", out)
+
+    def test_a_bare_line_number_matches_a_path_line(self):
+        code, out = self.run_rows([("line-ok", "`git grep -n 'alpha' {0}`".format(self.sha), "`:1`")])
+        self.assertEqual(0, code)
+        self.assertIn("verified: line-ok", out)
+
+    def test_a_locator_does_not_match_a_longer_line_number(self):
+        code, out = self.run_rows([("loc", "`git show {0}:loc.md`".format(self.sha), "`:2`")])
+        self.assertEqual(1, code)
+        self.assertIn("mismatch: loc (missing :2)", out)
+
+    def test_a_locator_matches_its_own_line(self):
+        code, out = self.run_rows([("loc-ok", "`git show {0}:loc.md`".format(self.sha), "`:20`")])
+        self.assertEqual(0, code)
+        self.assertIn("verified: loc-ok", out)
+
+    def test_a_hex_filename_without_a_revision_is_advisory(self):
+        code, out = self.run_rows([("hexfile", "`git grep -n 'alpha' -- deadbeef.md`", "`8`")])
+        self.assertEqual(0, code)
+        self.assertIn("advisory: hexfile", out)
+
+    def test_two_patterns_with_a_hex_pattern_are_advisory(self):
+        code, out = self.run_rows([("two-patterns", "`git grep -n -e 'alpha' -e 'deadbeef'`", "`8`")])
+        self.assertEqual(0, code)
+        self.assertIn("advisory: two-patterns", out)
+
+    def test_a_mixed_quotation_pattern_operand_is_advisory(self):
+        code, out = self.run_rows([("mixed", "`git grep -n -e 'alpha' -e deadbeef`", "`8`")])
+        self.assertEqual(0, code)
+        self.assertIn("advisory: mixed", out)
+
+    def test_a_timeout_is_a_mismatch(self):
+        with mock.patch.object(claim_scan.subprocess, "run", side_effect=subprocess.TimeoutExpired("x", 10)):
+            code, out = self.run_rows([("slow", "`git show {0}:sample.md`".format(self.sha), "`8`")])
+        self.assertEqual(1, code)
+        self.assertIn("mismatch: slow (timeout)", out)
+
+    def test_an_execution_failure_is_a_mismatch(self):
+        with mock.patch.object(claim_scan.subprocess, "run", side_effect=OSError("boom")):
+            code, out = self.run_rows([("broken", "`git show {0}:sample.md`".format(self.sha), "`8`")])
+        self.assertEqual(1, code)
+        self.assertIn("mismatch: broken (boom)", out)
 
 
 if __name__ == "__main__":

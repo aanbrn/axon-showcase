@@ -145,18 +145,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   the offending excerpt, and the evidence identifying the applicable instruction state. The direction is to investigate
   compliance before proposing another wording expansion; no enforcement mechanism is selected.
 
-- Give claims-table rows an executable verification mode — parked; no change yet. Of the units this pass analyzed, four
-  carry 17 `claim-unreproducible` rounds between them (`extend-owner-reply-language-scope` 3,
-  `hand-over-unfinished-work` 4, `record-the-settle-step-defect` 2, `separate-lesson-capture-from-implementation` 8),
-  with different causes (a line range, a case-sensitive `grep`, an unsourced figure, a path set that excludes the
-  subject), and the cause-specific prose rules already exist while each new cause produced another defect: the row's
-  command and expected result are prose, so nothing executes a row. The shape to build is an opt-in stdlib Python
-  `--verify` mode in `scripts/claim-scan.py`, its advisory default preserved, running each row's command at the revision
-  the row names and exiting non-zero on a mismatch, with no execution in the default `check`. A bounded pilot over these
-  incident commands comes first, because it must establish the machine-checkable subset (some rows rest on sources or
-  transient observations) and the execution-context, safe-operations, revision-semantics, timeout and comparable-result
-  contracts that a command/result pair does not supply. Surfaced by `generalize-process-defects-2026-10-27`.
-
 ## 2026-10-26
 
 - Freeze a unit's resume checkpoint at the resume — parked; no change yet. `.opencode/skills/pause-resume-unit/SKILL.md`

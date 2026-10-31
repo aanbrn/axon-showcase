@@ -16,6 +16,9 @@ Each candidate is a lead, not a finding: the author resolves it into a claims-ta
 the reason. The tool never fails on a candidate -- it is an authoring aid, not a gate -- but an explicitly requested
 input it cannot read is a failure, because an empty candidate list and a failed scan are different outcomes. Empty
 output means no recognized candidate in the scanned inputs, never that the claims table is complete. Stdlib only.
+
+The opt-in `--verify <table>` mode is different: it executes a supported row's command and compares the Result's
+explicit literals, so it can fail. It runs only when invoked; the default scan and `check` execute nothing.
 """
 
 import argparse
@@ -153,6 +156,218 @@ def scan(repo: Path, base: str) -> List[Claim]:
     return claims
 
 
+VERIFY_GIT_READ = {"show", "grep", "diff", "log", "rev-parse", "ls-files", "merge-base", "cat-file"}
+VERIFY_GIT_WRITE = {"push", "commit", "reset", "clean", "checkout", "tag", "config"}
+VERIFY_DEFERRED = {"awk", "gh", "opencode", "openspec", "perl", "python3"}
+VERIFY_SED_WRITE = re.compile(r"(^|\s)(-i|w|W|e)(\s|$)|s/.*/[^/]*/[we]")
+
+
+def verify_cells(line: str) -> List[str]:
+    """The cells of one markdown table row, with the table's pipe escapes left raw."""
+    parts = re.split(r"(?<!\\)\|", line.strip())
+    return [part.strip() for part in parts[1:-1]]
+
+
+def verify_literals(cell: str) -> List[str]:
+    """The backticked literals a cell states."""
+    return re.findall(r"`([^`]+)`", cell)
+
+
+def has_redirection(command: str) -> bool:
+    """True when the command carries a `>` outside a quoted span."""
+    quote = ""
+    escaped = False
+    for char in command:
+        if escaped:
+            escaped = False
+            continue
+        if char == "\\" and quote != "'":
+            escaped = True
+            continue
+        if quote:
+            if char == quote:
+                quote = ""
+        elif char in {"'", '"'}:
+            quote = char
+        elif char == ">":
+            return True
+    return False
+
+
+def unquoted_tokens(command: str) -> list:
+    """The command's shell words, each paired with whether it was quoted."""
+    tokens = []
+    current = ""
+    quoted = False
+    quote = ""
+    escaped = False
+    for char in command:
+        if escaped:
+            current += char
+            escaped = False
+            continue
+        if char == "\\" and quote != "'":
+            current += char
+            escaped = True
+            continue
+        if quote:
+            if char == quote:
+                quote = ""
+            else:
+                current += char
+        elif char in {"'", '"'}:
+            quote = char
+            quoted = True
+        elif char.isspace():
+            if current or quoted:
+                tokens.append((current, quoted))
+            current = ""
+            quoted = False
+        else:
+            current += char
+    if current or quoted:
+        tokens.append((current, quoted))
+    return tokens
+
+
+def verify_eligible(source: str, result: str) -> Tuple[str, object]:
+    """Classify one row: a (status, command-and-literals-or-reason) pair."""
+    if "\\|" in source:
+        return "advisory", "ambiguous pipe escape"
+    spans = re.findall(r"`([^`]+)`", source)
+    if len(spans) == 1:
+        command = spans[0]
+    elif len(spans) == 2 and "piped through" in source:
+        command = " | ".join(spans)
+    else:
+        return "advisory", "the source must be one command"
+    if command.split()[0] in {"for", "while"}:
+        return "advisory", "shell loop"
+    if has_redirection(command):
+        return "unsafe", "redirection"
+    for part in command.split(" | "):
+        part_tokens = part.split()
+        if not part_tokens:
+            continue
+        first_part = part_tokens[0]
+        if first_part == "git":
+            if len(part_tokens) < 2 or part_tokens[1] not in VERIFY_GIT_READ or "--output" in part:
+                return "unsafe", "git {0}".format(part_tokens[1] if len(part_tokens) > 1 else "")
+        elif first_part == "sed":
+            if VERIFY_SED_WRITE.search(part):
+                return "unsafe", "sed write form"
+            return "advisory", "working-tree sed"
+        elif first_part in {"grep", "wc"}:
+            return "advisory", "working-tree {0}".format(first_part)
+        elif first_part in VERIFY_DEFERRED:
+            return "external", first_part
+        else:
+            return "unsafe", first_part
+    tokens = command.split()
+    first = tokens[0]
+    if first == "git":
+        sub = tokens[1] if len(tokens) > 1 else ""
+        if sub in VERIFY_GIT_WRITE or "--output" in command:
+            return "unsafe", "git write form"
+        if sub not in VERIFY_GIT_READ:
+            return "unsafe", "git {0}".format(sub)
+        if sub == "diff":
+            return "advisory", "working-tree diff"
+        if sub == "grep":
+            tokens = unquoted_tokens(command.split(" -- ")[0])
+            quoted_positions = [index for index, (_, quoted) in enumerate(tokens) if quoted]
+            if not quoted_positions:
+                return "advisory", "working-tree grep"
+            last = quoted_positions[-1]
+            if (
+                last + 2 != len(tokens)
+                or tokens[last + 1][1]
+                or not re.fullmatch(r"[0-9a-f]{7,40}", tokens[last + 1][0])
+            ):
+                return "advisory", "working-tree grep"
+    elif first in {"grep", "sed", "wc"}:
+        if first == "sed" and VERIFY_SED_WRITE.search(command):
+            return "unsafe", "sed write form"
+        return "advisory", "working-tree {0}".format(first)
+    elif first in VERIFY_DEFERRED:
+        return "external", first
+    else:
+        return "unsafe", first
+    literals = verify_literals(result)
+    if not literals:
+        return "advisory", "no explicit literal"
+    remainder = result
+    for literal in literals:
+        remainder = remainder.replace("`" + literal + "`", "")
+    if remainder.strip(" ,\t"):
+        return "advisory", "the result is not literal-only"
+    return "candidate", (command, literals)
+
+
+def verify_run(command: str, repo: Path) -> Tuple[str, Optional[str]]:
+    """Run one eligible command; return its stdout, or None and an error reason."""
+    try:
+        completed = subprocess.run(
+            command, shell=True, cwd=str(repo), capture_output=True, text=True, timeout=10
+        )
+    except subprocess.TimeoutExpired:
+        return "", "timeout"
+    except OSError as failure:
+        return "", str(failure)
+    if completed.returncode != 0:
+        return completed.stdout, "exit {0}".format(completed.returncode)
+    return completed.stdout, None
+
+
+def literal_matches(literal: str, output: str) -> bool:
+    """True when the literal occurs in the output; a numeric or locator literal matches at a boundary."""
+    if re.fullmatch(r":\d+", literal):
+        return re.search(re.escape(literal) + r"(?!\d)", output) is not None
+    if re.fullmatch(r"\d+", literal):
+        return re.search(r"(?<![\w.])" + re.escape(literal) + r"(?![\w.])", output) is not None
+    return literal in output
+
+
+def verify_table(repo: Path, table: Path) -> int:
+    """Verify a claims table's explicit literal rows; return 1 on a mismatch or a read failure."""
+    text = table.read_text(encoding="utf-8")
+    start = text.find("## Claims table")
+    section = text[start:] if start >= 0 else text
+    checked = skipped = failed = 0
+    for line in section.splitlines():
+        if not line.startswith("| "):
+            continue
+        cells = verify_cells(line)
+        if len(cells) < 2 or cells[0] == "Claim" or set(cells[0]) <= {"-", " "}:
+            continue
+        if len(cells) < 3:
+            skipped += 1
+            print("advisory: {0} (two-column table)".format(cells[0][:80]))
+            continue
+        kind, info = verify_eligible(cells[1], cells[2])
+        if kind != "candidate":
+            skipped += 1
+            print("{0}: {1} ({2})".format(kind, cells[0][:80], info))
+            continue
+        command, literals = info
+        output, error = verify_run(command, repo)
+        checked += 1
+        if error:
+            failed += 1
+            print("mismatch: {0} ({1})".format(cells[0][:80], error))
+            continue
+        missing = [literal for literal in literals if not literal_matches(literal, output)]
+        if missing:
+            failed += 1
+            print("mismatch: {0} (missing {1})".format(cells[0][:80], ", ".join(missing)))
+            if output:
+                print("  output: {0}".format(output.strip()[:500]))
+        else:
+            print("verified: {0}".format(cells[0][:80]))
+    print("checked {0}, skipped {1}, mismatches {2}".format(checked, skipped, failed))
+    return 1 if failed else 0
+
+
 def main(argv: Sequence[str] = ()) -> int:
     parser = argparse.ArgumentParser(
         description=(
@@ -177,8 +392,20 @@ def main(argv: Sequence[str] = ()) -> int:
             "(used by the tests; it scans no untracked files)"
         ),
     )
+    parser.add_argument(
+        "--verify",
+        help=(
+            "verify a claims table's explicit literal rows (opt-in; the default scan and check run no execution)"
+        ),
+    )
     args = parser.parse_args(argv)
     repo = Path(args.repo)
+    if args.verify:
+        try:
+            return verify_table(repo, Path(args.verify))
+        except (OSError, UnicodeDecodeError) as failure:
+            print("the verification failed: {0}".format(failure), file=sys.stderr)
+            return 1
     claims: List[Claim] = []
     try:
         if args.diff_file:

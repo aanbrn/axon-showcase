@@ -4,8 +4,9 @@ description:
   Set up this repo's IntelliJ configuration so the IDE matches the build formatter and analyzes scripts/*.py — merge the
   committed settings (config/idea/*.xml plus the test-tier naming inspection) into .idea/, reconcile the Python analysis
   module for the current working tree, install the palantir-java-format + ktfmt plugins, and enable IntelliJ's built-in
-  Prettier for the web module. Use when the user asks to set up or fix their IntelliJ/IDE configuration, or when the
-  configuration has drifted (e.g. IntelliJ rewrote .idea/).
+  Prettier for the web module. Use when the user asks to set up or fix their IntelliJ/IDE configuration, when the
+  configuration has drifted (e.g. IntelliJ rewrote .idea/), or when initializing a working tree the workspace procedure
+  created.
 license: MIT
 ---
 
@@ -21,6 +22,23 @@ is legitimate.
 
 The Python stage's selection rule, the module it writes, and the conditions behind each outcome are the delta spec's and
 the script's; this skill carries what to do for the outcome it reports.
+
+## Initializing a new working tree
+
+Each tree the workspace procedure creates — a new unit's or a continued unit's — is prepared before it is opened, when
+the primary checkout has been set up for IntelliJ (it carries `.idea/`).
+
+1. IF the primary carries a `.python-version` and the tree carries none, THEN copy it in. Never overwrite a
+   `.python-version` the tree already has.
+2. Run `./scripts/setup-idea.sh` in the tree.
+3. Read both stage lines and record them with the exit status and the plugin outcome. The tree is IDE-ready only when
+   the Python stage reports `CONFIGURED`.
+4. IF the Python stage reports `NEEDS_ACTION` or `ERROR`, THEN report its block with the remedy it names and do not open
+   the tree as prepared.
+5. The inherited selection changes the interpreter only where the tree's `PATH` resolves `python3` through the selector
+   that reads it — pyenv's shims ahead of other installations. Where the primary carries no selection, step 2 still runs
+   against the tree's own `python3`; report the interpreter that run resolved.
+6. A tree the owner creates by hand is outside this procedure.
 
 ## Procedure
 

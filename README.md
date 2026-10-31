@@ -977,9 +977,11 @@ its own code style and would reformat files differently, so configure the IDE to
   the backstop either way.
 - For **Python analysis** of `scripts/*.py`, the same setup writes the IntelliJ module that gives those files an
   interpreter, so each clone and each `git worktree` gets it in one `./scripts/setup-idea.sh` run made while the project
-  is closed — the module appears when the project is then opened, and the Gradle import IntelliJ offers keeps it. The
-  interpreter is the one the build uses — the first `python3` on `PATH`, at 3.12 or newer — and the script prints the
-  path and version it selected; the selection still does not change what `./gradlew check` or the Git hooks run.
+  is closed — the module appears when the project is then opened, and the Gradle import IntelliJ offers keeps it. A tree
+  the process creates from a configured primary inherits its `.python-version` first, so the run resolves the same
+  interpreter where `PATH` reaches it through that selection's selector. The interpreter is the one the build uses — the
+  first `python3` on `PATH`, at 3.12 or newer — and the script prints the path and version it selected; the selection
+  still does not change what `./gradlew check` or the Git hooks run.
 
   Its Python line reports `CONFIGURED` when the module is in place, `SKIPPED` when no IntelliJ configuration was found,
   and `NEEDS_ACTION` (exiting non-zero) in two cases. Its report is a short first line followed by an indented block

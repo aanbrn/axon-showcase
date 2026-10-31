@@ -951,8 +951,11 @@ its own code style and would reformat files differently, so configure the IDE to
   ```
 
   IntelliJ reads these settings at startup, so apply the merged config with **File → _Reload All from Disk_** (or
-  restart the IDE) — the test-tier naming inspection, in particular, only takes effect then. You can also ask the agent
-  to do it (`/setup-idea`), which additionally handles quitting a running IDE for the plugin install.
+  restart the IDE) — the test-tier naming inspection, in particular, only takes effect then. The Python-analysis module
+  (see the bullet below) is different: it appears when the project is **opened** after a setup run made while the
+  project was closed, and reloading an open project does not add it — if the project was open during the run, close its
+  window, run the setup again, then open the project. You can also ask the agent to do it (`/setup-idea`), which
+  additionally handles quitting a running IDE for the plugin install.
 
   The ktfmt template uses the plugin's **Custom** style to reproduce ktfmt's kotlinlang style at 120 columns with
   unused-import removal (the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the
@@ -973,9 +976,10 @@ its own code style and would reformat files differently, so configure the IDE to
   the plugin is not active on a machine, disable those triggers instead to avoid drift; `spotlessCheck` in `check` is
   the backstop either way.
 - For **Python analysis** of `scripts/*.py`, the same setup writes the IntelliJ module that gives those files an
-  interpreter, so each clone and each `git worktree` gets it from one `./scripts/setup-idea.sh` run. The interpreter is
-  the one the build uses — the first `python3` on `PATH`, at 3.12 or newer — and the script prints the path and version
-  it selected; the selection still does not change what `./gradlew check` or the Git hooks run.
+  interpreter, so each clone and each `git worktree` gets it in one `./scripts/setup-idea.sh` run made while the project
+  is closed — the module appears when the project is then opened, and the Gradle import IntelliJ offers keeps it. The
+  interpreter is the one the build uses — the first `python3` on `PATH`, at 3.12 or newer — and the script prints the
+  path and version it selected; the selection still does not change what `./gradlew check` or the Git hooks run.
 
   Its Python line reports `CONFIGURED` when the module is in place, `SKIPPED` when no IntelliJ configuration was found,
   and `NEEDS_ACTION` (exiting non-zero) in two cases. Its report is a short first line followed by an indented block

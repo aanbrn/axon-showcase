@@ -131,6 +131,13 @@ else
     fi
 fi
 
-echo "Done. In IntelliJ, apply the changes with File -> Reload All from Disk (or restart it) — IDEA does not"
-echo "hot-reload .idea/inspectionProfiles/, so the settings take effect only after a reload or restart."
+echo
+echo "=== Next step in IntelliJ ==="
+echo
+echo "Open the project after the Python stage reported CONFIGURED: the Python analysis module comes with it."
+echo "If this project was open during the run, close its window, run the setup again, then open it."
+echo "Closing the project window is enough; only the plugin install needs the whole IDE closed."
+echo "Reloading an open project does not add the module."
+echo "If IntelliJ offers to load the Gradle project when it opens, accept."
+echo "The merged formatter and inspection settings take effect after a reload or a restart."
 exit "$status"

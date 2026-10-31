@@ -2180,16 +2180,19 @@ changing an image or buildpack pin.
   `scripts/*.py`: it resolves the first `python3` on `PATH` from the working tree's root, reads the SDK name an IntelliJ
   configuration registered for that interpreter, and reports `CONFIGURED`, `SKIPPED`, `NEEDS_ACTION`, or `ERROR` — a
   `NEEDS_ACTION` for an unregistered interpreter exits non-zero until that one-time registration is done. IntelliJ reads
-  the merged files at startup (or on **File → Reload All from Disk**), so the settings take effect only after a reload
-  or restart. The `/setup-idea` agent command wraps the script (and negotiates quitting a running IDE for the plugin
-  install). For the web module it also enables IntelliJ's built-in **Prettier** (via `config/idea/prettier.xml`; free
-  from IntelliJ IDEA 2026.1, Ultimate on the earlier unified 2025.3–2026.0) and extends its file-type scope
-  (`myFilesPattern`) to CSS and HTML, which the Prettier default omits, so `Reformat Code` matches the
-  `prettier --check` gate, with the JS/TS indentation from `.editorconfig`. IDEA's Optimize Imports is gate-neutral for
-  the web module (it only removes unused/duplicate imports and reorders them, and no gate enforces import order). The
-  ktfmt config uses the plugin's **Custom** style configured to reproduce ktfmt's kotlinlang style at 120 columns with
-  unused-import removal, because the plugin's `Kotlinlang` mode hard-codes ktfmt's 100-column default and ignores the
-  line-length option (see README → Local Development → IntelliJ IDEA Setup).
+  the merged files at startup (or on **File → Reload All from Disk**), so the formatter and inspection settings take
+  effect only after a reload or restart; the Python module is different — it appears when the project is opened after a
+  run made while the project was closed, and reloading an open project does not add it, so a run made while the project
+  was open is completed by closing its window, running the setup again, and opening the project. The `/setup-idea` agent
+  command wraps the script (and negotiates quitting a running IDE for the plugin install). For the web module it also
+  enables IntelliJ's built-in **Prettier** (via `config/idea/prettier.xml`; free from IntelliJ IDEA 2026.1, Ultimate on
+  the earlier unified 2025.3–2026.0) and extends its file-type scope (`myFilesPattern`) to CSS and HTML, which the
+  Prettier default omits, so `Reformat Code` matches the `prettier --check` gate, with the JS/TS indentation from
+  `.editorconfig`. IDEA's Optimize Imports is gate-neutral for the web module (it only removes unused/duplicate imports
+  and reorders them, and no gate enforces import order). The ktfmt config uses the plugin's **Custom** style configured
+  to reproduce ktfmt's kotlinlang style at 120 columns with unused-import removal, because the plugin's `Kotlinlang`
+  mode hard-codes ktfmt's 100-column default and ignores the line-length option (see README → Local Development →
+  IntelliJ IDEA Setup).
 
 - **Verify an IDE formatting integration by actually reformatting — the right action and the full gate scope, neither of
   which config review can see.** Two failure modes: a Prettier scope narrower than the gate (the web module's

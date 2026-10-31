@@ -464,10 +464,10 @@ whether it consumed included usage or additional credits. See
   or reported as uncovered, the rules the work obsoletes reported as retirement candidates, and a lesson whose cause is
   an authoring mechanism routed to that mechanism rather than to the guidance file — so the file shrinks as well as
   grows, and a mistake is recorded where it can be prevented instead of only where it is read.
-- **Retrospectives**: `/retrospective` gathers the last week of PRs and the git log, plus the archived changes and
-  accumulated gotchas, and produces a sprint retrospective that root-causes each significant failure to the stage that
-  could have caught it, evaluates the previous window's recommendations, and proposes improvements with a verifiable
-  outcome.
+- **Retrospectives**: `/retrospective` gathers the last week of PRs and the git log, plus the archived changes, the
+  accumulated gotchas, and the process-defect records the window touched, and produces a sprint retrospective that
+  root-causes each significant failure to the stage that could have caught it, evaluates the previous window's
+  recommendations, and proposes improvements with a verifiable outcome.
 - **Formatting, gates, CI, PRs**: formatting and quality gates run in the build; the agent opens PRs, watches CI, and
   merges once green with your approval.
 

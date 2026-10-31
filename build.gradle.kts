@@ -584,6 +584,16 @@ tasks.register<Exec>("testReviewRounds") {
     commandLine(pythonExecutable, "scripts/test-review-rounds.py")
 }
 
+tasks.register<Exec>("testExperienceAnalysis") {
+    group = "verification"
+    description = "Runs the digest's process-defect index controls"
+    inputs.file("scripts/experience-analysis.sh")
+    inputs.file("scripts/test-experience-analysis.sh")
+    inputs.file("scripts/review-rounds.py")
+    outputs.upToDateWhen { false }
+    commandLine(shExecutable, "scripts/test-experience-analysis.sh")
+}
+
 tasks.register<Exec>("testReviewRouting") {
     group = "verification"
     description = "Runs the deep-review routing floor's tests"
@@ -769,6 +779,7 @@ tasks.named("check") {
     dependsOn("testEnsureIdeaSettings")
     dependsOn("testSetupIdea")
     dependsOn("testReviewRounds")
+    dependsOn("testExperienceAnalysis")
     dependsOn("testReviewRouting")
     dependsOn("testReconnectMcp")
     dependsOn("verifyTrackedIgnoredFiles")

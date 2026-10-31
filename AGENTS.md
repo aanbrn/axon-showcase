@@ -1329,14 +1329,15 @@ Key modules (libraries, not services):
   (`.opencode/agent/experience-analyzer.md`) aggregates recent experience across many changes — above the per-unit
   `review-quick` work and the `lesson-capture` analysis. Trigger it with the `/retrospective` OpenCode command (or run
   it manually): the command gathers the digest with `./scripts/experience-analysis.sh [since]` (merged PRs, git log,
-  archived changes, AGENTS.md gotchas, docs/ideas.md, and a derived-facts block carrying the window's countable claims
-  already resolved), then the subagent returns a retrospective (shipped PRs by theme, lessons, went-well/went-wrong,
-  each significant failure's root cause and earliest prevention stage, and the previous retrospective's recommendations
-  evaluated) and improvement suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process` (→
-  AGENTS.md or a subagent definition), each stating the pattern it targets and how its outcome would be verified, which
-  the main agent verifies and applies. Retrospectives land in `docs/retrospectives/<date>.md` as a docs change. It is
-  deliberately **not** in the scheduled `audit` workflow — unlike the three audits, a retrospective is a judgment about
-  a _period_ whose richest input is session-only, so it stays on demand (the `agent-skills` spec records why).
+  archived changes, AGENTS.md gotchas, docs/ideas.md, a derived-facts block carrying the window's countable claims
+  already resolved, and an index of the `docs/process-defects/` records the window's commits touched), then the subagent
+  returns a retrospective (shipped PRs by theme, lessons, went-well/went-wrong, each significant failure's root cause
+  and earliest prevention stage, and the previous retrospective's recommendations evaluated) and improvement suggestions
+  classified as `system` (→ docs/ideas.md or a proposal) or `process` (→ AGENTS.md or a subagent definition), each
+  stating the pattern it targets and how its outcome would be verified, which the main agent verifies and applies.
+  Retrospectives land in `docs/retrospectives/<date>.md` as a docs change. It is deliberately **not** in the scheduled
+  `audit` workflow — unlike the three audits, a retrospective is a judgment about a _period_ whose richest input is
+  session-only, so it stays on demand (the `agent-skills` spec records why).
 - **Agents-auditor subagent for agent-tooling maintenance**: the `agents-auditor` subagent
   (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
   `.opencode/` files — for the drift an accretion-only set produces: entries contradicted elsewhere, stale enumerations,

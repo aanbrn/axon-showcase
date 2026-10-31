@@ -107,9 +107,23 @@ class CandidateClassTests(unittest.TestCase):
         self.assertIn("structured-writing 1", line(lines, "  classes raised"))
         self.assertIn(": none", line(lines, "  unmapped"))
 
-    def test_a_repeated_label_on_one_row_counts_once(self):
+    def test_two_labels_mapping_to_one_class_on_a_row_count_once(self):
         lines = block(self, ["2026-10-01\tunit-a\t1\twording,ambiguity\t-\t1"], "2026-09-30")
+        self.assertIn("wording 1", line(lines, "  classes raised"))
+
+    def test_a_class_on_two_rows_counts_both_rounds(self):
+        lines = block(
+            self,
+            ["2026-10-01\tunit-a\t1\twording,ambiguity\t-\t1", "2026-10-01\tunit-a\t2\twording\t-\t1"],
+            "2026-09-30",
+        )
         self.assertIn("wording 2", line(lines, "  classes raised"))
+
+    def test_the_classes_line_states_its_unit(self):
+        lines = block(self, ["2026-10-01\tunit-a\t1\twording\t-\t1"], "2026-09-30")
+        raised = line(lines, "  classes raised")
+        self.assertIn("one contribution per canonical class per round", raised)
+        self.assertIn("not a count of findings", raised)
 
 
 class DeclaredMappingTests(unittest.TestCase):

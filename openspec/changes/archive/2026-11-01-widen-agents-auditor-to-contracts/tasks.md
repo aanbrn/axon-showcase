@@ -17,7 +17,7 @@ branch=widen-agents-auditor-to-contracts; writer=ses_e731f42aaffeKQAMVYfJ2KxAYN
       scope sentence and the "An agent-tooling audit is produced" scenario body add `docs/contracts/`; all 34 scenarios
       are retained in order and none is renamed.
 - [x] 2.2 Remove the `docs/ideas.md` entry the change implements.
-- [ ] 2.3 Refresh the `agent-skills` Purpose to name `docs/contracts/` in the audit scope, applied in the archive
+- [x] 2.3 Refresh the `agent-skills` Purpose to name `docs/contracts/` in the audit scope, applied in the archive
       commit.
 
 ## 3. Verification and delivery
@@ -27,7 +27,7 @@ branch=widen-agents-auditor-to-contracts; writer=ses_e731f42aaffeKQAMVYfJ2KxAYN
 - [x] 3.3 The unit's process-defect record is written — `docs/process-defects/widen-agents-auditor-to-contracts.md`.
 - [x] 3.4 The smoke-run: a seeded `docs/contracts/` contradiction is detected and an explained control is not reported;
       the run's second finding (the dropped "of development activity" qualifier) is fixed.
-- [ ] 3.5 The review gate: the pre-write pass and claims table, the quick loop, the routing decision, the routed deep
+- [x] 3.5 The review gate: the pre-write pass and claims table, the quick loop, the routing decision, the routed deep
       review when the routing decision requires it, and the manual pass.
 - [x] 3.6 Consult the advisor before the manual pass.
-- [ ] 3.7 Commit, push, open the pull request, wait for `build`, archive, and merge.
+- [x] 3.7 Commit, push, open the pull request, wait for `build`, archive, and merge.

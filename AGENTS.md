@@ -2467,6 +2467,12 @@ changing an image or buildpack pin.
   `shell` action (`permission.bash` in v1) — so removing the blanket `/tmp/**` allow from `external_directory` leaves a
   bash-script write such as `setup-hosts.sh`'s unaffected, and a temp-root grant should not be re-added there for it.
 
+- **A permission action is enforced only by a tool that consults the engine.** V2 action names are strings, so plugins
+  may define more, and the schema accepts any name; a rule for a built-in tool that does not request a permission action
+  is inert. `session_move` and `worktree_create` do not request one (`tools.mdx`), while `worktree_remove` uses `edit` —
+  a `session_move` rule therefore does not confine the session (v2.2.5 moved it to `/tmp`). captured:
+  investigate-session-move-permission
+
 - **An unanswered `ask` hangs an unattended run — anchor a `bash`/`shell` permission pattern to the parsed command, and
   bound the job.** OpenCode emits one pattern per parsed `command` node, so a whole-command-string guard
   (`"*git push*"`) also matches a read-only command that merely quotes the phrase (`grep … "git push"`); anchor it

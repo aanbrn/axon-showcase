@@ -47,13 +47,16 @@ branch=auto-setup-new-worktree; writer=ses_e6f985602ffeUDJ4DtV0zmSDfc
 
 ## 6. The review gate
 
-- [ ] 6.1 Run the `review-quick` loop and append each round's row to `docs/review-rounds.tsv`; both ledger checks pass,
-      and `--expect-clean` is green at the closing round.
-- [ ] 6.2 Record the deep-review routing outcome on this task: run `scripts/review-routing.py` with `--unit` and
+- [x] 6.1 Run the `review-quick` loop and append each round's row to `docs/review-rounds.tsv`; both ledger checks pass,
+      and `--expect-clean` is green at the closing round. Outcome: four rounds; the fourth reports nothing and
+      `--expect-clean` is green.
+- [x] 6.2 Record the deep-review routing outcome on this task: run `scripts/review-routing.py` with `--unit` and
       `--change` set to this change's name. Outcome: `RECOMMENDED` on the `[repeated-class]` signal; the advisor
       recommended skipping and the owner agreed — no deep pass for this unit.
-- [ ] 6.3 Ask the owner for the manual review pass and end the turn there.
+- [x] 6.3 Ask the owner for the manual review pass and end the turn there. Outcome: the owner reviewed and approved
+      the implementation on 2026-10-31.
 
 ## 7. Ship
 
-- [ ] 7.1 After the owner's approval: commit, push, open the pull request, wait for `build`, archive, and merge.
+- [x] 7.1 After the owner's approval: commit, push, open the pull request, wait for `build`, archive, and merge.
+      Outcome: PR #780 opened and `build` green in 2m27s before this archive commit; the merge follows it.

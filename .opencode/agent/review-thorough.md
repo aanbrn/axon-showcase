@@ -66,8 +66,8 @@ edit files — the calling agent handles changes.
 **Report contract** (bounds the report's shape; the analysis is bounded by the scope above, not by this contract):
 
 - Open with the verdict: `<n> findings` or `nothing remains` as the first line, then the severity groups.
-- Budget each finding: the shared report contract's per-item budget, plus a concrete suggestion — the budget is per
-  item, not a cap on the total.
+- Budget each finding: the shared report contract's per-item budget (`docs/contracts/shared-report.md`), plus a concrete
+  suggestion — the budget is per item, not a cap on the total.
 - Collapse checks that passed to one line each, or one summary line.
 - State the recommendation; do not offer alternatives — the calling agent decides.
 - State which subject packs you loaded (or `none`), so the review's scope is verifiable from the report.

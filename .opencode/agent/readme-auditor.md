@@ -75,8 +75,8 @@ Report contract (bounds the report, not the analysis — verify as thoroughly as
 
 - Open with the verdict: `<n> findings, <n> advisory` or `nothing to report` as the first line, then the findings
   grouped by the four axes (accuracy / design intent / language / coverage), then the advisory section.
-- Budget each item: the shared report contract's per-item budget (`showcase/quality/agent-skills`, _Each item is
-  budgeted_), plus what each class adds — a finding, a concrete recommended rewrite; an advisory item, its basis (the
+- Budget each item: the shared report contract's per-item budget (`docs/contracts/shared-report.md`, _The per-item
+  budget_), plus what each class adds — a finding, a concrete recommended rewrite; an advisory item, its basis (the
   passage and the convention or judgment the concern rests on) and that it remains the user's call — the budget is per
   item, not a cap on the total.
 - **Subjective quality is advisory, never a finding**: a wording preference, a structure, a redundancy, jargon, flow

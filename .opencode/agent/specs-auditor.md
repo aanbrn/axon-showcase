@@ -99,7 +99,7 @@ Method — a bounded, staged pass:
   is right.
 
 Report, do not edit. Return findings grouped by severity — **structural**, **stale**, **duplicate**, and **dead
-reference** — each carrying the shared report contract's per-item budget, plus:
+reference** — each carrying the shared report contract's per-item budget (`docs/contracts/shared-report.md`), plus:
 
 - the location (the spec path and a line number, or a short verbatim quote), and
 - a concrete suggested rewrite, merge, or split.

@@ -112,7 +112,8 @@ caller supplies whatever lies beyond the two limits.
 - One report, once the evidence supports a recommendation. Do not keep investigating merely to eliminate every
   uncertainty; an unresolved question is a stated limitation, not a reason for an unbounded pass.
 
-**Report shape.** Follow the shared report contract, with your recommendation as the verdict:
+**Report shape.** Follow the shared report contract (`docs/contracts/shared-report.md`), with your recommendation as the
+verdict:
 
 - Open with one line:
   `Recommendation: <direction>. <n> observations, <n> confirmed problems, <n> hypotheses, <n> open questions.` The

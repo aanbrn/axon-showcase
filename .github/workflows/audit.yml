@@ -44,8 +44,7 @@ jobs:
             today's date (e.g. `docs/audits/2026-09-19.md`).
 
             Each audit has a definition under `.opencode/agent/` and an on-demand command; follow the same scope and
-            the shared report contract they use (a verdict line first, then each item budgeted to its anchor and one
-            line of evidence, passing checks collapsed).
+            the shared report contract they use (`docs/contracts/shared-report.md`).
 
             Run `./gradlew spotlessApply` so the committed file passes the build's markdown gate — CI runs `build` on
             the pull request, and an unformatted report fails it. Then commit the file on the current branch: the

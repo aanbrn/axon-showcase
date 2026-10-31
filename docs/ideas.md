@@ -25,6 +25,13 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
+## 2026-10-31
+
+- Widen the `agents-auditor`'s scope to `docs/contracts/` — parked; no change yet. The first consolidation moved the
+  knowledge-authoring standard and the shared report contract into `docs/contracts/`, but the auditor's scope is
+  `AGENTS.md`, `.opencode/{agent,commands,skills}/`, and `docs/guidance-evidence/`, so a contract/spec drift has no
+  reconciliation mechanism. Revisit when: the next audit-scope change, or a drift finding the review had to catch.
+
 ## 2026-10-28
 
 - Give the review gate's §5 a post-refresh return branch — parked; no change yet. The unit's `#1` process-defect record

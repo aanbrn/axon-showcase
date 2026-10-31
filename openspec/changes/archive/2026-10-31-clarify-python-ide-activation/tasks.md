@@ -83,8 +83,10 @@ writer=ses_e6f985602ffeUDJ4DtV0zmSDfc
       evidence. Outcome: 4 findings (3 should-fix, 1 nitpick) — the activation clause printed for every outcome, a stale
       7.1 outcome, the record's Gradle-sync bullet, and the claims-table headline — all fixed; the clause is now
       conditional on the Python stage's `CONFIGURED` (not the settings stage's).
-- [ ] 7.4 Ask the owner for the manual review pass and end the turn there.
+- [x] 7.4 Ask the owner for the manual review pass and end the turn there. Outcome: the owner reviewed and
+      approved the implementation on 2026-10-31.
 
 ## 8. Ship
 
-- [ ] 8.1 After the owner's approval: commit, push, open the pull request, wait for `build`, archive, and merge.
+- [x] 8.1 After the owner's approval: commit, push, open the pull request, wait for `build`, archive, and merge.
+      Outcome: PR #778 opened and `build` green in 2m27s before this archive commit; the merge follows it.

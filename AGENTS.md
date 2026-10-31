@@ -326,6 +326,11 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   elsewhere — takes a tree on that existing branch (`git -C <primary> worktree add <path> <branch>`; git's DWIM creates
   the local tracking branch when only `origin/<branch>` exists), never a new branch from `origin/main`, and never by
   switching a primary that belongs to another unit.
+- **Prepare a created tree before it is opened.** After creating a tree — a new unit's or a continued unit's — and
+  verifying its path and branch, prepare it when the primary checkout carries `.idea/`: run `./scripts/setup-idea.sh`
+  there and report the tree IDE-ready only when the Python stage reports `CONFIGURED`. The skill's initialization
+  section owns the inheritance of the primary's `.python-version`, the outcome record, and the failure cases; a tree the
+  owner creates by hand is outside this step. captured: auto-setup-new-worktree
 - Occupancy is read from the registry: a tree with a unit branch checked out belongs to that unit whether the tree is
   clean or dirty and whether the branch is merged or awaiting review, and a tree with an unknown branch, a detached
   HEAD, or evidence contradicting the registry is occupied until the owner resolves it. A clean `git status` never

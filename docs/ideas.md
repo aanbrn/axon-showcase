@@ -25,18 +25,6 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
-## 2026-10-31
-
-- Investigate and route the OpenCode v2.2.5 session-move permission anomaly upstream — parked; no report filed yet. The
-  fixture's sandbox control normalized `permission.session_move` to
-  `{"action":"session_move","resource":"*","effect":"deny"}`, and the `opencode.session_move` tool still moved the
-  session to `/tmp` (`{"sessionID":"ses_e701c34b4ffevvM1CxvpM0gsbr","directory":"/tmp"}`). The evidence is
-  `docs/decisions/2026-10-31-process-reuse-pilot.md` finding 3 and `docs/process-defects/probe-pause-resume-reuse.md`
-  #2. Establish the tool's owning repository, whether the permission action is meant to govern the tool, and the venue's
-  policy before publishing; this entry does not establish the anomaly's class, and the `anomalyco/opencode` ban on
-  AI-generated security reports applies if it is one. Revisit when: a released OpenCode version blocks the same call
-  under a normalized deny; an issue's closure alone does not retire this entry.
-
 ## 2026-10-28
 
 - Give the review gate's §5 a post-refresh return branch — parked; no change yet. The unit's `#1` process-defect record

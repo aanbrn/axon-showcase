@@ -1911,3 +1911,13 @@
 2026-10-31	measure-the-two-mechanisms	2	incomplete-enumeration	incomplete-enumeration	1	ses_e7056e247ffexISxRQBDRtv1md	continued	-
 2026-10-31	measure-the-two-mechanisms	3	-	-	0	ses_e7056e247ffexISxRQBDRtv1md	continued	-
 2026-10-31	measure-the-two-mechanisms	4	-	-	0	ses_e7056e247ffexISxRQBDRtv1md	continued	-
+2026-10-31	probe-pause-resume-reuse	1	incomplete-enumeration,claim-unreproducible,over-claim,coherence,claim-missing,wording	-	4	ses_e7017cca5ffef1ritFQGd5y1bl	created	-
+2026-10-31	probe-pause-resume-reuse	2	claim-unreproducible,contradiction	claim-unreproducible	2	ses_e7017cca5ffef1ritFQGd5y1bl	continued	-
+2026-10-31	probe-pause-resume-reuse	3	wording	wording	1	ses_e7017cca5ffef1ritFQGd5y1bl	continued	-
+2026-10-31	probe-pause-resume-reuse	4	coherence	coherence	1	ses_e7017cca5ffef1ritFQGd5y1bl	continued	-
+2026-10-31	probe-pause-resume-reuse	5	-	-	0	ses_e7017cca5ffef1ritFQGd5y1bl	continued	-
+2026-10-31	probe-pause-resume-reuse	6	claim-missing,wording	claim-missing,wording	2	ses_e7017cca5ffef1ritFQGd5y1bl	continued	-
+2026-10-31	probe-pause-resume-reuse	7	contradiction	contradiction	1	ses_e7017cca5ffef1ritFQGd5y1bl	continued	-
+2026-10-31	probe-pause-resume-reuse	8	-	-	0	ses_e7017cca5ffef1ritFQGd5y1bl	continued	-
+2026-10-31	probe-pause-resume-reuse	9	-	-	0	ses_e7017cca5ffef1ritFQGd5y1bl	continued	-
+2026-10-31	probe-pause-resume-reuse	10	-	-	0	ses_e7017cca5ffef1ritFQGd5y1bl	continued	-

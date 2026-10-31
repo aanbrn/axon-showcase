@@ -9,9 +9,9 @@ split. The spec keeps the outcome and the scenarios; this file is the portable c
 
 ## Representation
 
-`AGENTS.md` SHALL be maintained as an operational guide for future agents, not a narrative log or a general knowledge
-repository. Every entry SHALL state reusable knowledge that constrains behavior, guides a decision, defines a reusable
-procedure, prevents a known failure, or supplies the context such a decision needs.
+`AGENTS.md` SHALL be maintained as an operational guide for future agents, not a narrative log of development activity
+or a general knowledge repository. Every entry SHALL state reusable knowledge that constrains behavior, guides a
+decision, defines a reusable procedure, prevents a known failure, or supplies the context such a decision needs.
 
 Before adding knowledge, an author SHALL choose the entry's representation:
 

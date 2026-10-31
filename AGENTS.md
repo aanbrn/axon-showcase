@@ -1346,28 +1346,29 @@ Key modules (libraries, not services):
   `audit` workflow — unlike the three audits, a retrospective is a judgment about a _period_ whose richest input is
   session-only, so it stays on demand (the `agent-skills` spec records why).
 - **Agents-auditor subagent for agent-tooling maintenance**: the `agents-auditor` subagent
-  (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md` and the project-authored
-  `.opencode/` files — for the drift an accretion-only set produces: entries contradicted elsewhere, stale enumerations,
-  dead cross-references, near-duplicate gotchas, `AGENTS.md` entries that violate the stated authoring standard, and a
-  recurring structural defect it traces to the mechanism that produces the artifact. It also measures the always-loaded
-  instruction budget — `AGENTS.md`'s size, the effective bound with its source, the growth since the newest report under
-  `docs/audits/`, and the extraction candidates with their retrieval-path results (the ledger the
-  `showcase/quality/agent-skills` requirement specifies) — so guidance can be moved out of `AGENTS.md` into a
-  destination that loads on demand, and where no such destination exists yet it reports an extraction **opportunity** as
-  a design recommendation rather than a candidate. Its finding classes (merge, removal, route, and extraction
-  candidates, the advisory class for excluded files, the accreted meta rules with their origins, and the
-  authoring-system gap class for a recurring defect's mechanism) are specified in `showcase/quality/agent-skills`; its
-  report contract is `docs/contracts/shared-report.md` — see there rather than here. The boundary is a **provenance
-  partition**: it never _fixes_ what the repo does not author (the generated OpenSpec instruction files and the vendored
-  skill trees), though it still _reads_ them and reports an advisory item where one contradicts how the repo uses it — a
-  project-authored file that shares a generated prefix, like `opsx-tool-update`, stays in scope — a boundary drawn by
-  provenance, not a filename pattern, which over-captures (the same holds for any audit, ignore, or lint scope). Trigger
-  it with the `/audit-agents` command; the main agent applies the approved findings under the review gate, whose
-  delivery routes — each unit scoped to its own artifacts and diff, split by fix type rather than run through one unit —
-  are the `showcase/quality/agent-skills` requirement's. The scheduled variant runs unattended in the `audit` workflow;
-  the audit itself is on demand. A report's reduction candidates are drained by the standing owner-gated unit
-  `/apply-audit-reductions` (specified in `showcase/quality/agent-skills`), run per report rather than left to age; the
-  report's other findings go through the normal change workflow. captured: record-agents-md-authoring-standard
+  (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md`, the project-authored
+  `.opencode/` files, `docs/guidance-evidence/`, and `docs/contracts/` — for the drift an accretion-only set produces:
+  entries contradicted elsewhere, stale enumerations, dead cross-references, near-duplicate gotchas, `AGENTS.md` entries
+  that violate the stated authoring standard, and a recurring structural defect it traces to the mechanism that produces
+  the artifact. It also measures the always-loaded instruction budget — `AGENTS.md`'s size, the effective bound with its
+  source, the growth since the newest report under `docs/audits/`, and the extraction candidates with their
+  retrieval-path results (the ledger the `showcase/quality/agent-skills` requirement specifies) — so guidance can be
+  moved out of `AGENTS.md` into a destination that loads on demand, and where no such destination exists yet it reports
+  an extraction **opportunity** as a design recommendation rather than a candidate. Its finding classes (merge, removal,
+  route, and extraction candidates, the advisory class for excluded files, the accreted meta rules with their origins,
+  and the authoring-system gap class for a recurring defect's mechanism) are specified in
+  `showcase/quality/agent-skills`; its report contract is `docs/contracts/shared-report.md` — see there rather than
+  here. The boundary is a **provenance partition**: it never _fixes_ what the repo does not author (the generated
+  OpenSpec instruction files and the vendored skill trees), though it still _reads_ them and reports an advisory item
+  where one contradicts how the repo uses it — a project-authored file that shares a generated prefix, like
+  `opsx-tool-update`, stays in scope — a boundary drawn by provenance, not a filename pattern, which over-captures (the
+  same holds for any audit, ignore, or lint scope). Trigger it with the `/audit-agents` command; the main agent applies
+  the approved findings under the review gate, whose delivery routes — each unit scoped to its own artifacts and diff,
+  split by fix type rather than run through one unit — are the `showcase/quality/agent-skills` requirement's. The
+  scheduled variant runs unattended in the `audit` workflow; the audit itself is on demand. A report's reduction
+  candidates are drained by the standing owner-gated unit `/apply-audit-reductions` (specified in
+  `showcase/quality/agent-skills`), run per report rather than left to age; the report's other findings go through the
+  normal change workflow. captured: record-agents-md-authoring-standard
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus for the cross-spec structural consistency
   `openspec validate` does not gate — title ↔ capability-path match, Purpose ↔ requirements fit, requirement

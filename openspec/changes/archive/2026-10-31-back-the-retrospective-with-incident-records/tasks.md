@@ -90,4 +90,5 @@ branch=back-the-retrospective-with-incident-records; writer=ses_e6f985602ffeUDJ4
 
 ## 8. Ship
 
-- [ ] 8.1 After the owner's approval: commit, push, open the pull request, wait for `build`, archive, and merge.
+- [x] 8.1 After the owner's approval: commit, push, open the pull request, wait for `build`, archive, and merge.
+      Outcome: PR #775 opened and `build` green in 2m52s before this archive commit; the merge follows it.

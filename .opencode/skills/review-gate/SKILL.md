@@ -84,6 +84,12 @@ Source: `AGENTS.md` "Workflow: The review gate".
      `scripts/claim-scan.py --verify <table>`** — the mode is opt-in; the default scan executes nothing, and `check`
      runs only the test suite. captured: add-claims-execution-verify
 
+   - **IF a row's result is an output, THEN state the expected literal or literal list where the complete assertion and
+     the supported command fit the mode** — a prose Result stays valid and advisory.
+   - **Keep an explanation in the Claim cell, never in the Result** — the mode's eligibility is literal-only.
+   - **Never weaken the evidence to obtain a checked row** — the literal represents the full claim. captured:
+     retrospective-2026-10-31
+
    - **IF the unit has no change dir, THEN draft its pull-request body from `.github/PULL_REQUEST_TEMPLATE.md` and save
      it before the pass runs,** so the checklist line the table goes on exists when the table is written; drafting is
      not publication and opens no pull request. A unit with a change dir writes into its `design.md` or `tasks.md` and

@@ -1969,3 +1969,7 @@
 2026-10-31	consolidate-governance-contracts	9	claim-missing	-	1	ses_e6dba8f84ffep8mkM73GOHZiOu	continued	-
 2026-10-31	consolidate-governance-contracts	10	-	-	0	ses_e6dba8f84ffep8mkM73GOHZiOu	continued	-
 2026-10-31	consolidate-governance-contracts	11	-	-	0	ses_e6dba8f84ffep8mkM73GOHZiOu	continued	-
+2026-10-31	auto-setup-new-worktree	1	contradiction,over-claim,coherence,docs-residue,structured-writing,impact-omission,claim-unreproducible,missing-task	-	7	ses_e6d88b33affeNkY6kKhnHQ4H9V	created	-
+2026-10-31	auto-setup-new-worktree	2	contradiction,over-claim,impact-omission,wording,claim-unreproducible	contradiction,over-claim,impact-omission,claim-unreproducible	4	ses_e6d88b33affeNkY6kKhnHQ4H9V	continued	-
+2026-10-31	auto-setup-new-worktree	3	wording,formatting	wording	0	ses_e6d88b33affeNkY6kKhnHQ4H9V	continued	-
+2026-10-31	auto-setup-new-worktree	4	-	-	0	ses_e6d88b33affeNkY6kKhnHQ4H9V	continued	-

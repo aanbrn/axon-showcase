@@ -15,6 +15,9 @@
 - **Knowledge boundary**: observed the failed match and the re-read; the cause is assumed to be the formatter's reflow,
   since the anchor text was copied from a read taken before that run, and no other writer touched the file.
 
+- **Decision** — no-change: the edit-verification bullet already requires an anchor read after the last formatter run
+  and a batch write that fails loud; this edit aborted before writing anything.
+
 ### split-docs-refresh-conventions#2 — a bash-only exit-status idiom ran under zsh and reported nothing
 
 - **Recorded**: 2026-11-01, by the unit's writer.
@@ -27,6 +30,9 @@
 - **Consequence**: one redundant Gradle invocation; the re-run performed the check the first one was meant to report.
 - **Knowledge boundary**: observed the empty value and the re-run; the shell is zsh on this host, and no other shell was
   tried.
+
+- **Decision** — no-change: the CI gotcha and the reproduction bullet already prohibit reading a status through a
+  pipeline; the exit-status rules name no shell, and the prohibited form is already prohibited.
 
 ### split-docs-refresh-conventions#3 — a measured figure was written before the text stopped changing
 
@@ -44,6 +50,9 @@
 - **Knowledge boundary**: observed the three figures and their re-measurements; nothing was measured for a version of
   the text that was never written to disk.
 
+- **Decision** — no-change: `review-gate` §1 already requires re-deriving a figure after the mechanism's last edit,
+  naming this claim — a figure measured before the final tuning — as the unreproducible one.
+
 ### split-docs-refresh-conventions#4 — an enumeration of permitted edits under-matched the diff in three rounds
 
 - **Recorded**: 2026-11-01, by the unit's writer.
@@ -59,6 +68,9 @@
   scope as a category — the splice stays at the boundaries — rather than as a list of instance kinds.
 - **Knowledge boundary**: observed the three findings and their fixes; whether a fourth kind remained outside the
   category statement was judged only by round 6's clean report.
+
+- **Decision** — no-change: the single-sourcing rule's `incomplete-enumeration` clause already prescribes closing the
+  edit scope as a category rather than enumerating instance kinds, which is the shape the fix converged on.
 
 ### split-docs-refresh-conventions#5 — the push proceeded with no explicit request and no prompt
 
@@ -81,3 +93,7 @@
   in-memory caching of the table was not tested. The row was checked because `AGENTS.md`'s "An unanswered `ask` hangs an
   unattended run" bullet states the saved-allow override; nothing recorded here establishes that it explains these two
   pushes. Whether removing the row is what restored the prompt was not independently tested.
+
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/807 — applied as the Change lifecycle's step 5,
+  so the condition is the owner's delivery request, with the `ship-change` trigger aligned to it; the saved-allow
+  override this record found stays recorded in the ask-hang bullet.

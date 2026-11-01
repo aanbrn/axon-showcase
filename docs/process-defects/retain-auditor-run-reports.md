@@ -17,6 +17,9 @@
 - **Knowledge boundary** — observed in the artifact and its review finding; the action's behavior was confirmed from its
   published `action.yml` and README, not from a run of the step.
 
+- **Decision** — no-change: the tool-behavior rule ("a doc's account … is a floor, not a boundary") already requires
+  reading the tool's own source before the artifact is written, and the review found it in the first round.
+
 ### retain-auditor-run-reports#2 — The deep-review routing was derived once, at the proposal stage, and not re-derived on the implementation
 
 - **Recorded** — 2026-11-01, by the implementing agent.
@@ -34,6 +37,9 @@
 - **Knowledge boundary** — observed in the artifact and the tool's output; whether an earlier implementation stage would
   have changed the outcome is not established, since the first implementation edit and the routing re-derivation
   happened in the same session.
+
+- **Decision** — no-change: `review-gate` §3 already requires deriving the floor from the completed implementation; the
+  proposal-stage note stood where the re-derivation belongs.
 
 ### retain-auditor-run-reports#3 — The delivery steps ran in the implementing turn, on no explicit approval to ship
 
@@ -68,3 +74,7 @@
   reasoning, not an established cause, and this episode does not establish what made that reading available. Whether the
   owner would have approved the unit had the pass been requested is not established, and no claim is made about what the
   bypassed review would have found.
+
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/807 — applied as the Change lifecycle's step 5,
+  so the owner's delivery request is the condition and an approval alone is not one, with the `ship-change` trigger
+  aligned to it.

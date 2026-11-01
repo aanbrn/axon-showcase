@@ -34,6 +34,17 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   future check must accept an unlinked `proposed` until the pull request is created and require the link at merge, which
   a pre-commit rule cannot express.
 
+- Name the hand-off's owning procedure whole, its trigger included — parked; no change yet. Four sites describe what a
+  generalization's hand-off carries: `AGENTS.md`'s "Workflow: Generalize process defects" step 3 and its copy in
+  `/generalize-process-defects` both say "the existing guidance a candidate would extend"; `review-gate` §2 tells a
+  capturing unit to supply "the existing rules each proposal names"; and `lesson-capture`'s input list names "a
+  `ship-change` or `review-gate` procedure". Only the last names the procedure at all, and none names its trigger or
+  entry conditions, where a misleading rule usually has its copy. The hand-off should name that procedure whole, so a
+  proposal cannot correct the root and leave the procedure that owns it unchanged. This pass's rule-site list named the
+  root step and the owning skill's boundary but not its trigger, which was corrected only after a consultation read the
+  skill — an episode that lives in this session, not in the repository. Routes to those four sites, the command's copy
+  following `AGENTS.md` step 3.
+
 ## 2026-10-28
 
 - Evaluate Gradle's official `gradle-best-practices` skill against this build — parked; no change yet. `gradle-skills`

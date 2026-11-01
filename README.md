@@ -276,7 +276,6 @@ it before contributing.
 Every change flows through the same loop:
 
 ```mermaid
-%%{init: {"flowchart": {"nodeSpacing": 18}}}%%
 flowchart TB
     subgraph r1[" "]
         direction LR
@@ -284,7 +283,7 @@ flowchart TB
     end
     subgraph r2[" "]
         direction LR
-        Apply -->|"approve"| PR -->|"CI green"| Archive
+        Apply -->|"ship"| PR -->|"CI"| Archive
     end
     subgraph r3[" "]
         direction LR
@@ -307,7 +306,7 @@ flowchart TB
                                                    │ approve
      ▼─────────────────────────────────────────────┘
 ┌─────────┐            ┌─────────┐            ┌─────────┐
-│  Apply  │──approve──►│    PR   │─CI green──►│ Archive │
+│  Apply  │────ship───►│    PR   │─────CI────►│ Archive │
 └─────────┘            └─────────┘            └─────────┘
                                                    │ spec → main
                             ▼──────────────────────┘
@@ -328,10 +327,11 @@ files so they appear in your IDE's Changes panel. A conflict is resolved for bot
 the branch carries both its own commits and uncommitted work, the agent asks you to decide how to proceed. After
 implementation, a deep `review-thorough` pass also runs whenever the review gate's routing decision requires one.
 
-The change's single **PR** may be opened as a draft after the proposal review (to share the plan) and is opened for real
-after the implementation review — it's the same PR, on which CI runs. Once CI is green and you approve, the change is
-**archived** — the change dir moves to `openspec/changes/archive/` and its delta spec is folded into the main spec — as
-a commit in the same PR, then merged. So the main spec always describes behavior the code has been verified against.
+The change's single **PR** may be opened as a draft after the proposal review (to share the plan); your go-ahead after
+the implementation review starts delivery — the agent pushes the branch and opens the PR for real, and CI runs on it.
+Once CI is green it archives the change — the change dir moves to `openspec/changes/archive/` and its delta spec is
+folded into the main spec — as a commit in the same PR, then merges. So the main spec always describes behavior the code
+has been verified against.
 
 A vague idea is usually sharpened first in **explore mode** (`/opsx-explore`) — a thinking stance that investigates the
 codebase and clarifies what to build, without writing code. Only when the idea is concrete enough does it become a
@@ -469,7 +469,7 @@ whether it consumed included usage or additional credits. See
   root-causes each significant failure to the stage that could have caught it, evaluates the previous window's
   recommendations, and proposes improvements with a verifiable outcome.
 - **Formatting, gates, CI, PRs**: formatting and quality gates run in the build; the agent opens PRs, watches CI, and
-  merges once green with your approval.
+  merges once green when you give the go-ahead.
 
 #### What the Human Decides
 
@@ -477,8 +477,9 @@ Developing on this repo is mostly a **prompting exercise**: you tell the agent w
 tests, reviews, and ships. You almost never edit files by hand — the manual work is deciding and approving:
 
 - **Scope and direction**: what to build, and what an idea becomes.
-- **Approval at each step**: the agent proposes; you approve the proposal, the implementation, and the merge.
-- **Archiving**: a change is archived only after CI is green and you approve.
+- **Approval at each step**: the agent proposes; you approve the proposal and the implementation, and you give the
+  go-ahead to ship.
+- **Archiving**: a change is archived only after CI is green and you give the go-ahead to ship.
 - **Applying suggestions**: retrospective improvements and generalized process rules are proposed by the agent and
   applied according to your judgment.
 - **Merging**: on this repo, the owner merges PRs directly (admin) once CI is green; a non-admin follows the normal

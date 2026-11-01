@@ -14,7 +14,7 @@ and the review gate in `AGENTS.md` govern, and the owner's approval is the preco
 
 Source: `AGENTS.md` "Workflow: Ship a change (CI → archive → merge)".
 
-**Trigger** — the user approved the implementation.
+**Trigger** — a request that moves the unit towards delivery (the Change lifecycle's step 5 states what is not one).
 
 1. Push the implementation branch and open a pull request with the code and the active change directory, titled and
    described per the standard `.github/PULL_REQUEST_TEMPLATE.md` states — a `--body-file` body bypasses that template,

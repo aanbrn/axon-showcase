@@ -55,11 +55,12 @@ branch=address-snyk-advisories-2026-11-01; writer=ses_e6bb3d98effeNURMqTdoGwAu9f
 - [x] 5.3 Run the credentialed scan locally once the owner refreshed the Snyk credential:
       `./gradlew dependencySecurityCheck` reports "Tested 20 projects, no vulnerable paths were found". Its first run
       found ASM `9.7.1` through `accessors-smart`, which task 2.3 fixed.
-- [ ] 5.4 **After the owner's approval pushes the branch** (before the archive commit), dispatch
+- [x] 5.4 **After the owner's approval pushes the branch** (before the archive commit), dispatch
       `dependency-security.yml` from it
       (`gh workflow run dependency-security.yml --ref address-snyk-advisories-2026-11-01`) and watch the run: it must
       report no vulnerable paths. A remaining finding names either an unconstrained coordinate or a suppression that did
-      not take effect.
+      not take effect. Run `41257599218` from this branch reports "Tested 20 projects, no vulnerable paths were found"
+      (`BUILD SUCCESSFUL`).
 - [x] 5.5 Run `./gradlew spotlessApply` and `./gradlew spotlessCheck`.
 - [x] 5.6 Run `openspec validate --all` and confirm the change validates.
 - [x] 5.7 Run the manual 120-character check over the whole changed set, derived with

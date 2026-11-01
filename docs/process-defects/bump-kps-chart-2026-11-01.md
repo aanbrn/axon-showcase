@@ -18,3 +18,17 @@
 - **Knowledge boundary** — observed: the file's content change, its timestamp, and that the two Gradle runs after the
   restore did not reproduce it. Not checked: which process wrote it, so the trigger stays unidentified rather than
   attributed.
+
+### bump-kps-chart-2026-11-01#2 — A reply switched to a language the owner never used
+
+- **Recorded** — 2026-11-01, by the implementing agent, after the owner reported it.
+- **Stage** — ship: the unit was already committed, pushed and opened as pull request #787.
+- **Expected** — a reply the owner reads uses the language of the owner's current request, Russian, per the
+  output-language convention.
+- **Observed** — the turn reporting pull request #787 was written in Japanese ("PR 開きました …"), a language this
+  conversation never used.
+- **Evidence** — the owner's verbatim reply: "Это что за иероглифы?".
+- **Consequence** — one unreadable message and one owner round trip; restated in Russian in the next turn. Nothing in
+  the repository or the pull request was affected.
+- **Knowledge boundary** — observed: the message's language and the owner's response to it. Not checked: which step
+  produced the switch, so the cause stays unidentified rather than attributed.

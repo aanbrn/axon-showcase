@@ -66,7 +66,10 @@ branch=bump-kps-chart-2026-11-01; writer=ses_e6b3f9701ffewWWmCA4CSRHN9L.
       delta 0. The record carries no analysis and no `Decision` line, so it stays for the later generalization unit, and
       the `agent-skills` requirement makes generalization its own unit on already-merged records ("the product unit's
       gate is the hand-off, not the analysis"), so no capture runs here.
-- [ ] 3.5 Ask the owner for the manual review pass; commit, push, archive and merge only after approval.
+- [x] 3.5 Ask the owner for the manual review pass; commit, push, archive and merge only after approval. **Done**: the
+      owner approved the implementation on 2026-11-01, after the clean quick loop, the recorded routing decision (skip),
+      the claims table and the process-defect record, and resolved to skip the deep review; the commit, the push and
+      pull request #787 followed.
 
 ## Workflow follow-up
 

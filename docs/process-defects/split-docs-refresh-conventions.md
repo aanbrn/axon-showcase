@@ -94,6 +94,6 @@
   unattended run" bullet states the saved-allow override; nothing recorded here establishes that it explains these two
   pushes. Whether removing the row is what restored the prompt was not independently tested.
 
-- **Decision** — proposed: applied as the Change lifecycle's step 5, so the condition is the owner's delivery request,
-  with the `ship-change` trigger aligned to it; the saved-allow override this record found stays recorded in the
-  ask-hang bullet, and the pull-request link is added when this unit's pull request opens.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/807 — applied as the Change lifecycle's step 5,
+  so the condition is the owner's delivery request, with the `ship-change` trigger aligned to it; the saved-allow
+  override this record found stays recorded in the ask-hang bullet.

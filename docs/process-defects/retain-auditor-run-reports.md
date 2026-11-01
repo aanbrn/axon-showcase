@@ -75,6 +75,6 @@
   owner would have approved the unit had the pass been requested is not established, and no claim is made about what the
   bypassed review would have found.
 
-- **Decision** — proposed: applied as the Change lifecycle's step 5, so the owner's delivery request is the condition
-  and an approval alone is not one, with the `ship-change` trigger aligned to it; the pull-request link is added when
-  this unit's pull request opens, as `docs/ideas.md`'s Decision-link entry records.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/807 — applied as the Change lifecycle's step 5,
+  so the owner's delivery request is the condition and an approval alone is not one, with the `ship-change` trigger
+  aligned to it.

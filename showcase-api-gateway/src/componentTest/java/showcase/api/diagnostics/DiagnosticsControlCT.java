@@ -245,7 +245,8 @@ class DiagnosticsControlCT {
     void theJfrSummaryDistinguishesAbsentObservations() {
         assertThat(JfrSummary.render())
                 .as("an absent recording is stated, not rendered as a zero counter")
-                .contains("recording: disabled (enable with -D" + JfrSummary.ENABLED_PROPERTY + "=true)");
+                .contains("recording: disabled (enable with -Pdiagnostics.jfr=true, which the build forwards as -D"
+                        + JfrSummary.ENABLED_PROPERTY + "=true)");
     }
 
     @Test

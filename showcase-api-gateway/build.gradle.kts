@@ -101,7 +101,17 @@ testing {
                                 listOf(
                                     "-XX:+AllowRedefinitionToAddDeleteMethods",
                                     "-XX:+EnableDynamicAgentLoading",
-                                )
+                                ) +
+                                    listOfNotNull(
+                                        "-Dshowcase.diagnostics.jfr=true"
+                                            .takeIf {
+                                                providers
+                                                    .gradleProperty("diagnostics.jfr")
+                                                    .map { it != "false" }
+                                                    .orElse(false)
+                                                    .get()
+                                            },
+                                    )
 
                             testLogging {
                                 showStandardStreams = true

@@ -16,3 +16,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   and no outward artifact was published. The quick loop (rounds 1–3) did not catch it; the pre-ship advisor did.
 - **Knowledge boundary** — observed in this unit. The V2 permissions page was not checked until the advisor's
   correction; the V1 page's content was accurate for V1.
+
+- **Decision** — no-change: the external-claim rule already requires citing the version-relevant contract.

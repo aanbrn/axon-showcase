@@ -25,6 +25,15 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
+## 2026-11-01
+
+- Gate a `Decision` line's link with a check — parked; no change yet. The generalization workflow requires `proposed`
+  with a link and `shipped` with a merged pull request's link, but neither `commit-hygiene.py` nor the build validates
+  those lines, so a conforming record and a non-conforming one are indistinguishable to `check`. The unit that surfaced
+  this could not carry the link before its pull request existed; the same bootstrap applies to any `proposed` link, so a
+  future check must accept an unlinked `proposed` until the pull request is created and require the link at merge, which
+  a pre-commit rule cannot express.
+
 ## 2026-10-28
 
 - Give the review gate's §5 a post-refresh return branch — parked; no change yet. The unit's `#1` process-defect record
@@ -141,9 +150,17 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   owner's request language, while its design records that no in-repo check can observe how a model phrases a reply and
   ends "the next step is runtime compliance, not more wording"; this entry is that next step's live record, since the
   archived design is not read. It reopens when an owner-visible message produced with the widened convention in effect
-  violates it — not when it merely carries an untranslated identifier or quotation — and retains the triggering request,
-  the offending excerpt, and the evidence identifying the applicable instruction state. The direction is to investigate
-  compliance before proposing another wording expansion; no enforcement mechanism is selected.
+  violates it — not when it merely carries an untranslated identifier or quotation — and retains the triggering
+  request's language, the offending excerpt, and the evidence identifying the applicable instruction state. The
+  direction is to investigate compliance before proposing another wording expansion; no enforcement mechanism is
+  selected.
+
+  **Reopened 2026-11-01** — the condition is met. The offending excerpt: an owner-visible reply in Japanese,
+  "PR 開きました …", to an owner request made in Russian (`docs/process-defects/bump-kps-chart-2026-11-01.md#2`); the
+  owner's own report of it: "Это что за иероглифы?". The applicable instruction state: #713's widened convention was in
+  effect (`a4da4287`, 2026-10-27 — the `AGENTS.md` bullet and the `agent-skills` scenarios). The record does not retain
+  the triggering request's text, only its language; that gap is stated rather than filled. The direction is unchanged —
+  investigate compliance before proposing another wording expansion.
 
 ## 2026-10-26
 
@@ -698,11 +715,12 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   this application enables virtual threads, Reactor's `boundedElastic` therefore runs on them (measured in the failing
   slice as `loomBoundedElastic-1`, `virtual=true`), and `Thread.getAllStackTraces()` omits virtual threads. So the "idle
   JVM" reading is an artefact of the instrument, and the boundedElastic-starvation question is untouched by it (the pool
-  does exist, on virtual threads). **Neither the mechanism nor the frequency is established**: three failures in six
-  attempts of the delivered configuration, then six consecutive green runs of the same tree once the diagnostic's dump
-  changed — which touches no test behaviour. Next diagnostic: a snapshot taken _while_ a request is in flight, from a
-  source that includes virtual threads (`jcmd Thread.dump_to_file`); the failure-time dump can only show what remains
-  after the timeout, and it cannot see them at all.
+  was then thought to exist on virtual threads; the 2026-11-01 probe recorded below refutes the pool premise). **Neither
+  the mechanism nor the frequency is established**: three failures in six attempts of the delivered configuration, then
+  six consecutive green runs of the same tree once the diagnostic's dump changed — which touches no test behaviour. Next
+  diagnostic: a snapshot taken _while_ a request is in flight, from a source that includes virtual threads
+  (`jcmd Thread.dump_to_file`); the failure-time dump can only show what remains after the timeout, and it cannot see
+  them at all.
 
   **A CI bisect raised a suspicion about `reactor-blockhound` `1.0.18.RELEASE`** — a separate catalogue coordinate
   bumped in the same update set as `reactor-bom` 2025.0.8 (not a member of that BOM), and the row the 2026-10-25 bump
@@ -735,6 +753,36 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   answering it needs a correlated per-request event sequence (subscribe, scheduling, execution, terminal or cancel)
   rather than more snapshots.
 
+  **Two premises were settled on 2026-11-01** (`instrument-the-gateway-ct-stall`, a local probe rather than a run): a
+  `jcmd Thread.dump_to_file` **text** dump does list virtual threads on JDK 21 with default tracking — a scratch JVM
+  holding one from `newVirtualThreadPerTaskExecutor` and one from `Thread.ofVirtual()` showed both, while
+  `-Djdk.trackAllThreads=false` left only the mounted one — so the earlier "no virtual thread in the snapshot" reading
+  is a fact about the stall, not an artefact of the dump, and the JSON form would add nothing. And `boundedElastic` is
+  not a pool in this application: with `spring.threads.virtual.enabled` Reactor (3.6+) swaps it for a thread-per-task
+  scheduler, so the composite experiment that shrank the pool to four tested a mechanism this configuration cannot have
+  and its local green run was never evidence either way. What the suites do now: a per-request arrival/terminal table
+  (its subscribing thread's name and virtual flag included) and a live JFR summary — a pinning count, park counts with
+  their frames, and the suite's peak CPU, beside the counted virtual-thread line the during-run snapshot prints — all on
+  failure, each with a control test proving it fires.
+
+  **A client timeout leaves the row open at its last boundary, 2026-11-01.** A control that subscribes a request whose
+  handler never completes, with a 400 ms client timeout, renders `OPEN … last=ADMITTED`: the exchange is not cancelled
+  in the filter, so "arrival with no terminal" is the shape a stall leaves. The blocking scheduler's figures are
+  aggregate and are labelled so: no request identity reaches the scheduler from a test-scope instrument, so they say
+  whether a blocking task was queued or running at all, not which request owned it. The JFR recording stays opt-in
+  because its cost on a loaded runner is unmeasured and an always-on recorder would change the load it measures. A
+  reader enables it with `-Pdiagnostics.jfr=true`, which the gateway component-test build forwards as
+  `-Dshowcase.diagnostics.jfr=true`. A paired enabled/disabled cold-run comparison is the prerequisite for making it the
+  default.
+
+  **One local reproduction, 2026-11-01.** While that instrumentation was being built, the suite stalled locally in a run
+  whose JFR recording still enabled the per-virtual-thread start and end events: 17 of 130 failing, each
+  `Timeout on blocking read for 30000000000 NANOSECONDS`, the CI signature at the REST slice's 30 s client timeout. The
+  same configuration passed on two later runs, so this is the stall's first local appearance and it points at
+  load-sensitivity — the extra event volume as a plausible tipping point, not a proven cause. It is why the shipped
+  recording leaves those two events out, and why a future attempt may find that reproducing the stall needs load rather
+  than a code change.
+
 ## 2026-10-05
 
 - Guarantee the weekly reports against a dropped or delayed `schedule` — parked; no change yet. The `schedule:` trigger
@@ -765,12 +813,19 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 
 ## 2026-09-30
 
-- Retire the OpenSpec config probe and the `/opsx-tool-update` re-verification once `validate` checks the config —
-  parked; no change yet. `Fission-AI/OpenSpec#1891` closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still
-  unmerged and in no release (no released CLI has `inspectProjectConfig`), so the `ci.yml` probe and the
-  `/opsx-tool-update` re-verification remain the only guards against a config the CLI silently drops. The watch
-  condition is a release carrying `#1894` (and `#1892`'s unparseable-config half), checked when the CLI is bumped rather
-  than on the next weekly sweep. The `#1891` status is recorded inline in `AGENTS.md`'s config-read-path gotcha.
+- Retire the OpenSpec config probe's list-shape arm and the list-shape controls in `/opsx-tool-update` once a release
+  carries `Fission-AI/OpenSpec#1894` — parked; the `v1.16.0` clause of the same watch condition is done and this one has
+  no change yet. `Fission-AI/OpenSpec#1892`'s unparseable-config half shipped in `v1.16.0` (closed 2026-10-30, fixed by
+  PR `#2127`): `validate` exits 1 on a config it cannot read, while the other commands still warn and carry on.
+  `Fission-AI/OpenSpec#1891`'s rules-array half is still live — its fix `Fission-AI/OpenSpec#1894` is open and unmerged
+  — so the `ci.yml` probe's list-shape arm and the list-shape controls in `/opsx-tool-update` remain the only guards
+  against a config whose lists the CLI silently drops. The watch condition has two clauses, each alone requiring its own
+  removal, checked when the CLI is bumped rather than on the next weekly sweep: a pin reaching `v1.16.0` drops the
+  probe's `could not parse` arm (done: that move retired it — `openspec validate --all` exits 1 on an unparseable
+  config, and `ci.yml` now greps only the list-shape warning), and a release carrying `#1894` retires the remaining arm
+  with the list-shape controls in `/opsx-tool-update` (the whole-file control stays, since it exercises that `validate`
+  failure). Both statuses are recorded inline in `AGENTS.md`'s "Track the upstream reports that would retire this
+  project's config guards" bullet.
 
 ## 2026-09-28
 

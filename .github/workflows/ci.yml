@@ -37,7 +37,7 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('showcase-web-ui/package-lock.json') }}
 
       - name: Install openspec CLI
-        run: npm install --global @fission-ai/openspec@1.15.0
+        run: npm install --global @fission-ai/openspec@1.16.0
 
       - name: Install actionlint
         shell: bash
@@ -106,10 +106,11 @@ jobs:
           trap 'rm -rf "openspec/changes/$probe"' EXIT
           output=$(openspec new change "$probe" 2>&1)
           echo "$output"
-          if echo "$output" | grep -qE "must be an array of strings|could not parse"; then
+          # A config the CLI cannot parse at all already fails `openspec validate --all` above; this grep covers
+          # the list-shape warning, which validate does not fail on.
+          if echo "$output" | grep -q "must be an array of strings"; then
             echo "::error::config.yaml is not fully readable — an unquoted ': ' parses a declared list item as a"
-            echo "::error::mapping, and a malformed scalar makes the whole file unparseable; the CLI only warns, so"
-            echo "::error::this gate must fail."
+            echo "::error::mapping; the CLI only warns, so this gate must fail."
             exit 1
           fi
 

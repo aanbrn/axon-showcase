@@ -318,20 +318,20 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   branch records it before its first commit, which is how a **continued** unit (an `opencode/…` branch or a head pushed
   from elsewhere) is assigned. captured: bump-kps-chart-2026-10-25 captured: reject-a-foreign-change-dir-at-commit
 - The primary checkout carries the sequential unit. A **new** unit that finds the primary assigned to another unit — or
-  whose ownership it cannot establish — works in a sibling worktree, `../axon-showcase-<unit>`, created from a freshly
-  fetched `origin/main` with `--no-track`, and the session moves there (`session_move`) before the first write. Create
-  it against the primary explicitly
-  (`git -C <primary> worktree add --no-track -b <unit> <primary-parent>/axon-showcase-<unit> origin/main`), not relative
-  to whatever tree the session happens to be in.
+  whose ownership it cannot establish — works in a sibling worktree, `../axon-showcase-<unit>`, created and prepared by
+  `./scripts/new-worktree.sh <unit>` (the wrapper resolves the primary from its own repository, never from the caller's
+  cwd), and the session moves there (`session_move`) before the first write.
 - A unit that **continues** an existing branch or pull request — a cloud agent's `opencode/…` branch, a head pushed from
-  elsewhere — takes a tree on that existing branch (`git -C <primary> worktree add <path> <branch>`; git's DWIM creates
-  the local tracking branch when only `origin/<branch>` exists), never a new branch from `origin/main`, and never by
-  switching a primary that belongs to another unit.
-- **Prepare a created tree before it is opened.** After creating a tree — a new unit's or a continued unit's — and
-  verifying its path and branch, prepare it when the primary checkout carries `.idea/`: run `./scripts/setup-idea.sh`
-  there and report the tree IDE-ready only when the Python stage reports `CONFIGURED`. The skill's initialization
-  section owns the inheritance of the primary's `.python-version`, the outcome record, and the failure cases; a tree the
-  owner creates by hand is outside this step. captured: auto-setup-new-worktree
+  elsewhere — takes a tree on that existing branch with `./scripts/new-worktree.sh --continue <branch>` (git's DWIM
+  creates the local tracking branch when only `origin/<branch>` exists), never a new branch from `origin/main`, and
+  never by switching a primary that belongs to another unit.
+- **Create and prepare a tree in one operation, before its first unit-content write.** `./scripts/new-worktree.sh` runs
+  the preparation the `setup-idea` skill's initialization section describes: it inherits the primary's
+  `.python-version`, runs `./scripts/setup-idea.sh` in the tree, and reports both stage lines. When the primary carries
+  `.idea/`, write nothing in the tree unless the preparation succeeded and its Python stage reported `CONFIGURED`. The
+  first write is the tree's first unit-content edit — not the checkout, and not the setup's own writes. A failed
+  preparation keeps the tree: fix the cause and re-run the setup rather than recreating it. A tree the owner creates by
+  hand is outside this step. captured: auto-setup-new-worktree captured: bump-openspec-cli-2026-11-01
 - Occupancy is read from the registry: a tree with a unit branch checked out belongs to that unit whether the tree is
   clean or dirty and whether the branch is merged or awaiting review, and a tree with an unknown branch, a detached
   HEAD, or evidence contradicting the registry is occupied until the owner resolves it. A clean `git status` never
@@ -1085,15 +1085,17 @@ Key modules (libraries, not services):
   dependency, tool, or wrapper version) is the mechanical case: it makes stale every live doc that names the bumped
   version — including a coordinate an ADR or idea quotes as the catalog's current value, and an example in
   `openspec/specs/` or a subject pack — so grep the old string across the whole working tree, the change's untracked
-  artifacts included, and fix each live mention, since no gate reads them; de-version an illustrative example (the
-  `2025.0` train, "a later `2025.0.x`") rather than re-version it, which re-stales at that line's next release.
-  captured: bump-dependencies-2026-10-12 captured: bump-dependencies-2026-10-25 Update them before reporting the change
-  done; also remove the change's idea from `docs/ideas.md` in this PR, not as a separate docs PR. An idea is removed
-  once implemented (captured by a change) or once explored and decided against — the file's header owns where its
-  durable lesson goes and what remains. Promotion to a GitHub issue is a **link, not a removal** — annotate the idea
-  with the issue number when you promote it, since the file's header names only the issue's link to the change, not the
-  scratchpad's back-link to the issue, so the two drift apart — and prefer promoting a unit's idea at that unit's merge:
-  while its PR is open, citing an artifact the unit ships is a contingent claim that must say so
+  artifacts included, and fix each live mention, since no gate reads them; a version sentence that is not a
+  present-tense current value is not retargeted to the bumped version, since that re-stales at the next release —
+  de-version an illustrative example (the `2025.0` train, "a later `2025.0.x`"), and widen a minimum requirement to
+  `"<old> or newer"`, which a retarget would turn into a claim that the older release was insufficient. captured:
+  bump-dependencies-2026-10-12 captured: bump-dependencies-2026-10-25 captured: bump-dependencies-2026-11-01 Update them
+  before reporting the change done; also remove the change's idea from `docs/ideas.md` in this PR, not as a separate
+  docs PR. An idea is removed once implemented (captured by a change) or once explored and decided against — the file's
+  header owns where its durable lesson goes and what remains. Promotion to a GitHub issue is a **link, not a removal** —
+  annotate the idea with the issue number when you promote it, since the file's header names only the issue's link to
+  the change, not the scratchpad's back-link to the issue, so the two drift apart — and prefer promoting a unit's idea
+  at that unit's merge: while its PR is open, citing an artifact the unit ships is a contingent claim that must say so
   (`open as #NNN; not yet merged`) and the clause drops at the merge — the merge's record append owns that drop, and
   where the claim was already published outside the repository it means editing the published artifact, not only
   omitting it from new prose — because the issue is a permanent record outside the repository and cannot cite what the
@@ -1445,10 +1447,11 @@ Key modules (libraries, not services):
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
   documentation first and was only usable once the user pointed out it had no trigger and the command was added.
 - **A recurring unit type — a subagent/command change, a version bump — derives its change dir from the last analogous
-  archived change as a **floor** rather than re-deriving it, unioned with the tasks the rules mandate now (the pre-write
-  pass's record and claims table first): the artifact set for the former — the union of the sites every artifact-bearing
-  task in that change names, not the list one task carries — and for a bump the task set, each task's result record, and
-  the spec-position rationale.** **A definition edit that changes spec'd behavior is a change, not a docs edit** — the
+  archived change as a **floor** rather than re-deriving it, and reconciles that set with what the rules mandate now —
+  dropping an inherited task a current rule has superseded and adding the tasks they require (the pre-write pass's
+  record and claims table first): the artifact set for the former — the union of the sites every artifact-bearing task
+  in that change names, not the list one task carries — and for a bump the task set, each task's result record, and the
+  spec-position rationale.** **A definition edit that changes spec'd behavior is a change, not a docs edit** — the
   `agent-skills` spec describes that definition's behavior, so such an edit owes that spec's delta and never rides a
   docs, audit-fix, or retrospective PR; a definition-only edit the spec does not describe (a model-pin bump,
   `skip_specs: true`) still ships as a change, with no delta. Beyond the descriptors the auditor-justification bullet
@@ -1475,7 +1478,7 @@ Key modules (libraries, not services):
   union it derives from. captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12 captured:
   record-review-rounds captured: bound-the-review-loop captured: bump-dependencies-2026-10-16 captured:
   widen-audit-agents-to-authoring-gaps captured: sharpen-experience-analysis captured: sharpen-specs-audit captured:
-  align-capture-invocation-contract
+  align-capture-invocation-contract captured: bump-openspec-cli-2026-11-01
 - **An OpenCode model pin is resolved before it is set, and a bump is a multi-file sweep — grep for the old model id,
   and keep the vision pin out of scope.** A pin naming a provider that does not serve the model fails the agent at every
   invocation (`Model unavailable`) with no gate reading it, so resolve it first
@@ -1545,14 +1548,14 @@ Key modules (libraries, not services):
   `setup-hosts.sh`; and `.opencode/` holds the OpenCode-runtime surface — agents, commands, skills — with **no
   executable**, so a command may trigger a `scripts/` tool but never hosts its implementation. A `scripts/` tool an
   agent drives gets its own command trigger, and the tool keeps the implementation (`doctor.sh` ↔ `/check-tooling`,
-  `setup-idea.sh` ↔ `/setup-idea`, `experience-analysis.sh` ↔ `/retrospective`, `claim-scan.py` ↔ `/seed-claims`,
-  `reconnect-mcp.py` ↔ `/reconnect-mcp`); a tool with no agent caller stays untriggered (`install-git-hooks.sh`,
-  `load-test-baseline.sh`, `review-rounds.py`), and `commit-hygiene.py` is driven by the tracked
-  `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks, and `review-routing.py` by the review gate's own
-  procedure and by its `testReviewRouting` task. The generated OpenSpec command/skill files and the vendored skill trees
-  are not the repository's to place. Derive any claim about placement from the complete set — `git ls-files -s` for the
-  executable bit, and `git ls-files scripts showcase-web-ui/scripts '*.sh' ':!:.opencode/*'` for the tools — not from
-  the location in hand. captured: state-tooling-placement-rule (#458)
+  `setup-idea.sh` ↔ `/setup-idea`, `new-worktree.sh` ↔ `/new-worktree`, `experience-analysis.sh` ↔ `/retrospective`,
+  `claim-scan.py` ↔ `/seed-claims`, `reconnect-mcp.py` ↔ `/reconnect-mcp`); a tool with no agent caller stays
+  untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`, `review-rounds.py`), and `commit-hygiene.py` is driven
+  by the tracked `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks, and `review-routing.py` by the review
+  gate's own procedure and by its `testReviewRouting` task. The generated OpenSpec command/skill files and the vendored
+  skill trees are not the repository's to place. Derive any claim about placement from the complete set —
+  `git ls-files -s` for the executable bit, and `git ls-files scripts showcase-web-ui/scripts '*.sh' ':!:.opencode/*'`
+  for the tools — not from the location in hand. captured: state-tooling-placement-rule (#458)
 - **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
   `.opencode/commands/setup-agent-tools.md` (project-local, **not** a vendored skill) let a contributor ask the agent to
   wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only, the Steroid MCP — into the
@@ -1974,12 +1977,19 @@ task or report, or concluding the cause of a Gradle failure.
   `.gradle/` reproduced the skip CI saw — so clear the caches outside `build/` before concluding a failure does not
   reproduce. The context is also the input's own content: a probe against a stand-in evidences the stand-in, so state
   the fixture's measured size beside the claim and defer the untested remainder to a task. **A probe's sandbox is state
-  too: give each fixture a fresh clone and assert nothing escaped.** A run given a clone can create a worktree or a
-  session on a real path, and a clone reused across fixtures carries the earlier one's edits — deny `git worktree`, the
-  worktree tools, and session-move in the sandbox's own config, then check before and after the run that no worktree
-  exists and the sandbox has no remote. captured: separate-agents-md-core-and-subject-packs captured:
-  fix-chart-dependency-fetch captured: grant-openspec-global-access-in-cloud (#325) captured:
-  load-stage-workflow-instructions-on-demand
+  too: give each fixture a fresh clone, and in the sandbox's own configuration and trial-agent definition deny only the
+  mutating `git worktree` subcommands (at least `add`, `remove`, `move` and `prune`, each with its `-C` form), disable
+  the worktree-creation and session-move tools in the agent's `tools` map, then assert nothing escaped.** A run given a
+  clone can create a worktree or a session on a real path, and a clone reused across fixtures carries the earlier one's
+  edits; a bare `git worktree` pattern also matches the read-only `list` a compound setup command carries (observed on
+  OpenCode v2.2.5, whose per-node matching the permission bullet below states; every compound form was not tested). A
+  permission rule confines neither of those two tools — the `tools` map is what removes them, as it did for
+  session-move, and the worktree-creation entry is the analogous, untested one — while removing a worktree stays
+  permission-controlled by the `edit` action, deliberately, since deleting a worktree is not an escape vector; then
+  check before and after the run that no worktree exists and the sandbox has no remote. captured:
+  separate-agents-md-core-and-subject-packs captured: fix-chart-dependency-fetch captured:
+  grant-openspec-global-access-in-cloud (#325) captured: load-stage-workflow-instructions-on-demand captured:
+  probe-pause-resume-reuse
 
 ### Writing checks and tests that can actually fail
 
@@ -2361,15 +2371,15 @@ changing an image or buildpack pin.
   a reload does not fix it. captured: fix-readme-auditor-frontmatter (#477)
 
 - **A config can look well-formed and pass the consumer's validation while the consumer silently ignores or reinterprets
-  part of it — from outside, a valid config and an ignored one are indistinguishable.** The CI `build` job now probes
-  for the list-shape warning on any declared list surface and the whole-file `could not parse` one (a malformed scalar)
-  and fails on either, and `/opsx-tool-update` re-verifies both with a positive control. The signal may be a warning on
-  stderr that no gate reads, **or none at all**: `java.util.Properties` splits a key at its first `:`, so the dependency
-  list's `group:module` entries collapsed to group prefixes — a dead exact-coordinate branch and a whole-group
-  over-suppression. For a config **a tool owns**, do not substitute a parser of your own (it assumes a contract the tool
-  owns): probe the consumer's read path and fail a gate on its warning. For a format **the repository defines**, own the
-  parse and unit-test it — a repository-owned line parser (`DependencyUpdateRulesTests`) beats escaping a library's
-  delimiters. captured: hold-back-minor-dependency-updates
+  part of it — from outside, a valid config and an ignored one are indistinguishable.** The CI `build` job probes for
+  the list-shape warning on any declared list surface and fails on it, `/opsx-tool-update` re-verifies it with a
+  positive control, and a config the CLI cannot parse at all fails `openspec validate --all`. The signal may be a
+  warning on stderr that no gate reads, **or none at all**: `java.util.Properties` splits a key at its first `:`, so the
+  dependency list's `group:module` entries collapsed to group prefixes — a dead exact-coordinate branch and a
+  whole-group over-suppression. For a config **a tool owns**, do not substitute a parser of your own (it assumes a
+  contract the tool owns): probe the consumer's read path and fail a gate on its warning. For a format **the repository
+  defines**, own the parse and unit-test it — a repository-owned line parser (`DependencyUpdateRulesTests`) beats
+  escaping a library's delimiters. captured: hold-back-minor-dependency-updates
 
 - **A load that either succeeds or throws reports through its exit status, not from a message grepped out of its
   output.** In the V1 probe, `opencode debug config`'s resolved output embeds agent and command prompts, so matching
@@ -2379,22 +2389,25 @@ changing an image or buildpack pin.
   narrow-the-v1-config-probe-claim
 
 - **Keep a config guard's list-shape pattern generic (`must be an array of strings`), not one surface's enumerated
-  wording.** It grew from `ignoring this artifact's rules` to `ignoring this artifact's rules|could not parse`, then to
-  the generic phrase, which is what covered every surface — so a malformed `rules` or `operations.*.guidance` item drops
-  no config list silently. The same class covers the change's own `.openspec.yaml`, quieter still: OpenSpec's
-  change-metadata schema is not strict, so an unrecognized key is silently stripped with no warning at all — a
-  `skip_design: true` marker (an inherited agent habit; a dozen archived changes carry it) does nothing, and
-  `openspec status` still reports `design` incomplete and points at `openspec instructions design`. There is no
-  artifact-skip key beyond `skip_specs`: skip `design.md` by simply not writing it, never by adding a key. captured:
-  bump-snyk-cli-pin
+  wording.** It grew from `ignoring this artifact's rules` to the generic phrase, which is what covers every surface —
+  so a malformed `rules` or `operations.*.guidance` item drops no config list silently. The same class covers the
+  change's own `.openspec.yaml`, quieter still: OpenSpec's change-metadata schema is not strict, so an unrecognized key
+  is silently stripped with no warning at all — a `skip_design: true` marker (an inherited agent habit; a dozen archived
+  changes carry it) does nothing, and `openspec status` still reports `design` incomplete and points at
+  `openspec instructions design`. There is no artifact-skip key beyond `skip_specs`: skip `design.md` by simply not
+  writing it, never by adding a key. captured: bump-snyk-cli-pin
 
-- **Track the upstream reports that would retire this project's config guards.** Upstream, the reports are
-  `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item; closed 2026-09-29, but its fix
-  `Fission-AI/OpenSpec#1894` is still unmerged and in no release — no released CLI has `inspectProjectConfig`, so the
-  defect is live here) and `Fission-AI/OpenSpec#1892` (an unparseable config; still open); if `validate` gains a config
-  check that fails (an ask in each), the CI probe and the `/opsx-tool-update` re-verification become redundant and can
-  go. captured: inject-positive-control-task-rule (#375) captured: widen-config-probe-to-guidance captured:
-  record-openspec-1891-closure
+- **Track the upstream reports that would retire this project's config guards.** `Fission-AI/OpenSpec#1892` (an
+  unparseable config) closed 2026-10-30, fixed by PR `#2127` and shipped in `v1.16.0`, where `validate` exits 1 on a
+  config it cannot read while the other commands still warn and carry on. `Fission-AI/OpenSpec#1891` (an unquoted `: `
+  in a rules item) closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still open and unmerged, so that half is
+  live here. Each guard retires on its own condition:
+  - the CI probe's `could not parse` arm — retired when this repository's pin reached `v1.16.0`, leaving
+    `openspec validate --all` to fail the gate on that shape;
+  - the CI probe's `must be an array of strings` arm, and with it the list-shape positive controls in
+    `/opsx-tool-update`, once a release carries `#1894` — the command's whole-file control stays, since it exercises the
+    `validate` failure the first arm handed over to. captured: inject-positive-control-task-rule (#375) captured:
+    widen-config-probe-to-guidance captured: record-openspec-1891-closure
 
 - **A hosted service is a third consumer class, verified by the service itself — its own check where it has one, else
   the event it produces.** A retired key can be accepted and ignored with no local signal — `dependabot.yml`'s
@@ -2483,8 +2496,10 @@ changing an image or buildpack pin.
 - **A permission action is enforced only by a tool that consults the engine.** V2 action names are strings, so plugins
   may define more, and the schema accepts any name; a rule for a built-in tool that does not request a permission action
   is inert. `session_move` and `worktree_create` do not request one (`tools.mdx`), while `worktree_remove` uses `edit` —
-  a `session_move` rule therefore does not confine the session (v2.2.5 moved it to `/tmp`). captured:
-  investigate-session-move-permission
+  a `session_move` rule therefore does not confine the session (v2.2.5 moved it to `/tmp`). Remove the tool with the
+  agent's `tools` map (`opencode_session_move: false`, and `opencode_worktree_create: false` for the other tool this
+  sentence names), which removed it where an `execute: deny` did not. captured: investigate-session-move-permission
+  captured: lesson-capture-reuse
 
 - **An unanswered `ask` hangs an unattended run — anchor a `bash`/`shell` permission pattern to the parsed command, and
   bound the job.** OpenCode emits one pattern per parsed `command` node, so a whole-command-string guard

@@ -18,6 +18,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed the misplacement and its repair. Not checked: whether any other scripted edit in
   this unit derived a boundary across a heading.
 
+- **Decision** — no-change: the programmatic-edit gotcha already requires verifying at the granularity edited.
+
 ### back-the-retrospective-with-incident-records#2 — A shell test the build runs through `sh` required bash, and a green local `check` did not show it
 
 - **Recorded** — 2026-10-31, by the writing session (`ses_e6f985602ffeUDJ4DtV0zmSDfc`), during the review stage.
@@ -33,6 +35,10 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   `set -eu`, verified under `dash` and `sh`.
 - **Knowledge boundary** — observed the dash failure and the fix. Not checked: the Linux CI job itself, which the dash
   run stands in for.
+
+- **Decision** — no-change: the proposed build-runner rule was withheld — one review-caught incident, its prospective CI
+  failure prevented, and no automation assessment — so it fails the promotion gate and stays reconsiderable with
+  recurrence evidence.
 
 ### back-the-retrospective-with-incident-records#3 — The new integration test required a host tool the default path's prerequisites exclude
 
@@ -51,3 +57,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   green; the full Docker-free `check` then passed on the refreshed tree.
 - **Knowledge boundary** — observed the local run passing with `jq` installed, and the shim standing in for its absence;
   did not run on a host that has no `jq` binary at all.
+
+- **Decision** — no-change: the prerequisites bullet already limits the default path to Java, Docker, Python and
+  `actionlint`.

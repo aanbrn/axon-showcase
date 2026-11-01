@@ -80,18 +80,19 @@ nothing.
   silence was misread as a defect in the guard; a throwaway `python` `replace` left an unterminated quote whose
   whole-file `could not parse … Missing closing 'quote` warning was briefly read as a wording defect — the wording was
   faithful, though it did expose a real gap (a malformed edit yields `could not parse … ignoring it.`, which the CI
-  probe's grep did not match, so an unparseable config passed the job (exit 0)), since widened to catch both. When a
-  scratch script's result surprises you, print or diff the input it actually produced before drawing a conclusion from
-  it — a before/after diff proves the edit _landed_, not that it was the _intended_ one. Two further modes defeat the
-  "confirm the assertion fails" check: the check may **read an intermediary the edit does not touch** —
-  `verifyExecutableBits` reads the git index (`git ls-files -s`), so `chmod 644 scripts/doctor.sh` left the gate green
-  until the mode change was `git add`-ed, so perturb the surface the check reads, not the one a tool writes; and a
-  control in a pipeline reads the **sink's** status, not the subject's (`cmd | tail; echo $?` reports `tail`), so a
-  control whose exit code you did not take from the command under test proves nothing. A control harness for a workflow
-  `run:` block must execute that step's own shell with the collaborator substituted — no test covers the block and here
-  only actionlint reads it (no shellcheck) — and be syntax-checked itself (`bash -n`) before its exit codes are trusted.
-  captured: widen-config-probe-to-guidance captured: enforce-web-ui-naming-conventions captured:
-  check-toolchain-prerequisites captured: retry-the-actionlint-download
+  probe's grep did not match, so an unparseable config passed the job (exit 0)), since widened to catch both — until
+  `v1.16.0` began failing `openspec validate` on that shape, retiring the probe's whole-file arm. When a scratch
+  script's result surprises you, print or diff the input it actually produced before drawing a conclusion from it — a
+  before/after diff proves the edit _landed_, not that it was the _intended_ one. Two further modes defeat the "confirm
+  the assertion fails" check: the check may **read an intermediary the edit does not touch** — `verifyExecutableBits`
+  reads the git index (`git ls-files -s`), so `chmod 644 scripts/doctor.sh` left the gate green until the mode change
+  was `git add`-ed, so perturb the surface the check reads, not the one a tool writes; and a control in a pipeline reads
+  the **sink's** status, not the subject's (`cmd | tail; echo $?` reports `tail`), so a control whose exit code you did
+  not take from the command under test proves nothing. A control harness for a workflow `run:` block must execute that
+  step's own shell with the collaborator substituted — no test covers the block and here only actionlint reads it (no
+  shellcheck) — and be syntax-checked itself (`bash -n`) before its exit codes are trusted. captured:
+  widen-config-probe-to-guidance captured: enforce-web-ui-naming-conventions captured: check-toolchain-prerequisites
+  captured: retry-the-actionlint-download
 
 ## A verification step must discriminate the edit from its absence
 

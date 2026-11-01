@@ -25,14 +25,15 @@ the script's; this skill carries what to do for the outcome it reports.
 
 ## Initializing a new working tree
 
-Each tree the workspace procedure creates — a new unit's or a continued unit's — is prepared before it is opened, when
-the primary checkout has been set up for IntelliJ (it carries `.idea/`).
+Each tree the workspace procedure creates — a new unit's or a continued unit's — is created and prepared by
+`./scripts/new-worktree.sh` before its first unit-content write, when the primary checkout has been set up for IntelliJ
+(it carries `.idea/`). The steps below are what the wrapper runs, and what to do when it reports a tree not ready.
 
 1. IF the primary carries a `.python-version` and the tree carries none, THEN copy it in. Never overwrite a
    `.python-version` the tree already has.
 2. Run `./scripts/setup-idea.sh` in the tree.
 3. Read both stage lines and record them with the exit status and the plugin outcome. The tree is IDE-ready only when
-   the Python stage reports `CONFIGURED`.
+   the preparation succeeds and the Python stage reports `CONFIGURED`.
 4. IF the Python stage reports `NEEDS_ACTION` or `ERROR`, THEN report its block with the remedy it names and do not open
    the tree as prepared.
 5. The inherited selection changes the interpreter only where the tree's `PATH` resolves `python3` through the selector

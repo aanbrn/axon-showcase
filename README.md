@@ -585,10 +585,10 @@ confirms each reached `connected`, without restarting OpenCode.
 ### Parallel Units
 
 Units running side by side work in separate checkouts: the **primary checkout** carries the sequential unit, and a
-parallel unit runs in a sibling worktree beside it — `../axon-showcase-<unit>`, created from `origin/main` — so the two
-never write into the same tree. The rule is procedural: a unit records the tree it owns before its first write. A
-parallel unit's tree is removed after its pull request merges, while the primary is handed to the next unit and never
-removed.
+parallel unit runs in a sibling worktree beside it — `../axon-showcase-<unit>`, created from `origin/main` and prepared
+by `./scripts/new-worktree.sh` — so the two never write into the same tree. The rule is procedural: a unit records the
+tree it owns before its first write. A parallel unit's tree is removed after its pull request merges, while the primary
+is handed to the next unit and never removed.
 
 ### Slash Commands
 
@@ -603,6 +603,7 @@ removed.
 | `/setup-agent-tools`          | Sets up the tooling MCP servers (GitHub core, plus optional extras)                                                                                                                               |
 | `/reconnect-mcp`              | Reports every MCP server's status, or reconnects one named server or the whole failed set, verifying each reached `connected` — without restarting OpenCode                                       |
 | `/setup-idea`                 | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier + Python analysis)                                                                                         |
+| `/new-worktree`               | Creates a unit's sibling worktree and prepares it for IntelliJ in one operation, reporting whether it is ready                                                                                    |
 | `/check-tooling`              | Checks whether this machine has the prerequisites (Java, Docker, Python, and the optional tools)                                                                                                  |
 | `/review-thorough`            | Deep risk-routed review of a change (the review gate's routing decision, or this explicit run)                                                                                                    |
 | `/pause-unit`                 | Records the current unit's `Resume checkpoint` and ends the turn: no commit, stash, push, or teardown                                                                                             |

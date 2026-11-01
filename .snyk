@@ -10,7 +10,14 @@ version: v1.25.1
 # Validation 4 line — hibernate-validator 9.2.0.Beta1, jakarta.validation-api 4.0.0-M1 — which requires the
 # deferred Spring Boot 4 migration (see ADR-0004).
 # Short-term expires so the scheduled scan re-surfaces these if the migration has not landed.
+# json-smart 2.5.2: no fixed release exists (the advisory affects every published version), and it is reached only
+# through spring-boot-starter-test, which this build declares on test scopes alone.
 ignore:
+  SNYK-JAVA-NETMINIDEV-21715438:
+    - '* > net.minidev:json-smart@2.5.2':
+        reason: No fixed release exists (the advisory affects every published version); reached only on test scopes
+        expires: 2026-12-01T00:00:00.000Z
+        created: 2026-11-01T00:00:00.000Z
   SNYK-JAVA-ORGHIBERNATEVALIDATOR-20877468:
     - '* > org.hibernate.validator:hibernate-validator@8.0.3.Final':
         reason: Expression Language injection; fixed only at hibernate-validator 9.2.0.Beta1 (ADR-0004)

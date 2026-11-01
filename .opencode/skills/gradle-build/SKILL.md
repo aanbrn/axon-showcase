@@ -39,7 +39,11 @@ spec's; this pack carries the operational rules a change needs, not a second cop
   versions pinned in workflow files, and `buildLogicUpdates` the plugin pins the included `build-logic` build resolves
   (which the main build's own report cannot see), so only the entries none of them reads must be audited by hand. The
   buildpack/builder pin mechanics — the pair the pins must form, the run-the-image verification, and the CNB id versus
-  Docker Hub repository — are the `deployment-operations` pack's.
+  Docker Hub repository — are the `deployment-operations` pack's. The tool-version rule reaches a plugin a build script
+  applies directly too — the root's `jacoco` included: set its `toolVersion` from the catalog, because an omitted one is
+  not unpinned but whatever the Gradle distribution bundles, older than the catalog's pin here, so one build ran two
+  JaCoCo versions the scan reported separately. Grep each script that applies the plugin for a `toolVersion` assignment
+  rather than trusting the plugin's version. captured: address-snyk-advisories-2026-11-01
 - **A `build-logic` convention plugin's effect is verified through a consuming module, not unit-tested.** `build-logic`
   has no `gradleTestKit()`, so its `src/test` holds unit tests of plain helper objects (`Versions`, the `*Rules`
   classes) and a plugin's Gradle DSL — e.g. `spring-boot-conventions`' `springBoot { buildInfo { … } }` — cannot be
@@ -129,28 +133,34 @@ coordinates keep the leading-integer major comparison.
   `val`/`fun`, the script's own `this` — because serializing the captured **script object** fails the store; compute
   what the action needs into a `val` local to the configuration lambda (a class/object reference is safe) — but a file
   tree the task scans is a declared task input (`@InputFiles`) resolved in the action, never a hoisted path list, since
-  a warm cache replays the configuration-time list and a file added after the store goes unscanned. It needed the
-  gradle-helm-plugin at **3.2.0** (its tasks captured a `Task`/`Project` through 3.1.2 —
-  build-extensions-oss/gradle-helm-plugin#140, closed), that hoist at each task action that had it (the workflow-lint,
-  dependency-security, frontend npm, load-tests, and compose tasks — whose `onlyIf` also read `gradle.startParameter`
-  and a `rootProject.extra` handshake, now `composeScheduleState`), and `notCompatibleWithConfigurationCache` on
-  `:load-tests:gatlingRecorder`, whose third-party task type holds a `Configuration`/`SourceSet` no hoist can fix (the
-  plugin repository disables issues and discussions, so an upstream fix must arrive as a PR). Sweep such a change by
-  **executing** every task a workflow invokes, not by realizing the graph: `./gradlew tasks --all`'s set never runs a
-  task action, so a task no `check` graph requests — `upstreamReferences`, invoked only by its own workflow — escapes
-  every sweep the build itself can run, and its store defect surfaces only in CI, on a schedule, where no gate sees it
-  (#581 missed it for a week). Run each such task with the cache enabled and require a stored entry, then a reused one.
-  A plugin task type is one failure shape (it cannot store); a third-party task whose `onlyIf` reads build state is
-  another: it stores cleanly and then silently skips, because the cache resolves the predicate against the state
-  captured at store time. Compare each such task's _outcome_ (ran / skipped) with and without the cache on a clean
-  checkout, not only that the graph stores; and neutralize such a gate with `setOnlyIf { true }`, since a bare
-  `onlyIf { true }` only appends a spec that is ANDed with the plugin's and leaves it in force (the helm plugin's
-  chart-dependency skip is the worked case — see the `deployment-operations` pack's Chart validation). captured:
-  fix-upstream-references-config-cache captured: add-a-markdown-table-integrity-check
+  a warm cache replays the configuration-time list and a file added after the store goes unscanned, and replays
+  configuration rather than running it, so a warning a plugin emits while configuring is absent from a reused run — a
+  warm run's silence is not the plugin's fix (the deprecation bullet below owns the probe). captured:
+  bump-dependencies-2026-11-01 It needed gradle-helm-plugin **3.2.0** or newer (its tasks captured a `Task`/`Project`
+  through 3.1.2 — build-extensions-oss/gradle-helm-plugin#140, closed), that hoist at each task action that had it (the
+  workflow-lint, dependency-security, frontend npm, load-tests, and compose tasks — whose `onlyIf` also read
+  `gradle.startParameter` and a `rootProject.extra` handshake, now `composeScheduleState`), and
+  `notCompatibleWithConfigurationCache` on `:load-tests:gatlingRecorder`, whose third-party task type holds a
+  `Configuration`/`SourceSet` no hoist can fix (the plugin repository disables issues and discussions, so an upstream
+  fix must arrive as a PR). Sweep such a change by **executing** every task a workflow invokes, not by realizing the
+  graph: `./gradlew tasks --all`'s set never runs a task action, so a task no `check` graph requests —
+  `upstreamReferences`, invoked only by its own workflow — escapes every sweep the build itself can run, and its store
+  defect surfaces only in CI, on a schedule, where no gate sees it (#581 missed it for a week). Run each such task with
+  the cache enabled and require a stored entry, then a reused one. A plugin task type is one failure shape (it cannot
+  store); a third-party task whose `onlyIf` reads build state is another: it stores cleanly and then silently skips,
+  because the cache resolves the predicate against the state captured at store time. Compare each such task's _outcome_
+  (ran / skipped) with and without the cache on a clean checkout, not only that the graph stores; and neutralize such a
+  gate with `setOnlyIf { true }`, since a bare `onlyIf { true }` only appends a spec that is ANDed with the plugin's and
+  leaves it in force (the helm plugin's chart-dependency skip is the worked case — see the `deployment-operations`
+  pack's Chart validation). captured: fix-upstream-references-config-cache captured:
+  add-a-markdown-table-integrity-check
 
 - **IF a Gradle run under `--warning-mode all` emits a gradle-helm-plugin deprecation or a `Configuration.visible`
-  warning, THEN treat it as upstream and leave it: there is no repo-side fix.** gradle-helm-plugin 3.2.0 still calls the
-  deprecated `Project.getProperties()` (a hard error in Gradle 10); tracked upstream as
+  warning, THEN treat it as upstream and leave it: there is no repo-side fix.** gradle-helm-plugin 3.3.0 still calls the
+  deprecated `Project.getProperties()` (a hard error in Gradle 10), from its
+  `HelmPlugin.createRepositoriesFromProjectProperties` once per helm project, and only on a run whose
+  configuration-cache entry is not reused (so probe with `--no-configuration-cache`;
+  `-Dorg.gradle.deprecation.trace=true` names the emitting class); tracked upstream as
   build-extensions-oss/gradle-helm-plugin#145, so bump the plugin when a fixed release lands. The
   `Configuration.visible` deprecation (`setVisible(boolean)`, removed in Gradle 11) is emitted by several third-party
   plugins (helm, errorprone, SpotBugs, Spring Boot, protobuf) and is likewise plugin-side. Do not add a local workaround
@@ -179,16 +189,40 @@ coordinates keep the leading-integer major comparison.
   with `npm ls <pkg>` (the patched version resolves). captured: bump-web-ui-npm-2026-10-22 captured:
   override-opencode-plugin-transitives
 
-- **A build tool's own vulnerable transitive does not reach the platform BOM, and a tool configuration that rejects a
-  platform project is aligned with a dependency constraint instead.** The platform's `constraints` reach the
+- **A build tool's own vulnerable transitive does not reach the platform BOM, so its fix is the narrowest surface that
+  carries the patched set — the tool's own newer release first, otherwise a constraint on that tool configuration.** A
+  tool release that ships the patched transitive is the single source (JaCoCo's publishes the patched ASM), so bump the
+  catalog's tool version rather than pinning the transitive beside it; a tool already at its newest release that pins
+  the vulnerable one (SpotBugs on ASM `9.11`) takes the constraint. The platform's `constraints` reach the
   compile/runtime classpaths, not Gradle's tool configurations: `errorprone(platform(project(":platform")))` works (its
   `annotationProcessor` classpath extends it), while `checkstyle(platform(project(":platform")))` drops the checkstyle
   tool and fails `checkstyleMain` with `ClassNotFoundException: CheckstyleAntTask` — constrain that one with
   `constraints { checkstyle(libs.guava) }`. A scan names the coordinate, not the configuration carrying it, so derive
   the owning configuration from the graph (`./gradlew :<module>:dependencies --configuration <config>`) before choosing
-  the fix. A plain `compileJava` never exercises the tool configuration — only the tool task does — so verify the fix by
-  running the tool task (e.g. `./gradlew :<module>:checkstyleMain`), not by compiling. captured:
-  fix-new-security-advisories
+  the fix — and it names one artifact of a family, not the family, so fix the set the findings enumerate with the
+  family's BOM: a constraint on the core jar alone left the five native artifacts the run listed at the vulnerable
+  version, while the family's BOM manages every artifact it publishes. A plain `compileJava` never exercises the tool
+  configuration — only the tool task does — so verify the fix by running the tool task (e.g.
+  `./gradlew :<module>:checkstyleMain`), not by compiling, and verify a family by resolving every artifact of it on the
+  configuration the findings came from. captured: fix-new-security-advisories captured:
+  address-snyk-advisories-2026-11-01
+
+- **The evidence a suppression rests on is the advisory page's own fixed-version line and affected range, not the
+  absence of a newer release.** Its line states "There is no fixed version" where that is so, and the range shows
+  whether the newest release clears it (`net.minidev:json-smart` affects `[0,]`, so its newest release does not, and a
+  bump would move a test runtime for no security gain); a page that states a fixed version means a bump or a constraint
+  is the route, and the `dependency-security` spec's no-fix-only policy governs the entry. captured:
+  address-snyk-advisories-2026-11-01
+
+- **A suppression covers the package it names, not a vulnerable transitive of that package.** That transitive is its own
+  finding and takes its own fix: suppressing `json-smart` left `accessors-smart`'s ASM reported, and the ASM needed a
+  constraint of its own. captured: address-snyk-advisories-2026-11-01
+
+- **A Maven coordinate's newest release is read from the repository's `maven-metadata.xml`, never from a search API —
+  the search index lags the repository, and its stale answer reads exactly like "no newer release exists".** That
+  reading decides whether a fix exists, so read the `<versions>` list rather than `<latest>`/`<release>`, which can name
+  a pre-release — the reason `BuildLogicPins` skips that element — and take the newest stable entry the coordinate's own
+  metadata serves. captured: address-snyk-advisories-2026-11-01
 
 - **Custom Gradle test suites (`componentTest`, `integrationTest`, `e2eTest`) do not inherit the project's
   `implementation`-only dependencies on their compile classpath** — the default `test` suite does, since its classpath

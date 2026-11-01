@@ -26,15 +26,18 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import showcase.api.ShowcaseApiErrorResolver;
+import showcase.api.diagnostics.StallDiagnosticsConfig;
 
 @WebFluxTest(TelemetryController.class)
 @DisplayName("Client telemetry controller component tests")
+@Import(StallDiagnosticsConfig.class)
 class TelemetryControllerCT {
 
     @Configuration

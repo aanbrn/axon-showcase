@@ -1,2 +1,3 @@
+showcase.api.JfrSummaryExtension
 showcase.api.ThreadDumpOnFailure
 showcase.api.ThreadDumpWatchdog

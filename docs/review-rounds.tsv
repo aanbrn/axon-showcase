@@ -2105,6 +2105,17 @@
 2026-11-01	split-docs-refresh-conventions	14	incomplete-enumeration	incomplete-enumeration	1	ses_e690c9f19ffenvIzdKRhinKdYI	continued	-
 2026-11-01	split-docs-refresh-conventions	15	contradiction,missing-task	contradiction,missing-task	1	ses_e690c9f19ffenvIzdKRhinKdYI	continued	-
 2026-11-01	split-docs-refresh-conventions	16	-	-	0	ses_e690c9f19ffenvIzdKRhinKdYI	continued	-
+2026-11-01	record-approval-scope-defect	1	claim-unreproducible,contradiction,missing-task,wording	-	6	ses_e68cf4266ffeN9rIADehWiyAUP	created	-
+2026-11-01	record-approval-scope-defect	2	claim-unreproducible	claim-unreproducible	1	ses_e68cf4266ffeN9rIADehWiyAUP	continued	-
+2026-11-01	record-approval-scope-defect	3	-	-	0	ses_e68cf4266ffeN9rIADehWiyAUP	continued	-
+2026-11-01	record-approval-scope-defect	4	claim-missing	-	1	ses_e68cf4266ffeN9rIADehWiyAUP	continued	-
+2026-11-01	record-approval-scope-defect	5	contradiction	contradiction	1	ses_e68cf4266ffeN9rIADehWiyAUP	continued	-
+2026-11-01	record-approval-scope-defect	6	-	-	0	ses_e68cf4266ffeN9rIADehWiyAUP	continued	-
+2026-11-01	record-approval-scope-defect	7	claim-missing,missing-task,over-claim,claim-unreproducible	claim-missing,missing-task,claim-unreproducible	4	ses_e68cf4266ffeN9rIADehWiyAUP	continued	-
+2026-11-01	record-approval-scope-defect	8	missing-task,claim-unreproducible	missing-task,claim-unreproducible	2	ses_e68cf4266ffeN9rIADehWiyAUP	continued	-
+2026-11-01	record-approval-scope-defect	9	missing-task,contradiction,claim-unreproducible,coherence	missing-task,claim-unreproducible	6	ses_e68cf4266ffeN9rIADehWiyAUP	continued	-
+2026-11-01	record-approval-scope-defect	10	wording	-	0	ses_e68cf4266ffeN9rIADehWiyAUP	continued	-
+2026-11-01	record-approval-scope-defect	11	-	-	0	ses_e68cf4266ffeN9rIADehWiyAUP	continued	-
 2026-11-01	record-ship-push-defect	1	single-sourcing,wording	-	1	ses_e68b3abb9ffelv2FHXhiczkxGQ	created	-
 2026-11-01	record-ship-push-defect	2	wording	wording	1	ses_e68b3abb9ffelv2FHXhiczkxGQ	continued	-
 2026-11-01	record-ship-push-defect	3	-	-	0	ses_e68b3abb9ffelv2FHXhiczkxGQ	continued	-

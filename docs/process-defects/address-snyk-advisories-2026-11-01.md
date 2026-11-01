@@ -17,6 +17,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed the probe's output. Did not check whether Snyk would have reported the remaining
   natives as a separate remaining finding (its run lists them separately).
 
+- **Decision** — no-change: `gradle-build` already requires fixing the artifact set the findings enumerate with the
+  family's BOM.
+
 ### address-snyk-advisories-2026-11-01#2 — An environment claim rested on one probe of several surfaces
 
 - **Recorded** — 2026-11-01, by the writing session (`ses_e6bb3d98effeNURMqTdoGwAu9f`), during the manual-review ask.
@@ -32,6 +35,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   limitation to say the credential exists and is expired, and by offering a local run after `snyk auth`.
 - **Knowledge boundary** — observed the local CLI state today. Did not check whether the org's exhausted monthly test
   quota (the run's own "200 private tests" message) would also refuse a newly authenticated local run.
+
+- **Decision** — no-change: the external-claim rule already requires naming what was checked and on which surfaces.
 
 ### address-snyk-advisories-2026-11-01#3 — An aggregated finding line was read as one path
 
@@ -50,3 +55,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   platform's `asm` constraint (task 2.3), after which the local scan reports no vulnerable paths.
 - **Knowledge boundary** — observed these two runs. Did not check which of the elided paths the scheduled run had
   actually folded, or whether it would have reported the `9.7.1` path separately once the others were patched.
+
+- **Decision** — no-change: the evidence rule already requires reading a finding's full captured output, not a truncated
+  line.

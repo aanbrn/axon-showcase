@@ -19,6 +19,8 @@ branch=generalize-process-defects-2026-10-30; writer=ses_e731f42aaffeKQAMVYfJ2Kx
 - **Knowledge boundary** — observed: the report's text and the pack. Not checked: whether the report's other quoted
   spans match their anchors.
 
+- **Decision** — no-change: the doc-claims rule already requires quoting a source verbatim or paraphrasing explicitly.
+
 ### generalize-process-defects-2026-10-30#2 — An "already covered" citation named a constraint, not the obligation
 
 - **Recorded** — 2026-10-30, by the writing session (`ses_e731f42aaffeKQAMVYfJ2KxAYN`), during the proposal stage.
@@ -34,6 +36,9 @@ branch=generalize-process-defects-2026-10-30; writer=ses_e731f42aaffeKQAMVYfJ2Kx
   covered" citations name a rule that determines the action (the consultation checked P2/P3 and the two largest
   recurrences).
 
+- **Decision** — no-change: the citation rule already requires naming the rule that determines the action, not a
+  constraint beside it.
+
 ### generalize-process-defects-2026-10-30#3 — A proposal carried an unverified retrospective claim
 
 - **Recorded** — 2026-10-30, by the writing session (`ses_e731f42aaffeKQAMVYfJ2KxAYN`), during the proposal stage.
@@ -48,3 +53,5 @@ branch=generalize-process-defects-2026-10-30; writer=ses_e731f42aaffeKQAMVYfJ2Kx
   consultation's class-mismatch ground instead.
 - **Knowledge boundary** — observed: the report's sentence and the directory listing. Not checked: whether any of the
   three retrospectives discusses the class, which a content read would establish.
+
+- **Decision** — no-change: the external-claim rule already requires verifying a supporting claim or labelling it.

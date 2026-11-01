@@ -20,6 +20,9 @@
 - **Knowledge boundary**: observed the missing run and its later output. Did not check whether the IDE had the tree open
   during the interval, and did not verify the plugin install, which the skipped stage did not attempt.
 
+- **Decision** — shipped: https://github.com/aanbrn/axon-showcase/pull/793 — the created-tree wrapper creates and
+  prepares a tree in one operation.
+
 ### bump-openspec-cli-2026-11-01#2 — The `lesson-capture` analysis ran inside an unfinished unit
 
 - **Recorded**: 2026-11-01, by the implementing session, on the technical advisor's finding.
@@ -37,3 +40,9 @@
   changed, and the proposal survives the archive in `docs/ideas.md`.
 - **Knowledge boundary**: observed the run and its output. Did not check whether another artifact besides the analogue's
   task list carries the inline-capture step forward.
+
+- **Decision** — proposed: applied as the task-floor reconciliation — an inherited task a current rule supersedes is
+  dropped, not only unioned. The recurrence is the five archived 2026-11-01 task sets carrying the inherited
+  `lesson-capture` step: four ran it (two applied durable proposals, one a change-level correction only, one parked its
+  proposal) and one was rewritten to skip, so the step's outcome varied across units rather than being one occurrence.
+  It ships in https://github.com/aanbrn/axon-showcase/pull/794.

@@ -25,6 +25,15 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
+## 2026-11-01
+
+- Gate a `Decision` line's link with a check — parked; no change yet. The generalization workflow requires `proposed`
+  with a link and `shipped` with a merged pull request's link, but neither `commit-hygiene.py` nor the build validates
+  those lines, so a conforming record and a non-conforming one are indistinguishable to `check`. The unit that surfaced
+  this could not carry the link before its pull request existed; the same bootstrap applies to any `proposed` link, so a
+  future check must accept an unlinked `proposed` until the pull request is created and require the link at merge, which
+  a pre-commit rule cannot express.
+
 ## 2026-10-28
 
 - Give the review gate's §5 a post-refresh return branch — parked; no change yet. The unit's `#1` process-defect record
@@ -141,9 +150,17 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   owner's request language, while its design records that no in-repo check can observe how a model phrases a reply and
   ends "the next step is runtime compliance, not more wording"; this entry is that next step's live record, since the
   archived design is not read. It reopens when an owner-visible message produced with the widened convention in effect
-  violates it — not when it merely carries an untranslated identifier or quotation — and retains the triggering request,
-  the offending excerpt, and the evidence identifying the applicable instruction state. The direction is to investigate
-  compliance before proposing another wording expansion; no enforcement mechanism is selected.
+  violates it — not when it merely carries an untranslated identifier or quotation — and retains the triggering
+  request's language, the offending excerpt, and the evidence identifying the applicable instruction state. The
+  direction is to investigate compliance before proposing another wording expansion; no enforcement mechanism is
+  selected.
+
+  **Reopened 2026-11-01** — the condition is met. The offending excerpt: an owner-visible reply in Japanese,
+  "PR 開きました …", to an owner request made in Russian (`docs/process-defects/bump-kps-chart-2026-11-01.md#2`); the
+  owner's own report of it: "Это что за иероглифы?". The applicable instruction state: #713's widened convention was in
+  effect (`a4da4287`, 2026-10-27 — the `AGENTS.md` bullet and the `agent-skills` scenarios). The record does not retain
+  the triggering request's text, only its language; that gap is stated rather than filled. The direction is unchanged —
+  investigate compliance before proposing another wording expansion.
 
 ## 2026-10-26
 

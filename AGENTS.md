@@ -1447,10 +1447,11 @@ Key modules (libraries, not services):
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as
   documentation first and was only usable once the user pointed out it had no trigger and the command was added.
 - **A recurring unit type — a subagent/command change, a version bump — derives its change dir from the last analogous
-  archived change as a **floor** rather than re-deriving it, unioned with the tasks the rules mandate now (the pre-write
-  pass's record and claims table first): the artifact set for the former — the union of the sites every artifact-bearing
-  task in that change names, not the list one task carries — and for a bump the task set, each task's result record, and
-  the spec-position rationale.** **A definition edit that changes spec'd behavior is a change, not a docs edit** — the
+  archived change as a **floor** rather than re-deriving it, and reconciles that set with what the rules mandate now —
+  dropping an inherited task a current rule has superseded and adding the tasks they require (the pre-write pass's
+  record and claims table first): the artifact set for the former — the union of the sites every artifact-bearing task
+  in that change names, not the list one task carries — and for a bump the task set, each task's result record, and the
+  spec-position rationale.** **A definition edit that changes spec'd behavior is a change, not a docs edit** — the
   `agent-skills` spec describes that definition's behavior, so such an edit owes that spec's delta and never rides a
   docs, audit-fix, or retrospective PR; a definition-only edit the spec does not describe (a model-pin bump,
   `skip_specs: true`) still ships as a change, with no delta. Beyond the descriptors the auditor-justification bullet
@@ -1477,7 +1478,7 @@ Key modules (libraries, not services):
   union it derives from. captured: add-readme-auditor (#315) captured: bump-kps-chart-2026-10-12 captured:
   record-review-rounds captured: bound-the-review-loop captured: bump-dependencies-2026-10-16 captured:
   widen-audit-agents-to-authoring-gaps captured: sharpen-experience-analysis captured: sharpen-specs-audit captured:
-  align-capture-invocation-contract
+  align-capture-invocation-contract captured: bump-openspec-cli-2026-11-01
 - **An OpenCode model pin is resolved before it is set, and a bump is a multi-file sweep — grep for the old model id,
   and keep the vision pin out of scope.** A pin naming a provider that does not serve the model fails the agent at every
   invocation (`Model unavailable`) with no gate reading it, so resolve it first
@@ -1976,12 +1977,19 @@ task or report, or concluding the cause of a Gradle failure.
   `.gradle/` reproduced the skip CI saw — so clear the caches outside `build/` before concluding a failure does not
   reproduce. The context is also the input's own content: a probe against a stand-in evidences the stand-in, so state
   the fixture's measured size beside the claim and defer the untested remainder to a task. **A probe's sandbox is state
-  too: give each fixture a fresh clone and assert nothing escaped.** A run given a clone can create a worktree or a
-  session on a real path, and a clone reused across fixtures carries the earlier one's edits — deny `git worktree`, the
-  worktree tools, and session-move in the sandbox's own config, then check before and after the run that no worktree
-  exists and the sandbox has no remote. captured: separate-agents-md-core-and-subject-packs captured:
-  fix-chart-dependency-fetch captured: grant-openspec-global-access-in-cloud (#325) captured:
-  load-stage-workflow-instructions-on-demand
+  too: give each fixture a fresh clone, and in the sandbox's own configuration and trial-agent definition deny only the
+  mutating `git worktree` subcommands (at least `add`, `remove`, `move` and `prune`, each with its `-C` form), disable
+  the worktree-creation and session-move tools in the agent's `tools` map, then assert nothing escaped.** A run given a
+  clone can create a worktree or a session on a real path, and a clone reused across fixtures carries the earlier one's
+  edits; a bare `git worktree` pattern also matches the read-only `list` a compound setup command carries (observed on
+  OpenCode v2.2.5, whose per-node matching the permission bullet below states; every compound form was not tested). A
+  permission rule confines neither of those two tools — the `tools` map is what removes them, as it did for
+  session-move, and the worktree-creation entry is the analogous, untested one — while removing a worktree stays
+  permission-controlled by the `edit` action, deliberately, since deleting a worktree is not an escape vector; then
+  check before and after the run that no worktree exists and the sandbox has no remote. captured:
+  separate-agents-md-core-and-subject-packs captured: fix-chart-dependency-fetch captured:
+  grant-openspec-global-access-in-cloud (#325) captured: load-stage-workflow-instructions-on-demand captured:
+  probe-pause-resume-reuse
 
 ### Writing checks and tests that can actually fail
 
@@ -2488,8 +2496,10 @@ changing an image or buildpack pin.
 - **A permission action is enforced only by a tool that consults the engine.** V2 action names are strings, so plugins
   may define more, and the schema accepts any name; a rule for a built-in tool that does not request a permission action
   is inert. `session_move` and `worktree_create` do not request one (`tools.mdx`), while `worktree_remove` uses `edit` —
-  a `session_move` rule therefore does not confine the session (v2.2.5 moved it to `/tmp`). captured:
-  investigate-session-move-permission
+  a `session_move` rule therefore does not confine the session (v2.2.5 moved it to `/tmp`). Remove the tool with the
+  agent's `tools` map (`opencode_session_move: false`, and `opencode_worktree_create: false` for the other tool this
+  sentence names), which removed it where an `execute: deny` did not. captured: investigate-session-move-permission
+  captured: lesson-capture-reuse
 
 - **An unanswered `ask` hangs an unattended run — anchor a `bash`/`shell` permission pattern to the parsed command, and
   bound the job.** OpenCode emits one pattern per parsed `command` node, so a whole-command-string guard

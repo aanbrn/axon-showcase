@@ -22,6 +22,8 @@ and re-running the gate before the review.
 **Knowledge boundary** — observed the failure and the re-run. Did not inspect what the formatter changed in the three
 artifacts, since they were untracked at that point and therefore had no diff to read.
 
+- **Decision** — no-change: the `Formatting` convention already requires `spotlessApply` after each edit.
+
 ### bump-dependencies-2026-11-01#2 — A gate result was recorded, then falsified by the next edit to the same file
 
 **Recorded** — 2026-11-01, by the implementing agent.
@@ -43,3 +45,6 @@ last edit.
 
 **Knowledge boundary** — observed the failure in the reviewer's report and the green re-run. Did not measure the miss's
 cost beyond that one round.
+
+- **Decision** — no-change: the `Formatting` convention already states that the tick claiming a gate is the edit that
+  falsifies it.

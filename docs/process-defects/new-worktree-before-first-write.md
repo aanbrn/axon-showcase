@@ -14,6 +14,8 @@
 - **Knowledge boundary**: observed the failing gate and the fix. Did not check whether the checker would also accept a
   marker on a continuation line of a bold-lead rule, which the rule text does not distinguish.
 
+- **Decision** — no-change: `verifyCapturedMarkers` enforces the marker-placement rule the record missed.
+
 ### new-worktree-before-first-write#2 — A claims-table row was hand-wrapped into six physical rows
 
 - **Recorded**: 2026-11-01, by the implementing session, on the review's finding.
@@ -28,3 +30,5 @@
 - **Consequence**: one gate run stopped and one review round went to the rejoin; no claim's content changed.
 - **Knowledge boundary**: observed the wrap and the gate failure. Did not check whether Prettier would re-join a row
   wrapped without the trailing pipes.
+
+- **Decision** — no-change: `verifyTableRows` and the `Formatting` convention require one physical line per table row.

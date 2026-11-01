@@ -18,6 +18,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed these two invocations. Did not check whether the same confusion affects a warm CI
   rerun, whose restored-from-cache tasks would look like an executed suite in a summary line.
 
+- **Decision** — no-change: `check-and-test-authoring` already requires a task's re-execution as the probe's evidence,
+  not its cached status.
+
 ### instrument-the-gateway-ct-stall#2 — A probe ran under a different JDK than the suite's
 
 - **Recorded** — 2026-11-01, by the writing session (`ses_e6bb3d98effeNURMqTdoGwAu9f`), during the review loop.
@@ -36,6 +39,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed these two JDKs on this machine. Did not check whether other JDKs on `PATH` resolve
   differently for the other probes this unit ran.
 
+- **Decision** — no-change: the wrong-resolution-context rule already makes the runtime part of the probe's context.
+
 ### instrument-the-gateway-ct-stall#3 — A review command's stop step was skipped
 
 - **Recorded** — 2026-11-01, by the writing session (`ses_e6bb3d98effeNURMqTdoGwAu9f`), during the review gate.
@@ -52,6 +57,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   was subsequently narrowed by the owner's advisor round. The deviation is disclosed in `tasks.md` 5.5.
 - **Knowledge boundary** — observed this session's ordering. Did not check whether an owner decision would have differed
   had the findings been presented first.
+
+- **Decision** — no-change: `.opencode/commands/review-thorough.md` step 7 already requires asking the owner before
+  applying findings.
 
 ### instrument-the-gateway-ct-stall#4 — A project-wide convention was re-derived instead of reused
 
@@ -70,3 +78,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   plus `@Nullable` only where a value is genuinely absent.
 - **Knowledge boundary** — observed this unit's files and the tracked corpus. Did not check whether other component-test
   packages should carry the same file (none does), since only the diagnostics package is new here.
+
+- **Decision** — no-change: `jvm-development` already carries the `package-info.java` `@NullMarked` convention.

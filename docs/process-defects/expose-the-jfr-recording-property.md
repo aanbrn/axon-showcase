@@ -35,3 +35,6 @@ until `fix-jfr-enabling-route-in-ideas` corrected it. Nothing was broken: the re
 
 **Knowledge boundary** — observed the stale line, the merged hint text, and the blame of the line. Did not check whether
 the docs sweep was scoped deliberately to the code, and make no claim about intent.
+
+- **Decision** — no-change: the docs-refresh sweep already names `docs/ideas.md` among the surfaces to sweep for what a
+  change shipped.

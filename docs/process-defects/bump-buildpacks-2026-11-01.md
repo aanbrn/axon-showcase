@@ -25,3 +25,6 @@ existing one overwritten) and the setup re-run to `CONFIGURED`; no artifact was 
 
 **Knowledge boundary**: observed the missed step and the `NEEDS_ACTION` outcome; did not check whether the owner had
 already opened the tree in IDEA, nor whether the IDE had loaded the unprepared settings.
+
+- **Decision** — shipped: https://github.com/aanbrn/axon-showcase/pull/793 — the created-tree wrapper creates and
+  prepares a tree in one operation.

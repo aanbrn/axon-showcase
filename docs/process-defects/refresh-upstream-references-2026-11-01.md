@@ -18,6 +18,9 @@
 - **Knowledge boundary** — both runs were observed in this session. Not checked: whether the script could read the
   primary's selection itself rather than relying on the caller's copy.
 
+- **Decision** — shipped: https://github.com/aanbrn/axon-showcase/pull/793 — the wrapper inherits the primary's
+  selection before running the setup.
+
 ### refresh-upstream-references-2026-11-01#2 — The `Packs:` classification line was never stated
 
 - **Recorded** — 2026-11-01, main agent session.
@@ -33,3 +36,5 @@
   obligation itself was skipped rather than satisfied.
 - **Knowledge boundary** — observed in this session's own transcript. Not checked: whether a reader of the pull request
   would have needed the line to audit the classification.
+
+- **Decision** — no-change: the subject-pack block already requires one `Packs:` line before the first edit.

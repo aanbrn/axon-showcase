@@ -184,6 +184,10 @@ repository's workspace procedure creates, when that repository's primary checkou
 carry the primary's interpreter selection — the `.python-version` that names it — when the primary carries one and the
 tree does not, before the setup resolves the interpreter; the setup then resolves the interpreter the tree's `PATH`
 reaches through that selection's selector, and writes the module for it when the SDK table registers an entry for it.
+Such a tree, when the primary is set up for IntelliJ, SHALL be created and prepared in one operation before the unit's
+first content edit in it, and SHALL be treated as ready only when that preparation succeeded and this stage reported
+`CONFIGURED`; a preparation that does not reach that outcome SHALL keep the tree and report its path, the stage's line,
+and the remedy, rather than deleting or recreating it.
 
 #### Scenario: The interpreter follows the build's selection rule
 
@@ -230,6 +234,25 @@ reaches through that selection's selector, and writes the module for it when the
 - **THEN** the tree carries the primary's selection, and the setup resolves the interpreter the tree's `PATH` reaches
   through it, writing the module for that interpreter when the SDK table registers an entry for it and reporting the
   action otherwise
+
+#### Scenario: A created tree is prepared before the unit's first write
+
+- **WHEN** the workspace procedure creates a working tree while the primary checkout is set up for IntelliJ
+- **THEN** the tree is created and prepared in one operation, its interpreter selection inherited before the setup
+  resolves it, and the tree is ready for the unit's first content edit only when that preparation succeeded and this
+  stage reported `CONFIGURED`
+
+#### Scenario: An unsuccessful preparation keeps the tree and reports it
+
+- **WHEN** the preparation of a created tree fails, or its Python stage reports `NEEDS_ACTION`, `ERROR`, or `SKIPPED`
+- **THEN** the tree is kept, and the report names its path, the stage line, and the remedy, instead of the tree being
+  deleted or recreated
+
+#### Scenario: A primary with no IntelliJ setup owes no preparation
+
+- **WHEN** a created tree's primary checkout carries no IntelliJ configuration
+- **THEN** no preparation is owed, the tree is still created, and the report says so rather than treating the absence as
+  a failure
 
 ### Requirement: An SDK the IDE cannot resolve is reported, not written
 

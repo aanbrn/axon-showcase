@@ -574,6 +574,15 @@ tasks.register<Exec>("testSetupIdea") {
     commandLine(shExecutable, "scripts/test-setup-idea.sh")
 }
 
+tasks.register<Exec>("testNewWorktree") {
+    group = "verification"
+    description = "Runs the worktree wrapper's tests, including its inheritance, readiness and retained-tree controls"
+    inputs.file("scripts/new-worktree.sh")
+    inputs.file("scripts/test-new-worktree.sh")
+    outputs.upToDateWhen { false }
+    commandLine(shExecutable, "scripts/test-new-worktree.sh")
+}
+
 tasks.register<Exec>("testReviewRounds") {
     group = "verification"
     description = "Runs the review-round digest's tests"
@@ -782,6 +791,7 @@ tasks.named("check") {
     dependsOn("testDoctorCharter")
     dependsOn("testEnsureIdeaSettings")
     dependsOn("testSetupIdea")
+    dependsOn("testNewWorktree")
     dependsOn("testReviewRounds")
     dependsOn("testExperienceAnalysis")
     dependsOn("testReviewRouting")

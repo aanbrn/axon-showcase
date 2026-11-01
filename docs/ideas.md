@@ -25,21 +25,6 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
-## 2026-11-01
-
-- Move the created-tree preparation's deadline to the tree's first write — parked; no change yet. `AGENTS.md`'s
-  Workspace bullet says "Prepare a created tree before it is opened", a deadline the agent cannot observe; a tree
-  written to while still unopened satisfies its text. The section's own frame is first-write ("Establish the unit's
-  workspace before its first write"), as is `showcase/quality/agent-skills`'s. Two 2026-11-01 process-defect records
-  show the preparation omitted before the tree's first write — `docs/process-defects/bump-openspec-cli-2026-11-01.md#1`
-  and `bump-buildpacks-2026-11-01#1`, each surfaced by the owner — and a third shows the script run before the
-  `.python-version` inheritance (`refresh-upstream-references-2026-11-01#1`), which supports automating the preparation
-  without evidencing this deadline. Rewording the bullet and the `setup-idea` skill's trigger line to "before its first
-  write" makes a miss recognizable; the stronger fix is a `scripts/new-worktree.sh` that creates the tree (from a
-  freshly fetched `origin/main`, `--no-track`, against the primary explicitly), copies the primary's `.python-version`
-  when the tree has none, runs `./scripts/setup-idea.sh` there, and fails unless the Python stage reports `CONFIGURED`,
-  which would retire the skill's manual copy step. A generalization unit owns either, not the bump that surfaced them.
-
 ## 2026-10-28
 
 - Give the review gate's §5 a post-refresh return branch — parked; no change yet. The unit's `#1` process-defect record

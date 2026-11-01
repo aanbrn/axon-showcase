@@ -698,11 +698,12 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   this application enables virtual threads, Reactor's `boundedElastic` therefore runs on them (measured in the failing
   slice as `loomBoundedElastic-1`, `virtual=true`), and `Thread.getAllStackTraces()` omits virtual threads. So the "idle
   JVM" reading is an artefact of the instrument, and the boundedElastic-starvation question is untouched by it (the pool
-  does exist, on virtual threads). **Neither the mechanism nor the frequency is established**: three failures in six
-  attempts of the delivered configuration, then six consecutive green runs of the same tree once the diagnostic's dump
-  changed — which touches no test behaviour. Next diagnostic: a snapshot taken _while_ a request is in flight, from a
-  source that includes virtual threads (`jcmd Thread.dump_to_file`); the failure-time dump can only show what remains
-  after the timeout, and it cannot see them at all.
+  was then thought to exist on virtual threads; the 2026-11-01 probe recorded below refutes the pool premise). **Neither
+  the mechanism nor the frequency is established**: three failures in six attempts of the delivered configuration, then
+  six consecutive green runs of the same tree once the diagnostic's dump changed — which touches no test behaviour. Next
+  diagnostic: a snapshot taken _while_ a request is in flight, from a source that includes virtual threads
+  (`jcmd Thread.dump_to_file`); the failure-time dump can only show what remains after the timeout, and it cannot see
+  them at all.
 
   **A CI bisect raised a suspicion about `reactor-blockhound` `1.0.18.RELEASE`** — a separate catalogue coordinate
   bumped in the same update set as `reactor-bom` 2025.0.8 (not a member of that BOM), and the row the 2026-10-25 bump
@@ -734,6 +735,35 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   complete) and that these states show no worker to blame. The open question is where a request stops progressing, and
   answering it needs a correlated per-request event sequence (subscribe, scheduling, execution, terminal or cancel)
   rather than more snapshots.
+
+  **Two premises were settled on 2026-11-01** (`instrument-the-gateway-ct-stall`, a local probe rather than a run): a
+  `jcmd Thread.dump_to_file` **text** dump does list virtual threads on JDK 21 with default tracking — a scratch JVM
+  holding one from `newVirtualThreadPerTaskExecutor` and one from `Thread.ofVirtual()` showed both, while
+  `-Djdk.trackAllThreads=false` left only the mounted one — so the earlier "no virtual thread in the snapshot" reading
+  is a fact about the stall, not an artefact of the dump, and the JSON form would add nothing. And `boundedElastic` is
+  not a pool in this application: with `spring.threads.virtual.enabled` Reactor (3.6+) swaps it for a thread-per-task
+  scheduler, so the composite experiment that shrank the pool to four tested a mechanism this configuration cannot have
+  and its local green run was never evidence either way. What the suites do now: a per-request arrival/terminal table
+  (its subscribing thread's name and virtual flag included) and a live JFR summary — a pinning count, park counts with
+  their frames, and the suite's peak CPU, beside the counted virtual-thread line the during-run snapshot prints — all on
+  failure, each with a control test proving it fires.
+
+  **A client timeout leaves the row open at its last boundary, 2026-11-01.** A control that subscribes a request whose
+  handler never completes, with a 400 ms client timeout, renders `OPEN … last=ADMITTED`: the exchange is not cancelled
+  in the filter, so "arrival with no terminal" is the shape a stall leaves. The blocking scheduler's figures are
+  aggregate and are labelled so: no request identity reaches the scheduler from a test-scope instrument, so they say
+  whether a blocking task was queued or running at all, not which request owned it. The JFR recording is opt-in
+  (`-Dshowcase.diagnostics.jfr=true`), because its cost on a loaded runner is unmeasured and an always-on recorder would
+  change the load it measures; a paired enabled/disabled cold-run comparison is the prerequisite for making it the
+  default.
+
+  **One local reproduction, 2026-11-01.** While that instrumentation was being built, the suite stalled locally in a run
+  whose JFR recording still enabled the per-virtual-thread start and end events: 17 of 130 failing, each
+  `Timeout on blocking read for 30000000000 NANOSECONDS`, the CI signature at the REST slice's 30 s client timeout. The
+  same configuration passed on two later runs, so this is the stall's first local appearance and it points at
+  load-sensitivity — the extra event volume as a plausible tipping point, not a proven cause. It is why the shipped
+  recording leaves those two events out, and why a future attempt may find that reproducing the stall needs load rather
+  than a code change.
 
 ## 2026-10-05
 

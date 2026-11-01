@@ -2047,3 +2047,12 @@
 2026-11-01	bump-openspec-cli-2026-11-01	6	claim-unreproducible,coherence	claim-unreproducible	1	ses_e6a48d35affev4IMmwHBJOw7UG	continued	-
 2026-11-01	bump-openspec-cli-2026-11-01	7	-	-	0	ses_e6a48d35affev4IMmwHBJOw7UG	continued	-
 2026-11-01	bump-openspec-cli-2026-11-01	8	-	-	0	ses_e6a48d35affev4IMmwHBJOw7UG	continued	-
+2026-11-01	new-worktree-before-first-write	1	contradiction,test-control,impact-omission,incomplete-enumeration,redundant-code,missing-scenario,claim-unreproducible,formatting,coherence,structured-writing	-	7	ses_e69f4d8abffeukICPDmSsK1zmf	created	-
+2026-11-01	new-worktree-before-first-write	2	contradiction,claim-unreproducible,incomplete-enumeration,impact-omission,dropped-content	contradiction,claim-unreproducible,incomplete-enumeration,impact-omission	3	ses_e69f4d8abffeukICPDmSsK1zmf	continued	-
+2026-11-01	new-worktree-before-first-write	3	contradiction,test-control,coherence	contradiction,test-control,coherence	2	ses_e69f4d8abffeukICPDmSsK1zmf	continued	-
+2026-11-01	new-worktree-before-first-write	4	claim-unreproducible,incomplete-enumeration	claim-unreproducible,incomplete-enumeration	2	ses_e69f4d8abffeukICPDmSsK1zmf	continued	-
+2026-11-01	new-worktree-before-first-write	5	over-claim,coherence	coherence	1	ses_e69f4d8abffeukICPDmSsK1zmf	continued	-
+2026-11-01	new-worktree-before-first-write	6	formatting,docs-residue	formatting	1	ses_e69f4d8abffeukICPDmSsK1zmf	continued	-
+2026-11-01	new-worktree-before-first-write	7	missing-task	-	1	ses_e69f4d8abffeukICPDmSsK1zmf	continued	-
+2026-11-01	new-worktree-before-first-write	8	claim-unreproducible	claim-unreproducible	1	ses_e69f4d8abffeukICPDmSsK1zmf	continued	-
+2026-11-01	new-worktree-before-first-write	9	-	-	0	ses_e69f4d8abffeukICPDmSsK1zmf	continued	-

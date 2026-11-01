@@ -318,20 +318,20 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   branch records it before its first commit, which is how a **continued** unit (an `opencode/…` branch or a head pushed
   from elsewhere) is assigned. captured: bump-kps-chart-2026-10-25 captured: reject-a-foreign-change-dir-at-commit
 - The primary checkout carries the sequential unit. A **new** unit that finds the primary assigned to another unit — or
-  whose ownership it cannot establish — works in a sibling worktree, `../axon-showcase-<unit>`, created from a freshly
-  fetched `origin/main` with `--no-track`, and the session moves there (`session_move`) before the first write. Create
-  it against the primary explicitly
-  (`git -C <primary> worktree add --no-track -b <unit> <primary-parent>/axon-showcase-<unit> origin/main`), not relative
-  to whatever tree the session happens to be in.
+  whose ownership it cannot establish — works in a sibling worktree, `../axon-showcase-<unit>`, created and prepared by
+  `./scripts/new-worktree.sh <unit>` (the wrapper resolves the primary from its own repository, never from the caller's
+  cwd), and the session moves there (`session_move`) before the first write.
 - A unit that **continues** an existing branch or pull request — a cloud agent's `opencode/…` branch, a head pushed from
-  elsewhere — takes a tree on that existing branch (`git -C <primary> worktree add <path> <branch>`; git's DWIM creates
-  the local tracking branch when only `origin/<branch>` exists), never a new branch from `origin/main`, and never by
-  switching a primary that belongs to another unit.
-- **Prepare a created tree before it is opened.** After creating a tree — a new unit's or a continued unit's — and
-  verifying its path and branch, prepare it when the primary checkout carries `.idea/`: run `./scripts/setup-idea.sh`
-  there and report the tree IDE-ready only when the Python stage reports `CONFIGURED`. The skill's initialization
-  section owns the inheritance of the primary's `.python-version`, the outcome record, and the failure cases; a tree the
-  owner creates by hand is outside this step. captured: auto-setup-new-worktree
+  elsewhere — takes a tree on that existing branch with `./scripts/new-worktree.sh --continue <branch>` (git's DWIM
+  creates the local tracking branch when only `origin/<branch>` exists), never a new branch from `origin/main`, and
+  never by switching a primary that belongs to another unit.
+- **Create and prepare a tree in one operation, before its first unit-content write.** `./scripts/new-worktree.sh` runs
+  the preparation the `setup-idea` skill's initialization section describes: it inherits the primary's
+  `.python-version`, runs `./scripts/setup-idea.sh` in the tree, and reports both stage lines. When the primary carries
+  `.idea/`, write nothing in the tree unless the preparation succeeded and its Python stage reported `CONFIGURED`. The
+  first write is the tree's first unit-content edit — not the checkout, and not the setup's own writes. A failed
+  preparation keeps the tree: fix the cause and re-run the setup rather than recreating it. A tree the owner creates by
+  hand is outside this step. captured: auto-setup-new-worktree captured: bump-openspec-cli-2026-11-01
 - Occupancy is read from the registry: a tree with a unit branch checked out belongs to that unit whether the tree is
   clean or dirty and whether the branch is merged or awaiting review, and a tree with an unknown branch, a detached
   HEAD, or evidence contradicting the registry is occupied until the owner resolves it. A clean `git status` never
@@ -1547,14 +1547,14 @@ Key modules (libraries, not services):
   `setup-hosts.sh`; and `.opencode/` holds the OpenCode-runtime surface — agents, commands, skills — with **no
   executable**, so a command may trigger a `scripts/` tool but never hosts its implementation. A `scripts/` tool an
   agent drives gets its own command trigger, and the tool keeps the implementation (`doctor.sh` ↔ `/check-tooling`,
-  `setup-idea.sh` ↔ `/setup-idea`, `experience-analysis.sh` ↔ `/retrospective`, `claim-scan.py` ↔ `/seed-claims`,
-  `reconnect-mcp.py` ↔ `/reconnect-mcp`); a tool with no agent caller stays untriggered (`install-git-hooks.sh`,
-  `load-test-baseline.sh`, `review-rounds.py`), and `commit-hygiene.py` is driven by the tracked
-  `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks, and `review-routing.py` by the review gate's own
-  procedure and by its `testReviewRouting` task. The generated OpenSpec command/skill files and the vendored skill trees
-  are not the repository's to place. Derive any claim about placement from the complete set — `git ls-files -s` for the
-  executable bit, and `git ls-files scripts showcase-web-ui/scripts '*.sh' ':!:.opencode/*'` for the tools — not from
-  the location in hand. captured: state-tooling-placement-rule (#458)
+  `setup-idea.sh` ↔ `/setup-idea`, `new-worktree.sh` ↔ `/new-worktree`, `experience-analysis.sh` ↔ `/retrospective`,
+  `claim-scan.py` ↔ `/seed-claims`, `reconnect-mcp.py` ↔ `/reconnect-mcp`); a tool with no agent caller stays
+  untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`, `review-rounds.py`), and `commit-hygiene.py` is driven
+  by the tracked `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks, and `review-routing.py` by the review
+  gate's own procedure and by its `testReviewRouting` task. The generated OpenSpec command/skill files and the vendored
+  skill trees are not the repository's to place. Derive any claim about placement from the complete set —
+  `git ls-files -s` for the executable bit, and `git ls-files scripts showcase-web-ui/scripts '*.sh' ':!:.opencode/*'`
+  for the tools — not from the location in hand. captured: state-tooling-placement-rule (#458)
 - **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
   `.opencode/commands/setup-agent-tools.md` (project-local, **not** a vendored skill) let a contributor ask the agent to
   wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only, the Steroid MCP — into the

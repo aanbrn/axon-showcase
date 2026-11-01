@@ -16,6 +16,10 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed on OpenCode v2.2.5. The per-node matching is the documented behavior; every compound
   form was not tested.
 
+- **Decision** — proposed: applied as the sandbox rule's mutating-subcommand denial, with the read-only `list` left
+  allowed and the restriction scoped to the sandbox's own config; its link is added in a follow-up commit once the pull
+  request exists.
+
 ### probe-pause-resume-reuse#2 — the session-move deny is accepted and not enforced
 
 - **Recorded** — 2026-10-31, the main agent.
@@ -31,6 +35,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed on OpenCode v2.2.5. The mechanism that would enforce the rule is unknown, and the v1
   line was not tested.
 
+- **Decision** — proposed: applied as the `tools`-map remedy the permission-action bullet now names (the same rule
+  `lesson-capture-reuse#1` applies); its link is added in a follow-up commit once the pull request exists.
+
 ### probe-pause-resume-reuse#3 — a mutable review count in the pull-request body went stale
 
 - **Recorded** — 2026-10-31, the main agent.
@@ -45,3 +52,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   count.
 - **Knowledge boundary** — observed in this unit. The pattern is the review-gate skill's "self-records" failure
   handling, not a new mechanism.
+
+- **Decision** — no-change: the documented-numbers rule already forbids a mutable count in a durable artifact.

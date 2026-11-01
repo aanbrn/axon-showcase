@@ -26,6 +26,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   Reload. Did not isolate why the first Reload and the reopen failed (import timing, model persistence, or another
   mechanism), and did not test restart-only activation of the merged settings.
 
+- **Decision** — no-change: merged #778 replaced the guidance with the measured close → setup → open procedure (skill,
+  script, README, `AGENTS.md`, delta).
+
 ### clarify-python-ide-activation#2 — The planning pass declared `skip_specs` from a name search, and the behavior is specified under another capability
 
 - **Recorded** — 2026-10-31, by the writing session (`ses_e6f985602ffeUDJ4DtV0zmSDfc`), during the proposal stage.
@@ -41,6 +44,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   delta on `showcase/quality/ide-config`.
 - **Knowledge boundary** — observed the grep's empty result and the spec's clauses. Did not check whether another
   capability also names module activation.
+
+- **Decision** — no-change: "Author a spec delta and archive" step 1 already requires grepping the corpus for the
+  behavior's name as well as its file.
 
 ### clarify-python-ide-activation#3 — The probe's activation flow did not reproduce in a tree whose `.idea` had been deleted
 
@@ -59,6 +65,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   the manual pass was suspended.
 - **Knowledge boundary** — the mechanism and the working flow were established later, in disposable worktrees, and are
   recorded in the decision record; the reason the probe's own project behaved differently is not established.
+
+- **Decision** — no-change: same measured procedure as #1; merged #778 rebuilt the activation contract from the
+  reproduced flow.
 
 ### clarify-python-ide-activation#4 — The activation contract was designed twice from unverified mechanisms
 
@@ -95,3 +104,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Pending decision** — the owner's approval of the implementation (the manual pass).
 - **Findings no record holds** — none; the closing round reported nothing.
 - **Operations in flight** — none.
+
+- **Decision** — no-change: the external-claim rule already requires a measured mechanism rather than an assumed one.

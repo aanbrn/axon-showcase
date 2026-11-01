@@ -18,3 +18,6 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   divergence.
 - **Knowledge boundary** — observed: the code, the design, and the review findings. Not checked: whether the divergence
   came from the design's revision timing or from the implementation's reading of the earlier text.
+
+- **Decision** — no-change: the review gate's plan/scope rules and the apply procedure's requirement to read every
+  context file are the control; the cause is unconfirmed, so no rule can be scoped from it.

@@ -17,6 +17,10 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed on OpenCode v2.2.5; the pinned-tool exposure is not governed by the `execute`
   action, and the `tools` map is the mechanism that worked.
 
+- **Decision** — proposed: applied as the `tools`-map remedy in the permission-action bullet —
+  `opencode_session_move: false` removes the tool where a permission rule does not; its link is added in a follow-up
+  commit once the pull request exists.
+
 ### lesson-capture-reuse#2 — the synthetic record cited evidence the fixture did not have
 
 - **Recorded** — 2026-10-31, the main agent.
@@ -29,3 +33,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   round-2 report, and the second run then found the candidate covered by the first slice's skill.
 - **Knowledge boundary** — observed in this unit; the repair was made by the main agent, not the builder, so the fixture
   is builder-blind but not slice-blind.
+
+- **Decision** — no-change: `check-and-test-authoring` already requires a fixture to hold the state its assertion
+  claims.

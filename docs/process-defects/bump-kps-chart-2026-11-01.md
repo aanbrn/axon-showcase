@@ -19,6 +19,8 @@
   restore did not reproduce it. Not checked: which process wrote it, so the trigger stays unidentified rather than
   attributed.
 
+- **Decision** — no-change: the record observes no defect.
+
 ### bump-kps-chart-2026-11-01#2 — A reply switched to a language the owner never used
 
 - **Recorded** — 2026-11-01, by the implementing agent, after the owner reported it.
@@ -32,3 +34,6 @@
   the repository or the pull request was affected.
 - **Knowledge boundary** — observed: the message's language and the owner's response to it. Not checked: which step
   produced the switch, so the cause stays unidentified rather than attributed.
+
+- **Decision** — no-change: the output-language convention already states the rule; `docs/ideas.md`'s runtime-compliance
+  entry is reopened with this incident's evidence, its direction unchanged.

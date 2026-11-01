@@ -2056,3 +2056,12 @@
 2026-11-01	new-worktree-before-first-write	7	missing-task	-	1	ses_e69f4d8abffeukICPDmSsK1zmf	continued	-
 2026-11-01	new-worktree-before-first-write	8	claim-unreproducible	claim-unreproducible	1	ses_e69f4d8abffeukICPDmSsK1zmf	continued	-
 2026-11-01	new-worktree-before-first-write	9	-	-	0	ses_e69f4d8abffeukICPDmSsK1zmf	continued	-
+2026-11-01	generalize-process-defects-2026-11-01	1	missing-task,claim-unreproducible,coherence,claim-missing,over-claim,wording,structured-writing	-	8	ses_e69967bc3ffeGrtV33N9NBJTLh	created	-
+2026-11-01	generalize-process-defects-2026-11-01	2	wording,claim-unreproducible,incomplete-enumeration,contradiction,over-claim	wording,claim-unreproducible,over-claim	4	ses_e69967bc3ffeGrtV33N9NBJTLh	continued	-
+2026-11-01	generalize-process-defects-2026-11-01	3	contradiction,claim-unreproducible,wording	contradiction,claim-unreproducible,wording	2	ses_e69967bc3ffeGrtV33N9NBJTLh	continued	-
+2026-11-01	generalize-process-defects-2026-11-01	4	contradiction	contradiction	1	ses_e69967bc3ffeGrtV33N9NBJTLh	continued	-
+2026-11-01	generalize-process-defects-2026-11-01	5	-	-	0	ses_e69967bc3ffeGrtV33N9NBJTLh	continued	-
+2026-11-01	generalize-process-defects-2026-11-01	6	missing-task,dropped-content,formatting	missing-task	2	ses_e69967bc3ffeGrtV33N9NBJTLh	continued	-
+2026-11-01	generalize-process-defects-2026-11-01	7	wording,claim-unreproducible,formatting	wording,claim-unreproducible,formatting	2	ses_e69967bc3ffeGrtV33N9NBJTLh	continued	-
+2026-11-01	generalize-process-defects-2026-11-01	8	claim-unreproducible	claim-unreproducible	1	ses_e69967bc3ffeGrtV33N9NBJTLh	continued	-
+2026-11-01	generalize-process-defects-2026-11-01	9	-	-	0	ses_e69967bc3ffeGrtV33N9NBJTLh	continued	-

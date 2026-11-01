@@ -19,3 +19,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   from it in one pass.
 - **Knowledge boundary** — observed the divergence and the rounds; did not measure how much work an up-front
   single-owner draft would have saved.
+
+- **Decision** — no-change: the single-sourcing invariant already requires settling a rule in the artifact that owns it
+  and sweeping its copies.

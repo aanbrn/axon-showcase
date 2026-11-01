@@ -16,3 +16,6 @@
 - **Consequence**: one reconciliation round and a repair; no content was lost in the final tree.
 - **Knowledge boundary**: observed the dropped entry and the repair. Did not check whether the pop's resolver chose a
   side for any other file the unit and the base both changed.
+
+- **Decision** — no-change: the branch-refresh rule already requires reconciling for both sides and verifying both facts
+  survive in every file both sides touched.

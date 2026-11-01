@@ -18,3 +18,6 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   dismissal list no longer quotes removed text.
 - **Knowledge boundary** — observed the artifacts and the rounds' reports; whether the same sweep would have caught the
   third copy had the edit started elsewhere is not established.
+
+- **Decision** — no-change: the corrected-fact sweep rule and `review-gate` §5's "Re-read every artifact that states the
+  corrected claim" already require the sibling copies in the same edit.

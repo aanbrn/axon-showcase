@@ -16,3 +16,6 @@
   statements.
 - **Knowledge boundary**: observed the fused paragraphs and the repair. Did not check whether another scripted
   replacement in the unit's history took the same shape.
+
+- **Decision** — no-change: the span-edit rule already requires replacing the whole unit in one edit and re-reading it
+  against the old text's facts; the scripted rewrite took the shape it warns about.

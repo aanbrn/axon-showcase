@@ -19,6 +19,10 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
 - **Knowledge boundary** — observed in the body and in the round's report; whether the line would have reached delivery
   undetected is not established, since the loop caught it before the manual pass.
 
+- **Decision** — no-change: `review-gate` §1 already requires a unit's status line to state its mechanism rather than a
+  status its own remaining steps move, and §2 assigns round state to `docs/review-rounds.tsv`; the line was repaired
+  before delivery.
+
 ### record-approval-scope-defect#2 — A claims-table row certified one half of a two-fact claim
 
 - **Recorded** — 2026-11-01, by the writing session, during the quick-review loop.
@@ -34,6 +38,9 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   to what their sources print.
 - **Knowledge boundary** — observed in the table and the round's report; the narrowing happened after this record's
   first draft and is described here only as far as it touches this row.
+
+- **Decision** — no-change: `review-gate` §1 already requires each fact's own source and forbids one part's command
+  standing for the whole; the row was split into its two facts.
 
 ### record-approval-scope-defect#3 — A record stated the agent's own reading as the episode's explanation
 
@@ -54,6 +61,9 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
 - **Knowledge boundary** — observed in the artifact and the consult's report; whether a reader would have taken the
   title as a finding about the owner's reply is not established.
 
+- **Decision** — no-change: the record workflow's step 3 already forbids a diagnosed cause and step 2 attributes an
+  account as the agent's own; the title and fields were rewritten before anything was committed.
+
 ### record-approval-scope-defect#4 — Two claims-table rows asserted more than their results showed
 
 - **Recorded** — 2026-11-01, by the writing session, after the owner's technical-advisor consult and before his
@@ -73,6 +83,10 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
 - **Knowledge boundary** — observed in the rows and in the two reports; the reviewer's statement that the four round-7
   findings share one root cause is its own account, not an established cause.
 
+- **Decision** — no-change: `review-gate` §1's literal-represents-the-full-claim rule and §5's failure-handling rule
+  ("delete the unneeded fact rather than add the row") already determine the action; the rows were narrowed to what
+  their sources print.
+
 ### record-approval-scope-defect#5 — A review round's report arrived and its ledger row was not appended
 
 - **Recorded** — 2026-11-01, by the writing session, during the quick-review loop.
@@ -90,6 +104,10 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
 - **Knowledge boundary** — observed in the ledger and the round's report; whether the omission would have survived to
   the manual pass is not established, since `--expect` names it at the boundary.
 
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-10-22 reviewer-wrapper entry records the deferred
+  ledger row, and neither of its `Revisit when:` triggers is met here (this row was recovered, so no `Acknowledged gap`
+  row exists); `review-gate` §2 already requires the immediate check.
+
 ### record-approval-scope-defect#6 — A Russian advisor report was relayed to the owner in English
 
 - **Recorded** — 2026-11-01, by the writer of a later unit, at the owner's report that this session's relay had switched
@@ -106,6 +124,9 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
 - **Consequence** — in one turn the owner read a Russian verdict and an English summary of it; no artifact was affected.
 - **Knowledge boundary** — observed the stored messages and their language; the owner's screen was not observed, and
   whether other turns of that session carried the same pattern was not surveyed.
+
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-10-27 reply-language entry already carries this
+  record as its second instance and directs compliance investigation rather than another wording expansion.
 
 ### record-approval-scope-defect#7 — An absence was asserted about the session's record, which the store contradicted
 
@@ -128,3 +149,7 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   re-read its rendered replies and queried no store before answering; that account was not traced, so nothing shows a
   query was skipped, and an under-matching query would have produced the same denial. The session's rendered transcript
   was not inspected, and whether the same pattern occurs in other sessions was not surveyed.
+
+- **Decision** — no-change: the out-of-repository-claim rule requires the query before the claim and a negative claim to
+  name the variants examined, and the under-matching-search rule requires a known positive; the store is a surface the
+  repository's own records query.

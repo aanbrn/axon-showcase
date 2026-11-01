@@ -364,8 +364,9 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
 3. Run the review gate (see "Workflow: The review gate") and fix every finding until it is clean.
 4. Ask the user for the manual review pass, and end the turn there. Do not commit, push, open a PR, archive, or merge
    before the user approves the implementation — except a commit the user explicitly asks for.
-5. After the user approves: run CI, archive, and merge per "Workflow: Ship a change". The change dir and all subsequent
-   work live on that branch.
+5. Ship only on the owner's delivery request, per "Workflow: Ship a change": an approval alone is not that request, an
+   approval answering a description of the sequence included. All subsequent work stays on this branch. captured:
+   retain-auditor-run-reports captured: split-docs-refresh-conventions
 
 **Decision points**
 

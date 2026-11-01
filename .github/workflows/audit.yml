@@ -46,6 +46,13 @@ jobs:
             Each audit has a definition under `.opencode/agent/` and an on-demand command; follow the same scope and
             the shared report contract they use (`docs/contracts/shared-report.md`).
 
+            Keep each auditor's own report, verbatim and unedited — do not condense, summarise, or merge it — at
+            `build/audit-reports/<auditor>.md` (`agents-auditor.md`, `specs-auditor.md`, `architecture-auditor.md`),
+            each opening with a line naming that auditor and the input revision `${{ github.sha }}`. Write all three on
+            every run, including a run whose audits report nothing: the combined report is a condensation, and these
+            files are the run's only record of what each auditor actually returned. They are ignored by git — never
+            commit them.
+
             Run `./gradlew spotlessApply` so the committed file passes the build's markdown gate — CI runs `build` on
             the pull request, and an unformatted report fails it. Then commit the file on the current branch: the
             action opens the pull request from the branch's commits, so a report that is only printed produces no pull
@@ -60,3 +67,16 @@ jobs:
             generated title tends to name it (e.g. "2026-09-21 audit report").
 
             If all three audits report nothing, print that and commit nothing.
+
+      - name: Check the auditor reports are complete
+        if: always()
+        shell: bash
+        run: ./scripts/audit-report-completeness.sh build/audit-reports ${{ github.sha }}
+
+      - name: Upload the auditor reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: audit-reports-${{ github.run_id }}
+          path: build/audit-reports/
+          if-no-files-found: warn

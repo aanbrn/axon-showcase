@@ -42,8 +42,10 @@ branch=address-snyk-advisories-2026-11-01; writer=ses_e6bb3d98effeNURMqTdoGwAu9f
       coordinates and one scenario each for them: ASM on the three surfaces it needs (JaCoCo's release ships the fix,
       the platform constrains every classpath it reaches, the `spotbugs` tool classpath takes its own constraint),
       brotli4j, and objenesis.
-- [ ] 4.2 Record the `## Purpose` refresh as its own step: a delta cannot carry a Purpose, so add the new coordinates to
-      the Purpose's enumeration in the archive commit, and verify it names them after archive.
+- [x] 4.2 Record the `## Purpose` refresh as its own step: a delta cannot carry a Purpose, so add the new coordinates to
+      the Purpose's enumeration in the archive commit, and verify it names them after archive. Applied in this
+      archive commit: the Purpose names `brotli4j` (through its BOM), `objenesis`, `org.ow2.asm:asm` (with the `spotbugs`
+      tool classpath), and the catalog-pinned JaCoCo tool version.
 - [x] 4.3 Confirm `docs/ideas.md` carries no entry this change implements; none was found, so nothing is removed.
 
 ## 5. Verification

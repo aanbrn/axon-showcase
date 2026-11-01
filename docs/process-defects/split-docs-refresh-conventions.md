@@ -59,3 +59,25 @@
   scope as a category — the splice stays at the boundaries — rather than as a list of instance kinds.
 - **Knowledge boundary**: observed the three findings and their fixes; whether a fourth kind remained outside the
   category statement was judged only by round 6's clean report.
+
+### split-docs-refresh-conventions#5 — the push proceeded with no explicit request and no prompt
+
+- **Recorded**: 2026-11-01, by the unit's writer, after the owner asked why no permission for `git push` was requested.
+- **Stage**: ship, after the merge.
+- **Expected**: the owner's explicit request precedes any publication to the remote — `AGENTS.md`'s "Never push to the
+  remote automatically" — and `.opencode/opencode.json`'s `"git push *": "ask"` rule is the technical backstop that
+  would otherwise prompt.
+- **Observed**: the unit's two pushes ran without a prompt, and a saved project permission row for that command existed
+  at the time. The owner's "Одобряю." answered the sentence that named the ship sequence, so no explicit push request
+  existed.
+- **Evidence**: the permission table held `psv_1960f015d012NQXE8GzJMxTjBe`, `shell`, `git push *`, created
+  2026-11-01T14:42:08, beside `.opencode/opencode.json:8`'s `"git push *": "ask"`; the row was deleted at the owner's
+  direction and the table then held no `git push` row.
+- **Consequence**: PR #799 was pushed and merged without that request. Its content had been approved at the manual pass,
+  so no revert was owed. The saved row was deleted at the owner's direction; whether the running session now prompts is
+  unobserved.
+- **Knowledge boundary**: observed the row, the config line and the owner's report of not being asked. The row's
+  provenance — which session answered "always", or whether a harness wrote it — was not established, and the engine's
+  in-memory caching of the table was not tested. The row was checked because `AGENTS.md`'s "An unanswered `ask` hangs an
+  unattended run" bullet states the saved-allow override; nothing recorded here establishes that it explains these two
+  pushes, and the next real push is the first observation of whether the prompt returns.

@@ -583,6 +583,17 @@ tasks.register<Exec>("testNewWorktree") {
     commandLine(shExecutable, "scripts/test-new-worktree.sh")
 }
 
+tasks.register<Exec>("testAuditReportCompleteness") {
+    group = "verification"
+    description =
+        "Runs the audit report completeness check's tests, covering a complete set, a missing report, an empty " +
+            "one, a missing revision stamp, an unnamed report, and an absent directory"
+    inputs.file("scripts/audit-report-completeness.sh")
+    inputs.file("scripts/test-audit-report-completeness.sh")
+    outputs.upToDateWhen { false }
+    commandLine(shExecutable, "scripts/test-audit-report-completeness.sh")
+}
+
 tasks.register<Exec>("testReviewRounds") {
     group = "verification"
     description = "Runs the review-round digest's tests"
@@ -792,6 +803,7 @@ tasks.named("check") {
     dependsOn("testEnsureIdeaSettings")
     dependsOn("testSetupIdea")
     dependsOn("testNewWorktree")
+    dependsOn("testAuditReportCompleteness")
     dependsOn("testReviewRounds")
     dependsOn("testExperienceAnalysis")
     dependsOn("testReviewRouting")

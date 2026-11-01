@@ -107,7 +107,7 @@ the image's age, as evidence about when it was built, which host built it, or wh
 
 ```bash
 # Deploy to local cluster (must be ordered)
-helm install kps prometheus-community/kube-prometheus-stack --version 92.13.1 \
+helm install kps prometheus-community/kube-prometheus-stack --version 92.17.0 \
   --namespace monitoring --create-namespace --wait
 helm install tempo grafana/tempo --version 1.24.4 --namespace monitoring --create-namespace --wait
 helm install axon-showcase-db-events bitnami/postgresql --version 16.7.27 \

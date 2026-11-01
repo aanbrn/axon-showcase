@@ -211,6 +211,12 @@ approval: nothing is committed, pushed, opened as a PR, archived, or merged befo
     uncommitted tree fast-forwards with `git merge --ff-only origin/main`, while a branch holding both its own commits
     and uncommitted work stops there rather than being stashed — and re-stage and re-run afterward, since a refresh can
     rewrite the unit's new files.
+  - IF the refresh changed a file the closing quick round reviewed — a conflict resolved by hand, or a unit file the
+    base advanced — THEN that round no longer covers the tree: run the gate over the result, as `/sync-branch`'s
+    lifecycle requires — §1's claims table re-derived when the refresh changed a planning artifact, then the quick loop,
+    then the routing decision reassessed on the changed tree (the material-new-evidence case the routing requirement
+    states) and any deep review §3 and §4 own — and re-run this readiness step after it. captured:
+    retry-infra-verification-fetches
   - IF it reports that readiness is not established, THEN correct the repository state the failing command names and
     re-run; that line is a failed measurement, never a ready tree.
 

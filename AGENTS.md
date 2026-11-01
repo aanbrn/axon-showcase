@@ -1081,69 +1081,85 @@ Key modules (libraries, not services):
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md`, `README.md`, and `docs/adr/` need to be
   refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
   a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on
-  concern for weeks after the Snyk workflow landed, until the first architecture audit caught it). A **version bump** (a
-  dependency, tool, or wrapper version) is the mechanical case: it makes stale every live doc that names the bumped
-  version — including a coordinate an ADR or idea quotes as the catalog's current value, and an example in
-  `openspec/specs/` or a subject pack — so grep the old string across the whole working tree, the change's untracked
-  artifacts included, and fix each live mention, since no gate reads them; a version sentence that is not a
-  present-tense current value is not retargeted to the bumped version, since that re-stales at the next release —
-  de-version an illustrative example (the `2025.0` train, "a later `2025.0.x`"), and widen a minimum requirement to
-  `"<old> or newer"`, which a retarget would turn into a claim that the older release was insufficient. captured:
-  bump-dependencies-2026-10-12 captured: bump-dependencies-2026-10-25 captured: bump-dependencies-2026-11-01 Update them
-  before reporting the change done; also remove the change's idea from `docs/ideas.md` in this PR, not as a separate
-  docs PR. An idea is removed once implemented (captured by a change) or once explored and decided against — the file's
-  header owns where its durable lesson goes and what remains. Promotion to a GitHub issue is a **link, not a removal** —
-  annotate the idea with the issue number when you promote it, since the file's header names only the issue's link to
-  the change, not the scratchpad's back-link to the issue, so the two drift apart — and prefer promoting a unit's idea
-  at that unit's merge: while its PR is open, citing an artifact the unit ships is a contingent claim that must say so
-  (`open as #NNN; not yet merged`) and the clause drops at the merge — the merge's record append owns that drop, and
-  where the claim was already published outside the repository it means editing the published artifact, not only
-  omitting it from new prose — because the issue is a permanent record outside the repository and cannot cite what the
-  default branch does not have. Give every parked entry a trailing status tag stating its disposition
-  (`— parked; no change yet.` is the common form; a promoted or explored-and-set-aside idea says so instead: the
-  promotion _replaces_ the parked tag, `— promoted to issue #NNN; no change yet.`, never a clause appended past the
-  tag's sentence-final period), since the header fixes the sections' order and dating but not the tag, and the tag is
-  what marks the entry as a still-unowned idea rather than one already routed to work. Also sweep the un-audited docs
-  for references to the thing this change shipped — `docs/ideas.md`, and a retrospective's suggestion rows and prose,
-  which the change marks with the suggestion's disposition (**Applied** where it applies it; its routing where it routes
-  it: parked in `docs/ideas.md`, a named change, an issue; or closed where it decides against it) rather than removes.
-  An open idea that still calls it "the proposed X" is itself a stale claim: update its prose in the same change,
-  including any enumeration or count it carries ("two others remain open: A, B") that the change's new instance makes
-  wrong. No auditor **owns** either file (each auditor's bullet states its own scope; the architecture-auditor reads
-  `docs/ideas.md` only for a deferral's or band-aid's missing rationale, and the file's entries are pruned by the owner
-  through `/ideas cleanup`). The `docs/guidance-evidence/` records are live docs too: an auditor reconciles them only on
-  its periodic or on-demand pass, so an upstream status, a supersession, or a retirement condition a change falsifies
-  there is refreshed in that change. captured: address-scan-findings-2026-10-25 For every docs edit the boundary is
-  **causation _while the change is in flight_**: docs that ARE the change (new agent/command/skill documentation, README
-  rows describing a new capability, the change's idea removal), and any edit the change causes that exists while it can
-  still ride a branch — a process-defect record from its implementation, an idea its own sweep surfaced, a fact it
-  falsified — ship with the change's PR, while an edit the change did not cause (a stale fact it merely passed by, a
-  standalone reword, a refresh of an already-completed change) and one surfaced only after the change is done (a defect
-  a merge appends to the merged unit's record, with no branch left to ride) ships as its own docs PR, forked from
-  `main`, batched into one docs PR rather than one per item. Decide the owner before committing — a docs PR forked from
-  `main` cannot carry an edit committed on a change branch, so committing it there first for a clean tree silently
-  leaves it out of the docs PR and `main` unchanged — and verify the fix against the merged PR's diff rather than the PR
-  description, which can claim a change the diff does not contain. A parked-idea docs PR owes the refresh too: fold any
-  durable fact the idea reveals into the relevant `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin
-  to an existing enumeration) — `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the
-  idea is implemented or dropped. The un-gated copies of what this file and the specs state take the same sweep,
-  refreshed in the change that moves one: the `openspec/config.yaml` `context:` block (the runtime/Spring/Gradle
-  versions, module count, service list, and Docker image names that OpenSpec shows the AI when creating artifacts), that
-  file's per-artifact `rules` (which restate obligations stated here and in the specs, injected per artifact alone —
-  `projectConfig.rules[artifactId]` — so a clause several artifacts need lives in each list rather than in a shared
-  one), and the repository's GitHub description and topics. What is un-gated is their content and currency: `ci.yml`'s
-  probe fails on a malformed item — the list's shape, since a bad one silently drops the whole artifact's rule set — but
-  not on whether a rule's wording still matches `AGENTS.md` and the spec, so refresh a rule whose obligation moves even
-  though the gate stays green, and `openspec validate` never checks the rest, so it drifts silently. A **removal**
-  counts too: when a sweep deletes an entry as non-durable, check these copies for the same sentence — the fact has not
-  moved, so the move rule does not fire (`disable-axoniq-console-message`'s sentence outlived #292's removal from
-  `AGENTS.md` by four PRs in `config.yaml`, until the audit noticed). No auditor owns a surface outside the repository.
-  A file can also _depend_ on such a surface rather than describe one: `SECURITY.md`'s private-reporting path is a dead
-  end unless private vulnerability reporting is enabled. Enable the setting as part of the change that ships the
-  instruction — a repository setting leaves no diff, so a diff-only review cannot see it — and name the enabling in the
-  change's report. captured: park-retro-marking-idea (#281) captured: re-measure-load-test-baseline (#429) captured:
-  mark-s3-applied captured: attribute-load-test-tail (#570) captured: park-review-loop-follow-ups captured:
-  fix-openspec-config-rules
+  concern for weeks after the Snyk workflow landed, until the first architecture audit caught it). Update them before
+  reporting the change done.
+  - **A version bump** (a dependency, tool, or wrapper version)
+    - It is the mechanical case: it makes stale every live doc that names the bumped version — including a coordinate an
+      ADR or idea quotes as the catalog's current value, and an example in `openspec/specs/` or a subject pack — so grep
+      the old string across the whole working tree, the change's untracked artifacts included, and fix each live
+      mention, since no gate reads them.
+    - A version sentence that is not a present-tense current value is not retargeted to the bumped version, since that
+      re-stales at the next release: de-version an illustrative example (the `2025.0` train, "a later `2025.0.x`"), and
+      widen a minimum requirement to `"<old> or newer"`, which a retarget would turn into a claim that the older release
+      was insufficient. captured: bump-dependencies-2026-10-12 captured: bump-dependencies-2026-10-25 captured:
+      bump-dependencies-2026-11-01
+  - **The change's idea**
+    - Remove the change's idea from `docs/ideas.md` in this PR, not as a separate docs PR. An idea is removed once
+      implemented (captured by a change) or once explored and decided against — the file's header owns where its durable
+      lesson goes and what remains.
+    - Promotion to a GitHub issue is a **link, not a removal** — annotate the idea with the issue number when you
+      promote it, since the file's header names only the issue's link to the change, not the scratchpad's back-link to
+      the issue, so the two drift apart.
+    - Prefer promoting a unit's idea at that unit's merge: while its PR is open, citing an artifact the unit ships is a
+      contingent claim that must say so (`open as #NNN; not yet merged`) and the clause drops at the merge — the merge's
+      record append owns that drop, and where the claim was already published outside the repository it means editing
+      the published artifact, not only omitting it from new prose — because the issue is a permanent record outside the
+      repository and cannot cite what the default branch does not have.
+    - Give every parked entry a trailing status tag stating its disposition (`— parked; no change yet.` is the common
+      form; a promoted or explored-and-set-aside idea says so instead: the promotion _replaces_ the parked tag,
+      `— promoted to issue #NNN; no change yet.`, never a clause appended past the tag's sentence-final period), since
+      the header fixes the sections' order and dating but not the tag, and the tag is what marks the entry as a
+      still-unowned idea rather than one already routed to work.
+  - **The un-audited docs**
+    - Sweep them for references to the thing this change shipped — `docs/ideas.md`, and a retrospective's suggestion
+      rows and prose, which the change marks with the suggestion's disposition (**Applied** where it applies it; its
+      routing where it routes it: parked in `docs/ideas.md`, a named change, an issue; or closed where it decides
+      against it) rather than removes. No auditor **owns** either file (each auditor's bullet states its own scope; the
+      architecture-auditor reads `docs/ideas.md` only for a deferral's or band-aid's missing rationale, and the file's
+      entries are pruned by the owner through `/ideas cleanup`).
+    - An open idea that still calls it "the proposed X" is itself a stale claim: update its prose in the same change,
+      including any enumeration or count it carries ("two others remain open: A, B") that the change's new instance
+      makes wrong.
+  - **The `docs/guidance-evidence/` records** are live docs too: an auditor reconciles them only on its periodic or
+    on-demand pass, so an upstream status, a supersession, or a retirement condition a change falsifies there is
+    refreshed in that change. captured: address-scan-findings-2026-10-25
+  - **The causation boundary**
+    - For every docs edit, the boundary is **causation _while the change is in flight_**: docs that ARE the change (new
+      agent/command/skill documentation, README rows describing a new capability, the change's idea removal), and any
+      edit the change causes that exists while it can still ride a branch — a process-defect record from its
+      implementation, an idea its own sweep surfaced, a fact it falsified — ship with the change's PR.
+    - An edit the change did not cause (a stale fact it merely passed by, a standalone reword, a refresh of an
+      already-completed change) and one surfaced only after the change is done (a defect a merge appends to the merged
+      unit's record, with no branch left to ride) ships as its own docs PR, forked from `main`, batched into one docs PR
+      rather than one per item.
+    - Decide the owner before committing — a docs PR forked from `main` cannot carry an edit committed on a change
+      branch, so committing it there first for a clean tree silently leaves it out of the docs PR and `main` unchanged.
+    - Verify the fix against the merged PR's diff rather than the PR description, which can claim a change the diff does
+      not contain.
+    - A parked-idea docs PR owes the refresh too: fold any durable fact the idea reveals into the relevant
+      `AGENTS.md`/`README.md` section (e.g. add a newly surfaced manual pin to an existing enumeration) —
+      `docs/ideas.md` is a prunable scratchpad, so a fact left only there is lost once the idea is implemented or
+      dropped.
+  - **The un-gated copies** of what this file and the specs state
+    - They take the same sweep, refreshed in the change that moves one: the `openspec/config.yaml` `context:` block (the
+      runtime/Spring/Gradle versions, module count, service list, and Docker image names that OpenSpec shows the AI when
+      creating artifacts), that file's per-artifact `rules` (which restate obligations stated here and in the specs,
+      injected per artifact alone — `projectConfig.rules[artifactId]` — so a clause several artifacts need lives in each
+      list rather than in a shared one), and the repository's GitHub description and topics. No auditor owns a surface
+      outside the repository.
+    - Refresh a rule whose obligation moves even though the gate stays green: what is un-gated is their content and
+      currency — `ci.yml`'s probe fails on a malformed item (the list's shape, since a bad one silently drops the whole
+      artifact's rule set) but not on whether a rule's wording still matches `AGENTS.md` and the spec, and
+      `openspec validate` never checks the rest, so it drifts silently.
+    - A **removal** counts too: when a sweep deletes an entry as non-durable, check these copies for the same sentence —
+      the fact has not moved, so the move rule does not fire (`disable-axoniq-console-message`'s sentence outlived
+      #292's removal from `AGENTS.md` by four PRs in `config.yaml`, until the audit noticed).
+  - **A file can also _depend_ on a surface outside the repository** rather than describe one: `SECURITY.md`'s
+    private-reporting path is a dead end unless private vulnerability reporting is enabled. Enable the setting as part
+    of the change that ships the instruction — a repository setting leaves no diff, so a diff-only review cannot see it
+    — and name the enabling in the change's report. captured: park-retro-marking-idea (#281) captured:
+    re-measure-load-test-baseline (#429) captured: mark-s3-applied captured: attribute-load-test-tail (#570) captured:
+    park-review-loop-follow-ups captured: fix-openspec-config-rules
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the

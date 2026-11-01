@@ -15,13 +15,15 @@ templates.
 1. Run `openspec --version` and record the installed version, then run `openspec update` from the repository root. Do
    not pass `--force` unless the owner asks — the plain command detects up-to-date instruction files and skips.
 2. Probe the config's declared list surfaces, since a newer CLI may parse the YAML differently: create a probe change
-   whose name is unique to this invocation, and confirm the CLI reads it without a "must be an array of strings" or a
-   "could not parse" warning, and that `openspec instructions` returns populated lists for `rules`
-   (`--change <probe> --json`) and `operationGuidance` (`openspec instructions apply --change <probe> --json`).
-3. Exercise the check itself with one positive control at a time, since a renamed warning would otherwise pass silently:
-   temporarily unquote a `rules` item containing `: `, temporarily give an `operations.*.guidance` item an unquoted
-   `: `, and drop a closing quote from a quoted item. For each control: confirm the source text actually changed (an
-   item without `: `, or one already unquoted, no-ops), read the intended diagnostic, and only then restore the file.
+   whose name is unique to this invocation, and confirm the CLI reads it without a "must be an array of strings"
+   warning, and that `openspec instructions` returns populated lists for `rules` (`--change <probe> --json`) and
+   `operationGuidance` (`openspec instructions apply --change <probe> --json`).
+3. Exercise the checks with one positive control at a time, since a renamed warning would otherwise pass silently:
+   temporarily unquote a `rules` item containing `: ` and temporarily give an `operations.*.guidance` item an unquoted
+   `: ` — each must make the probe's grep report "must be an array of strings" — then drop a closing quote from a quoted
+   item, which must make `openspec validate --all` exit non-zero. For each control: confirm the source text actually
+   changed (an item without `: `, or one already unquoted, no-ops), read the intended diagnostic, and only then restore
+   the file.
 4. Update the `openspec` pin to the installed version with a targeted replacement of `@fission-ai/openspec@<old>` in
    **every workflow the repository's `toolingUpdates` check declares for it**. Derive that inventory from the check
    itself — each `ToolingUpdateCheck` in `build.gradle.kts`'s `toolingUpdates` registration names its `workflowFile`,

@@ -25,6 +25,21 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
+## 2026-11-01
+
+- Move the created-tree preparation's deadline to the tree's first write — parked; no change yet. `AGENTS.md`'s
+  Workspace bullet says "Prepare a created tree before it is opened", a deadline the agent cannot observe; a tree
+  written to while still unopened satisfies its text. The section's own frame is first-write ("Establish the unit's
+  workspace before its first write"), as is `showcase/quality/agent-skills`'s. Two 2026-11-01 process-defect records
+  show the preparation omitted before the tree's first write — `docs/process-defects/bump-openspec-cli-2026-11-01.md#1`
+  and `bump-buildpacks-2026-11-01#1`, each surfaced by the owner — and a third shows the script run before the
+  `.python-version` inheritance (`refresh-upstream-references-2026-11-01#1`), which supports automating the preparation
+  without evidencing this deadline. Rewording the bullet and the `setup-idea` skill's trigger line to "before its first
+  write" makes a miss recognizable; the stronger fix is a `scripts/new-worktree.sh` that creates the tree (from a
+  freshly fetched `origin/main`, `--no-track`, against the primary explicitly), copies the primary's `.python-version`
+  when the tree has none, runs `./scripts/setup-idea.sh` there, and fails unless the Python stage reports `CONFIGURED`,
+  which would retire the skill's manual copy step. A generalization unit owns either, not the bump that surfaced them.
+
 ## 2026-10-28
 
 - Give the review gate's §5 a post-refresh return branch — parked; no change yet. The unit's `#1` process-defect record
@@ -796,15 +811,19 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 
 ## 2026-09-30
 
-- Retire the OpenSpec config probe and the `/opsx-tool-update` re-verification once `validate` checks the config —
-  parked; no change yet. `Fission-AI/OpenSpec#1892`'s unparseable-config half shipped in `v1.16.0` (closed 2026-10-30,
-  fixed by PR `#2127`): `validate` exits 1 on a config it cannot read, while the other commands still warn and carry on.
+- Retire the OpenSpec config probe's list-shape arm and the list-shape controls in `/opsx-tool-update` once a release
+  carries `Fission-AI/OpenSpec#1894` — parked; the `v1.16.0` clause of the same watch condition is done and this one has
+  no change yet. `Fission-AI/OpenSpec#1892`'s unparseable-config half shipped in `v1.16.0` (closed 2026-10-30, fixed by
+  PR `#2127`): `validate` exits 1 on a config it cannot read, while the other commands still warn and carry on.
   `Fission-AI/OpenSpec#1891`'s rules-array half is still live — its fix `Fission-AI/OpenSpec#1894` is open and unmerged
-  — so the `ci.yml` probe and the `/opsx-tool-update` re-verification remain the only guards against a config the CLI
-  silently drops. The watch condition has two clauses, each alone requiring its own removal, checked when the CLI is
-  bumped rather than on the next weekly sweep: a pin reaching `v1.16.0` drops the probe's `could not parse` arm, and a
-  release carrying `#1894` retires the remaining arm with the `/opsx-tool-update` re-verification. Both statuses are
-  recorded inline in `AGENTS.md`'s "Track the upstream reports that would retire this project's config guards" bullet.
+  — so the `ci.yml` probe's list-shape arm and the list-shape controls in `/opsx-tool-update` remain the only guards
+  against a config whose lists the CLI silently drops. The watch condition has two clauses, each alone requiring its own
+  removal, checked when the CLI is bumped rather than on the next weekly sweep: a pin reaching `v1.16.0` drops the
+  probe's `could not parse` arm (done: that move retired it — `openspec validate --all` exits 1 on an unparseable
+  config, and `ci.yml` now greps only the list-shape warning), and a release carrying `#1894` retires the remaining arm
+  with the list-shape controls in `/opsx-tool-update` (the whole-file control stays, since it exercises that `validate`
+  failure). Both statuses are recorded inline in `AGENTS.md`'s "Track the upstream reports that would retire this
+  project's config guards" bullet.
 
 ## 2026-09-28
 

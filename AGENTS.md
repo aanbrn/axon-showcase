@@ -2363,15 +2363,15 @@ changing an image or buildpack pin.
   a reload does not fix it. captured: fix-readme-auditor-frontmatter (#477)
 
 - **A config can look well-formed and pass the consumer's validation while the consumer silently ignores or reinterprets
-  part of it — from outside, a valid config and an ignored one are indistinguishable.** The CI `build` job now probes
-  for the list-shape warning on any declared list surface and the whole-file `could not parse` one (a malformed scalar)
-  and fails on either, and `/opsx-tool-update` re-verifies both with a positive control. The signal may be a warning on
-  stderr that no gate reads, **or none at all**: `java.util.Properties` splits a key at its first `:`, so the dependency
-  list's `group:module` entries collapsed to group prefixes — a dead exact-coordinate branch and a whole-group
-  over-suppression. For a config **a tool owns**, do not substitute a parser of your own (it assumes a contract the tool
-  owns): probe the consumer's read path and fail a gate on its warning. For a format **the repository defines**, own the
-  parse and unit-test it — a repository-owned line parser (`DependencyUpdateRulesTests`) beats escaping a library's
-  delimiters. captured: hold-back-minor-dependency-updates
+  part of it — from outside, a valid config and an ignored one are indistinguishable.** The CI `build` job probes for
+  the list-shape warning on any declared list surface and fails on it, `/opsx-tool-update` re-verifies it with a
+  positive control, and a config the CLI cannot parse at all fails `openspec validate --all`. The signal may be a
+  warning on stderr that no gate reads, **or none at all**: `java.util.Properties` splits a key at its first `:`, so the
+  dependency list's `group:module` entries collapsed to group prefixes — a dead exact-coordinate branch and a
+  whole-group over-suppression. For a config **a tool owns**, do not substitute a parser of your own (it assumes a
+  contract the tool owns): probe the consumer's read path and fail a gate on its warning. For a format **the repository
+  defines**, own the parse and unit-test it — a repository-owned line parser (`DependencyUpdateRulesTests`) beats
+  escaping a library's delimiters. captured: hold-back-minor-dependency-updates
 
 - **A load that either succeeds or throws reports through its exit status, not from a message grepped out of its
   output.** In the V1 probe, `opencode debug config`'s resolved output embeds agent and command prompts, so matching
@@ -2381,24 +2381,25 @@ changing an image or buildpack pin.
   narrow-the-v1-config-probe-claim
 
 - **Keep a config guard's list-shape pattern generic (`must be an array of strings`), not one surface's enumerated
-  wording.** It grew from `ignoring this artifact's rules` to `ignoring this artifact's rules|could not parse`, then to
-  the generic phrase, which is what covered every surface — so a malformed `rules` or `operations.*.guidance` item drops
-  no config list silently. The same class covers the change's own `.openspec.yaml`, quieter still: OpenSpec's
-  change-metadata schema is not strict, so an unrecognized key is silently stripped with no warning at all — a
-  `skip_design: true` marker (an inherited agent habit; a dozen archived changes carry it) does nothing, and
-  `openspec status` still reports `design` incomplete and points at `openspec instructions design`. There is no
-  artifact-skip key beyond `skip_specs`: skip `design.md` by simply not writing it, never by adding a key. captured:
-  bump-snyk-cli-pin
+  wording.** It grew from `ignoring this artifact's rules` to the generic phrase, which is what covers every surface —
+  so a malformed `rules` or `operations.*.guidance` item drops no config list silently. The same class covers the
+  change's own `.openspec.yaml`, quieter still: OpenSpec's change-metadata schema is not strict, so an unrecognized key
+  is silently stripped with no warning at all — a `skip_design: true` marker (an inherited agent habit; a dozen archived
+  changes carry it) does nothing, and `openspec status` still reports `design` incomplete and points at
+  `openspec instructions design`. There is no artifact-skip key beyond `skip_specs`: skip `design.md` by simply not
+  writing it, never by adding a key. captured: bump-snyk-cli-pin
 
 - **Track the upstream reports that would retire this project's config guards.** `Fission-AI/OpenSpec#1892` (an
   unparseable config) closed 2026-10-30, fixed by PR `#2127` and shipped in `v1.16.0`, where `validate` exits 1 on a
   config it cannot read while the other commands still warn and carry on. `Fission-AI/OpenSpec#1891` (an unquoted `: `
   in a rules item) closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still open and unmerged, so that half is
   live here. Each guard retires on its own condition:
-  - the CI probe's `could not parse` arm, once the pin reaches `v1.16.0`, whose `validate` fails on that shape;
-  - the CI probe's `must be an array of strings` arm, and with it the `/opsx-tool-update` re-verification, once a
-    release carries `#1894`. captured: inject-positive-control-task-rule (#375) captured: widen-config-probe-to-guidance
-    captured: record-openspec-1891-closure
+  - the CI probe's `could not parse` arm — retired when this repository's pin reached `v1.16.0`, leaving
+    `openspec validate --all` to fail the gate on that shape;
+  - the CI probe's `must be an array of strings` arm, and with it the list-shape positive controls in
+    `/opsx-tool-update`, once a release carries `#1894` — the command's whole-file control stays, since it exercises the
+    `validate` failure the first arm handed over to. captured: inject-positive-control-task-rule (#375) captured:
+    widen-config-probe-to-guidance captured: record-openspec-1891-closure
 
 - **A hosted service is a third consumer class, verified by the service itself — its own check where it has one, else
   the event it produces.** A retired key can be accepted and ignored with no local signal — `dependabot.yml`'s

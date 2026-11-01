@@ -56,6 +56,7 @@ dependencies {
 
     constraints {
         checkstyle(libs.guava)
+        spotbugs(libs.asm)
     }
 }
 

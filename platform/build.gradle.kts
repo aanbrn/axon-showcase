@@ -11,6 +11,7 @@ javaPlatform {
 dependencies {
     api(platform(libs.assertj.bom))
     api(platform(libs.axon.bom))
+    api(platform(libs.brotli4j.bom))
     api(platform(libs.jackson2.bom))
     api(platform(libs.jackson3.bom))
     api(platform(libs.kotlin.bom))
@@ -31,6 +32,7 @@ dependencies {
     api(platform(libs.testcontainers.bom))
 
     constraints {
+        api(libs.asm)
         api(libs.commons.compress)
         api(libs.commons.fileupload)
         api(libs.commons.io)
@@ -50,6 +52,7 @@ dependencies {
         api(libs.logback.core)
         api(libs.lombok)
         api(libs.lz4.java)
+        api(libs.objenesis)
         api(libs.opensearch.client.java)
         api(libs.opensearch.client.rest)
         api(libs.opensearch.client.restHighLevel)

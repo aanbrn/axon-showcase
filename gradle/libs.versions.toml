@@ -1,6 +1,6 @@
 [versions]
 java = "21"
-jacoco = "0.8.13"
+jacoco = "0.8.16"
 axon-bom = "4.13.3"
 axon-framework = "4.13.2"
 axon-kafka = "4.12.1"
@@ -58,12 +58,15 @@ zstd-jni = "1.5.7-24"
 hamcrest = "3.0"
 assertj = "3.27.7"
 mockito = "5.24.0"
+objenesis = "3.6"
 testcontainers = "2.0.5"
+brotli4j = "1.24.0"
 handlebars = "4.5.6"
 kotlin = "2.4.21"
 errorprone = "2.51.0"
 nullaway = "0.14.3"
 spotbugs = "4.10.5"
+asm = "9.11.1"
 checkstyle = "13.11.0"
 lombok = "1.18.48"
 lombok-plugin = "9.8.2"
@@ -158,6 +161,7 @@ testcontainers-junit-jupiter = { group = "org.testcontainers", name = "testconta
 testcontainers-postgresql = { group = "org.testcontainers", name = "testcontainers-postgresql" }
 testcontainers-kafka = { group = "org.testcontainers", name = "testcontainers-kafka" }
 testcontainers-opensearch = { group = "org.opensearch", name = "opensearch-testcontainers", version.ref = "opensearch" }
+brotli4j-bom = { group = "com.aayushatharva.brotli4j", name = "brotli4j-bom", version.ref = "brotli4j" }
 log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
 log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
 log4j-toSlf4j = { group = "org.apache.logging.log4j", name = "log4j-to-slf4j", version.ref = "log4j" }
@@ -178,6 +182,7 @@ assertj-core = { group = "org.assertj", name = "assertj-core", version.ref = "as
 mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter" }
+objenesis = { group = "org.objenesis", name = "objenesis", version.ref = "objenesis" }
 reactor-bom = { group = "io.projectreactor", name = "reactor-bom", version.ref = "reactor-bom" }
 reactor-core = { group = "io.projectreactor", name = "reactor-core" }
 reactor-core-micrometer = { group = "io.projectreactor", name = "reactor-core-micrometer" }
@@ -231,6 +236,7 @@ errorprone-core = { group = "com.google.errorprone", name = "error_prone_core", 
 errorprone-plugin = { group = "net.ltgt.errorprone", name = "net.ltgt.errorprone.gradle.plugin", version.ref = "errorprone-plugin" }
 nullaway = { group = "com.uber.nullaway", name = "nullaway", version.ref = "nullaway" }
 spotbugs = { group = "com.github.spotbugs", name = "spotbugs", version.ref = "spotbugs" }
+asm = { group = "org.ow2.asm", name = "asm", version.ref = "asm" }
 spotbugs-plugin = { group = "com.github.spotbugs.snom", name = "spotbugs-gradle-plugin", version.ref = "spotbugs-plugin" }
 spotbugs-findsecbugs-plugin = { group = "com.h3xstream.findsecbugs", name = "findsecbugs-plugin", version.ref = "spotbugs-findsecbugs-plugin" }
 spotbugs-fbContrib-plugin = { group = "com.mebigfatguy.fb-contrib", name = "fb-contrib", version.ref = "spotbugs-fbContrib-plugin" }

@@ -12,6 +12,10 @@ plugins {
     id("workflow-lint-conventions")
 }
 
+jacoco {
+    toolVersion = libs.versions.jacoco.get()
+}
+
 val markdownTarget =
     listOf(
         "docs/**/*.md",

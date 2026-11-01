@@ -1988,3 +1988,10 @@
 2026-11-01	refresh-upstream-references-2026-11-01	2	impact-omission	-	0	ses_e6b99f0bdffeDca3uURCvO4Hj0	continued	-
 2026-11-01	refresh-upstream-references-2026-11-01	3	-	-	0	ses_e6b99f0bdffeDca3uURCvO4Hj0	continued	-
 2026-11-01	refresh-upstream-references-2026-11-01	4	-	-	0	ses_e6b99f0bdffeDca3uURCvO4Hj0	continued	-
+2026-11-01	address-snyk-advisories-2026-11-01	1	contradiction,claim-unreproducible,claim-missing,incomplete-enumeration,missing-task,formatting,wording,structured-writing	-	2	ses_e6ba89dddffeeOl5aOwGiU2K8R	created	-
+2026-11-01	address-snyk-advisories-2026-11-01	2	contradiction,claim-unreproducible,formatting,wording	contradiction,claim-unreproducible,formatting,wording	1	ses_e6ba89dddffeeOl5aOwGiU2K8R	continued	-
+2026-11-01	address-snyk-advisories-2026-11-01	3	dropped-content	-	1	ses_e6ba89dddffeeOl5aOwGiU2K8R	continued	-
+2026-11-01	address-snyk-advisories-2026-11-01	4	-	-	0	ses_e6ba89dddffeeOl5aOwGiU2K8R	continued	-
+2026-11-01	address-snyk-advisories-2026-11-01	5	missing-task,claim-unreproducible,docs-residue,structured-writing	missing-task,claim-unreproducible,structured-writing	3	ses_e6ba89dddffeeOl5aOwGiU2K8R	continued	-
+2026-11-01	address-snyk-advisories-2026-11-01	6	wording	wording	1	ses_e6ba89dddffeeOl5aOwGiU2K8R	continued	-
+2026-11-01	address-snyk-advisories-2026-11-01	7	-	-	0	ses_e6ba89dddffeeOl5aOwGiU2K8R	continued	-

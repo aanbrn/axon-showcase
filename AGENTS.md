@@ -1085,15 +1085,17 @@ Key modules (libraries, not services):
   dependency, tool, or wrapper version) is the mechanical case: it makes stale every live doc that names the bumped
   version — including a coordinate an ADR or idea quotes as the catalog's current value, and an example in
   `openspec/specs/` or a subject pack — so grep the old string across the whole working tree, the change's untracked
-  artifacts included, and fix each live mention, since no gate reads them; de-version an illustrative example (the
-  `2025.0` train, "a later `2025.0.x`") rather than re-version it, which re-stales at that line's next release.
-  captured: bump-dependencies-2026-10-12 captured: bump-dependencies-2026-10-25 Update them before reporting the change
-  done; also remove the change's idea from `docs/ideas.md` in this PR, not as a separate docs PR. An idea is removed
-  once implemented (captured by a change) or once explored and decided against — the file's header owns where its
-  durable lesson goes and what remains. Promotion to a GitHub issue is a **link, not a removal** — annotate the idea
-  with the issue number when you promote it, since the file's header names only the issue's link to the change, not the
-  scratchpad's back-link to the issue, so the two drift apart — and prefer promoting a unit's idea at that unit's merge:
-  while its PR is open, citing an artifact the unit ships is a contingent claim that must say so
+  artifacts included, and fix each live mention, since no gate reads them; a version sentence that is not a
+  present-tense current value is not retargeted to the bumped version, since that re-stales at the next release —
+  de-version an illustrative example (the `2025.0` train, "a later `2025.0.x`"), and widen a minimum requirement to
+  `"<old> or newer"`, which a retarget would turn into a claim that the older release was insufficient. captured:
+  bump-dependencies-2026-10-12 captured: bump-dependencies-2026-10-25 captured: bump-dependencies-2026-11-01 Update them
+  before reporting the change done; also remove the change's idea from `docs/ideas.md` in this PR, not as a separate
+  docs PR. An idea is removed once implemented (captured by a change) or once explored and decided against — the file's
+  header owns where its durable lesson goes and what remains. Promotion to a GitHub issue is a **link, not a removal** —
+  annotate the idea with the issue number when you promote it, since the file's header names only the issue's link to
+  the change, not the scratchpad's back-link to the issue, so the two drift apart — and prefer promoting a unit's idea
+  at that unit's merge: while its PR is open, citing an artifact the unit ships is a contingent claim that must say so
   (`open as #NNN; not yet merged`) and the clause drops at the merge — the merge's record append owns that drop, and
   where the claim was already published outside the repository it means editing the published artifact, not only
   omitting it from new prose — because the issue is a permanent record outside the repository and cannot cite what the

@@ -133,28 +133,34 @@ coordinates keep the leading-integer major comparison.
   `val`/`fun`, the script's own `this` — because serializing the captured **script object** fails the store; compute
   what the action needs into a `val` local to the configuration lambda (a class/object reference is safe) — but a file
   tree the task scans is a declared task input (`@InputFiles`) resolved in the action, never a hoisted path list, since
-  a warm cache replays the configuration-time list and a file added after the store goes unscanned. It needed the
-  gradle-helm-plugin at **3.2.0** (its tasks captured a `Task`/`Project` through 3.1.2 —
-  build-extensions-oss/gradle-helm-plugin#140, closed), that hoist at each task action that had it (the workflow-lint,
-  dependency-security, frontend npm, load-tests, and compose tasks — whose `onlyIf` also read `gradle.startParameter`
-  and a `rootProject.extra` handshake, now `composeScheduleState`), and `notCompatibleWithConfigurationCache` on
-  `:load-tests:gatlingRecorder`, whose third-party task type holds a `Configuration`/`SourceSet` no hoist can fix (the
-  plugin repository disables issues and discussions, so an upstream fix must arrive as a PR). Sweep such a change by
-  **executing** every task a workflow invokes, not by realizing the graph: `./gradlew tasks --all`'s set never runs a
-  task action, so a task no `check` graph requests — `upstreamReferences`, invoked only by its own workflow — escapes
-  every sweep the build itself can run, and its store defect surfaces only in CI, on a schedule, where no gate sees it
-  (#581 missed it for a week). Run each such task with the cache enabled and require a stored entry, then a reused one.
-  A plugin task type is one failure shape (it cannot store); a third-party task whose `onlyIf` reads build state is
-  another: it stores cleanly and then silently skips, because the cache resolves the predicate against the state
-  captured at store time. Compare each such task's _outcome_ (ran / skipped) with and without the cache on a clean
-  checkout, not only that the graph stores; and neutralize such a gate with `setOnlyIf { true }`, since a bare
-  `onlyIf { true }` only appends a spec that is ANDed with the plugin's and leaves it in force (the helm plugin's
-  chart-dependency skip is the worked case — see the `deployment-operations` pack's Chart validation). captured:
-  fix-upstream-references-config-cache captured: add-a-markdown-table-integrity-check
+  a warm cache replays the configuration-time list and a file added after the store goes unscanned, and replays
+  configuration rather than running it, so a warning a plugin emits while configuring is absent from a reused run — a
+  warm run's silence is not the plugin's fix (the deprecation bullet below owns the probe). captured:
+  bump-dependencies-2026-11-01 It needed gradle-helm-plugin **3.2.0** or newer (its tasks captured a `Task`/`Project`
+  through 3.1.2 — build-extensions-oss/gradle-helm-plugin#140, closed), that hoist at each task action that had it (the
+  workflow-lint, dependency-security, frontend npm, load-tests, and compose tasks — whose `onlyIf` also read
+  `gradle.startParameter` and a `rootProject.extra` handshake, now `composeScheduleState`), and
+  `notCompatibleWithConfigurationCache` on `:load-tests:gatlingRecorder`, whose third-party task type holds a
+  `Configuration`/`SourceSet` no hoist can fix (the plugin repository disables issues and discussions, so an upstream
+  fix must arrive as a PR). Sweep such a change by **executing** every task a workflow invokes, not by realizing the
+  graph: `./gradlew tasks --all`'s set never runs a task action, so a task no `check` graph requests —
+  `upstreamReferences`, invoked only by its own workflow — escapes every sweep the build itself can run, and its store
+  defect surfaces only in CI, on a schedule, where no gate sees it (#581 missed it for a week). Run each such task with
+  the cache enabled and require a stored entry, then a reused one. A plugin task type is one failure shape (it cannot
+  store); a third-party task whose `onlyIf` reads build state is another: it stores cleanly and then silently skips,
+  because the cache resolves the predicate against the state captured at store time. Compare each such task's _outcome_
+  (ran / skipped) with and without the cache on a clean checkout, not only that the graph stores; and neutralize such a
+  gate with `setOnlyIf { true }`, since a bare `onlyIf { true }` only appends a spec that is ANDed with the plugin's and
+  leaves it in force (the helm plugin's chart-dependency skip is the worked case — see the `deployment-operations`
+  pack's Chart validation). captured: fix-upstream-references-config-cache captured:
+  add-a-markdown-table-integrity-check
 
 - **IF a Gradle run under `--warning-mode all` emits a gradle-helm-plugin deprecation or a `Configuration.visible`
-  warning, THEN treat it as upstream and leave it: there is no repo-side fix.** gradle-helm-plugin 3.2.0 still calls the
-  deprecated `Project.getProperties()` (a hard error in Gradle 10); tracked upstream as
+  warning, THEN treat it as upstream and leave it: there is no repo-side fix.** gradle-helm-plugin 3.3.0 still calls the
+  deprecated `Project.getProperties()` (a hard error in Gradle 10), from its
+  `HelmPlugin.createRepositoriesFromProjectProperties` once per helm project, and only on a run whose
+  configuration-cache entry is not reused (so probe with `--no-configuration-cache`;
+  `-Dorg.gradle.deprecation.trace=true` names the emitting class); tracked upstream as
   build-extensions-oss/gradle-helm-plugin#145, so bump the plugin when a fixed release lands. The
   `Configuration.visible` deprecation (`setVisible(boolean)`, removed in Gradle 11) is emitted by several third-party
   plugins (helm, errorprone, SpotBugs, Spring Boot, protobuf) and is likewise plugin-side. Do not add a local workaround

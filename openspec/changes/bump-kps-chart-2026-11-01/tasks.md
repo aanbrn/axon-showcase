@@ -63,9 +63,9 @@ branch=bump-kps-chart-2026-11-01; writer=ses_e6b3f9701ffewWWmCA4CSRHN9L.
       resolved to skip the deep review, so no `/review-thorough` session was created.
 - [x] 3.4 Decide the `lesson-capture` run against its skip condition; when it does not hold, run the subagent, apply its
       durable proposals, and record the applied net delta — or record the skip with its reason. **Done**: skipped, net
-      delta 0. The unit's record states no process defect observed, and the `agent-skills` requirement makes
-      generalization its own unit on already-merged records ("the product unit's gate is the hand-off, not the
-      analysis", with generalization not blocking the unit), so no capture runs here.
+      delta 0. The record carries no analysis and no `Decision` line, so it stays for the later generalization unit, and
+      the `agent-skills` requirement makes generalization its own unit on already-merged records ("the product unit's
+      gate is the hand-off, not the analysis"), so no capture runs here.
 - [ ] 3.5 Ask the owner for the manual review pass; commit, push, archive and merge only after approval.
 
 ## Workflow follow-up

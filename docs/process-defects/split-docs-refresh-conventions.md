@@ -74,10 +74,10 @@
   2026-11-01T14:42:08, beside `.opencode/opencode.json:8`'s `"git push *": "ask"`; the row was deleted at the owner's
   direction and the table then held no `git push` row.
 - **Consequence**: PR #799 was pushed and merged without that request. Its content had been approved at the manual pass,
-  so no revert was owed. The saved row was deleted at the owner's direction; whether the running session now prompts is
-  unobserved.
+  so no revert was owed. The saved row was deleted at the owner's direction, and the owner reported the prompt returning
+  on a later push.
 - **Knowledge boundary**: observed the row, the config line and the owner's report of not being asked. The row's
   provenance — which session answered "always", or whether a harness wrote it — was not established, and the engine's
   in-memory caching of the table was not tested. The row was checked because `AGENTS.md`'s "An unanswered `ask` hangs an
   unattended run" bullet states the saved-allow override; nothing recorded here establishes that it explains these two
-  pushes, and the next real push is the first observation of whether the prompt returns.
+  pushes. Whether removing the row is what restored the prompt was not independently tested.

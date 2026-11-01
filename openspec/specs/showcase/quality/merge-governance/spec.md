@@ -447,19 +447,28 @@ separate from the merge gate. The workflow SHALL invoke the audits unattended th
 scheduled-run mechanism (a `prompt` input, which that trigger requires, and a single batched run rather than one
 workflow per audit), SHALL report the findings into a reviewable artifact — a pull request opened from the branch the
 run commits the report to, since the scheduled path has no issue to comment on and produces a pull request only when the
-run leaves commits — and SHALL commit nothing when the audits report nothing. It SHALL notify the repository owner of a
-report pull request by mentioning them in that pull request's body, so the report is not left unread. That mention SHALL
-be placed in the body rather than leading the agent's response, because the action derives the pull request title by
-summarising the response (a response dominated by the mention tends to summarise into a title about it rather than the
-report). It SHALL run on `ubuntu-latest` with `id-token: write` (the action authenticates by OIDC by default),
-`contents: write`, and `pull-requests: write` (the scopes the no-actor scheduled path needs to open a branch and a pull
-request), and SHALL NOT be part of the merge-gate `build` check or a required check for merging into `main`.
+run leaves commits — and SHALL commit nothing when the audits report nothing. It SHALL retain each auditor's own report,
+verbatim, as a workflow artifact of the run, carrying that auditor's name and the input revision it audited, on every
+run including a clean one, so a report's verdict can be checked against what each auditor returned; those reports SHALL
+NOT be committed to the repository. It SHALL notify the repository owner of a report pull request by mentioning them in
+that pull request's body, so the report is not left unread. That mention SHALL be placed in the body rather than leading
+the agent's response, because the action derives the pull request title by summarising the response (a response
+dominated by the mention tends to summarise into a title about it rather than the report). It SHALL run on
+`ubuntu-latest` with `id-token: write` (the action authenticates by OIDC by default), `contents: write`, and
+`pull-requests: write` (the scopes the no-actor scheduled path needs to open a branch and a pull request), and SHALL NOT
+be part of the merge-gate `build` check or a required check for merging into `main`.
 
 #### Scenario: Scheduled trigger runs the audits
 
 - **WHEN** the scheduled trigger fires
 - **THEN** the `audit` job runs the three audits in one batched agent run, writes their findings in the shared report
   contract to a dated file, and commits it so the action opens a pull request carrying the report
+
+#### Scenario: Each auditor's report is retained with the run
+
+- **WHEN** an audit run completes, whether or not it reports a finding
+- **THEN** the run carries a workflow artifact holding each auditor's own report verbatim together with the input
+  revision it audited, and none of those reports is committed to the repository
 
 #### Scenario: The owner is notified of a report pull request
 
@@ -471,7 +480,8 @@ request), and SHALL NOT be part of the merge-gate `build` check or a required ch
 #### Scenario: A clean audit run makes no artifact
 
 - **WHEN** the scheduled run finds nothing across the three audits
-- **THEN** it commits nothing, so the action opens no pull request and a quiet week produces no noise
+- **THEN** it commits nothing, so the action opens no pull request and a quiet week leaves the repository unchanged; the
+  run's retained auditor reports are workflow artifacts of the run, not repository artifacts
 
 #### Scenario: Manual trigger runs the audits
 

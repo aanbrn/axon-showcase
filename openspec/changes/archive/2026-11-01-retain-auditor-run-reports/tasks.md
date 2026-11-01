@@ -37,7 +37,8 @@ branch=retain-auditor-run-reports; writer=ses_e695b53b9ffeCh1sn44PGihjod
       completeness check verified non-emptiness, not the name/revision stamp the delta requires) and 1 nitpick (the
       test's case count); **pass 2** — both `FIXED_AND_VERIFIED`, nothing remains. The earlier `RECOMMENDED` skip
       covered only the proposal stage.
-- [ ] 3.5 Commit, push, and open the pull request, per `.opencode/skills/ship-change/SKILL.md`.
+- [x] 3.5 Commit, push, and open the pull request, per `.opencode/skills/ship-change/SKILL.md`. **Done** — pull
+      request #797.
 - [x] 3.6 Dispatch check on the pushed branch — `gh workflow run audit.yml --ref <branch>` — then, on that run:
   - download the artifact (`gh run download <run-id> -n audit-reports-<run-id>`) and confirm it holds the three reports,
     none empty, each opening with its auditor's name and the run's input SHA;
@@ -50,4 +51,5 @@ branch=retain-auditor-run-reports; writer=ses_e695b53b9ffeCh1sn44PGihjod
     `<auditor> — input revision 02d86de…` (the dispatched ref's SHA) and the agents report carries its
     `## Instruction-budget ledger` and extraction sections. The run also opened the audit's own report pull request from
     its `opencode/dispatch-…` branch; closed, since it carries this unmerged branch and reports 0 findings.
-- [ ] 3.7 Archive and merge, per `.opencode/skills/ship-change/SKILL.md`.
+- [x] 3.7 Archive and merge, per `.opencode/skills/ship-change/SKILL.md`. **Done** — archived in this pull request;
+      the merge follows its `build` check.

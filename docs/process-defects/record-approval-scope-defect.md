@@ -89,3 +89,20 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   named the claims-table repetitions had been the one missing from the record.
 - **Knowledge boundary** — observed in the ledger and the round's report; whether the omission would have survived to
   the manual pass is not established, since `--expect` names it at the boundary.
+
+### record-approval-scope-defect#6 — A Russian advisor report was relayed to the owner in English
+
+- **Recorded** — 2026-11-01, by the writer of a later unit, at the owner's report that this session's relay had switched
+  language.
+- **Stage** — review, while the unit applied a technical-advisor consultation's findings.
+- **Expected** — `AGENTS.md`'s output-language convention: an agent-facing report is English, and so is the hand-off an
+  agent sends another agent, while a reply the owner reads uses the language of the owner's current request and follows
+  a later switch.
+- **Observed** — the owner's request in that turn was Russian. The hand-off to `technical-advisor` asked for an
+  owner-facing report in Russian, and the advisor answered in Russian; the two owner-facing messages that followed were
+  English, and the session's later messages were Russian again.
+- **Evidence** — that turn's stored messages: the owner's request and the advisor's reply are Russian, the two
+  owner-facing messages after the reply are English, and the messages after them are Russian.
+- **Consequence** — in one turn the owner read a Russian verdict and an English summary of it; no artifact was affected.
+- **Knowledge boundary** — observed the stored messages and their language; the owner's screen was not observed, and
+  whether other turns of that session carried the same pattern was not surveyed.

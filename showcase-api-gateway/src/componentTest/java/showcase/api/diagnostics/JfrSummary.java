@@ -24,8 +24,9 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Three properties keep it from misleading a reader or harming a run:
  * <ul>
- *   <li><strong>Off unless asked for.</strong> Recording is enabled only with {@code -Dshowcase.diagnostics.jfr=true};
- *       otherwise the summary says it is disabled, so a zero is never read as "nothing happened".
+ *   <li><strong>Off unless asked for.</strong> Recording is enabled only when the build forwards
+ *       {@code -Dshowcase.diagnostics.jfr=true} — {@code -Pdiagnostics.jfr=true} on a Gradle run — and otherwise the
+ *       summary says it is disabled, so a zero is never read as "nothing happened".
  *   <li><strong>Health is reported.</strong> The summary states whether the recording started, how many events and CPU
  *       samples it has, and why it is unavailable when it is — an absent observation is distinguishable from a zero.
  *   <li><strong>Contained.</strong> Aggregation state is bounded, and a failure to start or stream disables the summary
@@ -126,7 +127,8 @@ public final class JfrSummary {
             rendered.append("recording: ")
                     .append(
                             UNAVAILABLE.get() == null
-                                    ? "disabled (enable with -D" + ENABLED_PROPERTY + "=true)"
+                                    ? "disabled (enable with -Pdiagnostics.jfr=true, which the build forwards as -D"
+                                            + ENABLED_PROPERTY + "=true)"
                                     : "unavailable (" + UNAVAILABLE.get() + ")")
                     .append('\n');
             return rendered.toString();

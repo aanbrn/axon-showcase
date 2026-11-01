@@ -752,9 +752,10 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   handler never completes, with a 400 ms client timeout, renders `OPEN … last=ADMITTED`: the exchange is not cancelled
   in the filter, so "arrival with no terminal" is the shape a stall leaves. The blocking scheduler's figures are
   aggregate and are labelled so: no request identity reaches the scheduler from a test-scope instrument, so they say
-  whether a blocking task was queued or running at all, not which request owned it. The JFR recording is opt-in
-  (`-Dshowcase.diagnostics.jfr=true`), because its cost on a loaded runner is unmeasured and an always-on recorder would
-  change the load it measures; a paired enabled/disabled cold-run comparison is the prerequisite for making it the
+  whether a blocking task was queued or running at all, not which request owned it. The JFR recording stays opt-in
+  because its cost on a loaded runner is unmeasured and an always-on recorder would change the load it measures. A
+  reader enables it with `-Pdiagnostics.jfr=true`, which the gateway component-test build forwards as
+  `-Dshowcase.diagnostics.jfr=true`. A paired enabled/disabled cold-run comparison is the prerequisite for making it the
   default.
 
   **One local reproduction, 2026-11-01.** While that instrumentation was being built, the suite stalled locally in a run

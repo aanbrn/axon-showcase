@@ -61,6 +61,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -78,6 +79,7 @@ import reactor.netty.channel.AbortedException;
 import reactor.util.context.Context;
 import showcase.api.ShowcaseApiErrorResolver;
 import showcase.api.ShowcaseApiProperties;
+import showcase.api.diagnostics.StallDiagnosticsConfig;
 import showcase.api.shared.ShowcaseQueryCache;
 import showcase.command.FinishShowcaseCommand;
 import showcase.command.RemoveShowcaseCommand;
@@ -99,6 +101,7 @@ import showcase.query.ShowcaseQueryOperations;
 @WebFluxTest(ShowcaseRestController.class)
 @AutoConfigureWebTestClient(timeout = "30s")
 @DisplayName("Showcase API controller component tests")
+@Import(StallDiagnosticsConfig.class)
 class ShowcaseRestControllerCT {
 
     @Configuration

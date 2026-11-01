@@ -27,6 +27,20 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
 
 ## 2026-11-01
 
+- Split the `## Conventions` "Docs refresh on change" bullet into one labeled sub-bullet per obligation family. It is
+  one 66-line bullet carrying ~15 independent obligations and 10 `captured:` markers (measured 2026-11-01) — such as the
+  version-bump sweep, the causation boundary, the parked-idea refresh, and the un-gated `openspec/config.yaml` and
+  GitHub-description copies — so a reader scans all of it to reach the one clause their change triggers, the density the
+  Structured Writing Standard's "one independently actionable statement per unit" forbids. The 2026-10-31 dispatch audit
+  run found this; its report lives only on #781's branch, which also carries the already-merged
+  `consolidate-governance-contracts` change and so cannot merge as it stands, and the merged `docs/audits/2026-10-31.md`
+  records a clean verdict without it. #781's report drafts the split by keeping the bold lead and dividing the body into
+  one labeled sub-bullet per obligation family — version bump, the change's own idea, the un-audited docs, the
+  guidance-evidence records, the causation boundary, the un-gated copies, and a file that depends on an external surface
+  — holding the nine `captured:` markers the bullet then carried on the clause each belongs to; it elides text with "…"
+  and drops clauses, so it is a sketch rather than a complete restructure to copy. The content stays at root: it is a
+  repository-wide rule that fires on every change. — parked; no change yet.
+
 - Gate a `Decision` line's link with a check — parked; no change yet. The generalization workflow requires `proposed`
   with a link and `shipped` with a merged pull request's link, but neither `commit-hygiene.py` nor the build validates
   those lines, so a conforming record and a non-conforming one are indistinguishable to `check`. The unit that surfaced

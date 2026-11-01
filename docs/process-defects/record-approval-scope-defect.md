@@ -106,3 +106,25 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
 - **Consequence** — in one turn the owner read a Russian verdict and an English summary of it; no artifact was affected.
 - **Knowledge boundary** — observed the stored messages and their language; the owner's screen was not observed, and
   whether other turns of that session carried the same pattern was not surveyed.
+
+### record-approval-scope-defect#7 — An absence was asserted about the session's record, which the store contradicted
+
+- **Recorded** — 2026-11-01, by the writing session, after the owner named the session store.
+- **Stage** — merge (after the unit merged; the episode belongs to a turn of the merged unit).
+- **Expected** —
+  - a claim about a surface outside the repository has "no config file or commit behind it, so its evidence is a query
+    whose output you have", run before the claim is stated;
+  - a search that under-matches "returns a plausible empty or partial result", so an empty reading is evidence only when
+    the search can be shown to hit a known positive.
+- **Observed** — the owner reported that an advisor's Russian report had been relayed to him in English. The agent
+  answered that it saw no such message in this session and asked for a pointer; the owner then named the session store,
+  which holds the rows the questioned relay produced.
+- **Evidence** — the `session_message` rows of `ses_e695b53b9ffeCh1sn44PGihjod`: seq 3189 is the request that opened the
+  turn, and seq 3240 and seq 3349 are the two owner-facing messages that answered it — the rows whose content and
+  language `#6` records.
+- **Consequence** — the owner's question was answered with a denial and a request for a pointer; a later unit recorded
+  the language defect (`#6`), and this record carries the false absence beside it.
+- **Knowledge boundary** — observed the store rows and their order. The agent's own account of its check is that it
+  re-read its rendered replies and queried no store before answering; that account was not traced, so nothing shows a
+  query was skipped, and an under-matching query would have produced the same denial. The session's rendered transcript
+  was not inspected, and whether the same pattern occurs in other sessions was not surveyed.

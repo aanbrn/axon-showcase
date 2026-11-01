@@ -2388,13 +2388,15 @@ changing an image or buildpack pin.
   artifact-skip key beyond `skip_specs`: skip `design.md` by simply not writing it, never by adding a key. captured:
   bump-snyk-cli-pin
 
-- **Track the upstream reports that would retire this project's config guards.** Upstream, the reports are
-  `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item; closed 2026-09-29, but its fix
-  `Fission-AI/OpenSpec#1894` is still unmerged and in no release — no released CLI has `inspectProjectConfig`, so the
-  defect is live here) and `Fission-AI/OpenSpec#1892` (an unparseable config; still open); if `validate` gains a config
-  check that fails (an ask in each), the CI probe and the `/opsx-tool-update` re-verification become redundant and can
-  go. captured: inject-positive-control-task-rule (#375) captured: widen-config-probe-to-guidance captured:
-  record-openspec-1891-closure
+- **Track the upstream reports that would retire this project's config guards.** `Fission-AI/OpenSpec#1892` (an
+  unparseable config) closed 2026-10-30, fixed by PR `#2127` and shipped in `v1.16.0`, where `validate` exits 1 on a
+  config it cannot read while the other commands still warn and carry on. `Fission-AI/OpenSpec#1891` (an unquoted `: `
+  in a rules item) closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still open and unmerged, so that half is
+  live here. Each guard retires on its own condition:
+  - the CI probe's `could not parse` arm, once the pin reaches `v1.16.0`, whose `validate` fails on that shape;
+  - the CI probe's `must be an array of strings` arm, and with it the `/opsx-tool-update` re-verification, once a
+    release carries `#1894`. captured: inject-positive-control-task-rule (#375) captured: widen-config-probe-to-guidance
+    captured: record-openspec-1891-closure
 
 - **A hosted service is a third consumer class, verified by the service itself — its own check where it has one, else
   the event it produces.** A retired key can be accepted and ignored with no local signal — `dependabot.yml`'s

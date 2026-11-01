@@ -766,11 +766,14 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 ## 2026-09-30
 
 - Retire the OpenSpec config probe and the `/opsx-tool-update` re-verification once `validate` checks the config —
-  parked; no change yet. `Fission-AI/OpenSpec#1891` closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still
-  unmerged and in no release (no released CLI has `inspectProjectConfig`), so the `ci.yml` probe and the
-  `/opsx-tool-update` re-verification remain the only guards against a config the CLI silently drops. The watch
-  condition is a release carrying `#1894` (and `#1892`'s unparseable-config half), checked when the CLI is bumped rather
-  than on the next weekly sweep. The `#1891` status is recorded inline in `AGENTS.md`'s config-read-path gotcha.
+  parked; no change yet. `Fission-AI/OpenSpec#1892`'s unparseable-config half shipped in `v1.16.0` (closed 2026-10-30,
+  fixed by PR `#2127`): `validate` exits 1 on a config it cannot read, while the other commands still warn and carry on.
+  `Fission-AI/OpenSpec#1891`'s rules-array half is still live — its fix `Fission-AI/OpenSpec#1894` is open and unmerged
+  — so the `ci.yml` probe and the `/opsx-tool-update` re-verification remain the only guards against a config the CLI
+  silently drops. The watch condition has two clauses, each alone requiring its own removal, checked when the CLI is
+  bumped rather than on the next weekly sweep: a pin reaching `v1.16.0` drops the probe's `could not parse` arm, and a
+  release carrying `#1894` retires the remaining arm with the `/opsx-tool-update` re-verification. Both statuses are
+  recorded inline in `AGENTS.md`'s "Track the upstream reports that would retire this project's config guards" bullet.
 
 ## 2026-09-28
 

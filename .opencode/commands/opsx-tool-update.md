@@ -16,9 +16,8 @@ templates.
    not pass `--force` unless the owner asks — the plain command detects up-to-date instruction files and skips.
 2. Probe the config's declared list surfaces, since a newer CLI may parse the YAML differently: create a probe change
    whose name is unique to this invocation, and confirm the CLI reads it without a "must be an array of strings" or a
-   "could not parse" warning — the same two patterns the CI probe greps — and that `openspec instructions` returns
-   populated lists for `rules` (`--change <probe> --json`) and `operationGuidance`
-   (`openspec instructions apply --change <probe> --json`).
+   "could not parse" warning, and that `openspec instructions` returns populated lists for `rules`
+   (`--change <probe> --json`) and `operationGuidance` (`openspec instructions apply --change <probe> --json`).
 3. Exercise the check itself with one positive control at a time, since a renamed warning would otherwise pass silently:
    temporarily unquote a `rules` item containing `: `, temporarily give an `operations.*.guidance` item an unquoted
    `: `, and drop a closing quote from a quoted item. For each control: confirm the source text actually changed (an
@@ -36,7 +35,7 @@ templates.
    still match what `openspec update` wrote — a newly generated file would otherwise be reformatted by `spotlessApply`
    and then overwritten by the next `openspec update`.
 7. Check the standing parked record this bump activates, before reporting done: `docs/ideas.md`'s 2026-09-30 entry names
-   the CLI bump as its own check point, so read its watch condition (a release carrying the config-guard fix) and record
+   the CLI bump as its own check point, so read its watch condition, apply the removal each met clause names, and record
    the outcome on the change's task, or on the pull-request checklist when the unit has no change dir. The step retires
    with that entry, and the change that retires the entry sweeps this step.
 

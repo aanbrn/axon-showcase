@@ -162,6 +162,19 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   the triggering request's text, only its language; that gap is stated rather than filled. The direction is unchanged —
   investigate compliance before proposing another wording expansion.
 
+  **Second instance, 2026-11-01** — the same condition on the delegation path. The owner's request was Russian; the
+  hand-off to a subagent asked for an owner-facing report in Russian; the subagent answered in Russian, and the two
+  owner-visible messages that relayed it were English. The evidence is
+  `docs/process-defects/record-approval-scope-defect.md#6`, which carries those languages and points at the turn's
+  stored messages; the hand-off's own text and language are not reproduced in the repository, so the excerpt this
+  entry's retention clause asks for stays with that record. The applicable instruction state: `AGENTS.md`'s
+  output-language convention and the `agent-skills` requirement that defers to it — the scenarios making a delegation
+  prompt and an agent-facing report English, brought in by #707 (`ea1ee3b5`), and the owner-visible scenarios #713
+  (`a4da4287`) widened; both were in effect. The report's language already violates the scenario making an agent-facing
+  report English, so the direction stays compliance rather than another wording expansion; whether the hand-off itself
+  was English, and whether asking for a non-English report needs its own clause, remain part of this entry's
+  investigation.
+
 ## 2026-10-26
 
 - Freeze a unit's resume checkpoint at the resume — parked; no change yet. `.opencode/skills/pause-resume-unit/SKILL.md`

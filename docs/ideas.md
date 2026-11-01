@@ -34,13 +34,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   future check must accept an unlinked `proposed` until the pull request is created and require the link at merge, which
   a pre-commit rule cannot express.
 
-- Recover the 2026-10-31 dispatch audit's report on the `AGENTS.md` docs-refresh bullet from `#781` — parked; no change
-  yet. That run found the bullet's density, and its report lives only on #781's branch, which also carries the
-  already-merged `consolidate-governance-contracts` change and so cannot merge as it stands; the merged
-  `docs/audits/2026-10-31.md` records a clean verdict without it. The change that implemented the split carried this
-  fact in the `docs/ideas.md` entry it removed and now cites it from its proposal, so the report's content should be
-  recovered into a dated record under `docs/audits/` rather than left to that branch.
-
 ## 2026-10-28
 
 - Evaluate Gradle's official `gradle-best-practices` skill against this build — parked; no change yet. `gradle-skills`

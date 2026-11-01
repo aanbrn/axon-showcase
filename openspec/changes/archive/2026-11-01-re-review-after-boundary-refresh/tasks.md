@@ -55,4 +55,5 @@ branch=re-review-after-boundary-refresh; writer=ses_e6a51d9beffeto8qnIbWdlzo8j.
 - [x] 3.4 Write `docs/process-defects/re-review-after-boundary-refresh.md` — or state that no defect was observed.
       **Done**: the record states one defect — the refresh reconciliation took one side wholesale and dropped the base's
       `docs/ideas.md` entry, repaired in the same step.
-- [ ] 3.5 Ask the owner for the manual review pass; commit and push only after approval.
+- [x] 3.5 Ask the owner for the manual review pass; commit and push only after approval. **Done**: the owner approved on
+      2026-11-01, after the advisor agreed the unit was ready.

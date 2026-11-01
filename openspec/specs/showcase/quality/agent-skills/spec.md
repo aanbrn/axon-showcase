@@ -1799,11 +1799,12 @@ shared project instructions, configuration, skills, or provider context exist.
 
 ### Requirement: The quick review loop runs on every unit
 
-The repository SHALL run the bounded quick review after a unit's proposal and after its implementation, repeating until
-it reports no new observations. The reviewer's screen, finding classes, evidence rules, report contract, and capture
-challenge are its definition's; the caller's steps — the pre-write record, the claims table, the session preflight, the
-ledger row and its checkpoint — are the review-gate skill's; the ledger row's format and verification are
-`showcase/quality/commit-hygiene`'s.
+The repository SHALL run the bounded quick review after a unit's proposal and after its implementation, and at the
+manual-pass boundary after a refresh that changed a file the closing round reviewed, repeating until it reports no new
+observations before the manual review is requested again. The reviewer's screen, finding classes, evidence rules, report
+contract, and capture challenge are its definition's; the caller's steps — the pre-write record, the claims table, the
+session preflight, the ledger row and its checkpoint — are the review-gate skill's; the ledger row's format and
+verification are `showcase/quality/commit-hygiene`'s.
 
 A replacement reviewer session SHALL be started only after one of the recovery cases the review gate's rule names is
 evidenced; an independent screen is not a recovery case, and a session change without an evidenced case is recorded as a
@@ -1874,6 +1875,15 @@ continuity violation rather than as a permitted replacement.
   on the unit's review task or pull-request review record
 - **AND** the loop resumes per that decision without a manufactured clean round, and the stop is not clearance: the unit
   does not proceed to delivery while its highest recorded round still carries a finding class
+
+#### Scenario: A boundary refresh that changed a reviewed file re-opens the loop
+
+- **WHEN** the review gate's manual-pass boundary refreshes a unit's branch, and the refresh changed a file the closing
+  quick round reviewed — a conflict resolved by hand, or a unit file the base advanced
+- **THEN** the gate re-runs its stages over the result before the manual pass is requested again — the pre-write pass's
+  claims table when a planning artifact changed, then the quick loop, then the routing decision reassessed on the
+  changed tree and any deep review the routing selects — rather than treating the closing round as covering the
+  rewritten tree
 
 ### Requirement: The deep review is routed and bounded
 

@@ -62,4 +62,4 @@ branch=split-docs-refresh-conventions; writer=ses_e6910641effev2kAkkWjp0pbzY.
       records written: `#3` arose during the per-obligation restructure, and `#4` spans rounds 2, 4 and 5.
 - [x] 3.5 Consult the technical advisor before the manual pass. Its recommendation — complete the per-obligation split
       in this unit, keep the audit recovery parked — was adopted on the owner's decision.
-- [ ] 3.6 Ask the owner for the manual review pass; commit and push only after approval.
+- [x] 3.6 Ask the owner for the manual review pass; commit and push only after approval. Approved 2026-11-01.

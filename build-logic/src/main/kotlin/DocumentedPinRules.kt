@@ -2,10 +2,10 @@
  * The rules the documented-pin `check` gate applies to the live docs.
  *
  * The docs state the catalog's Paketo pins in prose, in adjacent forms: a buildpack as ``
- * `paketo-buildpacks/<name>@<version>` ``, a builder as `` `builder-<name>:<version>` `` (e.g.
- * `builder-jammy-base:0.4.669`), and a buildpack referenced as an image as `` `docker://<repository>/<name>:<version>`
- * ``. This object maps each to its catalog key and compares the version. The logic is pure so it is testable without
- * Gradle: [VerifyDocumentedPinsTask] reads the docs, calls these rules, and turns a message into a failure.
+ * `paketo-buildpacks/<name>@<version>` ``, a builder as `` `builder-<name>:<version>` ``, and a buildpack referenced as
+ * an image as `` `docker://<repository>/<name>:<version>` ``. This object maps each to its catalog key and compares the
+ * version. The logic is pure so it is testable without Gradle: [VerifyDocumentedPinsTask] reads the docs, calls these
+ * rules, and turns a message into a failure.
  */
 internal object DocumentedPinRules {
 

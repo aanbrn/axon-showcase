@@ -33,14 +33,14 @@ Image names are set in each service's `bootBuildImage` task configuration. To bu
 ARM64 host), pass `-PimagePlatform=linux/amd64` (or `--imagePlatform=linux/amd64`), which Gradle maps to the
 `bootBuildImage`/`dockerBuildImage` task's `imagePlatform` `@Option`.
 
-The four JVM services build against a catalog-pinned builder, `builder-noble-java-tiny:0.0.200`; Spring Boot's default
+The four JVM services build against a catalog-pinned builder, `builder-noble-java-tiny:0.0.205`; Spring Boot's default
 is the floating `paketobuildpacks/builder-noble-java-tiny:latest`. `spring-boot-conventions` sets the builder and the
 health-checker buildpack from the catalog, and `buildpackUpdates` reports newer versions.
 
 **A buildpack the builder does not bundle and that is published as an image is pinned by its image reference.**
 `bootBuildImage` resolves a `buildpacks` entry as a builder-bundled id (or `id@version`), a local directory or `.tgz`,
 or an OCI image reference, so a buildpack the builder does not bundle and that is published as an image — the
-health-checker — is pinned `docker://paketobuildpacks/health-checker:2.14.0`. For a buildpack the builder does not
+health-checker — is pinned `docker://paketobuildpacks/health-checker:2.14.1`. For a buildpack the builder does not
 bundle, the `id@version` spelling matches no bundled buildpack and fails the build with
 `Invalid buildpack reference '<value>'`; the web UI's `@version` pin is therefore not transferable unless the builder
 bundles the same id and version. captured: pin-jvm-buildpack-builder
@@ -56,11 +56,11 @@ separately.
 
 The web UI image is built differently: `frontend-conventions` registers a generic `dockerBuildImage` task (typed as
 `PackBuildImageTask`) that runs the `pack` CLI with the **version-pinned** Paketo NGINX + Procfile buildpacks
-(`paketo-buildpacks/nginx@1.3.3`, `paketo-buildpacks/procfile@5.15.5`; the versions are catalog-owned as `paketo-nginx`
+(`paketo-buildpacks/nginx@1.3.4`, `paketo-buildpacks/procfile@5.15.6`; the versions are catalog-owned as `paketo-nginx`
 and `paketo-procfile`) over `build/dist` (the `pack` CLI is a build prerequisite like Helm/Snyk). The pins are explicit
 because an unversioned buildpack reference becomes ambiguous — `pack` fails with "multiple versions … must specify an
 explicit version" — once the builder bundles two versions of a buildpack (the intermittent `e2e`/`helmInstallToLocal`
-failure). The builder itself is also pinned (`builder-jammy-base:0.4.669`, catalog-owned as `paketo-builder-jammy-base`)
+failure). The builder itself is also pinned (`builder-jammy-base:0.4.675`, catalog-owned as `paketo-builder-jammy-base`)
 rather than floating, and the `buildpackUpdates` task / `buildpack-updates` workflow reports newer builder and buildpack
 versions — no other update check covers Paketo. **The builder and the buildpacks it bundles must be bumped together:** a
 `paketo-nginx` pin that is _absent_ from the builder (e.g. holding a buildpack one line behind the builder) makes `pack`

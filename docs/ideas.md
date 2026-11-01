@@ -50,13 +50,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
 
 ## 2026-10-28
 
-- Give the review gate's §5 a post-refresh return branch — parked; no change yet. The unit's `#1` process-defect record
-  describes a refresh after the closing quick round whose hand-resolved conflicts were not re-reviewed before the manual
-  pass was requested again. The requirement exists in `/sync-branch`'s lifecycle ("The full per-unit review gate runs
-  over the result"), but §5 — the boundary the agent follows when asking — is silent: it permits refresh, re-stage and
-  ask. Add the return branch to §5 (after a refresh that changed the reviewed tree, run the closing quick round again),
-  or point §5 at the lifecycle line, without restating the sync procedure.
-
 - Evaluate Gradle's official `gradle-best-practices` skill against this build — parked; no change yet. `gradle-skills`
   ships `gradle-wrapper-upgrade` and `gradle-best-practices`. `gradle-best-practices` audits a build against a bundled
   copy of the official best practices, in an Audit mode that reports and an Apply mode that edits. Of the two skills,

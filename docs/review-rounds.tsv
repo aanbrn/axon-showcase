@@ -2035,3 +2035,7 @@
 2026-11-01	expose-the-jfr-recording-property	3	-	-	0	ses_e6a575a91ffeztcdKReIbF0hJq	continued	-
 2026-11-01	expose-the-jfr-recording-property	4	over-claim,single-sourcing	over-claim	1	ses_e6a575a91ffeztcdKReIbF0hJq	continued	-
 2026-11-01	expose-the-jfr-recording-property	5	-	-	0	ses_e6a575a91ffeztcdKReIbF0hJq	continued	-
+2026-11-01	fix-jfr-enabling-route-in-ideas	1	wording,contradiction,claim-unreproducible,structured-writing,incomplete-enumeration	-	3	ses_e6a3a8365ffexWmu7kGeoPSUGI	created	-
+2026-11-01	fix-jfr-enabling-route-in-ideas	2	contradiction,claim-unreproducible,incomplete-enumeration	contradiction,claim-unreproducible,incomplete-enumeration	2	ses_e6a3a8365ffexWmu7kGeoPSUGI	continued	-
+2026-11-01	fix-jfr-enabling-route-in-ideas	3	missing-task	-	1	ses_e6a3a8365ffexWmu7kGeoPSUGI	continued	-
+2026-11-01	fix-jfr-enabling-route-in-ideas	4	-	-	0	ses_e6a3a8365ffexWmu7kGeoPSUGI	continued	-

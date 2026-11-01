@@ -45,4 +45,4 @@
   dropped, not only unioned. The recurrence is the five archived 2026-11-01 task sets carrying the inherited
   `lesson-capture` step: four ran it (two applied durable proposals, one a change-level correction only, one parked its
   proposal) and one was rewritten to skip, so the step's outcome varied across units rather than being one occurrence.
-  Its link is added in a follow-up commit once the pull request exists.
+  It ships in https://github.com/aanbrn/axon-showcase/pull/794.

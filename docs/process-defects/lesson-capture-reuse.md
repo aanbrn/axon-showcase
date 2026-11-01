@@ -18,8 +18,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   action, and the `tools` map is the mechanism that worked.
 
 - **Decision** — proposed: applied as the `tools`-map remedy in the permission-action bullet —
-  `opencode_session_move: false` removes the tool where a permission rule does not; its link is added in a follow-up
-  commit once the pull request exists.
+  `opencode_session_move: false` removes the tool where a permission rule does not; it ships in
+  https://github.com/aanbrn/axon-showcase/pull/794.
 
 ### lesson-capture-reuse#2 — the synthetic record cited evidence the fixture did not have
 

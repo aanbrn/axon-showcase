@@ -17,8 +17,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   form was not tested.
 
 - **Decision** — proposed: applied as the sandbox rule's mutating-subcommand denial, with the read-only `list` left
-  allowed and the restriction scoped to the sandbox's own config; its link is added in a follow-up commit once the pull
-  request exists.
+  allowed and the restriction scoped to the sandbox's own config; it ships in
+  https://github.com/aanbrn/axon-showcase/pull/794.
 
 ### probe-pause-resume-reuse#2 — the session-move deny is accepted and not enforced
 
@@ -36,7 +36,7 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   line was not tested.
 
 - **Decision** — proposed: applied as the `tools`-map remedy the permission-action bullet now names (the same rule
-  `lesson-capture-reuse#1` applies); its link is added in a follow-up commit once the pull request exists.
+  `lesson-capture-reuse#1` applies); it ships in https://github.com/aanbrn/axon-showcase/pull/794.
 
 ### probe-pause-resume-reuse#3 — a mutable review count in the pull-request body went stale
 

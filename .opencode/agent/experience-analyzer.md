@@ -23,8 +23,9 @@ You are given:
 - docs/ideas.md (parked ideas, including what was decided against and why)
 - A derived-facts block resolving the window's countable claims (the merged-PR boundary facts, the archived changes
   scoped to the window's commits, AGENTS.md's metrics at HEAD and just before each `since`-date PR, each `captured:`
-  marker added since the window start with its introducing commit, and the window's review rounds from
-  `docs/review-rounds.tsv`) — read the retrospective's countable claims from it rather than re-deriving them
+  marker added since the window start with its introducing commit, and the window's review rounds from the review ledger
+  the bindings declare (`docs/contracts/process-bindings.md`)) — read the retrospective's countable claims from it
+  rather than re-deriving them
 - The derived-facts block's process-defect index: the `docs/process-defects/` records the window's commits touched, each
   with its incident headings, the revision the index was derived at, and the files the `since` date's own commits
   touched

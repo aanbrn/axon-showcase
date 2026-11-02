@@ -160,8 +160,8 @@ alone):
   branch or change name), the round (continuous per unit across its proposal and implementation reviews), the classes
   raised (comma-separated, or `-` when none), which of them repeated a prior round's class (comma-separated, or `-` when
   none), and how many findings were a compliance miss of an existing rule (`AGENTS.md`, the subject packs, the specs, or
-  this definition). The calling agent appends it to `docs/review-rounds.tsv` verbatim, so keep it one line with no
-  wrapping.
+  this definition). The calling agent appends it to the review ledger verbatim — the role
+  `docs/contracts/process-bindings.md` declares — so keep it one line with no wrapping.
 - The calling agent appends three further fields when it writes that row — the reviewer's session identifier, the
   session's transition (`created`, `continued`, or `replaced`), and a replacement's reason — from the invocation it
   performed and the identifier that invocation returned. Never invent a session identifier: you are not given your own,

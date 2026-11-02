@@ -29,7 +29,8 @@ does not route, and it is never a substitute for a `REQUIRED` outcome.
 6. Record the pass on the change's review task in its `tasks.md`: the routing outcome and its signals, the pass number,
    and each finding's location and status — `OPEN`, `FIXED_AND_VERIFIED`, `REJECTED` with the evidence, or `ACCEPTED` by
    an explicit owner decision recorded with the reason and what it accepts. That record is the deep-review status's one
-   authoritative source; do not also append it to `docs/review-rounds.tsv`, whose rows are the quick loop's.
+   authoritative source; do not also append it to the review ledger the bindings declare
+   (`docs/contracts/process-bindings.md`), whose rows are the quick loop's.
 7. Ask the owner which findings to fix. Do not edit any files without the owner's go-ahead.
 
 **Decision points**

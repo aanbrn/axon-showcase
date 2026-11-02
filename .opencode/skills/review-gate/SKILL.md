@@ -14,6 +14,9 @@ the authorization stops in `AGENTS.md` govern, and the owner's approval is the p
 
 Source: `AGENTS.md` "Workflow: The review gate".
 
+Read `docs/contracts/process-bindings.md` before using the review ledger it declares, and read the ledger's own header
+before relying on its record format.
+
 **Trigger** — you have finished a change's proposal (planning artifacts) or its implementation, or any non-OpenSpec unit
 (a docs refresh, a standalone fix, a dependency bump), and you are about to commit, push, open a PR, archive, or merge.
 
@@ -47,19 +50,19 @@ Source: `AGENTS.md` "Workflow: The review gate".
    the change's **claims table** — each fact the change states about its evidence (the prior artifacts it rests on) with
    its source or the command that derives it, re-run so it reproduces the figure the row records, since a figure an
    earlier, broader scan produced beside a narrower command is the claim the next round reports unreproducible, its rows
-   seeded from the recurring classes `docs/review-rounds.tsv` records — in `design.md`, or in `tasks.md` for a unit that
-   writes no `design.md`, or on the pull-request checklist line for a unit with no change dir. A command sequence the
-   change prescribes is itself one fact, reproduced whole in a scratch tree rather than per step: a step's local
-   property can hold while the composition loses the safeguard a later step relies on (a drafted "unstage, then hard
-   reset", where a plain `git stash` saves a staged new file and nothing for an untracked one). Seed it with
-   `scripts/claim-scan.py` (via `/seed-claims`), whose candidates — for the unit's diff, and for the saved body when the
-   unit has no change dir — are each resolved into a row or recorded as a dismissal beside the table — one reason per
-   kind, never an enumerating clause, governing a row's source as well as a dismissal: a source that is a command's
-   output states the reason by class, never a list of the output's lines, since a list of a kind's candidates or of an
-   output's lines is incomplete by construction and the artifact stating it adds candidates to the scanned set — a lead
-   list, never a gate, and it seeds the table rather than replacing the derivation (`showcase/quality/agent-skills` owns
-   the behaviour). A dismissal's reason is itself a claim about the repository: verify it against the diff or the source
-   it names before recording it, since a dismissal is recorded, not checked (`sharpen-architecture-audit` dismissed the
+   seeded from the recurring classes the review ledger records — in `design.md`, or in `tasks.md` for a unit that writes
+   no `design.md`, or on the pull-request checklist line for a unit with no change dir. A command sequence the change
+   prescribes is itself one fact, reproduced whole in a scratch tree rather than per step: a step's local property can
+   hold while the composition loses the safeguard a later step relies on (a drafted "unstage, then hard reset", where a
+   plain `git stash` saves a staged new file and nothing for an untracked one). Seed it with `scripts/claim-scan.py`
+   (via `/seed-claims`), whose candidates — for the unit's diff, and for the saved body when the unit has no change dir
+   — are each resolved into a row or recorded as a dismissal beside the table — one reason per kind, never an
+   enumerating clause, governing a row's source as well as a dismissal: a source that is a command's output states the
+   reason by class, never a list of the output's lines, since a list of a kind's candidates or of an output's lines is
+   incomplete by construction and the artifact stating it adds candidates to the scanned set — a lead list, never a
+   gate, and it seeds the table rather than replacing the derivation (`showcase/quality/agent-skills` owns the
+   behaviour). A dismissal's reason is itself a claim about the repository: verify it against the diff or the source it
+   names before recording it, since a dismissal is recorded, not checked (`sharpen-architecture-audit` dismissed the
    README table rows as carrying only a formatter reflow, and the diff held no such change). A row whose claim is about
    the state before the change anchors its source to the unit's base revision (`git merge-base HEAD origin/main`),
    recorded as the SHA, never to `HEAD` or `origin/main`: `HEAD` moves at the unit's first commit and `origin/main` at
@@ -108,21 +111,21 @@ Source: `AGENTS.md` "Workflow: The review gate".
      recording the invocation's hand-over **before** you wait on it. A reviewer invocation cannot be cancelled and
      reports nothing while it runs, so a stall is recovered from that record rather than from the stalled session. The
      rule, its recovery cases, the record's contract, the deadline's source, and the hand-over's fields are
-     `showcase/quality/agent-skills`'s and `docs/review-rounds.tsv`'s, not restated here. Do not restart the quick
-     reviewer to obtain an independent screen, including at the proposal-to-implementation boundary: independence is not
-     a recovery case. IF no permitted recovery case is evidenced, THEN stop before starting a replacement and report the
-     blocker — never select an allowed reason merely to satisfy the ledger checker; IF an unsupported restart has
-     already occurred, THEN preserve the invocation evidence, record the continuity violation, and stop the gate for the
-     owner's recovery decision.
+     `showcase/quality/agent-skills`'s and the review ledger's, not restated here. Do not restart the quick reviewer to
+     obtain an independent screen, including at the proposal-to-implementation boundary: independence is not a recovery
+     case. IF no permitted recovery case is evidenced, THEN stop before starting a replacement and report the blocker —
+     never select an allowed reason merely to satisfy the ledger checker; IF an unsupported restart has already
+     occurred, THEN preserve the invocation evidence, record the continuity violation, and stop the gate for the owner's
+     recovery decision.
    - **Run** — `review-quick` against the change's planning artifacts: for the proposal round, the
      proposal/design/tasks/spec-delta coherence and repo fit; for the implementation round, the tasks and delta spec.
      For a generalizing unit, supply the process-defect records it analyzes, the existing rules each proposal names (or
      its statement that none covers it), each record's cited evidence, and the `lesson-capture` definition where its
      gate is checked. captured: override-opencode-plugin-transitives
 2. When the report arrives — before applying a fix:
-   - Append each round's row with the session fields `docs/review-rounds.tsv` declares — the identifier, the transition,
-     and a replacement's reason — supplying the identifier the invocation returned, never an invented one; an omission
-     fails `verifyReviewSessionContinuity`. captured: track-review-session-continuity
+   - Append each round's row with the session fields the review ledger declares — the identifier, the transition, and a
+     replacement's reason — supplying the identifier the invocation returned, never an invented one; an omission fails
+     `verifyReviewSessionContinuity`. captured: track-review-session-continuity
    - **IF a round's report has arrived, THEN immediately run both ledger checks — whether or not its row was appended,
      since a check keyed on the append cannot see an append that never happened:**
      `python3 scripts/commit-hygiene.py --unique-rounds --expect <unit>:<round>` and, as a separate invocation,
@@ -135,8 +138,8 @@ Source: `AGENTS.md` "Workflow: The review gate".
      recorded round still carries a finding class. That invocation belongs to the boundary alone: a round in flight is
      unclean by design, so it is not part of the repeat rule above.
    - **Preserve the finding instances the next invocation needs, and bring an existing `Resume checkpoint` to the closed
-     round:** round status is `docs/review-rounds.tsv`'s, so do not maintain a second round inventory, and the
-     checkpoint's fields are `.opencode/skills/pause-resume-unit/SKILL.md`'s rather than restated here. captured:
+     round:** round status is the review ledger's, so do not maintain a second round inventory, and the checkpoint's
+     fields are `.opencode/skills/pause-resume-unit/SKILL.md`'s rather than restated here. captured:
      separate-lesson-capture-from-implementation captured: hand-over-unfinished-work
 
 3. Fix everything it finds; re-run. Repeat until it reports no new observations.

@@ -66,6 +66,10 @@ owner decides whether to supply an equivalent contract or decline a component wh
 - The first change adopts the declaration in the pause/resume and lesson-capture slices, adds a capability requirement
   for the binding use and incompatibility reporting, and records a consumer trace; it does not replace every matching
   path in the repository.
+- A second change adopts the review-ledger role in `review-gate`, `review-quick`, `experience-analyzer`, and the
+  `review-thorough` command, and moves the consumer trace into the declaration, where the live adopter set belongs. A
+  component that names a role's literal value instead of resolving it stays a non-adopter the trace names, with the
+  reason that keeps it one.
 - The missing contracts (the subject-pack table, the ADR citation) are identified as incompatibilities, not created.
 - A renaming counterfactual against the constructed target tests the binding without a third full transfer: the declared
   paths and headings are renamed, the declaration and the target artifacts are updated, and a resume and a lesson

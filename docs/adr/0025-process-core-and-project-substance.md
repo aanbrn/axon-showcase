@@ -131,3 +131,13 @@ The first consolidation unit:
 - The capability spec keeps the outcomes and scenarios; the consolidation changes the ownership clauses and the Purpose,
   not the behavior.
 - A real target or a third slice can falsify the boundary; the `Revisit when` clauses above are the checks.
+
+## Amendment — 2026-11-02
+
+One statement above no longer holds as written, and this amendment qualifies it without reopening the Decision.
+
+- The Context says the pause was "lifted … for this unit and the first consolidation by explicit instruction" and that
+  "Unrelated parked moves remain paused". The owner lifted it again on 2026-11-02, by explicit instruction, for the
+  heading-role sweep (`adopt-heading-roles`), which ADR-0027's criterion admitted once that change named its components
+  and recorded the adaptation it removes. The pause still covers every other parked move, and this amendment lifts
+  nothing beyond that unit.

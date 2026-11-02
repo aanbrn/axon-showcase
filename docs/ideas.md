@@ -25,18 +25,6 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
-## 2026-11-02
-
-- Adopt the lifecycle and review-gate heading roles in the remaining components — parked; no change yet. The bindings
-  declaration names each role with this repository's file and heading, and `adopt-process-bindings` adopted only the
-  review-ledger role; the components that cite `AGENTS.md`'s "Workflow: Change lifecycle" or "Workflow: The review gate"
-  by heading still carry a literal a target must edit. Its failure mode differs from a path's — a heading that resolves
-  to nothing, rather than a path that does not exist — so it is its own sweep, sized by the hits in `.opencode/` and the
-  documents those hits name, and its unit classifies each remaining hit against the non-adopter classes
-  `docs/contracts/process-bindings.md` declares. ADR-0027's conditions apply to it in full — a named component, its
-  adoption in the same change, the removed heading recorded with the obligations preserved, the artifacts accounted for
-  — and the standing consolidation pause ADR-0025 records still covers it.
-
 ## 2026-11-01
 
 - Gate a `Decision` line's link with a check — parked; no change yet. The generalization workflow requires `proposed`

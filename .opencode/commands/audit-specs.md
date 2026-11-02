@@ -42,10 +42,12 @@ and has completed the review gate with the manual pass requested.
   branch or pull request works on that branch.
 - The unit's working tree — the primary checkout when no other unit holds it, otherwise the sibling worktree
   `../axon-showcase-<unit>` — is established and recorded before the first write, with an ownership it cannot establish
-  treated as occupied, per `AGENTS.md`'s "Workflow: Change lifecycle" **Workspace** rule.
+  treated as occupied, per the **Workspace** rule of the lifecycle the bindings declare
+  (`docs/contracts/process-bindings.md`); a declaration that names none stops the unit rather than being inferred.
 - Unrelated dirty-worktree changes are preserved.
 - The work stays uncommitted until the manual approval pass.
 - Nothing is committed, pushed, turned into a pull request, archived, or merged without that explicit approval.
-- The full per-unit review gate runs over the result. `AGENTS.md`'s "Workflow: Change lifecycle" owns the branch,
-  uncommitted-work, and approval steps; the `review-gate` skill owns the review steps, including the reviewer-session
-  preflight; this command points at them rather than restating them.
+- The full per-unit review gate runs over the result. The lifecycle the bindings declare
+  (`docs/contracts/process-bindings.md`) owns the branch, uncommitted-work, and approval steps; the `review-gate` skill
+  owns the review steps, including the reviewer-session preflight; this command points at them rather than restating
+  them.

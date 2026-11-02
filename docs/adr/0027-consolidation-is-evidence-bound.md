@@ -70,3 +70,12 @@ What this does not change: the four classes, the ownership model, and the deferr
   and the adaptation the consolidation removes.
 - The evidence bar is the change's, not a second gate: the review gate still decides the unit's quality, and the
   `architecture-auditor` holds this ADR's `Revisit when:` clauses against the repository.
+
+## Amendment — 2026-11-02
+
+One Consequences statement is already superseded, and this amendment records it without reopening the Decision.
+
+- "The parked heading-role sweep stays parked" describes the state when this decision was written. The owner lifted the
+  pause for that unit the same day, and `adopt-heading-roles` is the first change admitted under this criterion: it
+  names thirteen commands by path, adopts the roles in that change, and records what stops being component-specific with
+  the obligations the review preserved. The sentence remains accurate for any consolidation not admitted this way.

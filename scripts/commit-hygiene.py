@@ -11,7 +11,9 @@ what it is for. The
 that is not the commit's assigned one, read from the worktree's claim or a change-named branch — except a change path
 the commit's own merge accounts for, whose content is not the commit's own; `--unique-crons`
 verifies the workflow
-`cron` schedules do not collide; `--unique-rounds` verifies the review-round ledger carries one row per unit and
+`cron` schedules do not collide; `--unique-change-names` verifies no two archived change directories carry one change
+name, which is the directory's own name with one leading `YYYY-MM-DD-` segment removed, apart from the one historical
+pair it acknowledges; `--unique-rounds` verifies the review-round ledger carries one row per unit and
 round, that each unit's rounds are contiguous from 1, that a round named with `--expect` is recorded, and that a unit
 named with `--expect-clean` closes on a round carrying no finding class (both need that mode); `--session-continuity`
 verifies the ledger's reviewer-session fields record each round's session and its transition; `--large-files`
@@ -83,6 +85,16 @@ IDEA_SECTION_RE = re.compile(r"^##\s+(\d{4}-\d{2}-\d{2})\s*$")
 SECTION_BOUNDARY_RE = re.compile(r"^#{1,2}\s")
 CLAIM_NONE = "none"
 ARCHIVED_CHANGE_RE = re.compile(r"^(?P<date>\d{4}-\d{2}-\d{2})-(?P<name>.+)$")
+
+# The one archived name more than one directory carries, kept as recorded rather than repaired. The exemption is the
+# exact directory set, never the name: a third directory carrying it fails, and a duplicate of any other name fails.
+ACKNOWLEDGED_DUPLICATE_CHANGE_NAMES = {
+    "fix-openspec-config-rules": (
+        ("2026-09-14-fix-openspec-config-rules", "2026-10-18-fix-openspec-config-rules"),
+        "two changes chose this name before the verification existed (#218 and #624), and renaming a directory would "
+        "not change either commit message, so the git log --grep confusion would remain",
+    ),
+}
 CRON_LINE_RE = re.compile(r"^\s*-\s*cron:\s*(?P<value>.+?)\s*$")
 WORKFLOW_SUFFIXES = (".yml", ".yaml")
 
@@ -573,19 +585,44 @@ def claim_file(repo: Path) -> Path:
     return resolved if resolved.is_absolute() else repo / resolved
 
 
+def archived_change_names(repo: Path) -> dict[str, list[str]]:
+    """Every archived change name with the directories carrying it, in directory order; a missing archive raises."""
+    archived = repo / ARCHIVE_PREFIX
+    if not archived.is_dir():
+        raise CheckFailure(
+            "The archived changes directory is missing: {0}".format(ARCHIVE_PREFIX.rstrip("/"))
+        )
+    names: dict[str, list[str]] = {}
+    for entry in sorted(archived.iterdir()):
+        match = ARCHIVED_CHANGE_RE.match(entry.name)
+        if not (entry.is_dir() and match):
+            continue
+        names.setdefault(match.group("name"), []).append(entry.name)
+    return names
+
+
 def change_names(repo: Path) -> set[str]:
     """Every change name the repository knows: a live directory, or an archived one with one date segment stripped."""
     names: set[str] = set()
     changes = repo / "openspec" / "changes"
     if changes.is_dir():
         names.update(entry.name for entry in changes.iterdir() if entry.is_dir() and entry.name != "archive")
-    archived = changes / "archive"
-    if archived.is_dir():
-        for entry in archived.iterdir():
-            match = ARCHIVED_CHANGE_RE.match(entry.name)
-            if entry.is_dir() and match:
-                names.add(match.group("name"))
+    if (changes / "archive").is_dir():
+        names.update(archived_change_names(repo))
     return names
+
+
+def find_duplicate_change_names(repo: Path) -> list[tuple[str, list[str]]]:
+    """The archived change names more than one directory carries, apart from an acknowledged exact pair."""
+    duplicates = []
+    for name, directories in sorted(archived_change_names(repo).items()):
+        if len(directories) < 2:
+            continue
+        acknowledged = ACKNOWLEDGED_DUPLICATE_CHANGE_NAMES.get(name)
+        if acknowledged is not None and tuple(directories) == acknowledged[0]:
+            continue
+        duplicates.append((name, directories))
+    return duplicates
 
 
 def current_branch(repo: Path) -> str:
@@ -1103,6 +1140,16 @@ def check_table_rows(repo: Path, paths: Sequence[str]) -> int:
     return failures
 
 
+def check_unique_change_names(repo: Path) -> int:
+    duplicates = find_duplicate_change_names(repo)
+    for name, directories in duplicates:
+        print(
+            "Archived changes share a name: '{0}' ({1})".format(name, ", ".join(directories)),
+            file=sys.stderr,
+        )
+    return len(duplicates)
+
+
 def check_unique_crons(repo: Path) -> int:
     collisions = find_cron_collisions(repo)
     for left_path, left_cron, right_path, right_cron in collisions:
@@ -1467,6 +1514,7 @@ MODE_FLAGS = (
     "--executable-bits",
     "--unique-crons",
     "--unique-rounds",
+    "--unique-change-names",
     "--session-continuity",
     "--large-files",
     "--table-rows",
@@ -1650,7 +1698,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Check commit hygiene over the staged set, the unit's readiness for the manual review pass, AGENTS.md "
-            "markers, the tracked set, the workflow cron schedules, the review-round ledger, a file's size, the "
+            "markers, the tracked set, the workflow cron schedules, the archived change names, the review-round "
+            "ledger, a file's size, the "
             "given markdown files' table rows, the ideas file's dated sections, or the review-round classes."
         )
     )
@@ -1676,6 +1725,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     mode.add_argument(
         "--unique-rounds", action="store_true", help="check the review-round ledger carries one row per unit and round"
+    )
+    mode.add_argument(
+        "--unique-change-names",
+        action="store_true",
+        help="check no two archived changes carry the same name",
     )
     mode.add_argument(
         "--table-rows",
@@ -1748,6 +1802,8 @@ def dispatch(args: argparse.Namespace, repo: Path) -> int:
         except ValueError as error:
             print(str(error), file=sys.stderr)
             return 1
+    if args.unique_change_names:
+        return 1 if check_unique_change_names(repo) else 0
     if args.session_continuity:
         return 1 if check_session_continuity(repo) else 0
     if args.large_files:

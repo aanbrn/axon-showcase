@@ -31,8 +31,8 @@ branch=process-bindings-contract; writer=ses_e731f42aaffeKQAMVYfJ2KxAYN
 ## 5. Delivery
 
 - [x] 5.1 The unit's process-defect record is written — `docs/process-defects/process-bindings-contract.md`.
-- [ ] 5.2 The review gate: the pre-write pass and claims table, the quick loop, the routing decision, the routed deep
+- [x] 5.2 The review gate: the pre-write pass and claims table, the quick loop, the routing decision, the routed deep
       review when required, the advisor, the manual pass.
-- [ ] 5.3 Refresh the `agent-skills` Purpose to name the `docs/contracts/process-bindings.md` contract, applied in the
+- [x] 5.3 Refresh the `agent-skills` Purpose to name the `docs/contracts/process-bindings.md` contract, applied in the
       archive commit.
-- [ ] 5.4 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.
+- [x] 5.4 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.

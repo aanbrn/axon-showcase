@@ -3,8 +3,8 @@
 
 The `--staged` mode is the pre-commit guard: it refuses a mechanically defective staged set, including a staged
 review-round ledger whose checks fail or that loses a row. The complete list of its refusals is the
-`showcase/quality/commit-hygiene` spec's pre-commit requirement; this docstring states only that a mode exists and
-what it is for. The
+`showcase/quality/commit-hygiene` spec's: the pre-commit requirement's own set, and the workspace record's judgment it
+also applies. This docstring states only that a mode exists and what it is for. The
 `--markers` mode checks marker placement in the working-tree guidance files; the `--tracked-ignored`,
 `--conflict-markers`, and
 `--executable-bits` modes each verify the tracked set for the build; `--staged` also refuses a staged change directory
@@ -20,7 +20,10 @@ verifies the ledger's reviewer-session fields record each round's session and it
 verifies no tracked file exceeds the configured size limit; `--table-rows` verifies each markdown file it is given
 carries table rows whose cell count matches their delimiter row's; `--ideas-sections` verifies every dated section of
 `docs/ideas.md` carries an entry, failing when the file itself is missing — a judgment the guard applies to a staged
-copy through the same reporter; and `--class-vocabulary` verifies every class in a review-round row dated after the
+copy through the same reporter; `--workspace-records` verifies each live change's `tasks.md` carries the unit's
+`Workspace:` record, and each archive dated at or after the gate's introduction, apart from one it acknowledges by name
+— the guard applies the same judgment to a staged copy and adds the tree and branch the record names; and
+`--class-vocabulary` verifies every class in a review-round row dated after the
 digest script's canonical boundary is one the reviewer's definition names, reading both rather than restating either,
 and exempting only a label a class-acknowledgement comment names on that row.
 
@@ -75,6 +78,16 @@ CONFLICT_MARKER_RE = r"^(<<<<<<< |>>>>>>> )"
 VENDORED_SKILL_PREFIXES = (".opencode/skills/ast-grep/", ".opencode/skills/axon4to5-", ".opencode/skills/openspec-")
 ARCHIVE_PREFIX = "openspec/changes/archive/"
 ARCHIVED_TASKS_BASENAME = "/tasks.md"
+
+# The workspace record's shape and the boundary of its archive half. An archive dated at or after the boundary is
+# judged; one that landed before this verification did is exempt by name, with its reason, so a second directory
+# sharing its date and carrying no record still fails.
+WORKSPACE_MARKER = "Workspace:"
+WORKSPACE_FIELDS = ("unit", "path", "branch", "writer")
+WORKSPACE_WRITER_RE = re.compile(r"^ses_[A-Za-z0-9]+$")
+WORKSPACE_MARKER_RE = re.compile(r"^`?Workspace:")
+WORKSPACE_RECORD_ARCHIVE_SINCE = "2026-11-02"
+ACKNOWLEDGED_RECORDLESS_ARCHIVES: dict[str, str] = {}
 TASK_LINE_RE = re.compile(r"^[ \t]*(?:[-*+]|\d{1,9}[.)])[ \t]+\[(?P<mark>[^\]]{0,1})\](?!\()")
 CHANGES_PREFIX = "openspec/changes/"
 SPECS_PREFIX = "openspec/specs/"
@@ -883,6 +896,8 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
 
     failures += check_staged_idea_sections(repo, paths)
 
+    failures += check_staged_workspace_records(repo, paths)
+
     return failures
 
 
@@ -1520,6 +1535,7 @@ MODE_FLAGS = (
     "--table-rows",
     "--ideas-sections",
     "--class-vocabulary",
+    "--workspace-records",
 )
 
 
@@ -1534,6 +1550,79 @@ def check_staged_idea_sections(repo: Path, paths: Sequence[str]) -> int:
     return 0
 
 
+def staged_change_name(path: str) -> Optional[str]:
+    """The change name a staged `tasks.md` records: its directory's name, or the archive's stripped name."""
+    if path.startswith(ARCHIVE_PREFIX):
+        match = ARCHIVED_CHANGE_RE.match(path[len(ARCHIVE_PREFIX) :].split("/", 1)[0])
+        return match.group("name") if match else None
+    if path.startswith(CHANGES_PREFIX):
+        return path[len(CHANGES_PREFIX) :].split("/", 1)[0]
+    return None
+
+
+def archived_change_out_of_scope(directory: str) -> bool:
+    """Whether an archived change is outside this verification's scope: dated before the boundary, or acknowledged.
+
+    One predicate serves both entry points, so the build check and the guard cannot disagree about which archive they
+    judge. A name that carries no date is no archived change and is outside the predicate's subject.
+    """
+    match = ARCHIVED_CHANGE_RE.match(directory)
+    if match is None:
+        return False
+    return match.group("date") < WORKSPACE_RECORD_ARCHIVE_SINCE or directory in ACKNOWLEDGED_RECORDLESS_ARCHIVES
+
+
+def staged_archive_directory(path: str) -> str:
+    """The archived change directory a staged path belongs to, or an empty string for a path outside the archive."""
+    if not path.startswith(ARCHIVE_PREFIX):
+        return ""
+    return path[len(ARCHIVE_PREFIX) :].split("/", 1)[0]
+
+
+def check_staged_workspace_records(repo: Path, paths: Sequence[str]) -> int:
+    """The guard's judgment over the staged set: the build check's rule and scope, plus the tree and branch it names.
+
+    An archive dated before the boundary, or one the acknowledgement names, is outside the same scope the build check
+    applies, so an edit to history is not re-judged. A record a merge brings unchanged is exempt, since merged content
+    is not the committing unit's own. The branch comparison is skipped on a detached head, which is git's answer rather
+    than a failed read; an unreadable top level or branch raises, which `main` reports as the check having failed.
+    """
+    staged = [
+        path
+        for path in paths
+        if (path.startswith(CHANGES_PREFIX) or path.startswith(ARCHIVE_PREFIX))
+        and path.endswith(ARCHIVED_TASKS_BASENAME)
+        and not archived_change_out_of_scope(staged_archive_directory(path))
+    ]
+    if not staged:
+        return 0
+    revisions = merge_revisions(repo)
+    toplevel = git_output(repo, "rev-parse", "--show-toplevel").strip()
+    branch = current_branch(repo)
+    offenders: list[tuple[str, str]] = []
+    for path in staged:
+        if revisions and merge_carries_unchanged(repo, path, revisions):
+            continue
+        name = staged_change_name(path)
+        if name is None:
+            continue
+        fields, reason = parse_workspace_record(staged_file_text(repo, path))
+        if reason is not None:
+            offenders.append((path, reason))
+            continue
+        if fields["unit"] != name:
+            offenders.append((path, "'unit' names '{0}', not the directory's '{1}'".format(fields["unit"], name)))
+            continue
+        if fields["path"].rstrip("/") != toplevel:
+            offenders.append(
+                (path, "'path' names '{0}', not the worktree's '{1}'".format(fields["path"], toplevel))
+            )
+            continue
+        if branch and fields["branch"] != branch:
+            offenders.append((path, "'branch' names '{0}', not '{1}'".format(fields["branch"], branch)))
+    return report_invalid_workspace_records(offenders)
+
+
 def report_empty_idea_sections(offenders: list[tuple[int, str]]) -> int:
     """Print each offender as a named failure and return how many there are, shared by the build check and the guard."""
     for number, heading in offenders:
@@ -1542,6 +1631,91 @@ def report_empty_idea_sections(offenders: list[tuple[int, str]]) -> int:
             file=sys.stderr,
         )
     return len(offenders)
+
+
+def parse_workspace_record(text: str) -> tuple[dict[str, str], Optional[str]]:
+    """The record's four fields, and a reason naming what is wrong when it cannot be read.
+
+    The record is one logical line from a `Workspace:` marker at column zero, optionally behind a backtick, to the first
+    blank line, so the three forms the archive records all parse. One trailing sentence period is dropped from a value.
+    """
+    lines = text.splitlines()
+    start = next((number for number, line in enumerate(lines) if WORKSPACE_MARKER_RE.match(line)), None)
+    if start is None:
+        return {}, "no {0} record".format(WORKSPACE_MARKER)
+    collected: list[str] = []
+    for line in lines[start:]:
+        if collected and not line.strip():
+            break
+        collected.append(line.strip())
+    record = " ".join(collected).strip().strip("`").strip()
+    if record.startswith(WORKSPACE_MARKER):
+        record = record[len(WORKSPACE_MARKER) :].strip().strip("`").strip()
+    fields: dict[str, str] = {}
+    for part in record.split(";"):
+        item = part.strip()
+        if not item:
+            continue
+        key, _, value = item.partition("=")
+        key = key.strip()
+        value = value.strip()
+        if value.endswith("."):
+            value = value[:-1]
+        if key not in WORKSPACE_FIELDS:
+            return {}, "a field the format does not name: '{0}'".format(key)
+        fields[key] = value.strip()
+    for name in WORKSPACE_FIELDS:
+        if not fields.get(name):
+            return {}, "no '{0}' field".format(name)
+    if not fields["path"].startswith("/"):
+        return {}, "a relative 'path': '{0}'".format(fields["path"])
+    if not WORKSPACE_WRITER_RE.match(fields["writer"]):
+        return {}, "a 'writer' that is not a session identifier: '{0}'".format(fields["writer"])
+    return fields, None
+
+
+def workspace_record_paths(repo: Path) -> list[tuple[str, str]]:
+    """Each `tasks.md` this verification judges, with the change name its record must carry."""
+    paths: list[tuple[str, str]] = []
+    changes = repo / CHANGES_PREFIX
+    if changes.is_dir():
+        for entry in sorted(changes.iterdir()):
+            if entry.is_dir() and entry.name != "archive" and (entry / "tasks.md").is_file():
+                paths.append(("{0}{1}/tasks.md".format(CHANGES_PREFIX, entry.name), entry.name))
+    archived = repo / ARCHIVE_PREFIX
+    if archived.is_dir():
+        for entry in sorted(archived.iterdir()):
+            match = ARCHIVED_CHANGE_RE.match(entry.name)
+            if not (entry.is_dir() and match and (entry / "tasks.md").is_file()):
+                continue
+            if archived_change_out_of_scope(entry.name):
+                continue
+            paths.append(("{0}{1}/tasks.md".format(ARCHIVE_PREFIX, entry.name), match.group("name")))
+    return paths
+
+
+def find_invalid_workspace_records(repo: Path) -> list[tuple[str, str]]:
+    """The (path, defect) of each record the workspace-record verification rejects."""
+    offenders: list[tuple[str, str]] = []
+    for path, name in workspace_record_paths(repo):
+        fields, reason = parse_workspace_record((repo / path).read_text(encoding="utf-8"))
+        if reason is not None:
+            offenders.append((path, reason))
+        elif fields["unit"] != name:
+            offenders.append((path, "'unit' names '{0}', not the directory's '{1}'".format(fields["unit"], name)))
+    return offenders
+
+
+def report_invalid_workspace_records(offenders: list[tuple[str, str]]) -> int:
+    """Print each offender as a named failure and return how many there are, shared by the build check and the guard."""
+    for path, defect in offenders:
+        print("The workspace record does not verify ({0}): {1}".format(path, defect), file=sys.stderr)
+    return len(offenders)
+
+
+def check_workspace_records(repo: Path) -> int:
+    """Verify every live change's record, and every archive dated at or after the boundary."""
+    return report_invalid_workspace_records(find_invalid_workspace_records(repo))
 
 
 def check_idea_sections(repo: Path) -> int:
@@ -1699,8 +1873,8 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Check commit hygiene over the staged set, the unit's readiness for the manual review pass, AGENTS.md "
             "markers, the tracked set, the workflow cron schedules, the archived change names, the review-round "
-            "ledger, a file's size, the "
-            "given markdown files' table rows, the ideas file's dated sections, or the review-round classes."
+            "ledger, a file's size, the given markdown files' table rows, the ideas file's dated sections, the "
+            "review-round classes, or a change's workspace record."
         )
     )
     mode = parser.add_mutually_exclusive_group()
@@ -1745,6 +1919,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--class-vocabulary",
         action="store_true",
         help="check the review-round ledger's classes against the reviewer's canonical list",
+    )
+    mode.add_argument(
+        "--workspace-records",
+        action="store_true",
+        help="check each live change's tasks.md records its workspace, and each archive after the gate's date",
     )
     parser.add_argument(
         "--expect",
@@ -1814,6 +1993,8 @@ def dispatch(args: argparse.Namespace, repo: Path) -> int:
         return 1 if check_idea_sections(repo) else 0
     if args.class_vocabulary:
         return 1 if check_class_vocabulary(repo) else 0
+    if args.workspace_records:
+        return 1 if check_workspace_records(repo) else 0
     return 1 if check_staged(repo, args.formatter) else 0
 
 

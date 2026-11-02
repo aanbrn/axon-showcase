@@ -22,6 +22,17 @@ commit_hygiene = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(commit_hygiene)
 
 
+def workspace_record(repo: Path, unit: str) -> str:
+    """A `Workspace:` record naming a fixture repository's own tree and branch, for a `tasks.md` a test stages."""
+    tree = subprocess.run(
+        ("git", "rev-parse", "--show-toplevel"), cwd=repo, capture_output=True, text=True, check=True
+    ).stdout.strip()
+    branch = subprocess.run(
+        ("git", "symbolic-ref", "--short", "HEAD"), cwd=repo, capture_output=True, text=True, check=True
+    ).stdout.strip()
+    return "Workspace: unit={0}; path={1}; branch={2}; writer=ses_abc123".format(unit, tree, branch)
+
+
 def make_repo(test: unittest.TestCase) -> Path:
     directory = tempfile.TemporaryDirectory()
     test.addCleanup(directory.cleanup)
@@ -2021,6 +2032,12 @@ class CommitAssignmentTests(unittest.TestCase):
         target.write_text("# Proposal\n", encoding="utf-8")
 
     @staticmethod
+    def _tasks(repo: Path, path: str, unit: str) -> None:
+        target = repo / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("# Tasks\n\n" + workspace_record(repo, unit) + "\n", encoding="utf-8")
+
+    @staticmethod
     def _stage(repo: Path, *paths: str) -> None:
         subprocess.run(("git", "add", *paths), cwd=repo, check=True)
 
@@ -2325,7 +2342,7 @@ class CommitAssignmentTests(unittest.TestCase):
         self._commit_all(repo)
         self._switch(repo, "demo")
         write_claim(repo, "none")
-        self._write(repo, "openspec/changes/demo/tasks.md")
+        self._tasks(repo, "openspec/changes/demo/tasks.md", "demo")
         self._stage(repo, "openspec/changes/demo")
 
         self.assertEqual(0, self._run(repo)[0])
@@ -2435,7 +2452,7 @@ class CommitAssignmentTests(unittest.TestCase):
         self._commit_all(repo)
         self._switch(repo, "demo")
         claim_path(repo).write_text("demo\nother", encoding="utf-8")
-        self._write(repo, "openspec/changes/demo/tasks.md")
+        self._tasks(repo, "openspec/changes/demo/tasks.md", "demo")
         self._stage(repo, "openspec/changes/demo")
 
         self.assertEqual(0, self._run(repo)[0])
@@ -2462,7 +2479,7 @@ class CommitAssignmentTests(unittest.TestCase):
         self._commit_all(repo)
         self._switch(repo, "demo")
         claim_path(repo).unlink()
-        self._write(repo, "openspec/changes/archive/2026-01-01-demo/tasks.md")
+        self._tasks(repo, "openspec/changes/archive/2026-01-01-demo/tasks.md", "demo")
         self._stage(repo, "openspec/changes/archive")
 
         self.assertEqual(0, self._run(repo)[0])
@@ -2483,7 +2500,9 @@ class ArchivedTasksGuardTests(unittest.TestCase):
         directory = repo / directory
         directory.mkdir(parents=True, exist_ok=True)
         path = directory / name
-        path.write_text("# Tasks\n\n" + "\n".join(lines) + "\n", encoding="utf-8")
+        path.write_text(
+            "# Tasks\n\n" + workspace_record(repo, "unit-a") + "\n\n" + "\n".join(lines) + "\n", encoding="utf-8"
+        )
         return path.relative_to(repo).as_posix()
 
     def _commit_all(self, repo: Path, message: str = "base") -> None:
@@ -3278,6 +3297,303 @@ class ClassVocabularyTests(unittest.TestCase):
         self.assertEqual(commit_hygiene.main(["--class-vocabulary", "--repo", str(repo)]), 0)
 
 
+class WorkspaceRecordTests(unittest.TestCase):
+    """The workspace-record verification, and the guard's matching judgment over a staged record."""
+
+    @staticmethod
+    def _git(repo: Path, *args: str) -> str:
+        return subprocess.run(("git", *args), cwd=repo, capture_output=True, text=True, check=True).stdout.strip()
+
+    def _record(
+        self,
+        repo: Path,
+        unit: str = "unit-a",
+        tree: str | None = None,
+        branch: str | None = None,
+        writer: str = "ses_abc123",
+    ) -> str:
+        tree = tree if tree is not None else self._git(repo, "rev-parse", "--show-toplevel")
+        branch = branch if branch is not None else self._git(repo, "symbolic-ref", "--short", "HEAD")
+        return "Workspace: unit={0}; path={1}; branch={2}; writer={3}".format(unit, tree, branch, writer)
+
+    def _repo(self, name: str = "unit-a", body: str | None = None) -> Path:
+        repo = make_repo(self)
+        write_claim(repo, name)
+        change = repo / "openspec" / "changes" / name
+        change.mkdir(parents=True)
+        text = body if body is not None else self._record(repo, unit=name)
+        (change / "tasks.md").write_text("# Tasks\n\n" + text + "\n", encoding="utf-8")
+        return repo
+
+    def _check(self, repo: Path) -> tuple[int, str]:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--workspace-records", "--repo", str(repo)])
+        return code, stderr.getvalue()
+
+    @staticmethod
+    def _stage(repo: Path, *paths: str) -> None:
+        subprocess.run(("git", "add", "--", *paths), cwd=repo, check=True)
+
+    def _guard(self, repo: Path, paths: list[str]) -> tuple[int, str]:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.check_staged_workspace_records(repo, paths)
+        return code, stderr.getvalue()
+
+    def test_a_missing_record_fails_and_names_the_file(self):
+        repo = self._repo(body="")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("openspec/changes/unit-a/tasks.md", stderr)
+        self.assertIn("no Workspace: record", stderr)
+
+    def test_a_record_naming_another_unit_fails(self):
+        repo = self._repo(body="placeholder")
+        (repo / "openspec/changes/unit-a/tasks.md").write_text(
+            "# Tasks\n\n" + self._record(repo, unit="other") + "\n", encoding="utf-8"
+        )
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("'unit' names 'other', not the directory's 'unit-a'", stderr)
+
+    def test_each_malformed_field_fails_naming_the_field(self):
+        cases = (
+            ("a relative path", "relative/path", "a relative 'path'"),
+            ("an empty branch", "", "no 'branch' field"),
+            ("a writer outside the shape", "session-1", "a 'writer' that is not a session identifier"),
+            ("an unknown field", "extra", "a field the format does not name: 'extra'"),
+        )
+        for label, value, expected in cases:
+            with self.subTest(label):
+                repo = self._repo(body="placeholder")
+                record = self._record(
+                    repo,
+                    tree=value if label == "a relative path" else None,
+                    branch=value if label == "an empty branch" else None,
+                    writer=value if label == "a writer outside the shape" else "ses_abc123",
+                )
+                if label == "an unknown field":
+                    record = record + "; {0}=1".format(value)
+                (repo / "openspec/changes/unit-a/tasks.md").write_text(
+                    "# Tasks\n\n" + record + "\n", encoding="utf-8"
+                )
+
+                code, stderr = self._check(repo)
+
+                self.assertEqual(1, code, stderr)
+                self.assertIn(expected, stderr)
+
+    def test_each_recorded_form_parses(self):
+        repo = self._repo(body="placeholder")
+        target = repo / "openspec/changes/unit-a/tasks.md"
+        tree = self._git(repo, "rev-parse", "--show-toplevel")
+        branch = self._git(repo, "symbolic-ref", "--short", "HEAD")
+        fields = "unit=unit-a; path={0}; branch={1}; writer=ses_abc123".format(tree, branch)
+        forms = (
+            "Workspace: unit=unit-a; path={0};\nbranch={1}; writer=ses_abc123".format(tree, branch),
+            "Workspace:\n`{0}`".format(fields),
+            "`Workspace: {0}.`".format(fields),
+        )
+        for form in forms:
+            with self.subTest(form):
+                target.write_text("# Tasks\n\n" + form + "\n", encoding="utf-8")
+
+                self.assertEqual(0, self._check(repo)[0])
+
+    def test_a_tree_with_no_change_directory_passes(self):
+        repo = make_repo(self)
+        (repo / "openspec" / "changes").mkdir(parents=True)
+
+        self.assertEqual((0, ""), self._check(repo))
+
+    def test_a_change_without_tasks_is_not_judged(self):
+        repo = make_repo(self)
+        (repo / "openspec" / "changes" / "unit-a").mkdir(parents=True)
+
+        self.assertEqual(0, self._check(repo)[0])
+
+    def _archive(self, repo: Path, name: str, body: str) -> str:
+        archive = repo / "openspec" / "changes" / "archive" / name
+        archive.mkdir(parents=True)
+        (archive / "tasks.md").write_text("# Tasks\n\n" + body + "\n", encoding="utf-8")
+        return "openspec/changes/archive/{0}/tasks.md".format(name)
+
+    def test_an_archive_on_the_boundary_without_a_record_fails(self):
+        repo = make_repo(self)
+        self._archive(repo, "2026-11-02-demo", "no record here")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("2026-11-02-demo/tasks.md", stderr)
+
+    def test_an_archive_after_the_boundary_without_a_record_fails(self):
+        repo = make_repo(self)
+        self._archive(repo, "2026-12-01-demo", "no record here")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("2026-12-01-demo/tasks.md", stderr)
+
+    def test_an_archive_before_the_boundary_passes(self):
+        repo = make_repo(self)
+        self._archive(repo, "2026-01-01-demo", "no record here")
+
+        self.assertEqual(0, self._check(repo)[0])
+
+    def test_the_acknowledgement_covers_one_directory_only(self):
+        repo = make_repo(self)
+        self._archive(repo, "2026-12-01-demo", "no record here")
+        self._archive(repo, "2026-12-01-other", "no record here")
+        with mock.patch.dict(
+            commit_hygiene.ACKNOWLEDGED_RECORDLESS_ARCHIVES, {"2026-12-01-demo": "landed before the gate"}, clear=True
+        ):
+            code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertNotIn("2026-12-01-demo/tasks.md", stderr)
+        self.assertIn("2026-12-01-other/tasks.md", stderr)
+
+    def test_the_guard_accepts_the_committing_tree(self):
+        repo = self._repo()
+        path = "openspec/changes/unit-a/tasks.md"
+        self._stage(repo, path)
+
+        self.assertEqual((0, ""), self._guard(repo, [path]))
+
+    def test_the_guard_refuses_a_missing_or_malformed_record(self):
+        cases = (("missing", ""), ("malformed", "Workspace: unit=unit-a; path=/tmp; branch=main; extra=1"))
+        for label, body in cases:
+            with self.subTest(label):
+                repo = self._repo(body=body)
+                self._stage(repo, "openspec/changes/unit-a/tasks.md")
+
+                code, stderr = self._guard(repo, ["openspec/changes/unit-a/tasks.md"])
+
+                self.assertEqual(1, code, stderr)
+                self.assertIn("openspec/changes/unit-a/tasks.md", stderr)
+
+    def test_the_guard_judges_an_archive_on_the_boundary(self):
+        repo = make_repo(self)
+        path = self._archive(repo, "2026-11-02-demo", "no record here")
+        self._stage(repo, path)
+
+        code, stderr = self._guard(repo, [path])
+
+        self.assertEqual(1, code)
+        self.assertIn("2026-11-02-demo/tasks.md", stderr)
+
+    def test_the_guard_does_not_judge_an_archive_before_the_boundary(self):
+        repo = make_repo(self)
+        path = self._archive(repo, "2026-01-01-demo", "no record here")
+        self._stage(repo, path)
+
+        self.assertEqual(0, self._guard(repo, [path])[0])
+
+    def test_the_guard_does_not_judge_an_acknowledged_archive(self):
+        repo = make_repo(self)
+        path = self._archive(repo, "2026-12-01-demo", "no record here")
+        self._stage(repo, path)
+
+        with mock.patch.dict(
+            commit_hygiene.ACKNOWLEDGED_RECORDLESS_ARCHIVES, {"2026-12-01-demo": "landed before the gate"}, clear=True
+        ):
+            self.assertEqual(0, self._guard(repo, [path])[0])
+
+    def test_the_guard_refuses_another_unit(self):
+        repo = self._repo(body="placeholder")
+        (repo / "openspec/changes/unit-a/tasks.md").write_text(
+            "# Tasks\n\n" + self._record(repo, unit="other") + "\n", encoding="utf-8"
+        )
+        self._stage(repo, "openspec/changes/unit-a/tasks.md")
+
+        code, stderr = self._guard(repo, ["openspec/changes/unit-a/tasks.md"])
+
+        self.assertEqual(1, code)
+        self.assertIn("'unit' names 'other'", stderr)
+
+    def test_the_guard_refuses_another_tree(self):
+        repo = self._repo(body="placeholder")
+        (repo / "openspec/changes/unit-a/tasks.md").write_text(
+            "# Tasks\n\n" + self._record(repo, tree="/elsewhere") + "\n", encoding="utf-8"
+        )
+        self._stage(repo, "openspec/changes/unit-a/tasks.md")
+
+        code, stderr = self._guard(repo, ["openspec/changes/unit-a/tasks.md"])
+
+        self.assertEqual(1, code)
+        self.assertIn("'path' names '/elsewhere'", stderr)
+
+    def test_the_guard_refuses_another_branch(self):
+        repo = self._repo(body="placeholder")
+        (repo / "openspec/changes/unit-a/tasks.md").write_text(
+            "# Tasks\n\n" + self._record(repo, branch="another-branch") + "\n", encoding="utf-8"
+        )
+        self._stage(repo, "openspec/changes/unit-a/tasks.md")
+
+        code, stderr = self._guard(repo, ["openspec/changes/unit-a/tasks.md"])
+
+        self.assertEqual(1, code)
+        self.assertIn("'branch' names 'another-branch'", stderr)
+
+    def test_a_detached_head_skips_the_branch_comparison(self):
+        repo = self._repo(body="placeholder")
+        subprocess.run(("git", "add", "-A"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "base"), cwd=repo, check=True)
+        subprocess.run(("git", "checkout", "-q", "--detach"), cwd=repo, check=True)
+        (repo / "openspec/changes/unit-a/tasks.md").write_text(
+            "# Tasks\n\n" + self._record(repo, branch="another-branch") + "\n", encoding="utf-8"
+        )
+        self._stage(repo, "openspec/changes/unit-a/tasks.md")
+
+        self.assertEqual(0, self._guard(repo, ["openspec/changes/unit-a/tasks.md"])[0])
+
+    def test_a_merged_record_is_exempt_while_an_edited_one_is_not(self):
+        repo = make_repo(self)
+        write_claim(repo, "unit-a")
+        path = "openspec/changes/archive/2026-12-01-demo/tasks.md"
+        (repo / "base.txt").write_text("base\n", encoding="utf-8")
+        subprocess.run(("git", "add", "-A"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "base"), cwd=repo, check=True)
+        primary = self._git(repo, "rev-parse", "--abbrev-ref", "HEAD")
+        subprocess.run(("git", "switch", "-q", "-c", "side"), cwd=repo, check=True)
+        self._archive(repo, "2026-12-01-demo", self._record(repo, unit="demo", tree="/elsewhere"))
+        subprocess.run(("git", "add", "-A"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "side"), cwd=repo, check=True)
+        subprocess.run(("git", "switch", "-q", primary), cwd=repo, check=True)
+        (repo / "other.txt").write_text("other\n", encoding="utf-8")
+        subprocess.run(("git", "add", "-A"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "main"), cwd=repo, check=True)
+        subprocess.run(("git", "merge", "--no-commit", "--no-ff", "side"), cwd=repo, check=True)
+
+        self.assertEqual(0, self._guard(repo, [path])[0])
+
+        target = repo / path
+        target.write_text(target.read_text(encoding="utf-8") + "\nAn edit\n", encoding="utf-8")
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+
+        self.assertEqual(1, self._guard(repo, [path])[0])
+
+    def test_the_checks_function_counts_the_offenders(self):
+        repo = self._repo(body="")
+
+        self.assertEqual(1, commit_hygiene.check_workspace_records(repo))
+
+    def test_the_entry_point_names_the_offender_and_fails(self):
+        repo = self._repo(body="")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("The workspace record does not verify", stderr)
+
+
 MODE_TEST_COVERAGE = {
     "--staged": ("StagedThenEditedTests", "find_staged_then_edited"),
     "--review-ready": ("ReviewReadyTests", "check_review_ready"),
@@ -3293,6 +3609,7 @@ MODE_TEST_COVERAGE = {
     "--table-rows": ("TableRowTests", "check_table_rows"),
     "--ideas-sections": ("IdeaSectionTests", "find_empty_idea_sections"),
     "--class-vocabulary": ("ClassVocabularyTests", "find_unknown_classes"),
+    "--workspace-records": ("WorkspaceRecordTests", "check_workspace_records"),
 }
 
 

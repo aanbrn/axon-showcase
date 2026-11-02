@@ -218,19 +218,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   capture's review as a stale fact the change passed by rather than caused, so its correction belongs to a docs change
   of its own.
 
-- Check that a unit records its `Workspace:` line — parked; no change yet. `AGENTS.md` requires the record "before its
-  first write", and it lives "with the unit's own record: its `tasks.md` when it has a change dir, otherwise its
-  hand-off or report and then the pull-request checklist" — but no check enforces it: the commit guard reads the claim,
-  and the record's other reader is the `pause-resume-unit` procedure, which reads it, confirms the tree against it, and
-  stops on a disagreement — procedurally, with no gate behind it. The `reject-a-foreign-change-dir-at-commit` unit's
-  archived `tasks.md` carries no `Workspace:` line at all, and this note's own unit recorded one only when a review
-  round asked for it. The claim the commit guard reads is the record's machine-readable sibling, so a
-  `verifyWorkspaceRecord` rules task — or a `commit-hygiene.py` check beside the claim's — could assert that a change
-  unit's `tasks.md` carries the line, that it names the writing session rather than the reviewer's, and that its `path`
-  and `branch` agree with the tree the claim sits in. A unit with no change dir keeps the record in its hand-off or
-  report and then its pull request, which the current offline guard does not fetch, so that home stays with the review
-  unless the record moves to a file a gate reads. Surfaced by the `clarify-the-refresh-recovery-route` unit's review.
-
 - Probe whether v1's `permission.ask` denies a write before it happens — parked; no change yet. ADR-0024 records that
   the property "one owning session per tree" is not ensured: the v2 plugin surface has no tool or permission hook, the
   static config carries no session dimension, and the v1 legacy `Hooks` — `permission.ask` (output settable to `deny`)

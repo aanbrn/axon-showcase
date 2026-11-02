@@ -11,8 +11,8 @@ announced.
 
 1. Load `.opencode/skills/pause-resume-unit/SKILL.md` and follow its resume procedure.
 
-**Repository lifecycle** — this command starts no new unit. Establishing the workspace is `AGENTS.md`'s "Workflow:
-Change lifecycle" rule. It commits, stashes, pushes, archives, or merges nothing, and stops no build or container; the
-approval stop `AGENTS.md`'s "Workflow: The review gate" owns is unchanged.
+**Repository lifecycle** — this command starts no new unit. Establishing the workspace is the lifecycle the bindings
+declare (`docs/contracts/process-bindings.md`). It commits, stashes, pushes, archives, or merges nothing, and stops no
+build or container; the bindings declare the review gate that owns the approval stop, and that stop is unchanged.
 
 **Completion criteria** — the skill's resume criteria hold.

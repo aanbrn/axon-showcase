@@ -8,9 +8,12 @@ description:
 
 # Pausing and resuming a unit
 
-The procedure `AGENTS.md`'s "Workflow: Change lifecycle" triggers. This skill owns the `Resume checkpoint`'s field set,
-the pause's steps, and the resume's steps; `AGENTS.md` owns the lifecycle, the approval stop, and the review gate's
-entry point, and this skill adds no permission of its own.
+The procedure the lifecycle the bindings declare triggers. This skill owns the `Resume checkpoint`'s field set, the
+pause's steps, and the resume's steps; the lifecycle and the review gate the bindings declare own the approval stop and
+the gate's entry point, and this skill adds no permission of its own.
+
+Before using a binding — the lifecycle, the review gate, the review ledger, the workspace record, the change artifacts,
+or the prior finding instances — read `docs/contracts/process-bindings.md`; it declares this repository's values.
 
 **Trigger** — the owner announces a pause or invokes `/pause-unit`; the agent judges it cannot reliably continue the
 unit in this session; or a session continues an unfinished unit, whether a pause was announced or the unit was simply
@@ -70,7 +73,7 @@ left waiting, and whether it invokes `/resume-unit` or not.
 
 **Procedure**
 
-1. Read this skill, `AGENTS.md`'s "Workflow: Change lifecycle", and the unit's `Resume checkpoint` when it exists.
+1. Read this skill, the lifecycle the bindings declare, and the unit's `Resume checkpoint` when it exists.
 2. Establish which unit continues: read its `Workspace:` record for the tree, branch, and writer, then confirm the live
    state — absolute path, branch, revision, and the staged, unstaged, and untracked set.
 3. Compare that live state with the checkpoint when there is one; without one, state what no record holds as unrecovered
@@ -79,8 +82,8 @@ left waiting, and whether it invokes `/resume-unit` or not.
    carried by the continuation request when it says the prior writer ended, asked for otherwise — then record this
    session as the writer in the unit's `Workspace:` record.
 5. Reclassify the resumed work's decisions and state the `Packs:` line, per `AGENTS.md`'s subject-pack table.
-6. Read the records the stage needs: the review rounds in `docs/review-rounds.tsv`, the change dir's artifacts, and the
-   finding instances the checkpoint preserves from the prior round's report.
+6. Read the records the stage needs: the review rounds in the review ledger the bindings declare, the change dir's
+   artifacts, and the finding instances the checkpoint preserves from the prior round's report.
 7. For each operation the record lists as in flight — or one the live state shows as interrupted — establish its outcome
    before relying on it or re-running it.
 8. Restore what the unit was waiting on: a decision the owner has not answered stays open, and an answer the request

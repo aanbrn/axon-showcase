@@ -16,10 +16,13 @@ recorded work taught and propose additions to the repo's guidance — `AGENTS.md
 `check-and-test-authoring`, a shipping-procedure correction in `ship-change`, or a stage-procedure correction in
 `review-gate` — so future changes avoid the same mistakes.
 
+Before using a binding — the review ledger or the change artifacts — read `docs/contracts/process-bindings.md`; it
+declares this repository's values.
+
 You are given:
 
 - The selected `docs/process-defects/<unit>.md` records, with the review evidence they cite — the merged units' diffs
-  and their round rows in `docs/review-rounds.tsv` where a record points at one
+  and their round rows in the review ledger the bindings declare where a record points at one
 - The existing guidance a candidate would extend — the `AGENTS.md` bullet, a subject-pack section, a mode already in
   `check-and-test-authoring`, a `ship-change` or `review-gate` procedure, and any spec, ADR, or definition it points at
 

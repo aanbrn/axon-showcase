@@ -580,6 +580,106 @@ class ExecutableBitTests(unittest.TestCase):
         self.assertIn("scripts/foo.sh", stderr.getvalue())
 
 
+class UniqueChangeNameTests(unittest.TestCase):
+    def _repo_with_archive(self, names: list[str]) -> Path:
+        repo = make_repo(self)
+        archive = repo / "openspec" / "changes" / "archive"
+        archive.mkdir(parents=True)
+        for name in names:
+            (archive / name).mkdir()
+        return repo
+
+    def _check(self, repo: Path) -> tuple[int, str]:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--unique-change-names", "--repo", str(repo)])
+        return code, stderr.getvalue()
+
+    def test_two_directories_carrying_one_name_fail(self):
+        repo = self._repo_with_archive(["2026-01-01-demo", "2026-02-02-demo"])
+
+        duplicates = commit_hygiene.find_duplicate_change_names(repo)
+
+        self.assertEqual(1, len(duplicates))
+        self.assertEqual("demo", duplicates[0][0])
+        self.assertEqual(["2026-01-01-demo", "2026-02-02-demo"], duplicates[0][1])
+
+        code, stderr = self._check(repo)
+        self.assertEqual(1, code)
+        self.assertIn("Archived changes share a name: 'demo'", stderr)
+
+    def test_distinct_names_pass(self):
+        repo = self._repo_with_archive(["2026-01-01-demo", "2026-02-02-other"])
+
+        self.assertEqual([], commit_hygiene.find_duplicate_change_names(repo))
+        self.assertEqual((0, ""), self._check(repo))
+
+    def test_a_shared_prefix_is_not_a_shared_name(self):
+        repo = self._repo_with_archive(["2026-01-01-demo", "2026-01-01-demo-two"])
+
+        self.assertEqual([], commit_hygiene.find_duplicate_change_names(repo))
+
+    def test_an_entry_without_a_date_prefix_is_not_judged(self):
+        repo = self._repo_with_archive(["demo", "2026-01-01-demo"])
+
+        self.assertEqual([], commit_hygiene.find_duplicate_change_names(repo))
+        self.assertEqual(0, self._check(repo)[0])
+
+    def test_three_directories_carrying_one_name_are_all_named(self):
+        repo = self._repo_with_archive(["2026-01-01-demo", "2026-02-02-demo", "2026-03-03-demo"])
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        for directory in ("2026-01-01-demo", "2026-02-02-demo", "2026-03-03-demo"):
+            self.assertIn(directory, stderr)
+
+    def test_the_acknowledged_pair_passes(self):
+        name = "fix-openspec-config-rules"
+        pair = commit_hygiene.ACKNOWLEDGED_DUPLICATE_CHANGE_NAMES[name]
+        repo = self._repo_with_archive(list(pair[0]))
+
+        self.assertEqual([], commit_hygiene.find_duplicate_change_names(repo))
+        self.assertEqual(0, self._check(repo)[0])
+        self.assertTrue(pair[1].strip(), "the acknowledged pair carries no reason")
+
+    def test_a_third_directory_carrying_the_acknowledged_name_fails(self):
+        name = "fix-openspec-config-rules"
+        pair = commit_hygiene.ACKNOWLEDGED_DUPLICATE_CHANGE_NAMES[name]
+        repo = self._repo_with_archive(list(pair[0]) + ["2026-04-04-" + name])
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("2026-04-04-" + name, stderr)
+
+    def test_a_duplicate_of_another_name_fails_beside_the_acknowledged_pair(self):
+        pair = commit_hygiene.ACKNOWLEDGED_DUPLICATE_CHANGE_NAMES["fix-openspec-config-rules"][0]
+        repo = self._repo_with_archive(list(pair) + ["2026-01-01-demo", "2026-02-02-demo"])
+
+        duplicates = commit_hygiene.find_duplicate_change_names(repo)
+
+        self.assertEqual(["demo"], [name for name, _ in duplicates])
+
+    def test_a_missing_archive_directory_fails_and_names_it(self):
+        repo = make_repo(self)
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("The archived changes directory is missing: openspec/changes/archive", stderr)
+
+    def test_the_live_archive_resolves_and_its_pair_is_acknowledged(self):
+        repo = commit_hygiene.REPO_ROOT
+        names = commit_hygiene.archived_change_names(repo)
+
+        self.assertEqual([], commit_hygiene.find_duplicate_change_names(repo))
+        self.assertEqual(
+            list(commit_hygiene.ACKNOWLEDGED_DUPLICATE_CHANGE_NAMES["fix-openspec-config-rules"][0]),
+            names["fix-openspec-config-rules"],
+        )
+
+
 class UniqueCronTests(unittest.TestCase):
     def _repo_with_workflows(self, workflows: dict[str, str]) -> Path:
         repo = make_repo(self)
@@ -3187,6 +3287,7 @@ MODE_TEST_COVERAGE = {
     "--executable-bits": ("ExecutableBitTests", "find_non_executable_scripts"),
     "--unique-crons": ("UniqueCronTests", "find_cron_collisions"),
     "--unique-rounds": ("UniqueReviewRoundTests", "check_unique_review_rounds"),
+    "--unique-change-names": ("UniqueChangeNameTests", "find_duplicate_change_names"),
     "--session-continuity": ("SessionContinuityTests", "find_session_continuity_violations"),
     "--large-files": ("LargeFileTests", "find_oversized_files"),
     "--table-rows": ("TableRowTests", "check_table_rows"),

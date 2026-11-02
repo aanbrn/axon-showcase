@@ -674,6 +674,15 @@ tasks.register<Exec>("verifyUniqueCronSchedules") {
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--unique-crons")
 }
 
+tasks.register<Exec>("verifyUniqueChangeNames") {
+    group = "verification"
+    description = "Verifies no two archived change directories carry the same change name"
+    inputs.file("scripts/commit-hygiene.py")
+    inputs.dir("openspec/changes/archive")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--unique-change-names")
+}
+
 tasks.register<Exec>("verifyUniqueReviewRounds") {
     group = "verification"
     description = "Verifies the review-round ledger carries one row per unit and round, contiguous from 1"
@@ -831,6 +840,7 @@ tasks.named("check") {
     dependsOn("verifyConflictMarkers")
     dependsOn("verifyExecutableBits")
     dependsOn("verifyUniqueCronSchedules")
+    dependsOn("verifyUniqueChangeNames")
     dependsOn("verifyUniqueReviewRounds")
     dependsOn("verifyReviewSessionContinuity")
     dependsOn("verifyLargeFiles")

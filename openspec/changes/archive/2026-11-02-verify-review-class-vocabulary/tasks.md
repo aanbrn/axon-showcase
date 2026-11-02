@@ -74,8 +74,9 @@ Workspace:
 - [x] 5.2 Mark suggestion S2's disposition in each report that carries it — `docs/retrospectives/2026-10-15.md` (its row
       and the paragraph below it), `2026-10-23.md` (its row), and `2026-10-31.md` (its row) — keeping each report's
       window text and the reopening record.
-- [ ] 5.3 The capability's `## Purpose` enumerates each build check it owns and a delta cannot carry one: add the
+- [x] 5.3 The capability's `## Purpose` enumerates each build check it owns and a delta cannot carry one: add the
       vocabulary check to it in the archive commit.
+      Applied in this archive commit.
 - [x] 5.4 Docs refresh: grep `AGENTS.md`, `README.md`, `docs/adr/`, and `scripts/commit-hygiene.py`'s mode enumeration
       for an enumeration of the `check` members, the ledger's class rule, or the checker's modes, and update what states
       one.

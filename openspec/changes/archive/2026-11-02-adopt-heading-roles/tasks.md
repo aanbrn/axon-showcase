@@ -26,7 +26,8 @@ Pause: ADR-0025's standing consolidation pause is lifted for this unit by the ow
 ## 4. Delivery
 
 - [x] 4.1 Write `docs/process-defects/adopt-heading-roles.md`.
-- [ ] 4.2 The review gate: the pre-write pass and claims table, the quick loop, the routing decision, the routed deep
-      review when required, the advisor, the manual pass.
+- [x] 4.2 The review gate: the pre-write pass and claims table, the quick loop (3 rounds: 8, 2, 0; closing clean), the
+      routing decision (`NOT_NEEDED`, with the fidelity pass run on the advisor's condition), the advisor (2 problems
+      fixed, then 0), the manual pass (the owner's `Отгружай` on 2026-11-02).
 - [x] 4.3 Remove the implemented idea from `docs/ideas.md`.
-- [ ] 4.4 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.
+- [x] 4.4 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.

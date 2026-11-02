@@ -8,8 +8,10 @@ round that raised it.
 The classes compare across the canonical boundary only once normalized. Rows recorded before the reviewer's canonical
 class list landed (with the archived `2026-10-15-give-the-review-a-canonical-class-list` change, merged 2026-10-15) keep
 the labels they were recorded with, so a label on a row dated on or before `PRE_CANONICAL_THROUGH` is mapped through
-`PRE_CANONICAL_MAP` and a label that mapping does not cover is reported as unmapped rather than passed through
-silently. A label on a later row is taken as recorded.
+`PRE_CANONICAL_MAP`, and a label that mapping does not cover is reported as unmapped rather than passed through
+silently. A label on a later row is taken as recorded when the canonical list names it and reported as unmapped when it
+does not. When that list cannot be read, the block is still printed, its unmapped line states that normalization is
+unestablished and why, and the later labels are counted as classes, so the retrospective gather keeps running.
 
 Usage: python3 scripts/review-rounds.py [--since YYYY-MM-DD] [--record PATH]
 Stdlib only.
@@ -21,6 +23,12 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
+
+# The shared vocabulary module sits beside this script; load it by that path, whatever the caller's working
+# directory or import route.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from review_vocabulary import REVIEW_QUICK_DEFINITION, canonical_classes
 
 RECORD_DEFAULT = "docs/review-rounds.tsv"
 
@@ -110,18 +118,23 @@ def raised_classes(row: Sequence[str]) -> List[str]:
     return [label.strip() for label in row[3].split(",") if label.strip() and label.strip() != "-"]
 
 
-def canonical_class(label: str, row_date: str) -> Optional[str]:
-    """The label's canonical class, or `None` when a pre-canonical label has no mapping entry.
+def canonical_class(label: str, row_date: str, canonical: Optional[Set[str]]) -> Optional[str]:
+    """The label's canonical class, or `None` when no normalization yields one.
 
-    A row dated after the boundary is taken as recorded: its label comes from the canonical list the reviewer's contract
-    carries, so it needs no mapping.
+    A row at or before the boundary is mapped through `PRE_CANONICAL_MAP`; a later row is taken as recorded when the
+    canonical list names it. An unreadable list (`canonical` is `None`) takes every later label as recorded, which the
+    block states as unestablished rather than reporting no unmapped label.
     """
     if row_date <= PRE_CANONICAL_THROUGH:
         return PRE_CANONICAL_MAP.get(label)
-    return label
+    if canonical is None:
+        return label
+    return label if label in canonical else None
 
 
-def tally(rows: Iterable[Sequence[str]]) -> Tuple[List[Tuple[str, int]], List[Tuple[str, int]]]:
+def tally(
+    rows: Iterable[Sequence[str]], canonical: Optional[Set[str]]
+) -> Tuple[List[Tuple[str, int]], List[Tuple[str, int]]]:
     """The (classes, unmapped labels) a row set raises, each as (name, count) pairs, most-raised first.
 
     A class contributes at most once per round: the ledger records the classes a round raised as a set, so two labels
@@ -133,7 +146,7 @@ def tally(rows: Iterable[Sequence[str]]) -> Tuple[List[Tuple[str, int]], List[Tu
     for row in rows:
         seen: Set[Tuple[str, str]] = set()
         for label in raised_classes(row):
-            cls = canonical_class(label, row[0])
+            cls = canonical_class(label, row[0], canonical)
             kind = "class" if cls is not None else "unmapped"
             bucket = counts if cls is not None else unmapped
             name = cls if cls is not None else label
@@ -151,13 +164,22 @@ def figures(rows: Sequence[Sequence[str]]) -> Tuple[int, int]:
     return len(rows), sum(int(row[5]) for row in rows)
 
 
-def render(record: str, since: str, rows: Sequence[Sequence[str]]) -> List[str]:
-    """The digest's review-rounds block for `rows`."""
+def render(
+    record: str,
+    since: str,
+    rows: Sequence[Sequence[str]],
+    canonical: Optional[Set[str]],
+    reason: Optional[str],
+) -> List[str]:
+    """The digest's review-rounds block for `rows`, and what it could not normalize when `reason` states it."""
     window = [row for row in rows if row[0] >= since]
     proper = [row for row in window if row[0] > since]
     inclusive_rounds, inclusive_misses = figures(window)
     proper_rounds, proper_misses = figures(proper)
-    classes, unmapped = tally(proper)
+    classes, unmapped = tally(proper, canonical)
+    unmapped_line = "  unmapped (window-proper, kept as recorded): {0}".format(_pairs(unmapped))
+    if reason is not None:
+        unmapped_line += " — unestablished: {0}; post-boundary labels counted as classes".format(reason)
     return (
         [heading(record)]
         + ["  " + "\t".join(row) for row in window]
@@ -172,9 +194,21 @@ def render(record: str, since: str, rows: Sequence[Sequence[str]]) -> List[str]:
             "labels on rows dated on or before {0} normalized to the reviewer's canonical list): {1}".format(
                 PRE_CANONICAL_THROUGH, _pairs(classes)
             ),
-            "  unmapped (window-proper, kept as recorded): {0}".format(_pairs(unmapped)),
+            unmapped_line,
         ]
     )
+
+
+def definition_classes() -> Tuple[Optional[Set[str]], Optional[str]]:
+    """The canonical class set, and the reason it could not be read."""
+    try:
+        text = Path(REVIEW_QUICK_DEFINITION).read_text(encoding="utf-8")
+    except OSError as error:
+        return None, "{0} could not be read: {1}".format(REVIEW_QUICK_DEFINITION, error)
+    classes, reason = canonical_classes(text)
+    if reason is not None:
+        return None, reason
+    return set(classes), None
 
 
 def heading(record: str) -> str:
@@ -216,7 +250,8 @@ def main(argv: Sequence[str] = ()) -> int:
         print(heading(args.record))
         print("  (none on disk)")
         return 0
-    for line in render(args.record, args.since, read_rows(path)):
+    canonical, reason = definition_classes()
+    for line in render(args.record, args.since, read_rows(path), canonical, reason):
         print(line)
     return 0
 

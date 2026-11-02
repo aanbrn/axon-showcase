@@ -14,6 +14,7 @@ import io
 import re
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -48,9 +49,23 @@ def fixture(test, lines):
     return path
 
 
-def block(test, lines, since):
-    """The rendered block for a fixture ledger."""
-    return review_rounds.render("fixture.tsv", since, review_rounds.read_rows(fixture(test, lines)))
+DEFINITION = REPO / review_rounds.REVIEW_QUICK_DEFINITION
+
+
+def canonical_set():
+    """The live canonical class set the digest normalizes against."""
+    found, reason = review_rounds.canonical_classes(DEFINITION.read_text(encoding="utf-8"))
+    assert reason is None, reason
+    return set(found)
+
+
+def block(test, lines, since, canonical=None, reason=None):
+    """The rendered block for a fixture ledger, normalized against the live list unless a case supplies its own."""
+    if canonical is None and reason is None:
+        canonical = canonical_set()
+    return review_rounds.render(
+        "fixture.tsv", since, review_rounds.read_rows(fixture(test, lines)), canonical, reason
+    )
 
 
 def line(block_lines, prefix):
@@ -107,6 +122,32 @@ class CandidateClassTests(unittest.TestCase):
         self.assertIn("structured-writing 1", line(lines, "  classes raised"))
         self.assertIn(": none", line(lines, "  unmapped"))
 
+    def test_a_post_boundary_label_the_list_does_not_name_is_reported_unmapped(self):
+        lines = block(self, ["2026-12-01\tunit-a\t1\toutput-ordering\t-\t1"], "2026-11-30")
+        self.assertIn(": output-ordering 1", line(lines, "  unmapped"))
+        self.assertNotIn("output-ordering", line(lines, "  classes raised"))
+
+    def test_an_unreadable_definition_is_stated_as_unestablished(self):
+        reason = "the reviewer's definition is missing: " + str(DEFINITION)
+        lines = block(self, ["2026-12-01\tunit-a\t1\toutput-ordering\t-\t1"], "2026-11-30", reason=reason)
+        unmapped = line(lines, "  unmapped")
+        self.assertIn("unestablished: " + reason, unmapped)
+        self.assertIn("post-boundary labels counted as classes", unmapped)
+        self.assertIn("output-ordering 1", line(lines, "  classes raised"))
+
+    def test_a_pre_boundary_label_with_no_mapping_stays_unmapped_under_the_fallback(self):
+        lines = block(
+            self,
+            ["2026-10-01\tunit-a\t1\t" + NOT_A_CLASS + "\t-\t1"],
+            "2026-09-30",
+            reason="unestablished for this case",
+        )
+        self.assertIn(": " + NOT_A_CLASS + " 1", line(lines, "  unmapped"))
+        self.assertNotIn(NOT_A_CLASS, line(lines, "  classes raised"))
+
+    def test_the_live_definition_names_a_class_the_ledger_records(self):
+        self.assertIn("contradiction", canonical_set())
+
     def test_two_labels_mapping_to_one_class_on_a_row_count_once(self):
         lines = block(self, ["2026-10-01\tunit-a\t1\twording,ambiguity\t-\t1"], "2026-09-30")
         self.assertIn("wording 1", line(lines, "  classes raised"))
@@ -124,6 +165,35 @@ class CandidateClassTests(unittest.TestCase):
         raised = line(lines, "  classes raised")
         self.assertIn("one contribution per canonical class per round", raised)
         self.assertIn("not a count of findings", raised)
+
+
+class DefinitionTests(unittest.TestCase):
+    """The read path: an absent or unextractable definition, through the entry point."""
+
+    def test_an_absent_definition_reports_unestablished_and_the_command_succeeds(self):
+        missing = Path(tempfile.mkdtemp()) / "absent.md"
+        ledger = fixture(self, ["2026-12-01\tunit-a\t1\toutput-ordering\t-\t1"])
+
+        with mock.patch.object(review_rounds, "REVIEW_QUICK_DEFINITION", str(missing)):
+            printed = io.StringIO()
+            with contextlib.redirect_stdout(printed):
+                status = review_rounds.main(["--since", "2026-11-30", "--record", str(ledger)])
+
+        block = printed.getvalue().splitlines()
+        self.assertEqual(status, 0)
+        self.assertIn("unestablished: ", line(block, "  unmapped"))
+        self.assertIn("could not be read", line(block, "  unmapped"))
+        self.assertIn("output-ordering 1", line(block, "  classes raised"))
+
+    def test_an_unextractable_definition_reaches_the_unestablished_line(self):
+        definition = Path(tempfile.mkdtemp()) / "review-quick.md"
+        definition.write_text("no canonical list here\n", encoding="utf-8")
+
+        with mock.patch.object(review_rounds, "REVIEW_QUICK_DEFINITION", str(definition)):
+            canonical, reason = review_rounds.definition_classes()
+
+        self.assertIsNone(canonical)
+        self.assertIn("occurs 0 time(s)", reason)
 
 
 class DeclaredMappingTests(unittest.TestCase):

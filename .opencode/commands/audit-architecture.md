@@ -33,8 +33,9 @@ Run the architecture audit, which reports only — it never edits a file.
 - Report generation and applying are separate: the applying is a unit of its own.
 - Route each finding by its kind — a docs correction (an ADR, `AGENTS.md`, `README.md`) is a docs unit; a code change,
   or a command or subagent-definition change altering spec-covered behavior, goes through the normal change workflow
-  with that capability's delta; a spec change follows `AGENTS.md`'s "Workflow: Author a spec delta and archive". Never
-  edit a main spec outside archive.
+  with that capability's delta; a spec change follows the spec-delta workflow the bindings declare
+  (`docs/contracts/process-bindings.md`), and a declaration that names none stops the unit rather than being inferred.
+  Never edit a main spec outside archive.
 - Run the full per-unit review gate over the result. The `review-gate` skill owns its steps, including the
   reviewer-session preflight; this command points at it rather than restating it.
 

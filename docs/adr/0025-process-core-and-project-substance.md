@@ -150,3 +150,11 @@ The pause's scope moved once more, and this amendment records it without reopeni
   2026-11-02 for `adopt-process-defect-records`, by directing the next unit after the boundary record named that
   candidate. The lift covers that change's role and its six adopters and nothing else: no other parked move reopens, and
   none of §6's mechanism signals changes.
+
+## Amendment — 2026-11-02 (the spec-delta role)
+
+The pause's scope moved once more, and this amendment records it without reopening the Decision.
+
+- The owner lifted the pause again on 2026-11-02 for `adopt-spec-delta-role`, by directing that an unresolved inventory
+  row be taken. The lift covers that change's role and its three adopters and nothing else: no other parked move
+  reopens, and none of §6's mechanism signals changes.

@@ -67,7 +67,7 @@ ADR-0025, its owner, its consumer count, and its disposition.
 | `AGENTS.md`, "### Evidence and search"                        | explicit project binding | the evidence rule                                      |         2 | explicit by decision — a destination          |
 | `AGENTS.md`, the subject table                                | explicit project binding | the packs' classification and trigger                  |         6 | explicit by decision                          |
 | the guidance destinations                                     | explicit project binding | `AGENTS.md`, the subject packs, three procedure skills |         1 | explicit by decision — the destination list   |
-| `AGENTS.md`, "Workflow: Author a spec delta and archive"      | explicit project binding | the spec-delta workflow                                |         3 | unresolved — no transfer record               |
+| `AGENTS.md`, "Workflow: Author a spec delta and archive"      | explicit project binding | the spec-delta workflow                                |         3 | settled: declared by `adopt-spec-delta-role`  |
 | `AGENTS.md`, "Refreshing a branch"                            | explicit project binding | the branch-refresh rule                                |         1 | unresolved — no transfer record               |
 | `AGENTS.md`, "Workflow: Ship a change (CI → archive → merge)" | explicit project binding | the shipping procedure                                 |         1 | unresolved — no transfer record               |
 | `AGENTS.md`, "Workflow: Complete a cloud (`/oc`) agent PR"    | explicit project binding | the cloud-PR workflow                                  |         1 | unresolved — no transfer record               |
@@ -108,9 +108,10 @@ ADR-0025, its owner, its consumer count, and its disposition.
 
 - **The earlier sweeps were not population-complete.** Six `AGENTS.md` sections beyond the two declared ones are named
   by seven components across eight references — the same class as the sections the heading sweep adopted, and invisible
-  to a search for those two names.
-- **Six section rows are unresolved for one reason:** nothing exercises them. A counterfactual run or a real target
-  would settle each, and the pilot records and archived changes are the evidence that none has.
+  to a search for those two names. One of the six is now declared; the bullet records the finding, not the count.
+- **Five section rows remain unresolved for one reason:** nothing exercises them. A counterfactual run or a real target
+  would settle each; one has been settled that way since this inventory was written — the spec-delta section, by
+  `adopt-spec-delta-role`'s renaming counterfactual — which is the reopening condition working as recorded.
 - **Four dispositions are already recorded** and are not reopened here: the evidence section and the guidance
   destinations are destinations by decision, the ideas file is a recurrence input, and `docs/guidance-evidence/` is an
   incompatibility.

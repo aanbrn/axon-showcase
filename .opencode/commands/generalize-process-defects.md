@@ -15,9 +15,10 @@ moment is the owner's decision; nothing schedules this command, and no queue or 
    carry no `Decision` line — a file may mix decided and undecided records, so list per record, not per file. Show the
    owner the set, with each record's unit, stage, and one-line title.
 2. Take the selection: the units the owner named, or the whole set when none were named.
-3. Before the hand-off, decide each selected record's disposition against the recurrence sites `AGENTS.md`'s
-   generalization workflow **Decision points** name — its "Where the repository already records a recurrence decides its
-   disposition" bullet. The bullet owns the sites, their conditions, and their actions; do not restate them here.
+3. Before the hand-off, decide each selected record's disposition against the recurrence sites the
+   generalization-dispositions bullet the bindings declare (`docs/contracts/process-bindings.md`) names. That bullet
+   owns the sites, their conditions, and their actions; do not restate them here, and a declaration that names none
+   stops the pass before the hand-off rather than being inferred.
 4. Invoke the `lesson-capture` subagent with the selected records, the existing guidance a candidate would extend, and
    the review evidence each record cites. Its contract — the promotion gate, the evidence threshold, the dispositions,
    the owning destinations, the retirement candidates, and the authoring-system recommendations — is the `agent-skills`

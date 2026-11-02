@@ -68,3 +68,15 @@ The role list grows by one, and this amendment records it without reopening the 
   handling" in `AGENTS.md`, owned by that rule, adopted by `/sync-branch`, which follows the route the rule gives the
   state it found. It satisfies ADR-0026's role-not-string rule, and the declaration's table, not this decision, owns how
   many roles exist.
+
+## Amendment — 2026-11-03 (the guidance roles)
+
+The role list grows by two, and this amendment records it without reopening the Decision.
+
+- **`generalization-dispositions`** joins the list: the "Where the repository already records a recurrence decides its
+  disposition" bullet in "Workflow: Generalize process defects" → "Decision points", adopted by
+  `/generalize-process-defects`, which decides each record's disposition against it.
+- **`extraction-procedure`** joins the list: the "Workflow: Extract an `AGENTS.md` section" heading, adopted by
+  `/apply-audit-reductions`, which routes an extraction through it.
+
+Both satisfy ADR-0026's role-not-string rule, and the declaration's table, not this decision, owns how many roles exist.

@@ -29,8 +29,8 @@ Pause: ADR-0025's standing consolidation pause is lifted for this unit by the ow
 ## 5. Delivery
 
 - [x] 5.1 `docs/process-defects/adopt-process-defect-records.md`.
-- [ ] 5.2 The review gate: the pre-write pass and claims table, the quick loop, the routing decision, the routed deep
+- [x] 5.2 The review gate: the pre-write pass and claims table, the quick loop, the routing decision, the routed deep
       review when required, the advisor, the manual pass.
-- [ ] 5.3 Refresh the `agent-skills` Purpose's "(the six roles …)" to the declaration's role set, applied in the archive
+- [x] 5.3 Refresh the `agent-skills` Purpose's "(the six roles …)" to the declaration's role set, applied in the archive
       commit — a delta cannot carry a Purpose.
-- [ ] 5.4 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.
+- [x] 5.4 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.

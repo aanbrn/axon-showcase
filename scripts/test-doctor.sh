@@ -149,10 +149,10 @@ done
 
 # The required set: the probes declared `required` must be exactly the prerequisites of the default build-and-test path.
 # The spec states that path across two scenarios (showcase/quality/toolchain-check): the required-tool scenario names
-# "Java, Docker with Compose … the Python 3.12+ interpreter the build's Python tooling runs under", and the repo-state
-# requirement makes the Docker daemon the required exception. Held here rather than read from the table, so the
-# comparison is against the spec rather than the declaration against itself.
-expected_required="compose docker docker-daemon java python3"
+# "Java, Docker with Compose, `actionlint` … the Python 3.12+ interpreter the build's Python tooling runs under", and
+# the repo-state requirement makes the Docker daemon the required exception. Held here rather than read from the table,
+# so the comparison is against the spec rather than the declaration against itself.
+expected_required="actionlint compose docker docker-daemon java python3"
 required_probes=$(for key in $probe_keys; do
     [ "$(probe_field "$key" 2)" = "required" ] && printf '%s\n' "$key"
 done | sort | tr '\n' ' ' | sed 's/ $//')
@@ -248,7 +248,11 @@ cat >"$fixture_dir/python3" <<'STUB'
 #!/bin/sh
 echo "Python $FIXTURE_PY_VERSION"
 STUB
-chmod +x "$fixture_dir/java" "$fixture_dir/docker" "$fixture_dir/python3"
+cat >"$fixture_dir/actionlint" <<'STUB'
+#!/bin/sh
+echo "1.7.12"
+STUB
+chmod +x "$fixture_dir/java" "$fixture_dir/docker" "$fixture_dir/python3" "$fixture_dir/actionlint"
 
 # $1 the fixture interpreter's version; sets fixture_output and fixture_status
 run_fixture() {
@@ -263,6 +267,14 @@ printf '%s\n' "$fixture_output" | grep -qE "^  python3 +too-old +3\.11\.2 \(need
     fail "a below-floor python3 (3.11.2) was not reported as too old naming both versions"
 
 run_fixture 3.12.0
+# The fixture's own baseline, asserted before the verdict below: at the floor every required probe must read satisfied
+# too, or that verdict is attributable to a probe the fixture stopped stubbing rather than to the interpreter — exactly
+# the misattribution a probe's class change reintroduces, so the stub set is checked against the required set rather
+# than trusted to match it.
+for key in $expected_required; do
+    printf '%s\n' "$fixture_output" | grep -qE "^  ${key} +satisfied" ||
+        fail "fixture leaves required probe '$key' unsatisfied at the floor — the verdict is not Python's alone"
+done
 [ "$fixture_status" -eq 0 ] || fail "python3 3.12.0 (at the floor) failed the default run"
 printf '%s\n' "$fixture_output" | grep -qE "^  python3 +satisfied +3\.12\.0$" ||
     fail "python3 3.12.0 (at the floor) was not reported as satisfied"

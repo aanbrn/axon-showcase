@@ -148,7 +148,7 @@ probe_table='
 java|required|tool|yes|java|--version|21
 docker|required|tool|yes|docker|--version|
 compose|required|tool|yes|||
-actionlint|optional|tool|yes|actionlint|--version|
+actionlint|required|tool|yes|actionlint|--version|
 pack|optional|tool|yes|pack|--version|
 helm|optional|tool|yes|helm|version --short|4
 kubectl|optional|tool|yes|kubectl|version --client|

@@ -43,8 +43,9 @@ Workspace:
       `.opencode/` for an enumeration of the doctor's required set — only `scripts/test-doctor.sh` holds it. The
       README's "Only Java and Docker are required to run the application" is scoped to running and its next sentence
       already places `actionlint` in the full `check`, so it is not a contradiction.
-- [ ] 4.4 The capability's `## Purpose` needs no refresh (it describes the probe set generically and `actionlint` was
-      already a probe); record the confirmation in the archive commit rather than editing the Purpose.
+- [x] 4.4 The capability's `## Purpose` needs no refresh (it describes the probe set generically and `actionlint` was
+      already a probe); record the confirmation in the archive commit rather than editing the Purpose. Confirmed: the
+      sync changed only the two scenario lines and left the Purpose untouched.
 
 ## 5. The evidence
 
@@ -85,6 +86,7 @@ Workspace:
 
 ## 8. The archive
 
-- [ ] 8.1 Confirm in the archive commit that the delta's two requirement blocks reach
-      `openspec/specs/showcase/quality/toolchain-check/spec.md` with `actionlint` in both lists, that no `## Purpose`
-      edit is needed, and that the archived `tasks.md` carries the unit's `Workspace:` record.
+- [x] 8.1 Confirmed in the archive commit: the sync applied `~ 2 modified` to
+      `openspec/specs/showcase/quality/toolchain-check/spec.md`, adding `actionlint` to the required list at lines 97
+      and 129 and changing nothing else (the Purpose included), and the archived `tasks.md` carries the unit's
+      `Workspace:` record.

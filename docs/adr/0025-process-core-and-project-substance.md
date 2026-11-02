@@ -141,3 +141,12 @@ One statement above no longer holds as written, and this amendment qualifies it 
   heading-role sweep (`adopt-heading-roles`), which ADR-0027's criterion admitted once that change named its components
   and recorded the adaptation it removes. The pause still covers every other parked move, and this amendment lifts
   nothing beyond that unit.
+
+## Amendment — 2026-11-02 (the process-defect records)
+
+The pause's scope moved once more, and this amendment records it without reopening the Decision.
+
+- The Context records the pause as lifted for named units by explicit instruction. The owner lifted it again on
+  2026-11-02 for `adopt-process-defect-records`, by directing the next unit after the boundary record named that
+  candidate. The lift covers that change's role and its six adopters and nothing else: no other parked move reopens, and
+  none of §6's mechanism signals changes.

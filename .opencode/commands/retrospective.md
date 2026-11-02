@@ -12,8 +12,10 @@ Run the experience-analyzer workflow to produce a retrospective and improvement 
    `/retrospective 2026-09-02`), otherwise default to the last 7 days.
 2. Gather the digest with `./scripts/experience-analysis.sh [since]`. It prints the merged PRs and the git log for the
    window, the archived OpenSpec changes, `AGENTS.md`'s gotchas, and `docs/ideas.md` as current state (not windowed),
-   plus a **derived-facts block** carrying the window's countable claims already resolved and an index of the
-   `docs/process-defects/` records the window's commits touched.
+   plus a **derived-facts block** carrying the window's countable claims already resolved and an index of the window's
+   process-defect records that its commits touched: resolve their directory through the bindings declaration
+   (`docs/contracts/process-bindings.md`), and report `scripts/experience-analysis.sh`'s embedded path as the tooling
+   adaptation whenever the two differ.
 3. Invoke the `experience-analyzer` subagent (`.opencode/agent/experience-analyzer.md`) with that digest, plus a short
    context note on the window if the owner has one — what went well or wrong that no diff captures. The note is
    optional.

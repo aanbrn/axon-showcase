@@ -24,9 +24,10 @@ Refresh the current branch when it has fallen behind, by the procedure the repos
    fast-forward, report that and leave the local branch where it is. This completes the refresh when a pull request is
    open: steps 6–8 apply only when none is.
 6. IF the branch carries its own commits on a clean tree, THEN rebase it against `origin/main`.
-7. Otherwise refresh it by `AGENTS.md`'s "Refreshing a branch", following the route the rule gives the state you found —
-   including recreating a branch that has no work at all, and stashing first where the update touches a file you
-   changed.
+7. Otherwise refresh it by the branch-refresh rule the bindings declare (`docs/contracts/process-bindings.md`),
+   following the route the rule gives the state you found — a declaration that names none stops the refresh rather than
+   being inferred — including recreating a branch that has no work at all, and stashing first where the update touches a
+   file you changed.
 8. Resolve a local conflict for both sides — never a wholesale side-pick — and then finish the operation the conflict
    interrupted rather than starting it again: `git rebase --continue` after a rebase, or the re-apply of the stash it
    interrupted. Confirm both facts survive in every file both sides touched.

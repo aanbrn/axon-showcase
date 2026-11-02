@@ -19,6 +19,7 @@ analysis.
 | workspace-record       | the unit's `tasks.md` `Workspace:` record, else the hand-off or report and the pull-request checklist                            | the workspace rule (`AGENTS.md`, "Workflow: Change lifecycle")                                       |
 | change-artifacts       | `openspec/changes/<change>/`                                                                                                     | the OpenSpec change directory and its schema                                                         |
 | process-defect-records | `docs/process-defects/<unit>.md`                                                                                                 | the record's field set (`AGENTS.md`, "Workflow: Record process defects")                             |
+| branch-refresh         | `AGENTS.md`, the "Refreshing a branch" bullet under "Workflow: Change lifecycle" → "Failure handling"                            | the branch-refresh rule                                                                              |
 | spec-delta             | `AGENTS.md`, the "Workflow: Author a spec delta and archive" heading                                                             | the spec-delta-and-archive workflow                                                                  |
 | prior-findings         | the prior review round's report, preserved in the `Resume checkpoint`'s "Findings no record holds" field or the review hand-over | the review-gate handover rule                                                                        |
 
@@ -47,7 +48,7 @@ reason, so the set is explicit rather than inferred.
 | `.opencode/commands/resume-unit.md`                | lifecycle, review-gate                                                                    |
 | `.opencode/commands/retrospective.md`              | lifecycle, review-gate, process-defect-records                                            |
 | `.opencode/commands/review-thorough.md`            | review-ledger                                                                             |
-| `.opencode/commands/sync-branch.md`                | lifecycle, review-gate                                                                    |
+| `.opencode/commands/sync-branch.md`                | lifecycle, review-gate, branch-refresh                                                    |
 | `.opencode/skills/pause-resume-unit/SKILL.md`      | lifecycle, review-gate, review-ledger, workspace-record, change-artifacts, prior-findings |
 | `.opencode/skills/review-gate/SKILL.md`            | review-ledger                                                                             |
 

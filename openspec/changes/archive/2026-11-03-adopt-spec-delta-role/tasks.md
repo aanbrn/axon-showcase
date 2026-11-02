@@ -26,5 +26,5 @@ unresolved-секцию сделаем").
       `docs/review-rounds.tsv` records them, and the routing outcome (`RECOMMENDED`, `repeated-class`).
 - [x] 3.3 The routing decision (`RECOMMENDED`, `repeated-class`) and the deep review the owner resolved to run: one
       pass, `SDR-1` (the misattributed ADR-0026 test) and `SDR-2` (two inferred inputs), both fixed.
-- [ ] 3.4 The owner's manual pass.
-- [ ] 3.5 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.
+- [x] 3.4 The owner's manual pass.
+- [x] 3.5 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.

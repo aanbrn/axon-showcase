@@ -316,7 +316,9 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   or `none` for a unit with no change dir. It may be omitted when the branch's name is a change name — a live
   `openspec/changes/<name>/` directory or an archived `openspec/changes/archive/<date>-<name>/` one — and every other
   branch records it before its first commit, which is how a **continued** unit (an `opencode/…` branch or a head pushed
-  from elsewhere) is assigned. captured: bump-kps-chart-2026-10-25 captured: reject-a-foreign-change-dir-at-commit
+  from elsewhere) is assigned. The standard `check` verifies a live change's record, and every archive dated from this
+  gate's introduction, so a missing or wrong one fails the pull request rather than only being noticed at a resume.
+  captured: bump-kps-chart-2026-10-25 captured: reject-a-foreign-change-dir-at-commit
 - The primary checkout carries the sequential unit. A **new** unit that finds the primary assigned to another unit — or
   whose ownership it cannot establish — works in a sibling worktree, `../axon-showcase-<unit>`, created and prepared by
   `./scripts/new-worktree.sh <unit>` (the wrapper resolves the primary from its own repository, never from the caller's
@@ -1843,7 +1845,8 @@ capture-stash-stale-copy captured: override-opencode-plugin-transitives
   formatter check, force-stages a generated artifact, stages a path and then edits it, carries a merge conflict marker,
   misplaces a `captured:` marker, stages an `openspec/changes/archive/**` change dir while leaving its
   `openspec/specs/**` sync unstaged, stages a review-round ledger that fails its checks or loses a row, stages an
-  archived change's `tasks.md` with an unticked task, stages a `docs/ideas.md` whose dated section carries no entry or
+  archived change's `tasks.md` with an unticked task, stages a change's `tasks.md` whose `Workspace:` record is missing,
+  malformed, names another unit, or names another tree, stages a `docs/ideas.md` whose dated section carries no entry or
   that the commit removes, or carries a change directory that is not the commit's assigned one — apart from a change
   path the commit's own merge accounts for, whose content is not the commit's own.
 

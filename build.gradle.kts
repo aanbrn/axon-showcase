@@ -745,6 +745,15 @@ tasks.register<Exec>("verifyIdeasSections") {
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--ideas-sections")
 }
 
+tasks.register<Exec>("verifyWorkspaceRecords") {
+    group = "verification"
+    description = "Verifies each live change's tasks.md records its workspace, and each archive after the gate's date"
+    inputs.file("scripts/commit-hygiene.py")
+    inputs.dir("openspec/changes")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--workspace-records")
+}
+
 tasks.register<Exec>("verifyReviewClassVocabulary") {
     group = "verification"
     description = "Verifies the review-round ledger's classes against the reviewer's canonical list"
@@ -845,6 +854,7 @@ tasks.named("check") {
     dependsOn("verifyReviewSessionContinuity")
     dependsOn("verifyLargeFiles")
     dependsOn("verifyIdeasSections")
+    dependsOn("verifyWorkspaceRecords")
     dependsOn("verifyReviewClassVocabulary")
     dependsOn("verifyTableRows")
     // The chart's packaging path (its repository setup, dependency fetch, and strict lints), so a chart that cannot

@@ -67,12 +67,12 @@ Workspace:
 - [x] 4.1 The unit's process-defect record (`docs/process-defects/verify-workspace-record.md`), or the statement that
       none was observed.
 - [x] 4.2 The idea is removed from `docs/ideas.md`.
-- [ ] 4.3 The capability's `## Purpose` enumerates each build check this capability owns and a delta cannot carry one:
+- [x] 4.3 The capability's `## Purpose` enumerates each build check this capability owns and a delta cannot carry one:
       add the workspace-record gate to it in the archive commit.
 - [x] 4.4 Docs refresh: add the new refusal to `AGENTS.md`'s enumeration of the pre-commit guard's refusals and a
       sentence naming the verification to its **Workspace** bullet; check `README.md` and `docs/adr/` for an enumeration
       of the `check` members or of `verify*` tasks.
-- [ ] 4.5 Confirm in the archive commit that no archive dated on or after `WORKSPACE_RECORD_ARCHIVE_SINCE` lacks a
+- [x] 4.5 Confirm in the archive commit that no archive dated on or after `WORKSPACE_RECORD_ARCHIVE_SINCE` lacks a
       record. If one landed before this gate, add that directory to `ACKNOWLEDGED_RECORDLESS_ARCHIVES` with its reason —
       the constant stays fixed, so a second directory sharing its date still fails.
 

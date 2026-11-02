@@ -51,67 +51,69 @@ limits, so the exclusion is a stated rule rather than a silent one.
 component references, and the guidance destinations, which have no single path. The table gives each one's class under
 ADR-0025, its owner, its consumer count, and its disposition.
 
-| Dependency                                                    | Class                    | Owner                                                  | Consumers | Disposition                                   |
-| ------------------------------------------------------------- | ------------------------ | ------------------------------------------------------ | --------: | --------------------------------------------- |
-| `docs/contracts/process-bindings.md`                          | supporting material      | the declaration, decided by ADR-0026                   |        21 | declared — the read route                     |
-| `docs/contracts/shared-report.md`                             | supporting material      | ADR-0025 §4                                            |         8 | declared support                              |
-| `docs/contracts/knowledge-authoring.md`                       | supporting material      | ADR-0025 §4                                            |         2 | declared support                              |
-| `docs/contracts/` (the layer)                                 | supporting material      | ADR-0025 §3–4                                          |         1 | declared support                              |
-| `AGENTS.md`, "## Conventions"                                 | explicit project binding | the conventions section                                |         3 | explicit by decision                          |
-| `AGENTS.md`, "## Docker Images"                               | explicit project binding | the deployment guidance                                |         1 | explicit by decision                          |
-| `AGENTS.md`, "## Kubernetes Deployment"                       | explicit project binding | the deployment guidance                                |         1 | explicit by decision                          |
-| `AGENTS.md`, "## Local Development"                           | explicit project binding | the deployment guidance                                |         1 | explicit by decision                          |
-| `AGENTS.md`, "Workflow: The review gate"                      | explicit project binding | the `review-gate` role                                 |         1 | declared                                      |
-| `AGENTS.md`, "### Workflow: Record process defects"           | explicit project binding | the process-defect record's workflow                   |         1 | declared — the `process-defect-records` owner |
-| `AGENTS.md`, the formatting convention                        | explicit project binding | the formatting rule                                    |         2 | explicit by decision                          |
-| `AGENTS.md`, "### Evidence and search"                        | explicit project binding | the evidence rule                                      |         2 | explicit by decision — a destination          |
-| `AGENTS.md`, the subject table                                | explicit project binding | the packs' classification and trigger                  |         6 | explicit by decision                          |
-| the guidance destinations                                     | explicit project binding | `AGENTS.md`, the subject packs, three procedure skills |         1 | explicit by decision — the destination list   |
-| `AGENTS.md`, "Workflow: Author a spec delta and archive"      | explicit project binding | the spec-delta workflow                                |         3 | settled: declared by `adopt-spec-delta-role`  |
-| `AGENTS.md`, "Refreshing a branch"                            | explicit project binding | the branch-refresh rule                                |         1 | unresolved — no transfer record               |
-| `AGENTS.md`, "Workflow: Ship a change (CI → archive → merge)" | explicit project binding | the shipping procedure                                 |         1 | unresolved — no transfer record               |
-| `AGENTS.md`, "Workflow: Complete a cloud (`/oc`) agent PR"    | explicit project binding | the cloud-PR workflow                                  |         1 | unresolved — no transfer record               |
-| `AGENTS.md`, "Workflow: Generalize process defects"           | explicit project binding | the generalization procedure                           |         1 | unresolved — no transfer record               |
-| `AGENTS.md`, "Workflow: Extract an `AGENTS.md` section"       | explicit project binding | the extraction procedure                               |         1 | unresolved — no transfer record               |
-| `docs/ideas.md`                                               | explicit project binding | the ideas file's own header                            |         9 | recorded: an input, not a destination         |
-| `README.md`                                                   | explicit project binding | the README audit's subject                             |         2 | subject                                       |
-| `docs/adr/`                                                   | explicit project binding | the ADR corpus; the architecture audit                 |         2 | subject                                       |
-| `docs/audits/`                                                | explicit project binding | the audit reports' location                            |         3 | subject                                       |
-| `docs/retrospectives/<date>.md`                               | explicit project binding | the retrospective's layout                             |         1 | subject                                       |
-| `docs/guidance-evidence/`                                     | explicit project binding | the guidance-evidence records                          |         1 | incompatibility — a target without it         |
-| `docs/README`                                                 | explicit project binding | none — the repository has no such path                 |         1 | dangling — `diagrammer`'s description         |
-| `openspec/specs/.../spec.md` (the corpus locator)             | explicit project binding | the spec corpus; `specs-auditor`                       |         1 | subject                                       |
-| `openspec/specs/showcase/` (the decomposition)                | explicit project binding | the corpus; `architecture-auditor`                     |         1 | subject                                       |
-| the capability `showcase/quality/agent-skills`                | supporting material      | the capability spec                                    |         2 | re-owned: a target supplies its own           |
-| the capability `showcase/quality/dependency-management`       | supporting material      | the capability spec                                    |         2 | re-owned: a target supplies its own           |
-| `scripts/claim-scan.py`                                       | explicit project binding | `/seed-claims`, the review gate                        |         2 | tooling                                       |
-| `scripts/doctor.sh`                                           | explicit project binding | `/check-tooling`, `check-and-test-authoring`           |         2 | tooling                                       |
-| `scripts/experience-analysis.sh`                              | explicit project binding | `/retrospective`, `experience-analyzer`                |         2 | tooling — embeds the records directory        |
-| `scripts/new-worktree.sh`                                     | explicit project binding | `/new-worktree`                                        |         2 | tooling                                       |
-| `scripts/setup-idea.sh`                                       | explicit project binding | `/setup-idea`                                          |         2 | tooling                                       |
-| `scripts/commit-hygiene.py`                                   | explicit project binding | the review gate; the pre-commit guard                  |         1 | tooling                                       |
-| `scripts/load-test-baseline.sh`                               | explicit project binding | the `load-tests` capability                            |         1 | tooling                                       |
-| `scripts/reconnect-mcp.py`                                    | explicit project binding | `/reconnect-mcp`                                       |         1 | tooling                                       |
-| `scripts/review-routing.py`                                   | explicit project binding | the review gate                                        |         1 | tooling                                       |
-| `scripts/test-doctor.sh`                                      | explicit project binding | `check-and-test-authoring`                             |         1 | tooling                                       |
-| `.opencode/skills/pause-resume-unit/SKILL.md`                 | explicit project binding | its own slice                                          |         3 | travels with the component set                |
-| `.opencode/opencode.json`                                     | explicit project binding | the runtime configuration                              |         2 | travels with the component set                |
-| `.opencode/agent/agents-auditor.md`                           | explicit project binding | the audit's reviewer contract                          |         1 | travels with the component set                |
-| `.opencode/agent/architecture-auditor.md`                     | explicit project binding | the audit's reviewer contract                          |         1 | travels with the component set                |
-| `.opencode/agent/diagrammer.md`                               | explicit project binding | the diagram subagent                                   |         1 | travels with the component set                |
-| `.opencode/agent/experience-analyzer.md`                      | explicit project binding | the retrospective's analyzer                           |         1 | travels with the component set                |
-| `.opencode/agent/readme-auditor.md`                           | explicit project binding | the audit's reviewer contract                          |         1 | travels with the component set                |
-| `.opencode/agent/review-thorough.md`                          | explicit project binding | the review's reviewer contract                         |         1 | travels with the component set                |
-| `.opencode/agent/specs-auditor.md`                            | explicit project binding | the audit's reviewer contract                          |         1 | travels with the component set                |
+| Dependency                                                    | Class                    | Owner                                                  | Consumers | Disposition                                      |
+| ------------------------------------------------------------- | ------------------------ | ------------------------------------------------------ | --------: | ------------------------------------------------ |
+| `docs/contracts/process-bindings.md`                          | supporting material      | the declaration, decided by ADR-0026                   |        21 | declared — the read route                        |
+| `docs/contracts/shared-report.md`                             | supporting material      | ADR-0025 §4                                            |         8 | declared support                                 |
+| `docs/contracts/knowledge-authoring.md`                       | supporting material      | ADR-0025 §4                                            |         2 | declared support                                 |
+| `docs/contracts/` (the layer)                                 | supporting material      | ADR-0025 §3–4                                          |         1 | declared support                                 |
+| `AGENTS.md`, "## Conventions"                                 | explicit project binding | the conventions section                                |         3 | explicit by decision                             |
+| `AGENTS.md`, "## Docker Images"                               | explicit project binding | the deployment guidance                                |         1 | explicit by decision                             |
+| `AGENTS.md`, "## Kubernetes Deployment"                       | explicit project binding | the deployment guidance                                |         1 | explicit by decision                             |
+| `AGENTS.md`, "## Local Development"                           | explicit project binding | the deployment guidance                                |         1 | explicit by decision                             |
+| `AGENTS.md`, "Workflow: The review gate"                      | explicit project binding | the `review-gate` role                                 |         1 | declared                                         |
+| `AGENTS.md`, "### Workflow: Record process defects"           | explicit project binding | the process-defect record's workflow                   |         1 | declared — the `process-defect-records` owner    |
+| `AGENTS.md`, the formatting convention                        | explicit project binding | the formatting rule                                    |         2 | explicit by decision                             |
+| `AGENTS.md`, "### Evidence and search"                        | explicit project binding | the evidence rule                                      |         2 | explicit by decision — a destination             |
+| `AGENTS.md`, the subject table                                | explicit project binding | the packs' classification and trigger                  |         6 | explicit by decision                             |
+| the guidance destinations                                     | explicit project binding | `AGENTS.md`, the subject packs, three procedure skills |         1 | explicit by decision — the destination list      |
+| `AGENTS.md`, "Workflow: Author a spec delta and archive"      | explicit project binding | the spec-delta workflow                                |         3 | settled: declared by `adopt-spec-delta-role`     |
+| `AGENTS.md`, "Refreshing a branch"                            | explicit project binding | the branch-refresh rule                                |         1 | settled: declared by `adopt-branch-refresh-role` |
+| `AGENTS.md`, "Workflow: Ship a change (CI → archive → merge)" | explicit project binding | the shipping procedure                                 |         1 | recorded: a component's entry pointer            |
+| `AGENTS.md`, "Workflow: Complete a cloud (`/oc`) agent PR"    | explicit project binding | the cloud-PR workflow                                  |         1 | recorded: a component's entry pointer            |
+| `AGENTS.md`, "Workflow: Generalize process defects"           | explicit project binding | the generalization procedure                           |         1 | unresolved — no transfer record                  |
+| `AGENTS.md`, "Workflow: Extract an `AGENTS.md` section"       | explicit project binding | the extraction procedure                               |         1 | unresolved — no transfer record                  |
+| `docs/ideas.md`                                               | explicit project binding | the ideas file's own header                            |         9 | recorded: an input, not a destination            |
+| `README.md`                                                   | explicit project binding | the README audit's subject                             |         2 | subject                                          |
+| `docs/adr/`                                                   | explicit project binding | the ADR corpus; the architecture audit                 |         2 | subject                                          |
+| `docs/audits/`                                                | explicit project binding | the audit reports' location                            |         3 | subject                                          |
+| `docs/retrospectives/<date>.md`                               | explicit project binding | the retrospective's layout                             |         1 | subject                                          |
+| `docs/guidance-evidence/`                                     | explicit project binding | the guidance-evidence records                          |         1 | incompatibility — a target without it            |
+| `docs/README`                                                 | explicit project binding | none — the repository has no such path                 |         1 | dangling — `diagrammer`'s description            |
+| `openspec/specs/.../spec.md` (the corpus locator)             | explicit project binding | the spec corpus; `specs-auditor`                       |         1 | subject                                          |
+| `openspec/specs/showcase/` (the decomposition)                | explicit project binding | the corpus; `architecture-auditor`                     |         1 | subject                                          |
+| the capability `showcase/quality/agent-skills`                | supporting material      | the capability spec                                    |         2 | re-owned: a target supplies its own              |
+| the capability `showcase/quality/dependency-management`       | supporting material      | the capability spec                                    |         2 | re-owned: a target supplies its own              |
+| `scripts/claim-scan.py`                                       | explicit project binding | `/seed-claims`, the review gate                        |         2 | tooling                                          |
+| `scripts/doctor.sh`                                           | explicit project binding | `/check-tooling`, `check-and-test-authoring`           |         2 | tooling                                          |
+| `scripts/experience-analysis.sh`                              | explicit project binding | `/retrospective`, `experience-analyzer`                |         2 | tooling — embeds the records directory           |
+| `scripts/new-worktree.sh`                                     | explicit project binding | `/new-worktree`                                        |         2 | tooling                                          |
+| `scripts/setup-idea.sh`                                       | explicit project binding | `/setup-idea`                                          |         2 | tooling                                          |
+| `scripts/commit-hygiene.py`                                   | explicit project binding | the review gate; the pre-commit guard                  |         1 | tooling                                          |
+| `scripts/load-test-baseline.sh`                               | explicit project binding | the `load-tests` capability                            |         1 | tooling                                          |
+| `scripts/reconnect-mcp.py`                                    | explicit project binding | `/reconnect-mcp`                                       |         1 | tooling                                          |
+| `scripts/review-routing.py`                                   | explicit project binding | the review gate                                        |         1 | tooling                                          |
+| `scripts/test-doctor.sh`                                      | explicit project binding | `check-and-test-authoring`                             |         1 | tooling                                          |
+| `.opencode/skills/pause-resume-unit/SKILL.md`                 | explicit project binding | its own slice                                          |         3 | travels with the component set                   |
+| `.opencode/opencode.json`                                     | explicit project binding | the runtime configuration                              |         2 | travels with the component set                   |
+| `.opencode/agent/agents-auditor.md`                           | explicit project binding | the audit's reviewer contract                          |         1 | travels with the component set                   |
+| `.opencode/agent/architecture-auditor.md`                     | explicit project binding | the audit's reviewer contract                          |         1 | travels with the component set                   |
+| `.opencode/agent/diagrammer.md`                               | explicit project binding | the diagram subagent                                   |         1 | travels with the component set                   |
+| `.opencode/agent/experience-analyzer.md`                      | explicit project binding | the retrospective's analyzer                           |         1 | travels with the component set                   |
+| `.opencode/agent/readme-auditor.md`                           | explicit project binding | the audit's reviewer contract                          |         1 | travels with the component set                   |
+| `.opencode/agent/review-thorough.md`                          | explicit project binding | the review's reviewer contract                         |         1 | travels with the component set                   |
+| `.opencode/agent/specs-auditor.md`                            | explicit project binding | the audit's reviewer contract                          |         1 | travels with the component set                   |
 
 ## What the inventory establishes
 
 - **The earlier sweeps were not population-complete.** Six `AGENTS.md` sections beyond the two declared ones are named
   by seven components across eight references — the same class as the sections the heading sweep adopted, and invisible
-  to a search for those two names. One of the six is now declared; the bullet records the finding, not the count.
-- **Five section rows remain unresolved for one reason:** nothing exercises them. A counterfactual run or a real target
-  would settle each; one has been settled that way since this inventory was written — the spec-delta section, by
-  `adopt-spec-delta-role`'s renaming counterfactual — which is the reopening condition working as recorded.
+  to a search for those two names. Two of the six are now settled; the bullet records the finding, not the count.
+- **Two section rows remain unresolved, two are entry pointers, two are settled.** `adopt-spec-delta-role` settled the
+  spec-delta section and `adopt-branch-refresh-role` the branch-refresh rule, each by a renaming counterfactual. The
+  ship and cloud-PR references are a component's own `Source:` line — an entry pointer, which the declaration keeps
+  explicit — so counting them as dependencies was this inventory's over-count. The generalization workflow's Decision
+  points and the extraction procedure are what those commands apply or route to, so both stay unresolved candidate rows.
 - **Four dispositions are already recorded** and are not reopened here: the evidence section and the guidance
   destinations are destinations by decision, the ideas file is a recurrence input, and `docs/guidance-evidence/` is an
   incompatibility.

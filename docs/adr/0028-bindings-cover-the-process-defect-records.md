@@ -59,3 +59,12 @@ The role list grows by one, and this amendment records it without reopening the 
   not this decision, owns how many roles exist.
 - The **Decision**'s sentence "The role list is seven." no longer holds and is superseded: read the declaration's table
   for the count.
+
+## Amendment — 2026-11-03
+
+The role list grows by one, and this amendment records it without reopening the Decision.
+
+- **`branch-refresh`** joins the list: the "Refreshing a branch" bullet under "Workflow: Change lifecycle" → "Failure
+  handling" in `AGENTS.md`, owned by that rule, adopted by `/sync-branch`, which follows the route the rule gives the
+  state it found. It satisfies ADR-0026's role-not-string rule, and the declaration's table, not this decision, owns how
+  many roles exist.

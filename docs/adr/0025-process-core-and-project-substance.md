@@ -158,3 +158,11 @@ The pause's scope moved once more, and this amendment records it without reopeni
 - The owner lifted the pause again on 2026-11-02 for `adopt-spec-delta-role`, by directing that an unresolved inventory
   row be taken. The lift covers that change's role and its three adopters and nothing else: no other parked move
   reopens, and none of §6's mechanism signals changes.
+
+## Amendment — 2026-11-03 (the branch-refresh role)
+
+The pause's scope moved once more, and this amendment records it without reopening the Decision.
+
+- The owner lifted the pause again on 2026-11-03 by directing that the remaining unresolved rows be taken. The lift
+  covers `adopt-branch-refresh-role`'s role and its one adopter and nothing else: no other parked move reopens, and none
+  of §6's mechanism signals changes.

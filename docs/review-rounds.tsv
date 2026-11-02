@@ -2231,6 +2231,16 @@
 2026-11-02	bound-self-learning-loop-consolidation	1	contradiction,coherence,incomplete-enumeration,wording,structured-writing	-	1	ses_e644f26ffffenDEScutiBwkOUF	created	-
 2026-11-02	bound-self-learning-loop-consolidation	2	claim-unreproducible,wording	wording	1	ses_e644f26ffffenDEScutiBwkOUF	continued	-
 2026-11-02	bound-self-learning-loop-consolidation	3	-	-	0	ses_e644f26ffffenDEScutiBwkOUF	continued	-
+2026-11-02	verify-unique-change-names	1	-	-	0	ses_e6440be73ffe0f2lI2eTD7R7sy	created	-
+2026-11-02	verify-unique-change-names	2	contradiction,missing-task,single-sourcing,test-control,structured-writing	-	6	ses_e6440be73ffe0f2lI2eTD7R7sy	continued	-
+2026-11-02	verify-unique-change-names	3	contradiction,wording	contradiction	2	ses_e6440be73ffe0f2lI2eTD7R7sy	continued	-
+2026-11-02	verify-unique-change-names	4	claim-missing	-	2	ses_e6440be73ffe0f2lI2eTD7R7sy	continued	-
+2026-11-02	verify-unique-change-names	5	-	-	0	ses_e6440be73ffe0f2lI2eTD7R7sy	continued	-
+2026-11-02	verify-unique-change-names	6	test-control,claim-unreproducible	test-control	3	ses_e6440be73ffe0f2lI2eTD7R7sy	continued	-
+2026-11-02	verify-unique-change-names	7	claim-unreproducible,incomplete-enumeration	claim-unreproducible	2	ses_e6440be73ffe0f2lI2eTD7R7sy	continued	-
+2026-11-02	verify-unique-change-names	8	-	-	0	ses_e6440be73ffe0f2lI2eTD7R7sy	continued	-
+2026-11-02	verify-unique-change-names	9	claim-missing	claim-missing	1	ses_e6440be73ffe0f2lI2eTD7R7sy	continued	-
+2026-11-02	verify-unique-change-names	10	-	-	0	ses_e6440be73ffe0f2lI2eTD7R7sy	continued	-
 2026-11-02	adopt-process-defect-records	1	impact-omission,claim-unreproducible,coherence,docs-residue,over-claim,structured-writing,formatting	-	4	ses_e641e1303ffeorlHW4OPFIUyyk	created	-
 2026-11-02	adopt-process-defect-records	2	wording	-	0	ses_e641e1303ffeorlHW4OPFIUyyk	continued	-
 2026-11-02	adopt-process-defect-records	3	-	-	0	ses_e641e1303ffeorlHW4OPFIUyyk	continued	-

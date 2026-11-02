@@ -22,6 +22,6 @@ Pause: ADR-0025's standing consolidation pause is lifted for this unit by the ow
 ## 3. Delivery
 
 - [x] 3.1 `docs/process-defects/adopt-remaining-guidance-roles.md`.
-- [ ] 3.2 The review gate: the pre-write pass and claims table, the quick loop, the routing decision, the routed deep
+- [x] 3.2 The review gate: the pre-write pass and claims table, the quick loop, the routing decision, the routed deep
       review when required, the manual pass.
-- [ ] 3.3 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.
+- [x] 3.3 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.

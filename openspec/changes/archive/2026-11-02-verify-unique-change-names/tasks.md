@@ -50,7 +50,7 @@ Workspace:
 - [x] 4.1 The unit's process-defect record (`docs/process-defects/verify-unique-change-names.md`), or the statement that
       none was observed.
 - [x] 4.2 The idea is removed from `docs/ideas.md`, its section keeping its other entries.
-- [ ] 4.3 The capability's `## Purpose` enumerates each build check this capability owns and a delta cannot carry one:
+- [x] 4.3 The capability's `## Purpose` enumerates each build check this capability owns and a delta cannot carry one:
       add the archived-change-name gate to it in the archive commit.
 - [x] 4.4 Docs refresh:
       `git grep -l 'verifyUniqueChangeNames\|verifyUniqueCronSchedules\|verifyUniqueReviewRounds\|unique-change-names' --     README.md AGENTS.md docs/adr .opencode`
@@ -64,7 +64,7 @@ Workspace:
 
 - [x] 5.1 Every row of `design.md`'s claims table whose Result reads `pending implementation` is re-derived from the
       implementation and states what its command yields.
-- [ ] 5.2 Re-derive the table after the unit's last append to its own record.
+- [x] 5.2 Re-derive the table after the unit's last append to its own record.
 
 ## 6. The review
 

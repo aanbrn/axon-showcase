@@ -20,10 +20,36 @@ analysis.
 | change-artifacts | `openspec/changes/<change>/`                                                                                                     | the OpenSpec change directory and its schema                                                         |
 | prior-findings   | the prior review round's report, preserved in the `Resume checkpoint`'s "Findings no record holds" field or the review hand-over | the review-gate handover rule                                                                        |
 
-## The non-adopter trace
+## The consumer trace
 
-The unit's consumer trace names a component that does not adopt the bindings as a non-adopter, so the consumer set is
-explicit rather than inferred.
+An adopting component resolves the roles it uses here. A component that does not adopt them is named below with its
+reason, so the set is explicit rather than inferred.
+
+| Component                                     | Roles it uses                                                                             |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `.opencode/commands/pause-unit.md`            | lifecycle, review-gate                                                                    |
+| `.opencode/commands/resume-unit.md`           | lifecycle, review-gate                                                                    |
+| `.opencode/skills/pause-resume-unit/SKILL.md` | lifecycle, review-gate, review-ledger, workspace-record, change-artifacts, prior-findings |
+| `.opencode/skills/review-gate/SKILL.md`       | review-ledger                                                                             |
+| `.opencode/agent/lesson-capture.md`           | review-ledger, change-artifacts                                                           |
+| `.opencode/agent/review-quick.md`             | review-ledger                                                                             |
+| `.opencode/agent/experience-analyzer.md`      | review-ledger                                                                             |
+| `.opencode/commands/review-thorough.md`       | review-ledger                                                                             |
+
+The non-adopters, by class:
+
+- the target's own governance and its spec corpus — `AGENTS.md` and `openspec/specs/` state the values rather than
+  consuming them;
+- this declaration itself, whose role table carries the values;
+- the enforcement tooling — `scripts/commit-hygiene.py` embeds the ledger's path in its checks,
+  `scripts/review-rounds.py` defaults to it and accepts `--record`, and the build declares the script as an input. A
+  target that renames the ledger edits the tooling, so the value is the tooling's rather than a role;
+- the dated and normative records that quote the values as they were when the record was written —
+  `docs/process-defects/`, `docs/decisions/`, `docs/retrospectives/`, `docs/audits/`, `docs/adr/`, and `docs/ideas.md`;
+- a change's own artifacts, while that change is working on the declaration or an adopting component;
+- the `.opencode/` components that cite the lifecycle and review-gate headings by their literal names; the heading-role
+  sweep is parked in `docs/ideas.md`;
+- the `.opencode/` components that name no binding at all.
 
 ## A missing binding
 

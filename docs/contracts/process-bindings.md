@@ -25,16 +25,29 @@ analysis.
 An adopting component resolves the roles it uses here. A component that does not adopt them is named below with its
 reason, so the set is explicit rather than inferred.
 
-| Component                                     | Roles it uses                                                                             |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `.opencode/commands/pause-unit.md`            | lifecycle, review-gate                                                                    |
-| `.opencode/commands/resume-unit.md`           | lifecycle, review-gate                                                                    |
-| `.opencode/skills/pause-resume-unit/SKILL.md` | lifecycle, review-gate, review-ledger, workspace-record, change-artifacts, prior-findings |
-| `.opencode/skills/review-gate/SKILL.md`       | review-ledger                                                                             |
-| `.opencode/agent/lesson-capture.md`           | review-ledger, change-artifacts                                                           |
-| `.opencode/agent/review-quick.md`             | review-ledger                                                                             |
-| `.opencode/agent/experience-analyzer.md`      | review-ledger                                                                             |
-| `.opencode/commands/review-thorough.md`       | review-ledger                                                                             |
+| Component                                          | Roles it uses                                                                             |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `.opencode/commands/pause-unit.md`                 | lifecycle, review-gate                                                                    |
+| `.opencode/commands/resume-unit.md`                | lifecycle, review-gate                                                                    |
+| `.opencode/skills/pause-resume-unit/SKILL.md`      | lifecycle, review-gate, review-ledger, workspace-record, change-artifacts, prior-findings |
+| `.opencode/skills/review-gate/SKILL.md`            | review-ledger                                                                             |
+| `.opencode/agent/lesson-capture.md`                | review-ledger, change-artifacts                                                           |
+| `.opencode/agent/review-quick.md`                  | review-ledger                                                                             |
+| `.opencode/agent/experience-analyzer.md`           | review-ledger                                                                             |
+| `.opencode/commands/review-thorough.md`            | review-ledger                                                                             |
+| `.opencode/commands/apply-audit-reductions.md`     | lifecycle                                                                                 |
+| `.opencode/commands/audit-agents.md`               | lifecycle                                                                                 |
+| `.opencode/commands/audit-architecture.md`         | lifecycle                                                                                 |
+| `.opencode/commands/audit-readme.md`               | lifecycle                                                                                 |
+| `.opencode/commands/audit-specs.md`                | lifecycle                                                                                 |
+| `.opencode/commands/diagram.md`                    | lifecycle, review-gate                                                                    |
+| `.opencode/commands/flag-process-defect.md`        | lifecycle, review-gate                                                                    |
+| `.opencode/commands/generalize-process-defects.md` | lifecycle                                                                                 |
+| `.opencode/commands/gradle-update.md`              | lifecycle, review-gate                                                                    |
+| `.opencode/commands/ideas.md`                      | lifecycle, review-gate                                                                    |
+| `.opencode/commands/opsx-tool-update.md`           | lifecycle, review-gate                                                                    |
+| `.opencode/commands/retrospective.md`              | lifecycle, review-gate                                                                    |
+| `.opencode/commands/sync-branch.md`                | lifecycle, review-gate                                                                    |
 
 The non-adopters, by class:
 
@@ -47,9 +60,10 @@ The non-adopters, by class:
 - the dated and normative records that quote the values as they were when the record was written —
   `docs/process-defects/`, `docs/decisions/`, `docs/retrospectives/`, `docs/audits/`, `docs/adr/`, and `docs/ideas.md`;
 - a change's own artifacts, while that change is working on the declaration or an adopting component;
-- the `.opencode/` components that cite the lifecycle and review-gate headings by their literal names; the heading-role
-  sweep is parked in `docs/ideas.md`;
-- the `.opencode/` components that name no binding at all.
+- the `.opencode/` components that name no binding.
+
+An adopting component's own entry pointer stays explicit: `review-gate`'s `Source:` line names the section whose
+procedure it is.
 
 ## A missing binding
 

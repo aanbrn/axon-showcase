@@ -86,5 +86,7 @@ of the unit the episode belongs to.
   uncommitted until the owner's approval, and no commit, push, pull request, archive, or merge without it.
 - Never commit to `main`. Write only into the tree assigned to the episode's unit, or — when that unit has none — into
   the documentation unit's own tree carrying the append.
-- `AGENTS.md`'s "Workflow: Change lifecycle" owns the branch, workspace, and approval steps — its **Workspace** rule
-  owns the assignment itself — and "Workflow: The review gate" owns the review a documentation unit owes.
+- The lifecycle the bindings declare (`docs/contracts/process-bindings.md`) owns the branch, workspace, and approval
+  steps — its **Workspace** rule owns the assignment itself — and the review gate it declares alongside owns the review
+  a documentation unit owes; a declaration that names no lifecycle stops the unit rather than being inferred, and one
+  that names no review gate stops it the same way.

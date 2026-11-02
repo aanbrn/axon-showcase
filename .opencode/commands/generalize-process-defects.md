@@ -55,8 +55,9 @@ approved improvements are applied or routed.
 - A new unit starts on its own branch, created from a freshly fetched `origin/main`; a unit continuing an existing
   branch or pull request works on that branch.
 - The unit's working tree — the primary checkout when no other unit holds it, otherwise the sibling worktree
-  `../axon-showcase-<unit>` — is established and recorded before the first write, per `AGENTS.md`'s "Workflow: Change
-  lifecycle" **Workspace** rule.
+  `../axon-showcase-<unit>` — is established and recorded before the first write, per the **Workspace** rule of the
+  lifecycle the bindings declare (`docs/contracts/process-bindings.md`); a declaration that names none stops the unit
+  rather than being inferred.
 - Unrelated dirty-worktree changes are preserved.
 - The work stays uncommitted until the manual approval pass.
 - Nothing is committed, pushed, turned into a pull request, archived, or merged without that explicit approval.

@@ -1161,6 +1161,11 @@ Key modules (libraries, not services):
     — and name the enabling in the change's report. captured: park-retro-marking-idea (#281) captured:
     re-measure-load-test-baseline (#429) captured: mark-s3-applied captured: attribute-load-test-tail (#570) captured:
     park-review-loop-follow-ups captured: fix-openspec-config-rules
+- **Preparing to transfer the process to another project** starts from `docs/process-reuse.md`: it locates the two
+  pilots' evidence and ceilings, the process bindings declaration and its consumer trace, the counterfactual techniques
+  with their scope, and what a transfer records. It is a retrieval aid, not an acceptance test, and it promises no
+  transfer speed.
+
 - **"OpenCode" is capitalized in prose; lowercase `opencode` is only the CLI command, `.opencode/` paths, the
   `opencode.json`/`opencode.jsonc` config filenames, `.github/workflows/opencode.yml`, and the `anomalyco/opencode` repo
   path.** Keep the distinction when editing docs — the lowercase form names a command or path, not the product; the

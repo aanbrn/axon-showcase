@@ -33,7 +33,9 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   by heading still carry a literal a target must edit. Its failure mode differs from a path's — a heading that resolves
   to nothing, rather than a path that does not exist — so it is its own sweep, sized by the hits in `.opencode/` and the
   documents those hits name, and its unit classifies each remaining hit against the non-adopter classes
-  `docs/contracts/process-bindings.md` declares.
+  `docs/contracts/process-bindings.md` declares. ADR-0027's conditions apply to it in full — a named component, its
+  adoption in the same change, the removed heading recorded with the obligations preserved, the artifacts accounted for
+  — and the standing consolidation pause ADR-0025 records still covers it.
 
 ## 2026-11-01
 

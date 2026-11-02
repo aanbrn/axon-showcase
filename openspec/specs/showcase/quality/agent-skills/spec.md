@@ -10,14 +10,14 @@ trigger `AGENTS.md` names), the knowledge-authoring standard `AGENTS.md` entries
 `docs/contracts/knowledge-authoring.md` (applied by the generalization's analysis when authoring and the audit when
 reconciling), the shared report contract the report-producing subagents follow, owned by
 `docs/contracts/shared-report.md`, the process bindings an adopting component resolves, owned by
-`docs/contracts/process-bindings.md` (the six roles, the read routes, the role-not-string rule, the missing-binding
-stop, and the consumer trace), the structured writing standard every agent-authored technical artifact follows (stated
-once in `AGENTS.md`, applied while drafting and checked by the review and audit subagents), the output-language
-convention every agent's output follows (stated once in `AGENTS.md`: owner-visible messages in the owner's request
-language, agent-facing text and durable artifacts in English), and the locally-defined quality-gate and analysis
-subagents under `.opencode/agent/` — the per-unit review agent and the analysis the owner-triggered generalization runs,
-the experience-analyzer, the visual and diagram agents, the on-demand technical advisor, and the on-demand auditors of
-the project-owned agent tooling (the guidance, the project-authored `.opencode/` files, and the portable contracts under
+`docs/contracts/process-bindings.md` (the roles, the read routes, the role-not-string rule, the missing-binding stop,
+and the consumer trace), the structured writing standard every agent-authored technical artifact follows (stated once in
+`AGENTS.md`, applied while drafting and checked by the review and audit subagents), the output-language convention every
+agent's output follows (stated once in `AGENTS.md`: owner-visible messages in the owner's request language, agent-facing
+text and durable artifacts in English), and the locally-defined quality-gate and analysis subagents under
+`.opencode/agent/` — the per-unit review agent and the analysis the owner-triggered generalization runs, the
+experience-analyzer, the visual and diagram agents, the on-demand technical advisor, and the on-demand auditors of the
+project-owned agent tooling (the guidance, the project-authored `.opencode/` files, and the portable contracts under
 `docs/contracts/`, plus any generated or vendored file that contradicts how the repository uses it, the always-loaded
 instruction budget it measures with the extraction opportunities that surface where guidance has no destination yet, the
 meta rules it reports with their origins, the merge, removal, route, and extraction candidates it reports, and the
@@ -2768,13 +2768,13 @@ Every item the report carries SHALL also carry the shared report contract's per-
 ### Requirement: Adopting process components use the declared bindings
 
 An adopting process component SHALL resolve its process bindings through `docs/contracts/process-bindings.md`, which
-owns the binding rules: the six roles, the read routes, the role-not-string rule, the missing-binding stop, and the
-consumer trace. This requirement states the capability outcome and the scenarios below; the contract owns the rules.
+owns the binding rules: the roles, the read routes, the role-not-string rule, the missing-binding stop, and the consumer
+trace. This requirement states the capability outcome and the scenarios below; the contract owns the rules and the role
+set, so adding a role changes the declaration and the adopting components, not this requirement.
 
 #### Scenario: An adopting component resolves a binding
 
-- **WHEN** an adopting component needs a declared role — the review ledger, the lifecycle, the review gate, the
-  workspace record, the change artifacts, or the prior finding instances
+- **WHEN** an adopting component needs a role the declaration names
 - **THEN** it reads the declaration for the role's value, reads the referenced owner, and uses the role's own contract
   rather than restating it
 

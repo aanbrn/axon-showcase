@@ -2241,3 +2241,8 @@
 2026-11-02	verify-unique-change-names	8	-	-	0	ses_e6440be73ffe0f2lI2eTD7R7sy	continued	-
 2026-11-02	verify-unique-change-names	9	claim-missing	claim-missing	1	ses_e6440be73ffe0f2lI2eTD7R7sy	continued	-
 2026-11-02	verify-unique-change-names	10	-	-	0	ses_e6440be73ffe0f2lI2eTD7R7sy	continued	-
+2026-11-02	adopt-process-defect-records	1	impact-omission,claim-unreproducible,coherence,docs-residue,over-claim,structured-writing,formatting	-	4	ses_e641e1303ffeorlHW4OPFIUyyk	created	-
+2026-11-02	adopt-process-defect-records	2	wording	-	0	ses_e641e1303ffeorlHW4OPFIUyyk	continued	-
+2026-11-02	adopt-process-defect-records	3	-	-	0	ses_e641e1303ffeorlHW4OPFIUyyk	continued	-
+2026-11-02	adopt-process-defect-records	4	missing-task	-	1	ses_e641e1303ffeorlHW4OPFIUyyk	continued	-
+2026-11-02	adopt-process-defect-records	5	-	-	0	ses_e641e1303ffeorlHW4OPFIUyyk	continued	-

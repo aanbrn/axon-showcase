@@ -21,8 +21,9 @@ declares this repository's values.
 
 You are given:
 
-- The selected `docs/process-defects/<unit>.md` records, with the review evidence they cite — the merged units' diffs
-  and their round rows in the review ledger the bindings declare where a record points at one
+- The selected process-defect records the bindings declare (`docs/contracts/process-bindings.md`), with the review
+  evidence they cite — the merged units' diffs and their round rows in the review ledger the bindings declare where a
+  record points at one
 - The existing guidance a candidate would extend — the `AGENTS.md` bullet, a subject-pack section, a mode already in
   `check-and-test-authoring`, a `ship-change` or `review-gate` procedure, and any spec, ADR, or definition it points at
 

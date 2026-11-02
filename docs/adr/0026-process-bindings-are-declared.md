@@ -75,3 +75,15 @@ owner decides whether to supply an equivalent contract or decline a component wh
   paths and headings are renamed, the declaration and the target artifacts are updated, and a resume and a lesson
   capture are exercised.
 - A template repository, a generator, broad extraction, and a substitution engine keep their own signals.
+
+## Amendment — 2026-11-02
+
+One statement above is replaced, and this amendment records it without reopening the rest of the Decision.
+
+- The Decision's **six roles** — "the review ledger, the lifecycle, the review gate, the workspace record, the change
+  artifacts, and the prior finding instances" — are now seven: `process-defect-records` joins them under ADR-0028, which
+  supersedes that sentence. Everything else stands: declared not substituted, the read routes, the role-not-string rule,
+  the missing-binding stop, the non-adopter trace, and the explicit exceptions, including the lesson destinations and
+  recurrence routing.
+- The `Revisit when:` clause reading "the six roles may then be confirmed or revised" therefore now applies to seven; a
+  reader holding this file's conditions against the repository counts the declaration's rows, not the sentence above.

@@ -11,9 +11,9 @@ moment is the owner's decision; nothing schedules this command, and no queue or 
 
 **Procedure**
 
-1. Read every file under `docs/process-defects/` and list the records that carry no `Decision` line — a file may mix
-   decided and undecided records, so list per record, not per file. Show the owner the set, with each record's unit,
-   stage, and one-line title.
+1. Read every process-defect record the bindings declare (`docs/contracts/process-bindings.md`) and list those that
+   carry no `Decision` line — a file may mix decided and undecided records, so list per record, not per file. Show the
+   owner the set, with each record's unit, stage, and one-line title.
 2. Take the selection: the units the owner named, or the whole set when none were named.
 3. Before the hand-off, decide each selected record's disposition against the recurrence sites `AGENTS.md`'s
    generalization workflow **Decision points** name — its "Where the repository already records a recurrence decides its

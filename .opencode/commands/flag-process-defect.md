@@ -38,8 +38,9 @@ context that an expectation could have governed.
    instead, and no outcome.
 
 5. On a confirmed outcome only, append the record.
-   - Append it to `docs/process-defects/<unit>.md` for the unit the episode belongs to — the live one, the merged one,
-     or a slug naming the work for a unit with no change dir. Never to whichever unit this session happens to work in.
+   - Append it to the unit's process-defect record the bindings declare (`docs/contracts/process-bindings.md`) — the
+     live unit's, the merged one's, or a slug naming the work for a unit with no change dir. Never to whichever unit
+     this session happens to work in.
    - Fill the fields `AGENTS.md`'s recording workflow states, with these specifics: `Observed` is the action you
      established, not the owner's description of it; `Evidence` names the owner's report as the signal beside the
      verified fragment, and that fragment may be an excerpt, a command's output, or the episode's own event sequence —

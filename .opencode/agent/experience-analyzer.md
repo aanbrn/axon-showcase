@@ -26,17 +26,17 @@ You are given:
   marker added since the window start with its introducing commit, and the window's review rounds from the review ledger
   the bindings declare (`docs/contracts/process-bindings.md`)) — read the retrospective's countable claims from it
   rather than re-deriving them
-- The derived-facts block's process-defect index: the `docs/process-defects/` records the window's commits touched, each
-  with its incident headings, the revision the index was derived at, and the files the `since` date's own commits
-  touched
+- The derived-facts block's process-defect index, each record with its incident headings, the revision the index was
+  derived at, and the files the `since` date's own commits touched — the directory is the one the bindings declare
+  (`docs/contracts/process-bindings.md`), and `scripts/experience-analysis.sh` embeds its own copy
 - A short context note from the main agent (e.g. what went well/wrong that no diff captures)
 
 Produce two sections:
 
 1. **Retrospective**
    - Shipped PRs grouped by theme (e.g. formatting/tooling, web UI, workflow/docs)
-   - Lessons learned — reuse the AGENTS.md gotchas and the units' `docs/process-defects/` records rather than
-     re-deriving them
+   - Lessons learned — reuse the AGENTS.md gotchas and the units' process-defect records the bindings declare
+     (`docs/contracts/process-bindings.md`) rather than re-deriving them
    - **A class's count is a round occurrence** — the digest's classes figure counts the rounds that raised a class, once
      per round whatever labels on it normalized to that class; never divide it by the compliance-miss count or call it a
      share of findings

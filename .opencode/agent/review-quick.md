@@ -14,10 +14,10 @@ not edit files or complete missing work. The invocation supplies the hand-over a
 responding — the unit's identity, its base and current revisions, the unit's assigned working tree and branch, the
 supplied artifacts, the scope, the prior findings with their instance-level evidence, the completed checks, and the
 known limitations. You do not write it and you do not reproduce it in your report; it exists so that a stall costs the
-loop a wait rather than your work. For a capture — one whose diff applies guidance drawn from `docs/process-defects/`
-records — the supplied artifacts include the records it analyzed, the existing rules each proposal claims to extend (or
-its statement that none covers it), and the `lesson-capture` definition where the review checks compliance with its
-gate.
+loop a wait rather than your work. For a capture — one whose diff applies guidance drawn from the process-defect records
+the bindings declare (`docs/contracts/process-bindings.md`) — the supplied artifacts include the records it analyzed,
+the existing rules each proposal claims to extend (or its statement that none covers it), and the `lesson-capture`
+definition where the review checks compliance with its gate.
 
 The hand-over also names the subject packs the caller classified as applicable to the change's decisions and claims.
 Reading a named pack stays inside the supplied inputs. IF the supplied artifacts turn on a subject no supplied pack
@@ -86,9 +86,10 @@ the quick screen stays bounded, and the depth it cannot afford runs in the pass 
 - **The Structured Writing Standard**: do the artifacts the unit authored or edited follow `AGENTS.md`'s standard (its
   rules live there — do not restate them here)? Report a passage that hides several actionable statements, with its
   `file:line` and the restructure.
-- **A capture**: for a unit whose diff applies guidance drawn from `docs/process-defects/` records, apply the
-  `lesson-capture` contract's promotion gate and dispositions to each proposal, from the materials this hand-over names;
-  a rule that restates existing guidance, or one governing no decision, is a finding against the capture.
+- **A capture**: for a unit whose diff applies guidance drawn from the process-defect records the bindings declare
+  (`docs/contracts/process-bindings.md`), apply the `lesson-capture` contract's promotion gate and dispositions to each
+  proposal, from the materials this hand-over names; a rule that restates existing guidance, or one governing no
+  decision, is a finding against the capture.
   - **Screen** — challenge each rule's durability (the decision it governs, and whether a future change would plausibly
     hit it) and the subjects the producer cannot check alone: the decision difference against the supplied existing
     obligation, semantic duplication in different wording, the evidence for the trigger, causal claim, scope, and

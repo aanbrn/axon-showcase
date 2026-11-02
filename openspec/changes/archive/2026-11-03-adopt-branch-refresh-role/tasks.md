@@ -26,5 +26,5 @@ Pause: ADR-0025's standing consolidation pause is lifted for this unit by the ow
       (`docs/review-rounds.tsv`), the routing outcome (`RECOMMENDED`, `repeated-class`).
 - [x] 3.3 The routing decision: the owner resolved to skip the deep review, on the advisor's finding that no question
       remained open; the decision is recorded here rather than inferred.
-- [ ] 3.4 The owner's manual pass.
-- [ ] 3.5 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.
+- [x] 3.4 The owner's manual pass.
+- [x] 3.5 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.

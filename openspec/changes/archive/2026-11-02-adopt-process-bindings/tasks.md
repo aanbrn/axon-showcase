@@ -43,6 +43,6 @@ writer=ses_e731f42aaffeKQAMVYfJ2KxAYN
       prints nothing and exits 1 — `FIXED_AND_VERIFIED` in pass 2. - Deep review pass 2: nothing remains. - Advisor: one
       confirmed problem (the enforcement-tooling class explained the dependency as arguments), corrected; the follow-up
       review's one confirmed problem (this record) is applied here.
-- [ ] 5.3 The owner's manual review pass.
-- [ ] 5.4 Refresh the `agent-skills` Purpose where this change falsifies it, applied in the archive commit.
-- [ ] 5.5 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.
+- [x] 5.3 The owner's manual review pass.
+- [x] 5.4 Refresh the `agent-skills` Purpose where this change falsifies it, applied in the archive commit.
+- [x] 5.5 Commit, push, open the pull request, wait for `build`, archive, and merge on the owner's delivery request.

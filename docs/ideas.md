@@ -25,16 +25,6 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
-## 2026-11-02
-
-- Make the digest report a non-canonical label on a post-boundary row — parked; no change yet.
-  `scripts/review-rounds.py`'s `canonical_class` maps a label only on a row dated at or before `PRE_CANONICAL_THROUGH`
-  and returns a later row's label unchanged, so the digest counts it as a class and its `unmapped: none` line reads
-  clean — the 2026-10-31 retrospective noticed the line was wrong while the labels were still ungated.
-  `verify-review-class-vocabulary` gates new rows, leaving the four acknowledged historical labels (and any future
-  acknowledgement) as the only inputs the digest would miscount. Route: the digest reads the canonical list the gate
-  reads, with its declared task inputs widened the way the check-and-test-authoring input-set rule requires.
-
 ## 2026-11-01
 
 - Gate a `Decision` line's link with a check — parked; no change yet. The generalization workflow requires `proposed`

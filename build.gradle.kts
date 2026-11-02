@@ -527,6 +527,9 @@ tasks.register<Exec>("testCommitHygiene") {
     description = "Runs the commit-hygiene checker's tests"
     inputs.file("scripts/commit-hygiene.py")
     inputs.file("scripts/test-commit-hygiene.py")
+    // The checker reads the canonical list through the shared module, and its live case reads the definition.
+    inputs.file("scripts/review_vocabulary.py")
+    inputs.file(".opencode/agent/review-quick.md")
     outputs.upToDateWhen { false }
     commandLine(pythonExecutable, "scripts/test-commit-hygiene.py")
 }
@@ -599,6 +602,8 @@ tasks.register<Exec>("testReviewRounds") {
     description = "Runs the review-round digest's tests"
     inputs.file("scripts/review-rounds.py")
     inputs.file("scripts/test-review-rounds.py")
+    inputs.file("scripts/review_vocabulary.py")
+    inputs.file(".opencode/agent/review-quick.md")
     inputs.file("docs/review-rounds.tsv")
     // The test re-derives the declared mapping from the change that recorded it, so that file is an input too.
     inputs.file(
@@ -737,6 +742,7 @@ tasks.register<Exec>("verifyReviewClassVocabulary") {
     // The checker reads the canonical list from the definition and the boundary from the digest script, so both are
     // inputs: a warm build must re-run when either owner changes.
     inputs.file("scripts/commit-hygiene.py")
+    inputs.file("scripts/review_vocabulary.py")
     inputs.file("scripts/review-rounds.py")
     inputs.file("docs/review-rounds.tsv")
     inputs.file(".opencode/agent/review-quick.md")

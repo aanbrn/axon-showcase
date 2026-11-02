@@ -114,17 +114,20 @@ window's review rounds from `docs/review-rounds.tsv` — its round count, the cl
 count stated for the window proper (the rows dated after the `since` date) beside the `since`-inclusive figures, with
 the classes normalized to the reviewer's canonical vocabulary so a label recorded before that vocabulary landed compares
 with the ones that follow it, each class counted once per round that raised it regardless of how many of that round's
-labels normalized to it and stated as a round occurrence rather than a share of the compliance-miss count, and a
-pre-canonical label that cannot be normalized reported as such rather than passed through silently — and the
-process-defect records the window's commits touched, as an index naming each record file with its incident headings and
-stating the unique-file count, the incident-heading count, the revision the index was derived at, the files the `since`
-date's own commits touched, a selected path absent at that revision rather than dropping it, and an empty selection as
-such rather than leaving it blank, so the boundary is resolvable and a record's body can be read — so the retrospective
-is written around derived facts rather than re-deriving them by hand. The retrospective SHALL group shipped PRs by
-theme, summarize lessons learned, and record went-well/went-wrong observations. Each improvement suggestion SHALL be
-classified as a system suggestion (addressed via `docs/ideas.md` or an OpenSpec proposal) or a process suggestion
-(addressed via `AGENTS.md` or a subagent definition). The agent SHALL propose the retrospective and suggestions without
-editing files; the main agent verifies and applies them.
+labels normalized to it and stated as a round occurrence rather than a share of the compliance-miss count, and a label
+no normalization yields a class for reported as unmapped rather than passed through silently, whether a pre-canonical
+mapping yields none or a post-boundary label names none the list carries, with an unreadable canonical list stated as
+unestablished with its reason beside the pairs it could state, never silently as none, and the block still printed with
+the post-boundary labels counted as classes and the command still exiting successfully — and the process-defect records
+the window's commits touched, as an index naming each record file with its incident headings and stating the unique-file
+count, the incident-heading count, the revision the index was derived at, the files the `since` date's own commits
+touched, a selected path absent at that revision rather than dropping it, and an empty selection as such rather than
+leaving it blank, so the boundary is resolvable and a record's body can be read — so the retrospective is written around
+derived facts rather than re-deriving them by hand. The retrospective SHALL group shipped PRs by theme, summarize
+lessons learned, and record went-well/went-wrong observations. Each improvement suggestion SHALL be classified as a
+system suggestion (addressed via `docs/ideas.md` or an OpenSpec proposal) or a process suggestion (addressed via
+`AGENTS.md` or a subagent definition). The agent SHALL propose the retrospective and suggestions without editing files;
+the main agent verifies and applies them.
 
 Beyond grouping the shipped work, the retrospective SHALL trace each significant failure it reports to a root cause and
 name the earliest development stage at which the problem could reasonably have been prevented or detected — drawing the
@@ -152,10 +155,10 @@ outcome expected, and how that outcome would be verified, so a later window can 
   counted PR), each `captured:` marker added since the window start with its introducing commit, the window's review
   rounds from `docs/review-rounds.tsv` — its round count, the classes raised, and the compliance-miss count for the
   window proper stated beside the `since`-inclusive figures, with the classes normalized to the reviewer's canonical
-  vocabulary, each class counted once per round that raised it, and a pre-canonical label that cannot be normalized
-  reported as such — and the process-defect records the window's commits touched, as an index naming each record file
-  with its incident headings and stating its unique-file and incident-heading counts, the revision it was derived at,
-  the `since` date's own touches, a selected path absent at that revision, and an empty selection — so the
+  vocabulary, each class counted once per round that raised it, and any label no normalization yields a class for
+  reported as unmapped — and the process-defect records the window's commits touched, as an index naming each record
+  file with its incident headings and stating its unique-file and incident-heading counts, the revision it was derived
+  at, the `since` date's own touches, a selected path absent at that revision, and an empty selection — so the
   retrospective's countable claims are read from the block rather than authored from memory
 
 #### Scenario: Improvement suggestions are classified
@@ -195,6 +198,19 @@ outcome expected, and how that outcome would be verified, so a later window can 
 - **WHEN** the digest reports the classes raised for the window
 - **THEN** each class counts once per round that raised it, whatever labels on that round normalized to it, and the
   figure is stated as a round occurrence rather than a share of the compliance-miss count
+
+#### Scenario: A post-boundary label the list does not name is reported unmapped
+
+- **WHEN** a row dated after the canonical boundary carries a class the reviewer's canonical list does not name
+- **THEN** the digest reports that label in its unmapped line and does not count it among the classes raised
+
+#### Scenario: An unreadable canonical list is stated as unestablished
+
+- **WHEN** the reviewer's definition cannot be read, or its canonical list cannot be extracted
+- **THEN** the digest's unmapped line states that normalization is unestablished and names the reason, rather than
+  reporting no unmapped label
+- **AND** the block is still printed, with the post-boundary labels counted as classes, and the command still exits
+  successfully
 
 ### Requirement: The spec corpus is audited for structure and consistency
 

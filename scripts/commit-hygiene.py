@@ -42,6 +42,12 @@ from datetime import date
 from pathlib import Path
 from typing import Optional, Sequence
 
+# The shared vocabulary module sits beside this script; load it by that path, whatever the caller's working
+# directory or import route.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from review_vocabulary import REVIEW_QUICK_DEFINITION, canonical_classes
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 AGENTS = "AGENTS.md"
 MARKER_GLOBS = (".opencode/agent/*.md", ".opencode/skills/*/SKILL.md")
@@ -111,14 +117,10 @@ SESSION_REPLACEMENT_REASONS = (
 # and the reason.
 SESSION_ROW_FIELDS = 9
 
-# The review-round ledger the class-vocabulary check reads, the reviewer's definition that owns the canonical class
-# list, and the digest script that owns the canonical boundary. The check reads each rather than restating either.
+# The review-round ledger the class-vocabulary check reads and the digest script that owns the canonical boundary. The
+# canonical list itself is `review_vocabulary`'s, imported above.
 LEDGER_PATH = "docs/review-rounds.tsv"
-REVIEW_QUICK_DEFINITION = ".opencode/agent/review-quick.md"
 REVIEW_ROUNDS_SCRIPT = "scripts/review-rounds.py"
-CANONICAL_LIST_OPEN = "**Give every finding one class**"
-CANONICAL_LIST_CLOSE = "A finding that fits none"
-CLASS_LABEL_RE = re.compile(r"^[a-z][a-z-]*$")
 # The ledger's two class columns, in the order its header states them.
 LEDGER_CLASS_COLUMNS = (("classes raised", 3), ("classes that repeated", 4))
 # A class recorded before this check landed, whose round's report was never reconstructed, is acknowledged by a comment
@@ -1568,27 +1570,6 @@ def review_rounds_boundary(repo: Path) -> date:
             )
         )
     return declared
-
-
-def canonical_classes(text: str) -> tuple[list[str], Optional[str]]:
-    """The classes the definition names, and a reason naming what is wrong when the list cannot be read."""
-    starts = [match.start() for match in re.finditer(re.escape(CANONICAL_LIST_OPEN), text)]
-    if len(starts) != 1:
-        return [], "'{0}' occurs {1} time(s) in {2}: expected exactly one canonical list".format(
-            CANONICAL_LIST_OPEN, len(starts), REVIEW_QUICK_DEFINITION
-        )
-    end = text.find(CANONICAL_LIST_CLOSE, starts[0])
-    if end < 0:
-        return [], "{0} carries the canonical list's opening but not its end".format(REVIEW_QUICK_DEFINITION)
-    tokens = [token.strip() for token in re.findall(r"`([^`]+)`", text[starts[0] : end])]
-    if not tokens:
-        return [], "the canonical list in {0} names no class".format(REVIEW_QUICK_DEFINITION)
-    invalid = [token for token in tokens if not CLASS_LABEL_RE.match(token)]
-    if invalid:
-        return [], "the canonical list in {0} carries a token that is not a class: {1!r}".format(
-            REVIEW_QUICK_DEFINITION, invalid[0]
-        )
-    return tokens, None
 
 
 def acknowledged_class_triples(text: str) -> set[tuple[str, int, str]]:

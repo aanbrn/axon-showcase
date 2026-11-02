@@ -25,6 +25,16 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
+## 2026-11-02
+
+- Make the digest report a non-canonical label on a post-boundary row — parked; no change yet.
+  `scripts/review-rounds.py`'s `canonical_class` maps a label only on a row dated at or before `PRE_CANONICAL_THROUGH`
+  and returns a later row's label unchanged, so the digest counts it as a class and its `unmapped: none` line reads
+  clean — the 2026-10-31 retrospective noticed the line was wrong while the labels were still ungated.
+  `verify-review-class-vocabulary` gates new rows, leaving the four acknowledged historical labels (and any future
+  acknowledgement) as the only inputs the digest would miscount. Route: the digest reads the canonical list the gate
+  reads, with its declared task inputs widened the way the check-and-test-authoring input-set rule requires.
+
 ## 2026-11-01
 
 - Gate a `Decision` line's link with a check — parked; no change yet. The generalization workflow requires `proposed`
@@ -583,14 +593,6 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   — and the archive, being date-prefixed, is invisible to it.
 
 ## 2026-10-17
-
-- Check that every recorded class is in the reviewer's canonical list — parked; no change yet. The 2026-10-15
-  retrospective's S2, the remaining enabler of the window comparison its baseline names. The label set lives as prose in
-  `review-quick`'s class list, and the retrospective found it drifting across the record — which matters because the
-  whole convergence signal is label comparability. Add a rules-object check carrying its known-bad and known-good cases
-  (the `*RulesTests` shape) asserting that every class in a `docs/review-rounds.tsv` row recorded on or after the
-  canonical boundary is in that list, so a genuinely new class is added to the contract before it is recorded. Routes to
-  a `code-quality` requirement plus an `agent-skills` delta.
 
 - Replace the chart-packaging and install-path workarounds with the plugin's own retried fetches — parked; both
   workarounds are in place and the retry is open upstream as `build-extensions-oss/gradle-helm-plugin#240`; not yet

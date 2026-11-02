@@ -16,9 +16,11 @@ round, that each unit's rounds are contiguous from 1, that a round named with `-
 named with `--expect-clean` closes on a round carrying no finding class (both need that mode); `--session-continuity`
 verifies the ledger's reviewer-session fields record each round's session and its transition; `--large-files`
 verifies no tracked file exceeds the configured size limit; `--table-rows` verifies each markdown file it is given
-carries table rows whose cell count matches their delimiter row's; and `--ideas-sections` verifies every dated section
-of `docs/ideas.md` carries an entry, failing when the file itself is missing — a judgment the guard applies to a staged
-copy through the same reporter.
+carries table rows whose cell count matches their delimiter row's; `--ideas-sections` verifies every dated section of
+`docs/ideas.md` carries an entry, failing when the file itself is missing — a judgment the guard applies to a staged
+copy through the same reporter; and `--class-vocabulary` verifies every class in a review-round row dated after the
+digest script's canonical boundary is one the reviewer's definition names, reading both rather than restating either,
+and exempting only a label a class-acknowledgement comment names on that row.
 
 No mode reads a failed read as a clean result — a git invocation or a tracked file's size: a read whose failure would
 look like an empty offender list raises, and `main` reports it as the check having failed. The exits that answer a
@@ -32,9 +34,11 @@ clean tree. It reports the revisions it compared, stages nothing, and fetches no
 """
 
 import argparse
+import importlib.util
 import re
 import subprocess
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Optional, Sequence
 
@@ -106,6 +110,22 @@ SESSION_REPLACEMENT_REASONS = (
 # The ledger's row width once the session fields are present: the six round fields, then the identifier, the transition,
 # and the reason.
 SESSION_ROW_FIELDS = 9
+
+# The review-round ledger the class-vocabulary check reads, the reviewer's definition that owns the canonical class
+# list, and the digest script that owns the canonical boundary. The check reads each rather than restating either.
+LEDGER_PATH = "docs/review-rounds.tsv"
+REVIEW_QUICK_DEFINITION = ".opencode/agent/review-quick.md"
+REVIEW_ROUNDS_SCRIPT = "scripts/review-rounds.py"
+CANONICAL_LIST_OPEN = "**Give every finding one class**"
+CANONICAL_LIST_CLOSE = "A finding that fits none"
+CLASS_LABEL_RE = re.compile(r"^[a-z][a-z-]*$")
+# The ledger's two class columns, in the order its header states them.
+LEDGER_CLASS_COLUMNS = (("classes raised", 3), ("classes that repeated", 4))
+# A class recorded before this check landed, whose round's report was never reconstructed, is acknowledged by a comment
+# naming the unit, the round, and the label, so the exemption covers one label on one row rather than a unit or a label.
+ACKNOWLEDGED_CLASS_RE = re.compile(
+    r"^#\s*---\s*Acknowledged class:\s*(?P<unit>\S+)\s+round\s+(?P<round>\d+)\s+(?P<label>[a-z][a-z-]*)\b"
+)
 
 # The ledger's row width before the session fields were appended. A row above the boundary whose field count is not
 # this means the boundary was moved past a row the fields apply to, which would exempt that row silently.
@@ -1449,6 +1469,7 @@ MODE_FLAGS = (
     "--large-files",
     "--table-rows",
     "--ideas-sections",
+    "--class-vocabulary",
 )
 
 
@@ -1501,13 +1522,155 @@ def find_empty_idea_sections(text: str) -> list[tuple[int, str]]:
     return offenders
 
 
+def read_review_definition(repo: Path) -> str:
+    """The reviewer's definition, whose canonical class list the ledger's classes are checked against."""
+    path = repo / REVIEW_QUICK_DEFINITION
+    if not path.is_file():
+        raise FileFailure("the reviewer's definition is missing: {0}".format(REVIEW_QUICK_DEFINITION))
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as error:
+        raise FileFailure("{0} could not be read: {1}".format(REVIEW_QUICK_DEFINITION, error)) from error
+
+
+def ledger_date(value: str) -> Optional[date]:
+    """The calendar date a ledger value states, or `None` when it is not a written-out `YYYY-MM-DD`."""
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError:
+        return None
+    return parsed if parsed.isoformat() == value else None
+
+
+def review_rounds_boundary(repo: Path) -> date:
+    """The last day whose ledger rows may carry a pre-canonical label, from the digest script that owns it."""
+    path = repo / REVIEW_ROUNDS_SCRIPT
+    if not path.is_file():
+        raise FileFailure("the digest script that owns the canonical boundary is missing: {0}".format(
+            REVIEW_ROUNDS_SCRIPT
+        ))
+    spec = importlib.util.spec_from_file_location("review_rounds_boundary", path)
+    if spec is None or spec.loader is None:
+        raise FileFailure("{0} cannot be loaded".format(REVIEW_ROUNDS_SCRIPT))
+    module = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(module)
+    except Exception as error:
+        raise FileFailure("{0} could not be loaded: {1}".format(REVIEW_ROUNDS_SCRIPT, error)) from error
+    boundary = getattr(module, "PRE_CANONICAL_THROUGH", None)
+    if not isinstance(boundary, str) or not boundary:
+        raise FileFailure("{0} declares no PRE_CANONICAL_THROUGH".format(REVIEW_ROUNDS_SCRIPT))
+    declared = ledger_date(boundary)
+    if declared is None:
+        raise FileFailure(
+            "{0} declares PRE_CANONICAL_THROUGH {1!r}, which is not a calendar date".format(
+                REVIEW_ROUNDS_SCRIPT, boundary
+            )
+        )
+    return declared
+
+
+def canonical_classes(text: str) -> tuple[list[str], Optional[str]]:
+    """The classes the definition names, and a reason naming what is wrong when the list cannot be read."""
+    starts = [match.start() for match in re.finditer(re.escape(CANONICAL_LIST_OPEN), text)]
+    if len(starts) != 1:
+        return [], "'{0}' occurs {1} time(s) in {2}: expected exactly one canonical list".format(
+            CANONICAL_LIST_OPEN, len(starts), REVIEW_QUICK_DEFINITION
+        )
+    end = text.find(CANONICAL_LIST_CLOSE, starts[0])
+    if end < 0:
+        return [], "{0} carries the canonical list's opening but not its end".format(REVIEW_QUICK_DEFINITION)
+    tokens = [token.strip() for token in re.findall(r"`([^`]+)`", text[starts[0] : end])]
+    if not tokens:
+        return [], "the canonical list in {0} names no class".format(REVIEW_QUICK_DEFINITION)
+    invalid = [token for token in tokens if not CLASS_LABEL_RE.match(token)]
+    if invalid:
+        return [], "the canonical list in {0} carries a token that is not a class: {1!r}".format(
+            REVIEW_QUICK_DEFINITION, invalid[0]
+        )
+    return tokens, None
+
+
+def acknowledged_class_triples(text: str) -> set[tuple[str, int, str]]:
+    """The (unit, round, label) triples the ledger's acknowledgement comments exempt."""
+    triples: set[tuple[str, int, str]] = set()
+    for line in text.splitlines():
+        match = ACKNOWLEDGED_CLASS_RE.match(line.strip())
+        if match:
+            triples.add((match.group("unit"), int(match.group("round")), match.group("label")))
+    return triples
+
+
+def find_unknown_classes(repo: Path) -> list[tuple[int, str, int, str, str]]:
+    """Every post-boundary ledger class the canonical list does not name and no acknowledgement exempts.
+
+    A row whose date, round, or classes column cannot be read raises rather than being skipped, and a missing ledger
+    raises rather than reading as zero rows.
+    """
+    if not (repo / LEDGER_PATH).is_file():
+        raise FileFailure("the review-round ledger is missing: {0}".format(LEDGER_PATH))
+    ledger_text = ledger_source(repo)
+    classes, reason = canonical_classes(read_review_definition(repo))
+    if reason is not None:
+        raise CheckFailure(reason)
+    canonical = set(classes)
+    boundary = review_rounds_boundary(repo)
+    acknowledged = acknowledged_class_triples(ledger_text)
+    offenders: list[tuple[int, str, int, str, str]] = []
+    for number, line in enumerate(ledger_text.splitlines(), start=1):
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        fields = line.split("\t")
+        if len(fields) < len(LEDGER_CLASS_COLUMNS) + 3:
+            raise CheckFailure(
+                "{0}:{1} carries {2} field(s): the ledger's rows carry both class columns".format(
+                    LEDGER_PATH, number, len(fields)
+                )
+            )
+        row_date = ledger_date(fields[0])
+        if row_date is None:
+            raise CheckFailure("{0}:{1} carries an unreadable date {2!r}".format(LEDGER_PATH, number, fields[0]))
+        if row_date <= boundary:
+            continue
+        if not fields[2].isdigit():
+            raise CheckFailure("{0}:{1} carries an unreadable round {2!r}".format(LEDGER_PATH, number, fields[2]))
+        unit = fields[1]
+        round_number = int(fields[2])
+        for column, index in LEDGER_CLASS_COLUMNS:
+            for raw in fields[index].split(","):
+                label = raw.strip()
+                if label == "-":
+                    continue
+                if not label:
+                    raise CheckFailure(
+                        "{0}:{1} carries no readable label in its {2} column".format(LEDGER_PATH, number, column)
+                    )
+                if label in canonical or (unit, round_number, label) in acknowledged:
+                    continue
+                offenders.append((number, unit, round_number, column, label))
+    return offenders
+
+
+def check_class_vocabulary(repo: Path) -> int:
+    """Name each post-boundary ledger class the reviewer's canonical list does not name; return their count."""
+    offenders = find_unknown_classes(repo)
+    for number, unit, round_number, column, label in offenders:
+        print(
+            '{0}:{1} {2} round {3} {4} "{5}" is not in the reviewer\'s canonical class list ({6})'.format(
+                LEDGER_PATH, number, unit, round_number, column, label, REVIEW_QUICK_DEFINITION
+            ),
+            file=sys.stderr,
+        )
+    return len(offenders)
+
+
 def build_parser() -> argparse.ArgumentParser:
     """The script's argument parser, so a test can read the mode group it declares."""
     parser = argparse.ArgumentParser(
         description=(
             "Check commit hygiene over the staged set, the unit's readiness for the manual review pass, AGENTS.md "
             "markers, the tracked set, the workflow cron schedules, the review-round ledger, a file's size, the "
-            "given markdown files' table rows, or the ideas file's dated sections."
+            "given markdown files' table rows, the ideas file's dated sections, or the review-round classes."
         )
     )
     mode = parser.add_mutually_exclusive_group()
@@ -1542,6 +1705,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--ideas-sections",
         action="store_true",
         help="check every dated section of docs/ideas.md carries an entry",
+    )
+    mode.add_argument(
+        "--class-vocabulary",
+        action="store_true",
+        help="check the review-round ledger's classes against the reviewer's canonical list",
     )
     parser.add_argument(
         "--expect",
@@ -1607,6 +1775,8 @@ def dispatch(args: argparse.Namespace, repo: Path) -> int:
         return 1 if check_table_rows(repo, args.paths) else 0
     if args.ideas_sections:
         return 1 if check_idea_sections(repo) else 0
+    if args.class_vocabulary:
+        return 1 if check_class_vocabulary(repo) else 0
     return 1 if check_staged(repo, args.formatter) else 0
 
 

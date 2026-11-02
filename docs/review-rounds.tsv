@@ -18,6 +18,10 @@
 # the repeat column and the aggregation comparable; rows recorded before that list landed keep the labels they were
 # recorded with, and the mapping from them — recorded in the archived canonical-class-list change's design — is applied
 # by scripts/review-rounds.py.
+# A class recorded before `commit-hygiene.py --class-vocabulary` landed, whose round's report was never
+# reconstructed, is acknowledged by a comment line of the form
+# `# --- Acknowledged class: <unit> round <N> <label> - <reason>`, which exempts that label on that row only;
+# the same label on another row, or another unknown class on the same row, still fails.
 2026-10-13	record-review-rounds	1	contradiction,missing-delta,ambiguity	-	2
 2026-10-13	record-review-rounds	2	missing-artifact,wording	missing-artifact	1
 2026-10-13	record-review-rounds	3	missing-artifact	missing-artifact	1
@@ -579,6 +583,8 @@
 2026-10-19	add-extraction-procedure	5	-	-	0	ses_eac044363ffeZ5lGcaU9SW2qr9	continued	-
 2026-10-19	add-extraction-procedure	6	-	-	0	ses_eac044363ffeZ5lGcaU9SW2qr9	continued	-
 2026-10-19	add-extraction-procedure	7	marker-placement,coherence,claim-unreproducible	coherence,claim-unreproducible	3	ses_eac044363ffeZ5lGcaU9SW2qr9	continued	-
+# --- Acknowledged class: add-extraction-procedure round 7 marker-placement - the round's report was never
+# --- reconstructed, and the unit's archived change dir does not record it.
 2026-10-19	add-extraction-procedure	8	claim-unreproducible	claim-unreproducible	2	ses_eac044363ffeZ5lGcaU9SW2qr9	continued	-
 2026-10-19	add-extraction-procedure	9	-	-	0	ses_eac044363ffeZ5lGcaU9SW2qr9	continued	-
 2026-10-19	sharpen-lesson-capture-gate	1	claim-unreproducible,claim-missing,coherence,over-claim,dropped-content,impact-omission,structured-writing,wording	-	8	ses_eab8879a0ffeHbQ5BXDJ0Q02cU	created	-
@@ -1201,6 +1207,8 @@
 2026-10-25	remind-the-anchor-rule-at-authoring	14	over-claim,wording	-	1	ses_e8c390f08ffeyizLXTJWOK4eNG	continued	-
 2026-10-25	remind-the-anchor-rule-at-authoring	15	-	-	0	ses_e8c390f08ffeyizLXTJWOK4eNG	continued	-
 2026-10-26	bump-dependencies-2026-10-25	16	output-ordering,claim-unreproducible	claim-unreproducible	1	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
+# --- Acknowledged class: bump-dependencies-2026-10-25 round 16 output-ordering - the round's report was never
+# --- reconstructed, and its archived change dir does not record the finding.
 2026-10-26	bump-dependencies-2026-10-25	17	claim-unreproducible,missing-task	claim-unreproducible,missing-task	3	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
 2026-10-26	bump-dependencies-2026-10-25	18	claim-unreproducible	claim-unreproducible	1	ses_e8d2bb84dffelBDIswIoFqxBuU	continued	-
 2026-10-26	capture-dump-vs-execution-model	1	over-claim,test-control,single-sourcing,structured-writing	-	4	ses_e89e5d603ffeL5KwgM74PlPiVH	created	-
@@ -1518,6 +1526,8 @@
 2026-10-27	scope-chart-repository-fetch	7	contradiction	-	1	ses_e8295abd9ffemwFCmFWa4giX5Z	continued	-
 2026-10-27	scope-chart-repository-fetch	8	-	-	0	ses_e8295abd9ffemwFCmFWa4giX5Z	continued	-
 2026-10-27	scope-chart-repository-fetch	9	staged-index-stale	-	1	ses_e8295abd9ffemwFCmFWa4giX5Z	continued	-
+# --- Acknowledged class: scope-chart-repository-fetch round 9 staged-index-stale - the round's report was never
+# --- reconstructed, and the unit has no archived change dir.
 2026-10-27	scope-chart-repository-fetch	10	-	-	0	ses_e8295abd9ffemwFCmFWa4giX5Z	continued	-
 2026-10-28	retry-chart-dependency-fetch	1	claim-missing,claim-unreproducible,contradiction,docs-residue,incomplete-enumeration,missing-task,structured-writing,wording	-	7	ses_e804562eeffezsYg6S5DI28Dz3	created	-
 2026-10-28	retry-chart-dependency-fetch	2	dropped-content,wording	wording	1	ses_e804562eeffezsYg6S5DI28Dz3	continued	-
@@ -1797,6 +1807,8 @@
 2026-10-30	state-the-adr-decision-boundary	2	coherence	coherence	0	ses_e760a602fffeH8uHMELRKAZFfG	continued	-
 2026-10-30	state-the-adr-decision-boundary	3	coherence	coherence	0	ses_e760a602fffeH8uHMELRKAZFfG	continued	-
 2026-10-30	state-the-adr-decision-boundary	4	staging	-	1	ses_e760a602fffeH8uHMELRKAZFfG	continued	-
+# --- Acknowledged class: state-the-adr-decision-boundary round 4 staging - the round's report was never
+# --- reconstructed; its defect record describes the stale index without a canonical class.
 2026-10-30	state-the-adr-decision-boundary	5	-	-	0	ses_e760a602fffeH8uHMELRKAZFfG	continued	-
 2026-10-30	advance-the-ideas-cleanup-cursor	1	missing-task	-	1	ses_e75f686a9ffe7Hfw1mH7R9UM3g	created	-
 2026-10-30	advance-the-ideas-cleanup-cursor	2	coherence,claim-unreproducible	-	2	ses_e75f686a9ffe7Hfw1mH7R9UM3g	continued	-
@@ -2182,3 +2194,20 @@
 2026-11-02	adopt-heading-roles	1	wording,contradiction,claim-unreproducible,claim-missing,impact-omission,docs-residue,single-sourcing,formatting	-	7	ses_e653febfcffevWZs1daJ5qgl42	created	-
 2026-11-02	adopt-heading-roles	2	claim-unreproducible,formatting	claim-unreproducible,formatting	2	ses_e653febfcffevWZs1daJ5qgl42	continued	-
 2026-11-02	adopt-heading-roles	3	-	-	0	ses_e653febfcffevWZs1daJ5qgl42	continued	-
+2026-11-02	verify-review-class-vocabulary	1	claim-unreproducible,contradiction,test-control,missing-task,impact-omission,claim-missing,formatting	-	7	ses_e652a7fe0ffeCSlTbHE81CEjoQ	created	-
+2026-11-02	verify-review-class-vocabulary	2	claim-unreproducible,claim-missing	claim-unreproducible,claim-missing	3	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	3	claim-unreproducible	claim-unreproducible	1	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	4	-	-	0	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	5	-	-	0	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	6	claim-missing	claim-missing	1	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	7	-	-	0	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	8	test-control,missing-task,redundant-code,formatting	test-control,missing-task,formatting	5	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	9	claim-unreproducible	claim-unreproducible	2	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	10	missing-scenario	-	1	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	11	test-control	test-control	1	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	12	-	-	0	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	13	contradiction,missing-task	contradiction,missing-task	2	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	14	-	-	0	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	15	claim-unreproducible	claim-unreproducible	1	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	16	missing-task,formatting	missing-task,formatting	2	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-
+2026-11-02	verify-review-class-vocabulary	17	-	-	0	ses_e652a7fe0ffeCSlTbHE81CEjoQ	continued	-

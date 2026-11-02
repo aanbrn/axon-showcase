@@ -16,6 +16,7 @@ from unittest import mock
 from pathlib import Path
 
 CHECKER_PATH = Path(__file__).resolve().parent / "commit-hygiene.py"
+CANONICAL = "`alpha` (one), `beta` (two)"
 _spec = importlib.util.spec_from_file_location("commit_hygiene", CHECKER_PATH)
 commit_hygiene = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(commit_hygiene)
@@ -2938,6 +2939,245 @@ class LedgerGuardTests(unittest.TestCase):
 # call rather than prose, nor that the assertions around it are meaningful, so the classes' behaviour remains the tests'
 # subject. A mode added without an entry, or an entry pointed at a class whose source never mentions it, fails the
 # suite.
+class ClassVocabularyTests(unittest.TestCase):
+    """The --class-vocabulary verification: a ledger class the reviewer's canonical list does not name."""
+
+    def _repo(self, definition: str | None = None) -> Path:
+        repo = make_repo(self)
+        (repo / "scripts").mkdir()
+        (repo / "scripts" / "review-rounds.py").write_text('PRE_CANONICAL_THROUGH = "2026-10-15"\n', encoding="utf-8")
+        (repo / ".opencode" / "agent").mkdir(parents=True)
+        text = (
+            definition
+            if definition is not None
+            else (
+                "**Give every finding one class** from this canonical list, each naming what must change: "
+                + CANONICAL
+                + ". A finding that fits none of these: the calling agent adds a class here.\n"
+            )
+        )
+        (repo / ".opencode" / "agent" / "review-quick.md").write_text(text, encoding="utf-8")
+        return repo
+
+    def _ledger(self, repo: Path, *rows: str) -> None:
+        (repo / "docs").mkdir(exist_ok=True)
+        (repo / "docs" / "review-rounds.tsv").write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+    def _row(
+        self, unit: str, round_number: int, raised: str = "-", repeated: str = "-", day: str = "2026-10-20"
+    ) -> str:
+        return "\t".join((day, unit, str(round_number), raised, repeated, "0", "ses_x", "created", "-"))
+
+    def test_an_unknown_class_in_the_raised_column_is_reported(self):
+        repo = self._repo()
+        self._ledger(repo, self._row("unit-a", 1, "gamma"))
+
+        self.assertEqual([(1, "unit-a", 1, "classes raised", "gamma")], commit_hygiene.find_unknown_classes(repo))
+
+    def test_an_unknown_class_in_the_repeated_column_is_reported(self):
+        repo = self._repo()
+        self._ledger(repo, self._row("unit-a", 1, "alpha", "gamma"))
+
+        self.assertEqual(
+            [(1, "unit-a", 1, "classes that repeated", "gamma")], commit_hygiene.find_unknown_classes(repo)
+        )
+
+    def test_canonical_classes_and_an_empty_round_pass(self):
+        repo = self._repo()
+        self._ledger(repo, self._row("unit-a", 1, "alpha,beta"), self._row("unit-a", 2))
+
+        self.assertEqual([], commit_hygiene.find_unknown_classes(repo))
+
+    def test_a_pre_boundary_row_keeps_its_label(self):
+        repo = self._repo()
+        self._ledger(repo, self._row("unit-a", 1, "gamma", day="2026-10-15"))
+
+        self.assertEqual([], commit_hygiene.find_unknown_classes(repo))
+
+    def test_an_acknowledgement_exempts_one_label_on_one_row(self):
+        repo = self._repo()
+        self._ledger(
+            repo,
+            self._row("unit-a", 1, "gamma,delta"),
+            "# --- Acknowledged class: unit-a round 1 gamma - the round's report was never reconstructed",
+            self._row("unit-a", 2, "gamma"),
+            self._row("unit-a", 3, "gamma"),
+            self._row("unit-b", 1, "gamma"),
+        )
+
+        self.assertEqual(
+            [
+                (1, "unit-a", 1, "classes raised", "delta"),
+                (3, "unit-a", 2, "classes raised", "gamma"),
+                (4, "unit-a", 3, "classes raised", "gamma"),
+                (5, "unit-b", 1, "classes raised", "gamma"),
+            ],
+            commit_hygiene.find_unknown_classes(repo),
+        )
+
+    def test_a_row_without_its_classes_column_fails(self):
+        repo = self._repo()
+        self._ledger(repo, "2026-10-20\tunit-a\t1")
+
+        with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+            commit_hygiene.find_unknown_classes(repo)
+        self.assertIn("both class columns", str(caught.exception))
+
+    def test_an_unreadable_date_fails(self):
+        for day in ("20-10-2026", "2026-99-99", "20261015"):
+            with self.subTest(day=day):
+                repo = self._repo()
+                self._ledger(repo, self._row("unit-a", 1, "alpha", day=day))
+
+                with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+                    commit_hygiene.find_unknown_classes(repo)
+                self.assertIn("unreadable date", str(caught.exception))
+
+    def test_an_empty_classes_field_fails(self):
+        repo = self._repo()
+        self._ledger(repo, self._row("unit-a", 1, "alpha,,beta"))
+
+        with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+            commit_hygiene.find_unknown_classes(repo)
+        self.assertIn("no readable label", str(caught.exception))
+
+    def test_a_definition_without_the_anchor_fails(self):
+        repo = self._repo(definition="A list of classes: `alpha`, `beta`.\n")
+        self._ledger(repo, self._row("unit-a", 1, "alpha"))
+
+        with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+            commit_hygiene.find_unknown_classes(repo)
+        self.assertIn("occurs 0 time(s)", str(caught.exception))
+
+    def test_a_definition_with_two_lists_fails(self):
+        opening = "**Give every finding one class** from this canonical list: "
+        closing = ". A finding that fits none of these: x.\n"
+        repo = self._repo(definition=opening + "`alpha`" + closing + opening + "`beta`" + closing)
+        self._ledger(repo, self._row("unit-a", 1, "alpha"))
+
+        with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+            commit_hygiene.find_unknown_classes(repo)
+        self.assertIn("occurs 2 time(s)", str(caught.exception))
+
+    def test_a_definition_whose_list_names_no_class_fails(self):
+        repo = self._repo(definition=(
+            "**Give every finding one class** from this canonical list: none yet. "
+            "A finding that fits none of these: x.\n"
+        ))
+        self._ledger(repo, self._row("unit-a", 1, "alpha"))
+
+        with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+            commit_hygiene.find_unknown_classes(repo)
+        self.assertIn("names no class", str(caught.exception))
+
+    def test_a_definition_with_a_non_class_token_fails(self):
+        repo = self._repo(definition=(
+            "**Give every finding one class** from this canonical list: `alpha beta`. "
+            "A finding that fits none of these: x.\n"
+        ))
+        self._ledger(repo, self._row("unit-a", 1, "alpha"))
+
+        with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+            commit_hygiene.find_unknown_classes(repo)
+        self.assertIn("not a class", str(caught.exception))
+
+    def test_a_definition_without_the_list_end_fails(self):
+        repo = self._repo(definition="**Give every finding one class** from this canonical list: `alpha`.\n")
+        self._ledger(repo, self._row("unit-a", 1, "alpha"))
+
+        with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+            commit_hygiene.find_unknown_classes(repo)
+        self.assertIn("not its end", str(caught.exception))
+
+    def test_a_non_numeric_round_fails(self):
+        repo = self._repo()
+        self._ledger(repo, self._row("unit-a", 1, "alpha").replace("\t1\t", "\tone\t"))
+
+        with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+            commit_hygiene.find_unknown_classes(repo)
+        self.assertIn("unreadable round", str(caught.exception))
+
+    def test_the_live_definition_names_a_class_the_ledger_records(self):
+        text = (Path(__file__).resolve().parent.parent / ".opencode" / "agent" / "review-quick.md").read_text(
+            encoding="utf-8"
+        )
+
+        classes, reason = commit_hygiene.canonical_classes(text)
+        self.assertIsNone(reason)
+        self.assertIn("contradiction", classes)
+
+    def test_a_missing_ledger_fails_rather_than_reading_as_empty(self):
+        repo = self._repo()
+
+        with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+            commit_hygiene.find_unknown_classes(repo)
+        self.assertIn("ledger is missing", str(caught.exception))
+
+    def test_a_missing_definition_fails(self):
+        repo = self._repo()
+        (repo / ".opencode" / "agent" / "review-quick.md").unlink()
+        self._ledger(repo, self._row("unit-a", 1, "alpha"))
+
+        with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+            commit_hygiene.find_unknown_classes(repo)
+        self.assertIn("definition is missing", str(caught.exception))
+
+    def test_an_absent_digest_script_fails(self):
+        repo = self._repo()
+        (repo / "scripts" / "review-rounds.py").unlink()
+        self._ledger(repo, self._row("unit-a", 1, "alpha"))
+
+        with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+            commit_hygiene.find_unknown_classes(repo)
+        self.assertIn("is missing", str(caught.exception))
+
+    def test_a_digest_script_declaring_no_boundary_fails(self):
+        repo = self._repo()
+        (repo / "scripts" / "review-rounds.py").write_text("PRE_CANONICAL_MAP = {}\n", encoding="utf-8")
+        self._ledger(repo, self._row("unit-a", 1, "alpha"))
+
+        with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+            commit_hygiene.find_unknown_classes(repo)
+        self.assertIn("declares no PRE_CANONICAL_THROUGH", str(caught.exception))
+
+    def test_a_digest_script_declaring_a_non_date_boundary_fails(self):
+        for boundary in ("banana", "2026-99-99", "20261015"):
+            with self.subTest(boundary=boundary):
+                repo = self._repo()
+                (repo / "scripts" / "review-rounds.py").write_text(
+                    'PRE_CANONICAL_THROUGH = "' + boundary + '"\n', encoding="utf-8"
+                )
+                self._ledger(repo, self._row("unit-a", 1, "gamma"))
+
+                with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+                    commit_hygiene.find_unknown_classes(repo)
+                self.assertIn("not a calendar date", str(caught.exception))
+
+    def test_an_unloadable_digest_script_fails(self):
+        repo = self._repo()
+        (repo / "scripts" / "review-rounds.py").write_text("raise RuntimeError('boom')\n", encoding="utf-8")
+        self._ledger(repo, self._row("unit-a", 1, "alpha"))
+
+        with self.assertRaises(commit_hygiene.CheckFailure) as caught:
+            commit_hygiene.find_unknown_classes(repo)
+        self.assertIn("could not be loaded", str(caught.exception))
+
+    def test_the_entry_point_reports_an_offender(self):
+        repo = self._repo()
+        self._ledger(repo, self._row("unit-a", 1, "gamma"))
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(commit_hygiene.main(["--class-vocabulary", "--repo", str(repo)]), 1)
+        self.assertIn('"gamma"', stderr.getvalue())
+
+    def test_the_entry_point_passes_a_canonical_ledger(self):
+        repo = self._repo()
+        self._ledger(repo, self._row("unit-a", 1, "alpha"))
+
+        self.assertEqual(commit_hygiene.main(["--class-vocabulary", "--repo", str(repo)]), 0)
+
+
 MODE_TEST_COVERAGE = {
     "--staged": ("StagedThenEditedTests", "find_staged_then_edited"),
     "--review-ready": ("ReviewReadyTests", "check_review_ready"),
@@ -2951,6 +3191,7 @@ MODE_TEST_COVERAGE = {
     "--large-files": ("LargeFileTests", "find_oversized_files"),
     "--table-rows": ("TableRowTests", "check_table_rows"),
     "--ideas-sections": ("IdeaSectionTests", "find_empty_idea_sections"),
+    "--class-vocabulary": ("ClassVocabularyTests", "find_unknown_classes"),
 }
 
 

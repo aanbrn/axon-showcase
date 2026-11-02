@@ -731,6 +731,19 @@ tasks.register<Exec>("verifyIdeasSections") {
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--ideas-sections")
 }
 
+tasks.register<Exec>("verifyReviewClassVocabulary") {
+    group = "verification"
+    description = "Verifies the review-round ledger's classes against the reviewer's canonical list"
+    // The checker reads the canonical list from the definition and the boundary from the digest script, so both are
+    // inputs: a warm build must re-run when either owner changes.
+    inputs.file("scripts/commit-hygiene.py")
+    inputs.file("scripts/review-rounds.py")
+    inputs.file("docs/review-rounds.tsv")
+    inputs.file(".opencode/agent/review-quick.md")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--class-vocabulary")
+}
+
 tasks.register<VerifyTableRowsTask>("verifyTableRows") {
     group = "verification"
     description = "Verifies every markdown table's rows carry its delimiter row's column count"
@@ -816,6 +829,7 @@ tasks.named("check") {
     dependsOn("verifyReviewSessionContinuity")
     dependsOn("verifyLargeFiles")
     dependsOn("verifyIdeasSections")
+    dependsOn("verifyReviewClassVocabulary")
     dependsOn("verifyTableRows")
     // The chart's packaging path (its repository setup, dependency fetch, and strict lints), so a chart that cannot
     // bundle its declared dependency fails the pull request rather than only the nightly deployment smoke's install.

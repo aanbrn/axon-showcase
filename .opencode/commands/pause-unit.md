@@ -11,7 +11,8 @@ Record the pause of the unit this tree holds.
 1. Load `.opencode/skills/pause-resume-unit/SKILL.md` and follow its pause procedure.
 
 **Repository lifecycle** — this command starts no unit: it creates no branch or tree, commits, stashes, pushes,
-archives, or merges nothing, stops no build or container, and leaves the tree assigned to the unit. `AGENTS.md`'s
-"Workflow: Change lifecycle" owns that lifecycle and its "Workflow: The review gate" the approval stop.
+archives, or merges nothing, stops no build or container, and leaves the tree assigned to the unit. The bindings
+(`docs/contracts/process-bindings.md`) declare the lifecycle and the review gate that own that lifecycle and the
+approval stop.
 
 **Completion criteria** — the skill's pause criteria hold, and the turn ends with the pause reported.

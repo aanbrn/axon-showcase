@@ -9,27 +9,28 @@ skill), the project-authored guidance skills there beside them (the `check-and-t
 trigger `AGENTS.md` names), the knowledge-authoring standard `AGENTS.md` entries follow, owned by
 `docs/contracts/knowledge-authoring.md` (applied by the generalization's analysis when authoring and the audit when
 reconciling), the shared report contract the report-producing subagents follow, owned by
-`docs/contracts/shared-report.md`, the structured writing standard every agent-authored technical artifact follows
-(stated once in `AGENTS.md`, applied while drafting and checked by the review and audit subagents), the output-language
-convention every agent's output follows (stated once in `AGENTS.md`: owner-visible messages in the owner's request
-language, agent-facing text and durable artifacts in English), and the locally-defined quality-gate and analysis
-subagents under `.opencode/agent/` — the per-unit review agent and the analysis the owner-triggered generalization runs,
-the experience-analyzer, the visual and diagram agents, the on-demand technical advisor, and the on-demand auditors of
-the project-owned agent tooling (the guidance, the project-authored `.opencode/` files, and the portable contracts under
-`docs/contracts/`, plus any generated or vendored file that contradicts how the repository uses it, the always-loaded
-instruction budget it measures with the extraction opportunities that surface where guidance has no destination yet, the
-meta rules it reports with their origins, the merge, removal, route, and extraction candidates it reports, and the
-authoring-system gaps it traces to a mechanism that produces an artifact), of the `openspec/specs/` corpus, of the
-architecture (the ADRs, the service, module, and spec-decomposition surface, where a deliberate decision's rationale is
-not recorded, and where a decision deferred in an ADR records a `Revisit when:` condition that appears met), of the
-human-facing `README.md` (its claims against the repository, its shape against the README convention, the grammatical
-correctness of its prose — a provable error is a finding, a preference advisory — and its coverage of the human-visible
-capabilities), and the scheduled unattended run that performs the audits without a human asking, together with the
-standing owner-gated unit that applies an audit report's reduction candidates, and the project-authored command
-definitions under `.opencode/commands/` — their authoring shape, the repository lifecycle a mutating unit owes, and how
-an audit's approved findings are delivered as separate units by the route each finding's kind requires. It also covers
-the on-demand recovery of MCP servers that failed to connect, through the `scripts/reconnect-mcp.py` tool its
-`/reconnect-mcp` command fronts.
+`docs/contracts/shared-report.md`, the process bindings an adopting component resolves, owned by
+`docs/contracts/process-bindings.md` (the six roles, the read routes, and the missing-binding stop), the structured
+writing standard every agent-authored technical artifact follows (stated once in `AGENTS.md`, applied while drafting and
+checked by the review and audit subagents), the output-language convention every agent's output follows (stated once in
+`AGENTS.md`: owner-visible messages in the owner's request language, agent-facing text and durable artifacts in
+English), and the locally-defined quality-gate and analysis subagents under `.opencode/agent/` — the per-unit review
+agent and the analysis the owner-triggered generalization runs, the experience-analyzer, the visual and diagram agents,
+the on-demand technical advisor, and the on-demand auditors of the project-owned agent tooling (the guidance, the
+project-authored `.opencode/` files, and the portable contracts under `docs/contracts/`, plus any generated or vendored
+file that contradicts how the repository uses it, the always-loaded instruction budget it measures with the extraction
+opportunities that surface where guidance has no destination yet, the meta rules it reports with their origins, the
+merge, removal, route, and extraction candidates it reports, and the authoring-system gaps it traces to a mechanism that
+produces an artifact), of the `openspec/specs/` corpus, of the architecture (the ADRs, the service, module, and
+spec-decomposition surface, where a deliberate decision's rationale is not recorded, and where a decision deferred in an
+ADR records a `Revisit when:` condition that appears met), of the human-facing `README.md` (its claims against the
+repository, its shape against the README convention, the grammatical correctness of its prose — a provable error is a
+finding, a preference advisory — and its coverage of the human-visible capabilities), and the scheduled unattended run
+that performs the audits without a human asking, together with the standing owner-gated unit that applies an audit
+report's reduction candidates, and the project-authored command definitions under `.opencode/commands/` — their
+authoring shape, the repository lifecycle a mutating unit owes, and how an audit's approved findings are delivered as
+separate units by the route each finding's kind requires. It also covers the on-demand recovery of MCP servers that
+failed to connect, through the `scripts/reconnect-mcp.py` tool its `/reconnect-mcp` command fronts.
 
 ## Requirements
 
@@ -2746,3 +2747,33 @@ Every item the report carries SHALL also carry the shared report contract's per-
   currently verifiable) and reports the deferral only where the condition is demonstrably satisfied; a newer published
   version alone does not satisfy a condition requiring compatibility, adoption, or support, and where external
   verification is unavailable or inconclusive it states no conclusion rather than turning the gap into an expiry claim
+
+### Requirement: Adopting process components use the declared bindings
+
+An adopting process component SHALL resolve its process bindings through `docs/contracts/process-bindings.md`, which
+owns the binding rules: the six roles, the read routes, the role-not-string rule, the missing-binding stop, and the
+non-adopter trace. This requirement states the capability outcome and the scenarios below; the contract owns the rules.
+
+#### Scenario: An adopting component resolves a binding
+
+- **WHEN** an adopting component needs a declared role — the review ledger, the lifecycle, the review gate, the
+  workspace record, the change artifacts, or the prior finding instances
+- **THEN** it reads the declaration for the role's value, reads the referenced owner, and uses the role's own contract
+  rather than restating it
+
+#### Scenario: A renamed binding still resolves
+
+- **WHEN** a target's declaration names a different path or heading for a role, and its own artifacts carry those names
+- **THEN** the adopting component resolves the role through the declaration and preserves its obligations, without
+  editing the component
+
+#### Scenario: A missing binding stops the operation
+
+- **WHEN** a required binding is missing, ambiguous, or semantically incompatible with the role
+- **THEN** the component stops the affected operation and reports the specific dependency; it does not invent a value,
+  delete the obligation, or weaken its policy
+
+#### Scenario: A non-adopter is named
+
+- **WHEN** a component does not adopt the bindings
+- **THEN** the unit's consumer trace names it as a non-adopter, so the consumer set is explicit rather than inferred

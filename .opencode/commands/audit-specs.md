@@ -26,8 +26,9 @@ Run the spec-corpus audit, which reports only — it never edits a file.
 
 - Report generation and applying are separate: the applying is a unit of its own.
 - A spec edit is itself a change, so every accepted fix routes through an OpenSpec change carrying a delta spec, with
-  the main spec synced only at archive — never as a direct main-spec edit. `AGENTS.md`'s "Workflow: Author a spec delta
-  and archive" owns the procedure.
+  the main spec synced only at archive — never as a direct main-spec edit. The spec-delta workflow the bindings declare
+  (`docs/contracts/process-bindings.md`) owns the procedure, and a declaration that names none stops the unit rather
+  than being inferred.
 - Run the full per-unit review gate over the result. The `review-gate` skill owns its steps, including the
   reviewer-session preflight; this command points at it rather than restating it.
 

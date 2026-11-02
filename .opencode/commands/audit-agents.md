@@ -30,10 +30,11 @@ Run the agent-tooling audit, which reports only — it never edits a file.
 **Applying approved findings**
 
 - Report generation and applying are separate: the applying is a unit of its own, never a continuation of this run.
-- Route each finding by its kind. `AGENTS.md`'s "Workflow: Author a spec delta and archive" owns the spec route (a delta
-  now, the main spec only at archive); a docs correction is a docs unit; and a command or subagent-definition change
-  that alters spec-covered behavior goes through the normal change workflow with that capability's delta — the route
-  this audit's definition findings take, never a docs edit.
+- Route each finding by its kind. The spec-delta workflow the bindings declare (`docs/contracts/process-bindings.md`)
+  owns the spec route (a delta now, the main spec only at archive), and a declaration that names none stops the unit
+  rather than being inferred; a docs correction is a docs unit; and a command or subagent-definition change that alters
+  spec-covered behavior goes through the normal change workflow with that capability's delta — the route this audit's
+  definition findings take, never a docs edit.
 - Run the full per-unit review gate over the result. The `review-gate` skill owns its steps, including the
   reviewer-session preflight; this command points at it rather than restating it.
 

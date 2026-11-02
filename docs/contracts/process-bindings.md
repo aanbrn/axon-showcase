@@ -19,6 +19,7 @@ analysis.
 | workspace-record       | the unit's `tasks.md` `Workspace:` record, else the hand-off or report and the pull-request checklist                            | the workspace rule (`AGENTS.md`, "Workflow: Change lifecycle")                                       |
 | change-artifacts       | `openspec/changes/<change>/`                                                                                                     | the OpenSpec change directory and its schema                                                         |
 | process-defect-records | `docs/process-defects/<unit>.md`                                                                                                 | the record's field set (`AGENTS.md`, "Workflow: Record process defects")                             |
+| spec-delta             | `AGENTS.md`, the "Workflow: Author a spec delta and archive" heading                                                             | the spec-delta-and-archive workflow                                                                  |
 | prior-findings         | the prior review round's report, preserved in the `Resume checkpoint`'s "Findings no record holds" field or the review hand-over | the review-gate handover rule                                                                        |
 
 ## The consumer trace
@@ -32,10 +33,10 @@ reason, so the set is explicit rather than inferred.
 | `.opencode/agent/lesson-capture.md`                | review-ledger, change-artifacts, process-defect-records                                   |
 | `.opencode/agent/review-quick.md`                  | review-ledger, process-defect-records                                                     |
 | `.opencode/commands/apply-audit-reductions.md`     | lifecycle                                                                                 |
-| `.opencode/commands/audit-agents.md`               | lifecycle                                                                                 |
-| `.opencode/commands/audit-architecture.md`         | lifecycle                                                                                 |
+| `.opencode/commands/audit-agents.md`               | lifecycle, spec-delta                                                                     |
+| `.opencode/commands/audit-architecture.md`         | lifecycle, spec-delta                                                                     |
 | `.opencode/commands/audit-readme.md`               | lifecycle                                                                                 |
-| `.opencode/commands/audit-specs.md`                | lifecycle                                                                                 |
+| `.opencode/commands/audit-specs.md`                | lifecycle, spec-delta                                                                     |
 | `.opencode/commands/diagram.md`                    | lifecycle, review-gate                                                                    |
 | `.opencode/commands/flag-process-defect.md`        | lifecycle, review-gate, process-defect-records                                            |
 | `.opencode/commands/generalize-process-defects.md` | lifecycle, process-defect-records                                                         |

@@ -48,3 +48,14 @@ explicit exceptions — the lesson destinations and recurrence routing among the
   not a spec delta.
 - The boundary record's other crossings keep their dispositions: destinations explicit, `docs/guidance-evidence/` and
   the audit reference recorded as incompatibilities.
+
+## Amendment — 2026-11-02
+
+The role list grows by one, and this amendment records it without reopening the Decision.
+
+- **`spec-delta`** joins the list: the "Workflow: Author a spec delta and archive" heading in `AGENTS.md`, owned by that
+  workflow, adopted by the three audit commands that route a finding's spec change through it. It satisfies ADR-0026's
+  role-not-string rule — the declaration binds a location or an authority, not a string — and the declaration's table,
+  not this decision, owns how many roles exist.
+- The **Decision**'s sentence "The role list is seven." no longer holds and is superseded: read the declaration's table
+  for the count.

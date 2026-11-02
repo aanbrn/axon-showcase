@@ -2275,6 +2275,7 @@
 2026-11-02	inventory-process-reuse-dependencies	11	wording,claim-missing	wording,claim-missing	2	ses_e63da5355ffefe9sJdVA7J4lFW	continued	-
 2026-11-02	inventory-process-reuse-dependencies	12	claim-unreproducible	claim-unreproducible	1	ses_e63da5355ffefe9sJdVA7J4lFW	continued	-
 2026-11-02	inventory-process-reuse-dependencies	13	-	-	0	ses_e63da5355ffefe9sJdVA7J4lFW	continued	-
+2026-11-02	adopt-spec-delta-role	1	contradiction,missing-task,docs-residue,claim-unreproducible,claim-missing,single-sourcing	-	8	ses_e6345cf0affeAuQ5EdJUWqe350	created	-
 2026-11-02	verify-workspace-record	1	incomplete-enumeration,missing-task,impact-omission,missing-scenario,claim-missing,over-claim,claim-unreproducible	-	8	ses_e63f24d38ffe4sDIkte55czUq1	created	-
 2026-11-02	verify-workspace-record	2	contradiction,claim-unreproducible	claim-unreproducible	4	ses_e63f24d38ffe4sDIkte55czUq1	continued	-
 2026-11-02	verify-workspace-record	3	contradiction,dropped-content	contradiction	2	ses_e63f24d38ffe4sDIkte55czUq1	continued	-
@@ -2298,3 +2299,9 @@
 2026-11-02	verify-workspace-record	21	-	-	0	ses_e63f24d38ffe4sDIkte55czUq1	continued	-
 2026-11-02	verify-workspace-record	22	claim-unreproducible	claim-unreproducible	1	ses_e63f24d38ffe4sDIkte55czUq1	continued	-
 2026-11-02	verify-workspace-record	23	-	-	0	ses_e63f24d38ffe4sDIkte55czUq1	continued	-
+2026-11-02	adopt-spec-delta-role	2	contradiction,missing-task,claim-unreproducible,claim-missing,coherence	contradiction,missing-task,claim-unreproducible,claim-missing	6	ses_e6345cf0affeAuQ5EdJUWqe350	continued	-
+2026-11-02	adopt-spec-delta-role	3	claim-unreproducible,over-claim	claim-unreproducible	3	ses_e6345cf0affeAuQ5EdJUWqe350	continued	-
+2026-11-02	adopt-spec-delta-role	4	-	-	0	ses_e6345cf0affeAuQ5EdJUWqe350	continued	-
+2026-11-02	adopt-spec-delta-role	5	coherence	coherence	1	ses_e6345cf0affeAuQ5EdJUWqe350	continued	-
+2026-11-02	adopt-spec-delta-role	6	coherence	coherence	2	ses_e6345cf0affeAuQ5EdJUWqe350	continued	-
+2026-11-02	adopt-spec-delta-role	7	-	-	0	ses_e6345cf0affeAuQ5EdJUWqe350	continued	-

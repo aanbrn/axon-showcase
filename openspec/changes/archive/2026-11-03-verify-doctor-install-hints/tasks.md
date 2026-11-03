@@ -109,6 +109,7 @@ Workspace:
 
 ## 9. The archive
 
-- [ ] 9.1 Confirm in the archive commit that the delta's block reached
-      `openspec/specs/showcase/quality/toolchain-check/spec.md`, that no `## Purpose` edit is needed, and that the
-      archived `tasks.md` carries the unit's `Workspace:` record.
+- [x] 9.1 Confirmed in the archive commit: the sync applied `~ 1 modified` to
+      `openspec/specs/showcase/quality/toolchain-check/spec.md`, widening the check scenario to name the install-text
+      agreement and changing nothing else (the Purpose included), and the archived `tasks.md` carries the unit's
+      `Workspace:` record.

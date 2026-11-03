@@ -72,8 +72,9 @@ declares — so a probe silently changing class, or failing to reach the code, f
 #### Scenario: The check runs in the build and asserts the declaration
 
 - **WHEN** the build's default verification runs
-- **THEN** the check asserts the declaration's shape, that the diagnostic reports every declared probe, and the set's
-  agreement with the README and the spec's required set — without requiring a network, a container, or an installed
+- **THEN** the check asserts the declaration's shape, that the diagnostic reports every declared probe, the set's
+  agreement with the README and the spec's required set, and that each documented probe's install hint equals the README
+  install column's cell for every platform the README covers — without requiring a network, a container, or an installed
   prerequisite
 
 ### Requirement: The diagnostic distinguishes required from optional prerequisites

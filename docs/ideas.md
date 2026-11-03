@@ -269,9 +269,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   the title from the event payload — and its justification is drift rather than the rule's absence: add it when merged
   titles repeatedly leave the shape, where the pull-request list, the squash subject, and the generated release notes
   are the surfaces that would show it.
-- Assert per platform that the doctor's install hint agrees with the README's Prerequisites column: the spec already
-  requires the agreement and `test-doctor.sh` asserts only that a hint exists, so the check plus the wording
-  reconciliation across the probe set — parked; no change yet.
 - Verify the worktree workspace rule on the first two real parallel units — parked; verification pending.
   `adopt-worktree-isolation` adds the rule and its recorded preflight, but the practical test needs two parallel units,
   which exist only after it lands. Completion:

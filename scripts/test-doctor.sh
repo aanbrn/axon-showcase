@@ -85,12 +85,13 @@ readme_rows=$(sed -n '/^### Prerequisites/,/^### Get the Sources/p' "$readme" |
 [ -n "$readme_rows" ] || fail "no README Prerequisites rows matched — the extraction pattern is stale"
 
 # Maps each README row to the probe(s) it documents — the README's own authority, and the anchor the declaration is
-# validated against (so a probe cannot erase its documentation by declaring itself undocumented). One row may document
-# two probes. A row with no mapping is an error.
+# validated against (so a probe cannot erase its documentation by declaring itself undocumented). A row with no mapping
+# is an error; a row documenting several probes would return each key.
 readme_to_probe() {
     case "$1" in
     "Java 21+") echo "java" ;;
-    "Docker & Compose") echo "docker compose" ;;
+    "Docker") echo "docker" ;;
+    "Compose") echo "compose" ;;
     "actionlint") echo "actionlint" ;;
     '`pack` CLI') echo "pack" ;;
     "Helm 4.x") echo "helm" ;;
@@ -137,14 +138,126 @@ EOF
     fi
 done
 
+# The documented platforms: the README's install columns, mapped to the doctor's platform tokens. Derived from the
+# table's own header rather than restated, so a column cannot be documented without being compared, and a label the
+# mapping does not know fails rather than being skipped.
+readme_platform() {
+    case "$1" in
+    "Install (macOS)") echo "macos" ;;
+    "Install (Debian/Ubuntu)") echo "debian" ;;
+    *) echo "" ;;
+    esac
+}
+
+readme_header=$(sed -n '/^### Prerequisites/,/^### Get the Sources/p' "$readme" | grep -E '^\| Tool ' | head -n 1)
+[ -n "$readme_header" ] || fail "no README Prerequisites header matched — the extraction pattern is stale"
+platforms=""
+install_columns=""
+while IFS= read -r entry; do
+    [ -n "$entry" ] || continue
+    index=${entry%%:*}
+    label=$(printf '%s' "${entry#*:}" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+    case "$label" in
+    Tool | "Needed for") continue ;;
+    esac
+    pl=$(readme_platform "$label")
+    [ -n "$pl" ] || fail "README install column '$label' has no platform mapping in scripts/test-doctor.sh"
+    platforms="$platforms $pl"
+    install_columns="$install_columns $pl:$index"
+done <<EOF
+$(printf '%s\n' "$readme_header" | awk -F'|' '{ for (i = 2; i < NF; i++) print i ":" $i }')
+EOF
+[ -n "$platforms" ] || fail "the README Prerequisites table carries no install column — the agreement has no subject"
+
 # Each declared `tool` probe must carry an install hint for every documented platform — a hint dropped for one platform
 # cannot pass on the other's presence. A `state` step has no install command by nature and is exempt.
 for key in $probe_keys; do
     [ "$(probe_field "$key" 3)" = "tool" ] || continue
-    for pl in macos debian; do
+    for pl in $platforms; do
         grep -qE "^[[:space:]]*${pl}:${key}\) echo \"[^\"]" "$doctor" ||
             fail "declared tool probe '$key' has no install hint for platform '$pl'"
     done
+done
+
+# Each documented row's install cells, one "<row>|<platform>|<cell>" line per cell. The escaped pipe protects a pipe a
+# command itself carries, so the table's own delimiter is not confused with it; the marker is restored when the cell is
+# read. The header and the delimiter row carry no bolded tool name, so they are not rows.
+readme_cells=$(sed -n '/^### Prerequisites/,/^### Get the Sources/p' "$readme" |
+    awk -v columns="$install_columns" '
+        BEGIN {
+            count = split(columns, pair, " ")
+            for (i = 1; i <= count; i++) {
+                split(pair[i], parts, ":")
+                platform[parts[1]] = parts[2]
+            }
+        }
+        {
+            line = $0
+            gsub(/\\\|/, "__PIPE__", line)
+            split(line, cells, "|")
+        }
+        /^\|[[:space:]]*\*\*/ {
+            name = cells[2]
+            sub(/^[[:space:]]*\*\*/, "", name)
+            sub(/\*\*.*$/, "", name)
+            for (pl in platform) print name "|" pl "|" cells[platform[pl]]
+        }')
+[ -n "$readme_cells" ] || fail "no README install cells matched — the extraction pattern is stale"
+
+# A cell's text: the README's markdown removed, so it is comparable with the doctor's plain hint. Backticks are
+# presentation, the escaped-pipe marker stands for the literal pipe the hint carries, and a run of spaces is one space
+# on both surfaces.
+install_cell_text() {
+    printf '%s\n' "$1" |
+        sed -e 's/__PIPE__/|/g' \
+            -e 's/`//g' \
+            -e 's/^[[:space:]]*//' \
+            -e 's/[[:space:]]*$//' \
+            -e 's/[[:space:]][[:space:]]*/ /g'
+}
+
+# The doctor's own install-hint function, run per (platform, probe) rather than restated here — the hint is read from
+# its owner, the way the declaration's shape and the floor comparison are.
+hint_rules=$(sed -n '/^install_hint()/,/^}/p' "$doctor")
+[ -n "$hint_rules" ] || fail "could not extract install_hint from $doctor — the documented guidance is gone"
+declared_hint() {
+    printf '%s\nplatform=%s\ninstall_hint %s\n' "$hint_rules" "$1" "$2" | sh
+}
+
+# The two predicates the agreement stands on, each driven on fixtures in the CONTROLS group: the hint and the cell's
+# text must be the same text (not a prefix, substring, or case-insensitive match), and the compared set must cover every
+# documented probe. Without that, a weakened comparison passes every live pair and the check proves nothing.
+hint_agrees() {
+    [ "$1" = "$2" ]
+}
+covers_documented_probe() {
+    printf '%s\n' "$1" | grep -qx "$2"
+}
+
+# The agreement itself: for every row, platform, and probe the row documents, the doctor's hint must BE the cell's text
+# — not a paraphrase of it — because the requirement puts the README's install column in the reference position, so the
+# cell is canonical and the hint follows it.
+compared=""
+while IFS='|' read -r row pl cell; do
+    [ -n "$row" ] || continue
+    text=$(install_cell_text "$cell")
+    for p in $(readme_to_probe "$row"); do
+        compared="$compared $p"
+        hint=$(declared_hint "$pl" "$p")
+        hint_agrees "$hint" "$text" ||
+            fail "the doctor's install hint for '$p' on $pl is '$hint', but the README row '$row' carries '$text'"
+    done
+done <<EOF
+$readme_cells
+EOF
+compared_keys=$(printf '%s\n' $compared | sort -u)
+[ -n "$compared_keys" ] || fail "the install-hint agreement compared no pair — the extraction yielded nothing"
+# Coverage: every documented probe must be one of the compared pairs, so a row the extraction stops seeing narrows the
+# check visibly rather than silently.
+for key in $probe_keys; do
+    [ "$(probe_field "$key" 4)" = "yes" ] || continue
+    covers_documented_probe "$compared_keys" "$key" ||
+        fail "probe '$key' is declared readme=yes but the install-hint agreement never compared it"
 done
 
 # The required set: the probes declared `required` must be exactly the prerequisites of the default build-and-test path.
@@ -218,6 +331,44 @@ expect_floor() {
     fi
     [ "$verdict" = "$2" ] || fail "the declaration's validator answered '$verdict' for floor '$1', expected '$2'"
 }
+# The cell normalizer the agreement compares through: the README's markdown is presentation, so backticks go, the
+# escaped-pipe marker becomes the literal pipe the doctor's hint carries, and a run of spaces is one space. A changed
+# word must not normalize away, or the comparison cannot tell agreement from a near miss.
+expect_cell_text() {
+    got=$(install_cell_text "$1")
+    [ "$got" = "$2" ] || fail "install_cell_text gave '$got' for '$1', expected '$2'"
+}
+expect_cell_text '`brew install helm`' 'brew install helm'
+expect_cell_text '  kind,   minikube  ' 'kind, minikube'
+expect_cell_text 'curl a __PIPE__ bash' 'curl a | bash'
+
+# The agreement predicate: an equal pair agrees, and every weakening the comparison must not accept is a case here — the
+# drift this change repaired (a cell carrying one command more than its hint), a changed word, a case-only difference,
+# and an empty hint — so a comparison weakened to a substring, prefix, or case-insensitive match fails here rather than
+# passing every pair the live table happens to contain.
+expect_hint_agreement() {
+    if hint_agrees "$1" "$2"; then verdict=agree; else verdict=differ; fi
+    [ "$verdict" = "$3" ] || fail "hint_agrees answered '$verdict' for '$1' against '$2', expected '$3'"
+}
+expect_hint_agreement 'brew install helm' 'brew install helm' agree
+expect_hint_agreement 'sudo apt install docker.io' 'sudo apt install docker.io docker-compose-v2' differ
+expect_hint_agreement 'brew install helm' 'brew install helmX' differ
+expect_hint_agreement 'Brew install helm' 'brew install helm' differ
+expect_hint_agreement 'brew install helm' '' differ
+
+# The coverage predicate: a documented probe in the compared set is covered, and one missing from it is not.
+expect_coverage() {
+    if covers_documented_probe "$1" "$2"; then verdict=covered; else verdict=missing; fi
+    [ "$verdict" = "$3" ] || fail "covers_documented_probe answered '$verdict' for '$2', expected '$3'"
+}
+expect_coverage 'compose
+docker' compose covered
+expect_coverage 'docker' compose missing
+# A probe key that is a prefix of a compared one, and one that differs only by case, are both misses: the predicate
+# matches a whole key, not a substring of the compared set.
+expect_coverage 'docker-daemon' docker missing
+expect_coverage 'Docker' docker missing
+
 expect_floor "" valid
 expect_floor 21 valid
 expect_floor 3.12 valid

@@ -110,24 +110,24 @@ claims already resolved — the merged-PR boundary facts (the search's count, ea
 previous retrospective's file), the archived changes scoped to the window's commits, `AGENTS.md`'s line,
 top-level-bullet, and `captured:` metrics at HEAD and just before each `since`-date PR (so the window's baseline is read
 off the first counted PR), each `captured:` marker added since the window start with its introducing commit, and the
-window's review rounds from `docs/review-rounds.tsv` — its round count, the classes raised, and the compliance-miss
-count stated for the window proper (the rows dated after the `since` date) beside the `since`-inclusive figures, with
-the classes normalized to the reviewer's canonical vocabulary so a label recorded before that vocabulary landed compares
-with the ones that follow it, each class counted once per round that raised it regardless of how many of that round's
-labels normalized to it and stated as a round occurrence rather than a share of the compliance-miss count, and a label
-no normalization yields a class for reported as unmapped rather than passed through silently, whether a pre-canonical
-mapping yields none or a post-boundary label names none the list carries, with an unreadable canonical list stated as
-unestablished with its reason beside the pairs it could state, never silently as none, and the block still printed with
-the post-boundary labels counted as classes and the command still exiting successfully — and the process-defect records
-the window's commits touched, as an index naming each record file with its incident headings and stating the unique-file
-count, the incident-heading count, the revision the index was derived at, the files the `since` date's own commits
-touched, a selected path absent at that revision rather than dropping it, and an empty selection as such rather than
-leaving it blank, so the boundary is resolvable and a record's body can be read — so the retrospective is written around
-derived facts rather than re-deriving them by hand. The retrospective SHALL group shipped PRs by theme, summarize
-lessons learned, and record went-well/went-wrong observations. Each improvement suggestion SHALL be classified as a
-system suggestion (addressed via `docs/ideas.md` or an OpenSpec proposal) or a process suggestion (addressed via
-`AGENTS.md` or a subagent definition). The agent SHALL propose the retrospective and suggestions without editing files;
-the main agent verifies and applies them.
+window's review rounds from `docs/units/<unit>/rounds.tsv` — its round count, the classes raised, and the
+compliance-miss count stated for the window proper (the rows dated after the `since` date) beside the `since`-inclusive
+figures, with the classes normalized to the reviewer's canonical vocabulary so a label recorded before that vocabulary
+landed compares with the ones that follow it, each class counted once per round that raised it regardless of how many of
+that round's labels normalized to it and stated as a round occurrence rather than a share of the compliance-miss count,
+and a label no normalization yields a class for reported as unmapped rather than passed through silently, whether a
+pre-canonical mapping yields none or a post-boundary label names none the list carries, with an unreadable canonical
+list stated as unestablished with its reason beside the pairs it could state, never silently as none, and the block
+still printed with the post-boundary labels counted as classes and the command still exiting successfully — and the
+process-defect records the window's commits touched, as an index naming each record file with its incident headings and
+stating the unique-file count, the incident-heading count, the revision the index was derived at, the files the `since`
+date's own commits touched, a selected path absent at that revision rather than dropping it, and an empty selection as
+such rather than leaving it blank, so the boundary is resolvable and a record's body can be read — so the retrospective
+is written around derived facts rather than re-deriving them by hand. The retrospective SHALL group shipped PRs by
+theme, summarize lessons learned, and record went-well/went-wrong observations. Each improvement suggestion SHALL be
+classified as a system suggestion (addressed via `docs/ideas.md` or an OpenSpec proposal) or a process suggestion
+(addressed via `AGENTS.md` or a subagent definition). The agent SHALL propose the retrospective and suggestions without
+editing files; the main agent verifies and applies them.
 
 Beyond grouping the shipped work, the retrospective SHALL trace each significant failure it reports to a root cause and
 name the earliest development stage at which the problem could reasonably have been prevented or detected — drawing the
@@ -153,8 +153,8 @@ outcome expected, and how that outcome would be verified, so a later window can 
   window's commits with the `since`-date dirs named for the same resolution, `AGENTS.md`'s line, top-level-bullet, and
   `captured:` metrics at HEAD and just before each `since`-date PR (so the window's baseline is read off the first
   counted PR), each `captured:` marker added since the window start with its introducing commit, the window's review
-  rounds from `docs/review-rounds.tsv` — its round count, the classes raised, and the compliance-miss count for the
-  window proper stated beside the `since`-inclusive figures, with the classes normalized to the reviewer's canonical
+  rounds from `docs/units/<unit>/rounds.tsv` — its round count, the classes raised, and the compliance-miss count for
+  the window proper stated beside the `since`-inclusive figures, with the classes normalized to the reviewer's canonical
   vocabulary, each class counted once per round that raised it, and any label no normalization yields a class for
   reported as unmapped — and the process-defect records the window's commits touched, as an index naming each record
   file with its incident headings and stating its unique-file and incident-heading counts, the revision it was derived

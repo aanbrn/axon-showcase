@@ -3,7 +3,7 @@
 Workspace:
 `unit=split-the-review-ledger; path=/Users/afanasyev/Development/axon-showcase; branch=split-the-review-ledger; writer=ses_e5fa0fb2dffe0pwcgRMG3WCl2N`
 
-State: active
+State: closed
 
 The unit's plan and tasks live in `openspec/changes/split-the-review-ledger/`.
 

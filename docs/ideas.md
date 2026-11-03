@@ -27,11 +27,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
 
 ## 2026-11-03
 
-- Keep a unit's review hand-off in `docs/units/<unit>/` — parked; no change yet. A hand-off is written in the change
-  directory (`review-handover.md`), as one archived change does, and leaves with the archive. The finding instances a
-  round produces now live at `docs/units/<unit>/findings/round-<N>.md`, so this entry's surviving subject is the wider
-  hand-over document — the unit's identity, revisions, artifacts, scope, completed checks, and limitations — which has
-  no per-unit home. It waits for a use the instances store cannot serve. Surfaced while splitting the review ledger.
 - Move the process-defect records into `docs/units/<unit>/` — parked; no change yet. `docs/process-defects/<unit>.md` is
   already per-unit, so the move buys physical locality with `unit.md` at the cost of one file per unit — some named with
   a date inside the unit's name rather than as a suffix — and retargeting every live namer of the directory:

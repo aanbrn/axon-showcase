@@ -78,9 +78,9 @@ Workspace:
 
 ## 9. The archive
 
-- [ ] 9.1 Confirm in the archive commit that the delta's block reached
-      `openspec/specs/showcase/quality/commit-hygiene/spec.md`, that no `## Purpose` edit is needed, and that the
-      archived `tasks.md` carries the unit's `Workspace:` record.
+- [x] 9.1 Confirmed in the archive commit: the delta's block reached
+      `openspec/specs/showcase/quality/commit-hygiene/spec.md` (the requirement and its seven scenarios), no `## Purpose`
+      edit was needed, and the archived `tasks.md` carries the unit's `Workspace:` record.
 
 ## Resume checkpoint
 

@@ -20,3 +20,6 @@
   it in words. No other artifact carried the mistake.
 - **Knowledge boundary** — verified from the source that the gate honours an escaped pipe and from the README that such
   a row passes; did not check whether the naive-split-and-rejoin pattern appears in other scripts of this repository.
+
+- **Decision** — no-change: the `Formatting` convention already requires escaping a table cell's pipe, and
+  `verifyTableRows` now fails the shape.

@@ -18,6 +18,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed in this session. The owner's intent behind the widened requirement is read from the
   requirement itself and from the question that followed it; it was not stated separately.
 
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-11-03 entry, which states the spec-amendment
+  vehicle for the ordering this record reports.
+
 ### discover-paused-units#2 — a scripted replacement reported success while it changed nothing
 
 - **Recorded** — 2026-11-03, the main agent.
@@ -31,3 +34,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — one extra review round; the rows were re-derived and reproduce.
 - **Knowledge boundary** — observed in this session. Whether the same pattern recurs elsewhere in the unit was not
   checked beyond the review rounds' reports.
+
+- **Decision** — no-change: the edit-verification rule already requires the anchor's occurrence count before a scripted
+  replacement, since `str.replace` returns its input unchanged.

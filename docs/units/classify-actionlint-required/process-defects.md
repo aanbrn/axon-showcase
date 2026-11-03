@@ -17,3 +17,6 @@
   declaration read, and the corrected run is what `tasks.md` 5.2 cites.
 - **Knowledge boundary** — observed in this tree, on this unit; did not survey the repository's scripts or documents for
   the same pipeline-status pattern elsewhere.
+
+- **Decision** — no-change: the CI rule ("never a pipeline's exit code") and `check-and-test-authoring`'s sink-status
+  clause already require reading the subject's own status.

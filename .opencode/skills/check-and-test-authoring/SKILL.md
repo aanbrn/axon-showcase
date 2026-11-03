@@ -94,6 +94,17 @@ nothing.
   widen-config-probe-to-guidance captured: enforce-web-ui-naming-conventions captured: check-toolchain-prerequisites
   captured: retry-the-actionlint-download
 
+- **A control that mutates its subject restores it from a snapshot taken before the mutation, and verifies the restored
+  content against that snapshot before reading the outcome.** This extends the mode above to a control that mutates a
+  subject it must keep, rather than only reading it: take the snapshot first and never mutate the snapshot — mutate the
+  subject, or a working copy made from it, so the restore always has an untouched source; after restoring, diff the
+  subject against the snapshot rather than grepping for one token, since a restore that reinstated the mutation is
+  indistinguishable from the control's expected failure, and a found token does not establish that the subject is back.
+  A disposable fixture the control discards owes no restore. Confirmed by `fix-idea-search-root-splitting#2`, where the
+  control took the fixed script as its snapshot and mutated that snapshot, so its restore put the mutated variant back
+  over the fix and the loss surfaced only from a closing grep; the mode's confirmation is the control's expected failure
+  observed beside the restored content matching the snapshot. captured: fix-idea-search-root-splitting
+
 ## A verification step must discriminate the edit from its absence
 
 - **A verification command recorded in a task or checklist is a check: its result must differ between the unedited and

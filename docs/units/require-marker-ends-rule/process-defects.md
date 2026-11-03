@@ -25,6 +25,9 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   same shape occurs in the other three guidance files' moves, which were run with the fixed script and whose per-file
   marker counts were compared before and after.
 
+- **Decision** — no-change: the programmatic-edit rule already requires deriving a range's end from the item's own
+  boundary and verifying every moved span by absence at its source.
+
 ### require-marker-ends-rule#2 — A new module constant was shadowed by a later definition in the same file
 
 - **Recorded**: 2026-11-03, by the writing session.
@@ -40,3 +43,6 @@ Process defects observed while working this change. Recorded under `AGENTS.md`'s
   design's scan had found. Nothing remains broken.
 - **Knowledge boundary**: observed — the duplicate definition, the block dump, and the corrected count. Not checked —
   whether other constants in the module are shadowed the same way.
+
+- **Decision** — no-change: no prose rule is proposed — a repeated top-level binding is a check's subject, and the one
+  occurrence was caught by the design's expected block count.

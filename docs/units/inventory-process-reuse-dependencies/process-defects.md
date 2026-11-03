@@ -26,3 +26,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed: the round sequence, the classes and the corrections. Assumed: that the stated forms
   now cover the forms the tree uses, which the last review could not establish either. Not checked: whether another
   component uses a form none of the six names.
+
+- **Decision** — no-change: the single-sourcing rule already states that an enumeration repeated at many sites cannot be
+  proven complete by any grep, read, or sweep.

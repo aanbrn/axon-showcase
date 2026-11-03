@@ -20,6 +20,9 @@
   earlier exploratory queries in this unit carry the same parse defect: the remaining figures came from SQL aggregates
   rather than from split text, and the chat-reported figures are not repository artifacts.
 
+- **Decision** — proposed: applied as the machine-readable-output clause that replaces the git-only remedy in the
+  parsed-output rule (`-z` for git paths, `-json` for `sqlite3` rows).
+
 ### record-ast-grep-skill-usage#2 — Verification lines quoted values later steps changed
 
 - **Recorded** — 2026-11-02, by the recording agent, session `ses_e6433f957ffeeYNmGp54kGNMxQ`.
@@ -52,3 +55,6 @@
   readiness check and the full gate on the new base.
 - **Knowledge boundary** — observed in this session from those commands' output. The ledger preserves finding classes,
   not the instances, and no elapsed cost was measured.
+
+- **Decision** — no-change: the point-in-time-count rule already forbids pinning a count the next append moves; the
+  ledger-row half is parked in the `docs/ideas.md` 2026-10-22 wrapper entry, whose reopening condition is not met.

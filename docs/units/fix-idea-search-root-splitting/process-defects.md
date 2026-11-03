@@ -20,6 +20,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed these two outputs. Assume the difference is the interactive shell's handling of
   unquoted parameter expansion, which was not read from its documentation or probed further; did not try other shells.
 
+- **Decision** — no-change: the wrong-resolution-context rule already covers it ("The binary is part of that context");
+  the advisor declined an interpreter clause as a restatement of that obligation.
+
 ### fix-idea-search-root-splitting#2 — A negative control mutated its own restore point
 
 - **Recorded** — 2026-11-03, by the writing session (`ses_e6185b401ffe8Ig0AYWmY1TigN`), during the implementation.
@@ -37,3 +40,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   closing grep.
 - **Knowledge boundary** — observed this sequence. Did not check whether any other verification in the same batch read
   the mutated tree; the suite run after the mutation failed as the control intended.
+
+- **Decision** — proposed: applied as `check-and-test-authoring`'s restore-from-snapshot bullet, which verifies the
+  restored content against the pre-mutation snapshot instead of a token grep.

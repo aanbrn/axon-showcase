@@ -19,3 +19,7 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed: the four sites and their correction. Assumed: that the fixture's heading-shaped
   statement of the rule is why the error read as plausible. Not checked: whether the other declared roles' values all
   name existing anchors in the form they have.
+
+- **Decision** — no-change: `docs/contracts/process-bindings.md` already requires reading the referenced owner before
+  relying on its contract, and the value named a bullet `AGENTS.md` states under its own heading — an
+  instruction-following failure against that rule, corrected in the declaration.

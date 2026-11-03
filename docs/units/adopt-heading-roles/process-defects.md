@@ -20,3 +20,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed: both sweeps' file lists and the wrapped line. Assumed: that no other file wraps a
   heading reference in a way neither pattern reaches. Not checked: a corpus-wide scan for patterns split across three or
   more lines.
+
+- **Decision** — no-change: the `### Evidence and search` rule already records that a phrase `spotlessApply` split
+  across a line break returns zero, and that a pattern is proved on a known positive before its zero is read.

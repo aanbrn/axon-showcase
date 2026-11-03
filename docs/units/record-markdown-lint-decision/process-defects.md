@@ -22,6 +22,9 @@
   on `HEAD`'s copies of `doctor.sh`, `frontend-conventions.gradle.kts` and `build.gradle.kts`. Not checked whether a
   later rule or option covers internal whitespace runs, nor whether any other unattended path probes Node.
 
+- **Decision** — no-change: the tool-behavior-claims rule already requires verifying a claim against the tool before
+  stating it to the owner as the basis for a decision.
+
 ### record-markdown-lint-decision#2 — Two tool runs were compared across different corpus snapshots
 
 - **Recorded** — 2026-11-02, by the writing session (`ses_e6624962affe45N9fuDQCsRc09`), during the review stage.
@@ -40,6 +43,9 @@
 - **Knowledge boundary** — observed in this unit's own outputs. Not checked whether probe counts in other units were
   taken over the same kind of moving tree.
 
+- **Decision** — no-change: the comparison rule already requires isolating the varied dimension before attributing a
+  difference between two runs.
+
 ### record-markdown-lint-decision#3 — A review round's ledger row was not appended when its report arrived
 
 - **Recorded** — 2026-11-02, by the writing session (`ses_e6624962affe45N9fuDQCsRc09`), during the review stage.
@@ -56,3 +62,6 @@
   `--expect-clean` passed after the clean round 6.
 - **Knowledge boundary** — observed here. Not checked whether earlier units' ledgers carry the same gap, which the
   contiguity guard passes silently.
+
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-10-22 reviewer-wrapper entry, whose reopening
+  condition is not met (no `Acknowledged gap` row after 2026-10-22 states the unrecoverable fields).

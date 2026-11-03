@@ -17,6 +17,9 @@
   rounds are recorded before the merge, which the ledger appends show. Not checked: whether a future unit could record a
   round on the landing day after the merge, which the exemption would still cover.
 
+- **Decision** — no-change: the archived design's Decision 2 already chose the last-exempt-day boundary for this case;
+  the advisor rejected a universal first-date rule as unsupported by that evidence.
+
 ### persist-review-round-findings#2 — the instances check read a round it could not parse as a failure
 
 - **Recorded** — 2026-11-03, the agent (session `ses_e5fa0fb2dffe0pwcgRMG3WCl2N`).
@@ -32,3 +35,6 @@
 - **Knowledge boundary** — observed: the traceback and the passing suite after the change. Assumed: the uniqueness check
   is the owner of the parse failure, which its mode already reports. Not checked: whether another caller of
   `record_data_rows` needs the same tolerance.
+
+- **Decision** — no-change: the record reports a local reader mismatch, repaired in the same pass, and labels the
+  parse-failure ownership an assumption; one occurrence, caught by its own suite.

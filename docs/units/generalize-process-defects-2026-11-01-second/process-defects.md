@@ -19,6 +19,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed both scans' output and the corpus's field form. Not checked: whether another record
   field has a second accepted spelling in the corpus, which a single-form pattern would under-match the same way.
 
+- **Decision** — no-change: the under-match rule already requires proving a pattern on a known positive before reading
+  its zero.
+
 ### generalize-process-defects-2026-11-01-second#2 — An append guard's "already decided" test matched a quoted literal
 
 - **Recorded** — 2026-11-01, by the writing session, while appending the `Decision` lines.
@@ -34,3 +37,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   record to disk before moving to the next.
 - **Knowledge boundary** — observed the abort message and the grep count; did not test whether the same substring test
   misfires on any other record in the corpus.
+
+- **Decision** — no-change: the same rule already requires anchoring a check to the shape the subject emits, not to the
+  bare name.

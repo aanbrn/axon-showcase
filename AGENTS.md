@@ -1937,7 +1937,7 @@ task or report, or concluding the cause of a Gradle failure.
   reported — anchor to the report line's own form (`^  <key> `) and prove the pattern against the subject's real output.
   A parsed command's output is a third under-match source: `git ls-files -s` C-quotes any path holding non-ASCII bytes
   (`"caf\303\251.sh"`, `core.quotePath` defaulting on), so a `.endswith(".sh")` filter silently skips it and the check
-  reports a clean set it never examined — pass `-z` to any git command whose paths you parse (NUL-delimited and
+  reports a clean set it never examined — take the tool's machine-readable form (`-z` for git paths, NUL-delimited and
   unquoted) and keep a positive-control test with a non-ASCII path. Deriving the record shape is not enough: a `-z` fix
   that must skip a field git emits _beside_ the path (a rename's old name) placed the skip **inside** the branch that
   tests the record, so the neighbour state that never enters it — a clean rename, `R ` with no worktree edit — leaked
@@ -1950,7 +1950,7 @@ task or report, or concluding the cause of a Gradle failure.
   modules reference it, and no positive instance of the searched spelling exists to anchor a control — search the
   accessor form too. captured: address-snyk-advisories-2026-10-16 captured: make-captured-rules-traceable (#279)
   captured: add-conflict-marker-and-executable-bit-checks captured: quote-safe-git-path-parsing captured:
-  declare-probes-with-shape-and-behavioural-checks
+  declare-probes-with-shape-and-behavioural-checks captured: record-ast-grep-skill-usage
 
 - **A derivation whose failure maps onto the benign outcome reads as a clean result — never map its failure there.**
   `buildpackUpdates` (like `helmUpdates`) maps a failed lookup to "no update", so a wrongly-built URL or renamed

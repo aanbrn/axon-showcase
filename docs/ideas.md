@@ -172,14 +172,17 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   was English, and whether asking for a non-English report needs its own clause, remain part of this entry's
   investigation.
 
-## 2026-10-26
+## 2026-11-03
 
-- Freeze a unit's resume checkpoint at the resume — parked; no change yet. `.opencode/skills/pause-resume-unit/SKILL.md`
-  defines the checkpoint's field set but never says it stops being maintained once the unit resumes, so a checkpoint
-  written for a pause stays live afterwards, restates state that `docs/review-rounds.tsv` and the task list own, and
-  drifts: `correct-subagent-reload-rule`'s drifted twice before it was frozen as a dated snapshot pointing at the live
-  records. The contract should say that resuming is the act that freezes it, and that each field names the artifact
-  owning its state rather than restating it. Surfaced by that unit's capture.
+- Move the review-round ledger into the units' directories — parked; no change yet. `docs/review-rounds.tsv` is one
+  append-only file for every unit, and `docs/units/<unit>/` now exists as each unit's own home (ADR-0029). A per-unit
+  ledger would put a unit's rounds beside its record and avoid a shared append across parallel worktrees, but the move
+  is a wide one: its readers are `commit-hygiene`'s four checks, `review-rounds.py`, `review-routing.py`, the review
+  gate, and the bindings, and the file's contract carries exception lines and format boundaries. A full split must keep
+  every row and its order within the unit, the acknowledgements, and the aggregate and routing results, with the global
+  file retired rather than kept beside the new ones. Surfaced while designing the unit record.
+
+## 2026-10-26
 
 - Gate the guidance-evidence pairing instead of leaving it to the audit — parked; no change yet. A rule can lose its
   `evidence:` token, or a record section its rule, with no gate failing: `verifyCapturedMarkers` enforces marker

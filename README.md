@@ -448,11 +448,14 @@ whether it consumed included usage or additional credits. See
 
 - **Proposing and applying changes**: the `opsx-*` commands scaffold a change (proposal, design, tasks, spec delta),
   implement it, and prepare it for review.
-- **Pausing and resuming a unit**: `/pause-unit` records the unit's `Resume checkpoint` and ends the turn — nothing is
-  committed, stashed, or torn down, so a laptop can close mid-unit, and the agent takes this route itself when it judges
-  it cannot reliably continue the session instead of asking you to confirm each next step; `/resume-unit` continues it
-  later, from that session or a new one, verifying the recorded and live state, handing the writer role over, and
-  restoring whatever the unit was waiting on.
+- **Pausing and resuming a unit**: `/pause-unit` records the unit's `Resume checkpoint` in its record at
+  `docs/units/<unit>/unit.md` and ends the turn — nothing is committed, stashed, or torn down, so a laptop can close
+  mid-unit, and the agent takes this route itself when it judges it cannot reliably continue the session instead of
+  asking you to confirm each next step; the pause report hands you `/resume-unit <unit>`. `/resume-unit` continues it
+  later, from that session or a new one: the named unit is resolved across the repository's worktrees, and a bare
+  invocation finds the paused units itself, continuing the only one and offering you the choice when there are several.
+  Either way it verifies the recorded and live state, hands the writer role over, and restores whatever the unit was
+  waiting on.
 - **Code review**: every unit is auto-reviewed after its proposal and after its implementation; the quick-review loop is
   a bounded screen that repeats until it finds nothing new. After implementation one routing decision selects a deep
   `review-thorough` pass — required, recommended for an explicit resolution, or not needed — and a manual
@@ -608,7 +611,7 @@ is handed to the next unit and never removed.
 | `/check-tooling`              | Checks whether this machine has the prerequisites (Java, Docker, Python, and the optional tools)                                                                                                  |
 | `/review-thorough`            | Deep risk-routed review of a change (the review gate's routing decision, or this explicit run)                                                                                                    |
 | `/pause-unit`                 | Records the current unit's `Resume checkpoint` and ends the turn: no commit, stash, push, or teardown                                                                                             |
-| `/resume-unit`                | Continues an unfinished unit: verifies the available state, hands the writer role over, restores what it awaited                                                                                  |
+| `/resume-unit [unit]`         | Continues an unfinished unit — by name, or the only paused unit it finds, or a choice among several: verifies the available state, hands the writer role over, restores what it awaited           |
 | `/consult`                    | Asks the technical advisor for an independent recommendation on a question, the current objective, or the next step                                                                               |
 | `/audit-agents`               | Audits the project-owned agent tooling for drift, duplication, and the always-loaded instruction budget (pro-model auditor)                                                                       |
 | `/audit-specs`                | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                          |
@@ -885,7 +888,7 @@ required to verify a change; an IDE is an optional convenience for editing, debu
 
 A pre-commit guard (`scripts/git-hooks/pre-commit`) refuses a commit whose staged set is mechanically defective — a
 stale index, a misplaced `captured:` marker, an `openspec archive` move without its spec sync, an unticked task in an
-archived change, a change's `tasks.md` without a valid workspace record, an emptied dated ideas section or a removed
+archived change, a unit record or a `tasks.md` reference that is missing or malformed, an emptied dated ideas section
 ideas file, a change directory that is not the commit's own, and the rest of the set its own header and `AGENTS.md`'s
 staging gotcha enumerate. Several of its checks have build-side counterparts in `./gradlew check` — `spotlessCheck` for
 the formatter, `verifyCapturedMarkers`, `verifyConflictMarkers`, `verifyTrackedIgnoredFiles` for the force-staged

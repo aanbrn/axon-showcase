@@ -21,8 +21,11 @@ Source: `AGENTS.md` "Workflow: Ship a change (CI → archive → merge)".
    so carry its sections and its title rule yourself.
 2. Wait for the `build` check to be green.
 3. Archive the change (move the change directory and sync the main spec) as an additional commit in the _same_ pull
-   request.
-4. Merge once. The archive — the declaration that a change is done — always follows CI, never precedes it.
+   request. That commit also sets the unit record's `State: closed`, because a write after the merge cannot reach the
+   branch it merges; a unit without a change directory sets it in its final commit instead.
+4. Merge once. The archive — the declaration that a change is done — always follows CI, never precedes it. A pause after
+   the archive writes nothing to the branch, because a pause commits nothing, so the archive commit's `closed` is what
+   the merge carries; a resume that continues after such a pause sets `closed` again before any further merge.
 5. Remove the unit's linked worktree, if it had one: verify no unique work remains (ignored files included), move the
    session out of the tree, run `git worktree remove <path>` without `--force`, then `git branch -D <branch>` only after
    confirming the pull request merged and no unshipped commits remain.
@@ -31,6 +34,8 @@ Source: `AGENTS.md` "Workflow: Ship a change (CI → archive → merge)".
    completed (merged, or rejected by the owner), no work of it remains (extra commits and unique local data included),
    and no writer continues, remove the claim the commit guard reads (`git rev-parse --git-path axon-showcase-change`),
    then return the tree to a clean `main` as the release's last step, and hand the directory to the next unit.
+7. IF the unit is rejected or abandoned instead of shipped, THEN set its record's `State: closed` in its own tree before
+   its branch is released: no merge carries that write, so it is local by nature and leaves the repository as it stands.
 
 ### Decision points
 

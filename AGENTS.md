@@ -310,14 +310,15 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
 - **Establish the unit's workspace before its first write.** Record it as
   `Workspace: unit=<unit>; path=<absolute-path>; branch=<branch>; writer=<ses_…>` — the writing session's own
   identifier, never a description of it and never the reviewer's identifier the ledger records. The record is evidence
-  of the assignment, not its source, and it lives with the unit's own record: its `tasks.md` when it has a change dir,
-  otherwise its hand-off or report and then the pull-request checklist. The commit guard reads a machine-readable
+  of the assignment, not its source, and every unit has exactly one, at `docs/units/<unit>/unit.md`, whichever kind of
+  unit it is (ADR-0029): it also carries the unit's state and its `Resume checkpoint`. A change's `tasks.md` holds its
+  plan and references that record; it carries no copy of the record's fields. The commit guard reads a machine-readable
   sibling of that record: the claim at `git rev-parse --git-path axon-showcase-change`, one line holding the change name
   or `none` for a unit with no change dir. It may be omitted when the branch's name is a change name — a live
   `openspec/changes/<name>/` directory or an archived `openspec/changes/archive/<date>-<name>/` one — and every other
   branch records it before its first commit, which is how a **continued** unit (an `opencode/…` branch or a head pushed
-  from elsewhere) is assigned. The standard `check` verifies a live change's record, and every archive dated from this
-  gate's introduction, so a missing or wrong one fails the pull request rather than only being noticed at a resume.
+  from elsewhere) is assigned. The standard `check` verifies every unit record, every live change's reference to it, and
+  every archive in scope, so a missing or wrong one fails the pull request rather than only being noticed at a resume.
   captured: bump-kps-chart-2026-10-25 captured: reject-a-foreign-change-dir-at-commit
 - The primary checkout carries the sequential unit. A **new** unit that finds the primary assigned to another unit — or
   whose ownership it cannot establish — works in a sibling worktree, `../axon-showcase-<unit>`, created and prepared by
@@ -1846,7 +1847,7 @@ capture-stash-stale-copy captured: override-opencode-plugin-transitives
   formatter check, force-stages a generated artifact, stages a path and then edits it, carries a merge conflict marker,
   misplaces a `captured:` marker, stages an `openspec/changes/archive/**` change dir while leaving its
   `openspec/specs/**` sync unstaged, stages a review-round ledger that fails its checks or loses a row, stages an
-  archived change's `tasks.md` with an unticked task, stages a change's `tasks.md` whose `Workspace:` record is missing,
+  archived change's `tasks.md` with an unticked task, stages a unit record or a `tasks.md` reference that is missing,
   malformed, names another unit, or names another tree, stages a `docs/ideas.md` whose dated section carries no entry or
   that the commit removes, or carries a change directory that is not the commit's assigned one — apart from a change
   path the commit's own merge accounts for, whose content is not the commit's own.

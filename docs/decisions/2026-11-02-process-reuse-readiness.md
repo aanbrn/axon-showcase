@@ -32,8 +32,8 @@ Admissible without a mechanism signal:
 Not authorized by this record: a template repository, a generator, broad extraction, a new auditor axis, an executable
 transfer kit, or a new acceptance test for transfers. The four mechanisms ADR-0025 §6 defers keep that ADR's signals,
 and ADR-0026's substitution engine keeps its own; ADR-0027 keeps its admission criterion, and the consolidation pause
-ADR-0025 records keeps its conditions. This record neither lifts nor relaxes any of them. The executable kit and the
-acceptance test are this record's own refusals, which no ADR defers.
+ADR-0025 records keeps its conditions; ADR-0025 stated that pause's scope on 2026-11-03. This record neither lifts nor
+relaxes any of them. The executable kit and the acceptance test are this record's own refusals, which no ADR defers.
 
 The broader reuse program remains the goal. This record prepares **access to the evidence**, not the program, and its
 acceptance is not an early step toward a template.

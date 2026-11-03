@@ -174,3 +174,24 @@ The pause's scope moved once more, and this amendment records it without reopeni
 - The owner lifted the pause again on 2026-11-03 by directing that the remaining candidates be taken. The lift covers
   `adopt-remaining-guidance-roles`' two roles and their two adopters and nothing else: no other parked move reopens, and
   none of §6's mechanism signals changes.
+
+## Amendment — 2026-11-03 (the pause's scope)
+
+The Context says "Unrelated parked moves remain paused", and each dated lift above repeats that no other parked move
+reopens. Those sentences need their scope stated, and the record shows why. Six lift instructions since 2026-10-31 cover
+seven units: the 2026-10-31 one for `process-core-adr` and `consolidate-governance-contracts`, then one each for
+`adopt-heading-roles`, `adopt-process-defect-records`, `adopt-spec-delta-role`, `adopt-branch-refresh-role` and
+`adopt-remaining-guidance-roles`. Two further units carried no lift record at all — `process-bindings-contract`, which
+created the declaration's roles, and `adopt-process-bindings`, which adopted a declared role in four components. No lift
+rested on the recorded resumption condition; each was the owner's explicit instruction. This amendment states the scope
+that practice has produced, so the rule describes it instead of being overridden by it:
+
+- The pause applies to **a mechanism, a portable contract, or a guidance layer this repository does not yet hold** — the
+  four mechanisms §6 names, ADR-0026's substitution engine, and any new file under `docs/contracts/`.
+- It does not apply to **adopting a binding in the declaration**: a role whose owner contract already exists, added
+  there and adopted in the named components on the evidence ADR-0027 requires, proceeds on the owner's approval of the
+  change.
+- Creating that owner contract is a new layer, and remains paused.
+
+The mechanism signals, ADR-0027's criterion and the owner's approval of each change are untouched, and this amendment
+can be reversed by the next one.

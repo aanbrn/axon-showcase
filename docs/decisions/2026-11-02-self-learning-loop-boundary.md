@@ -65,8 +65,9 @@ candidate is not widened into either:
 ## What this record does not do
 
 - It adopts nothing: the declaration is unchanged, and no component carries a new role because of this record.
-- It lifts no pause: ADR-0025's standing consolidation pause keeps its condition, and the candidate unit needs the
-  owner's resolution as its predecessors did.
+- It lifts no pause: at the time of writing ADR-0025's consolidation pause kept its condition and the candidate unit
+  needed the owner's resolution. ADR-0025's 2026-11-03 amendment later scoped that pause, leaving adoption on the
+  owner's approval.
 - It claims no portability: the loop's portability is unmeasured, and the pilot's ceiling bounds what its one target
   shows.
 

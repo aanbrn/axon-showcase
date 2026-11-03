@@ -97,28 +97,34 @@ fi
 # disposition edit selects an older incident — so the block says so. `-z` keeps a path with non-ASCII bytes intact:
 # `core.quotePath` would otherwise C-quote it and the file lookup below would miss.
 process_defect_files() {
-  git log --since="$1" --name-only --format= -z -- docs/process-defects/
+  git log --since="$1" --name-only --format= -z -- docs/process-defects/ \
+    ':(glob)docs/units/*/process-defects.md'
 }
 INDEX_REV="$(git rev-parse HEAD)"
 PD_COUNT=0
 PD_HEADINGS=0
 PD_BODY=""
-PD_PATHS=()
+PD_UNITS=()
 while IFS= read -r -d '' record; do
   case "${record}" in
-    docs/process-defects/*.md) ;;
+    docs/process-defects/*.md) unit="$(basename "${record}" .md)" ;;
+    docs/units/*/process-defects.md) unit="$(basename "$(dirname "${record}")")" ;;
     *) continue ;;
   esac
   duplicate=0
-  for existing in ${PD_PATHS[@]+"${PD_PATHS[@]}"}; do
-    if [ "${existing}" = "${record}" ]; then
+  for existing in ${PD_UNITS[@]+"${PD_UNITS[@]}"}; do
+    if [ "${existing}" = "${unit}" ]; then
       duplicate=1
       break
     fi
   done
   if [ "${duplicate}" -eq 1 ]; then continue; fi
-  PD_PATHS+=("${record}")
+  PD_UNITS+=("${unit}")
   PD_COUNT=$((PD_COUNT + 1))
+  current="docs/units/${unit}/process-defects.md"
+  if git cat-file -e "${INDEX_REV}:${current}" 2>/dev/null; then
+    record="${current}"
+  fi
   if git cat-file -e "${INDEX_REV}:${record}" 2>/dev/null; then
     headings="$(git show "${INDEX_REV}:${record}" | { grep '^### ' || true; })"
     count="$(printf '%s\n' "${headings}" | grep -c . || true)"
@@ -137,23 +143,33 @@ echo "  ${PD_COUNT} record file(s), ${PD_HEADINGS} incident heading(s) in the fi
   "record's body before citing it:"
 printf '%s' "${PD_BODY}"
 if [ "${PD_COUNT}" -eq 0 ]; then
-  echo "  (none selected: no docs/process-defects/ record changed since ${SINCE})"
+  echo "  (none selected: no process-defect record changed since ${SINCE})"
 fi
 BOUNDARY_PD=()
+BOUNDARY_UNITS=()
 while IFS= read -r -d '' record; do
   case "${record}" in
-    docs/process-defects/*.md) ;;
+    docs/process-defects/*.md) unit="$(basename "${record}" .md)" ;;
+    docs/units/*/process-defects.md) unit="$(basename "$(dirname "${record}")")" ;;
     *) continue ;;
   esac
+  current="docs/units/${unit}/process-defects.md"
+  if git cat-file -e "${INDEX_REV}:${current}" 2>/dev/null; then
+    record="${current}"
+  fi
   duplicate=0
-  for existing in ${BOUNDARY_PD[@]+"${BOUNDARY_PD[@]}"}; do
-    if [ "${existing}" = "${record}" ]; then
+  for existing in ${BOUNDARY_UNITS[@]+"${BOUNDARY_UNITS[@]}"}; do
+    if [ "${existing}" = "${unit}" ]; then
       duplicate=1
       break
     fi
   done
-  if [ "${duplicate}" -eq 0 ]; then BOUNDARY_PD+=("${record}"); fi
-done < <(git log --since="${SINCE_TS}" --until="${UNTIL_TS}" --name-only --format= -z -- docs/process-defects/)
+  if [ "${duplicate}" -eq 0 ]; then
+    BOUNDARY_UNITS+=("${unit}")
+    BOUNDARY_PD+=("${record}")
+  fi
+done < <(git log --since="${SINCE_TS}" --until="${UNTIL_TS}" --name-only --format= -z -- docs/process-defects/ \
+  ':(glob)docs/units/*/process-defects.md')
 echo "Process-defect records touched ON ${SINCE} (resolve the boundary split as above):"
 if [ "${#BOUNDARY_PD[@]}" -eq 0 ]; then
   echo "  (none)"

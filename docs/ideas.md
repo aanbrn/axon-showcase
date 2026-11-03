@@ -25,16 +25,6 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
-## 2026-11-03
-
-- Move the process-defect records into `docs/units/<unit>/` — parked; no change yet. `docs/process-defects/<unit>.md` is
-  already per-unit, so the move buys physical locality with `unit.md` at the cost of one file per unit — some named with
-  a date inside the unit's name rather than as a suffix — and retargeting every live namer of the directory:
-  `AGENTS.md`, the `agent-skills` spec, the bindings whose role value it is, `experience-analysis.sh` and its test,
-  `review-routing.py` and its test, `README.md`, ADR-0028, the pull-request template, and `openspec/config.yaml`. It
-  reopens on a confirmed retrieval problem — a record that cannot be found from its unit — or the owner's explicit
-  decision that one physical dossier is itself the required outcome. Surfaced while splitting the review ledger.
-
 ## 2026-11-01
 
 - Gate a `Decision` line's link with a check — parked; no change yet. The generalization workflow requires `proposed`
@@ -163,16 +153,16 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   selected.
 
   **Reopened 2026-11-01** — the condition is met. The offending excerpt: an owner-visible reply in Japanese,
-  "PR 開きました …", to an owner request made in Russian (`docs/process-defects/bump-kps-chart-2026-11-01.md#2`); the
-  owner's own report of it: "Это что за иероглифы?". The applicable instruction state: #713's widened convention was in
-  effect (`a4da4287`, 2026-10-27 — the `AGENTS.md` bullet and the `agent-skills` scenarios). The record does not retain
-  the triggering request's text, only its language; that gap is stated rather than filled. The direction is unchanged —
-  investigate compliance before proposing another wording expansion.
+  "PR 開きました …", to an owner request made in Russian (`docs/units/bump-kps-chart-2026-11-01/process-defects.md#2`);
+  the owner's own report of it: "Это что за иероглифы?". The applicable instruction state: #713's widened convention was
+  in effect (`a4da4287`, 2026-10-27 — the `AGENTS.md` bullet and the `agent-skills` scenarios). The record does not
+  retain the triggering request's text, only its language; that gap is stated rather than filled. The direction is
+  unchanged — investigate compliance before proposing another wording expansion.
 
   **Second instance, 2026-11-01** — the same condition on the delegation path. The owner's request was Russian; the
   hand-off to a subagent asked for an owner-facing report in Russian; the subagent answered in Russian, and the two
   owner-visible messages that relayed it were English. The evidence is
-  `docs/process-defects/record-approval-scope-defect.md#6`, which carries those languages and points at the turn's
+  `docs/units/record-approval-scope-defect/process-defects.md#6`, which carries those languages and points at the turn's
   stored messages; the hand-off's own text and language are not reproduced in the repository, so the excerpt this
   entry's retention clause asks for stays with that record. The applicable instruction state: `AGENTS.md`'s
   output-language convention and the `agent-skills` requirement that defers to it — the scenarios making a delegation

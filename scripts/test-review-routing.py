@@ -129,7 +129,7 @@ class RecordOnlyTests(unittest.TestCase):
 
     def test_a_record_set_with_the_ledger_is_record_only(self):
         self.assertTrue(
-            review_routing.record_only(["docs/process-defects/a.md", LEDGER], LEDGER)
+            review_routing.record_only(["docs/retrospectives/a.md", LEDGER], LEDGER)
         )
 
     def test_an_empty_set_is_not_record_only(self):
@@ -137,19 +137,19 @@ class RecordOnlyTests(unittest.TestCase):
 
     def test_a_supporting_json_beside_a_record_keeps_normal_routing(self):
         self.assertFalse(
-            review_routing.record_only(["docs/process-defects/a.md", "docs/process-defects/data.json"], LEDGER)
+            review_routing.record_only(["docs/retrospectives/a.md", "docs/retrospectives/data.json"], LEDGER)
         )
 
     def test_a_markdown_file_outside_the_record_directories_keeps_normal_routing(self):
         self.assertFalse(review_routing.record_only(["docs/ideas.md"], LEDGER))
 
     def test_a_code_path_renamed_from_a_record_directory_keeps_normal_routing(self):
-        both = ["docs/process-defects/a.md", "src/Record.md"]
+        both = ["docs/retrospectives/a.md", "src/Record.md"]
         self.assertFalse(review_routing.record_only(both, LEDGER))
 
     def test_a_record_renamed_between_record_directories_is_record_only(self):
         self.assertTrue(
-            review_routing.record_only(["docs/process-defects/a.md", "docs/retrospectives/a.md"], LEDGER)
+            review_routing.record_only(["docs/retrospectives/a.md", "docs/load-tests/a.md"], LEDGER)
         )
 
     def test_a_load_test_record_is_record_only(self):
@@ -161,6 +161,9 @@ class RecordOnlyTests(unittest.TestCase):
 
     def test_a_unit_round_record_is_record_only(self):
         self.assertTrue(review_routing.record_only(["docs/units/u/rounds.tsv"], LEDGER))
+
+    def test_a_unit_process_defects_record_is_record_only(self):
+        self.assertTrue(review_routing.record_only(["docs/units/u/process-defects.md"], LEDGER))
 
     def test_a_unit_record_beside_its_rounds_keeps_normal_routing(self):
         self.assertFalse(review_routing.record_only(["docs/units/u/rounds.tsv", "docs/units/u/unit.md"], LEDGER))
@@ -180,11 +183,11 @@ class ChangedPathTests(unittest.TestCase):
         with mock.patch.object(
             review_routing,
             "_git",
-            return_value="C100\0src/note.md\0docs/process-defects/note.md",
+            return_value="C100\0src/note.md\0docs/retrospectives/note.md",
         ):
             self.assertEqual(
                 review_routing._changed_paths(Path("."), "HEAD"),
-                ["src/note.md", "docs/process-defects/note.md"],
+                ["src/note.md", "docs/retrospectives/note.md"],
             )
 
     def test_a_truncated_status_is_a_failure(self):
@@ -230,7 +233,7 @@ class FloorTests(unittest.TestCase):
 
     def test_a_record_only_diff_with_repeats_is_not_needed_and_reports_the_exemption(self):
         outcome, signals = review_routing.floor(
-            ["docs/process-defects/a.md", LEDGER],
+            ["docs/retrospectives/a.md", LEDGER],
             [],
             [],
             rows((CHANGE, "wording"), (CHANGE, "wording")),
@@ -241,7 +244,7 @@ class FloorTests(unittest.TestCase):
 
     def test_a_record_beside_a_code_path_stays_recommended(self):
         outcome, _ = review_routing.floor(
-            ["docs/process-defects/a.md", "scripts/x.py"],
+            ["docs/retrospectives/a.md", "scripts/x.py"],
             [],
             [],
             rows((CHANGE, "wording"), (CHANGE, "wording")),
@@ -251,7 +254,7 @@ class FloorTests(unittest.TestCase):
 
     def test_a_record_beside_a_mandatory_path_is_required(self):
         outcome, signals = review_routing.floor(
-            ["docs/process-defects/a.md", "helm/values/x.yaml"],
+            ["docs/retrospectives/a.md", "helm/values/x.yaml"],
             [],
             [],
             rows((CHANGE, "wording"), (CHANGE, "wording")),
@@ -362,7 +365,7 @@ class CliTests(unittest.TestCase):
 
     def test_a_record_only_run_is_not_needed_and_reports_the_exemption(self):
         repo = self.scratch(self.repeated("u"))
-        self.record(repo, "docs/process-defects/new.md")
+        self.record(repo, "docs/retrospectives/new.md")
 
         status, out = self.run_tool(repo, "--unit", "u")
 
@@ -376,8 +379,8 @@ class CliTests(unittest.TestCase):
         self.record(repo, "src/note.md")
         self.git(repo, "add", "src/note.md")
         self.git(repo, "commit", "-q", "-m", "src")
-        (repo / "docs" / "process-defects").mkdir(parents=True, exist_ok=True)
-        self.git(repo, "mv", "src/note.md", "docs/process-defects/note.md")
+        (repo / "docs" / "retrospectives").mkdir(parents=True, exist_ok=True)
+        self.git(repo, "mv", "src/note.md", "docs/retrospectives/note.md")
 
         status, out = self.run_tool(repo, "--unit", "u")
 
@@ -387,11 +390,11 @@ class CliTests(unittest.TestCase):
 
     def test_a_record_renamed_between_record_directories_is_not_needed(self):
         repo = self.scratch(self.repeated("u"))
-        self.record(repo, "docs/process-defects/note.md")
-        self.git(repo, "add", "docs/process-defects/note.md")
+        self.record(repo, "docs/retrospectives/note.md")
+        self.git(repo, "add", "docs/retrospectives/note.md")
         self.git(repo, "commit", "-q", "-m", "record")
-        (repo / "docs" / "retrospectives").mkdir(parents=True, exist_ok=True)
-        self.git(repo, "mv", "docs/process-defects/note.md", "docs/retrospectives/note.md")
+        (repo / "docs" / "load-tests").mkdir(parents=True, exist_ok=True)
+        self.git(repo, "mv", "docs/retrospectives/note.md", "docs/load-tests/note.md")
 
         status, out = self.run_tool(repo, "--unit", "u")
 
@@ -401,10 +404,10 @@ class CliTests(unittest.TestCase):
 
     def test_a_deleted_record_is_still_record_only(self):
         repo = self.scratch(self.repeated("u"))
-        self.record(repo, "docs/process-defects/old.md")
-        self.git(repo, "add", "docs/process-defects/old.md")
+        self.record(repo, "docs/retrospectives/old.md")
+        self.git(repo, "add", "docs/retrospectives/old.md")
         self.git(repo, "commit", "-q", "-m", "record")
-        self.git(repo, "rm", "-q", "docs/process-defects/old.md")
+        self.git(repo, "rm", "-q", "docs/retrospectives/old.md")
 
         status, out = self.run_tool(repo, "--unit", "u")
 
@@ -414,7 +417,7 @@ class CliTests(unittest.TestCase):
 
     def test_a_non_ascii_record_path_is_classified(self):
         repo = self.scratch(self.repeated("u"))
-        self.record(repo, "docs/process-defects/запись.md")
+        self.record(repo, "docs/retrospectives/запись.md")
 
         status, out = self.run_tool(repo, "--unit", "u")
 
@@ -424,7 +427,7 @@ class CliTests(unittest.TestCase):
 
     def test_a_dot_prefixed_ledger_is_recognised(self):
         repo = self.scratch(self.repeated("u"))
-        self.record(repo, "docs/process-defects/a.md")
+        self.record(repo, "docs/retrospectives/a.md")
 
         status, out = self.run_tool(repo, "--unit", "u", "--ledger", "./docs/units")
 
@@ -434,7 +437,7 @@ class CliTests(unittest.TestCase):
 
     def test_an_absolute_ledger_is_recognised(self):
         repo = self.scratch(self.repeated("u"))
-        self.record(repo, "docs/process-defects/a.md")
+        self.record(repo, "docs/retrospectives/a.md")
 
         status, out = self.run_tool(repo, "--unit", "u", "--ledger", str(repo / "docs" / "units"))
 
@@ -445,7 +448,7 @@ class CliTests(unittest.TestCase):
     def test_a_custom_ledger_is_the_path_the_run_reads(self):
         repo = self.scratch([])
         self.record(repo, "ledgers/rounds.tsv", "\n".join("\t".join(r) for r in self.repeated("u")) + "\n")
-        self.record(repo, "docs/process-defects/a.md")
+        self.record(repo, "docs/retrospectives/a.md")
 
         status, out = self.run_tool(repo, "--unit", "u", "--ledger", "ledgers/rounds.tsv")
 
@@ -455,7 +458,7 @@ class CliTests(unittest.TestCase):
 
     def test_a_malformed_ledger_fails_on_a_record_only_set(self):
         repo = self.scratch([["2026-01-01", "u"]])
-        self.record(repo, "docs/process-defects/a.md")
+        self.record(repo, "docs/retrospectives/a.md")
 
         status, out = self.run_tool(repo, "--unit", "u")
 

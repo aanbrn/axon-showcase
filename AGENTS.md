@@ -482,8 +482,8 @@ one.
 
 **Procedure**
 
-1. Keep one file per unit, `docs/process-defects/<unit>.md` — `<unit>` is the change name, or a slug naming the work for
-   a unit with no change dir — and append one record at a time.
+1. Keep one file per unit, `docs/units/<unit>/process-defects.md` — `<unit>` is the change name, or a slug naming the
+   work for a unit with no change dir — and append one record at a time.
 2. Give each record its own heading, `### <unit>#<n> — <title>`, numbered within the file, and fill it:
    - `Recorded` — the date and who recorded it;
    - `Stage` — proposal, implementation, review, ship, or merge;
@@ -518,8 +518,8 @@ one.
 **Failure handling** — a defect noticed mid-edit is written at the next boundary: do not interrupt the edit for it, and
 do not defer it to the end of the unit, where it competes with shipping.
 
-**Completion criteria** — `docs/process-defects/<unit>.md` exists and reflects what the unit observed, or states that it
-observed none.
+**Completion criteria** — `docs/units/<unit>/process-defects.md` exists and reflects what the unit observed, or states
+that it observed none.
 
 ### Workflow: Generalize process defects
 
@@ -535,7 +535,7 @@ the owner's decision, and no queue or drain guarantee exists.
    destinations, the retirement candidates, and the authoring-system recommendations — is the `agent-skills`
    requirement's, and neither this file nor the command restates it.
 4. Apply the proposals the owner approves in this unit, and keep the unit's own findings in its own
-   `docs/process-defects/<unit>.md` like any other unit's.
+   `docs/units/<unit>/process-defects.md` like any other unit's.
 5. Append one `Decision` line to every analyzed record — `no-change` with its reason, `proposed` with a link, or
    `shipped` with a merged pull request's link. A link to an open pull request is `proposed`, never `shipped`, and a
    record with no `Decision` line is unanalyzed, which is how a later pass finds it.
@@ -1367,14 +1367,14 @@ Key modules (libraries, not services):
   `review-quick` work and the `lesson-capture` analysis. Trigger it with the `/retrospective` OpenCode command (or run
   it manually): the command gathers the digest with `./scripts/experience-analysis.sh [since]` (merged PRs, git log,
   archived changes, AGENTS.md gotchas, docs/ideas.md, a derived-facts block carrying the window's countable claims
-  already resolved, and an index of the `docs/process-defects/` records the window's commits touched), then the subagent
-  returns a retrospective (shipped PRs by theme, lessons, went-well/went-wrong, each significant failure's root cause
-  and earliest prevention stage, and the previous retrospective's recommendations evaluated) and improvement suggestions
-  classified as `system` (→ docs/ideas.md or a proposal) or `process` (→ AGENTS.md or a subagent definition), each
-  stating the pattern it targets and how its outcome would be verified, which the main agent verifies and applies.
-  Retrospectives land in `docs/retrospectives/<date>.md` as a docs change. It is deliberately **not** in the scheduled
-  `audit` workflow — unlike the three audits, a retrospective is a judgment about a _period_ whose richest input is
-  session-only, so it stays on demand (the `agent-skills` spec records why).
+  already resolved, and an index of the `docs/units/*/process-defects.md` records the window's commits touched), then
+  the subagent returns a retrospective (shipped PRs by theme, lessons, went-well/went-wrong, each significant failure's
+  root cause and earliest prevention stage, and the previous retrospective's recommendations evaluated) and improvement
+  suggestions classified as `system` (→ docs/ideas.md or a proposal) or `process` (→ AGENTS.md or a subagent
+  definition), each stating the pattern it targets and how its outcome would be verified, which the main agent verifies
+  and applies. Retrospectives land in `docs/retrospectives/<date>.md` as a docs change. It is deliberately **not** in
+  the scheduled `audit` workflow — unlike the three audits, a retrospective is a judgment about a _period_ whose richest
+  input is session-only, so it stays on demand (the `agent-skills` spec records why).
 - **Agents-auditor subagent for agent-tooling maintenance**: the `agents-auditor` subagent
   (`.opencode/agent/agents-auditor.md`) audits the project-owned agent tooling — `AGENTS.md`, the project-authored
   `.opencode/` files, `docs/guidance-evidence/`, and `docs/contracts/` — for the drift an accretion-only set produces:

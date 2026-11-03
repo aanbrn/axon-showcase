@@ -13,7 +13,7 @@ set -euo pipefail
 # Requires Python 3.12+ (the build's declared minimum) and a Gradle-compatible JDK on PATH.
 
 PLUGIN_IDS=("palantir-java-format" "com.facebook.ktfmt_idea_plugin")
-search_roots="$(printf '%s' "${IDEA_SEARCH_ROOTS-$HOME/Applications:/Applications:$HOME:/opt}" | tr ':' ' ')"
+IFS=: read -r -a search_roots <<<"${IDEA_SEARCH_ROOTS-$HOME/Applications:/Applications:$HOME:/opt}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 idea_config_dir=""
@@ -73,20 +73,22 @@ find_idea() {
         done
     fi
     local root app script
-    for root in $search_roots; do
-        for app in "$root"/IntelliJ\ IDEA*.app/Contents/MacOS/idea; do
-            if [ -x "$app" ]; then
-                echo "$app"
-                return
-            fi
+    if [ "${#search_roots[@]}" -gt 0 ]; then
+        for root in "${search_roots[@]}"; do
+            for app in "$root"/IntelliJ\ IDEA*.app/Contents/MacOS/idea; do
+                if [ -x "$app" ]; then
+                    echo "$app"
+                    return
+                fi
+            done
+            for script in "$root"/idea*/bin/idea.sh; do
+                if [ -x "$script" ]; then
+                    echo "$script"
+                    return
+                fi
+            done
         done
-        for script in "$root"/idea*/bin/idea.sh; do
-            if [ -x "$script" ]; then
-                echo "$script"
-                return
-            fi
-        done
-    done
+    fi
     for launcher in idea idea.sh idea64.exe; do
         if command -v "$launcher" >/dev/null 2>&1; then
             command -v "$launcher"

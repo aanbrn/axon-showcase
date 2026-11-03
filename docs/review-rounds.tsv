@@ -2332,3 +2332,7 @@
 2026-11-03	verify-doctor-install-hints	10	-	-	0	ses_e61672f4dffeGtrP5WXXp7TbeU	continued	-
 2026-11-03	scope-the-consolidation-pause	3	-	-	0	ses_e61463b9affe8NQWg6qAm7dryW	continued	-
 2026-11-03	scope-the-consolidation-pause	4	-	-	0	ses_e61463b9affe8NQWg6qAm7dryW	continued	-
+2026-11-03	fix-idea-search-root-splitting	1	claim-unreproducible,test-control,over-claim,wording,claim-missing	-	3	ses_e61729c8affeceqZLfjt4mPsdx	created	-
+2026-11-03	fix-idea-search-root-splitting	2	stale-base,claim-unreproducible,claim-missing,test-control,wording	claim-unreproducible,claim-missing,test-control,wording	3	ses_e61729c8affeceqZLfjt4mPsdx	continued	-
+2026-11-03	fix-idea-search-root-splitting	3	stale-base,claim-unreproducible,contradiction,claim-missing	stale-base,claim-unreproducible,claim-missing	3	ses_e61729c8affeceqZLfjt4mPsdx	continued	-
+2026-11-03	fix-idea-search-root-splitting	4	-	-	0	ses_e61729c8affeceqZLfjt4mPsdx	continued	-

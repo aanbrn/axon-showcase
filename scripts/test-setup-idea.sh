@@ -57,6 +57,14 @@ run_wrapper() {
         bash "$tree/scripts/setup-idea.sh" "$@" >"$tree/out.log" 2>&1
 }
 
+run_wrapper_with_search_roots() {
+    tree="$1"
+    roots="$2"
+    shift 2
+    HOME="$tree/home" IDEA_HOME="" IDEA_SEARCH_ROOTS="$roots" PATH="$tree/bin:/usr/bin:/bin:/usr/sbin:/sbin" \
+        bash "$tree/scripts/setup-idea.sh" "$@" >"$tree/out.log" 2>&1
+}
+
 check_module_written() {
     tree="$1"
     if [ ! -f "$tree/.idea/python/scripts.iml" ]; then
@@ -337,6 +345,33 @@ grep -q "needs a path" "$tree/out.log" || fail "an empty option value was not re
 if [ -f "$tree/launcher.log" ]; then
     fail "an empty option value fell back to a search and installed plugins"
 fi
+
+tree="$(new_tree discovery-root-with-space)"
+write_config "$tree"
+mkdir -p "$tree/space root/IntelliJ IDEA.app/Contents/MacOS"
+cp "$tree/stub-idea" "$tree/space root/IntelliJ IDEA.app/Contents/MacOS/idea"
+chmod +x "$tree/space root/IntelliJ IDEA.app/Contents/MacOS/idea"
+if run_wrapper_with_search_roots "$tree" "$tree/space root" --idea-config-dir "$tree/ideaconf"; then
+    :
+else
+    fail "a search root containing a space exited non-zero"
+fi
+grep -q "installPlugins" "$tree/launcher.log" 2>/dev/null ||
+    fail "a search root containing a space was split, so the launcher was not found"
+
+tree="$(new_tree discovery-middle-root)"
+write_config "$tree"
+mkdir -p "$tree/roots/middle/IntelliJ IDEA.app/Contents/MacOS"
+cp "$tree/stub-idea" "$tree/roots/middle/IntelliJ IDEA.app/Contents/MacOS/idea"
+chmod +x "$tree/roots/middle/IntelliJ IDEA.app/Contents/MacOS/idea"
+if run_wrapper_with_search_roots "$tree" \
+    "$tree/roots/first:$tree/roots/middle:$tree/roots/last" --idea-config-dir "$tree/ideaconf"; then
+    :
+else
+    fail "a colon-separated list of search roots exited non-zero"
+fi
+grep -q "installPlugins" "$tree/launcher.log" 2>/dev/null ||
+    fail "a colon-separated list of search roots was not read as separate roots"
 
 if [ "$failures" -ne 0 ]; then
     echo "$failures check(s) failed" >&2
